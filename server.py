@@ -2,7 +2,7 @@ from flask import Flask,render_template, request, redirect, url_for, jsonify, js
 import flask
 import urllib
 from IPI_tools import compensation
-from IPI_tools.compenstaion import get_PCA
+from IPI_tools.compensation import get_PCA
 from IPI_tools.plot_methods import get_corr_matrix
 import numpy as np
 import os
@@ -28,9 +28,15 @@ def route_json():
             pca_mat = np.array(input['matrix'])
             pca_fracs, pca_Wt = get_PCA(pca_mat)
             return flask.jsonify(var_vec=pca_fracs.tolist(),vectors=pca_Wt.tolist())
+        
         if input_request['params']['method'] == 'correlation':
             corr_mat = get_corr_matrix(input_request)
-            return flask.jsonify(corr_mat=corr_mat)                 
+            return flask.jsonify(corr_mat=corr_mat)
+        
+        if input_request['params']['method'] == 'density':
+            density_plots = get_density_plot_data(input_request)
+            return flask.jsonify(density_plots=density_plots)      
+        
         return flask.jsonify(error='Method not found:'+request.form['json_text']), 422
 
     except Exception:
