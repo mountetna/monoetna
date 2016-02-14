@@ -3,7 +3,7 @@ import flask
 import urllib
 from IPI_tools import compensation
 from IPI_tools.compensation import get_PCA
-from IPI_tools.plot_methods import get_corr_matrix
+from IPI_tools.plot_methods import get_corr_matrix, get_density_plot_data
 import numpy as np
 import os
 import sys
