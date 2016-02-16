@@ -102,11 +102,11 @@ def get_density_plot_data(input_request):
             mask = ~np.isnan(population)
             density = gaussian_kde(population[mask],bw_method = bandwidth / population[mask].std(ddof=1))
             xs = np.linspace(0,1)
-            item_dict['x_y_values'] = zip(xs,density(xs))
-            #item_dict['density'] = density(xs).tolist()
+            item_dict['x_values'] = xs.tolist()
+            item_dict['density'] = density(xs).tolist()
             item_dict['count'] = len(population[mask])
             density_array.append(item_dict)
-        density_array = np.resize(density_array,(rows,50))    
+
     density_plots_array.append(density_array)    
     
     response_output ={} 
@@ -115,7 +115,7 @@ def get_density_plot_data(input_request):
         response_output['series'].append({'name':s['name'],'key':s['key'],'matrix':{}})
         response_output['series'][i]['matrix']['row_names'] = s['matrix']['row_names']
         response_output['series'][i]['matrix']['col_names'] = range(0,50)
-        response_output['series'][i]['matrix']['rows'] =  density_plots_array[i].tolist()
+        response_output['series'][i]['matrix']['rows'] =  density_plots_array[i]
     return response_output    
 
           
