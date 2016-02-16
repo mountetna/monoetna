@@ -3,6 +3,9 @@ from FlowCytometryTools import FCMeasurement
 import numpy as np
 from matplotlib.mlab import PCA as mlabPCA
 from matplotlib import pyplot as plt
+from scipy import stats
+import pandas as pd
+import math
 
 def get_inverse_spillover_matrix(sample):
     
@@ -43,32 +46,6 @@ def get_PCA_FCS(temp_file_path):
     hlog_comp_array = get_compensated_array(sample)
     pca_fracs,pca_Wt = get_PCA(hlog_comp_array)
     return (pca_fracs,pca_Wt)
-
-def get_r_squared_corr_matrix(sample_array, cols):
-    
-    r_squared =[]
-    columns = np.size(sample_array,1)
-    rows = np.size(sample_array,0)
-    if cols:       
-        x = np.hsplit(sample_array,columns)
-        for i in x:
-            for j in x:
-                slope, intercept, r_value, p_value, std_err = stats.linregress(i.flat,j.flat)
-                r_squared.append(r_value ** 2)
-        r_squared = np.array(r_squared)
-        r_squared = np.resize(r_squared,(columns,columns))
-        return r_squared
-    else:            
-        x = np.vsplit(sample_array,rows)
-        for i in x:
-            for j in x:
-                slope, intercept, r_value, p_value, std_err = stats.linregress(i.flat,j.flat)
-                r_squared.append(r_value ** 2)
-        r_squared = np.array(r_squared)
-        r_squared = np.resize(r_squared,(rows,rows))
-        return r_squared
-    
-    
     
 def get_eigenvalues_and_eigenvectors(sample_array):
     
@@ -80,8 +57,6 @@ def main():
     datafile= fcs_file
     sample = FCMeasurement(ID='', datafile=datafile)
     get_PCA_FCS(sample)
-    
-
     
 
 if __name__ == "__main__":

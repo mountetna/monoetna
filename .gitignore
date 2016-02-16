@@ -1,1 +1,6 @@
 *.pyc
+pythia.wsgi
+.DS_Store
+._*
+log
+*.swp

@@ -2,40 +2,46 @@ from flask import Flask,render_template, request, redirect, url_for, jsonify, js
 import flask
 import urllib
 from IPI_tools import compensation
-from IPI_tools.compensation import get_PCA_FCS, get_PCA, get_r_squared_corr_matrix
-import os
+from IPI_tools.compensation import get_PCA
+from IPI_tools.plot_methods import get_corr_matrix, get_density_plot_data
 import numpy as np
+import os
+import sys
+import traceback
 
 app = Flask(__name__)
-
+app.config.update(
+    DEBUG=True,
+    TRAP_HTTP_EXCEPTIONS=True,
+    TRAP_BAD_REQUEST_ERRORS=True
+)
 @app.route('/test/')
 def route_test():
     return flask.render_template('template.html')
 
 @app.route('/json/', methods=['POST'])
 def route_json():
-    params = json.loads(request.form['json_text'])
-    
-    #if params['method'] == 'pca-FCS':
-    #    FCSfile = urllib.URLopener()
-    #    FCSfile.retreive("http://localhost:5000/json/blah", "temp.fcs")
-    #    path = os.getcwd()
-    #    pca_fracs, pca_Wt = get_PCA_FCS(path+'/temp.fcs')
-    #    os.remove(path+'/temp.fcs')
-    #    return flask.jsonify(var_vec=pca_fracs, vectors= pca_Wt)
-    
-    if params['method'] == 'pca':
-        pca_mat = np.array(params['matrix'])
-        pca_fracs, pca_Wt = get_PCA(pca_mat)
-        return flask.jsonify(var_vec=pca_fracs.tolist(),vectors=pca_Wt.tolist())
-    if params['method'] == 'correlation':
-        corr_mat = np.array(params['matrix'])
-        cols = params['columns']
-        r_squared_mat = get_r_squared_corr_matrix(corr_mat, cols)
-              
+    try:
+
+        input_request = request.get_json(force=True)
+        if input_request['params']['method'] == 'pca':
+            pca_mat = np.array(input['matrix'])
+            pca_fracs, pca_Wt = get_PCA(pca_mat)
+            return flask.jsonify(var_vec=pca_fracs.tolist(),vectors=pca_Wt.tolist())
         
-    return flask.jsonify(error='Method not found:'+request.form['json_text']), 422
-    
-if __name__ == '__main__':
-    app.debug = True
-    app.run(host='0.0.0.0', port=5000)
+        if input_request['params']['method'] == 'correlation':
+            corr_mat = get_corr_matrix(input_request)
+            return flask.jsonify(corr_mat=corr_mat)
+        
+        if input_request['params']['method'] == 'density':
+            density_plots = get_density_plot_data(input_request)
+            return flask.jsonify(density_plots=density_plots)      
+        
+        return flask.jsonify(error='Method not found:'+request.form['json_text']), 422
+
+    except Exception:
+        type, value, tb = sys.exc_info()
+        return flask.jsonify(type=str(type),
+                             error=str(value),
+                             traceback=traceback.extract_tb(tb))
+
