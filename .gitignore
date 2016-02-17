@@ -4,3 +4,5 @@ pythia.wsgi
 ._*
 log
 *.swp
+
+python_modules
