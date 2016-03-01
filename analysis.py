@@ -13,9 +13,9 @@ def correlation(data, by_cols):
     '''
     corr_array = []  
     if by_cols:
-        x = np.hsplit(data.df, data.col_size)
+        x = np.hsplit(data.df_matrix, data.col_size)
     else:            
-        x = np.vsplit(data.df, data.row_size)           
+        x = np.vsplit(data.df_matrix, data.row_size)           
     for i in x:
         for j in x:
             mask = ~np.isnan(i) & ~np.isnan(j)
@@ -56,7 +56,7 @@ def density(data,bandwidth):
     Uses gaussian kernel density estimation to return the  x_y values and
     count (number of items used) for a density plot 
     ''' 
-    populations_array = np.vsplit(data.df,data.row_size) 
+    populations_array = np.vsplit(data.df_matrix,data.row_size) 
     density_array =[]
     for i,population in enumerate(populations_array):
         np.sort(population)
