@@ -51,11 +51,7 @@ def route_json():
             
             elif method == 'dendrogram':
                 by_cols = params['columns']
-                dendrogram = {
-                  'series': [
-                    analysis.dendrogram(data,by_cols)
-                  ]
-                }
+                dendrogram = analysis.dendrogram(data,by_cols)
                 return flask.jsonify(dendrogram=dendrogram)
                 
         

@@ -84,10 +84,13 @@ def dendrogram(data,by_cols):
     dist_mat = data.to_distance_matrix(by_cols)
     clusters = hierarchy.average(dist_mat) 
     tree = hierarchy.to_tree(clusters, rd=False)
-
+    if by_cols:
+        labels = data.col_names
+    else:
+        labels = data.row_names
     response_output = {
         'name': data.name,
         'key': data.key,
-        'dendrogram': dict_node(tree, data.row_names, 'root')
+        'tree': dict_node(tree, labels, 'root')
     }
     return response_output
