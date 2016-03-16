@@ -26,37 +26,47 @@ def route_json():
     try:
         input_request = request.get_json(force=True)
         params = input_request['params']
-        method = params['method']
-        for i, series in enumerate(input_request['input']['series']):
-
-            data = DataMatrix(series)
+        series = input_request['input']['series'][0] # assuming only 1 series
+        data = DataMatrix(series)
+        pythia_output ={}
+        for key, parameters in params.iteritems():
+            method = parameters['method']
 
             if method == 'correlation':
-                by_cols = params['columns']
+                by_cols = parameters['columns']
                 corr_mat = {
                   'series': [
                     analysis.correlation(data,by_cols)
                   ]
                 }
-                return flask.jsonify(corr_mat=corr_mat)
+                pythia_output[key] = corr_mat
             
             elif method == 'density':
-                bandwidth =params['bandwidth']
+                bandwidth =parameters['bandwidth']
                 density_plots = {
                   'series': [
                     analysis.density(data,bandwidth)
                   ]
                 }
-                return flask.jsonify(density_plots=density_plots)
+                pythia_output[key]=density_plots
             
             elif method == 'dendrogram':
-                by_cols = params['columns']
+                by_cols = parameters['columns']
                 dendrogram = analysis.dendrogram(data,by_cols)
-                return flask.jsonify(dendrogram=dendrogram)
-                
-        
-        return flask.jsonify(error='Method not found:'+request.form['json_text']), 422
+                pythia_output[key]=dendrogram
+            
+            elif method == 'z_score':
+                by_cols = parameters['columns']
+                z_mat = {
+                  'series': [
+                    analysis.z_score(data,by_cols)
+                  ]
+                }
+                pythia_output[key] = z_mat
+            else:       
+                return flask.jsonify(error='Method not found:'+request.form['json_text']), 422
 
+        return flask.jsonify(pythia_output)
     except Exception:
         type, value, tb = sys.exc_info()
         return flask.jsonify(type=str(type),

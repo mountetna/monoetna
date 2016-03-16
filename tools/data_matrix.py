@@ -23,7 +23,7 @@ class DataMatrix:
         Calculates a euclidean distance matrix and returns the upper triangle
         '''
         # compress the matrix to remove rows and cols that are all null
-        comp_df = self.df.dropna(axis=(0,1), how='all')
+        comp_df = self.df.dropna(axis=(0), how='all')
         comp_df_matrix = np.array(comp_df.as_matrix(),dtype=np.float)
         # replace nulls with median of the array
         imp = Imputer(missing_values='NaN',strategy="median",axis=1)

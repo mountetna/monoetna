@@ -49,7 +49,47 @@ def correlation(data, by_cols):
           'col_names': data.col_names if by_cols else data.row_names,
         }
     }
-    return response_output         
+    return response_output
+
+def z_score(data, by_cols):
+    '''
+    Calculate a z score matrix and returns a dict
+    with the indication name the key and a matrix of dicts with
+    z score values and count (the number of elements compared) as keys
+    '''
+    z_array = []  
+    if by_cols:
+        x = np.hsplit(data.df_matrix, data.col_size)
+    else:            
+        x = np.vsplit(data.df_matrix, data.row_size)           
+    
+    for arr in x:
+        mask = ~np.isnan(arr)
+        if len(arr[mask]) != 0:
+            z_s =stats.zscore(arr[mask])
+            arr = arr.tolist()
+            for i, elem in enumerate(arr[0]):
+                if math.isnan(elem):
+                    z_s = np.insert(z_s,i,None,axis=None)
+            z_array.append(z_s)    
+
+    #make the array into a matrix
+    z_array = np.array(z_array)
+    if by_cols:
+        z_mat = np.resize(z_array,(data.col_size,data.row_size))
+    else:
+        z_mat = np.resize(z_array,(data.row_size,data.col_size))       
+    # format output   
+    response_output = {
+        'name': data.name,
+        'key': data.key,
+        'matrix': {
+          'rows': z_mat.tolist(),
+          'row_names': data.col_names if by_cols else data.row_names,
+          'col_names': data.col_names if by_cols else data.row_names,
+        }
+    }
+    return response_output       
 
 def density(data,bandwidth):
     '''
@@ -84,6 +124,10 @@ def dendrogram(data,by_cols):
     dist_mat = data.to_distance_matrix(by_cols)
     clusters = hierarchy.average(dist_mat) 
     tree = hierarchy.to_tree(clusters, rd=False)
+    leaves = hierarchy.leaves_list(clusters)
+    leaf_labels =[]
+    for i in leaves:
+        leaf_labels.append(data.col_names[i])
     if by_cols:
         labels = data.col_names
     else:
@@ -91,6 +135,7 @@ def dendrogram(data,by_cols):
     response_output = {
         'name': data.name,
         'key': data.key,
-        'tree': dict_node(tree, labels, 'root')
+        'tree': dict_node(tree, labels, 'root'),
+        'labels': leaf_labels
     }
     return response_output
