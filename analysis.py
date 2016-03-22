@@ -78,15 +78,16 @@ def z_score(data, by_cols):
     if by_cols:
         z_mat = np.resize(z_array,(data.col_size,data.row_size))
     else:
-        z_mat = np.resize(z_array,(data.row_size,data.col_size))       
+        z_mat = np.resize(z_array,(data.row_size,data.col_size))
+    z_mat = np.where(np.isnan(z_mat), None, z_mat)    
     # format output   
     response_output = {
         'name': data.name,
         'key': data.key,
         'matrix': {
           'rows': z_mat.tolist(),
-          'row_names': data.col_names if by_cols else data.row_names,
-          'col_names': data.col_names if by_cols else data.row_names,
+          'row_names': data.row_names, 
+          'col_names': data.col_names 
         }
     }
     return response_output       
@@ -127,15 +128,16 @@ def dendrogram(data,by_cols):
     leaves = hierarchy.leaves_list(clusters)
     leaf_labels =[]
     for i in leaves:
-        leaf_labels.append(data.col_names[i])
-    if by_cols:
-        labels = data.col_names
-    else:
-        labels = data.row_names
+        if by_cols:
+            leaf_labels.append(data.col_names[i])
+        else:
+            leaf_labels.append(data.row_names[i])
+        
+    
     response_output = {
         'name': data.name,
         'key': data.key,
-        'tree': dict_node(tree, labels, 'root'),
+        'tree': dict_node(tree, leaf_labels, 'root'),
         'labels': leaf_labels
     }
     return response_output
