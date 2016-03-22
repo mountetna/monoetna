@@ -125,7 +125,6 @@ def dendrogram(data,by_cols):
     dist_mat = data.to_distance_matrix(by_cols)
     clusters = hierarchy.average(dist_mat) 
     tree = hierarchy.to_tree(clusters, rd=False)
-    leaves = hierarchy.leaves_list(clusters)
     leaf_labels =[]
     for i in leaves:
         if by_cols:
