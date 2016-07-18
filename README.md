@@ -43,7 +43,7 @@ Valid consumers of Polyphemus (authenticated via HMAC) may view these open reque
 Polyphemus replies with an acknowledgement to run:
 
     {
-      message: "go"
+      message: "go"      # or message: "pass" if the job is already running
     }
 and updates the analysis description:
 
@@ -62,8 +62,9 @@ A responsible analyst can submit a completion ticket before the due-date:
       analysis: "exome_pipe",
       name: "dt_lung_tumor_pair"
     }
+but this is only an expression of opinion prompting Polyphemus to review the situation.
 
-If the loader check passes or a completion ticket is received (or the job is canceled by the user), Polyphemus archives the analysis request.
+If the loader check passes once a completion ticket is received (or the job is canceled by the user), Polyphemus archives the analysis request.
 
 In the final event, the analyst is responsible for acquiring data and uploading it, presumably directly from/to magma, perhaps to a given data loader. Polyphemus merely catalogues and suggests (and sometimes deletes), he does not insert new data into magma.
 
