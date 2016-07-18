@@ -17,17 +17,18 @@ However, Polyphemus can coordinate the performance of any task. For example, aft
 Polyphemus publishes, at a web-accessible location, a JSON document describing the analysis. For example:
 
     {
-       analysis: "exome_pipe",
-       requester: "dr.who@ucsf.edu",
-       name: "dt_lung_tumor_pair",
-       request-date: "2016-05-04@12:22",
-       status: "new",
-       config: {
+      analysis: "exome_pipe",
+      requester: "dr.who@ucsf.edu",
+      name: "dt_lung_tumor_pair",
+      request-date: "2016-05-04@12:22",
+      status: "new",
+      config: {
         project: "dt_lung",
         inputs: [
           "blood_normal.exome",
           "tumor.exome"
-       }
+        ]
+      }
     }
 
 The format could be anything, it must only have a unique name, requester, analysis, request date and status.
