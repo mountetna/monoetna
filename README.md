@@ -1,5 +1,7 @@
 # Polyphemus
 
+![Polyphemus](/polyphemus.png?raw=true "A Hard Worker")
+
 Polyphemus was one of three Cyclops, sons of Poseidon who worked the forges at Mount Etna along with Hephaestus (Vulcan).
 
 Here Polyphemus is a data worker. He browses through [magma](https://github.com/mountetna/magma), which is constantly being updated from various sources, and looks for data which is ready to be run through one of many data loaders. Ideally he does this by consuming a journal of some sort (or being directly notified by other consumers of magma).
