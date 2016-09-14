@@ -6,8 +6,8 @@
 
 Create a machine with the user "developer" and password "developer"
 
-#### If you are only in development mode it may be handy to allow passwordless sudo
-#### Add this line near the end of the "/etc/sudoers" file
+### If you are only in development mode it may be handy to allow passwordless sudo
+### Add this line near the end of the "/etc/sudoers" file
 
   `developer ALL = (ALL) NOPASSWD: ALL`
 

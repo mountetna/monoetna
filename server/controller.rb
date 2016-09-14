@@ -12,7 +12,7 @@ class Controller
 
     signature = generate_signature(request)
 
-    if(signature != request.params['signature'])
+    if(signature != request[:params][:signature])
 
       error_message = 'The client is not authorized for this action.'
       Rack::Response.new({ success: false, error: error_message }.to_json)
@@ -33,14 +33,14 @@ class Controller
   # Hash the upload request
   def generate_signature(request)
 
-    ordered_request = Utils.generate_request(request.params)
-    signature = Utils.sign_request(ordered_request, request.params['algorithm'])
+    ordered_request = Utils.generate_request(request[:params])
+    signature = Utils.sign_request(ordered_request, request[:params][:algorithm])
   end
 
 # THIS IS A STUB FOR MAGMA
   def magma_end_point(request)
 
-    params = request.params
+    params = request[:params]
     time = Time.now.to_i
 
     request = {

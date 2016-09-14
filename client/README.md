@@ -1,4 +1,4 @@
-# The Front End for the Metis Data/File Uploader
+## The Front End for the Metis Data/File Uploader
 
 ## Dependencies, unfortunately we have dependencies.
 
@@ -57,7 +57,6 @@
   Second start up webpack to take the processed files and pack them up for 'deployment'. Of course in development we are not 'deploying' but I like to debug as if I was about to. This keeps everything consistant.
 
   `$ webpack --watch ./client/js/metis-uploader.js ./client/js/main.bundle.js`
-  `$ webpack --watch ./client/js/workers/solid-upload.js ./client/js/workers/solid-upload.bundle.js`
 
 ## NPM scripted tasks. 
 

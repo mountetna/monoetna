@@ -37,7 +37,6 @@ describe 'Integration' do
 
       ordered_request = Utils.generate_request(@request)
       request_str = Utils.stringify_request(ordered_request)
-
       expect(request_str).to eq @request_str
     end
 
@@ -45,7 +44,6 @@ describe 'Integration' do
 
       ordered_request = Utils.generate_request(@request)
       hash = Utils.sign_request(ordered_request, @request[:algorithm]);
-
       expect(hash).to eq @request_md5_hash
     end
 
@@ -53,7 +51,6 @@ describe 'Integration' do
 
       ordered_request = Utils.generate_request(@request)
       hash = Utils.sign_with_MD5(ordered_request)
-
       expect(hash).to eq @request_md5_hash
     end
 
@@ -61,7 +58,6 @@ describe 'Integration' do
 
       ordered_request = Utils.generate_request(@request)
       hash = Utils.sign_with_SHA256(ordered_request)
-
       expect(hash).to eq @request_sha256_hash
     end
   end
