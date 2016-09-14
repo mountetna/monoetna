@@ -1,0 +1,20 @@
+{
+  "name": "Metis",
+  "version": "1.0.0",
+  "description": "The Front End for the Metis Data/File Uploader",
+  "main": "./public/js/main.bundle.js",
+  "scripts": {
+    "clean": "rm -rf ./client/js/*",
+    "build": "npm run babel && npm run webpack",
+    "babel": "babel ./client/jsx --out-dir ./client/js",
+    "webpack": "webpack ./client/js/metis-uploader.js ./client/js/main.bundle.js"
+  },
+  "author": "Jason D. Cater <jason.cater@ucsf.com>",
+  "license": "ISC",
+  "dependencies": {
+    "babel-preset-es2015": "^6.14.0",
+    "babel-preset-react": "^6.11.1",
+    "react": "^15.3.1",
+    "react-dom": "^15.3.1"
+  }
+}
