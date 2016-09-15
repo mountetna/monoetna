@@ -10,14 +10,14 @@ describe 'Integration' do
     # Some dummy data for our dummy request
     @request = {
 
-      directory: '/ipi/melanoma/',
-      expires: 600,
-      algorithm: 'MD5',
-      timestamp: 1473887352,
-      type: 'solid',
-      user_email: 'jason.cater@ucsf.edu',
-      auth_token: 'f976c1a092978d1562e6bb7b16d9a873',
-      file_name: 'rand.data.64B' + '-ec65f526379d74e8e4dd60a56f37c868'
+      'directory'=> '/ipi/melanoma/',
+      'expires'=> 600,
+      'algorithm'=> 'MD5',
+      'timestamp'=> 1473887352,
+      'type'=> 'solid',
+      'user_email'=> 'jason.cater@ucsf.edu',
+      'auth_token'=> 'f976c1a092978d1562e6bb7b16d9a873',
+      'file_name'=> 'rand.data.64B' + '-ec65f526379d74e8e4dd60a56f37c868'
     }
 
     @request_str = '/ipi/melanoma/600MD51473887352solidjason.cater@ucsf.eduf976c1a092978d1562e6bb7b16d9a873rand.data.64B-ec65f526379d74e8e4dd60a56f37c868'
@@ -43,7 +43,7 @@ describe 'Integration' do
     it 'hashes a request with an chosen alorithm.' do
 
       ordered_request = Utils.generate_request(@request)
-      hash = Utils.sign_request(ordered_request, @request[:algorithm]);
+      hash = Utils.sign_request(ordered_request, @request['algorithm']);
       expect(hash).to eq @request_md5_hash
     end
 
