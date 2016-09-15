@@ -8,13 +8,13 @@ module Conf
   # Names and order of the fields to be signed
   SIGNATURE_ITEMS = [
 
-    :directory, 
-    :expires,
-    :algorithm,
-    :timestamp,
-    :type,
-    :user_email,
-    :auth_token,
-    :file_name
+    'directory', 
+    'expires',
+    'algorithm',
+    'timestamp',
+    'type',
+    'user_email',
+    'auth_token',
+    'file_name'
   ]
 end

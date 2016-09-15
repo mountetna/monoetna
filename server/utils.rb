@@ -4,11 +4,11 @@ module Utils
 
   # Rebuilds the request object from POST parameters and orders the values in 
   # an array for hashing.
-  def Utils.generate_request(params)
+  def Utils.generate_request(request)
 
     Conf::SIGNATURE_ITEMS.map do |item|
       
-      params[item]
+      request[item]
     end
   end
 
@@ -27,7 +27,6 @@ module Utils
   def Utils.sign_with_MD5(request)
 
     request_str = stringify_request(request) + Conf::SECRET_KEY
-
     md5 = Digest::MD5.new
     md5.update request_str
     md5.hexdigest

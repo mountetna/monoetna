@@ -5,4 +5,3 @@ Metis = Metis.new
 Metis.add_route('GET', '/', 'Controller#index')
 Metis.add_route('POST', '/magma-end-point', 'Controller#magma_end_point')
 Metis.add_route('POST', '/upload', 'Controller#upload')
-Metis.add_route('POST', '/upload-blob', 'Controller#upload_blob')

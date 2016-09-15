@@ -45,8 +45,8 @@ class MetisUploader{
       file_name: file.name
     };
 
-    //this.requestAuthorization(authRequest);
-    this.spawnChunkUploadThread();
+    this.requestAuthorization(authRequest);
+    //this.spawnChunkUploadThread();
   }
 
   /*

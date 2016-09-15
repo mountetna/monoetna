@@ -20,6 +20,7 @@
 ### Symlinking Node
   
   Sometimes the package manager for the system will have 'nodejs' rather than 'node' installed. In this case you want to symlink 'nodejs' to 'node' so babel and webpack can use it properly.
+  Sometimes the package manager for the system will have 'nodejs' rather than 'node' installed. In this case you want to symlink 'nodejs' to 'node' so babel and webpack can use it properly.
 
   `$ sudo ln -s `which nodejs` /usr/bin/node`
  
