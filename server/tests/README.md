@@ -2,4 +2,4 @@
 
 ### You can run this command from the root of the project to run all tests
   
-  `$rspec --pattern ./server/spec/*_spec.rb`
+  `$rspec --pattern ./server/tests/*_spec.rb`

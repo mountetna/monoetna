@@ -7,13 +7,14 @@
   * npm
     * babel - this will convert our ES6 code to ES5, but in the future we can omit this. This will also convert our jsx code into js. So we do not need a jsx util.
     * webpack - this will minify and condense our JS code
+    * jest - javascript unit testing
 
   ```
   $ sudo apt-get install nodejs;
   $ sudo apt-get install npm;
   $ sudo npm install -g babel-cli;
-
   $ sudo npm install -g webpack;
+  $ sudo npm install -g jest;
   ```
 
 ### Symlinking Node

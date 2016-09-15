@@ -27,34 +27,34 @@ describe 'Integration' do
 
   describe Utils do
 
-    it 'Sorts request parameters for hashing.' do
+    it 'sorts request parameters for hashing.' do
       
       ordered_request = Utils.generate_request(@request)
       expect(ordered_request.length).to eq Conf::SIGNATURE_ITEMS.length
     end
 
-    it 'Transforms an request from an array to a string.' do
+    it 'transforms an request from an array to a string.' do
 
       ordered_request = Utils.generate_request(@request)
       request_str = Utils.stringify_request(ordered_request)
       expect(request_str).to eq @request_str
     end
 
-    it 'Hashes a request with an chosen alorithm.' do
+    it 'hashes a request with an chosen alorithm.' do
 
       ordered_request = Utils.generate_request(@request)
       hash = Utils.sign_request(ordered_request, @request[:algorithm]);
       expect(hash).to eq @request_md5_hash
     end
 
-    it 'Hashes a request with MD5.' do
+    it 'hashes a request with MD5.' do
 
       ordered_request = Utils.generate_request(@request)
       hash = Utils.sign_with_MD5(ordered_request)
       expect(hash).to eq @request_md5_hash
     end
 
-    it 'Hashes a request with SHA256.' do
+    it 'gashes a request with SHA256.' do
 
       ordered_request = Utils.generate_request(@request)
       hash = Utils.sign_with_SHA256(ordered_request)

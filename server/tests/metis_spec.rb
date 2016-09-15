@@ -9,7 +9,7 @@ describe 'Integration' do
 
   describe Metis do
 
-    it 'Implements the \'call\' method.' do
+    it 'implements the \'call\' method.' do
 
       expect(@metis).to respond_to(:call)
     end

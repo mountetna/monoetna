@@ -34,13 +34,13 @@ describe 'Integration' do
 
   describe Controller do
 
-    it 'Generates a signature based upon the request.' do
+    it 'generates a signature based upon the request.' do
 
       signature = @controller.generate_signature(@request)
       expect(signature).to eq @request_md5_hash
     end
 
-    it 'Responds to a valid upload request.' do
+    it 'responds to a valid upload request.' do
     
       response = @controller.upload(@request)
       response_body = JSON.parse(response.body[0])
@@ -48,7 +48,7 @@ describe 'Integration' do
       expect(response_body['signature']).to eq @request_md5_hash
     end
 
-    it 'Responds to an invalid upload request.' do
+    it 'responds to an invalid upload request.' do
       
       @request[:params][:signature] = ''
       response = @controller.upload(@request)

@@ -7,13 +7,14 @@
     "clean": "rm -rf ./client/js/*",
     "build": "npm run babel && npm run webpack",
     "babel": "babel ./client/jsx --out-dir ./client/js",
-    "webpack": "webpack ./client/js/metis-uploader.js ./client/js/main.bundle.js"
+    "webpack": "webpack ./client/js/metis-uploader.js ./client/js/main.bundle.js",
+    "test": "jest"
   },
   "author": "Jason D. Cater <jason.cater@ucsf.com>",
   "license": "ISC",
   "dependencies": {
     "babel-preset-es2015": "^6.14.0",
-    "babel-preset-react": "^6.11.1",
+    "babel-preset-react": "~6.11.1",
     "react": "^15.3.1",
     "react-dom": "^15.3.1"
   }
