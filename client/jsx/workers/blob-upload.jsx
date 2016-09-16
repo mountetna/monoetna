@@ -1,7 +1,15 @@
+/*
+ * This class will upload a file as blobs to the Metis upload endpoint.
+ */
+
 importScripts('../utils.js');
 
-class ChunkUpload{
+class BlobUpload{
 
+  /*
+   * Implementation of a Worker specific function.
+   * For message passing into and out of the worker.
+   */
   onmessage(event){
 
     var message = event.data;

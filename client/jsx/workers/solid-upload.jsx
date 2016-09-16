@@ -1,3 +1,7 @@
+/*
+ * This class will upload a single file to the Metis upload endpoint.
+ */
+
 importScripts('../utils.js');
 
 class SolidUpload{
@@ -36,7 +40,7 @@ class SolidUpload{
 
   /*
    * Take the file input and generates a File Object to send over the wire. The
-   * JS File object will set the correct headers and formats for a HTTP POST
+   * JS File object will set the correct headers and formats for a HTTP POST.
    */
   generateFileObject(file){
 
@@ -99,10 +103,10 @@ class SolidUpload{
     var request = message.data.request;
     var signature = message.data.signature;
 
-    //converts a file input DOM oject to a JS File Object
+    //Converts a file input DOM oject to a JS File Object.
     var uploadFile = solidUpload.generateFileObject(file);
 
-    //appends the request metadata to the File Object for POST upload
+    //Appends the request metadata to the File Object for POST upload.
     uploadFile = solidUpload.appendRequestToFile(uploadFile, request, signature);
     
     try{
@@ -125,7 +129,7 @@ class SolidUpload{
   }
 
   /*
-   * Route the response from Metis
+   * Route the response from Metis.
    */
   fileUploadResponse(response){
 

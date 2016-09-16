@@ -3,6 +3,7 @@
 require 'rack'
 require 'json'
 require 'digest'
+require 'fileutils'
 
 require './server/conf'
 require './server/controller'

@@ -35,7 +35,7 @@ describe 'Integration' do
 
     it 'responds to an invalid upload request.' do
       
-      @request.munge
+      @request.munge # screw up the request data to get an 'invalid' response
       response = @controller.upload(@request)
       response_body = JSON.parse(response.body[0])
       expect(response_body['success']).to eq false

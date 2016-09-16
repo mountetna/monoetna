@@ -39,14 +39,14 @@ class MetisUploader{
 
     var authRequest = {
 
-      type: 'upload',
+      type: 'solid',
+      file_name: file.name,
+      file_size: file.size, //in bytes
       auth_token: this.authToken,
-      user_email: this.userEmail,
-      file_name: file.name
+      user_email: this.userEmail
     };
 
     this.requestAuthorization(authRequest);
-    //this.spawnChunkUploadThread();
   }
 
   /*
@@ -82,7 +82,19 @@ class MetisUploader{
 
     if(response.success){
 
-      this.spawnUploadThread(response.request, response.signature);
+      switch(response.request.type){
+
+        case 'solid':
+
+            this.spawnUploadThread(response.request, response.signature);
+          break;
+        case 'blob':
+
+            //this.spawnChunkUploadThread();
+          break;
+        default:
+          break;
+      }
     }
     else{
 

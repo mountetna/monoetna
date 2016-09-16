@@ -15,6 +15,10 @@ module Conf
     'type',
     'user_email',
     'auth_token',
-    'file_name'
+    'file_name',
+    'file_size'
   ]
+
+  # This is the root directory for the data
+  ROOT_DIR = '/data'
 end
