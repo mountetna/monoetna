@@ -14,7 +14,8 @@ module Conf
     'timestamp',
     'type',
     'user_email',
-    'auth_token',
+    'authorization_token',
+    'original_name',
     'file_name',
     'file_size'
   ]

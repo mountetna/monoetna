@@ -12,30 +12,41 @@ class BlobUpload{
    */
   onmessage(event){
 
-    var message = event.data;
+    var message = event['data'];
 
-    //Check that the incoming data has a valid command.
+    var request = message['data']['request'];
+    var signature = message['data']['signature'];
+    
+    blobUpload['file'] = message['data']['uploadFile'];
+
+    // Check that the incoming data has a valid command.
     if(!'command' in message){
 
       postMessage({ message: 'No command.'});
       return;
     }
 
-    var command = message.command;
+    var command = message['command'];
     switch(command){
 
       case 'start':
 
-        chunkUpload.extractChunk(message.data.uploadFile);
+        
+        blobUpload.initializeUploadSequence(request, signature);
         break;
 
       case 'pause':
 
-        //pause the upload
+        // Pause the upload.
         break;
       case 'stop':
 
-        //Stop the upload.
+        // Stop the upload.
+        break;
+
+      case 'query':
+
+        // Query the server for the current upload status.
         break;
       default:
 
@@ -43,12 +54,40 @@ class BlobUpload{
     }
   }
 
-  extractChunk(file){
+  /*
+   * Create an initial request to the server to initiate an upload. This lets
+   * the server know what to expect and also allows the server a chance to
+   * resume a previously started upload.
+   */
+  initializeUploadSequence(req, sig){
 
-    var blob = file.slice(0, 64);
-    var uploadBlob = new FormData();
-    uploadBlob.append('blob', blob);
-    uploadBlob.append('orig_name', file.name);
+    var initUpReq = blobUpload.generateInitialUploadRequest(req, sig);
+
+    try{
+
+      AJAX({
+
+        url: '/upload-init',
+        method: 'POST',
+        sendType: 'file',
+        returnType: 'json',
+        data: initUpReq,
+        success: this.handleServerResponse,
+        error: this.ajaxError
+      });
+    }
+    catch(error){
+
+      postMessage({ 'type': 'error', message: error['message'] });
+    }
+  }
+
+  /*
+   * The request will have the squence information for the proper blob to send.
+   */
+  sendBlob(response){
+
+    var blobUpReq = blobUpload.generateBlobUploadRequest(response);
 
     try{
 
@@ -58,29 +97,127 @@ class BlobUpload{
         method: 'POST',
         sendType: 'file',
         returnType: 'json',
-        data: uploadBlob,
-        success: this.fileUploadResponse,
+        data: blobUpReq,
+        success: this.handleServerResponse,
         error: this.ajaxError
       });
     }
     catch(error){
 
-      postMessage({ 'type': 'error', message: error.message });
+      postMessage({ 'type': 'error', message: error['message'] });
     }
   }
 
-  /*
-   * Route the response from Metis
-   */
-  fileUploadResponse(response){
+  generateInitialUploadRequest(request, signature){
 
-    if(response.success){
-      
-      postMessage({ message: 'File upload complete.' });
+    // Append the authorization signature/hash from Magma to the request
+    request['signature'] = signature;
+
+    /*
+     * Add blob tracking information to the request. This will help us reasemble 
+     * and use file upload pausing on the server. All information related to 
+     * blobs is in bytes.
+     */
+    request['current_byte_position'] = 0;
+    request['current_blob_size'] = 0;
+
+    request['next_blob_size'] = BLOB_SIZE;
+    request['next_blob_hash'] = blobUpload.generateBlobHash(0, BLOB_SIZE);
+
+    /*
+     * Here, we are NOT attaching any blob data, but are still using the form
+     * for the initialization request.
+     */
+    var initialUploadRequest = new FormData();
+    for(var key in request){
+
+      initialUploadRequest.append(key, request[key]);
     }
-    else{
 
-      postMessage({ 'type': 'error', message: 'There was an error.' });
+    return initialUploadRequest;
+  }
+
+  generateBlobUploadRequest(response){
+
+    var request = response['request'];
+
+    // Set the blob cue points.
+    var fromByte = parseInt(response['byte_count']);
+    var toByte = parseInt(fromByte) + BLOB_SIZE;
+    
+    request['current_byte_position'] = fromByte;
+    request['current_blob_size'] = BLOB_SIZE;
+
+    /*
+     * Set the the metadata for the next blob in sequence. This bit gets used by
+     * the server for data integrety and a wee bit of security.
+     */
+    var endByte = toByte + BLOB_SIZE;
+    request['next_blob_hash'] = blobUpload.generateBlobHash(toByte, endByte);
+    request['next_blob_size'] = BLOB_SIZE;
+
+    // Slice out a blob from our upload file.
+    var blob = blobUpload['file'].slice(fromByte, toByte);
+
+    // Pack all of our data up into a FormData object
+    var blobUploadRequest = new FormData();
+    blobUploadRequest.append('blob', blob);
+
+    for(var key in request){
+
+      blobUploadRequest.append(key, request[key]);
+    }
+
+    return blobUploadRequest;
+  }
+
+  /*
+   * Take a blob from the file and hash it.
+   */
+  generateBlobHash(fromByte, toByte){
+
+    /*
+     * We need to insert a proper hashing algo here, but for now lets just 
+     * send back a dummy hash.
+     */
+
+    // use the singleton variable blobUpload['file'];
+    return 'blahf8cfc63531b6ed753bd536f6e12d578c';
+  }
+
+  handleServerResponse(response){
+
+    var errorMessage = 'The server did not give a valid response.'
+
+    response = VERIFY_AND_TRANSFORM(response);
+    if(!response){
+  
+      postMessage({ 'type': 'error', message: errorMessage });
+    }
+
+    switch(response['status']){
+
+      case 'initialized':
+      case 'active':
+
+        blobUpload.sendBlob(response);
+        break;
+      case 'paused':
+
+        break;
+      case 'complete':
+
+        break;
+      case 'stopped':
+
+        break;
+      case 'failed':
+
+        break;
+      default:
+
+        //none
+        break;
     }
   }
 
@@ -91,63 +228,10 @@ class BlobUpload{
 
     postMessage({ xhr: xhr, ajaxOptions: ajaxOpt, thrownError: thrownError });
   }
-
-    // Blob -> ArrayBuffer
-    //var uint8ArrayNew  = null;
-    //var arrayBufferNew = null;
-//    var fileReader     = new FileReader();
-//    
-//    fileReader.onload  = function(progressEvent) {
-//      
-//      var uint8Array = new Uint8Array(this.result);
-//      console.log(this.result);
-//      console.log(uint8Array);
-
-//      var hexString = "";
-//      var hexIndex = 0;
-//      for(var a = 0; a < uint8Array.byteLength; ++a){
-
-//        var char = uint8Array[a].toString(16).toUpperCase();
-//        if(char.length == 1) char = "0"+ char;
-//        hexString += " "+char;
-//        ++hexIndex;
-//        if(hexIndex == 16){
-
-//          console.log(hexString);
-//          hexString = "";
-//          hexIndex = 0;
-//        }
-//      }
-
-      
-      //arrayBufferNew = this.result;
-      //uint8ArrayNew  = new Uint8Array(arrayBufferNew);
-
-      // warn if read values are not the same as the original values
-      // arrayEqual from: http://stackoverflow.com/questions/3115982/how-to-check-javascript-array-equals
-      //function arrayEqual(a, b) { return !(a<b || b<a); };
-
-      //  if (arrayBufferNew.byteLength !== arrayBuffer.byteLength) // should be 3
-      //    
-      //    console.warn("ArrayBuffer byteLength does not match");
-      //  if (arrayEqual(uint8ArrayNew, uint8Array) !== true) // should be [1,2,3]
-      //  
-      //    console.warn("Uint8Array does not match");
-    //};
-
-    //fileReader.readAsArrayBuffer(blob);
-
-  appendChunkToFile(file, chunk, signature){
-
-  }
-
-  uploadChunk(){
-
-  }
 }
 
-//Initilize the class.
-var chunkUpload = new ChunkUpload();
+// Initilize the class.
+var blobUpload = new BlobUpload();
 
-//Expose the worker specific messaging function.
-var onmessage = chunkUpload.onmessage;
+// Expose the worker specific messaging function.
+var onmessage = blobUpload.onmessage;

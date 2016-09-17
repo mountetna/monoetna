@@ -39,11 +39,11 @@ class MetisUploader{
 
     var authRequest = {
 
-      type: 'solid',
-      file_name: file.name,
-      file_size: file.size, //in bytes
-      auth_token: this.authToken,
-      user_email: this.userEmail
+      type: 'blob',
+      user_email: this.userEmail,
+      authorization_token: this.authToken,
+      original_name: file.name,
+      file_size: file.size //in bytes
     };
 
     this.requestAuthorization(authRequest);
@@ -90,7 +90,7 @@ class MetisUploader{
           break;
         case 'blob':
 
-            //this.spawnChunkUploadThread();
+            this.spwanBlobUploadThread(response.request, response.signature);
           break;
         default:
           break;
@@ -143,16 +143,26 @@ class MetisUploader{
     this.uploadWorker.postMessage(workerMessage);
   }
 
-  spawnChunkUploadThread(){
+  /*
+   * Spawn a secondary worker thread for the upload.
+   */
+  spwanBlobUploadThread(request, signature){
 
-    this.chunkWorker = new Worker('./js/workers/chunk-upload.js');
+    this.blobWorker = new Worker('./js/workers/blob-upload.js');
 
-    this.chunkWorker.onmessage = (event)=>{
+    this.blobWorker.onmessage = (event)=>{
       
-      console.log(event);
+      if(event.data.type == 'error'){
+        
+        this.blobWorker.onerror(event.data);
+      }
+      else{
+
+        console.log(event);
+      }
     };
 
-    this.chunkWorker.onerror = (event)=>{
+    this.blobWorker.onerror = (event)=>{
 
       console.log(event);
     };
@@ -164,11 +174,13 @@ class MetisUploader{
       data: {
 
         uploadFile: this.uploadFile,
-        //signature: signature
+        request: request,
+        signature: signature
       }
     }
 
-    this.chunkWorker.postMessage(workerMessage);
+    //Begin the upload.
+    this.blobWorker.postMessage(workerMessage);
   }
 }
 
