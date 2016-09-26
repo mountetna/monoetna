@@ -23,7 +23,7 @@ class Controller
       req = request.POST() 
       if !Utils::verify_request_parameters(req)
 
-        send_bad_request()
+        return send_bad_request()
       end
 
       # A hash of the request for HMAC.
@@ -32,14 +32,14 @@ class Controller
       # Check that the request signature is valid.
       if signature != req['signature']
 
-        send_not_authorized()
+        return send_not_authorized()
       else
 
         start_upload_sequence(request, signature)
       end
     else
 
-      send_bad_request()
+      return send_bad_request()
     end
   end
 
@@ -60,15 +60,15 @@ class Controller
     # to start a fresh file status.
     if File.file?(full_path)
     
-      send_file_completed(request)
+      return send_file_completed(request)
     elsif File.file?(partial_file_name)
     
-      resume_file_upload(request, signature)
+      return resume_file_upload(request, signature)
     else
     
       create_file_status(request, signature)
       create_partial_file(partial_file_name)
-      send_active_status(request.POST() , signature, 0)
+      return send_active_status(request.POST() , signature, 0)
     end
   end
   
@@ -81,8 +81,20 @@ class Controller
 
     # Check that there is a file listing in Redis and get the file status.
     status_key = generate_status_key(request)
-    check_status_entry(stat_key)
+    
+    if !@redis_service.status_present?(status_key)
+
+      # log A temp file is present, but there was no listing for it in Redis
+      return send_server_error()
+    end
+
     file_status = JSON.parse(@redis_service.retrive_file_status(status_key))
+
+    if file_status == nil
+
+      # the status return from Redis is nil. That should not happen here.
+      return send_server_error()
+    end
 
     # Check the file for consistancy.
     check_byte_consistancy(file_status, byte_count)
@@ -105,17 +117,6 @@ class Controller
     end
   end
 
-  # Check that there is a status listing in Redis for our partial file.
-  def check_status_entry(status_key)
-
-    status_present = @redis.check_if_status_present(status_key)
-    if status_present.length == 0
-
-      # log A temp file is present, but there was no listing for it in Redis
-      send_server_error()
-    end
-  end
-
   def create_file_status(request, signature)
 
     post_params = request.POST() 
@@ -134,76 +135,58 @@ class Controller
     partial_file.close()
   end
 
-#  def upload_blob(request)
-#
-#    req = request.POST()
-#    signature = generate_signature(req)
-#
-#    if signature != req['signature']
-#
-#      send_not_authorized()
-#    else
-#
-#      req = regenerate_request(req) 
-#      
-#      blob_hash = verify_blob_integrity(req, request)
-#
-#      # Hash the temp file and see if it matches our 'next_blob_hash'
-#      Rack::Response.new({ success: true, request: req, hash:blob_hash}.to_json)
-#    end
-#  end
-#
-#  def regenerate_request(req)
-#
-#    request = {
-#      
-#      'directory'=> req['directory'],
-#      'expires'=> req['expires'],
-#      'algorithm'=> req['algorithm'],
-#      'timestamp'=> req['timestamp'].to_i,
-#      'type'=> req['type'],
-#      'user_email'=> req['user_email'],
-#      'authorization_token'=> req['authorization_token'],
-#      'original_name' => req['original_name'],
-#      'file_name'=> req['file_name'],
-#      'file_size'=> req['file_size'].to_i,
-#
-#      'signature'=> req['signature'],
-#
-#      'current_blob_size'=> req['current_blob_size'].to_i,
-#      'current_byte_position'=> req['current_byte_position'].to_i,
-#      'next_blob_hash'=> req['next_blob_hash'],
-#      'next_blob_size'=> req['next_blob_size'].to_i
-#    }
-#  end
-#
-#  def verify_blob_integrity(req, request)
-#
-#    #temp_file_path = request['blob'][:tempfile].path
-#
-#    # Extract the directory names from the request.
-#    target_dir = req['directory']
-#    target_file_name = req['file_name']
-#    full_path = Conf::ROOT_DIR + target_dir + target_file_name
-#
-#    # The name of the status file
-#    status_file_name = full_path + '/'+ target_file_name + '.json'
-#
-#    # Open and parse the status file.
-#    status_file = File.open(status_file_name, 'r')
-#    status_obj = status_file.read()
-#    status_hash = JSON.parse(status_obj)
-#
-#    current_md5_from_file = status_hash['next_blob_hash']
-#
-#    temp_file_path = request['blob'][:tempfile].path()
-#    md5_from_temp_file = Digest::MD5.hexdigest(File.read(temp_file_path))
-#    
-#    puts current_md5_from_file
-#    puts md5_from_temp_file
-#
-#    return md5_from_temp_file
-#  end
+  def upload_blob(request)
+
+    req = request.POST()
+    signature = generate_signature(req)
+
+    if signature != req['signature']
+
+      send_not_authorized()
+    else
+      
+      # Hash the temp file and see if it matches our 'next_blob_hash'
+      if !blob_integrity_ok?(request)
+
+        Rack::Response.new({ success: false }.to_json)
+      else
+
+        Rack::Response.new({ success: true }.to_json)
+      end
+    end
+  end
+
+  def blob_integrity_ok?(request)
+
+    status_key = generate_status_key(request)
+    
+    if !@redis_service.status_present?(status_key)
+
+      # log A temp file is present, but there was no listing for it in Redis
+      return send_server_error()
+    end
+
+    file_status = JSON.parse(@redis_service.retrive_file_status(status_key))
+
+    if file_status == nil
+
+      # the status return from Redis is nil. That should not happen here.
+      return send_server_error()
+    end
+
+    md5_from_status = file_status['next_blob_hash']
+
+    temp_file_path = request['blob'][:tempfile].path()
+    md5_of_temp_file = Digest::MD5.hexdigest(File.read(temp_file_path))
+
+    if md5_from_status == md5_of_temp_file
+
+      return true
+    else
+
+      return false
+    end
+  end
 
   def remove_temp_file(request)
 
@@ -262,13 +245,31 @@ class Controller
 
     # Retrieve the file status metadata from Redis
     status_key = generate_status_key(request)
+    
+    # Check that there is a file listing in Redis and get the file status.
+    if !@redis_service.status_present?(status_key)
+
+      # log A temp file is present, but there was no listing for it in Redis
+      return send_server_error()
+    end
+
     file_status = @redis_service.retrive_file_status(status_key)
+
+    if file_status == nil
+
+      # the status return from Redis is nil. That should not happen here.
+      return send_server_error()
+    end
+
+    puts 'sup'
+    puts file_status.class
+    puts 'dawg'
 
     byte_count = File.size(full_path)
     response = {
         
         success: true, 
-        request: file_status.to_json(),
+        request: file_status,
         byte_count: byte_count,
         status: 'complete'
     }

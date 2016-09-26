@@ -6,7 +6,7 @@ class RedisService
   end
 
   def retrive_file_status(key)
-
+    
     @redis.get(key)
   end
 
@@ -15,8 +15,14 @@ class RedisService
     @redis.set(key, value)
   end
 
-  def check_if_status_present(key)
+  def status_present?(key)
 
-    @redis.keys(key)
+    if @redis.keys(key).length == 0
+
+      return false
+    else
+
+      return true
+    end
   end
 end
