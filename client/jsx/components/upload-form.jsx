@@ -34,8 +34,8 @@ export default class UploadForm extends React.Component{
 
       <div id='input-container'>
         
-        <input id='text-input' type='text' value={ this.state.textInput }/>
-        <input id='file-selector' type='file' name='upload_file' onChange={ (event)=>this.fileSelected(event) }/>
+        <input id='text-input' type='text' value={ this.state.textInput } />
+        <input id='file-selector' type='file' name='upload_file' onChange={ (event)=>this.fileSelected(event) } />
         <button onClick={ (event)=>this.selectFile(event) }>
 
           browse
