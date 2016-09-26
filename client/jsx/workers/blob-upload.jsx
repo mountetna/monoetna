@@ -3,8 +3,16 @@
  */
 
 importScripts('../utils.js');
+importScripts('../lib/spark-md5.js');
 
 class BlobUpload{
+
+  constructor(){
+
+    // This object will be the data we need to send over the wire.
+    this.file = null; 
+  }
+
 
   /*
    * Implementation of a Worker specific function.
@@ -30,7 +38,6 @@ class BlobUpload{
     switch(command){
 
       case 'start':
-
         
         blobUpload.initializeUploadSequence(request, signature);
         break;
@@ -43,7 +50,6 @@ class BlobUpload{
 
         // Stop the upload.
         break;
-
       case 'query':
 
         // Query the server for the current upload status.
@@ -61,7 +67,58 @@ class BlobUpload{
    */
   initializeUploadSequence(req, sig){
 
-    var initUpReq = blobUpload.generateInitialUploadRequest(req, sig);
+    //this.initUpReq = blobUpload.generateInitialUploadRequest(req, sig);
+    blobUpload.generateInitialUploadRequest(req, sig);
+  }
+
+  generateInitialUploadRequest(request, signature){
+
+    // Append the authorization signature/hash from Magma to the request
+    request['signature'] = signature;
+
+    /*
+     * Here, we are NOT attaching any blob data, but are still using the form
+     * for the initialization request.
+     */
+    var initUpReq = new FormData();
+    for(var key in request){
+
+      initUpReq.append(key, request[key]);
+    }
+
+    /*
+     * Add blob tracking information to the request. This will help us reasemble 
+     * and use file upload pausing on the server. All information related to 
+     * blobs is in bytes.
+     */
+    initUpReq.append('current_byte_position', 0);
+    initUpReq.append('current_blob_size', 0);
+    initUpReq.append('next_blob_size', BLOB_SIZE);
+
+    // Hash the next blob for security and error checking.
+    var blob = blobUpload['file'].slice(0, BLOB_SIZE);
+    blobUpload.generateBlobHash(blob, initUpReq, this.sendFirstPacket);
+  }
+
+  /*
+   * Take a blob from the file and hash it.
+   */
+  generateBlobHash(blob, uploadRequest, callback){
+
+    var fileReader = new FileReader();
+
+    fileReader.onload = function(progressEvent){
+
+      var md5Hash = SparkMD5.ArrayBuffer.hash(this.result);
+      uploadRequest.append('next_blob_hash', md5Hash);
+
+      callback(uploadRequest);
+    }
+
+    fileReader.readAsArrayBuffer(blob);
+  }
+
+  sendFirstPacket(initialUploadRequet){
 
     try{
 
@@ -71,9 +128,9 @@ class BlobUpload{
         method: 'POST',
         sendType: 'file',
         returnType: 'json',
-        data: initUpReq,
-        success: this.handleServerResponse,
-        error: this.ajaxError
+        data: initialUploadRequet,
+        success: blobUpload.handleServerResponse,
+        error: blobUpload.ajaxError
       });
     }
     catch(error){
@@ -87,7 +144,60 @@ class BlobUpload{
    */
   sendBlob(response){
 
-    var blobUpReq = blobUpload.generateBlobUploadRequest(response);
+    blobUpload.generateBlobUploadRequest(response);
+  }
+
+
+  generateBlobUploadRequest(response){
+
+    /*
+     * The file upload is complete, however the server should have sent a 
+     * 'complete' status message.
+     */
+    var fileSize = blobUpload['file'].size
+    if(response['byte_count'] >= fileSize){
+
+      return;
+    }
+
+    var request = response['request'];
+
+    // Set the blob cue points.
+    var fromByte = parseInt(response['byte_count']);
+    var toByte = fromByte + BLOB_SIZE;
+    toByte = (toByte > fileSize) ? fileSize : toByte;
+
+    /*
+     * Set the the metadata for the next blob in sequence. This part gets used 
+     * by the server for data integrety and a wee bit of security.
+     */
+    request['current_byte_position'] = fromByte;
+    request['current_blob_size'] = toByte - fromByte;
+
+    // Remove old metadata from the previous packet/request
+    delete request['next_blob_hash'];
+    delete request['next_blob_size'];
+
+    // Pack up a new upload packet/request
+    var blobUploadRequest = new FormData();
+    for(var key in request){
+
+      blobUploadRequest.append(key, request[key]);
+    }
+
+    // Append the current blob to the request.
+    var blob = blobUpload['file'].slice(fromByte, toByte);
+    blobUploadRequest.append('blob', blob);
+    blobUploadRequest.append('next_blob_size', BLOB_SIZE);
+
+    // Hash the next blob for security and error checking.
+    var endByte = toByte + BLOB_SIZE;
+    endByte = (endByte > fileSize) ? fileSize : endByte
+    var nextBlob = blobUpload['file'].slice(toByte, endByte);
+    blobUpload.generateBlobHash(nextBlob, blobUploadRequest, this.sendPacket);
+  }
+
+  sendPacket(blobUploadRequest){
 
     try{
 
@@ -97,92 +207,15 @@ class BlobUpload{
         method: 'POST',
         sendType: 'file',
         returnType: 'json',
-        data: blobUpReq,
-        success: this.handleServerResponse,
-        error: this.ajaxError
+        data: blobUploadRequest,
+        success: blobUpload.handleServerResponse,
+        error: blobUpload.ajaxError
       });
     }
     catch(error){
 
       postMessage({ 'type': 'error', message: error['message'] });
     }
-  }
-
-  generateInitialUploadRequest(request, signature){
-
-    // Append the authorization signature/hash from Magma to the request
-    request['signature'] = signature;
-
-    /*
-     * Add blob tracking information to the request. This will help us reasemble 
-     * and use file upload pausing on the server. All information related to 
-     * blobs is in bytes.
-     */
-    request['current_byte_position'] = 0;
-    request['current_blob_size'] = 0;
-
-    request['next_blob_size'] = BLOB_SIZE;
-    request['next_blob_hash'] = blobUpload.generateBlobHash(0, BLOB_SIZE);
-
-    /*
-     * Here, we are NOT attaching any blob data, but are still using the form
-     * for the initialization request.
-     */
-    var initialUploadRequest = new FormData();
-    for(var key in request){
-
-      initialUploadRequest.append(key, request[key]);
-    }
-
-    return initialUploadRequest;
-  }
-
-  generateBlobUploadRequest(response){
-
-    var request = response['request'];
-
-    // Set the blob cue points.
-    var fromByte = parseInt(response['byte_count']);
-    var toByte = parseInt(fromByte) + BLOB_SIZE;
-    
-    request['current_byte_position'] = fromByte;
-    request['current_blob_size'] = BLOB_SIZE;
-
-    /*
-     * Set the the metadata for the next blob in sequence. This bit gets used by
-     * the server for data integrety and a wee bit of security.
-     */
-    var endByte = toByte + BLOB_SIZE;
-    request['next_blob_hash'] = blobUpload.generateBlobHash(toByte, endByte);
-    request['next_blob_size'] = BLOB_SIZE;
-
-    // Slice out a blob from our upload file.
-    var blob = blobUpload['file'].slice(fromByte, toByte);
-
-    // Pack all of our data up into a FormData object
-    var blobUploadRequest = new FormData();
-    blobUploadRequest.append('blob', blob);
-
-    for(var key in request){
-
-      blobUploadRequest.append(key, request[key]);
-    }
-
-    return blobUploadRequest;
-  }
-
-  /*
-   * Take a blob from the file and hash it.
-   */
-  generateBlobHash(fromByte, toByte){
-
-    /*
-     * We need to insert a proper hashing algo here, but for now lets just 
-     * send back a dummy hash.
-     */
-
-    // use the singleton variable blobUpload['file'];
-    return 'blahf8cfc63531b6ed753bd536f6e12d578c';
   }
 
   handleServerResponse(response){

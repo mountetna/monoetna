@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import UploadForm from './components/upload-form';
+import PostIt from './components/post-it';
 
 class MetisUploader{
 
@@ -39,7 +40,6 @@ class MetisUploader{
 
     var authRequest = {
 
-      type: 'blob',
       user_email: this.userEmail,
       authorization_token: this.authToken,
       original_name: file.name,
@@ -90,7 +90,7 @@ class MetisUploader{
           break;
         case 'blob':
 
-            this.spwanBlobUploadThread(response.request, response.signature);
+            this.spawnBlobUploadThread(response.request, response.signature);
           break;
         default:
           break;
@@ -146,7 +146,7 @@ class MetisUploader{
   /*
    * Spawn a secondary worker thread for the upload.
    */
-  spwanBlobUploadThread(request, signature){
+  spawnBlobUploadThread(request, signature){
 
     this.blobWorker = new Worker('./js/workers/blob-upload.js');
 

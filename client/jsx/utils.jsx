@@ -1,7 +1,7 @@
 /*
  * Global Variables
  */
-var BLOB_SIZE = 1024000; // in bytes
+var BLOB_SIZE = 100000; // in bytes
 
 /*
  * Verification of types and structures of the server responses. This will also
@@ -83,7 +83,9 @@ var VERIFY_AND_TRANSFORM = function(response){
     {original_name: String},
     {signature: String},
     {timestamp: Number},
-    {user_email: String}
+    {user_email: String},
+    {user_id: Number},
+    {group_id: Number}
   ]
 
   for(var index in returnItems){
@@ -225,4 +227,65 @@ var AJAX = function(config){
       error(xhr, config, 'Unknown HTTP Method : "'+ method.toLowerCase() +'"');
       break;
   }
+}
+
+/*
+ * Dump a blob onto the console.
+ */
+var HEX_DUMP = function(blob, fromByte){
+
+  var topLine = ['       00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F'];
+  var underline = '      ';
+  for(var a = 0; a < 48; ++a){
+
+    underline += '_';
+  }
+
+  var fileReader = new FileReader();
+
+  fileReader.onload = function(progressEvent){
+
+    var arrayBufferNew = this.result;
+    var uint8Array = new Uint8Array(arrayBufferNew);
+
+    var hexCount = 0;
+    var hexLine = '';
+    var hexRows = [];
+
+    for(var b = 0; b < (fromByte%16); ++b){
+
+      hexLine += '   ';
+      ++hexCount;
+    }
+
+    for(var b = 0; b < uint8Array.length; ++b){
+
+      var hexChar = uint8Array[b].toString(16);
+      if(hexChar.length === 1) hexChar = '0'+ hexChar;
+      hexLine += hexChar +' ';
+      ++hexCount;
+
+      if(hexCount%16 === 0){
+
+        hexRows.push(hexLine);
+        hexLine = '';
+        hexCount = 0;
+      }
+    }
+
+    console.log();
+    console.log(topLine.join(' '));
+    console.log(underline);
+
+    var rowOffset = fromByte - (fromByte%16);
+
+    for(var row in hexRows){
+
+      var offset = (row*16)+rowOffset;
+      var lineNum = ('000' + offset.toString(16)).slice(-4);
+      console.log(lineNum +' | '+ hexRows[row]);
+    }
+  }
+
+  fileReader.readAsArrayBuffer(blob);
 }
