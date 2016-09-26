@@ -11,11 +11,7 @@ var BLOB_SIZE = 100000; // in bytes
  */
 var VERIFY_AND_TRANSFORM = function(response){
 
-  if('request' in response){
-
-    response['request'] = JSON.parse(response['request']);
-  }
-  else{
+  if(!('request' in response)){
 
     return false;
   }
