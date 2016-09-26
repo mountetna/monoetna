@@ -12,6 +12,22 @@ module Utils
     end
   end
 
+  # Verify that the appropriate parameters exsit for hashing or general usage.
+  def Utils.verify_request_parameters(params)
+
+    valid = true
+
+    Conf::SIGNATURE_ITEMS.each do |item|
+      
+      if !params.key?(item)
+
+        valid = false
+      end
+    end
+
+    return valid
+  end
+
   # Takes an ordered array of request values and returns a signed hash.
   def Utils.sign_request(request, algo)
 

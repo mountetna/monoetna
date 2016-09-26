@@ -3,10 +3,11 @@
 # This class handles the http request and routing
 class Metis
 
-  def initialize
+  def initialize()
 
     @routes = {}
     @request = {}
+    @redis_service = RedisService.new()
   end
 
   def call(env)
@@ -35,6 +36,8 @@ class Metis
 
     controller, action = route.split('#')
     controller_class = Kernel.const_get(controller)
-    controller_class.new.public_send(action, @request)
+
+    # Pass in the redis service to the class and call the method on the class.
+    controller_class.new(@redis_service).public_send(action, @request)
   end
 end

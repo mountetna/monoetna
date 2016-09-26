@@ -69,6 +69,23 @@ Create a machine with the user "developer" and password "developer"
   $ sudo ln -s /opt/nethogs/src/nethogs ./nethogs
   ```
 
+### Install Redis as our file status store
+  
+  https://www.linode.com/docs/databases/redis/deploy-redis-on-ubuntu-or-debian
+
+  ```
+  $ sudo add-apt-repository ppa:chris-lea/redis-server
+  $ sudo apt-get update
+  $ sudo apt-get install redis-server
+  ```
+
+### Install the redis gem 
+
+  ```
+  $ cd /var/www/medis
+  $ gem install redis
+  ```
+
 ### If you plan on running rails or sinatra with phusion passenger you need these deps too.
   
   ```

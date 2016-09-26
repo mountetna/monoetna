@@ -8,16 +8,17 @@ module Conf
   # Names and order of the fields to be signed
   SIGNATURE_ITEMS = [
 
+    'algorithm',
+    'authorization_token',
     'directory', 
     'expires',
-    'algorithm',
-    'timestamp',
-    'type',
-    'user_email',
-    'authorization_token',
-    'original_name',
     'file_name',
-    'file_size'
+    'file_size',
+    'original_name',
+    'timestamp',
+    'user_email',
+    'user_id',
+    'group_id'
   ]
 
   # This is the root directory for the data
