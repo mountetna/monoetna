@@ -1,3 +1,5 @@
+# redis_service.rb
+
 class RedisService
 
   def initialize()

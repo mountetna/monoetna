@@ -38,6 +38,7 @@ class Uploader{
 
       case 'start':
         
+        console.log(new Date().getTime());
         uploader.initializeUploadSequence(request, signature);
         break;
 
@@ -143,11 +144,11 @@ class Uploader{
    */
   sendBlob(response){
 
-    uploader.generateuploaderRequest(response);
+    uploader.generateUploaderRequest(response);
   }
 
 
-  generateuploaderRequest(response){
+  generateUploaderRequest(response){
 
     var fileSize = uploader['file'].size
     if(response['byte_count'] >= fileSize){
@@ -191,7 +192,7 @@ class Uploader{
 
     // Hash the next blob for security and error checking.
     var endByte = toByte + BLOB_SIZE;
-    endByte = (endByte > fileSize) ? fileSize : endByte
+    endByte = (endByte > fileSize) ? fileSize : endByte;
     var nextBlob = uploader['file'].slice(toByte, endByte);
     uploader.generateBlobHash(nextBlob, uploaderRequest, this.sendPacket);
   }
@@ -221,10 +222,14 @@ class Uploader{
 
     var errorMessage = 'The server did not give a valid response.'
 
-    response = VERIFY_AND_TRANSFORM(response);
+    
     if(!response){
   
       postMessage({ 'type': 'error', message: errorMessage });
+    }
+    else{
+
+      response = VERIFY_AND_TRANSFORM(response);
     }
 
     switch(response['status']){
@@ -239,6 +244,7 @@ class Uploader{
         break;
       case 'complete':
 
+        console.log(new Date().getTime());
         break;
       case 'stopped':
 

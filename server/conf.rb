@@ -1,3 +1,4 @@
+# conf.rb
 # Configuration for Metis
 
 module Conf

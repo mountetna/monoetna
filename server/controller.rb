@@ -35,7 +35,7 @@ class Controller
         return send_not_authorized()
       else
 
-        start_upload_sequence(request, signature)
+        return start_upload_sequence(request, signature)
       end
     else
 
@@ -66,9 +66,14 @@ class Controller
       return resume_file_upload(request, signature)
     else
     
-      create_file_status(request, signature)
-      create_partial_file(partial_file_name)
-      return send_active_status(request.POST() , signature, 0)
+      if !create_file_status(request, signature)
+
+        return send_server_error()
+      else
+
+        create_partial_file(partial_file_name)
+        return send_active_status(request.POST() , signature, 0)
+      end
     end
   end
   
@@ -84,7 +89,7 @@ class Controller
     
     if !@redis_service.status_present?(status_key)
 
-      # log A temp file is present, but there was no listing for it in Redis
+      # log 'A temp file is present, but there was no listing for it in Redis'
       return send_server_error()
     end
 
@@ -100,7 +105,7 @@ class Controller
     check_byte_consistancy(file_status, byte_count)
     file_status['current_byte_position'] = byte_count
 
-    send_active_status(file_status, signature, byte_count)
+    return send_active_status(file_status, signature, byte_count)
   end
 
   # Check the diff between file status byte count and the actual file.
@@ -125,7 +130,10 @@ class Controller
 
     if redis_status != 'ok'
 
-      send_server_error()
+      return true
+    else
+
+      return false
     end
   end
 
@@ -151,9 +159,58 @@ class Controller
         Rack::Response.new({ success: false }.to_json)
       else
 
-        Rack::Response.new({ success: true }.to_json)
+        append_blob(request)
+
+        full_path = generate_file_path(request)
+        partial_file_name = full_path  +'.part'
+
+        byte_count = File.size(partial_file_name)
+
+        # Check that there is a file listing in Redis and get the file status.
+        status_key = generate_status_key(request)
+
+        file_status = JSON.parse(@redis_service.retrive_file_status(status_key))
+        file_status['current_byte_position'] = byte_count
+        file_status['current_blob_size'] = req['current_blob_size']
+        file_status['next_blob_hash'] = req['next_blob_hash']
+        file_status['next_blob_size'] = req['next_blob_size']
+
+        @redis_service.set_file_status(status_key, file_status.to_json)
+
+        if byte_count == file_status['file_size'].to_i
+
+          File.rename(partial_file_name, full_path)
+          return send_file_completed(request)
+        else
+          
+          return send_active_status(file_status, signature, byte_count)
+        end
       end
     end
+  end
+
+  def append_blob(request)
+
+    full_path = generate_file_path(request)
+    partial_file_name = full_path  +'.part'
+    temp_file_name = request['blob'][:tempfile].path()
+
+    partial_file = File.open(partial_file_name, 'ab')
+    temp_file = File.open(temp_file_name, 'rb')
+
+    partial_file.write(temp_file.read())
+  end
+
+  def pause_upload(request)
+
+  end
+
+  def stop_upload(request)
+
+  end
+
+  def query_upload(request)
+
   end
 
   def blob_integrity_ok?(request)
@@ -261,9 +318,13 @@ class Controller
       return send_server_error()
     end
 
-    puts 'sup'
-    puts file_status.class
-    puts 'dawg'
+    # Check that the file exists
+    if !File::exists?(full_path)
+
+      # Log, we are sending a "completed" response but the file doesn't exsist
+      # Maybe it wasn't renamed or was accidentally delete before we got here.
+      return send_server_error()
+    end
 
     byte_count = File.size(full_path)
     response = {
@@ -271,7 +332,8 @@ class Controller
         success: true, 
         request: file_status,
         byte_count: byte_count,
-        status: 'complete'
+        status: 'complete',
+        signature: file_status['signature']
     }
 
     Rack::Response.new(response.to_json())

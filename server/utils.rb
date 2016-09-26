@@ -1,4 +1,5 @@
-# General Utilities for Metis
+# utils.rb
+# General Utilities for Metis.
 
 module Utils
 

@@ -11,9 +11,38 @@ var BLOB_SIZE = 100000; // in bytes
  */
 var VERIFY_AND_TRANSFORM = function(response){
 
+  if('success' in response){
+
+    if((response['success'] == 'true') || 
+       (response['success'] == 'True') ||
+       (response['success'] == true)){
+
+      response['success'] == true;
+    }
+    else if((response['success'] == 'false') || 
+       (response['success'] == 'False') ||
+       (response['success'] == false)){
+
+      response['success'] == false;
+      return response;
+    }
+    else{
+
+      return false;
+    }
+  }
+
   if(!('request' in response)){
 
     return false;
+  }
+  else{
+
+    var type = Object.prototype.toString.call(response['request']);
+    if(type == '[object String]'){
+
+      response['request'] = JSON.parse(response['request']);
+    }
   }
 
   if('byte_count' in response){
@@ -41,26 +70,6 @@ var VERIFY_AND_TRANSFORM = function(response){
   else{
 
     return false;
-  }
-
-  if('success' in response){
-
-    if((response['success'] == 'true') || 
-       (response['success'] == 'True') ||
-       (response['success'] == true)){
-
-      response['success'] == true;
-    }
-    else if((response['success'] == 'false') || 
-       (response['success'] == 'False') ||
-       (response['success'] == false)){
-
-      response['success'] == false;
-    }
-    else{
-
-      return false
-    }
   }
 
   var error = false;
