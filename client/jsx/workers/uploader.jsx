@@ -2,17 +2,16 @@
  * This class will upload a file as blobs to the Metis upload endpoint.
  */
 
-importScripts('../utils.js');
+importScripts('../lib/utils.js');
 importScripts('../lib/spark-md5.js');
 
-class BlobUpload{
+class Uploader{
 
   constructor(){
 
     // This object will be the data we need to send over the wire.
-    this.file = null; 
+    this['file'] = null; 
   }
-
 
   /*
    * Implementation of a Worker specific function.
@@ -25,7 +24,7 @@ class BlobUpload{
     var request = message['data']['request'];
     var signature = message['data']['signature'];
     
-    blobUpload['file'] = message['data']['uploadFile'];
+    uploader['file'] = message['data']['uploadFile'];
 
     // Check that the incoming data has a valid command.
     if(!'command' in message){
@@ -39,7 +38,7 @@ class BlobUpload{
 
       case 'start':
         
-        blobUpload.initializeUploadSequence(request, signature);
+        uploader.initializeUploadSequence(request, signature);
         break;
 
       case 'pause':
@@ -67,8 +66,8 @@ class BlobUpload{
    */
   initializeUploadSequence(req, sig){
 
-    //this.initUpReq = blobUpload.generateInitialUploadRequest(req, sig);
-    blobUpload.generateInitialUploadRequest(req, sig);
+    //this.initUpReq = uploader.generateInitialUploadRequest(req, sig);
+    uploader.generateInitialUploadRequest(req, sig);
   }
 
   generateInitialUploadRequest(request, signature){
@@ -96,8 +95,8 @@ class BlobUpload{
     initUpReq.append('next_blob_size', BLOB_SIZE);
 
     // Hash the next blob for security and error checking.
-    var blob = blobUpload['file'].slice(0, BLOB_SIZE);
-    blobUpload.generateBlobHash(blob, initUpReq, this.sendFirstPacket);
+    var blob = uploader['file'].slice(0, BLOB_SIZE);
+    uploader.generateBlobHash(blob, initUpReq, this.sendFirstPacket);
   }
 
   /*
@@ -129,8 +128,8 @@ class BlobUpload{
         sendType: 'file',
         returnType: 'json',
         data: initialUploadRequet,
-        success: blobUpload.handleServerResponse,
-        error: blobUpload.ajaxError
+        success: uploader.handleServerResponse,
+        error: uploader.ajaxError
       });
     }
     catch(error){
@@ -144,19 +143,19 @@ class BlobUpload{
    */
   sendBlob(response){
 
-    blobUpload.generateBlobUploadRequest(response);
+    uploader.generateuploaderRequest(response);
   }
 
 
-  generateBlobUploadRequest(response){
+  generateuploaderRequest(response){
 
-    /*
-     * The file upload is complete, however the server should have sent a 
-     * 'complete' status message.
-     */
-    var fileSize = blobUpload['file'].size
+    var fileSize = uploader['file'].size
     if(response['byte_count'] >= fileSize){
 
+      /*
+       * The file upload is complete, however the server should have sent a 
+       * 'complete' status message.
+       */
       return;
     }
 
@@ -179,25 +178,25 @@ class BlobUpload{
     delete request['next_blob_size'];
 
     // Pack up a new upload packet/request
-    var blobUploadRequest = new FormData();
+    var uploaderRequest = new FormData();
     for(var key in request){
 
-      blobUploadRequest.append(key, request[key]);
+      uploaderRequest.append(key, request[key]);
     }
 
     // Append the current blob to the request.
-    var blob = blobUpload['file'].slice(fromByte, toByte);
-    blobUploadRequest.append('blob', blob);
-    blobUploadRequest.append('next_blob_size', BLOB_SIZE);
+    var blob = uploader['file'].slice(fromByte, toByte);
+    uploaderRequest.append('blob', blob);
+    uploaderRequest.append('next_blob_size', BLOB_SIZE);
 
     // Hash the next blob for security and error checking.
     var endByte = toByte + BLOB_SIZE;
     endByte = (endByte > fileSize) ? fileSize : endByte
-    var nextBlob = blobUpload['file'].slice(toByte, endByte);
-    blobUpload.generateBlobHash(nextBlob, blobUploadRequest, this.sendPacket);
+    var nextBlob = uploader['file'].slice(toByte, endByte);
+    uploader.generateBlobHash(nextBlob, uploaderRequest, this.sendPacket);
   }
 
-  sendPacket(blobUploadRequest){
+  sendPacket(uploaderRequest){
 
     try{
 
@@ -207,9 +206,9 @@ class BlobUpload{
         method: 'POST',
         sendType: 'file',
         returnType: 'json',
-        data: blobUploadRequest,
-        success: blobUpload.handleServerResponse,
-        error: blobUpload.ajaxError
+        data: uploaderRequest,
+        success: uploader.handleServerResponse,
+        error: uploader.ajaxError
       });
     }
     catch(error){
@@ -233,7 +232,7 @@ class BlobUpload{
       case 'initialized':
       case 'active':
 
-        blobUpload.sendBlob(response);
+        uploader.sendBlob(response);
         break;
       case 'paused':
 
@@ -264,7 +263,7 @@ class BlobUpload{
 }
 
 // Initilize the class.
-var blobUpload = new BlobUpload();
+var uploader = new Uploader();
 
 // Expose the worker specific messaging function.
-var onmessage = blobUpload.onmessage;
+var onmessage = uploader.onmessage;
