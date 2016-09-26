@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import UploadForm from './components/upload-form';
-import PostIt from './components/post-it';
 
 class MetisUploader{
 
@@ -82,19 +81,7 @@ class MetisUploader{
 
     if(response.success){
 
-      switch(response.request.type){
-
-        case 'solid':
-
-            this.spawnUploadThread(response.request, response.signature);
-          break;
-        case 'blob':
-
-            this.spawnBlobUploadThread(response.request, response.signature);
-          break;
-        default:
-          break;
-      }
+      this.spawnUploadThread(response.request, response.signature);
     }
     else{
 
@@ -103,58 +90,17 @@ class MetisUploader{
   }
 
   /*
-   * Spawn a secondary worker thread for the upload.
+   * Spawn a worker thread for the upload.
    */
   spawnUploadThread(request, signature){
 
-    //Setup the worker.
-    this.uploadWorker = new Worker('./js/workers/solid-upload.js');
+    this.uploadWorker = new Worker('./js/workers/uploader.js');
 
     this.uploadWorker.onmessage = (event)=>{
       
       if(event.data.type == 'error'){
-
-        this.uploadWorker.onerror(event.data);
-      }
-      else{
-
-        console.log(event.data.message);
-      }
-    };
-
-    this.uploadWorker.onerror = (event)=>{
-
-      if(event.type === 'error') console.log(event.message);      
-    };
-
-    //Format the upload message for the worker.
-    var workerMessage = {
-
-      command: 'start',
-      data: {
-
-        uploadFile: this.uploadFile,
-        request: request,
-        signature: signature
-      }
-    };
-
-    //Begin the upload.
-    this.uploadWorker.postMessage(workerMessage);
-  }
-
-  /*
-   * Spawn a secondary worker thread for the upload.
-   */
-  spawnBlobUploadThread(request, signature){
-
-    this.blobWorker = new Worker('./js/workers/blob-upload.js');
-
-    this.blobWorker.onmessage = (event)=>{
-      
-      if(event.data.type == 'error'){
         
-        this.blobWorker.onerror(event.data);
+        this.uploadWorker.onerror(event.data);
       }
       else{
 
@@ -162,7 +108,7 @@ class MetisUploader{
       }
     };
 
-    this.blobWorker.onerror = (event)=>{
+    this.uploadWorker.onerror = (event)=>{
 
       console.log(event);
     };
@@ -180,7 +126,7 @@ class MetisUploader{
     }
 
     //Begin the upload.
-    this.blobWorker.postMessage(workerMessage);
+    this.uploadWorker.postMessage(workerMessage);
   }
 }
 
