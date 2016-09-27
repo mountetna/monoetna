@@ -2,11 +2,13 @@
 # This file initiates Metis and sets the routing of the http requests.
 
 Metis = Metis.new()
-Metis.add_route('GET', '/', 'Controller#index')
-Metis.add_route('POST', '/magma-end-point', 'Controller#magma_end_point')
 
-Metis.add_route('POST', '/upload-init', 'Controller#initialize_upload')
-Metis.add_route('POST', '/upload-blob', 'Controller#upload_blob')
-Metis.add_route('POST', '/upload-pause', 'Controller#pause_upload')
-Metis.add_route('POST', '/upload-stop', 'Controller#stop_upload')
-Metis.add_route('POST', '/upload-query', 'Controller#query_upload')
+Metis.add_route('GET', '/', 'ClientController#index')
+
+Metis.add_route('POST', '/upload-init', 'UploadController#initialize_upload')
+Metis.add_route('POST', '/upload-blob', 'UploadController#upload_blob')
+Metis.add_route('POST', '/upload-pause', 'UploadController#pause_upload')
+Metis.add_route('POST', '/upload-stop', 'UploadController#stop_upload')
+Metis.add_route('POST', '/upload-query', 'UploadController#query_upload')
+
+Metis.add_route('POST', '/magma-end-point', 'UploadController#magma_end_point')

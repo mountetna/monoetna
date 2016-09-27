@@ -1,11 +1,11 @@
-# utils.rb
-# General Utilities for Metis.
+# sign_service.rb
+# General signing utilities.
 
-module Utils
+module SignService
 
   # Rebuilds the request object from POST parameters and orders the values in 
   # an array for hashing.
-  def Utils.generate_request(request)
+  def SignService.generate_request(request)
 
     Conf::SIGNATURE_ITEMS.map do |item|
       
@@ -14,7 +14,7 @@ module Utils
   end
 
   # Verify that the appropriate parameters exsit for hashing or general usage.
-  def Utils.verify_request_parameters(params)
+  def SignService.verify_request_parameters(params)
 
     valid = true
 
@@ -30,7 +30,7 @@ module Utils
   end
 
   # Takes an ordered array of request values and returns a signed hash.
-  def Utils.sign_request(request, algo)
+  def SignService.sign_request(request, algo)
 
     signature = case algo.downcase
     when 'md5'    then sign_with_MD5(request)
@@ -41,7 +41,7 @@ module Utils
 
   # Takes an ordered array of request values, strigifies it, concatenates a
   # secret and hashes the resultant string with MD5.
-  def Utils.sign_with_MD5(request)
+  def SignService.sign_with_MD5(request)
 
     request_str = stringify_request(request) + Conf::SECRET_KEY
     md5 = Digest::MD5.new
@@ -51,7 +51,7 @@ module Utils
 
   # Takes an ordered array of request values, strigifies it, concatenates a
   # secret and hashes the resultant string with SHA256.
-  def Utils.sign_with_SHA256(request)
+  def SignService.sign_with_SHA256(request)
 
     request_str = stringify_request(request) + Conf::SECRET_KEY
 
@@ -61,7 +61,7 @@ module Utils
   end
 
   # Takes an ordered array of request vaules and strigifies it. 
-  def Utils.stringify_request(ordered_request)
+  def SignService.stringify_request(ordered_request)
 
     ordered_request.join
   end

@@ -36,8 +36,6 @@ class Metis
 
     controller, action = route.split('#')
     controller_class = Kernel.const_get(controller)
-
-    # Pass in the redis service to the class and call the method on the class.
-    controller_class.new(@redis_service).public_send(action, @request)
+    controller_class.new(@redis_service, @request, action).run()
   end
 end
