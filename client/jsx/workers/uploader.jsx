@@ -38,7 +38,6 @@ class Uploader{
 
       case 'start':
         
-        console.log(new Date().getTime());
         uploader.initializeUploadSequence(request, signature);
         break;
 
@@ -124,7 +123,7 @@ class Uploader{
 
       AJAX({
 
-        url: '/upload-init',
+        url: '/upload-start',
         method: 'POST',
         sendType: 'file',
         returnType: 'json',
@@ -146,7 +145,6 @@ class Uploader{
 
     uploader.generateUploaderRequest(response);
   }
-
 
   generateUploaderRequest(response){
 
@@ -188,11 +186,11 @@ class Uploader{
     // Append the current blob to the request.
     var blob = uploader['file'].slice(fromByte, toByte);
     uploaderRequest.append('blob', blob);
-    uploaderRequest.append('next_blob_size', BLOB_SIZE);
 
-    // Hash the next blob for security and error checking.
+    // Hash and profile the next blob for security and error checking.
     var endByte = toByte + BLOB_SIZE;
     endByte = (endByte > fileSize) ? fileSize : endByte;
+    uploaderRequest.append('next_blob_size', (endByte - toByte));
     var nextBlob = uploader['file'].slice(toByte, endByte);
     uploader.generateBlobHash(nextBlob, uploaderRequest, this.sendPacket);
   }
@@ -220,23 +218,20 @@ class Uploader{
 
   handleServerResponse(response){
 
-    var errorMessage = 'The server did not give a valid response.'
-
+    /*
+    if(response === false){
     
-    if(!response){
-  
+      var errorMessage = 'The server did not give a valid response.';
       postMessage({ 'type': 'error', message: errorMessage });
     }
-    else{
-
-      response = VERIFY_AND_TRANSFORM(response);
-    }
+    */
 
     switch(response['status']){
 
       case 'initialized':
       case 'active':
 
+        response = VERIFY_AND_TRANSFORM(response);
         uploader.sendBlob(response);
         break;
       case 'paused':
@@ -244,7 +239,8 @@ class Uploader{
         break;
       case 'complete':
 
-        console.log(new Date().getTime());
+        console.log('Complete.');
+        console.log(response);
         break;
       case 'stopped':
 

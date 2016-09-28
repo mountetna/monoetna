@@ -5,16 +5,16 @@ module SignService
 
   # Rebuilds the request object from POST parameters and orders the values in 
   # an array for hashing.
-  def SignService.generate_request(request)
+  def SignService.order_params(params)
 
     Conf::SIGNATURE_ITEMS.map do |item|
       
-      request[item]
+      params[item]
     end
   end
 
   # Verify that the appropriate parameters exsit for hashing or general usage.
-  def SignService.verify_request_parameters(params)
+  def SignService.request_parameters_valid?(params)
 
     valid = true
 
@@ -30,39 +30,38 @@ module SignService
   end
 
   # Takes an ordered array of request values and returns a signed hash.
-  def SignService.sign_request(request, algo)
+  def SignService.sign_request(params, algo)
 
     signature = case algo.downcase
-    when 'md5'    then sign_with_MD5(request)
-    when 'sha256' then sign_with_SHA256(request)
+    when 'md5'    then sign_with_MD5(params)
+    when 'sha256' then sign_with_SHA256(params)
     else ''
     end
   end
 
   # Takes an ordered array of request values, strigifies it, concatenates a
   # secret and hashes the resultant string with MD5.
-  def SignService.sign_with_MD5(request)
+  def SignService.sign_with_MD5(params)
 
-    request_str = stringify_request(request) + Conf::SECRET_KEY
+    param_str = stringify_params(params) + Conf::SECRET_KEY
     md5 = Digest::MD5.new
-    md5.update request_str
+    md5.update param_str
     md5.hexdigest
   end
 
   # Takes an ordered array of request values, strigifies it, concatenates a
   # secret and hashes the resultant string with SHA256.
-  def SignService.sign_with_SHA256(request)
+  def SignService.sign_with_SHA256(params)
 
-    request_str = stringify_request(request) + Conf::SECRET_KEY
-
+    param_str = stringify_params(params) + Conf::SECRET_KEY
     sha256 = Digest::SHA256.new
-    sha256.update request_str
+    sha256.update param_str
     sha256.hexdigest
   end
 
   # Takes an ordered array of request vaules and strigifies it. 
-  def SignService.stringify_request(ordered_request)
+  def SignService.stringify_params(ordered_params)
 
-    ordered_request.join
+    ordered_params.join
   end
 end

@@ -73,64 +73,51 @@ var VERIFY_AND_TRANSFORM = function(response){
   }
 
   var error = false;
-  var returnItems = [
+  var returnItems = {
 
-    {algorithm: String},
-    {authorization_token: String},
-    {current_blob_size: Number},
-    {current_byte_position: Number},
-    {directory: String},
-    {expires: Number},
-    {file_name: String},
-    {file_size: Number},
-    {next_blob_hash: String},
-    {next_blob_size: Number},
-    {original_name: String},
-    {signature: String},
-    {timestamp: Number},
-    {user_email: String},
-    {user_id: Number},
-    {group_id: Number}
-  ]
+    directory: String,
+    expires: Number,
+    signing_algorithm: String,
+    hashing_algorithm: String,
+    start_timestamp: Number,
+    authorization_token: String,
+    original_name: String,    
+    file_name: String,
+    file_size: Number,
+    user_id: Number,
+    group_id: Number,
+    
+    signature: String,
+    
+    current_blob_size: Number,
+    current_byte_position: Number,
+    next_blob_hash: String,
+    next_blob_size: Number
+  };
 
-  for(var index in returnItems){
+  for(var key in response['request']){
 
-    for(var key in returnItems[index]){
+    if(key in returnItems){
 
-      var value = returnItems[index][key];
-      if(key in response['request']){
+      switch(returnItems[key]){
 
-        switch(value){
+        case String:
 
-          case String:
+          response['request'][key] = String(response['request'][key]);
+          break;
+        case Number:
+          
+          response['request'][key] = parseInt(response['request'][key]);
+          break;
+        default:
 
-            response['request'][key] = String(response['request'][key]);
-            break;
-          case Number:
-            
-            response['request'][key] = parseInt(response['request'][key]);
-            break;
-          default:
-
-            //none
-            break;
-        }
-      }
-      else{
-
-        error = true;
+          //none
+          break;
       }
     }
   }
 
-  if(error){
-
-    return false;
-  }
-  else{
-
-    return response;
-  }
+  return response;
 }
 
 /*

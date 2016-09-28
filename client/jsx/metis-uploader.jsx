@@ -70,7 +70,7 @@ class MetisUploader{
       returnType: 'json',
       data: request,
       success: this.authorizationResponse.bind(this),
-      error: this.ajaxError
+      error: this.ajaxError.bind(this)
     });
   }
   
@@ -87,6 +87,11 @@ class MetisUploader{
 
       console.log('There was an error.');
     }
+  }
+
+  ajaxError(xhr, config, error){
+
+    console.log(xhr, config, error);
   }
 
   /*

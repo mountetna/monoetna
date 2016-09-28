@@ -11,6 +11,7 @@ require './server/conf'
 require './server/controllers/controller'
 require './server/controllers/client_controller'
 require './server/controllers/upload_controller'
+require './server/controllers/magma_controller' # This is a stub
 
 require './server/service/sign_service'
 require './server/service/redis_service'
