@@ -19,6 +19,6 @@ require './server/service/redis_service'
 require './server/metis'
 require './server/routes'
 
-use Rack::Static, urls: ['/css', '/js', '/fonts'], root: 'client'
+use Rack::Static, urls: ['/css', '/js', '/fonts', '/img'], root: 'client'
 
 run(Metis)
