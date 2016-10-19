@@ -18,8 +18,10 @@ module Conf
     'original_name', 
     'file_name',
     'file_size',
+    'user_email',
     'user_id',
-    'group_id'
+    'group_id',
+    'redis_index'
   ]
 
   # This is the root directory for the data.
