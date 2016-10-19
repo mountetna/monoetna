@@ -14,7 +14,7 @@ class Controller
     @status_key = nil
     @full_path = nil
     @partial_file_name = nil
-    @file_status == nil
+    @file_status = nil
   end
 
   def run()  
@@ -143,7 +143,10 @@ class Controller
   def generate_status_key()
 
     req = @request.POST()
-    status_key = req['file_name'] +'.'+ req['user_id'] +'.'+ req['group_id']
+    status_key = req['redis_index'] +'.'
+    status_key = status_key + req['file_name'] +'.'
+    status_key = status_key + req['group_id'] +'.'
+    status_key = status_key + req['user_id']
   end
 
   def send_bad_request()
