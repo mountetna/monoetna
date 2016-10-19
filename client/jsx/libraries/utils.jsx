@@ -4,27 +4,104 @@
 var BLOB_SIZE = 100000; // in bytes
 
 /*
+ * These are the items that are passed between the server and client.
+ */
+var STATUS_ITEMS = {
+
+  directory: String,
+  expires: Number,
+  signing_algorithm: String,
+  hashing_algorithm: String,
+  start_timestamp: Number,
+  authorization_token: String,
+  original_name: String,    
+  file_name: String,
+  file_size: Number,
+  user_email: String,
+  user_id: Number,
+  group_id: Number,
+  redis_index: String,
+
+  signature: String,
+  
+  current_blob_size: Number,
+  current_byte_position: Number,
+  next_blob_hash: String,
+  next_blob_size: Number
+};
+
+/* 
+ * Generates a psudo random key for React components and data element sorting.
+ * DO NOT USE FOR SECURITY!
+ */
+var GENERATE_RAND_KEY = function(){
+
+  var randKey = '';
+  for(var a = 0; a < 4; ++a){
+
+    randKey += (Math.random() * 0xFFFFFF << 0).toString(16);
+  }
+
+  return randKey;
+}
+
+/*
+ * Change a timestamp in to a human readable format.
+ */
+var PARSE_TIMESTAMP = function(timestamp){
+
+  return timestamp;
+}
+
+/*
+ * Change an integer of bytes into a human readable format.  
+ */
+var PARSE_BYTES = function(bytes){
+
+  return bytes;
+}
+
+/*
+ * Data from the controller to the worker cannot be passed through messaging
+ * while attached to the File Object (the file request/status data is stored on 
+ * the file object in redux). We need to externalize the request/status data
+ * from the File Object and pass it over 'worker messaging' as it's own 
+ * object/hash.
+ */
+var PARSE_REQUEST = function(file){
+
+  var request = {};
+
+  for(var key in STATUS_ITEMS){
+
+    if(key in file){
+
+      request[key] = file[key];
+    }
+  }
+
+  return request;
+}
+
+/*
  * Verification of types and structures of the server responses. This will also
  * transform any strings that are supposed to be integers. 
  * 
  * This function needs to be simplified.
  */
-var VERIFY_AND_TRANSFORM = function(response){
+
+var NORMILIZE_RESPONSE = function(response){
 
   if('success' in response){
 
-    if((response['success'] == 'true') || 
-       (response['success'] == 'True') ||
-       (response['success'] == true)){
+    var success = response['success'];
+    if((success == 'true') || (success == 'True') || (success == true)){
 
       response['success'] == true;
     }
-    else if((response['success'] == 'false') || 
-       (response['success'] == 'False') ||
-       (response['success'] == false)){
+    else if((success == 'false') || (success == 'False') || (success == false)){
 
       response['success'] == false;
-      return response;
     }
     else{
 
@@ -32,11 +109,14 @@ var VERIFY_AND_TRANSFORM = function(response){
     }
   }
 
-  if(!('request' in response)){
+  return response;
+}
 
-    return false;
-  }
-  else{
+var TRANSFORM_RESPONSE = function(response){
+
+  var error = false;
+
+  if('request' in response){
 
     var type = Object.prototype.toString.call(response['request']);
     if(type == '[object String]'){
@@ -48,58 +128,24 @@ var VERIFY_AND_TRANSFORM = function(response){
   if('byte_count' in response){
     
     response['byte_count'] = parseInt(response['byte_count']);
-  }
-  else{
-
-    return false;
+    if(isNaN(response['byte_count'])) error = true;
   }
 
   if('signature' in response){
 
     response['signature'] = String(response['signature']);
   }
-  else{
-
-    return false;
-  }
-
+  
   if('status' in response){
 
     response['status'] = String(response['status']);
   }
-  else{
-
-    return false;
-  }
-
-  var error = false;
-  var returnItems = {
-
-    directory: String,
-    expires: Number,
-    signing_algorithm: String,
-    hashing_algorithm: String,
-    start_timestamp: Number,
-    authorization_token: String,
-    original_name: String,    
-    file_name: String,
-    file_size: Number,
-    user_id: Number,
-    group_id: Number,
-    
-    signature: String,
-    
-    current_blob_size: Number,
-    current_byte_position: Number,
-    next_blob_hash: String,
-    next_blob_size: Number
-  };
 
   for(var key in response['request']){
 
-    if(key in returnItems){
+    if(key in STATUS_ITEMS){
 
-      switch(returnItems[key]){
+      switch(STATUS_ITEMS[key]){
 
         case String:
 
@@ -108,6 +154,7 @@ var VERIFY_AND_TRANSFORM = function(response){
         case Number:
           
           response['request'][key] = parseInt(response['request'][key]);
+          if(isNaN(response['request'][key])) error = true;
           break;
         default:
 
@@ -117,7 +164,7 @@ var VERIFY_AND_TRANSFORM = function(response){
     }
   }
 
-  return response;
+  return (error) ? error : response;
 }
 
 /*
