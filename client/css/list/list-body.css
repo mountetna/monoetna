@@ -1,0 +1,55 @@
+#list-body-group {
+
+  height: 100%;
+  margin-top: 10px;
+}
+
+.list-entry-group {
+
+  position: relative;
+  min-height: 40px;
+  padding-left: 5px;
+  margin-top: -1px;
+  border-top: 1px solid #999;
+  border-bottom: 1px solid #999;
+}
+
+.list-entry-icon {
+
+  display: inline-block;
+  vertical-align: top;
+  width: 40px;
+  height: 60px;
+  padding-top: 6px;
+  font-size: 2.9em;
+}
+
+.list-entry-title-group {
+
+  display: inline-block;
+  vertical-align: top;
+  height: 60px;
+  margin-left: 10px;
+  padding-top:5px;
+}
+
+.list-entry-file-name {
+
+  margin-top: 4px;
+  font-family: 'gotham_boldregular';
+  font-size: 1em;
+}
+
+.list-entry-status {
+
+  margin-top: 4px;
+}
+
+#list-empty-group {
+
+  margin-top: 20px;
+  text-align: center;
+  letter-spacing: 2px;
+  font-family: 'gotham_bookregular';
+  font-size: 1.8em;
+}

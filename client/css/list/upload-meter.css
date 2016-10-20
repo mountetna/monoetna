@@ -1,0 +1,34 @@
+.upload-meter-group {
+
+  position: absolute;
+  top: 0px;
+  left: 55%;
+  right: 100px;
+  height: 100%;
+}
+
+.upload-meter-tray {
+
+  margin-top: 10px;
+  width: 100%;
+  height: 20px;
+  box-shadow: -1px 1px 1px 0px #999 inset;
+  border: 1px solid #999;
+  overflow: hidden;
+}
+
+.upload-meter-bar {
+
+  margin-left: -1px;
+  width: 0%;
+  height: 100%;
+  box-shadow: 0px 1px 1px 0px #666 inset;
+  border-right: 1px solid #1b7860;
+  background: #24a684;
+}
+
+.upload-meter-info {
+
+  width: 100%;
+  height: 20px;
+}

@@ -1,0 +1,28 @@
+.upload-control-group {
+
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 100px;
+  height: 100%;
+  padding-left: 20px;
+}
+
+.upload-control {
+
+  margin-top: 10px;
+  border: none;
+  background: none;
+  font-size: 2em;
+  color: #ccc;
+}
+
+.upload-control:focus {
+    
+  outline:none;
+}
+
+.upload-control:hover {
+    
+  color: #666;
+}

@@ -1,0 +1,31 @@
+#list-head-group {
+
+  width: 100%;
+  min-height: 32px;
+}
+
+#file-select-btn {
+  
+  float: right;
+  position: relative;
+  padding: 5px;
+  border: 1px solid #666;
+  border-radius: 1px;
+  background: #999;
+  cursor: pointer;
+
+  color: #fff;
+  font-family: 'gotham_bookregular';
+  font-size: 1em;
+  letter-spacing: 1px;
+}
+
+#file-select-btn:focus {
+    
+  outline:none;
+}
+
+#file-selector {
+
+  display: none;
+}

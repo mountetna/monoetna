@@ -1,56 +1,192 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
 
-import UploadForm from './components/upload-form';
+import MetisModel from './models/metis-model'
+import MetisUIContainer from './components/metis-ui-container';
 
 class MetisUploader{
 
   constructor(){
 
-    this.buildUI();
-    this.uploadFile = null;
-    this.uploadWorker = null;
+    this['model'] = null;
+    this['uploadWorker'] = null;
 
-    //these two items are dummy entries
-    this.userEmail = 'jason.cater@ucsf.edu';
-    this.authToken = 'blahf8cfc63531b6ed753bd536f6e12d578c';
+    this.initDataStore();
+    this.spawnUploadWorker();
+    this.buildUI();
+  }
+
+  initDataStore(){
+
+    this['model'] = new MetisModel();
+
+    // Event hooks from the UI to the Controller
+    this['model']['store'].subscribe(()=>{ 
+
+      var lastAction = this['model']['store'].getState()['lastAction'];
+      this.routeAction(lastAction);
+    });
+  }
+
+  /*
+   * Spawn a worker thread for the uploads.
+   */
+  spawnUploadWorker(){
+
+    this['uploadWorker'] = new Worker('./js/workers/uploader.js');
+    this['uploadWorker']['onmessage'] = (message)=>{
+      
+      this.routeResponse(message);
+    };
+    
+    this['uploadWorker']['onerror'] = (message)=>{
+
+      console.log(message);
+    };
   }
 
   buildUI(){
 
-    //an object with functions so the component can call back to the controller
-    var callbacks = {};
-    callbacks.fileSelected = this.fileSelected.bind(this);
-
     ReactDOM.render(
 
-      <UploadForm callbacks={ callbacks } />,
-      document.getElementById('ui-container')
+      <Provider store={ this['model']['store'] }>
+
+        <MetisUIContainer />
+      </Provider>,
+      document.getElementById('ui-group')
     );
   }
 
   /*
-   * File selected, now call Magma to get an HMAC Auth Message
+   * Commands from the UI (via Redux).
+   * You would normally see Thunk middleware implemented at the reducer for asyc
+   * operations. However, since we are using web workers we don't care about 
+   * asyc operations. We receive events from the redux store and we dispatch
+   * events to the redux store. This way there is only one entry point to UI, 
+   * which is through the redux store, and we do not upset the react/redux 
+   * paradigm.
+   */
+  routeAction(action){
+
+    switch(action['type']){
+
+      case 'FILE_SELECTED':
+
+        this.fileSelected(action['data']);
+        break;
+      case 'FILE_UPLOAD_AUTHORIZED':
+
+        this.queueUploader();
+        break;
+      default:
+
+        //none
+        break;
+    }
+  }
+
+  /*
+   * Preupload sorting and checks of the data before we call the upload worker.
+   */
+  queueUploader(){
+
+    /*
+      check if there are any active uploads.
+        if not then reset the uploader and begin a new upload from the top
+        of the queue.
+    */
+
+    var state = this['model']['store'].getState();
+    var uploads = state['metisState']['fileUploads'];
+
+    var anyActive = false;
+    for(var a = 0; a < uploads.length; ++a){
+
+      if(uploads[a]['status'] == 'active'){
+
+        anyActive = true;
+        break;
+      }
+    }
+
+    if(!anyActive){
+
+      this.startUploader(uploads[0]);
+    }
+  }
+
+  /*
+   * Commands to the Upload Worker.
+   */
+  startUploader(uploadFile){
+
+    var workerMessage = { 
+      command: 'start', 
+      file: uploadFile,
+      request: PARSE_REQUEST(uploadFile) 
+    };
+    this['uploadWorker'].postMessage(workerMessage);
+  }
+
+  pauseUploader(){
+
+  }
+
+  /*
+   * Responses from the Upload Worker.
+   */
+  routeResponse(message){
+
+    switch(message['data']['type']){
+
+      case 'error':
+
+        this['uploadWorker'].onerror(message['data']);
+        break;
+      case 'active':
+
+        var response = message['data']['response'];
+        var action = { type: 'FILE_UPLOAD_ACTIVE', data: response };
+        this['model']['store'].dispatch(action);
+        break;
+      case 'complete':
+
+        var response = message['data']['response'];
+        var action = { type: 'FILE_UPLOAD_COMPLETE', data: response };
+        this['model']['store'].dispatch(action);
+        break;
+      default:
+
+        //none
+        break;
+    }
+
+    
+  }
+
+  /*
+   * File selected, now call Magma to get an HMAC Auth Message.
    */
   fileSelected(file){
 
-    //save the file handle
-    this.uploadFile = file;
+    var state = this['model']['store'].getState();
+    var userInfo = state['metisState']['userInfo'];
 
     var authRequest = {
 
-      user_email: this.userEmail,
-      authorization_token: this.authToken,
-      original_name: file.name,
-      file_size: file.size //in bytes
+      user_email: file['user_email'],
+      original_name: file['name'],
+      file_size: file['size'], //in bytes
+      redis_index: file['redis_index'],
+      authorization_token: userInfo['authorization_token'],
     };
 
     this.requestAuthorization(authRequest);
   }
 
   /*
-   * Call Magma to get approval to make an action on Metis
-   * type = PUT, GET, DEL
+   * Call Magma to get approval to make an action on Metis.
    */
   requestAuthorization(authRequest){
 
@@ -69,8 +205,8 @@ class MetisUploader{
       sendType: 'serial',
       returnType: 'json',
       data: request,
-      success: this.authorizationResponse.bind(this),
-      error: this.ajaxError.bind(this)
+      success: this['authorizationResponse'].bind(this),
+      error: this['ajaxError'].bind(this)
     });
   }
   
@@ -79,9 +215,10 @@ class MetisUploader{
    */
   authorizationResponse(response){
 
-    if(response.success){
+    if(response['success']){
 
-      this.spawnUploadThread(response.request, response.signature);
+      var action = { type: 'FILE_UPLOAD_AUTHORIZED', data: response };
+      this['model']['store'].dispatch(action);
     }
     else{
 
@@ -92,46 +229,6 @@ class MetisUploader{
   ajaxError(xhr, config, error){
 
     console.log(xhr, config, error);
-  }
-
-  /*
-   * Spawn a worker thread for the upload.
-   */
-  spawnUploadThread(request, signature){
-
-    this.uploadWorker = new Worker('./js/workers/uploader.js');
-
-    this.uploadWorker.onmessage = (event)=>{
-      
-      if(event.data.type == 'error'){
-        
-        this.uploadWorker.onerror(event.data);
-      }
-      else{
-
-        console.log(event);
-      }
-    };
-
-    this.uploadWorker.onerror = (event)=>{
-
-      console.log(event);
-    };
-
-    //Format the upload message for the worker.
-    var workerMessage = {
-
-      command: 'start',
-      data: {
-
-        uploadFile: this.uploadFile,
-        request: request,
-        signature: signature
-      }
-    }
-
-    //Begin the upload.
-    this.uploadWorker.postMessage(workerMessage);
   }
 }
 

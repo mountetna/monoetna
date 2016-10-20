@@ -2,15 +2,16 @@
  * This class will upload a file as blobs to the Metis upload endpoint.
  */
 
-importScripts('../lib/utils.js');
-importScripts('../lib/spark-md5.js');
+importScripts('../libraries/utils.js');
+importScripts('../libraries/spark-md5.js');
 
 class Uploader{
 
   constructor(){
 
-    // This object will be the data we need to send over the wire.
-    this['file'] = null; 
+    // These object will be the data we need to send over the wire.
+    this['file'] = null;
+    this['request'] = null;
   }
 
   /*
@@ -20,11 +21,8 @@ class Uploader{
   onmessage(event){
 
     var message = event['data'];
-
-    var request = message['data']['request'];
-    var signature = message['data']['signature'];
-    
-    uploader['file'] = message['data']['uploadFile'];
+    uploader['file'] = message['file'];
+    uploader['request'] = message['request'];
 
     // Check that the incoming data has a valid command.
     if(!'command' in message){
@@ -38,16 +36,12 @@ class Uploader{
 
       case 'start':
         
-        uploader.initializeUploadSequence(request, signature);
+        uploader.initializeUploadSequence();
         break;
 
       case 'pause':
 
         // Pause the upload.
-        break;
-      case 'stop':
-
-        // Stop the upload.
         break;
       case 'query':
 
@@ -64,25 +58,16 @@ class Uploader{
    * the server know what to expect and also allows the server a chance to
    * resume a previously started upload.
    */
-  initializeUploadSequence(req, sig){
-
-    //this.initUpReq = uploader.generateInitialUploadRequest(req, sig);
-    uploader.generateInitialUploadRequest(req, sig);
-  }
-
-  generateInitialUploadRequest(request, signature){
-
-    // Append the authorization signature/hash from Magma to the request
-    request['signature'] = signature;
+  initializeUploadSequence(){
 
     /*
-     * Here, we are NOT attaching any blob data, but are still using the form
+     * Here, we are NOT attaching any blob data, but are still using a form
      * for the initialization request.
      */
     var initUpReq = new FormData();
-    for(var key in request){
+    for(var key in  uploader['request']){
 
-      initUpReq.append(key, request[key]);
+      initUpReq.append(key,  uploader['request'][key]);
     }
 
     /*
@@ -212,26 +197,46 @@ class Uploader{
     }
     catch(error){
 
-      postMessage({ 'type': 'error', message: error['message'] });
+      postMessage({ type: 'error', message: error['message'] });
     }
   }
 
   handleServerResponse(response){
 
-    /*
-    if(response === false){
-    
-      var errorMessage = 'The server did not give a valid response.';
+    var errorMessage = 'The server response was malformed.';
+    if(!('success' in response) || !('status' in response)){
+
       postMessage({ 'type': 'error', message: errorMessage });
+      return;
     }
-    */
+
+    response = NORMILIZE_RESPONSE(response);
+
+    if(!response){
+
+      postMessage({ type: 'error', message: errorMessage });
+      return;
+    }
+
+    response = TRANSFORM_RESPONSE(response);
+
+    if(!response){
+
+      postMessage({ type: 'error', message: errorMessage });
+      return;
+    }
+
+    uploader.handleResponseRouting(response);  
+  }
+
+  handleResponseRouting(response){
 
     switch(response['status']){
 
       case 'initialized':
       case 'active':
 
-        response = VERIFY_AND_TRANSFORM(response);
+        postMessage({ type: 'active', response: response });
         uploader.sendBlob(response);
         break;
       case 'paused':
@@ -239,8 +244,10 @@ class Uploader{
         break;
       case 'complete':
 
-        console.log('Complete.');
-        console.log(response);
+        // send update message back
+        this['file'] = null;
+        this['request'] = null;
+        postMessage({ type: 'complete', response: response });
         break;
       case 'stopped':
 

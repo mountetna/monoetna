@@ -1,0 +1,71 @@
+#nav-menu {
+
+  position: absolute;
+  left: 40px;
+  right: 0px;
+  bottom: 10px;
+  height: 30px;
+  
+  /* fallback DIY*/
+  background: #22a778;
+
+  /* Safari 4-5, Chrome 1-9 */
+  background: -webkit-gradient(linear, left top, right top, from(#a9d58e), color-stop(0.25, #24a684), color-stop(0.5, #24a684), color-stop(0.75, #24a684), to(#24a684));
+
+  /* Safari 5.1+, Chrome 10+ */
+  background: -webkit-linear-gradient(left, #a9d58e, #24a684, #24a684, #24a684, #24a684);
+
+  /* Firefox 3.6+ */
+  background: -moz-linear-gradient(left, #a9d58e, #24a684, #24a684, #24a684, #24a684);
+
+  /* IE 10 */
+  background: -ms-linear-gradient(left, #a9d58e, #24a684, #24a684, #24a684, #24a684);
+
+  /* Opera 11.10+ */
+  background: -o-linear-gradient(left, #a9d58e, #24a684, #24a684, #24a684, #24a684);
+}
+
+.nav-menu-btn {
+
+  position: relative;
+  float: right;
+  margin: 5px;
+  border: none;
+  background: none;
+  outline: none;
+  color: #fff;
+
+  font-family: "gotham_bookregular";
+  color: #fff;
+  font-size: 0.8em;
+  padding-top: 3px;
+}
+
+#master-search-group {
+
+  position: relative;
+  float: right;
+  width: 200px;
+  height: 20px;
+  margin-top: 5px;
+  margin-right: 10px;
+  background: #fff;
+
+  -webkit-box-shadow: -1px 1px 1px 0px #000;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+  -moz-box-shadow:    -1px 1px 1px 0px #000;  /* Firefox 3.5 - 3.6 */
+  box-shadow:         -1px 1px 1px 0px #000;
+}
+
+#master-search-button {
+
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 20px;
+  height: 20px;
+  padding-top: 1px;
+  padding-left: 4px;
+  background: #999;
+
+  border: none;
+}
