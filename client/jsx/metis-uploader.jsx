@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 
-import MetisModel from './models/metis-model'
+import MetisModel from './models/metis-model';
 import MetisUIContainer from './components/metis-ui-container';
 
 class MetisUploader{
@@ -92,10 +92,9 @@ class MetisUploader{
   queueUploader(){
 
     /*
-      check if there are any active uploads.
-        if not then reset the uploader and begin a new upload from the top
-        of the queue.
-    */
+     * check if there are any active uploads. If not then reset the uploader and 
+     * begin a new upload from the top of the queue.
+     */
 
     var state = this['model']['store'].getState();
     var uploads = state['metisState']['fileUploads'];
@@ -121,7 +120,8 @@ class MetisUploader{
    */
   startUploader(uploadFile){
 
-    var workerMessage = { 
+    var workerMessage = {
+      
       command: 'start', 
       file: uploadFile,
       request: PARSE_REQUEST(uploadFile) 
@@ -131,6 +131,7 @@ class MetisUploader{
 
   pauseUploader(){
 
+    console.log("test");
   }
 
   /*
@@ -161,8 +162,6 @@ class MetisUploader{
         //none
         break;
     }
-
-    
   }
 
   /*

@@ -15,7 +15,7 @@ export default class UploadMeater extends React.Component{
 
     if(fileSize == 0){
 
-      return { width: '0%'};
+      return { width: '0%' };
     }
     else{
 

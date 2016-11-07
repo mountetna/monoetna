@@ -244,7 +244,7 @@ class Uploader{
         break;
       case 'complete':
 
-        // send update message back
+        // Send update message back.
         this['file'] = null;
         this['request'] = null;
         postMessage({ type: 'complete', response: response });
@@ -257,7 +257,7 @@ class Uploader{
         break;
       default:
 
-        //none
+        // None
         break;
     }
   }

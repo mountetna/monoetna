@@ -7,6 +7,7 @@ trash.rb
 /client/img/
 /tmp
 /log
+/source
 
 *.eot
 *.svg
