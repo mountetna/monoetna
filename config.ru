@@ -5,11 +5,13 @@ require 'json'
 require 'digest'
 require 'fileutils'
 require 'redis'
+require 'net/http'
 
 require './server/conf'
 
 require './server/controllers/controller'
 require './server/controllers/client_controller'
+require './server/controllers/log_controller'
 require './server/controllers/upload_controller'
 require './server/controllers/magma_controller' # This is a stub
 

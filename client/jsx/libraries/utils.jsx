@@ -2,6 +2,8 @@
  * Global Variables
  */
 var BLOB_SIZE = 100000; // in bytes
+var TOKEN_NAME = 'UCSF_ETNA_AUTH_TOKEN';
+var METIS_ADDR = 'http://metis-dev.ucsf.edu:8081/';
 
 /*
  * These are the items that are passed between the server and client.
@@ -327,4 +329,99 @@ var HEX_DUMP = function(blob, fromByte){
   }
 
   fileReader.readAsArrayBuffer(blob);
+}
+
+/*  
+ * From a file called cookie.js
+ *
+ * A complete cookies reader/writer framework with full unicode support.
+ *
+ * https://developer.mozilla.org/en-US/docs/DOM/document.cookie
+ *
+ * This framework is released under the GNU Public License, version 3 or later.
+ * http://www.gnu.org/licenses/gpl-3.0-standalone.html
+ *
+ * Syntaxes:
+ *
+ * Cookies.setItem(name, value[, end[, path[, domain[, secure]]]])
+ * Cookies.getItem(name)
+ * Cookies.removeItem(name[, path], domain)
+ * Cookies.hasItem(name)
+ * Cookies.keys()
+ *
+ */
+
+var COOKIES = {
+
+  getItem: function (sKey){
+
+    return decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
+  },
+  setItem: function(sKey, sValue, vEnd, sPath, sDomain, bSecure){
+
+    if(!sKey || /^(?:expires|max\-age|path|domain|secure)$/i.test(sKey)){ return false; }
+    
+    var sExpires = "";
+    if(vEnd){
+
+      switch(vEnd.constructor){
+
+        case Number:
+
+          sExpires = vEnd === Infinity ? "; expires=Fri, 31 Dec 9999 23:59:59 GMT" : "; max-age=" + vEnd;
+          break;
+        case String:
+
+          sExpires = "; expires=" + vEnd;
+          break;
+        case Date:
+
+          sExpires = "; expires=" + vEnd.toUTCString();
+          break;
+      }
+    }
+
+    document.cookie = encodeURIComponent(sKey) + "=" + encodeURIComponent(sValue) + sExpires + (sDomain ? "; domain=" + sDomain : "") + (sPath ? "; path=" + sPath : "") + (bSecure ? "; secure" : "");
+    return true;
+  },
+  removeItem: function(sKey, sPath, sDomain){
+
+    if(!sKey || !this.hasItem(sKey)){ return false; }
+
+    document.cookie = encodeURIComponent(sKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT" + ( sDomain ? "; domain=" + sDomain : "") + ( sPath ? "; path=" + sPath : "");
+    return true;
+  },
+  hasItem: function(sKey){
+
+    return (new RegExp("(?:^|;\\s*)" + encodeURIComponent(sKey).replace(/[\-\.\+\*]/g, "\\$&") + "\\s*\\=")).test(document.cookie);
+  },
+
+  /* optional method: you can safely remove it! */ 
+  keys: function(){
+
+    var aKeys = document.cookie.replace(/((?:^|\s*;)[^\=]+)(?=;|$)|^\s*|\s*(?:\=[^;]*)?(?:\1|$)/g, "").split(/\s*(?:\=[^;]*)?;\s*/);
+    for(var nIdx = 0; nIdx < aKeys.length; nIdx++) { aKeys[nIdx] = decodeURIComponent(aKeys[nIdx]); }
+
+    if(aKeys.length == 1){
+
+      if(aKeys[0] == ""){
+
+        return null;
+      }
+    }
+    
+    return aKeys;
+  }
+};
+
+var GENERATE_RANDOM = function(length){
+
+  var randChars = [];
+  var possible = 'abcdef0123456789';
+  for(var a = 0; a < length; ++a){
+
+    randChars.push(possible.charAt(Math.floor(Math.random() * possible.length)));
+  }
+
+  return randChars.join('');
 }

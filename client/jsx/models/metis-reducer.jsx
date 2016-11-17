@@ -12,10 +12,10 @@ export default class MetisReducer{
 
           // MOD START
           var fileObject = action['data'];
-          fileObject['file_name'] = fileObject['name'];
-          fileObject['original_name'] = fileObject['name'];
-          fileObject['file_size'] = fileObject['size'];
-          fileObject['user_email'] = state['userInfo']['user_email'];
+          fileObject['fileName'] = fileObject['name'];
+          fileObject['originalName'] = fileObject['name'];
+          fileObject['fileSize'] = fileObject['size'];
+          fileObject['userEmail'] = state['userInfo']['userEmail'];
           fileObject['status'] = 'queued';
 
           /*
@@ -24,7 +24,7 @@ export default class MetisReducer{
            * For new uploads we just generate a psudo random string, here at the
            * client, to hold a place.
            */
-          fileObject['redis_index'] = GENERATE_RAND_KEY(); 
+          fileObject['redisIndex'] = GENERATE_RAND_KEY(); 
           // MOD END
           
           nextState['fileUploads'].push(fileObject);
@@ -132,6 +132,45 @@ export default class MetisReducer{
           nextState['fileList'] = fileList;
 
           return nextState;
+
+        case 'LOG_IN':
+
+          var nextState = Object.assign({}, state);
+          nextState['userInfo']['userEmail'] = action['data']['email'];
+          return nextState;
+        case 'LOGGED_IN':
+
+          var nextState = Object.assign({}, state);
+
+          // Copy the new data from the auth server to the local Redux store.
+          for(var key in action['data']){
+
+            nextState['userInfo'][key] = action['data'][key];
+          }
+
+          nextState['loginStatus'] = true;
+          nextState['loginError'] = false;
+          return nextState;
+        case 'LOGGED_OUT':
+
+          var nextState = Object.assign({}, state);
+
+          for(var key in nextState['userInfo']){
+
+            nextState['userInfo'][key] = '';
+          }
+
+          nextState['loginStatus'] = false;
+          nextState['logError'] = false;
+
+          return nextState;
+        case 'LOG_ERROR':
+
+          var nextState = Object.assign({}, state);
+          nextState['loginStatus'] = false;
+          nextState['loginError'] = true;
+          return nextState;
+          
         default:
 
           var nextState = Object.assign({}, state);

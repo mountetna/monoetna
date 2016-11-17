@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 
+import JanusLogger from './janus-logger';
 import MetisModel from './models/metis-model';
 import MetisUIContainer from './components/metis-ui-container';
 
@@ -11,8 +12,17 @@ class MetisUploader{
 
     this['model'] = null;
     this['uploadWorker'] = null;
+    this['janusLogger'] = new JanusLogger();
 
     this.initDataStore();
+
+    /*
+     * We pass in the store since we bind events to it. The AJAX callbacks will
+     * be dispatched using the store.
+     */
+    this['janusLogger']['model']['store'] = this['model']['store'];
+    this['janusLogger'].checkLog();
+
     this.spawnUploadWorker();
     this.buildUI();
   }
@@ -79,6 +89,16 @@ class MetisUploader{
 
         this.queueUploader();
         break;
+      case 'LOG_IN':
+
+        var email = action['data']['email'];
+        var password = action['data']['pass'];
+        this['janusLogger'].logIn(email, password);
+        break;
+      case 'LOG_OUT':
+
+        this['janusLogger'].logOut()
+        break;
       default:
 
         //none
@@ -97,7 +117,7 @@ class MetisUploader{
      */
 
     var state = this['model']['store'].getState();
-    var uploads = state['metisState']['fileUploads'];
+    var uploads = state['appState']['fileUploads'];
 
     var anyActive = false;
     for(var a = 0; a < uploads.length; ++a){
@@ -170,15 +190,15 @@ class MetisUploader{
   fileSelected(file){
 
     var state = this['model']['store'].getState();
-    var userInfo = state['metisState']['userInfo'];
+    var userInfo = state['appState']['userInfo'];
 
     var authRequest = {
 
-      user_email: file['user_email'],
+      user_email: file['userEmail'],
       original_name: file['name'],
       file_size: file['size'], //in bytes
-      redis_index: file['redis_index'],
-      authorization_token: userInfo['authorization_token'],
+      redis_index: file['redisIndex'],
+      authorization_token: userInfo['authToken'],
     };
 
     this.requestAuthorization(authRequest);

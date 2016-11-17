@@ -7,25 +7,36 @@ export default class MetisModel{
 
   constructor(){
 
-    var metisState = new MetisReducer();
+    var appState = new MetisReducer();
     var lastAction = new LastActionReducer();
     var reducer = Redux.combineReducers({
 
-      metisState: metisState.reducer(),
+      appState: appState.reducer(),
       lastAction: lastAction.reducer()
     });
 
     var defaultState = {
 
-      metisState: {
+      appState: {
+
+        userInfo: {
+
+          user_email: '',
+          authorization_token: '',
+          first_name: '',
+          last_name: '',
+
+          userEmail: '',
+          authToken: '',
+          firstName: '',
+          lastName: ''
+        },
 
         fileList: [],
         fileUploads: [],
-        userInfo: {
 
-          user_email: 'jasondcater@gmail.com',
-          authorization_token: 'blahf8cfc63531b6ed753bd536f6e12d578c'
-        }
+        loginStatus: false,
+        loginError: false
       }
     };
 

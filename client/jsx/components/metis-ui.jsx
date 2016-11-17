@@ -5,6 +5,7 @@ import MenuBar   from './nav/menu-bar';
 import ListHeadContainer  from './list/list-head-container';
 import ListBody  from './list/list-body';
 import ListEmpty from './list/list-empty';
+import LoginPanelContainer from './auth/login-panel-container';
 
 export default class MetisUI extends React.Component{
 
@@ -18,10 +19,22 @@ export default class MetisUI extends React.Component{
     return <ListBody fileList={ fileList } fileUploads={ fileUploads } />;
   }
 
+  renderLoginView(){
+
+    if(this['props']['appState']['loginStatus']){
+
+      return <div>{ 'sup' }</div>;
+    }
+    else{
+
+      return <LoginPanelContainer />;
+    }
+  }
+
   render(){
 
-    var fileList = this['props']['metisState']['fileList'];
-    var fileUploads = this['props']['metisState']['fileUploads'];
+    var fileList = this['props']['appState']['fileList'];
+    var fileUploads = this['props']['appState']['fileUploads'];
 
     return (
 
@@ -40,8 +53,11 @@ export default class MetisUI extends React.Component{
         </div>
         <div id='listing-group'>
 
+          { this.renderLoginView() }
+          {/*
           <ListHeadContainer />
           { (fileList.length || fileUploads.length) ? this.listBody(fileList, fileUploads) : <ListEmpty /> }
+          */}
         </div>
       </div>
     );
