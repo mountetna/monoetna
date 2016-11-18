@@ -31,7 +31,8 @@ export default class MetisModel{
         fileUploads: [],
 
         loginStatus: false,
-        loginError: false
+        loginError: false,
+        loginErrorMsg: 'Invalid sign in.'
       }
     };
 

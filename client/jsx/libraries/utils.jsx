@@ -444,3 +444,13 @@ var GENERATE_RANDOM = function(length){
 
   return randChars.join('');
 }
+
+/*
+ * This is only to prevent sending excessive queries to the server. There is
+ * server side email validation too.
+ */
+var VALIDATE_EMAIL = function(email){
+
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+}

@@ -57,7 +57,6 @@ export default class JanusLogger{
     else{
 
       var action = { type: 'LOG_ERROR' };
-      console.log(response);
     }
 
     this['model']['store'].dispatch(action);

@@ -170,6 +170,7 @@ export default class MetisReducer{
           var nextState = Object.assign({}, state);
           nextState['loginStatus'] = false;
           nextState['loginError'] = true;
+          nextState['loginErrorMsg'] = 'Invalid sign in.';
           return nextState;
           
         default:
