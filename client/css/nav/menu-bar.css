@@ -69,3 +69,54 @@
 
   border: none;
 }
+
+/* USER DROP DOWN MENU */
+.user-menu-dropdown-group {
+
+  overflow: hidden;
+  font-family: 'gotham_bookregular';
+  height: 100%;
+  float: right;
+}
+
+.user-menu-dropdown-btn {
+
+  padding-top: 4px;
+  border: 0px;
+  outline: 0px;
+  background: none;
+  height: 30px;
+  background: #a9d58e;
+  border-left: 1px solid #1d8267;
+}
+
+.user-dropdown-menu {
+
+  width: 100%;
+  border-left: 1px solid #666;
+  border-bottom: 1px solid #666;
+}
+
+.user-dropdown-menu-item {
+
+  display: block;
+  background: #fff;
+  padding: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #333;
+}
+
+.user-dropdown-menu-item:hover {
+
+  background: #a9d58e;
+  text-decoration: none;
+  color: #333;
+}
+
+.user-menu-arrow-group {
+
+  width: 20px;
+  display: inline-block;
+  vertical-align: text-top;
+}

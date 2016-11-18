@@ -83,7 +83,7 @@ class MetisUploader{
 
       case 'FILE_SELECTED':
 
-        this.fileSelected(action['data']);
+        //this.fileSelected(action['data']);
         break;
       case 'FILE_UPLOAD_AUTHORIZED':
 
@@ -201,7 +201,7 @@ class MetisUploader{
       authorization_token: userInfo['authToken'],
     };
 
-    this.requestAuthorization(authRequest);
+    //this.requestAuthorization(authRequest);
   }
 
   /*

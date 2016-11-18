@@ -14,6 +14,7 @@
   position: relative;
   width: 100%;
   height: 90px;
+  z-index: 10000;
 }
 
 #left-column-group {
@@ -29,6 +30,7 @@
   left:10px;
   width: 80px;
   height: 80px;
+  z-index:10001;
 }
 
 .logo-group img {

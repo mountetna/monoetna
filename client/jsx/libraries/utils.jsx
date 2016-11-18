@@ -3,7 +3,7 @@
  */
 var BLOB_SIZE = 100000; // in bytes
 var TOKEN_NAME = 'UCSF_ETNA_AUTH_TOKEN';
-var METIS_ADDR = 'http://metis-dev.ucsf.edu:8081/';
+var METIS_ADDR = 'http://metis-dev.ucsf.edu:8081';
 
 /*
  * These are the items that are passed between the server and client.
@@ -12,24 +12,24 @@ var STATUS_ITEMS = {
 
   directory: String,
   expires: Number,
-  signing_algorithm: String,
-  hashing_algorithm: String,
-  start_timestamp: Number,
-  authorization_token: String,
-  original_name: String,    
-  file_name: String,
-  file_size: Number,
-  user_email: String,
-  user_id: Number,
-  group_id: Number,
-  redis_index: String,
+  signingAlgorithm: String,
+  hashingAlgorithm: String,
+  startTimestamp: Number,
+  authToken: String,
+  originalName: String,    
+  fileName: String,
+  fileSize: Number,
+  userEmail: String,
+  userId: Number,
+  groupId: Number,
+  redisIndex: String,
 
   signature: String,
   
-  current_blob_size: Number,
-  current_byte_position: Number,
-  next_blob_hash: String,
-  next_blob_size: Number
+  currentBlobSize: Number,
+  currentBytePosition: Number,
+  nextBlobHash: String,
+  nextBlobSize: Number
 };
 
 /* 
@@ -57,10 +57,29 @@ var PARSE_TIMESTAMP = function(timestamp){
 
 /*
  * Change an integer of bytes into a human readable format.  
+ * http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
  */
-var PARSE_BYTES = function(bytes){
+var PARSE_BYTES = function(bytes, si){
 
-  return bytes;
+  var thresh = si ? 1000 : 1024;
+  if(Math.abs(bytes) < thresh){
+
+      return bytes + ' B';
+  }
+
+  var units = si
+      ? ['kB','MB','GB','TB','PB','EB','ZB','YB']
+      : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
+
+  var u = -1;
+  do{
+
+    bytes /= thresh;
+    ++u;
+  }
+  while(Math.abs(bytes) >= thresh && u < units.length - 1);
+
+  return bytes.toFixed(1)+' '+units[u];
 }
 
 /*

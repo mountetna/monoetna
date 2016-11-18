@@ -1,4 +1,4 @@
-import * as React from 'react'
+import * as React from 'react';
 
 import ListEntry from './list-entry';
 import ListUpload from './list-upload';
@@ -23,7 +23,7 @@ export default class ListBody extends React.Component{
 
             fileUploads.map((fileUpload)=>{
 
-              var redisIndex = fileUpload['redis_index'];
+              var redisIndex = fileUpload['redisIndex'];
               return <ListUpload key={ redisIndex } fileUpload={ fileUpload } />
             })
           : '' }
@@ -32,7 +32,7 @@ export default class ListBody extends React.Component{
             
             fileList.map((fileInfo)=>{
 
-              var redisIndex = fileInfo['redis_index'];
+              var redisIndex = fileInfo['redisIndex'];
               return <ListEntry key={ redisIndex } fileInfo={ fileInfo } />
             })
           : '' }

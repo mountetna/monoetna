@@ -10,8 +10,8 @@ export default class UploadMeater extends React.Component{
   calcUploadPercent(){
 
     var file = this['props']['fileUpload'];
-    var fileSize = file['file_size'];
-    var bytesUploaded = file['current_byte_position'];
+    var fileSize = file['fileSize'];
+    var bytesUploaded = file['currentBytePosition'];
 
     if(fileSize == 0){
 
@@ -26,8 +26,8 @@ export default class UploadMeater extends React.Component{
   parseUploadBytes(){
 
     var file = this['props']['fileUpload'];
-    var fileSize = PARSE_BYTES(file['file_size']);
-    var bytesUploaded = PARSE_BYTES(file['current_byte_position']);
+    var fileSize = PARSE_BYTES(file['fileSize'], true);
+    var bytesUploaded = PARSE_BYTES(file['currentBytePosition'], true);
 
     return (
 

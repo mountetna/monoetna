@@ -8,7 +8,7 @@
   
   float: right;
   position: relative;
-  padding: 5px;
+  padding: 3px;
   border: 1px solid #666;
   border-radius: 1px;
   background: #999;
@@ -28,4 +28,9 @@
 #file-selector {
 
   display: none;
+}
+
+.list-head-title {
+
+  float: left;
 }

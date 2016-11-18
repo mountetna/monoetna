@@ -4,7 +4,12 @@ import ListBody from './list-body';
 const mapStateToProps = (state, ownProps)=>{
 
   // state == redux store
-  return {};
+  return {
+
+
+    fileList: state['appState']['fileList'],
+    fileUploads: state['appState']['fileUploads']
+  };
 }
 
 const mapDispatchToProps = (dispatch, ownProps)=>{

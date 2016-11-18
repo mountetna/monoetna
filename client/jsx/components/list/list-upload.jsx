@@ -13,8 +13,8 @@ export default class ListUpload extends React.Component{
   parseFileName(){
 
     var file = this['props']['fileUpload'];
-    var origName = file['original_name'];
-    var fileName = file['file_name'];
+    var origName = file['originalName'];
+    var fileName = file['fileName'];
 
     if(origName != fileName){ 
 
@@ -39,7 +39,7 @@ export default class ListUpload extends React.Component{
     var file = this['props']['fileUpload'];
     var status = file['status'];
     var date = PARSE_TIMESTAMP(Date.now() / 1000);
-    var user = file['user_email'];
+    var user = file['userEmail'];
     switch(file['status']){
 
       case 'queued':

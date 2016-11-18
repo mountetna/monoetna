@@ -15,6 +15,7 @@ export default class MetisReducer{
           fileObject['fileName'] = fileObject['name'];
           fileObject['originalName'] = fileObject['name'];
           fileObject['fileSize'] = fileObject['size'];
+          fileObject['currentBytePosition'] = 0;
           fileObject['userEmail'] = state['userInfo']['userEmail'];
           fileObject['status'] = 'queued';
 
@@ -44,7 +45,7 @@ export default class MetisReducer{
           var oldIndex = authResponse['request']['old_index'];
           for(var a = 0; a < fileUploads.length; ++a){
 
-            if(fileUploads[a]['redis_index'] == oldIndex){
+            if(fileUploads[a]['redisIndex'] == oldIndex){
 
               fileUploadIndex = a; 
               fileUpload = fileUploads[a];
@@ -55,7 +56,7 @@ export default class MetisReducer{
 
           // Append the signature and set the server current byte to 0
           fileUpload['signature'] = authResponse['signature'];
-          fileUpload['current_byte_position'] = 0;
+          fileUpload['currentBytePosition'] = 0;
 
           // Append all of the request items to the local file object
           for(var key in authResponse['request']){
@@ -81,7 +82,7 @@ export default class MetisReducer{
           // Select the file to upload from the redux store.
           for(var a = 0; a < fileUploads.length; ++a){
 
-            if(fileUploads[a]['redis_index'] == index){
+            if(fileUploads[a]['redisIndex'] == index){
 
               fileUploadIndex = a; 
               fileUpload = fileUploads[a];
@@ -118,7 +119,7 @@ export default class MetisReducer{
           // Remove the upload file from the redux store.
           for(var a = 0; a < fileUploads.length; ++a){
 
-            if(fileUploads[a]['redis_index'] == index){
+            if(fileUploads[a]['redisIndex'] == index){
 
               fileUploads.splice(a, 1);
               break;

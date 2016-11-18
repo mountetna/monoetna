@@ -30,11 +30,28 @@ export default class ListHead extends React.Component{
 
       <div id='list-head-group'>
 
+
+          <div className='list-head-title'>
+
+            { 'type' }
+          </div>
+          <div className='list-head-title'>
+
+            { 'file name' }
+          </div>
+          <div className='list-head-title'>
+
+            { 'project' }
+          </div>
+          <div className='list-head-title'>
+
+            { 'size' }
+          </div>
         <input id='file-selector' type='file' name='upload-file' onChange={ this['fileSelected'].bind(this) } />
         <button id='file-select-btn' onClick={ this['selectFile'].bind(this) }>
 
-          <span className='glyphicon glyphicon-open white-glyphicon'></span>
-          { ' UPLOAD' }
+          <span className='glyphicon glyphicon-plus white-glyphicon'></span>
+          { ' ADD FILE' }
         </button>
       </div>
     );
