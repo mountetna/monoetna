@@ -42,7 +42,7 @@ export default class JanusLogger{
     if(response['success']){
 
       //Set the token to the cookies so it may be used by multiple UI programs.
-      COOKIES.setItem(TOKEN_NAME, response['user_info']['auth_token']);
+      COOKIES.setItem(TOKEN_NAME, response['user_info']['auth_token'], Infinity, '/', 'ucsf.edu');
 
       //Set the token to the local Redux store.
       var data = { 
@@ -87,13 +87,11 @@ export default class JanusLogger{
 
     var state = this['model']['store'].getState();
     var email = state['appState']['userInfo']['userEmail'];
-    var authToken = state['appState']['userInfo']['authToken'];
 
     var logItems = [
 
       'email='+ email,
-      'token='+ COOKIES.getItem(TOKEN_NAME),
-      'app_key='+ APP_KEY
+      'token='+ COOKIES.getItem(TOKEN_NAME)
     ];
 
     AJAX({

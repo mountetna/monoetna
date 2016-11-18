@@ -1,9 +1,9 @@
 import * as React from 'react'
 
 import TitleBar  from './nav/title-bar';
-import MenuBar   from './nav/menu-bar';
+import MenuBarContainer   from './nav/menu-bar-container';
 import ListHeadContainer  from './list/list-head-container';
-import ListBody  from './list/list-body';
+import ListBodyContainer  from './list/list-body-container';
 import ListEmpty from './list/list-empty';
 import LoginPanelContainer from './auth/login-panel-container';
 
@@ -14,28 +14,37 @@ export default class MetisUI extends React.Component{
     super();
   }
 
-  listBody(fileList, fileUploads){
-
-    return <ListBody fileList={ fileList } fileUploads={ fileUploads } />;
-  }
-
   renderLoginView(){
 
-    if(this['props']['appState']['loginStatus']){
+    if(!this['props']['appState']['loginStatus']){
 
-      return <div>{ 'sup' }</div>;
+      return (
+
+        <div id='listing-group'>
+          
+          <LoginPanelContainer />
+        </div>
+      );
     }
     else{
 
-      return <LoginPanelContainer />;
+      var appState = this['props']['appState'];
+      var fileList = appState['fileList'];
+      var fileUploads = appState['fileUploads'];
+
+      return (
+
+        <div id='listing-group'>
+          
+          <ListHeadContainer />
+          { (fileList.length || fileUploads.length) ? <ListBodyContainer /> : <ListEmpty /> }
+        </div>
+      );
     }
   }
 
   render(){
-
-    var fileList = this['props']['appState']['fileList'];
-    var fileUploads = this['props']['appState']['fileUploads'];
-
+    
     return (
 
       <div id='metis-group'>
@@ -43,7 +52,7 @@ export default class MetisUI extends React.Component{
         <div id='header-group'>
           
           <TitleBar />
-          <MenuBar />
+          <MenuBarContainer />
         </div>
         <div className='logo-group'>
 
@@ -51,14 +60,7 @@ export default class MetisUI extends React.Component{
         </div>
         <div id='left-column-group'>
         </div>
-        <div id='listing-group'>
-
-          { this.renderLoginView() }
-          {/*
-          <ListHeadContainer />
-          { (fileList.length || fileUploads.length) ? this.listBody(fileList, fileUploads) : <ListEmpty /> }
-          */}
-        </div>
+        { this.renderLoginView() }
       </div>
     );
   }

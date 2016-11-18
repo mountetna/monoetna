@@ -37,6 +37,26 @@ class LogController
 
   def log_out()
 
+    # Get the params out of the POST
+    params = @request.POST()
+
+    # Check for the correct parameters.
+    if params.key?('email') && params.key?('token')
+
+      url = Conf::JANUS_ADDR
+      url = url + '/logout'
+      data = { 
+
+        :email=> params['email'], 
+        :token=> params['token'], 
+        :app_key=> Conf::APP_KEY 
+      }
+      response = make_request(url, data)
+      return response
+    else
+
+      return send_bad_request()
+    end
   end
 
   def check_log()
