@@ -4,7 +4,10 @@ import ListHead from './list-head';
 const mapStateToProps = (state, ownProps)=>{
 
   // state == redux store
-  return {};
+  return {
+
+    appState: state['appState']
+  };
 }
 
 const mapDispatchToProps = (dispatch, ownProps)=>{

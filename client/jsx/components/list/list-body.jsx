@@ -17,7 +17,7 @@ export default class ListBody extends React.Component{
     
     return (
 
-      <div id='list-body-group'>
+      <tbody id='list-body-group'>
         
         { (fileUploads.length) ?
 
@@ -36,7 +36,7 @@ export default class ListBody extends React.Component{
               return <ListEntry key={ redisIndex } fileInfo={ fileInfo } />
             })
           : '' }
-      </div>
+      </tbody>
     );
   }
 }

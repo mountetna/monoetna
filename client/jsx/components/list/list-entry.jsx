@@ -13,20 +13,20 @@ export default class ListEntry extends React.Component{
     
     return (
 
-      <div className='list-entry-group'>
+      <tr className='list-entry-group'>
 
-        <div className='list-entry-icon'>
+        <td className='list-entry-icon'>
 
           <span className='glyphicon glyphicon-file'></span>
-        </div>
-        <div className='list-entry-title-group'>
+        </td>
+        <td className='list-entry-title-group'>
           
           <span className='list-entry-file-name'>
             
             { fileInfo['file_name'] }
           </span>
-        </div>
-      </div>
+        </td>
+      </tr>
     );
   }
 }

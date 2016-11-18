@@ -31,7 +31,7 @@ export default class UploadControl extends React.Component{
 
       return (
 
-        <button className='upload-control' onClick={ this.pauseUpload.bind(this) }>
+        <button className='upload-control-btn' onClick={ this.pauseUpload.bind(this) }>
 
           <span className='glyphicon glyphicon-pause'></span>
         </button>
@@ -41,7 +41,7 @@ export default class UploadControl extends React.Component{
 
       return (
 
-        <button className='upload-control' onClick={ this.startUpload.bind(this) }>
+        <button className='upload-control-btn' onClick={ this.startUpload.bind(this) }>
           
           <span className='glyphicon glyphicon-play'></span>
         </button>
@@ -53,14 +53,14 @@ export default class UploadControl extends React.Component{
 
     return (
 
-      <div className='upload-control-group'>
+      <td className='upload-control-group'>
 
         { this.renderStartPause() }
-        <button className='upload-control' onClick={ this.cancelUpload.bind(this) }>
+        <button className='upload-control-btn' onClick={ this.cancelUpload.bind(this) }>
 
           <span className='glyphicon glyphicon-remove'></span>
         </button>
-      </div>
+      </td>
     );
   }
 }

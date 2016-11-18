@@ -1,7 +1,55 @@
+#listing-group {
+
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+#listing-table {
+
+  width: 100%;
+  overflow: auto;
+}
+
 #list-head-group {
 
   width: 100%;
   min-height: 32px;
+  border-bottom: 1px solid #666;
+}
+
+.list-head-title {
+
+  font-family: 'gotham_bookregular';
+  font-size: 1em;
+  letter-spacing: 1px;
+  padding-bottom: 3px;
+  text-align: left;
+}
+
+#list-type-column {
+
+  width: 80px;
+}
+
+#list-name-column {
+
+  width: 200px;
+}
+
+#list-project-column {
+
+  width: 160px;
+}
+
+#list-size-column {
+
+  min-width: 160px;
+}
+
+#list-control-column {
+
+  padding: 0px;
+  width: 115px;
 }
 
 #file-select-btn {
@@ -30,7 +78,10 @@
   display: none;
 }
 
-.list-head-title {
+.list-column-head-arrow-group{
 
-  float: left;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  vertical-align: text-top;
 }

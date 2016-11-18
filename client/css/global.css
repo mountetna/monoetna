@@ -1,3 +1,8 @@
+body{
+
+  min-width: 720px;
+}
+
 .white-glyphicon {
 
   color: #fff;
@@ -6,6 +11,12 @@
 .light-text {
 
   color: #999;
+  font-family: 'gotham_bookregular';
+}
+
+.dark-text {
+
+  color: #000;
   font-family: 'gotham_bookregular';
 }
 
@@ -37,11 +48,4 @@
 
   width: 80px;
   height: 80px;
-}
-
-#listing-group {
-
-  margin-left: 10px;
-  margin-right: 10px;
-  overflow: auto;
 }

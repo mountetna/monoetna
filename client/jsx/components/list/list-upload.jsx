@@ -16,6 +16,7 @@ export default class ListUpload extends React.Component{
     var origName = file['originalName'];
     var fileName = file['fileName'];
 
+    /*
     if(origName != fileName){ 
 
       return (
@@ -30,6 +31,7 @@ export default class ListUpload extends React.Component{
         </span>
       );
     }
+    */
 
     return fileName;
   }
@@ -83,14 +85,12 @@ export default class ListUpload extends React.Component{
 
     return (
 
-      <div className='list-entry-group'>
+      <tr className='list-entry-group'>
 
-        <div className='list-entry-icon'>
+        <td className='list-entry-icon'>
+        </td>
+        <td className='list-entry-title-group'>
 
-          <span className='glyphicon glyphicon-file'></span>
-        </div>
-        <div className='list-entry-title-group'>
-          
           <div className='list-entry-file-name'>
             
             { this.parseFileName() }
@@ -99,10 +99,26 @@ export default class ListUpload extends React.Component{
 
             { this.parseFileStatus() }
           </div>
-        </div>
+        </td>
+        <td className='list-entry-project-group'>
+
+          {/*
+          <div className='list-entry-file-name' title='The projec this file belongs to.'>
+
+            { 'prjkt' }
+          </div>
+          <div className='list-entry-status' title='Your project permission for this file.'>
+
+            <span className='light-text'>
+              
+              { 'administrator' }
+            </span>
+          </div>
+        */}
+        </td>
         <UploadMeter fileUpload={ fileUpload } />
         <UploadControl fileUpload={ fileUpload } />
-      </div>
+      </tr>
     );
   }
 }

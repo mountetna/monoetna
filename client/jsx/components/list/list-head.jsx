@@ -24,13 +24,17 @@ export default class ListHead extends React.Component{
     this['props'].fileSelected(file);
   }
 
-  render(){
+  renderTitles(){
 
-    return (  
+    var fileUploads = this['props']['appState']['fileUploads'];
+    var fileList = this['props']['appState']['fileList'];
 
-      <div id='list-head-group'>
+    if(fileUploads.length > 0 || fileList.length > 0){
 
+      return (
 
+        <span>
+          
           <div className='list-head-title'>
 
             { 'type' }
@@ -47,13 +51,66 @@ export default class ListHead extends React.Component{
 
             { 'size' }
           </div>
-        <input id='file-selector' type='file' name='upload-file' onChange={ this['fileSelected'].bind(this) } />
-        <button id='file-select-btn' onClick={ this['selectFile'].bind(this) }>
+        </span>
+      );
+    }
+    else{
 
-          <span className='glyphicon glyphicon-plus white-glyphicon'></span>
-          { ' ADD FILE' }
-        </button>
-      </div>
+      return '';
+    }
+  }
+
+  render(){
+
+    return (  
+
+      <thead>
+
+        <tr id='list-head-group'>
+
+          <th id='list-type-column' className='list-head-title'>
+
+            { 'type ' }
+            <div className='list-column-head-arrow-group'>
+
+              <span className='glyphicon glyphicon-triangle-bottom'></span>
+            </div>
+          </th>
+          <th id='list-name-column' className='list-head-title'>
+
+            { 'file name ' }
+            <div className='list-column-head-arrow-group'>
+
+              <span className='glyphicon glyphicon-triangle-bottom'></span>
+            </div>
+          </th>
+          <th id='list-project-column' className='list-head-title'>
+
+            { 'project ' }
+            <div className='list-column-head-arrow-group'>
+
+              <span className='glyphicon glyphicon-triangle-bottom'></span>
+            </div>
+          </th>
+          <th id='list-size-column' className='list-head-title'>
+
+            { 'size ' }
+            <div className='list-column-head-arrow-group'>
+
+              <span className='glyphicon glyphicon-triangle-bottom'></span>
+            </div>
+          </th>
+          <th id='list-control-column' className='list-head-title'>
+          
+            <input id='file-selector' type='file' name='upload-file' onChange={ this['fileSelected'].bind(this) } />
+            <button id='file-select-btn' onClick={ this['selectFile'].bind(this) }>
+
+              <span className='glyphicon glyphicon-plus white-glyphicon'></span>
+              { ' ADD FILE' }
+            </button>
+          </th>
+        </tr>
+      </thead>
     );
   }
 }
