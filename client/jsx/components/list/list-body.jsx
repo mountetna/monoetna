@@ -9,6 +9,19 @@ export default class ListBody extends React.Component{
 
     super();
   }
+
+  updateFileUpload(fileUpload){
+
+    console.log(fileUpload);
+
+    /*
+
+    1. Check the new file name...
+    2. If good then set...
+    3. If no good then say so and reset.
+
+    */
+  }
   
   render(){
 
@@ -23,8 +36,16 @@ export default class ListBody extends React.Component{
 
             fileUploads.map((fileUpload)=>{
 
-              var redisIndex = fileUpload['redisIndex'];
-              return <ListUpload key={ redisIndex } fileUpload={ fileUpload } />
+              var listUploadProps = {
+
+                key: fileUpload['redisIndex'],
+                fileUpload: fileUpload,
+                callbacks: {
+
+                  updateFileUpload: this.updateFileUpload.bind(this)
+                }
+              }
+              return <ListUpload { ...listUploadProps } />
             })
           : '' }
 

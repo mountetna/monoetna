@@ -31,9 +31,41 @@
 
 .list-entry-file-name {
 
-  margin-top: 8px;
+  margin-top: 10px;
   font-family: 'gotham_boldregular';
   font-size: 1em;
+  height: 18px;
+  border: 1px solid #fff;
+  width: 160px;
+}
+
+.list-entry-file-name:focus {
+
+  outline: none;
+}
+
+.list-entry-file-name-active {
+
+  -webkit-box-shadow: inset -1px 1px 1px 0px #ccc;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+  -moz-box-shadow:    inset -1px 1px 1px 0px #ccc;  /* Firefox 3.5 - 3.6 */
+  box-shadow:         inset -1px 1px 1px 0px #ccc;
+  border: 1px solid #999;
+}
+
+.list-entry-edit-btn,
+.list-entry-edit-btn:focus {
+
+  width: 20px;
+  height: 20px;
+  border: none;
+  outline: none;
+  background: none;
+  color: #666;
+}
+
+.list-entry-edit-btn:hover {
+
+  color: #000;
 }
 
 .list-entry-status {
