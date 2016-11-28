@@ -27,6 +27,7 @@ export default class ListBody extends React.Component{
 
     var fileUploads = this['props']['fileUploads'];
     var fileList = this['props']['fileList'];
+    var permissions = this['props']['permissions'];
     
     return (
 
@@ -40,6 +41,7 @@ export default class ListBody extends React.Component{
 
                 key: fileUpload['redisIndex'],
                 fileUpload: fileUpload,
+                permissions: permissions,
                 callbacks: {
 
                   updateFileUpload: this.updateFileUpload.bind(this)

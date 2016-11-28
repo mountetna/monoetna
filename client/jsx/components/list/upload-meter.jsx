@@ -15,11 +15,11 @@ export default class UploadMeater extends React.Component{
 
     if(fileSize == 0){
 
-      return { width: '0%' };
+      return { 'width': '0%' };
     }
     else{
 
-      return { width: String((bytesUploaded/fileSize)*100) + '%' };
+      return { 'width': String((bytesUploaded/fileSize)*100) + '%' };
     }
   }
 
@@ -31,13 +31,13 @@ export default class UploadMeater extends React.Component{
 
     return (
 
-      <div className='list-entry-status light-text'> 
+      <div className='upload-meter-info light-text'>
 
-        <span className='dark-text' style={{ fontWeight: 900 }}>
+          <span className='dark-text' style={{ fontWeight: 900 }}>
 
-          { bytesUploaded }
-        </span>
-        { " of "+ fileSize +" uploaded"}
+            { bytesUploaded }
+          </span>
+          { " of "+ fileSize +" uploaded"}
       </div>
     );
   }
@@ -53,10 +53,8 @@ export default class UploadMeater extends React.Component{
           <div className='upload-meter-bar' style={ this.calcUploadPercent() }>
           </div>
         </div>
-        <div className='upload-meter-info'>
 
-          { this.parseUploadBytes() }
-        </div>
+        { this.parseUploadBytes() }
       </td>
     );
   }

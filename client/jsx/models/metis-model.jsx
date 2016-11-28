@@ -24,7 +24,8 @@ export default class MetisModel{
           userEmail: '',
           authToken: '',
           firstName: '',
-          lastName: ''
+          lastName: '',
+          permissions: []
         },
 
         fileList: [],

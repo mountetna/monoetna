@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 
 import JanusLogger from './janus-logger';
+import KeyboardShortcuts from './keyboard-shortcuts';
 import MetisModel from './models/metis-model';
 import MetisUIContainer from './components/metis-ui-container';
 
@@ -12,6 +13,7 @@ class MetisUploader{
 
     this['model'] = null;
     this['uploadWorker'] = null;
+    this['keyboardShortcuts'] = new KeyboardShortcuts();
     this['janusLogger'] = new JanusLogger();
 
     this.initDataStore();

@@ -1,7 +1,8 @@
-import * as React from 'react'
+import * as React from 'react';
 
-import UploadMeter from './upload-meter'
-import UploadControl from './upload-control'
+import PermissionSelector from './permission-selector';
+import UploadMeter from './upload-meter';
+import UploadControl from './upload-control';
 
 export default class ListUpload extends React.Component{
 
@@ -14,7 +15,7 @@ export default class ListUpload extends React.Component{
       fileNameEditShow: false,
       fileNameEditActive: false,
       fileName: this['props']['fileUpload']['originalName']
-    }
+    };
   }
 
   parseFileStatus(){
@@ -158,7 +159,7 @@ export default class ListUpload extends React.Component{
           <span className='glyphicon glyphicon-ok'></span>
         </button>
       </span>
-    )
+    );
   }
 
   showFileNameEditMode(event){
@@ -258,6 +259,11 @@ export default class ListUpload extends React.Component{
     }
   }
 
+  projectSelected(meh){
+
+    console.log(meh);
+  }
+
   render(){
     
     var fileUpload = this['props']['fileUpload'];
@@ -277,7 +283,16 @@ export default class ListUpload extends React.Component{
       style: this.setFileNameStyle(),
       disabled: this.setInputDisabled(),
       onChange: this.updateFileName.bind(this),
-      onKeyPress: this.persistOnEnter.bind(this),
+      onKeyPress: this.persistOnEnter.bind(this)
+    };
+
+    var permissionSelectorProps = {
+
+      permissions: this['props']['permissions'],
+      callbacks: {
+
+        projectSelected: this.projectSelected.bind(this)
+      }
     };
 
     return (
@@ -290,27 +305,12 @@ export default class ListUpload extends React.Component{
 
           <input { ...fileNameInputProps } />
           { this.renderFileNameEditMode() }
-          <div className='list-entry-status'>
+          <div className='list-entry-status' title='The current file status.'>
 
             { this.parseFileStatus() }
           </div>
         </td>
-        <td className='list-entry-project-group'>
-
-          {/*
-          <div className='list-entry-file-name' title='The projec this file belongs to.'>
-
-            { 'prjkt' }
-          </div>
-          <div className='list-entry-status' title='Your project permission for this file.'>
-
-            <span className='light-text'>
-              
-              { 'administrator' }
-            </span>
-          </div>
-        */}
-        </td>
+        <PermissionSelector { ...permissionSelectorProps } />
         <UploadMeter fileUpload={ fileUpload } />
         <UploadControl fileUpload={ fileUpload } />
       </tr>

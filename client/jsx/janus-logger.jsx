@@ -51,6 +51,7 @@ export default class JanusLogger{
         authToken: response['user_info']['auth_token'],
         firstName: response['user_info']['first_name'],
         lastName: response['user_info']['last_name'],
+        permissions: response['user_info']['permissions']
       };
       var action = { type: 'LOGGED_IN', data: data };
     }

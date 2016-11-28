@@ -454,3 +454,28 @@ var VALIDATE_EMAIL = function(email){
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
 }
+
+/*
+ * In Ruby (the server side) variables/hash keys are named in snake_case.
+ * Here in JS (the client side) we are using camelCase. 
+ * This is a little util to transform snake_case to camelCase.
+ */
+var CAMEL_CASE_IT = function(string){
+
+  var regexp = /_/g;
+  var match, matches = [];
+  while((match = regexp.exec(string)) != null){
+
+    matches.push(match.index);
+  }
+
+  for(var index in matches){
+
+    var ind = matches[index];
+    var fromCharacter = '_'+string.charAt(ind+1);
+    var toCharacter = string.charAt(ind+1).toUpperCase()
+    string = string.replace(fromCharacter, toCharacter);
+  }
+
+  return string;
+}

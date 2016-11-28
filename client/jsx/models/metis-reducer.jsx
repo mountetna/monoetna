@@ -139,6 +139,7 @@ export default class MetisReducer{
           var nextState = Object.assign({}, state);
           nextState['userInfo']['userEmail'] = action['data']['email'];
           return nextState;
+
         case 'LOGGED_IN':
 
           var nextState = Object.assign({}, state);
@@ -146,7 +147,9 @@ export default class MetisReducer{
           // Copy the new data from the auth server to the local Redux store.
           for(var key in action['data']){
 
-            nextState['userInfo'][key] = action['data'][key];
+            var userItem = action['data'][key];
+            if(key == 'permissions') userItem = this.cleanPermissions(userItem);
+            nextState['userInfo'][key] = userItem;
           }
 
           nextState['loginStatus'] = true;
@@ -179,5 +182,19 @@ export default class MetisReducer{
           return nextState;
       }
     };
+  }
+
+  cleanPermissions(perms){
+
+    for(var index in perms){
+
+      for(var key in perms[index]){
+
+        perms[index][CAMEL_CASE_IT(key)] = perms[index][key];
+        if(key.indexOf('_') != -1) delete perms[index][key];
+      }
+    }
+
+    return perms;
   }
 }

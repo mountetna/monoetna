@@ -18,6 +18,11 @@ export default class MenuBar extends React.Component{
     this.setState({ open: open });
   }
 
+  closePanel(event){
+
+    this.setState({ open: false });
+  }
+
   logOut(event){
 
     this.setState({ open: false });
@@ -28,12 +33,22 @@ export default class MenuBar extends React.Component{
 
     var appState = this['props']['appState'];
     var userInfo = appState['userInfo'];
+
+
     if(appState['loginStatus'] && !appState['loginError']){
 
       var height = (this['state']['open']) ? 'auto' : '100%';
+
+      var userDropdownGroupProps = {
+
+        className: 'user-menu-dropdown-group',
+        style: { height: height },
+        onMouseLeave: this.closePanel.bind(this)
+      }
+
       return (
 
-        <div className='user-menu-dropdown-group' style={{ height: height }}>
+        <div { ...userDropdownGroupProps } >
 
           <button className='user-menu-dropdown-btn' onClick={ this['toggle'].bind(this) } >
 

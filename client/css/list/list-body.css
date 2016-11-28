@@ -44,14 +44,6 @@
   outline: none;
 }
 
-.list-entry-file-name-active {
-
-  -webkit-box-shadow: inset -1px 1px 1px 0px #ccc;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
-  -moz-box-shadow:    inset -1px 1px 1px 0px #ccc;  /* Firefox 3.5 - 3.6 */
-  box-shadow:         inset -1px 1px 1px 0px #ccc;
-  border: 1px solid #999;
-}
-
 .list-entry-edit-btn,
 .list-entry-edit-btn:focus {
 
@@ -80,4 +72,73 @@
   letter-spacing: 2px;
   font-family: 'gotham_bookregular';
   font-size: 1.8em;
+  height: 18px;
+}
+
+.project-permission-field{
+
+  margin-top:6px;
+}
+
+.project-search-group {
+
+  margin-top: 10px;
+  font-family: 'gotham_boldregular';
+  font-size: 1em;
+  height: 18px;
+  border: 1px solid #999;
+  width: 150px;
+}
+
+.project-search-input {
+
+  float: left;
+  width: 130px;
+  height: 18px;
+  margin-top: -1px;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+.project-dropdown-button {
+
+  display: inline-block;
+  margin-top: 1px;
+  width: 18px;
+  height: 14px;
+  outline: none;
+  border: none;
+  background: none;
+  border-left: 1px solid #999;
+}
+
+.project-dropdown-button span {
+
+  top: -2px;
+  left: -4px;
+}
+
+.project-dropdown-tray {
+
+  margin-top: -7px;
+  border: 1px solid #999;
+  position: relative;
+  background: #fff;
+  width: 150px;
+  margin-left: -1px;
+}
+
+.project-tray-entry {
+
+  padding: 5px;
+  font-family: 'gotham_bookregular';
+  cursor: pointer;
+}
+
+.project-tray-entry:hover {
+
+  background: #a9d58e;
+  text-decoration: none;
+  color: #333;
 }

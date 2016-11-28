@@ -7,7 +7,8 @@ const mapStateToProps = (state, ownProps)=>{
   return {
 
     fileList: state['appState']['fileList'],
-    fileUploads: state['appState']['fileUploads']
+    fileUploads: state['appState']['fileUploads'],
+    permissions: state['appState']['userInfo']['permissions']
   };
 }
 
