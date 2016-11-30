@@ -4,10 +4,25 @@
 module Conf
 
   # This is a temp secret key DO NOT USE THIS IN PRODUCTION!
-  SECRET_KEY = '<%= metis_secret_key %>?'
+  SECRET_KEY = 'eOHJ6a48xyOmmaYIM0AnUAOIiJZ0kOZzCxTVtSrhagg'
 
   # Names and order of the fields to be signed.
-  SIGNATURE_ITEMS = [ <%= metis_signature_items%> ]
+  SIGNATURE_ITEMS = [
+
+    'directory',
+    'expires',
+    'signing_algorithm',
+    'hashing_algorithm',
+    'start_timestamp',
+    'authorization_token',
+    'original_name', 
+    'file_name',
+    'file_size',
+    'user_email',
+    'user_id',
+    'project_id',
+    'redis_index'
+  ]
 
   # This is the root directory for the data.
   ROOT_DIR = '/data'
@@ -18,6 +33,9 @@ module Conf
   # TEMP_AND_FILE  = 3 # Both the temp file and regular file exist.
   # STATUS_NO_TEMP_OR_FILE = 4 # A status exsits but no corresponding file.
 
-  APP_KEY = '<%= metis_app_key %>'
-  JANUS_ADDR = '<%= janus_url %>'
+  APP_KEY = 'fO0sQz1BeLKbAPBSzyMjm6IFzyO41UNaDl94d3YZ7yU'
+  JANUS_ADDR = 'http://janus-dev.ucsf.edu'
+
+  # One day to finish upload.
+  UPLOAD_EXPIRE = 86400
 end

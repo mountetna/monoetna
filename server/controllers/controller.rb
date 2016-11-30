@@ -170,9 +170,6 @@ class Controller
   def generate_signature()
 
     params = @request.POST()
-
-    puts params.inspect
-
     ordered_params= SignService::order_params(params)
     sig = SignService::sign_request(ordered_params, params['signing_algorithm'])
   end
@@ -181,7 +178,7 @@ class Controller
   def generate_file_path()
 
     req = @request.POST()
-    full_path = Conf::ROOT_DIR + req['directory'] +'/' req['file_name']
+    full_path = Conf::ROOT_DIR + req['directory'] + '/' + req['file_name']
   end
 
   # Generate the key used to access the file's metadata in Redis.
