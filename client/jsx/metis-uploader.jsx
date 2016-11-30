@@ -83,9 +83,14 @@ class MetisUploader{
 
     switch(action['type']){
 
-      case 'FILE_SELECTED':
+      //case 'FILE_SELECTED':
 
         //this.fileSelected(action['data']);
+      //  break;
+
+      case 'AUTHORIZE_FILE':
+
+        this.requestAuthorization(action['data']);
         break;
       case 'FILE_UPLOAD_AUTHORIZED':
 
@@ -142,12 +147,18 @@ class MetisUploader{
    */
   startUploader(uploadFile){
 
+    var request = PARSE_REQUEST(uploadFile);
+    var state = this['model']['store'].getState();
+    var authToken = state['appState']['userInfo']['authToken'];
+    request['authorization_token'] = authToken;
+
     var workerMessage = {
-      
-      command: 'start', 
-      file: uploadFile,
-      request: PARSE_REQUEST(uploadFile) 
+
+      'command': 'start', 
+      'file': uploadFile,
+      'request': request
     };
+
     this['uploadWorker'].postMessage(workerMessage);
   }
 
@@ -187,29 +198,47 @@ class MetisUploader{
   }
 
   /*
-   * File selected, now call Magma to get an HMAC Auth Message.
+   * Call to get approval to make an action on Metis.
    */
-  fileSelected(file){
+  requestAuthorization(fileUpload){
 
     var state = this['model']['store'].getState();
     var userInfo = state['appState']['userInfo'];
 
+    // Normailize the data for Ruby.
     var authRequest = {
 
-      user_email: file['userEmail'],
-      original_name: file['name'],
-      file_size: file['size'], //in bytes
-      redis_index: file['redisIndex'],
-      authorization_token: userInfo['authToken'],
+      'user_email': fileUpload['userEmail'],
+      'original_name': fileUpload['name'],
+      'file_name': fileUpload['fileName'],
+      'file_size': fileUpload['size'], //in bytes
+      'redis_index': fileUpload['redisIndex'],
+      'authorization_token': userInfo['authToken'],
+      'project_name': fileUpload['projectName'],
+      'project_role': fileUpload['projectRole']
     };
 
-    //this.requestAuthorization(authRequest);
-  }
+    // Serialize the request for POST.
+    var request = [];
+    for(var key in authRequest){
 
-  /*
-   * Call Magma to get approval to make an action on Metis.
-   */
-  requestAuthorization(authRequest){
+      request.push(key +'='+ authRequest[key]);
+    }
+    request = request.join('&');
+
+    // Request authorization to upload the file.
+    AJAX({
+
+      'url': '/upload-authorize', //replace this URL with the Magma End Point
+      'method': 'POST',
+      'sendType': 'serial',
+      'returnType': 'json',
+      'data': request,
+      'success': this['authorizationResponse'].bind(this),
+      'error': this['ajaxError'].bind(this)
+    });
+
+    /*
 
     //Serialize the request for POST
     var request = [];
@@ -229,6 +258,7 @@ class MetisUploader{
       success: this['authorizationResponse'].bind(this),
       error: this['ajaxError'].bind(this)
     });
+    */
   }
   
   /*

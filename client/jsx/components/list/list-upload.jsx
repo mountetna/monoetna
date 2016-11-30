@@ -12,9 +12,9 @@ export default class ListUpload extends React.Component{
 
     this['state'] = {
 
-      fileNameEditShow: false,
-      fileNameEditActive: false,
-      fileName: this['props']['fileUpload']['originalName']
+      'fileNameEditShow': false,
+      'fileNameEditActive': false,
+      'fileName': this['props']['fileUpload']['originalName']
     };
   }
 
@@ -26,6 +26,14 @@ export default class ListUpload extends React.Component{
     var user = file['userEmail'];
     switch(file['status']){
 
+      case 'unauthorized':
+
+        status = 'File selected and waiting.'
+        break;
+      case 'authorized':
+
+        status = 'File upload authorized on '+ date;
+        break;
       case 'queued':
 
         status = 'File upload queued.' 
@@ -33,10 +41,6 @@ export default class ListUpload extends React.Component{
       case 'initialized':
 
         status = 'File upload initialized by '+ user;
-        break;
-      case 'authorized':
-
-        status = 'File upload authorized on '+ date;
         break;
       case 'active':
 
@@ -67,7 +71,7 @@ export default class ListUpload extends React.Component{
 
       return {
 
-        border: '1px solid #999'
+        'border': '1px solid #999'
       };
     }
   }
@@ -81,61 +85,64 @@ export default class ListUpload extends React.Component{
 
     var editBtnProps = {
 
-      className: 'list-entry-edit-btn',
-      title: 'Edit the file name.',
-      onClick: this.activateFileNameEdit.bind(this)
+      'className': 'list-entry-edit-btn',
+      'title': 'Edit the file name.',
+      'onClick': this['activateFileNameEdit'].bind(this)
     };
 
     var resetBtnProps = {
 
-      className: 'list-entry-edit-btn',
-      title: 'Reset the file name.',
-      onClick: this.resetFileName.bind(this)
+      'className': 'list-entry-edit-btn',
+      'title': 'Reset the file name.',
+      'onClick': this['resetFileName'].bind(this)
     }
 
     var cancelBtnProps = {
 
-      className: 'list-entry-edit-btn',
-      title: 'Cancel the file name edit.',
-      onClick: this.deactivateFileNameEdit.bind(this)
+      'className': 'list-entry-edit-btn',
+      'title': 'Cancel the file name edit.',
+      'onClick': this['deactivateFileNameEdit'].bind(this)
     };
 
     var saveBtnProps = {
 
-      className: 'list-entry-edit-btn',
-      title: 'Save the file name.',
-      onClick: this.persistFileName.bind(this)
+      'className': 'list-entry-edit-btn',
+      'title': 'Save the file name.',
+      'onClick': this['persistFileName'].bind(this)
     };
 
-    if(this['state']['fileNameEditShow'] && !this['state']['fileNameEditActive']){
+    var editShow = this['state']['fileNameEditShow'];
+    var editActive = this['state']['fileNameEditActive'];
 
-      editBtnProps['style'] = { display: 'inline-block' };
-      cancelBtnProps['style'] = { display: 'none' };
-      saveBtnProps['style'] = { display: 'none' };
+    if(editShow && !editActive){
+
+      editBtnProps['style'] = { 'display': 'inline-block' };
+      cancelBtnProps['style'] = { 'display': 'none' };
+      saveBtnProps['style'] = { 'display': 'none' };
       
       var origName = this['props']['fileUpload']['originalName'];
       if(this['state']['fileName'] != origName){
 
-        resetBtnProps['style'] = { display: 'inline-block' };
+        resetBtnProps['style'] = { 'display': 'inline-block' };
       }
       else{
 
-        resetBtnProps['style'] = { display: 'none' };
+        resetBtnProps['style'] = { 'display': 'none' };
       }
     }
-    else if(this['state']['fileNameEditShow'] || this['state']['fileNameEditActive']){
+    else if(editShow || editActive){
 
-      editBtnProps['style'] = { display: 'none' };
-      resetBtnProps['style'] = { display: 'none' };
-      cancelBtnProps['style'] = { display: 'inline-block' };
-      saveBtnProps['style'] = { display: 'inline-block' };
+      editBtnProps['style'] = { 'display': 'none' };
+      resetBtnProps['style'] = { 'display': 'none' };
+      cancelBtnProps['style'] = { 'display': 'inline-block' };
+      saveBtnProps['style'] = { 'display': 'inline-block' };
     }
     else{
 
-      editBtnProps['style'] = { display: 'none' };
-      resetBtnProps['style'] = { display: 'none' };
-      cancelBtnProps['style'] = { display: 'none' };
-      saveBtnProps['style'] = { display: 'none' };
+      editBtnProps['style'] = { 'display': 'none' };
+      resetBtnProps['style'] = { 'display': 'none' };
+      cancelBtnProps['style'] = { 'display': 'none' };
+      saveBtnProps['style'] = { 'display': 'none' };
     }
 
     return (
@@ -164,26 +171,26 @@ export default class ListUpload extends React.Component{
 
   showFileNameEditMode(event){
 
-    this.setState({ fileNameEditShow: true });
+    this.setState({ 'fileNameEditShow': true });
   }
 
   hideFileNameEditMode(event){
 
-    this.setState({ fileNameEditShow: false });
+    this.setState({ 'fileNameEditShow': false });
   }
 
   activateFileNameEdit(event){
 
-    this.setState({ fileNameEditActive: true });
+    this.setState({ 'fileNameEditActive': true });
   }
 
   deactivateFileNameEdit(event){
 
     this.setState({ 
 
-      fileNameEditShow: false,
-      fileNameEditActive: false,
-      fileName: this['props']['fileUpload']['fileName']
+      'fileNameEditShow': false,
+      'fileNameEditActive': false,
+      'fileName': this['props']['fileUpload']['fileName']
     });
   }
 
@@ -227,9 +234,9 @@ export default class ListUpload extends React.Component{
 
     this.setState({ 
 
-      fileNameEditShow: false,
-      fileNameEditActive: false,
-      fileName: newName
+      'fileNameEditShow': false,
+      'fileNameEditActive': false,
+      'fileName': newName
     });
 
     // Bubble the data back to the Redux Store.
@@ -259,39 +266,64 @@ export default class ListUpload extends React.Component{
     }
   }
 
-  projectSelected(meh){
+  projectSelected(projectName, projectRole){
 
-    console.log(meh);
+    this['props']['fileUpload']['projectName'] = projectName;
+    this['props']['fileUpload']['projectRole'] = projectRole;
+  }
+
+  startUpload(){
+
+    this['props']['callbacks'].startFileUpload(this['props']['fileUpload']);
+  }
+
+  pauseUpload(){
+
+    //this['props']['callbacks'].pauseUpload();
+  }
+
+  cancelUpload(){
+
+    //this['props']['callbacks'].cancelUpload();
   }
 
   render(){
-    
-    var fileUpload = this['props']['fileUpload'];
 
     var listEntryTitleProps = {
 
-      className: 'list-entry-title-group',
-      onMouseEnter: this.showFileNameEditMode.bind(this),
-      onMouseLeave: this.hideFileNameEditMode.bind(this),
+      'className': 'list-entry-title-group',
+      'onMouseEnter': this['showFileNameEditMode'].bind(this),
+      'onMouseLeave': this['hideFileNameEditMode'].bind(this),
     };
 
     var fileNameInputProps = {
 
-      className: 'list-entry-file-name',
-      value: this['state']['fileName'],
-      title: this['state']['fileName'],
-      style: this.setFileNameStyle(),
-      disabled: this.setInputDisabled(),
-      onChange: this.updateFileName.bind(this),
-      onKeyPress: this.persistOnEnter.bind(this)
+      'className': 'list-entry-file-name',
+      'value': this['state']['fileName'],
+      'title': this['state']['fileName'],
+      'style': this.setFileNameStyle(),
+      'disabled': this.setInputDisabled(),
+      'onChange': this['updateFileName'].bind(this),
+      'onKeyPress': this['persistOnEnter'].bind(this)
     };
 
     var permissionSelectorProps = {
 
-      permissions: this['props']['permissions'],
-      callbacks: {
+      'permissions': this['props']['permissions'],
+      'callbacks': {
 
-        projectSelected: this.projectSelected.bind(this)
+        'projectSelected': this['projectSelected'].bind(this)
+      }
+    };
+
+    var uploadControl = {
+
+      'fileUpload': this['props']['fileUpload'],
+      'callbacks': {
+
+        'startUpload': this['startUpload'].bind(this),
+        'pauseUpload': this['pauseUpload'].bind(this),
+        'cancelUpload': this['cancelUpload'].bind(this)
       }
     };
 
@@ -311,8 +343,8 @@ export default class ListUpload extends React.Component{
           </div>
         </td>
         <PermissionSelector { ...permissionSelectorProps } />
-        <UploadMeter fileUpload={ fileUpload } />
-        <UploadControl fileUpload={ fileUpload } />
+        <UploadMeter fileUpload={ this['props']['fileUpload'] } />
+        <UploadControl { ...uploadControl } />
       </tr>
     );
   }

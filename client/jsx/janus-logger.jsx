@@ -18,13 +18,13 @@ export default class JanusLogger{
 
       AJAX({
 
-        url: METIS_ADDR +'/check',
-        method: 'POST',
-        sendType: 'serial',
-        returnType: 'json',
-        data: logItems,
-        success: this['checkLogResponse'].bind(this),
-        error: this['ajaxError'].bind(this)
+        'url': METIS_ADDR +'/check',
+        'method': 'POST',
+        'sendType': 'serial',
+        'returnType': 'json',
+        'data': logItems,
+        'success': this['checkLogResponse'].bind(this),
+        'error': this['ajaxError'].bind(this)
       });
     }
   }
@@ -47,17 +47,18 @@ export default class JanusLogger{
       //Set the token to the local Redux store.
       var data = { 
         
-        userEmail: response['user_info']['email'],
-        authToken: response['user_info']['auth_token'],
-        firstName: response['user_info']['first_name'],
-        lastName: response['user_info']['last_name'],
-        permissions: response['user_info']['permissions']
+        'userEmail': response['user_info']['email'],
+        'authToken': response['user_info']['auth_token'],
+        'firstName': response['user_info']['first_name'],
+        'lastName': response['user_info']['last_name'],
+        'userId': response['user_info']['user_id'],
+        'permissions': response['user_info']['permissions']
       };
-      var action = { type: 'LOGGED_IN', data: data };
+      var action = { 'type': 'LOGGED_IN', data: data };
     }
     else{
 
-      var action = { type: 'LOG_ERROR' };
+      var action = { 'type': 'LOG_ERROR' };
     }
 
     this['model']['store'].dispatch(action);
@@ -73,13 +74,13 @@ export default class JanusLogger{
 
     AJAX({
 
-      url: '/login',
-      method: 'POST',
-      sendType: 'serial',
-      returnType: 'json',
-      data: logItems.join('&'),
-      success: this['logInResponse'].bind(this),
-      error: this['ajaxError'].bind(this)
+      'url': '/login',
+      'method': 'POST',
+      'sendType': 'serial',
+      'returnType': 'json',
+      'data': logItems.join('&'),
+      'success': this['logInResponse'].bind(this),
+      'error': this['ajaxError'].bind(this)
     });
   }
 
@@ -96,13 +97,13 @@ export default class JanusLogger{
 
     AJAX({
 
-      url: '/logout',
-      method: 'POST',
-      sendType: 'serial',
-      returnType: 'json',
-      data: logItems.join('&'),
-      success: this['logOutResponse'].bind(this),
-      error: this['ajaxError'].bind(this)
+      'url': '/logout',
+      'method': 'POST',
+      'sendType': 'serial',
+      'returnType': 'json',
+      'data': logItems.join('&'),
+      'success': this['logOutResponse'].bind(this),
+      'error': this['ajaxError'].bind(this)
     });
   }
 
@@ -111,12 +112,12 @@ export default class JanusLogger{
     if(response['success'] && !response['logged']){
 
       COOKIES.removeItem(TOKEN_NAME, '/', 'ucsf.edu');
-      var action = { type: 'LOGGED_OUT' };
+      var action = { 'type': 'LOGGED_OUT' };
       this['model']['store'].dispatch(action);
     }
     else{
 
-      var action = { type: 'LOG_ERROR' };
+      var action = { 'type': 'LOG_ERROR' };
       console.log(response);
     }
   }

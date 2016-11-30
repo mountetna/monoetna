@@ -27,16 +27,25 @@ export default class PermissionSelector extends React.Component{
 
   trayEntrySelected(event = undefined){
 
+    var projectName = event['target']['dataset']['name'];
     var projectId = event['target']['dataset']['id'];
     var role = event['target']['dataset']['role'];
 
-    this.setState({ 'projectRole': role });
-    this.disableTray();
+    this.setState({ 
+
+      'projectRole': role, 
+      'inputValue': projectName,
+      'projectTrayActive': false
+    });
+
+    // Bubble up the data to the parent.
+    this['props']['callbacks'].projectSelected(projectName, role);
   }
 
   updateFileName(event){
 
     var value = event['target']['value'];
+    var role = this.getRole(value);
 
     // If the search length is longer than 3 show the dropdown.
     if(value['length'] >= 3 && !this['state']['projectTrayActive']){
@@ -44,18 +53,48 @@ export default class PermissionSelector extends React.Component{
       this.setState({ 
 
         'inputValue': value,
-        'projectTrayActive': true 
+        'projectTrayActive': true,
+        'projectRole': role
       });
     }
     else{
 
-      this.setState({ 'inputValue': value });
+      this.setState({ 
+
+        'inputValue': value,
+        'projectRole': role
+      });
     }
+
+    /*
+     * If the role is not empty then we have a valid project and can update the
+     * file data.
+     */
+    if(role != ''){
+
+      // Bubble up the data to the parent.
+      this['props']['callbacks'].projectSelected(projectName, role);
+    }
+  }
+
+  getRole(projectName){
+
+    var permissions = this['props']['permissions'];
+    var role = '';
+    for(var index in permissions){
+
+      if(permissions[index]['projectName'] == projectName){
+
+        role = permissions[index]['role'];
+      }
+    }
+
+    return role;
   }
 
   filterPermissions(){
 
-     // The list of entries to be 'searched' over.
+    // The list of entries to be 'searched' over.
     var permissions = this['props']['permissions'];
 
     // The value of the input to 'search' by.
@@ -131,6 +170,7 @@ export default class PermissionSelector extends React.Component{
               'className': 'project-tray-entry',
               'key': index,
               'onClick': this.trayEntrySelected.bind(this),
+              'data-name': permission['projectName'],
               'data-id': permission['projectId'],
               'data-role': permission['role']
             };

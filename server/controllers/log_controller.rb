@@ -59,6 +59,9 @@ class LogController
     end
   end
 
+
+  # This is use for external requests. There is another in the generic
+  # controller that is used for internal requests.
   def check_log()
 
     # Get the params out of the POST

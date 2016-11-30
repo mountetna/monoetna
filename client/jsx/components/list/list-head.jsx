@@ -62,6 +62,14 @@ export default class ListHead extends React.Component{
 
   render(){
 
+    var fileSelector = {
+
+      'id': 'file-selector',
+      'type': 'file',
+      'name': 'upload-file',
+      'onChange': this['fileSelected'].bind(this)
+    };
+
     return (  
 
       <thead>
@@ -102,7 +110,7 @@ export default class ListHead extends React.Component{
           </th>
           <th id='list-control-column' className='list-head-title'>
           
-            <input id='file-selector' type='file' name='upload-file' onChange={ this['fileSelected'].bind(this) } />
+            <input { ...fileSelector } />
             <button id='file-select-btn' onClick={ this['selectFile'].bind(this) }>
 
               <span className='glyphicon glyphicon-plus white-glyphicon'></span>

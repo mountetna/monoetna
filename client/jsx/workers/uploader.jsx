@@ -62,12 +62,13 @@ class Uploader{
 
     /*
      * Here, we are NOT attaching any blob data, but are still using a form
-     * for the initialization request.
+     * for the initialization request. Also keep an eye on that 'SNAKE_CASE_IT'
+     * function. The Thin/Ruby server wants it's vars in snake case.
      */
     var initUpReq = new FormData();
     for(var key in  uploader['request']){
 
-      initUpReq.append(key,  uploader['request'][key]);
+      initUpReq.append(SNAKE_CASE_IT(key),  uploader['request'][key]);
     }
 
     /*

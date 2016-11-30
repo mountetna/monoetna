@@ -14,7 +14,14 @@ const mapStateToProps = (state, ownProps)=>{
 
 const mapDispatchToProps = (dispatch, ownProps)=>{
 
-  return {};
+  return {
+
+    authorizeFile: (file)=>{
+
+      var action = { type: 'AUTHORIZE_FILE', data: file };
+      dispatch(action);
+    }
+  };
 }
 
 const ListBodyContainer = ReactRedux.connect(

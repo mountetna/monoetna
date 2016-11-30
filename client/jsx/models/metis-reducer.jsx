@@ -17,7 +17,7 @@ export default class MetisReducer{
           fileObject['fileSize'] = fileObject['size'];
           fileObject['currentBytePosition'] = 0;
           fileObject['userEmail'] = state['userInfo']['userEmail'];
-          fileObject['status'] = 'queued';
+          fileObject['status'] = 'unauthorized';
 
           /*
            * This item will be replaced by a Redis id. We will use it in Redis
@@ -58,10 +58,14 @@ export default class MetisReducer{
           fileUpload['signature'] = authResponse['signature'];
           fileUpload['currentBytePosition'] = 0;
 
-          // Append all of the request items to the local file object
+          /*
+           * Append all of the request items to the local file object.
+           * Also keep an eye on that 'CAMEL_CASE_IT' function. The client wants
+           * it's vars in camel case.
+           */
           for(var key in authResponse['request']){
 
-            fileUpload[key] = authResponse['request'][key];
+            fileUpload[CAMEL_CASE_IT(key)] = authResponse['request'][key];
           }
           // MOD END
 
@@ -144,7 +148,10 @@ export default class MetisReducer{
 
           var nextState = Object.assign({}, state);
 
-          // Copy the new data from the auth server to the local Redux store.
+          /* Copy the new data from the auth server to the local Redux store.
+           * Also keep an eye on that 'cleanPermissions' function. The client
+           *  wants it's vars in camel case.
+           */
           for(var key in action['data']){
 
             var userItem = action['data'][key];

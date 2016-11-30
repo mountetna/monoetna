@@ -3,7 +3,97 @@
 
 class UploadController < Controller
 
+  def authorize_upload()
+
+    # Check for the POST params.
+    if !@request.post?()
+
+      #puts 'POST params are not present.'
+      return send_bad_request()
+    end
+
+    # Make sure that the auth token is present.
+    params = @request.POST()
+    if !params.key?('authorization_token')
+
+      return send_bad_request()
+    end
+
+    # Verify that the auth token is valid.
+    user_info = validate_token(params['authorization_token'])
+    if !user_info.key?('success')
+
+      return send_server_error()
+    end 
+
+    if !user_info['success']
+
+      return send_bad_request()
+    end
+
+    # Check that the user has the appropriate permission to upload.
+    user_info = user_info['user_info']
+    if !user_info.key?('permissions')
+
+      return send_server_error()
+    end
+
+    if !params.key?('project_name')
+
+      return send_bad_request()
+    end
+
+    if !params.key?('project_role')
+
+      return send_bad_request()
+    end
+
+    project_name = params['project_name']
+    project_role = params['project_role']
+    user_permissions = user_info['permissions']
+    project_id = fetch_project_id(project_name, project_role, user_permissions)
+    if project_id == nil
+
+      return send_bad_request()
+    end
+
+    # Check that this file system is in sync with the auth server.
+    # If there is a project/permission set in Janus there should be a
+    # corresponding directory in Metis. 
+    prj_nm =  params['project_name']
+    directory = Conf::ROOT_DIR + '/' + prj_nm
+    if !File.directory?(directory)
+
+      return send_server_error()
+    end
+
+    # Check if the file already exists. There will be another check from the
+    # client when the user selects the file or updates the file name. The check
+    # here is only for a bit of saftey. We also check on the file status in
+    # redis as well to make sure that there isn't a current record.
+    full_path = Conf::ROOT_DIR + '/' + prj_nm + '/' + params['file_name']
+    if File.file?(full_path)
+
+      return send_bad_request()
+    end
+
+    generate_status_key()
+    if !file_status_ok?
+
+      return send_bad_request()
+    end
+
+    return generate_authorization(params, user_info, project_id)
+  end
+
   def start_upload()
+
+    generate_common_items()
+
+    if !request_valid?()
+
+      return send_bad_request()
+    end
 
     create_file_status()
     create_partial_file()
@@ -26,11 +116,25 @@ class UploadController < Controller
 
   def create_partial_file()
 
+    create_project_directory()
     partial_file = File.new(@partial_file_name, 'w')
     partial_file.close()
   end
 
+  def create_project_directory()
+
+    req = @request.POST()
+    project_id = req['project_id']
+  end
+
   def upload_blob()
+
+    generate_common_items()
+
+    if !request_valid?()
+
+      return send_bad_request()
+    end
 
     if !file_status_ok?()
 
@@ -104,8 +208,6 @@ class UploadController < Controller
     temp_file_path = @request['blob'][:tempfile].path()
     md5_of_temp_file = Digest::MD5.hexdigest(File.read(temp_file_path))
 
-    puts md5_from_status +' '+ md5_of_temp_file
-
     if md5_from_status != md5_of_temp_file
 
       return false 
@@ -151,11 +253,11 @@ class UploadController < Controller
 
   def pause_upload()
 
-    Rack::Response.new({ success: false }.to_json())
+    Rack::Response.new({ :success=> false }.to_json())
   end
 
   def stop_upload()
 
-    Rack::Response.new({ success: false }.to_json())
+    Rack::Response.new({ :success=> false }.to_json())
   end
 end

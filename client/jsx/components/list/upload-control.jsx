@@ -9,29 +9,27 @@ export default class UploadControl extends React.Component{
   
   startUpload(){
 
-    //this['props'].startUpload(this['props']['fileUpload']);
+    this['props']['callbacks'].startUpload();
   }
 
   pauseUpload(){
 
-    //this['props'].pauseUpload(this['props']['fileUpload']);
+    this['props']['callbacks'].pauseUpload();
   }
 
   cancelUpload(){
 
-    //this['props'].cancelUpload(this['props']['fileUpload']);
+    this['props']['callbacks'].cancelUpload();
   }
 
   // Show the start or pause button.
   renderStartPause(){
 
-    var fileUpload = this['props']['fileUpload'];
-    
-    if(fileUpload['status'] == 'active'){
+    if(this['props']['fileUpload']['status'] == 'active'){
 
       return (
 
-        <button className='upload-control-btn' onClick={ this.pauseUpload.bind(this) }>
+        <button className='upload-control-btn' onClick={ this['pauseUpload'].bind(this) }>
 
           <span className='glyphicon glyphicon-pause'></span>
         </button>
@@ -41,8 +39,8 @@ export default class UploadControl extends React.Component{
 
       return (
 
-        <button className='upload-control-btn' onClick={ this.startUpload.bind(this) }>
-          
+        <button className='upload-control-btn' onClick={ this['startUpload'].bind(this) }>
+
           <span className='glyphicon glyphicon-play'></span>
         </button>
       );
@@ -51,12 +49,18 @@ export default class UploadControl extends React.Component{
 
   render(){
 
+    var uploadControlBtn = {
+
+      'className': 'upload-control-btn',
+      'onClick': this['cancelUpload'].bind(this)
+    };
+
     return (
 
       <td className='upload-control-group'>
 
         { this.renderStartPause() }
-        <button className='upload-control-btn' onClick={ this.cancelUpload.bind(this) }>
+        <button { ...uploadControlBtn }>
 
           <span className='glyphicon glyphicon-remove'></span>
         </button>

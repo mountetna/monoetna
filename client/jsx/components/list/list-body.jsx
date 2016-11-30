@@ -15,12 +15,15 @@ export default class ListBody extends React.Component{
     console.log(fileUpload);
 
     /*
-
     1. Check the new file name...
     2. If good then set...
     3. If no good then say so and reset.
-
     */
+  }
+
+  startFileUpload(fileUpload){
+
+    this['props'].authorizeFile(fileUpload);
   }
   
   render(){
@@ -37,17 +40,17 @@ export default class ListBody extends React.Component{
 
             fileUploads.map((fileUpload)=>{
 
-              var listUploadProps = {
+              var listUpload = {
 
-                key: fileUpload['redisIndex'],
-                fileUpload: fileUpload,
-                permissions: permissions,
-                callbacks: {
+                'key': fileUpload['redisIndex'],
+                'fileUpload': fileUpload,
+                'permissions': permissions,
+                'callbacks': {
 
-                  updateFileUpload: this.updateFileUpload.bind(this)
+                  'startFileUpload': this['startFileUpload'].bind(this)
                 }
               }
-              return <ListUpload { ...listUploadProps } />
+              return <ListUpload { ...listUpload } />
             })
           : '' }
 

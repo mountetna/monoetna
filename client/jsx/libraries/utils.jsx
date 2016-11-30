@@ -21,7 +21,7 @@ var STATUS_ITEMS = {
   fileSize: Number,
   userEmail: String,
   userId: Number,
-  groupId: Number,
+  projectId: Number,
   redisIndex: String,
 
   signature: String,
@@ -458,7 +458,7 @@ var VALIDATE_EMAIL = function(email){
 /*
  * In Ruby (the server side) variables/hash keys are named in snake_case.
  * Here in JS (the client side) we are using camelCase. 
- * This is a little util to transform snake_case to camelCase.
+ * This is a little util to transform snake_case to camelCase and back again.
  */
 var CAMEL_CASE_IT = function(string){
 
@@ -478,4 +478,18 @@ var CAMEL_CASE_IT = function(string){
   }
 
   return string;
+}
+
+var SNAKE_CASE_IT = function(str){
+
+  for(var a = 0; a < str['length']; ++a){
+
+    var chr = str[a];
+    if(chr != chr.toLowerCase() && a != 0 && a != (str['length']-1)){
+
+      str = str.substr(0,a) +'_'+ chr.toLowerCase() + str.substr(a+1);
+    }
+  }
+
+  return str;
 }
