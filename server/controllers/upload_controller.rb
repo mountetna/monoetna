@@ -68,12 +68,54 @@ class UploadController < Controller
     end
 
     @status_key = generate_status_key()
-    if file_status_ok?
+    @file_status = @redis_service.retrive_file_status(@status_key)
+    if @file_status != nil
 
       return send_bad_request()
     end
 
     return generate_authorization(params, user_info, project_id)
+  end
+
+  def generate_authorization(params, user_info, project_id)
+
+    time = Time::now.to_i
+    sig_algo = 'MD5'
+    
+    # The redis index SHOULD be a unique key/index for an entry in redis
+    redis_index = @redis_service.get_new_index()
+    old_index = params['redis_index']
+
+    params = {
+    
+      'directory'=> ('/'+ params['project_name']),
+      'expires'=> Conf::UPLOAD_EXPIRE,
+      'signing_algorithm'=> sig_algo,
+      'hashing_algorithm'=> sig_algo,
+      'start_timestamp'=> time,
+      'authorization_token'=> params['authorization_token'],
+      'original_name' => params['original_name'],
+      'file_name'=> params['file_name'],
+      'file_size'=> params['file_size'],
+      'user_email'=> user_info['email'],
+      'user_id'=> user_info['user_id'],
+      'project_id'=> project_id, 
+      'old_index'=> old_index,
+      'redis_index'=> redis_index
+    }
+
+    ordered_params = SignService::order_params(params)
+    sig = SignService::sign_request(ordered_params,sig_algo)
+    params['status'] = 'authorized'
+
+    response = { 
+
+      :success=> true,
+      :request=> params,
+      :signature=> sig,
+      :status=> 'authorized' 
+    }
+    Rack::Response.new(response.to_json)
   end
 
   def start_upload()
@@ -88,7 +130,7 @@ class UploadController < Controller
     create_file_status()
     create_partial_file()
 
-    if !file_status_ok?()
+    if @file_status == nil
 
       return send_server_error()
     end
@@ -102,19 +144,13 @@ class UploadController < Controller
     params['current_blob_size'] = 0
     params['current_byte_position'] = 0
     @redis_service.set_file_status(@status_key, params.to_json)
+    @file_status = @redis_service.retrive_file_status(@status_key)
   end
 
   def create_partial_file()
 
-    create_project_directory()
     partial_file = File.new(@partial_file_name, 'w')
     partial_file.close()
-  end
-
-  def create_project_directory()
-
-    req = @request.POST()
-    project_id = req['project_id']
   end
 
   def upload_blob()
@@ -126,7 +162,7 @@ class UploadController < Controller
       return send_bad_request()
     end
 
-    if !file_status_ok?()
+    if @file_status == nil
 
       return send_server_error()
     end
@@ -172,6 +208,160 @@ class UploadController < Controller
     @file_status['next_blob_size'] = params['next_blob_size']
 
     @redis_service.set_file_status(@status_key, @file_status.to_json)
+  end
+
+    # Generate commonly used variables that we will reuse in many places
+  def generate_common_items()
+
+    @signature = generate_signature()
+    @status_key = generate_status_key()
+    @file_status = @redis_service.retrive_file_status(@status_key)
+
+    if @file_status != nil
+
+      @file_status = JSON.parse(@file_status)
+    end
+
+    @full_path = generate_file_path()      
+    @partial_file_name = @full_path  +'.part'
+  end
+
+  # Hash the upload request.
+  def generate_signature()
+
+    params = @request.POST()
+    ordered_params= SignService::order_params(params)
+    sig = SignService::sign_request(ordered_params, params['signing_algorithm'])
+  end
+
+  # Extract the directory/file names from the request.
+  def generate_file_path()
+
+    params = @request.POST()
+    full_path = Conf::ROOT_DIR + params['directory'] + '/' + params['file_name']
+  end
+
+  # Generate the key used to access the file's metadata in Redis.
+  def generate_status_key()
+
+    params = @request.POST()
+    status_key = params['redis_index'] + '.'
+    status_key = status_key + params['file_name'] + '.'
+    status_key = status_key + params['project_id'] + '.'
+    status_key = status_key + params['user_id']
+  end
+
+  # Check the validity of the upload request.
+  def request_valid?()
+
+    if upload_errors?()
+
+      return false
+    end
+
+    if !@request.post?()
+
+      #puts 'POST params are not present.'
+      return false
+    end
+
+    if !SignService::request_parameters_valid?(@request.POST())
+
+      #puts 'POST params are not in the correct format.'
+      return false
+    end
+
+    if generate_signature() != @request.POST()['signature']
+
+      #puts 'The packet doesn\'t have the correct HMAC signature/hash'
+      return false
+    end
+
+    # We need to make sure that the system clocks of Metis and Magma are in sync
+    start_timestamp = @request.POST()['start_timestamp'].to_i
+    expiration = @request.POST()['expires'].to_i
+    now = Time::now.to_i
+    if now >= (start_timestamp + expiration)
+
+      #puts 'The request is past it\'s expiration time.'
+      return false
+    end
+  
+    return true
+  end
+
+  def authorization_parameters?(params)
+
+    if !params.key?('authorization_token')
+
+      return false
+    end
+
+    if !params.key?('project_name')
+
+      return false
+    end
+
+    if !params.key?('project_role')
+
+      return false
+    end
+
+    if !params.key?('project_id')
+
+      return false
+    end
+
+    if !params.key?('file_name')
+
+      return false
+    end
+
+    if !params.key?('redis_index')
+
+      return false
+    end
+
+    if !params.key?('user_id')
+
+      return false
+    end
+
+    return true
+  end
+
+  def upload_errors?()
+
+    status = @redis_service.retrive_file_status(@status_key)
+
+    if File.file?(@full_path) && status == nil
+
+      #puts 'FILE_NO_STATUS'
+      return true
+    end
+
+    if File.file?(@partial_file_name) && status == nil
+
+      #puts 'TEMP_NO_STATUS'
+      return true
+    end
+
+    if File.file?(@full_path) && File.file?(@partial_file_name)
+
+      #puts 'TEMP_AND_FILE'
+      return true
+    end
+
+    if !status.nil?
+
+      if !File.file?(@full_path) && !File.file?(@partial_file_name)
+
+        #puts 'STATUS_NO_TEMP_OR_FILE'
+        return true
+      end
+    end
+
+    return false
   end
 
   def blob_integrity_ok?()

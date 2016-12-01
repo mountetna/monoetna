@@ -21,7 +21,7 @@ class RedisService
     index = index.to_i.to_s(16)
     
     if(index.length < 8)
-      
+
       pad_length = 8 - index.length
       index = ('0' * pad_length) + index
     end
@@ -30,7 +30,7 @@ class RedisService
   end
 
   def retrive_file_status(key)
-    
+
     @redis.get(key)
   end
 
