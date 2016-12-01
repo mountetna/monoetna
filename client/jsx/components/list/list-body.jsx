@@ -10,17 +10,6 @@ export default class ListBody extends React.Component{
     super();
   }
 
-  updateFileUpload(fileUpload){
-
-    console.log(fileUpload);
-
-    /*
-    1. Check the new file name...
-    2. If good then set...
-    3. If no good then say so and reset.
-    */
-  }
-
   startFileUpload(fileUpload){
 
     this['props'].authorizeFile(fileUpload);
@@ -28,10 +17,11 @@ export default class ListBody extends React.Component{
   
   render(){
 
-    var fileUploads = this['props']['fileUploads'];
-    var fileList = this['props']['fileList'];
-    var permissions = this['props']['permissions'];
-    
+    var appState = this['props']['appState'];
+    var fileUploads = appState['fileUploads'];
+    var fileList = appState['fileList'];
+    var permissions = appState['userInfo']['permissions'];
+
     return (
 
       <tbody id='list-body-group'>

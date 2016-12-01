@@ -70,6 +70,31 @@ class MetisUploader{
     );
   }
 
+  retrieveFiles(){
+
+    var state = this['model']['store'].getState();
+    var userInfo = state['appState']['userInfo'];
+    if(state['appState']['loginStatus'] && !state['appState']['loginError']){
+
+      // Request authorization to upload the file.
+      AJAX({
+
+        'url': '/retrieve-files', //replace this URL with the Magma End Point
+        'method': 'POST',
+        'sendType': 'serial',
+        'returnType': 'json',
+        'data': 'authorization_token='+ userInfo['authToken'],
+        'success': this['retrieveFilesResponse'].bind(this),
+        'error': this['ajaxError'].bind(this)
+      });
+    }
+  }
+
+  retrieveFilesResponse(response){
+
+    console.log(response);
+  }
+
   /*
    * Commands from the UI (via Redux).
    * You would normally see Thunk middleware implemented at the reducer for asyc
@@ -82,11 +107,6 @@ class MetisUploader{
   routeAction(action){
 
     switch(action['type']){
-
-      //case 'FILE_SELECTED':
-
-        //this.fileSelected(action['data']);
-      //  break;
 
       case 'AUTHORIZE_FILE':
 
@@ -101,6 +121,11 @@ class MetisUploader{
         var email = action['data']['email'];
         var password = action['data']['pass'];
         this['janusLogger'].logIn(email, password);
+        break;
+
+      case 'LOGGED_IN':
+
+        this.retrieveFiles();
         break;
       case 'LOG_OUT':
 
@@ -122,7 +147,6 @@ class MetisUploader{
      * check if there are any active uploads. If not then reset the uploader and 
      * begin a new upload from the top of the queue.
      */
-
     var state = this['model']['store'].getState();
     var uploads = state['appState']['fileUploads'];
 
@@ -209,13 +233,15 @@ class MetisUploader{
     var authRequest = {
 
       'user_email': fileUpload['userEmail'],
+      'user_id': state['appState']['userInfo']['userId'],
       'original_name': fileUpload['name'],
       'file_name': fileUpload['fileName'],
       'file_size': fileUpload['size'], //in bytes
       'redis_index': fileUpload['redisIndex'],
       'authorization_token': userInfo['authToken'],
       'project_name': fileUpload['projectName'],
-      'project_role': fileUpload['projectRole']
+      'project_role': fileUpload['projectRole'],
+      'project_id': fileUpload['projectId']
     };
 
     // Serialize the request for POST.
@@ -237,28 +263,6 @@ class MetisUploader{
       'success': this['authorizationResponse'].bind(this),
       'error': this['ajaxError'].bind(this)
     });
-
-    /*
-
-    //Serialize the request for POST
-    var request = [];
-    for(var key in authRequest){
-
-      request.push(key +'='+ authRequest[key]);
-    }
-    request = request.join('&');
-
-    AJAX({
-
-      url: './magma-end-point', //replace this URL with the Magma End Point
-      method: 'POST',
-      sendType: 'serial',
-      returnType: 'json',
-      data: request,
-      success: this['authorizationResponse'].bind(this),
-      error: this['ajaxError'].bind(this)
-    });
-    */
   }
   
   /*

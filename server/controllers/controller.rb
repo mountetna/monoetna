@@ -90,6 +90,46 @@ class Controller
     return true
   end
 
+  def authorization_parameters?(params)
+
+    if !params.key?('authorization_token')
+
+      return false
+    end
+
+    if !params.key?('project_name')
+
+      return false
+    end
+
+    if !params.key?('project_role')
+
+      return false
+    end
+
+    if !params.key?('project_id')
+
+      return false
+    end
+
+    if !params.key?('file_name')
+
+      return false
+    end
+
+    if !params.key?('redis_index')
+
+      return false
+    end
+
+    if !params.key?('user_id')
+
+      return false
+    end
+
+    return true
+  end
+
   def fetch_project_id(project_name, project_role, user_permissions)
 
     project_id = nil
@@ -185,9 +225,9 @@ class Controller
   def generate_status_key()
 
     req = @request.POST()
-    status_key = req['redis_index'] +'.'
-    status_key = status_key + req['file_name'] +'.'
-    status_key = status_key + req['project_id'] +'.'
+    status_key = req['redis_index'] + '.'
+    status_key = status_key + req['file_name'] + '.'
+    status_key = status_key + req['project_id'] + '.'
     status_key = status_key + req['user_id']
   end
 
@@ -230,6 +270,11 @@ class Controller
       :status=> 'authorized' 
     }
     Rack::Response.new(response.to_json)
+  end
+
+  def retrieve_files()
+
+    Rack::Response.new({ :success=> true, :msg=> 'sup' }.to_json())
   end
 
   def send_bad_request()

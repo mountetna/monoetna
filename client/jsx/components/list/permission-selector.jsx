@@ -8,13 +8,42 @@ export default class PermissionSelector extends React.Component{
 
     this['state'] = {
 
+      'componentLock': false,
       'projectTrayActive': false,
       'inputValue': '',
-      'projectRole': '',
+      'projectRole': ''
     };
   }
 
+  componentDidMount(){
+
+    var fileUpload = this['props']['fileUpload'];
+    var status = fileUpload['status'];
+    if(status == 'authorized' || status == 'active'){
+
+      this.setState({ 
+
+        'componentLock': true,
+        'projectTrayActive': false,
+        'inputValue': fileUpload['projectName'],
+        'projectRole': fileUpload['projectRole']
+      });
+    }
+  }
+
+  disableInput(){
+
+    var status = this['props']['fileUpload']['status'];
+    return (status == 'authorized' || status == 'active') ? true : false;
+  }
+
   toggleTray(event = undefined){
+
+    if(this['state']['componentLock']){
+
+      alert('You cannot change the project name until the upload is complete');
+      return;
+    }
 
     var trayActive = (this['state']['projectTrayActive']) ? false : true;
     this.setState({ 'projectTrayActive': trayActive });
@@ -26,6 +55,8 @@ export default class PermissionSelector extends React.Component{
   }
 
   trayEntrySelected(event = undefined){
+
+    if(this['state']['componentLock']) return;
 
     var projectName = event['target']['dataset']['name'];
     var projectId = event['target']['dataset']['id'];
@@ -39,10 +70,12 @@ export default class PermissionSelector extends React.Component{
     });
 
     // Bubble up the data to the parent.
-    this['props']['callbacks'].projectSelected(projectName, role);
+    this['props']['callbacks'].projectSelected(projectName, role, projectId);
   }
 
   updateFileName(event){
+
+    if(this['state']['componentLock']) return;
 
     var value = event['target']['value'];
     var role = this.getRole(value);
@@ -210,7 +243,8 @@ export default class PermissionSelector extends React.Component{
 
       'className': 'project-search-input',
       'value': this['state']['inputValue'],
-      'onChange': this['updateFileName'].bind(this)
+      'onChange': this['updateFileName'].bind(this),
+      'disabled': this.disableInput()
     };
 
     var projectDropdownButton = {

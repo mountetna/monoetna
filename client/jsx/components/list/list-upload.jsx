@@ -12,17 +12,39 @@ export default class ListUpload extends React.Component{
 
     this['state'] = {
 
+      'componentLock': false,
       'fileNameEditShow': false,
       'fileNameEditActive': false,
-      'fileName': this['props']['fileUpload']['originalName']
+      'fileName': this['props']['fileUpload']['fileName']
     };
+  }
+
+  componentDidMount(){
+
+    var fileUpload = this['props']['fileUpload'];
+    var status = fileUpload['status'];
+    if(status == 'authorized' || status == 'active'){
+
+      this.setState({ 
+
+        'componentLock': true ,
+        'fileNameEditShow': false,
+        'fileNameEditActive': false,
+      });
+    }
+  }
+
+  disabledAlert(){
+
+    alert('You cannot change the file name until the upload is complete');
   }
 
   parseFileStatus(){
 
     var file = this['props']['fileUpload'];
     var status = file['status'];
-    var date = PARSE_TIMESTAMP(Date.now() / 1000);
+    var authStamp = file['startTimestamp']
+    var date = PARSE_TIMESTAMP(authStamp);
     var user = file['userEmail'];
     switch(file['status']){
 
@@ -32,7 +54,7 @@ export default class ListUpload extends React.Component{
         break;
       case 'authorized':
 
-        status = 'File upload authorized on '+ date;
+        status = 'Auth on '+ date;
         break;
       case 'queued':
 
@@ -40,7 +62,7 @@ export default class ListUpload extends React.Component{
         break;
       case 'initialized':
 
-        status = 'File upload initialized by '+ user;
+        status = 'Initialized by '+ user;
         break;
       case 'active':
 
@@ -181,6 +203,12 @@ export default class ListUpload extends React.Component{
 
   activateFileNameEdit(event){
 
+    if(this['state']['componentLock']){
+
+      this.disabledAlert();
+      return;
+    }
+
     this.setState({ 'fileNameEditActive': true });
   }
 
@@ -213,7 +241,6 @@ export default class ListUpload extends React.Component{
     // Validate that there are no odd characters in the entry.
     if(/[\^\&\'\@\{\}\[\]\,\$\=\!\#\%\+\~]+$/g.test(newName)){
 
-      
       var message = 'Not a valid name. Special characters not allowed.\n';
       message += 'Acceptable characters are:  a-z A-Z 0-9 + . - ( ) _';
       alert(message);
@@ -225,6 +252,14 @@ export default class ListUpload extends React.Component{
 
   persistFileName(event){
 
+    if(this['state']['componentLock']){
+
+      this.disabledAlert();
+      return;
+    }
+
+    // Check for file names.
+    
     var newName = this['state']['fileName'];
 
     if(!this.validateTitle(newName)){
@@ -241,16 +276,27 @@ export default class ListUpload extends React.Component{
 
     // Bubble the data back to the Redux Store.
     this['props']['fileUpload']['fileName'] = newName;
-    this['props']['callbacks'].updateFileUpload(this['props']['fileUpload']);
   }
 
   updateFileName(event){
+
+    if(this['state']['componentLock']){
+
+      this.disabledAlert();
+      return;
+    }
 
     var value = event['target']['value'];
     this.setState({ fileName: value });
   }
 
   resetFileName(event){
+
+    if(this['state']['componentLock']){
+
+      this.disabledAlert();
+      return;
+    }
 
     var origName = this['props']['fileUpload']['originalName'];
     this['props']['fileUpload']['fileName'] = origName;
@@ -266,10 +312,11 @@ export default class ListUpload extends React.Component{
     }
   }
 
-  projectSelected(projectName, projectRole){
+  projectSelected(projectName, projectRole, projectId){
 
     this['props']['fileUpload']['projectName'] = projectName;
     this['props']['fileUpload']['projectRole'] = projectRole;
+    this['props']['fileUpload']['projectId'] = projectId;
   }
 
   startUpload(){
@@ -310,6 +357,7 @@ export default class ListUpload extends React.Component{
     var permissionSelectorProps = {
 
       'permissions': this['props']['permissions'],
+      'fileUpload': this['props']['fileUpload'],
       'callbacks': {
 
         'projectSelected': this['projectSelected'].bind(this)

@@ -15,4 +15,4 @@ Metis.add_route('POST', '/upload-blob', 'UploadController#upload_blob')
 Metis.add_route('POST', '/upload-pause', 'UploadController#pause_upload')
 Metis.add_route('POST', '/upload-stop', 'UploadController#stop_upload')
 
-Metis.add_route('POST', '/magma-end-point', 'MagmaController#magma_end_point')
+Metis.add_route('POST', '/retrieve-files', 'Controller#retrieve_files')

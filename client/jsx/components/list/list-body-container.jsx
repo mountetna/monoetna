@@ -6,9 +6,7 @@ const mapStateToProps = (state, ownProps)=>{
   // state == redux store
   return {
 
-    fileList: state['appState']['fileList'],
-    fileUploads: state['appState']['fileUploads'],
-    permissions: state['appState']['userInfo']['permissions']
+    appState: state['appState']
   };
 }
 

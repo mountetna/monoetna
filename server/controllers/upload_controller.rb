@@ -12,9 +12,9 @@ class UploadController < Controller
       return send_bad_request()
     end
 
-    # Make sure that the auth token is present.
+    # Make sure that all the required parameters are present
     params = @request.POST()
-    if !params.key?('authorization_token')
+    if !authorization_parameters?(params)
 
       return send_bad_request()
     end
@@ -36,16 +36,6 @@ class UploadController < Controller
     if !user_info.key?('permissions')
 
       return send_server_error()
-    end
-
-    if !params.key?('project_name')
-
-      return send_bad_request()
-    end
-
-    if !params.key?('project_role')
-
-      return send_bad_request()
     end
 
     project_name = params['project_name']
@@ -77,8 +67,8 @@ class UploadController < Controller
       return send_bad_request()
     end
 
-    generate_status_key()
-    if !file_status_ok?
+    @status_key = generate_status_key()
+    if file_status_ok?
 
       return send_bad_request()
     end

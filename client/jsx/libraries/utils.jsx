@@ -52,7 +52,22 @@ var GENERATE_RAND_KEY = function(){
  */
 var PARSE_TIMESTAMP = function(timestamp){
 
-  return timestamp;
+  timestamp = parseInt(timestamp);
+  if(isNaN(timestamp) || timestamp < 0){
+
+    timestamp = new Date().getTime() / 1000;
+  }
+
+  var dt = new Date(timestamp * 1000);
+
+  var hr = dt.getHours() + 1;
+  var mn = dt.getMinutes();
+
+  var mo = dt.getMonth() + 1;
+  var dy = dt.getDate();
+  var yr = dt.getYear();
+
+  return hr +':'+ mn +', '+ mo +'/'+ dy;
 }
 
 /*
