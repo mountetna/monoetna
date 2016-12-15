@@ -11,29 +11,29 @@ export default class MetisModel{
     var lastAction = new LastActionReducer();
     var reducer = Redux.combineReducers({
 
-      appState: appState.reducer(),
-      lastAction: lastAction.reducer()
+      'appState': appState.reducer(),
+      'lastAction': lastAction.reducer()
     });
 
     var defaultState = {
 
-      appState: {
+      'appState': {
 
-        userInfo: {
+        'userInfo': {
 
-          userEmail: '',
-          authToken: '',
-          firstName: '',
-          lastName: '',
-          permissions: []
+          'userEmail': '',
+          'authToken': '',
+          'firstName': '',
+          'lastName': '',
+          'permissions': []
         },
 
-        fileList: [],
-        fileUploads: [],
+        'fileList': [],
+        'fileUploads': [],
 
-        loginStatus: false,
-        loginError: false,
-        loginErrorMsg: 'Invalid sign in.'
+        'loginStatus': false,
+        'loginError': false,
+        'loginErrorMsg': 'Invalid sign in.'
       }
     };
 
