@@ -21,16 +21,18 @@
   outline: none;
 }
 
-.log-input:hover {
+.log-input:focus {
+
+  border: 1px solid #24a684;
+  outline: none;
+}
+
+.log-input:hover,
+.log-input:focus {
 
   -webkit-box-shadow: inset -1px 1px 1px 0px #ccc;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
   -moz-box-shadow:    inset -1px 1px 1px 0px #ccc;  /* Firefox 3.5 - 3.6 */
   box-shadow:         inset -1px 1px 1px 0px #ccc;
-}
-
-.log-input:focus {
-
-  border: 1px solid #24a684;
 }
 
 .login-button { 
