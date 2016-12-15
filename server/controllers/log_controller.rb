@@ -1,3 +1,6 @@
+# log_controller.rb
+# This controller serves as an intermediary to Janus logging services.
+
 class LogController
 
   def initialize(redis_service, request, action)
@@ -58,7 +61,6 @@ class LogController
       return send_bad_request()
     end
   end
-
 
   # This is use for external requests. There is another in the generic
   # controller that is used for internal requests.

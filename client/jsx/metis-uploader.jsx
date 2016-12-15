@@ -287,5 +287,5 @@ class MetisUploader{
   }
 }
 
-//Initilize the class.
+// Initilize the class.
 var metisUploader = new MetisUploader();
