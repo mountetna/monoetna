@@ -29,12 +29,39 @@ export default class MenuBar extends React.Component{
     this['props'].logOut();
   }
 
+  renderAdminPermissions(){
+
+    var userInfo = this['props']['appState']['userInfo'];
+    var perms = userInfo['permissions'];
+
+    // Check for administration privileges.
+    var adminPerms = false;
+    for(var index in perms){
+
+      if(perms[index]['role'] == 'administrator') adminPerms = true;
+    }
+
+    if(adminPerms){
+
+      return (
+
+        <a href='/admin' className='user-dropdown-menu-item'>
+
+          { 'admin settings' }
+        </a>
+      );
+    }
+    else{
+
+      return '';
+    }
+  }
+
   renderUserMenu(){
 
     var appState = this['props']['appState'];
     var userInfo = appState['userInfo'];
-
-
+    
     if(appState['loginStatus'] && !appState['loginError']){
 
       var height = (this['state']['open']) ? 'auto' : '100%';
@@ -65,10 +92,7 @@ export default class MenuBar extends React.Component{
               
               { 'user settings' }
             </a>
-            <a href='/admin' className='user-dropdown-menu-item'>
-
-              { 'admin settings' }
-            </a>
+            { this.renderAdminPermissions() }
             <div className='user-dropdown-menu-item' onClick={ this['logOut'].bind(this) }>
 
               { 'log out' }

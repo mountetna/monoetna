@@ -21,4 +21,16 @@ class ClientController
     template = File.read('./server/views/index.html')
     Rack::Response.new(template)
   end
+
+  def admin()
+
+    template = File.read('./server/views/admin.html')
+    Rack::Response.new(template)
+  end
+
+  def user()
+
+    template = File.read('./server/views/user.html')
+    Rack::Response.new(template)
+  end
 end
