@@ -3,7 +3,7 @@
  */
 var BLOB_SIZE = 100000; // in bytes
 var TOKEN_NAME = 'UCSF_ETNA_AUTH_TOKEN';
-var METIS_ADDR = 'http://metis-dev.ucsf.edu:8081';
+var METIS_ADDR = 'http://metis-dev.ucsf.edu';
 
 /*
  * These are the items that are passed between the server and client.
@@ -447,18 +447,6 @@ var COOKIES = {
     return aKeys;
   }
 };
-
-var GENERATE_RANDOM = function(length){
-
-  var randChars = [];
-  var possible = 'abcdef0123456789';
-  for(var a = 0; a < length; ++a){
-
-    randChars.push(possible.charAt(Math.floor(Math.random() * possible.length)));
-  }
-
-  return randChars.join('');
-}
 
 /*
  * This is only to prevent sending excessive queries to the server. There is
