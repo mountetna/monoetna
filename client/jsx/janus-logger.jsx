@@ -27,6 +27,10 @@ export default class JanusLogger{
         'error': this['ajaxError'].bind(this)
       });
     }
+    else{
+
+      this.notLogged();
+    }
   }
 
   checkLogResponse(response){
@@ -34,6 +38,14 @@ export default class JanusLogger{
     if(response['success'] && response['logged']){
 
       this.logInResponse(response);
+    }
+    else if(response['success'] && !response['logged']){
+
+      this.notLogged();
+    }
+    else{
+
+      this.logError();
     }
   }
 
@@ -117,9 +129,20 @@ export default class JanusLogger{
     }
     else{
 
-      var action = { 'type': 'LOG_ERROR' };
-      console.log(response);
+      this.logError();
     }
+  }
+
+  notLogged(){
+
+    var action = { 'type': 'NOT_LOGGED' };
+    this['model']['store'].dispatch(action);
+  }
+
+  logError(response){
+
+    var action = { 'type': 'LOG_ERROR' };
+    console.log(response);
   }
 
   ajaxError(xhr, config, error){
