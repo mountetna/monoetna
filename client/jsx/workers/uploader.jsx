@@ -109,13 +109,13 @@ class Uploader{
 
       AJAX({
 
-        url: '/upload-start',
-        method: 'POST',
-        sendType: 'file',
-        returnType: 'json',
-        data: initialUploadRequet,
-        success: uploader.handleServerResponse,
-        error: uploader.ajaxError
+        'url': '/upload-start',
+        'method': 'POST',
+        'sendType': 'file',
+        'returnType': 'json',
+        'data': initialUploadRequet,
+        'success': uploader['handleServerResponse'],
+        'error': uploader['ajaxError']
       });
     }
     catch(error){
@@ -187,13 +187,13 @@ class Uploader{
 
       AJAX({
 
-        url: '/upload-blob',
-        method: 'POST',
-        sendType: 'file',
-        returnType: 'json',
-        data: uploaderRequest,
-        success: uploader.handleServerResponse,
-        error: uploader.ajaxError
+        'url': '/upload-blob',
+        'method': 'POST',
+        'sendType': 'file',
+        'returnType': 'json',
+        'data': uploaderRequest,
+        'success': uploader['handleServerResponse'],
+        'error': uploader['ajaxError']
       });
     }
     catch(error){
