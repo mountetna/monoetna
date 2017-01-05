@@ -14,36 +14,59 @@ export default class MetisUI extends React.Component{
     super();
   }
 
-  renderLoginView(){
+
+
+  renderContent(){
 
     if(!this['props']['userInfo']['loginStatus']){
 
-      return (
-
-        <div id='listing-group'>
-          
-          <LoginPanelContainer />
-        </div>
-      );
+      return this.renderLoginView();
     }
     else{
 
-      var fileList = this['props']['fileData']['fileList'];
-      var fileUploads = this['props']['fileData']['fileUploads'];
-
-      return (
-
-        <div id='listing-group'>
-          
-          <table id='listing-table'>
-          
-            <ListHeadContainer />
-            {/*(fileList.length || fileUploads.length) ? <ListBodyContainer /> : <ListEmpty /> */}
-            { (fileList.length || fileUploads.length) ? <ListBodyContainer /> : '' }
-          </table>
-        </div>
-      );
+      return this.renderRegular();
     }
+  }
+
+  renderLoginView(){
+
+    return (
+
+      <div id='listing-group'>
+        
+        <LoginPanelContainer />
+      </div>
+    );
+  }
+
+//  renderNoPerms(){
+//
+//    return (
+//
+//      <div>
+//
+//        { 'It looks like you have no permission in our system, so you cannot upload or use any files. Please contact the system administrator to get some permissions.'}
+//      </div>
+//    );
+//  }
+
+  renderRegular(){
+
+    var fileList = this['props']['fileData']['fileList'];
+    var fileUploads = this['props']['fileData']['fileUploads'];
+
+    return (
+
+      <div id='listing-group'>
+        
+        <table id='listing-table'>
+        
+          <ListHeadContainer />
+          {/*(fileList.length || fileUploads.length) ? <ListBodyContainer /> : <ListEmpty /> */}
+          { (fileList.length || fileUploads.length) ? <ListBodyContainer /> : '' }
+        </table>
+      </div>
+    );
   }
 
   render(){
@@ -63,7 +86,7 @@ export default class MetisUI extends React.Component{
         </div>
         <div id='left-column-group'>
         </div>
-        { this.renderLoginView() }
+        { this.renderContent() }
       </div>
     );
   }

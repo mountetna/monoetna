@@ -56,6 +56,21 @@ export default class JanusLogger{
       //Set the token to the cookies so it may be used by multiple UI programs.
       COOKIES.setItem(TOKEN_NAME, response['user_info']['auth_token'], Infinity, '/', 'ucsf.edu');
 
+      if(response['user_info']['permissions']['length'] == 0){
+
+        var message = 'It looks like you have no permissions in our system, '
+        message += 'which means you cannot permform any tasks in our system. '
+        message += 'Please contact the system administrator to get some permissions. ';
+
+        alert(message);
+
+        var email = response['user_info']['email'];
+        var token = response['user_info']['auth_token'];
+        this.logOut(email, token);
+
+        return;
+      }
+
       //Set the token to the local Redux store.
       var data = { 
         
@@ -96,15 +111,12 @@ export default class JanusLogger{
     });
   }
 
-  logOut(callback){
-
-    var state = this['model']['store'].getState();
-    var email = state['userInfo']['userEmail'];
+  logOut(email, token){
 
     var logItems = [
 
       'email='+ email,
-      'token='+ COOKIES.getItem(TOKEN_NAME)
+      'token='+ token
     ];
 
     AJAX({
