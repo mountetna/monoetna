@@ -40,24 +40,6 @@ export default class AdminReducer{
           adminInfo['permissions'].unshift(newPermission);
           return adminInfo;
 
-/*
-        case 'UPDATE_PERMISSION':
-
-          var adminInfo = Object.assign({}, state);
-          var permissions = adminInfo['permissions'];
-          for(var a = 0; a < permissions['length']; ++a){
-
-            if(permissions[a]['reactKey'] == action['reactKey']){
-
-              permissions[a][action['field']] =  action['value'];
-              break;
-            }
-          }
-
-          console.log(adminInfo);
-          return adminInfo;
-*/
-
         case 'REMOVE_UNSAVED_PERMISSION':
 
           var nextState = Object.assign({}, state);
