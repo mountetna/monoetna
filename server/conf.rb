@@ -4,7 +4,7 @@
 module Conf
 
   # This is a temp secret key DO NOT USE THIS IN PRODUCTION!
-  SECRET_KEY = 'eOHJ6a48xyOmmaYIM0AnUAOIiJZ0kOZzCxTVtSrhagg'
+  SECRET_KEY = [A SECRET KEY]
 
   # Names and order of the fields to be signed.
   SIGNATURE_ITEMS = [
@@ -33,7 +33,7 @@ module Conf
   # TEMP_AND_FILE  = 3 # Both the temp file and regular file exist.
   # STATUS_NO_TEMP_OR_FILE = 4 # A status exsits but no corresponding file.
 
-  APP_KEY = 'eiE0XQBb33saliJlrrlQJl1UYlUrqD49CHNyGfFozoo'
+  APP_KEY = [AN APPLICATION KEY]
   JANUS_ADDR = 'http://janus-dev.ucsf.edu'
 
   # One day to finish upload.
