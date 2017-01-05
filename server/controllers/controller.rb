@@ -37,8 +37,15 @@ class Controller
     begin
 
       response = http.request(request)
-      return JSON.parse(response.body)
+      response_code = response.code.to_i()
 
+      if response_code == 200
+
+        return Rack::Response.new(response.body)
+      else
+
+        return send_server_error()
+      end
     rescue Timeout::Error, 
            Errno::EINVAL, 
            Errno::ECONNRESET, 
