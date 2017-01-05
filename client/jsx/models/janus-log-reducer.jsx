@@ -44,6 +44,7 @@ export default class JanusLogReducer{
             userInfo[key] = '';
           }
 
+          userInfo['userId'] = null;
           userInfo['permissions'] = [];
           userInfo['masterPerms'] = false;
           userInfo['loginStatus'] = false;

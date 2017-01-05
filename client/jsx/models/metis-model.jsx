@@ -28,6 +28,7 @@ export default class MetisModel{
 
       'userInfo': {
 
+        'userId': null,
         'userEmail': '',
         'authToken': '',
         'firstName': '',
