@@ -6,115 +6,95 @@ export default class AdminReducer{
 
       switch(action['type']){
 
-        case 'LOG_IN':
-
-          var nextState = Object.assign({}, state);
-          nextState['userInfo']['userEmail'] = action['data']['email'];
-          return nextState;
-
-        case 'LOGGED_IN':
-
-          var nextState = Object.assign({}, state);
-
-          /* Copy the new data from the auth server to the local Redux store.
-           * Also keep an eye on that 'cleanPermissions' function. The client
-           * wants it's vars in camel case.
-           */
-          for(var key in action['data']){
-
-            var userItem = action['data'][key];
-            if(key == 'permissions') userItem = this.camelCaseIt(userItem);
-            nextState['userInfo'][key] = userItem;
-          }
-
-          // Set the login state.
-          nextState['loginStatus'] = true;
-          nextState['loginError'] = false;
-
-          // Set the admin permssions.
-          var perms = nextState['userInfo']['permissions'];
-          var adminRights = this.checkAdminPermissions(perms);
-          nextState['adminPerms'] = adminRights[0];
-          nextState['masterPerms'] = adminRights[1];
-
-          return nextState;
-        case 'LOGGED_OUT':
-
-          var nextState = Object.assign({}, state);
-
-          for(var key in nextState['userInfo']){
-
-            nextState['userInfo'][key] = '';
-          }
-
-          nextState['loginStatus'] = false;
-          nextState['logError'] = false;
-
-          return nextState;
-        case 'LOG_ERROR':
-
-          var nextState = Object.assign({}, state);
-          nextState['loginStatus'] = false;
-          nextState['loginError'] = true;
-          nextState['loginErrorMsg'] = 'Invalid sign in.';
-          return nextState;
-
-        case 'HAS_PROJECTS':
-
-          var nextState = Object.assign({}, state);
-          nextState['projects'] = this.camelCaseIt(action['data']);
-          return nextState;
-
         case 'HAS_PERMISSIONS':
 
-          var nextState = Object.assign({}, state);
-          nextState['permissions'] = this.camelCaseIt(action['data']);
+          var adminInfo = Object.assign({}, state);
+          adminInfo['permissions'] = this.camelCaseIt(action['data']);
 
           // Generate some random id's for react keys.
-          for(var a = 0; a < nextState['permissions']['length']; ++a){
+          for(var a = 0; a < adminInfo['permissions']['length']; ++a){
 
-            nextState['permissions'][a]['reactKey'] = GENERATE_RAND_KEY()
+            adminInfo['permissions'][a]['reactKey'] = GENERATE_RAND_KEY();
+            adminInfo['permissions'][a]['persisted'] = true;
           }
 
-          return nextState;
+          return adminInfo;
 
         case 'ADD_PERMISSION':
 
-          var nextState = Object.assign({}, state);
+          var adminInfo = Object.assign({}, state);
 
-          var randKey = GENERATE_RAND_KEY()
+          var randKey = GENERATE_RAND_KEY();
           var newPermission = {
-  
-            'id': 'permission-'+randKey,
+
+            'id': null,
             'projectId': null,
             'projectName': '',
             'role': '',
             'userEmail': '',
             'userId': null,
-            'reactKey': randKey
+            'reactKey': randKey,
+            'persisted': false
+          };
+
+          adminInfo['permissions'].unshift(newPermission);
+          return adminInfo;
+
+/*
+        case 'UPDATE_PERMISSION':
+
+          var adminInfo = Object.assign({}, state);
+          var permissions = adminInfo['permissions'];
+          for(var a = 0; a < permissions['length']; ++a){
+
+            if(permissions[a]['reactKey'] == action['reactKey']){
+
+              permissions[a][action['field']] =  action['value'];
+              break;
+            }
           }
 
-          nextState['permissions'].unshift(newPermission);
-          return nextState;
+          console.log(adminInfo);
+          return adminInfo;
+*/
 
         case 'REMOVE_UNSAVED_PERMISSION':
 
           var nextState = Object.assign({}, state);
 
+          /*
+           * Need to check if the item is persisted or not!
+           * If so then we need to delete it from the DB.
+           * In fact we should probably move this into the JS controller.
+           * That way we just delete the entry from the server and return the
+           * updated list.
+           */
+
           for(var a = 0; a < nextState['permissions']['length']; ++a){
 
-            if(nextState['permissions'][a]['id'] == action['permissionId']){
+            if(nextState['permissions'][a]['reactKey'] == action['reactKey']){
 
               nextState['permissions'].splice(a, 1);
             }
           }
           return nextState;
 
-        case 'HAS_USERS':
+        case 'SAVE_PERMISSIONS':
 
           var nextState = Object.assign({}, state);
-          nextState['users'] = this.camelCaseIt(action['data']);
           return nextState;
+
+        case 'HAS_USERS':
+
+          var adminInfo = Object.assign({}, state);
+          adminInfo['users'] = this.camelCaseIt(action['data']);
+          return adminInfo;
+
+        case 'HAS_PROJECTS':
+
+          var adminInfo = Object.assign({}, state);
+          adminInfo['projects'] = this.camelCaseIt(action['data']);
+          return adminInfo;
           
         default:
 
@@ -136,26 +116,5 @@ export default class AdminReducer{
     }
 
     return object;
-  }
-
-  checkAdminPermissions(perms){
-
-    // Check for administration privileges.
-    var adminPerms = false;
-    var masterPerms = false;
-    for(var index in perms){
-
-      if(perms[index]['role'] == 'administrator'){
-
-        adminPerms = true;
-
-        if(perms[index]['projectName'] == 'administration'){
-
-          masterPerms = true;
-        }
-      }
-    }
-
-    return [adminPerms, masterPerms];
   }
 }

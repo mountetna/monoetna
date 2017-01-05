@@ -9,7 +9,7 @@ export default class LoginPanel extends React.Component{
 
   parseError(){
 
-    if(this['props']['appState']['loginError']){
+    if(this['props']['userInfo']['loginError']){
 
       return { display: 'block' };
     }
@@ -25,8 +25,8 @@ export default class LoginPanel extends React.Component{
 
     if(!VALIDATE_EMAIL(userEmail)){
 
-      this['props']['appState']['loginError'] = true;
-      this['props']['appState']['loginErrorMsg'] = 'Bad email.'
+      this['props']['userInfo']['loginError'] = true;
+      this['props']['userInfo']['loginErrorMsg'] = 'Bad email.'
       this.forceUpdate()
       return;
     }
@@ -38,7 +38,7 @@ export default class LoginPanel extends React.Component{
   runOnEnter(event){
 
     event = event || window.event;
-    if(event.keyCode == 13 || event.which == 13){
+    if(event['keyCode'] == 13 || event['which'] == 13){
 
       var userEmail = document.getElementById('email-input').value;
       var userPass = document.getElementById('pass-input').value;
@@ -66,7 +66,7 @@ export default class LoginPanel extends React.Component{
         <br />
         <div className='log-error-message' style={ this.parseError() }>
 
-          { this['props']['appState']['loginErrorMsg'] }
+          { this['props']['userInfo']['loginErrorMsg'] }
         </div>
         <button className='login-button' onClick={ this['logIn'].bind(this) }>
 

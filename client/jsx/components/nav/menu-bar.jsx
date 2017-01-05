@@ -31,7 +31,7 @@ export default class MenuBar extends React.Component{
 
   renderAdminPermissions(){
 
-    var userInfo = this['props']['appState']['userInfo'];
+    var userInfo = this['props']['userInfo'];
     var perms = userInfo['permissions'];
 
     // Check for administration privileges.
@@ -59,10 +59,9 @@ export default class MenuBar extends React.Component{
 
   renderUserMenu(){
 
-    var appState = this['props']['appState'];
-    var userInfo = appState['userInfo'];
+    var userInfo = this['props']['userInfo'];
     
-    if(appState['loginStatus'] && !appState['loginError']){
+    if(userInfo['loginStatus'] && !userInfo['loginError']){
 
       var height = (this['state']['open']) ? 'auto' : '100%';
 
@@ -71,7 +70,7 @@ export default class MenuBar extends React.Component{
         className: 'user-menu-dropdown-group',
         style: { height: height },
         onMouseLeave: this.closePanel.bind(this)
-      }
+      };
 
       return (
 

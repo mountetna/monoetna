@@ -16,7 +16,7 @@ export default class MetisUI extends React.Component{
 
   renderLoginView(){
 
-    if(!this['props']['appState']['loginStatus']){
+    if(!this['props']['userInfo']['loginStatus']){
 
       return (
 
@@ -28,9 +28,8 @@ export default class MetisUI extends React.Component{
     }
     else{
 
-      var appState = this['props']['appState'];
-      var fileList = appState['fileList'];
-      var fileUploads = appState['fileUploads'];
+      var fileList = this['props']['fileData']['fileList'];
+      var fileUploads = this['props']['fileData']['fileUploads'];
 
       return (
 

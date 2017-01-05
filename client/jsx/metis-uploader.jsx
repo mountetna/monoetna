@@ -73,8 +73,8 @@ class MetisUploader{
   retrieveFiles(){
 
     var state = this['model']['store'].getState();
-    var userInfo = state['appState']['userInfo'];
-    if(state['appState']['loginStatus'] && !state['appState']['loginError']){
+    var userInfo = state['userInfo'];
+    if(state['userInfo']['loginStatus'] && !state['userInfo']['loginError']){
 
       // Request authorization to upload the file.
       AJAX({

@@ -138,70 +138,11 @@ export default class MetisReducer{
 
           return nextState;
 
-        case 'LOG_IN':
-
-          var nextState = Object.assign({}, state);
-          nextState['userInfo']['userEmail'] = action['data']['email'];
-          return nextState;
-
-        case 'LOGGED_IN':
-
-          var nextState = Object.assign({}, state);
-
-          /* Copy the new data from the auth server to the local Redux store.
-           * Also keep an eye on that 'cleanPermissions' function. The client
-           *  wants it's vars in camel case.
-           */
-          for(var key in action['data']){
-
-            var userItem = action['data'][key];
-            if(key == 'permissions') userItem = this.cleanPermissions(userItem);
-            nextState['userInfo'][key] = userItem;
-          }
-
-          nextState['loginStatus'] = true;
-          nextState['loginError'] = false;
-          return nextState;
-        case 'LOGGED_OUT':
-
-          var nextState = Object.assign({}, state);
-
-          for(var key in nextState['userInfo']){
-
-            nextState['userInfo'][key] = '';
-          }
-
-          nextState['loginStatus'] = false;
-          nextState['logError'] = false;
-
-          return nextState;
-        case 'LOG_ERROR':
-
-          var nextState = Object.assign({}, state);
-          nextState['loginStatus'] = false;
-          nextState['loginError'] = true;
-          nextState['loginErrorMsg'] = 'Invalid sign in.';
-          return nextState;
-          
         default:
 
           var nextState = Object.assign({}, state);
           return nextState;
       }
     };
-  }
-
-  cleanPermissions(perms){
-
-    for(var index in perms){
-
-      for(var key in perms[index]){
-
-        perms[index][CAMEL_CASE_IT(key)] = perms[index][key];
-        if(key.indexOf('_') != -1) delete perms[index][key];
-      }
-    }
-
-    return perms;
   }
 }

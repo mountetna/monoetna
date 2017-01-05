@@ -1,35 +1,40 @@
 import * as Redux from 'redux';
 
 import MetisReducer from './metis-reducer';
+import JanusLogReducer from './janus-log-reducer';
 import LastActionReducer from './last-action-reducer';
 
 export default class MetisModel{
 
   constructor(){
 
-    var appState = new MetisReducer();
+    var metisReducer = new MetisReducer();
+    var janusLogReducer = new JanusLogReducer();
     var lastAction = new LastActionReducer();
     var reducer = Redux.combineReducers({
 
-      'appState': appState.reducer(),
+      'fileData': metisReducer.reducer(),
+      'userInfo': janusLogReducer.reducer(),
       'lastAction': lastAction.reducer()
     });
 
     var defaultState = {
 
-      'appState': {
-
-        'userInfo': {
-
-          'userEmail': '',
-          'authToken': '',
-          'firstName': '',
-          'lastName': '',
-          'permissions': []
-        },
+      'fileData': {
 
         'fileList': [],
-        'fileUploads': [],
+        'fileUploads': []
+      },
+
+      'userInfo': {
+
+        'userEmail': '',
+        'authToken': '',
+        'firstName': '',
+        'lastName': '',
+        'permissions': [],
+
+        'masterPerms': false,
 
         'loginStatus': false,
         'loginError': false,
