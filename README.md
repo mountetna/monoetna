@@ -143,11 +143,11 @@ Create a machine with the user "developer" and password "developer"
 
 ### Mount the project directory from the host machine if necessary
 
-  `$ sudo mount -t vboxsf -o rw,uid=1000,gid=1000 metis-thin /var/www/metis`
+  `$ sudo mount -t vboxsf -o rw,uid=1000,gid=1000 metis /var/www/metis`
 
 ### For local development we need to run this to allow the guest VMs to make
 symlinks in shared folders.
 
  VBoxManage setextradata VM_NAME VBoxInternal2/SharedFoldersEnableSymlinksCreate/SHARE_NAME 1
- VBoxManage setextradata metis-dev VBoxInternal2/SharedFoldersEnableSymlinksCreate/metis-thin 1
+ VBoxManage setextradata metis-dev VBoxInternal2/SharedFoldersEnableSymlinksCreate/metis 1
 
