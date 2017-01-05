@@ -99,7 +99,7 @@ export default class JanusLogger{
   logOut(callback){
 
     var state = this['model']['store'].getState();
-    var email = state['appState']['userInfo']['userEmail'];
+    var email = state['userInfo']['userEmail'];
 
     var logItems = [
 
