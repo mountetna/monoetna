@@ -23,18 +23,6 @@ class AdminConsole{
     this['janusLogger'].checkLog();
   }
 
-  buildUI(){
-
-    ReactDOM.render(
-
-      <Provider store={ this['model']['store'] }>
-
-        <AdminUIContainer />
-      </Provider>,
-      document.getElementById('ui-group')
-    );
-  }
-
   initDataStore(){
 
     this['model'] = new AdminModel();
@@ -45,6 +33,18 @@ class AdminConsole{
       var lastAction = this['model']['store'].getState()['lastAction'];
       this.routeAction(lastAction);
     });
+  }
+
+  buildUI(){
+
+    ReactDOM.render(
+
+      <Provider store={ this['model']['store'] }>
+
+        <AdminUIContainer />
+      </Provider>,
+      document.getElementById('ui-group')
+    );
   }
 
   routeAction(action){
