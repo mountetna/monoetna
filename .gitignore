@@ -1,7 +1,7 @@
 .DS_Store
 npm-debug.log
 trash.rb
-/server/conf.rb
+server/conf.rb
 
 /node_modules/
 /client/js/
