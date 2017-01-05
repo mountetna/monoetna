@@ -60,6 +60,14 @@ class AdminConsole{
         this.buildUI();
         this.fetchAdminData();
         break;
+      case 'LOG_OUT':
+
+        this['janusLogger'].logOut()
+        break;
+      case 'LOGGED_OUT':
+
+        window.location = '/';
+        break;
       case 'SAVE_PERMISSION':
 
         this.saveSinglePermission(action['permission']);

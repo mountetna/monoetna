@@ -131,6 +131,10 @@ class MetisUploader{
 
         this['janusLogger'].logOut()
         break;
+      case 'LOGGED_OUT':
+
+        window.location = '/';
+        break;
       default:
 
         //none
