@@ -24,7 +24,7 @@ export default class AdminModel{
 
         'users': [],
         'projects': [],
-        'permissions': []
+        'permissions': [] // These are all the permissions in the system.
       },
 
       'userInfo': {
@@ -33,7 +33,7 @@ export default class AdminModel{
         'authToken': '',
         'firstName': '',
         'lastName': '',
-        'permissions': [],
+        'permissions': [], // These are the permissions for the logged user.
 
         'masterPerms': false,
 
