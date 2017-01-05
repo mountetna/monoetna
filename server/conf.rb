@@ -33,7 +33,7 @@ module Conf
   # TEMP_AND_FILE  = 3 # Both the temp file and regular file exist.
   # STATUS_NO_TEMP_OR_FILE = 4 # A status exsits but no corresponding file.
 
-  APP_KEY = 'fO0sQz1BeLKbAPBSzyMjm6IFzyO41UNaDl94d3YZ7yU'
+  APP_KEY = 'eiE0XQBb33saliJlrrlQJl1UYlUrqD49CHNyGfFozoo'
   JANUS_ADDR = 'http://janus-dev.ucsf.edu'
 
   # One day to finish upload.
