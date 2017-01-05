@@ -10,7 +10,8 @@ export default class GenericSearchDropdown extends React.Component{
 
       'inputValue': '',
       'trayActive': false,
-      'searchEnabled': false
+      'searchEnabled': false,
+      'selectedIndex': null
     };
   }
 
@@ -47,7 +48,7 @@ export default class GenericSearchDropdown extends React.Component{
 
       if(this['state']['searchEnabled']){
 
-        disabled = false;        
+        disabled = false;
       }
       else{
 
@@ -106,8 +107,25 @@ export default class GenericSearchDropdown extends React.Component{
     this.setState({ 
 
       'inputValue': event['target'].getAttribute('data-val'),
-      'trayActive': false
+      'trayActive': false,
+      'selectedIndex': null
     });
+
+    if(this['dropdownInput'] == undefined) return;
+    this['dropdownInput'].focus();
+  }
+
+  entrySelectedByEnter(value){
+
+    this.setState({ 
+
+      'inputValue': value,
+      'trayActive': false,
+      'selectedIndex': null
+    });
+
+    if(this['dropdownInput'] == undefined) return;
+    this['dropdownInput'].focus();
   }
 
   toggleDropdown(event){
@@ -144,7 +162,7 @@ export default class GenericSearchDropdown extends React.Component{
   }
 
   // We do a simple string pattern match and return an entry if appropriate.
-  matchAndAdd(value, entry, index, id){
+  matchAndAdd(value, entry, index, id, listPosition){
 
     var text = entry;
     var entry = String(entry).toLowerCase();
@@ -158,6 +176,11 @@ export default class GenericSearchDropdown extends React.Component{
         'data-val': entry,
         'onClick': this['entrySelectedByClick'].bind(this)
       };
+
+      if(this['state']['selectedIndex'] == listPosition){
+
+        entryProps['className'] = 'search-dropdown-tray-entry-active';
+      }
 
       return (
 
@@ -177,7 +200,7 @@ export default class GenericSearchDropdown extends React.Component{
 
     return (
 
-      <div className='search-dropdown-tray-empty'> 
+      <div className='search-dropdown-tray-empty' key={ GENERATE_RAND_KEY() }> 
 
         <i>
 
@@ -199,6 +222,55 @@ export default class GenericSearchDropdown extends React.Component{
         </i>
       </div>
     );
+  }
+
+  selectByKeyboard(event){
+
+    if(this['dropdownTrayComponent'] == undefined) return;
+    if(!this['state']['trayActive']) return;
+    if(!this['state']['selectedIndex'] == null) return;
+
+    event = event || window['event'];
+    var range = this['dropdownTrayComponent']['childNodes']['length'];
+    var index = this['state']['selectedIndex'];
+
+    // Navigate the dropdown list using the arrow keys.
+    if(event['keyCode'] == 38 || event['keyCode'] == 40){
+
+      if(event['keyCode'] == 38){
+
+        if(index == 0 || index == null){
+
+          index = range - 1;
+        }
+        else{
+
+          --index;
+        }
+      }
+
+      if(event['keyCode'] == 40){
+
+        if(index == (range - 1) || index == null){
+
+          index = 0;
+        }
+        else{
+
+          ++index;
+        }
+      }
+
+      this.setState({ 'selectedIndex': index });
+    }
+
+    // Select the entry using the 'enter' key.
+    if(event['keyCode'] == 13){
+
+      var node = this['dropdownTrayComponent']['childNodes'][index];
+      var val = node.getAttribute('data-val');
+      this.entrySelectedByEnter(val);
+    }
   }
 
   // This function is overwritten by the inheriting class.
