@@ -17,10 +17,9 @@ export default class ListBody extends React.Component{
   
   render(){
 
-    var appState = this['props']['appState'];
-    var fileUploads = appState['fileUploads'];
-    var fileList = appState['fileList'];
-    var permissions = appState['userInfo']['permissions'];
+    var fileUploads = this['props']['fileData']['fileUploads'];
+    var fileList = this['props']['fileData']['fileList'];
+    var permissions = this['props']['userInfo']['permissions'];
 
     return (
 

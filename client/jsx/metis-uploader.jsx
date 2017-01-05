@@ -129,7 +129,9 @@ class MetisUploader{
         break;
       case 'LOG_OUT':
 
-        this['janusLogger'].logOut()
+        var state = this['model']['store'].getState();
+        var email = state['userInfo']['userEmail'];
+        this['janusLogger'].logOut(email, COOKIES.getItem(TOKEN_NAME));
         break;
       case 'LOGGED_OUT':
 
@@ -231,13 +233,13 @@ class MetisUploader{
   requestAuthorization(fileUpload){
 
     var state = this['model']['store'].getState();
-    var userInfo = state['appState']['userInfo'];
+    var userInfo = state['userInfo'];
 
     // Normailize the data for Ruby.
     var authRequest = {
 
-      'user_email': fileUpload['userEmail'],
-      'user_id': state['appState']['userInfo']['userId'],
+      'user_email': userInfo['userEmail'],
+      'user_id': userInfo['userId'],
       'original_name': fileUpload['name'],
       'file_name': fileUpload['fileName'],
       'file_size': fileUpload['size'], //in bytes

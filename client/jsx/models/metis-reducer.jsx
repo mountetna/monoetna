@@ -8,7 +8,7 @@ export default class MetisReducer{
 
         case 'FILE_SELECTED':
           
-          var nextState = Object.assign({}, state);
+          var fileData = Object.assign({}, state);
 
           // MOD START
           var fileObject = action['data'];
@@ -16,7 +16,9 @@ export default class MetisReducer{
           fileObject['originalName'] = fileObject['name'];
           fileObject['fileSize'] = fileObject['size'];
           fileObject['currentBytePosition'] = 0;
-          fileObject['userEmail'] = state['userInfo']['userEmail'];
+
+          //fileObject['userEmail'] = state['userInfo']['userEmail'];
+          
           fileObject['status'] = 'unauthorized';
 
           /*
@@ -28,13 +30,13 @@ export default class MetisReducer{
           fileObject['redisIndex'] = GENERATE_RAND_KEY(); 
           // MOD END
           
-          nextState['fileUploads'].push(fileObject);
-          return nextState;
+          fileData['fileUploads'].push(fileObject);
+          return fileData;
 
         case 'FILE_UPLOAD_AUTHORIZED':
 
-          var fileUploads = state['fileUploads'];
-          var nextState = Object.assign({}, state);
+          var fileData = Object.assign({}, state);
+          var fileUploads = fileData['fileUploads'];
 
           // MOD START
           var authResponse = action['data'];
@@ -69,13 +71,13 @@ export default class MetisReducer{
           }
           // MOD END
 
-          nextState['fileUploads'][fileUploadIndex] = fileUpload;
-          return nextState;
+          fileData['fileUploads'][fileUploadIndex] = fileUpload;
+          return fileData;
 
         case 'FILE_UPLOAD_ACTIVE':
 
-          var fileUploads = state['fileUploads'];
-          var nextState = Object.assign({}, state);
+          var fileData = Object.assign({}, state);
+          var fileUploads = fileData['fileUploads'];
 
           // MOD START
           var response = action['data'];
@@ -103,16 +105,17 @@ export default class MetisReducer{
             fileUpload[key] = response['request'][key];
           }
 
-          nextState['fileUploads'][fileUploadIndex] = fileUpload;
+          fileData['fileUploads'][fileUploadIndex] = fileUpload;
           // MOD END
 
-          return nextState;
+          return fileData;
 
         case 'FILE_UPLOAD_COMPLETE':
 
-          var fileUploads = state['fileUploads'];
-          var fileList = state['fileList'];
-          var nextState = Object.assign({}, state);
+          
+          var fileData = Object.assign({}, state);
+          var fileUploads = fileData['fileUploads'];
+          var fileList = fileData['fileList'];
 
           // MOD START
           var result = action['data']['result'];
@@ -133,15 +136,15 @@ export default class MetisReducer{
           // Add the file upload result to the redux store.
           fileList.push(result);
 
-          nextState['fileUploads'] = fileUploads;
-          nextState['fileList'] = fileList;
+          fileData['fileUploads'] = fileUploads;
+          fileData['fileList'] = fileList;
 
-          return nextState;
+          return fileData;
 
         default:
 
-          var nextState = Object.assign({}, state);
-          return nextState;
+          var fileData = Object.assign({}, state);
+          return fileData;
       }
     };
   }
