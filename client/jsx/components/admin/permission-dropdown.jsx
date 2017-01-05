@@ -15,7 +15,6 @@ export default class PermissionDropdown extends GenericSearchDropdown{
 
     // Return the input value to the parent.
     var inputVal = this['state']['inputValue'];
-    this['props']['callbacks'].updateFromInput('role', inputVal);
 
     var dropdownGroupProps = {
 
@@ -61,17 +60,17 @@ export default class PermissionDropdown extends GenericSearchDropdown{
 
         <div { ...dropdownTrayProps }>
 
-          <button { ...entryProps } data-val='Administrator'>
+          <button { ...entryProps } data-val='administrator'>
 
-            { 'Administrator' }
+            { 'administrator' }
           </button>
-          <button { ...entryProps } data-val='Editor'>
+          <button { ...entryProps } data-val='editor'>
 
-            { 'Editor' }
+            { 'editor' }
           </button>
-          <button { ...entryProps } data-val='Viewer'>
+          <button { ...entryProps } data-val='viewer'>
 
-            { 'Viewer' }
+            { 'viewer' }
           </button>
         </div>
       </div>

@@ -10,7 +10,8 @@ export default class ProjectEdit extends React.Component{
 
   render(){
 
-    var projects = this['props']['appState']['projects'];
+    var projects = this['props']['adminInfo']['projects'];
+
     return (
 
       <div className='admin-edit-grouping'>

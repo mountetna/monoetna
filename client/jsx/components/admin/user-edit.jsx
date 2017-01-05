@@ -10,7 +10,8 @@ export default class UserEdit extends React.Component{
 
   render(){
 
-    var users = this['props']['appState']['users'];
+    var users = this['props']['adminInfo']['users'];
+
     return (
 
       <div className='admin-edit-grouping'>

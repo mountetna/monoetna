@@ -8,13 +8,12 @@ export default class PermissionEntry extends GenericAdminEntry{
   componentDidMount(){
 
     var permission = this['props']['permission'];
-    if(String(permission['id']).indexOf('permission') !== -1){
+    if(permission['projectId'] == null){
 
       this.setState({
 
         'editShow': true,
-        'editActive': true,
-        'permission': this['props']['permission']
+        'editActive': true
       });
     }
   }
@@ -40,64 +39,101 @@ export default class PermissionEntry extends GenericAdminEntry{
     this.setState({ 'editActive': true });
   }
 
+  deactivateEntryEdit(){
+
+    var permission = this['props']['permission'];
+    if(permission['id'] == null) return;
+
+    this.setState({ 'editActive': false });
+  }
+
   resetEntry(){
 
     if(!this.checkForPrimary()) return;
-  }
-
-  deactivateEntryEdit(){
-
-    this.setState({ 'editActive': false });
-
-    var permission = this['props']['permission'];    
-    if(permission['id'].indexOf('permission') !== -1){
-
-      //remove the new and unsaved permission
-      this['props']['callbacks'].removeUnsavedPermission(permission['id']);
-    }
+    //this.forceUpdate();
   }
 
   saveEntry(){
 
     if(!this.checkForPrimary()) return;
+
+    var reactKey = this['props']['permission']['reactKey'];
+    var email = this['userEmailInput']['value'];
+    var prjNm = this['projectDropdownComponent']['state']['inputValue'];
+    var role = this['permissionDropdownComponent']['state']['inputValue'];
+
+    /*
+     * These are only simple validations to keep the UI tidy. There are more 
+     * stringent validations higher up in the UI and definately on the server.
+     */
+    if(!this.validateUser(email)){
+
+      alert('Please select a valid user.');
+      return;
+    }
+
+    if(!this.validateProject(prjNm)){
+
+      alert('Please select a valid project.');
+      return;
+    }
+
+    if(!this.validateRole(role)){
+
+      alert('Please select a permission');
+      return;
+    }
+
+    var permission = this['props']['permission'];
+    permission['userEmail'] = email;
+    permission['projectName'] = prjNm;
+    permission['role'] = role;
+
+    this['props']['callbacks'].savePermission(permission);
   }
 
   deleteEntry(){
 
     if(!this.checkForPrimary()) return;
-
-    var permission = this['props']['permission'];
-    if(permission['id'].indexOf('permission') !== -1){
-
-      //remove the new and unsaved permission
-      this['props']['callbacks'].removeUnsavedPermission(permission['id']);
-    }
+    var reactKey = this['props']['permission']['reactKey'];
+    this['props']['callbacks'].removeUnsavedPermission(reactKey);
   }
 
-  updateFromInput(field, value){
+  validateUser(email){
 
-    //console.log(field, value);
-    //var permission = this['props']['permission'];
-    //this['props']['callbacks'].update
-    //var permission = this['props']['permission'];
+    if(email == '') return false;
+    if(!VALIDATE_EMAIL(email)) return false;
 
-    //var permission = this['state']['permission'];
-    //if(permission != undefined){
-      
-    //  permission[field] = value;
-    //  this.setState({ 'permission': permission });
-    //}
+    return true;
+  }
+
+  validateProject(projectName){
+
+    if(projectName == '') return false;
+
+    var exists = false;
+    for(var a = 0; a < this['props']['projects']['length']; ++a){
+
+      var prjNm = this['props']['projects'][a]['projectName'].toLowerCase();
+      if(projectName == prjNm){
+
+        exists = true;
+      }
+    }
+
+    return exists;
+  }
+
+  validateRole(role){
+
+    if(role == '') return false;
+
+    return true;
   }
 
   render(){
 
     var permission = this['props']['permission'];
-
-    var callbacks = {
-
-      'updateFromInput': this['updateFromInput'].bind(this)
-    };
-
     var adminEntryProps = {
 
       'className': 'admin-edit-entry-group',
@@ -108,7 +144,8 @@ export default class PermissionEntry extends GenericAdminEntry{
     var userEmailEntryProps = {
 
       'className': 'admin-entry-input',
-      'defaultValue': this['props']['permission']['userEmail']
+      'defaultValue': this['props']['permission']['userEmail'],
+      'ref': (input)=>{ this['userEmailInput'] = input }
     };
 
     if(!this['state']['editActive']){
@@ -122,14 +159,14 @@ export default class PermissionEntry extends GenericAdminEntry{
       'permission': this['props']['permission'],
       'projects': this['props']['projects'],
       'editActive': this['state']['editActive'],
-      'callbacks': callbacks
+      'ref': (component)=>{ this['projectDropdownComponent'] = component }
     };
 
     var permDropdownProps = {
 
       'permission': this['props']['permission'],
       'editActive': this['state']['editActive'],
-      'callbacks': callbacks
+      'ref': (component)=>{ this['permissionDropdownComponent'] = component }
     };
 
     return (

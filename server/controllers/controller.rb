@@ -73,7 +73,7 @@ class Controller
 
   def file_status_ok?()
 
-    @file_status = @redis_service.retrive_file_status(@status_key)
+    @file_status = @redis_service.retrieve_file_status(@status_key)
     if @file_status == nil
 
       return false
@@ -98,8 +98,32 @@ class Controller
       return false
     end
 
-    # Check for valid authtoken, 
-    # Then you have a valid set of permissions.
+    # Verify that the auth token is valid.
+    user_info = validate_token(params['authorization_token'])
+    if !user_info.key?('success')
+
+      return send_server_error()
+    end 
+
+    if !user_info['success']
+
+      return send_bad_request()
+    end
+
+    # Extract the projects that the user has permissions on.
+    user_info = user_info['user_info']
+    if !user_info.key?('permissions')
+
+      return send_server_error()
+    end
+
+    project_ids = []
+    user_info['permissions'].each do |permission|
+
+      project_ids.push(permission['project_id'])
+    end
+
+    #file_metadata = pull_file_metadata(project_ids)
     # Parse out the perm id's
     # Pull all files with the perm id.
     Rack::Response.new({ :success=> true, :msg=> 'sup' }.to_json())

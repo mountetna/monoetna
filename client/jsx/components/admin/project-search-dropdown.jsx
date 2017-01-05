@@ -32,7 +32,7 @@ export default class ProjectSearchDropdown extends GenericSearchDropdown{
 
         var name = projects[a]['projectName'];
         var id = projects[a]['id'];
-        var entry = this.matchAndAdd(value, name, a, id);
+        var entry = this.matchAndAdd(value, name, a, id, entries['length']);
         if(entry != null) entries.push(entry);
       }
 
@@ -58,7 +58,6 @@ export default class ProjectSearchDropdown extends GenericSearchDropdown{
 
     // Return the input value to the parent.
     var inputVal = this['state']['inputValue'];
-    this['props']['callbacks'].updateFromInput('projectName', inputVal);
 
     var dropdownGroupProps = {
 
@@ -70,7 +69,9 @@ export default class ProjectSearchDropdown extends GenericSearchDropdown{
       'className': this.setInputClass(),
       'disabled': this.setInputDisabled(),
       'value': this['state']['inputValue'],
-      'onChange': this['updateInputValue'].bind(this)
+      'onChange': this['updateInputValue'].bind(this),
+      'onKeyUp': this['selectByKeyboard'].bind(this),
+      'ref': (component)=>{ this['dropdownInput'] = component }
     };
 
     var dropdownBtnProps = {
@@ -83,7 +84,8 @@ export default class ProjectSearchDropdown extends GenericSearchDropdown{
     var dropdownTrayProps = {
 
       'className': 'perm-project-search-dd-tray',
-      'style': this.setDropdownStyle()
+      'style': this.setDropdownStyle(),
+      'ref': (component)=>{ this['dropdownTrayComponent'] = component }
     };
 
     return (

@@ -28,12 +28,18 @@ class AdminController < Controller
 
     # Verify that the auth token is valid.
     @user_info = validate_token(@params['token'])
+
     if !@user_info.key?('success')
 
       return send_server_error()
     end 
 
     if !@user_info['success']
+
+      return send_bad_request()
+    end
+
+    if !@user_info.key?('user_info')
 
       return send_bad_request()
     end
@@ -81,6 +87,22 @@ class AdminController < Controller
       end
     end
     return masterPerms
+  end
+
+  def has_permission_items?()
+
+    has_all_items = true
+    @params = @request.POST()
+
+    if !@params.key?('id')           then has_all_items = false end
+    if !@params.key?('project_id')   then has_all_items = false end
+    if !@params.key?('project_name') then has_all_items = false end
+    if !@params.key?('react_key')    then has_all_items = false end
+    if !@params.key?('role')         then has_all_items = false end
+    if !@params.key?('user_email')   then has_all_items = false end
+    if !@params.key?('user_id')      then has_all_items = false end
+
+    return has_all_items
   end
 
   def get_users()
@@ -138,18 +160,6 @@ class AdminController < Controller
     return response
   end
 
-  def add_project()
-
-  end
-
-  def edit_project()
-
-  end
-
-  def delete_project()
-
-  end
-
   def get_permissions()
 
     url = Conf::JANUS_ADDR
@@ -163,16 +173,51 @@ class AdminController < Controller
     return response
   end
 
-  def add_permission()
+  def save_permission()
 
+    if !has_permission_items?()
+
+      return send_bad_request()
+    end
+
+    url = Conf::JANUS_ADDR
+    url = url + '/save-permission'
+    data = {
+
+      :token=> @params['token'], 
+      :app_key=> Conf::APP_KEY,
+      :id=> @params['id'],
+      :project_id=> @params['project_id'],
+      :project_name=> @params['project_name'],
+      :react_key=> @params['react_key'],
+      :role=> @params['role'],
+      :user_email=> @params['user_email'],
+      :user_id=> @params['user_id']
+    }
+
+    response = make_request(url, data)
+    return response
   end
 
-  def edit_projects()
+  def upload_permissions()
 
-  end
+    if !@params.key?('permissions')
 
-  def delete_permission()
+      puts 'sup'
+      return send_bad_request()
+    end
 
+    url = Conf::JANUS_ADDR
+    url = url + '/upload-permissions'
+    data = {
+
+      :token=> @params['token'], 
+      :app_key=> Conf::APP_KEY,
+      :permissions=> @params['permissions']
+    }
+
+    response = make_request(url, data)
+    return response
   end
 
   def make_request(url, data)
@@ -185,8 +230,15 @@ class AdminController < Controller
     begin
 
       response = http.request(request)
-      return Rack::Response.new(response.body)
+      response_code = response.code.to_i()
 
+      if response_code == 200
+
+        return Rack::Response.new(response.body)
+      else
+
+        return send_server_error()
+      end
     rescue Timeout::Error, 
            Errno::EINVAL, 
            Errno::ECONNRESET, 

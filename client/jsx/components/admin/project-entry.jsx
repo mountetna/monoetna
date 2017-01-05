@@ -16,7 +16,8 @@ export default class ProjectEntry extends GenericAdminEntry{
 
       'className': 'admin-entry-input-inactive',
       'value': this['props']['project']['projectName'],
-      'title': this['props']['project']['projectName']
+      'title': this['props']['project']['projectName'],
+      'readOnly': 'readOnly'
     };
 
     return (

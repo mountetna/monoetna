@@ -16,7 +16,7 @@ export default class AdminUI extends React.Component{
 
   render(){
 
-    var appState = this['props']['appState'];
+    var userInfo = this['props']['userInfo'];
 
     return (
 
@@ -33,9 +33,9 @@ export default class AdminUI extends React.Component{
         </div>
         <div id='left-column-group'>
         </div>
-        { (appState['masterPerms']) ? <UserEditContainer /> : '' }
-        { (appState['adminPerms']) ? <ProjectEditContainer /> : '' }
-        { (appState['adminPerms']) ? <PermissionEditContainer /> : '' }
+        { (userInfo['masterPerms']) ? <UserEditContainer /> : '' }
+        { (userInfo['masterPerms']) ? <ProjectEditContainer /> : '' }
+        { (userInfo['masterPerms']) ? <PermissionEditContainer /> : '' }
       </div>
     );
   }

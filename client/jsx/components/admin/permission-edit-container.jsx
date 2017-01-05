@@ -6,7 +6,7 @@ const mapStateToProps = (state, ownProps)=>{
   // state == redux store
   return {
 
-    appState: state['appState']
+    adminInfo: state['adminInfo']
   };
 }
 
@@ -14,25 +14,37 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
 
   return {
 
-    addPermission: ()=>{
+    'addPermission': ()=>{
 
       var action = { 'type': 'ADD_PERMISSION' };
       dispatch(action);
     },
 
-    savePermission: (permission)=>{
+    'savePermission': (permission)=>{
 
       var action = { 'type': 'SAVE_PERMISSION', 'permission': permission };
       dispatch(action);
     },
 
-    removeUnsavedPermission: (permissionId)=>{
+    'removeUnsavedPermission': (reactKey)=>{
 
       var action = { 
 
         'type': 'REMOVE_UNSAVED_PERMISSION', 
-        'permissionId': permissionId 
+        'reactKey': reactKey 
       };
+      dispatch(action);
+    },
+
+    'downloadPermissions': ()=>{
+
+      var action = { 'type': 'DOWNLOAD_PERMISSIONS' };
+      dispatch(action);
+    },
+
+    'uploadPermissions': (file)=>{
+
+      var action = { 'type': 'UPLOAD_PERMISSIONS', 'file': file };
       dispatch(action);
     }
   };

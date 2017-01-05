@@ -65,3 +65,12 @@ body{
 
   background: #a9d58e;
 }
+ 
+.search-dropdown-tray-entry-active {
+
+  border: none;
+  width: 100%;
+  outline: none;
+  text-align: left;
+  background: #a9d58e;
+}

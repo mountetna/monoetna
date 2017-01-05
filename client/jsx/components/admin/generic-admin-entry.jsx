@@ -18,22 +18,28 @@ export default class GenericAdminEntry extends React.Component{
     this.setState({ 'editActive': true });
   }
 
-  resetEntry(){
-
-  }
-
   deactivateEntryEdit(){
 
     this.setState({ 'editActive': false });
   }
 
+  /*
+   * These three items are to be overidden by the inheriting object/class, but 
+   * their stubs are required here to complete this component.
+   */
+  resetEntry(){
+
+    // null
+  }
+
   saveEntry(){
 
+    // null
   }
 
   deleteEntry(){
 
-    
+    // null
   }
 
   renderEditControlGroup(){

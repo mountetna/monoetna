@@ -32,14 +32,14 @@
 
   position: absolute;
   top: 3px;
-  right: 0px;
+  right: 1px;
   height: 14px;
   width: 18px;
   outline: none;
   padding: 0px;
   border: 0px;
   outline: 0px;
-  background: none;
+  background: #fff;
   border-left: 1px solid #ccc;
 }
 
@@ -60,4 +60,9 @@
 
   */
   background: #fff;
+}
+
+#permission-file-selector {
+
+  display: none;
 }
