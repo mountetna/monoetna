@@ -24,42 +24,6 @@ export default class ListHead extends React.Component{
     this['props'].fileSelected(file);
   }
 
-  renderTitles(){
-
-    var fileUploads = this['props']['appState']['fileUploads'];
-    var fileList = this['props']['appState']['fileList'];
-
-    if(fileUploads.length > 0 || fileList.length > 0){
-
-      return (
-
-        <span>
-          
-          <div className='list-head-title'>
-
-            { 'type' }
-          </div>
-          <div className='list-head-title'>
-
-            { 'file name' }
-          </div>
-          <div className='list-head-title'>
-
-            { 'project' }
-          </div>
-          <div className='list-head-title'>
-
-            { 'size' }
-          </div>
-        </span>
-      );
-    }
-    else{
-
-      return '';
-    }
-  }
-
   render(){
 
     var fileSelector = {
