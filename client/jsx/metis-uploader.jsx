@@ -92,7 +92,20 @@ class MetisUploader{
 
   retrieveFilesResponse(response){
 
-    console.log(response);
+    if(response['success']){
+
+      var action = { 
+
+        type: 'FILE_METADATA_RECEIVED', 
+        fileList: response['file_list'] 
+      };
+
+      this['model']['store'].dispatch(action);
+    }
+    else{
+
+      console.log('There was an error.');
+    }
   }
 
   /*
@@ -154,7 +167,7 @@ class MetisUploader{
      * begin a new upload from the top of the queue.
      */
     var state = this['model']['store'].getState();
-    var uploads = state['appState']['fileUploads'];
+    var uploads = state['fileData']['fileUploads'];
 
     var anyActive = false;
     for(var a = 0; a < uploads.length; ++a){
@@ -179,7 +192,7 @@ class MetisUploader{
 
     var request = PARSE_REQUEST(uploadFile);
     var state = this['model']['store'].getState();
-    var authToken = state['appState']['userInfo']['authToken'];
+    var authToken = state['userInfo']['authToken'];
     request['authorization_token'] = authToken;
 
     var workerMessage = {

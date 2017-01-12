@@ -141,11 +141,34 @@ export default class MetisReducer{
 
           return fileData;
 
+        case 'FILE_METADATA_RECEIVED':
+
+          var fileData = Object.assign({}, state);
+          var fileList = fileData['fileList'];
+
+          fileData['fileList'] = this.camelCaseIt(action['fileList']);
+          console.log(fileData['fileList']);
+          return fileData;
+
         default:
 
           var fileData = Object.assign({}, state);
           return fileData;
       }
     };
+  }
+
+  camelCaseIt(object){
+
+    for(var index in object){
+
+      for(var key in object[index]){
+
+        object[index][CAMEL_CASE_IT(key)] = object[index][key];
+        if(key.indexOf('_') != -1) delete object[index][key];
+      }
+    }
+
+    return object;
   }
 }

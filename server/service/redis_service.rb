@@ -29,6 +29,11 @@ class RedisService
     return index
   end
 
+  def retrieve_file_key(pattern)
+
+    @redis.keys(pattern)
+  end
+
   def retrieve_file_status(key)
 
     @redis.get(key)
