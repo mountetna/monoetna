@@ -10,26 +10,27 @@ var METIS_ADDR = 'http://metis-dev.ucsf.edu';
  */
 var STATUS_ITEMS = {
 
-  directory: String,
-  expires: Number,
-  signingAlgorithm: String,
-  hashingAlgorithm: String,
-  startTimestamp: Number,
-  authToken: String,
-  originalName: String,    
-  fileName: String,
-  fileSize: Number,
-  userEmail: String,
-  userId: Number,
-  projectId: Number,
-  redisIndex: String,
+  'directory': String,
+  'expires': Number,
+  'signingAlgorithm': String,
+  'hashingAlgorithm': String,
+  'startTimestamp': Number,
+  'authToken': String,
+  'originalName': String,    
+  'fileName': String,
+  'fileSize': Number,
+  'userEmail': String,
+  'userId': Number,
+  'projectId': Number,
+  'groupId': Number,
+  'redisIndex': String,
 
-  signature: String,
+  'signature': String,
   
-  currentBlobSize: Number,
-  currentBytePosition: Number,
-  nextBlobHash: String,
-  nextBlobSize: Number
+  'currentBlobSize': Number,
+  'currentBytePosition': Number,
+  'nextBlobHash': String,
+  'nextBlobSize': Number
 };
 
 /* 
@@ -112,7 +113,21 @@ var PARSE_REQUEST = function(file){
 
     if(key in file){
 
-      request[key] = file[key];
+      switch(STATUS_ITEMS[key]){
+
+        case Number:
+
+          request[key] = parseInt(file[key]);
+          break;
+        case String:
+
+          request[key] = String(file[key]);
+          break;
+        default:
+
+          request[key] = file[key];
+          break;
+      }
     }
   }
 

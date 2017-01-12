@@ -260,7 +260,8 @@ class MetisUploader{
       'authorization_token': userInfo['authToken'],
       'project_name': fileUpload['projectName'],
       'project_role': fileUpload['projectRole'],
-      'project_id': fileUpload['projectId']
+      'project_id': fileUpload['projectId'],
+      'group_id': fileUpload['groupId']
     };
 
     // Serialize the request for POST.

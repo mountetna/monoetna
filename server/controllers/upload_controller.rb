@@ -51,13 +51,18 @@ class UploadController < Controller
       return send_bad_request()
     end
 
+    if project_ids[0] != params['group_id'].to_i()
+
+      return send_bad_request();
+    end
+
     # Check that this file system is in sync with the auth server.
     # If there is a project/permission set in Janus there should be a
     # corresponding directory in Metis. 
+
     directory = Conf::ROOT_DIR+'/'+project_ids[0].to_s+'/'+project_ids[1].to_s()
     if !File.directory?(directory)
 
-      puts directory
       return send_server_error()
     end
 
@@ -105,7 +110,8 @@ class UploadController < Controller
       'user_id'=> user_info['user_id'],
       'project_id'=> project_id, 
       'old_index'=> old_index,
-      'redis_index'=> redis_index
+      'redis_index'=> redis_index,
+      'group_id'=> params['group_id']
     }
 
     ordered_params = SignService::order_params(params)
@@ -251,8 +257,8 @@ class UploadController < Controller
     params = @request.POST()
     status_key = params['redis_index'] + '.'
     status_key = status_key + params['file_name'] + '.'
-    status_key = status_key + params['project_id'] + '.'
-    status_key = status_key + params['user_id']
+    status_key = status_key + params['group_id'] + '.'
+    status_key = status_key + params['project_id']
   end
 
   # Check the validity of the upload request.
@@ -327,6 +333,11 @@ class UploadController < Controller
     end
 
     if !params.key?('user_id')
+
+      return false
+    end
+
+    if !params.key?('group_id')
 
       return false
     end
