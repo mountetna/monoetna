@@ -147,7 +147,6 @@ export default class MetisReducer{
           var fileList = fileData['fileList'];
 
           fileData['fileList'] = this.camelCaseIt(action['fileList']);
-          console.log(fileData['fileList']);
           return fileData;
 
         default:
