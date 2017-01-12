@@ -62,7 +62,9 @@ class AdminConsole{
         break;
       case 'LOG_OUT':
 
-        this['janusLogger'].logOut()
+        var state = this['model']['store'].getState();
+        var email = state['userInfo']['userEmail'];
+        this['janusLogger'].logOut(email, COOKIES.getItem(TOKEN_NAME));
         break;
       case 'LOGGED_OUT':
 
@@ -351,41 +353,7 @@ class AdminConsole{
      */
     permission = [permission];
     this.uploadPermissionFile(permission);
-/*
-    if(COOKIES.hasItem(TOKEN_NAME)){
-
-      //Serialize the request for POST
-      var permissionItems = 'token='+ COOKIES.getItem(TOKEN_NAME);
-      for(var key in permission){
-
-        permissionItems += '&'+ SNAKE_CASE_IT(key) +'='+ permission[key];
-      }
-
-      try{
-
-        AJAX({
-
-          'url': METIS_ADDR + '/save-permission',
-          'method': 'POST',
-          'sendType': 'serial',
-          'returnType': 'json',
-          'data': permissionItems,
-          'success': this['singlePermissionResponse'].bind(this),
-          'error': this['ajaxError'].bind(this)
-        });
-      }
-      catch(error){
-
-        //console.log(error);
-      }
-    }
-*/
   }
-
-//  singlePermissionResponse(response){
-//
-//    console.log(response);
-//  }
 
   ajaxError(xhr, config, error){
 
