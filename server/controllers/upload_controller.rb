@@ -41,8 +41,12 @@ class UploadController < Controller
     project_name = params['project_name']
     project_role = params['project_role']
     user_permissions = user_info['permissions']
-    project_id = fetch_project_id(project_name, project_role, user_permissions)
-    if project_id == nil
+
+    # The first item in the 'project_ids' variable (index 0) is the 'group_id' 
+    # that the project belongs to. The second item in the 'project_ids' variable
+    # is the project id itself.
+    project_ids = fetch_project_id(project_name, project_role, user_permissions)
+    if project_ids == nil
 
       return send_bad_request()
     end
@@ -50,10 +54,10 @@ class UploadController < Controller
     # Check that this file system is in sync with the auth server.
     # If there is a project/permission set in Janus there should be a
     # corresponding directory in Metis. 
-    prj_nm =  params['project_name']
-    directory = Conf::ROOT_DIR + '/' + prj_nm
+    directory = Conf::ROOT_DIR+'/'+project_ids[0].to_s+'/'+project_ids[1].to_s()
     if !File.directory?(directory)
 
+      puts directory
       return send_server_error()
     end
 
@@ -61,23 +65,23 @@ class UploadController < Controller
     # client when the user selects the file or updates the file name. The check
     # here is only for a bit of saftey. We also check on the file status in
     # redis as well to make sure that there isn't a current record.
-    full_path = Conf::ROOT_DIR + '/' + prj_nm + '/' + params['file_name']
+    full_path = directory + '/' + params['file_name']
     if File.file?(full_path)
 
       return send_bad_request()
     end
 
     @status_key = generate_status_key()
-    @file_status = @redis_service.retrive_file_status(@status_key)
+    @file_status = @redis_service.retrieve_file_status(@status_key)
     if @file_status != nil
 
       return send_bad_request()
     end
 
-    return generate_authorization(params, user_info, project_id)
+    return generate_authorization(params, user_info, project_ids[1], directory)
   end
 
-  def generate_authorization(params, user_info, project_id)
+  def generate_authorization(params, user_info, project_id, directory)
 
     time = Time::now.to_i
     sig_algo = 'MD5'
@@ -88,7 +92,7 @@ class UploadController < Controller
 
     params = {
     
-      'directory'=> ('/'+ params['project_name']),
+      'directory'=> directory,
       'expires'=> Conf::UPLOAD_EXPIRE,
       'signing_algorithm'=> sig_algo,
       'hashing_algorithm'=> sig_algo,
@@ -144,7 +148,7 @@ class UploadController < Controller
     params['current_blob_size'] = 0
     params['current_byte_position'] = 0
     @redis_service.set_file_status(@status_key, params.to_json)
-    @file_status = @redis_service.retrive_file_status(@status_key)
+    @file_status = @redis_service.retrieve_file_status(@status_key)
   end
 
   def create_partial_file()
@@ -215,7 +219,7 @@ class UploadController < Controller
 
     @signature = generate_signature()
     @status_key = generate_status_key()
-    @file_status = @redis_service.retrive_file_status(@status_key)
+    @file_status = @redis_service.retrieve_file_status(@status_key)
 
     if @file_status != nil
 
@@ -238,7 +242,7 @@ class UploadController < Controller
   def generate_file_path()
 
     params = @request.POST()
-    full_path = Conf::ROOT_DIR + params['directory'] + '/' + params['file_name']
+    return params['directory'] + '/' + params['file_name']
   end
 
   # Generate the key used to access the file's metadata in Redis.
@@ -332,7 +336,7 @@ class UploadController < Controller
 
   def upload_errors?()
 
-    status = @redis_service.retrive_file_status(@status_key)
+    status = @redis_service.retrieve_file_status(@status_key)
 
     if File.file?(@full_path) && status == nil
 
