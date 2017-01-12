@@ -1,7 +1,7 @@
 import * as React from 'react';
 import GenericSearchDropdown from '../generic/generic-search-dropdown';
 
-export default class PermissionDropdown extends GenericSearchDropdown{
+export default class RoleDropdown extends GenericSearchDropdown{
 
   componentDidMount(){
 
@@ -9,6 +9,11 @@ export default class PermissionDropdown extends GenericSearchDropdown{
 
       'inputValue': this['props']['permission']['role']
     });
+  }
+
+  entrySelected(){
+
+    this['props']['callbacks'].roleSelected(this['state']['inputValue']);
   }
 
   render(){
