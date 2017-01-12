@@ -41,10 +41,10 @@ class Controller
 
       if response_code == 200
 
-        return Rack::Response.new(response.body)
+        return JSON.parse(response.body)
       else
 
-        return send_server_error()
+        return {}
       end
     rescue Timeout::Error, 
            Errno::EINVAL, 
@@ -60,22 +60,22 @@ class Controller
 
   def fetch_project_id(project_name, project_role, user_permissions)
 
-    project_id = nil
-    user_permissions.each do |permission|
+    project_ids = nil
+    for permission in user_permissions
 
       if project_name == permission['project_name']
 
         if project_role == permission['role']
 
           if project_role == 'administration' || project_role == 'editor'
-            
-            project_id = permission['project_id']
+
+            project_ids = [permission['group_id'], permission['project_id']]
+            break
           end
         end
       end
     end
-
-    return project_id
+    return project_ids
   end
 
   def file_status_ok?()
@@ -127,13 +127,34 @@ class Controller
     project_ids = []
     user_info['permissions'].each do |permission|
 
-      project_ids.push(permission['project_id'])
+      project_id = permission['project_id'].to_s()
+      group_id = permission['group_id'].to_s()
+      project_ids.push(group_id+'.'+project_id)
     end
 
-    #file_metadata = pull_file_metadata(project_ids)
-    # Parse out the perm id's
-    # Pull all files with the perm id.
-    Rack::Response.new({ :success=> true, :msg=> 'sup' }.to_json())
+    file_list = pull_file_metadata(project_ids)
+    Rack::Response.new({ :success=> true, :file_list=> file_list }.to_json())
+  end
+
+  def pull_file_metadata(project_ids)
+
+    file_data = []
+    for project_id in project_ids
+
+      keys = @redis_service.retrieve_file_key('*'+project_id)
+      if keys != nil
+
+        for key in keys
+
+          file_metadata = @redis_service.retrieve_file_status(key)
+          if file_metadata != nil
+            
+            file_data.push(JSON.parse(file_metadata))
+          end
+        end
+      end
+    end
+    return file_data
   end
 
   def send_bad_request()
