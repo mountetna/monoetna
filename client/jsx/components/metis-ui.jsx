@@ -14,8 +14,6 @@ export default class MetisUI extends React.Component{
     super();
   }
 
-
-
   renderContent(){
 
     if(!this['props']['userInfo']['loginStatus']){
@@ -38,17 +36,6 @@ export default class MetisUI extends React.Component{
       </div>
     );
   }
-
-//  renderNoPerms(){
-//
-//    return (
-//
-//      <div>
-//
-//        { 'It looks like you have no permission in our system, so you cannot upload or use any files. Please contact the system administrator to get some permissions.'}
-//      </div>
-//    );
-//  }
 
   renderRegular(){
 
