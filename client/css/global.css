@@ -51,6 +51,45 @@ body{
   height: 80px;
 }
 
+/* Generic Search Dropdown CSS ************************************************/
+
+/* INPUT */
+.search-dropdown-input {
+
+  font-family: 'gotham_bookregular';
+  border: 1px solid #999;
+  width: 100%;
+  background: none;
+}
+
+.search-dropdown-input:focus {
+
+  border: 1px solid #24a684;
+  outline: none;
+}
+
+.search-dropdown-input:hover,
+.search-dropdown-input:focus {
+
+  -webkit-box-shadow: inset -1px 1px 1px 0px #ccc;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+  -moz-box-shadow:    inset -1px 1px 1px 0px #ccc;  /* Firefox 3.5 - 3.6 */
+  box-shadow:         inset -1px 1px 1px 0px #ccc;
+}
+
+.search-dropdown-input-inactive {
+
+  border: 0px;
+  outline: none;
+  width: 100%;
+  background: none;
+}
+
+.search-dropdown-input-active {
+
+  border: 1px solid #24a684;
+}
+
+/* TRAY ENTRY */
 .search-dropdown-tray-entry,
 .search-dropdown-tray-empty{
 
@@ -74,3 +113,5 @@ body{
   text-align: left;
   background: #a9d58e;
 }
+
+/******************************************************************************/

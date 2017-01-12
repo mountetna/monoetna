@@ -75,20 +75,63 @@
   height: 18px;
 }
 
-.project-permission-field{
+.list-project-permission-field {
 
-  margin-top:5px;
+  margin-top:4px;
 }
 
-.project-search-group {
+/* Specific Search Dropdown CSS ***********************************************/
 
-  margin-top: 10px;
-  font-family: 'gotham_boldregular';
+.list-project-search-dd-group {
+
+  position: relative;
+  width: 325px;
+  margin-top: 9px;
+}
+
+/* BUTTON */
+.list-project-search-dd-btn {
+
+  position: absolute;
+  top: 3px;
+  right: 1px;
+  height: 14px;
+  width: 18px;
+  outline: none;
+  padding: 0px;
+  border: 0px;
+  outline: 0px;
+  background: #fff;
+  border-left: 1px solid #999;
+}
+
+/* TRAY */
+.list-project-search-dd-tray {
+
+  position: absolute;
+  top: 21px;
+  left: 0px;
+  width: 100%;
+  padding: 5px;
+
+  border: 1px solid #24a684;
+  background: #fff;
+}
+
+/* SPECIFIC OVERRIDES, see global.css */
+.search-dropdown-input {
+
   font-size: 1em;
   height: 18px;
-  border: 1px solid #999;
-  width: 150px;
 }
+
+.search-dropdown-input-inactive {
+
+  margin-left: 1px;
+}
+
+/*
+
 
 .project-search-input {
 
@@ -142,3 +185,6 @@
   text-decoration: none;
   color: #333;
 }
+*/
+
+/******************************************************************************/

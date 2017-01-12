@@ -14,9 +14,6 @@ export default class ProjectSearchDropdown extends GenericSearchDropdown{
 
   addEntries(){
 
-    // The list of entries to be 'searched' over.
-    var projects = this['props']['projects'];
-
     // The value of the input to 'search' by.
     var value = this['state']['inputValue'].toLowerCase();
 
@@ -26,7 +23,10 @@ export default class ProjectSearchDropdown extends GenericSearchDropdown{
      */
     if(value['length'] >= 3){
 
-      // Generate a list of entries to display in the dropdown.
+      // The list of entries to be 'searched' over.
+      var projects = this['props']['projects'];
+
+      // Generate a list of  entries to display in the dropdown.
       var entries = [];
       for(var a = 0; a < projects['length']; ++a){
 
@@ -54,10 +54,12 @@ export default class ProjectSearchDropdown extends GenericSearchDropdown{
     }
   }
 
-  render(){
+  entrySelected(){
 
-    // Return the input value to the parent.
-    var inputVal = this['state']['inputValue'];
+    this['props']['callbacks'].projectSelected(this['state']['inputValue'])
+  }
+
+  render(){
 
     var dropdownGroupProps = {
 

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import GenericAdminEntry from './generic-admin-entry';
 import ProjectSearchDropdown from './project-search-dropdown';
-import PermissionDropdown from './permission-dropdown';
+import RoleDropdown from './role-dropdown';
 
 export default class PermissionEntry extends GenericAdminEntry{
 
@@ -53,45 +53,6 @@ export default class PermissionEntry extends GenericAdminEntry{
     //this.forceUpdate();
   }
 
-  saveEntry(){
-
-    if(!this.checkForPrimary()) return;
-
-    var reactKey = this['props']['permission']['reactKey'];
-    var email = this['userEmailInput']['value'];
-    var prjNm = this['projectDropdownComponent']['state']['inputValue'];
-    var role = this['permissionDropdownComponent']['state']['inputValue'];
-
-    /*
-     * These are only simple validations to keep the UI tidy. There are more 
-     * stringent validations higher up in the UI and definately on the server.
-     */
-    if(!this.validateUser(email)){
-
-      alert('Please select a valid user.');
-      return;
-    }
-
-    if(!this.validateProject(prjNm)){
-
-      alert('Please select a valid project.');
-      return;
-    }
-
-    if(!this.validateRole(role)){
-
-      alert('Please select a permission');
-      return;
-    }
-
-    var permission = this['props']['permission'];
-    permission['userEmail'] = email;
-    permission['projectName'] = prjNm;
-    permission['role'] = role;
-
-    this['props']['callbacks'].savePermission(permission);
-  }
-
   deleteEntry(){
 
     if(!this.checkForPrimary()) return;
@@ -99,29 +60,99 @@ export default class PermissionEntry extends GenericAdminEntry{
     this['props']['callbacks'].removeUnsavedPermission(reactKey);
   }
 
+  saveEntry(){
+
+    if(!this.checkForPrimary()) return;
+
+    /*
+     * These are only simple validations to keep the UI tidy. There are more 
+     * stringent validations higher up in the UI and definately on the server.
+     */
+    var email = this['userEmailInput']['value'];
+    var userId = this.validateUser(email);
+    if(userId <= 0){
+
+      alert('Please select a valid user.');
+      return;
+    }
+    this['props']['permission']['userId'] = userId;
+    this['props']['permission']['userEmail'] = email;
+
+    var projectName = this['props']['permission']['projectName'];
+    var projectId = this.validateProject(projectName);
+    if(projectId <= 0){
+
+      alert('Please select a valid project.');
+      return;
+    }
+
+    var role = this['props']['permission']['role'];
+    if(!this.validateRole(role)){
+
+      alert('Please select a permission');
+      return;
+    }
+
+    this['props']['callbacks'].savePermission(this['props']['permission']);
+  }
+
+  projectSelected(project){
+
+    var projectId = this.validateProject(project);
+    if(projectId <= 0){
+
+      alert('Please select a valid project.');
+      return;
+    }
+
+    this['props']['permission']['projectName'] = project;
+    this['props']['permission']['projectId'] = projectId;
+  }
+
+  roleSelected(role){
+
+    if(!this.validateRole(role)){
+
+      alert('Please select a permission');
+      return;
+    }
+
+    this['props']['permission']['role'] = role;
+  }
+
   validateUser(email){
 
     if(email == '') return false;
     if(!VALIDATE_EMAIL(email)) return false;
 
-    return true;
+    var userId = 0;
+    for(var a = 0; a < this['props']['users']['length']; ++a){
+
+      var userEmail = this['props']['users'][a]['email'].toLowerCase();
+      if(email == userEmail){
+
+        userId = this['props']['users'][a]['id'];
+      }
+    }
+
+    return userId;
   }
 
   validateProject(projectName){
 
     if(projectName == '') return false;
 
-    var exists = false;
+    var projectId = 0;
     for(var a = 0; a < this['props']['projects']['length']; ++a){
 
       var prjNm = this['props']['projects'][a]['projectName'].toLowerCase();
       if(projectName == prjNm){
 
-        exists = true;
+        projectId = this['props']['projects'][a]['id'];
       }
     }
 
-    return exists;
+    return projectId;
   }
 
   validateRole(role){
@@ -133,7 +164,6 @@ export default class PermissionEntry extends GenericAdminEntry{
 
   render(){
 
-    var permission = this['props']['permission'];
     var adminEntryProps = {
 
       'className': 'admin-edit-entry-group',
@@ -159,14 +189,20 @@ export default class PermissionEntry extends GenericAdminEntry{
       'permission': this['props']['permission'],
       'projects': this['props']['projects'],
       'editActive': this['state']['editActive'],
-      'ref': (component)=>{ this['projectDropdownComponent'] = component }
+      'callbacks': {
+
+        'projectSelected': this['projectSelected'].bind(this)
+      }
     };
 
-    var permDropdownProps = {
+    var roleDropdownProps = {
 
       'permission': this['props']['permission'],
       'editActive': this['state']['editActive'],
-      'ref': (component)=>{ this['permissionDropdownComponent'] = component }
+      'callbacks': {
+
+        'roleSelected': this['roleSelected'].bind(this)
+      }
     };
 
     return (
@@ -183,7 +219,7 @@ export default class PermissionEntry extends GenericAdminEntry{
         </td>
         <td>
 
-          <PermissionDropdown { ...permDropdownProps } />
+          <RoleDropdown { ...roleDropdownProps } />
         </td>
         <td>
 

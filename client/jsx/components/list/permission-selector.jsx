@@ -1,261 +1,139 @@
 import * as React from 'react';
+import GenericSearchDropdown from '../generic/generic-search-dropdown';
 
-export default class PermissionSelector extends React.Component{
-
-  constructor(props){
-
-    super(props);
-
-    this['state'] = {
-
-      'componentLock': false,
-      'projectTrayActive': false,
-      'inputValue': '',
-      'projectRole': ''
-    };
-  }
+export default class PermissionSelector extends GenericSearchDropdown{
 
   componentDidMount(){
 
-    var fileUpload = this['props']['fileUpload'];
-    var status = fileUpload['status'];
-    if(status == 'authorized' || status == 'active'){
+    this.setState({
 
-      this.setState({ 
-
-        'componentLock': true,
-        'projectTrayActive': false,
-        'inputValue': fileUpload['projectName'],
-        'projectRole': fileUpload['projectRole']
-      });
-    }
-  }
-
-  disableInput(){
-
-    var status = this['props']['fileUpload']['status'];
-    return (status == 'authorized' || status == 'active') ? true : false;
-  }
-
-  toggleTray(event = undefined){
-
-    if(this['state']['componentLock']){
-
-      alert('You cannot change the project name until the upload is complete');
-      return;
-    }
-
-    var trayActive = (this['state']['projectTrayActive']) ? false : true;
-    this.setState({ 'projectTrayActive': trayActive });
-  }
-
-  disableTray(event = undefined){
-
-    this.setState({ 'projectTrayActive': false });
-  }
-
-  trayEntrySelected(event = undefined){
-
-    if(this['state']['componentLock']) return;
-
-    var projectName = event['target']['dataset']['name'];
-    var projectId = event['target']['dataset']['id'];
-    var role = event['target']['dataset']['role'];
-
-    this.setState({ 
-
-      'projectRole': role, 
-      'inputValue': projectName,
-      'projectTrayActive': false
+      'searchEnabled': true
     });
-
-    // Bubble up the data to the parent.
-    this['props']['callbacks'].projectSelected(projectName, role, projectId);
   }
 
-  updateFileName(event){
-
-    if(this['state']['componentLock']) return;
-
-    var value = event['target']['value'];
-    var role = this.getRole(value);
-
-    // If the search length is longer than 3 show the dropdown.
-    if(value['length'] >= 3 && !this['state']['projectTrayActive']){
-
-      this.setState({ 
-
-        'inputValue': value,
-        'projectTrayActive': true,
-        'projectRole': role
-      });
-    }
-    else{
-
-      this.setState({ 
-
-        'inputValue': value,
-        'projectRole': role
-      });
-    }
-
-    /*
-     * If the role is not empty then we have a valid project and can update the
-     * file data.
-     */
-    if(role != ''){
-
-      // Bubble up the data to the parent.
-      this['props']['callbacks'].projectSelected(projectName, role);
-    }
-  }
-
-  getRole(projectName){
-
-    var permissions = this['props']['permissions'];
-    var role = '';
-    for(var index in permissions){
-
-      if(permissions[index]['projectName'] == projectName){
-
-        role = permissions[index]['role'];
-      }
-    }
-
-    return role;
-  }
-
-  filterPermissions(){
-
-    // The list of entries to be 'searched' over.
-    var permissions = this['props']['permissions'];
+  addEntries(){
 
     // The value of the input to 'search' by.
     var value = this['state']['inputValue'].toLowerCase();
 
-    // The subset of permissions that have valid roles.
-    var permsWithValidRoles = [];
-
-    // If the user is an editor or admin on this project then show the entry.
-    for(var index in permissions){
-
-      var role = permissions[index]['role'];
-      if((role == 'editor') || (role == 'administrator')){
-
-        permsWithValidRoles.push(permissions[index]);
-      }
-    }
-
     /*
-     * Higher up in the render chain there is a check for permissions with valid 
-     * roles (editor or admininstrator). You should not be able to add a new 
-     * file with out the proper permissions (The UI should be disabled). So, 
-     * 'permsWithVaildRoles' should have at least one entry if you are here.
+     * If there are more than three characters in the input, then 'search'.
+     * This prevents unnecessary processing for the UI.
      */
-
-    // The subset of permissions that match the search.
-    var permsMatchingSearch = [];
-
-    // If the search value is longer than 3 characters, then filter permissions.
     if(value['length'] >= 3){
 
-      for(var index in permsWithValidRoles){
+      // Generate a list of  entries to display in the dropdown.
+      var entries = [];
 
-        var projectName = permsWithValidRoles[index]['projectName'];
-        if(projectName.indexOf(value) !== -1){
+      // The list of user permissions to be 'searched' over.
+      var permissions = this['props']['permissions'];
 
-          permsMatchingSearch.push(permissions[index]);
+      for(var a = 0; a < permissions['length']; ++a){
+
+        var name = permissions[a]['projectName'];
+        var id = permissions[a]['id'];
+        var entry = this.matchAndAdd(value, name, a, id, entries['length']);
+        
+        if(entry != null && permissions[a]['role'] != 'viewer'){
+
+          entries.push(entry);
         }
       }
+
+      // If there are no matching entries then add a blank entry that says so.
+      if(entries.length == 0){
+
+        entries.push(this.addEmpty());
+      }
+
+      // Return a mapping to render the entries.
+      return entries.map((entry, index)=>{
+
+        return entry;
+      });
     }
     else{
 
-      permsMatchingSearch = permsWithValidRoles;
+      return this.addSuggestion();
     }
-
-    // In the event of no matches, say so...
-    if(permsMatchingSearch == 0){
-
-      permsMatchingSearch = [{
-
-        'projectId': null,
-        'role': null,
-        'projectName': 'no matches...'
-      }]
-    }
-
-    return permsMatchingSearch;
   }
 
-  renderProjectTray(){
+  entrySelected(){
 
-    var permissions = this.filterPermissions();
-    if(this['state']['projectTrayActive']){
+    var projectName = this['state']['inputValue'];
+    var permissions = this['props']['permissions'];
+    var permission = null;
 
-      return (
-        
-        <div className='project-dropdown-tray'>
+    for(var a = 0; a < permissions['length']; ++a){
 
-          { permissions.map((permission, index)=>{
+      if(projectName == permissions[a]['projectName'].toLowerCase()){
 
-            var trayEntryProps = {
-
-              'className': 'project-tray-entry',
-              'key': index,
-              'onClick': this.trayEntrySelected.bind(this),
-              'data-name': permission['projectName'],
-              'data-id': permission['projectId'],
-              'data-role': permission['role']
-            };
-
-            return ( 
-
-              <div { ...trayEntryProps }>
-
-                { permission['projectName'] }
-              </div> 
-            );
-          }) }
-        </div>
-      );
+        permission = permissions[a];
+      }
     }
-    else{
 
-      return '';
+    if(permission != null){
+
+      this['props']['callbacks'].projectSelected(permission);
     }
+  }
+
+  setRole(){
+
+    var projectName = this['state']['inputValue'];
+    var permissions = this['props']['permissions'];
+    var role = '';
+    for(var a = 0; a < permissions['length']; ++a){
+
+      if(permissions[a]['projectName'] == projectName){
+
+        role = permissions[a]['role'];
+        break;
+      }
+    }
+    return role;
   }
 
   render(){
 
     var listEntryProjectGroup = {
 
-      'className': 'list-entry-project-group',
-      'onMouseLeave': this['disableTray'].bind(this)
+      'className': 'list-entry-project-group'
     };
 
-    var projectSearchGroup = {
+    var dropdownGroupProps = {
 
-      'className': 'project-search-group',
+      'className': 'list-project-search-dd-group',
       'title': 'The project this file belongs to.'
     };
 
-    var permNameInputProps = {
+    var dropdownInputProps = {
 
-      'className': 'project-search-input',
+      'className': this.setInputClass(),
+      'disabled': this.setInputDisabled(),
       'value': this['state']['inputValue'],
-      'onChange': this['updateFileName'].bind(this),
-      'disabled': this.disableInput()
+      'onChange': this['updateInputValue'].bind(this),
+      'onKeyUp': this['selectByKeyboard'].bind(this),
+      'ref': (component)=>{ this['dropdownInput'] = component }
     };
 
-    var projectDropdownButton = {
+    var dropdownBtnProps = {
 
-      'className': 'project-dropdown-button',
-      'onClick': this['toggleTray'].bind(this)
+      'className': 'list-project-search-dd-btn',
+      'onClick': this['toggleDropdown'].bind(this),
+      'style': this.setButtonStyle()
+    };
+
+    var dropdownTrayProps = {
+
+      'className': 'list-project-search-dd-tray',
+      'style': this.setDropdownStyle(),
+      'ref': (component)=>{ this['dropdownTrayComponent'] = component }
     };
 
     var listEntryStatus = {
 
-      'className': 'list-entry-status project-permission-field',
+      'className': 'list-entry-status list-project-permission-field',
       'title': 'Your project permission for this file.'
     };
 
@@ -263,20 +141,23 @@ export default class PermissionSelector extends React.Component{
 
       <td { ...listEntryProjectGroup }>
 
-        <div { ...projectSearchGroup }>
+        <div { ...dropdownGroupProps }>
 
-          <input { ...permNameInputProps } />
-          <button { ...projectDropdownButton }>
+          <input { ...dropdownInputProps }/>
+          <button { ...dropdownBtnProps }>
 
             <span className='glyphicon glyphicon-triangle-bottom'></span>
           </button>
-          { this.renderProjectTray() }
+          <div { ...dropdownTrayProps }>
+
+            { this.addEntries() }
+          </div>
         </div>
         <div { ...listEntryStatus }>
 
           <span className='light-text'>
 
-            { this['state']['projectRole'] }
+            { this.setRole() }
           </span>
         </div>
       </td>

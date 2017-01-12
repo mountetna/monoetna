@@ -29,6 +29,7 @@ export default class PermissionEdit extends React.Component{
 
     var permissions = this['props']['adminInfo']['permissions'];
     var projects = this['props']['adminInfo']['projects'];
+    var users = this['props']['adminInfo']['users'];
 
     var permFileSelector = {
 
@@ -125,6 +126,7 @@ export default class PermissionEdit extends React.Component{
 
                 'permission': permission,
                 'projects': projects,
+                'users': users,
                 'key': permission['reactKey'],
                 'reactKey': permission['reactKey'],
                 'callbacks': callbacks

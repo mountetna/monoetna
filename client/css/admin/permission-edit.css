@@ -18,16 +18,20 @@
   width: 100%;
 }
 
+#permission-file-selector {
+
+  display: none;
+}
+
+/* Specific Search Dropdown CSS ***********************************************/
+
+/* GROUPING */
 .perm-project-search-dd-group {
 
   position: relative;
 }
 
-.perm-project-search-dd-group span {
-
-  display: block;
-}
-
+/* BUTTON */
 .perm-project-search-dd-btn {
 
   position: absolute;
@@ -40,9 +44,10 @@
   border: 0px;
   outline: 0px;
   background: #fff;
-  border-left: 1px solid #ccc;
+  border-left: 1px solid #999;
 }
 
+/* TRAY */
 .perm-project-search-dd-tray {
 
   position: absolute;
@@ -52,17 +57,19 @@
   padding: 5px;
 
   border: 1px solid #24a684;
-  /*
-  border-top: 0px;
-  border-left: 1px solid #ccc;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-
-  */
   background: #fff;
 }
 
-#permission-file-selector {
+/* SPECIFIC OVERRIDES, see global.css */
+.search-dropdown-input {
 
-  display: none;
+  font-size: 1em;
+  height: 18px;
 }
+
+.search-dropdown-input-inactive {
+
+  margin-left: 1px;
+}
+
+/******************************************************************************/

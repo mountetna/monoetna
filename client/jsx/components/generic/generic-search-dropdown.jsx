@@ -17,23 +17,23 @@ export default class GenericSearchDropdown extends React.Component{
 
   setInputClass(){
 
-    var className = 'admin-entry-input';
+    var className = 'search-dropdown-input';
     if(this['props']['editActive']){
 
-      className = 'admin-entry-input';
+      className = 'search-dropdown-input';
 
       if(this['state']['trayActive']){
 
-        className = 'admin-entry-input admin-entry-input-active';
+        className = 'search-dropdown-input search-dropdown-input-active';
       }
       else{
 
-        className = 'admin-entry-input';
+        className = 'search-dropdown-input';
       }
     }
     else{
 
-      className = 'admin-entry-input-inactive';
+      className = 'search-dropdown-input-inactive';
     }
 
     return className;
@@ -104,12 +104,13 @@ export default class GenericSearchDropdown extends React.Component{
 
   entrySelectedByClick(event){
 
+    var value = event['target'].getAttribute('data-val');
     this.setState({ 
 
-      'inputValue': event['target'].getAttribute('data-val'),
+      'inputValue': value,
       'trayActive': false,
       'selectedIndex': null
-    });
+    }, this['entrySelected']);
 
     if(this['dropdownInput'] == undefined) return;
     this['dropdownInput'].focus();
@@ -122,7 +123,7 @@ export default class GenericSearchDropdown extends React.Component{
       'inputValue': value,
       'trayActive': false,
       'selectedIndex': null
-    });
+    }, this['entrySelected']);
 
     if(this['dropdownInput'] == undefined) return;
     this['dropdownInput'].focus();
@@ -271,6 +272,12 @@ export default class GenericSearchDropdown extends React.Component{
       var val = node.getAttribute('data-val');
       this.entrySelectedByEnter(val);
     }
+  }
+
+  // This function is overwritten by the inheriting class.
+  entrySelected(value = null){
+
+    // null
   }
 
   // This function is overwritten by the inheriting class.

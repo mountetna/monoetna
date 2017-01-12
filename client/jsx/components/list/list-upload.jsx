@@ -36,7 +36,7 @@ export default class ListUpload extends React.Component{
 
   disabledAlert(){
 
-    alert('You cannot change the file name until the upload is complete');
+    alert('You cannot change the file name until the upload is complete.');
   }
 
   parseFileStatus(){
@@ -312,11 +312,11 @@ export default class ListUpload extends React.Component{
     }
   }
 
-  projectSelected(projectName, projectRole, projectId){
+  projectSelected(permission){
 
-    this['props']['fileUpload']['projectName'] = projectName;
-    this['props']['fileUpload']['projectRole'] = projectRole;
-    this['props']['fileUpload']['projectId'] = projectId;
+    this['props']['fileUpload']['projectName'] = permission['projectName'];
+    this['props']['fileUpload']['projectRole'] = permission['role'];
+    this['props']['fileUpload']['projectId'] = permission['id'];
   }
 
   startUpload(){
@@ -358,6 +358,7 @@ export default class ListUpload extends React.Component{
 
       'permissions': this['props']['permissions'],
       'fileUpload': this['props']['fileUpload'],
+      'editActive': true,
       'callbacks': {
 
         'projectSelected': this['projectSelected'].bind(this)
