@@ -10,7 +10,6 @@ export default class ListEntry extends React.Component{
   render(){
 
     var fileInfo = this['props']['fileInfo'];
-    console.log(fileInfo);
 
     return (
 

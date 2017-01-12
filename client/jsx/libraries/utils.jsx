@@ -16,6 +16,7 @@ var STATUS_ITEMS = {
   'hashingAlgorithm': String,
   'startTimestamp': Number,
   'authToken': String,
+  'authorizationToken': String,
   'originalName': String,    
   'fileName': String,
   'fileSize': Number,
@@ -24,6 +25,7 @@ var STATUS_ITEMS = {
   'projectId': Number,
   'groupId': Number,
   'redisIndex': String,
+  'status': String,
 
   'signature': String,
   

@@ -438,6 +438,7 @@ class UploadController < Controller
     @file_status.delete('next_blob_hash')
     @file_status.delete('signature')
     @file_status.delete('signing_algorithm')
+    @file_status.delete('status')
 
     @file_status['finish_timestamp'] = Time::now.to_i
     @file_status['file_size'] = File.size(@full_path)

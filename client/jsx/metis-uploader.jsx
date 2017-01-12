@@ -224,13 +224,13 @@ class MetisUploader{
       case 'active':
 
         var response = message['data']['response'];
-        var action = { type: 'FILE_UPLOAD_ACTIVE', data: response };
+        var action = { type: 'FILE_UPLOAD_ACTIVE', uploadResponse: response };
         this['model']['store'].dispatch(action);
         break;
       case 'complete':
 
         var response = message['data']['response'];
-        var action = { type: 'FILE_UPLOAD_COMPLETE', data: response };
+        var action = { type: 'FILE_UPLOAD_COMPLETE', uploadResponse: response };
         this['model']['store'].dispatch(action);
         break;
       default:
@@ -292,7 +292,7 @@ class MetisUploader{
 
     if(response['success']){
 
-      var action = { type: 'FILE_UPLOAD_AUTHORIZED', data: response };
+      var action = { type: 'FILE_UPLOAD_AUTHORIZED', authResponse: response };
       this['model']['store'].dispatch(action);
     }
     else{

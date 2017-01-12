@@ -11,7 +11,7 @@ const mapStateToProps = (state, ownProps)=>{
 
     for(var b = 0; b < permissions['length']; ++b){
 
-      if(parseInt(fileList[a]['projectId']) == permissions[b]['id']){
+      if(parseInt(fileList[a]['projectId']) == permissions[b]['projectId']){
 
         fileList[a]['projectName'] = permissions[b]['projectName'];
         fileList[a]['role'] = permissions[b]['role'];

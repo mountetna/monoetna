@@ -39,7 +39,7 @@ export default class MetisReducer{
           var fileUploads = fileData['fileUploads'];
 
           // MOD START
-          var authResponse = action['data'];
+          var authResponse = Object.assign({}, action['authResponse']);
           var fileUpload = null;
           var fileUploadIndex = 0;
 
@@ -60,15 +60,10 @@ export default class MetisReducer{
           fileUpload['signature'] = authResponse['signature'];
           fileUpload['currentBytePosition'] = 0;
 
-          /*
-           * Append all of the request items to the local file object.
-           * Also keep an eye on that 'CAMEL_CASE_IT' function. The client wants
-           * it's vars in camel case.
-           */
-          for(var key in authResponse['request']){
+          // Append all of the request items to the local file object.
+          authResponse['request'] = this.camelCaseIt(authResponse['request']);
+          fileUpload = Object.assign(fileUpload, authResponse['request']);
 
-            fileUpload[CAMEL_CASE_IT(key)] = authResponse['request'][key];
-          }
           // MOD END
 
           fileData['fileUploads'][fileUploadIndex] = fileUpload;
@@ -80,7 +75,7 @@ export default class MetisReducer{
           var fileUploads = fileData['fileUploads'];
 
           // MOD START
-          var response = action['data'];
+          var response = action['uploadResponse'];
           var index = response['request']['redis_index'];
           var fileUpload = null;
           var fileUploadIndex = 0;
@@ -96,14 +91,9 @@ export default class MetisReducer{
             }
           }
 
-          // Append the status to the file upload object.
-          fileUpload['status'] = response['status'];
-
-          // Append all of the request items to the local file object
-          for(var key in response['request']){
-
-            fileUpload[key] = response['request'][key];
-          }
+          // Append all of the request items to the local file object.
+          response['request'] = this.camelCaseIt(response['request']);
+          fileUpload = Object.assign(fileUpload, response['request']);
 
           fileData['fileUploads'][fileUploadIndex] = fileUpload;
           // MOD END
@@ -112,14 +102,13 @@ export default class MetisReducer{
 
         case 'FILE_UPLOAD_COMPLETE':
 
-          
           var fileData = Object.assign({}, state);
           var fileUploads = fileData['fileUploads'];
           var fileList = fileData['fileList'];
 
           // MOD START
-          var result = action['data']['result'];
-          var index = result['redis_index'];
+          var result = this.camelCaseIt(action['uploadResponse']['result']);
+          var index = result['redisIndex'];
 
           var fileUploadIndex = 0;
 
@@ -146,7 +135,13 @@ export default class MetisReducer{
           var fileData = Object.assign({}, state);
           var fileList = fileData['fileList'];
 
-          fileData['fileList'] = this.camelCaseIt(action['fileList']);
+          fileData['fileList'] = [];
+          for(var index in action['fileList']){
+
+            var file = this.camelCaseIt(action['fileList'][index]);
+            fileData['fileList'].push(file);
+          }
+
           return fileData;
 
         default:
@@ -159,15 +154,13 @@ export default class MetisReducer{
 
   camelCaseIt(object){
 
-    for(var index in object){
+    for(var key in object){
 
-      for(var key in object[index]){
-
-        object[index][CAMEL_CASE_IT(key)] = object[index][key];
-        if(key.indexOf('_') != -1) delete object[index][key];
-      }
+      object[CAMEL_CASE_IT(key)] = object[key];
+      if(key.indexOf('_') != -1) delete object[key];
     }
 
+    object = PARSE_REQUEST(object);
     return object;
   }
 }

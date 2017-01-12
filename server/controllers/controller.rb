@@ -183,10 +183,11 @@ class Controller
 
   def send_upload_complete()
 
+    result = JSON.parse(@redis_service.retrieve_file_status(@status_key))
     response = {
 
       :success=> true,
-      :result=> @file_status,
+      :result=> result,
       :status=> 'complete'
     }
     return Rack::Response.new(response.to_json())
