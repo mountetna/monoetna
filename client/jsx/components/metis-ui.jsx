@@ -4,7 +4,6 @@ import TitleBar  from './nav/title-bar';
 import MenuBarContainer   from './nav/menu-bar-container';
 import ListHeadContainer  from './list/list-head-container';
 import ListBodyContainer  from './list/list-body-container';
-import ListEmpty from './list/list-empty';
 import LoginPanelContainer from './auth/login-panel-container';
 
 export default class MetisUI extends React.Component{
@@ -49,7 +48,7 @@ export default class MetisUI extends React.Component{
         <table id='listing-table'>
         
           <ListHeadContainer />
-          { (fileList.length || fileUploads.length) ? <ListBodyContainer /> : '' }
+          { (fileList.length || fileUploads.length)?<ListBodyContainer /> : '' }
         </table>
       </div>
     );

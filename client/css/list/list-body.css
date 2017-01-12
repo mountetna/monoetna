@@ -24,14 +24,16 @@
 .list-entry-title-group,
 .list-entry-project-group {
 
+  padding-top: 8px;
   vertical-align: top;
   height: 60px;
   margin-left: 10px;
 }
 
-.list-entry-file-name {
+.list-entry-file-name,
+.list-entry-project-name,
+.list-entry-file-size {
 
-  margin-top: 10px;
   font-family: 'gotham_boldregular';
   font-size: 1em;
   height: 18px;
@@ -39,9 +41,30 @@
   width: 160px;
 }
 
+.list-entry-file-name-input {
+
+  margin-top: 2px;
+}
+
+.list-entry-project-name {
+
+  width: 100%;
+}
+
+.list-entry-file-size {
+
+  font-family: 'gotham_bookregular';
+}
+
 .list-entry-file-name:focus {
 
   outline: none;
+}
+
+.list-edit-mode-btn-group {
+
+  float: right;
+  margin-right: 10px;
 }
 
 .list-entry-edit-btn,
@@ -60,7 +83,8 @@
   color: #000;
 }
 
-.list-entry-status {
+.list-entry-status,
+.list-entry-role {
 
   margin-top: 4px;
 }
@@ -77,7 +101,7 @@
 
 .list-project-permission-field {
 
-  margin-top:4px;
+  margin-top:3px;
 }
 
 /* Specific Search Dropdown CSS ***********************************************/
@@ -86,7 +110,7 @@
 
   position: relative;
   width: 325px;
-  margin-top: 9px;
+  margin-top: 1px;
 }
 
 /* BUTTON */
@@ -129,62 +153,4 @@
 
   margin-left: 1px;
 }
-
-/*
-
-
-.project-search-input {
-
-  float: left;
-  width: 130px;
-  height: 18px;
-  margin-top: -1px;
-  border: none;
-  outline: none;
-  background: none;
-}
-
-.project-dropdown-button {
-
-  display: inline-block;
-  margin-top: 1px;
-  width: 18px;
-  height: 14px;
-  outline: none;
-  border: none;
-  background: none;
-  border-left: 1px solid #999;
-}
-
-.project-dropdown-button span {
-
-  top: -2px;
-  left: -4px;
-}
-
-.project-dropdown-tray {
-
-  margin-top: -7px;
-  border: 1px solid #999;
-  position: relative;
-  background: #fff;
-  width: 150px;
-  margin-left: -1px;
-}
-
-.project-tray-entry {
-
-  padding: 5px;
-  font-family: 'gotham_bookregular';
-  cursor: pointer;
-}
-
-.project-tray-entry:hover {
-
-  background: #a9d58e;
-  text-decoration: none;
-  color: #333;
-}
-*/
-
 /******************************************************************************/

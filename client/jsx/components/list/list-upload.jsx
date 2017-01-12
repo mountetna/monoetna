@@ -169,7 +169,7 @@ export default class ListUpload extends React.Component{
 
     return (
 
-      <span>
+      <div className='list-edit-mode-btn-group'>
         
         <button { ...editBtnProps }>
 
@@ -187,7 +187,7 @@ export default class ListUpload extends React.Component{
 
           <span className='glyphicon glyphicon-ok'></span>
         </button>
-      </span>
+      </div>
     );
   }
 
@@ -345,7 +345,7 @@ export default class ListUpload extends React.Component{
 
     var fileNameInputProps = {
 
-      'className': 'list-entry-file-name',
+      'className': 'list-entry-file-name list-entry-file-name-input',
       'value': this['state']['fileName'],
       'title': this['state']['fileName'],
       'style': this.setFileNameStyle(),
@@ -376,6 +376,13 @@ export default class ListUpload extends React.Component{
       }
     };
 
+    var listFileStatus = {
+
+      'className': 'list-entry-status',
+      'title': 'The current file status.',
+      'style': { 'marginTop': '2px' }
+    }
+    
     return (
 
       <tr className='list-entry-group'>
@@ -386,7 +393,7 @@ export default class ListUpload extends React.Component{
 
           <input { ...fileNameInputProps } />
           { this.renderFileNameEditMode() }
-          <div className='list-entry-status' title='The current file status.'>
+          <div { ...listFileStatus }>
 
             { this.parseFileStatus() }
           </div>
