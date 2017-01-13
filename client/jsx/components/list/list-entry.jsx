@@ -53,7 +53,7 @@ export default class ListEntry extends React.Component{
 
             <span className='dark-text' style={{ 'fontWeight': 900 }} >
 
-              { PARSE_BYTES(fileInfo['fileSize']) }
+              { PARSE_BYTES(fileInfo['fileSize'], 1000) }
             </span>
           </div>
         </td>
