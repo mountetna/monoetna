@@ -489,6 +489,8 @@ var CAMEL_CASE_IT = function(string){
     matches.push(match.index);
   }
 
+  // We should start from the back of the string and replace going forward.
+  matches.reverse();
   for(var index in matches){
 
     var ind = matches[index];
