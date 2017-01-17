@@ -1,7 +1,16 @@
 /*
  * Global Variables
  */
-var BLOB_SIZE = 100000; // in bytes
+var BLOB_SIZE = 1024; // in bytes
+var NEXT_BLOB_SIZE = 1024; // in bytes
+var MIN_BLOB_SIZE = 1024; // in bytes
+
+/*
+ * In milliseconds, the amount of time to transfer one blob. This ultimately
+ * sets the blob size.
+ */
+var TRANSFER_TIME = 2000; 
+
 var TOKEN_NAME = 'UCSF_ETNA_AUTH_TOKEN';
 var METIS_ADDR = 'http://metis-dev.ucsf.edu';
 

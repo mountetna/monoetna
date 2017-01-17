@@ -12,6 +12,11 @@ class Uploader{
     // These object will be the data we need to send over the wire.
     this['file'] = null;
     this['request'] = null;
+
+    this['uploadStart'] = null; // in milliseconds
+    this['blobWindow'] = 30; // how many blob uploads to average over.
+    this['blobUploadTimes'] = [];
+    this['uploadSpeed'] = null;
   }
 
   /*
@@ -120,6 +125,7 @@ class Uploader{
     }
     catch(error){
 
+      uploader['uploadStart'] = null;
       postMessage({ 'type': 'error', message: error['message'] });
     }
   }
@@ -174,7 +180,7 @@ class Uploader{
     uploaderRequest.append('blob', blob);
 
     // Hash and profile the next blob for security and error checking.
-    var endByte = toByte + BLOB_SIZE;
+    var endByte = toByte + NEXT_BLOB_SIZE;
     endByte = (endByte > fileSize) ? fileSize : endByte;
     uploaderRequest.append('next_blob_size', (endByte - toByte));
     var nextBlob = uploader['file'].slice(toByte, endByte);
@@ -184,6 +190,8 @@ class Uploader{
   sendPacket(uploaderRequest){
 
     try{
+
+      uploader['uploadStart'] = Math.floor(Date.now());
 
       AJAX({
 
@@ -198,11 +206,59 @@ class Uploader{
     }
     catch(error){
 
+      uploader['uploadStart'] = null;
       postMessage({ type: 'error', message: error['message'] });
     }
   }
 
+  // Set blob size based upon upload time.
+  setBlobSize(){
+
+    if(uploader['uploadStart'] != null){
+
+      var avgTime = uploader.averageUploadTime();
+      var olbBlobSize = BLOB_SIZE;
+      BLOB_SIZE = NEXT_BLOB_SIZE;
+      NEXT_BLOB_SIZE = Math.floor(olbBlobSize * (TRANSFER_TIME / avgTime * 0.9))
+
+      uploader['uploadStart'] = null;
+
+      console.log(this['blobUploadTimes'])
+      console.log(avgTime, BLOB_SIZE, NEXT_BLOB_SIZE);
+    }
+
+    if(NEXT_BLOB_SIZE < MIN_BLOB_SIZE) NEXT_BLOB_SIZE = MIN_BLOB_SIZE;
+
+    this['uploadSpeed'] = (BLOB_SIZE * 8) / (avgTime/1000);
+    console.log(Math.floor(this['uploadSpeed']) +' bps');
+  }
+
+  averageUploadTime(){
+
+    // Get the current time it took to upload the last blob.
+    var uploadTime = (Math.floor(Date.now()) - uploader['uploadStart']);
+
+    // Add the last upload time to an array, limit the array size with a window.
+    if(this['blobUploadTimes']['length'] >= this['blobWindow']){
+
+      this['blobUploadTimes'].shift();
+    }
+    this['blobUploadTimes'].push(uploadTime);
+
+    // Sum the windowed upload array.
+    var uploadTimeSum = this['blobUploadTimes'].reduce((a, b)=>{
+
+      return a + b;
+    }, 0);
+
+    // Average the upload time over the window.
+    return uploadTimeSum / this['blobUploadTimes']['length'];
+  }
+
   handleServerResponse(response){
+
+    // Set blob size based upon upload time.
+    uploader.setBlobSize();
 
     var errorMessage = 'The server response was malformed.';
     if(!('success' in response) || !('status' in response)){
