@@ -16,7 +16,7 @@ class Uploader{
     this['uploadStart'] = null; // in milliseconds
     this['blobWindow'] = 30; // how many blob uploads to average over.
     this['blobUploadTimes'] = [];
-    this['uploadSpeed'] = null;
+    this['uploadSpeed'] = 0;
   }
 
   /*
@@ -222,10 +222,11 @@ class Uploader{
       NEXT_BLOB_SIZE = Math.floor(olbBlobSize * (TRANSFER_TIME / avgTime * 0.9))
 
       uploader['uploadStart'] = null;
-    }
+      if(NEXT_BLOB_SIZE < MIN_BLOB_SIZE) NEXT_BLOB_SIZE = MIN_BLOB_SIZE;
 
-    if(NEXT_BLOB_SIZE < MIN_BLOB_SIZE) NEXT_BLOB_SIZE = MIN_BLOB_SIZE;
-    this['uploadSpeed'] = (BLOB_SIZE * 8) / (avgTime/1000);
+      // Make a rough calculation of the upload speed in kilobits per second.
+      this['uploadSpeed'] = (BLOB_SIZE * 8) / (avgTime/1000);
+    }
   }
 
   averageUploadTime(){
