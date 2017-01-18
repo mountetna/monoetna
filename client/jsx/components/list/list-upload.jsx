@@ -335,6 +335,83 @@ export default class ListUpload extends React.Component{
     //this['props']['callbacks'].cancelUpload();
   }
 
+  renderPermissionSelector(){
+
+    if(this['props']['fileUpload']['status'] == 'unauthorized'){
+
+      var permissionSelectorProps = {
+
+        'permissions': this['props']['permissions'],
+        'fileUpload': this['props']['fileUpload'],
+        'editActive': true,
+        'callbacks': {
+
+          'projectSelected': this['projectSelected'].bind(this)
+        }
+      };
+
+      return (
+
+        <PermissionSelector { ...permissionSelectorProps } />
+      )
+    }
+    else{
+
+      var listEntryProjectGroup = {
+
+        'className': 'list-entry-project-group'
+      };
+
+      var listEntryStatus = {
+
+        'className': 'list-entry-status list-project-permission-field',
+        'title': 'Your project permission for this file.'
+      };
+
+      return (
+
+        <td { ...listEntryProjectGroup }>
+
+          <div className='list-project-field'>
+
+            { this['props']['fileUpload']['projectName'] }
+          </div>
+          <div { ...listEntryStatus }>
+
+            <span className='light-text'>
+
+              { this['props']['fileUpload']['projectRole'] }
+            </span>
+          </div>
+        </td>
+      )
+    }
+  }
+
+  /*
+  <td { ...listEntryProjectGroup }>
+
+        <div { ...dropdownGroupProps }>
+
+          <input { ...dropdownInputProps }/>
+          <button { ...dropdownBtnProps }>
+
+            <span className='glyphicon glyphicon-triangle-bottom'></span>
+          </button>
+          <div { ...dropdownTrayProps }>
+
+            { this.addEntries() }
+          </div>
+        </div>
+        <div { ...listEntryStatus }>
+
+          <span className='light-text'>
+
+            { this.setRole() }
+          </span>
+        </div>
+      </td>*/
+
   render(){
 
     var listEntryTitleProps = {
@@ -353,17 +430,6 @@ export default class ListUpload extends React.Component{
       'disabled': this.setInputDisabled(),
       'onChange': this['updateFileName'].bind(this),
       'onKeyPress': this['persistOnEnter'].bind(this)
-    };
-
-    var permissionSelectorProps = {
-
-      'permissions': this['props']['permissions'],
-      'fileUpload': this['props']['fileUpload'],
-      'editActive': true,
-      'callbacks': {
-
-        'projectSelected': this['projectSelected'].bind(this)
-      }
     };
 
     var uploadControl = {
@@ -399,7 +465,7 @@ export default class ListUpload extends React.Component{
             { this.parseFileStatus() }
           </div>
         </td>
-        <PermissionSelector { ...permissionSelectorProps } />
+        { this.renderPermissionSelector() }
         <UploadMeter fileUpload={ this['props']['fileUpload'] } />
         <UploadControl { ...uploadControl } />
       </tr>

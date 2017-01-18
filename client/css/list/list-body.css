@@ -104,6 +104,11 @@
   margin-top:3px;
 }
 
+.list-project-field {
+
+  font-family: 'gotham_boldregular';
+}
+
 /* Specific Search Dropdown CSS ***********************************************/
 
 .list-project-search-dd-group {
