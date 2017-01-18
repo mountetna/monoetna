@@ -36,7 +36,14 @@ class RedisService
 
   def retrieve_file_status(key)
 
-    @redis.get(key)
+    file_status = @redis.get(key)
+    if file_status == nil
+
+      return nil
+    else
+
+      return JSON.parse(file_status)
+    end
   end
 
   def set_file_status(key, value)

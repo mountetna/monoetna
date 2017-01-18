@@ -149,7 +149,7 @@ class Controller
           file_metadata = @redis_service.retrieve_file_status(key)
           if file_metadata != nil
             
-            file_data.push(JSON.parse(file_metadata))
+            file_data.push(file_metadata)
           end
         end
       end
@@ -170,6 +170,7 @@ class Controller
 
   def send_upload_active()
 
+    @file_status['status'] = 'active'
     response = {
 
       :success=> true,
@@ -178,12 +179,13 @@ class Controller
       :byte_count=> File.size(@partial_file_name),
       :status=> 'active'
     }
+
     return Rack::Response.new(response.to_json)
   end
 
   def send_upload_complete()
 
-    result = JSON.parse(@redis_service.retrieve_file_status(@status_key))
+    result = @redis_service.retrieve_file_status(@status_key)
     response = {
 
       :success=> true,

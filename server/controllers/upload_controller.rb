@@ -125,6 +125,7 @@ class UploadController < Controller
       :signature=> sig,
       :status=> 'authorized' 
     }
+
     Rack::Response.new(response.to_json)
   end
 
@@ -226,12 +227,6 @@ class UploadController < Controller
     @signature = generate_signature()
     @status_key = generate_status_key()
     @file_status = @redis_service.retrieve_file_status(@status_key)
-
-    if @file_status != nil
-
-      @file_status = JSON.parse(@file_status)
-    end
-
     @full_path = generate_file_path()      
     @partial_file_name = @full_path  +'.part'
   end
