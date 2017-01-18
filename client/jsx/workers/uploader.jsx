@@ -222,15 +222,10 @@ class Uploader{
       NEXT_BLOB_SIZE = Math.floor(olbBlobSize * (TRANSFER_TIME / avgTime * 0.9))
 
       uploader['uploadStart'] = null;
-
-      console.log(this['blobUploadTimes'])
-      console.log(avgTime, BLOB_SIZE, NEXT_BLOB_SIZE);
     }
 
     if(NEXT_BLOB_SIZE < MIN_BLOB_SIZE) NEXT_BLOB_SIZE = MIN_BLOB_SIZE;
-
     this['uploadSpeed'] = (BLOB_SIZE * 8) / (avgTime/1000);
-    console.log(Math.floor(this['uploadSpeed']) +' bps');
   }
 
   averageUploadTime(){
@@ -293,6 +288,7 @@ class Uploader{
       case 'initialized':
       case 'active':
 
+        response['request']['uploadSpeed'] = this['uploadSpeed'];
         postMessage({ type: 'active', response: response });
         uploader.sendBlob(response);
         break;

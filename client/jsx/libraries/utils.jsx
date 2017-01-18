@@ -41,7 +41,9 @@ var STATUS_ITEMS = {
   'currentBlobSize': Number,
   'currentBytePosition': Number,
   'nextBlobHash': String,
-  'nextBlobSize': Number
+  'nextBlobSize': Number,
+
+  'uploadSpeed': Number
 };
 
 /* 

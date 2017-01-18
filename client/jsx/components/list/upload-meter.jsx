@@ -31,15 +31,40 @@ export default class UploadMeater extends React.Component{
 
     return (
 
-      <div className='upload-meter-info light-text'>
+      <div className='upload-meter-info light-text' style={{ 'float': 'left' }}>
 
           <span className='dark-text' style={{ fontWeight: 900 }}>
 
             { bytesUploaded }
           </span>
-          { " of "+ fileSize +" uploaded"}
+          { ' of '+ fileSize +' uploaded'}
       </div>
     );
+  }
+
+  parseUploadSpeed(){
+
+    var file = this['props']['fileUpload'];
+    if('uploadSpeed' in file){
+
+      if(isNaN(file['uploadSpeed'])) return '';
+
+      var speed = (file['uploadSpeed']/1000).toFixed(1);
+      return (
+
+        <div className='upload-meter-info' style={{ 'float': 'right' }}>
+
+          <span className='dark-text' style={{ fontWeight: 900 }}>
+            
+            { speed + ' kbps' }
+          </span>
+        </div>
+      );
+    }
+    else{
+
+      return '';
+    }
   }
 
   render(){
@@ -55,6 +80,7 @@ export default class UploadMeater extends React.Component{
         </div>
 
         { this.parseUploadBytes() }
+        { this.parseUploadSpeed() }
       </td>
     );
   }
