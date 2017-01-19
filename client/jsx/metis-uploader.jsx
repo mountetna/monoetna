@@ -374,60 +374,6 @@ class MetisUploader{
     this['uploadWorker'].postMessage(workerMessage);
   }
 
-  /*
-   * Preupload sorting and checks of the data before we call the upload worker.
-   *
-  queueUploader(){
-
-    /*
-     * check if there are any active uploads. If not then reset the uploader and 
-     * begin a new upload from the top of the queue.
-     *
-    var state = this['model']['store'].getState();
-    var uploads = state['fileData']['fileUploads'];
-
-    var anyActive = false;
-    for(var a = 0; a < uploads.length; ++a){
-
-      if(uploads[a]['status'] == 'active'){
-
-        anyActive = true;
-        break;
-      }
-    }
-
-    if(!anyActive){
-
-      this.startUploader(uploads[0]);
-    }
-  }
-
-  /*
-   * Commands to the Upload Worker.
-   *
-  startUploader(uploadFile){
-
-    var request = PARSE_REQUEST(uploadFile);
-    var state = this['model']['store'].getState();
-    var authToken = state['userInfo']['authToken'];
-    request['authorization_token'] = authToken;
-
-    var workerMessage = {
-
-      'command': 'start', 
-      'file': uploadFile,
-      'request': request
-    };
-
-    this['uploadWorker'].postMessage(workerMessage);
-  }
-
-  pauseUploader(){
-
-    console.log("test");
-  }
-  */
-
   ajaxError(xhr, config, error){
 
     console.log(xhr, config, error);
