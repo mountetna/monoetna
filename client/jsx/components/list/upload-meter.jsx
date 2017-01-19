@@ -29,11 +29,24 @@ export default class UploadMeater extends React.Component{
     var fileSize = PARSE_BYTES(file['fileSize'], true);
     var bytesUploaded = PARSE_BYTES(file['currentBytePosition'], true);
 
+    var uploadInfoProps = {
+
+      'className': 'upload-meter-info light-text',
+      'style': { 'float': 'left' }
+    }
+
+    var bytesUploadedProps = {
+
+      'className': 'dark-text',
+      'style': { fontWeight: 900 },
+      'title': 'kiloBYTES uploaded.'
+    }
+
     return (
 
-      <div className='upload-meter-info light-text' style={{ 'float': 'left' }}>
+      <div { ...uploadInfoProps }>
 
-          <span className='dark-text' style={{ fontWeight: 900 }}>
+          <span { ...bytesUploadedProps }>
 
             { bytesUploaded }
           </span>
@@ -50,11 +63,19 @@ export default class UploadMeater extends React.Component{
       if(isNaN(file['uploadSpeed'])) return '';
 
       var speed = (file['uploadSpeed']/1000).toFixed(1);
+
+      var bitSpeedProps = {
+
+        'className': 'dark-text',
+        'style': { fontWeight: 900 },
+        'title': 'kiloBITS per second.'
+      }
+
       return (
 
         <div className='upload-meter-info' style={{ 'float': 'right' }}>
 
-          <span className='dark-text' style={{ fontWeight: 900 }}>
+          <span { ...bitSpeedProps }>
             
             { speed + ' kbps' }
           </span>

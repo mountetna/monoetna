@@ -69,6 +69,31 @@ export default class MetisReducer{
           fileData['fileUploads'][fileUploadIndex] = fileUpload;
           return fileData;
 
+        case 'FILE_INITIALIZED':
+
+          var fileData = Object.assign({}, state);
+          var fileUploads = fileData['fileUploads'];
+          var initResponse = Object.assign({}, action['initResponse']);
+          initResponse['request'] = this.camelCaseIt(initResponse['request']);
+          var request = initResponse['request'];
+
+          for(var a = 0; a < fileUploads['length']; ++a){
+
+            if(fileUploads[a]['redisIndex'] == request['redisIndex']){
+
+              //uploadFile = fileUploads[a];
+              for(var key in request){
+
+                fileUploads[a][key] = request[key];
+              }
+              break;
+            }
+          }
+
+          console.log(fileData);
+
+          return fileData;
+
         case 'FILE_UPLOAD_ACTIVE':
 
           var fileData = Object.assign({}, state);

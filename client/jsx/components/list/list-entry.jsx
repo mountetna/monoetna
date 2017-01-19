@@ -67,18 +67,3 @@ export default class ListEntry extends React.Component{
     );
   }
 }
-
-/*
-      <tr className='list-entry-group'>
-
-        <td className='list-entry-icon'>
-        </td>
-        <td className='list-entry-title-group'>
-
-          <span className='list-entry-file-name'>
-            
-            { fileInfo['file_name'] }
-          </span>
-        </td>
-      </tr>
-      */

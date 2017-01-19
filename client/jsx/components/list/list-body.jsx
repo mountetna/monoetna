@@ -9,11 +9,6 @@ export default class ListBody extends React.Component{
 
     super();
   }
-
-  startFileUpload(fileUpload){
-
-    this['props'].authorizeFile(fileUpload);
-  }
   
   render(){
 
@@ -36,7 +31,10 @@ export default class ListBody extends React.Component{
                 'permissions': permissions,
                 'callbacks': {
 
-                  'startFileUpload': this['startFileUpload'].bind(this)
+                  'initializeUpload': this['props']['initializeUpload'],
+                  'startUpload': this['props']['startUpload'],
+                  'pauseUpload': this['props']['pauseUpload'],
+                  'cancelUpload': this['props']['cancelUpload']
                 }
               }
               return <ListUpload { ...listUpload } />

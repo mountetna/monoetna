@@ -168,6 +168,21 @@ class Controller
     Rack::Response.new({ :success=> false, :error=> error_message }.to_json())
   end
 
+  def send_upload_initiated()
+
+    @file_status['status'] = 'initialized'
+    response = {
+
+      :success=> true,
+      :request=> @file_status,
+      :signature=> @signature,
+      :byte_count=> File.size(@partial_file_name),
+      :status=> 'initialized'
+    }
+
+    return Rack::Response.new(response.to_json)
+  end
+
   def send_upload_active()
 
     @file_status['status'] = 'active'

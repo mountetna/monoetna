@@ -115,7 +115,8 @@ class MetisUploader{
    * asyc operations. We receive events from the redux store and we dispatch
    * events to the redux store. This way there is only one entry point to UI, 
    * which is through the redux store, and we do not upset the react/redux 
-   * paradigm.
+   * paradigm. Also if there are duplicate actions between here and a reducer.
+   * the action in the reducer will run first.
    */
   routeAction(action){
 
@@ -123,11 +124,23 @@ class MetisUploader{
 
       case 'AUTHORIZE_FILE':
 
-        this.requestAuthorization(action['data']);
+        this.requestAuthorization(action['uploadFile']);
         break;
       case 'FILE_UPLOAD_AUTHORIZED':
 
-        this.queueUploader();
+        this.initializeFile(action['authResponse']);
+        break;
+      case 'START_UPLOAD':
+
+        this.startUpload(action['redisIndex']);
+        break;
+      case 'PAUSE_UPLOAD':
+
+        console.log('mang', action['redisIndex']);
+        break;
+      case 'CANCEL_UPLOAD':
+
+        console.log('dawg', action['redisIndex']);
         break;
       case 'LOG_IN':
 
@@ -135,7 +148,6 @@ class MetisUploader{
         var password = action['data']['pass'];
         this['janusLogger'].logIn(email, password);
         break;
-
       case 'LOGGED_IN':
 
         this.retrieveFiles();
@@ -158,79 +170,46 @@ class MetisUploader{
   }
 
   /*
-   * Preupload sorting and checks of the data before we call the upload worker.
-   */
-  queueUploader(){
-
-    /*
-     * check if there are any active uploads. If not then reset the uploader and 
-     * begin a new upload from the top of the queue.
-     */
-    var state = this['model']['store'].getState();
-    var uploads = state['fileData']['fileUploads'];
-
-    var anyActive = false;
-    for(var a = 0; a < uploads.length; ++a){
-
-      if(uploads[a]['status'] == 'active'){
-
-        anyActive = true;
-        break;
-      }
-    }
-
-    if(!anyActive){
-
-      this.startUploader(uploads[0]);
-    }
-  }
-
-  /*
-   * Commands to the Upload Worker.
-   */
-  startUploader(uploadFile){
-
-    var request = PARSE_REQUEST(uploadFile);
-    var state = this['model']['store'].getState();
-    var authToken = state['userInfo']['authToken'];
-    request['authorization_token'] = authToken;
-
-    var workerMessage = {
-
-      'command': 'start', 
-      'file': uploadFile,
-      'request': request
-    };
-
-    this['uploadWorker'].postMessage(workerMessage);
-  }
-
-  pauseUploader(){
-
-    console.log("test");
-  }
-
-  /*
    * Responses from the Upload Worker.
    */
   routeResponse(message){
 
     switch(message['data']['type']){
 
+      case 'initialized':
+
+        var action = {
+
+          'type': 'FILE_INITIALIZED',
+          'initResponse': message['data']['response']
+        };
+
+        this['model']['store'].dispatch(action);
+        break;
       case 'error':
 
-        this['uploadWorker'].onerror(message['data']);
+        //this['uploadWorker'].onerror(message['data']);
         break;
       case 'active':
 
         var response = message['data']['response'];
-        var action = { type: 'FILE_UPLOAD_ACTIVE', uploadResponse: response };
+        var action = { 
+
+          'type': 'FILE_UPLOAD_ACTIVE', 
+          'uploadResponse': response 
+        };
+
         this['model']['store'].dispatch(action);
         break;
       case 'complete':
 
         var response = message['data']['response'];
-        var action = { type: 'FILE_UPLOAD_COMPLETE', uploadResponse: response };
+        var action = { 
+
+          'type': 'FILE_UPLOAD_COMPLETE',
+          'uploadResponse': response
+        };
+
         this['model']['store'].dispatch(action);
         break;
       default:
@@ -292,7 +271,12 @@ class MetisUploader{
 
     if(response['success']){
 
-      var action = { type: 'FILE_UPLOAD_AUTHORIZED', authResponse: response };
+      var action = {
+
+        'type': 'FILE_UPLOAD_AUTHORIZED',
+        'authResponse': response
+      };
+
       this['model']['store'].dispatch(action);
     }
     else{
@@ -300,6 +284,149 @@ class MetisUploader{
       console.log('There was an error.');
     }
   }
+
+  initializeFile(authResponse){
+
+    var uploadFile = this.getUploadFile(authResponse);
+    if(uploadFile == null) return;
+
+    var initWorker = new Worker('./js/workers/uploader.js');
+    initWorker['onmessage'] = (message)=>{
+      
+      this.routeResponse(message);
+    };
+    
+    initWorker['onerror'] = (message)=>{
+
+      console.log(message);
+    };
+
+    var request = PARSE_REQUEST(uploadFile);
+    var state = this['model']['store'].getState();
+    var authToken = state['userInfo']['authToken'];
+    request['authorizationToken'] = authToken;
+
+    var workerMessage = {
+
+      'command': 'initialize', 
+      'file': uploadFile,
+      'request': request
+    };
+
+    initWorker.postMessage(workerMessage);
+  }
+
+  /*
+   * Based upon the redisIndex from the auth response we can extract the actual
+   * file object from the redux store.
+   */
+  getUploadFile(authResponse){
+
+    var request = authResponse['request'];
+    var state = this['model']['store'].getState();
+    var fileUploads = state['fileData']['fileUploads'];
+    var uploadFile = null;
+    for(var a = 0; a < fileUploads['length']; ++a){
+
+      if(fileUploads[a]['redisIndex'] == request['redisIndex']){
+
+        uploadFile = fileUploads[a];
+        break;
+      }
+    }
+
+    return uploadFile;
+  }
+
+  startUpload(redisIndex){
+
+    // 1. Check if there is a file currently being uploaded.
+    // 2. Pause currently uploaded file.
+    // 3. Start 'this' file upload.
+
+    var state = this['model']['store'].getState();
+    var fileUploads = state['fileData']['fileUploads'];
+    var uploadFile = null;
+
+    for(var a = 0; a < fileUploads['length']; ++a){
+
+      if(fileUploads[a]['redisIndex'] == redisIndex){
+
+        uploadFile = fileUploads[a];
+        break;
+      }
+    }
+
+    if(uploadFile == null) return;
+    if(uploadFile['status'] == 'active') return;
+
+    var request = PARSE_REQUEST(uploadFile);
+    var authToken = state['userInfo']['authToken'];
+    request['authorizationToken'] = authToken;
+
+    var workerMessage = {
+
+      'command': 'start', 
+      'file': uploadFile,
+      'request': request
+    };
+
+    this['uploadWorker'].postMessage(workerMessage);
+  }
+
+  /*
+   * Preupload sorting and checks of the data before we call the upload worker.
+   *
+  queueUploader(){
+
+    /*
+     * check if there are any active uploads. If not then reset the uploader and 
+     * begin a new upload from the top of the queue.
+     *
+    var state = this['model']['store'].getState();
+    var uploads = state['fileData']['fileUploads'];
+
+    var anyActive = false;
+    for(var a = 0; a < uploads.length; ++a){
+
+      if(uploads[a]['status'] == 'active'){
+
+        anyActive = true;
+        break;
+      }
+    }
+
+    if(!anyActive){
+
+      this.startUploader(uploads[0]);
+    }
+  }
+
+  /*
+   * Commands to the Upload Worker.
+   *
+  startUploader(uploadFile){
+
+    var request = PARSE_REQUEST(uploadFile);
+    var state = this['model']['store'].getState();
+    var authToken = state['userInfo']['authToken'];
+    request['authorization_token'] = authToken;
+
+    var workerMessage = {
+
+      'command': 'start', 
+      'file': uploadFile,
+      'request': request
+    };
+
+    this['uploadWorker'].postMessage(workerMessage);
+  }
+
+  pauseUploader(){
+
+    console.log("test");
+  }
+  */
 
   ajaxError(xhr, config, error){
 

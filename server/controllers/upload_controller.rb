@@ -146,7 +146,7 @@ class UploadController < Controller
       return send_server_error()
     end
 
-    return send_upload_active()
+    return send_upload_initiated()
   end
 
   def create_file_status()
@@ -227,7 +227,7 @@ class UploadController < Controller
     @signature = generate_signature()
     @status_key = generate_status_key()
     @file_status = @redis_service.retrieve_file_status(@status_key)
-    @full_path = generate_file_path()      
+    @full_path = generate_file_path()
     @partial_file_name = @full_path  +'.part'
   end
 

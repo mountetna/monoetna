@@ -39,11 +39,28 @@ class Uploader{
     var command = message['command'];
     switch(command){
 
-      case 'start':
-        
+      case 'initialize':
+
         uploader.initializeUploadSequence();
         break;
+      case 'start':
 
+        /* 
+         * This 'response' object usually comes as a response from the server, 
+         * but on a 'start' command we just fake it to kick of the sequence
+         * again.
+         */
+
+        uploader.snakeCaseIt(uploader['request']);
+
+        var response = {
+
+          'request': uploader['request'],
+          'byte_count':  uploader['request']['current_byte_position']
+        };
+
+        uploader.sendBlob(response);
+        break;
       case 'pause':
 
         // Pause the upload.
@@ -126,7 +143,7 @@ class Uploader{
     catch(error){
 
       uploader['uploadStart'] = null;
-      postMessage({ 'type': 'error', message: error['message'] });
+      postMessage({ 'type': 'error', 'message': error['message'] });
     }
   }
 
@@ -287,6 +304,9 @@ class Uploader{
     switch(response['status']){
 
       case 'initialized':
+
+        postMessage({ type: 'initialized', response: response });
+        break;
       case 'active':
 
         response['request']['uploadSpeed'] = this['uploadSpeed'];
@@ -313,6 +333,15 @@ class Uploader{
 
         // None
         break;
+    }
+  }
+
+  snakeCaseIt(object){
+
+    for(var key in object){
+
+      object[SNAKE_CASE_IT(key)] = object[key];
+      if(key != key.toLowerCase()) delete object[key];
     }
   }
 

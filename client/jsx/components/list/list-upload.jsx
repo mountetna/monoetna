@@ -50,27 +50,27 @@ export default class ListUpload extends React.Component{
 
       case 'unauthorized':
 
-        status = 'File selected and waiting.'
+        status = 'file selected and waiting.';
         break;
       case 'authorized':
 
-        status = 'Auth on '+ date;
-        break;
-      case 'queued':
-
-        status = 'File upload queued.' 
+        status = 'auth for upload.';
         break;
       case 'initialized':
 
-        status = 'Initialized by '+ user;
+        status = 'queued for upload.';
         break;
       case 'active':
 
-        status = 'File uploading...'
+        status = 'file uploading...';
+        break;
+      case 'paused':
+
+        status = 'gile upload paused.';
         break;
       case 'complete':
 
-        status = 'Uploaded '+ date +' by '+ user;
+        status = 'uploaded '+ date +' by '+ user;
         break;
       default:
 
@@ -320,21 +320,6 @@ export default class ListUpload extends React.Component{
     this['props']['fileUpload']['groupId'] = permission['groupId'];
   }
 
-  startUpload(){
-
-    this['props']['callbacks'].startFileUpload(this['props']['fileUpload']);
-  }
-
-  pauseUpload(){
-
-    //this['props']['callbacks'].pauseUpload();
-  }
-
-  cancelUpload(){
-
-    //this['props']['callbacks'].cancelUpload();
-  }
-
   renderPermissionSelector(){
 
     if(this['props']['fileUpload']['status'] == 'unauthorized'){
@@ -388,29 +373,28 @@ export default class ListUpload extends React.Component{
     }
   }
 
-  /*
-  <td { ...listEntryProjectGroup }>
+  initializeUpload(){
 
-        <div { ...dropdownGroupProps }>
+    this['props']['callbacks'].initializeUpload(this['props']['fileUpload']);
+  }
 
-          <input { ...dropdownInputProps }/>
-          <button { ...dropdownBtnProps }>
+  startUpload(){
 
-            <span className='glyphicon glyphicon-triangle-bottom'></span>
-          </button>
-          <div { ...dropdownTrayProps }>
+    var redisIndex = this['props']['fileUpload']['redisIndex'];
+    this['props']['callbacks'].startUpload(redisIndex);
+  }
 
-            { this.addEntries() }
-          </div>
-        </div>
-        <div { ...listEntryStatus }>
+  pauseUpload(){
 
-          <span className='light-text'>
+    var redisIndex = this['props']['fileUpload']['redisIndex'];
+    this['props']['callbacks'].pauseUpload(redisIndex);
+  }
 
-            { this.setRole() }
-          </span>
-        </div>
-      </td>*/
+  cancelUpload(){
+
+    var redisIndex = this['props']['fileUpload']['redisIndex'];
+    this['props']['callbacks'].cancelUpload(redisIndex);
+  }
 
   render(){
 
@@ -437,6 +421,7 @@ export default class ListUpload extends React.Component{
       'fileUpload': this['props']['fileUpload'],
       'callbacks': {
 
+        'initializeUpload': this['initializeUpload'].bind(this),
         'startUpload': this['startUpload'].bind(this),
         'pauseUpload': this['pauseUpload'].bind(this),
         'cancelUpload': this['cancelUpload'].bind(this)

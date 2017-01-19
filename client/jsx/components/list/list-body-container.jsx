@@ -35,9 +35,27 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
 
   return {
 
-    authorizeFile: (file)=>{
+    initializeUpload: (file)=>{
 
-      var action = { type: 'AUTHORIZE_FILE', data: file };
+      var action = { 'type': 'AUTHORIZE_FILE', 'uploadFile': file };
+      dispatch(action);
+    },
+
+    startUpload: (redisIndex)=>{
+
+      var action = { 'type': 'START_UPLOAD', 'redisIndex': redisIndex };
+      dispatch(action);
+    },
+
+    pauseUpload: (redisIndex)=>{
+
+      var action = { 'type': 'PAUSE_UPLOAD', 'redisIndex': redisIndex };
+      dispatch(action);
+    },
+
+    cancelUpload: (redisIndex)=>{
+
+      var action = { 'type': 'CANCEL_UPLOAD', 'redisIndex': redisIndex };
       dispatch(action);
     }
   };

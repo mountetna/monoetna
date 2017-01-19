@@ -6,44 +6,49 @@ export default class UploadControl extends React.Component{
 
     super();
   }
-  
-  startUpload(){
-
-    this['props']['callbacks'].startUpload();
-  }
-
-  pauseUpload(){
-
-    this['props']['callbacks'].pauseUpload();
-  }
-
-  cancelUpload(){
-
-    this['props']['callbacks'].cancelUpload();
-  }
 
   // Show the start or pause button.
   renderStartPause(){
 
-    if(this['props']['fileUpload']['status'] == 'active'){
+    var uploadCtrlBtnProps = { 'className': 'upload-control-btn' };
+    var callbacks = this['props']['callbacks'];
 
-      return (
+    switch(this['props']['fileUpload']['status']){
 
-        <button className='upload-control-btn' onClick={ this['pauseUpload'].bind(this) }>
+      case 'unauthorized':
 
-          <span className='glyphicon glyphicon-pause'></span>
-        </button>
-      );
-    }
-    else{
+        uploadCtrlBtnProps['onClick'] = callbacks['initializeUpload'];
+        return (
 
-      return (
+          <button { ...uploadCtrlBtnProps }>
 
-        <button className='upload-control-btn' onClick={ this['startUpload'].bind(this) }>
+            <span className='glyphicon glyphicon-arrow-right'></span>
+          </button>
+        );
+      case 'initialized':
+      case 'paused':
 
-          <span className='glyphicon glyphicon-play'></span>
-        </button>
-      );
+        uploadCtrlBtnProps['onClick'] = callbacks['startUpload'];
+        return (
+
+          <button { ...uploadCtrlBtnProps }>
+
+            <span className='glyphicon glyphicon-play'></span>
+          </button>
+        );
+      case 'active':
+
+        uploadCtrlBtnProps['onClick'] = callbacks['pauseUpload'];
+        return (
+
+          <button { ...uploadCtrlBtnProps }>
+
+            <span className='glyphicon glyphicon-pause'></span>
+          </button>
+        );
+      default:
+
+        return '';
     }
   }
 
@@ -52,7 +57,7 @@ export default class UploadControl extends React.Component{
     var uploadControlBtn = {
 
       'className': 'upload-control-btn',
-      'onClick': this['cancelUpload'].bind(this)
+      'onClick': this['props']['callbacks']['cancelUpload']
     };
 
     return (
