@@ -16,7 +16,7 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
 
     fileSelected: (file)=>{
 
-      var action = { type: 'FILE_SELECTED', data: file };
+      var action = { type: 'FILE_SELECTED', fileObject: file };
       dispatch(action);
     }
   };
