@@ -16,19 +16,20 @@ module ProjectSync
     url = Conf::JANUS_ADDR
     url = url + '/get-groups'
     data = {
-  
+
       :token=> ARGV[0], 
       :app_key=> Conf::APP_KEY
     }
-  
+
     groups = make_request(url, data)
+
     return groups
   end
 
   def ProjectSync.check_groups(groups)
 
     groups = JSON.parse(groups)
-    
+
     if !groups.key?('success') || !groups.key?('groups')
 
       puts ProjectSync.send_server_error()
@@ -45,11 +46,11 @@ module ProjectSync
   end
   
   def ProjectSync.get_projects()
-  
+
     url = Conf::JANUS_ADDR
     url = url + '/get-projects'
-    data = { 
-  
+    data = {
+
       :token=> ARGV[0], 
       :app_key=> Conf::APP_KEY 
     }
@@ -82,7 +83,7 @@ module ProjectSync
 
       dir_name = File.join('/data', group_key.to_s())
       if !File.directory?(dir_name)
-    
+
         FileUtils.mkdir_p(dir_name)
       end
 
@@ -109,18 +110,18 @@ module ProjectSync
     
       structure[group['id']] = {}
     end
-    
+
     # Create the directory structure from the database.
     projects.each do |project|
-    
+
       group_id = project['group_id']
-    
+
       if !structure.key?(group_id)
-    
+
         # alert that a main group is missing.
         # it is present in the projects but no in the group table.
       else
-    
+
         structure[group_id][project['id']] = []
       end
     end
@@ -133,9 +134,9 @@ module ProjectSync
     new_structure = {}
     Dir.chdir('/data')
     Dir.glob('*').select {|dir_file| 
-    
+
       if File.directory?(dir_file)
-    
+
         # puts dir_file
         new_structure[dir_file] = {}
       end
@@ -173,7 +174,7 @@ module ProjectSync
   end
 
   def ProjectSync.print_help
-  
+
     puts ''
     puts ' desc: Generates a tree that represents the metis file/directory structure.'
     puts 'usage: ./project_sync.rb [janus token]'
@@ -192,6 +193,7 @@ end
 # Get and check the groups from Janus
 groups = ProjectSync::get_groups()
 groups = ProjectSync::check_groups(groups)
+
 if groups == 0
 
   exit 1
@@ -200,6 +202,7 @@ end
 # Get and check the projects from Janus.
 projects = ProjectSync::get_projects()
 projects = ProjectSync::check_projects(projects)
+
 if projects == 0
 
   exit 1
