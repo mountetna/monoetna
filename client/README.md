@@ -51,7 +51,7 @@
   * babel
   * webpack
 
-  I like running two terminals (using tmux) side by side and running each util in a separate window so I can see the build process as it happens
+  I like running two terminals (using tmux) side by side and running each util in a separate pane so I can see the build process as it happens
 
   First start up babel to watch the 'jsx' files and build normal 'js' files. In my case even regular Javascript code is labeled with the .jsx extension so I can tell a processed from unprocessed file.
 
@@ -61,7 +61,7 @@
 
   `$ webpack --watch ./client/js/metis-uploader.js ./client/js/metis-main.bundle.js`
 
-  If the `webpack.config.js` file is present in the parent folder you can jhust run:
+  If the `webpack.config.js` file is present in the parent folder you can just run:
 
   `$ webpack --watch`
 
