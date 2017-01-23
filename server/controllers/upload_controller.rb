@@ -217,6 +217,7 @@ class UploadController < Controller
     @file_status['current_blob_size'] = File.size(temp_file_path)
     @file_status['next_blob_hash'] = params['next_blob_hash']
     @file_status['next_blob_size'] = params['next_blob_size']
+    @file_status['status'] = 'active'
 
     @redis_service.set_file_status(@status_key, @file_status.to_json)
   end
