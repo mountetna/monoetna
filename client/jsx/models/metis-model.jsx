@@ -23,7 +23,8 @@ export default class MetisModel{
       'fileData': {
 
         'fileList': [],
-        'fileUploads': []
+        'fileUploads': [],
+        'fileFails': []
       },
 
       'userInfo': {

@@ -147,9 +147,13 @@ class Controller
         for key in keys
 
           file_metadata = @redis_service.retrieve_file_status(key)
+
           if file_metadata != nil
-            
-            file_data.push(file_metadata)
+
+            if file_metadata['status'] == 'complete'
+
+              file_data.push(file_metadata)
+            end
           end
         end
       end

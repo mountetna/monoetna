@@ -124,11 +124,21 @@ class MetisUploader{
 
       case 'AUTHORIZE_FILE':
 
+        if(!this.checkAuthData(action['uploadFile'])){
+
+          alert('The data to upload is not complete.');
+          return;
+        }
         this.requestAuthorization(action['uploadFile']);
         break;
       case 'FILE_UPLOAD_AUTHORIZED':
 
         this.initializeFile(action['authResponse']);
+        break;
+
+      case 'FILE_METADATA_RECEIVED':
+
+        this.cancelDroppedUploads();
         break;
       case 'START_UPLOAD':
 
@@ -217,6 +227,12 @@ class MetisUploader{
         //none
         break;
     }
+  }
+
+  // Make sure all of the items required for authentication are present.
+  checkAuthData(fileUpload){
+
+    return true;
   }
 
   /*
@@ -372,6 +388,19 @@ class MetisUploader{
     };
 
     this['uploadWorker'].postMessage(workerMessage);
+  }
+
+  /*
+   * In the event that the page has been refreashed, the connection is
+   * dropped or reset there could be items from the server that are listed as
+   * 'active'. We should identify those file entries and run a 'cancel' command
+   * to remove those items.
+   */
+  cancelDroppedUploads(){
+
+    var state = this['model']['store'].getState();
+    var fileFails = state['fileData']['fileFails'];
+    console.log(fileFails);
   }
 
   ajaxError(xhr, config, error){

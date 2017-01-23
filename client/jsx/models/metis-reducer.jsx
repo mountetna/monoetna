@@ -11,7 +11,7 @@ export default class MetisReducer{
           var fileData = Object.assign({}, state);
 
           // MOD START
-          var fileObject = action['data'];
+          var fileObject = action['fileObject'];
           fileObject['fileName'] = fileObject['name'];
           fileObject['originalName'] = fileObject['name'];
           fileObject['fileSize'] = fileObject['size'];
@@ -167,6 +167,18 @@ export default class MetisReducer{
             fileData['fileList'].push(file);
           }
 
+          // Extract the file uploads that were incomplete from the file list.
+          var fileFails = [];
+          for(var index in fileData['fileList']){
+
+            if(fileData['fileList'][index]['status'] != 'complete'){
+
+              fileFails.push(fileData['fileList'][index]);
+              fileData['fileList'].splice(index, 1);
+            }
+          }
+
+          fileData['fileFails'] = fileFails;
           return fileData;
 
         default:
