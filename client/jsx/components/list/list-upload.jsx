@@ -66,7 +66,7 @@ export default class ListUpload extends React.Component{
         break;
       case 'paused':
 
-        status = 'gile upload paused.';
+        status = 'file upload paused.';
         break;
       case 'complete':
 

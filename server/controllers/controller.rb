@@ -132,32 +132,45 @@ class Controller
       project_ids.push(group_id+'.'+project_id)
     end
 
-    file_list = pull_file_metadata(project_ids)
+    file_list = pull_file_metadata(project_ids, user_info['user_id'])
     Rack::Response.new({ :success=> true, :file_list=> file_list }.to_json())
   end
 
-  def pull_file_metadata(project_ids)
+  def pull_file_metadata(project_ids, user_id)
 
     file_data = []
     for project_id in project_ids
 
+      # Pull all the metadata keys that the user has permissions on.
       keys = @redis_service.retrieve_file_key('*'+project_id)
       if keys != nil
 
         for key in keys
 
+          # Pull the indivitual file status.
           file_metadata = @redis_service.retrieve_file_status(key)
 
           if file_metadata != nil
 
-            if file_metadata['status'] == 'complete'
+            # If the file is complete it will have a 'finished_timestamp'.
+            if file_metadata.key?('finish_timestamp')
 
               file_data.push(file_metadata)
+            else
+
+              # If the file is not complete and the 'user_id' matches the user
+              # requesting this action, then we know that this is an incomplete
+              # upload. We can possibly resume it so we send that back.
+              if file_metadata['user_id'].to_s == user_id.to_s
+
+                file_data.push(file_metadata)
+              end
             end
           end
         end
       end
     end
+
     return file_data
   end
 

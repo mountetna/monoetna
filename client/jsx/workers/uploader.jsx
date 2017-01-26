@@ -13,10 +13,12 @@ class Uploader{
     this['file'] = null;
     this['request'] = null;
 
-    this['uploadStart'] = null; // in milliseconds
-    this['blobWindow'] = 30; // how many blob uploads to average over.
+    this['uploadStart'] = null; // The time at which the upload started in mS.
+    this['blobWindow'] = 30; // How many blob uploads to average over.
     this['blobUploadTimes'] = [];
     this['uploadSpeed'] = 0;
+
+    this['pause'] = false;
   }
 
   /*
@@ -63,7 +65,8 @@ class Uploader{
         break;
       case 'pause':
 
-        // Pause the upload.
+        // Set a pause flag.
+        uploader['pause'] = true;
         break;
       case 'query':
 
@@ -143,6 +146,33 @@ class Uploader{
     catch(error){
 
       uploader['uploadStart'] = null;
+      postMessage({ 'type': 'error', 'message': error['message'] });
+    }
+  }
+
+  sendPause(response){
+
+    var pauseData = [];
+    for(var key in response['request']){
+
+      pauseData.push(key+'='+response['request'][key]);
+    }
+
+    try{
+
+      AJAX({
+
+        'url': '/upload-pause',
+        'method': 'POST',
+        'sendType': 'serial',
+        'returnType': 'json',
+        'data': pauseData.join('&'),
+        'success': uploader['handleServerResponse'],
+        'error': uploader['ajaxError']
+      });
+    }
+    catch(error){
+
       postMessage({ 'type': 'error', 'message': error['message'] });
     }
   }
@@ -311,10 +341,28 @@ class Uploader{
 
         response['request']['uploadSpeed'] = this['uploadSpeed'];
         postMessage({ type: 'active', response: response });
-        uploader.sendBlob(response);
+
+        /*
+         * Check the 'pause' flag, if set then send the pause message to the
+         * server.
+         */
+        if(uploader['pause']){
+
+          uploader.sendPause(response);
+        }
+        else{
+
+          uploader.sendBlob(response);
+        }
         break;
       case 'paused':
 
+        /*
+         * Here the server responed that it got the pause message and the upload
+         * is in a paused state. We also clear the 'pause' flag on the uploader.
+         */
+        uploader['pause'] = false;
+        postMessage({ type: 'paused', response: response });
         break;
       case 'complete':
 

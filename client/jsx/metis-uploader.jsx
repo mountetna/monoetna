@@ -146,7 +146,7 @@ class MetisUploader{
         break;
       case 'PAUSE_UPLOAD':
 
-        console.log('mang', action['redisIndex']);
+        this.pauseUpload(action['redisIndex']);
         break;
       case 'CANCEL_UPLOAD':
 
@@ -210,6 +210,21 @@ class MetisUploader{
         };
 
         this['model']['store'].dispatch(action);
+        break;
+
+      case 'paused':
+
+        var response = message['data']['response'];
+        var action = { 
+
+          'type': 'FILE_UPLOAD_PAUSED', 
+          'pauseResponse': response 
+        };
+
+        this['model']['store'].dispatch(action);
+
+        // check the cue for another upload
+        //this.startUpload();
         break;
       case 'complete':
 
@@ -387,6 +402,12 @@ class MetisUploader{
       'request': request
     };
 
+    this['uploadWorker'].postMessage(workerMessage);
+  }
+
+  pauseUpload(redisIndex){
+
+    var workerMessage = { 'command': 'pause' };
     this['uploadWorker'].postMessage(workerMessage);
   }
 

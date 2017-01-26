@@ -24,6 +24,7 @@ var STATUS_ITEMS = {
   'signingAlgorithm': String,
   'hashingAlgorithm': String,
   'startTimestamp': Number,
+  'finishTimestamp': Number,
   'authToken': String,
   'authorizationToken': String,
   'originalName': String,    

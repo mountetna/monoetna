@@ -89,9 +89,6 @@ export default class MetisReducer{
               break;
             }
           }
-
-          console.log(fileData);
-
           return fileData;
 
         case 'FILE_UPLOAD_ACTIVE':
@@ -161,24 +158,45 @@ export default class MetisReducer{
           var fileList = fileData['fileList'];
 
           fileData['fileList'] = [];
-          for(var index in action['fileList']){
+          for(var a = 0; a < action['fileList']['length']; ++a){
 
-            var file = this.camelCaseIt(action['fileList'][index]);
+            var file = this.camelCaseIt(action['fileList'][a]);
             fileData['fileList'].push(file);
           }
 
           // Extract the file uploads that were incomplete from the file list.
           var fileFails = [];
-          for(var index in fileData['fileList']){
+          for(var b = 0; b < fileData['fileList']['length']; ++b){
 
-            if(fileData['fileList'][index]['status'] != 'complete'){
+            if(!fileData['fileList'][b].hasOwnProperty('finishTimestamp')){
 
-              fileFails.push(fileData['fileList'][index]);
-              fileData['fileList'].splice(index, 1);
+              fileFails.push(fileData['fileList'][b]);
+              fileData['fileList'].splice(b, 1);
             }
           }
 
           fileData['fileFails'] = fileFails;
+          return fileData;
+
+        case 'FILE_UPLOAD_PAUSED':
+
+          var fileData = Object.assign({}, state);
+          var fileUploads = fileData['fileUploads'];
+
+          // MOD START
+          var reqData = this.camelCaseIt(action['pauseResponse']['request']);
+          for(var a = 0; a < fileUploads['length']; ++a){
+
+            if(fileUploads[a]['redisIndex'] == reqData['redisIndex']){
+
+              for(var key in reqData){
+
+                fileUploads[a][key] = reqData[key];
+              }
+              break;
+            }
+          }
+
           return fileData;
 
         default:

@@ -149,6 +149,28 @@ class UploadController < Controller
     return send_upload_initiated()
   end
 
+  def pause_upload()
+
+    generate_common_items()
+
+    if !request_valid?()
+
+      return send_bad_request()
+    end
+
+    @file_status['status'] = 'paused'
+    @redis_service.set_file_status(@status_key, @file_status.to_json)
+
+    response = {
+
+      :success=> true,
+      :status=> 'paused',
+      :request=> @file_status
+    }
+
+    Rack::Response.new(response.to_json())
+  end
+
   def create_file_status()
 
     params = @request.POST()
@@ -441,11 +463,6 @@ class UploadController < Controller
     @file_status['hash'] = Digest::MD5.hexdigest(File.read(@full_path))
 
     @redis_service.set_file_status(@status_key, @file_status.to_json)
-  end
-
-  def pause_upload()
-
-    Rack::Response.new({ :success=> false }.to_json())
   end
 
   def stop_upload()
