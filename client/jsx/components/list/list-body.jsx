@@ -32,7 +32,7 @@ export default class ListBody extends React.Component{
                 'callbacks': {
 
                   'initializeUpload': this['props']['initializeUpload'],
-                  'startUpload': this['props']['startUpload'],
+                  'queueUpload': this['props']['queueUpload'],
                   'pauseUpload': this['props']['pauseUpload'],
                   'cancelUpload': this['props']['cancelUpload']
                 }

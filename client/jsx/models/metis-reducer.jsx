@@ -199,6 +199,34 @@ export default class MetisReducer{
 
           return fileData;
 
+        case 'QUEUE_UPLOAD':
+
+          var fileData = Object.assign({}, state);
+          var fileUploads = fileData['fileUploads'];
+
+          for(var a = 0; a < fileUploads['length']; ++a){
+
+            // Remove any 'queued' status
+            if(fileUploads[a]['status'] == 'queued'){
+
+              if(fileUploads[a]['currentBytePosition'] == 0){
+
+                fileUploads[a]['status'] = 'initialized';
+              }
+              else{
+
+                fileUploads[a]['status'] = 'paused';
+              }
+            }
+
+            // Apply a 'queued' status to a matching file upload.
+            if(fileUploads[a]['redisIndex'] == action['redisIndex']){
+
+              fileUploads[a]['status'] = 'queued';
+            }
+          }
+          return fileData;
+
         default:
 
           var fileData = Object.assign({}, state);

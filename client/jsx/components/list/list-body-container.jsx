@@ -41,9 +41,9 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
       dispatch(action);
     },
 
-    startUpload: (redisIndex)=>{
+    queueUpload: (redisIndex)=>{
 
-      var action = { 'type': 'START_UPLOAD', 'redisIndex': redisIndex };
+      var action = { 'type': 'QUEUE_UPLOAD', 'redisIndex': redisIndex };
       dispatch(action);
     },
 

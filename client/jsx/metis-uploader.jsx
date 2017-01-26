@@ -79,7 +79,7 @@ class MetisUploader{
       // Request authorization to upload the file.
       AJAX({
 
-        'url': '/retrieve-files', //replace this URL with the Magma End Point
+        'url': '/retrieve-files',
         'method': 'POST',
         'sendType': 'serial',
         'returnType': 'json',
@@ -140,9 +140,14 @@ class MetisUploader{
 
         this.cancelDroppedUploads();
         break;
-      case 'START_UPLOAD':
 
-        this.startUpload(action['redisIndex']);
+      /*
+       * This command is also in the 'metis-reducer' to set the appropriate
+       * 'queued' status to the correct file upload.
+       */
+      case 'QUEUE_UPLOAD':
+
+        this.startUpload();
         break;
       case 'PAUSE_UPLOAD':
 
@@ -223,8 +228,8 @@ class MetisUploader{
 
         this['model']['store'].dispatch(action);
 
-        // check the cue for another upload
-        //this.startUpload();
+        // Check the queue for another upload.
+        this.startUpload();
         break;
       case 'complete':
 
@@ -239,7 +244,7 @@ class MetisUploader{
         break;
       default:
 
-        //none
+        // none
         break;
     }
   }
@@ -285,7 +290,7 @@ class MetisUploader{
     // Request authorization to upload the file.
     AJAX({
 
-      'url': '/upload-authorize', //replace this URL with the Magma End Point
+      'url': '/upload-authorize',
       'method': 'POST',
       'sendType': 'serial',
       'returnType': 'json',
@@ -369,11 +374,11 @@ class MetisUploader{
     return uploadFile;
   }
 
-  startUpload(redisIndex){
-
-    // 1. Check if there is a file currently being uploaded.
-    // 2. Pause currently uploaded file.
-    // 3. Start 'this' file upload.
+  /*
+   * For details on the upload/start/pause cycle please refer to the REAME.md
+   * file in the 'workers' folder.
+   */
+  startUpload(){
 
     var state = this['model']['store'].getState();
     var fileUploads = state['fileData']['fileUploads'];
@@ -381,15 +386,23 @@ class MetisUploader{
 
     for(var a = 0; a < fileUploads['length']; ++a){
 
-      if(fileUploads[a]['redisIndex'] == redisIndex){
+      if(fileUploads[a]['status'] == 'queued'){
 
         uploadFile = fileUploads[a];
-        break;
+      }
+
+      /*
+       * If there is an file upload that is active we bail out here and run the
+       * pause cycle.
+       */
+      if(fileUploads[a]['status'] == 'active'){
+
+        this.pauseUpload();
+        return;
       }
     }
 
     if(uploadFile == null) return;
-    if(uploadFile['status'] == 'active') return;
 
     var request = PARSE_REQUEST(uploadFile);
     var authToken = state['userInfo']['authToken'];
@@ -405,7 +418,7 @@ class MetisUploader{
     this['uploadWorker'].postMessage(workerMessage);
   }
 
-  pauseUpload(redisIndex){
+  pauseUpload(){
 
     var workerMessage = { 'command': 'pause' };
     this['uploadWorker'].postMessage(workerMessage);

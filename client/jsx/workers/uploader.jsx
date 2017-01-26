@@ -49,7 +49,7 @@ class Uploader{
 
         /* 
          * This 'response' object usually comes as a response from the server, 
-         * but on a 'start' command we just fake it to kick of the sequence
+         * but on a 'start' command we just fake it to kick off the sequence
          * again.
          */
 

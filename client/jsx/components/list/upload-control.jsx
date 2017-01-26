@@ -28,7 +28,7 @@ export default class UploadControl extends React.Component{
       case 'initialized':
       case 'paused':
 
-        uploadCtrlBtnProps['onClick'] = callbacks['startUpload'];
+        uploadCtrlBtnProps['onClick'] = callbacks['queueUpload'];
         return (
 
           <button { ...uploadCtrlBtnProps }>
