@@ -4,24 +4,32 @@ import ListBody from './list-body';
 const mapStateToProps = (state, ownProps)=>{
 
   // Blend the specific user data permissions in with the file data.
-  var fileList = state['fileData']['fileList'];
   var permissions = state['userInfo']['permissions'];
 
-  for(var a = 0; a < fileList['length']; ++a){
+  var permissionMapper = (listElem, perms)=>{
 
-    for(var b = 0; b < permissions['length']; ++b){
+    for(var c = 0; c < perms['length']; ++c){
 
-      if(parseInt(fileList[a]['projectId']) == permissions[b]['projectId']){
+      if(parseInt(listElem['projectId']) == perms[c]['projectId']){
 
-        fileList[a]['projectName'] = permissions[b]['projectName'];
-        fileList[a]['role'] = permissions[b]['role'];
-        fileList[a]['groupId'] = permissions[b]['groupId'];
+        listElem['projectName'] = perms[c]['projectName'];
+        listElem['role'] = perms[c]['role'];
+        listElem['groupId'] = perms[c]['groupId'];
         break;
       }
     }
   }
 
-  state['fileData']['fileList'] = fileList;
+  for(var a = 0; a < state['fileData']['fileList']['length']; ++a){
+
+    permissionMapper(state['fileData']['fileList'][a], permissions);
+  }
+
+  for(var b = 0; b < state['fileData']['fileFails']['length']; ++b){
+
+    permissionMapper(state['fileData']['fileFails'][b], permissions);
+    state['fileData']['fileFails'][b]['status'] = 'failed';
+  }
 
   // state == redux store
   return {
@@ -56,6 +64,24 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
     cancelUpload: (redisIndex)=>{
 
       var action = { 'type': 'CANCEL_UPLOAD', 'redisIndex': redisIndex };
+      dispatch(action);
+    },
+
+    recoverUpload: (file, fileMetadata)=>{
+
+      var action = { 
+
+        'type': 'RECOVER_UPLOAD',
+        'uploadFile': file,
+        'fileMetadata': fileMetadata
+      };
+
+      dispatch(action);
+    },
+
+    removeFile: (fileMetadata)=>{
+
+      var action = { 'type': 'REMOVE_FILE', 'fileMetadata': fileMetadata };
       dispatch(action);
     }
   };

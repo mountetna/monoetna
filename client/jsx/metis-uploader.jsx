@@ -17,6 +17,8 @@ class MetisUploader{
     this['janusLogger'] = new JanusLogger();
 
     this.initDataStore();
+    this.spawnUploadWorker();
+    this.buildUI();
 
     /*
      * We pass in the store since we bind events to it. The AJAX callbacks will
@@ -24,9 +26,6 @@ class MetisUploader{
      */
     this['janusLogger']['model']['store'] = this['model']['store'];
     this['janusLogger'].checkLog();
-
-    this.spawnUploadWorker();
-    this.buildUI();
   }
 
   initDataStore(){
@@ -135,16 +134,6 @@ class MetisUploader{
 
         this.initializeFile(action['authResponse']);
         break;
-
-      case 'FILE_METADATA_RECEIVED':
-
-        this.cancelDroppedUploads();
-        break;
-
-      /*
-       * This command is also in the 'metis-reducer' to set the appropriate
-       * 'queued' status to the correct file upload.
-       */
       case 'QUEUE_UPLOAD':
 
         this.startUpload();
@@ -155,7 +144,15 @@ class MetisUploader{
         break;
       case 'CANCEL_UPLOAD':
 
-        console.log('dawg', action['redisIndex']);
+        this.cancelUpload(action['fileMetadata']);
+        break;
+      case 'REMOVE_FILE':
+
+        this.removeFile(action['fileMetadata']);
+        break;
+      case 'RECOVER_UPLOAD':
+
+        this.recoverUpload(action['uploadFile'], action['fileMetadata']);
         break;
       case 'LOG_IN':
 
@@ -249,6 +246,9 @@ class MetisUploader{
     }
   }
 
+  /*
+   * This is stubbed out and needs to be finished
+   */
   // Make sure all of the items required for authentication are present.
   checkAuthData(fileUpload){
 
@@ -424,17 +424,53 @@ class MetisUploader{
     this['uploadWorker'].postMessage(workerMessage);
   }
 
-  /*
-   * In the event that the page has been refreashed, the connection is
-   * dropped or reset there could be items from the server that are listed as
-   * 'active'. We should identify those file entries and run a 'cancel' command
-   * to remove those items.
-   */
-  cancelDroppedUploads(){
+  recoverUpload(uploadFile, fileMetadata){
+
+    // compare file name
+    // compare file size
+    // extract blob from upload file
+    // hash the blob
+    // compare the hash
+    console.log(fileMetadata);
+  }
+
+  removeFile(fileMetadata){
+
+    // Serialize the request for POST.
+    var request = [];
+    for(var key in fileMetadata){
+
+      request.push(SNAKE_CASE_IT(key) +'='+ fileMetadata[key]);
+    }
 
     var state = this['model']['store'].getState();
-    var fileFails = state['fileData']['fileFails'];
-    console.log(fileFails);
+    request.push('authorization_token='+ state['userInfo']['authToken']);
+    request.push('signing_algorithm=MD5');
+
+    // Request authorization to upload the file.
+    AJAX({
+
+      'url': '/file-remove',
+      'method': 'POST',
+      'sendType': 'serial',
+      'returnType': 'json',
+      'data': request.join('&'),
+      'success': this['removeFileResponse'].bind(this),
+      'error': this['ajaxError'].bind(this)
+    });
+  }
+
+  removeFileResponse(response){
+
+    console.log(response);
+    if(response['success']){
+
+      //console.log(response);
+    }
+    else{
+
+      console.log('There was an error.');
+    }
   }
 
   ajaxError(xhr, config, error){

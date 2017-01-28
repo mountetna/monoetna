@@ -1,4 +1,4 @@
-import * as React from 'react'
+import * as React from 'react';
 
 export default class ListHead extends React.Component{
 
@@ -29,6 +29,7 @@ export default class ListHead extends React.Component{
     var fileSelector = {
 
       'id': 'file-selector',
+      'className': 'file-selector',
       'type': 'file',
       'name': 'upload-file',
       'onChange': this['fileSelected'].bind(this)

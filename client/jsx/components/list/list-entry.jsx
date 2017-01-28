@@ -1,4 +1,6 @@
-import * as React from 'react'
+import * as React from 'react';
+
+import FileControl from './file-control';
 
 export default class ListEntry extends React.Component{
 
@@ -7,9 +9,23 @@ export default class ListEntry extends React.Component{
     super();
   }
 
+  removeFile(){
+
+    this['props']['callbacks'].removeFile(this['props']['fileInfo']);
+  }
+
   render(){
 
     var fileInfo = this['props']['fileInfo'];
+
+    var fileControlProps = {
+
+      'fileInfo': fileInfo,
+      'callbacks': {
+
+        'removeFile':  this['removeFile'].bind(this)
+      }
+    };
 
     return (
 
@@ -31,7 +47,6 @@ export default class ListEntry extends React.Component{
             </span>
           </div>
         </td>
-
         <td className='list-entry-project-group'>
 
           <div className='list-entry-project-name'>
@@ -46,7 +61,6 @@ export default class ListEntry extends React.Component{
             </span>
           </div>
         </td>
-
         <td className='list-entry-title-group'>
 
           <div className='list-entry-file-size'>
@@ -57,12 +71,7 @@ export default class ListEntry extends React.Component{
             </span>
           </div>
         </td>
-
-        <td className='list-entry-title-group'>
-
-          { /*'controls'*/ }
-        </td>
-
+        <FileControl { ...fileControlProps } />
       </tr>
     );
   }

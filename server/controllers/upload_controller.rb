@@ -86,6 +86,90 @@ class UploadController < Controller
     return generate_authorization(params, user_info, project_ids[1], directory)
   end
 
+  def start_upload()
+
+    generate_common_items()
+
+    if !request_valid?()
+
+      return send_bad_request()
+    end
+
+    create_file_status()
+    create_partial_file()
+
+    if @file_status == nil
+
+      return send_server_error()
+    end
+
+    return send_upload_initiated()
+  end
+
+  def pause_upload()
+
+    generate_common_items()
+
+    if !request_valid?()
+
+      return send_bad_request()
+    end
+
+    @file_status['status'] = 'paused'
+    @redis_service.set_file_status(@status_key, @file_status.to_json)
+
+    response = {
+
+      :success=> true,
+      :status=> 'paused',
+      :request=> @file_status
+    }
+
+    Rack::Response.new(response.to_json())
+  end
+
+  def upload_blob()
+
+    generate_common_items()
+
+    if !request_valid?()
+
+      return send_bad_request()
+    end
+
+    if @file_status == nil
+
+      return send_server_error()
+    end
+
+    if !blob_integrity_ok?()
+
+      return send_bad_request()
+    end
+
+    append_blob()
+    update_file_status()
+
+    if upload_complete?()
+
+      make_file_permanent()
+      hash_and_set_file_status()
+      return send_upload_complete()
+    else
+
+      return send_upload_active()
+    end
+  end
+
+  def remove_file()
+
+    generate_common_items()
+
+    # Delete file.
+
+    return  Rack::Response.new({ :success=> true, :mang=> 'sup' }.to_json())
+  end
+
   def generate_authorization(params, user_info, project_id, directory)
 
     time = Time::now.to_i
@@ -129,96 +213,6 @@ class UploadController < Controller
     Rack::Response.new(response.to_json)
   end
 
-  def start_upload()
-
-    generate_common_items()
-
-    if !request_valid?()
-
-      return send_bad_request()
-    end
-
-    create_file_status()
-    create_partial_file()
-
-    if @file_status == nil
-
-      return send_server_error()
-    end
-
-    return send_upload_initiated()
-  end
-
-  def pause_upload()
-
-    generate_common_items()
-
-    if !request_valid?()
-
-      return send_bad_request()
-    end
-
-    @file_status['status'] = 'paused'
-    @redis_service.set_file_status(@status_key, @file_status.to_json)
-
-    response = {
-
-      :success=> true,
-      :status=> 'paused',
-      :request=> @file_status
-    }
-
-    Rack::Response.new(response.to_json())
-  end
-
-  def create_file_status()
-
-    params = @request.POST()
-    params['current_blob_size'] = 0
-    params['current_byte_position'] = 0
-    @redis_service.set_file_status(@status_key, params.to_json)
-    @file_status = @redis_service.retrieve_file_status(@status_key)
-  end
-
-  def create_partial_file()
-
-    partial_file = File.new(@partial_file_name, 'w')
-    partial_file.close()
-  end
-
-  def upload_blob()
-
-    generate_common_items()
-
-    if !request_valid?()
-
-      return send_bad_request()
-    end
-
-    if @file_status == nil
-
-      return send_server_error()
-    end
-
-    if !blob_integrity_ok?()
-
-      return send_bad_request()
-    end
-
-    append_blob()
-    update_file_status()
-
-    if upload_complete?()
-
-      make_file_permanent()
-      hash_and_set_file_status()
-      return send_upload_complete()
-    else
-
-      return send_upload_active()
-    end
-  end
-
   def append_blob()
 
     temp_file_name = @request['blob'][:tempfile].path()
@@ -242,6 +236,21 @@ class UploadController < Controller
     @file_status['status'] = 'active'
 
     @redis_service.set_file_status(@status_key, @file_status.to_json)
+  end
+
+  def create_file_status()
+
+    params = @request.POST()
+    params['current_blob_size'] = 0
+    params['current_byte_position'] = 0
+    @redis_service.set_file_status(@status_key, params.to_json)
+    @file_status = @redis_service.retrieve_file_status(@status_key)
+  end
+
+  def create_partial_file()
+
+    partial_file = File.new(@partial_file_name, 'w')
+    partial_file.close()
   end
 
     # Generate commonly used variables that we will reuse in many places
@@ -463,10 +472,5 @@ class UploadController < Controller
     @file_status['hash'] = Digest::MD5.hexdigest(File.read(@full_path))
 
     @redis_service.set_file_status(@status_key, @file_status.to_json)
-  end
-
-  def stop_upload()
-
-    Rack::Response.new({ :success=> false }.to_json())
   end
 end

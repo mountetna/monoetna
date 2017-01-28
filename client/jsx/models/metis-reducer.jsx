@@ -16,9 +16,6 @@ export default class MetisReducer{
           fileObject['originalName'] = fileObject['name'];
           fileObject['fileSize'] = fileObject['size'];
           fileObject['currentBytePosition'] = 0;
-
-          //fileObject['userEmail'] = state['userInfo']['userEmail'];
-          
           fileObject['status'] = 'unauthorized';
 
           /*
@@ -155,27 +152,20 @@ export default class MetisReducer{
         case 'FILE_METADATA_RECEIVED':
 
           var fileData = Object.assign({}, state);
-          var fileList = fileData['fileList'];
 
-          fileData['fileList'] = [];
           for(var a = 0; a < action['fileList']['length']; ++a){
 
             var file = this.camelCaseIt(action['fileList'][a]);
-            fileData['fileList'].push(file);
-          }
+            if(!action['fileList'][a].hasOwnProperty('finishTimestamp')){
 
-          // Extract the file uploads that were incomplete from the file list.
-          var fileFails = [];
-          for(var b = 0; b < fileData['fileList']['length']; ++b){
+              fileData['fileFails'].push(file);
+            }
+            else{
 
-            if(!fileData['fileList'][b].hasOwnProperty('finishTimestamp')){
-
-              fileFails.push(fileData['fileList'][b]);
-              fileData['fileList'].splice(b, 1);
+              fileData['fileList'].push(file);
             }
           }
 
-          fileData['fileFails'] = fileFails;
           return fileData;
 
         case 'FILE_UPLOAD_PAUSED':

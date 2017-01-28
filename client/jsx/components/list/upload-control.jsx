@@ -1,4 +1,4 @@
-import * as React from 'react'
+import * as React from 'react';
 
 export default class UploadControl extends React.Component{
 
@@ -46,6 +46,19 @@ export default class UploadControl extends React.Component{
             <span className='glyphicon glyphicon-pause'></span>
           </button>
         );
+      case 'failed':
+
+        /*
+        uploadCtrlBtnProps['onClick'] = callbacks['selectUpload'];
+        return (
+
+          <button { ...uploadCtrlBtnProps }>
+
+            <span className='glyphicon glyphicon-open'></span>
+          </button>
+        );
+        */
+        return '';
       default:
 
         return '';

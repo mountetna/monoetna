@@ -1,10 +1,11 @@
-import * as React from 'react'
+import * as React from 'react';
 
 import TitleBar  from './nav/title-bar';
 import MenuBarContainer   from './nav/menu-bar-container';
 import ListHeadContainer  from './list/list-head-container';
 import ListBodyContainer  from './list/list-body-container';
 import LoginPanelContainer from './auth/login-panel-container';
+import ListEmpty from './list/list-empty';
 
 export default class MetisUI extends React.Component{
 
@@ -40,6 +41,7 @@ export default class MetisUI extends React.Component{
 
     var fileList = this['props']['fileData']['fileList'];
     var fileUploads = this['props']['fileData']['fileUploads'];
+    var fileFails = this['props']['fileData']['fileFails'];
 
     return (
 
@@ -48,7 +50,10 @@ export default class MetisUI extends React.Component{
         <table id='listing-table'>
         
           <ListHeadContainer />
-          { (fileList.length || fileUploads.length)?<ListBodyContainer /> : '' }
+          {(fileList['length'] || fileUploads['length'] || fileFails['length'])?
+
+            <ListBodyContainer /> : '' 
+          }
         </table>
       </div>
     );

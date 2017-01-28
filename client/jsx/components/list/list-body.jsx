@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import ListEntry from './list-entry';
 import ListUpload from './list-upload';
+import ListUploadFailed from './list-upload-failed';
 
 export default class ListBody extends React.Component{
 
@@ -14,13 +15,35 @@ export default class ListBody extends React.Component{
 
     var fileUploads = this['props']['fileData']['fileUploads'];
     var fileList = this['props']['fileData']['fileList'];
+    var fileFails = this['props']['fileData']['fileFails'];
     var permissions = this['props']['userInfo']['permissions'];
 
     return (
 
       <tbody id='list-body-group'>
-        
-        { (fileUploads.length) ?
+
+        {/* Render the failed uploads. */}
+        { (fileFails['length']) ? 
+
+            fileFails.map((failedFile)=>{
+
+              var failedUpload = {
+
+                'key': failedFile['redisIndex'],
+                'failedFile': failedFile,
+                'callbacks': {
+
+                  'recoverUpload': this['props']['recoverUpload'],
+                  'removeFile': this['props']['removeFile']
+                }
+              };
+
+              return <ListUploadFailed { ...failedUpload } />;
+            })
+          : '' }
+
+        {/* Render the incomplete uploads. */}
+        { (fileUploads['length']) ?
 
             fileUploads.map((fileUpload)=>{
 
@@ -36,17 +59,28 @@ export default class ListBody extends React.Component{
                   'pauseUpload': this['props']['pauseUpload'],
                   'cancelUpload': this['props']['cancelUpload']
                 }
-              }
+              };
+
               return <ListUpload { ...listUpload } />
             })
           : '' }
 
-        { (fileList.length) ?
+        {/* Render the complete uploads. */}
+        { (fileList['length']) ?
             
             fileList.map((fileInfo)=>{
 
-              var redisIndex = fileInfo['redisIndex'];
-              return <ListEntry key={ redisIndex } fileInfo={ fileInfo } />
+              var listEntry = {
+
+                'key': fileInfo['redisIndex'],
+                'fileInfo': fileInfo,
+                'callbacks': {
+
+                  'removeFile': this['props']['removeFile']
+                }
+              };
+
+              return <ListEntry { ...listEntry } />
             })
           : '' }
       </tbody>
