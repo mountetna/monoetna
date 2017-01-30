@@ -51,6 +51,11 @@ class RedisService
     @redis.set(key, value)
   end
 
+  def remove_file_status(key)
+
+    @redis.del(key)
+  end
+
   def status_present?(key)
 
     if @redis.keys(key).length == 0

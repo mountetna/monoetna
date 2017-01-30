@@ -12,40 +12,28 @@ class UploadController < Controller
       return send_bad_request()
     end
 
-    # Make sure that all the required parameters are present
+    # Make sure that all the required parameters are present.
     params = @request.POST()
-    if !authorization_parameters?(params)
+    if !has_auth_params?(params)
 
       return send_bad_request()
     end
 
-    # Verify that the auth token is valid.
+    # Validate the user token.
     user_info = validate_token(params['authorization_token'])
-    if !user_info.key?('success')
-
-      return send_server_error()
-    end 
-
-    if !user_info['success']
+    if !user_info
 
       return send_bad_request()
-    end
-
-    # Check that the user has the appropriate permission to upload.
-    user_info = user_info['user_info']
-    if !user_info.key?('permissions')
-
-      return send_server_error()
     end
 
     project_name = params['project_name']
-    project_role = params['project_role']
+    role = params['role']
     user_permissions = user_info['permissions']
 
     # The first item in the 'project_ids' variable (index 0) is the 'group_id' 
     # that the project belongs to. The second item in the 'project_ids' variable
     # is the project id itself.
-    project_ids = fetch_project_id(project_name, project_role, user_permissions)
+    project_ids = fetch_project_id(project_name, role, user_permissions)
     if project_ids == nil
 
       return send_bad_request()
@@ -58,8 +46,7 @@ class UploadController < Controller
 
     # Check that this file system is in sync with the auth server.
     # If there is a project/permission set in Janus there should be a
-    # corresponding directory in Metis. 
-
+    # corresponding directory in Metis.
     directory = Conf::ROOT_DIR+'/'+project_ids[0].to_s+'/'+project_ids[1].to_s()
     if !File.directory?(directory)
 
@@ -165,9 +152,99 @@ class UploadController < Controller
 
     generate_common_items()
 
-    # Delete file.
+    # Make sure that all the required parameters are present.
+    params = @request.POST()
+    if !has_auth_params?(params)
 
-    return  Rack::Response.new({ :success=> true, :mang=> 'sup' }.to_json())
+      return send_bad_request()
+    end
+
+    # Validate the user token.
+    user_info = validate_token(params['authorization_token'])
+    if !user_info
+
+      return send_bad_request()
+    end
+
+    if @file_status == nil
+
+      return send_server_error()
+    end
+
+    # Check that the user has the permission to delete.
+    authorized = false
+    for permission in user_info['permissions']
+
+      if permission['group_id'].to_i == params['group_id'].to_i
+
+        if permission['project_id'].to_i == params['project_id'].to_i
+
+          if permission['role'] == 'editor'
+
+            authorized = true
+          end
+
+          if permission['role'] == 'administrator'
+
+            authorized = true
+          end
+
+          if authorized
+
+            break
+          end
+        end
+      end
+    end
+
+    # If the user is not authorized to delete then say so.
+    if !authorized
+
+      return send_bad_request()
+    end
+
+    # Check that a file or partial file exsits and remove it.
+    file_exists = false
+    if File.file?(@full_path)
+
+      File.delete(@full_path)
+      file_exists = true
+    end
+
+    if File.file?(@partial_file_name)
+
+      File.delete(@partial_file_name)
+      file_exists = true
+    end
+
+    # If the file never existed in the first place say so.
+    if !file_exists
+
+      return send_bad_request()
+    end
+
+    # Check that there is metadata to begin with.
+    if @file_status == nil
+
+      return send_bad_request()
+    end
+    @redis_service.remove_file_status(@status_key)
+
+    # Double check that everything has been removed.
+    if @redis_service.retrieve_file_status(@status_key) == nil
+
+      if !File.file?(@full_path) && !File.file?(@partial_file_name)
+
+        response = {
+
+          :success=> true,
+          :old_metadata=> @file_status
+        }
+        return  Rack::Response.new(response.to_json())
+      end
+    end
+
+    return send_bad_request()
   end
 
   def generate_authorization(params, user_info, project_id, directory)
@@ -327,7 +404,7 @@ class UploadController < Controller
     return true
   end
 
-  def authorization_parameters?(params)
+  def has_auth_params?(params)
 
     if !params.key?('authorization_token')
 
@@ -339,12 +416,12 @@ class UploadController < Controller
       return false
     end
 
-    if !params.key?('project_role')
+    if !params.key?('project_id')
 
       return false
     end
 
-    if !params.key?('project_id')
+    if !params.key?('role')
 
       return false
     end

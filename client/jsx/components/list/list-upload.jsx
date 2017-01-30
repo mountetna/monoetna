@@ -315,9 +315,9 @@ export default class ListUpload extends React.Component{
   projectSelected(permission){
 
     this['props']['fileUpload']['projectName'] = permission['projectName'];
-    this['props']['fileUpload']['projectRole'] = permission['role'];
     this['props']['fileUpload']['projectId'] = permission['projectId'];
     this['props']['fileUpload']['groupId'] = permission['groupId'];
+    this['props']['fileUpload']['role'] = permission['role'];
   }
 
   renderPermissionSelector(){

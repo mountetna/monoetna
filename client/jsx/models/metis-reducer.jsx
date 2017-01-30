@@ -217,6 +217,31 @@ export default class MetisReducer{
           }
           return fileData;
 
+        case 'FILE_REMOVED':
+
+          var fileData = Object.assign({}, state);
+          var oldMetadata = action['oldMetadata'];
+
+          for(var key in fileData){
+
+            var fileRemoved = false;
+            for(var a = 0; a < fileData[key]['length']; ++a){
+
+              if(fileData[key][a]['redisIndex'] == oldMetadata['redis_index']){
+
+                fileData[key].splice(a, 1);
+                fileRemoved = true;
+                break;
+              }
+            }
+
+            if(fileRemoved){
+
+              break;
+            }
+          }
+          return fileData;
+
         default:
 
           var fileData = Object.assign({}, state);

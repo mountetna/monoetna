@@ -140,7 +140,7 @@ class MetisUploader{
         break;
       case 'PAUSE_UPLOAD':
 
-        this.pauseUpload(action['redisIndex']);
+        this.pauseUpload();
         break;
       case 'CANCEL_UPLOAD':
 
@@ -274,9 +274,9 @@ class MetisUploader{
       'redis_index': fileUpload['redisIndex'],
       'authorization_token': userInfo['authToken'],
       'project_name': fileUpload['projectName'],
-      'project_role': fileUpload['projectRole'],
       'project_id': fileUpload['projectId'],
-      'group_id': fileUpload['groupId']
+      'group_id': fileUpload['groupId'],
+      'role': fileUpload['role'],
     };
 
     // Serialize the request for POST.
@@ -285,7 +285,6 @@ class MetisUploader{
 
       request.push(key +'='+ authRequest[key]);
     }
-    request = request.join('&');
 
     // Request authorization to upload the file.
     AJAX({
@@ -294,7 +293,7 @@ class MetisUploader{
       'method': 'POST',
       'sendType': 'serial',
       'returnType': 'json',
-      'data': request,
+      'data': request.join('&'),
       'success': this['authorizationResponse'].bind(this),
       'error': this['ajaxError'].bind(this)
     });
@@ -436,6 +435,9 @@ class MetisUploader{
 
   removeFile(fileMetadata){
 
+    var delMesg = 'Are you sure you want to delete this file?'
+    if(!confirm(delMesg)) return;
+
     // Serialize the request for POST.
     var request = [];
     for(var key in fileMetadata){
@@ -462,10 +464,15 @@ class MetisUploader{
 
   removeFileResponse(response){
 
-    console.log(response);
     if(response['success']){
 
-      //console.log(response);
+      var action = {
+
+        'type': 'FILE_REMOVED',
+        'oldMetadata': response['old_metadata']
+      };
+
+      this['model']['store'].dispatch(action);
     }
     else{
 

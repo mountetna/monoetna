@@ -15,6 +15,7 @@ class Controller
     @full_path = nil
     @partial_file_name = nil
     @file_status = nil
+    @user_info
   end
 
   def run()
@@ -27,7 +28,6 @@ class Controller
     url = Conf::JANUS_ADDR
     url = url + '/check'
     data = { :token=> token, :app_key=> Conf::APP_KEY }
-    #response = make_request(url, data)
 
     uri = URI.parse(url)
     http = Net::HTTP.new(uri.host, uri.port)
@@ -41,10 +41,10 @@ class Controller
 
       if response_code == 200
 
-        return JSON.parse(response.body)
+        return user_valid?(JSON.parse(response.body))
       else
 
-        return {}
+        return false
       end
     rescue Timeout::Error, 
            Errno::EINVAL, 
@@ -54,20 +54,51 @@ class Controller
            Net::HTTPHeaderSyntaxError, 
            Net::ProtocolError => error
 
-      return { 'success'=> false }
+      return false
     end
   end
 
-  def fetch_project_id(project_name, project_role, user_permissions)
+  def user_valid?(user_info)
+
+    if !user_info.key?('success')
+
+      return false
+    end 
+
+    if !user_info['success']
+
+      return false
+    end
+
+    if !user_info.key?('logged')
+
+      return false
+    end
+
+    if !user_info['logged']
+
+      return false
+    end
+
+    user_info = user_info['user_info']
+    if !user_info.key?('permissions')
+
+      return false
+    end
+
+    return user_info
+  end
+
+  def fetch_project_id(project_name, role, user_permissions)
 
     project_ids = nil
     for permission in user_permissions
 
       if project_name == permission['project_name']
 
-        if project_role == permission['role']
+        if role == permission['role']
 
-          if project_role == 'administration' || project_role == 'editor'
+          if role == 'administration' || role == 'editor'
 
             project_ids = [permission['group_id'], permission['project_id']]
             break
@@ -102,26 +133,14 @@ class Controller
     params = @request.POST()
     if !params.key?('authorization_token')
 
-      return false
-    end
-
-    # Verify that the auth token is valid.
-    user_info = validate_token(params['authorization_token'])
-    if !user_info.key?('success')
-
-      return send_server_error()
-    end 
-
-    if !user_info['success']
-
       return send_bad_request()
     end
 
-    # Extract the projects that the user has permissions on.
-    user_info = user_info['user_info']
-    if !user_info.key?('permissions')
+    # Validate the user token.
+    user_info = validate_token(params['authorization_token'])
+    if !user_info
 
-      return send_server_error()
+      return send_bad_request()
     end
 
     project_ids = []
