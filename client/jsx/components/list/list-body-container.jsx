@@ -84,7 +84,7 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
 
     removeFile: (fileMetadata)=>{
 
-      var action = { 'type': 'FILE_REMOVED', 'fileMetadata': fileMetadata };
+      var action = { 'type': 'REMOVE_FILE', 'fileMetadata': fileMetadata };
       dispatch(action);
     },
 
