@@ -22,6 +22,9 @@ export default class ListHead extends React.Component{
     var fileSelector = event.target;
     var file = fileSelector.files[0];
     this['props'].fileSelected(file);
+
+    // Reset the input field.
+    document.getElementById('file-selector').value = '';
   }
 
   render(){

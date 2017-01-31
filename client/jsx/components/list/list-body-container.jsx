@@ -58,15 +58,15 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
       dispatch(action);
     },
 
-    pauseUpload: (redisIndex)=>{
+    pauseUpload: ()=>{
 
-      var action = { 'type': 'PAUSE_UPLOAD', 'redisIndex': redisIndex };
+      var action = { 'type': 'PAUSE_UPLOAD' };
       dispatch(action);
     },
 
-    cancelUpload: (redisIndex)=>{
+    cancelUpload: ()=>{
 
-      var action = { 'type': 'CANCEL_UPLOAD', 'redisIndex': redisIndex };
+      var action = { 'type': 'CANCEL_UPLOAD' };
       dispatch(action);
     },
 
@@ -84,7 +84,19 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
 
     removeFile: (fileMetadata)=>{
 
-      var action = { 'type': 'REMOVE_FILE', 'fileMetadata': fileMetadata };
+      var action = { 'type': 'FILE_REMOVED', 'fileMetadata': fileMetadata };
+      dispatch(action);
+    },
+
+    /* 
+     * This function removes a file/upload from the local data. When a file has
+     * not yet been authorized on the server we just remove it from the local
+     * store. We piggy pack on the 'FILE_REMOVED' reducer command.
+     */
+    clearUpload: (fileMetadata)=>{
+
+      fileMetadata['redis_index'] = fileMetadata['redisIndex'];
+      var action = { 'type': 'FILE_REMOVED', 'oldMetadata': fileMetadata };
       dispatch(action);
     }
   };

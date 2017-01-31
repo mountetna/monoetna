@@ -58,7 +58,7 @@ export default class ListUpload extends React.Component{
         break;
       case 'initialized':
 
-        status = 'queued for upload.';
+        status = 'upload initialized.';
         break;
       case 'active':
 
@@ -378,7 +378,7 @@ export default class ListUpload extends React.Component{
     this['props']['callbacks'].initializeUpload(this['props']['fileUpload']);
   }
 
-  queueUpload(){
+  queueUpload(redisIndex){
 
     var redisIndex = this['props']['fileUpload']['redisIndex'];
     this['props']['callbacks'].queueUpload(redisIndex);
@@ -386,14 +386,31 @@ export default class ListUpload extends React.Component{
 
   pauseUpload(){
 
-    var redisIndex = this['props']['fileUpload']['redisIndex'];
-    this['props']['callbacks'].pauseUpload(redisIndex);
+    this['props']['callbacks'].pauseUpload();
   }
 
   cancelUpload(){
 
-    var redisIndex = this['props']['fileUpload']['redisIndex'];
-    this['props']['callbacks'].cancelUpload(redisIndex);
+    switch(this['props']['fileUpload']['status']){
+
+      case 'unauthorized':
+
+        this['props']['callbacks'].clearUpload(this['props']['fileUpload']);
+        break;
+      case 'initialized':
+      case 'paused':
+
+        this['props']['callbacks'].removeFile(this['props']['fileUpload']);
+        break;
+      case 'active':
+
+        this['props']['callbacks'].cancelUpload();
+        break;
+      default:
+
+        // null
+        break;
+    }
   }
 
   render(){

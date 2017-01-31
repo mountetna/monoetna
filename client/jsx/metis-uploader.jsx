@@ -150,6 +150,7 @@ class MetisUploader{
         break;
       case 'REMOVE_FILE':
 
+        if(action['fileMetadata'] == undefined) return;
         var delMesg = 'Are you sure you want to remove this file?'
         if(!confirm(delMesg)) return;
         this.removeFile(action['fileMetadata']);

@@ -57,7 +57,9 @@ export default class ListBody extends React.Component{
                   'initializeUpload': this['props']['initializeUpload'],
                   'queueUpload': this['props']['queueUpload'],
                   'pauseUpload': this['props']['pauseUpload'],
-                  'cancelUpload': this['props']['cancelUpload']
+                  'cancelUpload': this['props']['cancelUpload'],
+                  'removeFile': this['props']['removeFile'],
+                  'clearUpload': this['props']['clearUpload']
                 }
               };
 
