@@ -28,7 +28,10 @@ const mapStateToProps = (state, ownProps)=>{
   for(var b = 0; b < state['fileData']['fileFails']['length']; ++b){
 
     permissionMapper(state['fileData']['fileFails'][b], permissions);
-    state['fileData']['fileFails'][b]['status'] = 'failed';
+    if(state['fileData']['fileFails'][b]['status'] != 'cancelled'){
+
+      state['fileData']['fileFails'][b]['status'] = 'failed';
+    }
   }
 
   // state == redux store

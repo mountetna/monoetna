@@ -144,10 +144,14 @@ class MetisUploader{
         break;
       case 'CANCEL_UPLOAD':
 
-        this.cancelUpload(action['fileMetadata']);
+        var delMesg = 'Are you sure you want to remove this upload?'
+        if(!confirm(delMesg)) return;
+        this.cancelUpload();
         break;
       case 'REMOVE_FILE':
 
+        var delMesg = 'Are you sure you want to remove this file?'
+        if(!confirm(delMesg)) return;
         this.removeFile(action['fileMetadata']);
         break;
       case 'RECOVER_UPLOAD':
@@ -186,16 +190,13 @@ class MetisUploader{
    */
   routeResponse(message){
 
+    var action = {};
     switch(message['data']['type']){
 
       case 'initialized':
 
-        var action = {
-
-          'type': 'FILE_INITIALIZED',
-          'initResponse': message['data']['response']
-        };
-
+        action['type'] = 'FILE_INITIALIZED';
+        action['initResponse'] = message['data']['response'];
         this['model']['store'].dispatch(action);
         break;
       case 'error':
@@ -204,39 +205,51 @@ class MetisUploader{
         break;
       case 'active':
 
-        var response = message['data']['response'];
-        var action = { 
-
-          'type': 'FILE_UPLOAD_ACTIVE', 
-          'uploadResponse': response 
-        };
-
+        action['type'] = 'FILE_UPLOAD_ACTIVE';
+        action['uploadResponse'] = message['data']['response'];
         this['model']['store'].dispatch(action);
         break;
-
       case 'paused':
 
-        var response = message['data']['response'];
-        var action = { 
-
-          'type': 'FILE_UPLOAD_PAUSED', 
-          'pauseResponse': response 
-        };
-
+        action['type'] = 'FILE_UPLOAD_PAUSED';
+        action['pauseResponse'] = message['data']['response'];
         this['model']['store'].dispatch(action);
 
-        // Check the queue for another upload.
+        // Check the queue for another upload or cancel.
         this.startUpload();
+        break;
+      case 'cancelled':
+
+        /*
+         * We could just run the 'removeFile' function from here without 
+         * updating the store. However, I am choosing to run an action on the 
+         * reducer to update the file metadtata in the store first. Even though 
+         * the user will not notice the state change (since it will happen too 
+         * fast), this is a more consistent data flow.
+         */
+        action['type'] = 'FILE_UPLOAD_CANCELLED';
+        action['cancelledResponse'] = message['data']['response'];
+        this['model']['store'].dispatch(action);
+
+        /*
+         * After the store has been updated we can go ahead and extract and 
+         * remove the cancelled file(s) from the server.
+         */
+        var state = this['model']['store'].getState();
+        var fileFails = state['fileData']['fileFails'];
+        for(var a = 0; a < fileFails['length']; ++a){
+
+          if(fileFails[a]['status'] == 'cancelled'){
+
+            this.removeFile(fileFails[a]);
+          }
+        }
+        
         break;
       case 'complete':
 
-        var response = message['data']['response'];
-        var action = { 
-
-          'type': 'FILE_UPLOAD_COMPLETE',
-          'uploadResponse': response
-        };
-
+        action['type'] = 'FILE_UPLOAD_COMPLETE';
+        action['uploadResponse'] = message['data']['response'];
         this['model']['store'].dispatch(action);
         break;
       default:
@@ -300,7 +313,7 @@ class MetisUploader{
   }
   
   /*
-   * Route the signed response from Magma to the web worker.
+   * Route the signed response from Metis or Magma to the web worker.
    */
   authorizationResponse(response){
 
@@ -374,7 +387,7 @@ class MetisUploader{
   }
 
   /*
-   * For details on the upload/start/pause cycle please refer to the REAME.md
+   * For details on the upload/start/pause cycle please refer to the README.md
    * file in the 'workers' folder.
    */
   startUpload(){
@@ -423,6 +436,12 @@ class MetisUploader{
     this['uploadWorker'].postMessage(workerMessage);
   }
 
+  cancelUpload(){
+
+    var workerMessage = { 'command': 'cancel' };
+    this['uploadWorker'].postMessage(workerMessage);
+  }
+
   recoverUpload(uploadFile, fileMetadata){
 
     // compare file name
@@ -435,9 +454,6 @@ class MetisUploader{
 
   removeFile(fileMetadata){
 
-    var delMesg = 'Are you sure you want to delete this file?'
-    if(!confirm(delMesg)) return;
-
     // Serialize the request for POST.
     var request = [];
     for(var key in fileMetadata){
@@ -449,7 +465,7 @@ class MetisUploader{
     request.push('authorization_token='+ state['userInfo']['authToken']);
     request.push('signing_algorithm=MD5');
 
-    // Request authorization to upload the file.
+    // Request authorization to remove the file.
     AJAX({
 
       'url': '/file-remove',

@@ -19,6 +19,7 @@ class Uploader{
     this['uploadSpeed'] = 0;
 
     this['pause'] = false;
+    this['cancel'] = false;
   }
 
   /*
@@ -67,6 +68,11 @@ class Uploader{
 
         // Set a pause flag.
         uploader['pause'] = true;
+        break;
+      case 'cancel':
+
+        // Set a cancel flag.
+        uploader['cancel'] = true;
         break;
       case 'query':
 
@@ -167,6 +173,33 @@ class Uploader{
         'sendType': 'serial',
         'returnType': 'json',
         'data': pauseData.join('&'),
+        'success': uploader['handleServerResponse'],
+        'error': uploader['ajaxError']
+      });
+    }
+    catch(error){
+
+      postMessage({ 'type': 'error', 'message': error['message'] });
+    }
+  }
+
+  sendCancel(response){
+
+    var cancelData = [];
+    for(var key in response['request']){
+
+      cancelData.push(key+'='+response['request'][key]);
+    }
+
+    try{
+
+      AJAX({
+
+        'url': '/upload-cancel',
+        'method': 'POST',
+        'sendType': 'serial',
+        'returnType': 'json',
+        'data': cancelData.join('&'),
         'success': uploader['handleServerResponse'],
         'error': uploader['ajaxError']
       });
@@ -343,12 +376,16 @@ class Uploader{
         postMessage({ type: 'active', response: response });
 
         /*
-         * Check the 'pause' flag, if set then send the pause message to the
-         * server.
+         * Check the 'pause' and 'cancel' flags, if set then send the pause or
+         * cancel message to the server.
          */
         if(uploader['pause']){
 
           uploader.sendPause(response);
+        }
+        else if(uploader['cancel']){
+
+          uploader.sendCancel(response);
         }
         else{
 
@@ -363,6 +400,12 @@ class Uploader{
          */
         uploader['pause'] = false;
         postMessage({ type: 'paused', response: response });
+        break;
+
+      case 'cancelled':
+
+        uploader['cancel'] = false;
+        postMessage({ type: 'cancelled', response: response });
         break;
       case 'complete':
 

@@ -115,6 +115,28 @@ class UploadController < Controller
     Rack::Response.new(response.to_json())
   end
 
+  def cancel_upload()
+
+    generate_common_items()
+
+    if !request_valid?()
+
+      return send_bad_request()
+    end
+
+    @file_status['status'] = 'cancelled'
+    @redis_service.set_file_status(@status_key, @file_status.to_json)
+
+    response = {
+
+      :success=> true,
+      :status=> 'cancelled',
+      :request=> @file_status
+    }
+
+    Rack::Response.new(response.to_json())
+  end
+
   def upload_blob()
 
     generate_common_items()

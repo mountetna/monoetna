@@ -35,7 +35,6 @@ export default class MetisReducer{
           var fileData = Object.assign({}, state);
           var fileUploads = fileData['fileUploads'];
 
-          // MOD START
           var authResponse = Object.assign({}, action['authResponse']);
           var fileUpload = null;
           var fileUploadIndex = 0;
@@ -60,8 +59,6 @@ export default class MetisReducer{
           // Append all of the request items to the local file object.
           authResponse['request'] = this.camelCaseIt(authResponse['request']);
           fileUpload = Object.assign(fileUpload, authResponse['request']);
-
-          // MOD END
 
           fileData['fileUploads'][fileUploadIndex] = fileUpload;
           return fileData;
@@ -93,7 +90,6 @@ export default class MetisReducer{
           var fileData = Object.assign({}, state);
           var fileUploads = fileData['fileUploads'];
 
-          // MOD START
           var response = action['uploadResponse'];
           var index = response['request']['redis_index'];
           var fileUpload = null;
@@ -115,8 +111,6 @@ export default class MetisReducer{
           fileUpload = Object.assign(fileUpload, response['request']);
 
           fileData['fileUploads'][fileUploadIndex] = fileUpload;
-          // MOD END
-
           return fileData;
 
         case 'FILE_UPLOAD_COMPLETE':
@@ -146,7 +140,6 @@ export default class MetisReducer{
 
           fileData['fileUploads'] = fileUploads;
           fileData['fileList'] = fileList;
-
           return fileData;
 
         case 'FILE_METADATA_RECEIVED':
@@ -165,7 +158,6 @@ export default class MetisReducer{
               fileData['fileList'].push(file);
             }
           }
-
           return fileData;
 
         case 'FILE_UPLOAD_PAUSED':
@@ -186,7 +178,6 @@ export default class MetisReducer{
               break;
             }
           }
-
           return fileData;
 
         case 'QUEUE_UPLOAD':
@@ -213,6 +204,23 @@ export default class MetisReducer{
             if(fileUploads[a]['redisIndex'] == action['redisIndex']){
 
               fileUploads[a]['status'] = 'queued';
+            }
+          }
+          return fileData;
+
+        case 'FILE_UPLOAD_CANCELLED':
+
+          var fileData = Object.assign({}, state);
+          var fileUploads = fileData['fileUploads'];
+          var cancelledFile = action['cancelledResponse']['request'];
+
+          for(var a = 0; a < fileUploads['length']; ++a){
+
+            if(fileUploads[a]['redisIndex'] == cancelledFile['redis_index']){
+
+              fileUploads[a]['status'] = 'cancelled';
+              fileData['fileFails'].push(fileUploads[a]);
+              fileUploads.splice(a, 1);
             }
           }
           return fileData;
