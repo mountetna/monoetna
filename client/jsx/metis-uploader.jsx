@@ -263,10 +263,37 @@ class MetisUploader{
   /*
    * This is stubbed out and needs to be finished
    */
-  // Make sure all of the items required for authentication are present.
   checkAuthData(fileUpload){
 
-    return true;
+    var requestItems = [
+
+      'originalName',
+      'fileName',
+      'fileSize',
+      'redisIndex',
+      'projectName',
+      'projectId',
+      'groupId',
+      'role'
+    ];
+
+    var valid = true;
+    for(var a = 0; a < requestItems['length']; ++a){
+
+      if(!(requestItems[a] in fileUpload)){
+
+        valid = false;
+        break;
+      }
+
+      if(fileUpload[requestItems[a]] == undefined){
+
+        valid = false;
+        break;
+      }
+    }
+
+    return valid;
   }
 
   /*
