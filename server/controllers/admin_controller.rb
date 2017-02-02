@@ -3,7 +3,7 @@
 
 class AdminController < Controller
 
-  def initialize(redis_service, request, action)
+  def initialize(redis_service, request, action, logger)
 
     @request = request
     @action = action
@@ -28,9 +28,9 @@ class AdminController < Controller
 
     # Verify that the auth token is valid.
     @user_info = validate_token(@params['token'])
-
     if !@user_info.key?('success')
 
+      @logger.warn('Janus returned an invalid response on a token validation.')
       return send_server_error()
     end 
 
@@ -48,6 +48,7 @@ class AdminController < Controller
     @user_info = @user_info['user_info']
     if !@user_info.key?('permissions')
 
+      @logger.warn('There is no permission entry for the requested user.')
       return send_server_error()
     end
 
@@ -237,7 +238,8 @@ class AdminController < Controller
         return Rack::Response.new(response.body)
       else
 
-        return send_server_error()
+        met = __method__.to_s + ', '+ url +', '+ response_code.to_s
+        return send_server_error(6, met)
       end
     rescue Timeout::Error, 
            Errno::EINVAL, 
@@ -247,7 +249,8 @@ class AdminController < Controller
            Net::HTTPHeaderSyntaxError, 
            Net::ProtocolError => error
 
-      return send_server_error()
+      met = __method__.to_s + ', '+ url +', '+ response_code.to_s
+      return send_server_error(6, met)
     end
   end
 end

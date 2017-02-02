@@ -8,22 +8,21 @@ class UploadController < Controller
     # Check for the POST params.
     if !@request.post?()
 
-      #puts 'POST params are not present.'
-      return send_bad_request()
+      return send_bad_request(0, __method__)
     end
 
     # Make sure that all the required parameters are present.
     params = @request.POST()
     if !has_auth_params?(params)
 
-      return send_bad_request()
+      return send_bad_request(1, __method__)
     end
 
     # Validate the user token.
     user_info = validate_token(params['authorization_token'])
     if !user_info
 
-      return send_bad_request()
+      return send_bad_request(2, __method__)
     end
 
     project_name = params['project_name']
@@ -36,12 +35,12 @@ class UploadController < Controller
     project_ids = fetch_project_id(project_name, role, user_permissions)
     if project_ids == nil
 
-      return send_bad_request()
+      return send_bad_request(3, __method__)
     end
 
     if project_ids[0] != params['group_id'].to_i()
 
-      return send_bad_request();
+      return send_bad_request(4, __method__)
     end
 
     # Check that this file system is in sync with the auth server.
@@ -50,7 +49,7 @@ class UploadController < Controller
     directory = Conf::ROOT_DIR+'/'+project_ids[0].to_s+'/'+project_ids[1].to_s()
     if !File.directory?(directory)
 
-      return send_server_error()
+      return send_server_error(0, __method__)
     end
 
     # Check if the file already exists. There will be another check from the
@@ -60,14 +59,14 @@ class UploadController < Controller
     full_path = directory + '/' + params['file_name']
     if File.file?(full_path)
 
-      return send_bad_request()
+      return send_bad_request(5, __method__)
     end
 
     @status_key = generate_status_key()
     @file_status = @redis_service.retrieve_file_status(@status_key)
     if @file_status != nil
 
-      return send_bad_request()
+      return send_bad_request(6, __method__)
     end
 
     return generate_authorization(params, user_info, project_ids[1], directory)
@@ -79,7 +78,7 @@ class UploadController < Controller
 
     if !request_valid?()
 
-      return send_bad_request()
+      return send_bad_request(7, __method__)
     end
 
     create_file_status()
@@ -87,7 +86,7 @@ class UploadController < Controller
 
     if @file_status == nil
 
-      return send_server_error()
+      return send_server_error(1, __method__)
     end
 
     return send_upload_initiated()
@@ -99,7 +98,7 @@ class UploadController < Controller
 
     if !request_valid?()
 
-      return send_bad_request()
+      return send_bad_request(7, __method__)
     end
 
     @file_status['status'] = 'paused'
@@ -121,7 +120,7 @@ class UploadController < Controller
 
     if !request_valid?()
 
-      return send_bad_request()
+      return send_bad_request(7, __method__)
     end
 
     @file_status['status'] = 'cancelled'
@@ -143,17 +142,17 @@ class UploadController < Controller
 
     if !request_valid?()
 
-      return send_bad_request()
+      return send_bad_request(7, __method__)
     end
 
     if @file_status == nil
 
-      return send_server_error()
+      return send_server_error(1, __method__)
     end
 
     if !blob_integrity_ok?()
 
-      return send_bad_request()
+      return send_bad_request(8, __method__)
     end
 
     append_blob()
@@ -178,19 +177,20 @@ class UploadController < Controller
     params = @request.POST()
     if !has_auth_params?(params)
 
-      return send_bad_request()
+      return send_bad_request(1, __method__)
     end
 
     # Validate the user token.
     user_info = validate_token(params['authorization_token'])
     if !user_info
 
-      return send_bad_request()
+      return send_bad_request(2, __method__)
+
     end
 
     if @file_status == nil
 
-      return send_server_error()
+      return send_server_error(1, __method__)
     end
 
     # Check that the user has the permission to delete.
@@ -222,7 +222,7 @@ class UploadController < Controller
     # If the user is not authorized to delete then say so.
     if !authorized
 
-      return send_bad_request()
+      return send_bad_request(9, __method__)
     end
 
     # Check that a file or partial file exsits and remove it.
@@ -242,13 +242,13 @@ class UploadController < Controller
     # If the file never existed in the first place say so.
     if !file_exists
 
-      return send_bad_request()
+      return send_bad_request(10, __method__)
     end
 
     # Check that there is metadata to begin with.
     if @file_status == nil
 
-      return send_bad_request()
+      return send_server_error(1, __method__)
     end
     @redis_service.remove_file_status(@status_key)
 
@@ -266,7 +266,7 @@ class UploadController < Controller
       end
     end
 
-    return send_bad_request()
+    return send_bad_request(11, __method__)
   end
 
   def generate_authorization(params, user_info, project_id, directory)
@@ -474,35 +474,43 @@ class UploadController < Controller
   def upload_errors?()
 
     status = @redis_service.retrieve_file_status(@status_key)
+    error = false
 
     if File.file?(@full_path) && status == nil
 
-      #puts 'FILE_NO_STATUS'
-      return true
+      msg = 2
+      error = true
     end
 
     if File.file?(@partial_file_name) && status == nil
 
-      #puts 'TEMP_NO_STATUS'
-      return true
+      msg = 3
+      error = true
     end
 
     if File.file?(@full_path) && File.file?(@partial_file_name)
 
-      #puts 'TEMP_AND_FILE'
-      return true
+      msg = 4
+      error = true
     end
 
     if !status.nil?
 
       if !File.file?(@full_path) && !File.file?(@partial_file_name)
 
-        #puts 'STATUS_NO_TEMP_OR_FILE'
-        return true
+        msg = 5
+        error = true
       end
     end
 
-    return false
+    if error
+
+      ref_id = SecureRandom.hex(8)
+      code = Conf::ERRORS[id].to_s
+      @logger.warn(ref_id.to_s+' - '+code+', '+__method__.to_s)
+    end
+
+    return error
   end
 
   def blob_integrity_ok?()

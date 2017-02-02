@@ -3,11 +3,12 @@
 
 class Controller
 
-  def initialize(redis_service, request, action)
+  def initialize(redis_service, request, action, logger)
 
     @redis_service = redis_service
     @request = request
     @action = action
+    @logger = logger
 
     # see generate_common_items()
     @signature = nil
@@ -15,7 +16,6 @@ class Controller
     @full_path = nil
     @partial_file_name = nil
     @file_status = nil
-    @user_info
   end
 
   def run()
@@ -193,15 +193,34 @@ class Controller
     return file_data
   end
 
-  def send_bad_request()
+  def send_bad_request(id, method)
 
-    Rack::Response.new({ :success=> false, :error=> 'Bad request.' }.to_json())
+    ref_id = SecureRandom.hex(4)
+    code = Conf::WARNS[id].to_s
+    @logger.warn(ref_id.to_s+' - '+code+', '+method.to_s)
+    response = {
+
+      :success=> false,
+      :error=> 'Bad request.',
+      :reference_id=> ref_id,
+      :error_code=> id
+    }
+    Rack::Response.new(response.to_json())
   end
 
-  def send_server_error()
+  def send_server_error(id, method)
 
-    error_message = 'There was a server error.'
-    Rack::Response.new({ :success=> false, :error=> error_message }.to_json())
+    ref_id = SecureRandom.hex(4)
+    code = Conf::ERRORS[id].to_s
+    @logger.error(ref_id.to_s+' - '+code+', '+method.to_s)
+    response = { 
+
+      :success=> false,
+      :error=> 'There was a server error.',
+      :reference_id=> ref_id,
+      :error_code=> id
+    }
+    Rack::Response.new(response.to_json())
   end
 
   def send_upload_initiated()

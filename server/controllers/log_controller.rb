@@ -3,7 +3,7 @@
 
 class LogController
 
-  def initialize(redis_service, request, action)
+  def initialize(redis_service, request, action, logger)
 
     @request = request
     @action = action
@@ -99,7 +99,8 @@ class LogController
         return Rack::Response.new(response.body)
       else
 
-        return send_server_error()
+        met = __method__.to_s + ', '+ url +', '+ response_code.to_s
+        return send_server_error(6, met)
       end
     rescue Timeout::Error, 
            Errno::EINVAL, 
@@ -109,7 +110,8 @@ class LogController
            Net::HTTPHeaderSyntaxError, 
            Net::ProtocolError => error
 
-      return send_server_error()
+      met = __method__.to_s + ', '+ url +', '+ response_code.to_s
+      return send_server_error(6, met)
     end
   end
 
@@ -118,14 +120,33 @@ class LogController
     Rack::Response.new({ success: false, error: 'Invalid login.' }.to_json())
   end
 
-  def send_bad_request()
+  def send_bad_request(id, method)
 
-    Rack::Response.new({ success: false, error: 'Bad request.' }.to_json())
+    ref_id = SecureRandom.hex(4)
+    code = Conf::WARNS[id].to_s
+    @logger.warn(ref_id.to_s+' - '+code+', '+method.to_s)
+    response = {
+
+      :success=> false,
+      :error=> 'Bad request.',
+      :reference_id=> ref_id,
+      :error_code=> id
+    }
+    Rack::Response.new(response.to_json())
   end
 
-  def send_server_error()
+  def send_server_error(id, method)
 
-    error_message = 'There was a server error.'
-    Rack::Response.new({ success: false, error: error_message }.to_json())
+    ref_id = SecureRandom.hex(4)
+    code = Conf::ERRORS[id].to_s
+    @logger.error(ref_id.to_s+' - '+code+', '+method.to_s)
+    response = { 
+
+      :success=> false,
+      :error=> 'There was a server error.',
+      :reference_id=> ref_id,
+      :error_code=> id
+    }
+    Rack::Response.new(response.to_json())
   end
 end

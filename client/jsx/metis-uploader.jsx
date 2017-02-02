@@ -314,7 +314,7 @@ class MetisUploader{
       'file_size': fileUpload['size'], //in bytes
       'redis_index': fileUpload['redisIndex'],
       'authorization_token': userInfo['authToken'],
-      'project_name': fileUpload['projectName'],
+      //'project_name': fileUpload['projectName'],
       'project_id': fileUpload['projectId'],
       'group_id': fileUpload['groupId'],
       'role': fileUpload['role'],

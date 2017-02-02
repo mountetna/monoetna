@@ -8,6 +8,10 @@ class Metis
     @routes = {}
     @request = {}
     @redis_service = RedisService.new()
+
+    log_file = ::File.join(::File.dirname(::File.expand_path(__FILE__)),'..','log','app.log')
+    @app_logger = ::Logger.new(log_file, 5, 1048576)
+    @app_logger.level = Logger::WARN
   end
 
   def call(env)
@@ -36,6 +40,6 @@ class Metis
 
     controller, action = route.split('#')
     controller_class = Kernel.const_get(controller)
-    controller_class.new(@redis_service, @request, action).run()
+    controller_class.new(@redis_service, @request, action, @app_logger).run()
   end
 end
