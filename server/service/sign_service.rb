@@ -43,7 +43,7 @@ module SignService
   # secret and hashes the resultant string with MD5.
   def SignService.sign_with_MD5(params)
 
-    param_str = stringify_params(params) + Conf::SECRET_KEY
+    param_str = stringify_params(params) + Secrets::SECRET_KEY
     md5 = Digest::MD5.new
     md5.update param_str
     md5.hexdigest
@@ -53,7 +53,7 @@ module SignService
   # secret and hashes the resultant string with SHA256.
   def SignService.sign_with_SHA256(params)
 
-    param_str = stringify_params(params) + Conf::SECRET_KEY
+    param_str = stringify_params(params) + Secrets::SECRET_KEY
     sha256 = Digest::SHA256.new
     sha256.update param_str
     sha256.hexdigest

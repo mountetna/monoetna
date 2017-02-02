@@ -28,7 +28,7 @@ class LogController
 
         :email=> params['email'], 
         :pass=> params['pass'], 
-        :app_key=> Conf::APP_KEY 
+        :app_key=> Secrets::APP_KEY 
       }
       response = make_request(url, data)
       return response
@@ -52,7 +52,7 @@ class LogController
 
         :email=> params['email'], 
         :token=> params['token'], 
-        :app_key=> Conf::APP_KEY 
+        :app_key=> Secrets::APP_KEY 
       }
       response = make_request(url, data)
       return response
@@ -73,7 +73,7 @@ class LogController
 
       url = Conf::JANUS_ADDR
       url = url + '/check'
-      data = { :token=> params['token'], :app_key=> Conf::APP_KEY }
+      data = { :token=> params['token'], :app_key=> Secrets::APP_KEY }
       response = make_request(url, data)
       return response
     else

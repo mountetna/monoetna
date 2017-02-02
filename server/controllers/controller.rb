@@ -27,7 +27,7 @@ class Controller
 
     url = Conf::JANUS_ADDR
     url = url + '/check'
-    data = { :token=> token, :app_key=> Conf::APP_KEY }
+    data = { :token=> token, :app_key=> Secrets::APP_KEY }
 
     uri = URI.parse(url)
     http = Net::HTTP.new(uri.host, uri.port)
