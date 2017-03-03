@@ -1,4 +1,28 @@
-# Polyphemus
+## Polyphemus Admin Server
+This application helps us manage the rest of Mt. Etna
+
+### To start the Thin server.
+
+```
+$ cd /var/www/polyphemus
+$ thin start -d -a 127.0.0.1 -p 3001
+```
+
+As you can see the port we are binding to is 3001 instead of the traditional Rack/Thin port of 3000. This due to the fact that Polyphemus will be living on the same machine as Janus
+
+### To stop the Thin server.
+
+```
+$ cd /var/www/polyphemus
+$ kill `cat tmp/pids/thin.pid`
+```
+
+#### Mount Janus folder in the VM
+I was using a shared folder on the VM, here is how to mount that folder in the VM.
+
+  `$ sudo mount -t vboxsf -o rw,uid=1000,gid=1000 polyphemus /var/www/polyphemus`
+
+## Older Polyphemus Notes
 
 ![Polyphemus](/polyphemus.png?raw=true "A Hard Worker")
 
