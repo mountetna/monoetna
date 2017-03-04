@@ -14,9 +14,9 @@ class ClientController
     return send(@action)
   end
 
-  def index()
+  def basic_view()
 
-    return File.read('./server/views/index.html')
+    return File.read('./server/views/basic_view.html')
   end
 
   def user_admin()
