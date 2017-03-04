@@ -1,0 +1,123 @@
+#nav-menu {
+
+  position: absolute;
+  left: 40px;
+  right: 0px;
+  bottom: 5px;
+  height: 30px;
+
+  /* fallback DIY*/
+  background: #7db4b5;
+
+  /* Safari 4-5, Chrome 1-9 */
+  background: -webkit-gradient(linear, left top, right top, from(#e0eff1), color-stop(0.25, #7db4b5), color-stop(0.5, #7db4b5), color-stop(0.75, #7db4b5), to(#7db4b5));
+
+  /* Safari 5.1+, Chrome 10+ */
+  background: -webkit-linear-gradient(left, #e0eff1, #7db4b5, #7db4b5, #7db4b5, #7db4b5);
+
+  /* Firefox 3.6+ */
+  background: -moz-linear-gradient(left, #e0eff1, #7db4b5, #7db4b5, #7db4b5, #7db4b5);
+
+  /* IE 10 */
+  background: -ms-linear-gradient(left, #e0eff1, #7db4b5, #7db4b5, #7db4b5, #7db4b5);
+
+  /* Opera 11.10+ */
+  background: -o-linear-gradient(left, #e0eff1, #7db4b5, #7db4b5, #7db4b5, #7db4b5);
+}
+
+.nav-menu-btn {
+
+  position: relative;
+  float: right;
+  margin: 5px;
+  border: none;
+  background: none;
+  outline: none;
+  color: #fff;
+
+  font-family: "gotham_bookregular";
+  color: #fff;
+  font-size: 0.8em;
+  padding-top: 3px;
+}
+
+#master-search-group {
+
+  position: relative;
+  float: right;
+  width: 200px;
+  height: 20px;
+  margin-top: 5px;
+  margin-right: 10px;
+  background: #fff;
+
+  -webkit-box-shadow: -1px 1px 1px 0px #000;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+  -moz-box-shadow:    -1px 1px 1px 0px #000;  /* Firefox 3.5 - 3.6 */
+  box-shadow:         -1px 1px 1px 0px #000;
+}
+
+#master-search-button {
+
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 20px;
+  height: 20px;
+  padding-top: 1px;
+  padding-left: 4px;
+  background: #999;
+
+  border: none;
+}
+
+/* USER DROP DOWN MENU */
+.user-menu-dropdown-group {
+
+  overflow: hidden;
+  font-family: 'gotham_bookregular';
+  height: 100%;
+  float: right;
+}
+
+.user-menu-dropdown-btn {
+
+  padding-top: 4px;
+  border: 0px;
+  outline: 0px;
+  background: none;
+  height: 30px;
+  background: #680148;
+  border-left: 1px solid #000000;
+  color:#eee;
+}
+
+.user-dropdown-menu {
+
+  width: 100%;
+  border-left: 1px solid #666;
+  border-bottom: 1px solid #666;
+}
+
+.user-dropdown-menu-item {
+
+  display: block;
+  background: #fff;
+  padding: 5px;
+  cursor: pointer;
+  text-decoration: none;
+  color: #333;
+}
+
+.user-dropdown-menu-item:hover {
+
+  background: #680148;
+  text-decoration: none;
+  color: #eee;
+}
+
+.user-menu-arrow-group {
+
+  width: 20px;
+  display: inline-block;
+  vertical-align: text-top;
+}
