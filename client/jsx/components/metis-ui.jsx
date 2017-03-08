@@ -5,7 +5,6 @@ import MenuBarContainer   from './nav/menu-bar-container';
 import ListHeadContainer  from './list/list-head-container';
 import ListBodyContainer  from './list/list-body-container';
 import LoginPanelContainer from './auth/login-panel-container';
-import ListEmpty from './list/list-empty';
 
 export default class MetisUI extends React.Component{
 

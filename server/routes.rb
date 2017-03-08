@@ -19,11 +19,3 @@ Metis.add_route('POST', '/upload-cancel', 'UploadController#cancel_upload')
 Metis.add_route('POST', '/file-remove', 'UploadController#remove_file')
 
 Metis.add_route('POST', '/retrieve-files', 'Controller#retrieve_files')
-
-# These items will delegate to Janus. i.e. we basically make pass through
-# requests to janus.
-Metis.add_route('POST', '/get-users', 'AdminController#get_users')
-Metis.add_route('POST', '/get-projects', 'AdminController#get_projects')
-Metis.add_route('POST', '/get-permissions', 'AdminController#get_permissions')
-Metis.add_route('POST', '/save-permission', 'AdminController#save_permission')
-Metis.add_route('POST', '/upload-permissions', 'AdminController#upload_permissions')

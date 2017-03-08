@@ -85,13 +85,17 @@ class LogController
   def make_request(url, data)
 
     uri = URI.parse(url)
-    http = Net::HTTP.new(uri.host, uri.port)
-    request = Net::HTTP::Post.new(uri.request_uri)
+
+    https = Net::HTTP.new(uri.host, uri.port)
+    https.use_ssl = true
+    https.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+    request = Net::HTTP::Post.new(uri.path)
     request.set_form_data(data)
 
     begin
 
-      response = http.request(request)
+      response = https.request(request)
       response_code = response.code.to_i()
 
       if response_code == 200

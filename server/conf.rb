@@ -23,7 +23,7 @@ module Conf
   # This is the root directory for the data.
   ROOT_DIR = '/data'
 
-  JANUS_ADDR = 'http://janus-dev.ucsf.edu'
+  JANUS_ADDR = 'https://janus-stage.ucsf.edu'
 
   # One day to finish upload.
   UPLOAD_EXPIRE = 86400
