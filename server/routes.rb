@@ -4,7 +4,6 @@
 Metis = Metis.new()
 
 Metis.add_route('GET', '/', 'ClientController#index')
-Metis.add_route('GET', '/admin', 'ClientController#admin')
 Metis.add_route('GET', '/user', 'ClientController#user')
 
 Metis.add_route('POST', '/login', 'LogController#log_in')
