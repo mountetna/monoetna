@@ -77,6 +77,7 @@
   font-family: 'gotham_bookregular';
   height: 100%;
   float: right;
+  z-index: 10000;
 }
 
 .user-menu-dropdown-btn {

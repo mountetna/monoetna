@@ -36,11 +36,10 @@ export default class MenuBar extends React.Component{
     if(userInfo['loginStatus'] && !userInfo['loginError']){
 
       var height = (this['state']['open']) ? 'auto' : '100%';
-
       var userDropdownGroupProps = {
 
         className: 'user-menu-dropdown-group',
-        style: { height: height },
+        style: { 'height': height },
         onMouseLeave: this.closePanel.bind(this)
       };
 
@@ -83,6 +82,7 @@ export default class MenuBar extends React.Component{
 
       <div id='nav-menu'>
 
+        { this.renderUserMenu() }
         {/*
         <div id='master-search-group'>
 
@@ -108,8 +108,6 @@ export default class MenuBar extends React.Component{
           { 'EXPERIMENTS' }
         </a>
         */}
-
-        { this.renderUserMenu() }
       </div>
     );
   } 

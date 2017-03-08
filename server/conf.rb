@@ -5,7 +5,7 @@ module Conf
   # Warning and error messages that will end up in the log
   WARNS = [
 
-    :PARAMS_NOT_PRESENT,  # 0
+    :PARAMS_NOT_PRESENT, # 0
     :NOT_ADMIN_USER      # 1
   ]
 

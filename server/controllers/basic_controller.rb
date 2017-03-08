@@ -8,6 +8,47 @@ class BasicController
     @logger = logger
   end
 
+  def admin_user?(uri, data)
+
+    begin
+
+      response = JSON.parse(make_request(Conf::JANUS_ADDR+uri, data))
+      if response.key?('administrator') && response['administrator']
+
+        return true
+      else
+
+        return false
+      end
+    rescue
+
+      return false
+    end
+  end
+
+  def make_request(url, data)
+
+    m = __method__
+    begin
+
+      uri = URI.parse(url)
+      https_conn = Net::HTTP.new(uri.host, uri.port)
+      #https_conn.use_ssl = true
+      #https_conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+      request = Net::HTTP::Post.new(uri.path)
+      request.set_form_data(data)
+
+      response = https_conn.request(request)
+      response_code = response.code.to_i()
+
+      return (response_code == 200) ? response.body : send_err(:SERVER_ERR,0,m)
+    rescue
+
+      send_err(:SERVER_ERR, 1, m)
+    end
+  end
+
   def send_err(type, id, method)
 
     ip = @request.env['HTTP_X_FORWARDED_FOR'].to_s
@@ -36,6 +77,6 @@ class BasicController
       response[:error] = 'Unknown error.'
     end
 
-    return response
+    return response.to_json()
   end
 end

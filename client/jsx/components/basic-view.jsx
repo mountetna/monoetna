@@ -43,7 +43,7 @@ export default class BasicView extends React.Component{
         </div>
         <div className='logo-group'>
 
-          { /*<img src='/img/logo_dna_color_round.png' alt='' />*/}
+          <img src='/img/logo_basic.png' alt='' />
         </div>
         <div id='left-column-group'>
         </div>
