@@ -66,6 +66,23 @@ class UserAdminController{
 
         window.location = '/';
         break;
+      case 'SAVE_PERMISSION':
+
+        this.saveSinglePermission(action['permission']);
+        break;
+      case 'DOWNLOAD_PERMISSIONS':
+
+        this.downloadPermissions();
+        break;
+      case 'UPLOAD_PERMISSIONS':
+
+        this.checkPermissionUpload(action['file']);
+        break;
+      case 'REMOVE_PERMISSION':
+
+        var permissions = [action['permission']];
+        this.removePermission(permissions);
+        break;
       default:
 
         // none
@@ -153,7 +170,7 @@ class UserAdminController{
 
         AJAX({
 
-          'url': METIS_ADDR + '/get-permissions',
+          'url': POLYPHEMUS_ADDR + '/get-permissions',
           'method': 'POST',
           'sendType': 'serial',
           'returnType': 'json',
@@ -206,7 +223,7 @@ class UserAdminController{
           return;
         }
 
-        self.uploadPermissionFile(permissions);
+        self.uploadPermission(permissions);
       }
       catch(error){
 
@@ -224,52 +241,37 @@ class UserAdminController{
     var permType = Object.prototype.toString.call(permissions);
     if(permType != '[object Array]') permsValid = false;
 
-    //var keys = ['id','projectId','projectName','role','userEmail','userId'];
-
+    var keys = ['id','projectId','projectName','role','userEmail','userId'];
     for(var a = 0; a < permissions['length']; ++a){
 
-      if(!('id' in permissions[a]))          permsValid = false;
-      if(!('projectId' in permissions[a]))   permsValid = false;
-      if(!('projectName' in permissions[a])) permsValid = false;
-      if(!('role' in permissions[a]))        permsValid = false;
-      if(!('userEmail' in permissions[a]))   permsValid = false;
-      if(!('userId' in permissions[a]))      permsValid = false;
+      keys.forEach((item)=>{
+
+        if(!(item in permissions[a])) permsValid = false;
+      });
     }
 
     return permsValid;
   }
 
-  uploadPermissionFile(permissions){
+  uploadPermission(permissions){
 
     if(COOKIES.hasItem(TOKEN_NAME)){
 
       //Serialize the request for POST
       var permissionItems = 'token='+ COOKIES.getItem(TOKEN_NAME);
-
-      for(var index in permissions){
-
-        var permission = {};
-        for(var key in permissions[index]){
-
-          permission[SNAKE_CASE_IT(key)] = permissions[index][key];
-        }
-
-        permissions[index] = permission;
-      }
-
-      var encodedPerms = encodeURIComponent(JSON.stringify(permissions));
+      var encodedPerms = this.normalizePermission(permissions);
       permissionItems += '&permissions='+ encodedPerms;
 
       try{
   
         AJAX({
   
-          'url': METIS_ADDR + '/upload-permissions',
+          'url': POLYPHEMUS_ADDR + '/upload-permissions',
           'method': 'POST',
           'sendType': 'serial',
           'returnType': 'json',
           'data': permissionItems,
-          'success': this['uploadPermissionResponse'].bind(this),
+          'success': this['permissionsModified'].bind(this),
           'error': this['ajaxError'].bind(this)
         });
       }
@@ -280,9 +282,54 @@ class UserAdminController{
     }
   }
 
-  uploadPermissionResponse(response){
+  removePermission(permissions){
 
-    console.log(response);
+    if(COOKIES.hasItem(TOKEN_NAME)){
+
+      //Serialize the request for POST
+      var permissionItems = 'token='+ COOKIES.getItem(TOKEN_NAME);
+      var encodedPerms = this.normalizePermission(permissions);
+      permissionItems += '&permissions='+ encodedPerms;
+
+      try{
+  
+        AJAX({
+  
+          'url': POLYPHEMUS_ADDR + '/remove-permissions',
+          'method': 'POST',
+          'sendType': 'serial',
+          'returnType': 'json',
+          'data': permissionItems,
+          'success': this['permissionsModified'].bind(this),
+          'error': this['ajaxError'].bind(this)
+        });
+      }
+      catch(error){
+  
+        //console.log(error);
+      }
+    }
+  }
+
+  permissionsModified(response){
+
+    this.adminDataCall('/get-permissions');
+  }
+
+  normalizePermission(permissions){
+
+    for(var index in permissions){
+
+      var permission = {};
+      for(var key in permissions[index]){
+
+        permission[SNAKE_CASE_IT(key)] = permissions[index][key];
+      }
+
+      permissions[index] = permission;
+    }
+
+    return encodeURIComponent(JSON.stringify(permissions));
   }
 
   /*
@@ -338,7 +385,7 @@ class UserAdminController{
      * upload...but this 'bulk upload' has only one entry.
      */
     permission = [permission];
-    this.uploadPermissionFile(permission);
+    this.uploadPermission(permission);
   }
 
   ajaxError(xhr, config, error){

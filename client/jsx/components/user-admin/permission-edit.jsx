@@ -60,7 +60,8 @@ export default class PermissionEdit extends React.Component{
     var callbacks = {
 
       'removeUnsavedPermission': this['props']['removeUnsavedPermission'].bind(this),
-      'savePermission': this['props']['savePermission'].bind(this)
+      'savePermission': this['props']['savePermission'].bind(this),
+      'removePermission': this['props']['removePermission'].bind(this)
     };
     
     return (

@@ -30,4 +30,18 @@ class UserAdminController < BasicController
 
     make_request(Conf::JANUS_ADDR+'/get-permissions', @data)
   end
+
+  def upload_permissions()
+
+    if !@params.key?('permissions') then raise_err(:BAD_REQ, 0, m) end
+    @data['permissions'] = @params['permissions']
+    make_request(Conf::JANUS_ADDR+'/upload-permissions', @data)
+  end
+
+  def remove_permissions()
+
+    if !@params.key?('permissions') then raise_err(:BAD_REQ, 0, m) end
+    @data['permissions'] = @params['permissions']
+    make_request(Conf::JANUS_ADDR+'/remove-permissions', @data)
+  end
 end

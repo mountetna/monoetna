@@ -46,6 +46,12 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
 
       var action = { 'type': 'UPLOAD_PERMISSIONS', 'file': file };
       dispatch(action);
+    },
+
+    'removePermission': (permission)=>{
+
+      var action = { 'type': 'REMOVE_PERMISSION', 'permission': permission };
+      dispatch(action);
     }
   };
 }

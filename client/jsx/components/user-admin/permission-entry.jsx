@@ -56,8 +56,15 @@ export default class PermissionEntry extends GenericAdminEntry{
   deleteEntry(){
 
     if(!this.checkForPrimary()) return;
-    var reactKey = this['props']['permission']['reactKey'];
-    this['props']['callbacks'].removeUnsavedPermission(reactKey);
+    if(this['props']['permission']['id'] == undefined){
+
+      var reactKey = this['props']['permission']['reactKey'];
+      this['props']['callbacks'].removeUnsavedPermission(reactKey);
+    }
+    else{
+
+      this['props']['callbacks'].removePermission(this['props']['permission']);
+    }
   }
 
   saveEntry(){
@@ -131,7 +138,7 @@ export default class PermissionEntry extends GenericAdminEntry{
       var userEmail = this['props']['users'][a]['email'].toLowerCase();
       if(email == userEmail){
 
-        userId = this['props']['users'][a]['id'];
+        userId = this['props']['users'][a]['userId'];
       }
     }
 
@@ -148,7 +155,7 @@ export default class PermissionEntry extends GenericAdminEntry{
       var prjNm = this['props']['projects'][a]['projectName'].toLowerCase();
       if(projectName == prjNm){
 
-        projectId = this['props']['projects'][a]['id'];
+        projectId = this['props']['projects'][a]['projectId'];
       }
     }
 
