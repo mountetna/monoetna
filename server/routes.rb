@@ -1,6 +1,3 @@
-# routes.rb
-# This file initiates Metis and sets the routing of the http requests.
-
 Polyphemus = Polyphemus.new()
 
 # Page view end points
