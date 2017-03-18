@@ -57,10 +57,54 @@ class JanusCheckAdmin
   def pre_request(uri)
 
     url = Conf::JANUS_ADDR+uri
-
     puts url
 
     data = { :token=> @good_token, :app_key=> Secrets::APP_KEY }
+    response = JSON.parse(Utils::make_request(url, data))
+    puts JSON.pretty_generate(response)
+    puts ''
+  end
+
+  def upload_permissions()
+
+    url = Conf::JANUS_ADDR+'upload-permissions'
+    puts url
+
+    perms = [
+
+      {
+        'user_id'=> 2,
+        'project_id'=> 2,
+        'role'=> 'editor'
+      },
+            {
+        'user_id'=> 42,
+        'project_id'=> 2,
+        'role'=> 'editor'
+      },
+    ]
+
+    data = { :token=> @good_token, :app_key=> Secrets::APP_KEY, :permissions=> perms.to_json}
+    response = JSON.parse(Utils::make_request(url, data))
+    puts JSON.pretty_generate(response)
+    puts ''
+  end
+
+  def remove_permissions()
+
+    url = Conf::JANUS_ADDR+'remove-permissions'
+    puts url
+
+    perms = [
+
+      {
+        'user_id'=> 2,
+        'project_id'=> 2,
+        'role'=> 'viewer'
+      }
+    ]
+
+    data = { :token=> @good_token, :app_key=> Secrets::APP_KEY, :permissions=> perms.to_json}
     response = JSON.parse(Utils::make_request(url, data))
     puts JSON.pretty_generate(response)
     puts ''
@@ -69,4 +113,4 @@ end
 
 janusCheckAdmin = JanusCheckAdmin.new()
 janusCheckAdmin.log_in()
-janusCheckAdmin.get_groups()
+janusCheckAdmin.upload_permissions()

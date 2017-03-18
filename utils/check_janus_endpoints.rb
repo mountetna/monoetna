@@ -3,6 +3,8 @@ require 'net/http'
 require 'openssl'
 require 'json'
 
+require './conf.rb'
+require './utils.rb'
 require '../server/secrets'
 
 class JanusCheck
@@ -15,48 +17,21 @@ class JanusCheck
     @hr = '-----------------------------------------------------------'
   end
 
+# Log in the user
   def log_in() 
 
-    url = 'http://janus-dev.ucsf.edu/login'
     data = {
 
       :email=> @good_email, 
       :pass=> @good_passwd, 
       :app_key=> Secrets::APP_KEY
     }
-    response = JSON.parse(make_request(url, data))
-    verify_login(response)
+
+    url = Conf::JANUS_ADDR+'login'
+    response = JSON.parse(Utils::make_request(url, data))
+    @good_token = Utils::verify_login(response)
     puts response
     puts ''
-  end
-
-  def verify_login(response)
-
-    m = __method__.to_s
-    if response.key?('success')
-
-      if response['success']
-
-        if response.key?('user_info')
-
-          if response['user_info'].key?('token')
-
-            puts m+': Saving Token'
-            @good_token = response['user_info']['token']
-          else
-
-            puts m+': Malformed Response'
-          end
-        else
-
-          puts m+': Malformed Response'
-        end
-      end
-    else
-
-      puts m+': Malformed Response'
-    end
-    puts @hr
   end
 
   def check_log()
@@ -68,8 +43,9 @@ class JanusCheck
       return
     end
 
-    url = 'http://janus-dev.ucsf.edu/check'
     data = { :token=> @good_token, :app_key=> Secrets::APP_KEY }
+
+    url = Conf::JANUS_ADDR+'check'
     response = JSON.parse(make_request(url, data))
     verify_check_log(response)
     puts response
@@ -113,7 +89,7 @@ class JanusCheck
       return
     end
 
-    url = 'http://janus-dev.ucsf.edu/logout'
+    url = Conf::JANUS_ADDR+'logout'
     data = { :token=> @good_token, :app_key=> Secrets::APP_KEY }
     verify_log_out(make_request(url, data))
   end
@@ -126,7 +102,7 @@ class JanusCheck
 
   def check_admin()
 
-    url = 'http://janus-dev.ucsf.edu/check-admin'
+    url = Conf::JANUS_ADDR+'check-admin'
     data = {
 
       :email=> @good_email, 
@@ -141,7 +117,7 @@ class JanusCheck
   def check_admin_token()
 
     log_in()
-    url = 'http://janus-dev.ucsf.edu/check-admin-token'
+    url = Conf::JANUS_ADDR+'check-admin-token'
     data = { :token=> @good_token, :app_key=> Secrets::APP_KEY }
     response = JSON.parse(make_request(url, data))
     puts response
@@ -178,8 +154,8 @@ class JanusCheck
 end
 
 janusCheck = JanusCheck.new()
-#janusCheck.log_in()
-#janusCheck.check_log()
-#janusCheck.log_out()
+janusCheck.log_in()
+janusCheck.check_log()
+janusCheck.log_out()
 #janusCheck.check_admin()
-janusCheck.check_admin_token()
+#janusCheck.check_admin_token()
