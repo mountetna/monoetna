@@ -3,59 +3,67 @@ class UserLogController < BasicController
 
   def run()
 
+    # Depending on whether we get token or email/pass combo we perform different
+    # checks.
+    unless @action == 'log_in'
+
+      # Check that a token is present.
+      if !@params.key?('token') then raise_err(:BAD_REQ, 0, __method__) end
+    else
+
+      # Check that the email/pass is present.
+      if !@params.key?('email') || !@params.key?('pass')
+
+        raise_err(:BAD_REQ, 0, __method__)
+      end
+    end
+
     # The data being sent back to the client should already be in a JSON format.
-    send(@action)
+    return send(@action)
   end
 
   def log_in()
 
-    # Check that the email and password are present.
-    if @params.key?('email') && @params.key?('pass')
-
-      data = { 
-
-        :email=> @params['email'], 
-        :pass=> @params['pass'], 
-        :app_key=> Secrets::APP_KEY 
-      }
+      m = __method__
+      set_login_data()
 
       # Check if the user is an administrator.
-      if admin_user?('/check-admin', data)
+      if !admin_user?('/check-admin', @data) then raise_err(:BAD_REQ, 1, m) end
+      return make_request(Conf::JANUS_ADDR+'/login', @data)
+  end
 
-        return make_request(Conf::JANUS_ADDR+'/login', data)
-      else
+  def check_log()
 
-        return send_err(:BAD_REQ, 1, __method__)
-      end
-    else
+    m = __method__
+    set_log_data()
 
-      return send_err(:BAD_REQ, 0, __method__)
-    end
+    # Check if the user is an administrator.
+    if !admin_user?('/check-admin-token',@data) then raise_err(:BAD_REQ,1,m) end
+    return make_request(Conf::JANUS_ADDR+'/check', @data)
   end
 
   def log_out()
 
-    # Check for the correct parameters.
-    if !@params.key?('token') then return send_err(:BAD_REQ, 0, __method__) end
-
-    data = { :token=> @params['token'], :app_key=> Secrets::APP_KEY }
-    return make_request(Conf::JANUS_ADDR+'/logout', data)
+    set_log_data()
+    return make_request(Conf::JANUS_ADDR+'/logout', @data)
   end
 
-  # This is use for external requests. There is another in the generic
-  # controller that is used for internal requests.
-  def check_log()
+  def set_login_data()
 
-    # Check for the correct parameters.
-    if !@params.key?('token') then return send_err(:BAD_REQ, 0, __method__) end
+    @data = { 
 
-    data = { :token=> @params['token'], :app_key=> Secrets::APP_KEY }
-    if admin_user?('/check-admin-token', data)
+      :email=> @params['email'], 
+      :pass=> @params['pass'], 
+      :app_key=> Secrets::APP_KEY 
+    }
+  end
 
-      return make_request(Conf::JANUS_ADDR+'/check', data)
-    else
+  def set_log_data()
 
-      return send_err(:BAD_REQ, 1, __method__)
-    end
+    @data = {
+
+      :token=> @params['token'],
+      :app_key=> Secrets::APP_KEY
+    }
   end
 end
