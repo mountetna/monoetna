@@ -11,6 +11,7 @@ require './server/conf'
 require './server/secrets'
 
 # The application
+require './server/errors/basic_error'
 require './server/polyphemus'
 require './server/routes'
 require './server/controllers/basic_controller'

@@ -1,12 +1,11 @@
 # This should only server a single user status page.
 class ClientController
 
-  def initialize(request, action, logger)
+  def initialize(request, action)
 
     @request = request
     @params = request.POST()
     @action = action
-    @logger = logger
   end
 
   def run()
