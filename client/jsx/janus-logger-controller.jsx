@@ -161,7 +161,7 @@ export default class JanusLoggerController{
   logError(response){
 
     var action = { 'type': 'LOG_ERROR' };
-    cthis['model']['store'].dispatch(action);
+    this['model']['store'].dispatch(action);
   }
 
   ajaxError(xhr, config, error){
