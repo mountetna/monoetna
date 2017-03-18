@@ -62,6 +62,7 @@ class UserAdminController{
         break;
       case 'LOGGED_OUT':
       case 'NOT_LOGGED':
+      case 'LOG_ERROR':
 
         window.location = '/';
         break;
