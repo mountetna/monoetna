@@ -158,7 +158,6 @@ export default class PermissionEntry extends GenericAdminEntry{
   validateRole(role){
 
     if(role == '') return false;
-
     return true;
   }
 

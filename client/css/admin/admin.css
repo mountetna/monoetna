@@ -61,13 +61,13 @@
 
 .admin-edit-entry-group {
 
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid #eee;
 }
 
 .admin-edit-entry-group td {
 
   font-family: 'gotham_bookregular';
-  height: 30px;
+  height: 31px;
   vertical-align: middle;
   padding-right:15px;
 }
@@ -89,7 +89,7 @@
 
 .admin-entry-input:focus {
 
-  border: 1px solid #24a684;
+  border: 1px solid #7db4b5;
   outline: none;
 }
 
@@ -112,7 +112,7 @@
 
 .admin-entry-input-active {
 
-  border: 1px solid #24a684;
+  border: 1px solid #7db4b5;
 }
 
 .admin-entry-delete-btn,

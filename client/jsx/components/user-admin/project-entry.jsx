@@ -14,11 +14,26 @@ export default class ProjectEntry extends GenericAdminEntry{
 
     var projectNameProps = {
 
-      'className': 'admin-entry-input-inactive',
+      'className': 'admin-entry-input',
       'value': this['props']['project']['projectName'],
-      'title': this['props']['project']['projectName'],
-      'readOnly': 'readOnly'
+      'title': this['props']['project']['projectName']
     };
+
+    var groupNameProps = {
+
+      'className': 'admin-entry-input',
+      'value': this['props']['project']['groupName'],
+      'title': this['props']['project']['groupName']
+    }
+
+    if(!this['state']['editActive']){
+
+      projectNameProps['className'] = 'admin-entry-input-inactive';
+      projectNameProps['disabled'] = true;
+
+      groupNameProps['className'] = 'admin-entry-input-inactive';
+      groupNameProps['disabled'] = true;
+    }
 
     return (
 
@@ -29,11 +44,11 @@ export default class ProjectEntry extends GenericAdminEntry{
           <input { ...projectNameProps } />
         </td>
         <td>
-  
-          { 'cip' }
+
+          <input { ...groupNameProps } />
         </td>
         <td>
-  
+
           { this.renderEditControlGroup() }
         </td>
       </tr>

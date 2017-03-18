@@ -38,18 +38,69 @@
   height: 90px;
 }
 
-/*
-#listing-group {
+/* Generic Search Dropdown CSS ************************************************/
 
-  margin-left: 10px;
-  margin-right: 10px;
-  overflow: auto;
-}
+/* INPUT */
+.search-dropdown-input {
 
-#user-info-group {
-
-  margin-top: 20px;
   font-family: 'gotham_bookregular';
-  text-align: center;
+  border: 1px solid #999;
+  width: 100%;
+  background: none;
 }
-*/
+
+.search-dropdown-input:focus {
+
+  border: 1px solid #7db4b5;
+  outline: none;
+}
+
+.search-dropdown-input:hover,
+.search-dropdown-input:focus {
+
+  -webkit-box-shadow: inset -1px 1px 1px 0px #ccc;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+  -moz-box-shadow:    inset -1px 1px 1px 0px #ccc;  /* Firefox 3.5 - 3.6 */
+  box-shadow:         inset -1px 1px 1px 0px #ccc;
+}
+
+.search-dropdown-input-inactive {
+
+  border: 0px;
+  outline: none;
+  width: 100%;
+  background: none;
+}
+
+.search-dropdown-input-active {
+
+  border: 1px solid #7db4b5;
+}
+
+/* TRAY ENTRY */
+.search-dropdown-tray-entry,
+.search-dropdown-tray-empty{
+
+  border: none;
+  width: 100%;
+  outline: none;
+  background: none;
+  text-align: left;
+}
+
+.search-dropdown-tray-entry:hover {
+
+  background: #680148;
+  color: #fff;
+}
+ 
+.search-dropdown-tray-entry-active {
+
+  border: none;
+  width: 100%;
+  outline: none;
+  text-align: left;
+  background: #680148;
+  color: #fff;
+}
+
+/******************************************************************************/

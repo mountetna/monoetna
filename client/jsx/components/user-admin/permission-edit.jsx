@@ -106,14 +106,12 @@ export default class PermissionEdit extends React.Component{
                 </button>
                 <button { ...dwnldPermBtnProps }>
 
-                  <span className='glyphicon glyphicon-save-file white-glyphicon'></span>
-                  { ' DOWN' }
+                  { 'DOWN' }
                 </button>
                 <button { ...uploadPermBtnProps }>
 
                   <input { ...permFileSelector } />
-                  <span className='glyphicon glyphicon-open-file white-glyphicon'></span>
-                  { ' UP' }
+                  { 'UP' }
                 </button>
               </th>
             </tr>
