@@ -15,9 +15,9 @@ export default class UserAdminReducer{
           for(var a = 0; a < adminInfo['permissions']['length']; ++a){
 
             adminInfo['permissions'][a]['reactKey'] = GENERATE_RAND_KEY();
-            adminInfo['permissions'][a]['persisted'] = true;
           }
 
+          adminInfo['permissions'].reverse();
           return adminInfo;
 
         case 'ADD_PERMISSION':
@@ -33,8 +33,7 @@ export default class UserAdminReducer{
             'role': '',
             'userEmail': '',
             'userId': null,
-            'reactKey': randKey,
-            'persisted': false
+            'reactKey': randKey
           };
 
           adminInfo['permissions'].unshift(newPermission);
@@ -43,15 +42,6 @@ export default class UserAdminReducer{
         case 'REMOVE_UNSAVED_PERMISSION':
 
           var nextState = Object.assign({}, state);
-
-          /*
-           * Need to check if the item is persisted or not!
-           * If so then we need to delete it from the DB.
-           * In fact we should probably move this into the JS controller.
-           * That way we just delete the entry from the server and return the
-           * updated list.
-           */
-
           for(var a = 0; a < nextState['permissions']['length']; ++a){
 
             if(nextState['permissions'][a]['reactKey'] == action['reactKey']){
