@@ -9,7 +9,7 @@ module Conf
     'directory',
     'hashing_algorithm',
     'start_timestamp',
-    'authorization_token',
+    'token',
     'original_name', 
     'file_name',
     'file_size',
@@ -17,13 +17,13 @@ module Conf
     'user_id',
     'project_id',
     'group_id',
-    'redis_index'
+    'db_index'
   ]
 
   # This is the root directory for the data.
   ROOT_DIR = '/data'
 
-  JANUS_ADDR = 'https://janus-stage.ucsf.edu'
+  JANUS_ADDR = 'http://janus-dev.ucsf.edu'
 
   # One day to finish upload.
   UPLOAD_EXPIRE = 86400
@@ -53,6 +53,7 @@ module Conf
     :TEMP_NO_STATUS,        # 3
     :TEMP_AND_FILE,         # 4
     :STATUS_NO_TEMP_OR_FILE,# 5
-    :CONNECTION_ERROR       # 6
+    :CONNECTION_ERROR,      # 6
+    :JANUS_SERVER_ERROR     # 7
   ]
 end
