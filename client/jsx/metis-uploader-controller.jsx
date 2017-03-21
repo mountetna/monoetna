@@ -2,8 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 
-import JanusLogger from './janus-logger';
-import KeyboardShortcuts from './keyboard-shortcuts';
+import JanusLogger from './janus-logger-controller';
 import MetisModel from './models/metis-model';
 import MetisUIContainer from './components/metis-ui-container';
 
@@ -13,7 +12,6 @@ class MetisUploader{
 
     this['model'] = null;
     this['uploadWorker'] = null;
-    this['keyboardShortcuts'] = new KeyboardShortcuts();
     this['janusLogger'] = new JanusLogger();
 
     this.initDataStore();
@@ -82,7 +80,7 @@ class MetisUploader{
         'method': 'POST',
         'sendType': 'serial',
         'returnType': 'json',
-        'data': 'authorization_token='+ userInfo['authToken'],
+        'data': 'token='+ userInfo['authToken'],
         'success': this['retrieveFilesResponse'].bind(this),
         'error': this['ajaxError'].bind(this)
       });
@@ -171,9 +169,7 @@ class MetisUploader{
         break;
       case 'LOG_OUT':
 
-        var state = this['model']['store'].getState();
-        var email = state['userInfo']['userEmail'];
-        this['janusLogger'].logOut(email, COOKIES.getItem(TOKEN_NAME));
+        this['janusLogger'].logOut(COOKIES.getItem(TOKEN_NAME));
         break;
       case 'LOGGED_OUT':
 
@@ -260,72 +256,65 @@ class MetisUploader{
     }
   }
 
-  /*
-   * This is stubbed out and needs to be finished
-   */
-  checkAuthData(fileUpload){
+  checkAuthData(fileUploadData){
 
     var requestItems = [
 
-      'originalName',
-      'fileName',
-      'fileSize',
-      'redisIndex',
       'projectName',
       'projectId',
-      'groupId',
-      'role'
+      'role',
+      'fileName',
+      'dbIndex',
+      'groupId'
     ];
 
     var valid = true;
     for(var a = 0; a < requestItems['length']; ++a){
 
-      if(!(requestItems[a] in fileUpload)){
+      var key = requestItems[a];
+      if(!(key in fileUploadData)) valid = false;  // Checking the key.
+      if(fileUploadData[key] == undefined) valid = false; // Checking the value.
+    }
+    return valid;
+  }
 
-        valid = false;
-        break;
-      }
+  generateAuthRequest(file){
 
-      if(fileUpload[requestItems[a]] == undefined){
+    var fileUploadData = {}
 
-        valid = false;
-        break;
+    // Add params not that are needed but not included.
+    var state = this['model']['store'].getState();
+    fileUploadData['token'] = state['userInfo']['authToken'];
+
+    // Snake case the data for Ruby, isolate the needed params.
+    for(var key in file){
+
+      if(key in STATUS_ITEMS){
+
+        var snake_cased_key = SNAKE_CASE_IT(key);
+        fileUploadData[snake_cased_key] = file[key];
       }
     }
+    return fileUploadData;
+  }
 
-    return valid;
+  serializeAuthRequset(fileUploadData){
+
+    var request = [];
+    for(var key in fileUploadData){
+
+      request.push(key +'='+ fileUploadData[key]);
+    }
+    return request.join('&');
   }
 
   /*
    * Call to get approval to make an action on Metis.
    */
-  requestAuthorization(fileUpload){
+  requestAuthorization(fileUploadData){
 
-    var state = this['model']['store'].getState();
-    var userInfo = state['userInfo'];
-
-    // Normailize the data for Ruby.
-    var authRequest = {
-
-      'user_email': userInfo['userEmail'],
-      'user_id': userInfo['userId'],
-      'original_name': fileUpload['name'],
-      'file_name': fileUpload['fileName'],
-      'file_size': fileUpload['size'], //in bytes
-      'redis_index': fileUpload['redisIndex'],
-      'authorization_token': userInfo['authToken'],
-      'project_name': fileUpload['projectName'],
-      'project_id': fileUpload['projectId'],
-      'group_id': fileUpload['groupId'],
-      'role': fileUpload['role'],
-    };
-
-    // Serialize the request for POST.
-    var request = [];
-    for(var key in authRequest){
-
-      request.push(key +'='+ authRequest[key]);
-    }
+    fileUploadData = this.generateAuthRequest(fileUploadData);
+    var request = this.serializeAuthRequset(fileUploadData);
 
     // Request authorization to upload the file.
     AJAX({
@@ -334,7 +323,7 @@ class MetisUploader{
       'method': 'POST',
       'sendType': 'serial',
       'returnType': 'json',
-      'data': request.join('&'),
+      'data': request,
       'success': this['authorizationResponse'].bind(this),
       'error': this['ajaxError'].bind(this)
     });
@@ -393,7 +382,7 @@ class MetisUploader{
   }
 
   /*
-   * Based upon the redisIndex from the auth response we can extract the actual
+   * Based upon the dbIndex from the auth response we can extract the actual
    * file object from the redux store.
    */
   getUploadFile(authResponse){
@@ -404,7 +393,7 @@ class MetisUploader{
     var uploadFile = null;
     for(var a = 0; a < fileUploads['length']; ++a){
 
-      if(fileUploads[a]['redisIndex'] == request['redisIndex']){
+      if(fileUploads[a]['dbIndex'] == request['dbIndex']){
 
         uploadFile = fileUploads[a];
         break;
