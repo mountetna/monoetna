@@ -24,7 +24,7 @@ export default class MetisReducer{
            * For new uploads we just generate a psudo random string, here at the
            * client, to hold a place.
            */
-          fileObject['redisIndex'] = GENERATE_RAND_KEY(); 
+          fileObject['dbIndex'] = GENERATE_RAND_KEY(); 
           // MOD END
           
           fileData['fileUploads'].push(fileObject);
@@ -43,7 +43,7 @@ export default class MetisReducer{
           var oldIndex = authResponse['request']['old_index'];
           for(var a = 0; a < fileUploads.length; ++a){
 
-            if(fileUploads[a]['redisIndex'] == oldIndex){
+            if(fileUploads[a]['dbIndex'] == oldIndex){
 
               fileUploadIndex = a; 
               fileUpload = fileUploads[a];
@@ -73,7 +73,7 @@ export default class MetisReducer{
 
           for(var a = 0; a < fileUploads['length']; ++a){
 
-            if(fileUploads[a]['redisIndex'] == request['redisIndex']){
+            if(fileUploads[a]['dbIndex'] == request['dbIndex']){
 
               //uploadFile = fileUploads[a];
               for(var key in request){
@@ -98,7 +98,7 @@ export default class MetisReducer{
           // Select the file to upload from the redux store.
           for(var a = 0; a < fileUploads.length; ++a){
 
-            if(fileUploads[a]['redisIndex'] == index){
+            if(fileUploads[a]['dbIndex'] == index){
 
               fileUploadIndex = a; 
               fileUpload = fileUploads[a];
@@ -121,14 +121,14 @@ export default class MetisReducer{
 
           // MOD START
           var result = this.camelCaseIt(action['uploadResponse']['result']);
-          var index = result['redisIndex'];
+          var index = result['dbIndex'];
 
           var fileUploadIndex = 0;
 
           // Remove the upload file from the redux store.
           for(var a = 0; a < fileUploads.length; ++a){
 
-            if(fileUploads[a]['redisIndex'] == index){
+            if(fileUploads[a]['dbIndex'] == index){
 
               fileUploads.splice(a, 1);
               break;
@@ -169,7 +169,7 @@ export default class MetisReducer{
           var reqData = this.camelCaseIt(action['pauseResponse']['request']);
           for(var a = 0; a < fileUploads['length']; ++a){
 
-            if(fileUploads[a]['redisIndex'] == reqData['redisIndex']){
+            if(fileUploads[a]['dbIndex'] == reqData['dbIndex']){
 
               for(var key in reqData){
 
@@ -201,7 +201,7 @@ export default class MetisReducer{
             }
 
             // Apply a 'queued' status to a matching file upload.
-            if(fileUploads[a]['redisIndex'] == action['redisIndex']){
+            if(fileUploads[a]['dbIndex'] == action['dbIndex']){
 
               fileUploads[a]['status'] = 'queued';
             }
@@ -216,7 +216,7 @@ export default class MetisReducer{
 
           for(var a = 0; a < fileUploads['length']; ++a){
 
-            if(fileUploads[a]['redisIndex'] == cancelledFile['redis_index']){
+            if(fileUploads[a]['dbIndex'] == cancelledFile['redis_index']){
 
               fileUploads[a]['status'] = 'cancelled';
               fileData['fileFails'].push(fileUploads[a]);
@@ -235,7 +235,7 @@ export default class MetisReducer{
             var fileRemoved = false;
             for(var a = 0; a < fileData[key]['length']; ++a){
 
-              if(fileData[key][a]['redisIndex'] == oldMetadata['redis_index']){
+              if(fileData[key][a]['dbIndex'] == oldMetadata['redis_index']){
 
                 fileData[key].splice(a, 1);
                 fileRemoved = true;

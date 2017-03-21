@@ -378,10 +378,10 @@ export default class ListUpload extends React.Component{
     this['props']['callbacks'].initializeUpload(this['props']['fileUpload']);
   }
 
-  queueUpload(redisIndex){
+  queueUpload(dbIndex){
 
-    var redisIndex = this['props']['fileUpload']['redisIndex'];
-    this['props']['callbacks'].queueUpload(redisIndex);
+    var dbIndex = this['props']['fileUpload']['dbIndex'];
+    this['props']['callbacks'].queueUpload(dbIndex);
   }
 
   pauseUpload(){

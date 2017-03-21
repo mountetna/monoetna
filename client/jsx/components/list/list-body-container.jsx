@@ -52,9 +52,9 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
       dispatch(action);
     },
 
-    queueUpload: (redisIndex)=>{
+    queueUpload: (dbIndex)=>{
 
-      var action = { 'type': 'QUEUE_UPLOAD', 'redisIndex': redisIndex };
+      var action = { 'type': 'QUEUE_UPLOAD', 'dbIndex': dbIndex };
       dispatch(action);
     },
 
@@ -95,7 +95,7 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
      */
     clearUpload: (fileMetadata)=>{
 
-      fileMetadata['redis_index'] = fileMetadata['redisIndex'];
+      fileMetadata['redis_index'] = fileMetadata['dbIndex'];
       var action = { 'type': 'FILE_REMOVED', 'oldMetadata': fileMetadata };
       dispatch(action);
     }

@@ -21,7 +21,7 @@ export default class ListUploadFailed extends React.Component{
      * a custom browse button.
      */
     var failedFile = this['props']['failedFile'];
-    document.getElementById('file-selector-'+ failedFile['redisIndex']).click();
+    document.getElementById('file-selector-'+ failedFile['dbIndex']).click();
   }
 
   fileSelected(event){
@@ -49,10 +49,10 @@ export default class ListUploadFailed extends React.Component{
 
     var fileSelector = {
 
-      'id': 'file-selector-'+ failedFile['redisIndex'],
+      'id': 'file-selector-'+ failedFile['dbIndex'],
       'className': 'file-selector',
       'type': 'file',
-      'name': 'upload-file-'+ failedFile['redisIndex'],
+      'name': 'upload-file-'+ failedFile['dbIndex'],
       'onChange': this['fileSelected'].bind(this)
     };
 
