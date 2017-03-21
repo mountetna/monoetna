@@ -8,7 +8,7 @@ module SignService
   def SignService.order_params(params)
 
     Conf::SIGNATURE_ITEMS.map do |item|
-      
+
       params[item]
     end
   end
