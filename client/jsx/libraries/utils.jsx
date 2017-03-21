@@ -33,9 +33,11 @@ var STATUS_ITEMS = {
   'userEmail': String,
   'userId': Number,
   'projectId': Number,
+  'projectName': String,
   'groupId': Number,
-  'redisIndex': String,
+  'dbIndex': String,
   'status': String,
+  'role': String,
 
   'signature': String,
   
