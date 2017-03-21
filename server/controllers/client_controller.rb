@@ -5,33 +5,26 @@ class ClientController
 
   # The redis_service is not required here but it comes along for the ride since
   # we have to implement three args in the other controllers.
-  def initialize(redis_service, request, action, logger)
+  def initialize(redis_service, request, action)
 
+    @redis_service = redis_service
     @request = request
+    @params = request.POST()
     @action = action
-    @logger = logger
   end
 
   def run()  
 
-    send(@action)
+    return send(@action)
   end
 
   def index()
 
-    template = File.read('./server/views/index.html')
-    Rack::Response.new(template)
-  end
-
-  def admin()
-
-    template = File.read('./server/views/admin.html')
-    Rack::Response.new(template)
+    return File.read('./server/views/index.html')
   end
 
   def user()
 
-    template = File.read('./server/views/user.html')
-    Rack::Response.new(template)
+    return File.read('./server/views/user.html')
   end
 end

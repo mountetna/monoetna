@@ -12,7 +12,7 @@ module.exports = {
 
   'entry': {
 
-    'metis-main': './client/js/metis-uploader.js'
+    'metis-main': './client/js/metis-uploader-controller.js'
   },
   'output': {
 
