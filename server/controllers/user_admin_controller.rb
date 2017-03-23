@@ -2,15 +2,13 @@ class UserAdminController < BasicController
 
   def run()
 
-    m = __method__
-
     # Check for the correct parameters.
-    if !@params.key?('token') then raise_err(:BAD_REQ, 0, m) end
+    raise_err(:BAD_REQ, 0, __method__) if !@params.key?('token')
 
     # Check that the user is an admin (only admins allowed to use this class)
     @data = { :token=> @params['token'], :app_key=> Secrets::APP_KEY }
     uri = '/check-admin-token'
-    if !admin_user?(uri, @data) then raise_err(:BAD_REQ, 1, m) end
+    raise_err(:BAD_REQ, 1, __method__) if !admin_user?(uri, @data)
 
     # The data being sent back to the client should already be in a JSON format.
     return send(@action)
@@ -33,15 +31,20 @@ class UserAdminController < BasicController
 
   def upload_permissions()
 
-    if !@params.key?('permissions') then raise_err(:BAD_REQ, 0, m) end
+    raise_err(:BAD_REQ, 0, m) if !@params.key?('permissions')
     @data['permissions'] = @params['permissions']
     make_request(Conf::JANUS_ADDR+'/upload-permissions', @data)
   end
 
   def remove_permissions()
 
-    if !@params.key?('permissions') then raise_err(:BAD_REQ, 0, m) end
+    raise_err(:BAD_REQ, 0, m) if !@params.key?('permissions')
     @data['permissions'] = @params['permissions']
     make_request(Conf::JANUS_ADDR+'/remove-permissions', @data)
+  end
+
+  def logout_all()
+
+    make_request(Conf::JANUS_ADDR+'/logout-all', @data)
   end
 end

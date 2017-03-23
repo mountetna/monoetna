@@ -8,7 +8,7 @@ class UserLogController < BasicController
     unless @action == 'log_in'
 
       # Check that a token is present.
-      if !@params.key?('token') then raise_err(:BAD_REQ, 0, __method__) end
+      raise_err(:BAD_REQ, 0, __method__) if !@params.key?('token')
     else
 
       # Check that the email/pass is present.
@@ -24,21 +24,19 @@ class UserLogController < BasicController
 
   def log_in()
 
-      m = __method__
       set_login_data()
 
       # Check if the user is an administrator.
-      if !admin_user?('/check-admin', @data) then raise_err(:BAD_REQ, 1, m) end
+      raise_err(:BAD_REQ, 1, __method__) if !admin_user?('/check-admin', @data)
       return make_request(Conf::JANUS_ADDR+'/login', @data)
   end
 
   def check_log()
 
-    m = __method__
     set_log_data()
 
     # Check if the user is an administrator.
-    if !admin_user?('/check-admin-token',@data) then raise_err(:BAD_REQ,1,m) end
+    raise_err(:BAD_REQ,1,__method__) if !admin_user?('/check-admin-token',@data)
     return make_request(Conf::JANUS_ADDR+'/check', @data)
   end
 
