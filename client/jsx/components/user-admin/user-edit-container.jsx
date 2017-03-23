@@ -12,7 +12,14 @@ const mapStateToProps = (state, ownProps)=>{
 
 const mapDispatchToProps = (dispatch, ownProps)=>{
 
-  return {};
+  return {
+
+    'logoutAll': ()=>{
+
+      var action = { 'type': 'LOGOUT_ALL' };
+      dispatch(action);
+    }
+  }
 }
 
 const UserEditContainer = ReactRedux.connect(

@@ -31,6 +31,7 @@
 .admin-add-btn {
   
   float: right;
+  display: inline-block;
   position: relative;
   margin-left: 5px;
   padding: 3px;

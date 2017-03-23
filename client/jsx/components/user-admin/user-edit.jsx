@@ -53,6 +53,12 @@ export default class UserEdit extends React.Component{
                   <span className='glyphicon glyphicon-plus white-glyphicon'></span>
                   { 'ADD USER' }
                 </button>
+
+                <button className='admin-add-btn' onClick={ this['props'].logoutAll }>
+
+                  <span className='glyphicon glyphicon-lock white-glyphicon'></span>
+                  { 'LOGOUT ALL' }
+                </button>
               </th>
             </tr>
           </thead>

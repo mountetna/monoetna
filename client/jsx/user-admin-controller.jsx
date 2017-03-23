@@ -62,9 +62,12 @@ class UserAdminController{
         break;
       case 'LOGGED_OUT':
       case 'NOT_LOGGED':
-      case 'LOG_ERROR':
 
         window.location = '/';
+        break;
+      case 'LOGOUT_ALL':
+
+        this.logoutAll();
         break;
       case 'SAVE_PERMISSION':
 
@@ -386,6 +389,39 @@ class UserAdminController{
      */
     permission = [permission];
     this.uploadPermission(permission);
+  }
+
+  logoutAll(){
+
+    var msg1 = 'Are you sure you want to log out all the system users?';
+    if(!confirm(msg1)) return;
+
+    var msg2 = 'This action could have a negative impact on the system. \
+    Are you really sure?';
+    if(!confirm(msg2)) return;
+
+    if(COOKIES.hasItem(TOKEN_NAME)){
+
+      //Serialize the request for POST
+      var token = 'token='+ COOKIES.getItem(TOKEN_NAME);
+      try{
+  
+        AJAX({
+  
+          'url': POLYPHEMUS_ADDR + '/logout-all',
+          'method': 'POST',
+          'sendType': 'serial',
+          'returnType': 'json',
+          'data': token,
+          'success': function(){ window.location = '/' },
+          'error': this['ajaxError'].bind(this)
+        });
+      }
+      catch(error){
+  
+        window.location = '/';
+      }
+    }
   }
 
   ajaxError(xhr, config, error){

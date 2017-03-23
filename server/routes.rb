@@ -16,3 +16,7 @@ Polyphemus.add_route('POST', '/get-projects', 'UserAdminController#get_projects'
 Polyphemus.add_route('POST', '/get-permissions', 'UserAdminController#get_permissions')
 Polyphemus.add_route('POST', '/upload-permissions', 'UserAdminController#upload_permissions')
 Polyphemus.add_route('POST', '/remove-permissions', 'UserAdminController#remove_permissions')
+
+# Invalidate all tokens in the system.
+# This could cause problems with Metis if there are active uploads.
+Polyphemus.add_route('POST', '/logout-all', 'UserAdminController#logout_all')
