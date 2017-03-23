@@ -39,13 +39,9 @@ export default class JanusLoggerController{
 
       this.logInResponse(response);
     }
-    else if(response['success'] && response['user_info'] == undefined){
-
-      this.notLogged();
-    }
     else{
 
-      this.logError();
+      this.notLogged();
     }
   }
 
@@ -154,11 +150,21 @@ export default class JanusLoggerController{
 
   notLogged(){
 
+    if(COOKIES.hasItem(TOKEN_NAME)){
+
+      COOKIES.removeItem(TOKEN_NAME, '/', 'ucsf.edu');
+    }
+
     var action = { 'type': 'NOT_LOGGED' };
     this['model']['store'].dispatch(action);
   }
 
   logError(response){
+
+    if(COOKIES.hasItem(TOKEN_NAME)){
+
+      COOKIES.removeItem(TOKEN_NAME, '/', 'ucsf.edu');
+    }
 
     var action = { 'type': 'LOG_ERROR' };
     this['model']['store'].dispatch(action);
