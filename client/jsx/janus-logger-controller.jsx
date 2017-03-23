@@ -71,7 +71,9 @@ export default class JanusLoggerController{
 
       // Set the token to the cookies so it may be used by multiple UI programs.
       var token = response['user_info']['token'];
-      COOKIES.setItem(TOKEN_NAME, token, Infinity, '/', 'ucsf.edu');
+      var expire = new Date();
+      expire.setHours(expire.getHours() + 24);
+      COOKIES.setItem(TOKEN_NAME, token, expire, '/', 'ucsf.edu');
 
       // Check to see if the user has any permissions.
       if(response['user_info']['permissions']['length'] == 0){
@@ -102,9 +104,8 @@ export default class JanusLoggerController{
 
     alert(msg);
 
-    var email = response['user_info']['email'];
     var token = response['user_info']['auth_token'];
-    this.logOut(email, token);
+    this.logOut(token);
   }
 
   formLoginResponseData(response){

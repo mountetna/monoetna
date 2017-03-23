@@ -11,8 +11,8 @@ class JanusCheck
 
   def initialize()
 
-    @good_email = 'jason.cater@ucsf.edu'
-    @good_passwd = 'w4yn0w4y'
+    @good_email = 'jasondcater@gmail.com'
+    @good_passwd = '123abc'
     @good_token = nil
     @hr = '-----------------------------------------------------------'
   end
