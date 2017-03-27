@@ -57,10 +57,6 @@
 
   `$ babel ./client/jsx --watch --out-dir ./client/js`
 
-  Second start up webpack to take the processed files and pack them up for 'deployment'. Of course in development we are not 'deploying' but I like to debug as if I was about to. This keeps everything consistant.
-
-  `$ webpack --watch ./client/js/metis-uploader.js ./client/js/metis-main.bundle.js`
-
   If the `webpack.config.js` file is present in the parent folder you can just run:
 
   `$ webpack --watch`
