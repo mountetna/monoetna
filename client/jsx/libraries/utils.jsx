@@ -3,7 +3,7 @@
  */
 
 var TOKEN_NAME = 'UCSF_ETNA_AUTH_TOKEN';
-var POLYPHEMUS_ADDR = 'https://polyphemus-dev.ucsf.edu'
+var POLYPHEMUS_ADDR = 'https://polyphemus-stage.ucsf.edu'
 
 /* 
  * Generates a psudo random key for React components and data element sorting.
