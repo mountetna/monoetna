@@ -64,7 +64,7 @@ class BasicViewController{
         break;
       case 'LOGGED_OUT':
 
-        window.location = '/';
+        window.location = LOGGED_OUT_ADDR();
         break;
       default:
 

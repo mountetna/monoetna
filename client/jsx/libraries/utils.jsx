@@ -3,7 +3,7 @@
  */
 
 var TOKEN_NAME = 'UCSF_ETNA_AUTH_TOKEN';
-var POLYPHEMUS_ADDR = 'https://polyphemus-stage.ucsf.edu'
+var POLYPHEMUS_ADDR = 'https://polyphemus-dev.ucsf.edu';
 
 /* 
  * Generates a psudo random key for React components and data element sorting.
@@ -393,4 +393,12 @@ var SNAKE_CASE_IT = function(str){
   }
 
   return str;
+}
+
+var LOGGED_OUT_ADDR = function(resource = '', query = ''){
+
+  var base = 'https://janus-dev.ucsf.edu';
+  resource = encodeURIComponent(resource);
+  query = encodeURIComponent(encodeURIComponent(query));
+  return base+'?refer=https%3A%2F%2Fpolyphemus-dev.ucsf.edu%2F'+resource;
 }

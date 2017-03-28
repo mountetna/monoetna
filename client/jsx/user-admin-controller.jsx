@@ -63,7 +63,7 @@ class UserAdminController{
       case 'LOGGED_OUT':
       case 'NOT_LOGGED':
 
-        window.location = '/';
+        window.location = LOGGED_OUT_ADDR();
         break;
       case 'LOGOUT_ALL':
 
