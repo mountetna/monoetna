@@ -1,7 +1,5 @@
 module Conf
 
-  JANUS_ADDR = 'http://janus-dev.ucsf.edu'
-
   # Warning and error messages that will end up in the log
   WARNS = [
 

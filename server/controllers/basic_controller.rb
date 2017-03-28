@@ -34,8 +34,8 @@ class BasicController
 
       uri = URI.parse(url)
       https_conn = Net::HTTP.new(uri.host, uri.port)
-      #https_conn.use_ssl = true
-      #https_conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      https_conn.use_ssl = true
+      https_conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
 
       request = Net::HTTP::Post.new(uri.path)
       request.set_form_data(data)

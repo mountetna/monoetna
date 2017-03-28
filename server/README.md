@@ -10,5 +10,6 @@ and it should look like so...
 module Secrets
 
   APP_KEY = '[Polyphemus App Key]'
+  JANUS_ADDR = 'http://[Janus URL]'
 end
 ```
