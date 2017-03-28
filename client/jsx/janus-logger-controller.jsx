@@ -9,7 +9,7 @@ export default class JanusLoggerController{
     this['model']['store'] = null;
   }
 
-  checkLog(callback){
+  checkLog(){
 
     if(COOKIES.hasItem(TOKEN_NAME)){
 
