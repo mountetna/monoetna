@@ -397,7 +397,7 @@ var SNAKE_CASE_IT = function(str){
 
 var LOGGED_OUT_ADDR = function(resource = '', query = ''){
 
-  var base = 'https://janus-dev.ucsf.edu';
+  var base = 'https://janus-dev.ucsf.edu/login';
   resource = encodeURIComponent(resource);
   query = encodeURIComponent(encodeURIComponent(query));
   return base+'?refer=https%3A%2F%2Fpolyphemus-dev.ucsf.edu%2F'+resource;
