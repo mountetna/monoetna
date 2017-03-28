@@ -23,8 +23,13 @@ class ClientController
     return File.read('./server/views/user_admin.html')
   end
 
-    def network_utils()
+  def network_utils()
 
     return File.read('./server/views/network_utils.html')
+  end
+
+  def logged_out()
+
+    return File.read('./server/views/logged_out.html')
   end
 end
