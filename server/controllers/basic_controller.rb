@@ -13,7 +13,7 @@ class BasicController
 
     begin
 
-      response = JSON.parse(make_request(Conf::JANUS_ADDR+uri, data))
+      response = JSON.parse(make_request(Secrets::JANUS_ADDR+uri, data))
       if response.key?('administrator') && response['administrator']
 
         return true
