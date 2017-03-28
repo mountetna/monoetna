@@ -399,7 +399,7 @@ var SNAKE_CASE_IT = function(str){
 var LOGGED_OUT_ADDR = function(){
 
   var base = 'https://janus-dev.ucsf.edu/Shibboleth.sso/Logout';
-  return base+'?return=https%3A%2F%2Fpolyphemus-dev.ucsf.edu%2F';
+  return base+'?return=https%3A%2F%2Fpolyphemus-dev.ucsf.edu%2F/logged-out';
 }
 
 var NOT_LOGGED_ADDR = function(){

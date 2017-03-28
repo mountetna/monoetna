@@ -47,7 +47,12 @@ export default class BasicView extends React.Component{
         </div>
         <div id='left-column-group'>
         </div>
-        { this.renderContent() }
+
+        { /*this.renderContent()*/ }
+        <div id='user-info-group'>
+
+          Standby.
+        </div>
       </div>
     )
   }
