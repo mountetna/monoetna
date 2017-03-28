@@ -28,7 +28,7 @@ class UserLogController < BasicController
 
       # Check if the user is an administrator.
       raise_err(:BAD_REQ, 1, __method__) if !admin_user?('/check-admin', @data)
-      return make_request(Conf::JANUS_ADDR+'/login', @data)
+      return make_request(Secrets::JANUS_ADDR+'/login', @data)
   end
 
   def check_log()
@@ -37,13 +37,13 @@ class UserLogController < BasicController
 
     # Check if the user is an administrator.
     raise_err(:BAD_REQ,1,__method__) if !admin_user?('/check-admin-token',@data)
-    return make_request(Conf::JANUS_ADDR+'/check', @data)
+    return make_request(Secrets::JANUS_ADDR+'/check', @data)
   end
 
   def log_out()
 
     set_log_data()
-    return make_request(Conf::JANUS_ADDR+'/logout', @data)
+    return make_request(Secrets::JANUS_ADDR+'/logout', @data)
   end
 
   def set_login_data()
