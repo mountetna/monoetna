@@ -63,9 +63,12 @@ class BasicViewController{
         this['janusLogger'].logOut(COOKIES.getItem(TOKEN_NAME));
         break;
       case 'LOGGED_OUT':
-      case 'NOT_LOGGED':
 
         window.location = LOGGED_OUT_ADDR();
+        break
+      case 'NOT_LOGGED':
+
+        window.location = NOT_LOGGED_ADDR();
         break;
       default:
 
