@@ -12,10 +12,6 @@ export default class UserEntry extends GenericAdminEntry{
       'onMouseLeave': this['hideControlGroup'].bind(this)
     };
 
-    var userEmail = this['props']['user']['email'];
-    var firstName = this['props']['user']['firstName'];
-    var lastName = this['props']['user']['lastName'];
-
     var emailEntryProps = {
 
       'className': 'admin-entry-input',
@@ -33,8 +29,8 @@ export default class UserEntry extends GenericAdminEntry{
     var lastNameEntryProps = {
 
       'className': 'admin-entry-input',
-      'value': this['props']['user']['firstName'],
-      'title': this['props']['user']['firstName']
+      'value': this['props']['user']['lastName'],
+      'title': this['props']['user']['lastName']
     };
 
     if(!this['state']['editActive']){
