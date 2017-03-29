@@ -247,7 +247,7 @@ class UserAdminController{
     var permType = Object.prototype.toString.call(permissions);
     if(permType != '[object Array]') permsValid = false;
 
-    var keys = ['id','projectId','projectName','role','userEmail','userId'];
+    var keys = ['projectName','role','userEmail'];
     for(var a = 0; a < permissions['length']; ++a){
 
       keys.forEach((item)=>{
