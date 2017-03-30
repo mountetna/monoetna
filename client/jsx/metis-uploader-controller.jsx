@@ -173,7 +173,11 @@ class MetisUploader{
         break;
       case 'LOGGED_OUT':
 
-        window.location = '/';
+        window.location = LOGGED_OUT_ADDR();
+        break
+      case 'NOT_LOGGED':
+
+        window.location = NOT_LOGGED_ADDR();
         break;
       default:
 
@@ -265,7 +269,8 @@ class MetisUploader{
       'role',
       'fileName',
       'dbIndex',
-      'groupId'
+      'groupId',
+      'groupName'
     ];
 
     var valid = true;
@@ -368,8 +373,7 @@ class MetisUploader{
 
     var request = PARSE_REQUEST(uploadFile);
     var state = this['model']['store'].getState();
-    var authToken = state['userInfo']['authToken'];
-    request['authorizationToken'] = authToken;
+    request['token'] = state['userInfo']['authToken'];
 
     var workerMessage = {
 
@@ -434,8 +438,7 @@ class MetisUploader{
     if(uploadFile == null) return;
 
     var request = PARSE_REQUEST(uploadFile);
-    var authToken = state['userInfo']['authToken'];
-    request['authorizationToken'] = authToken;
+    request['token'] = state['userInfo']['authToken'];
 
     var workerMessage = {
 

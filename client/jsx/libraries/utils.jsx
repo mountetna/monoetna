@@ -27,7 +27,8 @@ var STATUS_ITEMS = {
   'finishTimestamp': Number,
   'authToken': String,
   'authorizationToken': String,
-  'originalName': String,    
+  'token': String,
+  'originalName': String,
   'fileName': String,
   'fileSize': Number,
   'userEmail': String,
@@ -35,11 +36,12 @@ var STATUS_ITEMS = {
   'projectId': Number,
   'projectName': String,
   'groupId': Number,
+  'groupName': String,
   'dbIndex': String,
   'status': String,
   'role': String,
 
-  'signature': String,
+  'hmacSignature': String,
   
   'currentBlobSize': Number,
   'currentBytePosition': Number,
@@ -528,4 +530,17 @@ var SNAKE_CASE_IT = function(str){
   }
 
   return str;
+}
+
+// After we log out of Janus we must log out of Shibboleth.
+var LOGGED_OUT_ADDR = function(){
+
+  var base = 'https://janus-stage.ucsf.edu/Shibboleth.sso/Logout';
+  return base+'?return=http%3A%2F%2Fmetis-dev.ucsf.edu%2Flogged-out';
+}
+
+var NOT_LOGGED_ADDR = function(){
+
+  var base = 'https://janus-stage.ucsf.edu/login';
+  return base+'?refer=http%3A%2F%2Fmetis-dev.ucsf.edu%2F';
 }
