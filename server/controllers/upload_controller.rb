@@ -3,7 +3,7 @@ class UploadController < BasicController
   def run()
 
     set_user()
-    if !@user.valid?() then raise_err(:BAD_REQ, 2, __method__) end
+    raise_err(:BAD_REQ, 2, __method__) if !@user.valid?()
 
     return send(@action).to_json()
   end
@@ -13,14 +13,15 @@ class UploadController < BasicController
     m = __method__
 
     # Check that the correct parameters are present.
-    if !has_auth_params?(@params) then raise_err(:BAD_REQ, 0, m) end
+    raise_err(:BAD_REQ, 0, m) if !has_auth_params?(@params)
 
-    group_id = @params['group_id']
-    project_id = @params['project_id']
-    directory = Conf::ROOT_DIR+'/'+group_id.to_s+'/'+project_id.to_s()
+    group_name = normalize_name(@params['group_name'].to_s())
+    project_name = normalize_name(@params['project_name'].to_s())
+    directory = Conf::ROOT_DIR+'/'+group_name+'/'+project_name
 
     # Check that the user has permission on project requested.
-    if !@user.project_editor?(project_id) && !@user.project_admin?(project_id)
+    if !@user.project_editor?(@params['project_name']) &&
+       !@user.project_admin?(@params['project_name'])
 
       raise_err(:BAD_REQ, 3, m)
     end
@@ -28,17 +29,52 @@ class UploadController < BasicController
     # Check that this file system is in sync with the auth server. If there is a
     # group/project set in Janus there should be a corresponding directory
     # in Metis.
-    if !File.directory?(directory) then raise_err(:SERVER_ERR,0,m) end
+    raise_err(:SERVER_ERR,0,m) if !File.directory?(directory)
 
     # Generate a File Model and check to see if it already has metadata in the
     # system or a file on the disk.
     @file = FileModel.new(@params, @redis_service)
-    if @file.file_exists?() || @file.metadata_exists?()
+    if @file.file_exists?() || @file.db_metadata_exists?()
 
-      raise_err(:BAD_REQ, 5, m)
+      raise_err(:BAD_REQ,5,m)
     end
 
     return generate_hmac_authorization()
+  end
+
+  # start_upload will create a metadata entry in the database and also a file on
+  # the file system with 0 bytes.
+  def start_upload()
+
+    m = __method__
+
+    # Check that the initialize/start request is valid.
+    if !hmac_valid?() then return end
+
+    @file = FileModel.new(@params, @redis_service)
+
+    # Check that the upload directory exists. It should.
+    raise_err(:SERVER_ERR, 0, m) if !@file.directory_exists?()
+
+    # Make sure that a previous entry does not exist in the database or on the 
+    # filesystem.
+    raise_err(:BAD_REQ, 5, m) if @file.file_exists?()
+    raise_err(:BAD_REQ, 6, m) if @file.db_metadata_exists?()
+
+    @file.set_file_on_system!()
+
+    # Make sure that everything was set ok.
+    #raise_err(:BAD_REQ, 10, m) if !@file.file_exists?()
+    #raise_err(:SERVER_ERR, 1, m) if !@file.db_metadata_exists?()
+
+    response = {
+
+      :success=> true,
+      :request=> nil,
+      :signature=> nil,
+      :byte_count=> nil,
+      :status=> 'initialized'
+    }
   end
 
   private
@@ -47,13 +83,11 @@ class UploadController < BasicController
     has_params = true
     auth_params = [
 
-      'token',
-      'project_name',
-      'project_id',
-      'role',
+      'original_name',
       'file_name',
-      'db_index',
-      'group_id'
+      'file_size',
+      'group_id',
+      'project_id'
     ]
 
     auth_params.each do |auth_param|
@@ -65,10 +99,28 @@ class UploadController < BasicController
 
   def generate_hmac_authorization()
 
-    # Add the extra items needed to generate an HMAC auth.
+    add_extra_auth_params()
+
+    if !hmac_params_valid?()
+
+      @params['status'] = 'not authorized'
+      return {:success=> false, :request=> @params, :status=> 'not authorized'}
+    end
+
+    @params['status'] = 'authorized'
+    return {
+
+      :success=> true,
+      :request=> @params,
+      :hmac_signature=> generate_hmac(),
+      :status=> 'authorized'
+    }
+  end
+
+  # Add the extra items needed to generate an HMAC auth.
+  def add_extra_auth_params()
+
     @params['directory'] = @file.directory
-    @params['expires'] = Conf::UPLOAD_EXPIRE
-    @params['signing_algorithm'] = 'sha256'
     @params['hashing_algorithm'] = 'MD5'
     @params['start_timestamp'] = Time::now.to_i
     @params['token'] = @user.token
@@ -76,19 +128,42 @@ class UploadController < BasicController
     @params['user_id'] = @user.id
     @params['old_index'] = @params['db_index']
     @params['db_index'] = @redis_service.get_new_index()
+  end
 
-    # Generate the HMAC.
+  def hmac_params_valid?()
+
+    params_valid = true
+    Conf::SIGNATURE_ITEMS.each do |item|
+
+      if !@params.key?(item) then params_valid = false end
+    end
+    return params_valid
+  end
+
+  def hmac_valid?()
+
+    if !@params.key?('hmac_signature') then return false end
+    if !hmac_params_valid?() then return false end
+    if @params['hmac_signature'] != generate_hmac() then return false end
+    return true
+  end
+
+  # Generate the HMAC.
+  def generate_hmac()
+
     ordered_params = SignService::order_params(@params)
     hmac_signature = SignService::sign_request(ordered_params, 'sha256')
-    @params['status'] = 'authorized'
+  end
 
-    # Prep and send the response.
-    response = {
+  def normalize_name(name)
 
-      :success=> true,
-      :request=> @params,
-      :hmac_signature=> hmac_signature,
-      :status=> 'authorized'
-    }
+    nm = name.dup
+    nm.gsub!('/ ', '_')
+    nm.gsub!('(', '')
+    nm.gsub!(')', '')
+    nm.gsub!(' ', '_')
+    nm.gsub!('/', '_')
+    nm.gsub!('-', '_')
+    return nm
   end
 end

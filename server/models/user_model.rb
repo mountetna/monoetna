@@ -51,12 +51,12 @@ class UserModel
     @permissions
   end
 
-  def project_editor?(project_id)
+  def project_editor?(project_name)
 
     editor = false
     @permissions.each do |perm|
 
-      if perm['project_id'].to_s == project_id.to_s &&
+      if perm['project_name'].to_s == project_name.to_s &&
          perm['role'] == 'editor'
 
         editor = true
@@ -65,12 +65,12 @@ class UserModel
     return editor
   end
 
-  def project_admin?(project_id)
+  def project_admin?(project_name)
 
     admin = false
     @permissions.each do |perm|
 
-      if perm['project_id'].to_s == project_id.to_s &&
+      if perm['project_name'].to_s == project_name.to_s &&
          perm['role'] == 'administrator'
 
         admin = true
