@@ -37,13 +37,7 @@ class RedisService
   def retrieve_file_status(key)
 
     file_status = @redis.get(key)
-    if file_status == nil
-
-      return nil
-    else
-
-      return JSON.parse(file_status)
-    end
+    return (file_status == nil) ? nil : JSON.parse(file_status)
   end
 
   def set_file_status(key, value)
@@ -58,12 +52,6 @@ class RedisService
 
   def status_present?(key)
 
-    if @redis.keys(key).length == 0
-
-      return false
-    else
-
-      return true
-    end
+    return (@redis.keys(key).length == 0) ? false : true
   end
 end
