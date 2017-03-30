@@ -16,14 +16,16 @@ module Conf
     'user_email',
     'user_id',
     'project_id',
+    'project_name',
     'group_id',
+    'group_name',
     'db_index'
   ]
 
   # This is the root directory for the data.
   ROOT_DIR = '/data'
 
-  JANUS_ADDR = 'http://janus-dev.ucsf.edu'
+  JANUS_ADDR = 'https://janus-dev.ucsf.edu'
 
   # One day to finish upload.
   UPLOAD_EXPIRE = 86400

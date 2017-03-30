@@ -3,19 +3,18 @@ class UserLogController < BasicController
 
   def run()
 
+    m = __method__
+
     # Depending on whether we get token or email/pass combo we perform different
     # checks.
     unless @action == 'log_in'
 
       # Check that a token is present.
-      if !@params.key?('token') then raise_err(:BAD_REQ, 0, __method__) end
+      raise_err(:BAD_REQ, 0, m) if !@params.key?('token')
     else
 
       # Check that the email/pass is present.
-      if !@params.key?('email') || !@params.key?('pass')
-
-        raise_err(:BAD_REQ, 0, __method__)
-      end
+      raise_err(:BAD_REQ,0,m) if !@params.key?('email') || !@params.key?('pass')
     end
 
     # The data being sent back to the client should already be in a JSON format.

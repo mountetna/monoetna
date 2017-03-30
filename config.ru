@@ -7,6 +7,7 @@ require 'fileutils'
 require 'redis'
 require 'net/http'
 require 'logger'
+require 'openssl'
 
 # The details
 require './server/conf'
