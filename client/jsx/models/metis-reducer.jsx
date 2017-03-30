@@ -19,10 +19,10 @@ export default class MetisReducer{
           fileObject['status'] = 'unauthorized';
 
           /*
-           * This item will be replaced by a Redis id. We will use it in Redis
-           * as a unique entry identifier and also in React as a DOM key.
-           * For new uploads we just generate a psudo random string, here at the
-           * client, to hold a place.
+           * This item will be replaced by a database index (id). We will use it 
+           * in Redis as a unique entry identifier and also in React as a DOM 
+           * key. For new uploads we just generate a psudo random string, here 
+           * at the client, to hold a place.
            */
           fileObject['dbIndex'] = GENERATE_RAND_KEY(); 
           // MOD END
@@ -53,7 +53,7 @@ export default class MetisReducer{
           delete authResponse['request']['old_index'];
 
           // Append the signature and set the server current byte to 0
-          fileUpload['signature'] = authResponse['signature'];
+          fileUpload['hmacSignature'] = authResponse['hmac_signature'];
           fileUpload['currentBytePosition'] = 0;
 
           // Append all of the request items to the local file object.
