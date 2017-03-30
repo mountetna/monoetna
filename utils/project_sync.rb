@@ -7,7 +7,9 @@
 require 'net/http'
 require 'json'
 require 'fileutils'
+require 'openssl'
 require '../server/conf'
+require '../server/secrets'
 
 module ProjectSync
 
@@ -18,7 +20,7 @@ module ProjectSync
     data = {
 
       :token=> ARGV[0], 
-      :app_key=> Conf::APP_KEY
+      :app_key=> Secrets::APP_KEY
     }
 
     groups = make_request(url, data)
@@ -52,7 +54,7 @@ module ProjectSync
     data = {
 
       :token=> ARGV[0], 
-      :app_key=> Conf::APP_KEY 
+      :app_key=> Secrets::APP_KEY 
     }
     projects = make_request(url, data)
     return projects
@@ -103,26 +105,38 @@ module ProjectSync
     end
   end
 
+  def ProjectSync.normalize_name(nm)
+
+    nm.gsub!('/ ', '_')
+    nm.gsub!('(', '')
+    nm.gsub!(')', '')
+    nm.gsub!(' ', '_')
+    nm.gsub!('/', '_')
+    nm.gsub!('-', '_')
+    return nm
+  end
+
   def ProjectSync.extract_structure(groups, projects)
 
     structure = {}
     groups.each do |group|
-    
-      structure[group['id']] = {}
+
+      grp_nm = ProjectSync.normalize_name(group['group_name'])
+      structure[grp_nm] = {}
     end
 
     # Create the directory structure from the database.
     projects.each do |project|
 
-      group_id = project['group_id']
-
-      if !structure.key?(group_id)
+      grp_nm = ProjectSync.normalize_name(project['group_name'])
+      if !structure.key?(grp_nm)
 
         # alert that a main group is missing.
         # it is present in the projects but no in the group table.
       else
 
-        structure[group_id][project['id']] = []
+        prjk_nm = ProjectSync.normalize_name(project['project_name'])
+        structure[grp_nm][prjk_nm] = []
       end
     end
 
@@ -147,14 +161,17 @@ module ProjectSync
 
   def ProjectSync.make_request(url, data)
 
-    uri = URI.parse(url)
-    http = Net::HTTP.new(uri.host, uri.port)
-    request = Net::HTTP::Post.new(uri.request_uri)
-    request.set_form_data(data)
-
     begin
 
-      response = http.request(request)
+      uri = URI.parse(url)
+      https_conn = Net::HTTP.new(uri.host, uri.port)
+      https_conn.use_ssl = true
+      https_conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
+
+      request = Net::HTTP::Post.new(uri.path)
+      request.set_form_data(data)
+
+      response = https_conn.request(request)
       return response.body
     rescue Timeout::Error, 
            Errno::EINVAL, 
@@ -210,6 +227,6 @@ end
 
 # Extract the structure of the directory from the database.
 structure = ProjectSync::extract_structure(groups, projects)
-
 # Create any directories on the file system that are new.
+
 ProjectSync::set_group_folders(structure)
