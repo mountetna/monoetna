@@ -57,7 +57,6 @@ export default class JanusLogReducer{
           userInfo['loginStatus'] = false;
           userInfo['loginError'] = true;
           return userInfo;
-
         default:
 
           var userInfo = Object.assign({}, state);
