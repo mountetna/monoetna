@@ -29,7 +29,7 @@ export default class ListBody extends React.Component{
 
               var failedUpload = {
 
-                'key': failedFile['dbIndex'],
+                'key': failedFile['reactKey'],
                 'failedFile': failedFile,
                 'callbacks': {
 
@@ -49,7 +49,7 @@ export default class ListBody extends React.Component{
 
               var listUpload = {
 
-                'key': fileUpload['dbIndex'],
+                'key': fileUpload['reactKey'],
                 'fileUpload': fileUpload,
                 'permissions': permissions,
                 'callbacks': {
@@ -74,7 +74,7 @@ export default class ListBody extends React.Component{
 
               var listEntry = {
 
-                'key': fileInfo['dbIndex'],
+                'key': fileInfo['reactKey'],
                 'fileInfo': fileInfo,
                 'callbacks': {
 

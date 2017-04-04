@@ -55,14 +55,7 @@ class Uploader{
          */
 
         uploader.snakeCaseIt(uploader['request']);
-
-        var response = {
-
-          'request': uploader['request'],
-          'byte_count':  uploader['request']['current_byte_position']
-        };
-
-        uploader.sendBlob(response);
+        uploader.sendBlob({ 'request': uploader['request'] });
         break;
       case 'pause':
 
@@ -220,28 +213,24 @@ class Uploader{
 
   generateUploaderRequest(response){
 
-    var fileSize = uploader['file'].size
-    if(response['byte_count'] >= fileSize){
-
-      /*
-       * The file upload is complete, however the server should have sent a 
-       * 'complete' status message.
-       */
-      return;
-    }
-
     var request = response['request'];
+    var fileSize = uploader['file'].size;
 
-    // Set the blob cue points.
-    var fromByte = parseInt(response['byte_count']);
-    var toByte = fromByte + BLOB_SIZE;
-    toByte = (toByte > fileSize) ? fileSize : toByte;
+    /*
+     * The file upload is complete, however the server should have sent a 
+     * 'complete' status message.
+     */
+    if(request['current_byte_position'] >= fileSize) return;
 
     /*
      * Set the the metadata for the next blob in sequence. This part gets used 
-     * by the server for data integrety and a wee bit of security.
+     * by the server for data integrity and a wee bit of security.
      */
-    request['current_byte_position'] = fromByte;
+
+    // Set the blob cue points.
+    var fromByte = parseInt(request['current_byte_position']);
+    var toByte = fromByte + BLOB_SIZE;
+    toByte = (toByte > fileSize) ? fileSize : toByte;
     request['current_blob_size'] = toByte - fromByte;
 
     // Remove old metadata from the previous packet/request
@@ -337,7 +326,7 @@ class Uploader{
     uploader.setBlobSize();
 
     var errorMessage = 'The server response was malformed.';
-    if(!('success' in response) || !('status' in response)){
+    if(!('success' in response) || !('request' in response)){
 
       postMessage({ 'type': 'error', message: errorMessage });
       return;
@@ -364,7 +353,7 @@ class Uploader{
 
   handleResponseRouting(response){
 
-    switch(response['status']){
+    switch(response['request']['status']){
 
       case 'initialized':
 

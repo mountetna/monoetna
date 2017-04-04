@@ -194,22 +194,6 @@ var TRANSFORM_RESPONSE = function(response){
     }
   }
 
-  if('byte_count' in response){
-    
-    response['byte_count'] = parseInt(response['byte_count']);
-    if(isNaN(response['byte_count'])) error = true;
-  }
-
-  if('signature' in response){
-
-    response['signature'] = String(response['signature']);
-  }
-  
-  if('status' in response){
-
-    response['status'] = String(response['status']);
-  }
-
   for(var key in response['request']){
 
     if(key in STATUS_ITEMS){

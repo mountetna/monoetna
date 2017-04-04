@@ -268,7 +268,6 @@ class MetisUploader{
       'projectId',
       'role',
       'fileName',
-      'dbIndex',
       'groupId',
       'groupName'
     ];
