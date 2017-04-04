@@ -4,40 +4,32 @@ class UploadController < BasicController
 
     set_user()
     raise_err(:BAD_REQ, 2, __method__) if !@user.valid?()
-
+    normalize_params()
     return send(@action).to_json()
   end
 
   def authorize_upload()
 
-    m = __method__
-
     # Check that the correct parameters are present.
-    raise_err(:BAD_REQ, 0, m) if !has_auth_params?(@params)
-
-    group_name = normalize_name(@params['group_name'].to_s())
-    project_name = normalize_name(@params['project_name'].to_s())
-    directory = Conf::ROOT_DIR+'/'+group_name+'/'+project_name
+    raise_err(:BAD_REQ, 0, __method__) if !has_auth_params?(@params)
 
     # Check that the user has permission on project requested.
     if !@user.project_editor?(@params['project_name']) &&
        !@user.project_admin?(@params['project_name'])
 
-      raise_err(:BAD_REQ, 3, m)
+      raise_err(:BAD_REQ, 3, __method__)
     end
 
     # Check that this file system is in sync with the auth server. If there is a
     # group/project set in Janus there should be a corresponding directory
     # in Metis.
-    raise_err(:SERVER_ERR,0,m) if !File.directory?(directory)
+    raise_err(:SERVER_ERR, 0 , __method__) if !directory_exists?()
 
-    # Generate a File Model and check to see if it already has metadata in the
-    # system or a file on the disk.
-    @file = FileModel.new(@params, @redis_service)
-    if @file.file_exists?() || @file.db_metadata_exists?()
+    # Check that the file does not exist on disk or in the db.
+    if file_exists?() || partial_exists?() || db_metadata_exists?() 
 
-      raise_err(:BAD_REQ,5,m)
-    end
+      raise_err(:BAD_REQ, 5 , __method__)
+    end 
 
     return generate_hmac_authorization()
   end
@@ -46,35 +38,28 @@ class UploadController < BasicController
   # the file system with 0 bytes.
   def start_upload()
 
-    m = __method__
-
-    # Check that the initialize/start request is valid.
-    if !hmac_valid?() then return end
-
-    @file = FileModel.new(@params, @redis_service)
+    # Check the HMAC
+    raise_err(:BAD_REQ, 7, __method__) if !hmac_valid?()
 
     # Check that the upload directory exists. It should.
-    raise_err(:SERVER_ERR, 0, m) if !@file.directory_exists?()
+    raise_err(:SERVER_ERR, 0, __method__) if !directory_exists?()
 
-    # Make sure that a previous entry does not exist in the database or on the 
-    # filesystem.
-    raise_err(:BAD_REQ, 5, m) if @file.file_exists?()
-    raise_err(:BAD_REQ, 6, m) if @file.db_metadata_exists?()
+    # Check that the file does not exist on disk or in the db.
+    if file_exists?() || partial_exists?() || db_metadata_exists?() 
 
-    @file.set_file_on_system!()
+      raise_err(:BAD_REQ, 5 , __method__)
+    end
 
-    # Make sure that everything was set ok.
-    #raise_err(:BAD_REQ, 10, m) if !@file.file_exists?()
-    #raise_err(:SERVER_ERR, 1, m) if !@file.db_metadata_exists?()
+    # Check the params from the client.
+    if !upload_params_valid?() || !file_params_valid?()
 
-    response = {
+      raise_err(:BAD_REQ, 1, __method__)
+    end
 
-      :success=> true,
-      :request=> nil,
-      :signature=> nil,
-      :byte_count=> nil,
-      :status=> 'initialized'
-    }
+    # Set the data to the system.
+    file = PostgresService.create_new_file!(@params).to_hash
+    upload = PostgresService.create_new_upload!(@params, file[:id])
+    return send_upload_initiated()
   end
 
   private
@@ -104,30 +89,21 @@ class UploadController < BasicController
     if !hmac_params_valid?()
 
       @params['status'] = 'not authorized'
-      return {:success=> false, :request=> @params, :status=> 'not authorized'}
+      return { :success=> false, :request=> @params }
     end
 
     @params['status'] = 'authorized'
-    return {
-
-      :success=> true,
-      :request=> @params,
-      :hmac_signature=> generate_hmac(),
-      :status=> 'authorized'
-    }
+    @params['hmac_signature'] = generate_hmac()
+    return { :success=> true, :request=> @params }
   end
 
   # Add the extra items needed to generate an HMAC auth.
   def add_extra_auth_params()
 
-    @params['directory'] = @file.directory
     @params['hashing_algorithm'] = 'MD5'
     @params['start_timestamp'] = Time::now.to_i
     @params['token'] = @user.token
     @params['user_email'] = @user.email
-    @params['user_id'] = @user.id
-    @params['old_index'] = @params['db_index']
-    @params['db_index'] = @redis_service.get_new_index()
   end
 
   def hmac_params_valid?()
@@ -165,5 +141,122 @@ class UploadController < BasicController
     nm.gsub!('/', '_')
     nm.gsub!('-', '_')
     return nm
+  end
+
+  def send_upload_initiated()
+
+    @params['hmac_signature'] = generate_hmac()
+    @params['status'] = 'initialized'
+    { :success=> true, :request=> @params }
+  end
+
+  # Generate the key used to access the file's metadata in Redis.
+  def generate_metadata_key()
+  
+    items = ['db_index', 'group_name', 'project_name', 'file_name']
+    items.map! do |item|
+  
+      if item == 'group_name' || item == 'project_name'
+  
+        normalize_name(@params[item])
+      else
+  
+        @params[item]
+      end
+    end
+    return items.join('-')
+  end
+
+  def blob_hash_ok?()
+
+    md5_from_status = @file['next_blob_hash']
+    puts md5_from_status
+    temp_file_path = @request['blob'][:tempfile].path()
+    puts temp_file_path
+    md5_of_temp_file = Digest::MD5.hexdigest(File.read(temp_file_path))
+    puts md5_of_temp_file
+
+    return (md5_from_status == md5_of_temp_file) ? true : false
+  end
+
+  def directory_exists?()
+
+    File.directory?(derive_directory())
+  end
+
+  def file_exists?()
+
+    file_name = @params['file_name'].to_s()
+    File.file?(derive_directory()+'/'+file_name)
+  end
+
+  def partial_exists?()
+
+    file_name = @params['file_name'].to_s()
+    File.file?(derive_directory()+'/'+file_name+'.part')
+  end
+
+  def db_metadata_exists?()
+
+    file = FileModel::File[
+
+      :group_name=> normalize_name(@params['group_name'].to_s()),
+      :project_name=> normalize_name(@params['project_name'].to_s()),
+      :file_name=> @params['file_name'].to_s()
+    ]
+
+    return if file ? true : false
+  end
+
+  def derive_directory()
+
+    group_name = normalize_name(@params['group_name'].to_s())
+    project_name = normalize_name(@params['project_name'].to_s())
+    return Conf::ROOT_DIR+'/'+group_name+'/'+project_name
+  end
+
+  def upload_params_valid?()
+
+    valid = true
+    Conf::UPLOAD_VALIDATION_ITEMS.each do |key, value|
+
+      if !@params.key?(key) then valid = false end
+    end
+    return valid
+  end
+
+  def file_params_valid?()
+
+    valid = true
+    Conf::FILE_VALIDATION_ITEMS.each do |key, value|
+
+      if !@params.key?(key) then valid = false end
+    end
+    return valid
+  end
+
+  # We need to add a check that if a key/value is not of the correct type, then
+  # we need to remove it. Then when we use our 'upload_params_valid' and 'file_params_valid'
+  # the result will be false thus protecting us from invalid data types.
+  def normalize_params()
+
+    @params.each do |key, value|
+
+      if Conf::FILE_VALIDATION_ITEMS.key?(key)
+
+        if Conf::FILE_VALIDATION_ITEMS[key] == Integer 
+
+          @params[key] = @params[key].to_i
+        end
+      end
+
+      if Conf::UPLOAD_VALIDATION_ITEMS.key?(key)
+
+        if Conf::UPLOAD_VALIDATION_ITEMS[key] == Integer 
+
+          @params[key] = @params[key].to_i
+        end
+      end
+    end
   end
 end

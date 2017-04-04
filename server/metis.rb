@@ -7,7 +7,6 @@ class Metis
 
     @routes = {}
     @request = {}
-    @redis_service = RedisService.new()
 
     # Log file details
     path = ::File.dirname(::File.expand_path(__FILE__))
@@ -48,7 +47,7 @@ class Metis
 
     controller, action = route.split('#')
     controller_class = Kernel.const_get(controller)
-    controller_class.new(@redis_service, @request, action).run()
+    controller_class.new(@request, action).run()
   end
 
   def send_err(err)

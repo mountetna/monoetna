@@ -6,26 +6,42 @@ module Conf
   # Names and order of the fields to be signed.
   SIGNATURE_ITEMS = [
 
-    'directory',
-    'hashing_algorithm',
     'start_timestamp',
     'token',
-    'original_name', 
     'file_name',
+    'original_name',
     'file_size',
     'user_email',
-    'user_id',
-    'project_id',
-    'project_name',
-    'group_id',
     'group_name',
-    'db_index'
+    'project_name',
+    'hashing_algorithm'
   ]
+
+  FILE_VALIDATION_ITEMS = {
+
+    'original_name'=> String,
+    'file_name'=> String,
+    'file_size'=> Integer,
+    'group_name'=> String,
+    'project_name'=> String,
+    'start_timestamp'=> Integer,
+    'user_email'=> String,
+    'hashing_algorithm'=> String
+  }
+
+  UPLOAD_VALIDATION_ITEMS = {
+
+    'current_byte_position'=> Integer,
+    'current_blob_size'=> Integer,
+    'next_blob_size'=> Integer,
+    'next_blob_hash'=> String,
+    'status'=> String
+  }
 
   # This is the root directory for the data.
   ROOT_DIR = '/data'
 
-  JANUS_ADDR = 'https://janus-dev.ucsf.edu'
+  JANUS_ADDR = 'https://janus-stage.ucsf.edu'
 
   # One day to finish upload.
   UPLOAD_EXPIRE = 86400

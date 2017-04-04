@@ -1,12 +1,14 @@
 class BasicController
 
-  def initialize(redis_service, request, action)
+  def initialize(request, action)
 
-    @redis_service = redis_service
+    @request = request
     @params = request.POST()
     @action = action
+
     @user = nil
     @data = nil
+    @file = nil
   end
 
   def set_user()
@@ -45,7 +47,6 @@ class BasicController
 
   def make_request(url, data)
 
-    m = __method__
     begin
 
       uri = URI.parse(url)
@@ -64,11 +65,11 @@ class BasicController
         return response.body
       else
 
-        raise_err(:SERVER_ERR,0,m)
+        raise_err(:SERVER_ERR, 0, __method__)
       end
     rescue
 
-      raise_err(:SERVER_ERR, 6, m)
+      raise_err(:SERVER_ERR, 6, __method__)
     end
   end
 
@@ -76,11 +77,5 @@ class BasicController
   def raise_err(type, id, method)
 
     raise BasicError.new(type, id, method)
-  end
-
-  # Normalize the paramaters
-  def normalize_paramaters()
-
-    
   end
 end

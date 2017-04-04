@@ -10,41 +10,28 @@ class MainController < BasicController
 
   def retrieve_files()
 
-    metadata_ids = extract_metadata_ids()
-    file_list = pull_file_metadata(metadata_ids, @user.id)
+    project_names = extract_project_names()
+    file_list = pull_file_metadata(project_names)
     { :success=> true, :file_list=> file_list }
   end
 
   private
-  def extract_metadata_ids()
+  def extract_project_names()
 
     @user.permissions.map do |permission|
 
-      permission['group_id'].to_s()+'.'+permission['project_id'].to_s()
+      permission['project_name']
     end
   end
 
-  def pull_file_metadata(metadata_ids, user_id)
+  def pull_file_metadata(project_names)
 
-    file_metadata_keys = []
     file_metadata = []
+    project_names.each do |project_name|
 
-    metadata_ids.each do |metadata_id|
-
-      redis_keys = @redis_service.retrieve_file_key('*'+metadata_id)
-      if redis_keys != nil then file_metadata_keys.push(*redis_keys) end
+      #puts project_name
     end
 
-    file_metadata_keys.each do |file_metadata_key|
-
-      redis_metadata = @redis_service.retrieve_file_status(file_metadata_key)
-      if (redis_metadata != nil && redis_metadata.key?('finish_timestamp')) ||
-         (redis_metadata['user_id'].to_s == user_id.to_s)
-
-        file_metadata.push(redis_metadata)
-      end
-    end
-
-    return file_metadata
+    return []
   end
 end

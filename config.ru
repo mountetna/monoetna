@@ -2,6 +2,8 @@
 
 require 'rack'
 require 'json'
+require 'pg'
+require 'sequel'
 require 'digest'
 require 'fileutils'
 require 'redis'
@@ -14,13 +16,17 @@ require './server/conf'
 require './server/secrets'
 
 # The database
+require './server/service/postgres_service'
+PostgresService::connect()
+require './server/models/user_model'
+require './server/models/file_model'
+
 require './server/service/sign_service'
 require './server/service/redis_service'
 
 # The application
 require './server/errors/basic_error'
-require './server/models/user_model'
-require './server/models/file_model'
+
 require './server/metis'
 require './server/routes'
 require './server/controllers/basic_controller'
