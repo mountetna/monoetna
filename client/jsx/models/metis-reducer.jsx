@@ -4,22 +4,23 @@ export default class MetisReducer{
 
     return (state = {}, action)=>{
 
+      // Extract some widely use items.
       var fileData = Object.assign({}, state);
       if('fileUploads' in fileData) var fileUploads = fileData['fileUploads'];
+      if('fileList' in fileData) var fileList = fileData['fileList'];
 
       switch(action['type']){
 
         case 'FILE_SELECTED':
 
           // Copy the selected file data to 'fileUploads' object.
-          var fileObject = action['fileObject'];
-          fileObject['fileName'] = fileObject['name'];
-          fileObject['originalName'] = fileObject['name'];
-          fileObject['fileSize'] = fileObject['size'];
-          fileObject['currentBytePosition'] = 0;
-          fileObject['status'] = 'unauthorized';
-          fileObject['reactKey'] = GENERATE_RAND_KEY();
-          fileData['fileUploads'].push(fileObject);
+          action['fileObject']['fileName'] = action['fileObject']['name'];
+          action['fileObject']['originalName'] = action['fileObject']['name'];
+          action['fileObject']['fileSize'] = action['fileObject']['size'];
+          action['fileObject']['currentBytePosition'] = 0;
+          action['fileObject']['status'] = 'unauthorized';
+          action['fileObject']['reactKey'] = GENERATE_RAND_KEY();
+          fileData['fileUploads'].push(action['fileObject']);
           break;
 
         case 'FILE_UPLOAD_AUTHORIZED':
@@ -39,69 +40,32 @@ export default class MetisReducer{
           break;
 
         case 'FILE_INITIALIZED':
-
-          var initResponse = Object.assign({}, action['initResponse']);
-          initResponse = this.camelCaseIt(initResponse['request']);
-
-          // Find the local File Object.
-          var index = this.getMatchingUploadIndex(fileUploads, initResponse);
-
-          // Append all of the request items to the local file object.
-          fileUploads[index] = Object.assign(fileUploads[index], initResponse);
-          break;
-
         case 'FILE_UPLOAD_ACTIVE':
 
-          var fileUploads = fileData['fileUploads'];
+          var activeResponse = Object.assign({}, action['uploadResponse']);
+          activeResponse = this.camelCaseIt(activeResponse['request']);
 
-          var response = action['uploadResponse'];
-          var index = response['request']['redis_index'];
-          var fileUpload = null;
-          var fileUploadIndex = 0;
-
-          // Select the file to upload from the redux store.
-          for(var a = 0; a < fileUploads.length; ++a){
-
-            if(fileUploads[a]['dbIndex'] == index){
-
-              fileUploadIndex = a; 
-              fileUpload = fileUploads[a];
-              break;
-            }
-          }
+          // Find the local File Object.
+          var index = this.getMatchingUploadIndex(fileUploads, activeResponse);
 
           // Append all of the request items to the local file object.
-          response['request'] = this.camelCaseIt(response['request']);
-          fileUpload = Object.assign(fileUpload, response['request']);
-
-          fileData['fileUploads'][fileUploadIndex] = fileUpload;
+          fileUploads[index] = Object.assign(fileUploads[index],activeResponse);
           break;
 
         case 'FILE_UPLOAD_COMPLETE':
 
-          var fileList = fileData['fileList'];
+          var completeResponse = Object.assign({}, action['completeResponse']);
+          completeResponse = this.camelCaseIt(completeResponse['request']);
 
-          // MOD START
-          var result = this.camelCaseIt(action['uploadResponse']['result']);
-          var index = result['dbIndex'];
+          // Find the local File Object.
+          var index = this.getMatchingUploadIndex(fileUploads, activeResponse);
 
-          var fileUploadIndex = 0;
-
-          // Remove the upload file from the redux store.
-          for(var a = 0; a < fileUploads.length; ++a){
-
-            if(fileUploads[a]['dbIndex'] == index){
-
-              fileUploads.splice(a, 1);
-              break;
-            }
-          }
-
-          // Add the file upload result to the redux store.
-          fileList.push(result);
-
-          fileData['fileUploads'] = fileUploads;
-          fileData['fileList'] = fileList;
+          /*
+           * Move the completed upload metadata from the 'uploads' array to the 
+           * list array.
+           */
+          fileUploads.splice(index, 1);
+          fileList.push(completeResponse);
           break;
 
         case 'FILE_METADATA_RECEIVED':

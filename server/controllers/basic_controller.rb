@@ -7,8 +7,8 @@ class BasicController
     @action = action
 
     @user = nil
-    @data = nil
-    @file = nil
+    @file = nil    # postgres model
+    @upload = nil  # postgres model
   end
 
   def set_user()

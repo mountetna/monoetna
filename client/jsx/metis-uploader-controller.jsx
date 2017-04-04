@@ -195,20 +195,15 @@ class MetisUploader{
     switch(message['data']['type']){
 
       case 'initialized':
-
-        action['type'] = 'FILE_INITIALIZED';
-        action['initResponse'] = message['data']['response'];
-        this['model']['store'].dispatch(action);
-        break;
-      case 'error':
-
-        //this['uploadWorker'].onerror(message['data']);
-        break;
       case 'active':
 
         action['type'] = 'FILE_UPLOAD_ACTIVE';
         action['uploadResponse'] = message['data']['response'];
         this['model']['store'].dispatch(action);
+        break;
+      case 'error':
+
+        //this['uploadWorker'].onerror(message['data']);
         break;
       case 'paused':
 
@@ -250,7 +245,7 @@ class MetisUploader{
       case 'complete':
 
         action['type'] = 'FILE_UPLOAD_COMPLETE';
-        action['uploadResponse'] = message['data']['response'];
+        action['completeResponse'] = message['data']['response'];
         this['model']['store'].dispatch(action);
         break;
       default:

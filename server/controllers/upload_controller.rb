@@ -10,6 +10,53 @@ class UploadController < BasicController
 
   def authorize_upload()
 
+    auth_upload_error_check()
+    return generate_hmac_authorization()
+  end
+
+  # start_upload will create a metadata entry in the database and also a file on
+  # the file system with 0 bytes.
+  def start_upload()
+
+    start_upload_error_check()
+
+    # Change the status of the upload.
+    @params['status'] = 'initialized'
+
+    # Write the metadata to postgres.
+    @file = PostgresService.create_new_file!(@params)
+    @upload = PostgresService.create_new_upload!(@params, @file.to_hash[:id])
+
+    # Create a partial file on the system.
+    create_partial_file()
+
+    # Send upload initiated
+    return { :success=> true, :request=> @params }
+  end
+
+  # Upload a chunk of the file.
+  def upload_blob()
+
+    # This method also sets the variables @file and @update. We need to find a
+    # cleaner way to initialize these variables.
+    upload_blob_error_check()
+
+    append_blob()
+    update_upload_metadata()
+
+    if upload_complete?()
+
+      make_file_permanent()
+      return send_upload_complete()
+    else
+
+      return send_upload_active()
+    end
+  end
+
+  private
+  def auth_upload_error_check()
+
     # Check that the correct parameters are present.
     raise_err(:BAD_REQ, 0, __method__) if !has_auth_params?(@params)
 
@@ -29,14 +76,10 @@ class UploadController < BasicController
     if file_exists?() || partial_exists?() || db_metadata_exists?() 
 
       raise_err(:BAD_REQ, 5 , __method__)
-    end 
-
-    return generate_hmac_authorization()
+    end
   end
 
-  # start_upload will create a metadata entry in the database and also a file on
-  # the file system with 0 bytes.
-  def start_upload()
+  def start_upload_error_check()
 
     # Check the HMAC
     raise_err(:BAD_REQ, 7, __method__) if !hmac_valid?()
@@ -55,14 +98,41 @@ class UploadController < BasicController
 
       raise_err(:BAD_REQ, 1, __method__)
     end
-
-    # Set the data to the system.
-    file = PostgresService.create_new_file!(@params).to_hash
-    upload = PostgresService.create_new_upload!(@params, file[:id])
-    return send_upload_initiated()
   end
 
-  private
+  def upload_blob_error_check()
+
+    # Check the HMAC
+    raise_err(:BAD_REQ, 7, __method__) if !hmac_valid?()
+
+    # Check that the file metadata exists.
+    @file = FileModel::File[
+
+      :group_name=> @params['group_name'],
+      :project_name=> @params['project_name'],
+      :file_name=> @params['file_name']
+    ]
+    raise_err(:SERVER_ERR, 1, __method__) if !@file
+
+    @upload = FileModel::Upload[:file_id=> @file.to_hash[:id]]
+    raise_err(:SERVER_ERR, 1, __method__) if !@upload
+
+    # Check that the partial file exists.
+    raise_err(:BAD_REQ, 10, __method__) if !partial_exists?()
+
+    # Check that the full file DOES NOT exist.
+    raise_err(:BAD_REQ, 5, __method__) if file_exists?()
+
+    # Check the uploaded blob's integrity.
+    next_blob_size = @upload.to_hash[:next_blob_size]
+    next_blob_hash = @upload.to_hash[:next_blob_hash]
+
+    if !blob_integrity_ok?(next_blob_size, next_blob_hash)
+
+      raise_err(:BAD_REQ, 8, __method__) 
+    end
+  end
+
   def has_auth_params?(params)
 
     has_params = true
@@ -141,42 +211,6 @@ class UploadController < BasicController
     nm.gsub!('/', '_')
     nm.gsub!('-', '_')
     return nm
-  end
-
-  def send_upload_initiated()
-
-    @params['hmac_signature'] = generate_hmac()
-    @params['status'] = 'initialized'
-    { :success=> true, :request=> @params }
-  end
-
-  # Generate the key used to access the file's metadata in Redis.
-  def generate_metadata_key()
-  
-    items = ['db_index', 'group_name', 'project_name', 'file_name']
-    items.map! do |item|
-  
-      if item == 'group_name' || item == 'project_name'
-  
-        normalize_name(@params[item])
-      else
-  
-        @params[item]
-      end
-    end
-    return items.join('-')
-  end
-
-  def blob_hash_ok?()
-
-    md5_from_status = @file['next_blob_hash']
-    puts md5_from_status
-    temp_file_path = @request['blob'][:tempfile].path()
-    puts temp_file_path
-    md5_of_temp_file = Digest::MD5.hexdigest(File.read(temp_file_path))
-    puts md5_of_temp_file
-
-    return (md5_from_status == md5_of_temp_file) ? true : false
   end
 
   def directory_exists?()
@@ -258,5 +292,97 @@ class UploadController < BasicController
         end
       end
     end
+  end
+
+  def create_partial_file()
+
+    partial_file_name = derive_directory()+'/'+@params['file_name']+'.part'
+    partial_file = File.new(partial_file_name, 'w')
+    partial_file.close()
+  end
+
+  def blob_integrity_ok?(next_blob_size, next_blob_hash)
+
+    # Check the blob hash.
+    if !blob_hash_ok?(next_blob_hash) then return false end
+
+    # Check the blob size.
+    temp_file_path = @request['blob'][:tempfile].path()
+    if File.size(temp_file_path).to_i != next_blob_size then return false end
+
+    return true
+  end
+
+  def blob_hash_ok?(md5_from_status)
+
+    temp_file_path = @request['blob'][:tempfile].path()
+    md5_of_temp_file = Digest::MD5.hexdigest(File.read(temp_file_path))
+    return (md5_from_status == md5_of_temp_file) ? true : false
+  end
+
+  def append_blob()
+
+    temp_file_name = @request['blob'][:tempfile].path()
+    partial_file_name = derive_directory()+'/'+@params['file_name']+'.part'
+    partial_file = File.open(partial_file_name, 'ab')
+    temp_file = File.open(temp_file_name, 'rb')
+    partial_file.write(temp_file.read())
+
+    partial_file.close()
+    temp_file.close()
+  end
+
+  def update_upload_metadata()
+
+    params = @request.POST()
+    temp_file_path = @request['blob'][:tempfile].path()
+    partial_file_name = derive_directory()+'/'+@params['file_name']+'.part'
+
+    @upload.update(
+
+      :current_byte_position=> File.size(partial_file_name),
+      :current_blob_size=> File.size(temp_file_path),
+      :next_blob_size=> @params['next_blob_size'],
+      :next_blob_hash=> @params['next_blob_hash'],
+      :status=> 'active'
+    )
+  end
+
+  def upload_complete?()
+
+    file_size = @file.to_hash[:file_size]
+    partial_file_name = derive_directory()+'/'+@params['file_name']+'.part'
+    return File.size(partial_file_name) == file_size ? true : false
+  end
+
+  def make_file_permanent()
+
+    # Rename the partial file.
+    full_path = derive_directory()+'/'+@file.to_hash[:file_name]
+    File.rename(full_path+'.part', full_path)
+
+    # Generate the file hash.
+    file_hash = Digest::MD5.hexdigest(File.read(full_path))
+
+    # Update the postgres record.
+    @file.update(:finish_upload=> Time::now, :hash=> file_hash)
+
+    # Remove the upload record.
+    @upload.delete
+  end
+
+  def send_upload_active()
+
+    @upload.to_hash.each(){ |key, value| @params[key] = value }
+    @params.delete(:file_id)
+    { :success=> true, :request=> @params }
+  end
+
+  def send_upload_complete()
+
+    @file.to_hash.each(){ |key, value| @params[key] = value }
+    @params.delete(:file_id)
+    @params['status'] = 'complete'
+    { :success=> true, :request=> @params }
   end
 end
