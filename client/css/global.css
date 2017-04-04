@@ -64,7 +64,7 @@ body{
 
 .search-dropdown-input:focus {
 
-  border: 1px solid #24a684;
+  border: 1px solid #15788f;
   outline: none;
 }
 
@@ -86,7 +86,7 @@ body{
 
 .search-dropdown-input-active {
 
-  border: 1px solid #24a684;
+  border: 1px solid #15788f;
 }
 
 /* TRAY ENTRY */
@@ -102,7 +102,7 @@ body{
 
 .search-dropdown-tray-entry:hover {
 
-  background: #a9d58e;
+  background: #7dcfe8;
 }
  
 .search-dropdown-tray-entry-active {
@@ -111,7 +111,7 @@ body{
   width: 100%;
   outline: none;
   text-align: left;
-  background: #a9d58e;
+  background: #7dcfe8;
 }
 
 /******************************************************************************/
