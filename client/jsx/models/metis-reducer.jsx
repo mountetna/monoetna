@@ -58,7 +58,7 @@ export default class MetisReducer{
           completeResponse = this.camelCaseIt(completeResponse['request']);
 
           // Find the local File Object.
-          var index = this.getMatchingUploadIndex(fileUploads, activeResponse);
+          var index = this.getMatchingUploadIndex(fileUploads,completeResponse);
 
           /*
            * Move the completed upload metadata from the 'uploads' array to the 
