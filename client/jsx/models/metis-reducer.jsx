@@ -4,90 +4,54 @@ export default class MetisReducer{
 
     return (state = {}, action)=>{
 
+      var fileData = Object.assign({}, state);
+      if('fileUploads' in fileData) var fileUploads = fileData['fileUploads'];
+
       switch(action['type']){
 
         case 'FILE_SELECTED':
-          
-          var fileData = Object.assign({}, state);
 
-          // MOD START
+          // Copy the selected file data to 'fileUploads' object.
           var fileObject = action['fileObject'];
           fileObject['fileName'] = fileObject['name'];
           fileObject['originalName'] = fileObject['name'];
           fileObject['fileSize'] = fileObject['size'];
           fileObject['currentBytePosition'] = 0;
           fileObject['status'] = 'unauthorized';
-
-          /*
-           * This item will be replaced by a database index (id). We will use it 
-           * in Redis as a unique entry identifier and also in React as a DOM 
-           * key. For new uploads we just generate a psudo random string, here 
-           * at the client, to hold a place.
-           */
-          fileObject['dbIndex'] = GENERATE_RAND_KEY(); 
-          // MOD END
-          
+          fileObject['reactKey'] = GENERATE_RAND_KEY();
           fileData['fileUploads'].push(fileObject);
-          return fileData;
+          break;
 
         case 'FILE_UPLOAD_AUTHORIZED':
 
-          var fileData = Object.assign({}, state);
-          var fileUploads = fileData['fileUploads'];
-
           var authResponse = Object.assign({}, action['authResponse']);
-          var fileUpload = null;
-          var fileUploadIndex = 0;
+          authResponse = this.camelCaseIt(authResponse['request']);
 
-          // Select the file to upload from the redux store using the old index.
-          var oldIndex = authResponse['request']['old_index'];
-          for(var a = 0; a < fileUploads.length; ++a){
+          // Find the local File Object.
+          var index = this.getMatchingUploadIndex(fileUploads, authResponse);
 
-            if(fileUploads[a]['dbIndex'] == oldIndex){
-
-              fileUploadIndex = a; 
-              fileUpload = fileUploads[a];
-              break;
-            }
-          }
-          delete authResponse['request']['old_index'];
-
-          // Append the signature and set the server current byte to 0
-          fileUpload['hmacSignature'] = authResponse['hmac_signature'];
-          fileUpload['currentBytePosition'] = 0;
+          // Append the HMAC signature and set the server current byte to 0.
+          fileUploads[index]['hmacSignature'] = authResponse['hmacSignature'];
+          fileUploads[index]['currentBytePosition'] = 0;
 
           // Append all of the request items to the local file object.
-          authResponse['request'] = this.camelCaseIt(authResponse['request']);
-          fileUpload = Object.assign(fileUpload, authResponse['request']);
-
-          fileData['fileUploads'][fileUploadIndex] = fileUpload;
-          return fileData;
+          fileUploads[index] = Object.assign(fileUploads[index], authResponse);
+          break;
 
         case 'FILE_INITIALIZED':
 
-          var fileData = Object.assign({}, state);
-          var fileUploads = fileData['fileUploads'];
           var initResponse = Object.assign({}, action['initResponse']);
-          initResponse['request'] = this.camelCaseIt(initResponse['request']);
-          var request = initResponse['request'];
+          initResponse = this.camelCaseIt(initResponse['request']);
 
-          for(var a = 0; a < fileUploads['length']; ++a){
+          // Find the local File Object.
+          var index = this.getMatchingUploadIndex(fileUploads, initResponse);
 
-            if(fileUploads[a]['dbIndex'] == request['dbIndex']){
-
-              //uploadFile = fileUploads[a];
-              for(var key in request){
-
-                fileUploads[a][key] = request[key];
-              }
-              break;
-            }
-          }
-          return fileData;
+          // Append all of the request items to the local file object.
+          fileUploads[index] = Object.assign(fileUploads[index], initResponse);
+          break;
 
         case 'FILE_UPLOAD_ACTIVE':
 
-          var fileData = Object.assign({}, state);
           var fileUploads = fileData['fileUploads'];
 
           var response = action['uploadResponse'];
@@ -111,12 +75,10 @@ export default class MetisReducer{
           fileUpload = Object.assign(fileUpload, response['request']);
 
           fileData['fileUploads'][fileUploadIndex] = fileUpload;
-          return fileData;
+          break;
 
         case 'FILE_UPLOAD_COMPLETE':
 
-          var fileData = Object.assign({}, state);
-          var fileUploads = fileData['fileUploads'];
           var fileList = fileData['fileList'];
 
           // MOD START
@@ -140,15 +102,15 @@ export default class MetisReducer{
 
           fileData['fileUploads'] = fileUploads;
           fileData['fileList'] = fileList;
-          return fileData;
+          break;
 
         case 'FILE_METADATA_RECEIVED':
-
-          var fileData = Object.assign({}, state);
 
           for(var a = 0; a < action['fileList']['length']; ++a){
 
             var file = this.camelCaseIt(action['fileList'][a]);
+            file['reactKey'] = GENERATE_RAND_KEY();
+
             if(!action['fileList'][a].hasOwnProperty('finishTimestamp')){
 
               fileData['fileFails'].push(file);
@@ -158,12 +120,9 @@ export default class MetisReducer{
               fileData['fileList'].push(file);
             }
           }
-          return fileData;
+          break;
 
         case 'FILE_UPLOAD_PAUSED':
-
-          var fileData = Object.assign({}, state);
-          var fileUploads = fileData['fileUploads'];
 
           // MOD START
           var reqData = this.camelCaseIt(action['pauseResponse']['request']);
@@ -178,12 +137,9 @@ export default class MetisReducer{
               break;
             }
           }
-          return fileData;
+          break;
 
         case 'QUEUE_UPLOAD':
-
-          var fileData = Object.assign({}, state);
-          var fileUploads = fileData['fileUploads'];
 
           for(var a = 0; a < fileUploads['length']; ++a){
 
@@ -206,12 +162,10 @@ export default class MetisReducer{
               fileUploads[a]['status'] = 'queued';
             }
           }
-          return fileData;
+          break;
 
         case 'FILE_UPLOAD_CANCELLED':
 
-          var fileData = Object.assign({}, state);
-          var fileUploads = fileData['fileUploads'];
           var cancelledFile = action['cancelledResponse']['request'];
 
           for(var a = 0; a < fileUploads['length']; ++a){
@@ -223,11 +177,10 @@ export default class MetisReducer{
               fileUploads.splice(a, 1);
             }
           }
-          return fileData;
+          break;
 
         case 'FILE_REMOVED':
 
-          var fileData = Object.assign({}, state);
           var oldMetadata = action['oldMetadata'];
 
           for(var key in fileData){
@@ -248,13 +201,14 @@ export default class MetisReducer{
               break;
             }
           }
-          return fileData;
 
+          break;
         default:
 
-          var fileData = Object.assign({}, state);
-          return fileData;
+          break;
       }
+
+      return fileData;
     };
   }
 
@@ -268,5 +222,22 @@ export default class MetisReducer{
 
     object = PARSE_REQUEST(object);
     return object;
+  }
+
+  // Find the local File Object.
+  getMatchingUploadIndex(fileUploads, responseData){
+
+    var index = 0;
+    for(var a = 0; a < fileUploads['length']; ++a){
+
+      if((fileUploads[a]['fileName'] == responseData['fileName']) &&
+        (fileUploads[a]['projectName'] == responseData['projectName']) &&
+        (fileUploads[a]['groupName'] == responseData['groupName'])){
+
+        index = a; 
+        break;
+      }
+    }
+    return index;
   }
 }
