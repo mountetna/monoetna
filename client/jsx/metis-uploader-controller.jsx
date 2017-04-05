@@ -227,7 +227,7 @@ class MetisUploader{
          * fast), this is a more consistent data flow.
          */
         action['type'] = 'FILE_UPLOAD_CANCELLED';
-        action['cancelledResponse'] = message['data']['response'];
+        action['cancelResponse'] = message['data']['response'];
         this['model']['store'].dispatch(action);
 
         /*

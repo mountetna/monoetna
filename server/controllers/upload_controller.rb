@@ -61,6 +61,17 @@ class UploadController < BasicController
     return send_upload_status()
   end
 
+  def cancel_upload()
+
+    common_error_check()
+    @upload.delete # Remove metadata
+    @file.delete   # Remove metadata
+    remove_temp_file()
+    @params.delete('blob')
+    @params['status'] = 'cancelled'
+    return { :success=> true, :request=> @params }
+  end
+
   private
   def auth_upload_error_check()
 
@@ -397,5 +408,11 @@ class UploadController < BasicController
     @params.delete(:file_id)
     @params['status'] = 'complete'
     { :success=> true, :request=> @params }
+  end
+
+  def remove_temp_file()
+
+    partial_file_name = derive_directory()+'/'+@params['file_name']+'.part'
+    if File.file?(partial_file_name) then File.delete(partial_file_name) end
   end
 end

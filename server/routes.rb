@@ -14,7 +14,7 @@ Metis.add_route('POST', '/upload-authorize', 'UploadController#authorize_upload'
 Metis.add_route('POST', '/upload-start', 'UploadController#start_upload')
 Metis.add_route('POST', '/upload-blob', 'UploadController#upload_blob')
 Metis.add_route('POST', '/upload-pause', 'UploadController#pause_upload')
-#Metis.add_route('POST', '/upload-cancel', 'UploadController#cancel_upload')
+Metis.add_route('POST', '/upload-cancel', 'UploadController#cancel_upload')
 #Metis.add_route('POST', '/file-remove', 'UploadController#remove_file')
 
 Metis.add_route('POST', '/retrieve-files', 'MainController#retrieve_files')

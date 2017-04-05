@@ -8,6 +8,7 @@ export default class MetisReducer{
       var fileData = Object.assign({}, state);
       var fileUploads = fileData['fileUploads'];
       var fileList = fileData['fileList'];
+      var fileFails = fileData['fileFails'];
 
       switch(action['type']){
 
@@ -69,6 +70,22 @@ export default class MetisReducer{
           fileList.push(completeResponse);
           break;
 
+        case 'FILE_UPLOAD_CANCELLED':
+
+          var cancelledResponse = Object.assign({}, action['cancelResponse']);
+          cancelledResponse = this.camelCaseIt(cancelledResponse['request']);
+
+          // Find the local File Object.
+          var index =this.getMatchingUploadIndex(fileUploads,cancelledResponse);
+
+          /*
+           * Move the cancelled upload metadata from the 'uploads' array to the 
+           * failed array.
+           */
+          fileUploads.splice(index, 1);
+          fileFails.push(cancelledResponse);
+          break;
+
         case 'FILE_METADATA_RECEIVED':
 
           for(var a = 0; a < action['fileList']['length']; ++a){
@@ -108,21 +125,6 @@ export default class MetisReducer{
             if(fileUploads[a]['dbIndex'] == action['dbIndex']){
 
               fileUploads[a]['status'] = 'queued';
-            }
-          }
-          break;
-
-        case 'FILE_UPLOAD_CANCELLED':
-
-          var cancelledFile = action['cancelledResponse']['request'];
-
-          for(var a = 0; a < fileUploads['length']; ++a){
-
-            if(fileUploads[a]['dbIndex'] == cancelledFile['redis_index']){
-
-              fileUploads[a]['status'] = 'cancelled';
-              fileData['fileFails'].push(fileUploads[a]);
-              fileUploads.splice(a, 1);
             }
           }
           break;
