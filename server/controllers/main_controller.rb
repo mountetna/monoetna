@@ -19,7 +19,7 @@ class MainController < BasicController
   private
   def extract_project_names()
 
-    @user.permissions.map do |permission|
+    @user.permissions.map() do |permission|
 
       permission['project_name']
     end
@@ -28,7 +28,7 @@ class MainController < BasicController
   def pull_file_metadata(project_names)
 
     file_metadata = []
-    project_names.each do |project_name|
+    project_names.each() do |project_name|
 
       project_files = PostgresService::get_files_by_project_name(project_name)
       if project_files then file_metadata.concat(project_files) end
@@ -38,12 +38,14 @@ class MainController < BasicController
 
   def pull_upload_metadata(file_list)
 
-    file_list.map do |file|
+    file_list.map() do |file|
 
       if file[:upload_by] == @user.email()
 
-        upload = FileModel::Upload[:file_id=> file[:file_id]]
-        if upload then file.concat(upload) end
+        upload = FileModel::Upload[:file_id=> file[:id]].to_hash
+        file = file.merge(upload)
+        file[:status] = 'failed'
+        file.delete(:finish_upload)
       end
       file
     end
