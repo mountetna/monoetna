@@ -28,13 +28,15 @@ export default class MetisReducer{
 
           var response = this.camelCaseIt(action['authResponse']['request']);
           var index = this.getMatchingUploadIndex(fileUploads, response);
+          if(index != null){
 
-          // Append the HMAC signature and set the server current byte to 0.
-          fileUploads[index]['hmacSignature'] = response['hmacSignature'];
-          fileUploads[index]['currentBytePosition'] = 0;
+            // Append the HMAC signature and set the server current byte to 0.
+            fileUploads[index]['hmacSignature'] = response['hmacSignature'];
+            fileUploads[index]['currentBytePosition'] = 0;
 
-          // Append all of the request items to the local file object.
-          fileUploads[index] = Object.assign(fileUploads[index], response);
+            // Append all of the request items to the local file object.
+            fileUploads[index] = Object.assign(fileUploads[index], response);
+          }
           break;
 
         case 'FILE_INITIALIZED':
@@ -43,44 +45,54 @@ export default class MetisReducer{
 
           var response = this.camelCaseIt(action['response']['request']);
           var index = this.getMatchingUploadIndex(fileUploads, response);
+          if(index != null){
 
-          // Append all of the request items to the local file object.
-          fileUploads[index] = Object.assign(fileUploads[index], response);
+            // Append all of the request items to the local file object.
+            fileUploads[index] = Object.assign(fileUploads[index], response);
+          }
           break;
 
         case 'FILE_UPLOAD_COMPLETE':
 
           var response =this.camelCaseIt(action['completeResponse']['request']);
           var index = this.getMatchingUploadIndex(fileUploads, response);
+          if(index != null){
 
-          /*
-           * Move the completed upload metadata from the 'uploads' array to the 
-           * list array.
-           */
-          fileUploads.splice(index, 1);
-          fileList.push(response);
+            /*
+            * Move the completed upload metadata from the 'uploads' array to the 
+            * list array.
+            */
+            fileUploads.splice(index, 1);
+            fileList.push(response);
+          }
           break;
 
         case 'FILE_UPLOAD_CANCELLED':
 
           var response = this.camelCaseIt(action['cancelResponse']['request']);
-          var index =this.getMatchingUploadIndex(fileUploads, response);
+          var index = this.getMatchingUploadIndex(fileUploads, response);
+          if(index != null){
 
-          /*
-           * Move the cancelled upload metadata from the 'uploads' array to the 
-           * failed array.
-           */
-          fileUploads.splice(index, 1);
-          fileFails.push(cancelledResponse);
+           /*
+            * Move the cancelled upload metadata from the 'uploads' array to the 
+            * failed array.
+            */
+            fileUploads.splice(index, 1);
+            fileFails.push(cancelledResponse);
+          }
           break;
 
         case 'FILE_REMOVED':
 
           var response = this.camelCaseIt(action['response']);
-          var index = this.getMatchingUploadIndex(fileUploads, response);
 
-          // Remove the deleted item from the fileList
-          fileList.splice(index, 1);
+          // Remove the deleted item from the fileList.
+          var index = this.getMatchingUploadIndex(fileUploads, response);
+          if(index != null) fileList.splice(index, 1);
+
+          // Remove the deleted item from the fileFails.
+          index = this.getMatchingUploadIndex(fileFails, response);
+          if(index != null) fileFails.splice(index, 1);
           break;
 
         case 'CLEAR_UPLOAD':
@@ -162,7 +174,7 @@ export default class MetisReducer{
   // Find the local File Object.
   getMatchingUploadIndex(fileUploads, responseData){
 
-    var index = 0;
+    var index = null;
     for(var a = 0; a < fileUploads['length']; ++a){
 
       if((fileUploads[a]['fileName'] == responseData['fileName']) &&
