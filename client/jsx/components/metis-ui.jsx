@@ -51,7 +51,7 @@ export default class MetisUI extends React.Component{
           <ListHeadContainer />
           {(fileList['length'] || fileUploads['length'] || fileFails['length'])?
 
-            <ListBodyContainer /> : '' 
+            <ListBodyContainer /> : <tbody></tbody>
           }
         </table>
       </div>
