@@ -50,8 +50,15 @@ class UploadController < BasicController
       return send_upload_complete()
     else
 
-      return send_upload_active()
+      return send_upload_status()
     end
+  end
+
+  def pause_upload()
+
+    common_error_check()
+    @upload.update(:status=> 'paused')
+    return send_upload_status()
   end
 
   private
@@ -102,20 +109,7 @@ class UploadController < BasicController
 
   def upload_blob_error_check()
 
-    # Check the HMAC
-    raise_err(:BAD_REQ, 7, __method__) if !hmac_valid?()
-
-    # Check that the file metadata exists.
-    @file = FileModel::File[
-
-      :group_name=> @params['group_name'],
-      :project_name=> @params['project_name'],
-      :file_name=> @params['file_name']
-    ]
-    raise_err(:SERVER_ERR, 1, __method__) if !@file
-
-    @upload = FileModel::Upload[:file_id=> @file.to_hash[:id]]
-    raise_err(:SERVER_ERR, 1, __method__) if !@upload
+    common_error_check()
 
     # Check that the partial file exists.
     raise_err(:BAD_REQ, 10, __method__) if !partial_exists?()
@@ -131,6 +125,24 @@ class UploadController < BasicController
 
       raise_err(:BAD_REQ, 8, __method__) 
     end
+  end
+
+  def common_error_check()
+
+    # Check the HMAC
+    raise_err(:BAD_REQ, 7, __method__) if !hmac_valid?()
+
+    # Check that the file metadata exists.
+    @file = FileModel::File[
+
+      :group_name=> @params['group_name'],
+      :project_name=> @params['project_name'],
+      :file_name=> @params['file_name']
+    ]
+    raise_err(:SERVER_ERR, 1, __method__) if !@file
+
+    @upload = FileModel::Upload[:file_id=> @file.to_hash[:id]]
+    raise_err(:SERVER_ERR, 1, __method__) if !@upload
   end
 
   def has_auth_params?(params)
@@ -371,10 +383,11 @@ class UploadController < BasicController
     @upload.delete
   end
 
-  def send_upload_active()
+  def send_upload_status()
 
     @upload.to_hash.each(){ |key, value| @params[key] = value }
     @params.delete(:file_id)
+    @params.delete('blob')
     { :success=> true, :request=> @params }
   end
 

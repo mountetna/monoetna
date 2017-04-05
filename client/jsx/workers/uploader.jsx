@@ -151,12 +151,7 @@ class Uploader{
 
   sendPause(response){
 
-    var pauseData = [];
-    for(var key in response['request']){
-
-      pauseData.push(key+'='+response['request'][key]);
-    }
-
+    var pauseData = SERIALIZE_REQUEST(response['request']);
     try{
 
       AJAX({
@@ -165,7 +160,7 @@ class Uploader{
         'method': 'POST',
         'sendType': 'serial',
         'returnType': 'json',
-        'data': pauseData.join('&'),
+        'data': pauseData,
         'success': uploader['handleServerResponse'],
         'error': uploader['ajaxError']
       });
@@ -178,12 +173,7 @@ class Uploader{
 
   sendCancel(response){
 
-    var cancelData = [];
-    for(var key in response['request']){
-
-      cancelData.push(key+'='+response['request'][key]);
-    }
-
+    var cancelData = SERIALIZE_REQUEST(response['request']);
     try{
 
       AJAX({
@@ -192,7 +182,7 @@ class Uploader{
         'method': 'POST',
         'sendType': 'serial',
         'returnType': 'json',
-        'data': cancelData.join('&'),
+        'data': cancelData,
         'success': uploader['handleServerResponse'],
         'error': uploader['ajaxError']
       });
@@ -261,7 +251,6 @@ class Uploader{
     try{
 
       uploader['uploadStart'] = Math.floor(Date.now());
-
       AJAX({
 
         'url': '/upload-blob',

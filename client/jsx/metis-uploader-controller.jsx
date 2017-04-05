@@ -195,24 +195,27 @@ class MetisUploader{
     switch(message['data']['type']){
 
       case 'initialized':
+
+        action['type'] = 'FILE_INITIALIZED';
+        action['response'] = message['data']['response'];
+        this['model']['store'].dispatch(action);
+        break;
       case 'active':
 
         action['type'] = 'FILE_UPLOAD_ACTIVE';
-        action['uploadResponse'] = message['data']['response'];
+        action['response'] = message['data']['response'];
         this['model']['store'].dispatch(action);
-        break;
-      case 'error':
-
-        //this['uploadWorker'].onerror(message['data']);
         break;
       case 'paused':
 
         action['type'] = 'FILE_UPLOAD_PAUSED';
-        action['pauseResponse'] = message['data']['response'];
+        action['response'] = message['data']['response'];
         this['model']['store'].dispatch(action);
+        this.startUpload(); // Check the queue for another upload or cancel.
+        break;
+      case 'error':
 
-        // Check the queue for another upload or cancel.
-        this.startUpload();
+        //this['uploadWorker'].onerror(message['data']);
         break;
       case 'cancelled':
 
@@ -297,23 +300,13 @@ class MetisUploader{
     return fileUploadData;
   }
 
-  serializeAuthRequset(fileUploadData){
-
-    var request = [];
-    for(var key in fileUploadData){
-
-      request.push(key +'='+ fileUploadData[key]);
-    }
-    return request.join('&');
-  }
-
   /*
    * Call to get approval to make an action on Metis.
    */
   requestAuthorization(fileUploadData){
 
     fileUploadData = this.generateAuthRequest(fileUploadData);
-    var request = this.serializeAuthRequset(fileUploadData);
+    var request = SERIALIZE_REQUEST(fileUploadData);
 
     // Request authorization to upload the file.
     AJAX({

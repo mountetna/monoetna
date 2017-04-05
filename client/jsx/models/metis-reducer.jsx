@@ -6,8 +6,8 @@ export default class MetisReducer{
 
       // Extract some widely use items.
       var fileData = Object.assign({}, state);
-      if('fileUploads' in fileData) var fileUploads = fileData['fileUploads'];
-      if('fileList' in fileData) var fileList = fileData['fileList'];
+      var fileUploads = fileData['fileUploads'];
+      var fileList = fileData['fileList'];
 
       switch(action['type']){
 
@@ -41,15 +41,16 @@ export default class MetisReducer{
 
         case 'FILE_INITIALIZED':
         case 'FILE_UPLOAD_ACTIVE':
+        case 'FILE_UPLOAD_PAUSED':
 
-          var activeResponse = Object.assign({}, action['uploadResponse']);
-          activeResponse = this.camelCaseIt(activeResponse['request']);
+          var response = Object.assign({}, action['response']);
+          response = this.camelCaseIt(response['request']);
 
           // Find the local File Object.
-          var index = this.getMatchingUploadIndex(fileUploads, activeResponse);
+          var index = this.getMatchingUploadIndex(fileUploads, response);
 
           // Append all of the request items to the local file object.
-          fileUploads[index] = Object.assign(fileUploads[index],activeResponse);
+          fileUploads[index] = Object.assign(fileUploads[index], response);
           break;
 
         case 'FILE_UPLOAD_COMPLETE':
@@ -82,23 +83,6 @@ export default class MetisReducer{
             else{
 
               fileData['fileList'].push(file);
-            }
-          }
-          break;
-
-        case 'FILE_UPLOAD_PAUSED':
-
-          // MOD START
-          var reqData = this.camelCaseIt(action['pauseResponse']['request']);
-          for(var a = 0; a < fileUploads['length']; ++a){
-
-            if(fileUploads[a]['dbIndex'] == reqData['dbIndex']){
-
-              for(var key in reqData){
-
-                fileUploads[a][key] = reqData[key];
-              }
-              break;
             }
           }
           break;

@@ -528,3 +528,13 @@ var NOT_LOGGED_ADDR = function(){
   var base = 'https://janus-stage.ucsf.edu/login';
   return base+'?refer=http%3A%2F%2Fmetis-dev.ucsf.edu%2F';
 }
+
+var SERIALIZE_REQUEST = function(fileData){
+
+  var request = [];
+  for(var key in fileData){
+
+    request.push(key +'='+ fileData[key]);
+  }
+  return request.join('&');
+}
