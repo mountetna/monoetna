@@ -50,4 +50,14 @@ module PostgresService
 
     FileModel::Upload.create(row)
   end
+
+  def self.get_files_by_project_name(project_name)
+
+    file_metadata = @postgres[:files]
+      .where('project_name = ?', project_name)
+      .all
+
+    if file_metadata then file_metadata.map(){ |file| file.to_hash } end
+    return file_metadata
+  end
 end
