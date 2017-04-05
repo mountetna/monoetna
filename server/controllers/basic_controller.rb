@@ -27,6 +27,8 @@ class BasicController
     @user = UserModel.new(response)
   end
 
+  # This checks if a user is in the 'administration' group AND is an
+  # 'administrator' in that group.
   def admin_user?(uri, data)
 
     begin
