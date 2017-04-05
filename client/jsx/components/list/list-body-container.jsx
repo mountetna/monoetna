@@ -52,9 +52,9 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
       dispatch(action);
     },
 
-    queueUpload: (dbIndex)=>{
+    queueUpload: (reactKey)=>{
 
-      var action = { 'type': 'QUEUE_UPLOAD', 'dbIndex': dbIndex };
+      var action = { 'type': 'QUEUE_UPLOAD', 'reactKey': reactKey };
       dispatch(action);
     },
 
@@ -91,12 +91,11 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
     /* 
      * This function removes a file/upload from the local data. When a file has
      * not yet been authorized on the server we just remove it from the local
-     * store. We piggy pack on the 'FILE_REMOVED' reducer command.
+     * store.
      */
     clearUpload: (fileMetadata)=>{
 
-      fileMetadata['redis_index'] = fileMetadata['dbIndex'];
-      var action = { 'type': 'FILE_REMOVED', 'oldMetadata': fileMetadata };
+      var action = { 'type': 'CLEAR_UPLOAD', 'response': fileMetadata };
       dispatch(action);
     }
   };

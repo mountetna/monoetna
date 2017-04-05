@@ -26,28 +26,22 @@ export default class MetisReducer{
 
         case 'FILE_UPLOAD_AUTHORIZED':
 
-          var authResponse = Object.assign({}, action['authResponse']);
-          authResponse = this.camelCaseIt(authResponse['request']);
-
-          // Find the local File Object.
-          var index = this.getMatchingUploadIndex(fileUploads, authResponse);
+          var response = this.camelCaseIt(action['authResponse']['request']);
+          var index = this.getMatchingUploadIndex(fileUploads, response);
 
           // Append the HMAC signature and set the server current byte to 0.
-          fileUploads[index]['hmacSignature'] = authResponse['hmacSignature'];
+          fileUploads[index]['hmacSignature'] = response['hmacSignature'];
           fileUploads[index]['currentBytePosition'] = 0;
 
           // Append all of the request items to the local file object.
-          fileUploads[index] = Object.assign(fileUploads[index], authResponse);
+          fileUploads[index] = Object.assign(fileUploads[index], response);
           break;
 
         case 'FILE_INITIALIZED':
         case 'FILE_UPLOAD_ACTIVE':
         case 'FILE_UPLOAD_PAUSED':
 
-          var response = Object.assign({}, action['response']);
-          response = this.camelCaseIt(response['request']);
-
-          // Find the local File Object.
+          var response = this.camelCaseIt(action['response']['request']);
           var index = this.getMatchingUploadIndex(fileUploads, response);
 
           // Append all of the request items to the local file object.
@@ -56,27 +50,21 @@ export default class MetisReducer{
 
         case 'FILE_UPLOAD_COMPLETE':
 
-          var completeResponse = Object.assign({}, action['completeResponse']);
-          completeResponse = this.camelCaseIt(completeResponse['request']);
-
-          // Find the local File Object.
-          var index = this.getMatchingUploadIndex(fileUploads,completeResponse);
+          var response =this.camelCaseIt(action['completeResponse']['request']);
+          var index = this.getMatchingUploadIndex(fileUploads, response);
 
           /*
            * Move the completed upload metadata from the 'uploads' array to the 
            * list array.
            */
           fileUploads.splice(index, 1);
-          fileList.push(completeResponse);
+          fileList.push(response);
           break;
 
         case 'FILE_UPLOAD_CANCELLED':
 
-          var cancelledResponse = Object.assign({}, action['cancelResponse']);
-          cancelledResponse = this.camelCaseIt(cancelledResponse['request']);
-
-          // Find the local File Object.
-          var index =this.getMatchingUploadIndex(fileUploads,cancelledResponse);
+          var response = this.camelCaseIt(action['cancelResponse']['request']);
+          var index =this.getMatchingUploadIndex(fileUploads, response);
 
           /*
            * Move the cancelled upload metadata from the 'uploads' array to the 
@@ -86,20 +74,41 @@ export default class MetisReducer{
           fileFails.push(cancelledResponse);
           break;
 
+        case 'FILE_REMOVED':
+
+          var response = this.camelCaseIt(action['response']);
+          var index = this.getMatchingUploadIndex(fileUploads, response);
+
+          // Remove the deleted item from the fileList
+          fileList.splice(index, 1);
+          break;
+
+        case 'CLEAR_UPLOAD':
+
+          for(var a = 0; a < fileUploads['length']; ++a){
+
+            if(action['response']['reactKey'] == fileUploads[a]['reactKey']){
+
+              fileUploads.splice(a, 1);
+              break;
+            }
+          }
+          break;
+
         case 'FILE_METADATA_RECEIVED':
 
           for(var a = 0; a < action['fileList']['length']; ++a){
 
-            var file = this.camelCaseIt(action['fileList'][a]);
-            file['reactKey'] = GENERATE_RAND_KEY();
+            action['fileList'][a] = this.camelCaseIt(action['fileList'][a]);
+            action['fileList'][a]['reactKey'] = GENERATE_RAND_KEY();
 
-            if(!action['fileList'][a].hasOwnProperty('finishTimestamp')){
+            if(!action['fileList'][a].hasOwnProperty('finishUpload')){
 
-              fileData['fileFails'].push(file);
+              fileData['fileFails'].push(action['fileList'][a]);
             }
             else{
 
-              fileData['fileList'].push(file);
+              fileData['fileList'].push(action['fileList'][a]);
             }
           }
           break;
@@ -122,37 +131,13 @@ export default class MetisReducer{
             }
 
             // Apply a 'queued' status to a matching file upload.
-            if(fileUploads[a]['dbIndex'] == action['dbIndex']){
+            if(fileUploads[a]['reactKey'] == action['reactKey']){
 
               fileUploads[a]['status'] = 'queued';
             }
           }
           break;
 
-        case 'FILE_REMOVED':
-
-          var oldMetadata = action['oldMetadata'];
-
-          for(var key in fileData){
-
-            var fileRemoved = false;
-            for(var a = 0; a < fileData[key]['length']; ++a){
-
-              if(fileData[key][a]['dbIndex'] == oldMetadata['redis_index']){
-
-                fileData[key].splice(a, 1);
-                fileRemoved = true;
-                break;
-              }
-            }
-
-            if(fileRemoved){
-
-              break;
-            }
-          }
-
-          break;
         default:
 
           break;

@@ -219,31 +219,9 @@ class MetisUploader{
         break;
       case 'cancelled':
 
-        /*
-         * We could just run the 'removeFile' function from here without 
-         * updating the store. However, I am choosing to run an action on the 
-         * reducer to update the file metadtata in the store first. Even though 
-         * the user will not notice the state change (since it will happen too 
-         * fast), this is a more consistent data flow.
-         */
         action['type'] = 'FILE_UPLOAD_CANCELLED';
         action['cancelResponse'] = message['data']['response'];
         this['model']['store'].dispatch(action);
-
-        /*
-         * After the store has been updated we can go ahead and extract and 
-         * remove the cancelled file(s) from the server.
-         */
-        var state = this['model']['store'].getState();
-        var fileFails = state['fileData']['fileFails'];
-        for(var a = 0; a < fileFails['length']; ++a){
-
-          if(fileFails[a]['status'] == 'cancelled'){
-
-            this.removeFile(fileFails[a]);
-          }
-        }
-        
         break;
       case 'complete':
 
@@ -464,13 +442,11 @@ class MetisUploader{
     // Serialize the request for POST.
     var request = [];
     for(var key in fileMetadata){
-
+    
       request.push(SNAKE_CASE_IT(key) +'='+ fileMetadata[key]);
     }
-
     var state = this['model']['store'].getState();
-    request.push('authorization_token='+ state['userInfo']['authToken']);
-    request.push('signing_algorithm=MD5');
+    request.push('token='+ state['userInfo']['authToken']);
 
     // Request authorization to remove the file.
     AJAX({
@@ -489,12 +465,7 @@ class MetisUploader{
 
     if(response['success']){
 
-      var action = {
-
-        'type': 'FILE_REMOVED',
-        'oldMetadata': response['old_metadata']
-      };
-
+      var action = { 'type': 'FILE_REMOVED', 'response': response['request'] };
       this['model']['store'].dispatch(action);
     }
     else{
