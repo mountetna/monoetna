@@ -72,7 +72,18 @@ class UploadController < BasicController
     return { :success=> true, :request=> @params }
   end
 
+  def remove_file()
+
+    remove_file_error_check()
+    @file.delete   # Remove metadata
+    remove_file_on_disk()
+    @params['status'] = 'removed'
+    return { :success=> true, :request=> @params }
+  end
+
   private
+
+  # All the items to check before we authorize an upload.
   def auth_upload_error_check()
 
     # Check that the correct parameters are present.
@@ -97,6 +108,7 @@ class UploadController < BasicController
     end
   end
 
+  # Details to check before we start an upload.
   def start_upload_error_check()
 
     # Check the HMAC
@@ -118,6 +130,7 @@ class UploadController < BasicController
     end
   end
 
+  # Things to check before we upload a blob.
   def upload_blob_error_check()
 
     common_error_check()
@@ -138,6 +151,7 @@ class UploadController < BasicController
     end
   end
 
+  # Some common things we should check before we make an action.
   def common_error_check()
 
     # Check the HMAC
@@ -156,6 +170,35 @@ class UploadController < BasicController
     raise_err(:SERVER_ERR, 1, __method__) if !@upload
   end
 
+  # All the things we should check before we remove a file.
+  def remove_file_error_check()
+
+    # Check that the user has permission on project requested.
+    if !@user.project_editor?(@params['project_name']) &&
+       !@user.project_admin?(@params['project_name'])
+
+      raise_err(:BAD_REQ, 3, __method__)
+    end
+
+    # Check that the file metadata exists.
+    @file = FileModel::File[
+
+      :group_name=> @params['group_name'],
+      :project_name=> @params['project_name'],
+      :file_name=> @params['file_name']
+    ]
+    raise_err(:SERVER_ERR, 1, __method__) if !@file
+
+    # The 'upload' portion of the metadata should NOT exist.
+    @upload = FileModel::Upload[:file_id=> @file.to_hash[:id]]
+    raise_err(:SERVER_ERR, 1, __method__) if @upload
+
+    # The file should exist on disk BUT the partial should NOT.
+    raise_err(:BAD_REQ, 5 , __method__) if !file_exists?() || partial_exists?()
+  end
+
+  # Extra items from the server will be added to these when the HMAC is
+  # generated.
   def has_auth_params?(params)
 
     has_params = true
@@ -164,8 +207,8 @@ class UploadController < BasicController
       'original_name',
       'file_name',
       'file_size',
-      'group_id',
-      'project_id'
+      'group_name',
+      'project_name'
     ]
 
     auth_params.each do |auth_param|
@@ -414,5 +457,11 @@ class UploadController < BasicController
 
     partial_file_name = derive_directory()+'/'+@params['file_name']+'.part'
     if File.file?(partial_file_name) then File.delete(partial_file_name) end
+  end
+
+  def remove_file_on_disk()
+
+    file_name = derive_directory()+'/'+@params['file_name']
+    if File.file?(file_name) then File.delete(file_name) end
   end
 end
