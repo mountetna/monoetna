@@ -81,6 +81,16 @@ class UploadController < BasicController
     return { :success=> true, :request=> @params }
   end
 
+  def remove_failed()
+
+    remove_failed_error_check()
+    @upload.delete # Remove metadata
+    @file.delete   # Remove metadata
+    remove_temp_file()
+    @params['status'] = 'removed'
+    return { :success=> true, :request=> @params }
+  end
+
   private
 
   # All the items to check before we authorize an upload.
@@ -195,6 +205,28 @@ class UploadController < BasicController
 
     # The file should exist on disk BUT the partial should NOT.
     raise_err(:BAD_REQ, 5 , __method__) if !file_exists?() || partial_exists?()
+  end
+
+  def remove_failed_error_check()
+
+    # Check that the file metadata exists.
+    @file = FileModel::File[
+
+      :group_name=> @params['group_name'],
+      :project_name=> @params['project_name'],
+      :file_name=> @params['file_name']
+    ]
+    raise_err(:SERVER_ERR, 1, __method__) if !@file
+
+    # The 'upload' portion of the metadata should exist.
+    @upload = FileModel::Upload[:file_id=> @file.to_hash[:id]]
+    raise_err(:SERVER_ERR, 1, __method__) if !@upload
+
+    # The file should NOT exist but the partial should.
+    raise_err(:BAD_REQ, 5 , __method__) if file_exists?() || !partial_exists?()
+
+    # Check that the user requesting the 'remove' is the same as the uploader.
+    raise_err(:SERVER_ERR, 1, __method__) if !@user.email() == @file[:upload_by]
   end
 
   # Extra items from the server will be added to these when the HMAC is

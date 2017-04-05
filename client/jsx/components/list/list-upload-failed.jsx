@@ -11,7 +11,7 @@ export default class ListUploadFailed extends React.Component{
 
   removeFile(){
 
-    this['props']['callbacks'].removeFile(this['props']['failedFile']);
+    this['props']['callbacks'].removeFailed(this['props']['failedFile']);
   }
 
   selectUpload(){

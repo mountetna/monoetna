@@ -97,6 +97,12 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
 
       var action = { 'type': 'CLEAR_UPLOAD', 'response': fileMetadata };
       dispatch(action);
+    },
+
+    removeFailed: (fileMetadata)=>{
+
+      var action = { 'type': 'REMOVE_FAILED', 'fileMetadata': fileMetadata };
+      dispatch(action);
     }
   };
 }

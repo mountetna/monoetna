@@ -34,7 +34,7 @@ export default class ListBody extends React.Component{
                 'callbacks': {
 
                   'recoverUpload': this['props']['recoverUpload'],
-                  'removeFile': this['props']['removeFile']
+                  'removeFailed': this['props']['removeFailed'],
                 }
               };
 

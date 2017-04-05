@@ -153,6 +153,10 @@ class MetisUploader{
         if(!confirm(delMesg)) return;
         this.removeFile(action['fileMetadata']);
         break;
+      case 'REMOVE_FAILED':
+
+        this.removeFailed(action['fileMetadata']);
+        break;
       case 'RECOVER_UPLOAD':
 
         this.recoverUpload(action['uploadFile'], action['fileMetadata']);
@@ -439,6 +443,16 @@ class MetisUploader{
 
   removeFile(fileMetadata){
 
+    this.removeServerFiles('/remove-file', fileMetadata);
+  }
+
+  removeFailed(fileMetadata){
+
+    this.removeServerFiles('/remove-failed', fileMetadata);
+  }
+
+  removeServerFiles(endPoint, fileMetadata){
+
     // Serialize the request for POST.
     var request = [];
     for(var key in fileMetadata){
@@ -451,7 +465,7 @@ class MetisUploader{
     // Request authorization to remove the file.
     AJAX({
 
-      'url': '/file-remove',
+      'url': endPoint,
       'method': 'POST',
       'sendType': 'serial',
       'returnType': 'json',
