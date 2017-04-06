@@ -48,16 +48,14 @@ export default class UploadControl extends React.Component{
         );
       case 'failed':
 
-        /*
         uploadCtrlBtnProps['onClick'] = callbacks['selectUpload'];
         return (
 
           <button { ...uploadCtrlBtnProps }>
 
-            <span className='glyphicon glyphicon-open'></span>
+            <span className='glyphicon glyphicon-retweet'></span>
           </button>
         );
-        */
         return '';
       default:
 

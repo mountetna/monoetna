@@ -9,6 +9,43 @@ export default class MetisReducer{
       var fileUploads = fileData['fileUploads'];
       var fileList = fileData['fileList'];
       var fileFails = fileData['fileFails'];
+      var response = null;
+      var index = null;
+
+      var setResponseAndIndex = function(action, fileGroup){
+
+        response = camelCaseIt(action['response']['request']);
+        index = getMatchingUploadIndex(fileGroup, response);
+      }
+
+      var camelCaseIt = function(object){
+
+        for(var key in object){
+
+          object[CAMEL_CASE_IT(key)] = object[key];
+          if(key.indexOf('_') != -1) delete object[key];
+        }
+
+        object = PARSE_REQUEST(object);
+        return object;
+      }
+
+      // Find the local File Object.
+      var getMatchingUploadIndex = function(fileGroup, responseData){
+
+        var index = null;
+        for(var a = 0; a < fileGroup['length']; ++a){
+
+          if((fileGroup[a]['fileName'] == responseData['fileName']) &&
+            (fileGroup[a]['projectName'] == responseData['projectName']) &&
+            (fileGroup[a]['groupName'] == responseData['groupName'])){
+
+            index = a; 
+            break;
+          }
+        }
+        return index;
+      }
 
       switch(action['type']){
 
@@ -26,72 +63,77 @@ export default class MetisReducer{
 
         case 'FILE_UPLOAD_AUTHORIZED':
 
-          var response = this.camelCaseIt(action['authResponse']['request']);
-          var index = this.getMatchingUploadIndex(fileUploads, response);
-          if(index != null){
+          setResponseAndIndex(action, fileUploads);
+          console.log(response, index);
+          if(index == null) break;
 
-            // Append the HMAC signature and set the server current byte to 0.
-            fileUploads[index]['hmacSignature'] = response['hmacSignature'];
-            fileUploads[index]['currentBytePosition'] = 0;
+          // Append the HMAC signature and set the server current byte to 0.
+          fileUploads[index]['hmacSignature'] = response['hmacSignature'];
+          fileUploads[index]['currentBytePosition'] = 0;
 
-            // Append all of the request items to the local file object.
-            fileUploads[index] = Object.assign(fileUploads[index], response);
-          }
+          // Append all of the request items to the local file object.
+          fileUploads[index] = Object.assign(fileUploads[index], response);
+          break;
+
+        case 'FILE_UPLOAD_RECOVERED':
+
+          setResponseAndIndex(action, fileFails);
+          if(index == null) break;
+
+          // Append all of the request items to the local file object.
+          fileFails[index] = Object.assign(fileFails[index], response);
+          fileFails[index]=Object.assign(action['uploadFile'],fileFails[index]);
+          fileUploads.push(fileFails[index]);
+          fileFails.splice(index, 1);
           break;
 
         case 'FILE_INITIALIZED':
         case 'FILE_UPLOAD_ACTIVE':
         case 'FILE_UPLOAD_PAUSED':
 
-          var response = this.camelCaseIt(action['response']['request']);
-          var index = this.getMatchingUploadIndex(fileUploads, response);
-          if(index != null){
+          setResponseAndIndex(action, fileUploads);
+          if(index == null) break;
 
-            // Append all of the request items to the local file object.
-            fileUploads[index] = Object.assign(fileUploads[index], response);
-          }
+          // Append all of the request items to the local file object.
+          fileUploads[index] = Object.assign(fileUploads[index], response);
           break;
 
         case 'FILE_UPLOAD_COMPLETE':
 
-          var response =this.camelCaseIt(action['completeResponse']['request']);
-          var index = this.getMatchingUploadIndex(fileUploads, response);
-          if(index != null){
+          setResponseAndIndex(action, fileUploads);
+          if(index == null) break;
 
-            /*
-            * Move the completed upload metadata from the 'uploads' array to the 
-            * list array.
-            */
-            fileUploads.splice(index, 1);
-            fileList.push(response);
-          }
+          /*
+           * Move the completed upload metadata from the 'uploads' array to the 
+           * 'list' array.
+           */
+          fileUploads.splice(index, 1);
+          fileList.push(response);
           break;
 
         case 'FILE_UPLOAD_CANCELLED':
 
-          var response = this.camelCaseIt(action['cancelResponse']['request']);
-          var index = this.getMatchingUploadIndex(fileUploads, response);
-          if(index != null){
+          setResponseAndIndex(action, fileUploads);
+          if(index == null) break;
 
-           /*
-            * Move the cancelled upload metadata from the 'uploads' array to the 
-            * failed array.
-            */
-            fileUploads.splice(index, 1);
-            fileFails.push(cancelledResponse);
-          }
+          /*
+           * Move the cancelled upload metadata from the 'uploads' array to the 
+           * 'failed' array.
+           */
+          fileUploads.splice(index, 1);
+          fileFails.push(response);
           break;
 
         case 'FILE_REMOVED':
 
-          var response = this.camelCaseIt(action['response']);
+          response = camelCaseIt(action['response']);
 
           // Remove the deleted item from the fileList.
-          var index = this.getMatchingUploadIndex(fileUploads, response);
+          index = getMatchingUploadIndex(fileUploads, response);
           if(index != null) fileList.splice(index, 1);
 
           // Remove the deleted item from the fileFails.
-          index = this.getMatchingUploadIndex(fileFails, response);
+          index = getMatchingUploadIndex(fileFails, response);
           if(index != null) fileFails.splice(index, 1);
           break;
 
@@ -111,7 +153,7 @@ export default class MetisReducer{
 
           for(var a = 0; a < action['fileList']['length']; ++a){
 
-            action['fileList'][a] = this.camelCaseIt(action['fileList'][a]);
+            action['fileList'][a] = camelCaseIt(action['fileList'][a]);
             action['fileList'][a]['reactKey'] = GENERATE_RAND_KEY();
 
             if(!action['fileList'][a].hasOwnProperty('finishUpload')){
@@ -157,34 +199,5 @@ export default class MetisReducer{
 
       return fileData;
     };
-  }
-
-  camelCaseIt(object){
-
-    for(var key in object){
-
-      object[CAMEL_CASE_IT(key)] = object[key];
-      if(key.indexOf('_') != -1) delete object[key];
-    }
-
-    object = PARSE_REQUEST(object);
-    return object;
-  }
-
-  // Find the local File Object.
-  getMatchingUploadIndex(fileUploads, responseData){
-
-    var index = null;
-    for(var a = 0; a < fileUploads['length']; ++a){
-
-      if((fileUploads[a]['fileName'] == responseData['fileName']) &&
-        (fileUploads[a]['projectName'] == responseData['projectName']) &&
-        (fileUploads[a]['groupName'] == responseData['groupName'])){
-
-        index = a; 
-        break;
-      }
-    }
-    return index;
   }
 }

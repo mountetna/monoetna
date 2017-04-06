@@ -20,6 +20,7 @@ class Uploader{
 
     this['pause'] = false;
     this['cancel'] = false;
+    this['errorObj']=(msg)=>{return{'type':'error','message':msg,'response':{}}}
   }
 
   /*
@@ -33,9 +34,9 @@ class Uploader{
     uploader['request'] = message['request'];
 
     // Check that the incoming data has a valid command.
-    if(!'command' in message){
+    if(!('command' in message)){
 
-      postMessage({ message: 'No command.'});
+      postMessage(uploader.errorObj('No command.'));
       return;
     }
 
@@ -115,15 +116,12 @@ class Uploader{
   generateBlobHash(blob, uploadRequest, callback){
 
     var fileReader = new FileReader();
-
     fileReader.onload = function(progressEvent){
 
       var md5Hash = SparkMD5.ArrayBuffer.hash(this.result);
       uploadRequest.append('next_blob_hash', md5Hash);
-
       callback(uploadRequest);
     }
-
     fileReader.readAsArrayBuffer(blob);
   }
 
@@ -145,7 +143,7 @@ class Uploader{
     catch(error){
 
       uploader['uploadStart'] = null;
-      postMessage({ 'type': 'error', 'message': error['message'] });
+      postMessage(uploader.errorObj(error['message']));
     }
   }
 
@@ -167,7 +165,7 @@ class Uploader{
     }
     catch(error){
 
-      postMessage({ 'type': 'error', 'message': error['message'] });
+      postMessage(uploader.errorObj(error['message']));
     }
   }
 
@@ -189,7 +187,7 @@ class Uploader{
     }
     catch(error){
 
-      postMessage({ 'type': 'error', 'message': error['message'] });
+      postMessage(uploader.errorObj(error['message']));
     }
   }
 
@@ -265,7 +263,7 @@ class Uploader{
     catch(error){
 
       uploader['uploadStart'] = null;
-      postMessage({ type: 'error', message: error['message'] });
+      postMessage(uploader.errorObj(error['message']));
     }
   }
 
@@ -317,7 +315,7 @@ class Uploader{
     var errorMessage = 'The server response was malformed.';
     if(!('success' in response) || !('request' in response)){
 
-      postMessage({ 'type': 'error', message: errorMessage });
+      postMessage(uploader.errorObj(errorMessage));
       return;
     }
 
@@ -325,7 +323,7 @@ class Uploader{
 
     if(!response){
 
-      postMessage({ type: 'error', message: errorMessage });
+      postMessage(uploader.errorObj(errorMessage));
       return;
     }
 
@@ -333,7 +331,7 @@ class Uploader{
 
     if(!response){
 
-      postMessage({ type: 'error', message: errorMessage });
+      postMessage(uploader.errorObj(errorMessage));
       return;
     }
 
@@ -346,12 +344,12 @@ class Uploader{
 
       case 'initialized':
 
-        postMessage({ type: 'initialized', response: response });
+        postMessage({ type: 'FILE_INITIALIZED', response: response });
         break;
       case 'active':
 
         response['request']['uploadSpeed'] = this['uploadSpeed'];
-        postMessage({ type: 'active', response: response });
+        postMessage({ type: 'FILE_UPLOAD_ACTIVE', response: response });
 
         /*
          * Check the 'pause' and 'cancel' flags, if set then send the pause or
@@ -377,26 +375,20 @@ class Uploader{
          * is in a paused state. We also clear the 'pause' flag on the uploader.
          */
         uploader['pause'] = false;
-        postMessage({ type: 'paused', response: response });
+        postMessage({ type: 'FILE_UPLOAD_PAUSED', response: response });
         break;
 
       case 'cancelled':
 
         uploader['cancel'] = false;
-        postMessage({ type: 'cancelled', response: response });
+        postMessage({ type: 'FILE_UPLOAD_CANCELLED', response: response });
         break;
       case 'complete':
 
         // Send update message back.
         this['file'] = null;
         this['request'] = null;
-        postMessage({ type: 'complete', response: response });
-        break;
-      case 'stopped':
-
-        break;
-      case 'failed':
-
+        postMessage({ type: 'FILE_UPLOAD_COMPLETE', response: response });
         break;
       default:
 
@@ -419,7 +411,8 @@ class Uploader{
    */
   ajaxError(xhr, ajaxOpt, thrownError){
 
-    postMessage({ xhr: xhr, ajaxOptions: ajaxOpt, thrownError: thrownError });
+    ajaxError = { xhr: xhr, ajaxOptions: ajaxOpt, thrownError: thrownError };
+    postMessage(uploader.errorObj(ajaxError));
   }
 }
 

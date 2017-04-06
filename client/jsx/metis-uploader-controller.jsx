@@ -46,7 +46,7 @@ class MetisUploader{
     this['uploadWorker'] = new Worker('./js/workers/uploader.js');
     this['uploadWorker']['onmessage'] = (message)=>{
       
-      this.routeResponse(message);
+      this.proxyResponse(message);
     };
     
     this['uploadWorker']['onerror'] = (message)=>{
@@ -115,6 +115,7 @@ class MetisUploader{
    * paradigm. Also if there are duplicate actions between here and a reducer.
    * the action in the reducer will run first.
    */
+
   routeAction(action){
 
     switch(action['type']){
@@ -130,7 +131,7 @@ class MetisUploader{
         break;
       case 'FILE_UPLOAD_AUTHORIZED':
 
-        this.initializeFile(action['authResponse']);
+        this.initializeFile(action['response']['request']);
         break;
       case 'QUEUE_UPLOAD':
 
@@ -138,24 +139,26 @@ class MetisUploader{
         break;
       case 'PAUSE_UPLOAD':
 
-        this.pauseUpload();
+        var workerMessage = { 'command': 'pause' };
+        this['uploadWorker'].postMessage(workerMessage);
         break;
       case 'CANCEL_UPLOAD':
 
         var delMesg = 'Are you sure you want to remove this upload?'
         if(!confirm(delMesg)) return;
-        this.cancelUpload();
+        var workerMessage = { 'command': 'cancel' };
+        this['uploadWorker'].postMessage(workerMessage);
         break;
       case 'REMOVE_FILE':
 
         if(action['fileMetadata'] == undefined) return;
         var delMesg = 'Are you sure you want to remove this file?'
         if(!confirm(delMesg)) return;
-        this.removeFile(action['fileMetadata']);
+        this.removeServerFiles('/remove-file', action['fileMetadata']);
         break;
       case 'REMOVE_FAILED':
 
-        this.removeFailed(action['fileMetadata']);
+        this.removeServerFiles('/remove-failed', action['fileMetadata']);
         break;
       case 'RECOVER_UPLOAD':
 
@@ -193,51 +196,18 @@ class MetisUploader{
   /*
    * Responses from the Upload Worker.
    */
-  routeResponse(message){
+  proxyResponse(message){
 
+    // Set the payload.
     var action = {};
-    switch(message['data']['type']){
+    action['response'] = message['data']['response'];
+    action['type'] = message['data']['type'];
 
-      case 'initialized':
+    // Dispatch the command.
+    this['model']['store'].dispatch(action);
 
-        action['type'] = 'FILE_INITIALIZED';
-        action['response'] = message['data']['response'];
-        this['model']['store'].dispatch(action);
-        break;
-      case 'active':
-
-        action['type'] = 'FILE_UPLOAD_ACTIVE';
-        action['response'] = message['data']['response'];
-        this['model']['store'].dispatch(action);
-        break;
-      case 'paused':
-
-        action['type'] = 'FILE_UPLOAD_PAUSED';
-        action['response'] = message['data']['response'];
-        this['model']['store'].dispatch(action);
-        this.startUpload(); // Check the queue for another upload or cancel.
-        break;
-      case 'error':
-
-        //this['uploadWorker'].onerror(message['data']);
-        break;
-      case 'cancelled':
-
-        action['type'] = 'FILE_UPLOAD_CANCELLED';
-        action['cancelResponse'] = message['data']['response'];
-        this['model']['store'].dispatch(action);
-        break;
-      case 'complete':
-
-        action['type'] = 'FILE_UPLOAD_COMPLETE';
-        action['completeResponse'] = message['data']['response'];
-        this['model']['store'].dispatch(action);
-        break;
-      default:
-
-        // none
-        break;
-    }
+    // Check the queue for another upload or cancel.
+    if(message['data']['type'] == 'paused') this.startUpload();
   }
 
   checkAuthData(fileUploadData){
@@ -264,22 +234,16 @@ class MetisUploader{
 
   generateAuthRequest(file){
 
-    var fileUploadData = {}
+    var req = ['fileName','originalName','fileSize','projectName','groupName'];
+    var reqData = {};
 
     // Add params not that are needed but not included.
     var state = this['model']['store'].getState();
-    fileUploadData['token'] = state['userInfo']['authToken'];
+    reqData['token'] = state['userInfo']['authToken'];
 
-    // Snake case the data for Ruby, isolate the needed params.
-    for(var key in file){
-
-      if(key in STATUS_ITEMS){
-
-        var snake_cased_key = SNAKE_CASE_IT(key);
-        fileUploadData[snake_cased_key] = file[key];
-      }
-    }
-    return fileUploadData;
+    // Form the upload request.
+    req.forEach(function(elem){ reqData[SNAKE_CASE_IT(elem)] = file[elem]; });
+    return reqData;
   }
 
   /*
@@ -313,9 +277,8 @@ class MetisUploader{
       var action = {
 
         'type': 'FILE_UPLOAD_AUTHORIZED',
-        'authResponse': response
+        'response':response
       };
-
       this['model']['store'].dispatch(action);
     }
     else{
@@ -326,52 +289,40 @@ class MetisUploader{
 
   initializeFile(authResponse){
 
+    // Get the file from our 'fileUploads' object. 
     var uploadFile = this.getUploadFile(authResponse);
     if(uploadFile == null) return;
 
+    // Start up the 'uploader' worker.
     var initWorker = new Worker('./js/workers/uploader.js');
-    initWorker['onmessage'] = (message)=>{
-      
-      this.routeResponse(message);
-    };
-    
-    initWorker['onerror'] = (message)=>{
+    initWorker['onmessage'] = (message)=>{ this.proxyResponse(message) };
+    initWorker['onerror'] = (message)=>{ console.log(message) };
 
-      console.log(message);
-    };
-
+    // Normalize the data to send. Add our user token.
     var request = PARSE_REQUEST(uploadFile);
     var state = this['model']['store'].getState();
     request['token'] = state['userInfo']['authToken'];
 
-    var workerMessage = {
-
-      'command': 'initialize', 
-      'file': uploadFile,
-      'request': request
-    };
-
+    // Kick off the 'uploader'.
+    var workerMessage = {'command':'init','file':uploadFile,'request':request};
     initWorker.postMessage(workerMessage);
   }
 
-  /*
-   * Based upon the dbIndex from the auth response we can extract the actual
-   * file object from the redux store.
-   */
   getUploadFile(authResponse){
 
-    var request = authResponse['request'];
+    var uploadFile = null;
     var state = this['model']['store'].getState();
     var fileUploads = state['fileData']['fileUploads'];
-    var uploadFile = null;
-    for(var a = 0; a < fileUploads['length']; ++a){
 
-      if(fileUploads[a]['dbIndex'] == request['dbIndex']){
+    fileUploads.forEach(function(elem){
 
-        uploadFile = fileUploads[a];
-        break;
+      if((authResponse['groupName'] == elem['groupName']) &&
+        (authResponse['projectName'] == elem['projectName']) &&
+        (authResponse['fileName'] == elem['fileName'])){
+
+        uploadFile = elem;
       }
-    }
+    });
 
     return uploadFile;
   }
@@ -382,9 +333,9 @@ class MetisUploader{
    */
   startUpload(){
 
+    var uploadFile = null;
     var state = this['model']['store'].getState();
     var fileUploads = state['fileData']['fileUploads'];
-    var uploadFile = null;
 
     for(var a = 0; a < fileUploads['length']; ++a){
 
@@ -406,49 +357,13 @@ class MetisUploader{
 
     if(uploadFile == null) return;
 
+    // Normalize the data to send. Add our user token.
     var request = PARSE_REQUEST(uploadFile);
     request['token'] = state['userInfo']['authToken'];
 
-    var workerMessage = {
-
-      'command': 'start', 
-      'file': uploadFile,
-      'request': request
-    };
-
+    // Start the upload.
+    var workerMessage = {'command':'start','file':uploadFile,'request':request};
     this['uploadWorker'].postMessage(workerMessage);
-  }
-
-  pauseUpload(){
-
-    var workerMessage = { 'command': 'pause' };
-    this['uploadWorker'].postMessage(workerMessage);
-  }
-
-  cancelUpload(){
-
-    var workerMessage = { 'command': 'cancel' };
-    this['uploadWorker'].postMessage(workerMessage);
-  }
-
-  recoverUpload(uploadFile, fileMetadata){
-
-    // compare file name
-    // compare file size
-    // extract blob from upload file
-    // hash the blob
-    // compare the hash
-    console.log(fileMetadata);
-  }
-
-  removeFile(fileMetadata){
-
-    this.removeServerFiles('/remove-file', fileMetadata);
-  }
-
-  removeFailed(fileMetadata){
-
-    this.removeServerFiles('/remove-failed', fileMetadata);
   }
 
   removeServerFiles(endPoint, fileMetadata){
@@ -480,6 +395,118 @@ class MetisUploader{
     if(response['success']){
 
       var action = { 'type': 'FILE_REMOVED', 'response': response['request'] };
+      this['model']['store'].dispatch(action);
+    }
+    else{
+
+      console.log('There was an error.');
+    }
+  }
+
+  /*
+   * The first step in restarting an upload is to make sure that the last hash, 
+   * 'nextBlobHash', that the server saw matches the hash of the file blob on 
+   * disk. Once we have make that comparison we also check the file name and
+   * size.
+   *
+   * Next, we calculate the hash of the first 1024 bytes of the file. We send 
+   * that info to the server. The server will do the same calculation on it's
+   * end. This gives us decent assurance the file on the client matches the
+   * partial on the server.
+   *
+   * Lastly, we recalculate the 'nextBlobHash' of the file on the client.
+   * The difference from the first step is that we only hash 1024 bytes. We give
+   * this hash to the server. When the server confirms the file upload we reset
+   * the 'nextBlobHash' on the server with the new hash. This will reset the
+   * upload blob size to 1KiB.
+   */
+
+  recoverUpload(uploadFile, fileMetadata){
+
+    var frm = fileMetadata['currentBytePosition'];
+    var blob = uploadFile.slice(frm, frm + fileMetadata['nextBlobSize']);
+    var fileReader = new FileReader();
+    fileReader.onload = function(progressEvent){
+
+      var md5Hash = SparkMD5.ArrayBuffer.hash(this.result);
+      metisUploader.checkRecovery(uploadFile, fileMetadata, md5Hash);
+    }
+    fileReader.readAsArrayBuffer(blob);
+  }
+
+  checkRecovery(uploadFile, fileMetadata, md5Hash){
+
+    var fileOk = true;
+    if(uploadFile['name'] != fileMetadata['fileName']) fileOk = false;
+    if(uploadFile['size'] != fileMetadata['fileSize']) fileOk = false;
+    if(fileMetadata['nextBlobHash'] != md5Hash) fileOk = false;
+
+    if(!fileOk){
+
+      alert('The file you selected does not seem to match the record.');
+      return;
+    }
+
+    this.calcStartingKiB(uploadFile, fileMetadata, md5Hash);
+  }
+
+  calcStartingKiB(uploadFile, fileMetadata, md5Hash){
+
+    var blob = uploadFile.slice(0, 1024);
+    var fileReader = new FileReader();
+    fileReader.onload = function(progressEvent){
+
+      var fkh = SparkMD5.ArrayBuffer.hash(this.result); // firstKiBHash
+      metisUploader.calcEndingKiB(uploadFile, fileMetadata, md5Hash, fkh);
+    }
+    fileReader.readAsArrayBuffer(blob);
+  }
+
+  calcEndingKiB(file, fileMetadata, md5Hash, fkh){
+
+    var frm = fileMetadata['currentBytePosition'];
+    var blob = file.slice(frm, frm + 1024);
+    var fileReader = new FileReader();
+    fileReader.onload = function(progressEvent){
+
+      var lkh = SparkMD5.ArrayBuffer.hash(this.result); // lastKiBHash
+      metisUploader.recoverUploadOnServer(file,fileMetadata,md5Hash,fkh,lkh);
+    }
+    fileReader.readAsArrayBuffer(blob);
+  }
+
+  recoverUploadOnServer(file, fileMetadata, md5Hash, fristKiBHash, lastKiBHash){
+
+    fileMetadata = this.generateAuthRequest(fileMetadata);
+    fileMetadata['first_kib_hash'] = fristKiBHash;
+    fileMetadata['last_kib_hash'] = lastKiBHash;
+    var request = SERIALIZE_REQUEST(fileMetadata);
+
+    AJAX({
+
+      'url': '/recover-upload',
+      'method': 'POST',
+      'sendType': 'serial',
+      'returnType': 'json',
+      'data': request,
+      'success': function(response){
+
+        metisUploader.recoverResponse(file, response);
+      },
+      'error': this['ajaxError'].bind(this)
+    });
+  }
+
+  recoverResponse(uploadFile, response){
+
+    if(response['success']){
+
+      var action = { 
+
+        'type': 'FILE_UPLOAD_RECOVERED',
+        'response': response,
+        'uploadFile': uploadFile
+      };
       this['model']['store'].dispatch(action);
     }
     else{

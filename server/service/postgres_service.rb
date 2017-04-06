@@ -57,7 +57,13 @@ module PostgresService
       .where('project_name = ?', project_name)
       .all
 
-    if file_metadata then file_metadata.map(){ |file| file.to_hash } end
+    if file_metadata
+
+      file_metadata.map() do |file| 
+
+        file[:start_upload] = file.to_hash()[:start_upload].to_time().to_i()
+      end
+    end
     return file_metadata
   end
 end

@@ -37,8 +37,6 @@ class UploadController < BasicController
   # Upload a chunk of the file.
   def upload_blob()
 
-    # This method also sets the variables @file and @update. We need to find a
-    # cleaner way to initialize these variables.
     upload_blob_error_check()
 
     append_blob()
@@ -64,8 +62,8 @@ class UploadController < BasicController
   def cancel_upload()
 
     common_error_check()
-    @upload.delete # Remove metadata
-    @file.delete   # Remove metadata
+    @upload.delete() # Remove metadata
+    @file.delete()   # Remove metadata
     remove_temp_file()
     @params.delete('blob')
     @params['status'] = 'cancelled'
@@ -75,7 +73,7 @@ class UploadController < BasicController
   def remove_file()
 
     remove_file_error_check()
-    @file.delete   # Remove metadata
+    @file.delete()   # Remove metadata
     remove_file_on_disk()
     @params['status'] = 'removed'
     return { :success=> true, :request=> @params }
@@ -84,10 +82,35 @@ class UploadController < BasicController
   def remove_failed()
 
     remove_failed_error_check()
-    @upload.delete # Remove metadata
-    @file.delete   # Remove metadata
+    @upload.delete() # Remove metadata
+    @file.delete()   # Remove metadata
     remove_temp_file()
     @params['status'] = 'removed'
+    return { :success=> true, :request=> @params }
+  end
+
+  def recover_upload()
+
+    recover_upload_error_check()
+
+    raise_err(:BAD_REQ, 0, __method__) if !@params.key?('last_kib_hash')
+
+    @upload.update(
+
+      :status=> 'paused',
+      :next_blob_size=> 1024,
+      :next_blob_hash=> @params['last_kib_hash']
+    )
+
+    @params['hashing_algorithm'] = 'MD5'
+    @params['start_timestamp'] = @file.to_hash()[:start_upload].to_time().to_i()
+    @params['token'] = @user.token
+    @params['user_email'] = @user.email
+    @params['hmac_signature'] = generate_hmac()
+
+    @params.delete('first_kib_hash')
+    @params.delete('last_kib_hash')
+    @params['status'] = 'paused'
     return { :success=> true, :request=> @params }
   end
 
@@ -99,12 +122,8 @@ class UploadController < BasicController
     # Check that the correct parameters are present.
     raise_err(:BAD_REQ, 0, __method__) if !has_auth_params?(@params)
 
-    # Check that the user has permission on project requested.
-    if !@user.project_editor?(@params['project_name']) &&
-       !@user.project_admin?(@params['project_name'])
-
-      raise_err(:BAD_REQ, 3, __method__)
-    end
+    # Check that the user has edit permission on the project requested.
+    user_edit_check()
 
     # Check that this file system is in sync with the auth server. If there is a
     # group/project set in Janus there should be a corresponding directory
@@ -157,6 +176,7 @@ class UploadController < BasicController
 
     if !blob_integrity_ok?(next_blob_size, next_blob_hash)
 
+      puts 'sup'
       raise_err(:BAD_REQ, 8, __method__) 
     end
   end
@@ -167,28 +187,15 @@ class UploadController < BasicController
     # Check the HMAC
     raise_err(:BAD_REQ, 7, __method__) if !hmac_valid?()
 
-    # Check that the file metadata exists.
-    @file = FileModel::File[
-
-      :group_name=> @params['group_name'],
-      :project_name=> @params['project_name'],
-      :file_name=> @params['file_name']
-    ]
-    raise_err(:SERVER_ERR, 1, __method__) if !@file
-
-    @upload = FileModel::Upload[:file_id=> @file.to_hash[:id]]
-    raise_err(:SERVER_ERR, 1, __method__) if !@upload
+    # Check that the file metadata exists and set global vars if they exist.
+    file_metadata_check_and_set()
   end
 
   # All the things we should check before we remove a file.
   def remove_file_error_check()
 
-    # Check that the user has permission on project requested.
-    if !@user.project_editor?(@params['project_name']) &&
-       !@user.project_admin?(@params['project_name'])
-
-      raise_err(:BAD_REQ, 3, __method__)
-    end
+    # Check that the user has edit permission on the project requested.
+    user_edit_check()
 
     # Check that the file metadata exists.
     @file = FileModel::File[
@@ -209,7 +216,45 @@ class UploadController < BasicController
 
   def remove_failed_error_check()
 
-    # Check that the file metadata exists.
+    # Check that the file metadata exists and set global vars if they exist.
+    file_metadata_check_and_set()
+
+    # The file should NOT exist but the partial should.
+    raise_err(:BAD_REQ, 5 , __method__) if file_exists?() || !partial_exists?()
+
+    # Check that the user requesting the 'remove' is the same as the uploader.
+    raise_err(:SERVER_ERR, 1, __method__) if !@user.email() == @file[:upload_by]
+  end
+
+  # All the items to check before we 'recover' an upload sequence.
+  def recover_upload_error_check()
+
+    # Check that the correct parameters are present.
+    raise_err(:BAD_REQ, 0, __method__) if !has_auth_params?(@params)
+
+    # Check that the user has edit permission on the project requested.
+    user_edit_check()
+
+    # Check that this file system is in sync with the auth server. If there is a
+    # group/project set in Janus there should be a corresponding directory
+    # in Metis.
+    raise_err(:SERVER_ERR, 0 , __method__) if !directory_exists?()
+
+    # Check that a full file does not exist. A partial should exist.
+    raise_err(:BAD_REQ, 5 , __method__) if file_exists?() || !partial_exists?()
+
+    # Check that the file metadata exists and set global vars if they exist.
+    file_metadata_check_and_set()
+
+    # Check the first kilobyte hash.
+    first_kilobyte_check()
+  end
+
+  # Check that the file metadata exists and set global vars if they exist.
+  # This method also sets the variables @file and @update. We need to find a
+  # cleaner way to initialize these variables.
+  def file_metadata_check_and_set()
+
     @file = FileModel::File[
 
       :group_name=> @params['group_name'],
@@ -221,12 +266,33 @@ class UploadController < BasicController
     # The 'upload' portion of the metadata should exist.
     @upload = FileModel::Upload[:file_id=> @file.to_hash[:id]]
     raise_err(:SERVER_ERR, 1, __method__) if !@upload
+  end
 
-    # The file should NOT exist but the partial should.
-    raise_err(:BAD_REQ, 5 , __method__) if file_exists?() || !partial_exists?()
+  # Check that the user has edit permission on the project requested.
+  def user_edit_check()
 
-    # Check that the user requesting the 'remove' is the same as the uploader.
-    raise_err(:SERVER_ERR, 1, __method__) if !@user.email() == @file[:upload_by]
+    if !@user.project_editor?(@params['project_name']) &&
+       !@user.project_admin?(@params['project_name'])
+
+      raise_err(:BAD_REQ, 3, __method__)
+    end
+  end
+
+  # Check the first kilobyte hash.
+  def first_kilobyte_check()
+
+    raise_err(:BAD_REQ, 0, __method__) if !@params.key?('first_kib_hash')
+    first_kib_hash = nil
+    File.open(derive_directory()+'/'+@params['file_name']+'.part') do |file|
+
+      first_kib_hash = Digest::MD5.hexdigest(file.read(1024))
+    end
+    raise_err(:BAD_REQ, 0, __method__) if !first_kib_hash
+
+    if first_kib_hash != @params['first_kib_hash']
+
+      raise_err(:BAD_REQ, 0, __method__)
+    end
   end
 
   # Extra items from the server will be added to these when the HMAC is

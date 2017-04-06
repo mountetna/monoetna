@@ -42,10 +42,13 @@ class MainController < BasicController
 
       if file[:upload_by] == @user.email()
 
-        upload = FileModel::Upload[:file_id=> file[:id]].to_hash
-        file = file.merge(upload)
-        file[:status] = 'failed'
-        file.delete(:finish_upload)
+        upload = FileModel::Upload[:file_id=> file[:id]]
+        if upload 
+
+          file = file.merge(upload.to_hash)
+          file[:status] = 'failed'
+          file.delete(:finish_upload)
+        end
       end
       file
     end
