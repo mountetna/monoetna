@@ -64,7 +64,6 @@ export default class MetisReducer{
         case 'FILE_UPLOAD_AUTHORIZED':
 
           setResponseAndIndex(action, fileUploads);
-          console.log(response, index);
           if(index == null) break;
 
           // Append the HMAC signature and set the server current byte to 0.
@@ -126,10 +125,10 @@ export default class MetisReducer{
 
         case 'FILE_REMOVED':
 
-          response = camelCaseIt(action['response']);
+          response = camelCaseIt(action['response']['request']);
 
           // Remove the deleted item from the fileList.
-          index = getMatchingUploadIndex(fileUploads, response);
+          index = getMatchingUploadIndex(fileList, response);
           if(index != null) fileList.splice(index, 1);
 
           // Remove the deleted item from the fileFails.

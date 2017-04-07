@@ -394,7 +394,7 @@ class MetisUploader{
 
     if(response['success']){
 
-      var action = { 'type': 'FILE_REMOVED', 'response': response['request'] };
+      var action = { 'type': 'FILE_REMOVED', 'response': response };
       this['model']['store'].dispatch(action);
     }
     else{
