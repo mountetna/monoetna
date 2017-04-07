@@ -21,7 +21,7 @@ class BasicController
     response = JSON.parse(make_request(Conf::JANUS_ADDR+'/check', data))
 
     # Check that the user query is valid.
-    raise_err(:BAD_REQ, 0, __method__) if !response.key?('success')
+    raise_err(:BAD_REQ, 1, __method__) if !response.key?('success')
     raise_err(:BAD_REQ, 2, __method__) if !response['success']
 
     @user = UserModel.new(response)
@@ -55,23 +55,24 @@ class BasicController
       https_conn = Net::HTTP.new(uri.host, uri.port)
       https_conn.use_ssl = true
       https_conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      https_conn.open_timeout = 20
+      https_conn.read_timeout = 20
 
       request = Net::HTTP::Post.new(uri.path)
       request.set_form_data(data)
 
       response = https_conn.request(request)
       response_code = response.code.to_i()
-
       if response_code == 200
 
         return response.body
       else
 
-        raise_err(:SERVER_ERR, 0, __method__)
+        raise_err(:SERVER_ERR, 1, __method__)
       end
     rescue
 
-      raise_err(:SERVER_ERR, 6, __method__)
+      raise_err(:SERVER_ERR, 0, __method__)
     end
   end
 

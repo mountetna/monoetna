@@ -3,7 +3,7 @@ class UploadController < BasicController
   def run()
 
     set_user()
-    raise_err(:BAD_REQ, 2, __method__) if !@user.valid?()
+    raise_err(:BAD_REQ, 3, __method__) if !@user.valid?()
     normalize_params()
     return send(@action).to_json()
   end
@@ -128,34 +128,30 @@ class UploadController < BasicController
     # Check that this file system is in sync with the auth server. If there is a
     # group/project set in Janus there should be a corresponding directory
     # in Metis.
-    raise_err(:SERVER_ERR, 0 , __method__) if !directory_exists?()
+    raise_err(:SERVER_ERR, 2, __method__) if !directory_exists?()
 
     # Check that the file does not exist on disk or in the db.
-    if file_exists?() || partial_exists?() || db_metadata_exists?() 
-
-      raise_err(:BAD_REQ, 5 , __method__)
-    end
+    raise_err(:BAD_REQ, 4, __method__) if file_exists?() || partial_exists?()
+    raise_err(:BAD_REQ, 5, __method__) if db_metadata_exists?()
   end
 
   # Details to check before we start an upload.
   def start_upload_error_check()
 
     # Check the HMAC
-    raise_err(:BAD_REQ, 7, __method__) if !hmac_valid?()
+    raise_err(:BAD_REQ, 8, __method__) if !hmac_valid?()
 
     # Check that the upload directory exists. It should.
-    raise_err(:SERVER_ERR, 0, __method__) if !directory_exists?()
+    raise_err(:SERVER_ERR, 2, __method__) if !directory_exists?()
 
     # Check that the file does not exist on disk or in the db.
-    if file_exists?() || partial_exists?() || db_metadata_exists?() 
-
-      raise_err(:BAD_REQ, 5 , __method__)
-    end
+    raise_err(:BAD_REQ, 4, __method__) if file_exists?() || partial_exists?()
+    raise_err(:BAD_REQ, 5, __method__) if db_metadata_exists?()
 
     # Check the params from the client.
     if !upload_params_valid?() || !file_params_valid?()
 
-      raise_err(:BAD_REQ, 1, __method__)
+      raise_err(:BAD_REQ, 0, __method__)
     end
   end
 
@@ -165,10 +161,10 @@ class UploadController < BasicController
     common_error_check()
 
     # Check that the partial file exists.
-    raise_err(:BAD_REQ, 10, __method__) if !partial_exists?()
+    raise_err(:BAD_REQ, 6, __method__) if !partial_exists?()
 
     # Check that the full file DOES NOT exist.
-    raise_err(:BAD_REQ, 5, __method__) if file_exists?()
+    raise_err(:BAD_REQ, 4, __method__) if file_exists?()
 
     # Check the uploaded blob's integrity.
     next_blob_size = @upload.to_hash[:next_blob_size]
@@ -176,8 +172,7 @@ class UploadController < BasicController
 
     if !blob_integrity_ok?(next_blob_size, next_blob_hash)
 
-      puts 'sup'
-      raise_err(:BAD_REQ, 8, __method__) 
+      raise_err(:BAD_REQ, 9, __method__) 
     end
   end
 
@@ -185,7 +180,7 @@ class UploadController < BasicController
   def common_error_check()
 
     # Check the HMAC
-    raise_err(:BAD_REQ, 7, __method__) if !hmac_valid?()
+    raise_err(:BAD_REQ, 8, __method__) if !hmac_valid?()
 
     # Check that the file metadata exists and set global vars if they exist.
     file_metadata_check_and_set()
@@ -204,14 +199,15 @@ class UploadController < BasicController
       :project_name=> @params['project_name'],
       :file_name=> @params['file_name']
     ]
-    raise_err(:SERVER_ERR, 1, __method__) if !@file
+    raise_err(:SERVER_ERR, 7, __method__) if !@file
 
     # The 'upload' portion of the metadata should NOT exist.
     @upload = FileModel::Upload[:file_id=> @file.to_hash[:id]]
-    raise_err(:SERVER_ERR, 1, __method__) if @upload
+    raise_err(:SERVER_ERR, 5, __method__) if @upload
 
     # The file should exist on disk BUT the partial should NOT.
-    raise_err(:BAD_REQ, 5 , __method__) if !file_exists?() || partial_exists?()
+    raise_err(:BAD_REQ, 6, __method__) if !file_exists?()
+    raise_err(:BAD_REQ, 4, __method__) if partial_exists?()
   end
 
   def remove_failed_error_check()
@@ -220,10 +216,11 @@ class UploadController < BasicController
     file_metadata_check_and_set()
 
     # The file should NOT exist but the partial should.
-    raise_err(:BAD_REQ, 5 , __method__) if file_exists?() || !partial_exists?()
+    raise_err(:BAD_REQ, 4, __method__) if file_exists?()
+    raise_err(:BAD_REQ, 6, __method__) if !partial_exists?()
 
     # Check that the user requesting the 'remove' is the same as the uploader.
-    raise_err(:SERVER_ERR, 1, __method__) if !@user.email() == @file[:upload_by]
+    raise_err(:BAD_REQ, 8, __method__) if !@user.email() == @file[:upload_by]
   end
 
   # All the items to check before we 'recover' an upload sequence.
@@ -238,10 +235,11 @@ class UploadController < BasicController
     # Check that this file system is in sync with the auth server. If there is a
     # group/project set in Janus there should be a corresponding directory
     # in Metis.
-    raise_err(:SERVER_ERR, 0 , __method__) if !directory_exists?()
+    raise_err(:SERVER_ERR, 2, __method__) if !directory_exists?()
 
     # Check that a full file does not exist. A partial should exist.
-    raise_err(:BAD_REQ, 5 , __method__) if file_exists?() || !partial_exists?()
+    raise_err(:BAD_REQ, 4, __method__) if file_exists?()
+    raise_err(:BAD_REQ, 6, __method__) if !partial_exists?()
 
     # Check that the file metadata exists and set global vars if they exist.
     file_metadata_check_and_set()
@@ -261,11 +259,11 @@ class UploadController < BasicController
       :project_name=> @params['project_name'],
       :file_name=> @params['file_name']
     ]
-    raise_err(:SERVER_ERR, 1, __method__) if !@file
+    raise_err(:BAD_REQ, 7, __method__) if !@file
 
     # The 'upload' portion of the metadata should exist.
     @upload = FileModel::Upload[:file_id=> @file.to_hash[:id]]
-    raise_err(:SERVER_ERR, 1, __method__) if !@upload
+    raise_err(:BAD_REQ, 7, __method__) if !@upload
   end
 
   # Check that the user has edit permission on the project requested.
@@ -274,7 +272,7 @@ class UploadController < BasicController
     if !@user.project_editor?(@params['project_name']) &&
        !@user.project_admin?(@params['project_name'])
 
-      raise_err(:BAD_REQ, 3, __method__)
+      raise_err(:BAD_REQ, 8, __method__)
     end
   end
 
@@ -402,7 +400,6 @@ class UploadController < BasicController
       :project_name=> normalize_name(@params['project_name'].to_s()),
       :file_name=> @params['file_name'].to_s()
     ]
-
     return if file ? true : false
   end
 

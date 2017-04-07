@@ -3,7 +3,7 @@ class MainController < BasicController
   def run()
 
     set_user()
-    raise_err(:BAD_REQ, 2, __method__) if !@user.valid?()
+    raise_err(:BAD_REQ, 3, __method__) if !@user.valid?()
 
     return send(@action).to_json()
   end

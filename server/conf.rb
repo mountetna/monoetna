@@ -50,28 +50,21 @@ module Conf
   WARNS = [
 
     :PARAMS_NOT_PRESENT,   # 0
-    :PARAMS_NOT_CORRECT,   # 1
-    :USER_TOKEN_NOT_VALID, # 2
-    :NO_PERMS,             # 3
-    :INVALID_GROUP,        # 4
-    :FILE_EXISTS,          # 5
-    :STATUS_EXISTS,        # 6
-    :REQUEST_INVALID,      # 7
-    :SENT_BLOB_MALFORMED,  # 8
-    :USER_NOT_AUTHORIZED,  # 9
-    :NO_FILE_EXISTS,       # 10
-    :FILE_REMOVE_FAILED    # 11
+    :JANUS_CONN_ERROR,     # 1
+    :JANUS_CONN_FAIL,      # 2
+    :USER_TOKEN_NOT_VALID, # 3
+    :FILE_EXISTS,          # 4
+    :METADATA_EXISTS,      # 5
+    :MISSING_FILE,         # 6
+    :MISSING_METADATA,     # 7
+    :REQUEST_INVALID,      # 8
+    :SENT_BLOB_MALFORMED   # 9
   ]
 
   ERRORS = [
 
-    :FILE_SYS_NOT_SYNCED,   # 0
-    :MISSING_STATUS,        # 1
-    :FILE_NO_STATUS,        # 2
-    :TEMP_NO_STATUS,        # 3
-    :TEMP_AND_FILE,         # 4
-    :STATUS_NO_TEMP_OR_FILE,# 5
-    :CONNECTION_ERROR,      # 6
-    :JANUS_SERVER_ERROR     # 7
+    :HTTPS_REQ_FAILED,     # 0
+    :JANUS_CONN_ERROR,     # 1
+    :FILE_SYS_NOT_SYNCED   # 2
   ]
 end
