@@ -228,5 +228,4 @@ end
 # Extract the structure of the directory from the database.
 structure = ProjectSync::extract_structure(groups, projects)
 # Create any directories on the file system that are new.
-
 ProjectSync::set_group_folders(structure)
