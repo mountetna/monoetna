@@ -17,7 +17,8 @@ export default class MetisUI extends React.Component{
 
     if(!this['props']['userInfo']['loginStatus']){
 
-      return this.renderLoginView();
+      //return this.renderLoginView();
+      return <div id='user-info-group'>Standby.</div>
     }
     else{
 

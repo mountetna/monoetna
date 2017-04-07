@@ -51,6 +51,14 @@ body{
   height: 80px;
 }
 
+#user-info-group {
+
+  line-height: 30px;
+  margin-top: 20px;
+  font-family: 'gotham_bookregular';
+  text-align: center;
+}
+
 /* Generic Search Dropdown CSS ************************************************/
 
 /* INPUT */
