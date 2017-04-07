@@ -44,5 +44,3 @@ Sequel.migration do
     drop_table(:files)
   end
 end
-
-# sudo -i -u developer sequel -m /var/www/metis/db/migrations postgres://developer:bc5d4fd256c6e82e2e1b5736210410fc@localhost/metis?search_path=private
