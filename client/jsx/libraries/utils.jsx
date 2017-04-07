@@ -1,9 +1,10 @@
 /*
  * Global Variables
  */
-var BLOB_SIZE = 1024; // in bytes
-var NEXT_BLOB_SIZE = 1024; // in bytes
-var MIN_BLOB_SIZE = 1024; // in bytes
+var BLOB_SIZE = Math.pow(2, 10); // in bytes
+var NEXT_BLOB_SIZE = Math.pow(2, 10); // in bytes
+var MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
+var MAX_BLOB_SIZE = Math.pow(2, 20);
 
 /*
  * In milliseconds, the amount of time to transfer one blob. This ultimately

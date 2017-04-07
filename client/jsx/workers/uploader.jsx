@@ -43,7 +43,7 @@ class Uploader{
     var command = message['command'];
     switch(command){
 
-      case 'initialize':
+      case 'init':
 
         uploader.initializeUploadSequence();
         break;
@@ -276,6 +276,9 @@ class Uploader{
       var olbBlobSize = BLOB_SIZE;
       BLOB_SIZE = NEXT_BLOB_SIZE;
       NEXT_BLOB_SIZE = Math.floor(olbBlobSize * (TRANSFER_TIME / avgTime * 0.9))
+
+      // Set the maximum size of an upload blob.
+      if(NEXT_BLOB_SIZE > MAX_BLOB_SIZE) NEXT_BLOB_SIZE = MAX_BLOB_SIZE;
 
       uploader['uploadStart'] = null;
       if(NEXT_BLOB_SIZE < MIN_BLOB_SIZE) NEXT_BLOB_SIZE = MIN_BLOB_SIZE;
