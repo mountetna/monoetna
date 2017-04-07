@@ -39,6 +39,11 @@ export default class JanusLoggerController{
 
       this.logInResponse(response);
     }
+    if(!response['success'] && response['error']){
+
+      alert('There was a server error. You could not be logged in. \
+        Contact the administrator: jason.cater@ucsf.edu');
+    }
     else{
 
       this.notLogged();
@@ -85,6 +90,11 @@ export default class JanusLoggerController{
         'type': 'LOGGED_IN',
         'data': this.formLoginResponseData(response)
       };
+    }
+    if(!response['success'] && response['error']){
+
+      alert('There was a server error. You could not be logged in. \
+        Contact the administrator: jason.cater@ucsf.edu');
     }
     else{
 
@@ -140,6 +150,11 @@ export default class JanusLoggerController{
       COOKIES.removeItem(TOKEN_NAME, '/', 'ucsf.edu');
       var action = { 'type': 'LOGGED_OUT' };
       this['model']['store'].dispatch(action);
+    }
+    if(!response['success'] && response['error']){
+
+      alert('There was a server error. You could not be logged out. \
+        Contact the administrator: jason.cater@ucsf.edu');
     }
     else{
 
