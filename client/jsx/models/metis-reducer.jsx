@@ -106,8 +106,8 @@ export default class MetisReducer{
            * Move the completed upload metadata from the 'uploads' array to the 
            * 'list' array.
            */
+          fileList.push(Object.assign(fileUploads[index], response));
           fileUploads.splice(index, 1);
-          fileList.push(response);
           break;
 
         case 'FILE_UPLOAD_CANCELLED':
@@ -115,23 +115,23 @@ export default class MetisReducer{
           setResponseAndIndex(action, fileUploads);
           if(index == null) break;
 
-          /*
-           * Move the cancelled upload metadata from the 'uploads' array to the 
-           * 'failed' array.
-           */
+          // Remove the cancelled upload.
           fileUploads.splice(index, 1);
-          fileFails.push(response);
           break;
 
         case 'FILE_REMOVED':
 
           response = camelCaseIt(action['response']['request']);
 
-          // Remove the deleted item from the fileList.
+          // Remove the deleted item from fileUploads.
+          index = getMatchingUploadIndex(fileUploads, response);
+          if(index != null) fileUploads.splice(index, 1);
+
+          // Remove the deleted item from fileList.
           index = getMatchingUploadIndex(fileList, response);
           if(index != null) fileList.splice(index, 1);
 
-          // Remove the deleted item from the fileFails.
+          // Remove the deleted item from fileFails.
           index = getMatchingUploadIndex(fileFails, response);
           if(index != null) fileFails.splice(index, 1);
           break;
