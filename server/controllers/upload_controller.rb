@@ -62,8 +62,8 @@ class UploadController < BasicController
   def cancel_upload()
 
     common_error_check()
-    @upload.delete() # Remove metadata
-    @file.delete()   # Remove metadata
+    if @upload.respond_to?(:delete) then @upload.delete() end # Remove metadata
+    if @file.respond_to?(:delete) then @file.delete() end # Remove metadata
     remove_temp_file()
     @params.delete('blob')
     @params['status'] = 'cancelled'
@@ -73,8 +73,10 @@ class UploadController < BasicController
   def remove_file()
 
     remove_file_error_check()
-    @file.delete()   # Remove metadata
+    if @upload.respond_to?(:delete) then @upload.delete() end # Remove metadata
+    if @file.respond_to?(:delete) then @file.delete() end # Remove metadata
     remove_file_on_disk()
+    remove_temp_file()
     @params['status'] = 'removed'
     return { :success=> true, :request=> @params }
   end
@@ -82,8 +84,8 @@ class UploadController < BasicController
   def remove_failed()
 
     remove_failed_error_check()
-    @upload.delete() # Remove metadata
-    @file.delete()   # Remove metadata
+    if @upload.respond_to?(:delete) then @upload.delete() end # Remove metadata
+    if @file.respond_to?(:delete) then @file.delete() end # Remove metadata
     remove_temp_file()
     @params['status'] = 'removed'
     return { :success=> true, :request=> @params }
@@ -126,8 +128,7 @@ class UploadController < BasicController
     user_edit_check()
 
     # Check that this file system is in sync with the auth server. If there is a
-    # group/project set in Janus there should be a corresponding directory
-    # in Metis.
+    # group/project set in Janus there should be a corresponding directory.
     raise_err(:SERVER_ERR, 2, __method__) if !directory_exists?()
 
     # Check that the file does not exist on disk or in the db.
@@ -192,22 +193,8 @@ class UploadController < BasicController
     # Check that the user has edit permission on the project requested.
     user_edit_check()
 
-    # Check that the file metadata exists.
-    @file = FileModel::File[
-
-      :group_name=> @params['group_name'],
-      :project_name=> @params['project_name'],
-      :file_name=> @params['file_name']
-    ]
-    raise_err(:SERVER_ERR, 7, __method__) if !@file
-
-    # The 'upload' portion of the metadata should NOT exist.
-    @upload = FileModel::Upload[:file_id=> @file.to_hash[:id]]
-    raise_err(:SERVER_ERR, 5, __method__) if @upload
-
-    # The file should exist on disk BUT the partial should NOT.
-    raise_err(:BAD_REQ, 6, __method__) if !file_exists?()
-    raise_err(:BAD_REQ, 4, __method__) if partial_exists?()
+    get_file_metadata()
+    get_partial_metadata()
   end
 
   def remove_failed_error_check()
@@ -253,16 +240,13 @@ class UploadController < BasicController
   # cleaner way to initialize these variables.
   def file_metadata_check_and_set()
 
-    @file = FileModel::File[
+    get_file_metadata()
+    get_partial_metadata()
 
-      :group_name=> @params['group_name'],
-      :project_name=> @params['project_name'],
-      :file_name=> @params['file_name']
-    ]
+    # The 'main' portion of the metadata should exist.
     raise_err(:BAD_REQ, 7, __method__) if !@file
 
     # The 'upload' portion of the metadata should exist.
-    @upload = FileModel::Upload[:file_id=> @file.to_hash[:id]]
     raise_err(:BAD_REQ, 7, __method__) if !@upload
   end
 
@@ -273,6 +257,24 @@ class UploadController < BasicController
        !@user.project_admin?(@params['project_name'])
 
       raise_err(:BAD_REQ, 8, __method__)
+    end
+  end
+
+  def get_file_metadata()
+
+    @file = FileModel::File[
+
+      :group_name=> @params['group_name'],
+      :project_name=> @params['project_name'],
+      :file_name=> @params['file_name']
+    ]
+  end
+
+  def get_partial_metadata()
+
+    if @file.respond_to?(:to_hash)
+
+      @upload = FileModel::Upload[:file_id=> @file.to_hash[:id]]
     end
   end
 
@@ -544,6 +546,7 @@ class UploadController < BasicController
 
     @file.to_hash.each(){ |key, value| @params[key] = value }
     @params.delete(:file_id)
+    @params.delete('blob')
     @params['status'] = 'complete'
     { :success=> true, :request=> @params }
   end
