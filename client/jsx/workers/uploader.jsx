@@ -16,11 +16,12 @@ class Uploader{
     this['uploadStart'] = null; // The time at which the upload started in mS.
     this['blobWindow'] = 30; // How many blob uploads to average over.
     this['blobUploadTimes'] = [];
-    this['uploadSpeed'] = 0;
 
     this['pause'] = false;
     this['cancel'] = false;
     this['errorObj']=(msg)=>{return{'type':'error','message':msg,'response':{}}}
+    this['timeouts'] = 0; // The number of times an upload has timed out.
+    this['maxTimeouts'] = 5; // The number of attepts to upload a blob.
   }
 
   /*
@@ -68,12 +69,7 @@ class Uploader{
         // Set a cancel flag.
         uploader['cancel'] = true;
         break;
-      case 'query':
-
-        // Query the server for the current upload status.
-        break;
       default:
-
         break;
     }
   }
@@ -103,10 +99,10 @@ class Uploader{
      */
     initUpReq.append('current_byte_position', 0);
     initUpReq.append('current_blob_size', 0);
-    initUpReq.append('next_blob_size', BLOB_SIZE);
+    initUpReq.append('next_blob_size', INITIAL_BLOB_SIZE);
 
     // Hash the next blob for security and error checking.
-    var blob = uploader['file'].slice(0, BLOB_SIZE);
+    var blob = uploader['file'].slice(0, INITIAL_BLOB_SIZE);
     uploader.generateBlobHash(blob, initUpReq, this.sendFirstPacket);
   }
 
@@ -137,7 +133,8 @@ class Uploader{
         'returnType': 'json',
         'data': initialUploadRequet,
         'success': uploader['handleServerResponse'],
-        'error': uploader['ajaxError']
+        'error': uploader['ajaxError'],
+        'timeout': uploader['timeoutResponse']
       });
     }
     catch(error){
@@ -191,59 +188,6 @@ class Uploader{
     }
   }
 
-  /*
-   * The request will have the squence information for the proper blob to send.
-   */
-  sendBlob(response){
-
-    uploader.generateUploaderRequest(response);
-  }
-
-  generateUploaderRequest(response){
-
-    var request = response['request'];
-    var fileSize = uploader['file'].size;
-
-    /*
-     * The file upload is complete, however the server should have sent a 
-     * 'complete' status message.
-     */
-    if(request['current_byte_position'] >= fileSize) return;
-
-    /*
-     * Set the the metadata for the next blob in sequence. This part gets used 
-     * by the server for data integrity and a wee bit of security.
-     */
-
-    // Set the blob cue points.
-    var fromByte = parseInt(request['current_byte_position']);
-    var toByte = fromByte + BLOB_SIZE;
-    toByte = (toByte > fileSize) ? fileSize : toByte;
-    request['current_blob_size'] = toByte - fromByte;
-
-    // Remove old metadata from the previous packet/request
-    delete request['next_blob_hash'];
-    delete request['next_blob_size'];
-
-    // Pack up a new upload packet/request
-    var uploaderRequest = new FormData();
-    for(var key in request){
-
-      uploaderRequest.append(key, request[key]);
-    }
-
-    // Append the current blob to the request.
-    var blob = uploader['file'].slice(fromByte, toByte);
-    uploaderRequest.append('blob', blob);
-
-    // Hash and profile the next blob for security and error checking.
-    var endByte = toByte + NEXT_BLOB_SIZE;
-    endByte = (endByte > fileSize) ? fileSize : endByte;
-    uploaderRequest.append('next_blob_size', (endByte - toByte));
-    var nextBlob = uploader['file'].slice(toByte, endByte);
-    uploader.generateBlobHash(nextBlob, uploaderRequest, this.sendPacket);
-  }
-
   sendPacket(uploaderRequest){
 
     try{
@@ -257,7 +201,11 @@ class Uploader{
         'returnType': 'json',
         'data': uploaderRequest,
         'success': uploader['handleServerResponse'],
-        'error': uploader['ajaxError']
+        'error': uploader['ajaxError'],
+        'timeout': function(e){
+
+          uploader.timeoutResponse(e, uploaderRequest);
+        }
       });
     }
     catch(error){
@@ -267,31 +215,92 @@ class Uploader{
     }
   }
 
-  // Set blob size based upon upload time.
-  setBlobSize(){
+  /*
+   * The request will have the squence information for the proper blob to send.
+   */
+  sendBlob(response){
+
+    uploader.generateUploaderRequest(response);
+  }
+
+  generateUploaderRequest(response){
+
+    var req = response['request'];
+    var fileSize = uploader['file'].size;
+
+    /*
+     * The file upload is complete, however the server should have sent a 
+     * 'complete' status message.
+     */
+    if(req['current_byte_position'] >= fileSize) return;
+
+    // Recalculate the blob queue points.
+    var currentBlobSize = req['next_blob_size'];
+    this.calcNextBlobSize(req);
+    req['current_blob_size'] = currentBlobSize;
+
+    // Remove old metadata from the previous packet/request
+    delete req['next_blob_hash'];
+
+    // Pack up a new upload packet/request
+
+
+    // Calcuate some points on the file for chopping out blobs.
+    var fromByte = req['current_byte_position'];
+    var toByte = req['current_byte_position'] + req['current_blob_size'];
+    var endByte = toByte + response['request']['next_blob_size'];
+
+    if(endByte > fileSize){
+
+      endByte = fileSize;
+      response['request']['next_blob_size'] = endByte - toByte;
+    }
+
+    var uploaderReq = new FormData();
+    for(var key in req) uploaderReq.append(key, req[key]);
+
+    // Append the current blob to the request.
+    var blob = uploader['file'].slice(fromByte, toByte);
+    uploaderReq.append('blob', blob);
+
+    // Hash the next blob.
+    var nextBlob = uploader['file'].slice(toByte, endByte);
+    uploader.generateBlobHash(nextBlob, uploaderReq, this.sendPacket);
+  }
+
+  /* 
+   * Calcuates the next blob size based upon upload speed. Also sets the last
+   * calculated upload speed on the request.
+   */
+  calcNextBlobSize(request){
 
     if(uploader['uploadStart'] != null){
 
       var avgTime = uploader.averageUploadTime();
-      var olbBlobSize = BLOB_SIZE;
-      BLOB_SIZE = NEXT_BLOB_SIZE;
-      NEXT_BLOB_SIZE = Math.floor(olbBlobSize * (TRANSFER_TIME / avgTime * 0.9))
+      var oldBlobSize = request['current_blob_size'];
+      var nextBlobSize = Math.floor(oldBlobSize * (XTR_TIME / avgTime * 0.9));
 
-      // Set the maximum size of an upload blob.
-      if(NEXT_BLOB_SIZE > MAX_BLOB_SIZE) NEXT_BLOB_SIZE = MAX_BLOB_SIZE;
+      // Set the min/max size of an upload blob.
+      if(nextBlobSize > MAX_BLOB_SIZE) nextBlobSize = MAX_BLOB_SIZE;
+      if(nextBlobSize < MIN_BLOB_SIZE) nextBlobSize = MIN_BLOB_SIZE;
 
+      request['next_blob_size'] = nextBlobSize;
+
+      /* 
+       * Make a rough calculation of the upload speed in kilobits per second.
+       * This is just for the UI.
+       */
+      request['uploadSpeed'] = (oldBlobSize * 8) / (avgTime / 1000);
+
+      // Reset the timestamp needed for these calculations.
       uploader['uploadStart'] = null;
-      if(NEXT_BLOB_SIZE < MIN_BLOB_SIZE) NEXT_BLOB_SIZE = MIN_BLOB_SIZE;
-
-      // Make a rough calculation of the upload speed in kilobits per second.
-      this['uploadSpeed'] = (BLOB_SIZE * 8) / (avgTime/1000);
     }
   }
 
   averageUploadTime(){
 
     // Get the current time it took to upload the last blob.
-    var uploadTime = (Math.floor(Date.now()) - uploader['uploadStart']);
+    var uploadTime = (Math.floor(Date.now()) - this['uploadStart']);
 
     // Add the last upload time to an array, limit the array size with a window.
     if(this['blobUploadTimes']['length'] >= this['blobWindow']){
@@ -312,8 +321,7 @@ class Uploader{
 
   handleServerResponse(response){
 
-    // Set blob size based upon upload time.
-    uploader.setBlobSize();
+    uploader['timeouts'] = 0; // Reset the timeout counter;
 
     var errorMessage = 'The server response was malformed.';
     if(!('success' in response) || !('request' in response)){
@@ -351,7 +359,6 @@ class Uploader{
         break;
       case 'active':
 
-        response['request']['uploadSpeed'] = this['uploadSpeed'];
         postMessage({ type: 'FILE_UPLOAD_ACTIVE', response: response });
 
         /*
@@ -389,14 +396,34 @@ class Uploader{
       case 'complete':
 
         // Send update message back.
-        this['file'] = null;
-        this['request'] = null;
+        uploader['file'] = null;
+        uploader['request'] = null;
         postMessage({ type: 'FILE_UPLOAD_COMPLETE', response: response });
         break;
       default:
 
         // None
         break;
+    }
+  }
+
+  timeoutResponse(error, uploadRequest){
+
+    ++uploader['timeouts'];
+    if(uploader['timeouts'] == uploader['maxTimeouts']){
+
+      // Reset the uploader.
+      uploader['file'] = null;
+      uploader['request'] = null;
+      uploader['pause'] = false;
+      uploader['cancel'] = false;
+      uploader['timeouts'] = 0;
+
+      postMessage({ type: 'FILE_UPLOAD_TIMEOUT', response: response });
+    }
+    else{
+
+      uploader.sendPacket(uploadRequest);
     }
   }
 
@@ -414,8 +441,9 @@ class Uploader{
    */
   ajaxError(xhr, ajaxOpt, thrownError){
 
-    ajaxError = { xhr: xhr, ajaxOptions: ajaxOpt, thrownError: thrownError };
-    postMessage(uploader.errorObj(ajaxError));
+    var ajaxError = { xhr: xhr, ajaxOptions: ajaxOpt, thrownError: thrownError};
+    console.log(ajaxError);
+    //postMessage(uploader.errorObj(ajaxError));
   }
 }
 
