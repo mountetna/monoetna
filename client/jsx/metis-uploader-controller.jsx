@@ -207,7 +207,7 @@ class MetisUploader{
     this['model']['store'].dispatch(action);
 
     // Check the queue for another upload or cancel.
-    if(message['data']['type'] == 'paused') this.startUpload();
+    if(message['data']['type'] == 'FILE_UPLOAD_PAUSED') this.startUpload();
   }
 
   checkAuthData(fileUploadData){
@@ -350,7 +350,8 @@ class MetisUploader{
        */
       if(fileUploads[a]['status'] == 'active'){
 
-        this.pauseUpload();
+        var workerMessage = { 'command': 'pause' };
+        this['uploadWorker'].postMessage(workerMessage);
         return;
       }
     }
