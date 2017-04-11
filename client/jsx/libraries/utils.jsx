@@ -1,8 +1,7 @@
 /*
  * Global Variables
  */
-var BLOB_SIZE = Math.pow(2, 10); // in bytes
-var NEXT_BLOB_SIZE = Math.pow(2, 10); // in bytes
+var INITIAL_BLOB_SIZE = Math.pow(2, 10); // in bytes
 var MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
 var MAX_BLOB_SIZE = Math.pow(2, 20);
 
@@ -10,7 +9,7 @@ var MAX_BLOB_SIZE = Math.pow(2, 20);
  * In milliseconds, the amount of time to transfer one blob. This ultimately
  * sets the blob size.
  */
-var TRANSFER_TIME = 2000; 
+var XTR_TIME = 2000; 
 
 var TOKEN_NAME = 'UCSF_ETNA_AUTH_TOKEN';
 var METIS_ADDR = 'http://metis-dev.ucsf.edu';
@@ -235,9 +234,26 @@ var AJAX = function(config){
   var returnType = config.returnType;
   var success = config.success;
   var error = config.error;
+  var timeout = config.timeout;
   var data = (config.data === undefined) ? "" : config.data;
 
   var xhr = new XMLHttpRequest();
+
+  /*
+   * Timeout Section
+   */
+//  xhr.timeout = 0; // ten second timeout.
+//  xhr.ontimeout = function(e){
+//
+//    if(timeout == undefined){
+//
+//      error(xhr, config, e);
+//    }
+//    else{
+//
+//      timeout(e);
+//    }
+//  }
   
   /*
    * Response Section
