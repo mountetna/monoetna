@@ -1,12 +1,9 @@
-# config.ru
-
 require 'rack'
 require 'json'
 require 'pg'
 require 'sequel'
 require 'digest'
 require 'fileutils'
-require 'redis'
 require 'net/http'
 require 'logger'
 require 'openssl'
