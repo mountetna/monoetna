@@ -242,20 +242,21 @@ class Uploader{
     // Remove old metadata from the previous packet/request
     delete req['next_blob_hash'];
 
-    // Pack up a new upload packet/request
-
-
     // Calcuate some points on the file for chopping out blobs.
     var fromByte = req['current_byte_position'];
     var toByte = req['current_byte_position'] + req['current_blob_size'];
     var endByte = toByte + response['request']['next_blob_size'];
 
+    // Set the outer limit for 'next_blob_size' and 'endByte'.
     if(endByte > fileSize){
 
+      var cbs = req['current_blob_size'];
+      var cbp = req['current_byte_position'];
+      response['request']['next_blob_size'] = fileSize - cbp - cbs;
       endByte = fileSize;
-      response['request']['next_blob_size'] = endByte - toByte;
     }
 
+    // Pack up a new upload packet/request
     var uploaderReq = new FormData();
     for(var key in req) uploaderReq.append(key, req[key]);
 
