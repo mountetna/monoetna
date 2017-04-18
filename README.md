@@ -151,3 +151,4 @@ symlinks in shared folders.
  VBoxManage setextradata VM_NAME VBoxInternal2/SharedFoldersEnableSymlinksCreate/SHARE_NAME 1
  VBoxManage setextradata metis-dev VBoxInternal2/SharedFoldersEnableSymlinksCreate/metis 1
 
+
