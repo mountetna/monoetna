@@ -1,154 +1,47 @@
-# The Metis Repository Software.
+# The Metis File Repository Software.
 
-## Starting this server
+## Why?
 
-  $ sudo thin -p 80
+Here at the Computational Biology Core there is a need to store large files from labratory experiements. These large files could be kept on Amazon S3 but that is undesirable for two reasons.
 
-## Generic Setup for Metis
+1. It cost a lot of money to get our files back if we use a service like Amazon S3.
+2. The files need to be near our HPC Cluster for processing and analysis.
 
-Create a machine with the user "developer" and password "developer"
+## What?
 
-### If you are only in development mode it may be handy to allow passwordless sudo
-### Add this line near the end of the "/etc/sudoers" file
+This file server software allows us to upload and download files using HTTP, much in the same way Box does. The server also allows us to do these operations via AJAX calls. To ensure security the server generates HMAC tokens that are used to verify the user and data being transfered. The server also has a small front end to view the files that were uploaded.
 
-  `developer ALL = (ALL) NOPASSWD: ALL`
+## How?
 
-#### update the OS
-  
-  ```
-  $ sudo apt-get update -y
-  $ sudo apt-get upgrade -y
-  ```
+We deploy this server on an Linux system. The application itself is a Ruby/Rack application. The web server is Apache using Phusion Passenger. The file system for saving the actual files is a large disk that we mount on the linux file system. We keep metadata about the files on disk in a Postgres DB.
 
-### Install Openssh (if not already installed)
-### Install the "developer" ssh pub key (Should be inlcuded in the folder)
-  
-  `$ sudo apt-get install openssh-server`
+## Other info?
 
-### Install other dependences needed for Ruby and Friends
+This system has a layer of user authentication. This file server is part of a larger system called Mt. Etna and this file server relys upon our other project, called Janus, for user authentication. The UI is built with Bable JS and Webpack.
 
-  ```
-  $ sudo apt-get install \
-    git \
-    autoconf \
-    bison \
-    build-essential \
-    libssl-dev \
-    libyaml-dev \
-    libreadline6-dev \
-    zlib1g-dev \
-    libncurses5-dev \
-    libffi-dev \
-    libgdbm3 \
-    libgdbm-dev \
-    libpcap-dev;
-  ```
+## Depenencies?
 
-### Install secondary packages needed for general development
+  System Packages:
+```
+    'git', 'tmux', 'openssl', 'curl', 'httpd', 'mod_ssl', 'openssl-devel', 'readline-devel', 'zlib-devel', 'postgresql-devel', 'nodejs', 'postgresql-server', 'postgresql-contrib', 'pygpgme'
+```
 
-  ```
-  $ sudo apt-get install -y \
-    dkms \
-    linux-headers-generic \
-    linux-headers-$(uname -r);
-  ```
+  Ruby Gems: 
+```
+    'rack', 'pg', 'sequel', 'bundler'
+```
 
-### Install some system monitoring tools if you need profiling
+  Node NPM:
+```
+    'babel-cli', 'webpack'
+```
 
-  ```
-  $ sudo apt-get install \
-    iftop \
-    iotop ;
+## Local Development?
 
-  $ cd /opt
-  $ sudo git clone https://github.com/raboof/nethogs.git
-  $ cd ./nethogs
-  $ sudo make
-  $ cd /usr/local/bin
-  $ sudo ln -s /opt/nethogs/src/nethogs ./nethogs
-  ```
-
-### Install Redis as our file status store
-  
-  https://www.linode.com/docs/databases/redis/deploy-redis-on-ubuntu-or-debian
-
-  ```
-  $ sudo add-apt-repository ppa:chris-lea/redis-server
-  $ sudo apt-get update
-  $ sudo apt-get install redis-server
-  ```
-
-### Install the redis gem 
-
-  ```
-  $ cd /var/www/medis
-  $ gem install redis
-  ```
-
-### If you plan on running rails or sinatra with phusion passenger you need these deps too.
-  
-  ```
-  $ sudo apt-get install \
-    apache2 \
-    libcurl4-openssl-dev \
-    apache2-threaded-dev \
-    libapr1-dev \
-    libaprutil1-dev;
-  ```
-
-### restart the machine to capture any kernal updates
-
-  ```
-  $ sudo shutdown -r now
-  ```
-
-### Install "rbenv" (Ruby Environment Manager)
-  
-  https://github.com/rbenv/rbenv
-  
-  ```
-  $ cd ~
-  $ git clone https://github.com/rbenv/rbenv.git ~/.rbenv
-  ```
-
-  Follow the instructions on the "rbenv" page to finish it's install
-  https://github.com/rbenv/rbenv
-
-### Install the "install" untility for "rbenv"
-  https://github.com/rbenv/ruby-build###readme
-
-  ```
-  $ cd ~
-  $ git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build 
-  ```
-
-### Install the Ruby version you need. (Rails requires min 2.2.2)
-
-  `$ rbenv install -v 2.2.2`
-
-### Set ruby version 2.2.0 as the system default and that is set correctly
-
-  ```
-  $ rbenv global 2.2.2
-  $ ruby -v
-  ```
-
-### Create the appropriate project folders in "/var"
-
-  ```
-  $ cd /var
-  $ sudo chown -R developer:developer ./www
-  $ cd www
-  ```
-
-### Mount the project directory from the host machine if necessary
+I run VMs that look like the STAGE and PROD machines. I then mount my local project folder onto that machine. Here is the mount command...
 
   `$ sudo mount -t vboxsf -o rw,uid=1000,gid=1000 metis /var/www/metis`
 
-### For local development we need to run this to allow the guest VMs to make
-symlinks in shared folders.
+When you first start up a VM for local development we need to enable symlinks.
 
- VBoxManage setextradata VM_NAME VBoxInternal2/SharedFoldersEnableSymlinksCreate/SHARE_NAME 1
- VBoxManage setextradata metis-dev VBoxInternal2/SharedFoldersEnableSymlinksCreate/metis 1
-
-
+  `$ VBoxManage setextradata metis-dev VBoxInternal2/ SharedFoldersEnableSymlinksCreate/metis 1`
