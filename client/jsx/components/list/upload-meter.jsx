@@ -58,11 +58,11 @@ export default class UploadMeater extends React.Component{
   parseUploadSpeed(){
 
     var file = this['props']['fileUpload'];
-    if('uploadSpeed' in file){
+    if('uploadSpeed' in file && file['status'] == 'active'){
 
       if(isNaN(file['uploadSpeed'])) return '';
 
-      var speed = (file['uploadSpeed']/1000).toFixed(1);
+      var speed = PARSE_BYTES(file['uploadSpeed'], 1024, true);
 
       var bitSpeedProps = {
 
@@ -77,7 +77,7 @@ export default class UploadMeater extends React.Component{
 
           <span { ...bitSpeedProps }>
             
-            { speed + ' kbps' }
+            { speed }
           </span>
         </div>
       );

@@ -96,7 +96,7 @@ var PARSE_TIMESTAMP = function(timestamp){
  * Change an integer of bytes into a human readable format.  
  * http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
  */
-var PARSE_BYTES = function(bytes, si){
+var PARSE_BYTES = function(bytes, si, bits = false){
 
   var thresh = si ? 1000 : 1024;
   if(Math.abs(bytes) < thresh){
@@ -107,6 +107,8 @@ var PARSE_BYTES = function(bytes, si){
   var units = si
       ? ['kB','MB','GB','TB','PB','EB','ZB','YB']
       : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
+
+  if(bits) units = ['Kbps','Mbps','Gbps'];
 
   var u = -1;
   do{
