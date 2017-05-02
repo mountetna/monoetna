@@ -15,7 +15,7 @@ class MetisUploader{
     this['janusLogger'] = new JanusLogger();
 
     this.initDataStore();
-    this.spawnUploadWorker();
+    this.spawnWorkers();
     this.buildUI();
 
     /*
@@ -39,17 +39,27 @@ class MetisUploader{
   }
 
   /*
-   * Spawn a worker thread for the uploads.
+   * Spawn a worker threads for the uploads.
    */
-  spawnUploadWorker(){
+
+  spawnWorkers(){
 
     this['uploadWorker'] = new Worker('./js/workers/uploader.js');
     this['uploadWorker']['onmessage'] = (message)=>{
       
       this.proxyResponse(message);
     };
-    
     this['uploadWorker']['onerror'] = (message)=>{
+
+      console.log(message);
+    };
+
+    this['uploadInitializer']= new Worker('./js/workers/upload-initializer.js');
+    this['uploadInitializer']['onmessage'] = (message)=>{
+      
+      this.proxyResponse(message);
+    };
+    this['uploadInitializer']['onerror'] = (message)=>{
 
       console.log(message);
     };
@@ -293,11 +303,6 @@ class MetisUploader{
     var uploadFile = this.getUploadFile(authResponse);
     if(uploadFile == null) return;
 
-    // Start up the 'uploader' worker.
-    var initWorker = new Worker('./js/workers/uploader.js');
-    initWorker['onmessage'] = (message)=>{ this.proxyResponse(message) };
-    initWorker['onerror'] = (message)=>{ console.log(message) };
-
     // Normalize the data to send. Add our user token.
     var request = PARSE_REQUEST(uploadFile);
     var state = this['model']['store'].getState();
@@ -305,7 +310,7 @@ class MetisUploader{
 
     // Kick off the 'uploader'.
     var workerMessage = {'command':'init','file':uploadFile,'request':request};
-    initWorker.postMessage(workerMessage);
+    this['uploadInitializer'].postMessage(workerMessage);
   }
 
   getUploadFile(authResponse){

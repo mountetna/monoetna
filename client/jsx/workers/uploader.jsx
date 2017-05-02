@@ -41,13 +41,8 @@ class Uploader{
       return;
     }
 
-    var command = message['command'];
-    switch(command){
+    switch(message['command']){
 
-      case 'init':
-
-        uploader.initializeUploadSequence();
-        break;
       case 'start':
 
         /* 
@@ -75,38 +70,6 @@ class Uploader{
   }
 
   /*
-   * Create an initial request to the server to initiate an upload. This lets
-   * the server know what to expect and also allows the server a chance to
-   * resume a previously started upload.
-   */
-  initializeUploadSequence(){
-
-    /*
-     * Here, we are NOT attaching any blob data, but are still using a form
-     * for the initialization request. Also keep an eye on that 'SNAKE_CASE_IT'
-     * function. The Thin/Ruby server wants it's vars in snake case.
-     */
-    var initUpReq = new FormData();
-    for(var key in  uploader['request']){
-
-      initUpReq.append(SNAKE_CASE_IT(key),  uploader['request'][key]);
-    }
-
-    /*
-     * Add blob tracking information to the request. This will help us reasemble 
-     * and use file upload pausing on the server. All information related to 
-     * blobs is in bytes.
-     */
-    initUpReq.append('current_byte_position', 0);
-    initUpReq.append('current_blob_size', 0);
-    initUpReq.append('next_blob_size', INITIAL_BLOB_SIZE);
-
-    // Hash the next blob for security and error checking.
-    var blob = uploader['file'].slice(0, INITIAL_BLOB_SIZE);
-    uploader.generateBlobHash(blob, initUpReq, this.sendFirstPacket);
-  }
-
-  /*
    * Take a blob from the file and hash it.
    */
   generateBlobHash(blob, uploadRequest, callback){
@@ -119,29 +82,6 @@ class Uploader{
       callback(uploadRequest);
     }
     fileReader.readAsArrayBuffer(blob);
-  }
-
-  sendFirstPacket(initialUploadRequet){
-
-    try{
-
-      AJAX({
-
-        'url': '/upload-start',
-        'method': 'POST',
-        'sendType': 'file',
-        'returnType': 'json',
-        'data': initialUploadRequet,
-        'success': uploader['handleServerResponse'],
-        'error': uploader['ajaxError'],
-        'timeout': uploader['timeoutResponse']
-      });
-    }
-    catch(error){
-
-      uploader['uploadStart'] = null;
-      postMessage(uploader.errorObj(error['message']));
-    }
   }
 
   sendPause(response){
@@ -354,10 +294,6 @@ class Uploader{
 
     switch(response['request']['status']){
 
-      case 'initialized':
-
-        postMessage({ type: 'FILE_INITIALIZED', response: response });
-        break;
       case 'active':
 
         postMessage({ type: 'FILE_UPLOAD_ACTIVE', response: response });
