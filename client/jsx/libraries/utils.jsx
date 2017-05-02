@@ -43,6 +43,7 @@ var STATUS_ITEMS = {
   'dbIndex': String,
   'status': String,
   'role': String,
+  'hash': String,
 
   'hmacSignature': String,
   

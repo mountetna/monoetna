@@ -21,10 +21,7 @@ export default class ListEntry extends React.Component{
     var fileControlProps = {
 
       'fileInfo': fileInfo,
-      'callbacks': {
-
-        'removeFile':  this['removeFile'].bind(this)
-      }
+      'callbacks': {'removeFile':  this['removeFile'].bind(this)}
     };
 
     return (
@@ -37,13 +34,13 @@ export default class ListEntry extends React.Component{
 
           <div className='list-entry-file-name'>
             
-            { fileInfo['fileName'] }
+            {fileInfo['fileName']}
           </div>
           <div className='list-entry-status' title='The current file status.'>
 
             <span className='light-text'>
 
-              { 'uploaded at: '+ PARSE_TIMESTAMP(fileInfo['finishTimestamp']) }
+              {'uploaded at: '+PARSE_TIMESTAMP(fileInfo['finishTimestamp'])}
             </span>
           </div>
         </td>
@@ -51,13 +48,13 @@ export default class ListEntry extends React.Component{
 
           <div className='list-entry-project-name'>
 
-            { fileInfo['projectName'] }
+            {fileInfo['projectName']}
           </div>
           <div className='list-entry-role'>
 
             <span className='light-text'>
 
-              { fileInfo['role'] }
+              {fileInfo['role']}
             </span>
           </div>
         </td>
@@ -65,9 +62,16 @@ export default class ListEntry extends React.Component{
 
           <div className='list-entry-file-size'>
 
-            <span className='dark-text' style={{ 'fontWeight': 900 }} >
+            <span className='dark-text' style={{'fontWeight': 900}} >
 
-              { PARSE_BYTES(fileInfo['fileSize'], 1000) }
+              {PARSE_BYTES(fileInfo['fileSize'], 1000)}
+            </span>
+          </div>
+          <div className='list-entry-hash'>
+
+            <span className='light-text'>
+
+              {fileInfo['hashingAlgorithm']+': '+fileInfo['hash']}
             </span>
           </div>
         </td>

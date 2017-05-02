@@ -84,7 +84,8 @@
 }
 
 .list-entry-status,
-.list-entry-role {
+.list-entry-role,
+.list-entry-hash {
 
   margin-top: 4px;
 }
