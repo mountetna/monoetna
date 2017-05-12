@@ -19,7 +19,7 @@ module.exports = {
   },
   'output': {
 
-    'path': path.resolve(__dirname, './client/js')
+    'path': path.resolve(__dirname, './client/js'),
     'filename': '[name].bundle.js'
   }
 }
