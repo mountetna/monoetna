@@ -8,6 +8,7 @@
  * that are used in totality.
  */
 
+const path = require('path')
 module.exports = {
 
   'entry': {
@@ -18,7 +19,7 @@ module.exports = {
   },
   'output': {
 
-    'path': './client/js',
+    'path': path.resolve(__dirname, './client/js')
     'filename': '[name].bundle.js'
   }
 }
