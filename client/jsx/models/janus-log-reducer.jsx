@@ -88,7 +88,7 @@ export default class JanusLogReducer{
 
       if(perms[index]['role'] == 'administrator'){
 
-        if(perms[index]['projectName'] == 'administration'){
+        if(perms[index]['projectName'] == 'Administration'){
 
           masterPerms = true;
         }
