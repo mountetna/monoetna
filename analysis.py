@@ -4,6 +4,11 @@ from scipy.stats import gaussian_kde
 from scipy.cluster import hierarchy
 from tools.trees import dict_node
 import math
+import pandas as pd
+import rpy2.robjects as ro
+from rpy2.robjects import r, pandas2ri, vectors
+from rpy2.robjects.packages import STAP
+import pandas.rpy.common as com
 
 def correlation(data, by_cols):
     '''
@@ -140,3 +145,37 @@ def dendrogram(data,by_cols):
         'labels': leaf_labels
     }
     return response_output
+
+def DE(data,p_val,labels):
+  
+  pandas2ri.activate()
+  # make labels into a dataframe -> tuple values ordered by dataframe column order
+  labels_df = pd.DataFrame(labels)
+  labels_df = labels_df.set_index('label')
+  pd.to_numeric(labels_df['value'])
+  df = data.df.T.join(labels_df)
+  labels_tuple = tuple(list(df['value']))
+  num = data.col_size*10
+  rdf = pandas2ri.py2ri(data.df)
+  with open('my_voom.R', 'r') as f:
+    string = f.read()
+  my_voom = STAP(string, "my_voom")
+  iv= ro.IntVector(labels_tuple)
+  group = ro.FactorVector(iv)
+  fit = my_voom.run_voom(rdf,group,num)
+  top = my_voom.topGenes (fit,2,pval=0.5)
+  
+  top_df = com.convert_robj(top)
+
+  
+  response_output = {
+        'name': data.name,
+        'key': data.key,
+        'matrix':{
+          'row_names': data.row_names,
+          'col_names': range(0,50),
+          'rows': density_array
+        }
+    }
+  return response_output
+  
