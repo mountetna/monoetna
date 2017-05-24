@@ -15,7 +15,7 @@ export default class ProjectSearchDropdown extends GenericSearchDropdown{
   addEntries(){
 
     // The value of the input to 'search' by.
-    var value = this['state']['inputValue'].toLowerCase();
+    var value = this['state']['inputValue'];
 
     /*
      * If there are more than three characters in the input, then 'search'.

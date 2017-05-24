@@ -367,7 +367,7 @@ class UserAdminController{
     var projectExists = false; 
     for(var b = 0; b < projects['length']; ++b){
 
-      if(projects[b]['projectName'].toLowerCase() == permission['projectName']){
+      if(projects[b]['projectName'] == permission['projectName']){
 
         projectExists = true;
       }

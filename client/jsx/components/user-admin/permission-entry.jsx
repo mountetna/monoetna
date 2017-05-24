@@ -152,7 +152,7 @@ export default class PermissionEntry extends GenericAdminEntry{
     var projectId = 0;
     for(var a = 0; a < this['props']['projects']['length']; ++a){
 
-      var prjNm = this['props']['projects'][a]['projectName'].toLowerCase();
+      var prjNm = this['props']['projects'][a]['projectName']
       if(projectName == prjNm){
 
         projectId = this['props']['projects'][a]['projectId'];
