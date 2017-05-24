@@ -14,7 +14,7 @@ export default class PermissionSelector extends GenericSearchDropdown{
   addEntries(){
 
     // The value of the input to 'search' by.
-    var value = this['state']['inputValue'].toLowerCase();
+    var value = this['state']['inputValue'];
 
     /*
      * If there are more than three characters in the input, then 'search'.
@@ -66,7 +66,7 @@ export default class PermissionSelector extends GenericSearchDropdown{
 
     for(var a = 0; a < permissions['length']; ++a){
 
-      if(projectName == permissions[a]['projectName'].toLowerCase()){
+      if(projectName == permissions[a]['projectName']){
 
         permission = permissions[a];
       }
