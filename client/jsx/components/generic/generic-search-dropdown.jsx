@@ -166,7 +166,7 @@ export default class GenericSearchDropdown extends React.Component{
   matchAndAdd(value, entry, index, id, listPosition){
 
     var text = entry;
-    var entry = String(entry).toLowerCase();
+    var entry = String(entry);
     if(entry.indexOf(value) !== -1){
 
       var entryProps = {
