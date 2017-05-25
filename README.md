@@ -23,17 +23,17 @@ This system has a layer of user authentication. This file server is part of a la
 
   System Packages:
 ```
-    'git', 'tmux', 'openssl', 'curl', 'httpd', 'mod_ssl', 'openssl-devel', 'readline-devel', 'zlib-devel', 'postgresql-devel', 'nodejs', 'postgresql-server', 'postgresql-contrib', 'pygpgme'
+  'git', 'tmux', 'openssl', 'curl', 'python-pip', 'httpd', 'httpd-devel', 'mod_ssl', 'openssl-devel', 'readline-devel', 'zlib-devel', 'postgresql-devel', 'nodejs', 'postgresql-server', 'postgresql-contrib', 'pygpgme'
 ```
 
   Ruby Gems: 
 ```
-    'rack', 'pg', 'sequel', 'bundler'
+  'rack', 'pg', 'sequel', 'bundler'
 ```
 
   Node NPM:
 ```
-    'babel-cli', 'webpack'
+  'babel-cli', 'webpack'
 ```
 
 ## Local Development?
