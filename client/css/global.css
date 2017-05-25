@@ -21,6 +21,11 @@ body{
   font-family: 'gotham_bookregular';
 }
 
+.mono-text {
+
+  font-family: 'Courier New', Courier, monospace;
+}
+
 #header-group {
 
   position: relative;

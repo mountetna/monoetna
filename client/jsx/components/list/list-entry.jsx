@@ -71,7 +71,10 @@ export default class ListEntry extends React.Component{
 
             <span className='light-text'>
 
-              {fileInfo['hashingAlgorithm']+': '+fileInfo['hash']}
+              {fileInfo['hashingAlgorithm']+': '}
+              <span className='mono-text'>
+                {fileInfo['hash']}
+              </span>
             </span>
           </div>
         </td>
