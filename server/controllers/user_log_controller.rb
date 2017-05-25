@@ -25,20 +25,20 @@ class UserLogController < BasicController
 
       m = __method__
       set_login_data()
-      return make_request(Conf::JANUS_ADDR+'/login', @data)
+      return make_request(Secrets::JANUS_ADDR+'/login', @data)
   end
 
   def check_log()
 
     m = __method__
     set_log_data()
-    return make_request(Conf::JANUS_ADDR+'/check', @data)
+    return make_request(Secrets::JANUS_ADDR+'/check', @data)
   end
 
   def log_out()
 
     set_log_data()
-    return make_request(Conf::JANUS_ADDR+'/logout', @data)
+    return make_request(Secrets::JANUS_ADDR+'/logout', @data)
   end
 
   def set_login_data()

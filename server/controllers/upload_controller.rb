@@ -411,7 +411,7 @@ class UploadController < BasicController
 
   def derive_directory()
 
-    Conf::ROOT_DIR+'/'+normalize_name(@params['project_name'].to_s())
+    Secrets::ROOT_DIR+'/'+normalize_name(@params['project_name'].to_s())
   end
 
   def upload_params_valid?()

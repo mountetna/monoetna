@@ -38,11 +38,6 @@ module Conf
     'status'=> String
   }
 
-  # This is the root directory for the data.
-  ROOT_DIR = '/data1'
-
-  JANUS_ADDR = 'https://janus-stage.ucsf.edu'
-
   # One day to finish upload.
   UPLOAD_EXPIRE = 86400
 

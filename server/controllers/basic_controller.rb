@@ -18,7 +18,7 @@ class BasicController
 
     # Get the user and their permissions.
     data = { :token=> @params['token'], :app_key=> Secrets::APP_KEY }
-    response = JSON.parse(make_request(Conf::JANUS_ADDR+'/check', data))
+    response = JSON.parse(make_request(Secrets::JANUS_ADDR+'/check', data))
 
     # Check that the user query is valid.
     raise_err(:BAD_REQ, 1, __method__) if !response.key?('success')
@@ -33,7 +33,7 @@ class BasicController
 
     begin
 
-      response = JSON.parse(make_request(Conf::JANUS_ADDR+uri, data))
+      response = JSON.parse(make_request(Secrets::JANUS_ADDR+uri, data))
       if response.key?('administrator') && response['administrator']
 
         return true
