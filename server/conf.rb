@@ -39,7 +39,7 @@ module Conf
   }
 
   # This is the root directory for the data.
-  ROOT_DIR = '/data'
+  ROOT_DIR = '/data1'
 
   JANUS_ADDR = 'https://janus-stage.ucsf.edu'
 
