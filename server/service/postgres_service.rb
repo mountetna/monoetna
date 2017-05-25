@@ -26,10 +26,10 @@ module PostgresService
       :group_name=> params['group_name'],
       :project_name=> params['project_name'],
       :start_upload=> Time.at(params['start_timestamp'].to_i),
-      :finish_upload=> nil,
+      :finish_upload=> params['finish_upload'],
       :upload_by=> params['user_email'],
       :hashing_algorithm=> params['hashing_algorithm'],
-      :hash=> nil
+      :hash=> params['hash']
     }
 
     FileModel::File.create(row)
@@ -52,15 +52,12 @@ module PostgresService
   end
 
   def self.get_files_by_project_name(project_name)
-
     file_metadata = @postgres[:files]
-      .where('project_name = ?', project_name)
+      .where({project_name: project_name})
       .all
 
     if file_metadata
-
       file_metadata.map() do |file| 
-
         file[:start_upload] = file.to_hash()[:start_upload].to_time().to_i()
       end
     end

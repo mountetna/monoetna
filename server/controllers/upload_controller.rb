@@ -23,6 +23,10 @@ class UploadController < BasicController
     # Change the status of the upload.
     @params['status'] = 'initialized'
 
+    # Nullify fields that will be filled later on file upload completion.
+    @params['finish_upload'] = nil
+    @params['hash'] = nil
+
     # Write the metadata to postgres.
     @file = PostgresService.create_new_file!(@params)
     @upload = PostgresService.create_new_upload!(@params, @file.to_hash[:id])
@@ -407,9 +411,7 @@ class UploadController < BasicController
 
   def derive_directory()
 
-    group_name = normalize_name(@params['group_name'].to_s())
-    project_name = normalize_name(@params['project_name'].to_s())
-    return Conf::ROOT_DIR+'/'+group_name+'/'+project_name
+    Conf::ROOT_DIR+'/'+normalize_name(@params['project_name'].to_s())
   end
 
   def upload_params_valid?()
