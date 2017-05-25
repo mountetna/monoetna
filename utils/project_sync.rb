@@ -12,7 +12,7 @@ require '../server/secrets'
 
 module ProjectSync
   def ProjectSync.get_projects
-    url = "#{Conf::JANUS_ADDR}/get-projects"
+    url = "#{Secrets::JANUS_ADDR}/get-projects"
     projects = make_request(url, {token: ARGV[0], app_key: Secrets::APP_KEY})
     return projects
   end
