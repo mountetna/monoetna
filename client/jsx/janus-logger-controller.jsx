@@ -41,8 +41,8 @@ export default class JanusLoggerController{
     }
     else if(!response['success'] && response['error']){
 
-      alert('There was a server error. You could not be logged in. \
-        Contact the administrator: jason.cater@ucsf.edu');
+      alert('There was a server error. You could not be logged in. Contact the \
+administrator: jason.cater@ucsf.edu');
     }
     else{
 
