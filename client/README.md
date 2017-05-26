@@ -77,3 +77,12 @@
   ```
 
   Again you can look inside the 'package.json' file to see the details of these operations.
+
+## Static Files
+
+  Since we don't keep our images and fonts in the repo we just create symlinks to the static resources.
+
+  ```
+  $ sudo -i -u [USER] ln -s /var/www/metis-static/img /var/www/metis/client/img
+  $ sudo -i -u [USER] ln -s /var/www/metis-static/fonts /var/www/metis/client/fonts
+  ```
