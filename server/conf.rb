@@ -14,6 +14,7 @@ module Conf
     'user_email',
     'group_name',
     'project_name',
+    'project_name_full',
     'hashing_algorithm'
   ]
 
@@ -24,6 +25,7 @@ module Conf
     'file_size'=> Integer,
     'group_name'=> String,
     'project_name'=> String,
+    'project_name_full'=> String,
     'start_timestamp'=> Integer,
     'user_email'=> String,
     'hashing_algorithm'=> String

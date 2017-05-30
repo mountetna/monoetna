@@ -310,7 +310,8 @@ class UploadController < BasicController
       'file_name',
       'file_size',
       'group_name',
-      'project_name'
+      'project_name',
+      'project_name_full'
     ]
 
     auth_params.each do |auth_param|
@@ -435,8 +436,9 @@ class UploadController < BasicController
   end
 
   # We need to add a check that if a key/value is not of the correct type, then
-  # we need to remove it. Then when we use our 'upload_params_valid' and 'file_params_valid'
-  # the result will be false thus protecting us from invalid data types.
+  # we need to remove it. Then when we use our 'upload_params_valid' and 
+  # 'file_params_valid' the result will be false thus protecting us from invalid
+  # data types.
   def normalize_params()
 
     @params.each do |key, value|

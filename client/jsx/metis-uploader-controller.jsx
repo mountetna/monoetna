@@ -244,7 +244,16 @@ class MetisUploader{
 
   generateAuthRequest(file){
 
-    var req = ['fileName','originalName','fileSize','projectName','groupName'];
+    var req = [
+
+      'fileName',
+      'originalName',
+      'fileSize',
+      'projectName',
+      'projectNameFull',
+      'groupName'
+    ];
+
     var reqData = {};
 
     // Add params not that are needed but not included.

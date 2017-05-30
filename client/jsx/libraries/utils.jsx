@@ -38,6 +38,7 @@ var STATUS_ITEMS = {
   'userId': Number,
   'projectId': Number,
   'projectName': String,
+  'projectNameFull': String,
   'groupId': Number,
   'groupName': String,
   'dbIndex': String,

@@ -25,6 +25,7 @@ module PostgresService
       :file_size=> params['file_size'],
       :group_name=> params['group_name'],
       :project_name=> params['project_name'],
+      :project_name_full=> params['project_name_full'],
       :start_upload=> Time.at(params['start_timestamp'].to_i),
       :finish_upload=> params['finish_upload'],
       :upload_by=> params['user_email'],
