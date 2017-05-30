@@ -8,7 +8,7 @@ Sequel.migration do
 
       String(:group_name, {null: false})
       String(:project_name, {null: false})
-      String(:project_full_name, null: false})
+      String(:project_name_full, {null: false})
       String(:file_name, {null: false})
       String(:original_name, {null: false})
       String(:upload_by, {null: false})
@@ -19,7 +19,6 @@ Sequel.migration do
       Integer(:file_size, {null: false})
       String(:hashing_algorithm, {null: false})
       String(:hash)
-
     end
 
     create_table(:uploads) do
