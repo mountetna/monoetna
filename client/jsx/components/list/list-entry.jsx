@@ -32,7 +32,7 @@ export default class ListEntry extends React.Component{
         </td>
         <td className='list-entry-title-group'>
 
-          <div className='list-entry-file-name'>
+          <div className='list-entry-file-name' title={fileInfo['fileName']}>
             
             {fileInfo['fileName']}
           </div>

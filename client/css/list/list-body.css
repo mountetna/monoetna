@@ -41,6 +41,12 @@
   width: 160px;
 }
 
+.list-entry-file-name {
+
+  white-space: nowrap;
+  overflow: hidden;
+}
+
 .list-entry-file-name-input {
 
   margin-top: 2px;

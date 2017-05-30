@@ -64,15 +64,15 @@ export default class ListUploadFailed extends React.Component{
         </td>
         <td className='list-entry-title-group'>
 
-          <div className='list-entry-file-name'>
-            
-            { failedFile['fileName'] }
+          <div className='list-entry-file-name' title={failedFile['fileName']}>
+
+            {failedFile['fileName']}
           </div>
           <div className='list-entry-status' title='The current file status.'>
 
             <span className='light-text'>
 
-              { 'attempted at: '+ PARSE_TIMESTAMP(failedFile['startTimestamp'])}
+              {'attempted at: '+ PARSE_TIMESTAMP(failedFile['startTimestamp'])}
             </span>
           </div>
         </td>
