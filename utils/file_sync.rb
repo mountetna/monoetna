@@ -59,7 +59,7 @@ module FileSync
   end
 
   def FileSync.add_extra_files(extra_files, group_name)
-    timestamp = Time::now.to_i
+    timestamp = Time::now
     extra_files.each do |key, value|
       params = {
         'original_name'=> key,
@@ -67,8 +67,9 @@ module FileSync
         'file_size'=> File.size("/data1/#{ARGV[0]}/#{key}"),
         'group_name'=> group_name,
         'project_name'=> ARGV[0],
+        'project_name_full'=>'immunoprofiler initiative',
         'start_upload'=> timestamp,
-        'finish_upload'=>  Time.at(timestamp+1),
+        'finish_upload'=>  timestamp,
         'user_email'=> 'jason.cater@ucsf.edu',
         'hashing_algorithm'=> 'MD5',
         'hash'=> value
