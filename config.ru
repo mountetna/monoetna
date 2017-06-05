@@ -5,6 +5,7 @@ require 'digest'
 require 'logger'
 require 'net/http'
 require 'openssl'
+require 'securerandom'
 
 # The details
 require './server/conf'
