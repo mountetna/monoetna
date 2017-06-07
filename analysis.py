@@ -166,15 +166,15 @@ def DE(data,p_val,labels):
   
   top_df = pandas2ri.ri2py(top)
 
-  
+
   response_output = {
-        'name': data.name,
-        'key': data.key,
-        'matrix':{
-          'row_names': data.row_names,
-          'col_names': range(0,50),
-          'rows': density_array
-        }
-    }
+      'name': data.name,
+      'key': data.key,
+      'matrix':{
+        'row_names': top_df.index,
+        'col_names': top_df.columns,
+        'rows': top_df.values
+      }
+  }
   return response_output
   
