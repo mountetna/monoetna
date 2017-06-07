@@ -8,7 +8,6 @@ import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects import r, pandas2ri, vectors
 from rpy2.robjects.packages import STAP
-import pandas.rpy.common as com
 
 def correlation(data, by_cols):
     '''
@@ -165,7 +164,7 @@ def DE(data,p_val,labels):
   fit = my_voom.run_voom(rdf,group,num)
   top = my_voom.topGenes (fit,2,pval=0.5)
   
-  top_df = com.convert_robj(top)
+  top_df = pandas2ri.ri2py(top)
 
   
   response_output = {
