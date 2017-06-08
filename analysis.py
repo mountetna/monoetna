@@ -171,9 +171,9 @@ def DE(data,p_val,labels):
       'name': data.name,
       'key': data.key,
       'matrix':{
-        'row_names': top_df.index,
-        'col_names': top_df.columns,
-        'rows': top_df.values
+        'row_names': top_df.index.values.tolist(),
+        'col_names': top_df.columns.values.tolist(),
+        'rows': top_df.values.values.tolist()
       }
   }
   return response_output
