@@ -162,7 +162,7 @@ def DE(data,p_val,labels):
   iv= ro.IntVector(labels_tuple)
   group = ro.FactorVector(iv)
   fit = my_voom.run_voom(rdf,group,num)
-  top = my_voom.topGenes (fit,2,pval=0.5)
+  top = my_voom.topGenes (fit,2,pval=p_val)
   
   top_df = pandas2ri.ri2py(top)
 
@@ -173,7 +173,7 @@ def DE(data,p_val,labels):
       'matrix':{
         'row_names': top_df.index.values.tolist(),
         'col_names': top_df.columns.values.tolist(),
-        'rows': top_df.values.values.tolist()
+        'rows': top_df.values.tolist()
       }
   }
   return response_output
