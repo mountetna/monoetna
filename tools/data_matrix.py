@@ -18,7 +18,7 @@ class DataMatrix:
         orient='index', columns= self.col_names)
       self.df_matrix = np.array(self.df.as_matrix(), dtype=np.float)
     
-    def filter_zero_rows_cols(self):
+    def filter_zero_rows_cols(self, how='All'):
       '''
       will remove either rows with all zeroes or columns with all zeroes
       or both
