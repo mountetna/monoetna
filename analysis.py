@@ -155,7 +155,8 @@ def DE(data,p_val,labels):
   df = data.df.T.join(labels_df)
   labels_tuple = tuple(list(df['value']))
   num = data.col_size*10
-  rdf = pandas2ri.py2ri(data.df)
+  df = data.filter_zero_rows_cols('rows')
+  rdf = pandas2ri.py2ri(df)
   with open('my_voom.R', 'r') as f:
     string = f.read()
   my_voom = STAP(string, "my_voom")
