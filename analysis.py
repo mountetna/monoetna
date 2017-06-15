@@ -8,6 +8,7 @@ import pandas as pd
 import rpy2.robjects as ro
 from rpy2.robjects import r, pandas2ri, vectors
 from rpy2.robjects.packages import STAP
+import os
 
 def correlation(data, by_cols):
     '''
@@ -157,7 +158,7 @@ def DE(data,p_val,labels):
   num = data.col_size*10
   df = data.filter_zero_rows_cols('rows')
   rdf = pandas2ri.py2ri(df)
-  with open('my_voom.R', 'r') as f:
+  with open(os.path.join(os.path.dirname(__file__),'my_voom.R'), 'r') as f:
     string = f.read()
   my_voom = STAP(string, "my_voom")
   iv= ro.IntVector(labels_tuple)
