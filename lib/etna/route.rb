@@ -13,7 +13,7 @@ module Etna
           :"#{controller.camel_case}Controller"
         )
         app.logger.warn("Calling #{controller}##{action}")
-        return Rack::Response.new(controller_class.new(request, action).run)
+        return controller_class.new(request, action).response
       elsif @block
         return app.instance_eval(@block)
       end
