@@ -17,6 +17,12 @@ module Etna
         env.update(
           'rack.request.params' => Rack::Multipart.parse_multipart(env)
         )
+      else
+        return [
+          400,
+          {},
+          ['Content-Type must be application/json or multipart/form-data.']
+        ]
       end
       @app.call(env)
     end
