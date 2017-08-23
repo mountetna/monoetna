@@ -19,7 +19,7 @@ module Etna
         )
       else
         return [
-          400,
+          415,
           {},
           ['Content-Type must be application/json or multipart/form-data.']
         ]

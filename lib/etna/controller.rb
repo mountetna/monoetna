@@ -17,10 +17,8 @@ module Etna
       return send(@action) if @action 
 
       [501, {}, ['This controller is not implemented.']]
-    rescue Etna::BadRequest => e
-      return failure(422, e.message)
-    rescue Etna::ServerError => e
-      return failure(500, e.message)
+    rescue Etna::BadRequest, Etna::ServerError => e
+      return failure(e.status, e.message)
     end
 
     VIEW_PATH="../views"

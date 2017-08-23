@@ -2,7 +2,7 @@ require 'logger'
 
 module Etna
   class Error < StandardError
-    attr_reader :level
+    attr_reader :level, :status
     def initialize(msg='The application had an error')
       @level = Logger::WARN
       super
@@ -10,11 +10,15 @@ module Etna
   end
 
   class BadRequest < Etna::Error
+    def initialize(msg='Client error', status=422)
+      @status = status
+    end
   end
 
   class ServerError < Etna::Error
-    def initialize(msg='Server error')
+    def initialize(msg='Server error', status=500)
       super
+      @status = status
       @level = Logger::ERROR
     end
   end
