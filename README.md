@@ -80,6 +80,13 @@ The action is usually invoked by the #response method. Both the action and ultim
 There are two error classes available: Etna::BadRequest (for client errors) and Etna::ServerError (for server errors).
 Raising will cause the controller to return a status of 422 or 500 with the given error.
 
+###Etna::ParseBody and Etna::SymbolizeParams
+
+These two Rack layers should be included - the first parses application/json
+and multipart messages and makes them available in the rack Request object
+under rack.request.params - the Etna::Controller makes this available using the
+@params hash. SymbolizeParams turns the keys of the params hash into symbols.
+
 ##Etna::Command
 
 A basic command-line interface can be built with Etna::Command. The Etna::Application singleton will list commands:
