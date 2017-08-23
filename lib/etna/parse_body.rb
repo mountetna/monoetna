@@ -1,6 +1,6 @@
 module Etna
   class ParseBody
-    def initialize app
+    def initialize(app)
       @app = app
     end
 

@@ -1,6 +1,6 @@
 module Etna
   class Route
-    def initialize method, action, &block
+    def initialize(method, action, &block)
       @method = method
       @action = action
       @block = block

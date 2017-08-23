@@ -1,6 +1,6 @@
 module Etna
   class SymbolizeParams
-    def initialize server
+    def initialize(server)
       @server = server
     end
 

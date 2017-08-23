@@ -2,7 +2,7 @@
 module Etna
   class Server
     class << self
-      def route path, method=nil, action=nil, &block
+      def route(path, method=nil, action=nil, &block)
         @routes ||= {}
 
         @routes[path] = Etna::Route.new(
@@ -12,19 +12,19 @@ module Etna
         )
       end
 
-      def get path, action=nil, &block
+      def get(path, action=nil, &block)
         route(path, 'GET', action, &block)
       end
       
-      def post path, action=nil, &block
+      def post(path, action=nil, &block)
         route(path, 'POST', action, &block)
       end
 
-      def put path, action=nil, &block
+      def put(path, action=nil, &block)
         route(path, 'PUT', action, &block)
       end
 
-      def delete path, action=nil, &block
+      def delete(path, action=nil, &block)
         route(path, 'DELETE', action, &block)
       end
 
@@ -43,7 +43,7 @@ module Etna
       [ 404, {}, ["There is no such path '#{@request.path}'"] ]
     end
 
-    def initialize config
+    def initialize(config)
 
       # setup the application, since we are
       # booting through the rack server

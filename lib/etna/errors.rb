@@ -3,7 +3,7 @@ require 'logger'
 module Etna
   class Error < StandardError
     attr_reader :level
-    def initialize(msg="The application had an error")
+    def initialize(msg='The application had an error')
       @level = Logger::WARN
       super
     end
@@ -13,7 +13,7 @@ module Etna
   end
 
   class ServerError < Etna::Error
-    def initialize(msg="Server error")
+    def initialize(msg='Server error')
       super
       @level = Logger::ERROR
     end
