@@ -54,9 +54,9 @@ Routes may be either defined using 'controller#action' syntax or using a block:
       class Server < Etna::Server
         route '/weave', 'loom#weave'
 
-	route '/trash-talk' do
-	  TrashTalkController.new(@request).response
-	end
+        route '/trash-talk' do
+          TrashTalkController.new(@request).response
+        end
       end
     end
 
@@ -79,3 +79,31 @@ The action is usually invoked by the #response method. Both the action and ultim
 
 There are two error classes available: Etna::BadRequest (for client errors) and Etna::ServerError (for server errors).
 Raising will cause the controller to return a status of 422 or 500 with the given error.
+
+##Etna::Command
+
+A basic command-line interface can be built with Etna::Command. The Etna::Application singleton will list commands:
+
+    Ariadne.instance.commands
+
+and can be setup to run a command from a shell script:
+
+    Ariadne.instance.run_command(config, *ARGV)
+
+Commands are subclassed from Etna::Command
+
+    class Ariadne
+      class Console < Etna::Command
+        usage "ariadne console"
+
+        def execute
+          require 'irb'
+          ARGV.clear
+          IRB.start
+        end
+      end
+    end
+
+The command is responsible for creating a database
+connection, etc., if appropriate by overriding its #setup
+method.

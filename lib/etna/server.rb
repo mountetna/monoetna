@@ -59,9 +59,7 @@ module Etna
     # independent of this rack server, holding e.g.
     # configuration
     def application
-      @application ||= Kernel.const_get(
-        self.class.name.split('::').first
-      ).instance
+      @application ||= Etna::Application.find(self.class)
     end
 
     def setup_logger

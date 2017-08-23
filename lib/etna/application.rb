@@ -10,6 +10,12 @@ module Etna::Application
     other.include Singleton
   end
 
+  def self.find(klass)
+    Kernel.const_get(
+      klass.name.split('::').first
+    ).instance
+  end
+
   def configure(opts)
     @config = opts
   end
@@ -26,6 +32,25 @@ module Etna::Application
     ObjectSpace.each_object(Class).select do |k|
       k < klass
     end
+  end
+
+  def run_command(config, cmd = :help, *args)
+    cmd = cmd.to_sym
+    if commands.key?(cmd)
+      commands[cmd].setup(config)
+      commands[cmd].execute(*args)
+    else
+      commands[:help].execute
+    end
+  end
+
+  def commands
+    @commands ||= Hash[
+      find_descendents(Etna::Command).map do |c|
+        cmd = c.new
+        [ cmd.name, cmd ]
+      end
+    ]
   end
 end
 

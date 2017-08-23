@@ -1,4 +1,5 @@
 require_relative './etna/server'
+require_relative './etna/command'
 require_relative './etna/errors'
 require_relative './etna/route'
 require_relative './etna/application'
