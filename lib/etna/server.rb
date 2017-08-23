@@ -28,15 +28,13 @@ module Etna
         route(path, 'DELETE', action, &block)
       end
 
-      def log_file file=nil
-        @log_file ||= file
-      end
-
       attr_reader :routes
     end
 
     def call(env)
       @request = Rack::Request.new(env)
+
+      @request.env['rack.errors'] = @logger
 
       if self.class.routes.has_key? @request.path
         return self.class.routes[@request.path].call(self, @request)
@@ -54,7 +52,6 @@ module Etna
       # setup logging
       setup_logger
     end
-    attr_reader :logger
 
     private
 

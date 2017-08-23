@@ -5,7 +5,6 @@ module Etna
       @action = action
       @response = Rack::Response.new
       @params = @request.env['rack.request.params']
-      @user = @request['user_info']
       @errors = []
       @logger = @request.env['rack.errors']
     end
@@ -18,6 +17,26 @@ module Etna
       return send(@action) if @action 
 
       [501, {}, ['This controller is not implemented.']]
+    rescue Etna::BadRequest => e
+      return failure(422, e.message)
+    rescue Etna::ServerError => e
+      return failure(500, e.message)
+    end
+
+    VIEW_PATH="../views"
+
+    def view(name)
+      txt = File.read(File.expand_path("#{self.class.VIEW_PATH}/#{name}.html", __dir__))
+      @response['Content-Type'] = 'text/html'
+      @response.write(txt)
+      @response.finish
+    end
+
+    def erb_view(name)
+      txt = File.read(File.expand_path("#{self.class.VIEW_PATH}/#{name}.html.erb", __dir__))
+      @response['Content-Type'] = 'text/html'
+      @response.write(ERB.new(txt).result)
+      @response.finish
     end
 
     private
