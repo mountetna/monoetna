@@ -1,4 +1,4 @@
-class Etna
+module Etna
   class Command
     class << self
       def usage(desc)
