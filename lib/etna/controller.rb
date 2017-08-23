@@ -21,17 +21,17 @@ module Etna
       return failure(e.status, e.message)
     end
 
-    VIEW_PATH="../views"
+    VIEW_PATH=File.expand_path("../views", __dir__)
 
     def view(name)
-      txt = File.read(File.expand_path("#{self.class.VIEW_PATH}/#{name}.html", __dir__))
+      txt = File.read("#{self.class.VIEW_PATH}/#{name}.html")
       @response['Content-Type'] = 'text/html'
       @response.write(txt)
       @response.finish
     end
 
     def erb_view(name)
-      txt = File.read(File.expand_path("#{self.class.VIEW_PATH}/#{name}.html.erb", __dir__))
+      txt = File.read("#{self.class.VIEW_PATH}/#{name}.html.erb")
       @response['Content-Type'] = 'text/html'
       @response.write(ERB.new(txt).result)
       @response.finish
