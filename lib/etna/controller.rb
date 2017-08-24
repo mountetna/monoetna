@@ -6,7 +6,7 @@ module Etna
       @response = Rack::Response.new
       @params = @request.env['rack.request.params']
       @errors = []
-      @logger = @request.env['rack.errors']
+      @logger = @request.env['rack.logger']
     end
 
     def log(line)

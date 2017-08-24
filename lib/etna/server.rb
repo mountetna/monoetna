@@ -34,7 +34,7 @@ module Etna
     def call(env)
       @request = Rack::Request.new(env)
 
-      @request.env['rack.errors'] = @logger
+      @request.env['rack.logger'] = @logger
 
       if self.class.routes.has_key? @request.path
         return self.class.routes[@request.path].call(self, @request)
@@ -67,9 +67,9 @@ module Etna
         # The name of the log_file, required
         application.config(:log_file),
         # Number of old copies of the log to keep
-        application.config(:log_copies || 5),
+        application.config(:log_copies) || 5,
         # How large the log can get before overturning
-        application.config(:log_size || 1048576)
+        application.config(:log_size) || 1048576
       )
       @logger.level = Logger::WARN
     end
