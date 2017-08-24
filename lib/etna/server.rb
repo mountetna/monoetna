@@ -3,9 +3,10 @@ module Etna
   class Server
     class << self
       def route(path, method=nil, action=nil, &block)
-        @routes ||= {}
+        @routes ||= []
 
-        @routes[path] = Etna::Route.new(
+        @routes << Etna::Route.new(
+          path,
           method,
           action,
           &block
@@ -36,8 +37,12 @@ module Etna
 
       @request.env['rack.logger'] = @logger
 
-      if self.class.routes.has_key? @request.path
-        return self.class.routes[@request.path].call(self, @request)
+      route = self.class.routes.find do |route|
+        route.matches? @request
+      end
+
+      if route
+        return route.call(self, @request)
       end
 
       [ 404, {}, ["There is no such path '#{@request.path}'"] ]

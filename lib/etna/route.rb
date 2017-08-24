@@ -1,9 +1,14 @@
 module Etna
   class Route
-    def initialize(method, action, &block)
+    def initialize(path, method, action, &block)
+      @path = path
       @method = method
       @action = action
       @block = block
+    end
+
+    def matches? request
+      @path == request.path && @method == request.request_method
     end
 
     def call(app, request)
