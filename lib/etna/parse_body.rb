@@ -13,16 +13,19 @@ module Etna
             'rack.request.params' => JSON.parse(body)
           )
         end
+      when %r{application/x-www-form-urlencoded}i
+        env.update(
+          'rack.request.params' => Rack::Utils.parse_nested_query(env['rack.input.read'])
+        )
       when %r{multipart/form-data}i
         env.update(
           'rack.request.params' => Rack::Multipart.parse_multipart(env)
         )
       else
-        return [
-          415,
-          {},
-          ['Content-Type must be application/json or multipart/form-data.']
-        ]
+        # assume it is url-encoded
+        env.update(
+          'rack.request.params' => Rack::Utils.parse_nested_query( env['QUERY_STRING'] )
+        )
       end
       @app.call(env)
     end
