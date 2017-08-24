@@ -15,7 +15,7 @@ module Etna
         end
       when %r{application/x-www-form-urlencoded}i
         env.update(
-          'rack.request.params' => Rack::Utils.parse_nested_query(env['rack.input.read'])
+          'rack.request.params' => Rack::Utils.parse_nested_query(env['rack.input'].read)
         )
       when %r{multipart/form-data}i
         env.update(
