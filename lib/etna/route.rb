@@ -12,7 +12,8 @@ module Etna
         controller_class = Kernel.const_get(
           :"#{controller.camel_case}Controller"
         )
-        app.logger.warn("Calling #{controller}##{action}")
+        logger = request.env['rack.logger']
+        logger.warn("Calling #{controller}##{action}")
         return controller_class.new(request, action).response
       elsif @block
         return app.instance_eval(@block)
