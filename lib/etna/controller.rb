@@ -18,7 +18,7 @@ module Etna
 
       [501, {}, ['This controller is not implemented.']]
     rescue Etna::BadRequest, Etna::ServerError => e
-      return failure(e.status, e.message)
+      return failure(e.status, error: e.message)
     end
 
     VIEW_PATH=File.expand_path("../views", __dir__)

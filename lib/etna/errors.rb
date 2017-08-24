@@ -11,13 +11,14 @@ module Etna
 
   class BadRequest < Etna::Error
     def initialize(msg='Client error', status=422)
+      super(msg)
       @status = status
     end
   end
 
   class ServerError < Etna::Error
     def initialize(msg='Server error', status=500)
-      super
+      super(msg)
       @status = status
       @level = Logger::ERROR
     end
