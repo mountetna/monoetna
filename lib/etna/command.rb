@@ -14,12 +14,11 @@ module Etna
 
     # To be overridden during inheritance.
     def execute
-      raise "Command is not implemented"
+      raise 'Command is not implemented'
     end
 
-    # To be overridden during inheritance, to e.g.
-    # connect to a database.
-    # Should be called with super by inheriting method
+    # To be overridden during inheritance, to e.g. connect to a database.
+    # Should be called with super by inheriting method.
     def setup(config)
       Etna::Application.find(self.class).configure(config)
     end
