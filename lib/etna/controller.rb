@@ -1,6 +1,6 @@
 module Etna
   class Controller
-    def initialize(request, action=nil)
+    def initialize(request, action = nil)
       @request = request
       @action = action
       @response = Rack::Response.new
@@ -17,11 +17,11 @@ module Etna
       return send(@action) if @action 
 
       [501, {}, ['This controller is not implemented.']]
-    rescue Etna::BadRequest, Etna::ServerError => e
+    rescue Etna::BadRequest, Etna::ServerError=> e
       return failure(e.status, error: e.message)
     end
 
-    VIEW_PATH=:VIEW_PATH
+    VIEW_PATH = :VIEW_PATH
 
     def view(name)
       txt = File.read("#{self.class::VIEW_PATH}/#{name}.html")
