@@ -1,0 +1,24 @@
+.site-header {
+  background: url('/assets/images/etna.png');
+  background-size: 30%;
+  background-repeat: no-repeat;
+  min-height: 106px;
+}
+
+.site-description {
+  @include relative-font-size(1.2);
+  font-weight: 200;
+  color: $grey-color;
+  display: inline-block;
+  margin-left: 10px;
+  position: absolute;
+  top: 50%;
+
+}
+.site-title {
+  float: unset;
+  margin-top: -13px;
+  position: absolute;
+  top: 30%;
+  line-height: unset;
+}
