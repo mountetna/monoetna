@@ -5,7 +5,7 @@ date:   2017-10-26 23:13:05 +0000
 categories: etna 
 ---
 But don't worry, we're comfortable working amidst volcanic ejecta!
-
+<!--more-->
 This is our inaugural post. In this space we intend to document the travails
 and successes of our effort to create a fantastic bioinformatics platform and
 facilitate excellent research at UCSF (and elsewhere).
