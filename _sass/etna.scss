@@ -1,8 +1,8 @@
 .site-header {
   background: url('/assets/images/etna.png');
-  background-size: 30%;
+  background-size: contain;
   background-repeat: no-repeat;
-  min-height: 106px;
+  min-height: 70px;
 }
 
 .site-description {
