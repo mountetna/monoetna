@@ -1,0 +1,37 @@
+---
+layout: post
+title:  "This Week"
+date:   2017-10-26 23:13:05 +0000
+categories: etna update
+---
+We add a 'query builder' to our manifest editor.
+
+<!--more-->
+One of the key ways to grab data via Timur is through *manifests*. A manifest
+is a request for data and calculation which sews together a number of different
+ways of pulling data from across Mount Etna - for example, raw data from Magma
+and calculations from Pythia or Rtemis. Manifests get used all throughout Timur
+to make the basic data requests required for making plots and performing other
+basic functions, but users can also write their own manifests for pulling down
+custom datasets.
+
+The main data source for a manifest is, of course, Magma, which is accessible via
+a query API (documented [here](https://github.com/mountetna/magma/wiki/Query)).
+The Magma query API is extremely expressive and can download complex subsets of
+the entire data graph for a project with a single query.
+
+However, composing such a beast is not always easy. For this reason we've added
+a query builder to ease the process. To begin, select the model you wish to
+collect:
+![Select a model]({{'/assets/images/query1.png'}})
+
+Then select '::all' if you wish to map values from multiple records from this model (the most common type of query):
+![Select ::all]({{'/assets/images/query2.png'}})
+
+Last, select a value attribute from the model that you wish to map.
+![Select value]({{'/assets/images/query3.png'}})
+
+Your query will now appear and can be copy/pasted into your manifest.
+
+For good measure, you can click "+" on a model to add some filters to it:
+![Add filters]({{'/assets/images/query4.png'}})
