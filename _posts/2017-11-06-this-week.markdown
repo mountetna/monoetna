@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "This Week"
-date:   2017-10-26 23:13:05 +0000
+date:   2017-11-06 23:13:05 +0000
 categories: etna update
 ---
 We add a 'query builder' to our manifest editor.
