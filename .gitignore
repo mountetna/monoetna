@@ -6,3 +6,4 @@
 /log/*
 *.gem
 *.swp
+spec/examples.txt

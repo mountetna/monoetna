@@ -42,6 +42,7 @@ module Etna
       end
 
       if route
+        @params = @request.env['rack.request.params']
         return route.call(self, @request)
       end
 

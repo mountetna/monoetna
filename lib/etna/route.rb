@@ -1,17 +1,18 @@
 module Etna
   class Route
     def initialize(path, method, action, &block)
-      @path = path
+      @path = path_regexp(path)
       @method = method
       @action = action
       @block = block
     end
 
     def matches? request
-      @path == request.path && @method == request.request_method
+      matches_path?(request.path) && @method == request.request_method
     end
 
     def call(app, request)
+      update_params(request)
       if @action
         controller, action = @action.split('#')
         controller_class = Kernel.const_get(
@@ -21,8 +22,23 @@ module Etna
         logger.warn("Calling #{controller}##{action}")
         return controller_class.new(request, action).response
       elsif @block
-        return app.instance_eval(@block)
+        return app.instance_eval(&@block)
       end
+    end
+
+    def update_params request
+      match = @path.match(request.path)
+      request.env['rack.request.params'].update(
+        Hash[ match.names.map(&:to_sym).zip(match.captures) ]
+      )
+    end
+
+    def matches_path? path
+      path.match(@path)
+    end
+
+    def path_regexp(path)
+      Regexp.new(path.gsub(/:([\w]+)/, '(?<\1>\w+)'))
     end
   end
 end

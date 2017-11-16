@@ -5,7 +5,7 @@ module Etna
     end
 
     def call(env)
-      env['rack.request.params'] = symbolize(env['rack.request.params'])
+      env['rack.request.params'] = symbolize(env['rack.request.params']) || {}
 
       @server.call(env)
     end
