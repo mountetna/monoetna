@@ -29,7 +29,13 @@ module Etna
     def update_params request
       match = @path.match(request.path)
       request.env['rack.request.params'].update(
-        Hash[ match.names.map(&:to_sym).zip(match.captures) ]
+        Hash[
+          match.names.map(&:to_sym).zip(
+            match.captures.map do |capture|
+              URI.decode(capture)
+            end
+          )
+        ]
       )
     end
 
@@ -38,7 +44,11 @@ module Etna
     end
 
     def path_regexp(path)
-      Regexp.new(path.gsub(/:([\w]+)/, '(?<\1>\w+)'))
+      Regexp.new(
+        path
+          .gsub(/:([\w]+)/, '(?<\1>\w+)')
+          .gsub(/\*([\w]+)$/, '(?<\1>.*)')
+      )
     end
   end
 end

@@ -77,5 +77,18 @@ describe Etna::Server do
       expect(last_response.status).to eq(200)
       expect(last_response.body).to eq('25-octagon')
     end
+
+    it 'allows route globbing with slashes' do
+      description = 'A tapestry/weave of the Olympians.'
+      Arachne::Server.get('/silk/*description') do
+        [ 200, {}, @params[:description] ]
+      end
+      @app = setup_app(Arachne::Server.new(test: {}))
+
+      get URI.encode("/silk/#{description}")
+
+      expect(last_response.status).to eq(200)
+      expect(last_response.body).to eq(description)
+    end
   end
 end
