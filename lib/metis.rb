@@ -2,43 +2,10 @@
 
 # This class handles the http request and routing
 class Metis
-
-  def initialize()
-
-    @routes = {}
-    @request = {}
-
-    # Log file details
-    path = ::File.dirname(::File.expand_path(__FILE__))
-    log_file = ::File.join(path,'..','log','app.log')
-    @app_logger = ::Logger.new(log_file, 5, 1048576)
-    @app_logger.level = Logger::WARN
-  end
-
-  def call(env)
-
-    # Parse the request
-    @request = Rack::Request.new(env)
-    route = @routes[[@request.request_method, @request.path]]
-
-    if route
-
-      begin
-
-        Rack::Response.new(call_action_for(route))
-      rescue BasicError=> err
-
-        Rack::Response.new(send_err(err).to_json)
-      end
-    else
-
-      Rack::Response.new('File not found.', 404)
-    end
-  end
+  include Etna::Application
 
   # Routes are added in the './routes.rb' file
   def add_route(method, path, handler)
-
     @routes[[method, path]] = handler
   end
 

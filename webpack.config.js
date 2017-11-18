@@ -12,11 +12,11 @@ module.exports = {
 
   'entry': {
 
-    'metis-main': '/var/www/metis/client/js/metis-uploader-controller.js'
+    'metis-main': './lib/client/js/metis-uploader-controller.js'
   },
   'output': {
 
-    'path': '/var/www/metis/client/js',
+    'path': './lib/client/js',
     'filename': '[name].bundle.js'
   }
 }
