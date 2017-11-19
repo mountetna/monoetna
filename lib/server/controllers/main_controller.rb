@@ -1,7 +1,5 @@
-class MainController < BasicController
-
+class MainController < Metis::Controller
   def run()
-
     set_user()
     raise_err(:BAD_REQ, 3, __method__) if !@user.valid?()
 
