@@ -2,31 +2,31 @@
 module Etna
   class Server
     class << self
-      def route(path, method = nil, action = nil, &block)
+      def route(path, method, options={}, &block)
         @routes ||= []
 
         @routes << Etna::Route.new(
           path,
           method,
-          action,
+          options,
           &block
         )
       end
 
-      def get(path, action = nil, &block)
-        route(path, 'GET', action, &block)
+      def get(path, options={}, &block)
+        route(path, 'GET', options, &block)
       end
       
-      def post(path, action = nil, &block)
-        route(path, 'POST', action, &block)
+      def post(path, options={}, &block)
+        route(path, 'POST', options, &block)
       end
 
-      def put(path, action = nil, &block)
-        route(path, 'PUT', action, &block)
+      def put(path, options={}, &block)
+        route(path, 'PUT', options, &block)
       end
 
-      def delete(path, action = nil, &block)
-        route(path, 'DELETE', action, &block)
+      def delete(path, options={}, &block)
+        route(path, 'DELETE', options, &block)
       end
 
       attr_reader :routes

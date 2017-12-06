@@ -1,10 +1,15 @@
 module Etna
   class Route
-    def initialize(path, method, action, &block)
+    attr_reader :name
+
+    def initialize(path, method, options={}, &block)
+      action = nil
+      path, action = path.first if path.is_a?(Hash)
       @path = path_regexp(path)
       @method = method
       @action = action
       @block = block
+      @name = options[:as]
     end
 
     def matches? request
@@ -13,6 +18,7 @@ module Etna
 
     def call(app, request)
       update_params(request)
+
       if @action
         controller, action = @action.split('#')
         controller_class = Kernel.const_get(

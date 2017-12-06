@@ -90,5 +90,11 @@ describe Etna::Server do
       expect(last_response.status).to eq(200)
       expect(last_response.body).to eq(description)
     end
+
+    it 'sets route names' do
+      Arachne::Server.get('/silk/:name', as: :silk_road)
+
+      expect(Arachne::Server.routes.first.name).to eq(:silk_road)
+    end
   end
 end
