@@ -2,14 +2,16 @@ module Etna
   class Route
     attr_reader :name
 
-    def initialize(path, method, options={}, &block)
-      action = nil
-      path, action = path.first if path.is_a?(Hash)
-      @path = path_regexp(path)
+    def initialize(method, options, &block)
       @method = method
-      @action = action
-      @block = block
-      @name = options[:as]
+      if options.is_a?(Hash)
+        path, @action = options.first
+        @path = path_regexp(path)
+        @name = options[:as]
+      else
+        @path = path_regexp(options)
+        @block = block
+      end
     end
 
     def matches? request

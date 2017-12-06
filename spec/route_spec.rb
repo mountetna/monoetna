@@ -22,7 +22,7 @@ describe Etna::Server do
 
   context 'routing' do
     it 'should allow route definitions with blocks' do
-      Arachne::Server.route('/silk', 'GET') do
+      Arachne::Server.route('GET', '/silk') do
         [ 200, {}, 'ok' ]
       end
       @app = setup_app(Arachne::Server.new(test: {}))
@@ -34,7 +34,7 @@ describe Etna::Server do
     end
 
     it 'should allow route definitions with actions' do
-      Arachne::Server.route('/silk', 'GET', 'web#silk')
+      Arachne::Server.route('GET', '/silk' => 'web#silk')
       @app = setup_app(Arachne::Server.new(test: {}))
 
       get '/silk'
@@ -92,7 +92,7 @@ describe Etna::Server do
     end
 
     it 'sets route names' do
-      Arachne::Server.get('/silk/:name', as: :silk_road)
+      Arachne::Server.get('/silk/:name' => 'web#silk', as: :silk_road)
 
       expect(Arachne::Server.routes.first.name).to eq(:silk_road)
     end
