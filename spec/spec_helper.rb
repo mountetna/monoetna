@@ -7,7 +7,7 @@ require 'rack/test'
 require 'extlib'
 require 'bundler'
 
-Bundler.setup(:default)
+Bundler.setup(:default, :test)
 
 SimpleCov.start
 

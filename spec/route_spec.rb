@@ -34,7 +34,7 @@ describe Etna::Server do
     end
 
     it 'should allow route definitions with actions' do
-      Arachne::Server.route('GET', '/silk' => 'web#silk')
+      Arachne::Server.route('GET', '/silk', action: 'web#silk')
       @app = setup_app(Arachne::Server.new(test: {}))
 
       get '/silk'
@@ -66,6 +66,15 @@ describe Etna::Server do
       expect(last_response.body).to eq('delete')
     end
 
+    it 'matches routes without an initial /' do
+      Arachne::Server.get('weaver/:name') { [ 200, {}, @params[:name] ] }
+      @app = setup_app(Arachne::Server.new(test: {}))
+
+      get '/weaver/Arachne'
+
+      expect(last_response.body).to eq('Arachne')
+    end
+
     it 'parses route parameters' do
       Arachne::Server.get('/silk/:thread_weight/:shape') do
         [ 200, {}, "#{@params[:thread_weight]}-#{@params[:shape]}" ]
@@ -92,9 +101,20 @@ describe Etna::Server do
     end
 
     it 'sets route names' do
-      Arachne::Server.get('/silk/:name' => 'web#silk', as: :silk_road)
+      Arachne::Server.get('/silk/:name', as: :silk_road)
 
       expect(Arachne::Server.routes.first.name).to eq(:silk_road)
+    end
+
+    it 'looks up route names' do
+      Arachne::Server.get('/silk/:query', as: :silk) do
+        [ 200, {}, route_path(:silk, @params) ]
+      end
+      @app = setup_app(Arachne::Server.new(test: {}))
+
+      get('/silk/tree')
+      expect(last_response.status).to eq(200)
+      expect(last_response.body).to eq('http://example.org/silk/tree')
     end
   end
 end

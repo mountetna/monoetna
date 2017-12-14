@@ -7,3 +7,6 @@ gem 'rspec'
 gem 'extlib'
 gem 'simplecov'
 gem 'rack-test', require: "rack/test"
+group :test do
+  gem 'pry'
+end

@@ -7,7 +7,7 @@ describe Etna::ParseBody do
     class Arachne
       include Etna::Application
       class Server < Etna::Server
-        post '/silk' => 'web#silk'
+        post '/silk', action: 'web#silk'
       end
     end
     class WebController < Etna::Controller

@@ -6,7 +6,8 @@ module Etna
       @response = Rack::Response.new
       @params = @request.env['rack.request.params']
       @errors = []
-      @logger = @request.env['rack.logger']
+      @server = @request.env['etna.server']
+      @logger = @request.env['etna.logger']
     end
 
     def log(line)
@@ -21,6 +22,18 @@ module Etna
       return failure(e.status, error: e.message)
     end
 
+    def route_path(name, params={})
+      route = @server.class.routes.find do |route|
+        route.name.to_s == name.to_s
+      end
+      return nil if route.nil?
+      path = route.path
+        .gsub(/:([\w]+)/) { params[$1.to_sym] }
+        .gsub(/\*([\w]+)$/) { params[$1.to_sym] }
+      @request.scheme + '://' + @request.host + path
+    end
+
+    # methods for returning a view
     VIEW_PATH = :VIEW_PATH
 
     def view(name)

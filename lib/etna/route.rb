@@ -1,20 +1,16 @@
 module Etna
   class Route
-    attr_reader :name
+    attr_reader :name, :path
 
-    def initialize(method, options, &block)
+    def initialize(method, path, options, &block)
       @method = method
-      if options.is_a?(Hash)
-        path, @action = options.first
-        @path = path_regexp(path)
-        @name = options[:as]
-      else
-        @path = path_regexp(options)
-        @block = block
-      end
+      @action = options[:action]
+      @name = options[:as]
+      @path = path.gsub(/\A(?=[^\/])/, '/')
+      @block = block
     end
 
-    def matches? request
+    def matches?(request)
       matches_path?(request.path) && @method == request.request_method
     end
 
@@ -26,16 +22,16 @@ module Etna
         controller_class = Kernel.const_get(
           :"#{controller.camel_case}Controller"
         )
-        logger = request.env['rack.logger']
+        logger = request.env['etna.logger']
         logger.warn("Calling #{controller}##{action}")
         return controller_class.new(request, action).response
       elsif @block
-        return app.instance_eval(&@block)
+        Etna::Controller.new(request).instance_eval(&@block)
       end
     end
 
-    def update_params request
-      match = @path.match(request.path)
+    def update_params(request)
+      match = path_regexp.match(request.path)
       request.env['rack.request.params'].update(
         Hash[
           match.names.map(&:to_sym).zip(
@@ -47,15 +43,17 @@ module Etna
       )
     end
 
-    def matches_path? path
-      path.match(@path)
+    def matches_path?(path)
+      path.match(path_regexp)
     end
 
-    def path_regexp(path)
+    def path_regexp
       Regexp.new(
-        path
+        '\A' +
+        @path
           .gsub(/:([\w]+)/, '(?<\1>\w+)')
-          .gsub(/\*([\w]+)$/, '(?<\1>.*)')
+          .gsub(/\*([\w]+)$/, '(?<\1>.*)') +
+        '\z'
       )
     end
   end
