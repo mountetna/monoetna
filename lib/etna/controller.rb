@@ -8,6 +8,7 @@ module Etna
       @errors = []
       @server = @request.env['etna.server']
       @logger = @request.env['etna.logger']
+      @user = @request.env['etna.user']
     end
 
     def log(line)

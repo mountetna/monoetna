@@ -1,8 +1,6 @@
 require 'yaml'
 require 'logger'
 require 'simplecov'
-require 'factory_girl'
-require 'database_cleaner'
 require 'rack/test'
 require 'extlib'
 require 'bundler'
@@ -15,10 +13,11 @@ ENV['ARACHNE_ENV'] = 'test'
 
 require_relative '../lib/etna'
 
-def setup_app server
+def setup_app server, layers=[]
   Rack::Builder.new do
     use Etna::ParseBody
     use Etna::SymbolizeParams
+    layers.each { |layer| use layer }
     run server
   end
 end
