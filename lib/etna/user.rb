@@ -10,7 +10,7 @@ module Etna
           projects.split(/\,/).map do |p|
             [ p, role ]
           end
-        end.inject(&:+)
+        end.inject([], &:+)
       ]
     end
 

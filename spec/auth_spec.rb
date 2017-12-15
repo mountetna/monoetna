@@ -21,7 +21,7 @@ describe Etna::Auth do
 
     Arachne::Server.get('/test') do
       user = @user
-      [ 200, {}, '' ]
+      [ 200, {}, [] ]
     end
 
     rsa_key = OpenSSL::PKey::RSA.new(@private_key)
@@ -54,7 +54,7 @@ describe Etna::Auth do
     end
 
     it "fails with an invalid token" do
-      Arachne::Server.get('/test') { [ 200, {}, '' ] }
+      Arachne::Server.get('/test') { [ 200, {}, [] ] }
 
       # The app is initialized with non-matching public and
       # private keys - we are using the same app for signing
@@ -92,7 +92,7 @@ describe Etna::Auth do
 
     it "redirects with an invalid token and an auth_redirect url" do
       # This exercise is the same as above
-      Arachne::Server.get('/test') { [ 200, {}, '' ] }
+      Arachne::Server.get('/test') { [ 200, {}, [] ] }
 
       # We initialize this app, this time with a auth_redirect
       @app = setup_app(

@@ -8,13 +8,13 @@ module Etna
     end
 
     def fail_or_redirect(msg)
-      return [401,{},msg] unless application.config(:auth_redirect)
+      return [ 401,{},[msg] ] unless application.config(:auth_redirect)
 
       uri = URI(
         application.config(:auth_redirect).chomp('/') + '/login'
       )
       uri.query = URI.encode_www_form(refer: @request.url)
-      return [ 302, { 'Location' => uri.to_s }, '' ]
+      return [ 302, { 'Location' => uri.to_s }, [] ]
     end
 
     def application
@@ -41,8 +41,8 @@ module Etna
         return fail_or_redirect('Token signature is expired')
       rescue JWT::VerificationError
         return fail_or_redirect('Token verification failed.')
-      rescue ArgumentError
-        return fail_or_redirect('No email id set in token.')
+      rescue ArgumentError => e
+        return fail_or_redirect(e.message)
       end
 
       @app.call(env)

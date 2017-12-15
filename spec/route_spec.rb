@@ -23,7 +23,7 @@ describe Etna::Server do
   context 'routing' do
     it 'should allow route definitions with blocks' do
       Arachne::Server.route('GET', '/silk') do
-        [ 200, {}, 'ok' ]
+        [ 200, {}, [ 'ok' ] ]
       end
       @app = setup_app(Arachne::Server.new(test: {}))
 
@@ -43,10 +43,10 @@ describe Etna::Server do
     end
 
     it 'supports various method verbs' do
-      Arachne::Server.get('/silk') { [ 200, {}, 'get' ] }
-      Arachne::Server.post('/silk') { [ 200, {}, 'post' ] }
-      Arachne::Server.put('/silk') { [ 200, {}, 'put' ] }
-      Arachne::Server.delete('/silk') { [ 200, {}, 'delete' ] }
+      Arachne::Server.get('/silk') { [ 200, {}, [ 'get' ] ] }
+      Arachne::Server.post('/silk') { [ 200, {}, [ 'post' ] ] }
+      Arachne::Server.put('/silk') { [ 200, {}, [ 'put' ] ] }
+      Arachne::Server.delete('/silk') { [ 200, {}, [ 'delete' ] ] }
       @app = setup_app(Arachne::Server.new(test: {}))
 
       get '/silk'
@@ -67,7 +67,7 @@ describe Etna::Server do
     end
 
     it 'matches routes without an initial /' do
-      Arachne::Server.get('weaver/:name') { [ 200, {}, @params[:name] ] }
+      Arachne::Server.get('weaver/:name') { [ 200, {}, [ @params[:name] ] ] }
       @app = setup_app(Arachne::Server.new(test: {}))
 
       get '/weaver/Arachne'
@@ -77,7 +77,7 @@ describe Etna::Server do
 
     it 'parses route parameters' do
       Arachne::Server.get('/silk/:thread_weight/:shape') do
-        [ 200, {}, "#{@params[:thread_weight]}-#{@params[:shape]}" ]
+        [ 200, {}, [ "#{@params[:thread_weight]}-#{@params[:shape]}" ] ]
       end
       @app = setup_app(Arachne::Server.new(test: {}))
 
@@ -90,7 +90,7 @@ describe Etna::Server do
     it 'allows route globbing with slashes' do
       description = 'A tapestry/weave of the Olympians.'
       Arachne::Server.get('/silk/*description') do
-        [ 200, {}, @params[:description] ]
+        [ 200, {}, [ @params[:description] ] ]
       end
       @app = setup_app(Arachne::Server.new(test: {}))
 
@@ -108,7 +108,7 @@ describe Etna::Server do
 
     it 'looks up route names' do
       Arachne::Server.get('/silk/:query', as: :silk) do
-        [ 200, {}, route_path(:silk, @params) ]
+        [ 200, {}, [ route_path(:silk, @params) ] ]
       end
       @app = setup_app(Arachne::Server.new(test: {}))
 
