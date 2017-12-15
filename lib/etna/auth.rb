@@ -28,7 +28,7 @@ module Etna
 
       return fail_or_redirect('Authorization header missing') unless auth
 
-      token = auth.match(/\ABasic (?<token>.*)\z/)[:token]
+      token = auth[/\ABasic (.*)\z/,1]
 
       return fail_or_redirect('Authorization header malformed') unless token
 

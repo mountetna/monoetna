@@ -53,6 +53,10 @@ module Etna
 
     private
 
+    def auth_token
+      (@request.env['HTTP_AUTHORIZATION'] || '')[ /\ABasic (.*)\z/, 1 ]
+    end
+
     def success(content_type, msg)
       @response['Content-Type'] = content_type
       @response.write(msg)
