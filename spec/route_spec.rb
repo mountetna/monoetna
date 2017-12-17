@@ -10,7 +10,7 @@ describe Etna::Server do
     end
     class WebController < Etna::Controller
       def silk
-        success('text/html', 'ok')
+        success('ok')
       end
     end
   end
@@ -66,13 +66,24 @@ describe Etna::Server do
       expect(last_response.body).to eq('delete')
     end
 
-    it 'matches routes without an initial /' do
-      Arachne::Server.get('weaver/:name') { [ 200, {}, [ @params[:name] ] ] }
+    it 'matches routes regardless of initial or final /' do
+      Arachne::Server.get('weaver/:name') { success(@params[:name]) }
+      Arachne::Server.get('/tapestry/:name') { success(@params[:name]) }
+      Arachne::Server.get('textile/:name/') { success(@params[:name]) }
       @app = setup_app(Arachne::Server.new(test: {}))
 
       get '/weaver/Arachne'
-
       expect(last_response.body).to eq('Arachne')
+      get 'weaver/Arachne'
+      expect(last_response.body).to eq('Arachne')
+      get '/tapestry/fable-of-the-gods'
+      expect(last_response.body).to eq('fable-of-the-gods')
+      get 'tapestry/fable-of-the-gods/'
+      expect(last_response.body).to eq('fable-of-the-gods')
+      get 'textile/silk/'
+      expect(last_response.body).to eq('silk')
+      get '/textile/silk'
+      expect(last_response.body).to eq('silk')
     end
 
     it 'parses route parameters' do

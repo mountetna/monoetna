@@ -12,7 +12,7 @@ describe Etna::ParseBody do
     end
     class WebController < Etna::Controller
       def silk
-        success('text/html', @params[:image])
+        success(@params[:image])
       end
     end
     @app = setup_app(Arachne::Server.new(test: {}))

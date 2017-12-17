@@ -28,10 +28,7 @@ module Etna
         route.name.to_s == name.to_s
       end
       return nil if route.nil?
-      path = route.path
-        .gsub(/:([\w]+)/) { params[$1.to_sym] }
-        .gsub(/\*([\w]+)$/) { params[$1.to_sym] }
-      @request.scheme + '://' + @request.host + path
+      @request.scheme + '://' + @request.host + route.path(params)
     end
 
     # methods for returning a view
@@ -57,7 +54,7 @@ module Etna
       (@request.env['HTTP_AUTHORIZATION'] || '')[ /\ABasic (.*)\z/, 1 ]
     end
 
-    def success(content_type, msg)
+    def success(msg, content_type='text/plain')
       @response['Content-Type'] = content_type
       @response.write(msg)
       @response.finish
