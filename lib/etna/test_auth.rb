@@ -5,6 +5,11 @@ require_relative 'user'
 # permissions for this user directly in the Authorization header
 module Etna
   class TestAuth
+    def self.header(params)
+      token = Base64.strict_encode64(params.to_json)
+      return [ 'Authorization', "Basic #{token}" ]
+    end
+
     def initialize(app)
       @app = app
     end

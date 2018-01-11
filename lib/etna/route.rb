@@ -5,7 +5,8 @@ module Etna
     def initialize(method, route, options, &block)
       @method = method
       @action = options[:action]
-      @name = options[:as]
+      @auth = options[:auth]
+      @name = route_name(options)
       @route = route.gsub(/\A(?=[^\/])/, '/')
       @block = block
     end
@@ -23,6 +24,10 @@ module Etna
     def call(app, request)
       update_params(request)
 
+      unless authorized?(request)
+        return [ 401, {}, ['You are unauthorized'] ]
+      end
+
       if @action
         controller, action = @action.split('#')
         controller_class = Kernel.const_get(
@@ -32,11 +37,38 @@ module Etna
         logger.warn("Calling #{controller}##{action}")
         return controller_class.new(request, action).response
       elsif @block
-        Etna::Controller.new(request).instance_eval(&@block)
+        application = Etna::Application.find(app.class).class
+        controller_class = application.const_defined?(:Controller) ? application.const_get(:Controller) : Etna::Controller
+
+        controller_class.new(request).instance_eval(&@block)
       end
     end
 
     private
+
+    def authorized?(request)
+      # If there is no @auth requirement, they are ok - this doesn't preclude
+      # them being rejected in the controller response
+      return true unless @auth
+
+      # if there is an auth requirement, there must be a user
+      user = request.env['etna.user']
+      param, auth = @auth
+      params = request.env['rack.request.params']
+      auth = [ auth ].flatten
+      return user && auth.all? { |constraint| user.respond_to?(constraint) && user.send(constraint, params[param]) }
+    end
+
+    def route_name(options)
+      # use the given one if you can
+      return options[:as] if options[:as]
+
+      # otherwise formulate it from the action if possible
+      return options[:action].sub(/#/,'_').to_sym if options[:action]
+
+      # unnamed route
+      return nil
+    end
 
     def update_params(request)
       match = route_regexp.match(request.path)

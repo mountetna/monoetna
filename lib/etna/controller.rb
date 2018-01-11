@@ -19,7 +19,7 @@ module Etna
       return send(@action) if @action 
 
       [501, {}, ['This controller is not implemented.']]
-    rescue Etna::BadRequest, Etna::ServerError=> e
+    rescue Etna::Error => e
       return failure(e.status, error: e.message)
     end
 

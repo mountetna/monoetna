@@ -28,7 +28,7 @@ module Etna
       return roles.any? { |role_name| role.match(ROLE_MATCH[role_name]) }
     end
 
-    def is_superuser?
+    def is_superuser? project=nil
       has_roles(:administration, :admin)
     end
 

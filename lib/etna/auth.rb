@@ -1,4 +1,5 @@
 require_relative 'user'
+require_relative 'hmac'
 
 module Etna
   class Auth
@@ -7,7 +8,46 @@ module Etna
       @app = app
     end
 
-    def fail_or_redirect(msg)
+    def call(env)
+      @request = Rack::Request.new(env)
+
+      # There are two ways to authenticate.
+      # Either you have an hmac or you have
+      # a valid token. Both of these will
+      # not validate individual permissions;
+      # this is up to the controller
+      return fail_or_redirect unless create_user || approve_hmac
+
+      @app.call(env)
+    end
+
+    private
+
+    def approve_hmac
+      false
+    end
+
+    def auth(type)
+      (@request.env['HTTP_AUTHORIZATION'] || '')[/\A#{type.capitalize} (.*)\z/,1]
+    end
+
+    def create_user
+      token = auth(:basic)
+      return false unless token
+
+      begin
+        payload, header = application.sign.jwt_decode(token)
+        @request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h)
+      rescue JWT::ExpiredSignature
+        return false
+      rescue JWT::VerificationError
+        return false
+      rescue ArgumentError => e
+        return false
+      end
+    end
+
+    def fail_or_redirect(msg = 'You are unauthorized')
       return [ 401,{},[msg] ] unless application.config(:auth_redirect)
 
       uri = URI(
@@ -21,31 +61,17 @@ module Etna
       @application ||= Etna::Application.find(@app.class)
     end
 
-    def call(env)
-      @request = Rack::Request.new(env)
+    # Names and order of the fields to be signed.
+    def approve_hmac
+      hmac_header = auth(:hmac)
+      return false unless hmac_header
 
-      auth = env['HTTP_AUTHORIZATION']
+      hmac, signature = Etna::Hmac.from_request(
+        @request,
+        application.sign
+      )
 
-      return fail_or_redirect('Authorization header missing') unless auth
-
-      token = auth[/\ABasic (.*)\z/,1]
-
-      return fail_or_redirect('Authorization header malformed') unless token
-
-      application = Etna::Application.find(@app.class)
-
-      begin
-        payload, header = application.sign.jwt_decode(token)
-        env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h)
-      rescue JWT::ExpiredSignature
-        return fail_or_redirect('Token signature is expired')
-      rescue JWT::VerificationError
-        return fail_or_redirect('Token verification failed.')
-      rescue ArgumentError => e
-        return fail_or_redirect(e.message)
-      end
-
-      @app.call(env)
+      return false unless hmac.valid_signature?(signature)
     end
   end
 end

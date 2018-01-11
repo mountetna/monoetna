@@ -14,6 +14,14 @@ module Etna
       )
     end
 
+    def hmac(message)
+      OpenSSL::HMAC.hexdigest(
+        'SHA256',
+        @application.config(:hmac_key),
+        message
+      )
+    end
+
     def jwt_token(payload)
       return JWT.encode(
         payload,
