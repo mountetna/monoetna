@@ -10,6 +10,7 @@ module Etna
 
     def call(env)
       @request = Rack::Request.new(env)
+      @params = @request.env['rack.request.params']
 
       # There are two ways to authenticate.
       # Either you have an hmac or you have
@@ -23,12 +24,9 @@ module Etna
 
     private
 
-    def approve_hmac
-      false
-    end
-
     def auth(type)
-      (@request.env['HTTP_AUTHORIZATION'] || '')[/\A#{type.capitalize} (.*)\z/,1]
+      hmac_param(:authorization,nil)
+      (@request.env['HTTP_AUTHORIZATION'] || hmac_param(:authorization) || '')[/\A#{type.capitalize} (.*)\z/,1]
     end
 
     def create_user
@@ -37,7 +35,7 @@ module Etna
 
       begin
         payload, header = application.sign.jwt_decode(token)
-        @request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h)
+        return @request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h)
       rescue JWT::ExpiredSignature
         return false
       rescue JWT::VerificationError
@@ -47,6 +45,51 @@ module Etna
       end
     end
 
+    def hmac_param(item, fill='X_ETNA_')
+      # This comes either from header variable
+      # HTTP_X_SOME_NAME or parameter X-Etna-Some-Name
+
+      @request.env["HTTP_#{fill}#{item.upcase}"] || @params[:"X-Etna-#{item.to_s.split(/_/).map(&:capitalize).join('-')}"]
+    end
+
+    # Names and order of the fields to be signed.
+    def approve_hmac
+      hmac_signature = auth(:hmac)
+
+      return false unless hmac_signature
+
+      return false unless headers = hmac_param(:headers)
+
+      headers = headers.split(/,/).map do |header|
+        [ header.to_sym, hmac_param(header) ]
+      end.to_h
+
+      # Now expect the standard headers
+      params = {
+        method: @request.request_method,
+        host: @request.host,
+        path: @request.path,
+
+        timestamp: hmac_param(:timestamp),
+        id: hmac_param(:id),
+        nonce: hmac_param(:nonce),
+        headers: headers
+      }
+
+      hmac = Etna::Hmac.new(
+        application.sign,
+        params
+      )
+
+      return false unless hmac && hmac.valid_signature?(hmac_signature)
+
+      # success! set the hmac header params as regular params
+      @params.update(headers)
+
+      return @request.env['etna.hmac'] = true
+    end
+
+    # If the application asks for a redirect for unauthorized users
     def fail_or_redirect(msg = 'You are unauthorized')
       return [ 401,{},[msg] ] unless application.config(:auth_redirect)
 
@@ -59,19 +102,6 @@ module Etna
 
     def application
       @application ||= Etna::Application.find(@app.class)
-    end
-
-    # Names and order of the fields to be signed.
-    def approve_hmac
-      hmac_header = auth(:hmac)
-      return false unless hmac_header
-
-      hmac, signature = Etna::Hmac.from_request(
-        @request,
-        application.sign
-      )
-
-      return false unless hmac.valid_signature?(signature)
     end
   end
 end

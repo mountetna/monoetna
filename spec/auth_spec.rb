@@ -1,50 +1,36 @@
 require_relative '../lib/etna/auth'
-require_relative '../lib/etna/test_auth'
 require 'securerandom'
-
-describe Etna::TestAuth do
-  include Rack::Test::Methods
-  attr_reader :app
-
-  before(:each) do
-    class Arachne
-      include Etna::Application
-      class Server < Etna::Server; end
-    end
-  end
-
-  after(:each) do
-    Object.send(:remove_const, :Arachne)
-  end
-
-  it "creates a user without requiring validation" do
-    # This exercise is the same as above
-    user = nil
-    Arachne::Server.get('/test') { user = @user; success('') }
-
-    @app = setup_app(
-      Arachne::Server.new(test: { }),
-      [ Etna::TestAuth ]
-    )
-    header(*Etna::TestAuth.header(
-      email: 'janus@two-faces.org',
-      first: 'Janus',
-      last: 'Bifrons',
-      perm: 'a:labors;e:olympics,argo;v:constellations'
-    ))
-    get('/test')
-
-    expect(last_response.status).to eq(200)
-
-    expect(user).to be_a(Etna::User)
-    expect(user.is_admin?('labors')).to be_truthy
-    expect(user.can_edit?('constellations')).to be_falsy
-  end
-end
 
 describe Etna::Auth do
   include Rack::Test::Methods
   attr_reader :app
+
+  def make_hmac(params)
+    Etna::Hmac.new(
+      Arachne.instance.sign, {
+        method: 'GET',
+        host: 'example.org',
+        id: :arachne
+      }.merge(params)
+    )
+  end
+
+  def hmac_headers(signature, fields)
+    header('Authorization', "Hmac #{signature}")
+    headers = fields.delete(:headers)
+    fields.merge(headers).each do |header_name, value|
+      header(
+        "X-Etna-#{
+          header_name.to_s
+            .split(/_/)
+            .map(&:capitalize)
+            .join('-')
+        }",
+        value
+      )
+    end
+    header('X-Etna-Headers', headers.keys.join(','))
+  end
 
   context "tokens" do
     before(:each) do
@@ -168,123 +154,135 @@ describe Etna::Auth do
     end
   end
 
-  context "hmac" do
+  context "hmac approval" do
     before(:each) do
       class Arachne
         include Etna::Application
         class Server < Etna::Server; end
       end
+
+      # A simple get route
+      Arachne::Server.get('/test') { success(@params[:project_name]) }
+
+      # Etna::Auth will check the hmac's authenticity
+      @app = setup_app( Arachne::Server.new(test: { hmac_key: SecureRandom.hex }), [ Etna::Auth ])
+      @time = DateTime.now.iso8601
+      @nonce = SecureRandom.hex
     end
 
     after(:each) do
       Object.send(:remove_const, :Arachne)
     end
 
-    it "returns an approval from an hmac" do
-      # This exercise is the same as above
-      Arachne::Server.get('/test') { success(nil) }
+    it "fails without an hmac signature" do
+      # if at first we don't succeed
+      get('/test')
+      expect(last_response.status).to eq(401)
+    end
 
-      @app = setup_app(
-        Arachne::Server.new(test: {
-          hmac_key: SecureRandom.hex
-        }), [ Etna::Auth ]
+    it "fails with a non-matching path" do
+      # This signs the path /nothing
+      input_hmac = make_hmac(
+        timestamp: @time,
+        nonce: @nonce,
+        path: '/nothing',
+        headers: { project_name: 'tapestry', action: 'weave' }
       )
 
-      time = DateTime.now.iso8601
-
-      hmac = Etna::Hmac.new(
-        Arachne.instance.sign,
-        method: 'GET',
-        host: 'example.org',
-        path: '/test',
-        timestamp: time,
-        headers: { project_name: 'tapestry', action: 'weave' },
-        id: :arachne
-      )
-
-      hmac_fields = {
-        timestamp: time,
-        headers: [:project_name, :action ].join(','),
-        nonce: SecureRandom.hex,
+      # we set the http authorization header, timestamp, etc.
+      hmac_headers( input_hmac.signature,
+        timestamp: @time,
         id: :arachne,
-        signature: '13cf35b81cee168e50ea8521099f6dc62c4fca6c7a7b6669095b2bee71d1fcd5'
-      }
+        nonce: @nonce,
+        headers: { project_name: 'tapestry', action: 'weave' }
+      )
 
-      hmac_auth = hmac_fields.map{|k,v| [k,v].join('=')}.join(';')
+      # the get fails
+      get('/test')
+      expect(last_response.status).to eq(401)
+    end
 
-      header('Authorization', "Hmac #{hmac_auth}")
-      header('X-Etna-Project-Name', 'tapestry')
-      header('X-Etna-Action', 'weave')
-      header('X-Authorization-Timestamp', time)
+    it "succeeds with hmac headers" do
+      # This signs the path /test
+      input_hmac = make_hmac(
+        timestamp: @time,
+        nonce: @nonce,
+        path: '/test',
+        headers: { project_name: 'tapestry', action: 'weave' },
+      )
 
+      # we set the http authorization header, timestamp, etc.
+      hmac_headers(
+        input_hmac.signature,
+        timestamp: @time,
+        id: :arachne,
+        nonce: @nonce,
+        headers: { project_name: 'tapestry', action: 'weave' },
+      )
+
+      # the get succeeds
       get('/test')
       expect(last_response.status).to eq(200)
+      expect(last_response.body).to eq('tapestry')
     end
-  end
-end
 
-describe Etna::Controller do
-  include Rack::Test::Methods
-  attr_reader :app
+    it "succeeds with just url params" do
+      input_hmac = make_hmac(
+        timestamp: @time,
+        nonce: @nonce,
+        path: '/test',
+        headers: { project_name: 'tapestry', action: 'weave' }
+      )
 
-  before(:each) do
-    class Arachne
-      include Etna::Application
-      class Server < Etna::Server; end
+      params = {
+        authorization: "Hmac #{input_hmac.signature}",
+        timestamp: @time,
+        nonce: @nonce,
+        id: 'arachne',
+        headers: 'project_name,action',
+        project_name: 'tapestry',
+        action: 'weave',
+        text: input_hmac.send(:text_to_sign)
+      }
+
+      url = params.map do |name, value|
+        "X-Etna-#{
+          name.to_s
+            .split(/_/)
+            .map(&:capitalize)
+            .join('-')
+        }=#{
+          CGI.escape(value)
+        }"
+      end.join('&')
+
+      # the get succeeds
+      get("/test?#{url}")
+      expect(last_response.status).to eq(200)
+      expect(last_response.body).to eq('tapestry')
     end
-  end
 
-  after(:each) do
-    Object.send(:remove_const, :Arachne)
-  end
+    it "fails with missing headers" do
+      # This signs the path /test
+      input_hmac = make_hmac(
+        timestamp: @time,
+        nonce: @nonce,
+        path: '/test',
+        headers: { project_name: 'tapestry', action: 'weave' },
+      )
 
-  it "applies an auth check" do
-    Arachne::Server.get('/test', auth: [ :project_name, :can_edit? ] ) { success('') }
+      # we set the http authorization header, timestamp, etc.
+      # but we leave out the 'project_name' header
+      hmac_headers( input_hmac.signature,
+        timestamp: @time,
+        id: :arachne,
+        nonce: @nonce,
+        headers: { action: 'weave' }
+      )
 
-    @app = setup_app(
-      Arachne::Server.new(test: { }),
-      [ Etna::TestAuth ]
-    )
-
-    header(*Etna::TestAuth.header(
-      email: 'janus@two-faces.org',
-      perm: 'e:labors'
-    ))
-    get('/test?project_name=labors')
-
-    expect(last_response.status).to eq(200)
-
-    header(*Etna::TestAuth.header(
-      email: 'janus@two-faces.org',
-      perm: 'v:labors'
-    ))
-    get('/test?project_name=labors')
-
-    expect(last_response.status).to eq(401)
-  end
-
-  it "applies multiple auth checks" do
-    Arachne::Server.get('/test', auth: [ :project_name, [ :is_superuser?, :can_see_restricted? ] ] ) { success('') }
-
-    @app = setup_app(
-      Arachne::Server.new(test: { }),
-      [ Etna::TestAuth ]
-    )
-
-    header(*Etna::TestAuth.header(
-      email: 'janus@two-faces.org',
-      perm: 'a:administration;V:labors'
-    ))
-    get('/test?project_name=labors')
-
-    expect(last_response.status).to eq(200)
-
-    header(*Etna::TestAuth.header(
-      email: 'janus@two-faces.org',
-      perm: 'v:labors'
-    ))
-    get('/test?project_name=labors')
-
-    expect(last_response.status).to eq(401)
+      # the get fails
+      get('/test')
+      expect(last_response.status).to eq(401)
+    end
   end
 end

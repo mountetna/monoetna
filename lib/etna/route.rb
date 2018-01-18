@@ -49,14 +49,28 @@ module Etna
     def authorized?(request)
       # If there is no @auth requirement, they are ok - this doesn't preclude
       # them being rejected in the controller response
-      return true unless @auth
+      !@auth || (user_authorized?(request) && hmac_authorized?(request))
+    end
 
-      # if there is an auth requirement, there must be a user
+    def user_authorized?(request)
+      # this is true if there are no user requirements
+      return true unless @auth[:user]
+
       user = request.env['etna.user']
-      param, auth = @auth
+
+      # if there is a user requirement, we must have a user
+      return false unless user
+
       params = request.env['rack.request.params']
-      auth = [ auth ].flatten
-      return user && auth.all? { |constraint| user.respond_to?(constraint) && user.send(constraint, params[param]) }
+
+      @auth[:user].all? do |constraint, param_name|
+        user.respond_to?(constraint) && user.send(constraint, params[param_name])
+      end
+    end
+
+    def hmac_authorized?(request)
+      # either there is no hmac requirement, or we have an hmac
+      !@auth[:hmac] || request.env['etna.hmac']
     end
 
     def route_name(options)

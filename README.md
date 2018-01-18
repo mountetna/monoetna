@@ -97,7 +97,23 @@ under rack.request.params - the Etna::Controller makes this available using the
 
 ### Etna::Auth
 
-If this middleware is included, it will confirm that the auth token (from an `Authorization` header) is a valid JWT verified by the key in `config(:rsa_public)`. If so, it will set 'etna.user' in the Rack environment, which will be picked up by the Etna::Controller.
+If this middleware is included, it will confirm that the auth token (from an `Authorization` header) is a valid JWT verified by the key in `config(:rsa_public)`. If so, it will set 'etna.user' in the Rack environment, which will be picked up by the Etna::Controller as @user.
+
+Alternatively, if there is no token, the request is signed by HMAC. HMAC-generated URLs are usually made by the application; there is an Etna::Hmac utility which helps you generate requirements. The result of the HMAC is access to the path with 'etna.hmac' set to `true`.
+
+While you are free to test @user in your controller (e.g., `return failure(403, 'You cannot perform this operation') unless @user.can_edit?(@params[:project_name])`), Etna::Route allows you to do these basic authentication checks via the route. E.g.:
+
+    class Arachne
+      class Server < Etna::Server
+        get '/test', auth: { user: { can_edit?: :project_name } }
+      end
+    end
+
+HMAC routes should use `auth: { hmac: true }`.
+
+### Etna::TestAuth
+
+This middleware can be included in lieu of the above to set user credentials without a properly-signed token (useful in testing environments).
 
 ### Etna::User
 
