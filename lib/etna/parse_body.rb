@@ -27,7 +27,7 @@ module Etna
         # Assume the params are url-encoded.
         env.update(
           'rack.request.params'=> Rack::Utils.parse_nested_query(
-            env['QUERY_STRING']
+            env['QUERY_STRING'], '&'
           )
         )
       end
