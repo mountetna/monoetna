@@ -40,7 +40,7 @@ module Etna
         application = Etna::Application.find(app.class).class
         controller_class = application.const_defined?(:Controller) ? application.const_get(:Controller) : Etna::Controller
 
-        controller_class.new(request).instance_eval(&@block)
+        controller_class.new(request).response(&@block)
       end
     end
 

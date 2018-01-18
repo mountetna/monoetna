@@ -15,13 +15,21 @@ module Etna
       @logger.write "#{Time.now.strftime("%d/%b/%Y %H:%M:%S")} #{line}\n"
     end
 
-    def response
+    def response(&block)
+      return instance_eval(&block) if block_given?
+
       return send(@action) if @action 
 
       [501, {}, ['This controller is not implemented.']]
     rescue Etna::Error => e
       return failure(e.status, error: e.message)
     end
+
+    def require_params(*params)
+      missing_params = params.reject{|p| @params.key?(p) }
+      raise Etna::BadRequest, "Missing param #{missing_params.join(', ')}" unless missing_params.empty?
+    end
+    alias_method :require_param, :require_params
 
     def route_path(name, params={})
       route = @server.class.routes.find do |route|
