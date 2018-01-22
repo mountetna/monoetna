@@ -1,5 +1,5 @@
 class UploadController < Metis::Controller
-  def authorize_upload
+  def authorize
     # Check that the correct parameters are present.
     raise Etna::BadRequest, "Missing auth params" unless has_auth_params?(@params)
 
@@ -12,7 +12,6 @@ class UploadController < Metis::Controller
 
     # Check that the file does not exist on disk or in the db.
     raise Etna::BadRequest, "File already exists" if file_exists? || partial_exists?
-
     raise Etna::BadRequest, "DB Metadata exists" if db_metadata_exists?
 
     add_extra_auth_params
@@ -38,6 +37,7 @@ class UploadController < Metis::Controller
     #raise Etna::ServerError, "Missing project directory" unless directory_exists?
 
     # Check that the file does not exist on disk or in the db.
+    binding.pry
     raise Etna::BadRequest, "Resource exists"  if file_exists? || partial_exists?
     raise Etna::BadRequest, "Metadata exists" if db_metadata_exists?
 
@@ -302,22 +302,6 @@ class UploadController < Metis::Controller
     @params['start_timestamp'] = Time::now.to_i
     @params['token'] = @user.token
     @params['user_email'] = @user.email
-  end
-
-  def hmac_params_valid?
-    params_valid = true
-    Conf::SIGNATURE_ITEMS.each do |item|
-
-      if !@params.key?(item) then params_valid = false end
-    end
-    return params_valid
-  end
-
-  def hmac_valid?
-    if !@params.key?('hmac_signature') then return false end
-    if !hmac_params_valid? then return false end
-    if @params['hmac_signature'] != generate_hmac then return false end
-    return true
   end
 
   # Generate the HMAC.

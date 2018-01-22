@@ -1,14 +1,24 @@
 require 'yaml'
 require 'logger'
-require 'factory_bot'
-require 'database_cleaner'
 require 'rack/test'
 require 'simplecov'
 SimpleCov.start
+require 'bundler'
+Bundler.require(:default)
 
 ENV['METIS_ENV'] = 'test'
 
-OUTER_APP = Rack::Builder.parse_file("config.ru").first                                                                                                                                       
+require_relative '../lib/metis'
+require_relative '../lib/server'
+
+OUTER_APP = Rack::Builder.new do
+  use Rack::Static, urls: ['/css', '/js', '/fonts', '/img'], root: 'lib/client'
+  use Etna::ParseBody
+  use Etna::SymbolizeParams
+
+  use Etna::TestAuth
+  run Metis::Server.new(YAML.load(File.read("config.yml")))
+end
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
@@ -45,6 +55,7 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     FactoryBot.find_definitions
+
     DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
@@ -57,7 +68,7 @@ RSpec.configure do |config|
 end
 
 FactoryBot.define do
-  factory :file do
+  factory :file, class: Metis::File do
     to_create(&:save)
   end
 end

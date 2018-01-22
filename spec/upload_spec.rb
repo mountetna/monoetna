@@ -5,6 +5,20 @@ describe "UploadController" do
     OUTER_APP
   end
 
+  context "#authorize" do
+    it "should authorize an upload" do
+      params = {
+        file_name: 'wisdom.txt',
+        project_name: 'athena',
+        user_email: 'metis@ucsf.edu'
+      }
+
+      json_post('upload/authorize', params)
+
+      expect(last_response.body).to eq(signature)
+    end
+  end
+
   context "#start" do
     it "should start an upload" do
       json_post('upload/start', { })

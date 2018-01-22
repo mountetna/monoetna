@@ -1,7 +1,5 @@
 require 'digest'
 
-require './server/conf'
-require './server/utils'
 
 describe 'Integration' do
   

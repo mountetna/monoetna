@@ -20,6 +20,11 @@ class Metis
     require_relative 'models'
   end
 
+  def project_dir(project)
+    partition = config(:projects)[project][:partition].to_sym
+    config(:partitions)[partition]
+  end
+
   # Routes are added in the './routes.rb' file
   def add_route(method, path, handler)
     @routes[[method, path]] = handler

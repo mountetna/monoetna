@@ -41,7 +41,7 @@ class Metis
         Sequel::Migrator.run(db, 'db/migrations', target: version.to_i)
       else
         puts 'Migrating to latest'
-        Sequel::Migrator.run(db, 'db/migrations', target: version.to_i)
+        Sequel::Migrator.run(db, 'db/migrations')
       end
     end
 
