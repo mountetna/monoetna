@@ -1,13 +1,17 @@
 module Etna
   class Hmac
-    def initialize signer, params
-      @signer = signer
+    def initialize application, params
+      @application = application
 
       # These are the items that need to be signed
-      [ :method, :host, :path, :timestamp, :nonce, :id, :headers ].each do |item|
+      [ :method, :host, :path, :expiration, :nonce, :id, :headers ].each do |item|
         raise ArgumentError, "Hmac requires param #{item}" unless params[item]
         instance_variable_set("@#{item}", params[item])
       end
+
+      @id = @id.to_sym
+
+      raise ArgumentError, "Invalid id #{@id}" unless @application.config(:hmac_keys).key?(@id)
 
       raise ArgumentError, "Headers must be a Hash" unless @headers.is_a?(Hash)
     end
@@ -17,11 +21,11 @@ module Etna
     end
 
     def valid_signature? test_signature
-      signature == test_signature
+      signature == test_signature && DateTime.parse(@expiration) >= DateTime.now
     end
 
     def signature
-      @signer.hmac(text_to_sign)
+      @application.sign.hmac(text_to_sign, @application.config(:hmac_keys)[@id])
     end
 
     private
@@ -42,7 +46,7 @@ module Etna
         @nonce,
         @id,
         @headers.map{|l| l.join('=')}.join(';'),
-        @timestamp,
+        @expiration,
       ].join("\n")
     end
   end

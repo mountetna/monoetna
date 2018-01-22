@@ -70,18 +70,22 @@ module Etna
         host: @request.host,
         path: @request.path,
 
-        timestamp: hmac_param(:timestamp),
+        expiration: hmac_param(:expiration),
         id: hmac_param(:id),
         nonce: hmac_param(:nonce),
         headers: headers
       }
 
-      hmac = Etna::Hmac.new(
-        application.sign,
-        params
-      )
+      begin
+        hmac = Etna::Hmac.new(
+          application,
+          params
+        )
+      rescue Exception => e
+        return false
+      end
 
-      return false unless hmac && hmac.valid_signature?(hmac_signature)
+      return false unless hmac.valid_signature?(hmac_signature)
 
       # success! set the hmac header params as regular params
       @params.update(headers)

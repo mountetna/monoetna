@@ -1,5 +1,6 @@
 require_relative '../lib/etna/auth'
 require 'securerandom'
+require 'timecop'
 
 describe Etna::Auth do
   include Rack::Test::Methods
@@ -7,7 +8,7 @@ describe Etna::Auth do
 
   def make_hmac(params)
     Etna::Hmac.new(
-      Arachne.instance.sign, {
+      Arachne.instance, {
         method: 'GET',
         host: 'example.org',
         id: :arachne
@@ -164,57 +165,36 @@ describe Etna::Auth do
       # A simple get route
       Arachne::Server.get('/test') { success(@params[:project_name]) }
 
+      # we set a key for the given id
+      config = { hmac_keys: { arachne: SecureRandom.hex, athena: SecureRandom.hex  } }
+
       # Etna::Auth will check the hmac's authenticity
-      @app = setup_app( Arachne::Server.new(test: { hmac_key: SecureRandom.hex }), [ Etna::Auth ])
+      @app = setup_app( Arachne::Server.new(test: config), [ Etna::Auth ])
+
+      Timecop.freeze(DateTime.now)
+
       @time = DateTime.now.iso8601
       @nonce = SecureRandom.hex
     end
 
     after(:each) do
       Object.send(:remove_const, :Arachne)
-    end
-
-    it "fails without an hmac signature" do
-      # if at first we don't succeed
-      get('/test')
-      expect(last_response.status).to eq(401)
-    end
-
-    it "fails with a non-matching path" do
-      # This signs the path /nothing
-      input_hmac = make_hmac(
-        timestamp: @time,
-        nonce: @nonce,
-        path: '/nothing',
-        headers: { project_name: 'tapestry', action: 'weave' }
-      )
-
-      # we set the http authorization header, timestamp, etc.
-      hmac_headers( input_hmac.signature,
-        timestamp: @time,
-        id: :arachne,
-        nonce: @nonce,
-        headers: { project_name: 'tapestry', action: 'weave' }
-      )
-
-      # the get fails
-      get('/test')
-      expect(last_response.status).to eq(401)
+      Timecop.return
     end
 
     it "succeeds with hmac headers" do
       # This signs the path /test
       input_hmac = make_hmac(
-        timestamp: @time,
+        expiration: @time,
         nonce: @nonce,
         path: '/test',
         headers: { project_name: 'tapestry', action: 'weave' },
       )
 
-      # we set the http authorization header, timestamp, etc.
+      # we set the hmac headers
       hmac_headers(
         input_hmac.signature,
-        timestamp: @time,
+        expiration: @time,
         id: :arachne,
         nonce: @nonce,
         headers: { project_name: 'tapestry', action: 'weave' },
@@ -226,9 +206,35 @@ describe Etna::Auth do
       expect(last_response.body).to eq('tapestry')
     end
 
+    it "succeeds with empty params headers" do
+      # This time we use an empty hash for headers.
+      # No extra params are signed.
+      # Since the path is signed, any params there will be guaranteed.
+      input_hmac = make_hmac(
+        expiration: @time,
+        nonce: @nonce,
+        path: '/test',
+        headers: {},
+      )
+
+      # we set the hmac headers
+      hmac_headers(
+        input_hmac.signature,
+        expiration: @time,
+        id: :arachne,
+        nonce: @nonce,
+        headers: {}
+      )
+
+      # the get succeeds
+      get('/test')
+      expect(last_response.status).to eq(200)
+      expect(last_response.body).to eq('')
+    end
+
     it "succeeds with just url params" do
       input_hmac = make_hmac(
-        timestamp: @time,
+        expiration: @time,
         nonce: @nonce,
         path: '/test',
         headers: { project_name: 'tapestry', action: 'weave' }
@@ -236,13 +242,12 @@ describe Etna::Auth do
 
       params = {
         authorization: "Hmac #{input_hmac.signature}",
-        timestamp: @time,
+        expiration: @time,
         nonce: @nonce,
         id: 'arachne',
         headers: 'project_name,action',
         project_name: 'tapestry',
-        action: 'weave',
-        text: input_hmac.send(:text_to_sign)
+        action: 'weave'
       }
 
       url = params.map do |name, value|
@@ -258,23 +263,116 @@ describe Etna::Auth do
 
       # the get succeeds
       get("/test?#{url}")
+
       expect(last_response.status).to eq(200)
       expect(last_response.body).to eq('tapestry')
+    end
+
+    it "fails without an hmac signature" do
+      # if at first we don't succeed
+      get('/test')
+      expect(last_response.status).to eq(401)
+    end
+
+    it "fails with a non-matching path" do
+      # This signs the path /nothing
+      input_hmac = make_hmac(
+        expiration: @time,
+        nonce: @nonce,
+        path: '/nothing',
+        headers: { project_name: 'tapestry', action: 'weave' }
+      )
+
+      # we set the hmac headers
+      hmac_headers( input_hmac.signature,
+        expiration: @time,
+        id: :arachne,
+        nonce: @nonce,
+        headers: { project_name: 'tapestry', action: 'weave' }
+      )
+
+      # the get fails
+      get('/test')
+      expect(last_response.status).to eq(401)
+    end
+
+    it "fails with a non-matching but known id" do
+      # This signs the path /nothing as athena
+      input_hmac = make_hmac(
+        expiration: @time,
+        nonce: @nonce,
+        id: :athena,
+        path: '/nothing',
+        headers: { project_name: 'tapestry', action: 'weave' }
+      )
+
+      # we set the hmac headers
+      hmac_headers( input_hmac.signature,
+        expiration: @time,
+        id: :arachne,
+        nonce: @nonce,
+        headers: { project_name: 'tapestry', action: 'weave' }
+      )
+
+      # the get fails
+      get('/test')
+      expect(last_response.status).to eq(401)
+    end
+
+    it "fails if the hmac is expired" do
+      Timecop.freeze(DateTime.now)
+
+      @time = DateTime.now + 10*60
+
+      input_hmac = make_hmac(
+        expiration: @time.iso8601,
+        nonce: @nonce,
+        path: '/test',
+        headers: { project_name: 'tapestry', action: 'weave' }
+      )
+
+      Timecop.freeze(@time + 1 )
+
+      params = {
+        authorization: "Hmac #{input_hmac.signature}",
+        expiration: @time.iso8601,
+        nonce: @nonce,
+        id: 'arachne',
+        headers: 'project_name,action',
+        project_name: 'tapestry',
+        action: 'weave'
+      }
+
+      url = params.map do |name, value|
+        "X-Etna-#{
+          name.to_s
+            .split(/_/)
+            .map(&:capitalize)
+            .join('-')
+        }=#{
+          CGI.escape(value)
+        }"
+      end.join('&')
+
+      # the get succeeds
+      get("/test?#{url}")
+
+      expect(last_response.status).to eq(401)
     end
 
     it "fails with missing headers" do
       # This signs the path /test
       input_hmac = make_hmac(
-        timestamp: @time,
+        expiration: @time,
         nonce: @nonce,
         path: '/test',
         headers: { project_name: 'tapestry', action: 'weave' },
       )
 
-      # we set the http authorization header, timestamp, etc.
+      # we set the hmac headers
       # but we leave out the 'project_name' header
       hmac_headers( input_hmac.signature,
-        timestamp: @time,
+        expiration: @time,
         id: :arachne,
         nonce: @nonce,
         headers: { action: 'weave' }

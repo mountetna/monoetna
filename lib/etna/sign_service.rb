@@ -14,10 +14,10 @@ module Etna
       )
     end
 
-    def hmac(message)
+    def hmac(message, key)
       OpenSSL::HMAC.hexdigest(
         'SHA256',
-        @application.config(:hmac_key),
+        key,
         message
       )
     end
