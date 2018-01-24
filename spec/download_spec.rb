@@ -44,6 +44,7 @@ describe DownloadController do
     end
 
     it 'fails if there is no file data' do
+      # we make the file record, but we don't stub the actual file
       create(:file, project_name: 'labors', file_name: 'readme_hercules.txt', original_name: 'readme_hercules.txt', uploader: 'outis', size: 0)
 
       header(*Etna::TestAuth.hmac_header({}))
