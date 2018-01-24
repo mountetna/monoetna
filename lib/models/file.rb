@@ -1,15 +1,19 @@
 class Metis
   class File < Sequel::Model
     def create_partial!
-      Metis::File.new(partial_file_name, 'w').close
+      ::File.new(partial_file_name, 'w').close
     end
 
     def partial_file_name
-      Metis::File.join(project_dir, file_name + '.part')
+      ::File.join(project_dir, file_name + '.part')
+    end
+    
+    def has_data?
+      file_name && ::File.exists?(location)
     end
 
-    def project_dir
-      Metis::File.join(Metis.instance.config(:root_dir), project_name)
+    def location
+      ::File.expand_path(::File.join(Metis.instance.project_dir(project_name), file_name))
     end
   end
 end

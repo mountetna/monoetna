@@ -21,8 +21,7 @@ class Metis
   end
 
   def project_dir(project)
-    partition = config(:projects)[project][:partition].to_sym
-    config(:partitions)[partition]
+    config(:project_paths)[project.to_sym]
   end
 
   # Routes are added in the './routes.rb' file
