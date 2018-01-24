@@ -11,6 +11,7 @@ config.yml
 /log
 /source
 /coverage
+spec/examples.txt
 
 *.eot
 *.svg
