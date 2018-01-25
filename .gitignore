@@ -1,12 +1,14 @@
 .DS_Store
 npm-debug.log
 trash.rb
+package-lock.json
 
 config.yml
+public/
 /node_modules/
-/client/js/
-/client/img/
-/client/fonts/
+/lib/client/js/
+/lib/client/img/
+/lib/client/fonts/
 /tmp
 /log
 /source

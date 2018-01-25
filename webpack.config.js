@@ -8,15 +8,43 @@
  * that are used in totality.
  */
 
+var path = require('path');
+
 module.exports = {
-
-  'entry': {
-
-    'metis-main': './lib/client/js/metis-uploader-controller.js'
+  context: path.resolve(__dirname),
+  resolve: {
+    extensions: [ '.js', '.jsx' ]
   },
-  'output': {
+  entry: {
+    'metis-main': './lib/client/jsx/metis-uploader-controller.jsx'
+  },
+  output: {
+    path: __dirname,
+    filename: 'public/js/[name].bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        loader: 'babel-loader',
+        include: [ path.resolve(__dirname, 'lib/client/jsx'), ],
+        test: /\.jsx?$/,
+        query: {
+          presets: ['es2015', 'stage-0', 'react'],
+        }
+      },
 
-    'path': './lib/client/js',
-    'filename': '[name].bundle.js'
+      {
+        loader: 'file-loader',
+        test: /\.(jpe?g|png|svg)$/i,
+        include: [
+          path.resolve(__dirname, 'lib/client/images'),
+        ],
+        options: {
+          name: '[name].[ext]',
+          outputPath: 'public/images/',
+          publicPath: function(url) { return url.replace(/public/,'') }
+        }
+      }
+    ]
   }
 }
