@@ -16,7 +16,8 @@ module.exports = {
     extensions: [ '.js', '.jsx' ]
   },
   entry: {
-    'metis-main': './lib/client/jsx/metis-uploader-controller.jsx'
+    'metis-main': './lib/client/jsx/metis-uploader-controller.jsx',
+    'utils': './lib/client/jsx/libraries/utils.jsx'
   },
   output: {
     path: __dirname,
