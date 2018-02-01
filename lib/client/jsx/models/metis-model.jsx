@@ -1,12 +1,12 @@
 import * as Redux from 'redux';
-
 import MetisReducer from './metis-reducer';
+import * as ReduxLogger from 'redux-logger';
 import JanusLogReducer from './janus-log-reducer';
 import LastActionReducer from './last-action-reducer';
 
 export default class MetisModel{
 
-  constructor(){
+  constructor() {
 
     var metisReducer = new MetisReducer();
     var janusLogReducer = new JanusLogReducer();
@@ -44,6 +44,9 @@ export default class MetisModel{
       }
     };
 
-    this.store = Redux.createStore(reducer, defaultState);
+    let middleWares = []
+    if(process.env.NODE_ENV != 'production') middleWares.push(ReduxLogger.createLogger());
+
+    this.store = Redux.applyMiddleware(...middleWares)(Redux.createStore)(reducer, defaultState);
   }
 }

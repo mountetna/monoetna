@@ -31,6 +31,7 @@
     "eslint": "^3.15.0",
     "eslint-plugin-react": "^6.9.0",
     "file-loader": "^1.1.5",
-    "jest": "^21.1.0"
+    "jest": "^21.1.0",
+    "redux-logger": "^3.0.6"
   }
 }
