@@ -1,6 +1,6 @@
 import * as Redux from 'redux';
-import MetisReducer from './metis-reducer';
 import * as ReduxLogger from 'redux-logger';
+import fileData from './metis-reducer';
 import JanusLogReducer from './janus-log-reducer';
 import LastActionReducer from './last-action-reducer';
 
@@ -8,12 +8,10 @@ export default class MetisModel{
 
   constructor() {
 
-    var metisReducer = new MetisReducer();
     var janusLogReducer = new JanusLogReducer();
     var lastAction = new LastActionReducer();
     var reducer = Redux.combineReducers({
-
-      'fileData': metisReducer.reducer(),
+      fileData,
       'userInfo': janusLogReducer.reducer(),
       'lastAction': lastAction.reducer()
     });
