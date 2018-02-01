@@ -1,36 +1,22 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
+import Cookies from 'js-cookie';
 
-import JanusLogger from './janus-logger-controller';
 import MetisModel from './models/metis-model';
 import MetisUIContainer from './components/metis-ui-container';
 
 class MetisUploader{
-  constructor(){
-    this.model = null;
-    this.uploadWorker = null;
-    this.janusLogger = new JanusLogger();
-
+  constructor() {
     this.initDataStore();
     this.spawnWorkers();
     this.buildUI();
-
-    /*
-     * We pass in the store since we bind events to it. The AJAX callbacks will
-     * be dispatched using the store.
-     */
-    this.janusLogger.model.store = this.model.store;
-    this.janusLogger.checkLog();
   }
 
-  initDataStore(){
-
+  initDataStore() {
     this.model = new MetisModel();
-
     // Event hooks from the UI to the Controller
     this.model.store.subscribe(()=>{ 
-
       var lastAction = this.model.store.getState().lastAction;
       this.routeAction(lastAction);
     });
@@ -41,24 +27,18 @@ class MetisUploader{
    */
 
   spawnWorkers(){
-
     this.uploadWorker = new Worker('./js/workers/uploader.js');
     this.uploadWorker.onmessage = (message)=>{
-      
       this.proxyResponse(message);
     };
     this.uploadWorker.onerror = (message)=>{
-
       console.log(message);
     };
-
-    this.uploadInitializer= new Worker('./js/workers/upload-initializer.js');
+    this.uploadInitializer = new Worker('./js/workers/upload-initializer.js');
     this.uploadInitializer.onmessage = (message)=>{
-      
       this.proxyResponse(message);
     };
     this.uploadInitializer.onerror = (message)=>{
-
       console.log(message);
     };
   }
@@ -125,77 +105,60 @@ class MetisUploader{
    */
 
   routeAction(action){
-
     switch(action.type){
-
       case 'AUTHORIZE_FILE':
-
         if(!this.checkAuthData(action.uploadFile)){
-
           alert('The data to upload is not complete.');
           return;
         }
         this.requestAuthorization(action.uploadFile);
         break;
       case 'FILE_UPLOAD_AUTHORIZED':
-
         this.initializeFile(action.response.request);
         break;
       case 'QUEUE_UPLOAD':
-
         this.startUpload();
         break;
       case 'PAUSE_UPLOAD':
-
         var workerMessage = { 'command': 'pause' };
         this.uploadWorker.postMessage(workerMessage);
         break;
       case 'CANCEL_UPLOAD':
-
         var delMesg = 'Are you sure you want to remove this upload?'
         if(!confirm(delMesg)) return;
         var workerMessage = { 'command': 'cancel' };
         this.uploadWorker.postMessage(workerMessage);
         break;
       case 'REMOVE_FILE':
-
         if(action.fileMetadata == undefined) return;
         var delMesg = 'Are you sure you want to remove this file?'
         if(!confirm(delMesg)) return;
         this.removeServerFiles('/remove-file', action.fileMetadata);
         break;
       case 'REMOVE_FAILED':
-
         this.removeServerFiles('/remove-failed', action.fileMetadata);
         break;
       case 'RECOVER_UPLOAD':
-
         this.recoverUpload(action.uploadFile, action.fileMetadata);
         break;
       case 'LOG_IN':
-
         var email = action.data.email;
         var password = action.data.pass;
         this.janusLogger.logIn(email, password);
         break;
       case 'LOGGED_IN':
-
         this.retrieveFiles();
         break;
       case 'LOG_OUT':
-
-        this.janusLogger.logOut(COOKIES.getItem(TOKEN_NAME));
+        this.janusLogger.logOut(Cookies.get(TOKEN_NAME));
         break;
       case 'LOGGED_OUT':
-
         window.location = LOGGED_OUT_ADDR();
         break
       case 'NOT_LOGGED':
-
         window.location = NOT_LOGGED_ADDR();
         break;
       default:
-
         //none
         break;
     }
