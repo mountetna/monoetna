@@ -201,12 +201,8 @@ export default class GenericSearchDropdown extends React.Component{
 
     return (
 
-      <div className='search-dropdown-tray-empty' key={ GENERATE_RAND_KEY() }> 
-
-        <i>
-
-          { 'no matching entries...' }
-        </i>
+      <div className='search-dropdown-tray-empty' key='entry-empty'> 
+        <i>no matching entries...</i>
       </div>
     );
   }

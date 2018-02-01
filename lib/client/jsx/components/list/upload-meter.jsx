@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { byteFormat, dateFormat } from '../../utils/format';
 
 export default class UploadMeater extends React.Component{
 
@@ -25,9 +26,9 @@ export default class UploadMeater extends React.Component{
 
   parseUploadBytes(){
 
-    var file = this['props']['fileUpload'];
-    var fileSize = PARSE_BYTES(file['fileSize'], true);
-    var bytesUploaded = PARSE_BYTES(file['currentBytePosition'], true);
+    var file = this.props.fileUpload;
+    var fileSize = byteFormat(file.fileSize, true);
+    var bytesUploaded = byteFormat(file.currentBytePosition, true);
 
     var uploadInfoProps = {
 

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { byteFormat, dateFormat } from '../../utils/format';
 
 import FileControl from './file-control';
 
@@ -40,7 +41,7 @@ export default class ListEntry extends React.Component{
 
             <span className='light-text'>
 
-              {'uploaded at: '+PARSE_TIMESTAMP(fileInfo['finishTimestamp'])}
+              {'uploaded at: '+dateFormat(fileInfo.finishTimestamp)}
             </span>
           </div>
         </td>
@@ -64,7 +65,7 @@ export default class ListEntry extends React.Component{
 
             <span className='dark-text' style={{'fontWeight': 900}} >
 
-              {PARSE_BYTES(fileInfo['fileSize'], 1000)}
+              {byteFormat(fileInfo.fileSize, 1000)}
             </span>
           </div>
           <div className='list-entry-hash'>
