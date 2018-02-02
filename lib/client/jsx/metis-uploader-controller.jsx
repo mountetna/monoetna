@@ -3,23 +3,18 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import Cookies from 'js-cookie';
 
-import MetisModel from './models/metis-model';
+import createStore from './reducers';
 import MetisUIContainer from './components/metis-ui-container';
 
 class MetisUploader{
   constructor() {
-    this.initDataStore();
+    this.store = createStore()
     this.spawnWorkers();
     this.buildUI();
   }
 
   initDataStore() {
-    this.model = new MetisModel();
     // Event hooks from the UI to the Controller
-    this.model.store.subscribe(()=>{ 
-      let lastAction = this.model.store.getState().lastAction;
-      this.routeAction(lastAction);
-    });
   }
 
   /*
@@ -45,7 +40,7 @@ class MetisUploader{
 
   buildUI(){
     ReactDOM.render(
-      <Provider store={ this.model.store }>
+      <Provider store={ this.store }>
         <MetisUIContainer />
       </Provider>,
       document.getElementById('ui-group')
@@ -53,7 +48,7 @@ class MetisUploader{
   }
 
   retrieveFiles(){
-    let state = this.model.store.getState();
+    let state = this.store.getState();
     let userInfo = state.userInfo;
     if(state.userInfo.loginStatus && !state.userInfo.loginError){
       // Request authorization to upload the file.
@@ -73,7 +68,7 @@ class MetisUploader{
     if(response.success){
       let action = { type: 'FILE_METADATA_RECEIVED', fileList: response.file_list };
 
-      this.model.store.dispatch(action);
+      this.store.dispatch(action);
     }
     else{
       console.log('There was an error.');
@@ -155,13 +150,13 @@ class MetisUploader{
     let action = { response: message.data.response, type: message.data.type };
 
     // Dispatch the command.
-    this.model.store.dispatch(action);
+    this.store.dispatch(action);
 
     // Check the queue for another upload or cancel.
     if(message.data.type == 'FILE_UPLOAD_PAUSED') this.startUpload();
   }
 
-  checkAuthData(fileUploadData){
+  checkAuthData(fileUploadData) {
     let requestItems = [
       'projectName',
       'projectId',
@@ -187,7 +182,7 @@ class MetisUploader{
     let reqData = {};
 
     // Add params not that are needed but not included.
-    let state = this.model.store.getState();
+    let state = this.store.getState();
     reqData.token = state.userInfo.authToken;
 
     // Form the upload request.
@@ -220,7 +215,7 @@ class MetisUploader{
   authorizationResponse(response){
     if(response.success){
       let action = { type: 'FILE_UPLOAD_AUTHORIZED', response };
-      this.model.store.dispatch(action);
+      this.store.dispatch(action);
     }
     else{
       console.log('There was an error.');
@@ -234,7 +229,7 @@ class MetisUploader{
 
     // Normalize the data to send. Add our user token.
     let request = PARSE_REQUEST(uploadFile);
-    let state = this.model.store.getState();
+    let state = this.store.getState();
     request.token = state.userInfo.authToken;
 
     // Kick off the 'uploader'.
@@ -243,7 +238,7 @@ class MetisUploader{
   }
 
   getUploadFile(authResponse){
-    let state = this.model.store.getState();
+    let state = this.store.getState();
     let fileUploads = state.fileData.fileUploads;
 
     let uploadFile = fileUploads.find(elem => (
@@ -261,7 +256,7 @@ class MetisUploader{
    */
   startUpload(){
     let uploadFile = null;
-    let state = this.model.store.getState();
+    let state = this.store.getState();
     let { fileUploads } = state.fileData;
 
     fileUploads.forEach(upload => {
@@ -295,7 +290,7 @@ class MetisUploader{
     for(let key in fileMetadata){
       request.push(SNAKE_CASE_IT(key) +'='+ fileMetadata[key]);
     }
-    let state = this.model.store.getState();
+    let state = this.store.getState();
     request.push('token='+ state.userInfo.authToken);
 
     // Request authorization to remove the file.
@@ -313,7 +308,7 @@ class MetisUploader{
   removeFileResponse(response){
     if(response.success){
       let action = { type: 'FILE_REMOVED', response };
-      this.model.store.dispatch(action);
+      this.store.dispatch(action);
     }
     else{
       console.log('There was an error.');
@@ -402,12 +397,11 @@ class MetisUploader{
   }
 
   recoverResponse(uploadFile, response){
-    if(response.success){
+    if (response.success) {
       let action = { type: 'FILE_UPLOAD_RECOVERED', response, uploadFile };
-      this.model.store.dispatch(action);
+      this.store.dispatch(action);
     }
-    else{
-
+    else {
       console.log('There was an error.');
     }
   }
