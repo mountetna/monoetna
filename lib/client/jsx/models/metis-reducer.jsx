@@ -80,7 +80,6 @@ const files = (state, action) => {
       break;
 
     case 'FILE_UPLOAD_RECOVERED':
-
       setResponseAndIndex(action, fileFails);
       if(index == null) break;
 
@@ -94,7 +93,6 @@ const files = (state, action) => {
     case 'FILE_INITIALIZED':
     case 'FILE_UPLOAD_ACTIVE':
     case 'FILE_UPLOAD_PAUSED':
-
       setResponseAndIndex(action, fileUploads);
       if(index == null) break;
 
@@ -103,7 +101,6 @@ const files = (state, action) => {
       break;
 
     case 'FILE_UPLOAD_COMPLETE':
-
       setResponseAndIndex(action, fileUploads);
       if(index == null) break;
 
@@ -116,7 +113,6 @@ const files = (state, action) => {
       break;
 
     case 'FILE_UPLOAD_CANCELLED':
-
       setResponseAndIndex(action, fileUploads);
       if(index == null) break;
 
@@ -125,7 +121,6 @@ const files = (state, action) => {
       break;
 
     case 'FILE_REMOVED':
-
       response = camelCaseIt(action.response.request);
 
       // Remove the deleted item from fileUploads.
@@ -142,11 +137,8 @@ const files = (state, action) => {
       break;
 
     case 'CLEAR_UPLOAD':
-
       for(var a = 0; a < fileUploads.length; ++a){
-
-        if(action.response.reactKey == fileUploads[a].reactKey){
-
+        if(action.fileMetadata.reactKey == fileUploads[a].reactKey){
           fileUploads.splice(a, 1);
           break;
         }
@@ -154,50 +146,39 @@ const files = (state, action) => {
       break;
 
     case 'FILE_METADATA_RECEIVED':
-
       for(var a = 0; a < action.fileList.length; ++a){
-
         action.fileList[a] = camelCaseIt(action.fileList[a]);
         action.fileList[a].reactKey = GENERATE_RAND_KEY();
 
         if(!action.fileList[a].hasOwnProperty('finishUpload')){
-
           fileData.fileFails.push(action.fileList[a]);
         }
         else{
-
           fileData.fileList.push(action.fileList[a]);
         }
       }
       break;
 
     case 'QUEUE_UPLOAD':
-
       for(var a = 0; a < fileUploads.length; ++a){
-
         // Remove any 'queued' status
         if(fileUploads[a].status == 'queued'){
-
           if(fileUploads[a].currentBytePosition == 0){
-
             fileUploads[a].status = 'initialized';
           }
           else{
-
             fileUploads[a].status = 'paused';
           }
         }
 
         // Apply a 'queued' status to a matching file upload.
         if(fileUploads[a].reactKey == action.reactKey){
-
           fileUploads[a].status = 'queued';
         }
       }
       break;
 
     default:
-
       break;
   }
 

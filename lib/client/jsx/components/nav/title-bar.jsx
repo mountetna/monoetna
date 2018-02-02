@@ -1,24 +1,17 @@
 import * as React from 'react'
 
 export default class TitleBar extends React.Component{
-
   constructor(){
-
     super();
   }
 
   render(){
-    
     return (
-
       <div id='title-menu'>
-
         <button className='title-menu-btn'>
-            
           { 'metis' }
           <br />
           <span>
-
             { 'UPLOADER' }
           </span>
         </button>

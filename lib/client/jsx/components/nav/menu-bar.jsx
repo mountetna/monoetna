@@ -1,70 +1,51 @@
 import * as React from 'react';
 
 export default class MenuBar extends React.Component{
-
   constructor(props){
-
     super(props);
-
-    this['state'] = {
-
+    this.state = {
       open: false
     }
   }
 
   toggle(event){
-
-    var open = (this['state']['open']) ? false : true;
+    let open = (this.state.open) ? false : true;
     this.setState({ open: open });
   }
 
   closePanel(event){
-
     this.setState({ open: false });
   }
 
   logOut(event){
-
     this.setState({ open: false });
-    this['props'].logOut();
+    this.props.logOut();
   }
 
   renderUserMenu(){
-
-    var userInfo = this['props']['userInfo'];
+    let userInfo = this.props.userInfo;
     
-    if(userInfo['loginStatus'] && !userInfo['loginError']){
-
-      var height = (this['state']['open']) ? 'auto' : '100%';
-
-      var userDropdownGroupProps = {
-
+    if(userInfo.loginStatus && !userInfo.loginError){
+      let height = (this.state.open) ? 'auto' : '100%';
+      let userDropdownGroupProps = {
         className: 'user-menu-dropdown-group',
-        style: { height: height },
+        style: { height },
         onMouseLeave: this.closePanel.bind(this)
       };
 
       return (
-
         <div { ...userDropdownGroupProps } >
-
-          <button className='user-menu-dropdown-btn' onClick={ this['toggle'].bind(this) } >
-
-            { userInfo['userEmail'] }
-
+          <button className='user-menu-dropdown-btn' onClick={ this.toggle.bind(this) } >
+            { userInfo.userEmail }
             <div className='user-menu-arrow-group'>
-              
               <span className='glyphicon glyphicon-triangle-bottom'></span>
             </div>
           </button>
           <div className='user-dropdown-menu'>
-
             <a href='/user' className='user-dropdown-menu-item'>
-              
               { 'user settings' }
             </a>
-            <div className='user-dropdown-menu-item' onClick={ this['logOut'].bind(this) }>
-
+            <div className='user-dropdown-menu-item' onClick={ this.logOut.bind(this) }>
               { 'log out' }
             </div>
           </div>
@@ -72,27 +53,20 @@ export default class MenuBar extends React.Component{
       );
     }
     else{
-
-      return ''
+      return '';
     }
   }
 
   render(){
-
     return (
-
       <div id='nav-menu'>
-
         {/*
         <div id='master-search-group'>
-
           <button id='master-search-button'>
-
             <span className='glyphicon glyphicon-search white-glyphicon'></span>
           </button>
         </div>
         <button className='nav-menu-btn'>
-
           { 'ACTIVITY' }
         </button>
         <button className='nav-menu-btn'>

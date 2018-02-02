@@ -10,12 +10,12 @@ class UploadInitializer{
   constructor(){
 
     // These object will be the data we need to send over the wire.
-    this['file'] = null;
-    this['request'] = null;
+    this.file = null;
+    this.request = null;
 
-    this['errorObj']=(msg)=>{return{'type':'error','message':msg,'response':{}}}
-    this['timeouts'] = 0; // The number of times an upload has timed out.
-    this['maxTimeouts'] = 5; // The number of attepts to upload a blob.
+    this.errorObj=(message)=>({ type:'error', message, response: {} })
+    this.timeouts = 0; // The number of times an upload has timed out.
+    this.maxTimeouts = 5; // The number of attepts to upload a blob.
   }
 
   /*
@@ -24,9 +24,9 @@ class UploadInitializer{
    */
   onmessage(event){
 
-    var message = event['data'];
-    uploadInitializer['file'] = message['file'];
-    uploadInitializer['request'] = message['request'];
+    var message = event.data;
+    uploadInitializer.file = message.file;
+    uploadInitializer.request = message.request;
 
     // Check that the incoming data has a valid command.
     if(!('command' in message)){
@@ -35,7 +35,7 @@ class UploadInitializer{
       return;
     }
 
-    if(message['command'] == 'init'){
+    if(message.command == 'init'){
 
       uploadInitializer.initializeUploadSequence();
     }
@@ -54,9 +54,9 @@ class UploadInitializer{
      * function. The Thin/Ruby server wants it's vars in snake case.
      */
     var initUpReq = new FormData();
-    for(var key in  uploadInitializer['request']){
+    for(var key in  uploadInitializer.request){
 
-      initUpReq.append(SNAKE_CASE_IT(key),  uploadInitializer['request'][key]);
+      initUpReq.append(SNAKE_CASE_IT(key),  uploadInitializer.request[key]);
     }
 
     /*
@@ -69,7 +69,7 @@ class UploadInitializer{
     initUpReq.append('next_blob_size', INITIAL_BLOB_SIZE);
 
     // Hash the next blob for security and error checking.
-    var blob = uploadInitializer['file'].slice(0, INITIAL_BLOB_SIZE);
+    var blob = uploadInitializer.file.slice(0, INITIAL_BLOB_SIZE);
     uploadInitializer.generateBlobHash(blob, initUpReq, this.sendFirstPacket);
   }
 
@@ -94,24 +94,24 @@ class UploadInitializer{
 
       AJAX({
 
-        'url': '/upload-start',
-        'method': 'POST',
-        'sendType': 'file',
-        'returnType': 'json',
-        'data': initialUploadRequet,
-        'success': uploadInitializer['handleServerResponse'],
-        'error': uploadInitializer['ajaxError']
+        url: '/upload-start',
+        method: 'POST',
+        sendType: 'file',
+        returnType: 'json',
+        data: initialUploadRequet,
+        success: uploadInitializer.handleServerResponse,
+        error: uploadInitializer.ajaxError
       });
     }
     catch(error){
 
-      postMessage(uploadInitializer.errorObj(error['message']));
+      postMessage(uploadInitializer.errorObj(error.message));
     }
   }
 
   handleServerResponse(response){
 
-    uploadInitializer['timeouts'] = 0; // Reset the timeout counter;
+    uploadInitializer.timeouts = 0; // Reset the timeout counter;
 
     var errorMessage = 'The server response was malformed.';
     if(!('success' in response) || !('request' in response)){
@@ -141,7 +141,7 @@ class UploadInitializer{
 
   handleResponseRouting(response){
 
-    if(response['request']['status'] == 'initialized'){
+    if(response.request.status == 'initialized'){
 
       postMessage({ type: 'FILE_INITIALIZED', response: response });
     }

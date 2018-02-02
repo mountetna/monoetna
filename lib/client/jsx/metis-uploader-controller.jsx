@@ -17,7 +17,7 @@ class MetisUploader{
     this.model = new MetisModel();
     // Event hooks from the UI to the Controller
     this.model.store.subscribe(()=>{ 
-      var lastAction = this.model.store.getState().lastAction;
+      let lastAction = this.model.store.getState().lastAction;
       this.routeAction(lastAction);
     });
   }
@@ -44,11 +44,8 @@ class MetisUploader{
   }
 
   buildUI(){
-
     ReactDOM.render(
-
       <Provider store={ this.model.store }>
-
         <MetisUIContainer />
       </Provider>,
       document.getElementById('ui-group')
@@ -56,39 +53,29 @@ class MetisUploader{
   }
 
   retrieveFiles(){
-
-    var state = this.model.store.getState();
-    var userInfo = state.userInfo;
+    let state = this.model.store.getState();
+    let userInfo = state.userInfo;
     if(state.userInfo.loginStatus && !state.userInfo.loginError){
-
       // Request authorization to upload the file.
       AJAX({
-
-        'url': '/retrieve-files',
-        'method': 'POST',
-        'sendType': 'serial',
-        'returnType': 'json',
-        'data': 'token='+ userInfo.authToken,
-        'success': this.retrieveFilesResponse.bind(this),
-        'error': this.ajaxError.bind(this)
+        url: '/retrieve-files',
+        method: 'POST',
+        sendType: 'serial',
+        returnType: 'json',
+        data: 'token='+ userInfo.authToken,
+        success: this.retrieveFilesResponse.bind(this),
+        error: this.ajaxError.bind(this)
       });
     }
   }
 
   retrieveFilesResponse(response){
-
     if(response.success){
-
-      var action = { 
-
-        type: 'FILE_METADATA_RECEIVED', 
-        fileList: response.file_list 
-      };
+      let action = { type: 'FILE_METADATA_RECEIVED', fileList: response.file_list };
 
       this.model.store.dispatch(action);
     }
     else{
-
       console.log('There was an error.');
     }
   }
@@ -104,10 +91,10 @@ class MetisUploader{
    * the action in the reducer will run first.
    */
 
-  routeAction(action){
-    switch(action.type){
+  routeAction(action) {
+    switch(action.type) {
       case 'AUTHORIZE_FILE':
-        if(!this.checkAuthData(action.uploadFile)){
+        if (!this.checkAuthData(action.uploadFile)) {
           alert('The data to upload is not complete.');
           return;
         }
@@ -120,19 +107,15 @@ class MetisUploader{
         this.startUpload();
         break;
       case 'PAUSE_UPLOAD':
-        var workerMessage = { 'command': 'pause' };
-        this.uploadWorker.postMessage(workerMessage);
+        this.uploadWorker.postMessage({ command: 'pause' });
         break;
       case 'CANCEL_UPLOAD':
-        var delMesg = 'Are you sure you want to remove this upload?'
-        if(!confirm(delMesg)) return;
-        var workerMessage = { 'command': 'cancel' };
-        this.uploadWorker.postMessage(workerMessage);
+        if(!confirm('Are you sure you want to remove this upload?')) return;
+        this.uploadWorker.postMessage({ command: 'cancel' });
         break;
       case 'REMOVE_FILE':
         if(action.fileMetadata == undefined) return;
-        var delMesg = 'Are you sure you want to remove this file?'
-        if(!confirm(delMesg)) return;
+        if(!confirm('Are you sure you want to remove this file?')) return;
         this.removeServerFiles('/remove-file', action.fileMetadata);
         break;
       case 'REMOVE_FAILED':
@@ -142,8 +125,8 @@ class MetisUploader{
         this.recoverUpload(action.uploadFile, action.fileMetadata);
         break;
       case 'LOG_IN':
-        var email = action.data.email;
-        var password = action.data.pass;
+        let email = action.data.email;
+        let password = action.data.pass;
         this.janusLogger.logIn(email, password);
         break;
       case 'LOGGED_IN':
@@ -168,11 +151,8 @@ class MetisUploader{
    * Responses from the Upload Worker.
    */
   proxyResponse(message){
-
     // Set the payload.
-    var action = {};
-    action.response = message.data.response;
-    action.type = message.data.type;
+    let action = { response: message.data.response, type: message.data.type };
 
     // Dispatch the command.
     this.model.store.dispatch(action);
@@ -182,9 +162,7 @@ class MetisUploader{
   }
 
   checkAuthData(fileUploadData){
-
-    var requestItems = [
-
+    let requestItems = [
       'projectName',
       'projectId',
       'role',
@@ -193,20 +171,11 @@ class MetisUploader{
       'groupName'
     ];
 
-    var valid = true;
-    for(var a = 0; a < requestItems.length; ++a){
-
-      var key = requestItems[a];
-      if(!(key in fileUploadData)) valid = false;  // Checking the key.
-      if(fileUploadData[key] == undefined) valid = false; // Checking the value.
-    }
-    return valid;
+    return requestItems.every(item => (fileUploadData[item] != undefined))
   }
 
   generateAuthRequest(file){
-
-    var req = [
-
+    let req = [
       'fileName',
       'originalName',
       'fileSize',
@@ -215,14 +184,14 @@ class MetisUploader{
       'groupName'
     ];
 
-    var reqData = {};
+    let reqData = {};
 
     // Add params not that are needed but not included.
-    var state = this.model.store.getState();
+    let state = this.model.store.getState();
     reqData.token = state.userInfo.authToken;
 
     // Form the upload request.
-    req.forEach(function(elem){ reqData[SNAKE_CASE_IT(elem)] = file[elem]; });
+    req.forEach(elem => { reqData[SNAKE_CASE_IT(elem)] = file[elem]; });
     return reqData;
   }
 
@@ -230,20 +199,18 @@ class MetisUploader{
    * Call to get approval to make an action on Metis.
    */
   requestAuthorization(fileUploadData){
-
     fileUploadData = this.generateAuthRequest(fileUploadData);
-    var request = SERIALIZE_REQUEST(fileUploadData);
+    let request = SERIALIZE_REQUEST(fileUploadData);
 
     // Request authorization to upload the file.
     AJAX({
-
-      'url': '/upload-authorize',
-      'method': 'POST',
-      'sendType': 'serial',
-      'returnType': 'json',
-      'data': request,
-      'success': this.authorizationResponse.bind(this),
-      'error': this.ajaxError.bind(this)
+      url: '/upload-authorize',
+      method: 'POST',
+      sendType: 'serial',
+      returnType: 'json',
+      data: request,
+      success: this.authorizationResponse.bind(this),
+      error: this.ajaxError.bind(this)
     });
   }
   
@@ -251,53 +218,39 @@ class MetisUploader{
    * Route the signed response from Metis or Magma to the web worker.
    */
   authorizationResponse(response){
-
     if(response.success){
-
-      var action = {
-
-        'type': 'FILE_UPLOAD_AUTHORIZED',
-        'response':response
-      };
+      let action = { type: 'FILE_UPLOAD_AUTHORIZED', response };
       this.model.store.dispatch(action);
     }
     else{
-
       console.log('There was an error.');
     }
   }
 
   initializeFile(authResponse){
-
     // Get the file from our 'fileUploads' object. 
-    var uploadFile = this.getUploadFile(authResponse);
+    let uploadFile = this.getUploadFile(authResponse);
     if(uploadFile == null) return;
 
     // Normalize the data to send. Add our user token.
-    var request = PARSE_REQUEST(uploadFile);
-    var state = this.model.store.getState();
+    let request = PARSE_REQUEST(uploadFile);
+    let state = this.model.store.getState();
     request.token = state.userInfo.authToken;
 
     // Kick off the 'uploader'.
-    var workerMessage = {'command':'init','file':uploadFile,'request':request};
+    let workerMessage = { command: 'init', file: uploadFile, request };
     this.uploadInitializer.postMessage(workerMessage);
   }
 
   getUploadFile(authResponse){
+    let state = this.model.store.getState();
+    let fileUploads = state.fileData.fileUploads;
 
-    var uploadFile = null;
-    var state = this.model.store.getState();
-    var fileUploads = state.fileData.fileUploads;
-
-    fileUploads.forEach(function(elem){
-
-      if((authResponse.groupName == elem.groupName) &&
-        (authResponse.projectName == elem.projectName) &&
-        (authResponse.fileName == elem.fileName)){
-
-        uploadFile = elem;
-      }
-    });
+    let uploadFile = fileUploads.find(elem => (
+      (authResponse.groupName == elem.groupName) &&
+      (authResponse.projectName == elem.projectName) &&
+      (authResponse.fileName == elem.fileName)
+    ))
 
     return uploadFile;
   }
@@ -307,74 +260,62 @@ class MetisUploader{
    * file in the 'workers' folder.
    */
   startUpload(){
+    let uploadFile = null;
+    let state = this.model.store.getState();
+    let { fileUploads } = state.fileData;
 
-    var uploadFile = null;
-    var state = this.model.store.getState();
-    var fileUploads = state.fileData.fileUploads;
-
-    for(var a = 0; a < fileUploads.length; ++a){
-
-      if(fileUploads[a].status == 'queued'){
-
-        uploadFile = fileUploads[a];
-      }
+    fileUploads.forEach(upload => {
+      if (upload.status == 'queued') uploadFile = upload;
 
       /*
        * If there is an file upload that is active we bail out here and run the
        * pause cycle.
        */
-      if(fileUploads[a].status == 'active'){
-
-        var workerMessage = { 'command': 'pause' };
+      if(upload.status == 'active'){
+        let workerMessage = { command: 'pause' };
         this.uploadWorker.postMessage(workerMessage);
         return;
       }
-    }
+    })
 
     if(uploadFile == null) return;
 
     // Normalize the data to send. Add our user token.
-    var request = PARSE_REQUEST(uploadFile);
+    let request = PARSE_REQUEST(uploadFile);
     request.token = state.userInfo.authToken;
 
     // Start the upload.
-    var workerMessage = {'command':'start','file':uploadFile,'request':request};
+    let workerMessage = {command:'start',file:uploadFile,request};
     this.uploadWorker.postMessage(workerMessage);
   }
 
   removeServerFiles(endPoint, fileMetadata){
-
     // Serialize the request for POST.
-    var request = [];
-    for(var key in fileMetadata){
-    
+    let request = [];
+    for(let key in fileMetadata){
       request.push(SNAKE_CASE_IT(key) +'='+ fileMetadata[key]);
     }
-    var state = this.model.store.getState();
+    let state = this.model.store.getState();
     request.push('token='+ state.userInfo.authToken);
 
     // Request authorization to remove the file.
     AJAX({
-
-      'url': endPoint,
-      'method': 'POST',
-      'sendType': 'serial',
-      'returnType': 'json',
-      'data': request.join('&'),
-      'success': this.removeFileResponse.bind(this),
-      'error': this.ajaxError.bind(this)
+      url: endPoint,
+      method: 'POST',
+      sendType: 'serial',
+      returnType: 'json',
+      data: request.join('&'),
+      success: this.removeFileResponse.bind(this),
+      error: this.ajaxError.bind(this)
     });
   }
 
   removeFileResponse(response){
-
     if(response.success){
-
-      var action = { 'type': 'FILE_REMOVED', 'response': response };
+      let action = { type: 'FILE_REMOVED', response };
       this.model.store.dispatch(action);
     }
     else{
-
       console.log('There was an error.');
     }
   }
@@ -398,27 +339,23 @@ class MetisUploader{
    */
 
   recoverUpload(uploadFile, fileMetadata){
-
-    var frm = fileMetadata.currentBytePosition;
-    var blob = uploadFile.slice(frm, frm + fileMetadata.nextBlobSize);
-    var fileReader = new FileReader();
+    let frm = fileMetadata.currentBytePosition;
+    let blob = uploadFile.slice(frm, frm + fileMetadata.nextBlobSize);
+    let fileReader = new FileReader();
     fileReader.onload = function(progressEvent){
-
-      var md5Hash = SparkMD5.ArrayBuffer.hash(this.result);
+      let md5Hash = SparkMD5.ArrayBuffer.hash(this.result);
       metisUploader.checkRecovery(uploadFile, fileMetadata, md5Hash);
     }
     fileReader.readAsArrayBuffer(blob);
   }
 
   checkRecovery(uploadFile, fileMetadata, md5Hash){
-
-    var fileOk = true;
+    let fileOk = true;
     if(uploadFile.name != fileMetadata.fileName) fileOk = false;
     if(uploadFile.size != fileMetadata.fileSize) fileOk = false;
     if(fileMetadata.nextBlobHash != md5Hash) fileOk = false;
 
     if(!fileOk){
-
       alert('The file you selected does not seem to match the record.');
       return;
     }
@@ -427,62 +364,46 @@ class MetisUploader{
   }
 
   calcStartingKiB(uploadFile, fileMetadata, md5Hash){
-
-    var blob = uploadFile.slice(0, 1024);
-    var fileReader = new FileReader();
+    let blob = uploadFile.slice(0, 1024);
+    let fileReader = new FileReader();
     fileReader.onload = function(progressEvent){
-
-      var fkh = SparkMD5.ArrayBuffer.hash(this.result); // firstKiBHash
+      let fkh = SparkMD5.ArrayBuffer.hash(this.result); // firstKiBHash
       metisUploader.calcEndingKiB(uploadFile, fileMetadata, md5Hash, fkh);
     }
     fileReader.readAsArrayBuffer(blob);
   }
 
   calcEndingKiB(file, fileMetadata, md5Hash, fkh){
-
-    var frm = fileMetadata.currentBytePosition;
-    var blob = file.slice(frm, frm + 1024);
-    var fileReader = new FileReader();
+    let frm = fileMetadata.currentBytePosition;
+    let blob = file.slice(frm, frm + 1024);
+    let fileReader = new FileReader();
     fileReader.onload = function(progressEvent){
-
-      var lkh = SparkMD5.ArrayBuffer.hash(this.result); // lastKiBHash
+      let lkh = SparkMD5.ArrayBuffer.hash(this.result); // lastKiBHash
       metisUploader.recoverUploadOnServer(file,fileMetadata,md5Hash,fkh,lkh);
     }
     fileReader.readAsArrayBuffer(blob);
   }
 
   recoverUploadOnServer(file, fileMetadata, md5Hash, fristKiBHash, lastKiBHash){
-
     fileMetadata = this.generateAuthRequest(fileMetadata);
     fileMetadata.first_kib_hash = fristKiBHash;
     fileMetadata.last_kib_hash = lastKiBHash;
-    var request = SERIALIZE_REQUEST(fileMetadata);
+    let request = SERIALIZE_REQUEST(fileMetadata);
 
     AJAX({
-
-      'url': '/recover-upload',
-      'method': 'POST',
-      'sendType': 'serial',
-      'returnType': 'json',
-      'data': request,
-      'success': function(response){
-
-        metisUploader.recoverResponse(file, response);
-      },
-      'error': this.ajaxError.bind(this)
+      url: '/recover-upload',
+      method: 'POST',
+      sendType: 'serial',
+      returnType: 'json',
+      data: request,
+      success: (response) => metisUploader.recoverResponse(file, response),
+      error: this.ajaxError.bind(this)
     });
   }
 
   recoverResponse(uploadFile, response){
-
     if(response.success){
-
-      var action = { 
-
-        'type': 'FILE_UPLOAD_RECOVERED',
-        'response': response,
-        'uploadFile': uploadFile
-      };
+      let action = { type: 'FILE_UPLOAD_RECOVERED', response, uploadFile };
       this.model.store.dispatch(action);
     }
     else{
@@ -498,4 +419,4 @@ class MetisUploader{
 }
 
 // Initilize the class.
-var metisUploader = new MetisUploader();
+let metisUploader = new MetisUploader();

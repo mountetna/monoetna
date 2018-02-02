@@ -5,40 +5,35 @@ import JanusLogReducer from './janus-log-reducer';
 import LastActionReducer from './last-action-reducer';
 
 export default class MetisModel{
-
   constructor() {
-
-    var janusLogReducer = new JanusLogReducer();
-    var lastAction = new LastActionReducer();
-    var reducer = Redux.combineReducers({
+    let janusLogReducer = new JanusLogReducer();
+    let lastAction = new LastActionReducer();
+    let reducer = Redux.combineReducers({
       fileData,
-      'userInfo': janusLogReducer.reducer(),
-      'lastAction': lastAction.reducer()
+      userInfo: janusLogReducer.reducer(),
+      lastAction: lastAction.reducer()
     });
 
-    var defaultState = {
-
-      'fileData': {
-
-        'fileList': [],
-        'fileUploads': [],
-        'fileFails': []
+    let defaultState = {
+      fileData: {
+        fileList: [],
+        fileUploads: [],
+        fileFails: []
       },
 
-      'userInfo': {
+      userInfo: {
+        userId: null,
+        userEmail: '',
+        authToken: '',
+        firstName: '',
+        lastName: '',
+        permissions: [],
 
-        'userId': null,
-        'userEmail': '',
-        'authToken': '',
-        'firstName': '',
-        'lastName': '',
-        'permissions': [],
+        masterPerms: false,
 
-        'masterPerms': false,
-
-        'loginStatus': false,
-        'loginError': false,
-        'loginErrorMsg': 'Invalid sign in.'
+        loginStatus: false,
+        loginError: false,
+        loginErrorMsg: 'Invalid sign in.'
       }
     };
 
