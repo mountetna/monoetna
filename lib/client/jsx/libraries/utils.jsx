@@ -369,41 +369,6 @@ var VALIDATE_EMAIL = function(email){
  * Here in JS (the client side) we are using camelCase. 
  * This is a little util to transform snake_case to camelCase and back again.
  */
-var CAMEL_CASE_IT = function(string){
-
-  var regexp = /_/g;
-  var match, matches = [];
-  while((match = regexp.exec(string)) != null){
-
-    matches.push(match.index);
-  }
-
-  // We should start from the back of the string and replace going forward.
-  matches.reverse();
-  for(var index in matches){
-
-    var ind = matches[index];
-    var fromCharacter = '_'+string.charAt(ind+1);
-    var toCharacter = string.charAt(ind+1).toUpperCase()
-    string = string.replace(fromCharacter, toCharacter);
-  }
-
-  return string;
-}
-
-var SNAKE_CASE_IT = function(str){
-
-  for(var a = 0; a < str['length']; ++a){
-
-    var chr = str[a];
-    if(chr != chr.toLowerCase() && a != 0 && a != (str['length']-1)){
-
-      str = str.substr(0,a) +'_'+ chr.toLowerCase() + str.substr(a+1);
-    }
-  }
-
-  return str;
-}
 
 // After we log out of Janus we must log out of Shibboleth.
 var LOGGED_OUT_ADDR = function(){

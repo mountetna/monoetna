@@ -1,8 +1,6 @@
 import * as Redux from 'redux';
 import * as ReduxLogger from 'redux-logger';
-import fileData from './metis-reducer';
-import JanusLogReducer from './janus-log-reducer';
-import LastActionReducer from './last-action-reducer';
+import asyncRouter from './async-router';
 
 const DEFAULT_STATE = {
   fileData: {
@@ -27,18 +25,13 @@ const DEFAULT_STATE = {
   }
 };
 
-const createStore = () => {
-  let janusLogReducer = new JanusLogReducer();
-  let lastAction = new LastActionReducer();
+const createStore = (reducers, actions) => {
+  let reducer = Redux.combineReducers(reducers);
 
-  let reducer = Redux.combineReducers({
-    fileData,
-    userInfo: janusLogReducer.reducer(),
-    lastAction: lastAction.reducer()
-  });
+  let middleWares = [
+    asyncRouter(actions)
+  ];
 
-
-  let middleWares = []
   if(process.env.NODE_ENV != 'production') middleWares.push(ReduxLogger.createLogger());
 
   let store = Redux.applyMiddleware(...middleWares)(Redux.createStore)(reducer, DEFAULT_STATE);

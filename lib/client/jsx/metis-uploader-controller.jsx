@@ -3,14 +3,50 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import Cookies from 'js-cookie';
 
-import createStore from './reducers';
+import metisStore from './store';
 import MetisUIContainer from './components/metis-ui-container';
+
+import fileData from './reducers/metis-reducer';
+import JanusLogReducer from './reducers/janus-log-reducer';
+import LastActionReducer from './reducers/last-action-reducer';
+
+import * as authActions from './actions/auth_actions';
+import * as fileActions from './actions/file_actions';
+import * as uploadActions from './actions/upload_actions';
+import * as userActions from './actions/user_actions';
 
 class MetisUploader{
   constructor() {
-    this.store = createStore()
+    this.store = this.createStore();
+
     this.spawnWorkers();
     this.buildUI();
+  }
+
+  createStore() {
+    let janusLogReducer = new JanusLogReducer();
+    let lastAction = new LastActionReducer();
+
+    // these are (state, action) => new_state
+    let reducers = {
+      fileData,
+      userInfo: janusLogReducer.reducer(),
+      lastAction: lastAction.reducer()
+    };
+
+    // action handlers to import
+    let actions = {
+      ...authActions,
+      ...fileActions,
+      ...uploadActions,
+      ...userActions
+
+      // here you may define aliases to other actions,
+      // e.g.:
+      // returnFile: fileActions.retrieveFile
+    };
+
+    return metisStore(reducers, actions);
   }
 
   initDataStore() {
@@ -86,62 +122,6 @@ class MetisUploader{
    * the action in the reducer will run first.
    */
 
-  routeAction(action) {
-    switch(action.type) {
-      case 'AUTHORIZE_FILE':
-        if (!this.checkAuthData(action.uploadFile)) {
-          alert('The data to upload is not complete.');
-          return;
-        }
-        this.requestAuthorization(action.uploadFile);
-        break;
-      case 'FILE_UPLOAD_AUTHORIZED':
-        this.initializeFile(action.response.request);
-        break;
-      case 'QUEUE_UPLOAD':
-        this.startUpload();
-        break;
-      case 'PAUSE_UPLOAD':
-        this.uploadWorker.postMessage({ command: 'pause' });
-        break;
-      case 'CANCEL_UPLOAD':
-        if(!confirm('Are you sure you want to remove this upload?')) return;
-        this.uploadWorker.postMessage({ command: 'cancel' });
-        break;
-      case 'REMOVE_FILE':
-        if(action.fileMetadata == undefined) return;
-        if(!confirm('Are you sure you want to remove this file?')) return;
-        this.removeServerFiles('/remove-file', action.fileMetadata);
-        break;
-      case 'REMOVE_FAILED':
-        this.removeServerFiles('/remove-failed', action.fileMetadata);
-        break;
-      case 'RECOVER_UPLOAD':
-        this.recoverUpload(action.uploadFile, action.fileMetadata);
-        break;
-      case 'LOG_IN':
-        let email = action.data.email;
-        let password = action.data.pass;
-        this.janusLogger.logIn(email, password);
-        break;
-      case 'LOGGED_IN':
-        this.retrieveFiles();
-        break;
-      case 'LOG_OUT':
-        this.janusLogger.logOut(Cookies.get(TOKEN_NAME));
-        break;
-      case 'LOGGED_OUT':
-        window.location = LOGGED_OUT_ADDR();
-        break
-      case 'NOT_LOGGED':
-        window.location = NOT_LOGGED_ADDR();
-        break;
-      default:
-        //none
-        break;
-    }
-  }
-
   /*
    * Responses from the Upload Worker.
    */
@@ -156,20 +136,8 @@ class MetisUploader{
     if(message.data.type == 'FILE_UPLOAD_PAUSED') this.startUpload();
   }
 
-  checkAuthData(fileUploadData) {
-    let requestItems = [
-      'projectName',
-      'projectId',
-      'role',
-      'fileName',
-      'groupId',
-      'groupName'
-    ];
 
-    return requestItems.every(item => (fileUploadData[item] != undefined))
-  }
-
-  generateAuthRequest(file){
+  generateAuthRequest(file) {
     let req = [
       'fileName',
       'originalName',
@@ -188,38 +156,6 @@ class MetisUploader{
     // Form the upload request.
     req.forEach(elem => { reqData[SNAKE_CASE_IT(elem)] = file[elem]; });
     return reqData;
-  }
-
-  /*
-   * Call to get approval to make an action on Metis.
-   */
-  requestAuthorization(fileUploadData){
-    fileUploadData = this.generateAuthRequest(fileUploadData);
-    let request = SERIALIZE_REQUEST(fileUploadData);
-
-    // Request authorization to upload the file.
-    AJAX({
-      url: '/upload-authorize',
-      method: 'POST',
-      sendType: 'serial',
-      returnType: 'json',
-      data: request,
-      success: this.authorizationResponse.bind(this),
-      error: this.ajaxError.bind(this)
-    });
-  }
-  
-  /*
-   * Route the signed response from Metis or Magma to the web worker.
-   */
-  authorizationResponse(response){
-    if(response.success){
-      let action = { type: 'FILE_UPLOAD_AUTHORIZED', response };
-      this.store.dispatch(action);
-    }
-    else{
-      console.log('There was an error.');
-    }
   }
 
   initializeFile(authResponse){

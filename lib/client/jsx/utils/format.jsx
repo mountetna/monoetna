@@ -43,3 +43,14 @@ export const byteFormat = (bytes, si, bits = false) => {
 
   return bytes.toFixed(1)+' '+units[u];
 }
+
+export const snakeCase = (str) => {
+  return str.split(/(?=[A-Z])/).join('_').toLowerCase();
+}
+
+export const camelCase = (str) => {
+  return str.toLowerCase().replace(
+    /[^A-Za-z0-9]+([A-Za-z0-9])/g, 
+    (_, chr) =>  chr.toUpperCase()
+  );
+}
