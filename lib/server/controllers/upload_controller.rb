@@ -1,29 +1,21 @@
 class UploadController < Metis::Controller
   def authorize
-    # Check that the correct parameters are present.
-    raise Etna::BadRequest, "Missing auth params" unless has_auth_params?(@params)
+    require_params(:project_name, :file_name)
 
-    # Check that the user has edit permission on the project requested.
-    user_edit_check
+    hmac = Etna::Hmac.new(
+      Metis.instance,
+      method: 'POST',
+      host: @request.host,
+      path: '/upload',
+      expiration: Time.now + 3600,
+      nonce: SecureRandom.hex,
+      id: :metis,
+      headers: { project_name: @params[:project_name], file_name: @params[:file_name] }
+    )
 
-    # Check that this file system is in sync with the auth server. If there is a
-    # group/project set in Janus there should be a corresponding directory.
-    raise Etna::ServerError, "No project directory" unless Metis::File.has_directory?
+    url = URI::HTTPS.build(hmac.url_params)
 
-    # Check that the file does not exist on disk or in the db.
-    raise Etna::BadRequest, "File already exists" if file_exists? || partial_exists?
-    raise Etna::BadRequest, "DB Metadata exists" if db_metadata_exists?
-
-    add_extra_auth_params
-
-    if !hmac_params_valid?
-      @params[:status] = 'not authorized'
-      return { success: false, request: @params }
-    end
-
-    @params[:status] = 'authorized'
-    @params[:hmac_signature] = generate_hmac
-    return { success: true, request: @params }
+    success(url)
   end
 
   # start_upload will create a metadata entry in the database and also a file on
@@ -37,7 +29,6 @@ class UploadController < Metis::Controller
     #raise Etna::ServerError, "Missing project directory" unless directory_exists?
 
     # Check that the file does not exist on disk or in the db.
-    binding.pry
     raise Etna::BadRequest, "Resource exists"  if file_exists? || partial_exists?
     raise Etna::BadRequest, "Metadata exists" if db_metadata_exists?
 

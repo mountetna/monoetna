@@ -3,7 +3,8 @@
 
 class ClientController < Metis::Controller
   def index
-    view :index
+    @token_name = Metis.instance.config(:token_name)
+    erb_view :index
   end
 
   def user
