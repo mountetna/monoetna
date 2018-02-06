@@ -22,43 +22,11 @@ const uploads = (old_uploads, action) => {
 };
 
 const files = (state, action) => {
-  if (!state) state = {} 
-
-  var fileData = Object.assign({}, state);
-  var fileUploads = fileData.fileUploads;
-  var fileList = fileData.fileList;
-  var fileFails = fileData.fileFails;
-  var response = null;
-  var index = null;
-
-  var setResponseAndIndex = function(action, fileGroup) {
-    response = camelCaseIt(action.response.request);
-    index = getMatchingUploadIndex(fileGroup, response);
-  }
-
-  var camelCaseIt = function(object){
-    for(var key in object){
-      object[CAMEL_CASE_IT(key)] = object[key];
-      if(key.indexOf('_') != -1) delete object[key];
-    }
-    object = PARSE_REQUEST(object);
-    return object;
-  }
-
-  // Find the local File Object.
-  var getMatchingUploadIndex = function(fileGroup, responseData){
-    var index = null;
-    for(var a = 0; a < fileGroup.length; ++a){
-      if((fileGroup[a].fileName == responseData.fileName) &&
-        (fileGroup[a].projectName == responseData.projectName) &&
-        (fileGroup[a].groupName == responseData.groupName)){
-
-        index = a; 
-        break;
-      }
-    }
-    return index;
-  }
+  if (!state) state = {
+    fileList: [],
+    fileUploads: [],
+    fileFails: []
+  } 
 
   switch(action.type) {
     case 'FILE_SELECTED':
@@ -179,10 +147,9 @@ const files = (state, action) => {
       break;
 
     default:
+      return state;
       break;
   }
-
-  return fileData;
 };
 
 export default files;

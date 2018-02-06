@@ -24,8 +24,8 @@ export default class PermissionSelector extends GenericSearchDropdown{
       let { permissions } = this.props;
 
       permissions.forEach((permission,i) => {
-        let { projectName, role, id } = permission;
-        let entry = this.matchAndAdd(value, projectName, i, id, entries.length);
+        let { projectName, role } = permission;
+        let entry = this.matchAndAdd(value, projectName, i, entries.length);
         
         if (entry != null && role != 'viewer') entries.push(entry);
       })

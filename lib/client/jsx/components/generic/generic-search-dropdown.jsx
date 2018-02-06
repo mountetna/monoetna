@@ -133,14 +133,13 @@ export default class GenericSearchDropdown extends React.Component{
   }
 
   // We do a simple string pattern match and return an entry if appropriate.
-  matchAndAdd(value, entry, index, id, listPosition){
+  matchAndAdd(value, entry, index, listPosition){
     var text = entry;
     var entry = String(entry);
     if(entry.indexOf(value) !== -1){
       var entryProps = {
         className: 'search-dropdown-tray-entry',
         key: (entry +'-'+ index),
-        'data-id': id,
         'data-val': entry,
         onClick: this.entrySelectedByClick.bind(this)
       };

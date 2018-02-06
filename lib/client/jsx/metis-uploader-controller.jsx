@@ -7,8 +7,7 @@ import metisStore from './store';
 import MetisUIContainer from './components/metis-ui-container';
 
 import fileData from './reducers/metis-reducer';
-import JanusLogReducer from './reducers/janus-log-reducer';
-import LastActionReducer from './reducers/last-action-reducer';
+import userInfo from './reducers/janus-log-reducer';
 
 import * as authActions from './actions/auth_actions';
 import * as fileActions from './actions/file_actions';
@@ -19,19 +18,24 @@ class MetisUploader{
   constructor() {
     this.store = this.createStore();
 
+
+    this.updateUser();
     this.spawnWorkers();
     this.buildUI();
   }
 
-  createStore() {
-    let janusLogReducer = new JanusLogReducer();
-    let lastAction = new LastActionReducer();
+  updateUser() {
+    this.store.dispatch({
+      type: 'ADD_USER',
+      token: Cookies.get(CONFIG.token_name)
+    });
+  }
 
+  createStore() {
     // these are (state, action) => new_state
     let reducers = {
       fileData,
-      userInfo: janusLogReducer.reducer(),
-      lastAction: lastAction.reducer()
+      userInfo
     };
 
     // action handlers to import
@@ -47,10 +51,6 @@ class MetisUploader{
     };
 
     return metisStore(reducers, actions);
-  }
-
-  initDataStore() {
-    // Event hooks from the UI to the Controller
   }
 
   /*
