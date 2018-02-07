@@ -97,7 +97,7 @@ module Etna
 
     # If the application asks for a redirect for unauthorized users
     def fail_or_redirect(msg = 'You are unauthorized')
-      return [ 401,{},[msg] ] unless application.config(:auth_redirect)
+      return [ 401, { 'Content-Type' => 'text/html' }, [msg] ] unless application.config(:auth_redirect)
 
       uri = URI(
         application.config(:auth_redirect).chomp('/') + '/login'
