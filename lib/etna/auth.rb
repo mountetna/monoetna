@@ -29,7 +29,8 @@ module Etna
     end
 
     def create_user
-      token = auth(:basic)
+      token = @request.cookies[application.config(:token_name)] || auth(:etna)
+
       return false unless token
 
       begin
