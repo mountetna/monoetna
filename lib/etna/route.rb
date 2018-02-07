@@ -25,7 +25,7 @@ module Etna
       update_params(request)
 
       unless authorized?(request)
-        return [ 401, {}, ['You are unauthorized'] ]
+        return [ 403, {}, ['You are forbidden from performing this action.'] ]
       end
 
       if @action
