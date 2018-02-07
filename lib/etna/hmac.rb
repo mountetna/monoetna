@@ -16,8 +16,26 @@ module Etna
       raise ArgumentError, "Headers must be a Hash" unless @headers.is_a?(Hash)
     end
 
-    def has_header? header, value
-      @headers[header] == value
+    # this returns arguments for URI::HTTP.build
+    def url_params
+      params = {
+        authorization: "Hmac #{signature}",
+        expiration: @expiration,
+        nonce: @nonce,
+        id: @id.to_s,
+        headers: @headers.keys.join(','),
+      }.merge(@headers).map do |name, value|
+        [
+          "X-Etna-#{ name.to_s.split(/_/).map(&:capitalize).join('-') }",
+          value
+        ]
+      end.to_h
+
+      return {
+        host: @host,
+        path: @path,
+        query: URI.encode_www_form(params)
+      }
     end
 
     def valid_signature? test_signature
