@@ -25,8 +25,7 @@ module Etna
     private
 
     def auth(type)
-      hmac_param(:authorization,nil)
-      (@request.env['HTTP_AUTHORIZATION'] || hmac_param(:authorization) || '')[/\A#{type.capitalize} (.*)\z/,1]
+      (etna_param(:authorization, nil) || '')[/\A#{type.capitalize} (.*)\z/,1]
     end
 
     def create_user
@@ -45,11 +44,13 @@ module Etna
       end
     end
 
-    def hmac_param(item, fill='X_ETNA_')
+    def etna_param(item, fill='X_ETNA_')
       # This comes either from header variable
       # HTTP_X_SOME_NAME or parameter X-Etna-Some-Name
+      #
+      # We prefer the param so we can use the header elsewhere
 
-      @request.env["HTTP_#{fill}#{item.upcase}"] || @params[:"X-Etna-#{item.to_s.split(/_/).map(&:capitalize).join('-')}"]
+      @params[:"X-Etna-#{item.to_s.split(/_/).map(&:capitalize).join('-')}"] || @request.env["HTTP_#{fill}#{item.upcase}"] 
     end
 
     # Names and order of the fields to be signed.
@@ -58,10 +59,10 @@ module Etna
 
       return false unless hmac_signature
 
-      return false unless headers = hmac_param(:headers)
+      return false unless headers = etna_param(:headers)
 
       headers = headers.split(/,/).map do |header|
-        [ header.to_sym, hmac_param(header) ]
+        [ header.to_sym, etna_param(header) ]
       end.to_h
 
       # Now expect the standard headers
@@ -70,9 +71,9 @@ module Etna
         host: @request.host,
         path: @request.path,
 
-        expiration: hmac_param(:expiration),
-        id: hmac_param(:id),
-        nonce: hmac_param(:nonce),
+        expiration: etna_param(:expiration),
+        id: etna_param(:id),
+        nonce: etna_param(:nonce),
         headers: headers
       }
 
