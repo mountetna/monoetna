@@ -78,9 +78,9 @@ The action is usually invoked by the #response method. Both the action and ultim
 The controller also gives several helper methods:
 * `view(name)` - returns an HTML view from a file found in the VIEW_PATH
 * `erb_view(name)` - returns an HTML view from an ERB template using the controller context.
-* `auth_token` - Pulls the value out of an `Authorization: Basic TOKEN` field.
 * `success(content_type, msg)` - a successful rack response
 * `failure(status,msg)` - an unsuccessful rack response
+* `require_params(*params)` - raise Etna::BadRequest unless @params has params
 * `route_path(name, params)` - The URL corresponding to a named route with the given parameters
 
 ### Etna::Error
