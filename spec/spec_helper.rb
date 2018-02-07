@@ -4,6 +4,8 @@ require 'simplecov'
 require 'rack/test'
 require 'extlib'
 require 'bundler'
+require 'securerandom'
+require 'timecop'
 
 Bundler.setup(:default, :test)
 

@@ -1,7 +1,3 @@
-require_relative '../lib/etna/auth'
-require 'securerandom'
-require 'timecop'
-
 describe Etna::Auth do
   include Rack::Test::Methods
   attr_reader :app
@@ -33,6 +29,10 @@ describe Etna::Auth do
     header('X-Etna-Headers', headers.keys.join(','))
   end
 
+  def auth_header(token)
+    header('Authorization', "Etna #{token}")
+  end
+
   context "tokens" do
     before(:each) do
       @private_key = OpenSSL::PKey::RSA.generate 1024
@@ -46,33 +46,63 @@ describe Etna::Auth do
       Object.send(:remove_const, :Arachne)
     end
 
-    it "returns a user from a Janus token" do
-      user = nil
-
-      Arachne::Server.get('/test') do
-        user = @user
-        success(nil)
-      end
-
-      rsa_key = OpenSSL::PKey::RSA.new(@private_key)
-      public_key = rsa_key.public_key.to_s
-
+    it 'fails without an authorization header' do
+      Arachne::Server.get('/test') { success(nil) }
       @app = setup_app(
-        Arachne::Server.new(test: { rsa_private: @private_key, rsa_public: public_key, token_algo: 'RS256' }),
+        Arachne::Server.new(test: { }),
         [ Etna::Auth ]
       )
 
-      token = Arachne.instance.sign.jwt_token(
-        email: 'janus@two-faces.org',
-        first: 'Janus',
-        last: 'Bifrons',
-        perm: 'a:labors;e:olympics,argo;v:constellations'
-      )
-
-      header 'Authorization', "Basic #{token}"
+      # we don't use any headers
       get('/test')
-      expect(last_response.status).to eq(200)
-      expect(user).to be_a(Etna::User)
+
+      expect(last_response.status).to eq(401)
+    end
+
+    context 'valid tokens' do
+      before(:each) do
+        Arachne::Server.get('/test') { success(@user.class) }
+
+        @public_key = OpenSSL::PKey::RSA.new(@private_key).public_key.to_s
+
+        @app = setup_app(
+          Arachne::Server.new(test: {
+            rsa_private: @private_key,
+            rsa_public: @public_key,
+            token_name: 'ARACHNE_TOKEN',
+            token_algo: 'RS256' }),
+          [ Etna::Auth ]
+        )
+        clear_cookies
+      end
+
+      it "returns a user from a Janus token" do
+        token = Arachne.instance.sign.jwt_token(
+          email: 'janus@two-faces.org',
+          first: 'Janus',
+          last: 'Bifrons',
+          perm: 'a:labors;e:olympics,argo;v:constellations'
+        )
+
+        auth_header(token)
+        get('/test')
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to eq('Etna::User')
+      end
+      
+      it 'accepts a token via cookie' do
+        token = Arachne.instance.sign.jwt_token(
+          email: 'janus@two-faces.org',
+          first: 'Janus',
+          last: 'Bifrons',
+          perm: 'a:labors;e:olympics,argo;v:constellations'
+        )
+
+        set_cookie("#{Arachne.instance.config(:token_name)}=#{token}")
+        get('/test')
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to eq('Etna::User')
+      end
     end
 
     context "invalid tokens" do
@@ -112,7 +142,7 @@ describe Etna::Auth do
 
         # The test user has somehow received this invalid token
         # and tries to use it for authorization
-        header 'Authorization', "Basic #{token}"
+        auth_header(token)
         get('/test')
 
         # The token is rejected because the message does not
@@ -142,7 +172,7 @@ describe Etna::Auth do
           perm: 'a:labors;e:olympics,argo;v:constellations'
         )
 
-        header 'Authorization', "Basic #{token}"
+        auth_header(token)
         get('/test')
 
         # Instead of a 401, we are redirected to
@@ -240,29 +270,10 @@ describe Etna::Auth do
         headers: { project_name: 'tapestry', action: 'weave' }
       )
 
-      params = {
-        authorization: "Hmac #{input_hmac.signature}",
-        expiration: @time,
-        nonce: @nonce,
-        id: 'arachne',
-        headers: 'project_name,action',
-        project_name: 'tapestry',
-        action: 'weave'
-      }
-
-      url = params.map do |name, value|
-        "X-Etna-#{
-          name.to_s
-            .split(/_/)
-            .map(&:capitalize)
-            .join('-')
-        }=#{
-          CGI.escape(value)
-        }"
-      end.join('&')
+      uri = URI::HTTP.build(input_hmac.url_params)
 
       # the get succeeds
-      get("/test?#{url}")
+      get("#{uri.path}?#{uri.query}")
 
       expect(last_response.status).to eq(200)
       expect(last_response.body).to eq('tapestry')
