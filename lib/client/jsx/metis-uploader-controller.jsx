@@ -14,7 +14,9 @@ import * as fileActions from './actions/file_actions';
 import * as uploadActions from './actions/upload_actions';
 import * as userActions from './actions/user_actions';
 
-class MetisUploader{
+import { createWorker } from './workers';
+
+class MetisUploader {
   constructor() {
     this.store = this.createStore();
 
@@ -50,7 +52,12 @@ class MetisUploader{
       // returnFile: fileActions.retrieveFile
     };
 
-    return metisStore(reducers, actions);
+    let workers = {
+      upload: createWorker( require.resolve('../jsx/workers/uploader'), this.proxyResponse.bind(this)),
+      init: createWorker( require.resolve('../jsx/workers/upload-initializer'), this.proxyResponse.bind(this))
+    }
+
+    return metisStore(reducers, actions, workers);
   }
 
   /*
@@ -58,20 +65,6 @@ class MetisUploader{
    */
 
   spawnWorkers(){
-    this.uploadWorker = new Worker('./js/workers/uploader.js');
-    this.uploadWorker.onmessage = (message)=>{
-      this.proxyResponse(message);
-    };
-    this.uploadWorker.onerror = (message)=>{
-      console.log(message);
-    };
-    this.uploadInitializer = new Worker('./js/workers/upload-initializer.js');
-    this.uploadInitializer.onmessage = (message)=>{
-      this.proxyResponse(message);
-    };
-    this.uploadInitializer.onerror = (message)=>{
-      console.log(message);
-    };
   }
 
   buildUI(){
@@ -156,34 +149,6 @@ class MetisUploader{
     // Form the upload request.
     req.forEach(elem => { reqData[SNAKE_CASE_IT(elem)] = file[elem]; });
     return reqData;
-  }
-
-  initializeFile(authResponse){
-    // Get the file from our 'fileUploads' object. 
-    let uploadFile = this.getUploadFile(authResponse);
-    if(uploadFile == null) return;
-
-    // Normalize the data to send. Add our user token.
-    let request = PARSE_REQUEST(uploadFile);
-    let state = this.store.getState();
-    request.token = state.userInfo.authToken;
-
-    // Kick off the 'uploader'.
-    let workerMessage = { command: 'init', file: uploadFile, request };
-    this.uploadInitializer.postMessage(workerMessage);
-  }
-
-  getUploadFile(authResponse){
-    let state = this.store.getState();
-    let fileUploads = state.fileData.fileUploads;
-
-    let uploadFile = fileUploads.find(elem => (
-      (authResponse.groupName == elem.groupName) &&
-      (authResponse.projectName == elem.projectName) &&
-      (authResponse.fileName == elem.fileName)
-    ))
-
-    return uploadFile;
   }
 
   /*

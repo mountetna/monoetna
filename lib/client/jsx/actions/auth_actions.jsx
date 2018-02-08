@@ -3,31 +3,24 @@ import { uploadAuthorize } from '../api/upload_api';
 /*
  * Call to get approval to make an action on Metis.
  */
-// the actual action
-  
-export const authorizeFile = (action) => (dispatch) => {
-  let { uploadFile } = action;
+export const authorizeFile = ({ uploadFile }) => (dispatch) => {
+  let { projectName, fileName, key } = uploadFile;
 
-  let requestItems = [ 'projectName', 'fileName' ];
-
-  let uploadValid = requestItems.every(item => (uploadFile[item] != undefined));
-
-  if (!uploadValid) {
+  if (!projectName || !fileName) {
     alert('The data to upload is not complete.');
     return;
   }
 
   uploadAuthorize(uploadFile)
-    .then(
-      response => dispatch(
-        { type: 'FILE_UPLOAD_AUTHORIZED', response }
-      )
-    )
+    .then( response => response.text())
+    .then( url => {
+      // first set the upload url
+      dispatch({ type: 'FILE_UPLOAD_AUTHORIZED', url, key });
+
+      // then tell the worker to initialize the file
+      dispatch({ type: 'WORK', worker: 'init', uploadFile, url });
+    })
     .catch(
       () => alert('The upload could not be authorized.')
     )
-}
-
-export const fileUploadAuthorized = (action) => (dispatch) => {
-  this.initializeFile(action.response.request);
 }

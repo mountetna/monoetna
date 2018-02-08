@@ -2,7 +2,6 @@
  * Global Variables
  */
 
-var INITIAL_BLOB_SIZE = Math.pow(2, 10); // in bytes
 var MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
 var MAX_BLOB_SIZE = Math.pow(2, 20);
 

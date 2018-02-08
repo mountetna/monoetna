@@ -2,43 +2,26 @@
  * This class will initialize an upload to the Metis server from a web client.
  */
 
-importScripts('../libraries/utils.js');
-importScripts('../libraries/spark-md5.js');
 
-class UploadInitializer{
+module.exports = function(self) {
+  let timeouts = 0; // The number of times an upload has timed out.
+  let maxTimeouts = 5; // The number of attepts to upload a blob.
+  const INITIAL_BLOB_SIZE = Math.pow(2, 10); // in bytes
 
-  constructor(){
+  let dispatch = (action) => self.postMessage(action);
 
-    // These object will be the data we need to send over the wire.
-    this.file = null;
-    this.request = null;
-
-    this.errorObj=(message)=>({ type:'error', message, response: {} })
-    this.timeouts = 0; // The number of times an upload has timed out.
-    this.maxTimeouts = 5; // The number of attepts to upload a blob.
-  }
+  // report errors
+  let error = (message) => dispatch(
+    { type: 'WORKER_ERROR', message }
+  );
 
   /*
-   * Implementation of a Worker specific function.
-   * For message passing into and out of the worker.
+   * For message passing into the worker.
    */
-  onmessage(event){
+  let onmessage = (event) => {
+    let { file, request } = event.data;
 
-    var message = event.data;
-    uploadInitializer.file = message.file;
-    uploadInitializer.request = message.request;
-
-    // Check that the incoming data has a valid command.
-    if(!('command' in message)){
-
-      postMessage(uploadInitializer.errorObj('No command.'));
-      return;
-    }
-
-    if(message.command == 'init'){
-
-      uploadInitializer.initializeUploadSequence();
-    }
+    initializeUploadSequence(file, request);
   }
 
   /*
@@ -46,17 +29,14 @@ class UploadInitializer{
    * the server know what to expect and also allows the server a chance to
    * resume a previously started upload.
    */
-  initializeUploadSequence(){
-
+  let initializeUploadSequence = (file, request) => {
     /*
      * Here, we are NOT attaching any blob data, but are still using a form
-     * for the initialization request. Also keep an eye on that 'SNAKE_CASE_IT'
-     * function. The Thin/Ruby server wants it's vars in snake case.
+     * for the initialization request.
      */
-    var initUpReq = new FormData();
-    for(var key in  uploadInitializer.request){
-
-      initUpReq.append(SNAKE_CASE_IT(key),  uploadInitializer.request[key]);
+    let uploadRequest = new FormData();
+    for (var key in request) {
+      uploadRequest.append(key,  request[key]);
     }
 
     /*
@@ -64,92 +44,50 @@ class UploadInitializer{
      * and use file upload pausing on the server. All information related to 
      * blobs is in bytes.
      */
-    initUpReq.append('current_byte_position', 0);
-    initUpReq.append('current_blob_size', 0);
-    initUpReq.append('next_blob_size', INITIAL_BLOB_SIZE);
+    uploadRequest.append('current_byte_position', 0);
+    uploadRequest.append('current_blob_size', 0);
+    uploadRequest.append('next_blob_size', INITIAL_BLOB_SIZE);
 
     // Hash the next blob for security and error checking.
-    var blob = uploadInitializer.file.slice(0, INITIAL_BLOB_SIZE);
-    uploadInitializer.generateBlobHash(blob, initUpReq, this.sendFirstPacket);
-  }
-
-  /*
-   * Take a blob from the file and hash it.
-   */
-  generateBlobHash(blob, uploadRequest, callback){
-
-    var fileReader = new FileReader();
-    fileReader.onload = function(progressEvent){
-
-      var md5Hash = SparkMD5.ArrayBuffer.hash(this.result);
+    let blob = file.slice(0, INITIAL_BLOB_SIZE);
+    let fileReader = new FileReader();
+    fileReader.onload = (progressEvent) => {
+      let md5Hash = SparkMD5.ArrayBuffer.hash(this.result);
       uploadRequest.append('next_blob_hash', md5Hash);
-      callback(uploadRequest);
+      sendFirstPacket(uploadRequest);
     }
     fileReader.readAsArrayBuffer(blob);
-  }
+  };
 
-  sendFirstPacket(initialUploadRequet){
-
+  let sendFirstPacket = (request) => {
     try{
-
       AJAX({
-
         url: '/upload-start',
         method: 'POST',
         sendType: 'file',
         returnType: 'json',
-        data: initialUploadRequet,
-        success: uploadInitializer.handleServerResponse,
-        error: uploadInitializer.ajaxError
+        data: request,
+        success: handleServerResponse,
+        error: ajaxError
       });
     }
-    catch(error){
-
-      postMessage(uploadInitializer.errorObj(error.message));
+    catch({message}){
+      error(message);
     }
-  }
+  };
 
-  handleServerResponse(response){
+  let handleServerResponse = (response) => {
+    timeouts = 0; // Reset the timeout counter;
 
-    uploadInitializer.timeouts = 0; // Reset the timeout counter;
-
-    var errorMessage = 'The server response was malformed.';
-    if(!('success' in response) || !('request' in response)){
-
-      postMessage(uploadInitializer.errorObj(errorMessage));
+    if (!('success' in response) || !('request' in response)) {
+      error('The server response was malformed.');
       return;
     }
 
-    response = NORMILIZE_RESPONSE(response);
-
-    if(!response){
-
-      postMessage(uploadInitializer.errorObj(errorMessage));
-      return;
-    }
-
-    response = TRANSFORM_RESPONSE(response);
-
-    if(!response){
-
-      postMessage(uploadInitializer.errorObj(errorMessage));
-      return;
-    }
-
-    uploadInitializer.handleResponseRouting(response);  
-  }
-
-  handleResponseRouting(response){
-
-    if(response.request.status == 'initialized'){
-
-      postMessage({ type: 'FILE_INITIALIZED', response: response });
+    if (response.request.status == 'initialized') {
+      dispatch({ type: 'FILE_INITIALIZED', response });
     }
   }
+
+  self.addEventListener('message', onmessage);
 }
-
-// Initilize the class.
-var uploadInitializer = new UploadInitializer();
-
-// Expose the worker specific messaging function.
-var onmessage = uploadInitializer.onmessage;
