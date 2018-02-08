@@ -1,51 +1,56 @@
+// a random id for the upload
+const filekey = () => (Math.random().toString(36) + '0'.repeat(10)).substring(2,12);
+
+// helper to create a new file entry
+const file = ({ name, size }) => ({
+  fileName: name,
+  originalName: name,
+  fileSize: size,
+  currentBytePosition: 0,
+  status: 'unauthorized',
+  key: filekey()
+})
+
 const uploads = (old_uploads, action) => {
-  if (!old_uploads) old_uploads = []
+  if (!old_uploads) old_uploads = {}
 
   switch(action.type) {
     case 'FILE_SELECTED':
       // Copy the selected file data to 'fileUploads' object.
-      return [
+      let new_file = file(action.fileObject);
+      return {
         ...old_uploads,
-        {
-          fileName: action.fileObject.name,
-          originalName: action.fileObject.name,
-          fileSize: action.fileObject.size,
-          currentBytePosition: 0,
-          status: 'unauthorized'
+        [new_file.key]: new_file
+      };
+    case 'FILE_UPLOAD_AUTHORIZED':
+      // Append the HMAC url and set the server current byte to 0.
+      return {
+        ...old_uploads,
+        [action.key]: {
+          ...old_uploads[action.key],
+          uploadURL: action.url,
+          currentBytePosition: 0
         }
-      ]
-      break;
+      };
     default:
       return old_uploads;
   }
-
 };
 
 const files = (state, action) => {
   if (!state) state = {
     fileList: [],
-    fileUploads: [],
+    fileUploads: {},
     fileFails: []
   } 
 
   switch(action.type) {
+    case 'FILE_UPLOAD_AUTHORIZED':
     case 'FILE_SELECTED':
       return {
         ...state,
-        fileUploads: uploads(state.uploads,action)
-      }
-    case 'FILE_UPLOAD_AUTHORIZED':
-
-      setResponseAndIndex(action, fileUploads);
-      if(index == null) break;
-
-      // Append the HMAC signature and set the server current byte to 0.
-      fileUploads[index].hmacSignature = response.hmacSignature;
-      fileUploads[index].currentBytePosition = 0;
-
-      // Append all of the request items to the local file object.
-      fileUploads[index] = Object.assign(fileUploads[index], response);
-      break;
+        fileUploads: uploads(state.fileUploads,action)
+      };
 
     case 'FILE_UPLOAD_RECOVERED':
       setResponseAndIndex(action, fileFails);

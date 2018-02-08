@@ -32,11 +32,12 @@ export default class ListBody extends React.Component{
             })
           : '' }
         {/* Render the incomplete uploads. */}
-        { (fileUploads.length) ?
-            fileUploads.map((fileUpload)=>{
+        { (Object.keys(fileUploads).length) ?
+            Object.keys(fileUploads).map((fileKey)=>{
+              let fileUpload = fileUploads[fileKey];
               let listUpload = {
-                key: 'file-upload-'+fileUpload.reactKey,
-                reactKey:  fileUpload.reactKey,
+                key: 'file-upload-'+fileKey,
+                reactKey:  fileKey,
                 fileUpload: fileUpload,
                 permissions: permissions,
                 callbacks: {
