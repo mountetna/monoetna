@@ -6,7 +6,7 @@ import Cookies from 'js-cookie';
 import metisStore from './store';
 import MetisUIContainer from './components/metis-ui-container';
 
-import fileData from './reducers/metis-reducer';
+import fileData from './reducers/files-reducer';
 import userInfo from './reducers/janus-log-reducer';
 
 import * as authActions from './actions/auth_actions';
