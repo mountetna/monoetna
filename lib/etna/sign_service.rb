@@ -47,6 +47,10 @@ module Etna
       @public_key ||= OpenSSL::PKey::RSA.new(@application.config(:rsa_public))
     end
 
+    def generate_private_key(key_size)
+      OpenSSL::PKey::RSA.generate(key_size)
+    end
+
     private
 
     def signature(params, algo)
