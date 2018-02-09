@@ -36,11 +36,8 @@ module Etna
       begin
         payload, header = application.sign.jwt_decode(token)
         return @request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h)
-      rescue JWT::ExpiredSignature
-        return false
-      rescue JWT::VerificationError
-        return false
-      rescue ArgumentError => e
+      rescue
+        # bail out if anything goes wrong
         return false
       end
     end
