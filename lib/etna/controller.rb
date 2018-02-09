@@ -1,3 +1,5 @@
+require 'erb'
+
 module Etna
   class Controller
     def initialize(request, action = nil)
