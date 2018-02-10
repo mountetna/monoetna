@@ -1,3 +1,5 @@
+require 'erb'
+
 module Etna
   class Controller
     def initialize(request, action = nil)
@@ -6,21 +8,40 @@ module Etna
       @response = Rack::Response.new
       @params = @request.env['rack.request.params']
       @errors = []
-      @logger = @request.env['rack.logger']
+      @server = @request.env['etna.server']
+      @logger = @request.env['etna.logger']
+      @user = @request.env['etna.user']
     end
 
     def log(line)
       @logger.write "#{Time.now.strftime("%d/%b/%Y %H:%M:%S")} #{line}\n"
     end
 
-    def response
+    def response(&block)
+      return instance_eval(&block) if block_given?
+
       return send(@action) if @action 
 
       [501, {}, ['This controller is not implemented.']]
-    rescue Etna::BadRequest, Etna::ServerError=> e
+    rescue Etna::Error => e
       return failure(e.status, error: e.message)
     end
 
+    def require_params(*params)
+      missing_params = params.reject{|p| @params.key?(p) }
+      raise Etna::BadRequest, "Missing param #{missing_params.join(', ')}" unless missing_params.empty?
+    end
+    alias_method :require_param, :require_params
+
+    def route_path(name, params={})
+      route = @server.class.routes.find do |route|
+        route.name.to_s == name.to_s
+      end
+      return nil if route.nil?
+      @request.scheme + '://' + @request.host + route.path(params)
+    end
+
+    # methods for returning a view
     VIEW_PATH = :VIEW_PATH
 
     def view(name)
@@ -39,7 +60,7 @@ module Etna
 
     private
 
-    def success(content_type, msg)
+    def success(msg, content_type='text/plain')
       @response['Content-Type'] = content_type
       @response.write(msg)
       @response.finish

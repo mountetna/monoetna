@@ -52,10 +52,10 @@ Routes may be either defined using 'controller#action' syntax or using a block:
 
     class Arachne
       class Server < Etna::Server
-        route '/weave', 'loom#weave'
+        route '/weave', action: 'loom#weave'
 
         route '/trash-talk' do
-          TrashTalkController.new(@request).response
+          TrashTalk.new(@request).response
         end
       end
     end
@@ -71,9 +71,17 @@ methods defined on the controller.
       end
     end
 
-The controller provides @request and @response rack objects, @params (built by Etna::ParseBody), and #log, #success and #failure methods.
+The controller provides @request and @response rack objects, @params (built by Etna::ParseBody), @server, @logger and @user objects.
 
 The action is usually invoked by the #response method. Both the action and ultimately the #response method must return a valid Rack response (e.g. [ 200, {}, 'OK' ])
+
+The controller also gives several helper methods:
+* `view(name)` - returns an HTML view from a file found in the VIEW_PATH
+* `erb_view(name)` - returns an HTML view from an ERB template using the controller context.
+* `success(content_type, msg)` - a successful rack response
+* `failure(status,msg)` - an unsuccessful rack response
+* `require_params(*params)` - raise Etna::BadRequest unless @params has params
+* `route_path(name, params)` - The URL corresponding to a named route with the given parameters
 
 ### Etna::Error
 
@@ -86,6 +94,30 @@ These two Rack layers should be included - the first parses application/json
 and multipart messages and makes them available in the rack Request object
 under rack.request.params - the Etna::Controller makes this available using the
 @params hash. SymbolizeParams turns the keys of the params hash into symbols.
+
+### Etna::Auth
+
+If this middleware is included, it will confirm that the auth token (from an `Authorization: Etna <token>` header or a cookie named in `config(:token_name)`) is a valid JWT verified by the key in `config(:rsa_public)`. If so, it will set 'etna.user' in the Rack environment, which will be picked up by the Etna::Controller as @user. Note that the `:rsa_public` you set in your `config.yml` must correspond to the `:rsa_private` set in your authorization service.
+
+Alternatively, if there is no token, the request is signed by HMAC. HMAC-generated URLs are usually made by the application; there is an Etna::Hmac utility which helps you generate the appropriate requirements and a URL. The result of the HMAC is access to the path with 'etna.hmac' set to `true`.
+
+While you are free to test @user in your controller (e.g., `return failure(403, 'You cannot perform this operation') unless @user.can_edit?(@params[:project_name])`), Etna::Route allows you to do these basic authorization checks via the route. E.g.:
+
+    class Arachne
+      class Server < Etna::Server
+        get '/test', auth: { user: { can_edit?: :project_name } }
+      end
+    end
+
+HMAC routes should use `auth: { hmac: true }`.
+
+### Etna::TestAuth
+
+This middleware can be included in lieu of the above to set user credentials without a properly-signed token (useful in testing environments).
+
+### Etna::User
+
+This class validates permissions from the authentication service's JWT. It is not a substitute for a user model, but may be used alongside one.
 
 ## Etna::Command
 

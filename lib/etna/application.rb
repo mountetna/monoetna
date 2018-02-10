@@ -3,6 +3,7 @@
 # us the burden of writing class Blah < Etna::Application
 # whenever we want to use it as a container
 
+require_relative './sign_service'
 require 'singleton'
 
 module Etna::Application
@@ -22,6 +23,10 @@ module Etna::Application
 
   def config(type)
     @config[environment][type]
+  end
+
+  def sign
+    @sign ||= Etna::SignService.new(self)
   end
 
   def environment

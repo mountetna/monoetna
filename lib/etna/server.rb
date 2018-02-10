@@ -2,31 +2,31 @@
 module Etna
   class Server
     class << self
-      def route(path, method = nil, action = nil, &block)
+      def route(method, path, options={}, &block)
         @routes ||= []
 
         @routes << Etna::Route.new(
-          path,
           method,
-          action,
+          path,
+          options,
           &block
         )
       end
 
-      def get(path, action = nil, &block)
-        route(path, 'GET', action, &block)
+      def get(path, options={}, &block)
+        route('GET', path, options, &block)
       end
       
-      def post(path, action = nil, &block)
-        route(path, 'POST', action, &block)
+      def post(path, options={}, &block)
+        route('POST', path, options, &block)
       end
 
-      def put(path, action = nil, &block)
-        route(path, 'PUT', action, &block)
+      def put(path, options={}, &block)
+        route('PUT', path, options, &block)
       end
 
-      def delete(path, action = nil, &block)
-        route(path, 'DELETE', action, &block)
+      def delete(path, options={}, &block)
+        route('DELETE', path, options, &block)
       end
 
       attr_reader :routes
@@ -35,13 +35,15 @@ module Etna
     def call(env)
       @request = Rack::Request.new(env)
 
-      @request.env['rack.logger'] = @logger
+      @request.env['etna.server'] = self
+      @request.env['etna.logger'] = @logger
 
       route = self.class.routes.find do |route|
         route.matches? @request
       end
 
       if route
+        @params = @request.env['rack.request.params']
         return route.call(self, @request)
       end
 
