@@ -53,8 +53,8 @@ class MetisUploader {
     };
 
     let workers = {
-      upload: createWorker( require.resolve('../jsx/workers/uploader'), this.proxyResponse.bind(this)),
-      init: createWorker( require.resolve('../jsx/workers/upload-initializer'), this.proxyResponse.bind(this))
+      upload: createWorker( require.resolve('../jsx/workers/uploader')),
+      init: createWorker( require.resolve('../jsx/workers/upload-initializer'))
     }
 
     return metisStore(reducers, actions, workers);
@@ -118,17 +118,6 @@ class MetisUploader {
   /*
    * Responses from the Upload Worker.
    */
-  proxyResponse(message){
-    // Set the payload.
-    let action = { response: message.data.response, type: message.data.type };
-
-    // Dispatch the command.
-    this.store.dispatch(action);
-
-    // Check the queue for another upload or cancel.
-    if(message.data.type == 'FILE_UPLOAD_PAUSED') this.startUpload();
-  }
-
 
   generateAuthRequest(file) {
     let req = [
