@@ -14,15 +14,17 @@ class Metis
 
     post '/check', action: 'user_log#check_log'
 
-    post '/authorize/upload', action: 'upload#authorize', auth: { user: { can_edit?: true } }
+    post '/authorize/upload', action: 'upload#authorize', auth: { user: { can_edit?: :project_name } }
 
-    post '/upload/start', action: 'upload#start'
-    post '/upload/blob', action: 'upload#blob'
-    post '/upload/pause', action: 'upload#pause'
-    post '/upload/cancel', action: 'upload#cancel'
-    post '/upload/remove-file', action: 'upload#remove_file'
-    post '/upload/remove-failed', action: 'upload#remove_failed'
-    post '/upload/recover', action: 'upload#recover'
+    post '/upload', action: 'upload#upload', auth: { hmac: true }
+
+    #post '/upload/start', action: 'upload#start'
+    #post '/upload/blob', action: 'upload#blob'
+    #post '/upload/pause', action: 'upload#pause'
+    #post '/upload/cancel', action: 'upload#cancel'
+    #post '/upload/remove-file', action: 'upload#remove_file'
+    #post '/upload/remove-failed', action: 'upload#remove_failed'
+    #post '/upload/recover', action: 'upload#recover'
 
     get '/:project_name/download/*file_name', action: 'download#download', auth: { hmac: true }
 
