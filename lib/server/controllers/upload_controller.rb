@@ -7,7 +7,7 @@ class UploadController < Metis::Controller
       method: 'POST',
       host: @request.host,
       path: '/upload',
-      expiration: Time.now + 3600,
+      expiration: (Time.now + Metis.instance.config(:upload_expiration)).iso8601,
       nonce: SecureRandom.hex,
       id: :metis,
       headers: { project_name: @params[:project_name], file_name: @params[:file_name] }
