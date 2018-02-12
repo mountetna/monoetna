@@ -44,14 +44,26 @@ describe "UploadController" do
 
   context "#start" do
     it "should start an upload" do
-      json_post('upload/start', { })
+      header(*Etna::TestAuth.hmac_header({}))
+      json_post(
+        'upload',
+        project_name: 'athena',
+        file_name: 'wisdom.txt',
+        action: 'start',
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
 
       expect(last_response.status).to eq(200)
-      upload = Upload.first
-      resource = Resource.first
+
+      upload = Metis::Upload.first
+      file = Metis::File.first
 
       expect(upload).not_to be_nil
-      expect(resource).not_to be_nil
+      expect(file).not_to be_nil
+      expect(file.upload).to eq(upload)
+      expect(file.file_name).to eq('wisdom.txt')
+      expect(file.project_name).to eq('athena')
     end
   end
 end

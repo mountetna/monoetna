@@ -14,3 +14,17 @@ export const postAuthorizeUpload = (upload) => {
     body: JSON.stringify(request)
   }).then(checkStatus);
 }
+
+const postUpload = (upload_url, request) => {
+  return fetch(upload_url,
+  {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: headers('json'),
+    body: JSON.stringify(request)
+  })
+}
+
+export const postUploadStart = (upload_url, request) => {
+  return postUpload(upload_url, { ...request, action: 'start' });
+}

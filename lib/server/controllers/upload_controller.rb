@@ -1,3 +1,5 @@
+require 'securerandom'
+
 class UploadController < Metis::Controller
   def authorize
     require_params(:project_name, :file_name)
@@ -18,40 +20,46 @@ class UploadController < Metis::Controller
     success(url)
   end
 
-  # start_upload will create a metadata entry in the database and also a file on
+  UPLOAD_ACTIONS=[ :start ]
+  def upload
+    require_params(:project_name, :file_name, :action)
+
+    action = @params[:action].to_sym
+
+    raise Etna::BadRequest, "Incorrect upload action" unless UPLOAD_ACTIONS.include?(action)
+
+    send :"upload_#{action}"
+  end
+
+  private
+
+  # create a metadata entry in the database and also a file on
   # the file system with 0 bytes.
-  def start
-    # Details to check before we start an upload.
-    # Check the HMAC
-    #raise Etna::BadRequest, "Invalid HMAC" unless hmac_valid?
+  def upload_start
+    require_params(:next_blob_size, :next_blob_hash)
 
-    # Check that the upload directory exists. It should.
-    #raise Etna::ServerError, "Missing project directory" unless directory_exists?
+    file = Metis::File.find_or_create(
+      project_name: @params[:project_name],
+      file_name: @params[:file_name]
+    ) do |f|
+      f.original_name = @params[:file_name]
+      f.uploader = ''
+      f.size = 0
+    end
 
-    # Check that the file does not exist on disk or in the db.
-    raise Etna::BadRequest, "Resource exists"  if file_exists? || partial_exists?
-    raise Etna::BadRequest, "Metadata exists" if db_metadata_exists?
+    raise Etna::BadRequest, "Upload exists"  if file.upload
 
-    # Check the params from the client.
-    raise Etna::BadRequest, "Malformed file request" unless file_params_valid?
-    raise Etna::BadRequest, "Malformed upload request" unless upload_params_valid?
-
-    # Change the status of the upload.
-    @params[:status] = 'initialized'
-
-    # Nullify fields that will be filled later on file upload completion.
-    @params[:finish_upload] = nil
-    @params[:hash] = nil
-
-    # Write the metadata to postgres.
-    file = Resource.create(@params)
-
-    file.create_partial!
-
-    upload = Metis::Upload.create(@params, file)
+    upload = Metis::Upload.create(
+      file: file,
+      status: 'initialized',
+      current_byte_position: 0,
+      current_blob_size: 0,
+      next_blob_size: @params[:next_blob_size],
+      next_blob_hash: @params[:next_blob_hash]
+    )
 
     # Send upload initiated
-    return { success: true, request: @params }
+    success('initialized')
   end
 
   # Upload a chunk of the file.

@@ -3,11 +3,7 @@
 const workRouter = workers => {
   return store => {
     Object.values(workers).forEach(
-      worker=>worker.addEventListener('message', 
-        ({data}) => {
-          store.dispatch(data)
-        }
-      )
+      worker=>worker.addEventListener('message', ({data}) => store.dispatch(data))
     );
     return next => action => {
       let { type, worker, ...args } = action;

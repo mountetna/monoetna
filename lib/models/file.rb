@@ -1,13 +1,12 @@
 class Metis
   class File < Sequel::Model
-    def create_partial!
-      ::File.new(partial_file_name, 'w').close
+    one_to_one :upload
+    def self.has_file?(project_name, file_name)
+      file = self.where(project_name: project_name, file_name: file_name).first
+
+      return file && file.has_data?
     end
 
-    def partial_file_name
-      ::File.join(project_dir, file_name + '.part')
-    end
-    
     def has_data?
       file_name && ::File.exists?(location)
     end

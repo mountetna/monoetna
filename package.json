@@ -17,6 +17,7 @@
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-0": "^6.3.13",
     "js-cookie": "^2.2.0",
+    "md5": "^2.2.1",
     "react": "^15.4.1",
     "react-dom": "^15.4.1",
     "react-redux": "^4.4.6",

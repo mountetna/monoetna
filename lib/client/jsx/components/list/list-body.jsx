@@ -38,8 +38,8 @@ export default class ListBody extends React.Component{
               let listUpload = {
                 key: 'file-upload-'+fileKey,
                 reactKey:  fileKey,
-                fileUpload: fileUpload,
-                permissions: permissions,
+                fileUpload,
+                permissions,
                 callbacks: {
                   initializeUpload: this.props.initializeUpload,
                   queueUpload: this.props.queueUpload,

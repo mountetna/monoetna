@@ -1,3 +1,5 @@
+import { postUploadStart } from '../api/upload_api';
+
 export const queueUpload = () => (dispatch) => {
   this.startUpload();
 }
@@ -13,4 +15,15 @@ export const cancelUpload = () => (dispatch) => {
 
 export const recoverUpload = () => (dispatch) => {
   this.recoverUpload(action.uploadFile, action.fileMetadata);
+}
+
+export const startUpload = ({ upload, url }) => (dispatch) => {
+  postUploadStart(url, upload)
+    .then( response => response.text())
+    .then( txt => {
+      console.log(txt)
+    })
+    .catch(
+      () => alert('The upload could not be started.')
+    )
 }
