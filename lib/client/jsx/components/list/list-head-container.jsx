@@ -10,8 +10,8 @@ const mapStateToProps = (state, ownProps)=>{
 
 const mapDispatchToProps = (dispatch, ownProps)=>{
   return {
-    fileSelected: (fileObject)=>{
-      let action = { type: 'FILE_SELECTED', fileObject };
+    fileSelected: (file)=>{
+      let action = { type: 'FILE_SELECTED', file };
       dispatch(action);
     }
   };

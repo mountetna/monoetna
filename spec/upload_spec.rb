@@ -13,9 +13,32 @@ describe "UploadController" do
         user_email: 'metis@ucsf.edu'
       }
 
-      json_post('upload/authorize', params)
+      header(
+        *Etna::TestAuth.token_header(
+          email: 'metis@ucsf.edu', perm: 'e:athena'
+        )
+      )
 
-      expect(last_response.body).to eq(signature)
+      json_post('authorize/upload', params)
+      
+      url = last_response.body
+      uri = URI(url)
+
+      hmac_params = Rack::Utils.parse_nested_query(uri.query)
+
+      expect(last_response.status).to eq(200)
+      expect(uri.path).to eq('/upload')
+      expect(hmac_params['X-Etna-Id']).to eq('metis')
+      expect(hmac_params['X-Etna-Project-Name']).to eq(params[:project_name])
+      expect(hmac_params['X-Etna-File-Name']).to eq(params[:file_name])
+
+      # now post it
+      url = url.sub(%r!https://example.org/!,'')
+      header('Authorization', nil)
+      
+      json_post(url, action: 'start')
+
+      #expect(last_response.status).to eq(200)
     end
   end
 

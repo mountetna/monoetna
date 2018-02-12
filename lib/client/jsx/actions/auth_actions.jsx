@@ -1,24 +1,24 @@
-import { uploadAuthorize } from '../api/upload_api';
+import { postAuthorizeUpload } from '../api/upload_api';
 
 /*
  * Call to get approval to make an action on Metis.
  */
-export const authorizeFile = ({ uploadFile }) => (dispatch) => {
-  let { projectName, fileName, key } = uploadFile;
+export const authorizeUpload = ({ upload }) => (dispatch) => {
+  let { projectName, fileName, file, key } = upload;
 
   if (!projectName || !fileName) {
     alert('The data to upload is not complete.');
     return;
   }
 
-  uploadAuthorize(uploadFile)
+  postAuthorizeUpload(upload)
     .then( response => response.text())
     .then( url => {
       // first set the upload url
       dispatch({ type: 'FILE_UPLOAD_AUTHORIZED', url, key });
 
       // then tell the worker to initialize the file
-      dispatch({ type: 'WORK', worker: 'init', uploadFile, url });
+      dispatch({ type: 'WORK', worker: 'init', file, url });
     })
     .catch(
       () => alert('The upload could not be authorized.')

@@ -4,7 +4,7 @@ require 'rack/test'
 require 'simplecov'
 SimpleCov.start
 require 'bundler'
-Bundler.require(:default)
+Bundler.require(:default, :test)
 
 ENV['METIS_ENV'] = 'test'
 

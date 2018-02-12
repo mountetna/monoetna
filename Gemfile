@@ -6,9 +6,13 @@ gem 'rack'
 gem 'pg'
 gem 'sequel'
 gem 'etna'
-gem 'simplecov'
-gem 'rack-test', require: "rack/test"
-gem 'factory_bot'
-gem 'rspec'
-gem 'database_cleaner'
-gem 'pry'
+
+group :test do
+  gem 'rspec'
+  gem 'rack-test', require: "rack/test"
+  gem 'simplecov'
+  gem 'factory_bot'
+  gem 'timecop'
+  gem 'database_cleaner'
+  gem 'pry'
+end

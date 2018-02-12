@@ -2,10 +2,9 @@
 const filekey = () => (Math.random().toString(36) + '0'.repeat(10)).substring(2,12);
 
 // helper to create a new file entry
-const file = ({ name, size }) => ({
-  fileName: name,
-  originalName: name,
-  fileSize: size,
+const file = (file) => ({
+  file,
+  fileName: file.name,
   currentBytePosition: 0,
   status: 'unauthorized',
   key: filekey()
@@ -17,7 +16,7 @@ const uploads = (old_uploads, action) => {
   switch(action.type) {
     case 'FILE_SELECTED':
       // Copy the selected file data to 'fileUploads' object.
-      let new_file = file(action.fileObject);
+      let new_file = file(action.file);
       return {
         ...old_uploads,
         [new_file.key]: new_file
@@ -28,6 +27,7 @@ const uploads = (old_uploads, action) => {
         ...old_uploads,
         [action.key]: {
           ...old_uploads[action.key],
+          status: 'authorized',
           uploadURL: action.url,
           currentBytePosition: 0
         }
