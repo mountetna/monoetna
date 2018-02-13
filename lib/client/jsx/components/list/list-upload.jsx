@@ -261,13 +261,10 @@ export default class ListUpload extends React.Component{
     }
   }
 
-  projectSelected(permission){
-    this.props.fileUpload.projectName = permission.projectName;
-    this.props.fileUpload.projectNameFull = permission.projectNameFull;
-    this.props.fileUpload.projectId = permission.projectId;
-    this.props.fileUpload.groupName = permission.groupName;
-    this.props.fileUpload.groupId = permission.groupId;
-    this.props.fileUpload.role = permission.role;
+  projectSelected(permission) {
+    let { fileUpload, callbacks: { selectProject } } = this.props;
+
+    selectProject(fileUpload, permission);
   }
 
   renderPermissionSelector(){

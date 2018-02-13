@@ -21,6 +21,15 @@ const uploads = (old_uploads, action) => {
         ...old_uploads,
         [new_file.key]: new_file
       };
+    case 'FILE_UPLOAD_SELECT_PROJECT':
+      let { upload, permission: { projectName, role } } = action;
+      return {
+        ...old_uploads,
+        [upload.key]: {
+          ...old_uploads[upload.key],
+          projectName, role
+        }
+      };
     case 'FILE_UPLOAD_AUTHORIZED':
       // Append the HMAC url and set the server current byte to 0.
       return {
@@ -46,6 +55,7 @@ const files = (state, action) => {
 
   switch(action.type) {
     case 'FILE_UPLOAD_AUTHORIZED':
+    case 'FILE_UPLOAD_SELECT_PROJECT':
     case 'FILE_SELECTED':
       return {
         ...state,

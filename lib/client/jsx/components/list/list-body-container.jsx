@@ -36,6 +36,11 @@ const mapStateToProps = (state, ownProps)=>{
 
 const mapDispatchToProps = (dispatch, ownProps)=>{
   return {
+    selectProject: (upload, permission) => {
+      var action = { type: 'FILE_UPLOAD_SELECT_PROJECT', upload, permission };
+      dispatch(action);
+    },
+
     initializeUpload: (upload)=>{
       var action = { type: 'AUTHORIZE_UPLOAD', upload };
       dispatch(action);

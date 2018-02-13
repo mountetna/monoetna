@@ -39,7 +39,6 @@ export default class PermissionSelector extends GenericSearchDropdown{
       return entries;
     }
     else{
-
       return this.addSuggestion();
     }
   }
