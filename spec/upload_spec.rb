@@ -56,14 +56,58 @@ describe "UploadController" do
 
       expect(last_response.status).to eq(200)
 
+      json = json_body(last_response.body)
       upload = Metis::Upload.first
       file = Metis::File.first
 
       expect(upload).not_to be_nil
       expect(file).not_to be_nil
       expect(file.upload).to eq(upload)
-      expect(file.file_name).to eq('wisdom.txt')
-      expect(file.project_name).to eq('athena')
+
+      expect(json[:file_name]).to eq('wisdom.txt')
+      expect(json[:project_name]).to eq('athena')
+      expect(json[:status]).to eq('initialized')
+    end
+    
+    it 'should resume an existing upload' do
+      # before we start, we create the file and the upload
+      file = create( :file, 
+        project_name: 'athena', file_name: 'wisdom.txt',
+        original_name: 'wisdom.txt', uploader: 'metis', size: 20
+      )
+      upload = create( :upload,
+        file: file, status: 'queued',
+        current_byte_position: 10,
+        current_blob_size: 10,
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
+
+      # now we post to the same place
+      header(*Etna::TestAuth.hmac_header({}))
+      json_post(
+        'upload',
+        project_name: 'athena',
+        file_name: 'wisdom.txt',
+        action: 'start',
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
+
+      expect(last_response.status).to eq(200)
+
+      json = json_body(last_response.body)
+      upload = Metis::Upload.first
+      file = Metis::File.first
+
+      expect(upload).not_to be_nil
+      expect(file).not_to be_nil
+      expect(file.upload).to eq(upload)
+
+      expect(json[:file_name]).to eq('wisdom.txt')
+      expect(json[:project_name]).to eq('athena')
+      expect(json[:status]).to eq('queued')
+      expect(json[:current_byte_position]).to eq(10)
     end
   end
 end

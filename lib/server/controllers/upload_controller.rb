@@ -21,6 +21,9 @@ class UploadController < Metis::Controller
   end
 
   UPLOAD_ACTIONS=[ :start ]
+
+  # this endpoint handles multiple possible actions, allowing us to authorize
+  # one path /upload and support several upload operations
   def upload
     require_params(:project_name, :file_name, :action)
 
@@ -47,9 +50,7 @@ class UploadController < Metis::Controller
       f.size = 0
     end
 
-    raise Etna::BadRequest, "Upload exists"  if file.upload
-
-    upload = Metis::Upload.create(
+    upload = file.upload || Metis::Upload.create(
       file: file,
       status: 'initialized',
       current_byte_position: 0,
@@ -59,7 +60,7 @@ class UploadController < Metis::Controller
     )
 
     # Send upload initiated
-    success('initialized')
+    success(upload.to_json,'application/json')
   end
 
   # Upload a chunk of the file.
