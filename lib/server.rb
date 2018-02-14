@@ -6,6 +6,7 @@ require_relative './server/controllers/upload_controller'
 require_relative './server/controllers/download_controller'
 require_relative './server/controllers/client_controller'
 require_relative './server/controllers/user_log_controller'
+require_relative './server/set_uid'
 
 class Metis
   class Server < Etna::Server

@@ -1,5 +1,3 @@
-require 'securerandom'
-
 class UploadController < Metis::Controller
   def authorize
     require_params(:project_name, :file_name)
@@ -10,7 +8,7 @@ class UploadController < Metis::Controller
       host: @request.host,
       path: '/upload',
       expiration: (Time.now + Metis.instance.config(:upload_expiration)).iso8601,
-      nonce: SecureRandom.hex,
+      nonce: Metis.instance.sign.uid,
       id: :metis,
       headers: { project_name: @params[:project_name], file_name: @params[:file_name] }
     )
@@ -41,6 +39,7 @@ class UploadController < Metis::Controller
   def upload_start
     require_params(:next_blob_size, :next_blob_hash)
 
+    # make an entry for the file if it does not exist
     file = Metis::File.find_or_create(
       project_name: @params[:project_name],
       file_name: @params[:file_name]
@@ -50,9 +49,21 @@ class UploadController < Metis::Controller
       f.size = 0
     end
 
-    upload = file.upload || Metis::Upload.create(
+    upload = Metis::Upload.where(
+      file: file,
+      metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)]
+    ).first
+
+    if upload
+      return success(upload.to_json, 'application/json')
+    end
+
+    raise Etna::BadRequest, "Upload in progress" if !file.uploads.empty?
+
+    upload = Metis::Upload.create(
       file: file,
       status: 'initialized',
+      metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)],
       current_byte_position: 0,
       current_blob_size: 0,
       next_blob_size: @params[:next_blob_size],
@@ -71,7 +82,6 @@ class UploadController < Metis::Controller
     update_upload_metadata
 
     if upload_complete?
-
       make_file_permanent
       return send_upload_complete
     else

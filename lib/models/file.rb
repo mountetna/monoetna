@@ -1,6 +1,6 @@
 class Metis
   class File < Sequel::Model
-    one_to_one :upload
+    one_to_many :uploads
     def self.has_file?(project_name, file_name)
       file = self.where(project_name: project_name, file_name: file_name).first
 

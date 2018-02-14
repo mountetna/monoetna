@@ -17,6 +17,7 @@ OUTER_APP = Rack::Builder.new do
   use Etna::SymbolizeParams
 
   use Etna::TestAuth
+  use Metis::SetUid
   run Metis::Server.new(YAML.load(File.read("config.yml")))
 end
 

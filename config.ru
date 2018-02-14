@@ -8,6 +8,7 @@ require './lib/server'
 use Rack::Static, urls: ['/css', '/fonts', '/img'], root: 'lib/client'
 use Etna::ParseBody
 use Etna::SymbolizeParams
-use Etna::Auth
+use Metis::SetUid
 
+use Etna::Auth
 run Metis::Server.new(YAML.load(File.read("config.yml")))
