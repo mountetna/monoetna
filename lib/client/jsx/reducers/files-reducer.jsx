@@ -14,14 +14,32 @@ const uploads = (old_uploads, action) => {
   if (!old_uploads) old_uploads = {}
 
   switch(action.type) {
-    case 'FILE_SELECTED':
+    case 'FILE_UPLOAD_STATUS': {
+      let { upload } = action;
+      let { project_name, file_name } = upload;
+      let key = Object.keys(old_uploads).find(
+        key => old_uploads[key].projectName == project_name && old_uploads[key].fileName == file_name
+      );
+      if (!key) return old_uploads;
+      return {
+        ...old_uploads,
+        [key]: {
+          ...old_uploads[key],
+          status: upload.status,
+          currentBytePosition: upload.current_byte_position,
+          currentBlobSize: upload.current_blob_size,
+        }
+      };
+    };
+    case 'FILE_SELECTED': {
       // Copy the selected file data to 'fileUploads' object.
       let new_file = file(action.file);
       return {
         ...old_uploads,
         [new_file.key]: new_file
       };
-    case 'FILE_UPLOAD_SELECT_PROJECT':
+    };
+    case 'FILE_UPLOAD_SELECT_PROJECT': {
       let { upload, permission: { projectName, role } } = action;
       return {
         ...old_uploads,
@@ -30,6 +48,7 @@ const uploads = (old_uploads, action) => {
           projectName, role
         }
       };
+    };
     case 'FILE_UPLOAD_AUTHORIZED':
       // Append the HMAC url and set the server current byte to 0.
       return {
@@ -54,6 +73,7 @@ const files = (state, action) => {
   } 
 
   switch(action.type) {
+    case 'FILE_UPLOAD_STATUS':
     case 'FILE_UPLOAD_AUTHORIZED':
     case 'FILE_UPLOAD_SELECT_PROJECT':
     case 'FILE_SELECTED':

@@ -2,71 +2,61 @@
  * This class will upload a file as blobs to the Metis upload endpoint.
  */
 
-importScripts('../libraries/utils.js');
-importScripts('../libraries/spark-md5.js');
+export default (self) => {
+  let dispatch = (action) => self.postMessage(action);
 
-class Uploader{
-  constructor(){
-    // These object will be the data we need to send over the wire.
-    this.file = null;
-    this.request = null;
+  let error = (message) => dispatch(
+    { type: 'WORKER_ERROR', worker: 'upload', message }
+  );
 
-    this.uploadStart = null; // The time at which the upload started in mS.
-    this.blobWindow = 30; // How many blob uploads to average over.
-    this.blobUploadTimes = [];
+  // These object will be the data we need to send over the wire.
+  let uploadStart = null; // The time at which the upload started in mS.
+  let blobWindow = 30; // How many blob uploads to average over.
+  let blobUploadTimes = [];
 
-    this.pause = false;
-    this.cancel = false;
-    this.errorObj = (message)=>({type:'error',message,response:{}})
-    this.timeouts = 0; // The number of times an upload has timed out.
-    this.maxTimeouts = 5; // The number of attepts to upload a blob.
-  }
+  let pause = false;
+  let cancel = false;
+  let timeouts = 0; // The number of times an upload has timed out.
+  let maxTimeouts = 5; // The number of attepts to upload a blob.
 
   /*
    * Implementation of a Worker specific function.
    * For message passing into and out of the worker.
    */
-  onmessage(event){
-    var message = event.data;
-    uploader.file = message.file;
-    uploader.request = message.request;
+  self.addEventListener('message', ({data}) => {
+    let { upload, command } = data;
 
     // Check that the incoming data has a valid command.
-    if(!('command' in message)){
-      postMessage(uploader.errorObj('No command.'));
-      return;
-    }
-
-    switch(message.command){
+    switch (command) {
       case 'start':
-        /* 
-         * This 'response' object usually comes as a response from the server, 
-         * but on a 'start' command we just fake it to kick off the sequence
-         * again.
+        /*
+         * This 'response' object usually comes as a response from
+         * the server, but on a 'start' command we just fake it to
+         * kick off the sequence again.
          */
 
-        uploader.snakeCaseIt(uploader.request);
-        uploader.sendBlob({ request: uploader.request });
+        sendBlob(upload);
         break;
       case 'pause':
         // Set a pause flag.
-        uploader.pause = true;
+        pause = true;
         break;
       case 'cancel':
         // Set a cancel flag.
-        uploader.cancel = true;
+        cancel = true;
         break;
       default:
+        error('Invalid command');
         break;
     }
-  }
+  });
 
   /*
    * Take a blob from the file and hash it.
    */
-  generateBlobHash(blob, uploadRequest, callback){
-    var fileReader = new FileReader();
-    fileReader.onload = function(progressEvent){
+  let generateBlobHash = (blob, uploadRequest, callback) => {
+    let fileReader = new FileReader();
+    fileReader.onload = (event) => {
       var md5Hash = SparkMD5.ArrayBuffer.hash(this.result);
       uploadRequest.append('next_blob_hash', md5Hash);
       callback(uploadRequest);
@@ -74,7 +64,7 @@ class Uploader{
     fileReader.readAsArrayBuffer(blob);
   }
 
-  sendPause(response){
+  let sendPause = (response) => {
     var pauseData = SERIALIZE_REQUEST(response.request);
     try{
       AJAX({
@@ -87,12 +77,12 @@ class Uploader{
         error: uploader.ajaxError
       });
     }
-    catch(error){
-      postMessage(uploader.errorObj(error.message));
+    catch({message}) {
+      error(message)
     }
-  }
+  };
 
-  sendCancel(response){
+  let sendCancel = (response) => {
     var cancelData = SERIALIZE_REQUEST(response.request);
     try{
       AJAX({
@@ -110,7 +100,7 @@ class Uploader{
     }
   }
 
-  sendPacket(uploaderRequest){
+  let sendPacket = (uploaderRequest) => {
     try{
       uploader.uploadStart = Math.floor(Date.now());
       AJAX({
@@ -133,21 +123,16 @@ class Uploader{
   /*
    * The request will have the squence information for the proper blob to send.
    */
-  sendBlob(response){
-    uploader.generateUploaderRequest(response);
-  }
-
-  generateUploaderRequest(response){
-    var req = response.request;
-    var fileSize = uploader.file.size;
+  let sendBlob = (upload) => {
+    let { file, current_byte_position, next_blob_size } = upload;
     /*
-     * The file upload is complete, however the server should have sent a 
-     * 'complete' status message.
+     * The file upload is complete, however the server should have
+     * sent a 'complete' status message.
      */
-    if(req.current_byte_position >= fileSize) return;
+    if (upload.current_byte_position >= file.size) return;
 
     // Recalculate the blob queue points.
-    var currentBlobSize = req.next_blob_size;
+    let currentBlobSize = req.next_blob_size;
     this.calcNextBlobSize(req);
     req.current_blob_size = currentBlobSize;
 
@@ -178,13 +163,13 @@ class Uploader{
     // Hash the next blob.
     var nextBlob = uploader.file.slice(toByte, endByte);
     uploader.generateBlobHash(nextBlob, uploaderReq, this.sendPacket);
-  }
+  };
 
   /* 
    * Calcuates the next blob size based upon upload speed. Also sets the last
    * calculated upload speed on the request.
    */
-  calcNextBlobSize(request){
+  let calcNextBlobSize = (request) => {
     if(uploader.uploadStart != null){
       var avgTime = uploader.averageUploadTime();
       var oldBlobSize = request.current_blob_size;
@@ -205,9 +190,9 @@ class Uploader{
       // Reset the timestamp needed for these calculations.
       uploader.uploadStart = null;
     }
-  }
+  };
 
-  averageUploadTime(){
+  let averageUploadTime = () => {
     // Get the current time it took to upload the last blob.
     var uploadTime = (Math.floor(Date.now()) - this.uploadStart);
 
@@ -226,7 +211,7 @@ class Uploader{
     return uploadTimeSum / this.blobUploadTimes.length;
   }
 
-  handleServerResponse(response){
+  let handleServerResponse = (response) => {
     uploader.timeouts = 0; // Reset the timeout counter;
 
     var errorMessage = 'The server response was malformed.';
@@ -252,7 +237,7 @@ class Uploader{
     uploader.handleResponseRouting(response);  
   }
 
-  handleResponseRouting(response){
+  let handleResponseRouting = (response) => {
     switch(response.request.status){
       case 'active':
         postMessage({ type: 'FILE_UPLOAD_ACTIVE', response });
@@ -297,7 +282,7 @@ class Uploader{
     }
   }
 
-  timeoutResponse(error, uploadRequest){
+  let timeoutResponse = (error, uploadRequest) => {
     ++uploader.timeouts;
     if(uploader.timeouts == uploader.maxTimeouts){
       // Reset the uploader.
@@ -307,32 +292,10 @@ class Uploader{
       uploader.cancel = false;
       uploader.timeouts = 0;
 
-      postMessage({ type: 'FILE_UPLOAD_TIMEOUT', response });
+      dispatch({ type: 'FILE_UPLOAD_TIMEOUT', response });
     }
     else{
       uploader.sendPacket(uploadRequest);
     }
   }
-
-  snakeCaseIt(object){
-    for(var key in object){
-      object[SNAKE_CASE_IT(key)] = object[key];
-      if(key != key.toLowerCase()) delete object[key];
-    }
-  }
-
-  /*
-   * Handle the AJAX errors.
-   */
-  ajaxError(xhr, ajaxOptions, thrownError){
-    var ajaxError = { xhr, ajaxOptions, thrownError};
-    console.log(ajaxError);
-    //postMessage(uploader.errorObj(ajaxError));
-  }
 }
-
-// Initilize the class.
-var uploader = new Uploader();
-
-// Expose the worker specific messaging function.
-var onmessage = uploader.onmessage;

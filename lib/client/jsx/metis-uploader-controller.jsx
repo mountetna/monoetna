@@ -140,40 +140,6 @@ class MetisUploader {
     return reqData;
   }
 
-  /*
-   * For details on the upload/start/pause cycle please refer to the README.md
-   * file in the 'workers' folder.
-   */
-  startUpload(){
-    let uploadFile = null;
-    let state = this.store.getState();
-    let { fileUploads } = state.fileData;
-
-    fileUploads.forEach(upload => {
-      if (upload.status == 'queued') uploadFile = upload;
-
-      /*
-       * If there is an file upload that is active we bail out here and run the
-       * pause cycle.
-       */
-      if(upload.status == 'active'){
-        let workerMessage = { command: 'pause' };
-        this.uploadWorker.postMessage(workerMessage);
-        return;
-      }
-    })
-
-    if(uploadFile == null) return;
-
-    // Normalize the data to send. Add our user token.
-    let request = PARSE_REQUEST(uploadFile);
-    request.token = state.userInfo.authToken;
-
-    // Start the upload.
-    let workerMessage = {command:'start',file:uploadFile,request};
-    this.uploadWorker.postMessage(workerMessage);
-  }
-
   removeServerFiles(endPoint, fileMetadata){
     // Serialize the request for POST.
     let request = [];

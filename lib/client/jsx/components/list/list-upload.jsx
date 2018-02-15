@@ -312,7 +312,7 @@ export default class ListUpload extends React.Component{
   }
 
   queueUpload(){
-    this.props.callbacks.queueUpload(this.props.reactKey);
+    this.props.callbacks.queueUpload(this.props.fileUpload);
   }
 
   pauseUpload(){

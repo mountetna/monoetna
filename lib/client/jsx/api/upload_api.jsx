@@ -1,4 +1,4 @@
-import { headers, checkStatus } from './fetch_utils';
+import { headers, parseJSON, checkStatus } from './fetch_utils';
 
 export const postAuthorizeUpload = (upload) => {
   let request = {
@@ -26,5 +26,5 @@ const postUpload = (upload_url, request) => {
 }
 
 export const postUploadStart = (upload_url, request) => {
-  return postUpload(upload_url, { ...request, action: 'start' });
+  return postUpload(upload_url, { ...request, action: 'start' }).then(checkStatus).then(parseJSON);
 }

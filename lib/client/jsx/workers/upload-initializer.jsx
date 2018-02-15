@@ -14,7 +14,7 @@ module.exports = function(self) {
 
   // report errors
   let error = (message) => dispatch(
-    { type: 'WORKER_ERROR', message }
+    { type: 'WORKER_ERROR', worker: 'init', message }
   );
 
   /*

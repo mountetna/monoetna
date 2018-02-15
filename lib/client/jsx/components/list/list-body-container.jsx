@@ -46,8 +46,8 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
       dispatch(action);
     },
 
-    queueUpload: (reactKey)=>{
-      var action = { type: 'QUEUE_UPLOAD', reactKey };
+    queueUpload: (upload)=>{
+      var action = { type: 'QUEUE_UPLOAD', upload };
       dispatch(action);
     },
 
