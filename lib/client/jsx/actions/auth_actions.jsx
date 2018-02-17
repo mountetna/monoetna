@@ -4,9 +4,9 @@ import { postAuthorizeUpload } from '../api/upload_api';
  * Call to get approval to make an action on Metis.
  */
 export const authorizeUpload = ({ upload }) => (dispatch) => {
-  let { projectName, fileName, file, key } = upload;
+  let { project_name, file_name, file, key } = upload;
 
-  if (!projectName || !fileName) {
+  if (!project_name || !file_name) {
     alert('The data to upload is not complete.');
     return;
   }

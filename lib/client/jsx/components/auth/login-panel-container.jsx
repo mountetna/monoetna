@@ -4,7 +4,7 @@ import LoginPanel from './login-panel';
 const mapStateToProps = (state, ownProps)=>{
   // state == redux store
   return {
-    userInfo: state.userInfo
+    user: state.user
   };
 }
 

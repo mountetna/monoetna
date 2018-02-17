@@ -7,23 +7,23 @@ export default class UploadMeter extends React.Component{
   }
 
   calcUploadPercent(){
-    let { fileUpload } = this.props;
-    let { fileSize, currentBytePosition } = fileUpload;
+    let { upload } = this.props;
+    let { file_size, current_byte_position } = upload;
 
-    if (fileSize == 0) {
+    if (file_size == 0) {
       return { width: '0%' };
     }
     else {
-      return { width: String((currentBytePosition/fileSize)*100) + '%' };
+      return { width: String((current_byte_position/file_size)*100) + '%' };
     }
   }
 
   parseUploadBytes(){
-    let { fileUpload } = this.props;
-    let { fileSize, currentBytePosition } = fileUpload;
+    let { upload } = this.props;
+    let { file_size, current_byte_position } = upload;
 
-    fileSize = byteFormat(fileSize, true);
-    let bytesUploaded = byteFormat(currentBytePosition, true);
+    file_size = byteFormat(file_size, true);
+    let bytesUploaded = byteFormat(current_byte_position, true);
 
     let uploadInfoProps = {
       className: 'upload-meter-info light-text',
@@ -41,18 +41,18 @@ export default class UploadMeter extends React.Component{
           <span { ...bytesUploadedProps }>
             { bytesUploaded }
           </span>
-          { ` of ${fileSize} uploaded`}
+          { ` of ${file_size} uploaded`}
       </div>
     );
   }
 
   parseUploadSpeed(){
-    let file = this.props.fileUpload;
+    let { upload } = this.props;
 
-    if('uploadSpeed' in file && file.status == 'active'){
-      if(isNaN(file.uploadSpeed)) return '';
+    if('uploadSpeed' in upload && upload.status == 'active'){
+      if(isNaN(upload.uploadSpeed)) return '';
 
-      let speed = byteFormat(file.uploadSpeed, 1024, true);
+      let speed = byteFormat(upload.uploadSpeed, 1024, true);
 
       let bitSpeedProps = {
         className: 'dark-text',

@@ -4,8 +4,8 @@ import MetisUI from './metis-ui';
 const mapStateToProps = (state, ownProps)=>{
   // state == redux store
   return {
-    userInfo: state.userInfo,
-    fileData: state.fileData
+    user: state.user,
+    files: state.files
   };
 }
 

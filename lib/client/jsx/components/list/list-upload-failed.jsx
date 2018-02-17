@@ -29,7 +29,7 @@ export default class ListUploadFailed extends React.Component{
 
   render(){
     let failedFile = this.props.failedFile;
-    let currentFileSize = PARSE_BYTES(failedFile.currentBytePosition, 1000);
+    let currentFileSize = PARSE_BYTES(failedFile.current_byte_position, 1000);
 
     let uploadControl = {
       fileUpload: this.props.failedFile,
@@ -63,7 +63,7 @@ export default class ListUploadFailed extends React.Component{
         </td>
         <td className='list-entry-project-group'>
           <div className='list-entry-project-name'>
-            { failedFile.projectName }
+            { failedFile.project_name }
           </div>
           <div className='list-entry-role'>
             <span className='light-text'>

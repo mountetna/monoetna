@@ -2,14 +2,6 @@
  * Global Variables
  */
 
-var MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
-var MAX_BLOB_SIZE = Math.pow(2, 20);
-
-/*
- * In milliseconds, the amount of time to transfer one blob. This ultimately
- * sets the blob size.
- */
-var XTR_TIME = 2000; 
 
 var TOKEN_NAME = 'UCSF_ETNA_AUTH_TOKEN';
 var METIS_ADDR = 'http://metis-dev.ucsf.edu';

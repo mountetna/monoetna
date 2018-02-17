@@ -24,8 +24,8 @@ export default class PermissionSelector extends GenericSearchDropdown{
       let { permissions } = this.props;
 
       permissions.forEach((permission,i) => {
-        let { projectName, role } = permission;
-        let entry = this.matchAndAdd(value, projectName, i, entries.length);
+        let { project_name, role } = permission;
+        let entry = this.matchAndAdd(value, project_name, i, entries.length);
         
         if (entry != null && role != 'viewer') entries.push(entry);
       })
@@ -46,7 +46,7 @@ export default class PermissionSelector extends GenericSearchDropdown{
   entrySelected(){
     let { inputValue }  = this.state;
     let { permissions } = this.props;
-    let permission = permissions.find( perm => perm.projectName == inputValue );
+    let permission = permissions.find( perm => perm.project_name == inputValue );
 
     if(permission != null){
       this.props.callbacks.projectSelected(permission);
@@ -56,7 +56,7 @@ export default class PermissionSelector extends GenericSearchDropdown{
   setRole(){
     let { inputValue } = this.state;
     let { permissions } = this.props;
-    let permission = permissions.find(perm => perm.projectName == inputValue)
+    let permission = permissions.find(perm => perm.project_name == inputValue)
 
     return permission ? permission.role : '';
   }

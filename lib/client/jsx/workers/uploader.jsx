@@ -2,6 +2,15 @@
  * This class will upload a file as blobs to the Metis upload endpoint.
  */
 
+import md5 from 'md5';
+/*
+ * In milliseconds, the amount of time to transfer one blob. This ultimately
+ * sets the blob size.
+ */
+const XTR_TIME = 2000;
+const MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
+const MAX_BLOB_SIZE = Math.pow(2, 20);
+
 export default (self) => {
   let dispatch = (action) => self.postMessage(action);
 
@@ -23,22 +32,63 @@ export default (self) => {
    * Implementation of a Worker specific function.
    * For message passing into and out of the worker.
    */
+
+  const commandStart = (upload) => {
+    let { file, current_byte_position, next_blob_size } = upload;
+
+    if (current_byte_position >= file.size) return;
+
+    let new_blob_size = MAX_BLOB_SIZE;
+
+    let next_byte_position = current_byte_position + next_blob_size;
+    let final_byte_position = next_byte_position + new_blob_size;
+
+    // Set the outer limit for 'next_blob_size' and 'endByte'.
+    if (final_byte_position > file.size) {
+      final_byte_position = file.size;
+      new_blob_size = final_byte_position - next_byte_position;
+    }
+
+    // Append the current blob to the request.
+    let blob = file.slice(current_byte_position, next_byte_position);
+
+    // Hash the next blob.
+    let nextBlob = file.slice(next_byte_position, final_byte_position);
+
+    let new_blob_hash = '0';
+
+    let fileReader = new FileReader();
+
+    fileReader.onload = (event) => {
+      new_blob_hash = md5(fileReader.result);
+      dispatch({
+        type: 'SEND_PACKET', 
+        upload,
+        blob,
+        new_blob_size,
+        new_blob_hash
+      });
+    }
+    fileReader.readAsArrayBuffer(nextBlob);
+
+    /*
+     * This 'response' object usually comes as a response from
+     * the server, but on a 'start' command we just fake it to
+     * kick off the sequence again.
+     */
+  }
+
   self.addEventListener('message', ({data}) => {
     let { upload, command } = data;
 
     // Check that the incoming data has a valid command.
     switch (command) {
       case 'start':
-        /*
-         * This 'response' object usually comes as a response from
-         * the server, but on a 'start' command we just fake it to
-         * kick off the sequence again.
-         */
-
-        sendBlob(upload);
+        commandStart(upload);
         break;
       case 'pause':
         // Set a pause flag.
+        commandPause();
         pause = true;
         break;
       case 'cancel':
@@ -51,18 +101,6 @@ export default (self) => {
     }
   });
 
-  /*
-   * Take a blob from the file and hash it.
-   */
-  let generateBlobHash = (blob, uploadRequest, callback) => {
-    let fileReader = new FileReader();
-    fileReader.onload = (event) => {
-      var md5Hash = SparkMD5.ArrayBuffer.hash(this.result);
-      uploadRequest.append('next_blob_hash', md5Hash);
-      callback(uploadRequest);
-    }
-    fileReader.readAsArrayBuffer(blob);
-  }
 
   let sendPause = (response) => {
     var pauseData = SERIALIZE_REQUEST(response.request);
@@ -95,115 +133,52 @@ export default (self) => {
         error: uploader.ajaxError
       });
     }
-    catch(error){
-      postMessage(uploader.errorObj(error.message));
+    catch({message}){
+      error(message)
     }
   }
 
-  let sendPacket = (uploaderRequest) => {
-    try{
-      uploader.uploadStart = Math.floor(Date.now());
-      AJAX({
-        url: '/upload-blob',
-        method: 'POST',
-        sendType: 'file',
-        returnType: 'json',
-        data: uploaderRequest,
-        success: uploader.handleServerResponse,
-        error: uploader.ajaxError,
-        timeout: (e) => uploader.timeoutResponse(e, uploaderRequest)
-      });
-    }
-    catch(error){
-      uploader.uploadStart = null;
-      postMessage(uploader.errorObj(error.message));
-    }
-  }
 
   /*
-   * The request will have the squence information for the proper blob to send.
-   */
-  let sendBlob = (upload) => {
-    let { file, current_byte_position, next_blob_size } = upload;
-    /*
-     * The file upload is complete, however the server should have
-     * sent a 'complete' status message.
-     */
-    if (upload.current_byte_position >= file.size) return;
-
-    // Recalculate the blob queue points.
-    let currentBlobSize = req.next_blob_size;
-    this.calcNextBlobSize(req);
-    req.current_blob_size = currentBlobSize;
-
-    // Remove old metadata from the previous packet/request
-    delete req.next_blob_hash;
-
-    // Calcuate some points on the file for chopping out blobs.
-    var fromByte = req.current_byte_position;
-    var toByte = req.current_byte_position + req.current_blob_size;
-    var endByte = toByte + response.request.next_blob_size;
-
-    // Set the outer limit for 'next_blob_size' and 'endByte'.
-    if(endByte > fileSize){
-      var cbs = req.current_blob_size;
-      var cbp = req.current_byte_position;
-      response.request.next_blob_size = fileSize - cbp - cbs;
-      endByte = fileSize;
-    }
-
-    // Pack up a new upload packet/request
-    var uploaderReq = new FormData();
-    for(var key in req) uploaderReq.append(key, req[key]);
-
-    // Append the current blob to the request.
-    var blob = uploader.file.slice(fromByte, toByte);
-    uploaderReq.append('blob', blob);
-
-    // Hash the next blob.
-    var nextBlob = uploader.file.slice(toByte, endByte);
-    uploader.generateBlobHash(nextBlob, uploaderReq, this.sendPacket);
-  };
-
-  /* 
    * Calcuates the next blob size based upon upload speed. Also sets the last
    * calculated upload speed on the request.
    */
-  let calcNextBlobSize = (request) => {
-    if(uploader.uploadStart != null){
-      var avgTime = uploader.averageUploadTime();
-      var oldBlobSize = request.current_blob_size;
-      var nextBlobSize = Math.floor(oldBlobSize * (XTR_TIME / avgTime * 0.9));
 
-      // Set the min/max size of an upload blob.
-      if(nextBlobSize > MAX_BLOB_SIZE) nextBlobSize = MAX_BLOB_SIZE;
-      if(nextBlobSize < MIN_BLOB_SIZE) nextBlobSize = MIN_BLOB_SIZE;
+  let calcNextBlobSize = (current_blob_size) => {
+    if (uploadStart != null) {
+      let avgTime = averageUploadTime();
+      let nextBlobSize = Math.max(
+        MIN_BLOB_SIZE,
+        Math.min(
+          MAX_BLOB_SIZE,
+          Math.floor(current_blob_size * (XTR_TIME / avgTime * 0.9))
+        )
+      );
 
-      request.next_blob_size = nextBlobSize;
-
-      /* 
+      /*
        * Make a rough calculation of the upload speed in kilobits per second.
        * This is just for the UI.
        */
-      request.uploadSpeed = (oldBlobSize * 8) / (avgTime / 1000);
+      uploadSpeed = (oldBlobSize * 8) / (avgTime / 1000);
 
       // Reset the timestamp needed for these calculations.
-      uploader.uploadStart = null;
+      uploadStart = null;
     }
   };
 
   let averageUploadTime = () => {
     // Get the current time it took to upload the last blob.
-    var uploadTime = (Math.floor(Date.now()) - this.uploadStart);
+    let uploadTime = (Math.floor(Date.now()) - this.uploadStart);
 
-    // Add the last upload time to an array, limit the array size with a window.
-    if(this.blobUploadTimes.length >= this.blobWindow){
+    // Add the last upload time to an array, limit the array size
+    // with a window.
+    if (this.blobUploadTimes.length >= this.blobWindow) {
       this.blobUploadTimes.shift();
     }
     this.blobUploadTimes.push(uploadTime);
 
     // Sum the windowed upload array.
-    var uploadTimeSum = this.blobUploadTimes.reduce((a, b)=>{
+    let uploadTimeSum = this.blobUploadTimes.reduce((a, b)=>{
       return a + b;
     }, 0);
 
@@ -213,12 +188,6 @@ export default (self) => {
 
   let handleServerResponse = (response) => {
     uploader.timeouts = 0; // Reset the timeout counter;
-
-    var errorMessage = 'The server response was malformed.';
-    if(!('success' in response) || !('request' in response)){
-      postMessage(uploader.errorObj(errorMessage));
-      return;
-    }
 
     response = NORMILIZE_RESPONSE(response);
 
@@ -240,7 +209,7 @@ export default (self) => {
   let handleResponseRouting = (response) => {
     switch(response.request.status){
       case 'active':
-        postMessage({ type: 'FILE_UPLOAD_ACTIVE', response });
+        dispatch({ type: 'FILE_UPLOAD_ACTIVE', response });
 
         /*
          * Check the 'pause' and 'cancel' flags, if set then send the pause or
@@ -262,19 +231,19 @@ export default (self) => {
          * is in a paused state. We also clear the 'pause' flag on the uploader.
          */
         uploader.pause = false;
-        postMessage({ type: 'FILE_UPLOAD_PAUSED', response });
+        dispatch({ type: 'FILE_UPLOAD_PAUSED', response });
         break;
 
       case 'cancelled':
         uploader.cancel = false;
-        postMessage({ type: 'FILE_UPLOAD_CANCELLED', response });
+        dispatch({ type: 'FILE_UPLOAD_CANCELLED', response });
         break;
 
       case 'complete':
         // Send update message back.
         uploader.file = null;
         uploader.request = null;
-        postMessage({ type: 'FILE_UPLOAD_COMPLETE', response });
+        dispatch({ type: 'FILE_UPLOAD_COMPLETE', response });
         break;
       default:
         // None
@@ -284,7 +253,7 @@ export default (self) => {
 
   let timeoutResponse = (error, uploadRequest) => {
     ++uploader.timeouts;
-    if(uploader.timeouts == uploader.maxTimeouts){
+    if(uploader.timeouts == uploader.maxTimeouts) {
       // Reset the uploader.
       uploader.file = null;
       uploader.request = null;

@@ -14,13 +14,13 @@ export default class ListUpload extends React.Component{
       componentLock: false,
       fileNameEditShow: false,
       fileNameEditActive: false,
-      fileName: this.props.fileUpload.fileName
+      fileName: this.props.upload.file_name
     };
   }
 
   componentDidMount(){
-    let fileUpload = this.props.fileUpload;
-    let status = fileUpload.status;
+    let { upload } = this.props;
+    let { status } = upload;
     if(status == 'authorized' || status == 'active'){
       this.setState({ 
         componentLock: true ,
@@ -35,12 +35,12 @@ export default class ListUpload extends React.Component{
   }
 
   parseFileStatus(){
-    let file = this.props.fileUpload;
-    let status = file.status;
-    let authStamp = file.startTimestamp
-    let date = dateFormat(authStamp);
-    let user = file.userEmail;
-    switch(file.status){
+    let { upload } = this.props;
+    let date = dateFormat(upload.startTimestamp);
+    let user = upload.userEmail;
+    let status;
+
+    switch(upload.status){
       case 'unauthorized':
         status = 'file selected and waiting.';
         break;
@@ -122,7 +122,7 @@ export default class ListUpload extends React.Component{
       cancelBtnProps.style = { display: 'none' };
       saveBtnProps.style = { display: 'none' };
       
-      let origName = this.props.fileUpload.originalName;
+      let origName = this.props.upload.original_name;
       if(this.state.fileName != origName){
         resetBtnProps.style = { display: 'inline-block' };
       }
@@ -181,7 +181,7 @@ export default class ListUpload extends React.Component{
     this.setState({ 
       fileNameEditShow: false,
       fileNameEditActive: false,
-      fileName: this.props.fileUpload.fileName
+      fileName: this.props.upload.file_name
     });
   }
 
@@ -220,7 +220,7 @@ export default class ListUpload extends React.Component{
     let newName = this.state.fileName;
 
     if(!this.validateTitle(newName)){
-      newName = this.props.fileUpload.fileName;
+      newName = this.props.upload.file_name;
     }
 
     this.setState({ 
@@ -230,7 +230,7 @@ export default class ListUpload extends React.Component{
     });
 
     // Bubble the data back to the Redux Store.
-    this.props.fileUpload.fileName = newName;
+    this.props.upload.fileName = newName;
   }
 
   updateFileName(event){
@@ -249,8 +249,8 @@ export default class ListUpload extends React.Component{
       return;
     }
 
-    let origName = this.props.fileUpload.originalName;
-    this.props.fileUpload.fileName = origName;
+    let origName = this.props.upload.originalName;
+    this.props.upload.fileName = origName;
     this.setState({ fileName: origName });
   }
 
@@ -262,16 +262,16 @@ export default class ListUpload extends React.Component{
   }
 
   projectSelected(permission) {
-    let { fileUpload, callbacks: { selectProject } } = this.props;
+    let { upload, callbacks: { selectProject } } = this.props;
 
-    selectProject(fileUpload, permission);
+    selectProject(upload, permission);
   }
 
   renderPermissionSelector(){
-    if (this.props.fileUpload.status == 'unauthorized') {
+    if (this.props.upload.status == 'unauthorized') {
       let permissionSelectorProps = {
         permissions: this.props.permissions,
-        fileUpload: this.props.fileUpload,
+        upload: this.props.upload,
         editActive: true,
         callbacks: {
           projectSelected: this.projectSelected.bind(this)
@@ -295,11 +295,11 @@ export default class ListUpload extends React.Component{
       return (
         <td { ...listEntryProjectGroup }>
           <div className='list-project-field'>
-            { this.props.fileUpload.projectName }
+            { this.props.upload.project_name }
           </div>
           <div { ...listEntryStatus }>
             <span className='light-text'>
-              { this.props.fileUpload.projectRole }
+              { this.props.upload.projectRole }
             </span>
           </div>
         </td>
@@ -308,11 +308,11 @@ export default class ListUpload extends React.Component{
   }
 
   initializeUpload(){
-    this.props.callbacks.initializeUpload(this.props.fileUpload);
+    this.props.callbacks.initializeUpload(this.props.upload);
   }
 
   queueUpload(){
-    this.props.callbacks.queueUpload(this.props.fileUpload);
+    this.props.callbacks.queueUpload(this.props.upload);
   }
 
   pauseUpload(){
@@ -320,13 +320,13 @@ export default class ListUpload extends React.Component{
   }
 
   cancelUpload(){
-    switch(this.props.fileUpload.status){
+    switch(this.props.upload.status){
       case 'unauthorized':
-        this.props.callbacks.clearUpload(this.props.fileUpload);
+        this.props.callbacks.clearUpload(this.props.upload);
         break;
       case 'initialized':
       case 'paused':
-        this.props.callbacks.removeFile(this.props.fileUpload);
+        this.props.callbacks.removeFile(this.props.upload);
         break;
       case 'active':
         this.props.callbacks.cancelUpload();
@@ -355,7 +355,7 @@ export default class ListUpload extends React.Component{
     };
 
     let uploadControl = {
-      fileUpload: this.props.fileUpload,
+      upload: this.props.upload,
       callbacks: {
         initializeUpload: this.initializeUpload.bind(this),
         queueUpload: this.queueUpload.bind(this),
@@ -382,7 +382,7 @@ export default class ListUpload extends React.Component{
           </div>
         </td>
         { this.renderPermissionSelector() }
-        <UploadMeter fileUpload={ this.props.fileUpload } />
+        <UploadMeter upload={ this.props.upload } />
         <UploadControl { ...uploadControl } />
       </tr>
     );

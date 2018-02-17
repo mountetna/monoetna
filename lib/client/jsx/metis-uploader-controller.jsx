@@ -6,8 +6,8 @@ import Cookies from 'js-cookie';
 import metisStore from './store';
 import MetisUIContainer from './components/metis-ui-container';
 
-import fileData from './reducers/files-reducer';
-import userInfo from './reducers/janus-log-reducer';
+import files from './reducers/files-reducer';
+import user from './reducers/janus-log-reducer';
 
 import * as authActions from './actions/auth_actions';
 import * as fileActions from './actions/file_actions';
@@ -36,8 +36,8 @@ class MetisUploader {
   createStore() {
     // these are (state, action) => new_state
     let reducers = {
-      fileData,
-      userInfo
+      files,
+      user
     };
 
     // action handlers to import
@@ -78,15 +78,15 @@ class MetisUploader {
 
   retrieveFiles(){
     let state = this.store.getState();
-    let userInfo = state.userInfo;
-    if(state.userInfo.loginStatus && !state.userInfo.loginError){
+    let user = state.user;
+    if(state.user.loginStatus && !state.user.loginError){
       // Request authorization to upload the file.
       AJAX({
         url: '/retrieve-files',
         method: 'POST',
         sendType: 'serial',
         returnType: 'json',
-        data: 'token='+ userInfo.authToken,
+        data: 'token='+ user.authToken,
         success: this.retrieveFilesResponse.bind(this),
         error: this.ajaxError.bind(this)
       });
@@ -94,8 +94,9 @@ class MetisUploader {
   }
 
   retrieveFilesResponse(response){
-    if(response.success){
-      let action = { type: 'FILE_METADATA_RECEIVED', fileList: response.file_list };
+    let { success, file_list } = response;
+    if(success){
+      let action = { type: 'FILE_METADATA_RECEIVED', file_list };
 
       this.store.dispatch(action);
     }
@@ -133,7 +134,7 @@ class MetisUploader {
 
     // Add params not that are needed but not included.
     let state = this.store.getState();
-    reqData.token = state.userInfo.authToken;
+    reqData.token = state.user.authToken;
 
     // Form the upload request.
     req.forEach(elem => { reqData[SNAKE_CASE_IT(elem)] = file[elem]; });
@@ -147,7 +148,7 @@ class MetisUploader {
       request.push(SNAKE_CASE_IT(key) +'='+ fileMetadata[key]);
     }
     let state = this.store.getState();
-    request.push('token='+ state.userInfo.authToken);
+    request.push('token='+ state.user.authToken);
 
     // Request authorization to remove the file.
     AJAX({
@@ -173,7 +174,7 @@ class MetisUploader {
 
   /*
    * The first step in restarting an upload is to make sure that the last hash, 
-   * 'nextBlobHash', that the server saw matches the hash of the file blob on 
+   * 'next_blob_hash', that the server saw matches the hash of the file blob on 
    * disk. Once we have make that comparison we also check the file name and
    * size.
    *
@@ -182,16 +183,16 @@ class MetisUploader {
    * end. This gives us decent assurance the file on the client matches the
    * partial on the server.
    *
-   * Lastly, we recalculate the 'nextBlobHash' of the file on the client.
+   * Lastly, we recalculate the 'next_blob_hash' of the file on the client.
    * The difference from the first step is that we only hash 1024 bytes. We give
    * this hash to the server. When the server confirms the file upload we reset
-   * the 'nextBlobHash' on the server with the new hash. This will reset the
+   * the 'next_blob_hash' on the server with the new hash. This will reset the
    * upload blob size to 1KiB.
    */
 
   recoverUpload(uploadFile, fileMetadata){
-    let frm = fileMetadata.currentBytePosition;
-    let blob = uploadFile.slice(frm, frm + fileMetadata.nextBlobSize);
+    let frm = fileMetadata.current_byte_position;
+    let blob = uploadFile.slice(frm, frm + fileMetadata.next_blob_size);
     let fileReader = new FileReader();
     fileReader.onload = function(progressEvent){
       let md5Hash = SparkMD5.ArrayBuffer.hash(this.result);
@@ -204,7 +205,7 @@ class MetisUploader {
     let fileOk = true;
     if(uploadFile.name != fileMetadata.fileName) fileOk = false;
     if(uploadFile.size != fileMetadata.fileSize) fileOk = false;
-    if(fileMetadata.nextBlobHash != md5Hash) fileOk = false;
+    if(fileMetadata.next_blob_hash != md5Hash) fileOk = false;
 
     if(!fileOk){
       alert('The file you selected does not seem to match the record.');
@@ -225,7 +226,7 @@ class MetisUploader {
   }
 
   calcEndingKiB(file, fileMetadata, md5Hash, fkh){
-    let frm = fileMetadata.currentBytePosition;
+    let frm = fileMetadata.current_byte_position;
     let blob = file.slice(frm, frm + 1024);
     let fileReader = new FileReader();
     fileReader.onload = function(progressEvent){

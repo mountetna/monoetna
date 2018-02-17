@@ -6,7 +6,7 @@ const parsePermissions = (perms) => {
     let [ role, projects ] = perm.split(/:/);
     role = roles[role.toLowerCase()];
     return projects.split(/,/).map(
-      projectName => ({ role, projectName })
+      project_name => ({ role, project_name })
     )
   }).reduce((perms,perm) => perms.concat(perm), []);
 

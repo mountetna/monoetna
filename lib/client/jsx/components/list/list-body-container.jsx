@@ -2,35 +2,9 @@ import * as ReactRedux from 'react-redux';
 import ListBody from './list-body';
 
 const mapStateToProps = (state, ownProps)=>{
-  // Blend the specific user data permissions in with the file data.
-  var permissions = state.userInfo.permissions;
-
-  var permissionMapper = (listElem, perms)=>{
-    for(var c = 0; c < perms.length; ++c){
-      if(parseInt(listElem.projectId) == perms[c].projectId){
-        listElem.projectName = perms[c].projectName;
-        listElem.role = perms[c].role;
-        listElem.groupId = perms[c].groupId;
-        break;
-      }
-    }
-  }
-
-  for(var a = 0; a < state.fileData.fileList.length; ++a){
-    permissionMapper(state.fileData.fileList[a], permissions);
-  }
-
-  for(var b = 0; b < state.fileData.fileFails.length; ++b){
-    permissionMapper(state.fileData.fileFails[b], permissions);
-    if(state.fileData.fileFails[b].status != 'cancelled'){
-      state.fileData.fileFails[b].status = 'failed';
-    }
-  }
-
-  // state == redux store
   return {
-    userInfo: state.userInfo,
-    fileData: state.fileData
+    user: state.user,
+    files: state.files
   };
 }
 

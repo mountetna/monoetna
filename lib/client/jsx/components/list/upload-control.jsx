@@ -10,7 +10,7 @@ export default class UploadControl extends React.Component{
     let uploadCtrlBtnProps = { className: 'upload-control-btn' };
     let callbacks = this.props.callbacks;
 
-    switch(this.props.fileUpload.status){
+    switch(this.props.upload.status){
       case 'unauthorized':
         uploadCtrlBtnProps.onClick = callbacks.initializeUpload;
         return (

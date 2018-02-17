@@ -10,15 +10,15 @@ export default class ListBody extends React.Component{
   }
   
   render() {
-    let { fileData, userInfo } = this.props;
-    let { fileUploads, fileList, fileFails } = fileData;
-    let { permissions } = userInfo;
+    let { files, user } = this.props;
+    let { uploads, downloads, fails } = files;
+    let { permissions } = user;
 
     return (
       <tbody id='list-body-group'>
         {/* Render the failed uploads. */}
-        { (fileFails.length) ? 
-            fileFails.map((failedFile)=>{
+        { (fails.length) ? 
+            fails.map((failedFile)=>{
               let failedUpload = {
                 key: 'file-failed-'+failedFile.reactKey,
                 failedFile: failedFile,
@@ -32,13 +32,13 @@ export default class ListBody extends React.Component{
             })
           : '' }
         {/* Render the incomplete uploads. */}
-        { (Object.keys(fileUploads).length) ?
-            Object.keys(fileUploads).map((fileKey)=>{
-              let fileUpload = fileUploads[fileKey];
+        { (Object.keys(uploads).length) ?
+            Object.keys(uploads).map((key)=>{
+              let upload = uploads[key];
               let listUpload = {
-                key: 'file-upload-'+fileKey,
-                reactKey:  fileKey,
-                fileUpload,
+                key: 'file-upload-'+key,
+                key,
+                upload,
                 permissions,
                 callbacks: {
                   initializeUpload: this.props.initializeUpload,
@@ -55,11 +55,11 @@ export default class ListBody extends React.Component{
             })
           : '' }
         {/* Render the complete uploads. */}
-        { (fileList.length) ?
-            fileList.map((fileInfo, i)=>{
+        { (downloads.length) ?
+            downloads.map((file, i)=>{
               let listEntry = {
                 key: i,
-                fileInfo: fileInfo,
+                file,
                 callbacks: {
                   removeFile: this.props.removeFile
                 }

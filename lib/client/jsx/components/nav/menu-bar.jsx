@@ -23,9 +23,9 @@ export default class MenuBar extends React.Component{
   }
 
   renderUserMenu(){
-    let userInfo = this.props.userInfo;
+    let user = this.props.user;
     
-    if(userInfo.loginStatus && !userInfo.loginError){
+    if(user.loginStatus && !user.loginError){
       let height = (this.state.open) ? 'auto' : '100%';
       let userDropdownGroupProps = {
         className: 'user-menu-dropdown-group',
@@ -36,7 +36,7 @@ export default class MenuBar extends React.Component{
       return (
         <div { ...userDropdownGroupProps } >
           <button className='user-menu-dropdown-btn' onClick={ this.toggle.bind(this) } >
-            { userInfo.userEmail }
+            { user.userEmail }
             <div className='user-menu-arrow-group'>
               <span className='glyphicon glyphicon-triangle-bottom'></span>
             </div>

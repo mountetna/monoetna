@@ -20,15 +20,13 @@ export default class MetisUI extends React.Component{
   }
 
   renderContent() {
-    var fileList = this.props.fileData.fileList;
-    var fileUploads = this.props.fileData.fileUploads;
-    var fileFails = this.props.fileData.fileFails;
+    let { downloads, uploads, fails } = this.props.files;
 
     return (
       <div id='listing-group'>
         <table id='listing-table'>
           <ListHeadContainer />
-          {(fileList.length || Object.keys(fileUploads).length || fileFails.length)?
+          {(downloads.length || Object.keys(uploads).length || fails.length)?
             <ListBodyContainer /> : <tbody></tbody>
           }
         </table>

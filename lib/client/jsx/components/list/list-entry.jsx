@@ -9,13 +9,13 @@ export default class ListEntry extends React.Component{
   }
 
   removeFile(){
-    this.props.callbacks.removeFile(this.props.fileInfo);
+    this.props.callbacks.removeFile(this.props.file);
   }
 
   render(){
-    let fileInfo = this.props.fileInfo;
+    let { file }  = this.props;
     let fileControlProps = {
-      fileInfo: fileInfo,
+      file,
       callbacks: {removeFile:  this.removeFile.bind(this)}
     };
 
@@ -23,36 +23,36 @@ export default class ListEntry extends React.Component{
       <tr className='list-entry-group'>
         <td className='list-entry-icon'/>
         <td className='list-entry-title-group'>
-          <div className='list-entry-file-name' title={fileInfo.fileName}>
-            {fileInfo.fileName}
+          <div className='list-entry-file-name' title={file.file_name}>
+            {file.file_name}
           </div>
           <div className='list-entry-status' title='The current file status.'>
             <span className='light-text'>
-              {'uploaded at: '+dateFormat(fileInfo.finishTimestamp)}
+              {'uploaded at: '+dateFormat(file.finishTimestamp)}
             </span>
           </div>
         </td>
         <td className='list-entry-project-group'>
           <div className='list-entry-project-name'>
-            {fileInfo.projectName}
+            {file.project_name}
           </div>
           <div className='list-entry-role'>
             <span className='light-text'>
-              {fileInfo.role}
+              {file.role}
             </span>
           </div>
         </td>
         <td className='list-entry-title-group'>
           <div className='list-entry-file-size'>
             <span className='dark-text' style={{fontWeight: 900}} >
-              {byteFormat(fileInfo.fileSize, 1000)}
+              {byteFormat(file.fileSize, 1000)}
             </span>
           </div>
           <div className='list-entry-hash'>
             <span className='light-text'>
-              {fileInfo.hashingAlgorithm+': '}
+              {file.hashingAlgorithm+': '}
               <span className='mono-text'>
-                {fileInfo.hash}
+                {file.hash}
               </span>
             </span>
           </div>
