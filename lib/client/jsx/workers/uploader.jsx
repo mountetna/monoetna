@@ -3,6 +3,7 @@
  */
 
 import md5 from 'md5';
+import { postUploadBlob } from '../api/upload_api';
 /*
  * In milliseconds, the amount of time to transfer one blob. This ultimately
  * sets the blob size.
@@ -39,7 +40,6 @@ export default (self) => {
     if (current_byte_position >= file.size) return;
 
     let new_blob_size = MAX_BLOB_SIZE;
-
     let next_byte_position = current_byte_position + next_blob_size;
     let final_byte_position = next_byte_position + new_blob_size;
 
@@ -55,19 +55,14 @@ export default (self) => {
     // Hash the next blob.
     let nextBlob = file.slice(next_byte_position, final_byte_position);
 
-    let new_blob_hash = '0';
-
     let fileReader = new FileReader();
 
     fileReader.onload = (event) => {
-      new_blob_hash = md5(fileReader.result);
-      dispatch({
-        type: 'SEND_PACKET', 
-        upload,
-        blob,
-        new_blob_size,
-        new_blob_hash
-      });
+      let new_blob_hash = md5(fileReader.result);
+
+      let request = { upload, blob, new_blob_size, new_blob_hash };
+
+      sendBlob(request);
     }
     fileReader.readAsArrayBuffer(nextBlob);
 
@@ -77,6 +72,17 @@ export default (self) => {
      * kick off the sequence again.
      */
   }
+
+  let sendBlob = (request) => {
+    postUploadBlob(request)
+      .then(new_upload => {
+        dispatch({ type: 'FILE_UPLOAD_STATUS', upload: new_upload });
+        blobComplete(new_upload);
+      }).catch(
+        () => blobFailed(request)
+      );
+  }
+
 
   self.addEventListener('message', ({data}) => {
     let { upload, command } = data;
@@ -100,44 +106,6 @@ export default (self) => {
         break;
     }
   });
-
-
-  let sendPause = (response) => {
-    var pauseData = SERIALIZE_REQUEST(response.request);
-    try{
-      AJAX({
-        url: '/upload-pause',
-        method: 'POST',
-        sendType: 'serial',
-        returnType: 'json',
-        data: pauseData,
-        success: uploader.handleServerResponse,
-        error: uploader.ajaxError
-      });
-    }
-    catch({message}) {
-      error(message)
-    }
-  };
-
-  let sendCancel = (response) => {
-    var cancelData = SERIALIZE_REQUEST(response.request);
-    try{
-      AJAX({
-        url: '/upload-cancel',
-        method: 'POST',
-        sendType: 'serial',
-        returnType: 'json',
-        data: cancelData,
-        success: uploader.handleServerResponse,
-        error: uploader.ajaxError
-      });
-    }
-    catch({message}){
-      error(message)
-    }
-  }
-
 
   /*
    * Calcuates the next blob size based upon upload speed. Also sets the last
@@ -186,34 +154,13 @@ export default (self) => {
     return uploadTimeSum / this.blobUploadTimes.length;
   }
 
-  let handleServerResponse = (response) => {
-    uploader.timeouts = 0; // Reset the timeout counter;
-
-    response = NORMILIZE_RESPONSE(response);
-
-    if(!response){
-      postMessage(uploader.errorObj(errorMessage));
-      return;
-    }
-
-    response = TRANSFORM_RESPONSE(response);
-
-    if(!response){
-      postMessage(uploader.errorObj(errorMessage));
-      return;
-    }
-
-    uploader.handleResponseRouting(response);  
-  }
-
-  let handleResponseRouting = (response) => {
-    switch(response.request.status){
+  let blobComplete = (response) => {
+    switch(response.request.status) {
       case 'active':
         dispatch({ type: 'FILE_UPLOAD_ACTIVE', response });
-
         /*
-         * Check the 'pause' and 'cancel' flags, if set then send the pause or
-         * cancel message to the server.
+         * Check the 'pause' and 'cancel' flags, if set then send
+         * the pause or cancel message to the server.
          */
         if(uploader.pause){
           uploader.sendPause(response);
@@ -227,8 +174,9 @@ export default (self) => {
         break;
       case 'paused':
         /*
-         * Here the server responed that it got the pause message and the upload
-         * is in a paused state. We also clear the 'pause' flag on the uploader.
+         * Here the server responed that it got the pause message
+         * and the upload is in a paused state. We also clear the
+         * 'pause' flag on the uploader.
          */
         uploader.pause = false;
         dispatch({ type: 'FILE_UPLOAD_PAUSED', response });
@@ -251,20 +199,18 @@ export default (self) => {
     }
   }
 
-  let timeoutResponse = (error, uploadRequest) => {
-    ++uploader.timeouts;
-    if(uploader.timeouts == uploader.maxTimeouts) {
+  let blobFailed = (request) => {
+    ++timeouts;
+    if(timeouts == maxTimeouts) {
       // Reset the uploader.
-      uploader.file = null;
-      uploader.request = null;
-      uploader.pause = false;
-      uploader.cancel = false;
-      uploader.timeouts = 0;
+      pause = false;
+      cancel = false;
+      timeouts = 0;
 
-      dispatch({ type: 'FILE_UPLOAD_TIMEOUT', response });
+      dispatch({ type: 'FILE_UPLOAD_TIMEOUT', upload });
     }
-    else{
-      uploader.sendPacket(uploadRequest);
+    else {
+      sendBlob(request);
     }
   }
 }

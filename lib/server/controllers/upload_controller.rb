@@ -18,7 +18,7 @@ class UploadController < Metis::Controller
     success(url)
   end
 
-  UPLOAD_ACTIONS=[ :start ]
+  UPLOAD_ACTIONS=[ :start, :blob ]
 
   # this endpoint handles multiple possible actions, allowing us to authorize
   # one path /upload and support several upload operations
@@ -27,7 +27,7 @@ class UploadController < Metis::Controller
 
     action = @params[:action].to_sym
 
-    raise Etna::BadRequest, "Incorrect upload action" unless UPLOAD_ACTIONS.include?(action)
+    raise Etna::BadRequest, 'Incorrect upload action' unless UPLOAD_ACTIONS.include?(action)
 
     send :"upload_#{action}"
   end
@@ -37,7 +37,7 @@ class UploadController < Metis::Controller
   # create a metadata entry in the database and also a file on
   # the file system with 0 bytes.
   def upload_start
-    require_params(:next_blob_size, :next_blob_hash)
+    require_params(:file_size, :next_blob_size, :next_blob_hash)
 
     # make an entry for the file if it does not exist
     file = Metis::File.find_or_create(
@@ -58,12 +58,13 @@ class UploadController < Metis::Controller
       return success(upload.to_json, 'application/json')
     end
 
-    raise Etna::BadRequest, "Upload in progress" if !file.uploads.empty?
+    raise Etna::BadRequest, 'Upload in progress' if !file.uploads.empty?
 
     upload = Metis::Upload.create(
       file: file,
       status: 'initialized',
       metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)],
+      file_size: @params[:file_size].to_i,
       current_byte_position: 0,
       current_blob_size: 0,
       next_blob_size: @params[:next_blob_size],
@@ -76,18 +77,44 @@ class UploadController < Metis::Controller
 
   # Upload a chunk of the file.
   def upload_blob
-    upload_blob_error_check
+    require_params(:blob_data, :next_blob_size, :next_blob_hash)
 
-    append_blob
-    update_upload_metadata
+    file = Metis::File.find(
+      project_name: @params[:project_name],
+      file_name: @params[:file_name]
+    )
 
-    if upload_complete?
-      make_file_permanent
-      return send_upload_complete
-    else
+    raise Etna::BadRequest, 'Could not find file!' unless file
 
-      return send_upload_status
+    upload = Metis::Upload.where(
+      file: file,
+      metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)],
+    ).first
+
+    raise Etna::BadRequest, 'Upload has not been started!' unless upload
+
+    blob_path = @params[:blob_data][:tempfile].path
+
+    raise Etna::BadRequest, 'Blob integrity failed' unless upload.blob_valid?(blob_path)
+
+    upload.append_blob(blob_path)
+
+    upload.update(
+      next_blob_size: @params[:next_blob_size],
+      next_blob_hash: @params[:next_blob_hash]
+    )
+
+    if upload.complete?
+      upload.finish!
+
+      upload_json = upload.to_json
+
+      upload.delete
+
+      return success(upload_json, 'application/json')
     end
+
+    return success(upload.to_json, 'application/json')
   end
 
   def pause_upload
@@ -128,7 +155,7 @@ class UploadController < Metis::Controller
   def recover_upload
     recover_upload_error_check
 
-    raise Etna::BadRequest, "Missing param last_kib_hash!" unless @params[:last_kib_hash]
+    raise Etna::BadRequest, 'Missing param last_kib_hash!' unless @params[:last_kib_hash]
 
     @upload.update(
       status: 'paused',
@@ -150,29 +177,11 @@ class UploadController < Metis::Controller
   private
 
 
-  # Things to check before we upload a blob.
-  def upload_blob_error_check
-
-    common_error_check
-
-    # Check that the partial file exists.
-    raise Etna::BadRequest, "Partial does not exist" unless partial_exists?
-
-    # Check that the full file DOES NOT exist.
-    raise Etna::BadRequest, "File does not exist" unless file_exists?
-
-    # Check the uploaded blob's integrity.
-    next_blob_size = @upload.to_hash[:next_blob_size]
-    next_blob_hash = @upload.to_hash[:next_blob_hash]
-
-    raise Etna::BadRequest, "Blob integrity failed" unless blob_integrity_ok?(next_blob_size, next_blob_hash)
-  end
-
   # Some common things we should check before we make an action.
   def common_error_check
 
     # Check the HMAC
-    raise Etna::BadRequest, "Invalid HMAC" unless hmac_valid?
+    raise Etna::BadRequest, 'Invalid HMAC' unless hmac_valid?
 
     # Check that the file metadata exists and set global vars if they exist.
     file_metadata_check_and_set
@@ -193,18 +202,18 @@ class UploadController < Metis::Controller
     file_metadata_check_and_set
 
     # The file should NOT exist but the partial should.
-    raise Etna::BadRequest, "File exists" if file_exists?
-    raise Etna::BadRequest, "Partial does not exist" unless partial_exists?
+    raise Etna::BadRequest, 'File exists' if file_exists?
+    raise Etna::BadRequest, 'Partial does not exist' unless partial_exists?
 
     # Check that the user requesting the 'remove' is the same as the uploader.
-    raise Etna::BadRequest, "Deletion must be done by the uploader" unless @user.email == @file.upload_by
+    raise Etna::BadRequest, 'Deletion must be done by the uploader' unless @user.email == @file.upload_by
   end
 
   # All the items to check before we 'recover' an upload sequence.
   def recover_upload_error_check
 
     # Check that the correct parameters are present.
-    raise Etna::BadRequest, "Not authorized" unless has_auth_params?(@params)
+    raise Etna::BadRequest, 'Not authorized' unless has_auth_params?(@params)
 
     # Check that the user has edit permission on the project requested.
     user_edit_check
@@ -212,7 +221,7 @@ class UploadController < Metis::Controller
     # Check that this file system is in sync with the auth server. If there is a
     # group/project set in Janus there should be a corresponding directory
     # in Metis.
-    raise Etna::BadRequest, "Project dir missing" unless directory_exists?
+    raise Etna::BadRequest, 'Project dir missing' unless directory_exists?
 
     # Check that a full file does not exist. A partial should exist.
     raise Etna::BadRequest, "File exists" if file_exists?
@@ -385,123 +394,27 @@ class UploadController < Metis::Controller
   # we need to remove it. Then when we use our 'upload_params_valid' and 
   # 'file_params_valid' the result will be false thus protecting us from invalid
   # data types.
-  def normalize_params
-
-    @params.each do |key, value|
-
-      if Conf::FILE_VALIDATION_ITEMS.key?(key)
-
-        if Conf::FILE_VALIDATION_ITEMS[key] == Integer 
-
-          @params[key] = @params[key].to_i
-        end
-      end
-
-      if Conf::UPLOAD_VALIDATION_ITEMS.key?(key)
-
-        if Conf::UPLOAD_VALIDATION_ITEMS[key] == Integer 
-
-          @params[key] = @params[key].to_i
-        end
-      end
-    end
-  end
-
-  def blob_integrity_ok?(next_blob_size, next_blob_hash)
-
-    # Check the blob hash.
-    if !blob_hash_ok?(next_blob_hash) then return false end
-
-    # Check the blob size.
-    temp_file_path = @request['blob'][:tempfile].path
-    if File.size(temp_file_path).to_i != next_blob_size then return false end
-
-    return true
-  end
-
-  def blob_hash_ok?(md5_from_status)
-
-    temp_file_path = @request['blob'][:tempfile].path
-    md5_of_temp_file = Digest::MD5.hexdigest(File.read(temp_file_path))
-    return (md5_from_status == md5_of_temp_file) ? true : false
-  end
-
-  def append_blob
-
-    temp_file_name = @request['blob'][:tempfile].path
-    partial_file_name = derive_directory+'/'+@params['file_name']+'.part'
-    partial_file = File.open(partial_file_name, 'ab')
-    temp_file = File.open(temp_file_name, 'rb')
-    partial_file.write(temp_file.read)
-
-    partial_file.close
-    temp_file.close
-  end
 
   def update_upload_metadata
-
     params = @request.POST
     temp_file_path = @request['blob'][:tempfile].path
     partial_file_name = derive_directory+'/'+@params['file_name']+'.part'
 
     @upload.update(
-
-      :current_byte_position=> File.size(partial_file_name),
-      :current_blob_size=> File.size(temp_file_path),
-      :next_blob_size=> @params['next_blob_size'],
-      :next_blob_hash=> @params['next_blob_hash'],
-      :status=> 'active'
+      current_byte_position: File.size(partial_file_name),
+      current_blob_size: File.size(temp_file_path),
+      next_blob_size: @params['next_blob_size'],
+      next_blob_hash: @params['next_blob_hash'],
+      status: 'active'
     )
   end
 
-  def upload_complete?
-
-    file_size = @file.to_hash[:file_size]
-    partial_file_name = derive_directory+'/'+@params['file_name']+'.part'
-    return File.size(partial_file_name) == file_size ? true : false
-  end
-
-  def make_file_permanent
-
-    # Rename the partial file.
-    full_path = derive_directory+'/'+@file.to_hash[:file_name]
-    File.rename(full_path+'.part', full_path)
-
-    # Generate the file hash.
-    file_hash = Digest::MD5.hexdigest(File.read(full_path))
-
-    # Update the postgres record.
-    @file.update(:finish_upload=> Time::now, :hash=> file_hash)
-
-    # Remove the upload record.
-    @upload.delete
-  end
-
-  def send_upload_status
-
-    @upload.to_hash.each{ |key, value| @params[key] = value }
-    @params.delete(:file_id)
-    @params.delete('blob')
-    { :success=> true, :request=> @params }
-  end
-
-  def send_upload_complete
-
-    @file.to_hash.each{ |key, value| @params[key] = value }
-    @params.delete(:file_id)
-    @params.delete('blob')
-    @params['status'] = 'complete'
-    { :success=> true, :request=> @params }
-  end
-
   def remove_temp_file
-
     partial_file_name = derive_directory+'/'+@params['file_name']+'.part'
     if File.file?(partial_file_name) then File.delete(partial_file_name) end
   end
 
   def remove_file_on_disk
-
     file_name = derive_directory+'/'+@params['file_name']
     if File.file?(file_name) then File.delete(file_name) end
   end

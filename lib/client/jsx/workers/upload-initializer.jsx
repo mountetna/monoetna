@@ -30,6 +30,7 @@ module.exports = function(self) {
       let next_blob_hash = md5(fileReader.result);
 
       let upload = {
+        file_size: file.size,
         next_blob_size: INITIAL_BLOB_SIZE,
         next_blob_hash
       };

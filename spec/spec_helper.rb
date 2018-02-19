@@ -88,3 +88,24 @@ end
 def json_post(endpoint, hash)
   post("/#{endpoint}", hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
 end
+
+def stubs
+  @stubs ||= []
+end
+
+def stub_file(name, contents, project_name = :stub)
+  file_name = "spec/#{project_name}/#{name}"
+  File.open(file_name,"w") do |f|
+    f.print contents
+  end
+  stubs.push(file_name)
+  return File.expand_path(file_name)
+end
+
+def clear_stubs
+  stubs.each do |stub|
+    File.delete(stub) if File.exists?(stub)
+  end
+  @stubs = nil
+end
+

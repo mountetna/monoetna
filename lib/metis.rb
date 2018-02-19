@@ -20,7 +20,7 @@ class Metis
     require_relative 'models'
   end
 
-  def project_dir(project)
+  def project_path(project)
     config(:project_paths)[project.to_sym]
   end
 

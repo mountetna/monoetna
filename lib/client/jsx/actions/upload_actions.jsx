@@ -1,4 +1,4 @@
-import { postUploadStart } from '../api/upload_api';
+import { postUploadBlob, postUploadStart } from '../api/upload_api';
 
 export const queueUpload = ({upload}) => (dispatch) => {
   dispatch({ type: 'WORK', worker: 'upload', command: 'start', upload });
@@ -19,9 +19,9 @@ export const recoverUpload = () => (dispatch) => {
 
 export const startUpload = ({ upload, url }) => (dispatch) => {
   postUploadStart(url, upload)
-    .then( response => {
+    .then( response =>
       dispatch({ type: 'FILE_UPLOAD_STATUS', upload: response })
-    })
+    )
     .catch(
       () => alert('The upload could not be started.')
     )
