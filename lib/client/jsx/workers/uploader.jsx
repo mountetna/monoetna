@@ -2,7 +2,7 @@
  * This class will upload a file as blobs to the Metis upload endpoint.
  */
 
-import md5 from 'md5';
+import SparkMD5 from 'spark-md5';
 import { postUploadBlob } from '../api/upload_api';
 /*
  * In milliseconds, the amount of time to transfer one blob. This ultimately
@@ -58,7 +58,7 @@ export default (self) => {
     let fileReader = new FileReader();
 
     fileReader.onload = (event) => {
-      let new_blob_hash = md5(fileReader.result);
+      let new_blob_hash = SparkMD5.ArrayBuffer.hash(fileReader.result);
 
       let request = { upload, blob, new_blob_size, new_blob_hash };
 

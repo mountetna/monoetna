@@ -2,7 +2,7 @@
  * This class will initialize an upload to the Metis server from a web client.
  */
 
-import md5 from 'md5';
+import SparkMD5 from 'spark-md5';
 import { startUpload } from '../actions/upload_actions';
 
 module.exports = function(self) {
@@ -27,7 +27,7 @@ module.exports = function(self) {
     let blob = file.slice(0, INITIAL_BLOB_SIZE);
     let fileReader = new FileReader();
     fileReader.onload = (event) => {
-      let next_blob_hash = md5(fileReader.result);
+      let next_blob_hash = SparkMD5.ArrayBuffer.hash(fileReader.result);
 
       let upload = {
         file_size: file.size,
