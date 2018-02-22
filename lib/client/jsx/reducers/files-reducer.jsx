@@ -5,6 +5,7 @@ const filekey = () => (Math.random().toString(36) + '0'.repeat(10)).substring(2,
 const file = (file) => ({
   file,
   file_name: file.name,
+  file_size: file.size,
   current_byte_position: 0,
   status: 'unauthorized',
   key: filekey()

@@ -21,11 +21,8 @@
 
 .upload-meter-bar {
 
-  margin-left: -1px;
   width: 0%;
   height: 100%;
-  box-shadow: 0px 1px 1px 0px #666 inset;
-  border-right: 1px solid #15788f;
   background: #7dcfe8;
 }
 
