@@ -66,7 +66,6 @@ class UploadController < Metis::Controller
       metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)],
       file_size: @params[:file_size].to_i,
       current_byte_position: 0,
-      current_blob_size: 0,
       next_blob_size: @params[:next_blob_size],
       next_blob_hash: @params[:next_blob_hash]
     )
@@ -402,7 +401,6 @@ class UploadController < Metis::Controller
 
     @upload.update(
       current_byte_position: File.size(partial_file_name),
-      current_blob_size: File.size(temp_file_path),
       next_blob_size: @params['next_blob_size'],
       next_blob_hash: @params['next_blob_hash'],
       status: 'active'

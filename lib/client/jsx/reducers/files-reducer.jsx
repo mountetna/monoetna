@@ -16,8 +16,7 @@ const uploads = (old_uploads, action) => {
   switch(action.type) {
     case 'FILE_UPLOAD_STATUS': {
       let { upload } = action;
-      let { project_name, file_name, status, current_byte_position,
-        current_blob_size } = upload;
+      let { project_name, file_name, status, current_byte_position, next_blob_size, next_blob_hash } = upload;
       let key = Object.keys(old_uploads).find(
         key => old_uploads[key].project_name == project_name && old_uploads[key].file_name == file_name
       );
@@ -28,7 +27,8 @@ const uploads = (old_uploads, action) => {
           ...old_uploads[key],
           status,
           current_byte_position,
-          current_blob_size
+          next_blob_size,
+          next_blob_hash
         }
       };
     };

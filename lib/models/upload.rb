@@ -3,7 +3,7 @@ class Metis
     many_to_one :file
 
     def to_json
-      [ :status, :current_byte_position, :current_blob_size,
+      [ :status, :current_byte_position,
         :next_blob_size, :next_blob_hash ].map do |s|
         [ s, send(s) ]
       end.to_h.merge(
@@ -25,8 +25,7 @@ class Metis
       %x{ cat #{blob_path} >> #{partial_location} }
 
       self.update(
-        current_byte_position: ::File.size(partial_location),
-        current_blob_size: ::File.size(blob_path)
+        current_byte_position: ::File.size(partial_location)
       )
     end
 
