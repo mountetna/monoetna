@@ -2,14 +2,18 @@ class Metis
   class Upload < Sequel::Model
     many_to_one :file
 
-    def to_json
-      [ :status, :current_byte_position,
-        :next_blob_size, :next_blob_hash ].map do |s|
+    def to_hash
+      [ :current_byte_position, :next_blob_size, :next_blob_hash ].map do |s|
         [ s, send(s) ]
       end.to_h.merge(
         project_name: file.project_name,
-        file_name: file.file_name
-      ).to_json
+        file_name: file.file_name,
+        status: 'incomplete'
+      )
+    end
+
+    def to_json
+      to_hash.to_json
     end
 
     def partial_location
@@ -22,7 +26,7 @@ class Metis
 
     def append_blob(blob_path)
       # use cat to avoid reading file
-      %x{ cat #{blob_path} >> #{partial_location} }
+      %x{ cat #{blob_path} >> "#{partial_location}" }
 
       self.update(
         current_byte_position: ::File.size(partial_location)

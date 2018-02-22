@@ -71,9 +71,18 @@ EOT
       expect(file).not_to be_nil
       expect(file.uploads).to eq([upload])
 
+      expect(json).to eq(
+        current_byte_position: 0,
+        file_name: 'wisdom.txt',
+        next_blob_hash: '10',
+        next_blob_size: 10,
+        project_name: 'athena',
+        status: 'incomplete'
+      )
+
       expect(json[:file_name]).to eq('wisdom.txt')
       expect(json[:project_name]).to eq('athena')
-      expect(json[:status]).to eq('initialized')
+      expect(json[:status]).to eq('incomplete')
     end
 
     it 'should resume an existing upload' do
@@ -83,13 +92,12 @@ EOT
         original_name: 'wisdom.txt', uploader: 'metis', size: WISDOM.length
       )
       upload = create( :upload,
-        file: file, status: 'queued',
+        file: file,
         metis_uid: @metis_uid,
         current_byte_position: 10,
-        current_blob_size: 10,
         file_size: WISDOM.length,
         next_blob_size: 10,
-        next_blob_hash: 10
+        next_blob_hash: 'abcdef'
       )
 
       # now we post to the same place
@@ -102,16 +110,21 @@ EOT
         action: 'start',
         file_size: WISDOM.length,
         next_blob_size: 10,
-        next_blob_hash: 10
+        next_blob_hash: 'defabc'
       )
 
       expect(last_response.status).to eq(200)
 
       json = json_body(last_response.body)
-      expect(json[:file_name]).to eq('wisdom.txt')
-      expect(json[:project_name]).to eq('athena')
-      expect(json[:status]).to eq('queued')
-      expect(json[:current_byte_position]).to eq(10)
+      expect(json).to eq({
+        status: 'incomplete',
+        current_byte_position: 10,
+        next_blob_size: 10,
+        next_blob_hash: 'abcdef',
+        project_name: 'athena',
+        file_name: 'wisdom.txt'
+      })
+
     end
 
     it 'should not resume someone elses upload' do
@@ -122,11 +135,10 @@ EOT
         original_name: 'wisdom.txt', uploader: 'metis', size: 20
       )
       upload = create( :upload,
-        file: file, status: 'queued',
+        file: file,
         metis_uid: @metis_uid.reverse,
         file_size: WISDOM.length,
         current_byte_position: 10,
-        current_blob_size: 10,
         next_blob_size: 10,
         next_blob_hash: 10
       )
@@ -180,11 +192,10 @@ EOT
       )
 
       upload = create( :upload,
-        file: file, status: 'queued',
+        file: file,
         metis_uid: @metis_uid,
         file_size: WISDOM.length,
         current_byte_position: File.size(partial_file),
-        current_blob_size: File.size(wisdom_blob_file),
         next_blob_size: next_blob.length,
         next_blob_hash: Digest::MD5.hexdigest(next_blob)
       )
@@ -229,11 +240,10 @@ EOT
       )
 
       upload = create( :upload,
-        file: file, status: 'queued',
+        file: file,
         metis_uid: @metis_uid,
         file_size: WISDOM.length,
         current_byte_position: File.size(partial_file),
-        current_blob_size: File.size(wisdom_blob_file),
         next_blob_size: next_blob.length,
         next_blob_hash: Digest::MD5.hexdigest(next_blob)
       )
@@ -278,11 +288,10 @@ EOT
       )
 
       upload = create( :upload,
-        file: file, status: 'queued',
+        file: file,
         metis_uid: @metis_uid,
         file_size: WISDOM.length,
         current_byte_position: File.size(partial_file),
-        current_blob_size: File.size(wisdom_blob_file),
         next_blob_size: next_blob.length,
         next_blob_hash: Digest::MD5.hexdigest(next_blob)
       )
@@ -308,6 +317,9 @@ EOT
 
       # the actual file exists with the correct content
       expect(File.read(file.location)).to eq(WISDOM)
+
+      # the file thinks it has data
+      expect(file.has_data?).to be_truthy
     end
   end
 end

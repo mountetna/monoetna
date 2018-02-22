@@ -62,7 +62,6 @@ class UploadController < Metis::Controller
 
     upload = Metis::Upload.create(
       file: file,
-      status: 'initialized',
       metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)],
       file_size: @params[:file_size].to_i,
       current_byte_position: 0,
@@ -106,7 +105,9 @@ class UploadController < Metis::Controller
     if upload.complete?
       upload.finish!
 
-      upload_json = upload.to_json
+      upload_json = upload.to_hash.merge(
+        status: 'complete'
+      ).to_json
 
       upload.delete
 
@@ -174,7 +175,6 @@ class UploadController < Metis::Controller
   end
 
   private
-
 
   # Some common things we should check before we make an action.
   def common_error_check
@@ -387,24 +387,6 @@ class UploadController < Metis::Controller
       if !@params.key?(key) then valid = false end
     end
     return valid
-  end
-
-  # We need to add a check that if a key/value is not of the correct type, then
-  # we need to remove it. Then when we use our 'upload_params_valid' and 
-  # 'file_params_valid' the result will be false thus protecting us from invalid
-  # data types.
-
-  def update_upload_metadata
-    params = @request.POST
-    temp_file_path = @request['blob'][:tempfile].path
-    partial_file_name = derive_directory+'/'+@params['file_name']+'.part'
-
-    @upload.update(
-      current_byte_position: File.size(partial_file_name),
-      next_blob_size: @params['next_blob_size'],
-      next_blob_hash: @params['next_blob_hash'],
-      status: 'active'
-    )
   end
 
   def remove_temp_file
