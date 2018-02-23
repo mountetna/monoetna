@@ -2,13 +2,14 @@
 const filekey = () => (Math.random().toString(36) + '0'.repeat(10)).substring(2,12);
 
 // helper to create a new file entry
-const upload = (file) => ({
+const upload = (file, url) => ({
   file,
   file_name: file.name,
+  url,
   project_name: CONFIG.project_name,
   file_size: file.size,
   current_byte_position: 0,
-  status: 'unauthorized',
+  status: 'authorized',
   key: filekey()
 })
 
@@ -51,14 +52,6 @@ const uploads = (old_uploads, action) => {
         }
       };
     };
-    case 'FILE_SELECTED': {
-      // Copy the selected file data to 'uploads' object.
-      let new_upload = upload(action.file);
-      return {
-        ...old_uploads,
-        [new_upload.key]: new_upload
-      };
-    };
     case 'FILE_UPLOAD_SELECT_PROJECT': {
       let { upload, permission: { project_name, role } } = action;
       return {
@@ -70,16 +63,12 @@ const uploads = (old_uploads, action) => {
       };
     };
     case 'FILE_UPLOAD_AUTHORIZED': {
-      // Append the HMAC url and set the server current byte to 0.
-      let { key, url } = action;
+      // Copy the selected file data to 'uploads' object.
+      let { file, url } = action;
+      let new_upload = upload(file, url);
       return {
         ...old_uploads,
-        [key]: {
-          ...old_uploads[key],
-          status: 'authorized',
-          url,
-          current_byte_position: 0
-        }
+        [new_upload.key]: new_upload
       };
     }
     default:
@@ -99,7 +88,6 @@ const files = (state, action) => {
     case 'FILE_UPLOAD_SPEED':
     case 'FILE_UPLOAD_AUTHORIZED':
     case 'FILE_UPLOAD_SELECT_PROJECT':
-    case 'FILE_SELECTED':
       return {
         ...state,
         uploads: uploads(state.uploads,action)
