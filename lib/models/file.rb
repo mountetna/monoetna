@@ -5,6 +5,20 @@ class Metis
       %x{ md5sum #{path} }.split.first
     end
 
+    def self.upload_url(host, project_name, file_name)
+      hmac = Etna::Hmac.new(
+        Metis.instance,
+        method: 'POST',
+        host: host,
+        path: '/upload',
+        expiration: (Time.now + Metis.instance.config(:upload_expiration)).iso8601,
+        nonce: Metis.instance.sign.uid,
+        id: :metis,
+        headers: { project_name: project_name, file_name: file_name }
+      )
+      return URI::HTTPS.build(hmac.url_params)
+    end
+
     one_to_many :uploads
     def self.has_file?(project_name, file_name)
       file = self.where(project_name: project_name, file_name: file_name).first

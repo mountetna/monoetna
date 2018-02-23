@@ -2,18 +2,7 @@ class UploadController < Metis::Controller
   def authorize
     require_params(:project_name, :file_name)
 
-    hmac = Etna::Hmac.new(
-      Metis.instance,
-      method: 'POST',
-      host: @request.host,
-      path: '/upload',
-      expiration: (Time.now + Metis.instance.config(:upload_expiration)).iso8601,
-      nonce: Metis.instance.sign.uid,
-      id: :metis,
-      headers: { project_name: @params[:project_name], file_name: @params[:file_name] }
-    )
-
-    url = URI::HTTPS.build(hmac.url_params)
+    url = Metis::File.upload_url(@request.host, @params[:project_name], @params[:file_name])
 
     success(url)
   end
