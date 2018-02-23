@@ -2,14 +2,21 @@
 const filekey = () => (Math.random().toString(36) + '0'.repeat(10)).substring(2,12);
 
 // helper to create a new file entry
-const file = (file) => ({
+const upload = (file) => ({
   file,
   file_name: file.name,
+  project_name: CONFIG.project_name,
   file_size: file.size,
   current_byte_position: 0,
   status: 'unauthorized',
   key: filekey()
 })
+
+const findUpload = (uploads, project_name, file_name) =>
+  Object.keys(uploads).find( key =>
+    uploads[key].project_name == project_name &&
+    uploads[key].file_name == file_name
+  );
 
 const uploads = (old_uploads, action) => {
   if (!old_uploads) old_uploads = {}
@@ -18,9 +25,7 @@ const uploads = (old_uploads, action) => {
     case 'FILE_UPLOAD_STATUS': {
       let { upload } = action;
       let { project_name, file_name, status, current_byte_position, next_blob_size, next_blob_hash } = upload;
-      let key = Object.keys(old_uploads).find(
-        key => old_uploads[key].project_name == project_name && old_uploads[key].file_name == file_name
-      );
+      let key = findUpload(old_uploads, project_name, file_name);
       if (!key) return old_uploads;
       return {
         ...old_uploads,
@@ -35,10 +40,10 @@ const uploads = (old_uploads, action) => {
     };
     case 'FILE_SELECTED': {
       // Copy the selected file data to 'uploads' object.
-      let new_file = file(action.file);
+      let new_upload = upload(action.file);
       return {
         ...old_uploads,
-        [new_file.key]: new_file
+        [new_upload.key]: new_upload
       };
     };
     case 'FILE_UPLOAD_SELECT_PROJECT': {

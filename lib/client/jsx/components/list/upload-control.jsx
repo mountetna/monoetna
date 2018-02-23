@@ -18,8 +18,7 @@ export default class UploadControl extends React.Component{
             <span className='glyphicon glyphicon-arrow-right'></span>
           </button>
         );
-      case 'initialized':
-      case 'paused':
+      case 'incomplete':
         uploadCtrlBtnProps.onClick = callbacks.queueUpload;
         return (
           <button { ...uploadCtrlBtnProps }>

@@ -268,10 +268,12 @@ export default class ListUpload extends React.Component{
   }
 
   renderPermissionSelector(){
-    if (this.props.upload.status == 'unauthorized') {
+    let { upload, permissions } = this.props;
+
+    if (upload.status == 'unauthorized') {
       let permissionSelectorProps = {
-        permissions: this.props.permissions,
-        upload: this.props.upload,
+        permissions,
+        upload,
         editActive: true,
         callbacks: {
           projectSelected: this.projectSelected.bind(this)
@@ -287,6 +289,8 @@ export default class ListUpload extends React.Component{
         className: 'list-entry-project-group'
       };
 
+      let permission = permissions.find(p => p.project_name == upload.project_name);
+
       let listEntryStatus = {
         className: 'list-entry-status list-project-permission-field',
         title: 'Your project permission for this file.'
@@ -295,11 +299,11 @@ export default class ListUpload extends React.Component{
       return (
         <td { ...listEntryProjectGroup }>
           <div className='list-project-field'>
-            { this.props.upload.project_name }
+            { upload.project_name }
           </div>
           <div { ...listEntryStatus }>
             <span className='light-text'>
-              { this.props.upload.projectRole }
+              { permission.role }
             </span>
           </div>
         </td>
@@ -369,7 +373,7 @@ export default class ListUpload extends React.Component{
       title: 'The current file status.',
       style: { marginTop: '2px' }
     };
-    
+
     return (
       <tr className='list-entry-group'>
         <td className='list-entry-icon'>
