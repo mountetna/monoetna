@@ -19,11 +19,6 @@ export default (self) => {
     { type: 'WORKER_ERROR', worker: 'upload', message }
   );
 
-  // These object will be the data we need to send over the wire.
-  let uploadStart = null; // The time at which the upload started in mS.
-  let blobWindow = 30; // How many blob uploads to average over.
-  let blobUploadTimes = [];
-
   let pause = false;
   let cancel = false;
   let timeouts = 0; // The number of times an upload has timed out.
@@ -39,9 +34,11 @@ export default (self) => {
 
     if (current_byte_position >= file.size) return;
 
-    let new_blob_size = MIN_BLOB_SIZE;
+    let [ upload_speed, new_blob_size ] = calcNextBlobSize(next_blob_size);
     let next_byte_position = current_byte_position + next_blob_size;
     let final_byte_position = next_byte_position + new_blob_size;
+
+    dispatch({ type: 'FILE_UPLOAD_SPEED', upload, upload_speed });
 
     // Set the outer limit for 'next_blob_size' and 'endByte'.
     if (final_byte_position > file.size) {
@@ -73,13 +70,36 @@ export default (self) => {
      */
   }
 
+  let blobWindow = 30; // How many blob uploads to average over.
+  let uploadTimes = [];
+
+  let addUploadTime = (time) => {
+    uploadTimes.push(time);
+    uploadTimes = uploadTimes.slice(-blobWindow);
+  }
+
   let sendBlob = (request) => {
+    let uploadStart = Math.floor(Date.now());
+
     postUploadBlob(request)
       .then(new_upload => {
         dispatch({ type: 'FILE_UPLOAD_STATUS', upload: new_upload });
-        blobComplete(new_upload);
+        blobComplete({
+          ...request.upload,
+          ...new_upload
+        });
+
+        // update the upload intervals for calculating speed
+        let uploadEnd = Math.floor(Date.now());
+        addUploadTime(uploadEnd - uploadStart);
       }).catch(
-        () => blobFailed(request)
+        (error) => {
+          if (error.fetch) blobFailed(request);
+          else {
+            console.log(error);
+            throw error
+          }
+        }
       );
   }
 
@@ -112,76 +132,42 @@ export default (self) => {
    */
 
   let calcNextBlobSize = (current_blob_size) => {
-    if (uploadStart != null) {
-      let avgTime = averageUploadTime();
-      let nextBlobSize = Math.max(
-        MIN_BLOB_SIZE,
-        Math.min(
-          MAX_BLOB_SIZE,
-          Math.floor(current_blob_size * (XTR_TIME / avgTime * 0.9))
-        )
-      );
+    if (!uploadTimes.length) return [ null, MIN_BLOB_SIZE ];
 
-      /*
-       * Make a rough calculation of the upload speed in kilobits per second.
-       * This is just for the UI.
-       */
-      uploadSpeed = (oldBlobSize * 8) / (avgTime / 1000);
+    let avgTime = uploadTimes.reduce((sum, time)=>(sum + (time/uploadTimes.length)), 0)
 
-      // Reset the timestamp needed for these calculations.
-      uploadStart = null;
-    }
+    let nextBlobSize = Math.max(
+      MIN_BLOB_SIZE,
+      Math.min(
+        MAX_BLOB_SIZE,
+        Math.floor(current_blob_size * (XTR_TIME / avgTime * 0.9))
+      )
+    );
+
+    /*
+     * Make a rough calculation of the upload speed in kilobits per second.
+     * This is just for the UI.
+     */
+    let uploadSpeed = (current_blob_size * 8) / (avgTime / 1000);
+
+    return [ uploadSpeed, nextBlobSize ];
   };
-
-  let averageUploadTime = () => {
-    // Get the current time it took to upload the last blob.
-    let uploadTime = (Math.floor(Date.now()) - this.uploadStart);
-
-    // Add the last upload time to an array, limit the array size
-    // with a window.
-    if (this.blobUploadTimes.length >= this.blobWindow) {
-      this.blobUploadTimes.shift();
-    }
-    this.blobUploadTimes.push(uploadTime);
-
-    // Sum the windowed upload array.
-    let uploadTimeSum = this.blobUploadTimes.reduce((a, b)=>{
-      return a + b;
-    }, 0);
-
-    // Average the upload time over the window.
-    return uploadTimeSum / this.blobUploadTimes.length;
-  }
 
   let blobComplete = (new_upload) => {
     switch(new_upload.status) {
-      case 'active':
-        dispatch({ type: 'FILE_UPLOAD_STATUS', upload: new_upload });
-        /*
-         * Check the 'pause' and 'cancel' flags, if set then send
-         * the pause or cancel message to the server.
-         */
-        createBlob(response);
+      case 'incomplete':
+        createBlob(new_upload);
         break;
       case 'paused':
-        /*
-         * Here the server responed that it got the pause message
-         * and the upload is in a paused state. We also clear the
-         * 'pause' flag on the uploader.
-         */
         uploader.pause = false;
         dispatch({ type: 'FILE_UPLOAD_PAUSED', response });
         break;
-
       case 'cancelled':
         uploader.cancel = false;
         dispatch({ type: 'FILE_UPLOAD_CANCELLED', response });
         break;
-
       case 'complete':
         // Send update message back.
-        uploader.file = null;
-        uploader.request = null;
         dispatch({ type: 'FILE_UPLOAD_COMPLETE', response });
         break;
       default:

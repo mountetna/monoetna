@@ -22,6 +22,19 @@ const uploads = (old_uploads, action) => {
   if (!old_uploads) old_uploads = {}
 
   switch(action.type) {
+    case 'FILE_UPLOAD_SPEED': {
+      let { upload, upload_speed } = action;
+      let { project_name, file_name } = upload;
+      let key = findUpload(old_uploads, project_name, file_name);
+      if (!key) return old_uploads;
+      return {
+        ...old_uploads,
+        [key]: {
+          ...old_uploads[key],
+          upload_speed
+        }
+      };
+    }
     case 'FILE_UPLOAD_STATUS': {
       let { upload } = action;
       let { project_name, file_name, status, current_byte_position, next_blob_size, next_blob_hash } = upload;
@@ -83,6 +96,7 @@ const files = (state, action) => {
 
   switch(action.type) {
     case 'FILE_UPLOAD_STATUS':
+    case 'FILE_UPLOAD_SPEED':
     case 'FILE_UPLOAD_AUTHORIZED':
     case 'FILE_UPLOAD_SELECT_PROJECT':
     case 'FILE_SELECTED':

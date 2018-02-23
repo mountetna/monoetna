@@ -48,11 +48,12 @@ export default class UploadMeter extends React.Component{
 
   parseUploadSpeed(){
     let { upload } = this.props;
+    let { paused, upload_speed } = upload;
 
-    if('uploadSpeed' in upload && upload.status == 'active'){
-      if(isNaN(upload.uploadSpeed)) return '';
+    if (upload_speed && !paused) {
+      if (isNaN(upload_speed)) return '';
 
-      let speed = byteFormat(upload.uploadSpeed, 1024, true);
+      let speed = byteFormat(upload_speed, 1024, true);
 
       let bitSpeedProps = {
         className: 'dark-text',

@@ -4,6 +4,7 @@ export const checkStatus = (response) => {
   } else {
     var error = new Error(response.statusText)
     error.response = response
+    error.fetch = true;
     throw error
   }
 }
