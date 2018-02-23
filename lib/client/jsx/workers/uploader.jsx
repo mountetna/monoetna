@@ -34,12 +34,12 @@ export default (self) => {
    * For message passing into and out of the worker.
    */
 
-  const commandStart = (upload) => {
+  const createBlob = (upload) => {
     let { file, current_byte_position, next_blob_size } = upload;
 
     if (current_byte_position >= file.size) return;
 
-    let new_blob_size = MAX_BLOB_SIZE;
+    let new_blob_size = MIN_BLOB_SIZE;
     let next_byte_position = current_byte_position + next_blob_size;
     let final_byte_position = next_byte_position + new_blob_size;
 
@@ -90,16 +90,15 @@ export default (self) => {
     // Check that the incoming data has a valid command.
     switch (command) {
       case 'start':
-        commandStart(upload);
+        createBlob(upload);
         break;
       case 'pause':
         // Set a pause flag.
-        commandPause();
-        pause = true;
+        pauseUploader();
         break;
       case 'cancel':
         // Set a cancel flag.
-        cancel = true;
+        cancelUploader();
         break;
       default:
         error('Invalid command');
@@ -154,23 +153,15 @@ export default (self) => {
     return uploadTimeSum / this.blobUploadTimes.length;
   }
 
-  let blobComplete = (response) => {
-    switch(response.request.status) {
+  let blobComplete = (new_upload) => {
+    switch(new_upload.status) {
       case 'active':
-        dispatch({ type: 'FILE_UPLOAD_ACTIVE', response });
+        dispatch({ type: 'FILE_UPLOAD_STATUS', upload: new_upload });
         /*
          * Check the 'pause' and 'cancel' flags, if set then send
          * the pause or cancel message to the server.
          */
-        if(uploader.pause){
-          uploader.sendPause(response);
-        }
-        else if(uploader.cancel){
-          uploader.sendCancel(response);
-        }
-        else{
-          uploader.sendBlob(response);
-        }
+        createBlob(response);
         break;
       case 'paused':
         /*
