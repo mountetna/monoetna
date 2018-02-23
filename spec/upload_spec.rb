@@ -7,6 +7,10 @@ describe UploadController do
     OUTER_APP
   end
 
+  def upload_path(project_name,file_name)
+    "#{project_name}/upload/#{file_name}"
+  end
+
   WISDOM=<<EOT
 Although they are
 only breath, words
@@ -36,10 +40,8 @@ EOT
       hmac_params = Rack::Utils.parse_nested_query(uri.query)
 
       expect(last_response.status).to eq(200)
-      expect(uri.path).to eq('/upload')
+      expect(uri.path).to eq("/#{params[:project_name]}/upload/#{params[:file_name]}")
       expect(hmac_params['X-Etna-Id']).to eq('metis')
-      expect(hmac_params['X-Etna-Project-Name']).to eq(params[:project_name])
-      expect(hmac_params['X-Etna-File-Name']).to eq(params[:file_name])
     end
   end
 
@@ -53,9 +55,7 @@ EOT
     it 'should start an upload' do
       header(*Etna::TestAuth.hmac_header({}))
       json_post(
-        'upload',
-        project_name: 'athena',
-        file_name: 'wisdom.txt',
+        upload_path('athena', 'wisdom.txt'),
         file_size: WISDOM.length,
         action: 'start',
         next_blob_size: 10,
@@ -76,13 +76,8 @@ EOT
         file_name: 'wisdom.txt',
         next_blob_hash: '10',
         next_blob_size: 10,
-        project_name: 'athena',
-        status: 'incomplete'
+        project_name: 'athena'
       )
-
-      expect(json[:file_name]).to eq('wisdom.txt')
-      expect(json[:project_name]).to eq('athena')
-      expect(json[:status]).to eq('incomplete')
     end
 
     it 'should resume an existing upload' do
@@ -106,7 +101,7 @@ EOT
         file_name: 'wisdom.txt'
       ))
       json_post(
-        'upload',
+        upload_path('athena', 'wisdom.txt'),
         action: 'start',
         file_size: WISDOM.length,
         next_blob_size: 10,
@@ -116,15 +111,13 @@ EOT
       expect(last_response.status).to eq(200)
 
       json = json_body(last_response.body)
-      expect(json).to eq({
-        status: 'incomplete',
+      expect(json).to eq(
         current_byte_position: 10,
         next_blob_size: 10,
         next_blob_hash: 'abcdef',
         project_name: 'athena',
         file_name: 'wisdom.txt'
-      })
-
+      )
     end
 
     it 'should not resume someone elses upload' do
@@ -149,7 +142,7 @@ EOT
         file_name: 'wisdom.txt'
       ))
       json_post(
-        'upload',
+        upload_path('athena', 'wisdom.txt'),
         action: 'start',
         file_size: WISDOM.length,
         next_blob_size: 10,
@@ -207,7 +200,7 @@ EOT
       ))
 
       post(
-        '/upload',
+        upload_path('athena', 'wisdom.txt'),
         action: 'blob',
         next_blob_size: 10,
         next_blob_hash: 10,
@@ -255,7 +248,7 @@ EOT
       ))
 
       post(
-        '/upload',
+        upload_path('athena', 'wisdom.txt'),
         action: 'blob',
         next_blob_size: 10,
         next_blob_hash: 10,
@@ -300,7 +293,7 @@ EOT
       header(*Etna::TestAuth.hmac_header(project_name: 'athena', file_name: 'wisdom.txt'))
 
       post(
-        '/upload',
+        upload_path('athena', 'wisdom.txt'),
         action: 'blob',
         next_blob_size: 0,
         next_blob_hash: '',

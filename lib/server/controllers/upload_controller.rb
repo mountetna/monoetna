@@ -2,8 +2,17 @@ class UploadController < Metis::Controller
   def authorize
     require_params(:project_name, :file_name)
 
-    url = Metis::File.upload_url(@request.host, @params[:project_name], @params[:file_name])
-
+    hmac = Etna::Hmac.new(
+      Metis.instance,
+      method: 'POST',
+      host: @request.host,
+      path: route_path(:upload, project_name: @params[:project_name], file_name: @params[:file_name]),
+      expiration: (Time.now + Metis.instance.config(:upload_expiration)).iso8601,
+      nonce: Metis.instance.sign.uid,
+      id: :metis,
+      headers: { }
+    )
+    url = URI::HTTPS.build(hmac.url_params)
     success(url)
   end
 
@@ -94,9 +103,7 @@ class UploadController < Metis::Controller
     if upload.complete?
       upload.finish!
 
-      upload_json = upload.to_hash.merge(
-        status: 'complete'
-      ).to_json
+      upload_json = upload.to_json
 
       upload.delete
 

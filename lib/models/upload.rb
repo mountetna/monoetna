@@ -7,8 +7,7 @@ class Metis
         [ s, send(s) ]
       end.to_h.merge(
         project_name: file.project_name,
-        file_name: file.file_name,
-        status: 'incomplete'
+        file_name: file.file_name
       )
     end
 

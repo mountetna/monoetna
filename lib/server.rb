@@ -11,13 +11,9 @@ require_relative './server/set_uid'
 class Metis
   class Server < Etna::Server
     get '/:project_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
-    get '/user', action: 'client#user'
-
-    post '/check', action: 'user_log#check_log'
 
     post '/authorize/upload', action: 'upload#authorize', auth: { user: { can_edit?: :project_name } }
-
-    post '/upload', action: 'upload#upload', auth: { hmac: true }
+    post '/:project_name/upload/*file_name', action: 'upload#upload', auth: { hmac: true }, as: :upload
 
     #post '/upload/start', action: 'upload#start'
     #post '/upload/blob', action: 'upload#blob'
@@ -25,7 +21,6 @@ class Metis
     #post '/upload/cancel', action: 'upload#cancel'
     #post '/upload/remove-file', action: 'upload#remove_file'
     #post '/upload/remove-failed', action: 'upload#remove_failed'
-    #post '/upload/recover', action: 'upload#recover'
 
     get '/:project_name/download/*file_name', action: 'download#download', auth: { hmac: true }
 
