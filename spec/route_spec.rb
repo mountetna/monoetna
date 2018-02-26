@@ -124,7 +124,7 @@ describe Etna::Route do
 
   it 'looks up route names' do
     Arachne::Server.get('/silk/:query', as: :silk) do
-      [ 200, {}, [ route_path(:silk, @params) ] ]
+      [ 200, {}, [ route_url(:silk, @params) ] ]
     end
     @app = setup_app(Arachne::Server.new(test: {}))
 

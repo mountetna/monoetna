@@ -37,8 +37,13 @@ module Etna
       route = @server.class.routes.find do |route|
         route.name.to_s == name.to_s
       end
-      return nil if route.nil?
-      @request.scheme + '://' + @request.host + route.path(params)
+      return route ? route.path(params) : nil
+    end
+
+    def route_url(name, params={})
+      path = route_path(name,params)
+      return nil unless path
+      @request.scheme + '://' + @request.host + path
     end
 
     # methods for returning a view
