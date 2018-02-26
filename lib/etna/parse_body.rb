@@ -5,32 +5,36 @@ module Etna
     end
 
     def call(env)
+      params = env['rack.request.params'] || {}
+
       case env['CONTENT_TYPE']
       when %r{application/json}i
         body = env['rack.input'].read
         if body =~ %r/^\s*\{/
-          env.update(
-            'rack.request.params'=> JSON.parse(body)
+          params.update(
+            JSON.parse(body)
           )
         end
       when %r{application/x-www-form-urlencoded}i
-        env.update(
-          'rack.request.params'=> Rack::Utils.parse_nested_query(
+        params.update(
+          Rack::Utils.parse_nested_query(
             env['rack.input'].read
           )
         )
       when %r{multipart/form-data}i
-        env.update(
-          'rack.request.params'=> Rack::Multipart.parse_multipart(env)
-        )
-      else
-        # Assume the params are url-encoded.
-        env.update(
-          'rack.request.params'=> Rack::Utils.parse_nested_query(
-            env['QUERY_STRING'], '&'
-          )
+        params.update(
+          Rack::Multipart.parse_multipart(env)
         )
       end
+      # Always parse the params that are url-encoded.
+      params.update(
+        Rack::Utils.parse_nested_query(
+          env['QUERY_STRING'], '&'
+        )
+      )
+      env.update(
+        'rack.request.params' => params
+      )
       @app.call(env)
     end
   end
