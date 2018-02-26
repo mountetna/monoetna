@@ -17,7 +17,7 @@ module Etna
       # a valid token. Both of these will
       # not validate individual permissions;
       # this is up to the controller
-      return fail_or_redirect unless create_user || approve_hmac
+      return fail_or_redirect unless approve_hmac || create_user
 
       @app.call(env)
     end

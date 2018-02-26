@@ -59,7 +59,7 @@ module Etna
 
       return failure(401, 'Authorization header missing') if auth(:missing)
 
-      return failure(401, 'Authorization header malformed') unless user_auth || hmac_auth
+      return failure(401, 'Authorization header malformed') unless hmac_auth || user_auth
       @app.call(env)
     end
   end
