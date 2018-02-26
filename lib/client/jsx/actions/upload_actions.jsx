@@ -4,8 +4,8 @@ export const queueUpload = ({upload}) => (dispatch) => {
   dispatch({ type: 'WORK', worker: 'upload', command: 'start', upload });
 }
 
-export const pauseUpload = () => (dispatch) => {
-  this.uploadWorker.postMessage({ command: 'pause' });
+export const pauseUpload = ({upload}) => (dispatch) => {
+  dispatch({ type: 'WORK', worker: 'upload', command: 'pause', upload });
 }
 
 export const cancelUpload = () => (dispatch) => {
@@ -20,7 +20,7 @@ export const recoverUpload = () => (dispatch) => {
 export const startUpload = ({ upload, url }) => (dispatch) => {
   postUploadStart(url, upload)
     .then( response =>
-      dispatch({ type: 'FILE_UPLOAD_STATUS', upload: response })
+      dispatch({ type: 'FILE_UPLOAD_STATUS', upload: response, status: 'paused' })
     )
     .catch(
       () => alert('The upload could not be started.')

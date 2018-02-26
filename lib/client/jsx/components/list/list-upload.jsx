@@ -35,34 +35,21 @@ export default class ListUpload extends React.Component{
   }
 
   parseFileStatus(){
-    let { upload } = this.props;
+    let { upload, user } = this.props;
     let date = dateFormat(upload.startTimestamp);
-    let user = upload.userEmail;
     let status;
 
     switch(upload.status){
-      case 'unauthorized':
-        status = 'file selected and waiting.';
-        break;
-
-      case 'authorized':
-        status = 'auth for upload.';
-        break;
-
-      case 'initialized':
-        status = 'upload initialized.';
+      case 'paused':
+        status = 'waiting for upload.';
         break;
 
       case 'active':
         status = 'file uploading...';
         break;
 
-      case 'paused':
-        status = 'file upload paused.';
-        break;
-
       case 'complete':
-        status = 'uploaded '+ date +' by '+ user;
+        status = 'uploaded '+ date +' by '+ user.email;
         break;
 
       default:
@@ -320,7 +307,7 @@ export default class ListUpload extends React.Component{
   }
 
   pauseUpload(){
-    this.props.callbacks.pauseUpload();
+    this.props.callbacks.pauseUpload(this.props.upload);
   }
 
   cancelUpload(){

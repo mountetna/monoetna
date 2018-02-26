@@ -39,6 +39,7 @@ export default class ListBody extends React.Component{
                 key: 'file-upload-'+key,
                 key,
                 upload,
+                user,
                 permissions,
                 callbacks: {
                   initializeUpload: this.props.initializeUpload,

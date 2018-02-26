@@ -25,8 +25,8 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
       dispatch(action);
     },
 
-    pauseUpload: ()=>{
-      var action = { type: 'PAUSE_UPLOAD' };
+    pauseUpload: (upload)=>{
+      var action = { type: 'PAUSE_UPLOAD', upload };
       dispatch(action);
     },
 

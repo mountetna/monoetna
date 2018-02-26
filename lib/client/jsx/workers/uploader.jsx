@@ -24,15 +24,11 @@ export default (self) => {
   let timeouts = 0; // The number of times an upload has timed out.
   let maxTimeouts = 5; // The number of attepts to upload a blob.
 
-  /*
-   * Implementation of a Worker specific function.
-   * For message passing into and out of the worker.
-   */
 
   const createBlob = (upload) => {
     let { file, current_byte_position, next_blob_size } = upload;
 
-    if (current_byte_position >= file.size) return;
+    if (pause || current_byte_position >= file.size) return;
 
     let [ upload_speed, new_blob_size ] = calcNextBlobSize(next_blob_size);
     let next_byte_position = current_byte_position + next_blob_size;
@@ -83,7 +79,6 @@ export default (self) => {
 
     postUploadBlob(request)
       .then(new_upload => {
-        dispatch({ type: 'FILE_UPLOAD_STATUS', upload: new_upload });
         blobComplete({
           ...request.upload,
           ...new_upload
@@ -110,11 +105,13 @@ export default (self) => {
     // Check that the incoming data has a valid command.
     switch (command) {
       case 'start':
+        pause = false;
         createBlob(upload);
         break;
       case 'pause':
         // Set a pause flag.
-        pauseUploader();
+        pause = true;
+        dispatch({ type: 'FILE_UPLOAD_STATUS', upload, status: 'paused' })
         break;
       case 'cancel':
         // Set a cancel flag.
@@ -126,10 +123,7 @@ export default (self) => {
     }
   });
 
-  /*
-   * Calcuates the next blob size based upon upload speed. Also sets the last
-   * calculated upload speed on the request.
-   */
+  // Calcuates the next blob size based upon upload speed.
 
   let calcNextBlobSize = (current_blob_size) => {
     if (!uploadTimes.length) return [ null, MIN_BLOB_SIZE ];
@@ -144,36 +138,17 @@ export default (self) => {
       )
     );
 
-    /*
-     * Make a rough calculation of the upload speed in kilobits per second.
-     * This is just for the UI.
-     */
+    // rough calculation of the upload speed in kbps for the UI
     let uploadSpeed = (current_blob_size * 8) / (avgTime / 1000);
 
     return [ uploadSpeed, nextBlobSize ];
   };
 
   let blobComplete = (new_upload) => {
-    switch(new_upload.status) {
-      case 'incomplete':
-        createBlob(new_upload);
-        break;
-      case 'paused':
-        uploader.pause = false;
-        dispatch({ type: 'FILE_UPLOAD_PAUSED', response });
-        break;
-      case 'cancelled':
-        uploader.cancel = false;
-        dispatch({ type: 'FILE_UPLOAD_CANCELLED', response });
-        break;
-      case 'complete':
-        // Send update message back.
-        dispatch({ type: 'FILE_UPLOAD_COMPLETE', response });
-        break;
-      default:
-        // None
-        break;
-    }
+    let { current_byte_position, file_size } = new_upload;
+    let status = (current_byte_position < file_size) ? 'active' : 'complete'
+    dispatch({ type: 'FILE_UPLOAD_STATUS', upload: new_upload, status });
+    createBlob(new_upload);
   }
 
   let blobFailed = (request) => {

@@ -11,14 +11,7 @@ export default class UploadControl extends React.Component{
     let callbacks = this.props.callbacks;
 
     switch(this.props.upload.status){
-      case 'unauthorized':
-        uploadCtrlBtnProps.onClick = callbacks.initializeUpload;
-        return (
-          <button { ...uploadCtrlBtnProps }>
-            <span className='glyphicon glyphicon-arrow-right'></span>
-          </button>
-        );
-      case 'incomplete':
+      case 'paused':
         uploadCtrlBtnProps.onClick = callbacks.queueUpload;
         return (
           <button { ...uploadCtrlBtnProps }>

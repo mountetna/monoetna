@@ -1,6 +1,3 @@
-// a random id for the upload
-const filekey = () => (Math.random().toString(36) + '0'.repeat(10)).substring(2,12);
-
 // helper to create a new file entry
 const upload = (file, url) => ({
   file,
@@ -9,15 +6,10 @@ const upload = (file, url) => ({
   project_name: CONFIG.project_name,
   file_size: file.size,
   current_byte_position: 0,
-  status: 'authorized',
-  key: filekey()
+  status: 'authorized'
 })
 
-const findUpload = (uploads, project_name, file_name) =>
-  Object.keys(uploads).find( key =>
-    uploads[key].project_name == project_name &&
-    uploads[key].file_name == file_name
-  );
+const upload_key = ({project_name, file_name}) => `${project_name}:${file_name}`;
 
 const uploads = (old_uploads, action) => {
   if (!old_uploads) old_uploads = {}
@@ -26,8 +18,9 @@ const uploads = (old_uploads, action) => {
     case 'FILE_UPLOAD_SPEED': {
       let { upload, upload_speed } = action;
       let { project_name, file_name } = upload;
-      let key = findUpload(old_uploads, project_name, file_name);
-      if (!key) return old_uploads;
+
+      let key = upload_key(upload);
+
       return {
         ...old_uploads,
         [key]: {
@@ -37,10 +30,9 @@ const uploads = (old_uploads, action) => {
       };
     }
     case 'FILE_UPLOAD_STATUS': {
-      let { upload } = action;
-      let { project_name, file_name, status, current_byte_position, next_blob_size, next_blob_hash } = upload;
-      let key = findUpload(old_uploads, project_name, file_name);
-      if (!key) return old_uploads;
+      let { upload, status } = action;
+      let { project_name, file_name, current_byte_position, next_blob_size, next_blob_hash } = upload;
+      let key = upload_key(upload);
       return {
         ...old_uploads,
         [key]: {
@@ -54,10 +46,11 @@ const uploads = (old_uploads, action) => {
     };
     case 'FILE_UPLOAD_SELECT_PROJECT': {
       let { upload, permission: { project_name, role } } = action;
+      let key = upload_key(upload);
       return {
         ...old_uploads,
-        [upload.key]: {
-          ...old_uploads[upload.key],
+        [key]: {
+          ...old_uploads[key],
           project_name, role
         }
       };
@@ -66,9 +59,10 @@ const uploads = (old_uploads, action) => {
       // Copy the selected file data to 'uploads' object.
       let { file, url } = action;
       let new_upload = upload(file, url);
+      let key = upload_key(new_upload);
       return {
         ...old_uploads,
-        [new_upload.key]: new_upload
+        [key]: new_upload
       };
     }
     default:
