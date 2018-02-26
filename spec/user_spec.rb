@@ -65,6 +65,18 @@ describe Etna::User do
       expect(@editor.can_see_restricted?(:labors)).to be_truthy
       expect(@viewer.can_see_restricted?(:labors)).to be_falsy
     end
+    it 'gives a list of user projects' do
+      expect(@overlord.projects).to eq(['administration'])
+      expect(@admin.projects).to eq(['labors'])
+      expect(@editor.projects).to eq(['labors'])
+      expect(@viewer.projects).to eq(['labors'])
+    end
+    it 'gives a list of user permissions' do
+      expect(@overlord.permissions).to eq( 'administration' => { role: :admin, restricted: false } )
+      expect(@admin.permissions).to eq( 'labors' => { role: :admin, restricted: true } )
+      expect(@editor.permissions).to eq( 'labors' => { role: :editor, restricted: true } )
+      expect(@viewer.permissions).to eq( 'labors' => { role: :viewer, restricted: false } )
+    end
   end
 
   it "gives global permission to an administrator" do
