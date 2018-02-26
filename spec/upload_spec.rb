@@ -7,9 +7,16 @@ describe UploadController do
     OUTER_APP
   end
 
-  def upload_path(project_name,file_name)
-    "#{project_name}/upload/#{file_name}"
+  before(:each) do
+    @metis_uid = Metis.instance.sign.uid
+
+    set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
   end
+
+  after(:each) do
+    clear_stubs
+  end
+
 
   WISDOM=<<EOT
 Although they are
@@ -17,6 +24,19 @@ only breath, words
 which I command
 are immortal
 EOT
+
+  def upload_path(project_name,file_name)
+    "#{project_name}/upload/#{file_name}"
+  end
+
+  def setup_file(project_name, file_name, contents, params={})
+    create( :file,
+      {
+        project_name: project_name, file_name: file_name,
+        original_name: file_name, uploader: 'metis', size: contents.length
+      }.merge(params)
+    )
+  end
 
   context '#authorize' do
     it 'should authorize an upload' do
@@ -26,17 +46,15 @@ EOT
         user_email: 'metis@ucsf.edu'
       }
 
-      header(
-        *Etna::TestAuth.token_header(
-          email: 'metis@ucsf.edu', perm: 'e:athena'
-        )
-      )
-
+      # we use our token to authorize an upload
+      header(*Etna::TestAuth.token_header(
+        email: 'metis@ucsf.edu', perm: 'e:athena'
+      ))
       json_post('authorize/upload', params)
 
+      # we expect an authorization url in return
       url = last_response.body
       uri = URI(url)
-
       hmac_params = Rack::Utils.parse_nested_query(uri.query)
 
       expect(last_response.status).to eq(200)
@@ -46,13 +64,8 @@ EOT
   end
 
   context '#upload_start' do
-    before(:each) do
-      @metis_uid = Metis.instance.sign.uid
-
-      set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
-    end
-
     it 'should start an upload' do
+      # we post to the upload path with hmac authorization
       header(*Etna::TestAuth.hmac_header({}))
       json_post(
         upload_path('athena', 'wisdom.txt'),
@@ -62,15 +75,16 @@ EOT
         next_blob_hash: 10
       )
 
-      expect(last_response.status).to eq(200)
-      json = json_body(last_response.body)
+      # we expect the appropriate records to have been created
       upload = Metis::Upload.first
       file = Metis::File.first
-
       expect(upload).not_to be_nil
       expect(file).not_to be_nil
       expect(file.uploads).to eq([upload])
 
+      # we expect the upload as a json object
+      expect(last_response.status).to eq(200)
+      json = json_body(last_response.body)
       expect(json).to eq(
         current_byte_position: 0,
         file_name: 'wisdom.txt',
@@ -81,11 +95,8 @@ EOT
     end
 
     it 'should resume an existing upload' do
-      # before we start, we create the file and the upload
-      file = create( :file, 
-        project_name: 'athena', file_name: 'wisdom.txt',
-        original_name: 'wisdom.txt', uploader: 'metis', size: WISDOM.length
-      )
+      # there is already an upload in place for our metis_uid
+      file = setup_file('athena', 'wisdom.txt', WISDOM)
       upload = create( :upload,
         file: file,
         metis_uid: @metis_uid,
@@ -95,11 +106,8 @@ EOT
         next_blob_hash: 'abcdef'
       )
 
-      # now we post to the same place
-      header(*Etna::TestAuth.hmac_header(
-        project_name: 'athena',
-        file_name: 'wisdom.txt'
-      ))
+      # we attempt to initiate a new upload
+      header(*Etna::TestAuth.hmac_header({}))
       json_post(
         upload_path('athena', 'wisdom.txt'),
         action: 'start',
@@ -108,8 +116,8 @@ EOT
         next_blob_hash: 'defabc'
       )
 
+      # we receive back the status of the existing upload
       expect(last_response.status).to eq(200)
-
       json = json_body(last_response.body)
       expect(json).to eq(
         current_byte_position: 10,
@@ -121,12 +129,9 @@ EOT
     end
 
     it 'should not resume someone elses upload' do
-      # before we start, we create the file and the upload
-      file = create( :file, 
-        project_name: 'athena', file_name: 'wisdom.txt',
-        size: WISDOM.length,
-        original_name: 'wisdom.txt', uploader: 'metis', size: 20
-      )
+      file = setup_file('athena', 'wisdom.txt', WISDOM, size: 20)
+
+      # we create an upload, but the metis_uid is different from ours
       upload = create( :upload,
         file: file,
         metis_uid: @metis_uid.reverse,
@@ -136,11 +141,8 @@ EOT
         next_blob_hash: 10
       )
 
-      # now we post to the same place
-      header(*Etna::TestAuth.hmac_header(
-        project_name: 'athena',
-        file_name: 'wisdom.txt'
-      ))
+      # we attempt to post to the path
+      header(*Etna::TestAuth.hmac_header({}))
       json_post(
         upload_path('athena', 'wisdom.txt'),
         action: 'start',
@@ -149,41 +151,29 @@ EOT
         next_blob_hash: 10
       )
 
-      expect(last_response.status).to eq(422)
-
+      # we are forbidden
+      expect(last_response.status).to eq(403)
       json = json_body(last_response.body)
       expect(json[:error]).to eq('Upload in progress')
     end
   end
 
   context '#upload_blob' do
-    before(:each) do
-      @metis_uid = Metis.instance.sign.uid
-
-      set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
-    end
-
-    after(:each) do
-      clear_stubs
-    end
-
     it 'should add data to an existing blob' do
-      # before we start, we create the file and the upload
-      next_blob = WISDOM[10..19]
+      # the existing data
       partial = WISDOM[0..9]
+      # the next piece of data
+      next_blob = WISDOM[10..19]
 
-      wisdom_blob_file = stub_file(:wisdom_blob, next_blob)
+      # there is a file record in place
+      file = setup_file('athena', 'wisdom.txt', WISDOM)
 
-      file = create(:file,
-        project_name: 'athena', file_name: 'wisdom.txt',
-        size: WISDOM.length,
-        original_name: 'wisdom.txt', uploader: 'metis'
-      )
-
+      # the current uploaded file-on-disk
       partial_file = stub_file(
         "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
       )
 
+      # the upload expects the contents of next_blob
       upload = create( :upload,
         file: file,
         metis_uid: @metis_uid,
@@ -193,12 +183,11 @@ EOT
         next_blob_hash: Digest::MD5.hexdigest(next_blob)
       )
 
-      # now we post to the same place
-      header(*Etna::TestAuth.hmac_header(
-        project_name: 'athena',
-        file_name: 'wisdom.txt'
-      ))
+      # the file-on-disk the client will post
+      wisdom_blob_file = stub_file(:wisdom_blob, next_blob)
 
+      # post the new blob
+      header(*Etna::TestAuth.hmac_header({}))
       post(
         upload_path('athena', 'wisdom.txt'),
         action: 'blob',
@@ -216,22 +205,20 @@ EOT
     end
 
     it 'does not add data with an incorrect hash' do
-      # before we start, we create the file and the upload
-      next_blob = WISDOM[10..19]
+      # as before, existing and next data
       partial = WISDOM[0..9]
+      next_blob = WISDOM[10..19]
 
+      # we create the blob with the wrong contents
       wisdom_blob_file = stub_file(:wisdom_blob, next_blob.reverse)
 
-      file = create( :file, 
-        project_name: 'athena', file_name: 'wisdom.txt',
-        size: WISDOM.length,
-        original_name: 'wisdom.txt', uploader: 'metis'
-      )
+      file = setup_file('athena', 'wisdom.txt', WISDOM)
 
       partial_file = stub_file(
         "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
       )
 
+      # the upload expects the correct contents
       upload = create( :upload,
         file: file,
         metis_uid: @metis_uid,
@@ -241,12 +228,8 @@ EOT
         next_blob_hash: Digest::MD5.hexdigest(next_blob)
       )
 
-      # now we post to the same place
-      header(*Etna::TestAuth.hmac_header(
-        project_name: 'athena',
-        file_name: 'wisdom.txt'
-      ))
-
+      # we post the wrong blob
+      header(*Etna::TestAuth.hmac_header({}))
       post(
         upload_path('athena', 'wisdom.txt'),
         action: 'blob',
@@ -258,28 +241,26 @@ EOT
         )
       )
 
+      # the server responds with a client error
       expect(last_response.status).to eq(422)
       json = json_body(last_response.body)
       expect(json[:error]).to eq('Blob integrity failed')
     end
 
     it 'finishes the upload' do
-      # before we start, we create the file and the upload
+      # the next blob completes the data
       next_blob = WISDOM[20..-1]
       partial = WISDOM[0..19]
 
       wisdom_blob_file = stub_file(:wisdom_blob, next_blob)
 
-      file = create( :file, 
-        project_name: 'athena', file_name: 'wisdom.txt',
-        size: WISDOM.length,
-        original_name: 'wisdom.txt', uploader: 'metis'
-      )
+      file = setup_file('athena', 'wisdom.txt', WISDOM)
 
       partial_file = stub_file(
         "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
       )
 
+      # the upload expects the final blob
       upload = create( :upload,
         file: file,
         metis_uid: @metis_uid,
@@ -289,9 +270,8 @@ EOT
         next_blob_hash: Digest::MD5.hexdigest(next_blob)
       )
 
-      # now we post to the same place
-      header(*Etna::TestAuth.hmac_header(project_name: 'athena', file_name: 'wisdom.txt'))
-
+      # post the blob with no next blob
+      header(*Etna::TestAuth.hmac_header({}))
       post(
         upload_path('athena', 'wisdom.txt'),
         action: 'blob',

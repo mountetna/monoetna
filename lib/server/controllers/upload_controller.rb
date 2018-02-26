@@ -56,7 +56,7 @@ class UploadController < Metis::Controller
       return success(upload.to_json, 'application/json')
     end
 
-    raise Etna::BadRequest, 'Upload in progress' if !file.uploads.empty?
+    raise Etna::Forbidden, 'Upload in progress' if !file.uploads.empty?
 
     upload = Metis::Upload.create(
       file: file,
