@@ -7,7 +7,7 @@ module Etna
   class TestAuth
     def self.token_header(params)
       token = Base64.strict_encode64(params.to_json)
-      return [ 'Authorization', "Basic #{token}" ]
+      return [ 'Authorization', "Etna #{token}" ]
     end
 
     def self.hmac_header(params)
@@ -32,7 +32,7 @@ module Etna
     end
 
     def user_auth
-      token = auth(:basic)
+      token = auth(:etna)
 
       return false unless token
 
