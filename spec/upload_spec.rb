@@ -293,6 +293,117 @@ EOT
 
       # the file thinks it has data
       expect(file.has_data?).to be_truthy
+
+      # clean up the file
+      File.delete(file.location)
+    end
+  end
+
+  context '#upload_cancel' do
+    it 'should add cancel an upload' do
+      # there is partial data
+      partial = WISDOM[0..9]
+      file = setup_file('athena', 'wisdom.txt', WISDOM)
+      partial_file = stub_file(
+        "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
+      )
+
+      # there is an upload waiting
+      upload = create( :upload,
+        file: file,
+        metis_uid: @metis_uid,
+        file_size: WISDOM.length,
+        current_byte_position: File.size(partial_file),
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
+
+      # we post a cancel request with our hmac url
+      header(*Etna::TestAuth.hmac_header({}))
+      post(
+        upload_path('athena', 'wisdom.txt'),
+        action: 'cancel',
+      )
+
+      # the partial is deleted
+      expect(File.exists?(partial_file)).to be_falsy
+      expect(Metis::Upload.count).to eq(0)
+
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'deletes the file record if there is no existing file data' do
+      # there is partial data
+      partial = WISDOM[0..9]
+
+      # our file has no existing data
+      file = setup_file('athena', 'wisdom.txt', WISDOM)
+      partial_file = stub_file(
+        "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
+      )
+
+      # there is an upload waiting
+      upload = create( :upload,
+        file: file,
+        metis_uid: @metis_uid,
+        file_size: WISDOM.length,
+        current_byte_position: File.size(partial_file),
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
+
+      # we post a cancel request with our hmac url
+      header(*Etna::TestAuth.hmac_header({}))
+      post(
+        upload_path('athena', 'wisdom.txt'),
+        action: 'cancel',
+      )
+
+      # the partial is deleted
+      expect(File.exists?(partial_file)).to be_falsy
+      expect(Metis::Upload.count).to eq(0)
+      expect(Metis::File.count).to eq(0)
+
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'keeps the file record if there is existing file data' do
+      # there is partial data
+      partial = WISDOM[0..9]
+
+      # our file has existing data
+      file = setup_file('athena', 'wisdom.txt', WISDOM)
+      current_file = stub_file('wisdom.txt', WISDOM, :athena)
+      partial_file = stub_file(
+        "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
+      )
+
+      # there is an upload waiting
+      upload = create( :upload,
+        file: file,
+        metis_uid: @metis_uid,
+        file_size: WISDOM.length,
+        current_byte_position: File.size(partial_file),
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
+
+      # we post a cancel request with our hmac url
+      header(*Etna::TestAuth.hmac_header({}))
+      post(
+        upload_path('athena', 'wisdom.txt'),
+        action: 'cancel',
+      )
+
+      # the partial is deleted
+      expect(File.exists?(partial_file)).to be_falsy
+      expect(Metis::Upload.count).to eq(0)
+      expect(Metis::File.count).to eq(1)
+
+      expect(last_response.status).to eq(200)
+
+      # clean up
+      File.delete(file.location)
     end
   end
 end

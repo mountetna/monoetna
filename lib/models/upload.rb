@@ -23,6 +23,12 @@ class Metis
       ))
     end
 
+    def delete_partial!
+      if ::File.exists?(partial_location)
+        ::File.delete(partial_location)
+      end
+    end
+
     def append_blob(blob_path)
       # use cat to avoid reading file
       %x{ cat #{blob_path} >> "#{partial_location}" }
