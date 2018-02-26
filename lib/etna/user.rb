@@ -1,17 +1,27 @@
 module Etna
   class User
-    attr_reader :first, :last, :email
+    ROLE_NAMES = {
+      'A' => :admin,
+      'E' => :editor,
+      'V' => :viewer
+    }
+
+    attr_reader :first, :last, :email, :permissions
     def initialize params
       @first, @last, @email, perm = params.values_at(:first, :last, :email, :perm)
       raise ArgumentError, "No email given!" unless @email
-      @roles = Hash[
+      @permissions = Hash[
         perm.split(/\;/).map do |e|
           role, projects = e.split(/:/)
           projects.split(/\,/).map do |p|
-            [ p, role ]
+            [ p, { role: ROLE_NAMES[role.upcase], restricted: role == role.upcase } ]
           end
         end.inject([], &:+)
       ]
+    end
+
+    def projects
+      @permissions.keys
     end
 
     ROLE_MATCH = {
@@ -21,11 +31,11 @@ module Etna
       restricted: /[AEV]/,
     }
     def has_roles(project, *roles)
-      role = @roles[project.to_s]
+      perm = @permissions[project.to_s]
 
-      return false unless role
+      return false unless perm
 
-      return roles.any? { |role_name| role.match(ROLE_MATCH[role_name]) }
+      return roles.map(&:to_sym).include?(perm[:role])
     end
 
     def is_superuser? project=nil
@@ -44,7 +54,8 @@ module Etna
     # automatically see restricted data, they should be granted
     # project-specific access.
     def can_see_restricted? project
-      has_roles(project, :restricted)
+      perm = @permissions[project.to_s]
+      perm && perm[:restricted]
     end
 
     def is_admin? project
