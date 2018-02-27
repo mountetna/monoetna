@@ -21,10 +21,12 @@ export const headers = (...types) => {
   for (var type of types) {
     switch(type) {
       case 'json':
-        add( 'Content-Type', 'application/json')
+        add( 'Content-Type', 'application/json');
+        break;
       case 'csrf':
-        var csrf = document.querySelector('meta[name=csrf-token]')
-        if (csrf) add('X-CSRF-Token', csrf.getAttribute('content'))
+        let csrf = document.querySelector('meta[name=csrf-token]');
+        if (csrf) add('X-CSRF-Token', csrf.getAttribute('content'));
+        break;
     }
   }
 

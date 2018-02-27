@@ -30,8 +30,8 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
       dispatch(action);
     },
 
-    cancelUpload: ()=>{
-      var action = { type: 'CANCEL_UPLOAD' };
+    cancelUpload: (upload)=>{
+      var action = { type: 'CANCEL_UPLOAD', upload };
       dispatch(action);
     },
 

@@ -3,7 +3,7 @@
  */
 
 import SparkMD5 from 'spark-md5';
-import { postUploadBlob } from '../api/upload_api';
+import { postUploadBlob, postUploadCancel } from '../api/upload_api';
 /*
  * In milliseconds, the amount of time to transfer one blob. This ultimately
  * sets the blob size.
@@ -24,6 +24,29 @@ export default (self) => {
   let timeouts = 0; // The number of times an upload has timed out.
   let maxTimeouts = 5; // The number of attepts to upload a blob.
 
+  // the main event loop which handles commands passed in
+  self.addEventListener('message', ({data}) => {
+    let { upload, command } = data;
+
+    // Check that the incoming data has a valid command.
+    switch (command) {
+      case 'start':
+        pause = false;
+        createBlob(upload);
+        break;
+      case 'pause':
+        pause = true;
+        dispatch({ type: 'FILE_UPLOAD_STATUS', upload, status: 'paused' })
+        break;
+      case 'cancel':
+        pause = true;
+        cancelUpload(upload);
+        break;
+      default:
+        error('Invalid command');
+        break;
+    }
+  });
 
   const createBlob = (upload) => {
     let { file, current_byte_position, next_blob_size } = upload;
@@ -74,6 +97,15 @@ export default (self) => {
     uploadTimes = uploadTimes.slice(-blobWindow);
   }
 
+  let cancelUpload = (upload) => {
+    postUploadCancel(upload.url, upload)
+      .then(() => {
+        dispatch({ type: 'FILE_UPLOAD_REMOVED', upload });
+      }).catch(
+        (error) => alert('The upload could not be canceled.')
+      );
+  }
+
   let sendBlob = (request) => {
     let uploadStart = Math.floor(Date.now());
 
@@ -97,31 +129,6 @@ export default (self) => {
         }
       );
   }
-
-
-  self.addEventListener('message', ({data}) => {
-    let { upload, command } = data;
-
-    // Check that the incoming data has a valid command.
-    switch (command) {
-      case 'start':
-        pause = false;
-        createBlob(upload);
-        break;
-      case 'pause':
-        // Set a pause flag.
-        pause = true;
-        dispatch({ type: 'FILE_UPLOAD_STATUS', upload, status: 'paused' })
-        break;
-      case 'cancel':
-        // Set a cancel flag.
-        cancelUploader();
-        break;
-      default:
-        error('Invalid command');
-        break;
-    }
-  });
 
   // Calcuates the next blob size based upon upload speed.
 

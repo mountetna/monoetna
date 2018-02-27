@@ -65,6 +65,15 @@ const uploads = (old_uploads, action) => {
         [key]: new_upload
       };
     }
+    case 'FILE_UPLOAD_REMOVED': {
+      let { upload, status } = action;
+      let { project_name, file_name, current_byte_position, next_blob_size, next_blob_hash } = upload;
+      let key = upload_key(upload);
+      let { [key]: del_upload, ...new_uploads } = old_uploads;
+
+      return new_uploads;
+      break;
+    }
     default:
       return old_uploads;
   }
@@ -82,111 +91,11 @@ const files = (state, action) => {
     case 'FILE_UPLOAD_SPEED':
     case 'FILE_UPLOAD_AUTHORIZED':
     case 'FILE_UPLOAD_SELECT_PROJECT':
+    case 'FILE_UPLOAD_REMOVED':
       return {
         ...state,
         uploads: uploads(state.uploads,action)
       };
-
-    case 'FILE_UPLOAD_RECOVERED':
-      setResponseAndIndex(action, fileFails);
-      if(index == null) break;
-
-      // Append all of the request items to the local file object.
-      fileFails[index] = Object.assign(fileFails[index], response);
-      fileFails[index]=Object.assign(action.uploadFile,fileFails[index]);
-      uploads.push(fileFails[index]);
-      fileFails.splice(index, 1);
-      break;
-
-    case 'FILE_INITIALIZED':
-    case 'FILE_UPLOAD_ACTIVE':
-    case 'FILE_UPLOAD_PAUSED':
-      setResponseAndIndex(action, uploads);
-      if(index == null) break;
-
-      // Append all of the request items to the local file object.
-      uploads[index] = Object.assign(uploads[index], response);
-      break;
-
-    case 'FILE_UPLOAD_COMPLETE':
-      setResponseAndIndex(action, uploads);
-      if(index == null) break;
-
-      /*
-       * Move the completed upload metadata from the 'uploads' array to the 
-       * 'list' array.
-       */
-      downloads.push(Object.assign(uploads[index], response));
-      uploads.splice(index, 1);
-      break;
-
-    case 'FILE_UPLOAD_CANCELLED':
-      setResponseAndIndex(action, uploads);
-      if(index == null) break;
-
-      // Remove the cancelled upload.
-      uploads.splice(index, 1);
-      break;
-
-    case 'FILE_REMOVED':
-      response = camelCaseIt(action.response.request);
-
-      // Remove the deleted item from uploads.
-      index = getMatchingUploadIndex(uploads, response);
-      if(index != null) uploads.splice(index, 1);
-
-      // Remove the deleted item from downloads.
-      index = getMatchingUploadIndex(downloads, response);
-      if(index != null) downloads.splice(index, 1);
-
-      // Remove the deleted item from fileFails.
-      index = getMatchingUploadIndex(fileFails, response);
-      if(index != null) fileFails.splice(index, 1);
-      break;
-
-    case 'CLEAR_UPLOAD':
-      for(var a = 0; a < uploads.length; ++a){
-        if(action.fileMetadata.reactKey == uploads[a].reactKey){
-          uploads.splice(a, 1);
-          break;
-        }
-      }
-      break;
-
-    case 'FILE_METADATA_RECEIVED': {
-      let { file_list } = action;
-      file_list.forEach( file => {
-        file = camelCaseIt(file);
-        file.reactKey = GENERATE_RAND_KEY();
-
-        if(!file.hasOwnProperty('finishUpload')){
-          files.fails.push(file);
-        }
-        else{
-          files.downloads.push(file);
-        }
-      })
-      break;
-   }
-
-    case 'QUEUE_UPLOAD':
-      for(var a = 0; a < uploads.length; ++a){
-        // Remove any 'queued' status
-        if(uploads[a].status == 'queued'){
-          if(uploads[a].current_byte_position == 0){
-            uploads[a].status = 'initialized';
-          }
-          else{
-            uploads[a].status = 'paused';
-          }
-        }
-
-        // Apply a 'queued' status to a matching file upload.
-        if(uploads[a].reactKey == action.reactKey){
-          uploads[a].status = 'queued';
-        }
-      }
-      break;
 
     default:
       return state;

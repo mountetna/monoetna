@@ -311,21 +311,7 @@ export default class ListUpload extends React.Component{
   }
 
   cancelUpload(){
-    switch(this.props.upload.status){
-      case 'unauthorized':
-        this.props.callbacks.clearUpload(this.props.upload);
-        break;
-      case 'initialized':
-      case 'paused':
-        this.props.callbacks.removeFile(this.props.upload);
-        break;
-      case 'active':
-        this.props.callbacks.cancelUpload();
-        break;
-      default:
-        // null
-        break;
-    }
+    this.props.callbacks.cancelUpload(this.props.upload);
   }
 
   render(){

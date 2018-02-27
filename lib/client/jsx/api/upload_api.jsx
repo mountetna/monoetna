@@ -26,6 +26,10 @@ export const postUploadStart = (upload_url, request) => {
   return postUpload(upload_url, { ...request, action: 'start' }).then(checkStatus).then(parseJSON);
 }
 
+export const postUploadCancel = (upload_url, request) => {
+  return postUpload(upload_url, { ...request, action: 'cancel' }).then(checkStatus);
+}
+
 export const postUploadBlob = ({ upload, blob, new_blob_size, new_blob_hash}) => {
   let form = new FormData();
   let { url } = upload;

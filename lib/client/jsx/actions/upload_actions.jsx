@@ -8,13 +8,9 @@ export const pauseUpload = ({upload}) => (dispatch) => {
   dispatch({ type: 'WORK', worker: 'upload', command: 'pause', upload });
 }
 
-export const cancelUpload = () => (dispatch) => {
+export const cancelUpload = ({upload}) => (dispatch) => {
   if(!confirm('Are you sure you want to remove this upload?')) return;
-  this.uploadWorker.postMessage({ command: 'cancel' });
-}
-
-export const recoverUpload = () => (dispatch) => {
-  this.recoverUpload(action.uploadFile, action.fileMetadata);
+  dispatch({ type: 'WORK', worker: 'upload', command: 'cancel', upload });
 }
 
 export const startUpload = ({ upload, url }) => (dispatch) => {
