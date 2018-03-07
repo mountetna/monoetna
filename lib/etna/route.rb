@@ -16,9 +16,11 @@ module Etna
     end
 
     def path(params)
-      @route
-        .gsub(/:([\w]+)/) { params[$1.to_sym] }
-        .gsub(/\*([\w]+)$/) { params[$1.to_sym] }
+      URI.escape(
+        @route
+          .gsub(/:([\w]+)/) { params[$1.to_sym] }
+          .gsub(/\*([\w]+)$/) { params[$1.to_sym] }
+      )
     end
 
     def call(app, request)
