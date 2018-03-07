@@ -3,7 +3,7 @@
  */
 
 import SparkMD5 from 'spark-md5';
-import { postUploadBlob, postUploadCancel } from '../api/upload_api';
+import { postUploadStart, postUploadBlob, postUploadCancel } from '../api/upload_api';
 /*
  * In milliseconds, the amount of time to transfer one blob. This ultimately
  * sets the blob size.
@@ -11,6 +11,7 @@ import { postUploadBlob, postUploadCancel } from '../api/upload_api';
 const XTR_TIME = 2000;
 const MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
 const MAX_BLOB_SIZE = Math.pow(2, 20);
+const INITIAL_BLOB_SIZE = Math.pow(2, 10);
 
 export default (self) => {
   let dispatch = (action) => self.postMessage(action);
@@ -26,10 +27,14 @@ export default (self) => {
 
   // the main event loop which handles commands passed in
   self.addEventListener('message', ({data}) => {
-    let { upload, command } = data;
+    let { file, url, upload, command } = data;
 
     // Check that the incoming data has a valid command.
     switch (command) {
+      case 'init':
+        pause = false;
+        initUpload(file,url);
+        break;
       case 'start':
         pause = false;
         createBlob(upload);
@@ -43,10 +48,35 @@ export default (self) => {
         cancelUpload(upload);
         break;
       default:
-        error('Invalid command');
+        error(`Invalid command ${command}`);
         break;
     }
   });
+
+  const initUpload = (file,url) => {
+    // Hash the next blob for security and error checking.
+    let blob = file.slice(0, INITIAL_BLOB_SIZE);
+    let fileReader = new FileReader();
+    fileReader.onload = (event) => {
+      let next_blob_hash = SparkMD5.ArrayBuffer.hash(fileReader.result);
+
+      let upload = {
+        file_size: file.size,
+        next_blob_size: INITIAL_BLOB_SIZE,
+        next_blob_hash
+      };
+
+      postUploadStart(url, upload)
+        .then( response =>
+          dispatch({ type: 'FILE_UPLOAD_STATUS',
+            upload: response, status: 'paused' })
+        )
+        .catch(
+          () => alert('The upload could not be started.')
+        )
+    }
+    fileReader.readAsArrayBuffer(blob);
+  };
 
   const createBlob = (upload) => {
     let { file, current_byte_position, next_blob_size } = upload;

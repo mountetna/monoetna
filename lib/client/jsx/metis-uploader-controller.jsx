@@ -53,8 +53,7 @@ class MetisUploader {
     };
 
     let workers = {
-      upload: createWorker( require.resolve('../jsx/workers/uploader')),
-      init: createWorker( require.resolve('../jsx/workers/upload-initializer'))
+      upload: createWorker( require.resolve('../jsx/workers/uploader'))
     }
 
     return metisStore(reducers, actions, workers);

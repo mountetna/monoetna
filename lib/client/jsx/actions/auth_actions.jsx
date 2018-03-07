@@ -12,7 +12,7 @@ export const fileSelected = ({ file }) => (dispatch) => {
       dispatch({ type: 'FILE_UPLOAD_AUTHORIZED', file, url });
 
       // then tell the worker to initialize the file
-      dispatch({ type: 'WORK', worker: 'init', file, url });
+      dispatch({ type: 'WORK', worker: 'upload', command: 'init', file, url });
     })
     .catch(
       () => alert('The upload could not be authorized.')
