@@ -109,3 +109,19 @@ def clear_stubs
   @stubs = nil
 end
 
+WISDOM=<<EOT
+Although they are
+only breath, words
+which I command
+are immortal
+EOT
+
+def create_file(project_name, file_name, contents, params={})
+  create( :file,
+    {
+      project_name: project_name, file_name: file_name,
+      original_name: file_name, uploader: 'metis', size: contents.length,
+      file_hash: Digest::MD5.hexdigest(contents)
+    }.merge(params)
+  )
+end

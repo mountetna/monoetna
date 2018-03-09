@@ -9,7 +9,7 @@ const upload = (file, url) => ({
   status: 'authorized'
 })
 
-const upload_key = ({project_name, file_name}) => `${project_name}:${file_name}`;
+const file_key = ({project_name, file_name}) => `${project_name}:${file_name}`;
 
 const uploads = (old_uploads, action) => {
   if (!old_uploads) old_uploads = {}
@@ -19,7 +19,7 @@ const uploads = (old_uploads, action) => {
       let { upload, upload_speed } = action;
       let { project_name, file_name } = upload;
 
-      let key = upload_key(upload);
+      let key = file_key(upload);
 
       return {
         ...old_uploads,
@@ -32,7 +32,7 @@ const uploads = (old_uploads, action) => {
     case 'FILE_UPLOAD_STATUS': {
       let { upload, status } = action;
       let { project_name, file_name, current_byte_position, next_blob_size, next_blob_hash } = upload;
-      let key = upload_key(upload);
+      let key = file_key(upload);
       return {
         ...old_uploads,
         [key]: {
@@ -46,7 +46,7 @@ const uploads = (old_uploads, action) => {
     };
     case 'FILE_UPLOAD_SELECT_PROJECT': {
       let { upload, permission: { project_name, role } } = action;
-      let key = upload_key(upload);
+      let key = file_key(upload);
       return {
         ...old_uploads,
         [key]: {
@@ -59,7 +59,7 @@ const uploads = (old_uploads, action) => {
       // Copy the selected file data to 'uploads' object.
       let { file, url } = action;
       let new_upload = upload(file, url);
-      let key = upload_key(new_upload);
+      let key = file_key(new_upload);
       return {
         ...old_uploads,
         [key]: new_upload
@@ -68,7 +68,7 @@ const uploads = (old_uploads, action) => {
     case 'FILE_UPLOAD_REMOVED': {
       let { upload, status } = action;
       let { project_name, file_name, current_byte_position, next_blob_size, next_blob_hash } = upload;
-      let key = upload_key(upload);
+      let key = file_key(upload);
       let { [key]: del_upload, ...new_uploads } = old_uploads;
 
       return new_uploads;
@@ -76,6 +76,29 @@ const uploads = (old_uploads, action) => {
     }
     default:
       return old_uploads;
+  }
+};
+
+const downloads = (old_downloads, action) => {
+  if (!old_downloads) old_downloads = {};
+
+  switch(action.type) {
+    case 'ADD_FILES': {
+      let { files } = action;
+
+      let new_downloads = files.reduce((c, file) => {
+        let key = file_key(file);
+        c[key] = file;
+        return c;
+      }, {});
+
+      return {
+        ...old_downloads,
+        ...new_downloads
+      };
+    }
+    default:
+      return old_downloads;
   }
 };
 
@@ -96,7 +119,11 @@ const files = (state, action) => {
         ...state,
         uploads: uploads(state.uploads,action)
       };
-
+    case 'ADD_FILES':
+      return {
+        ...state,
+        downloads: downloads(state.downloads,action)
+      };
     default:
       return state;
       break;

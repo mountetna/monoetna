@@ -14,6 +14,12 @@ export default class ListBody extends React.Component{
     let { uploads, downloads, fails } = files;
     let { permissions } = user;
 
+    console.log(downloads);
+
+    let { recoverUpload, removeFailed, initializeUpload,
+      queueUpload, pauseUpload, cancelUpload, removeFile,
+      clearUpload, selectProject } = this.props;
+
     return (
       <tbody id='list-body-group'>
         {/* Render the failed uploads. */}
@@ -22,10 +28,7 @@ export default class ListBody extends React.Component{
               let failedUpload = {
                 key: 'file-failed-'+failedFile.reactKey,
                 failedFile: failedFile,
-                callbacks: {
-                  recoverUpload: this.props.recoverUpload,
-                  removeFailed: this.props.removeFailed,
-                }
+                callbacks: { recoverUpload, removeFailed }
               };
 
               return <ListUploadFailed { ...failedUpload } />;
@@ -42,13 +45,8 @@ export default class ListBody extends React.Component{
                 user,
                 permissions,
                 callbacks: {
-                  initializeUpload: this.props.initializeUpload,
-                  queueUpload: this.props.queueUpload,
-                  pauseUpload: this.props.pauseUpload,
-                  cancelUpload: this.props.cancelUpload,
-                  removeFile: this.props.removeFile,
-                  clearUpload: this.props.clearUpload,
-                  selectProject: this.props.selectProject
+                  initializeUpload, queueUpload, pauseUpload,
+                  cancelUpload, removeFile, clearUpload, selectProject
                 }
               };
 
@@ -56,14 +54,14 @@ export default class ListBody extends React.Component{
             })
           : '' }
         {/* Render the complete uploads. */}
-        { (downloads.length) ?
-            downloads.map((file, i)=>{
+        { (Object.keys(downloads).length) ?
+            Object.keys(downloads).map(key=>{
+              console.log(key)
+              let file = downloads[key];
               let listEntry = {
-                key: i,
+                key,
                 file,
-                callbacks: {
-                  removeFile: this.props.removeFile
-                }
+                callbacks: { removeFile }
               };
 
               return <ListEntry { ...listEntry } />

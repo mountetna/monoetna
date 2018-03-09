@@ -26,7 +26,7 @@ export default class MetisUI extends React.Component{
       <div id='listing-group'>
         <table id='listing-table'>
           <ListHeadContainer />
-          {(downloads.length || Object.keys(uploads).length || fails.length)?
+          {(Object.keys(downloads).length || Object.keys(uploads).length || fails.length)?
             <ListBodyContainer /> : <tbody></tbody>
           }
         </table>

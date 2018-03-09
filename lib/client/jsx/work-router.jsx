@@ -2,6 +2,7 @@
 
 const workRouter = workers => {
   return store => {
+    console.log("Setting up workRouter");
     Object.values(workers).forEach(
       worker=>worker.addEventListener('message', ({data}) => store.dispatch(data))
     );

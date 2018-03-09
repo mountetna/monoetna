@@ -111,12 +111,6 @@ export default (self) => {
       sendBlob(request);
     }
     fileReader.readAsArrayBuffer(nextBlob);
-
-    /*
-     * This 'response' object usually comes as a response from
-     * the server, but on a 'start' command we just fake it to
-     * kick off the sequence again.
-     */
   }
 
   let blobWindow = 30; // How many blob uploads to average over.
@@ -128,7 +122,8 @@ export default (self) => {
   }
 
   let cancelUpload = (upload) => {
-    postUploadCancel(upload.url, upload)
+    let { project_name, file_name } = upload;
+    postUploadCancel(upload.url, { project_name, file_name })
       .then(() => {
         dispatch({ type: 'FILE_UPLOAD_REMOVED', upload });
       }).catch(

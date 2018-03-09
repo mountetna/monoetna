@@ -2,7 +2,7 @@ class Metis
   class File < Sequel::Model
     def self.md5(path)
       # use md5sum to avoid reading blob
-      %x{ md5sum #{path} }.split.first
+      %x{ md5sum '#{path}' }.split.first
     end
 
     one_to_many :uploads
@@ -10,6 +10,13 @@ class Metis
       file = self.where(project_name: project_name, file_name: file_name).first
 
       return file && file.has_data?
+    end
+
+    def compute_hash!
+      if has_data?
+        self.file_hash = Metis::File.md5(location)
+        save
+      end
     end
 
     def has_data?
@@ -22,6 +29,24 @@ class Metis
       ))
     end
 
+    def to_hash
+      {
+        file_name: file_name,
+        project_name: project_name,
+        original_name: original_name,
+        size: actual_size,
+        file_hash: file_hash
+      }
+    end
+
+    def actual_size
+      has_data? ? ::File.size(location) : nil
+    end
+
+    def to_json(options)
+      to_hash.to_json(options)
+    end
+
     def set_file_data(file_path)
       # Rename the existing file.
       ::File.rename(
@@ -30,7 +55,7 @@ class Metis
       )
 
       # update the hash
-      self.update(hash: Metis::File.md5(location))
+      self.update(file_hash: Metis::File.md5(location))
     end
   end
 end

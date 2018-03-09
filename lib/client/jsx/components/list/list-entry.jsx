@@ -45,14 +45,14 @@ export default class ListEntry extends React.Component{
         <td className='list-entry-title-group'>
           <div className='list-entry-file-size'>
             <span className='dark-text' style={{fontWeight: 900}} >
-              {byteFormat(file.fileSize, 1000)}
+              {byteFormat(file.size, 1000)}
             </span>
           </div>
           <div className='list-entry-hash'>
             <span className='light-text'>
-              {file.hashingAlgorithm+': '}
+              MD5:
               <span className='mono-text'>
-                {file.hash}
+                {file.file_hash}
               </span>
             </span>
           </div>

@@ -1,9 +1,9 @@
-export const removeFile = () => (dispatch) => {
-          if(action.fileMetadata == undefined) return;
-          if(!confirm('Are you sure you want to remove this file?')) return;
-          this.removeServerFiles('/remove-file', action.fileMetadata);
-}
+import { postRetrieveFiles } from '../api/files_api';
 
-export const removeFailed = () => (dispatch) => {
-   this.removeServerFiles('/remove-failed', action.fileMetadata);
+export const retrieveFiles = () => (dispatch) => {
+  postRetrieveFiles(CONFIG.project_name)
+    .then( ({files}) => {
+      // first set the upload url
+      dispatch({ type: 'ADD_FILES', files });
+    })
 }

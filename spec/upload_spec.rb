@@ -18,24 +18,8 @@ describe UploadController do
   end
 
 
-  WISDOM=<<EOT
-Although they are
-only breath, words
-which I command
-are immortal
-EOT
-
   def upload_path(project_name,file_name)
     "#{project_name}/upload/#{file_name}"
-  end
-
-  def setup_file(project_name, file_name, contents, params={})
-    create( :file,
-      {
-        project_name: project_name, file_name: file_name,
-        original_name: file_name, uploader: 'metis', size: contents.length
-      }.merge(params)
-    )
   end
 
   context '#authorize' do
@@ -96,7 +80,7 @@ EOT
 
     it 'should resume an existing upload' do
       # there is already an upload in place for our metis_uid
-      file = setup_file('athena', 'wisdom.txt', WISDOM)
+      file = create_file('athena', 'wisdom.txt', WISDOM)
       upload = create( :upload,
         file: file,
         metis_uid: @metis_uid,
@@ -129,7 +113,7 @@ EOT
     end
 
     it 'should not resume someone elses upload' do
-      file = setup_file('athena', 'wisdom.txt', WISDOM, size: 20)
+      file = create_file('athena', 'wisdom.txt', WISDOM, size: 20)
 
       # we create an upload, but the metis_uid is different from ours
       upload = create( :upload,
@@ -166,7 +150,7 @@ EOT
       next_blob = WISDOM[10..19]
 
       # there is a file record in place
-      file = setup_file('athena', 'wisdom.txt', WISDOM)
+      file = create_file('athena', 'wisdom.txt', WISDOM)
 
       # the current uploaded file-on-disk
       partial_file = stub_file(
@@ -212,7 +196,7 @@ EOT
       # we create the blob with the wrong contents
       wisdom_blob_file = stub_file(:wisdom_blob, next_blob.reverse)
 
-      file = setup_file('athena', 'wisdom.txt', WISDOM)
+      file = create_file('athena', 'wisdom.txt', WISDOM)
 
       partial_file = stub_file(
         "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
@@ -254,7 +238,7 @@ EOT
 
       wisdom_blob_file = stub_file(:wisdom_blob, next_blob)
 
-      file = setup_file('athena', 'wisdom.txt', WISDOM)
+      file = create_file('athena', 'wisdom.txt', WISDOM)
 
       partial_file = stub_file(
         "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
@@ -303,7 +287,7 @@ EOT
     it 'should add cancel an upload' do
       # there is partial data
       partial = WISDOM[0..9]
-      file = setup_file('athena', 'wisdom.txt', WISDOM)
+      file = create_file('athena', 'wisdom.txt', WISDOM)
       partial_file = stub_file(
         "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
       )
@@ -337,7 +321,7 @@ EOT
       partial = WISDOM[0..9]
 
       # our file has no existing data
-      file = setup_file('athena', 'wisdom.txt', WISDOM)
+      file = create_file('athena', 'wisdom.txt', WISDOM)
       partial_file = stub_file(
         "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
       )
@@ -372,7 +356,7 @@ EOT
       partial = WISDOM[0..9]
 
       # our file has existing data
-      file = setup_file('athena', 'wisdom.txt', WISDOM)
+      file = create_file('athena', 'wisdom.txt', WISDOM)
       current_file = stub_file('wisdom.txt', WISDOM, :athena)
       partial_file = stub_file(
         "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
