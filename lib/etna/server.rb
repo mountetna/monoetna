@@ -29,6 +29,13 @@ module Etna
         route('DELETE', path, options, &block)
       end
 
+      def route_path(request,name,params={})
+        route = routes.find do |route|
+          route.name.to_s == name.to_s
+        end
+        return route ? route.path(params) : nil
+      end
+
       attr_reader :routes
     end
 
