@@ -24,7 +24,7 @@ export default class ListEntry extends React.Component{
         <td className='list-entry-icon'/>
         <td className='list-entry-title-group'>
           <div className='list-entry-file-name' title={file.file_name}>
-            {file.file_name}
+            <a href={file.download_url}>{file.file_name}</a>
           </div>
           <div className='list-entry-status' title='The current file status.'>
             <span className='light-text'>

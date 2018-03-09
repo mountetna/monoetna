@@ -14,7 +14,7 @@ class Metis
     post '/authorize/upload', action: 'upload#authorize', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/upload/*file_name', action: 'upload#upload', auth: { hmac: true }, as: :upload
 
-    get '/:project_name/download/*file_name', action: 'download#download', auth: { hmac: true }
+    get '/:project_name/download/*file_name', action: 'download#download', auth: { hmac: true }, as: :download
 
     get '/:project_name/files', action: 'files#index', auth: { user: { can_view?: :project_name } }
 
