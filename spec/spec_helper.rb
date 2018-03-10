@@ -94,6 +94,16 @@ def stubs
 end
 
 def stub_file(name, contents, project_name = :stub)
+  file_name = "#{Metis::File.safe_filename(name)}"
+  make_stub(file_name, contents, project_name)
+end
+
+def stub_partial(name, contents, project_name = :stub)
+  file_name = "uploads/#{@metis_uid}-#{Metis::File.safe_filename(name)}"
+  make_stub(file_name, contents, project_name)
+end
+
+def make_stub(name, contents, project_name)
   file_name = "spec/#{project_name}/#{name}"
   File.open(file_name,"w") do |f|
     f.print contents

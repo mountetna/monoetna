@@ -1,5 +1,15 @@
 class Metis
   class File < Sequel::Model
+    FILENAME_MATCH=/\A[^<>:;,?"*\|\/\x00-\x1f]+\z/x
+
+    def self.valid_filename?(filename)
+      !!(filename =~ FILENAME_MATCH)
+    end
+
+    def self.safe_filename(filename)
+      filename.unpack('H*').first
+    end
+
     def self.md5(path)
       # use md5sum to avoid reading blob
       %x{ md5sum '#{path}' }.split.first
@@ -15,7 +25,7 @@ class Metis
           project_name: project_name,
           file_name: file_name
         ),
-        (Time.now + Metis.instance.config(:upload_expiration)).iso8601
+        Metis.instance.config(:upload_expiration)
       )
     end
 
@@ -29,13 +39,13 @@ class Metis
           project_name: project_name,
           file_name: file_name
         ),
-        (Time.now + Metis.instance.config(:download_expiration)).iso8601
+        Metis.instance.config(:download_expiration)
       )
     end
 
     private
 
-    def self.hmac_url(method, host, path, expiration)
+    def self.hmac_url(method, host, path, expiration=0)
 
       URI::HTTPS.build(
         Etna::Hmac.new(
@@ -43,7 +53,7 @@ class Metis
           method: method,
           host: host,
           path: path,
-          expiration: expiration,
+          expiration: (Time.now + expiration).iso8601,
           nonce: Metis.instance.sign.uid,
           id: :metis,
           headers: { }
@@ -74,7 +84,10 @@ class Metis
 
     def location
       ::File.expand_path(::File.join(
-        Metis.instance.project_path(project_name), file_name
+        Metis.instance.project_path(project_name),
+        Metis::File.safe_filename(
+          file_name
+        )
       ))
     end
 

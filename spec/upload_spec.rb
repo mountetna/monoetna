@@ -45,6 +45,31 @@ describe UploadController do
       expect(uri.path).to eq("/#{params[:project_name]}/upload/#{params[:file_name]}")
       expect(hmac_params['X-Etna-Id']).to eq('metis')
     end
+    
+    it 'does not authorize poorly-named files' do
+      params = {
+        project_name: 'athena',
+        user_email: 'metis@ucsf.edu'
+      }
+
+      # we use our token to authorize an upload
+      header(*Etna::TestAuth.token_header(
+        email: 'metis@ucsf.edu', perm: 'e:athena'
+      ))
+
+      # here are some good and bad examples to test
+      {
+        422 => ['"wisdom".txt''?;wisdom.txt',"wisdom.txt\n\r"],
+        200 => [ 'wisdom [1](2){3}.txt' ]
+      }.each do |status, examples|
+        # we try each example and see if it returns the
+        # appropriate status
+        examples.each do |example|
+          json_post('authorize/upload', params.merge(file_name: example))
+          expect(last_response.status).to eq(status)
+        end
+      end
+    end
   end
 
   context '#upload_start' do
@@ -153,9 +178,8 @@ describe UploadController do
       file = create_file('athena', 'wisdom.txt', WISDOM)
 
       # the current uploaded file-on-disk
-      partial_file = stub_file(
-        "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
-      )
+      partial_file = stub_partial(file.file_name, partial, :athena)
+
 
       # the upload expects the contents of next_blob
       upload = create( :upload,
@@ -168,7 +192,7 @@ describe UploadController do
       )
 
       # the file-on-disk the client will post
-      wisdom_blob_file = stub_file(:wisdom_blob, next_blob)
+      wisdom_blob_file = stub_file('wisdom_blob', next_blob)
 
       # post the new blob
       header(*Etna::TestAuth.hmac_header({}))
@@ -194,13 +218,11 @@ describe UploadController do
       next_blob = WISDOM[10..19]
 
       # we create the blob with the wrong contents
-      wisdom_blob_file = stub_file(:wisdom_blob, next_blob.reverse)
+      wisdom_blob_file = stub_file('wisdom_blob', next_blob.reverse)
 
       file = create_file('athena', 'wisdom.txt', WISDOM)
 
-      partial_file = stub_file(
-        "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
-      )
+      partial_file = stub_partial(file.file_name, partial, :athena)
 
       # the upload expects the correct contents
       upload = create( :upload,
@@ -236,13 +258,11 @@ describe UploadController do
       next_blob = WISDOM[20..-1]
       partial = WISDOM[0..19]
 
-      wisdom_blob_file = stub_file(:wisdom_blob, next_blob)
+      wisdom_blob_file = stub_file('wisdom_blob', next_blob)
 
       file = create_file('athena', 'wisdom.txt', WISDOM)
 
-      partial_file = stub_file(
-        "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
-      )
+      partial_file = stub_partial(file.file_name, partial, :athena)
 
       # the upload expects the final blob
       upload = create( :upload,
@@ -288,9 +308,7 @@ describe UploadController do
       # there is partial data
       partial = WISDOM[0..9]
       file = create_file('athena', 'wisdom.txt', WISDOM)
-      partial_file = stub_file(
-        "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
-      )
+      partial_file = stub_partial(file.file_name, partial, :athena)
 
       # there is an upload waiting
       upload = create( :upload,
@@ -322,9 +340,7 @@ describe UploadController do
 
       # our file has no existing data
       file = create_file('athena', 'wisdom.txt', WISDOM)
-      partial_file = stub_file(
-        "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
-      )
+      partial_file = stub_partial(file.file_name, partial, :athena)
 
       # there is an upload waiting
       upload = create( :upload,
@@ -358,9 +374,7 @@ describe UploadController do
       # our file has existing data
       file = create_file('athena', 'wisdom.txt', WISDOM)
       current_file = stub_file('wisdom.txt', WISDOM, :athena)
-      partial_file = stub_file(
-        "uploads/#{@metis_uid}-#{file.file_name}", partial, :athena
-      )
+      partial_file = stub_partial(file.file_name, partial, :athena)
 
       # there is an upload waiting
       upload = create( :upload,

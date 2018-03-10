@@ -19,7 +19,9 @@ class Metis
       ::File.expand_path(::File.join(
         Metis.instance.project_path(file.project_name),
         'uploads',
-        "#{metis_uid}-#{file.file_name}"
+        "#{metis_uid}-#{
+          Metis::File.safe_filename(file.file_name)
+        }"
       ))
     end
 

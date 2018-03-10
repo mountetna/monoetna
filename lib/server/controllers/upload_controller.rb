@@ -2,6 +2,8 @@ class UploadController < Metis::Controller
   def authorize
     require_params(:project_name, :file_name)
 
+    raise Etna::BadRequest, 'The filename is illegal.' unless Metis::File.valid_filename?(@params[:file_name])
+
     url = Metis::File.upload_url(
       @request,
       @params[:project_name],
