@@ -38,7 +38,7 @@ module Etna
 
         params = request.env['rack.request.params'].map do |key,value|
           value = value.to_s
-          value = value[0..500] + "..." + value[-100..-1] if value.length > 6000
+          value = value[0..500] + "..." + value[-100..-1] if value.length > 600
           [ key, value ]
         end.to_h
 
