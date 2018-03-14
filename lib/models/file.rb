@@ -1,5 +1,7 @@
 class Metis
   class File < Sequel::Model
+    many_to_one :bucket
+
     FILENAME_MATCH=/\A[^<>:;,?"*\|\/\x00-\x1f]+\z/x
 
     def self.valid_filename?(filename)
@@ -15,7 +17,7 @@ class Metis
       %x{ md5sum '#{path}' }.split.first
     end
 
-    def self.upload_url(request, project_name, file_name)
+    def self.upload_url(request, project_name, bucket_name, file_name)
       hmac_url(
         'POST',
         request.host,
@@ -23,13 +25,14 @@ class Metis
           request,
           :upload,
           project_name: project_name,
+          bucket_name: bucket_name,
           file_name: file_name
         ),
         Metis.instance.config(:upload_expiration)
       )
     end
 
-    def self.download_url(request, project_name, file_name)
+    def self.download_url(request, project_name, bucket_name, file_name)
       hmac_url(
         'GET',
         request.host,
@@ -37,6 +40,7 @@ class Metis
           request,
           :download,
           project_name: project_name,
+          bucket_name: bucket_name,
           file_name: file_name
         ),
         Metis.instance.config(:download_expiration)
@@ -85,6 +89,7 @@ class Metis
     def location
       ::File.expand_path(::File.join(
         Metis.instance.project_path(project_name),
+        bucket.name,
         Metis::File.safe_filename(
           file_name
         )
@@ -101,6 +106,7 @@ class Metis
         download_url: request ? Metis::File.download_url(
           request,
           project_name,
+          bucket.name,
           file_name
         ) : nil
       }

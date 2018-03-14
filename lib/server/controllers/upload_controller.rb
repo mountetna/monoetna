@@ -4,9 +4,18 @@ class UploadController < Metis::Controller
 
     raise Etna::BadRequest, 'The filename is illegal.' unless Metis::File.valid_filename?(@params[:file_name])
 
+    bucket_name = @params[:bucket_name] || 'files'
+
+    bucket = Metis::Bucket.find(name: bucket_name, project_name: @params[:project_name])
+
+    raise Etna::BadRequest, 'No such bucket!' unless bucket
+
+    raise Etna::Forbidden, 'Inaccessible bucket.' unless bucket.allowed?(@user)
+
     url = Metis::File.upload_url(
       @request,
       @params[:project_name],
+      bucket_name,
       @params[:file_name]
     )
 
@@ -34,6 +43,9 @@ class UploadController < Metis::Controller
   def upload_start
     require_params(:file_size, :next_blob_size, :next_blob_hash)
 
+    # get the current bucket
+    bucket = Metis::Bucket.find(name: @params[:bucket_name])
+
     # make an entry for the file if it does not exist
     file = Metis::File.find_or_create(
       project_name: @params[:project_name],
@@ -42,6 +54,7 @@ class UploadController < Metis::Controller
       f.original_name = @params[:file_name]
       f.uploader = ''
       f.size = 0
+      f.bucket = bucket
     end
 
     upload = Metis::Upload.where(

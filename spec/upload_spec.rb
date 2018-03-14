@@ -8,6 +8,8 @@ describe UploadController do
   end
 
   before(:each) do
+    create(:bucket, name: 'files', project_name: 'athena')
+
     @metis_uid = Metis.instance.sign.uid
 
     set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
@@ -19,7 +21,7 @@ describe UploadController do
 
 
   def upload_path(project_name,file_name)
-    "#{project_name}/upload/#{file_name}"
+    "#{project_name}/upload/files/#{file_name}"
   end
 
   context '#authorize' do
@@ -42,10 +44,10 @@ describe UploadController do
       hmac_params = Rack::Utils.parse_nested_query(uri.query)
 
       expect(last_response.status).to eq(200)
-      expect(uri.path).to eq("/#{params[:project_name]}/upload/#{params[:file_name]}")
+      expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_name]}")
       expect(hmac_params['X-Etna-Id']).to eq('metis')
     end
-    
+
     it 'does not authorize poorly-named files' do
       params = {
         project_name: 'athena',
@@ -192,7 +194,7 @@ describe UploadController do
       )
 
       # the file-on-disk the client will post
-      wisdom_blob_file = stub_file('wisdom_blob', next_blob)
+      wisdom_blob_file = stub_data('wisdom_blob', next_blob, :athena)
 
       # post the new blob
       header(*Etna::TestAuth.hmac_header({}))
@@ -218,7 +220,7 @@ describe UploadController do
       next_blob = WISDOM[10..19]
 
       # we create the blob with the wrong contents
-      wisdom_blob_file = stub_file('wisdom_blob', next_blob.reverse)
+      wisdom_blob_file = stub_data('wisdom_blob', next_blob.reverse, :athena)
 
       file = create_file('athena', 'wisdom.txt', WISDOM)
 
@@ -258,7 +260,7 @@ describe UploadController do
       next_blob = WISDOM[20..-1]
       partial = WISDOM[0..19]
 
-      wisdom_blob_file = stub_file('wisdom_blob', next_blob)
+      wisdom_blob_file = stub_data('wisdom_blob', next_blob, :athena)
 
       file = create_file('athena', 'wisdom.txt', WISDOM)
 

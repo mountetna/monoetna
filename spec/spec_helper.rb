@@ -2,6 +2,7 @@ require 'yaml'
 require 'logger'
 require 'rack/test'
 require 'simplecov'
+require 'fileutils'
 SimpleCov.start
 require 'bundler'
 Bundler.require(:default, :test)
@@ -66,10 +67,17 @@ RSpec.configure do |config|
       example.run
     end
   end
+
+  config.before(:suite) do
+    ensure_stub_dirs
+  end
 end
 
 FactoryBot.define do
   factory :file, class: Metis::File do
+    to_create(&:save)
+  end
+  factory :bucket, class: Metis::Bucket do
     to_create(&:save)
   end
   factory :upload, class: Metis::Upload do
@@ -93,9 +101,13 @@ def stubs
   @stubs ||= []
 end
 
-def stub_file(name, contents, project_name = :stub)
-  file_name = "#{Metis::File.safe_filename(name)}"
+def stub_file(name, contents, project_name = :stub, bucket_name = 'files')
+  file_name = "#{bucket_name}/#{Metis::File.safe_filename(name)}"
   make_stub(file_name, contents, project_name)
+end
+
+def stub_data(name, contents, project_name = :stub)
+  make_stub(name, contents, project_name)
 end
 
 def stub_partial(name, contents, project_name = :stub)
@@ -112,6 +124,15 @@ def make_stub(name, contents, project_name)
   return File.expand_path(file_name)
 end
 
+def ensure_stub_dirs
+  [ :athena, :labors ].each do |project|
+    [ :uploads, :files ].each do |bucket|
+      dir = "spec/#{project}/#{bucket}"
+      FileUtils.mkdir_p(dir) unless Dir.exists? dir
+    end
+  end
+end
+
 def clear_stubs
   stubs.each do |stub|
     File.delete(stub) if File.exists?(stub)
@@ -126,9 +147,15 @@ which I command
 are immortal
 EOT
 
+def default_bucket(project_name)
+  @default_bucket ||= {}
+  @default_bucket[project_name] ||= create( :bucket, project_name: project_name, name: 'files' )
+end
+
 def create_file(project_name, file_name, contents, params={})
   create( :file,
     {
+      bucket: default_bucket(project_name),
       project_name: project_name, file_name: file_name,
       original_name: file_name, uploader: 'metis', size: contents.length,
       file_hash: Digest::MD5.hexdigest(contents)

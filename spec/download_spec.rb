@@ -17,10 +17,10 @@ describe DownloadController do
     end
 
     it 'downloads a file' do
-      create(:file, project_name: 'labors', file_name: 'readme_hercules.txt', original_name: 'readme_hercules.txt', uploader: 'outis', size: @tips.length)
+      create_file('labors', 'readme_hercules.txt', @tips)
 
       header(*Etna::TestAuth.hmac_header({}))
-      get('/labors/download/readme_hercules.txt', { })
+      get('/labors/download/files/readme_hercules.txt', { })
 
       expect(last_response.status).to eq(200)
 
@@ -32,10 +32,10 @@ describe DownloadController do
     it 'fails if there is no file data' do
       clear_stubs
       # we make the file record, but we don't stub the actual file
-      create(:file, project_name: 'labors', file_name: 'readme_hercules.txt', original_name: 'readme_hercules.txt', uploader: 'outis', size: 0)
+      create_file('labors', 'readme_hercules.txt', @tips)
 
       header(*Etna::TestAuth.hmac_header({}))
-      get('/labors/download/readme_hercules.txt', { })
+      get('/labors/download/files/readme_hercules.txt', { })
 
       expect(last_response.status).to eq(404)
     end
@@ -44,13 +44,13 @@ describe DownloadController do
       # we create no file record
 
       header(*Etna::TestAuth.hmac_header({}))
-      get('/labors/download/readme_hercules.txt', { })
+      get('/labors/download/files/readme_hercules.txt', { })
 
       expect(last_response.status).to eq(404)
     end
 
     it 'refuses without hmac auth' do
-      get('/labors/download/readme_hercules.txt', { })
+      get('/labors/download/files/readme_hercules.txt', { })
 
       expect(last_response.status).to eq(401)
     end
