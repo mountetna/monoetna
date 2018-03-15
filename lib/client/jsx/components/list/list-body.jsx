@@ -14,8 +14,6 @@ export default class ListBody extends React.Component{
     let { uploads, downloads, fails } = files;
     let { permissions } = user;
 
-    console.log(downloads);
-
     let { recoverUpload, removeFailed, initializeUpload,
       queueUpload, pauseUpload, cancelUpload, removeFile,
       clearUpload, selectProject } = this.props;
@@ -38,8 +36,8 @@ export default class ListBody extends React.Component{
         { (Object.keys(uploads).length) ?
             Object.keys(uploads).map((key)=>{
               let upload = uploads[key];
+              console.log(upload);
               let listUpload = {
-                key: 'file-upload-'+key,
                 key,
                 upload,
                 user,
@@ -56,7 +54,6 @@ export default class ListBody extends React.Component{
         {/* Render the complete uploads. */}
         { (Object.keys(downloads).length) ?
             Object.keys(downloads).map(key=>{
-              console.log(key)
               let file = downloads[key];
               let listEntry = {
                 key,

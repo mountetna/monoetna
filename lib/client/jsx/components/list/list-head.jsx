@@ -38,31 +38,31 @@ export default class ListHead extends React.Component{
           <th id='list-type-column' className='list-head-title'>
             { 'type ' }
             <div className='list-column-head-arrow-group'>
-              <span className='glyphicon glyphicon-triangle-bottom'></span>
+              <span className='fa fa-caret-down'></span>
             </div>
           </th>
           <th id='list-name-column' className='list-head-title'>
             { 'file name ' }
             <div className='list-column-head-arrow-group'>
-              <span className='glyphicon glyphicon-triangle-bottom'></span>
+              <span className='fa fa-caret-down'></span>
             </div>
           </th>
           <th id='list-project-column' className='list-head-title'>
             { 'project ' }
             <div className='list-column-head-arrow-group'>
-              <span className='glyphicon glyphicon-triangle-bottom'></span>
+              <span className='fa fa-caret-down'></span>
             </div>
           </th>
           <th id='list-size-column' className='list-head-title'>
             { 'size ' }
             <div className='list-column-head-arrow-group'>
-              <span className='glyphicon glyphicon-triangle-bottom'></span>
+              <span className='fa fa-caret-down'></span>
             </div>
           </th>
           <th id='list-control-column' className='list-head-title'>
             <input { ...fileSelector } />
             <button id='file-select-btn' onClick={ this.selectFile.bind(this) }>
-              <span className='glyphicon glyphicon-plus white-glyphicon'></span>
+              <span className='fa fa-plus white-icon'></span>
               { ' ADD FILE' }
             </button>
           </th>

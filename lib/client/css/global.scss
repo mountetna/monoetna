@@ -4,7 +4,7 @@ body{
   padding-bottom: 400px;
 }
 
-.white-glyphicon {
+.white-icon {
 
   color: #fff;
 }
@@ -12,13 +12,13 @@ body{
 .light-text {
 
   color: #999;
-  font-family: 'gotham_bookregular';
+  font-family: 'Montserrat';
 }
 
 .dark-text {
 
   color: #000;
-  font-family: 'gotham_bookregular';
+  font-family: 'Montserrat';
 }
 
 .mono-text {
@@ -60,7 +60,7 @@ body{
 
   line-height: 30px;
   margin-top: 20px;
-  font-family: 'gotham_bookregular';
+  font-family: 'Montserrat';
   text-align: center;
 }
 
@@ -69,7 +69,7 @@ body{
 /* INPUT */
 .search-dropdown-input {
 
-  font-family: 'gotham_bookregular';
+  font-family: 'Montserrat';
   border: 1px solid #999;
   width: 100%;
   background: none;
@@ -133,4 +133,19 @@ body{
 .file-selector {
 
   display: none;
+}
+
+a {
+  color: #337ab7;
+  text-decoration: none;
+
+  &:hover, &:focus {
+    color: #23527c;
+    text-decoration: underline;
+  }
+
+  &:focus {
+    outline:5px auto -webkit-focus-ring-color;
+    outline-offset:-2px;
+  }
 }

@@ -133,16 +133,16 @@ export default class ListUpload extends React.Component{
     return (
       <div className='list-edit-mode-btn-group'>
         <button { ...editBtnProps }>
-          <span className='glyphicon glyphicon-pencil'></span>
+          <span className='fa fa-pencil'></span>
         </button>
         <button { ...resetBtnProps }>
-          <span className='glyphicon glyphicon-refresh'></span>
+          <span className='fa fa-sync'></span>
         </button>
         <button { ...cancelBtnProps }>
-          <span className='glyphicon glyphicon-remove'></span>
+          <span className='fa fa-times'></span>
         </button>
         <button { ...saveBtnProps }>
-          <span className='glyphicon glyphicon-ok'></span>
+          <span className='fa fa-check'></span>
         </button>
       </div>
     );

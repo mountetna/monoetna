@@ -38,7 +38,7 @@ export default class MenuBar extends React.Component{
           <button className='user-menu-dropdown-btn' onClick={ this.toggle.bind(this) } >
             { user.userEmail }
             <div className='user-menu-arrow-group'>
-              <span className='glyphicon glyphicon-triangle-bottom'></span>
+              <span className='fa fa-caret-down'></span>
             </div>
           </button>
           <div className='user-dropdown-menu'>
@@ -63,7 +63,7 @@ export default class MenuBar extends React.Component{
         {/*
         <div id='master-search-group'>
           <button id='master-search-button'>
-            <span className='glyphicon glyphicon-search white-glyphicon'></span>
+            <span className='fa fa-search white-icon'></span>
           </button>
         </div>
         <button className='nav-menu-btn'>

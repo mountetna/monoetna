@@ -16,49 +16,46 @@ import * as userActions from './actions/user_actions';
 
 import { createWorker } from './workers';
 
-class MetisUploader {
-  constructor() {
-    this.store = this.createStore();
+const createStore = () => {
+  // these are (state, action) => new_state
+  let reducers = {
+    files,
+    user
+  };
 
-    this.updateUser();
-    this.buildUI();
-    this.retrieveFiles();
+  // action handlers to import
+  let actions = {
+    ...authActions,
+    ...fileActions,
+    ...uploadActions,
+    ...userActions
+
+    // here you may define aliases to other actions,
+    // e.g.:
+    // returnFile: fileActions.retrieveFile
+  };
+
+  let workers = {
+    upload: createWorker( require.resolve('../jsx/workers/uploader'))
   }
 
-  updateUser() {
+  return metisStore(reducers, actions, workers);
+}
+
+class MetisViewer {
+  constructor() {
+    this.store = createStore();
+
+    // add the user
     this.store.dispatch({
       type: 'ADD_USER',
       token: Cookies.get(CONFIG.token_name)
     });
-  }
 
-  createStore() {
-    // these are (state, action) => new_state
-    let reducers = {
-      files,
-      user
-    };
+    // request an initial download view
+    this.store.dispatch({ type: 'RETRIEVE_FILES' });
 
-    // action handlers to import
-    let actions = {
-      ...authActions,
-      ...fileActions,
-      ...uploadActions,
-      ...userActions
-
-      // here you may define aliases to other actions,
-      // e.g.:
-      // returnFile: fileActions.retrieveFile
-    };
-
-    let workers = {
-      upload: createWorker( require.resolve('../jsx/workers/uploader'))
-    }
-
-    return metisStore(reducers, actions, workers);
-  }
-
-  buildUI(){
+    // build the UI
     ReactDOM.render(
       <Provider store={ this.store }>
         <MetisUIContainer />
@@ -66,11 +63,7 @@ class MetisUploader {
       document.getElementById('ui-group')
     );
   }
-
-  retrieveFiles(){
-    this.store.dispatch({ type: 'RETRIEVE_FILES' });
-  }
 }
 
 // Initilize the class.
-let metisUploader = new MetisUploader();
+let metisViewer = new MetisViewer();

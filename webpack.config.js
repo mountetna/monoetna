@@ -9,15 +9,20 @@
  */
 
 var path = require('path');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = {
   context: path.resolve(__dirname),
   resolve: {
-    extensions: [ '.js', '.jsx' ]
+    extensions: [ '.js', '.jsx' ],
+    alias: {
+      'font-awesome': path.join(__dirname, 'node_modules/font-awesome')
+    }
   },
   entry: {
     'metis-main': './lib/client/jsx/metis-uploader-controller.jsx',
-    'utils': './lib/client/jsx/libraries/utils.jsx'
+    'utils': './lib/client/jsx/libraries/utils.jsx',
+    'metis-stylesheet': './lib/client/css/metis.scss'
   },
   output: {
     path: __dirname,
@@ -45,7 +50,36 @@ module.exports = {
           outputPath: 'public/images/',
           publicPath: function(url) { return url.replace(/public/,'') }
         }
+      },
+
+      {
+        test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)(\?.*$|$)/,
+
+        include: [
+          path.resolve(__dirname, 'node_modules/font-awesome'),
+        ],
+
+        loader: 'file-loader',
+
+        options: {
+          name: '[name].[ext]',
+          outputPath: 'public/fonts/',
+          publicPath: function(url) { return url.replace(/public/,'') }
+        }
+      },
+
+      {
+        // sass / scss loader for webpack
+        test: /\.(sass|scss)$/,
+
+        loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
       }
     ]
-  }
+  },
+  plugins: [
+    new ExtractTextPlugin({ // define where to save the file
+      filename: 'public/css/metis.bundle.css',
+      allChunks: true,
+    }),
+  ]
 }

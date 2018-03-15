@@ -15,21 +15,21 @@ export default class UploadControl extends React.Component{
         uploadCtrlBtnProps.onClick = callbacks.queueUpload;
         return (
           <button { ...uploadCtrlBtnProps }>
-            <span className='glyphicon glyphicon-play'></span>
+            <span className='fa fa-play'></span>
           </button>
         );
       case 'active':
         uploadCtrlBtnProps.onClick = callbacks.pauseUpload;
         return (
           <button { ...uploadCtrlBtnProps }>
-            <span className='glyphicon glyphicon-pause'></span>
+            <span className='fa fa-pause'></span>
           </button>
         );
       case 'failed':
         uploadCtrlBtnProps.onClick = callbacks.selectUpload;
         return (
           <button { ...uploadCtrlBtnProps }>
-            <span className='glyphicon glyphicon-retweet'></span>
+            <span className='fa fa-retweet'></span>
           </button>
         );
         return '';
@@ -48,7 +48,7 @@ export default class UploadControl extends React.Component{
       <td className='upload-control-group'>
         { this.renderStartPause() }
         <button { ...uploadControlBtn }>
-          <span className='glyphicon glyphicon-remove'></span>
+          <span className='fa fa-times'></span>
         </button>
       </td>
     );

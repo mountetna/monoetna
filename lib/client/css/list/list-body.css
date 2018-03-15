@@ -34,7 +34,7 @@
 .list-entry-project-name,
 .list-entry-file-size {
 
-  font-family: 'gotham_boldregular';
+  font-family: 'Montserrat';
   font-size: 1em;
   height: 18px;
   border: 1px solid #fff;
@@ -59,7 +59,7 @@
 
 .list-entry-file-size {
 
-  font-family: 'gotham_bookregular';
+  font-family: 'Montserrat';
 }
 
 .list-entry-file-name:focus {
@@ -101,7 +101,7 @@
   margin-top: 20px;
   text-align: center;
   letter-spacing: 2px;
-  font-family: 'gotham_bookregular';
+  font-family: 'Montserrat';
   font-size: 1.8em;
   height: 18px;
 }
@@ -113,7 +113,7 @@
 
 .list-project-field {
 
-  font-family: 'gotham_boldregular';
+  font-family: 'Montserrat';
 }
 
 /* Entry Control Elements *****************************************************/

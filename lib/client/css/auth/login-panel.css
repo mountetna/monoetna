@@ -17,7 +17,7 @@
   margin-top: 10px;
   margin-left: 20px;
   text-indent: 5px;
-  font-family: 'gotham_bookregular';
+  font-family: 'Montserrat';
   outline: none;
 }
 
@@ -48,7 +48,7 @@
   width: 200px;
 
   color: #fff;
-  font-family: 'gotham_bookregular';
+  font-family: 'Montserrat';
   font-size: 1em;
   letter-spacing: 1px;
 }
@@ -69,5 +69,5 @@
   margin-top: 20px;
   margin-bottom: 10px;
   font-size: 1em;
-  font-family: 'gotham_bookregular';
+  font-family: 'Montserrat';
 }
