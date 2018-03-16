@@ -13,6 +13,10 @@ const mapDispatchToProps = (dispatch, ownProps)=>{
     fileSelected: (file)=>{
       let action = { type: 'FILE_SELECTED', file };
       dispatch(action);
+    },
+    createFolder: (folder_name)=>{
+      let action = { type: 'CREATE_FOLDER', folder_name };
+      dispatch(action);
     }
   };
 }

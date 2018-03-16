@@ -22,6 +22,7 @@ export const headers = (...types) => {
     switch(type) {
       case 'json':
         add( 'Content-Type', 'application/json');
+        add( 'Accept', 'application/json');
         break;
       case 'csrf':
         let csrf = document.querySelector('meta[name=csrf-token]');

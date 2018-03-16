@@ -13,6 +13,12 @@ export default class ListHead extends React.Component{
     document.getElementById('file-selector').click();
   }
 
+  selectFolder(){
+    let folder_name = prompt("Enter the folder name", "Untitled Folder");
+    if (!folder_name) return;
+    this.props.createFolder(folder_name);
+  }
+
   fileSelected(event){
     if(event === undefined) return;
     let fileSelector = event.target;
@@ -64,6 +70,10 @@ export default class ListHead extends React.Component{
             <button id='file-select-btn' onClick={ this.selectFile.bind(this) }>
               <span className='fa fa-plus white-icon'></span>
               { ' ADD FILE' }
+            </button>
+            <button id='file-select-btn' onClick={ this.selectFolder.bind(this) }>
+              <span className='fa fa-plus white-icon'></span>
+              { ' CREATE FOLDER' }
             </button>
           </th>
         </tr>
