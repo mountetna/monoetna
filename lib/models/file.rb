@@ -1,11 +1,27 @@
 class Metis
   class File < Sequel::Model
     many_to_one :bucket
+    many_to_one :folder, class: Metis::File
 
-    FILENAME_MATCH=/\A[^<>:;,?"*\|\/\x00-\x1f]+\z/x
+    FILENAME_MATCH=/[^<>:;,?"*\|\/\x00-\x1f]+/x
+
+    FILEPATH_MATCH=%r!
+      \A
+        (?<folders>(#{FILENAME_MATCH.source}/)*)
+
+        #{FILENAME_MATCH.source}
+      \z
+    !x
 
     def self.valid_filename?(filename)
-      !!(filename =~ FILENAME_MATCH)
+      !!(filename =~ FILEPATH_MATCH)
+    end
+
+    def self.foldername(filename)
+      FILEPATH_MATCH.match(filename)[:folders].tap do |folders|
+        # no trailing slash in foldername
+        return folders.empty? ? nil : folders.sub(%r!/$!,'')
+      end
     end
 
     def self.safe_filename(filename)
@@ -84,6 +100,10 @@ class Metis
 
     def has_data?
       file_name && ::File.exists?(location)
+    end
+
+    def folder?
+      self.is_folder
     end
 
     def location

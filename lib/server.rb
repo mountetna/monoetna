@@ -18,6 +18,7 @@ class Metis
     get '/:project_name/download/:bucket_name/*file_name', action: 'download#download', auth: { hmac: true }, as: :download
 
     get '/:project_name/files', action: 'files#index', auth: { user: { can_view?: :project_name } }
+    post '/:project_name/create_folder/:bucket_name/*folder_name', action: 'files#create_folder', auth: { user: { can_edit?: :project_name } }
 
     def initialize(config)
       super

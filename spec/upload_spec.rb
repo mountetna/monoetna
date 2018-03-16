@@ -8,7 +8,7 @@ describe UploadController do
   end
 
   before(:each) do
-    create(:bucket, name: 'files', project_name: 'athena')
+    default_bucket('athena')
 
     @metis_uid = Metis.instance.sign.uid
 

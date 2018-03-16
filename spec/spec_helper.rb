@@ -94,7 +94,7 @@ def json_body(body)
 end
 
 def json_post(endpoint, hash)
-  post("/#{endpoint}", hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
+  post(URI.encode("/#{endpoint}"), hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
 end
 
 def stubs
