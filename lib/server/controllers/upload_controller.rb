@@ -49,13 +49,9 @@ class UploadController < Metis::Controller
     # make an entry for the file if it does not exist
     file = Metis::File.find_or_create(
       project_name: @params[:project_name],
-      file_name: @params[:file_name]
-    ) do |f|
-      f.original_name = @params[:file_name]
-      f.uploader = ''
-      f.size = 0
-      f.bucket = bucket
-    end
+      file_name: @params[:file_name],
+      bucket: bucket
+    )
 
     upload = Metis::Upload.where(
       file: file,

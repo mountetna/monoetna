@@ -140,7 +140,7 @@ describe UploadController do
     end
 
     it 'should not resume someone elses upload' do
-      file = create_file('athena', 'wisdom.txt', WISDOM, size: 20)
+      file = create_file('athena', 'wisdom.txt', WISDOM)
 
       # we create an upload, but the metis_uid is different from ours
       upload = create( :upload,

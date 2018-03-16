@@ -120,7 +120,6 @@ class Metis
       {
         file_name: file_name,
         project_name: project_name,
-        original_name: original_name,
         size: actual_size,
         file_hash: file_hash,
         download_url: request ? Metis::File.download_url(

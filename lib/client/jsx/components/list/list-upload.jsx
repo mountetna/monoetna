@@ -101,33 +101,20 @@ export default class ListUpload extends React.Component{
       onClick: this.persistFileName.bind(this)
     };
 
+    editBtnProps.style = { display: 'none' };
+    resetBtnProps.style = { display: 'none' };
+    cancelBtnProps.style = { display: 'none' };
+    saveBtnProps.style = { display: 'none' };
+
     let editShow = this.state.fileNameEditShow;
     let editActive = this.state.fileNameEditActive;
 
-    if(editShow && !editActive){
+    if (editShow && !editActive) {
       editBtnProps.style = { display: 'inline-block' };
-      cancelBtnProps.style = { display: 'none' };
-      saveBtnProps.style = { display: 'none' };
-      
-      let origName = this.props.upload.original_name;
-      if(this.state.fileName != origName){
-        resetBtnProps.style = { display: 'inline-block' };
-      }
-      else{
-        resetBtnProps.style = { display: 'none' };
-      }
     }
-    else if(editShow || editActive){
-      editBtnProps.style = { display: 'none' };
-      resetBtnProps.style = { display: 'none' };
+    else if (editShow || editActive) {
       cancelBtnProps.style = { display: 'inline-block' };
       saveBtnProps.style = { display: 'inline-block' };
-    }
-    else{
-      editBtnProps.style = { display: 'none' };
-      resetBtnProps.style = { display: 'none' };
-      cancelBtnProps.style = { display: 'none' };
-      saveBtnProps.style = { display: 'none' };
     }
 
     return (

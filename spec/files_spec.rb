@@ -40,8 +40,8 @@ describe FilesController do
       urls = json[:files].map{|f| f.delete(:download_url)}
 
       expect(json).to eq(files: [
-        {file_name: "wisdom.txt", project_name: "athena", original_name: "wisdom.txt", size: 66, file_hash: Digest::MD5.hexdigest(WISDOM)},
-        {file_name: "helmet.jpg", project_name: "athena", original_name: "helmet.jpg", size: 20, file_hash: Digest::MD5.hexdigest(helmet)}
+        {file_name: "wisdom.txt", project_name: "athena", size: 66, file_hash: Digest::MD5.hexdigest(WISDOM)},
+        {file_name: "helmet.jpg", project_name: "athena", size: 20, file_hash: Digest::MD5.hexdigest(helmet)}
       ])
 
       expect(urls).to all( match(%r{http.*athena/download}) )

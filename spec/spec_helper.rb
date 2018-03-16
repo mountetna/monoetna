@@ -156,9 +156,9 @@ def create_file(project_name, file_name, contents, params={})
   create( :file,
     {
       bucket: default_bucket(project_name),
-      project_name: project_name, file_name: file_name,
-      original_name: file_name, uploader: 'metis', size: contents.length,
-      file_hash: Digest::MD5.hexdigest(contents)
+      project_name: project_name,
+      file_name: file_name,
+      file_hash: contents ? Digest::MD5.hexdigest(contents) : nil
     }.merge(params)
   )
 end
