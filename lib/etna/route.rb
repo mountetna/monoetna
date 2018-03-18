@@ -15,10 +15,11 @@ module Etna
       @method == request.request_method && request.path.match(route_regexp)
     end
 
+    UNSAFE=/[^\-_.!~*'()a-zA-Z\d;\/?:@&=+$,]/
     def path(params)
       @route
-        .gsub(/:([\w]+)/) { URI.encode_www_form_component( params[$1.to_sym]) }
-        .gsub(/\*([\w]+)$/) { URI.encode_www_form_component( params[$1.to_sym]) }
+        .gsub(/:([\w]+)/) { URI.encode( params[$1.to_sym], UNSAFE) }
+        .gsub(/\*([\w]+)$/) { URI.encode( params[$1.to_sym], UNSAFE) }
     end
 
     def call(app, request)
