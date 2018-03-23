@@ -15,11 +15,32 @@ module Etna
       @method == request.request_method && request.path.match(route_regexp)
     end
 
+    NAMED_PARAM=/:([\w]+)/
+    GLOB_PARAM=/\*([\w]+)$/
+
+    PARAM_TYPES=[ NAMED_PARAM, GLOB_PARAM ]
+
     UNSAFE=/[^\-_.!~*'()a-zA-Z\d;\/?:@&=+$,]/
-    def path(params)
-      @route
-        .gsub(/:([\w]+)/) { URI.encode( params[$1.to_sym], UNSAFE) }
-        .gsub(/\*([\w]+)$/) { URI.encode( params[$1.to_sym], UNSAFE) }
+
+    def path(params=nil)
+      if params
+        PARAM_TYPES.reduce(@route) do |route,pat|
+          route.gsub(pat) do
+           URI.encode( params[$1.to_sym], UNSAFE)
+          end
+        end
+      else
+        @route
+      end
+    end
+
+    def parts
+      part_list = PARAM_TYPES.map do |pat|
+        "(?:#{pat.source})"
+      end
+      @route.scan(
+        /(?:#{part_list.join('|')})/
+      ).flatten.compact
     end
 
     def call(app, request)
@@ -104,9 +125,9 @@ module Etna
           '\A' +
           @route.
             # any :params match separator-free strings
-            gsub(/:([\w]+)/, '(?<\1>[^\.\/\?]+)').
+            gsub(NAMED_PARAM, '(?<\1>[^\.\/\?]+)').
             # any *params match arbitrary strings
-            gsub(/\*([\w]+)$/, '(?<\1>.+)').
+            gsub(GLOB_PARAM, '(?<\1>.+)').
             # ignore any trailing slashes in the route
             gsub(/\/\z/, '') +
           # trailing slashes in the path can be ignored
