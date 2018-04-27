@@ -1,15 +1,16 @@
 import * as React from 'react'
+import * as ReactRedux from 'react-redux';
 
-export default class LoginPanel extends React.Component{
+class LoginPanel extends React.Component{
   constructor(){
     super();
   }
 
   parseError(){
-    if(this.props.user.loginError){
+    if (this.props.user.loginError) {
       return { display: 'block' };
     }
-    else{
+    else {
       return { display: 'none' };
     }
   }
@@ -60,3 +61,16 @@ export default class LoginPanel extends React.Component{
     )
   }
 }
+
+
+const LoginPanelContainer = ReactRedux.connect(
+  // map state
+  ({user})=>({user}),
+
+  // map dispatch
+  (dispatch)=>({
+    logIn: (email, pass) => dispatch({ type: 'LOG_IN', email, pass })
+  })
+)(LoginPanel);
+
+export default LoginPanelContainer;

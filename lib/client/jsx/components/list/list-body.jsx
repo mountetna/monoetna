@@ -1,10 +1,11 @@
 import * as React from 'react';
+import * as ReactRedux from 'react-redux';
 
 import ListEntry from './list-entry';
 import ListUpload from './list-upload';
 import ListUploadFailed from './list-upload-failed';
 
-export default class ListBody extends React.Component{
+class ListBody extends React.Component{
   constructor() {
     super();
   }
@@ -68,3 +69,24 @@ export default class ListBody extends React.Component{
     );
   }
 }
+
+
+const ListBodyContainer = ReactRedux.connect(
+  // map state
+  ({user,files}) => ({user,files}),
+
+  // map dispatch
+  (dispatch) => ({
+    selectProject: (upload, permission) => dispatch({ type: 'FILE_UPLOAD_SELECT_PROJECT', upload, permission }),
+    initializeUpload: (upload) => dispatch({ type: 'AUTHORIZE_UPLOAD', upload }),
+    queueUpload: (upload) => dispatch({ type: 'QUEUE_UPLOAD', upload }),
+    pauseUpload: (upload) => dispatch({ type: 'PAUSE_UPLOAD', upload }),
+    cancelUpload: (upload) => dispatch({ type: 'CANCEL_UPLOAD', upload }),
+    recoverUpload: (uploadFile, fileMetadata) => dispatch({ type: 'RECOVER_UPLOAD', uploadFile, fileMetadata }),
+    removeFile: (fileMetadata) => dispatch({ type: 'REMOVE_FILE', fileMetadata }),
+    clearUpload: (fileMetadata) => dispatch({ type: 'CLEAR_UPLOAD', fileMetadata }),
+    removeFailed: (fileMetadata) => dispatch({ type: 'REMOVE_FAILED', fileMetadata })
+  })
+)(ListBody);
+
+export default ListBodyContainer;

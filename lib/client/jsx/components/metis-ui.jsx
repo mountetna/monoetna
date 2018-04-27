@@ -1,12 +1,13 @@
 import * as React from 'react';
+import * as ReactRedux from 'react-redux';
 
 import TitleBar  from './nav/title-bar';
-import MenuBarContainer   from './nav/menu-bar-container';
-import ListHeadContainer  from './list/list-head-container';
-import ListBodyContainer  from './list/list-body-container';
-import LoginPanelContainer from './auth/login-panel-container';
+import MenuBar   from './nav/menu-bar';
+import ListHead  from './list/list-head';
+import ListBody  from './list/list-body';
+import LoginPanel from './auth/login-panel';
 
-export default class MetisUI extends React.Component{
+class MetisUI extends React.Component {
   constructor(){
     super();
   }
@@ -14,7 +15,7 @@ export default class MetisUI extends React.Component{
   renderLoginView(){
     return (
       <div id='listing-group'>
-        <LoginPanelContainer />
+        <LoginPanel />
       </div>
     );
   }
@@ -25,9 +26,9 @@ export default class MetisUI extends React.Component{
     return (
       <div id='listing-group'>
         <table id='listing-table'>
-          <ListHeadContainer />
+          <ListHead />
           {(Object.keys(downloads).length || Object.keys(uploads).length || fails.length)?
-            <ListBodyContainer /> : <tbody></tbody>
+            <ListBody /> : <tbody></tbody>
           }
         </table>
       </div>
@@ -39,7 +40,7 @@ export default class MetisUI extends React.Component{
       <div id='metis-group'>
         <div id='header-group'>
           <TitleBar />
-          <MenuBarContainer />
+          <MenuBar />
         </div>
         <div className='logo-group'>
           <img src='/img/metis_logo_simple.png' alt='' />
@@ -51,3 +52,10 @@ export default class MetisUI extends React.Component{
     );
   }
 }
+
+const MetisUIContainer = ReactRedux.connect(
+  // map state
+  ({user, files}) => ({user, files})
+)(MetisUI);
+
+export default MetisUIContainer;

@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import Cookies from 'js-cookie';
 
 import metisStore from './store';
-import MetisUIContainer from './components/metis-ui-container';
+import MetisUI from './components/metis-ui';
 
 import files from './reducers/files-reducer';
 import user from './reducers/janus-log-reducer';
@@ -42,7 +42,7 @@ const createStore = () => {
   return metisStore(reducers, actions, workers);
 }
 
-class MetisViewer {
+class Metis {
   constructor() {
     this.store = createStore();
 
@@ -58,12 +58,11 @@ class MetisViewer {
     // build the UI
     ReactDOM.render(
       <Provider store={ this.store }>
-        <MetisUIContainer />
+        <MetisUI />
       </Provider>,
       document.getElementById('ui-group')
     );
   }
 }
 
-// Initilize the class.
-let metisViewer = new MetisViewer();
+let metis = new Metis();

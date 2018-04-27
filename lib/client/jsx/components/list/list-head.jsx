@@ -1,6 +1,7 @@
 import * as React from 'react';
+import * as ReactRedux from 'react-redux';
 
-export default class ListHead extends React.Component{
+class ListHead extends React.Component{
   constructor(){
     super();
   }
@@ -81,3 +82,16 @@ export default class ListHead extends React.Component{
     );
   }
 }
+
+const ListHeadContainer = ReactRedux.connect(
+  // map state
+  null,
+
+  // map dispatch
+  (dispatch) => ({
+    fileSelected: (file)=>dispatch({ type: 'FILE_SELECTED', file }),
+    createFolder: (folder_name)=>dispatch({ type: 'CREATE_FOLDER', folder_name })
+  })
+)(ListHead);
+
+export default ListHeadContainer;

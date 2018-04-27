@@ -20,7 +20,7 @@ module.exports = {
     }
   },
   entry: {
-    'metis-main': './lib/client/jsx/metis-uploader-controller.jsx',
+    'metis-main': './lib/client/jsx/metis.jsx',
     'utils': './lib/client/jsx/libraries/utils.jsx',
     'metis-stylesheet': './lib/client/css/metis.scss'
   },

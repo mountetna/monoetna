@@ -1,6 +1,7 @@
 import * as React from 'react';
+import * as ReactRedux from 'react-redux';
 
-export default class MenuBar extends React.Component{
+class MenuBar extends React.Component{
   constructor(props){
     super(props);
     this.state = {
@@ -86,5 +87,18 @@ export default class MenuBar extends React.Component{
         { this.renderUserMenu() }
       </div>
     );
-  } 
+  }
 }
+
+
+const MenuBarContainer = ReactRedux.connect(
+  // map state
+  ({user}) => ({user}),
+
+  // map dispatch
+  (dispatch) => ({
+    logOut: () => dispatch({ type: 'LOG_OUT' })
+  })
+)(MenuBar);
+
+export default MenuBarContainer;
