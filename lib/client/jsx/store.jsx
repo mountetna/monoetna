@@ -1,7 +1,7 @@
 import * as Redux from 'redux';
 import * as ReduxLogger from 'redux-logger';
-import asyncRouter from './async-router';
-import workRouter from './work-router';
+import asyncRouter from './routers/async-router';
+import workRouter from './routers/work-router';
 
 const createStore = (reducers, actions, workers) => {
   let reducer = Redux.combineReducers(reducers);

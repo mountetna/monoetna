@@ -1,6 +1,6 @@
 // a middleware that takes routes matching
 // action names and sends data to them.
-import { camelCase } from './utils/format';
+import { camelCase } from '../utils/format';
 
 const asyncRouter = actions => {
   return store => next => action => {
