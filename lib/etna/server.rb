@@ -8,15 +8,21 @@ module Etna
         @routes << Etna::Route.new(
           method,
           path,
-          options,
+          (@default_options || {}).merge(options),
           &block
         )
+      end
+
+      def using(options={}, &block)
+        @default_options = options
+        instance_eval(&block)
+        @default_options = nil
       end
 
       def get(path, options={}, &block)
         route('GET', path, options, &block)
       end
-      
+
       def post(path, options={}, &block)
         route('POST', path, options, &block)
       end

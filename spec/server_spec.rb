@@ -1,4 +1,4 @@
-describe Etna::Route do
+describe Etna::Server do
   include Rack::Test::Methods
 
   attr_reader :app
