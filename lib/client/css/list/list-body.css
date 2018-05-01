@@ -38,7 +38,6 @@
   font-size: 1em;
   height: 18px;
   border: 1px solid #fff;
-  width: 160px;
 }
 
 .list-entry-file-name {
@@ -52,7 +51,7 @@
   margin-top: 2px;
 }
 
-.list-entry-project-name {
+.list-entry-updated-name {
 
   width: 100%;
 }

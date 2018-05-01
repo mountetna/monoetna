@@ -1,13 +1,11 @@
 import * as React from 'react';
 
 import { byteFormat, dateFormat } from '../../utils/format';
-import PermissionSelector from './permission-selector';
 import UploadMeter from './upload-meter';
 import UploadControl from './upload-control';
 
 export default class ListUpload extends React.Component{
-
-  constructor(props){
+  constructor(props) {
     super(props);
 
     this.state = {
@@ -190,7 +188,6 @@ export default class ListUpload extends React.Component{
     }
 
     // Check for file names.
-    
     let newName = this.state.fileName;
 
     if(!this.validateTitle(newName)){
@@ -235,56 +232,6 @@ export default class ListUpload extends React.Component{
     }
   }
 
-  projectSelected(permission) {
-    let { upload, callbacks: { selectProject } } = this.props;
-
-    selectProject(upload, permission);
-  }
-
-  renderPermissionSelector(){
-    let { upload, permissions } = this.props;
-
-    if (upload.status == 'unauthorized') {
-      let permissionSelectorProps = {
-        permissions,
-        upload,
-        editActive: true,
-        callbacks: {
-          projectSelected: this.projectSelected.bind(this)
-        }
-      };
-
-      return (
-        <PermissionSelector { ...permissionSelectorProps } />
-      )
-    }
-    else {
-      let listEntryProjectGroup = {
-        className: 'list-entry-project-group'
-      };
-
-      let permission = permissions.find(p => p.project_name == upload.project_name);
-
-      let listEntryStatus = {
-        className: 'list-entry-status list-project-permission-field',
-        title: 'Your project permission for this file.'
-      };
-
-      return (
-        <td { ...listEntryProjectGroup }>
-          <div className='list-project-field'>
-            { upload.project_name }
-          </div>
-          <div { ...listEntryStatus }>
-            <span className='light-text'>
-              { permission.role }
-            </span>
-          </div>
-        </td>
-      )
-    }
-  }
-
   initializeUpload(){
     this.props.callbacks.initializeUpload(this.props.upload);
   }
@@ -301,7 +248,7 @@ export default class ListUpload extends React.Component{
     this.props.callbacks.cancelUpload(this.props.upload);
   }
 
-  render(){
+  render() {
     let listEntryTitleProps = {
       className: 'list-entry-title-group',
       onMouseEnter: this.showFileNameEditMode.bind(this),
@@ -345,7 +292,6 @@ export default class ListUpload extends React.Component{
             { this.parseFileStatus() }
           </div>
         </td>
-        { this.renderPermissionSelector() }
         <UploadMeter upload={ this.props.upload } />
         <UploadControl { ...uploadControl } />
       </tr>

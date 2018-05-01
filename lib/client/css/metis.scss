@@ -1,5 +1,6 @@
-@import 'reset';
+@import url(https://fonts.googleapis.com/css?family=Montserrat);
 
+@import 'reset';
 @import 'nav/title-bar';
 @import 'nav/menu-bar';
 @import 'auth/login-panel';
@@ -12,5 +13,3 @@
 
 $fa-font-path: "~font-awesome/fonts";
 @import "~font-awesome/scss/font-awesome";
-
-@import url(https://fonts.googleapis.com/css?family=Montserrat);

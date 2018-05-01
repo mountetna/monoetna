@@ -27,14 +27,13 @@ export default class ListEntry extends React.Component{
             <a href={file.download_url}>{file.file_name}</a>
           </div>
           <div className='list-entry-status' title='The current file status.'>
-            <span className='light-text'>
-              {'uploaded at: '+dateFormat(file.finishTimestamp)}
-            </span>
           </div>
         </td>
-        <td className='list-entry-project-group'>
-          <div className='list-entry-project-name'>
-            {file.project_name}
+        <td className='list-entry-updated-group'>
+          <div className='list-entry-updated-name'>
+            <span className='light-text'>
+              {dateFormat(file.finishTimestamp)}
+            </span>
           </div>
           <div className='list-entry-role'>
             <span className='light-text'>
@@ -46,14 +45,6 @@ export default class ListEntry extends React.Component{
           <div className='list-entry-file-size'>
             <span className='dark-text' style={{fontWeight: 900}} >
               {byteFormat(file.size, 1000)}
-            </span>
-          </div>
-          <div className='list-entry-hash'>
-            <span className='light-text'>
-              MD5:
-              <span className='mono-text'>
-                {file.file_hash}
-              </span>
             </span>
           </div>
         </td>

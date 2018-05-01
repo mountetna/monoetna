@@ -29,7 +29,7 @@ export const byteFormat = (bytes, si, bits = false) => {
       return bytes + ' B';
   }
   let units = si
-      ? ['kB','MB','GB','TB','PB','EB','ZB','YB']
+      ? ['KB','MB','GB','TB','PB','EB','ZB','YB']
       : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
 
   if (bits) units = ['Kbps','Mbps','Gbps'];

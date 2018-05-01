@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export default class GenericSearchDropdown extends React.Component{
+export default class SearchDropdown extends React.Component{
   constructor(props){
     super(props);
 
