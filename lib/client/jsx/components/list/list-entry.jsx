@@ -41,7 +41,7 @@ export default class ListEntry extends React.Component{
             </span>
           </div>
         </td>
-        <td className='list-entry-title-group'>
+        <td className='list-entry-size-group'>
           <div className='list-entry-file-size'>
             <span className='dark-text' style={{fontWeight: 900}} >
               {byteFormat(file.size, 1000)}

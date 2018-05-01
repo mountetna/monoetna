@@ -35,7 +35,7 @@
   outline: none;
   color: #fff;
 
-  font-family: "Montserrat";
+  font-family: $base-font;
   color: #fff;
   font-size: 0.8em;
   padding-top: 3px;
@@ -74,7 +74,7 @@
 .user-menu-dropdown-group {
 
   overflow: hidden;
-  font-family: 'Montserrat';
+  font-family: $base-font;
   height: 100%;
   float: right;
 }

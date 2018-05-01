@@ -8,7 +8,7 @@ const ListColumnHead = ({ columnName }) => {
   return <th id={ columnId } className='list-head-title'>
     { columnLabel }
     <div className='list-column-head-arrow-group'>
-      <span className='fa fa-caret-down'></span>
+      <span className='fa fa-chevron-down'></span>
     </div>
   </th>
 };

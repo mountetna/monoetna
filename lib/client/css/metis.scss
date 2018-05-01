@@ -1,9 +1,11 @@
-@import url(https://fonts.googleapis.com/css?family=Montserrat);
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+$base-font: 'Open Sans', sans-serif;
 
 @import 'reset';
 @import 'nav/title-bar';
 @import 'nav/menu-bar';
-@import 'auth/login-panel';
+@import 'login-panel';
 @import 'list/list-head';
 @import 'list/list-body';
 @import 'list/upload-meter';
