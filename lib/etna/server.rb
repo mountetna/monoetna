@@ -13,7 +13,7 @@ module Etna
         )
       end
 
-      def using(options={}, &block)
+      def with(options={}, &block)
         @default_options = options
         instance_eval(&block)
         @default_options = nil

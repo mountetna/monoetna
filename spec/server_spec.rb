@@ -32,6 +32,18 @@ describe Etna::Server do
     expect(last_response.body).to eq('ok')
   end
 
+  it 'should allow route definitions with #with' do
+    Arachne::Server.with(action: 'web#silk') do
+      get '/silk'
+    end
+    @app = setup_app(Arachne::Server.new(test: {}))
+
+    get '/silk'
+
+    expect(last_response.status).to eq(200)
+    expect(last_response.body).to eq('ok')
+  end
+
   it 'should allow route definitions with actions' do
     Arachne::Server.route('GET', '/silk', action: 'web#silk')
     @app = setup_app(Arachne::Server.new(test: {}))
