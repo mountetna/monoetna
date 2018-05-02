@@ -28,10 +28,26 @@ class Metis
       Metis.instance.load_models
     end
   end
-  
+
+  class Schema < Etna::Command
+    usage 'Show the current database schema.'
+
+    def execute
+      Metis.instance.db.tap do |db|
+        db.extension(:schema_dumper)
+        puts db.dump_schema_migration
+      end
+    end
+
+    def setup(config)
+      super
+      Metis.instance.setup_db
+    end
+  end
+
   class Migrate < Etna::Command
     usage 'Run migrations for the current environment.'
-    
+
     def execute(version=nil)
       Sequel.extension(:migration)
       db = Metis.instance.db
