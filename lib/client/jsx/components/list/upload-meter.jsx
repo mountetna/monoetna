@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { byteFormat, dateFormat } from '../../utils/format';
+import { byteFormat } from '../../utils/format';
 
 export default class UploadMeter extends React.Component{
   constructor(){

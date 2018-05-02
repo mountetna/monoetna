@@ -4,17 +4,20 @@
 
 export const dateFormat = (timestamp) => {
   timestamp = parseInt(timestamp);
+
   if(isNaN(timestamp) || timestamp < 0){
     timestamp = new Date().getTime() / 1000;
   }
-  let dt = new Date(timestamp * 1000);
-  let hr = dt.getHours() + 1;
-  let mn = dt.getMinutes();
-  let mo = dt.getMonth() + 1;
-  let dy = dt.getDate();
-  let yr = dt.getYear();
 
-  return `${hr}:${mn}, ${mo}/${dy}`;
+  let dt = new Date(timestamp * 1000);
+  let today = new Date();
+
+  if (dt.toDateString() == today.toDateString()) {
+    let date = dt.toLocaleString('en-us',{ hour: 'numeric', minute: 'numeric' });
+    return `Today, ${date}`;
+  } else {
+    return dt.toLocaleString('en-us', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
 }
 
 /*
