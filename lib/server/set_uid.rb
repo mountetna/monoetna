@@ -4,16 +4,8 @@ class Metis
       @app = app
     end
 
-    def call(env)
+    def cookie_response(body, status, headers)
       Metis.instance.tap do |metis|
-        @request = Rack::Request.new(env)
-
-        status, headers, body = @app.call(env)
-
-        if (@request.cookies[metis.config(:metis_uid_name)])
-          return [ status, headers, body ]
-        end
-
         response = Rack::Response.new(body, status, headers)
         response.set_cookie(
           metis.config(:metis_uid_name),
@@ -24,6 +16,28 @@ class Metis
         )
 
         return response.finish
+      end
+    end
+
+    def malformed_uid?(uid)
+      uid !~ /\A[a-f0-9]+\z/
+    end
+
+    def call(env)
+      Metis.instance.tap do |metis|
+        @request = Rack::Request.new(env)
+
+        existing_uid = @request.cookies[metis.config(:metis_uid_name)]
+
+        if existing_uid && malformed_uid?(existing_uid)
+          return cookie_response('Malformed METIS_UID!', 422, {})
+        end
+
+        status, headers, body = @app.call(env)
+
+        return [ status, headers, body ] if existing_uid
+
+        return cookie_response(body, status, headers)
       end
     end
   end

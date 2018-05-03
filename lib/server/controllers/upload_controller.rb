@@ -26,7 +26,7 @@ class UploadController < Metis::Controller
       project_name: @params[:project_name],
       author: Metis::File.author(@user),
       bucket: bucket,
-      metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)],
+      metis_uid: metis_uid,
       file_size: 0,
       current_byte_position: 0,
       next_blob_size: -1,
@@ -72,7 +72,7 @@ class UploadController < Metis::Controller
       project_name: @params[:project_name],
       file_name: @params[:file_name],
       bucket: bucket,
-      metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)]
+      metis_uid: metis_uid,
     ).first
 
     raise Etna::BadRequest, 'No matching upload!' unless upload
@@ -103,7 +103,7 @@ class UploadController < Metis::Controller
       project_name: @params[:project_name],
       file_name: @params[:file_name],
       bucket: bucket,
-      metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)],
+      metis_uid: metis_uid
     ).first
 
     raise Etna::BadRequest, 'Upload has not been started!' unless upload
@@ -146,7 +146,7 @@ class UploadController < Metis::Controller
       project_name: @params[:project_name],
       file_name: @params[:file_name],
       bucket: bucket,
-      metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)],
+      metis_uid: metis_uid
     ).first
 
     raise Etna::BadRequest, 'Upload has not been started!' unless upload
@@ -156,5 +156,11 @@ class UploadController < Metis::Controller
     upload.delete
 
     return success('deleted')
+  end
+
+  private
+
+  def metis_uid
+    @request.cookies[Metis.instance.config(:metis_uid_name)]
   end
 end

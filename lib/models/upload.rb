@@ -3,7 +3,7 @@ class Metis
     many_to_one :bucket
 
     def to_hash
-      [ :project_name, :file_name, :current_byte_position, :next_blob_size, :next_blob_hash ].map do |s|
+      [ :project_name, :file_name, :author, :current_byte_position, :next_blob_size, :next_blob_hash ].map do |s|
         [ s, send(s) ]
       end.to_h
     end
@@ -16,9 +16,7 @@ class Metis
       ::File.expand_path(::File.join(
         Metis.instance.project_path(project_name),
         'uploads',
-        "#{metis_uid}-#{
-          Metis::File.safe_file_name(file_name)
-        }"
+        Metis::File.safe_file_name("#{metis_uid}-#{file_name}")
       ))
     end
 

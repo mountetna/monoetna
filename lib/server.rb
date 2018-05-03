@@ -9,6 +9,7 @@ require_relative './server/set_uid'
 
 class Metis
   class Server < Etna::Server
+    get '/' do success('Metis') end
     get '/:project_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
 
     post '/authorize/upload', action: 'upload#authorize', auth: { user: { can_edit?: :project_name } }
