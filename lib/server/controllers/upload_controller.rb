@@ -2,7 +2,7 @@ class UploadController < Metis::Controller
   def authorize
     require_params(:project_name, :file_name)
 
-    raise Etna::BadRequest, 'The filename is illegal.' unless Metis::File.valid_filename?(@params[:file_name])
+    raise Etna::BadRequest, 'The file name is illegal.' unless Metis::File.valid_file_name?(@params[:file_name])
 
     bucket_name = @params[:bucket_name] || 'files'
 
@@ -12,6 +12,28 @@ class UploadController < Metis::Controller
 
     raise Etna::Forbidden, 'Inaccessible bucket.' unless bucket.allowed?(@user)
 
+    file = Metis::File.find(
+      project_name: @params[:project_name],
+      file_name: @params[:file_name],
+      bucket: bucket
+    )
+
+    raise Etna::Forbidden, 'File cannot be overwritten.' if file && file.read_only?
+
+    # Create the upload
+    upload = Metis::Upload.create(
+      file_name: @params[:file_name],
+      project_name: @params[:project_name],
+      author: Metis::File.author(@user),
+      bucket: bucket,
+      metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)],
+      file_size: 0,
+      current_byte_position: 0,
+      next_blob_size: -1,
+      next_blob_hash: ''
+    )
+
+    # Make a MAC url
     url = Metis::File.upload_url(
       @request,
       @params[:project_name],
@@ -46,50 +68,41 @@ class UploadController < Metis::Controller
     # get the current bucket
     bucket = Metis::Bucket.find(name: @params[:bucket_name])
 
-    # make an entry for the file if it does not exist
-    file = Metis::File.find_or_create(
+    upload = Metis::Upload.where(
       project_name: @params[:project_name],
       file_name: @params[:file_name],
-      bucket: bucket
-    )
-
-    upload = Metis::Upload.where(
-      file: file,
+      bucket: bucket,
       metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)]
     ).first
 
-    if upload
-      return success(upload.to_json, 'application/json')
+    raise Etna::BadRequest, 'No matching upload!' unless upload
+
+    # the upload has been started already, report the current
+    # position
+    if upload.current_byte_position > 0
+      return success_json(upload)
     end
 
-    raise Etna::Forbidden, 'Upload in progress' if !file.uploads.empty?
-
-    upload = Metis::Upload.create(
-      file: file,
-      metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)],
+    upload.update(
       file_size: @params[:file_size].to_i,
-      current_byte_position: 0,
       next_blob_size: @params[:next_blob_size],
       next_blob_hash: @params[:next_blob_hash]
     )
 
     # Send upload initiated
-    success(upload.to_json,'application/json')
+    success_json(upload)
   end
 
   # Upload a chunk of the file.
   def upload_blob
     require_params(:blob_data, :next_blob_size, :next_blob_hash)
 
-    file = Metis::File.find(
-      project_name: @params[:project_name],
-      file_name: @params[:file_name]
-    )
-
-    raise Etna::BadRequest, 'Could not find file!' unless file
+    bucket = Metis::Bucket.find(name: @params[:bucket_name])
 
     upload = Metis::Upload.where(
-      file: file,
+      project_name: @params[:project_name],
+      file_name: @params[:file_name],
+      bucket: bucket,
       metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)],
     ).first
 
@@ -107,28 +120,32 @@ class UploadController < Metis::Controller
     )
 
     if upload.complete?
-      upload.finish!
+      if upload.can_place?
+        upload.finish!
 
-      upload_json = upload.to_json
+        response = success_json(upload)
 
-      upload.delete
+        upload.delete
 
-      return success(upload_json, 'application/json')
+        return response
+      else
+        upload.delete_partial!
+        upload.delete
+
+        raise Etna::Forbidden, 'Cannot overwrite existing file!'
+      end
     end
 
-    return success(upload.to_json, 'application/json')
+    return success_json(upload)
   end
 
   def upload_cancel
-    file = Metis::File.find(
-      project_name: @params[:project_name],
-      file_name: @params[:file_name]
-    )
-
-    raise Etna::BadRequest, 'Could not find file!' unless file
+    bucket = Metis::Bucket.find(name: @params[:bucket_name])
 
     upload = Metis::Upload.where(
-      file: file,
+      project_name: @params[:project_name],
+      file_name: @params[:file_name],
+      bucket: bucket,
       metis_uid: @request.cookies[Metis.instance.config(:metis_uid_name)],
     ).first
 
@@ -138,12 +155,6 @@ class UploadController < Metis::Controller
     upload.delete_partial!
     upload.delete
 
-    # axe the file if there is no data
-    file.refresh
-    if !file.has_data? && file.uploads.empty?
-      file.delete
-    end
-
-    return success('')
+    return success('deleted')
   end
 end

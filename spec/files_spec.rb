@@ -34,9 +34,9 @@ describe FilesController do
       get('/athena/files')
 
       expect(last_response.status).to eq(200)
-      json = json_body(last_response.body)
 
       # isolate the urls since they are harder to match
+      json = json_body
       urls = json[:files].map{|f| f.delete(:download_url)}
 
       expect(json).to eq(files: [
@@ -70,8 +70,7 @@ describe FilesController do
       json_post("athena/create_folder/files/Helmet\nBlueprints", {})
 
       expect(last_response.status).to eq(422)
-      json = json_body(last_response.body)
-      expect(json[:error]).to eq('Invalid folder name')
+      expect(json_body[:error]).to eq('Invalid folder name')
     end
 
     it 'creates nested folders' do
@@ -98,8 +97,7 @@ describe FilesController do
       json_post('athena/create_folder/files/wisdom.txt/Helmet Blueprints', {})
 
       expect(last_response.status).to eq(422)
-      json = json_body(last_response.body)
-      expect(json[:error]).to eq('Invalid parent folder')
+      expect(json_body[:error]).to eq('Invalid parent folder')
     end
 
     it 'refuses to create folders with no parent folder' do
@@ -109,8 +107,7 @@ describe FilesController do
       json_post('athena/create_folder/files/blueprints/Helmet Blueprints', {})
 
       expect(last_response.status).to eq(422)
-      json = json_body(last_response.body)
-      expect(json[:error]).to eq('Invalid parent folder')
+      expect(json_body[:error]).to eq('Invalid parent folder')
     end
   end
 end

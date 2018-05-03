@@ -28,14 +28,11 @@ describe UploadController do
     it 'should authorize an upload' do
       params = {
         file_name: 'wisdom.txt',
-        project_name: 'athena',
-        user_email: 'metis@ucsf.edu'
+        project_name: 'athena'
       }
 
       # we use our token to authorize an upload
-      header(*Etna::TestAuth.token_header(
-        email: 'metis@ucsf.edu', perm: 'e:athena'
-      ))
+      auth_header(:editor)
       json_post('authorize/upload', params)
 
       # we expect an authorization url in return
@@ -46,6 +43,8 @@ describe UploadController do
       expect(last_response.status).to eq(200)
       expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_name]}")
       expect(hmac_params['X-Etna-Id']).to eq('metis')
+      upload = Metis::Upload.first
+      expect(upload).not_to be_nil
     end
 
     it 'does not authorize poorly-named files' do
@@ -55,9 +54,7 @@ describe UploadController do
       }
 
       # we use our token to authorize an upload
-      header(*Etna::TestAuth.token_header(
-        email: 'metis@ucsf.edu', perm: 'e:athena'
-      ))
+      auth_header(:editor)
 
       # here are some good and bad examples to test
       {
@@ -72,12 +69,37 @@ describe UploadController do
         end
       end
     end
+
+    it 'does not authorize read-only files' do
+      # there is an existing read-only file
+      file = create_file('athena', 'wisdom.txt', WISDOM,
+        author: 'metis@tartarus.org',
+        read_only: true
+      )
+
+      params = {
+        file_name: 'wisdom.txt',
+        project_name: 'athena'
+      }
+
+      # we use our token to authorize an upload
+      auth_header(:editor)
+      json_post('authorize/upload', params)
+
+      # we expect to be forbidden from uploading
+      expect(last_response.status).to eq(403)
+      upload = Metis::Upload.first
+      expect(upload).to be_nil
+    end
   end
 
   context '#upload_start' do
     it 'should start an upload' do
+      # we expect the appropriate records to have been created
+      upload = create_upload( 'athena', 'wisdom.txt', @metis_uid )
+
       # we post to the upload path with hmac authorization
-      header(*Etna::TestAuth.hmac_header({}))
+      hmac_header
       json_post(
         upload_path('athena', 'wisdom.txt'),
         file_size: WISDOM.length,
@@ -86,31 +108,26 @@ describe UploadController do
         next_blob_hash: 10
       )
 
-      # we expect the appropriate records to have been created
-      upload = Metis::Upload.first
-      file = Metis::File.first
-      expect(upload).not_to be_nil
-      expect(file).not_to be_nil
-      expect(file.uploads).to eq([upload])
+
+      # the file has not been made yet
+      expect(Metis::File.count).to eq(0)
 
       # we expect the upload as a json object
       expect(last_response.status).to eq(200)
-      json = json_body(last_response.body)
-      expect(json).to eq(
+      expect(json_body).to eq(
         current_byte_position: 0,
         file_name: 'wisdom.txt',
+        project_name: 'athena',
+        author: 'metis@olympus.org|Metis ',
         next_blob_hash: '10',
-        next_blob_size: 10,
-        project_name: 'athena'
+        next_blob_size: 10
       )
     end
 
     it 'should resume an existing upload' do
       # there is already an upload in place for our metis_uid
       file = create_file('athena', 'wisdom.txt', WISDOM)
-      upload = create( :upload,
-        file: file,
-        metis_uid: @metis_uid,
+      upload = create_upload( 'athena', 'wisdom.txt', @metis_uid,
         current_byte_position: 10,
         file_size: WISDOM.length,
         next_blob_size: 10,
@@ -118,7 +135,7 @@ describe UploadController do
       )
 
       # we attempt to initiate a new upload
-      header(*Etna::TestAuth.hmac_header({}))
+      hmac_header
       json_post(
         upload_path('athena', 'wisdom.txt'),
         action: 'start',
@@ -129,11 +146,11 @@ describe UploadController do
 
       # we receive back the status of the existing upload
       expect(last_response.status).to eq(200)
-      json = json_body(last_response.body)
-      expect(json).to eq(
+      expect(json_body).to eq(
         current_byte_position: 10,
         next_blob_size: 10,
         next_blob_hash: 'abcdef',
+        author: 'metis@olympus.org|Metis ',
         project_name: 'athena',
         file_name: 'wisdom.txt'
       )
@@ -143,9 +160,8 @@ describe UploadController do
       file = create_file('athena', 'wisdom.txt', WISDOM)
 
       # we create an upload, but the metis_uid is different from ours
-      upload = create( :upload,
-        file: file,
-        metis_uid: @metis_uid.reverse,
+      upload = create_upload(
+        'athena', 'wisdom.txt', @metis_uid.reverse,
         file_size: WISDOM.length,
         current_byte_position: 10,
         next_blob_size: 10,
@@ -153,7 +169,7 @@ describe UploadController do
       )
 
       # we attempt to post to the path
-      header(*Etna::TestAuth.hmac_header({}))
+      hmac_header
       json_post(
         upload_path('athena', 'wisdom.txt'),
         action: 'start',
@@ -163,9 +179,8 @@ describe UploadController do
       )
 
       # we are forbidden
-      expect(last_response.status).to eq(403)
-      json = json_body(last_response.body)
-      expect(json[:error]).to eq('Upload in progress')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('No matching upload!')
     end
   end
 
@@ -184,9 +199,7 @@ describe UploadController do
 
 
       # the upload expects the contents of next_blob
-      upload = create( :upload,
-        file: file,
-        metis_uid: @metis_uid,
+      upload = create_upload('athena', 'wisdom.txt', @metis_uid,
         file_size: WISDOM.length,
         current_byte_position: File.size(partial_file),
         next_blob_size: next_blob.length,
@@ -197,7 +210,7 @@ describe UploadController do
       wisdom_blob_file = stub_data('wisdom_blob', next_blob, :athena)
 
       # post the new blob
-      header(*Etna::TestAuth.hmac_header({}))
+      hmac_header
       post(
         upload_path('athena', 'wisdom.txt'),
         action: 'blob',
@@ -227,9 +240,7 @@ describe UploadController do
       partial_file = stub_partial(file.file_name, partial, :athena)
 
       # the upload expects the correct contents
-      upload = create( :upload,
-        file: file,
-        metis_uid: @metis_uid,
+      upload = create_upload('athena', 'wisdom.txt', @metis_uid,
         file_size: WISDOM.length,
         current_byte_position: File.size(partial_file),
         next_blob_size: next_blob.length,
@@ -237,7 +248,7 @@ describe UploadController do
       )
 
       # we post the wrong blob
-      header(*Etna::TestAuth.hmac_header({}))
+      hmac_header
       post(
         upload_path('athena', 'wisdom.txt'),
         action: 'blob',
@@ -251,8 +262,7 @@ describe UploadController do
 
       # the server responds with a client error
       expect(last_response.status).to eq(422)
-      json = json_body(last_response.body)
-      expect(json[:error]).to eq('Blob integrity failed')
+      expect(json_body[:error]).to eq('Blob integrity failed')
     end
 
     it 'finishes the upload' do
@@ -262,14 +272,10 @@ describe UploadController do
 
       wisdom_blob_file = stub_data('wisdom_blob', next_blob, :athena)
 
-      file = create_file('athena', 'wisdom.txt', WISDOM)
-
-      partial_file = stub_partial(file.file_name, partial, :athena)
+      partial_file = stub_partial('wisdom.txt', partial, :athena)
 
       # the upload expects the final blob
-      upload = create( :upload,
-        file: file,
-        metis_uid: @metis_uid,
+      upload = create_upload('athena', 'wisdom.txt', @metis_uid,
         file_size: WISDOM.length,
         current_byte_position: File.size(partial_file),
         next_blob_size: next_blob.length,
@@ -277,7 +283,7 @@ describe UploadController do
       )
 
       # post the blob with no next blob
-      header(*Etna::TestAuth.hmac_header({}))
+      hmac_header
       post(
         upload_path('athena', 'wisdom.txt'),
         action: 'blob',
@@ -294,8 +300,140 @@ describe UploadController do
       # the partial is destroyed
       expect(File.exists?(partial_file)).to be_falsy
 
+      file = Metis::File.first
+
       # the actual file exists with the correct content
       expect(File.read(file.location)).to eq(WISDOM)
+
+      # the file thinks it has data
+      expect(file.has_data?).to be_truthy
+
+      # the author is set
+      expect(file.author).to eq('metis@olympus.org|Metis ')
+
+      # clean up the file
+      File.delete(file.location)
+      Timecop.return
+    end
+
+    it 'completes over an existing file' do
+      # the next blob completes the data
+      next_blob = WISDOM[20..-1]
+      partial = WISDOM[0..19]
+
+      wisdom_blob_file = stub_data('wisdom_blob', next_blob, :athena)
+
+      partial_file = stub_partial('wisdom.txt', partial, :athena)
+
+      creation_time = Date.today - 10
+      Timecop.freeze(creation_time)
+      file = create_file('athena', 'wisdom.txt', WISDOM*2,
+        author: 'metis@tartarus.org'
+      )
+      Timecop.return
+
+      current_file = stub_file('wisdom.txt', WISDOM*2, :athena)
+
+      # the upload expects the final blob
+      upload = create_upload('athena', 'wisdom.txt', @metis_uid,
+        file_size: WISDOM.length,
+        current_byte_position: File.size(partial_file),
+        next_blob_size: next_blob.length,
+        next_blob_hash: Digest::MD5.hexdigest(next_blob)
+      )
+
+      # post the blob with no next blob
+      hmac_header
+      post(
+        upload_path('athena', 'wisdom.txt'),
+        action: 'blob',
+        next_blob_size: 0,
+        next_blob_hash: '',
+        blob_data: Rack::Test::UploadedFile.new(
+          wisdom_blob_file,
+          'application/octet-stream'
+        )
+      )
+
+      expect(last_response.status).to eq(200)
+
+      # the partial is destroyed
+      expect(File.exists?(partial_file)).to be_falsy
+
+      file = Metis::File.first
+
+      # the actual file exists with the correct content
+      expect(File.read(file.location)).to eq(WISDOM)
+
+      # the file thinks it has data
+      expect(file.has_data?).to be_truthy
+
+      # the created_at timestamp is the original date
+      expect(file.created_at).to be_within(1).of(creation_time.to_time)
+
+      # the updated_at timestamp is new
+      expect(file.updated_at).to be_within(1).of(Time.now)
+
+      # so is the author
+      expect(file.author).to eq('metis@olympus.org|Metis ')
+
+      # clean up the file
+      File.delete(file.location)
+    end
+
+    it 'refuses to complete over an existing read-only file' do
+      # the next blob completes the data
+      next_blob = WISDOM[20..-1]
+      partial = WISDOM[0..19]
+
+      wisdom_blob_file = stub_data('wisdom_blob', next_blob, :athena)
+
+      partial_file = stub_partial('wisdom.txt', partial, :athena)
+
+      creation_time = Date.today - 10
+      Timecop.freeze(creation_time)
+      file = create_file('athena', 'wisdom.txt', WISDOM*2,
+        author: 'metis@tartarus.org',
+        read_only: true
+      )
+      Timecop.return
+      current_file = stub_file('wisdom.txt', WISDOM*2, :athena)
+
+      # the upload expects the final blob
+      upload = create_upload('athena', 'wisdom.txt', @metis_uid,
+        file_size: WISDOM.length,
+        current_byte_position: File.size(partial_file),
+        next_blob_size: next_blob.length,
+        next_blob_hash: Digest::MD5.hexdigest(next_blob)
+      )
+
+      # post the blob with no next blob
+      hmac_header
+      post(
+        upload_path('athena', 'wisdom.txt'),
+        action: 'blob',
+        next_blob_size: 0,
+        next_blob_hash: '',
+        blob_data: Rack::Test::UploadedFile.new(
+          wisdom_blob_file,
+          'application/octet-stream'
+        )
+      )
+
+      expect(last_response.status).to eq(403)
+
+      # the partial is destroyed
+      expect(File.exists?(partial_file)).to be_falsy
+
+      file = Metis::File.first
+
+      # the actual file exists with the original content
+      expect(File.read(file.location)).to eq(WISDOM*2)
+
+      # the file metadata is the same
+      expect(file.created_at).to be_within(1).of(creation_time.to_time)
+      expect(file.updated_at).to be_within(1).of(creation_time.to_time)
+      expect(file.author).to eq('metis@tartarus.org')
 
       # the file thinks it has data
       expect(file.has_data?).to be_truthy
@@ -309,13 +447,10 @@ describe UploadController do
     it 'should add cancel an upload' do
       # there is partial data
       partial = WISDOM[0..9]
-      file = create_file('athena', 'wisdom.txt', WISDOM)
-      partial_file = stub_partial(file.file_name, partial, :athena)
+      partial_file = stub_partial('wisdom.txt', partial, :athena)
 
       # there is an upload waiting
-      upload = create( :upload,
-        file: file,
-        metis_uid: @metis_uid,
+      upload = create_upload( 'athena', 'wisdom.txt', @metis_uid,
         file_size: WISDOM.length,
         current_byte_position: File.size(partial_file),
         next_blob_size: 10,
@@ -323,7 +458,7 @@ describe UploadController do
       )
 
       # we post a cancel request with our hmac url
-      header(*Etna::TestAuth.hmac_header({}))
+      hmac_header
       post(
         upload_path('athena', 'wisdom.txt'),
         action: 'cancel',
@@ -341,13 +476,10 @@ describe UploadController do
       partial = WISDOM[0..9]
 
       # our file has no existing data
-      file = create_file('athena', 'wisdom.txt', WISDOM)
-      partial_file = stub_partial(file.file_name, partial, :athena)
+      partial_file = stub_partial('wisdom.txt', partial, :athena)
 
       # there is an upload waiting
-      upload = create( :upload,
-        file: file,
-        metis_uid: @metis_uid,
+      upload = create_upload('athena', 'wisdom.txt', @metis_uid,
         file_size: WISDOM.length,
         current_byte_position: File.size(partial_file),
         next_blob_size: 10,
@@ -355,7 +487,7 @@ describe UploadController do
       )
 
       # we post a cancel request with our hmac url
-      header(*Etna::TestAuth.hmac_header({}))
+      hmac_header
       post(
         upload_path('athena', 'wisdom.txt'),
         action: 'cancel',
@@ -379,9 +511,7 @@ describe UploadController do
       partial_file = stub_partial(file.file_name, partial, :athena)
 
       # there is an upload waiting
-      upload = create( :upload,
-        file: file,
-        metis_uid: @metis_uid,
+      upload = create_upload('athena', 'wisdom.txt', @metis_uid,
         file_size: WISDOM.length,
         current_byte_position: File.size(partial_file),
         next_blob_size: 10,
@@ -389,7 +519,7 @@ describe UploadController do
       )
 
       # we post a cancel request with our hmac url
-      header(*Etna::TestAuth.hmac_header({}))
+      hmac_header
       post(
         upload_path('athena', 'wisdom.txt'),
         action: 'cancel',

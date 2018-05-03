@@ -89,8 +89,8 @@ def fixture(name)
   File.join(File.dirname(__FILE__), "fixtures/#{name}.txt")
 end
 
-def json_body(body)
-  JSON.parse(body, symbolize_names: true)
+def json_body
+  JSON.parse(last_response.body, symbolize_names: true)
 end
 
 def json_post(endpoint, hash)
@@ -102,7 +102,7 @@ def stubs
 end
 
 def stub_file(name, contents, project_name = :stub, bucket_name = 'files')
-  file_name = "#{bucket_name}/#{Metis::File.safe_filename(name)}"
+  file_name = "#{bucket_name}/#{Metis::File.safe_file_name(name)}"
   make_stub(file_name, contents, project_name)
 end
 
@@ -111,7 +111,7 @@ def stub_data(name, contents, project_name = :stub)
 end
 
 def stub_partial(name, contents, project_name = :stub)
-  file_name = "uploads/#{@metis_uid}-#{Metis::File.safe_filename(name)}"
+  file_name = "uploads/#{@metis_uid}-#{Metis::File.safe_file_name(name)}"
   make_stub(file_name, contents, project_name)
 end
 
@@ -147,16 +147,45 @@ which I command
 are immortal
 EOT
 
+AUTH_USERS = {
+  editor: {
+    email: 'metis@olympus.org', first: 'Metis', perm: 'e:athena'
+  }
+}
+def auth_header(user_type)
+  header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
+end
+
+def hmac_header
+  header(*Etna::TestAuth.hmac_header({}))
+end
+
 def default_bucket(project_name)
   @default_bucket ||= {}
   @default_bucket[project_name] ||= create( :bucket, project_name: project_name, name: 'files' )
 end
 
+def create_upload(project_name, file_name, uid, params={})
+  create( :upload,
+    {
+      project_name: project_name,
+      file_name: file_name,
+      author: Metis::File.author(Etna::User.new(AUTH_USERS[:editor])),
+      metis_uid: uid,
+      bucket: default_bucket(project_name),
+      current_byte_position: 0,
+      file_size: 0,
+      next_blob_size: -1,
+      next_blob_hash: ''
+    }.merge(params)
+  )
+end
 def create_file(project_name, file_name, contents, params={})
   create( :file,
     {
       bucket: default_bucket(project_name),
       project_name: project_name,
+      author: '',
       file_name: file_name,
       file_hash: contents ? Digest::MD5.hexdigest(contents) : nil
     }.merge(params)

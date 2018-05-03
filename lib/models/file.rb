@@ -1,5 +1,7 @@
+
 class Metis
   class File < Sequel::Model
+    plugin :timestamps, update_on_create: true
     many_to_one :bucket
     many_to_one :folder, class: Metis::File
 
@@ -13,19 +15,19 @@ class Metis
       \z
     !x
 
-    def self.valid_filename?(filename)
-      !!(filename =~ FILEPATH_MATCH)
+    def self.valid_file_name?(file_name)
+      !!(file_name =~ FILEPATH_MATCH)
     end
 
-    def self.foldername(filename)
-      FILEPATH_MATCH.match(filename)[:folders].tap do |folders|
+    def self.foldername(file_name)
+      FILEPATH_MATCH.match(file_name)[:folders].tap do |folders|
         # no trailing slash in foldername
         return folders.empty? ? nil : folders.sub(%r!/$!,'')
       end
     end
 
-    def self.safe_filename(filename)
-      filename.unpack('H*').first
+    def self.safe_file_name(file_name)
+      file_name.unpack('H*').first
     end
 
     def self.md5(path)
@@ -61,6 +63,10 @@ class Metis
         ),
         Metis.instance.config(:download_expiration)
       )
+    end
+
+    def self.author(user)
+      [ user.email, "#{user.first} #{user.last}" ].join('|')
     end
 
     private
@@ -106,11 +112,15 @@ class Metis
       self.is_folder
     end
 
+    def read_only?
+      read_only
+    end
+
     def location
       ::File.expand_path(::File.join(
         Metis.instance.project_path(project_name),
         bucket.name,
-        Metis::File.safe_filename(
+        Metis::File.safe_file_name(
           file_name
         )
       ))

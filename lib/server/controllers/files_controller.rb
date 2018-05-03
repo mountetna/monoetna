@@ -13,8 +13,8 @@ class FilesController < Metis::Controller
 
     raise Etna::BadRequest, 'Invalid bucket!' unless bucket && bucket.allowed?(@user)
 
-    # any valid filename is a valid folder name
-    raise Etna::BadRequest, 'Invalid folder name' unless Metis::File.valid_filename?(@params[:folder_name])
+    # any valid file_name is a valid folder name
+    raise Etna::BadRequest, 'Invalid folder name' unless Metis::File.valid_file_name?(@params[:folder_name])
 
     # require the parent folder (if any) to exist
     parent_folder = nil
@@ -38,6 +38,7 @@ class FilesController < Metis::Controller
     file = Metis::File.create(
       project_name: @params[:project_name],
       file_name: @params[:folder_name],
+      author: Metis::File.author(@user),
       bucket: bucket,
       folder: parent_folder,
       is_folder: true

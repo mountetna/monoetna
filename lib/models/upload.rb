@@ -1,14 +1,11 @@
 class Metis
   class Upload < Sequel::Model
-    many_to_one :file
+    many_to_one :bucket
 
     def to_hash
-      [ :current_byte_position, :next_blob_size, :next_blob_hash ].map do |s|
+      [ :project_name, :file_name, :current_byte_position, :next_blob_size, :next_blob_hash ].map do |s|
         [ s, send(s) ]
-      end.to_h.merge(
-        project_name: file.project_name,
-        file_name: file.file_name
-      )
+      end.to_h
     end
 
     def to_json
@@ -17,10 +14,10 @@ class Metis
 
     def partial_location
       ::File.expand_path(::File.join(
-        Metis.instance.project_path(file.project_name),
+        Metis.instance.project_path(project_name),
         'uploads',
         "#{metis_uid}-#{
-          Metis::File.safe_filename(file.file_name)
+          Metis::File.safe_file_name(file_name)
         }"
       ))
     end
@@ -40,8 +37,23 @@ class Metis
       )
     end
 
+    def can_place?
+      !file.read_only?
+    end
+
+    def file
+      @file ||= Metis::File.find_or_create(
+        project_name: project_name,
+        file_name: file_name,
+        bucket: bucket
+      ) do |f|
+        f.author = author
+      end
+    end
+
     def finish!
-      # Update the postgres record.
+      file.author = author
+      file.save
       file.set_file_data(partial_location)
     end
 
