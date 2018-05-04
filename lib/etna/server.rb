@@ -76,7 +76,9 @@ module Etna
         # How large the log can get before overturning.
         application.config(:log_size) || 1048576
       )
-      @logger.level = Logger::WARN
+      log_level = (application.config(:log_level) || 'warn').upcase.to_sym
+
+      @logger.level = Logger.const_defined?(log_level) ? Logger.const_get(log_level) : Logger::WARN
     end
   end
 end

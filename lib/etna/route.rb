@@ -34,7 +34,15 @@ module Etna
           :"#{controller.camel_case}Controller"
         )
         logger = request.env['etna.logger']
-        logger.warn("Calling #{controller}##{action}")
+        user = request.env['etna.user']
+
+        params = request.env['rack.request.params'].map do |key,value|
+          value = value.to_s
+          value = value[0..500] + "..." + value[-100..-1] if value.length > 600
+          [ key, value ]
+        end.to_h
+
+        logger.warn("User #{user ? user.email : :unknown} calling #{controller}##{action} with params #{params}")
         return controller_class.new(request, action).response
       elsif @block
         application = Etna::Application.find(app.class).class
