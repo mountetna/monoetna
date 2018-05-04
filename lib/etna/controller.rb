@@ -34,11 +34,13 @@ module Etna
     alias_method :require_param, :require_params
 
     def route_path(name, params={})
-      route = @server.class.routes.find do |route|
-        route.name.to_s == name.to_s
-      end
-      return nil if route.nil?
-      @request.scheme + '://' + @request.host + route.path(params)
+      @server.class.route_path(@request, name, params)
+    end
+
+    def route_url(name, params={})
+      path = route_path(name,params)
+      return nil unless path
+      @request.scheme + '://' + @request.host + path
     end
 
     # methods for returning a view

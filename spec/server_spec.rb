@@ -1,4 +1,4 @@
-describe Etna::Route do
+describe Etna::Server do
   include Rack::Test::Methods
 
   attr_reader :app
@@ -23,6 +23,18 @@ describe Etna::Route do
   it 'should allow route definitions with blocks' do
     Arachne::Server.route('GET', '/silk') do
       [ 200, {}, [ 'ok' ] ]
+    end
+    @app = setup_app(Arachne::Server.new(test: {}))
+
+    get '/silk'
+
+    expect(last_response.status).to eq(200)
+    expect(last_response.body).to eq('ok')
+  end
+
+  it 'should allow route definitions with #with' do
+    Arachne::Server.with(action: 'web#silk') do
+      get '/silk'
     end
     @app = setup_app(Arachne::Server.new(test: {}))
 
@@ -124,7 +136,7 @@ describe Etna::Route do
 
   it 'looks up route names' do
     Arachne::Server.get('/silk/:query', as: :silk) do
-      [ 200, {}, [ route_path(:silk, @params) ] ]
+      [ 200, {}, [ route_url(:silk, @params) ] ]
     end
     @app = setup_app(Arachne::Server.new(test: {}))
 

@@ -8,15 +8,21 @@ module Etna
         @routes << Etna::Route.new(
           method,
           path,
-          options,
+          (@default_options || {}).merge(options),
           &block
         )
+      end
+
+      def with(options={}, &block)
+        @default_options = options
+        instance_eval(&block)
+        @default_options = nil
       end
 
       def get(path, options={}, &block)
         route('GET', path, options, &block)
       end
-      
+
       def post(path, options={}, &block)
         route('POST', path, options, &block)
       end
@@ -27,6 +33,13 @@ module Etna
 
       def delete(path, options={}, &block)
         route('DELETE', path, options, &block)
+      end
+
+      def route_path(request,name,params={})
+        route = routes.find do |route|
+          route.name.to_s == name.to_s
+        end
+        return route ? route.path(params) : nil
       end
 
       attr_reader :routes

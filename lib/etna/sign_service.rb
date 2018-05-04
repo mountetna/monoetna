@@ -1,5 +1,6 @@
 # General signing/hashing utilities.
 require 'jwt'
+require 'securerandom'
 
 module Etna
   class SignService
@@ -28,6 +29,10 @@ module Etna
         private_key,
         @application.config(:token_algo)
       )
+    end
+
+    def uid(size=nil)
+      SecureRandom.hex(size)
     end
 
     def jwt_decode(token)
