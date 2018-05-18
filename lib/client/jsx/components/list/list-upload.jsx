@@ -282,19 +282,18 @@ export default class ListUpload extends React.Component{
     };
 
     return (
-      <tr className='list-entry-group'>
-        <td className='list-entry-icon'>
-        </td>
-        <td { ...listEntryTitleProps }>
+      <div className='list-entry-group'>
+        <div className='list-entry-icon'/>
+        <div { ...listEntryTitleProps }>
           <input { ...fileNameInputProps } />
           { this.renderFileNameEditMode() }
           <div { ...listFileStatus }>
             { this.parseFileStatus() }
           </div>
-        </td>
+        </div>
         <UploadMeter upload={ this.props.upload } />
         <UploadControl { ...uploadControl } />
-      </tr>
+      </div>
     );
   }
 }

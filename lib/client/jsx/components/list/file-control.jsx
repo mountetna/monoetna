@@ -12,11 +12,11 @@ export default class FileControl extends React.Component{
     };
 
     return (
-      <td className='file-control-group'>
+      <div className='file-control-group'>
         <button { ...fileControlBtn }>
           <span className='glyphicon glyphicon-remove'></span>
         </button>
-      </td>
+      </div>
     )
   }
 }

@@ -11,7 +11,7 @@ class ListBody extends React.Component{
   }
   
   render() {
-    let { files, user } = this.props;
+    let { files, widths, user } = this.props;
     let { uploads, downloads, fails } = files;
     let { permissions } = user;
 
@@ -20,7 +20,7 @@ class ListBody extends React.Component{
       clearUpload, selectProject } = this.props;
 
     return (
-      <tbody id='list-body-group'>
+      <div id='list-body-group'>
         {/* Render the failed uploads. */}
         { (fails.length) ? 
             fails.map((failedFile)=>{
@@ -59,13 +59,14 @@ class ListBody extends React.Component{
               let listEntry = {
                 key,
                 file,
+                widths,
                 callbacks: { removeFile }
               };
 
               return <ListEntry { ...listEntry } />
             })
           : '' }
-      </tbody>
+      </div>
     );
   }
 }

@@ -1,16 +1,17 @@
 import * as React from 'react';
 import * as ReactRedux from 'react-redux';
 
-const ListColumnHead = ({ columnName }) => {
+const ListColumnHead = ({ columnName, widths }) => {
   let columnLabel = columnName.replace(/\b\w/g, l => l.toUpperCase());
   let columnId = `list-${columnName}-column`;
 
-  return <th id={ columnId } className='list-head-title'>
+  return <div id={ columnId } className='list-head-title'
+    style={ { 'flex-basis': widths[columnName] } } >
     { columnLabel }
     <div className='list-column-head-arrow-group'>
       <span className='fa fa-chevron-down'></span>
     </div>
-  </th>
+  </div>
 };
 
 const ListControlButton = ({onClick, icon, title}) => {
@@ -57,6 +58,7 @@ class ListHead extends React.Component{
   }
 
   render() {
+    let { widths } = this.props;
     let fileSelector = {
       id: 'file-selector',
       className: 'file-selector',
@@ -66,19 +68,20 @@ class ListHead extends React.Component{
     };
 
     return (  
-      <thead>
-        <tr id='list-head-group'>
-          <ListColumnHead columnName='type'/>
-          <ListColumnHead columnName='name'/>
-          <ListColumnHead columnName='updated'/>
-          <ListColumnHead columnName='size'/>
-          <th id='list-control-column' className='list-head-title'>
+      <div>
+        <div id='list-head-group'>
+          <ListColumnHead widths={ widths } columnName='type'/>
+          <ListColumnHead widths={ widths } columnName='name'/>
+          <ListColumnHead widths={ widths } columnName='updated'/>
+          <ListColumnHead widths={ widths } columnName='size'/>
+          <div id='list-control-column' className='list-head-title'
+            style={ { 'flex-basis': widths.control } }>
             <input { ...fileSelector } />
             <ListControlButton onClick={ this.selectFile.bind(this) } title='Upload file' icon='upload'/>
             <ListControlButton onClick={ this.selectFolder.bind(this) } title='Create folder' icon={ [ 'folder', 'plus' ] }/>
-          </th>
-        </tr>
-      </thead>
+          </div>
+        </div>
+      </div>
     );
   }
 }
