@@ -1,7 +1,5 @@
 #list-body-group {
-
   height: 100%;
-  margin-top: 10px;
 
   .list-entry-group {
     position: relative;
@@ -12,7 +10,7 @@
     height: 50px;
     display: flex;
     justify-content: space-between;
-    &:focus {
+    &:active {
       background: #eef;
     }
 
@@ -21,6 +19,7 @@
       flex: 1 1;
       overflow: hidden;
       align-self: center;
+      padding-right: 5px;
       font-family: $base-font;
 
       .list-entry-text {
@@ -30,9 +29,11 @@
         width: 100%;
       }
 
-      &.icon {
+      &.type {
         vertical-align: top;
-        font-size: 2.9em;
+        font-size: 1.75em;
+        color: #5ab;
+        text-align: center;
       }
 
       &.size {
@@ -64,10 +65,8 @@
             }
           }
           overflow: hidden;
+          line-height: 50px;
           text-overflow: ellipsis;
-          &:focus {
-            outline: none;
-          }
         }
         .list-entry-file-name-input {
           margin-top: 2px;

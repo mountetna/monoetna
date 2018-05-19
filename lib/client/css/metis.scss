@@ -13,5 +13,7 @@ $base-font: 'Open Sans', sans-serif;
 @import 'global';
 @import 'media';
 
-$fa-font-path: "~font-awesome/fonts";
-@import "~font-awesome/scss/font-awesome";
+$fa-font-path: "~font-awesome/webfonts";
+@import "~font-awesome/scss/fontawesome";
+@import "~font-awesome/scss/fa-regular";
+@import "~font-awesome/scss/fa-solid";

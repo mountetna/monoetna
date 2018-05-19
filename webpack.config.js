@@ -16,7 +16,7 @@ module.exports = {
   resolve: {
     extensions: [ '.js', '.jsx' ],
     alias: {
-      'font-awesome': path.join(__dirname, 'node_modules/font-awesome')
+      'font-awesome': path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free-webfonts')
     }
   },
   entry: {
@@ -56,7 +56,7 @@ module.exports = {
         test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)(\?.*$|$)/,
 
         include: [
-          path.resolve(__dirname, 'node_modules/font-awesome'),
+          path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free-webfonts')
         ],
 
         loader: 'file-loader',

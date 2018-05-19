@@ -6,7 +6,7 @@ const ListColumnHead = ({ columnName, widths }) => {
   let columnId = `list-${columnName}-column`;
 
   return <div id={ columnId } className='list-head-title'
-    style={ { 'flex-basis': widths[columnName] } } >
+    style={ { flexBasis: widths[columnName] } } >
     { columnLabel }
     <div className='list-column-head-arrow-group'>
       <span className='fa fa-chevron-down'></span>
@@ -75,7 +75,7 @@ class ListHead extends React.Component{
           <ListColumnHead widths={ widths } columnName='updated'/>
           <ListColumnHead widths={ widths } columnName='size'/>
           <div id='list-control-column' className='list-head-title'
-            style={ { 'flex-basis': widths.control } }>
+            style={ { flexBasis: widths.control } }>
             <input { ...fileSelector } />
             <ListControlButton onClick={ this.selectFile.bind(this) } title='Upload file' icon='upload'/>
             <ListControlButton onClick={ this.selectFolder.bind(this) } title='Create folder' icon={ [ 'folder', 'plus' ] }/>

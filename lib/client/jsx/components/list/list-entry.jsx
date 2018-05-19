@@ -4,16 +4,14 @@ import { byteFormat, dateFormat } from '../../utils/format';
 import FileControl from './file-control';
 const ListEntryColumn = ({className,widths,children}) =>
   <div className={`list-entry-column-group ${className}`}
-    style={
-      {
-        'flex-basis': widths[className]
-      }
-    }
-  >
+    style={ { flexBasis: widths[className] } } >
     { children }
   </div>;
 
-const ListEntryTypeColumn = ({widths}) => <ListEntryColumn className='type' widths={widths}/>;
+const ListEntryTypeColumn = ({widths}) =>
+  <ListEntryColumn className='type' widths={widths}>
+    <span className='far fa-file-alt'/>
+  </ListEntryColumn>;
 
 const ListEntryControlColumn = ({widths, ...props}) =>
   <ListEntryColumn className='control' widths={widths}>

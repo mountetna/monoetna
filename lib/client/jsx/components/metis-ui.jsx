@@ -26,19 +26,19 @@ class MetisUI extends React.Component {
     let columnWidths = {
       type: '70px',
       name: '60%',
-      updated: '20%',
-      size: '20%',
+      updated: '30%',
+      size: '10%',
       control: '100px'
     };
 
     return (
       <div id='listing-group'>
-        <table id='listing-table'>
+        <div id='listing-table'>
           <ListHead widths={ columnWidths } />
           {(Object.keys(downloads).length || Object.keys(uploads).length || fails.length)?
-            <ListBody widths={ columnWidths }/> : <tbody></tbody>
+            <ListBody widths={ columnWidths }/> : <div/>
           }
-        </table>
+        </div>
       </div>
     );
   }
