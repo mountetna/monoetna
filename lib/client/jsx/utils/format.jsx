@@ -2,21 +2,22 @@
  * Change a timestamp in to a human readable format.
  */
 
+export const userFormat = (author) => {
+  let [ email, name ] = author.split(/\|/);
+  return name;
+}
+
 export const dateFormat = (timestamp) => {
-  timestamp = parseInt(timestamp);
+  if(timestamp == undefined || timestamp == null) return 'Unknown';
 
-  if(isNaN(timestamp) || timestamp < 0){
-    timestamp = new Date().getTime() / 1000;
-  }
-
-  let dt = new Date(timestamp * 1000);
+  let date = new Date(timestamp);
   let today = new Date();
 
-  if (dt.toDateString() == today.toDateString()) {
-    let date = dt.toLocaleString('en-us',{ hour: 'numeric', minute: 'numeric' });
-    return `Today, ${date}`;
+  if (date.toDateString() == today.toDateString()) {
+    let time = date.toLocaleString('en-us',{ hour: 'numeric', minute: 'numeric' });
+    return `Today, ${time}`;
   } else {
-    return dt.toLocaleString('en-us', { month: 'long', day: 'numeric', year: 'numeric' });
+    return date.toLocaleString('en-us', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 }
 

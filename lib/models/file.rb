@@ -132,6 +132,9 @@ class Metis
         project_name: project_name,
         size: actual_size,
         file_hash: file_hash,
+        updated_at: updated_at,
+        created_at: created_at,
+        author: author,
         download_url: request ? Metis::File.download_url(
           request,
           project_name,

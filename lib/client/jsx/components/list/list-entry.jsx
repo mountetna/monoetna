@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { byteFormat, dateFormat } from '../../utils/format';
+import { userFormat, byteFormat, dateFormat } from '../../utils/format';
 
 import FileControl from './file-control';
 const ListEntryColumn = ({className,widths,children}) =>
@@ -28,7 +28,7 @@ const ListEntrySizeColumn = ({file,widths}) =>
 const ListEntryUpdatedColumn = ({file, widths}) =>
   <ListEntryColumn className='updated' widths={widths}>
     <div className='list-entry-updated-name'>
-      {dateFormat(file.finishTimestamp)}
+      {dateFormat(file.updated_at)} by {userFormat(file.author)}
     </div>
     <div className='list-entry-role'>
       {file.role}

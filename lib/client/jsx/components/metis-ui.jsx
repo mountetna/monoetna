@@ -24,7 +24,7 @@ class MetisUI extends React.Component {
     let { downloads, uploads, fails } = this.props.files;
 
     let columnWidths = {
-      type: '70px',
+      type: '90px',
       name: '60%',
       updated: '30%',
       size: '10%',
