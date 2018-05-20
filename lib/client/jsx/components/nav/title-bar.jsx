@@ -9,11 +9,8 @@ export default class TitleBar extends React.Component{
     return (
       <div id='title-menu'>
         <button className='title-menu-btn'>
-          { 'metis' }
+          { 'Metis' }
           <br />
-          <span>
-            { 'UPLOADER' }
-          </span>
         </button>
         <img id='ucsf-logo' src='/img/ucsf_logo_dark.png' alt='' />
       </div>
