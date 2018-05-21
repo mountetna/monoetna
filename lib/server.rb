@@ -18,7 +18,9 @@ class Metis
     post '/authorize/download', action: 'download#authorize', auth: { user: { can_view?: :project_name } }
     get '/:project_name/download/:bucket_name/*file_name', action: 'download#download', auth: { hmac: true }, as: :download
 
-    get '/:project_name/files', action: 'files#index', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/list/:bucket_name/*folder_name', action: 'files#list', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/list/:bucket_name', action: 'files#list', auth: { user: { can_view?: :project_name } }
+
     post '/:project_name/create_folder/:bucket_name/*folder_name', action: 'files#create_folder', auth: { user: { can_edit?: :project_name } }
 
     def initialize(config)

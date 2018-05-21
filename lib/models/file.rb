@@ -127,20 +127,36 @@ class Metis
     end
 
     def to_hash(request=nil)
-      {
+      result = {
         file_name: file_name,
         project_name: project_name,
-        size: actual_size,
-        file_hash: file_hash,
         updated_at: updated_at,
         created_at: created_at,
         author: author,
+      }
+      if folder?
+        return result.merge(to_hash_folder(request))
+      else
+        return result.merge(to_hash_file(request))
+      end
+    end
+
+    def to_hash_file(request)
+      {
+        file_hash: file_hash,
+        size: actual_size,
         download_url: request ? Metis::File.download_url(
           request,
           project_name,
           bucket.name,
           file_name
         ) : nil
+      }
+    end
+
+    def to_hash_folder(request)
+      {
+        is_folder: true
       }
     end
 

@@ -1,7 +1,7 @@
 import { headers, parseJSON, checkStatus } from './fetch_utils';
 
-export const postRetrieveFiles = (project_name) => {
-  return fetch(`/${project_name}/files`, 
+export const postRetrieveFiles = (project_name, folder_name) => {
+  return fetch(`/${project_name}/list/files/${folder_name}`, 
   {
     method: 'GET',
     credentials: 'same-origin',
@@ -10,7 +10,7 @@ export const postRetrieveFiles = (project_name) => {
 }
 
 export const postCreateFolder = (project_name, folder_name) => {
-  return fetch(`/${project_name}/folder/${folder_name}`, 
+  return fetch(`/${project_name}/create_folder/files/${folder_name}`,
   {
     method: 'POST',
     credentials: 'same-origin',

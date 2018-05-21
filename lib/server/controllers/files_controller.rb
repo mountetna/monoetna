@@ -1,7 +1,24 @@
 class FilesController < Metis::Controller
-  def index
-    files = Metis::File.where(project_name: @params[:project_name])
-      .exclude(file_hash: nil).all.map do |file|
+  def list
+    bucket = Metis::Bucket.where(project_name: @params[:project_name], name: @params[:bucket_name]).first
+
+    raise Etna::BadRequest, 'Invalid bucket!' unless bucket && bucket.allowed?(@user)
+
+    folder = nil
+
+    if @params[:folder_name]
+      folder = Metis::File.where(
+        project_name: @params[:project_name],
+        file_name: @params[:folder_name],
+        is_folder: true
+      ).first
+      raise Etna::Forbidden, 'No such folder!' unless folder
+    end
+
+    files = Metis::File.where(
+      project_name: @params[:project_name],
+      folder_id: folder ? folder.id : nil
+    ).all.map do |file|
       file.to_hash(@request)
     end
 

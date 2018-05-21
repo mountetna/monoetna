@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactRedux from 'react-redux';
 
-import ListEntry from './list-entry';
+import { ListEntry, ListFolder } from './list-entry';
 import ListUpload from './list-upload';
 import ListUploadFailed from './list-upload-failed';
 
@@ -9,11 +9,14 @@ class ListBody extends React.Component{
   constructor() {
     super();
   }
-  
+
   render() {
     let { files, widths, user } = this.props;
     let { uploads, downloads, fails } = files;
     let { permissions } = user;
+
+    let download_files = Object.values(downloads).filter(f=>!f.is_folder);
+    let download_folders = Object.values(downloads).filter(f=>f.is_folder);
 
     let { recoverUpload, removeFailed, initializeUpload,
       queueUpload, pauseUpload, cancelUpload, removeFile,
@@ -21,23 +24,10 @@ class ListBody extends React.Component{
 
     return (
       <div id='list-body-group'>
-        {/* Render the failed uploads. */}
-        { (fails.length) ? 
-            fails.map((failedFile)=>{
-              let failedUpload = {
-                key: 'file-failed-'+failedFile.reactKey,
-                failedFile: failedFile,
-                callbacks: { recoverUpload, removeFailed }
-              };
-
-              return <ListUploadFailed { ...failedUpload } />;
-            })
-          : '' }
         {/* Render the incomplete uploads. */}
         { (Object.keys(uploads).length) ?
             Object.keys(uploads).map((key)=>{
               let upload = uploads[key];
-              console.log(upload);
               let listUpload = {
                 key,
                 upload,
@@ -51,13 +41,26 @@ class ListBody extends React.Component{
 
               return <ListUpload { ...listUpload } />
             })
-          : '' }
-        {/* Render the complete uploads. */}
-        { (Object.keys(downloads).length) ?
-            Object.keys(downloads).map(key=>{
-              let file = downloads[key];
+            : '' }
+        {
+          (download_folders.length) ?
+            download_folders.map(folder=>{
               let listEntry = {
-                key,
+                key: folder.file_name,
+                file: folder,
+                widths,
+                callbacks: { removeFile }
+              };
+
+              return <ListFolder { ...listEntry } />
+            })
+            : '' 
+        }
+        {
+          (download_files.length) ?
+            download_files.map(file=>{
+              let listEntry = {
+                key: file.file_name,
                 file,
                 widths,
                 callbacks: { removeFile }
@@ -65,7 +68,8 @@ class ListBody extends React.Component{
 
               return <ListEntry { ...listEntry } />
             })
-          : '' }
+            : '' 
+        }
       </div>
     );
   }

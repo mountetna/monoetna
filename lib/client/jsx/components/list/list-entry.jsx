@@ -8,9 +8,9 @@ const ListEntryColumn = ({className,widths,children}) =>
     { children }
   </div>;
 
-const ListEntryTypeColumn = ({widths}) =>
+const ListEntryTypeColumn = ({is_folder, widths}) =>
   <ListEntryColumn className='type' widths={widths}>
-    <span className='far fa-file-alt'/>
+    <span className={ is_folder ? 'fas fa-folder' : 'far fa-file-alt' }/>
   </ListEntryColumn>;
 
 const ListEntryControlColumn = ({widths, ...props}) =>
@@ -44,7 +44,7 @@ const ListEntryFilenameColumn = ({file, widths}) =>
     </div>
   </ListEntryColumn>;
 
-export default class ListEntry extends React.Component{
+export class ListEntry extends React.Component{
   constructor(){
     super();
   }
@@ -68,6 +68,22 @@ export default class ListEntry extends React.Component{
         <ListEntryUpdatedColumn { ...{ file, widths } }/>
         <ListEntrySizeColumn { ...{ file, widths } }/>
         <ListEntryControlColumn { ...fileControlProps }/>
+      </div>
+    );
+  }
+}
+
+export class ListFolder extends React.Component{
+  render(){
+    let { file, widths }  = this.props;
+
+    return (
+      <div className='list-entry-group'>
+        <ListEntryTypeColumn { ...{ is_folder: true, file, widths } }/>
+        <ListEntryFilenameColumn { ...{ file, widths } }/>
+        <ListEntryUpdatedColumn { ...{ file, widths } }/>
+        <ListEntryColumn className='size' widths={widths}/>
+        <ListEntryColumn className='control' widths={widths}/>
       </div>
     );
   }
