@@ -2,6 +2,7 @@ import * as React from 'react';
 import { userFormat, byteFormat, dateFormat } from '../../utils/format';
 
 import FileControl from './file-control';
+
 const ListEntryColumn = ({className,widths,children}) =>
   <div className={`list-entry-column-group ${className}`}
     style={ { flexBasis: widths[className] } } >
@@ -35,14 +36,29 @@ const ListEntryUpdatedColumn = ({file, widths}) =>
     </div>
   </ListEntryColumn>;
 
-const ListEntryFilenameColumn = ({file, widths}) =>
-  <ListEntryColumn className='name' widths={widths}>
-    <div className='list-entry-file-name' title={file.file_name}>
-      <a href={file.download_url}>{file.file_name}</a>
-    </div>
-    <div className='list-entry-status' title='The current file status.'>
-    </div>
+const basename = (file) => file.file_name.split(/\//).pop();
+const foldername = (file) => {
+  let [ basename, ...folder_names ] = file.file_name.split(/\//).reverse();
+  return folder_names.reverse().join('/');
+}
+const FolderLink = ({className, file}) =>
+    <div className={className} title={file.file_name}>
+      <a href={
+        `/${CONFIG.project_name}/browse/${file.file_name}`
+      }>{basename(file)}</a>
+    </div>;
+
+const FileLink = ({className, file}) =>
+    <div className={className} title={file.file_name}>
+      <a href={file.download_url}>{basename(file)}</a>
+    </div>;
+
+const ListEntryFilenameColumn = ({file, widths}) => {
+  let LinkType = file.is_folder ? FolderLink : FileLink;
+  return <ListEntryColumn className='name' widths={widths}>
+    <LinkType className='list-entry-file-name' file={file}/>
   </ListEntryColumn>;
+}
 
 export class ListEntry extends React.Component{
   constructor(){

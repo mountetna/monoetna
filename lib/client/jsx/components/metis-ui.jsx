@@ -5,6 +5,7 @@ import TitleBar  from './nav/title-bar';
 import MenuBar   from './nav/menu-bar';
 import ListHead  from './list/list-head';
 import ListBody  from './list/list-body';
+import FolderBreadcrumb from './folder-breadcrumb';
 import LoginPanel from './auth/login-panel';
 
 class MetisUI extends React.Component {
@@ -60,6 +61,7 @@ class MetisUI extends React.Component {
         </div>
         <div id='left-column-group'>
         </div>
+        <FolderBreadcrumb/>
         { this.renderContent() }
       </div>
     );

@@ -1,0 +1,15 @@
+#folder-breadcrumb {
+  margin: 10px;
+  .folder-link {
+    display: inline;
+    font-family: $base-font;
+    a {
+      color: #888;
+    }
+  }
+  .folder-sep {
+    margin: 0px 10px;
+    color: #444;
+    font-size: 0.875em;
+  }
+}
