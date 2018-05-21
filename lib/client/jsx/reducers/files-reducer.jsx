@@ -106,8 +106,9 @@ const files = (state, action) => {
   if (!state) state = {
     downloads: [],
     uploads: {},
-    fails: []
-  } 
+    fails: [],
+    current_folder: null
+  };
 
   switch(action.type) {
     case 'FILE_UPLOAD_STATUS':
@@ -124,6 +125,12 @@ const files = (state, action) => {
         ...state,
         downloads: downloads(state.downloads,action)
       };
+
+    case 'SET_CURRENT_FOLDER':
+      return {
+        ...state,
+        current_folder: action.folder_name
+      }
     default:
       return state;
       break;

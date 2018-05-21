@@ -8,16 +8,21 @@ import ListBody  from './list/list-body';
 import LoginPanel from './auth/login-panel';
 
 class MetisUI extends React.Component {
-  constructor(){
-    super();
-  }
-
   renderLoginView(){
     return (
       <div id='listing-group'>
         <LoginPanel />
       </div>
     );
+  }
+
+  componentDidMount() {
+    let path = window.location.pathname;
+
+    let [ _, folder_name ] = path.match(/browse\/(.*)$/) || [];
+
+    this.props.setCurrentFolder(folder_name);
+    this.props.retrieveFiles(folder_name);
   }
 
   renderContent() {
@@ -43,7 +48,7 @@ class MetisUI extends React.Component {
     );
   }
 
-  render(){
+  render() {
     return (
       <div id='metis-group'>
         <div id='header-group'>
@@ -63,7 +68,12 @@ class MetisUI extends React.Component {
 
 const MetisUIContainer = ReactRedux.connect(
   // map state
-  ({user, files}) => ({user, files})
+  ({user, files}) => ({user, files}),
+
+  (dispatch) => ({
+    retrieveFiles: (folder_name) => dispatch({type: 'RETRIEVE_FILES', folder_name}),
+    setCurrentFolder: (folder_name) => dispatch({type: 'SET_CURRENT_FOLDER', folder_name})
+  })
 )(MetisUI);
 
 export default MetisUIContainer;

@@ -52,9 +52,6 @@ class Metis {
       token: Cookies.get(CONFIG.token_name)
     });
 
-    // request an initial download view
-    this.store.dispatch({ type: 'RETRIEVE_FILES' });
-
     // build the UI
     ReactDOM.render(
       <Provider store={ this.store }>
