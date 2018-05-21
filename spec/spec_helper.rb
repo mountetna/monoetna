@@ -180,12 +180,17 @@ def create_upload(project_name, file_name, uid, params={})
     }.merge(params)
   )
 end
+
+def create_folder(project_name, folder_name, params={})
+  create_file(project_name, folder_name, nil, params.merge(is_folder: true))
+end
+
 def create_file(project_name, file_name, contents, params={})
   create( :file,
     {
       bucket: default_bucket(project_name),
       project_name: project_name,
-      author: '',
+      author: 'metis|Metis',
       file_name: file_name,
       file_hash: contents ? Digest::MD5.hexdigest(contents) : nil
     }.merge(params)
