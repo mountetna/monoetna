@@ -15,7 +15,7 @@ class DownloadController < Metis::Controller
     return [
       200,
       { 'X-Sendfile' => file.location },
-      ''
+      [ '' ]
     ]
   end
 end
