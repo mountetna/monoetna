@@ -22,7 +22,7 @@ const ListEntryControlColumn = ({widths, ...props}) =>
 const ListEntrySizeColumn = ({file,widths}) =>
   <ListEntryColumn className='size' widths={widths}>
     <div className='list-entry-file-size'>
-      {byteFormat(file.size, 1000)}
+      {byteFormat(file.size, true)}
     </div>
   </ListEntryColumn>;
 

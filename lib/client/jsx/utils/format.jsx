@@ -26,26 +26,22 @@ export const dateFormat = (timestamp) => {
  * http://stackoverflow.com/questions/10420352/converting-file-size-in-bytes-to-human-readable
  */
 
-export const byteFormat = (bytes, si, bits = false) => {
+const PREFIXES = ['K','M','G','T','P','E','Z','Y']
+
+export const byteFormat = (bytes, si = false, unit='B') => {
   let thresh = si ? 1000 : 1024;
-  if(Math.abs(bytes) < thresh){
 
-      return bytes + ' B';
-  }
-  let units = si
-      ? ['KB','MB','GB','TB','PB','EB','ZB','YB']
-      : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
+  if(Math.abs(bytes) < thresh) return `${bytes} ${unit}`;
 
-  if (bits) units = ['Kbps','Mbps','Gbps'];
+  let places = Math.min(
+    PREFIXES.length,
+    Math.floor(Math.log(bytes) / Math.log(thresh))
+  )
+  console.log([bytes, places]);
+  bytes = bytes / Math.pow(thresh, places);
 
-  let u = -1;
-  do {
-    bytes /= thresh;
-    ++u;
-  }
-  while(Math.abs(bytes) >= thresh && u < units.length - 1);
 
-  return bytes.toFixed(1)+' '+units[u];
+  return `${bytes.toFixed(1)} ${PREFIXES[places-1]}${si ? 'i' : ''}${unit}`;
 }
 
 export const snakeCase = (str) => {
