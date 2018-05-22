@@ -21,17 +21,18 @@ class UploadController < Metis::Controller
     raise Etna::Forbidden, 'File cannot be overwritten.' if file && file.read_only?
 
     # Create the upload
-    upload = Metis::Upload.create(
+    upload = Metis::Upload.find_or_create(
       file_name: @params[:file_name],
-      project_name: @params[:project_name],
-      author: Metis::File.author(@user),
       bucket: bucket,
       metis_uid: metis_uid,
-      file_size: 0,
-      current_byte_position: 0,
-      next_blob_size: -1,
-      next_blob_hash: ''
-    )
+      project_name: @params[:project_name]
+    ) do |f|
+      f.author = Metis::File.author(@user)
+      f.file_size = 0
+      f.current_byte_position = 0
+      f.next_blob_size = -1
+      f.next_blob_hash = ''
+    end
 
     # Make a MAC url
     url = Metis::File.upload_url(

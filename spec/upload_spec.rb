@@ -47,6 +47,38 @@ describe UploadController do
       expect(upload).not_to be_nil
     end
 
+    it 'should re-use uploads' do
+      # there is already an upload in place for our metis_uid
+      upload = create_upload( 'athena', 'wisdom.txt', @metis_uid,
+        current_byte_position: 10,
+        file_size: WISDOM.length,
+        next_blob_size: 10,
+        next_blob_hash: 'abcdef'
+      )
+
+      params = {
+        file_name: 'wisdom.txt',
+        project_name: 'athena'
+      }
+
+      # we use our token to authorize an upload
+      auth_header(:editor)
+      json_post('authorize/upload', params)
+
+      # the upload request is okay despite pre-existing
+      expect(last_response.status).to eq(200)
+
+      # we expect an authorization url in return
+      uri = URI(last_response.body)
+      expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_name]}")
+
+      hmac_params = Rack::Utils.parse_nested_query(uri.query)
+      expect(hmac_params['X-Etna-Id']).to eq('metis')
+
+      # We expect no new upload to be created
+      expect(Metis::Upload.count).to eq(1)
+    end
+
     it 'does not authorize poorly-named files' do
       params = {
         project_name: 'athena',

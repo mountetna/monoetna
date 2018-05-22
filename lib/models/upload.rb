@@ -36,20 +36,22 @@ class Metis
     end
 
     def can_place?
-      !file.read_only?
+      file = Metis::File.find(
+        project_name: project_name,
+        file_name: file_name,
+        bucket: bucket
+      )
+      return !file || !file.read_only?
     end
 
-    def file
-      @file ||= Metis::File.find_or_create(
+    def finish!
+      file = Metis::File.find_or_create(
         project_name: project_name,
         file_name: file_name,
         bucket: bucket
       ) do |f|
         f.author = author
       end
-    end
-
-    def finish!
       file.author = author
       file.save
       file.set_file_data(partial_location)
