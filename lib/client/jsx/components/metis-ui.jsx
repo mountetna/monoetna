@@ -6,6 +6,7 @@ import MenuBar   from './nav/menu-bar';
 import ListHead  from './list/list-head';
 import ListBody  from './list/list-body';
 import FolderBreadcrumb from './folder-breadcrumb';
+import ControlBar from './control-bar';
 import LoginPanel from './auth/login-panel';
 
 class MetisUI extends React.Component {
@@ -39,12 +40,10 @@ class MetisUI extends React.Component {
 
     return (
       <div id='listing-group'>
-        <div id='listing-table'>
-          <ListHead widths={ columnWidths } />
-          {(Object.keys(downloads).length || Object.keys(uploads).length || fails.length)?
-            <ListBody widths={ columnWidths }/> : <div/>
-          }
-        </div>
+        <ListHead widths={ columnWidths } />
+        {(Object.keys(downloads).length || Object.keys(uploads).length || fails.length)?
+          <ListBody widths={ columnWidths }/> : <div/>
+        }
       </div>
     );
   }
@@ -56,12 +55,13 @@ class MetisUI extends React.Component {
           <TitleBar />
           <MenuBar />
         </div>
-        <div className='logo-group'>
+        <div id='logo-group'>
           <img src='/img/metis_logo_simple.png' alt='' />
         </div>
-        <div id='left-column-group'>
+        <div id='control-group'>
+          <FolderBreadcrumb/>
+          <ControlBar/>
         </div>
-        <FolderBreadcrumb/>
         { this.renderContent() }
       </div>
     );

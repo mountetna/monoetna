@@ -1,11 +1,10 @@
 #nav-menu {
-
   position: absolute;
   left: 40px;
   right: 0px;
   bottom: 10px;
   height: 30px;
-  
+
   /* fallback DIY*/
   background: #15788f;
 

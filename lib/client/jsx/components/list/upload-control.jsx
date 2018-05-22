@@ -1,38 +1,28 @@
 import * as React from 'react';
 
-export default class UploadControl extends React.Component{
-  constructor(){
-    super();
-  }
+const UploadButton = ({onClick, icon}) =>
+  <button className='upload-control-btn' onClick={onClick}>
+    <span className={`fa fa-${icon}`}></span>
+  </button>;
 
+export default class UploadControl extends React.Component{
   // Show the start or pause button.
   renderStartPause(){
-    let uploadCtrlBtnProps = { className: 'upload-control-btn' };
-    let callbacks = this.props.callbacks;
+    let { upload, callbacks } = this.props;
 
-    switch(this.props.upload.status){
+    switch(upload.status){
       case 'paused':
-        uploadCtrlBtnProps.onClick = callbacks.queueUpload;
-        return (
-          <button { ...uploadCtrlBtnProps }>
-            <span className='fa fa-play'></span>
-          </button>
-        );
+        return <UploadButton
+          icon='play'
+          onClick={callbacks.queueUpload} />;
       case 'active':
-        uploadCtrlBtnProps.onClick = callbacks.pauseUpload;
-        return (
-          <button { ...uploadCtrlBtnProps }>
-            <span className='fa fa-pause'></span>
-          </button>
-        );
+        return <UploadButton
+          icon='pause'
+          onClick={callbacks.pauseUpload}/>;
       case 'failed':
-        uploadCtrlBtnProps.onClick = callbacks.selectUpload;
-        return (
-          <button { ...uploadCtrlBtnProps }>
-            <span className='fa fa-retweet'></span>
-          </button>
-        );
-        return '';
+        return <UploadButton
+          icon='retweet'
+          onClick={callbacks.selectUpload}/>;
       default:
         return '';
     }

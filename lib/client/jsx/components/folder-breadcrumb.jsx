@@ -7,7 +7,7 @@ const FolderLink = (folders, i) => {
 
   let folder_url = `/${CONFIG.project_name}/${i ? 'browse/' : ''}${folder_path}`;
 
-  return <div className='folder-link' title={folder_name}>
+  return <div key={i} className='folder-link' title={folder_name}>
     {
       (i < folders.length-1) ?
       <a href={ folder_url }>{folder_name}</a>
