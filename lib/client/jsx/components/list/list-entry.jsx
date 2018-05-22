@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { userFormat, byteFormat, dateFormat } from '../../utils/format';
 
+import UploadMeter from './upload-meter';
+import UploadControl from './upload-control';
 import FileControl from './file-control';
 
 const ListEntryColumn = ({className,widths,children}) =>
@@ -9,9 +11,10 @@ const ListEntryColumn = ({className,widths,children}) =>
     { children }
   </div>;
 
-const ListEntryTypeColumn = ({is_folder, widths}) =>
+const ListEntryTypeColumn = ({icon, widths}) =>
   <ListEntryColumn className='type' widths={widths}>
-    <span className={ is_folder ? 'fas fa-folder' : 'far fa-file-alt' }/>
+    <span className={ icon
+    }/>
   </ListEntryColumn>;
 
 const ListEntryControlColumn = ({widths, ...props}) =>
@@ -61,29 +64,16 @@ const ListEntryFilenameColumn = ({file, widths}) => {
 }
 
 export class ListEntry extends React.Component{
-  constructor(){
-    super();
-  }
-
-  removeFile(){
-    this.props.callbacks.removeFile(this.props.file);
-  }
-
   render(){
-    let { file, widths }  = this.props;
-    let fileControlProps = {
-      file,
-      widths,
-      callbacks: {removeFile:  this.removeFile.bind(this)}
-    };
+    let { file, widths } = this.props;
 
     return (
       <div className='list-entry-group'>
-        <ListEntryTypeColumn { ...{ file, widths } }/>
-        <ListEntryFilenameColumn { ...{ file, widths } }/>
-        <ListEntryUpdatedColumn { ...{ file, widths } }/>
-        <ListEntrySizeColumn { ...{ file, widths } }/>
-        <ListEntryControlColumn { ...fileControlProps }/>
+        <ListEntryTypeColumn icon='far fa-file-alt' widths={widths}/>
+        <ListEntryFilenameColumn file={file} widths={widths}/>
+        <ListEntryUpdatedColumn file={file} widths={widths}/>
+        <ListEntrySizeColumn file={file} widths={widths}/>
+        <ListEntryControlColumn file={file} widths={widths}/>
       </div>
     );
   }
@@ -95,11 +85,35 @@ export class ListFolder extends React.Component{
 
     return (
       <div className='list-entry-group'>
-        <ListEntryTypeColumn { ...{ is_folder: true, file, widths } }/>
-        <ListEntryFilenameColumn { ...{ file, widths } }/>
-        <ListEntryUpdatedColumn { ...{ file, widths } }/>
+        <ListEntryTypeColumn icon='fas fa-folder' widths={ widths } />
+        <ListEntryFilenameColumn file={file} widths={widths} />
+        <ListEntryUpdatedColumn file={file} widths={widths}/>
         <ListEntryColumn className='size' widths={widths}/>
         <ListEntryColumn className='control' widths={widths}/>
+      </div>
+    );
+  }
+}
+
+export class ListUpload extends React.Component{
+  render() {
+    let { upload, widths } = this.props;
+
+    return (
+      <div className='list-entry-group upload'>
+        <ListEntryTypeColumn icon='upload fas fa-upload' widths={ widths } />
+        <ListEntryColumn className='name' widths={ widths }>
+          <span className='list-entry-file-name'>
+            {upload.file_name}
+          </span>
+        </ListEntryColumn>
+        <ListEntryColumn className='updated' widths={widths}>
+          <UploadMeter upload={ upload }/>
+        </ListEntryColumn>
+        <ListEntryColumn className='size' widths={widths}/>
+        <ListEntryColumn className='control' widths={widths}>
+          <UploadControl upload={ upload } />
+        </ListEntryColumn>
       </div>
     );
   }

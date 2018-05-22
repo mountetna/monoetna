@@ -1,19 +1,10 @@
 import * as React from 'react';
 
 export default class FileControl extends React.Component{
-  constructor(){
-    super();
-  }
-
   render(){
-    var fileControlBtn = {
-      className: 'file-control-btn',
-      onClick: this.props.callbacks.removeFile
-    };
-
     return (
       <div className='file-control-group'>
-        <button { ...fileControlBtn }>
+        <button className='file-control-btn'>
           <span className='glyphicon glyphicon-remove'></span>
         </button>
       </div>

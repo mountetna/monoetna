@@ -1,90 +1,50 @@
 import * as React from 'react';
 import { byteFormat } from '../../utils/format';
 
-export default class UploadMeter extends React.Component{
-  constructor(){
-    super();
-  }
-
-  calcUploadPercent(){
-    let { upload } = this.props;
-    let { file_size, current_byte_position } = upload;
-
-    if (file_size == 0) {
-      return { width: '0%' };
-    }
-    else {
-      return { width: String((current_byte_position/file_size)*100) + '%' };
-    }
-  }
-
-  parseUploadBytes(){
-    let { upload } = this.props;
-    let { file_size, current_byte_position } = upload;
-
-    file_size = byteFormat(file_size, true);
-    let bytesUploaded = byteFormat(current_byte_position, true);
-
-    let uploadInfoProps = {
-      className: 'upload-meter-info light-text',
-      style: { float: 'left' }
-    }
-
-    let bytesUploadedProps = {
-      className: 'dark-text',
-      style: { fontWeight: 900 },
-      title: 'kiloBYTES uploaded.'
-    }
-
-    return (
-      <div { ...uploadInfoProps }>
-          <span { ...bytesUploadedProps }>
-            { bytesUploaded }
-          </span>
-          { ` of ${file_size} uploaded`}
-      </div>
-    );
-  }
-
-  parseUploadSpeed(){
-    let { upload } = this.props;
-    let { paused, upload_speed } = upload;
-
-    if (upload_speed && !paused) {
-      if (isNaN(upload_speed)) return '';
-
-      let speed = byteFormat(upload_speed, 1024, true);
-
-      let bitSpeedProps = {
-        className: 'dark-text',
-        style: { fontWeight: 900 },
-        title: 'kiloBITS per second.'
+const UploadBar = ({upload}) => {
+  let { file_size, current_byte_position } = upload;
+  return <div className='upload-meter-tray'>
+    <div className='upload-meter-bar' style={
+      {
+        width: file_size == 0 ? '0%' : `${(current_byte_position/file_size)*100}%`
       }
+    }/>
+  </div>
+}
 
-      return (
-        <div className='upload-meter-info' style={{ float: 'right' }}>
-          <span { ...bitSpeedProps }>
-            { speed }
-          </span>
-        </div>
-      );
-    }
-    else {
-      return '';
-    }
-  }
+const UploadCompletion = ({upload}) => {
+  let { file_size, current_byte_position } = upload;
 
+  return <div className='upload-meter-completion'>
+    <span className='completed' title='kilobytes uploaded'>
+      { byteFormat(current_byte_position, true) }
+    </span> of { byteFormat(upload.file_size, true) }
+  </div>
+}
+
+const UploadSpeed = ({upload}) => {
+  let { paused, upload_speed } = upload;
+
+  if (!upload_speed || isNaN(upload_speed) || paused) return null;
+
+  return (
+    <div className='upload-meter-speed'>
+      <span title='kilobits per second'>
+        { byteFormat(upload_speed, false, 'bps') }
+      </span>
+    </div>
+  );
+}
+
+export default class UploadMeter extends React.Component{
   render(){
+    let { upload } = this.props;
     return (
-      <td className='upload-meter-group'>
-        <div className='upload-meter-tray'>
-          <div className='upload-meter-bar' style={ this.calcUploadPercent() }>
-          </div>
-        </div>
-
-        { this.parseUploadBytes() }
-        { this.parseUploadSpeed() }
-      </td>
+      <div className='upload-meter-group'>
+        <UploadBar upload={ upload }/>
+        <UploadCompletion upload={ upload }/>
+        <UploadSpeed upload={ upload }/>
+      </div>
     );
   }
 }

@@ -1,8 +1,7 @@
 import * as React from 'react';
 import * as ReactRedux from 'react-redux';
 
-import { ListEntry, ListFolder } from './list-entry';
-import ListUpload from './list-upload';
+import { ListUpload, ListEntry, ListFolder } from './list-entry';
 import ListUploadFailed from './list-upload-failed';
 
 class ListBody extends React.Component{
@@ -15,60 +14,43 @@ class ListBody extends React.Component{
     let { uploads, downloads, fails } = files;
     let { permissions } = user;
 
-    let download_files = Object.values(downloads).filter(f=>!f.is_folder);
-    let download_folders = Object.values(downloads).filter(f=>f.is_folder);
-
-    let { recoverUpload, removeFailed, initializeUpload,
-      queueUpload, pauseUpload, cancelUpload, removeFile,
-      clearUpload, selectProject } = this.props;
+    let order = (a,b) => a.file_name.localeCompare(b.file_name);
+    let download_files = Object.values(downloads).filter(f=>!f.is_folder).sort(order);
+    let download_folders = Object.values(downloads).filter(f=>f.is_folder).sort(order);
 
     return (
       <div id='list-body-group'>
         {/* Render the incomplete uploads. */}
-        { (Object.keys(uploads).length) ?
-            Object.keys(uploads).map((key)=>{
-              let upload = uploads[key];
-              let listUpload = {
-                key,
-                upload,
-                user,
-                permissions,
-                callbacks: {
-                  initializeUpload, queueUpload, pauseUpload,
-                  cancelUpload, removeFile, clearUpload, selectProject
-                }
-              };
-
-              return <ListUpload { ...listUpload } />
-            })
-            : '' }
+        { (Object.values(uploads).length) ?
+            Object.values(uploads).map( upload =>
+              <ListUpload
+                key={upload.file_name}
+                upload={upload}
+                widths={widths}
+                user={ user }
+                permissions={ permissions } />
+            )
+            : null
+        }
         {
           (download_folders.length) ?
-            download_folders.map(folder=>{
-              let listEntry = {
-                key: folder.file_name,
-                file: folder,
-                widths,
-                callbacks: { removeFile }
-              };
-
-              return <ListFolder { ...listEntry } />
-            })
-            : '' 
+            download_folders.map( folder =>
+              <ListFolder
+                key={folder.file_name}
+                file={folder}
+                widths={widths} />
+            )
+            : null
         }
         {
           (download_files.length) ?
-            download_files.map(file=>{
-              let listEntry = {
-                key: file.file_name,
-                file,
-                widths,
-                callbacks: { removeFile }
-              };
-
-              return <ListEntry { ...listEntry } />
-            })
-            : '' 
+            download_files.map( file =>
+              <ListEntry
+                key={file.file_name}
+                file={file}
+                widths={widths} />
+            )
+            : null
         }
       </div>
     );
@@ -78,20 +60,7 @@ class ListBody extends React.Component{
 
 const ListBodyContainer = ReactRedux.connect(
   // map state
-  ({user,files}) => ({user,files}),
-
-  // map dispatch
-  (dispatch) => ({
-    selectProject: (upload, permission) => dispatch({ type: 'FILE_UPLOAD_SELECT_PROJECT', upload, permission }),
-    initializeUpload: (upload) => dispatch({ type: 'AUTHORIZE_UPLOAD', upload }),
-    queueUpload: (upload) => dispatch({ type: 'QUEUE_UPLOAD', upload }),
-    pauseUpload: (upload) => dispatch({ type: 'PAUSE_UPLOAD', upload }),
-    cancelUpload: (upload) => dispatch({ type: 'CANCEL_UPLOAD', upload }),
-    recoverUpload: (uploadFile, fileMetadata) => dispatch({ type: 'RECOVER_UPLOAD', uploadFile, fileMetadata }),
-    removeFile: (fileMetadata) => dispatch({ type: 'REMOVE_FILE', fileMetadata }),
-    clearUpload: (fileMetadata) => dispatch({ type: 'CLEAR_UPLOAD', fileMetadata }),
-    removeFailed: (fileMetadata) => dispatch({ type: 'REMOVE_FAILED', fileMetadata })
-  })
+  ({user,files}) => ({user,files})
 )(ListBody);
 
 export default ListBodyContainer;

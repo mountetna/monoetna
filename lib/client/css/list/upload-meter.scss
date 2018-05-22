@@ -1,0 +1,34 @@
+.upload-meter-group {
+
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.875em;
+
+  .upload-meter-tray {
+    flex: 1 1 100%;
+    height: 5px;
+    background: #ccc;
+    margin-bottom: 5px;
+    overflow: hidden;
+    .upload-meter-bar {
+      width: 0%;
+      height: 100%;
+      background: #7dcfe8;
+    }
+  }
+  .upload-meter-speed {
+    @extend .dark-text;
+    font-weight: 900;
+    text-align: right;
+    flex: 1 1;
+  }
+  .upload-meter-completion {
+    flex: 1 1;
+    .completed {
+      @extend .dark-text;
+      font-weight: 900;
+    }
+    @extend .light-text;
+  }
+}
