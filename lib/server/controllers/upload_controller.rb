@@ -5,12 +5,25 @@ class UploadController < Metis::Controller
     raise Etna::BadRequest, 'The file name is illegal.' unless Metis::File.valid_file_name?(@params[:file_name])
 
     bucket_name = @params[:bucket_name] || 'files'
-
     bucket = Metis::Bucket.find(name: bucket_name, project_name: @params[:project_name])
 
     raise Etna::BadRequest, 'No such bucket!' unless bucket
 
     raise Etna::Forbidden, 'Inaccessible bucket.' unless bucket.allowed?(@user)
+
+    folder_name = Metis::File.folder_name(@params[:file_name])
+
+    if folder_name
+      folder = Metis::File.find(
+        project_name: @params[:project_name],
+        file_name: folder_name,
+        is_folder: true,
+        bucket: bucket
+      )
+      raise Etna::Forbidden, 'No such folder!' unless folder
+
+      raise Etna::Forbidden, 'Folder is read-only!' if folder.read_only?
+    end
 
     file = Metis::File.find(
       project_name: @params[:project_name],

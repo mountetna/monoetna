@@ -135,5 +135,21 @@ describe FilesController do
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid parent folder')
     end
+
+    it 'sets a parent folder' do
+      blueprints_folder = create_folder('athena', 'blueprints')
+      header(*Etna::TestAuth.token_header(
+        email: 'metis@ucsf.edu', perm: 'e:athena'
+      ))
+      json_post('athena/create_folder/files/blueprints/Helmet Blueprints', {})
+
+      file = Metis::File.last
+
+      expect(last_response.status).to eq(200)
+      expect(Metis::File.count).to eq(2)
+      expect(file.file_name).to eq('blueprints/Helmet Blueprints')
+      expect(file).to be_folder
+      expect(file.folder).to eq(blueprints_folder)
+    end
   end
 end

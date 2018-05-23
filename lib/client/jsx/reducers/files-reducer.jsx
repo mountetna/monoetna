@@ -1,7 +1,7 @@
 // helper to create a new file entry
-const upload = (file, url) => ({
+const upload = (file, file_name, url) => ({
   file,
-  file_name: file.name,
+  file_name,
   url,
   project_name: CONFIG.project_name,
   file_size: file.size,
@@ -57,8 +57,8 @@ const uploads = (old_uploads, action) => {
     };
     case 'FILE_UPLOAD_AUTHORIZED': {
       // Copy the selected file data to 'uploads' object.
-      let { file, url } = action;
-      let new_upload = upload(file, url);
+      let { file, file_name, url } = action;
+      let new_upload = upload(file, file_name, url);
       let key = file_key(new_upload);
       return {
         ...old_uploads,

@@ -22,7 +22,7 @@ class FilesController < Metis::Controller
       file.to_hash(@request)
     end
 
-    success({ files: files }.to_json, 'application/json')
+    success_json(files: files)
   end
 
   def create_folder
@@ -35,7 +35,7 @@ class FilesController < Metis::Controller
 
     # require the parent folder (if any) to exist
     parent_folder = nil
-    parent_folder_name = Metis::File.foldername(@params[:folder_name])
+    parent_folder_name = Metis::File.folder_name(@params[:folder_name])
 
     if parent_folder_name
       parent_folder = Metis::File.find(
@@ -61,6 +61,6 @@ class FilesController < Metis::Controller
       is_folder: true
     )
 
-    success({ folders: [ file.to_hash(@request) ] })
+    success_json(files: [ file.to_hash(@request) ])
   end
 end

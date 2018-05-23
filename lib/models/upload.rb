@@ -35,13 +35,36 @@ class Metis
       )
     end
 
-    def can_place?
-      file = Metis::File.find(
+    def file
+      @file ||= Metis::File.find(
         project_name: project_name,
         file_name: file_name,
         bucket: bucket
       )
-      return !file || !file.read_only?
+    end
+
+    def folder
+      @folder ||= Metis::File.find(
+        project_name: project_name,
+        file_name: folder_name,
+        is_folder: true,
+        bucket: bucket
+      )
+    end
+
+    def folder_name
+      @folder_name ||= Metis::File.folder_name(file_name)
+    end
+
+    def can_place?
+      # the file exists and is read-only
+      return false if file && file.read_only?
+
+      # a folder_name is specified but no folder exists
+      return false if folder_name && (!folder || folder.read_only?)
+
+      # you can place the file
+      return true
     end
 
     def finish!
@@ -52,6 +75,7 @@ class Metis
       ) do |f|
         f.author = author
       end
+      file.folder = folder
       file.author = author
       file.save
       file.set_file_data(partial_location)

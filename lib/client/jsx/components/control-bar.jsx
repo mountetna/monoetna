@@ -26,9 +26,11 @@ class ControlBar extends React.Component {
   }
 
   selectFolder(){
+    let { current_folder } = this.props;
+
     let folder_name = prompt("Enter the folder name", "Untitled Folder");
     if (!folder_name) return;
-    this.props.createFolder(folder_name);
+    this.props.createFolder(folder_name, current_folder);
   }
 
   selectFile() {
@@ -36,11 +38,11 @@ class ControlBar extends React.Component {
   }
 
   fileSelected(event){
+    let { current_folder, fileSelected } = this.props;
+
     if(event === undefined) return;
 
-    this.props.fileSelected(
-      this.input.files[0]
-    );
+    fileSelected( this.input.files[0], current_folder );
 
     // Reset the input field.
     this.input.value = '';
@@ -75,7 +77,7 @@ export default connect(
   ({files: { current_folder }}) => ({current_folder}),
 
   (dispatch) => ({
-    fileSelected: (file)=>dispatch({ type: 'FILE_SELECTED', file }),
-    createFolder: (folder_name)=>dispatch({ type: 'CREATE_FOLDER', folder_name })
+    fileSelected: (file, folder_name)=>dispatch({ type: 'FILE_SELECTED', file, folder_name }),
+    createFolder: (folder_name, parent_folder)=>dispatch({ type: 'CREATE_FOLDER', folder_name, parent_folder })
   })
 )(ControlBar);

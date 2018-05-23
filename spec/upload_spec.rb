@@ -123,6 +123,41 @@ describe UploadController do
       upload = Metis::Upload.first
       expect(upload).to be_nil
     end
+
+    it 'does not authorize files with no parent folder' do
+      # there is an existing read-only file
+      file = create_file('athena', 'blueprints/wisdom.txt', WISDOM,
+        author: 'metis@tartarus.org',
+        read_only: true
+      )
+
+      params = {
+        file_name: 'blueprints/wisdom.txt',
+        project_name: 'athena'
+      }
+
+      # we use our token to authorize an upload
+      auth_header(:editor)
+      json_post('authorize/upload', params)
+
+      # we expect to be forbidden from uploading
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('No such folder!')
+      expect(Metis::Upload.count).to eq(0)
+    end
+
+    it 'does not authorize files with a read-only parent folder' do
+      blueprints_folder = create_folder('athena', 'blueprints', read_only: true)
+
+      # we use our token to authorize an upload
+      auth_header(:editor)
+      json_post('authorize/upload', file_name: 'blueprints/wisdom.txt', project_name: 'athena')
+
+      # we expect to be forbidden from uploading
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Folder is read-only!')
+      expect(Metis::Upload.count).to eq(0)
+    end
   end
 
   context '#upload_start' do
@@ -296,41 +331,66 @@ describe UploadController do
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Blob integrity failed')
     end
+  end
 
-    it 'finishes the upload' do
+  context '#upload_blob completion' do
+    before(:each) do
       # the next blob completes the data
-      next_blob = WISDOM[20..-1]
-      partial = WISDOM[0..19]
+      @next_blob = WISDOM[20..-1]
+      @wisdom_blob_file = stub_data('wisdom_blob', @next_blob, :athena)
 
-      wisdom_blob_file = stub_data('wisdom_blob', next_blob, :athena)
+      @partial = WISDOM[0..19]
+    end
 
-      partial_file = stub_partial('wisdom.txt', partial, :athena)
-
+    def prep_upload(file_name)
       # the upload expects the final blob
-      upload = create_upload('athena', 'wisdom.txt', @metis_uid,
-        file_size: WISDOM.length,
-        current_byte_position: File.size(partial_file),
-        next_blob_size: next_blob.length,
-        next_blob_hash: Digest::MD5.hexdigest(next_blob)
-      )
+      @partial_file = stub_partial(file_name, @partial, :athena)
 
-      # post the blob with no next blob
+      create_upload('athena', file_name, @metis_uid,
+        file_size: WISDOM.length,
+        current_byte_position: File.size(@partial_file),
+        next_blob_size: @next_blob.length,
+        next_blob_hash: Digest::MD5.hexdigest(@next_blob)
+      )
+    end
+
+    def complete_upload(file_name)
       hmac_header
       post(
-        upload_path('athena', 'wisdom.txt'),
+        upload_path('athena', file_name),
         action: 'blob',
         next_blob_size: 0,
         next_blob_hash: '',
         blob_data: Rack::Test::UploadedFile.new(
-          wisdom_blob_file,
+          @wisdom_blob_file,
           'application/octet-stream'
         )
       )
+    end
+
+    def prep_existing_file(file_name, contents, params={})
+      @creation_time = Date.today - 10
+      Timecop.freeze(@creation_time)
+      file = create_file(
+        'athena', file_name, contents,
+        {
+          author: 'metis@tartarus.org'
+        }.merge(params)
+      )
+      Timecop.return
+      @current_file = stub_file(file_name, contents, :athena)
+    end
+
+    it 'finishes the upload' do
+      upload = prep_upload('wisdom.txt')
+
+      # post the blob with no next blob
+      complete_upload('wisdom.txt')
 
       expect(last_response.status).to eq(200)
 
       # the partial is destroyed
-      expect(File.exists?(partial_file)).to be_falsy
+      expect(File.exists?(@partial_file)).to be_falsy
 
       file = Metis::File.first
 
@@ -350,47 +410,17 @@ describe UploadController do
 
     it 'completes over an existing file' do
       # the next blob completes the data
-      next_blob = WISDOM[20..-1]
-      partial = WISDOM[0..19]
+      upload = prep_upload('wisdom.txt')
 
-      wisdom_blob_file = stub_data('wisdom_blob', next_blob, :athena)
-
-      partial_file = stub_partial('wisdom.txt', partial, :athena)
-
-      creation_time = Date.today - 10
-      Timecop.freeze(creation_time)
-      file = create_file('athena', 'wisdom.txt', WISDOM*2,
-        author: 'metis@tartarus.org'
-      )
-      Timecop.return
-
-      current_file = stub_file('wisdom.txt', WISDOM*2, :athena)
-
-      # the upload expects the final blob
-      upload = create_upload('athena', 'wisdom.txt', @metis_uid,
-        file_size: WISDOM.length,
-        current_byte_position: File.size(partial_file),
-        next_blob_size: next_blob.length,
-        next_blob_hash: Digest::MD5.hexdigest(next_blob)
-      )
+      prep_existing_file('wisdom.txt', WISDOM*2)
 
       # post the blob with no next blob
-      hmac_header
-      post(
-        upload_path('athena', 'wisdom.txt'),
-        action: 'blob',
-        next_blob_size: 0,
-        next_blob_hash: '',
-        blob_data: Rack::Test::UploadedFile.new(
-          wisdom_blob_file,
-          'application/octet-stream'
-        )
-      )
+      complete_upload('wisdom.txt')
 
       expect(last_response.status).to eq(200)
 
       # the partial is destroyed
-      expect(File.exists?(partial_file)).to be_falsy
+      expect(File.exists?(@partial_file)).to be_falsy
 
       file = Metis::File.first
 
@@ -401,7 +431,7 @@ describe UploadController do
       expect(file.has_data?).to be_truthy
 
       # the created_at timestamp is the original date
-      expect(file.created_at).to be_within(1).of(creation_time.to_time)
+      expect(file.created_at).to be_within(1).of(@creation_time.to_time)
 
       # the updated_at timestamp is new
       expect(file.updated_at).to be_within(1).of(Time.now)
@@ -415,47 +445,17 @@ describe UploadController do
 
     it 'refuses to complete over an existing read-only file' do
       # the next blob completes the data
-      next_blob = WISDOM[20..-1]
-      partial = WISDOM[0..19]
+      upload = prep_upload('wisdom.txt')
 
-      wisdom_blob_file = stub_data('wisdom_blob', next_blob, :athena)
-
-      partial_file = stub_partial('wisdom.txt', partial, :athena)
-
-      creation_time = Date.today - 10
-      Timecop.freeze(creation_time)
-      file = create_file('athena', 'wisdom.txt', WISDOM*2,
-        author: 'metis@tartarus.org',
-        read_only: true
-      )
-      Timecop.return
-      current_file = stub_file('wisdom.txt', WISDOM*2, :athena)
-
-      # the upload expects the final blob
-      upload = create_upload('athena', 'wisdom.txt', @metis_uid,
-        file_size: WISDOM.length,
-        current_byte_position: File.size(partial_file),
-        next_blob_size: next_blob.length,
-        next_blob_hash: Digest::MD5.hexdigest(next_blob)
-      )
+      prep_existing_file('wisdom.txt', WISDOM*2, read_only: true)
 
       # post the blob with no next blob
-      hmac_header
-      post(
-        upload_path('athena', 'wisdom.txt'),
-        action: 'blob',
-        next_blob_size: 0,
-        next_blob_hash: '',
-        blob_data: Rack::Test::UploadedFile.new(
-          wisdom_blob_file,
-          'application/octet-stream'
-        )
-      )
+      complete_upload('wisdom.txt')
 
       expect(last_response.status).to eq(403)
 
       # the partial is destroyed
-      expect(File.exists?(partial_file)).to be_falsy
+      expect(File.exists?(@partial_file)).to be_falsy
 
       file = Metis::File.first
 
@@ -463,8 +463,8 @@ describe UploadController do
       expect(File.read(file.location)).to eq(WISDOM*2)
 
       # the file metadata is the same
-      expect(file.created_at).to be_within(1).of(creation_time.to_time)
-      expect(file.updated_at).to be_within(1).of(creation_time.to_time)
+      expect(file.created_at).to be_within(1).of(@creation_time.to_time)
+      expect(file.updated_at).to be_within(1).of(@creation_time.to_time)
       expect(file.author).to eq('metis@tartarus.org')
 
       # the file thinks it has data
@@ -472,6 +472,75 @@ describe UploadController do
 
       # clean up the file
       File.delete(file.location)
+    end
+
+    it 'sets a folder name when it completes' do
+      blueprints_folder = create_folder('athena', 'blueprints')
+      # the next blob completes the data
+      prep_upload('blueprints/wisdom.txt')
+
+      # post the blob with no next blob
+      complete_upload('blueprints/wisdom.txt')
+
+      expect(last_response.status).to eq(200)
+
+      # the partial is destroyed
+      expect(File.exists?(@partial_file)).to be_falsy
+
+      # there is a new file
+      expect(Metis::File.count).to eq(2)
+
+      file = Metis::File.last
+
+      # the actual file exists with the original content
+      expect(File.read(file.location)).to eq(WISDOM)
+
+      # the file thinks it has data
+      expect(file.has_data?).to be_truthy
+
+      # the file metadata is updated
+      expect(file.created_at).to be_within(1).of(Time.now)
+      expect(file.updated_at).to be_within(1).of(Time.now)
+
+      # so is the author
+      expect(file.author).to eq('metis@olympus.org|Metis ')
+
+      # crucially, the folder is set
+      expect(file.folder).to eq(blueprints_folder)
+
+      # clean up the file
+      File.delete(file.location)
+    end
+
+    it 'does not write into a read-only folder' do
+      blueprints_folder = create_folder('athena', 'blueprints', read_only: true)
+      # the next blob completes the data
+      prep_upload('blueprints/wisdom.txt')
+
+      # post the blob with no next blob
+      complete_upload('blueprints/wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+
+      # the partial is destroyed
+      expect(File.exists?(@partial_file)).to be_falsy
+
+      expect(Metis::File.count).to eq(1)
+    end
+
+    it 'does not write into a missing folder' do
+      # the next blob completes the data
+      prep_upload('blueprints/wisdom.txt')
+
+      # post the blob with no next blob
+      complete_upload('blueprints/wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+
+      # the partial is destroyed
+      expect(File.exists?(@partial_file)).to be_falsy
+
+      expect(Metis::File.count).to eq(0)
     end
   end
 

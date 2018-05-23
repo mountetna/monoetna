@@ -9,7 +9,6 @@ import MetisUI from './components/metis-ui';
 import files from './reducers/files-reducer';
 import user from './reducers/janus-log-reducer';
 
-import * as authActions from './actions/auth_actions';
 import * as fileActions from './actions/file_actions';
 import * as uploadActions from './actions/upload_actions';
 import * as userActions from './actions/user_actions';
@@ -25,7 +24,6 @@ const createStore = () => {
 
   // action handlers to import
   let actions = {
-    ...authActions,
     ...fileActions,
     ...uploadActions,
     ...userActions

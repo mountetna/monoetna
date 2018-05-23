@@ -19,9 +19,9 @@ class Metis
       !!(file_name =~ FILEPATH_MATCH)
     end
 
-    def self.foldername(file_name)
+    def self.folder_name(file_name)
       FILEPATH_MATCH.match(file_name)[:folders].tap do |folders|
-        # no trailing slash in foldername
+        # no trailing slash in folder_name
         return folders.empty? ? nil : folders.sub(%r!/$!,'')
       end
     end
