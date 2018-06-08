@@ -31,48 +31,33 @@ module Etna
     end
 
     def actual_response
-      status, headers, body = @app.call(@request.env)
-
-      Rack::Response.new(body, status, headers)
+      @app.call(@request.env)
     end
 
     def postflight_response
-      response = actual_response
+      status, headers, body = actual_response
 
       if origin_allowed?
-        add_headers(
-          response,
-          access_control_allow_origin: header(:origin),
-          access_control_allow_credentials: 'true'
+        headers.update(
+          'Access-Control-Allow-Origin' => header(:origin),
+          'Access-Control-Allow-Credentials' => 'true'
         )
       end
 
-      return response.finish
+      return [ status, headers, body ]
     end
 
     def preflight_response
-      response = Rack::Response.new('', 200, {})
-
-      if origin_allowed?
-        add_headers(
-          response,
-          access_control_allow_methods: 'GET, POST, PUT, DELETE, OPTIONS',
-          access_control_allow_headers: header(:access_control_request_headers),
-          access_control_allow_origin: header(:origin),
-          access_control_allow_credentials: 'true'
-        )
-      end
-
-      return response.finish
-    end
-
-    def add_headers(response, headers)
-      headers.each do |name, value|
-        response.set_header(
-          name.to_s.split(/_/).map(&:capitalize).join('-'),
-          value
-        )
-      end
+      [
+        200,
+        origin_allowed?  ?  {
+          'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers' => header(:access_control_request_headers),
+          'Access-Control-Allow-Origin' => header(:origin),
+          'Access-Control-Allow-Credentials' => 'true'
+        } : {},
+        ''
+      ]
     end
 
     def header(name)
