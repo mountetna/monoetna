@@ -56,7 +56,7 @@ module Etna
           'Access-Control-Allow-Origin' => header(:origin),
           'Access-Control-Allow-Credentials' => 'true'
         } : {},
-        ''
+        ['']
       ]
     end
 
