@@ -40,6 +40,10 @@ class Metis
 
       folder = folder_path && Metis::Folder.from_path(bucket, folder_path).last
 
+      self.from_folder(bucket, folder, file_name)
+    end
+
+    def self.from_folder(bucket, folder, file_name)
       return self.where(
         bucket: bucket,
         folder_id: folder ? folder.id : nil,

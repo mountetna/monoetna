@@ -48,6 +48,10 @@ class Metis
       ))
     end
 
+    def read_only?
+      read_only
+    end
+
     def folder_path
       ancestors.map(&:folder_name) + [ folder_name ]
     end

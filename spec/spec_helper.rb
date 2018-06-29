@@ -122,7 +122,7 @@ def stub_data(name, contents, project_name = :stub)
 end
 
 def stub_partial(name, contents, project_name = :stub)
-  file_name = "uploads/#{safe_path("#{@metis_uid}-#{name}")}"
+  file_name = "uploads/#{Metis::File.safe_file_name("#{@metis_uid}-#{name}")}"
   make_stub(file_name, contents, project_name)
 end
 

@@ -146,17 +146,22 @@ describe UploadController do
       json_post('authorize/upload', params)
 
       # we expect to be forbidden from uploading
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('No such folder!')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid folder')
       expect(Metis::Upload.count).to eq(0)
     end
 
     it 'does not authorize files with a read-only parent folder' do
       blueprints_folder = create_folder('athena', 'blueprints', read_only: true)
 
+      params = {
+        file_path: 'blueprints/wisdom.txt',
+        bucket_name: 'files',
+        project_name: 'athena'
+      }
       # we use our token to authorize an upload
       auth_header(:editor)
-      json_post('authorize/upload', file_path: 'blueprints/wisdom.txt', project_name: 'athena')
+      json_post('authorize/upload', params)
 
       # we expect to be forbidden from uploading
       expect(last_response.status).to eq(403)
@@ -179,7 +184,6 @@ describe UploadController do
         next_blob_size: 10,
         next_blob_hash: 10
       )
-
 
       # the file has not been made yet
       expect(Metis::File.count).to eq(0)
@@ -482,7 +486,7 @@ describe UploadController do
     it 'sets a folder name when it completes' do
       blueprints_folder = create_folder('athena', 'blueprints')
       # the next blob completes the data
-      prep_upload('blueprints/wisdom.txt')
+      upload = prep_upload('blueprints/wisdom.txt')
 
       # post the blob with no next blob
       complete_upload('blueprints/wisdom.txt')
@@ -493,9 +497,9 @@ describe UploadController do
       expect(File.exists?(@partial_file)).to be_falsy
 
       # there is a new file
-      expect(Metis::File.count).to eq(2)
-
       file = Metis::File.last
+
+      expect(file).not_to be_nil
 
       # the actual file exists with the original content
       expect(File.read(file.location)).to eq(WISDOM)
@@ -530,7 +534,7 @@ describe UploadController do
       # the partial is destroyed
       expect(File.exists?(@partial_file)).to be_falsy
 
-      expect(Metis::File.count).to eq(1)
+      expect(Metis::File.count).to eq(0)
     end
 
     it 'does not write into a missing folder' do
@@ -540,7 +544,8 @@ describe UploadController do
       # post the blob with no next blob
       complete_upload('blueprints/wisdom.txt')
 
-      expect(last_response.status).to eq(403)
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid folder')
 
       # the partial is destroyed
       expect(File.exists?(@partial_file)).to be_falsy

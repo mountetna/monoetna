@@ -2,21 +2,14 @@ class UploadController < Metis::Controller
   def authorize
     require_params(:project_name, :bucket_name, :file_path)
     bucket = require_bucket
+    folder_path, file_name = parse_path(@params[:file_path])
+    folder = require_folder(bucket, folder_path)
 
-    raise Etna::BadRequest, 'The file path is illegal.' unless Metis::File.valid_file_path?(@params[:file_path])
-
-    # this will be nil for the root path
-    folders = Metis::Folder.from_path(bucket, @params[:file_path])
-
-    folder = folders.last
-
-    if !folders.empty?
-      raise Etna::Forbidden, 'No such folder!' unless folder
-
-      raise Etna::Forbidden, 'Folder is read-only!' if folder.read_only?
+    if folder && folder.read_only?
+      raise Etna::Forbidden, 'Folder is read-only!'
     end
 
-    file = Metis::File.from_path(bucket, @params[:file_path])
+    file = Metis::File.from_folder(bucket, folder, file_name)
 
     raise Etna::Forbidden, 'File cannot be overwritten.' if file && file.read_only?
 
@@ -50,7 +43,7 @@ class UploadController < Metis::Controller
   # this endpoint handles multiple possible actions, allowing us to authorize
   # one path /upload and support several upload operations
   def upload
-    require_params(:project_name, :file_name, :action)
+    require_param(:action)
 
     action = @params[:action].to_sym
 
@@ -69,7 +62,7 @@ class UploadController < Metis::Controller
 
     upload = Metis::Upload.where(
       project_name: @params[:project_name],
-      file_name: @params[:file_name],
+      file_name: @params[:file_path],
       bucket: bucket,
       metis_uid: metis_uid,
     ).first
@@ -99,7 +92,7 @@ class UploadController < Metis::Controller
 
     upload = Metis::Upload.where(
       project_name: @params[:project_name],
-      file_name: @params[:file_name],
+      file_name: @params[:file_path],
       bucket: bucket,
       metis_uid: metis_uid
     ).first
@@ -117,32 +110,42 @@ class UploadController < Metis::Controller
       next_blob_hash: @params[:next_blob_hash]
     )
 
-    if upload.complete?
-      if upload.can_place?
-        upload.finish!
-
-        response = success_json(upload)
-
-        upload.delete
-
-        return response
-      else
-        upload.delete_partial!
-        upload.delete
-
-        raise Etna::Forbidden, 'Cannot overwrite existing file!'
-      end
-    end
+    return complete_upload(upload) if upload.complete?
 
     return success_json(upload)
   end
+
+  private
+
+  def complete_upload(upload)
+    folder_path, file_name = Metis::File.path_parts(upload.file_name)
+    folder = require_folder(upload.bucket, folder_path)
+
+    if folder && folder.read_only?
+      raise Etna::Forbidden, 'Folder is read-only!'
+    end
+
+    file = Metis::File.from_folder(upload.bucket, folder, file_name)
+
+    if file && file.read_only?
+      raise Etna::Forbidden, 'Cannot overwrite existing file!'
+    end
+
+    upload.finish!
+
+    return success_json(upload)
+  ensure
+    upload.delete_with_partial!
+  end
+
+  public
 
   def upload_cancel
     bucket = require_bucket
 
     upload = Metis::Upload.where(
       project_name: @params[:project_name],
-      file_name: @params[:file_name],
+      file_name: @params[:file_path],
       bucket: bucket,
       metis_uid: metis_uid
     ).first
@@ -150,8 +153,7 @@ class UploadController < Metis::Controller
     raise Etna::BadRequest, 'Upload has not been started!' unless upload
 
     # axe the upload data and record
-    upload.delete_partial!
-    upload.delete
+    upload.delete_with_partial!
 
     return success('deleted')
   end

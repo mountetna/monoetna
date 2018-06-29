@@ -20,10 +20,11 @@ class Metis
       ))
     end
 
-    def delete_partial!
+    def delete_with_partial!
       if ::File.exists?(partial_location)
         ::File.delete(partial_location)
       end
+      delete
     end
 
     def append_blob(blob_path)
@@ -35,42 +36,15 @@ class Metis
       )
     end
 
-    def file
-      @file ||= Metis::File.find(
-        project_name: project_name,
-        file_name: file_name,
-        bucket: bucket
-      )
-    end
-
-    def folder
-      @folder ||= Metis::File.find(
-        project_name: project_name,
-        file_name: folder_name,
-        is_folder: true,
-        bucket: bucket
-      )
-    end
-
-    def folder_name
-      @folder_name ||= Metis::File.folder_name(file_name)
-    end
-
-    def can_place?
-      # the file exists and is read-only
-      return false if file && file.read_only?
-
-      # a folder_name is specified but no folder exists
-      return false if folder_name && (!folder || folder.read_only?)
-
-      # you can place the file
-      return true
-    end
-
     def finish!
+      folder_path, new_file_name = Metis::File.path_parts(file_name)
+
+      folder = Metis::Folder.from_path(bucket, folder_path).last
+
       file = Metis::File.find_or_create(
         project_name: project_name,
-        file_name: file_name,
+        file_name: new_file_name,
+        folder_id: folder ? folder.id : nil,
         bucket: bucket
       ) do |f|
         f.author = author
