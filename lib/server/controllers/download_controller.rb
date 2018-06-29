@@ -5,9 +5,7 @@ class DownloadController < Metis::Controller
   end
 
   def download
-    bucket = Metis::Bucket.where(project_name: @params[:project_name], name: @params[:bucket_name]).first
-
-    raise Etna::BadRequest, 'Invalid bucket!' unless bucket && bucket.allowed?(@user)
+    bucket = require_bucket
 
     file = Metis::File.from_path(bucket, @params[:file_path])
 

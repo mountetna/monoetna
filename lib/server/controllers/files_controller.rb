@@ -1,8 +1,6 @@
 class FilesController < Metis::Controller
   def list
-    bucket = Metis::Bucket.where(project_name: @params[:project_name], name: @params[:bucket_name]).first
-
-    raise Etna::BadRequest, 'Invalid bucket!' unless bucket && bucket.allowed?(@user)
+    bucket = require_bucket
 
     folder = Metis::Folder.from_path(bucket, @params[:folder_path]).last
 
@@ -29,9 +27,7 @@ class FilesController < Metis::Controller
   end
 
   def create_folder
-    bucket = Metis::Bucket.where(project_name: @params[:project_name], name: @params[:bucket_name]).first
-
-    raise Etna::BadRequest, 'Invalid bucket!' unless bucket && bucket.allowed?(@user)
+    bucket = require_bucket
 
     # any valid file_name is a valid folder name
     raise Etna::BadRequest, 'Invalid folder name' unless Metis::File.valid_file_path?(@params[:folder_path])
