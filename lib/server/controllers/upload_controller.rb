@@ -1,41 +1,31 @@
 class UploadController < Metis::Controller
   def authorize
-    require_params(:project_name, :file_name)
+    require_params(:project_name, :bucket_name, :file_path)
 
-    raise Etna::BadRequest, 'The file name is illegal.' unless Metis::File.valid_file_name?(@params[:file_name])
+    raise Etna::BadRequest, 'The file path is illegal.' unless Metis::File.valid_file_path?(@params[:file_path])
 
-    bucket_name = @params[:bucket_name] || 'files'
-    bucket = Metis::Bucket.find(name: bucket_name, project_name: @params[:project_name])
-
+    bucket = Metis::Bucket.find(name: @params[:bucket_name], project_name: @params[:project_name])
     raise Etna::BadRequest, 'No such bucket!' unless bucket
-
     raise Etna::Forbidden, 'Inaccessible bucket.' unless bucket.allowed?(@user)
 
-    folder_name = Metis::File.folder_name(@params[:file_name])
+    # this will be nil for the root path
+    folders = Metis::Folder.from_path(bucket, @params[:file_path])
 
-    if folder_name
-      folder = Metis::File.find(
-        project_name: @params[:project_name],
-        file_name: folder_name,
-        is_folder: true,
-        bucket: bucket
-      )
+    folder = folders.last
+
+    if !folders.empty?
       raise Etna::Forbidden, 'No such folder!' unless folder
 
       raise Etna::Forbidden, 'Folder is read-only!' if folder.read_only?
     end
 
-    file = Metis::File.find(
-      project_name: @params[:project_name],
-      file_name: @params[:file_name],
-      bucket: bucket
-    )
+    file = Metis::File.from_path(bucket, @params[:file_path])
 
     raise Etna::Forbidden, 'File cannot be overwritten.' if file && file.read_only?
 
     # Create the upload
     upload = Metis::Upload.find_or_create(
-      file_name: @params[:file_name],
+      file_name: @params[:file_path],
       bucket: bucket,
       metis_uid: metis_uid,
       project_name: @params[:project_name]
@@ -51,8 +41,8 @@ class UploadController < Metis::Controller
     url = Metis::File.upload_url(
       @request,
       @params[:project_name],
-      bucket_name,
-      @params[:file_name]
+      @params[:bucket_name],
+      @params[:file_path]
     )
 
     success(url)

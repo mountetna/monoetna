@@ -10,6 +10,8 @@ describe DownloadController do
       @tips = "1. Burn the hydra's neck after cutting.\n2. Use a river to clean the stables."
 
       @location = stub_file('readme_hercules.txt', @tips, :labors)
+
+      default_bucket('labors')
     end
 
     after(:each) do

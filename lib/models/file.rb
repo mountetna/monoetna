@@ -2,8 +2,12 @@
 class Metis
   class File < Sequel::Model
     plugin :timestamps, update_on_create: true
+    plugin :rcte_tree,
+      parent: {name: :folder},
+      ancestors: {name: :folder_path}
+
     many_to_one :bucket
-    many_to_one :folder, class: Metis::File
+    many_to_one :folder
 
     FILENAME_MATCH=/[^<>:;,?"*\|\/\x00-\x1f]+/x
 
@@ -11,19 +15,36 @@ class Metis
       \A
         (?<folders>(#{FILENAME_MATCH.source}/)*)
 
-        #{FILENAME_MATCH.source}
+        (?<name>#{FILENAME_MATCH.source})
       \z
     !x
 
-    def self.valid_file_name?(file_name)
-      !!(file_name =~ FILEPATH_MATCH)
+    def self.valid_file_path?(file_path)
+      !!(file_path =~ FILEPATH_MATCH)
     end
 
-    def self.folder_name(file_name)
-      FILEPATH_MATCH.match(file_name)[:folders].tap do |folders|
-        # no trailing slash in folder_name
-        return folders.empty? ? nil : folders.sub(%r!/$!,'')
+    def self.path_parts(file_path)
+      FILEPATH_MATCH.match(file_path) do |match|
+        return [
+          # folder part, with no trailing slash
+          match[:folders].empty? ? nil : match[:folders].sub(%r!/$!,''),
+
+          # name part, with no trailing slash
+          match[:name].sub(%r!/$!,'')
+        ]
       end
+    end
+
+    def self.from_path(bucket, file_path)
+      folder_path, file_name = path_parts(file_path)
+
+      folder = folder_path && Metis::Folder.from_path(bucket, folder_path).last
+
+      return self.where(
+        bucket: bucket,
+        folder_id: folder ? folder.id : nil,
+        file_name: file_name
+      ).first
     end
 
     def self.safe_file_name(file_name)
@@ -35,7 +56,7 @@ class Metis
       %x{ md5sum '#{path}' }.split.first
     end
 
-    def self.upload_url(request, project_name, bucket_name, file_name)
+    def self.upload_url(request, project_name, bucket_name, file_path)
       hmac_url(
         'POST',
         request.host,
@@ -44,13 +65,13 @@ class Metis
           :upload,
           project_name: project_name,
           bucket_name: bucket_name,
-          file_name: file_name
+          file_path: file_path
         ),
         Metis.instance.config(:upload_expiration)
       )
     end
 
-    def self.download_url(request, project_name, bucket_name, file_name)
+    def self.download_url(request, project_name, bucket_name, file_path)
       hmac_url(
         'GET',
         request.host,
@@ -59,7 +80,7 @@ class Metis
           :download,
           project_name: project_name,
           bucket_name: bucket_name,
-          file_name: file_name
+          file_path: file_path
         ),
         Metis.instance.config(:download_expiration)
       )
@@ -108,41 +129,27 @@ class Metis
       file_name && ::File.exists?(location)
     end
 
-    def folder?
-      self.is_folder
-    end
-
     def read_only?
       read_only
     end
 
     def location
-      ::File.expand_path(::File.join(
-        Metis.instance.project_path(project_name),
-        bucket.name,
-        Metis::File.safe_file_name(
-          file_name
+      ::File.expand_path(
+        ::File.join(
+          folder ? folder.location : bucket.location,
+          Metis::File.safe_file_name(file_name)
         )
-      ))
+      )
     end
 
     def to_hash(request=nil)
       result = {
         file_name: file_name,
         project_name: project_name,
+        bucket_name: bucket.name,
         updated_at: updated_at,
         created_at: created_at,
         author: author,
-      }
-      if folder?
-        return result.merge(to_hash_folder(request))
-      else
-        return result.merge(to_hash_file(request))
-      end
-    end
-
-    def to_hash_file(request)
-      {
         file_hash: file_hash,
         size: actual_size,
         download_url: request ? Metis::File.download_url(
@@ -151,12 +158,6 @@ class Metis
           bucket.name,
           file_name
         ) : nil
-      }
-    end
-
-    def to_hash_folder(request)
-      {
-        is_folder: true
       }
     end
 

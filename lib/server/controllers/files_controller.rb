@@ -4,25 +4,28 @@ class FilesController < Metis::Controller
 
     raise Etna::BadRequest, 'Invalid bucket!' unless bucket && bucket.allowed?(@user)
 
-    folder = nil
+    folder = Metis::Folder.from_path(bucket, @params[:folder_path]).last
 
-    if @params[:folder_name]
-      folder = Metis::File.where(
-        project_name: @params[:project_name],
-        file_name: @params[:folder_name],
-        is_folder: true
-      ).first
+    if @params[:folder_path]
       raise Etna::Forbidden, 'No such folder!' unless folder
     end
 
     files = Metis::File.where(
       project_name: @params[:project_name],
+      bucket: bucket,
       folder_id: folder ? folder.id : nil
     ).all.map do |file|
       file.to_hash(@request)
     end
 
-    success_json(files: files)
+    folders = Metis::Folder.where(
+      bucket: bucket,
+      folder_id: folder ? folder.id : nil
+    ).all.map do |fold|
+      fold.to_hash
+    end
+
+    success_json(files: files, folders: folders)
   end
 
   def create_folder
@@ -31,36 +34,36 @@ class FilesController < Metis::Controller
     raise Etna::BadRequest, 'Invalid bucket!' unless bucket && bucket.allowed?(@user)
 
     # any valid file_name is a valid folder name
-    raise Etna::BadRequest, 'Invalid folder name' unless Metis::File.valid_file_name?(@params[:folder_name])
+    raise Etna::BadRequest, 'Invalid folder name' unless Metis::File.valid_file_path?(@params[:folder_path])
 
     # require the parent folder (if any) to exist
     parent_folder = nil
-    parent_folder_name = Metis::File.folder_name(@params[:folder_name])
+    parent_folder_path, folder_name = Metis::File.path_parts(@params[:folder_path])
 
-    if parent_folder_name
-      parent_folder = Metis::File.find(
-        project_name: @params[:project_name],
-        bucket: bucket,
-        file_name: parent_folder_name
-      )
+    if parent_folder_path
+      parent_folder = Metis::Folder.from_path(bucket, parent_folder_path).last
 
-      raise Etna::BadRequest, 'Invalid parent folder' unless parent_folder && parent_folder.folder?
+      raise Etna::BadRequest, 'Invalid parent folder' unless parent_folder
     end
 
-    # is there a previous file here?
-    file = Metis::File.where(project_name: @params[:project_name], bucket: bucket, file_name: @params[:folder_name]).first
-    raise Etna::BadRequest, "#{file.folder? ? 'Folder' : 'File'} exists" if file
+    # is there a previous folder here?
+    folder = Metis::Folder.where(
+      project_name: @params[:project_name],
+      bucket: bucket,
+      folder_id: parent_folder ? parent_folder.id : nil,
+      folder_name: folder_name
+    ).first
+    raise Etna::BadRequest, "Folder exists" if folder
 
     # create the folder
-    file = Metis::File.create(
+    folder = Metis::Folder.create(
       project_name: @params[:project_name],
-      file_name: @params[:folder_name],
+      folder_name: folder_name,
       author: Metis::File.author(@user),
       bucket: bucket,
-      folder: parent_folder,
-      is_folder: true
+      folder: parent_folder
     )
 
-    success_json(files: [ file.to_hash(@request) ])
+    success_json(folders: [ folder.to_hash ])
   end
 end

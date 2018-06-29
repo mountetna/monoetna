@@ -24,9 +24,11 @@ describe FilesController do
 
       @blueprints_folder = create_folder('athena', 'blueprints')
 
+      @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+
       @helmet = 'x'*20
-      @helmet_file = create_file('athena', 'blueprints/helmet.jpg', @helmet, folder: @blueprints_folder)
-      stub_file('blueprints/helmet.jpg', @helmet, :athena)
+      @helmet_file = create_file('athena', 'helmet.jpg', @helmet, folder: @helmet_folder)
+      stub_file('blueprints/helmet/helmet.jpg', @helmet, :athena)
     end
 
     it 'should return a list of files and folders for the current folder' do
@@ -38,19 +40,20 @@ describe FilesController do
 
       expect(last_response.status).to eq(200)
 
-      expect(json_body[:files][0]).to include(
+      expect(json_body[:files].first).to include(
         file_name: 'wisdom.txt',
         author: 'metis|Metis',
         project_name: 'athena',
+        bucket_name: 'files',
         size: 66,
         file_hash: Digest::MD5.hexdigest(WISDOM),
         download_url: a_string_matching(%r{http.*athena/download})
       )
-      expect(json_body[:files][1]).to include(
-        file_name: 'blueprints',
+      expect(json_body[:folders].first).to include(
+        folder_name: 'blueprints',
         author: 'metis|Metis',
         project_name: 'athena',
-        is_folder: true
+        bucket_name: 'files'
       )
     end
 
@@ -59,15 +62,15 @@ describe FilesController do
       header(*Etna::TestAuth.token_header(
         email: 'metis@ucsf.edu', perm: 'e:athena'
       ))
-      get('/athena/list/files/blueprints')
+      get('/athena/list/files/blueprints/helmet')
 
       expect(last_response.status).to eq(200)
 
       expect(json_body[:files].first).to include(
-        file_name: 'blueprints/helmet.jpg',
+        file_name: 'helmet.jpg',
         author: 'metis|Metis',
         project_name: 'athena',
-        size: 20,
+        size: @helmet.length,
         file_hash: Digest::MD5.hexdigest(@helmet),
         download_url: a_string_matching(%r{http.*athena/download})
       )
@@ -83,10 +86,9 @@ describe FilesController do
 
       expect(last_response.status).to eq(200)
 
-      folder = Metis::File.first
+      folder = Metis::Folder.first
       expect(folder).not_to be_nil
-      expect(folder.file_name).to eq('Helmet Blueprints')
-      expect(folder).to be_folder
+      expect(folder.folder_name).to eq('Helmet Blueprints')
     end
 
     it 'refuses to create folders with invalid names' do
@@ -108,10 +110,9 @@ describe FilesController do
 
       expect(last_response.status).to eq(200)
 
-      folder = Metis::File.last
+      folder = Metis::Folder.last
       expect(folder).not_to be_nil
-      expect(folder.file_name).to eq('blueprints/Helmet Blueprints')
-      expect(folder).to be_folder
+      expect(folder.folder_path).to eq(['blueprints', 'Helmet Blueprints'])
     end
 
     it 'refuses to set a file as parent' do
@@ -143,13 +144,12 @@ describe FilesController do
       ))
       json_post('athena/create_folder/files/blueprints/Helmet Blueprints', {})
 
-      file = Metis::File.last
+      folder = Metis::Folder.last
 
       expect(last_response.status).to eq(200)
-      expect(Metis::File.count).to eq(2)
-      expect(file.file_name).to eq('blueprints/Helmet Blueprints')
-      expect(file).to be_folder
-      expect(file.folder).to eq(blueprints_folder)
+      expect(Metis::Folder.count).to eq(2)
+      expect(folder.folder_path).to eq([ 'blueprints', 'Helmet Blueprints'])
+      expect(folder.folder).to eq(blueprints_folder)
     end
   end
 end

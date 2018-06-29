@@ -27,8 +27,9 @@ describe UploadController do
   context '#authorize' do
     it 'should authorize an upload' do
       params = {
-        file_name: 'wisdom.txt',
-        project_name: 'athena'
+        file_path: 'wisdom.txt',
+        project_name: 'athena',
+        bucket_name: 'files'
       }
 
       # we use our token to authorize an upload
@@ -41,7 +42,7 @@ describe UploadController do
       hmac_params = Rack::Utils.parse_nested_query(uri.query)
 
       expect(last_response.status).to eq(200)
-      expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_name]}")
+      expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_path]}")
       expect(hmac_params['X-Etna-Id']).to eq('metis')
       upload = Metis::Upload.first
       expect(upload).not_to be_nil
@@ -57,8 +58,9 @@ describe UploadController do
       )
 
       params = {
-        file_name: 'wisdom.txt',
-        project_name: 'athena'
+        file_path: 'wisdom.txt',
+        project_name: 'athena',
+        bucket_name: 'files'
       }
 
       # we use our token to authorize an upload
@@ -70,7 +72,7 @@ describe UploadController do
 
       # we expect an authorization url in return
       uri = URI(last_response.body)
-      expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_name]}")
+      expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_path]}")
 
       hmac_params = Rack::Utils.parse_nested_query(uri.query)
       expect(hmac_params['X-Etna-Id']).to eq('metis')
@@ -82,6 +84,7 @@ describe UploadController do
     it 'does not authorize poorly-named files' do
       params = {
         project_name: 'athena',
+        bucket_name: 'files',
         user_email: 'metis@ucsf.edu'
       }
 
@@ -96,7 +99,7 @@ describe UploadController do
         # we try each example and see if it returns the
         # appropriate status
         examples.each do |example|
-          json_post('authorize/upload', params.merge(file_name: example))
+          json_post('authorize/upload', params.merge(file_path: example))
           expect(last_response.status).to eq(status)
         end
       end
@@ -110,7 +113,8 @@ describe UploadController do
       )
 
       params = {
-        file_name: 'wisdom.txt',
+        file_path: 'wisdom.txt',
+        bucket_name: 'files',
         project_name: 'athena'
       }
 
@@ -132,7 +136,8 @@ describe UploadController do
       )
 
       params = {
-        file_name: 'blueprints/wisdom.txt',
+        file_path: 'blueprints/wisdom.txt',
+        bucket_name: 'files',
         project_name: 'athena'
       }
 
@@ -151,7 +156,7 @@ describe UploadController do
 
       # we use our token to authorize an upload
       auth_header(:editor)
-      json_post('authorize/upload', file_name: 'blueprints/wisdom.txt', project_name: 'athena')
+      json_post('authorize/upload', file_path: 'blueprints/wisdom.txt', project_name: 'athena')
 
       # we expect to be forbidden from uploading
       expect(last_response.status).to eq(403)

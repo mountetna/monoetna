@@ -77,6 +77,9 @@ FactoryBot.define do
   factory :file, class: Metis::File do
     to_create(&:save)
   end
+  factory :folder, class: Metis::Folder do
+    to_create(&:save)
+  end
   factory :bucket, class: Metis::Bucket do
     to_create(&:save)
   end
@@ -101,8 +104,16 @@ def stubs
   @stubs ||= []
 end
 
+def safe_path(path)
+  File.join(
+    path.split(%r!/!).map do |name|
+      Metis::File.safe_file_name(name)
+    end
+  )
+end
+
 def stub_file(name, contents, project_name = :stub, bucket_name = 'files')
-  file_name = "#{bucket_name}/#{Metis::File.safe_file_name(name)}"
+  file_name = "#{bucket_name}/#{safe_path(name)}"
   make_stub(file_name, contents, project_name)
 end
 
@@ -111,12 +122,13 @@ def stub_data(name, contents, project_name = :stub)
 end
 
 def stub_partial(name, contents, project_name = :stub)
-  file_name = "uploads/#{Metis::File.safe_file_name("#{@metis_uid}-#{name}")}"
+  file_name = "uploads/#{safe_path("#{@metis_uid}-#{name}")}"
   make_stub(file_name, contents, project_name)
 end
 
 def make_stub(name, contents, project_name)
   file_name = "spec/#{project_name}/#{name}"
+  FileUtils.mkdir_p(File.dirname(file_name))
   File.open(file_name,"w") do |f|
     f.print contents
   end
@@ -182,7 +194,14 @@ def create_upload(project_name, file_name, uid, params={})
 end
 
 def create_folder(project_name, folder_name, params={})
-  create_file(project_name, folder_name, nil, params.merge(is_folder: true))
+  create( :folder,
+    {
+      bucket: default_bucket(project_name),
+      project_name: project_name,
+      author: 'metis|Metis',
+      folder_name: folder_name,
+    }.merge(params)
+  )
 end
 
 def create_file(project_name, file_name, contents, params={})
