@@ -39,82 +39,71 @@ const ListEntryUpdatedColumn = ({file, widths}) =>
     </div>
   </ListEntryColumn>;
 
-const basename = (file) => file.file_name.split(/\//).pop();
+const basename = (path) => path.split(/\//).pop();
 const foldername = (file) => {
   let [ basename, ...folder_names ] = file.file_name.split(/\//).reverse();
   return folder_names.reverse().join('/');
 }
-const FolderLink = ({className, file}) =>
-    <div className={className} title={file.file_name}>
-      <a href={
-        `/${CONFIG.project_name}/browse/${file.file_name}`
-      }>{basename(file)}</a>
-    </div>;
 
-const FileLink = ({className, file}) =>
-    <div className={className} title={file.file_name}>
-      <a href={file.download_url}>{basename(file)}</a>
-    </div>;
+const browse_path = (folder_name, current_folder) => (
+  `/${CONFIG.project_name}/browse/${
+    current_folder == undefined ? '' : `${current_folder}/`
+  }${folder_name}`
+);
 
-const ListEntryFilenameColumn = ({file, widths}) => {
-  let LinkType = file.is_folder ? FolderLink : FileLink;
-  return <ListEntryColumn className='name' widths={widths}>
-    <LinkType className='list-entry-file-name' file={file}/>
-  </ListEntryColumn>;
-}
+const ListEntryFoldernameColumn = ({folder, current_folder, widths}) => (
+  <ListEntryColumn className='name' widths={widths}>
+    <div className='list-entry-file-name' title={folder.folder_name}>
+      <a href={browse_path(folder.folder_name,current_folder)}>
+        {basename(folder.folder_name)}
+      </a>
+    </div>
+  </ListEntryColumn>
+)
 
-export class ListEntry extends React.Component{
-  render(){
-    let { file, widths } = this.props;
+const ListEntryFilenameColumn = ({file, widths}) => (
+  <ListEntryColumn className='name' widths={widths}>
+    <div className='list-entry-file-name' title={file.file_name}>
+      <a href={file.download_url}>{basename(file.file_name)}</a>
+    </div>
+  </ListEntryColumn>
+)
 
-    return (
-      <div className='list-entry-group'>
-        <ListEntryTypeColumn icon='far fa-file-alt' widths={widths}/>
-        <ListEntryFilenameColumn file={file} widths={widths}/>
-        <ListEntryUpdatedColumn file={file} widths={widths}/>
-        <ListEntrySizeColumn file={file} widths={widths}/>
-        <ListEntryControlColumn file={file} widths={widths}/>
-      </div>
-    );
-  }
-}
+export const ListFile = ({file,widths}) => (
+  <div className='list-entry-group'>
+    <ListEntryTypeColumn icon='far fa-file-alt' widths={widths}/>
+    <ListEntryFilenameColumn file={file} widths={widths}/>
+    <ListEntryUpdatedColumn file={file} widths={widths}/>
+    <ListEntrySizeColumn file={file} widths={widths}/>
+    <ListEntryControlColumn file={file} widths={widths}/>
+  </div>
+);
 
-export class ListFolder extends React.Component{
-  render(){
-    let { file, widths }  = this.props;
+export const ListFolder = ({ folder, current_folder, widths }) => (
+  <div className='list-entry-group'>
+    <ListEntryTypeColumn icon='fas fa-folder' widths={ widths } />
+    <ListEntryFoldernameColumn folder={folder}
+      current_folder={ current_folder } widths={widths} />
+    <ListEntryUpdatedColumn file={folder} widths={widths}/>
+    <ListEntryColumn className='size' widths={widths}/>
+    <ListEntryColumn className='control' widths={widths}/>
+  </div>
+);
 
-    return (
-      <div className='list-entry-group'>
-        <ListEntryTypeColumn icon='fas fa-folder' widths={ widths } />
-        <ListEntryFilenameColumn file={file} widths={widths} />
-        <ListEntryUpdatedColumn file={file} widths={widths}/>
-        <ListEntryColumn className='size' widths={widths}/>
-        <ListEntryColumn className='control' widths={widths}/>
-      </div>
-    );
-  }
-}
-
-export class ListUpload extends React.Component{
-  render() {
-    let { upload, widths } = this.props;
-
-    return (
-      <div className='list-entry-group upload'>
-        <ListEntryTypeColumn icon='upload fas fa-upload' widths={ widths } />
-        <ListEntryColumn className='name' widths={ widths }>
-          <span className='list-entry-file-name'>
-            {upload.file_name}
-          </span>
-        </ListEntryColumn>
-        <ListEntryColumn className='updated' widths={widths}>
-          <UploadMeter upload={ upload }/>
-        </ListEntryColumn>
-        <ListEntryColumn className='size' widths={widths}/>
-        <ListEntryColumn className='control' widths={widths}>
-          <UploadControl upload={ upload } />
-        </ListEntryColumn>
-      </div>
-    );
-  }
-}
+export const ListUpload = ({ upload, widths }) => (
+  <div className='list-entry-group upload'>
+    <ListEntryTypeColumn icon='upload fas fa-upload' widths={ widths } />
+    <ListEntryColumn className='name' widths={ widths }>
+      <span className='list-entry-file-name'>
+        {upload.file_name}
+      </span>
+    </ListEntryColumn>
+    <ListEntryColumn className='updated' widths={widths}>
+      <UploadMeter upload={ upload }/>
+    </ListEntryColumn>
+    <ListEntryColumn className='size' widths={widths}/>
+    <ListEntryColumn className='control' widths={widths}>
+      <UploadControl upload={ upload } />
+    </ListEntryColumn>
+  </div>
+);

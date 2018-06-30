@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { selectCurrentFolder } from '../selectors/directory-selector';
 
 const FolderLink = (folders, i) => {
   let folder_path = folders.slice(1,i+1).join('/');
@@ -28,8 +29,6 @@ class FolderBreadcrumb extends React.Component {
 
     folders.unshift('All files');
 
-    console.log(folders);
-
     return (
       <div id='folder-breadcrumb'>
         {
@@ -44,6 +43,6 @@ class FolderBreadcrumb extends React.Component {
 
 export default connect(
   // map state
-  ({files: { current_folder }}) => ({current_folder})
+  (state) => ({current_folder: selectCurrentFolder(state)})
 
 )(FolderBreadcrumb);

@@ -1,7 +1,7 @@
 import { headers, parseJSON, checkStatus } from './fetch_utils';
 
-export const postAuthorizeUpload = (project_name, file_name) => {
-  let request = { project_name, file_name };
+export const postAuthorizeUpload = (project_name, file_path) => {
+  let request = { project_name, file_path, bucket_name: 'files' };
 
   return fetch('/authorize/upload', 
   {

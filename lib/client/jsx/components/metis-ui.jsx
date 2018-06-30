@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as ReactRedux from 'react-redux';
+import { connect } from 'react-redux';
 
 import TitleBar  from './nav/title-bar';
 import MenuBar   from './nav/menu-bar';
@@ -28,8 +28,6 @@ class MetisUI extends React.Component {
   }
 
   renderContent() {
-    let { downloads, uploads, fails } = this.props.files;
-
     let columnWidths = {
       type: '90px',
       name: '60%',
@@ -41,9 +39,7 @@ class MetisUI extends React.Component {
     return (
       <div id='listing-group'>
         <ListHead widths={ columnWidths } />
-        {(Object.keys(downloads).length || Object.keys(uploads).length || fails.length)?
-          <ListBody widths={ columnWidths }/> : <div/>
-        }
+        <ListBody widths={ columnWidths }/>
       </div>
     );
   }
@@ -68,10 +64,10 @@ class MetisUI extends React.Component {
   }
 }
 
-const MetisUIContainer = ReactRedux.connect(
+const MetisUIContainer = connect(
   // map state
-  ({user, files}) => ({user, files}),
-
+  null,
+  // map dispatch
   (dispatch) => ({
     retrieveFiles: (folder_name) => dispatch({type: 'RETRIEVE_FILES', folder_name}),
     setCurrentFolder: (folder_name) => dispatch({type: 'SET_CURRENT_FOLDER', folder_name})

@@ -3,42 +3,8 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import Cookies from 'js-cookie';
 
-import metisStore from './store';
+import createStore from './store';
 import MetisUI from './components/metis-ui';
-
-import files from './reducers/files-reducer';
-import user from './reducers/janus-log-reducer';
-
-import * as fileActions from './actions/file_actions';
-import * as uploadActions from './actions/upload_actions';
-import * as userActions from './actions/user_actions';
-
-import { createWorker } from './workers';
-
-const createStore = () => {
-  // these are (state, action) => new_state
-  let reducers = {
-    files,
-    user
-  };
-
-  // action handlers to import
-  let actions = {
-    ...fileActions,
-    ...uploadActions,
-    ...userActions
-
-    // here you may define aliases to other actions,
-    // e.g.:
-    // returnFile: fileActions.retrieveFile
-  };
-
-  let workers = {
-    upload: createWorker( require.resolve('../jsx/workers/uploader'))
-  }
-
-  return metisStore(reducers, actions, workers);
-}
 
 class Metis {
   constructor() {

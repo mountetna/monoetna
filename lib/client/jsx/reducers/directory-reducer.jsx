@@ -79,32 +79,56 @@ const uploads = (old_uploads, action) => {
   }
 };
 
-const downloads = (old_downloads, action) => {
-  if (!old_downloads) old_downloads = {};
+const folders = (old_folders, action) => {
+  if (!old_folders) old_folders = {};
 
   switch(action.type) {
-    case 'ADD_FILES': {
-      let { files } = action;
+    case 'ADD_FOLDERS': {
+      let { folders } = action;
 
-      let new_downloads = files.reduce((c, file) => {
+      let new_folders = folders.reduce((c, file) => {
         let key = file_key(file);
         c[key] = file;
         return c;
       }, {});
 
       return {
-        ...old_downloads,
-        ...new_downloads
+        ...old_folders,
+        ...new_folders
       };
     }
     default:
-      return old_downloads;
+      return old_folders;
   }
 };
 
-const files = (state, action) => {
+const files = (old_files, action) => {
+  if (!old_files) old_files = {};
+
+  switch(action.type) {
+    case 'ADD_FILES': {
+      let { files } = action;
+
+      let new_files = files.reduce((c, file) => {
+        let key = file_key(file);
+        c[key] = file;
+        return c;
+      }, {});
+
+      return {
+        ...old_files,
+        ...new_files
+      };
+    }
+    default:
+      return old_files;
+  }
+};
+
+const directory = (state, action) => {
   if (!state) state = {
-    downloads: [],
+    folders: {},
+    files: {},
     uploads: {},
     fails: [],
     current_folder: null
@@ -120,10 +144,16 @@ const files = (state, action) => {
         ...state,
         uploads: uploads(state.uploads,action)
       };
+    case 'ADD_FOLDERS':
+      return {
+        ...state,
+        folders: folders(state.folders,action)
+      };
+
     case 'ADD_FILES':
       return {
         ...state,
-        downloads: downloads(state.downloads,action)
+        files: files(state.files,action)
       };
 
     case 'SET_CURRENT_FOLDER':
@@ -137,5 +167,5 @@ const files = (state, action) => {
   }
 };
 
-export default files;
+export default directory;
 

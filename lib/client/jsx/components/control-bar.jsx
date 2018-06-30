@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { selectCurrentFolder } from '../selectors/directory-selector';
 
 // this is the Metis control bar, which contains basic operations
 // like 'upload file' and 'create folder'
@@ -21,10 +22,6 @@ const ControlButton = ({onClick, icon, title}) => {
 }
 
 class ControlBar extends React.Component {
-  constructor() {
-    super();
-  }
-
   selectFolder(){
     let { current_folder } = this.props;
 
@@ -74,7 +71,7 @@ class ControlBar extends React.Component {
 
 export default connect(
   // map state
-  ({files: { current_folder }}) => ({current_folder}),
+  (state) => ({current_folder: selectCurrentFolder(state)}),
 
   (dispatch) => ({
     fileSelected: (file, folder_name)=>dispatch({ type: 'FILE_SELECTED', file, folder_name }),

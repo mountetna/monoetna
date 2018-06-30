@@ -1,22 +1,18 @@
 import * as React from 'react';
-import * as ReactRedux from 'react-redux';
+import { connect } from 'react-redux';
 
-import { ListUpload, ListEntry, ListFolder } from './list-entry';
+import { ListUpload, ListFile, ListFolder } from './list-entry';
 import ListUploadFailed from './list-upload-failed';
 
-class ListBody extends React.Component{
-  constructor() {
-    super();
-  }
+import { selectFiles, selectFolders, selectUploads, selectCurrentFolder } from '../../selectors/directory-selector';
 
+class ListBody extends React.Component{
   render() {
-    let { files, widths, user } = this.props;
-    let { uploads, downloads, fails } = files;
-    let { permissions } = user;
+    let { widths, uploads, files, folders, current_folder } = this.props;
 
     let order = (a,b) => a.file_name.localeCompare(b.file_name);
-    let download_files = Object.values(downloads).filter(f=>!f.is_folder).sort(order);
-    let download_folders = Object.values(downloads).filter(f=>f.is_folder).sort(order);
+    let download_files = Object.values(files).sort(order);
+    let download_folders = Object.values(folders).sort(order);
 
     return (
       <div id='list-body-group'>
@@ -27,8 +23,7 @@ class ListBody extends React.Component{
                 key={upload.file_name}
                 upload={upload}
                 widths={widths}
-                user={ user }
-                permissions={ permissions } />
+              />
             )
             : null
         }
@@ -36,8 +31,9 @@ class ListBody extends React.Component{
           (download_folders.length) ?
             download_folders.map( folder =>
               <ListFolder
-                key={folder.file_name}
-                file={folder}
+                key={folder.folder_name}
+                folder={folder}
+                current_folder={current_folder}
                 widths={widths} />
             )
             : null
@@ -45,7 +41,7 @@ class ListBody extends React.Component{
         {
           (download_files.length) ?
             download_files.map( file =>
-              <ListEntry
+              <ListFile
                 key={file.file_name}
                 file={file}
                 widths={widths} />
@@ -58,9 +54,12 @@ class ListBody extends React.Component{
 }
 
 
-const ListBodyContainer = ReactRedux.connect(
+export default connect(
   // map state
-  ({user,files}) => ({user,files})
+  (state) => ({
+    files: selectFiles(state),
+    uploads: selectUploads(state),
+    folders: selectFolders(state),
+    current_folder: selectCurrentFolder(state)
+  })
 )(ListBody);
-
-export default ListBodyContainer;
