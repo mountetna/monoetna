@@ -151,6 +151,7 @@ class Metis
         file_name: file_name,
         project_name: project_name,
         bucket_name: bucket.name,
+        file_path: file_path,
         updated_at: updated_at,
         created_at: created_at,
         author: author,
@@ -160,9 +161,13 @@ class Metis
           request,
           project_name,
           bucket.name,
-          file_name
+          file_path
         ) : nil
       }
+    end
+
+    def file_path
+      ::File.join(folder ? folder.folder_path : [], file_name)
     end
 
     def actual_size

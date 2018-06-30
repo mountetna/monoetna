@@ -72,7 +72,7 @@ describe FilesController do
         project_name: 'athena',
         size: @helmet.length,
         file_hash: Digest::MD5.hexdigest(@helmet),
-        download_url: a_string_matching(%r{http.*athena/download})
+        download_url: a_string_matching(%r{http.*athena/download.*blueprints/helmet/helmet.jpg})
       )
     end
   end
