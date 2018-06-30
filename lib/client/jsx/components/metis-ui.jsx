@@ -23,7 +23,7 @@ class MetisUI extends React.Component {
 
     let [ _, folder_name ] = path.match(/browse\/(.*)$/) || [];
 
-    this.props.setCurrentFolder(folder_name);
+    this.props.setCurrentFolder(folder_name == undefined ? folder_name : decodeURI(folder_name));
     this.props.retrieveFiles(folder_name);
   }
 
