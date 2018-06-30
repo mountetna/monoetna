@@ -56,6 +56,10 @@ class Metis
       ancestors.map(&:folder_name) + [ folder_name ]
     end
 
+    def create_actual_folder!
+      FileUtils.mkdir_p(location)
+    end
+
     def to_hash
       {
         folder_name: folder_name,

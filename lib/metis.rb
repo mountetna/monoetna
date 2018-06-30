@@ -1,6 +1,7 @@
 # metis.rb
 require 'sequel'
 require 'extlib'
+require 'fileutils'
 
 # This class handles the http request and routing
 class Metis

@@ -89,6 +89,7 @@ describe FilesController do
       folder = Metis::Folder.first
       expect(folder).not_to be_nil
       expect(folder.folder_name).to eq('Helmet Blueprints')
+      expect(File.directory?(folder.location)).to be_truthy
     end
 
     it 'refuses to create folders with invalid names' do

@@ -42,6 +42,7 @@ class FilesController < Metis::Controller
       bucket: bucket,
       folder: parent_folder
     )
+    folder.create_actual_folder!
 
     success_json(folders: [ folder.to_hash ])
   end
