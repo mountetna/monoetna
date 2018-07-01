@@ -4,6 +4,7 @@ import { userFormat, byteFormat, dateFormat } from '../../utils/format';
 import UploadMeter from './upload-meter';
 import UploadControl from './upload-control';
 import FileControl from './file-control';
+import { FolderLink } from '../folder-link';
 
 const ListEntryColumn = ({className,widths,children}) =>
   <div className={`list-entry-column-group ${className}`}
@@ -54,9 +55,9 @@ const browse_path = (folder_name, current_folder) => (
 const ListEntryFoldernameColumn = ({folder, current_folder, widths}) => (
   <ListEntryColumn className='name' widths={widths}>
     <div className='list-entry-file-name' title={folder.folder_name}>
-      <a href={browse_path(folder.folder_name,current_folder)}>
-        {basename(folder.folder_name)}
-      </a>
+      <FolderLink
+        folder_name={folder.folder_name}
+        folder_path={current_folder}/>
     </div>
   </ListEntryColumn>
 )

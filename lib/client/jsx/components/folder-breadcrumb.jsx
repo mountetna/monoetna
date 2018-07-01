@@ -1,22 +1,21 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { selectCurrentFolder } from '../selectors/directory-selector';
+import { FolderLink, RootFolderLink } from './folder-link';
 
-const FolderLink = (folders, i) => {
-  let folder_path = folders.slice(1,i+1).join('/');
-  let folder_name = folders[i];
-
-  let folder_url = `/${CONFIG.project_name}/${i ? 'browse/' : ''}${folder_path}`;
+const folderCrumb = (folders, folder_name, i) => {
+  let folder_path = folders.slice(1,i).join('/');
+  let not_last = i < folders.length - 1;
 
   return <div key={i} className='folder-link' title={folder_name}>
     {
-      (i < folders.length-1) ?
-      <a href={ folder_url }>{folder_name}</a>
+      not_last ?
+      <FolderLink folder_name={folder_name} folder_path={folder_path}/>
       :
-      <span>{folder_name }</span>
+      <span>{folder_name}</span>
     }
     {
-      (i < folders.length-1) && <span className='folder-sep fas fa-chevron-right'/>
+      not_last && <span className='folder-sep fas fa-chevron-right'/>
     }
   </div>;
 }
@@ -26,15 +25,23 @@ class FolderBreadcrumb extends React.Component {
     let { current_folder } = this.props;
 
     let folders = (current_folder || '').split(/\//).filter(_=>_);
-
-    folders.unshift('All files');
+    let root_name = `${CONFIG.project_name} files`;
 
     return (
       <div id='folder-breadcrumb'>
+        <div key='root' className='folder-link' title={root_name}>
+          {
+            folders.length > 0 ?
+            <RootFolderLink name={ root_name }/>
+            :
+            <span>{root_name}</span>
+          }
+          {
+            folders.length > 0 && <span className='folder-sep fas fa-chevron-right'/>
+          }
+        </div>
         {
-          folders.map((folder_name,i)=>
-            FolderLink(folders, i)
-          )
+          folders.map((folder_name,i)=> folderCrumb(folders, folder_name, i))
         }
       </div>
     );
