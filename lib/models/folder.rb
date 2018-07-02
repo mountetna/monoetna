@@ -36,7 +36,13 @@ class Metis
         ON f.id=sf.id;
       )
 
-      Metis::Folder.with_sql(query).all
+      folders = Metis::Folder.with_sql(query).all
+
+      root_folder = folders.first
+
+      return [] unless !root_folder || root_folder.folder_id == nil
+
+      return folders
     end
 
     def location
@@ -54,6 +60,19 @@ class Metis
 
     def folder_path
       ancestors.map(&:folder_name) + [ folder_name ]
+    end
+
+    def has_directory?
+      ::File.exists?(location) && ::File.directory?(location)
+    end
+
+    def can_remove?
+      has_directory? && Dir.entries(location).size <= 2 && !read_only?
+    end
+
+    def remove!
+      ::Dir.delete(location)
+      delete
     end
 
     def create_actual_folder!

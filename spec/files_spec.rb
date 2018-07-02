@@ -74,6 +74,18 @@ describe FilesController do
         download_url: a_string_matching(%r{http.*athena/download.*blueprints/helmet/helmet.jpg})
       )
     end
+
+    it 'should require a complete path' do
+      # our files
+      header(*Etna::TestAuth.token_header(
+        email: 'metis@ucsf.edu', perm: 'e:athena'
+      ))
+      get('/athena/list/files/helmet')
+
+      expect(last_response.status).to eq(422)
+
+      expect(json_body[:error]).to eq('Invalid folder')
+    end
   end
 
   context '#create_folder' do
@@ -132,6 +144,17 @@ describe FilesController do
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid folder')
+    end
+
+    it 'refuses to create existing folder' do
+      header(*Etna::TestAuth.token_header(
+        email: 'metis@ucsf.edu', perm: 'e:athena'
+      ))
+      blueprints_folder = create_folder('athena', 'blueprints')
+      json_post('athena/create_folder/files/blueprints', {})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Folder exists')
     end
 
     it 'refuses to create folders with non-existent parent folder' do
