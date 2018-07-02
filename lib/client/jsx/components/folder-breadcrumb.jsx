@@ -4,7 +4,7 @@ import { selectCurrentFolder } from '../selectors/directory-selector';
 import { FolderLink, RootFolderLink } from './folder-link';
 
 const folderCrumb = (folders, folder_name, i) => {
-  let folder_path = folders.slice(1,i).join('/');
+  let folder_path = folders.slice(0,i).join('/');
   let not_last = i < folders.length - 1;
 
   return <div key={i} className='folder-link' title={folder_name}>

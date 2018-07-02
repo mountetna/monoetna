@@ -9,6 +9,7 @@ export const retrieveFiles = ({folder_name}) => (dispatch) => {
       dispatch(addFiles(files));
       dispatch(addFolders(folders));
     })
+    .catch(error => dispatch({ type: 'INVALID_FOLDER' }))
 }
 
 export const createFolder = ({folder_name, parent_folder}) => (dispatch) => {

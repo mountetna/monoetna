@@ -10,6 +10,7 @@ const upload = (file, file_name, url) => ({
 })
 
 const file_key = ({project_name, file_name}) => `${project_name}:${file_name}`;
+const folder_key = ({project_name, folder_name}) => `${project_name}:${folder_name}`;
 
 const uploads = (old_uploads, action) => {
   if (!old_uploads) old_uploads = {}
@@ -86,9 +87,9 @@ const folders = (old_folders, action) => {
     case 'ADD_FOLDERS': {
       let { folders } = action;
 
-      let new_folders = folders.reduce((c, file) => {
-        let key = file_key(file);
-        c[key] = file;
+      let new_folders = folders.reduce((c, folder) => {
+        let key = folder_key(folder);
+        c[key] = folder;
         return c;
       }, {});
 
@@ -156,6 +157,11 @@ const directory = (state, action) => {
         files: files(state.files,action)
       };
 
+    case 'INVALID_FOLDER':
+      return {
+        ...state,
+        current_folder: '/invalid/'
+      };
     case 'SET_CURRENT_FOLDER':
       return {
         ...state,

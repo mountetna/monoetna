@@ -10,9 +10,9 @@ class ListBody extends React.Component{
   render() {
     let { widths, uploads, files, folders, current_folder } = this.props;
 
-    let order = (a,b) => a.file_name.localeCompare(b.file_name);
-    let download_files = Object.values(files).sort(order);
-    let download_folders = Object.values(folders).sort(order);
+    let order = (key) => (a,b) => a[key].localeCompare(b[key]);
+    let download_files = Object.values(files).sort(order('file_name'));
+    let download_folders = Object.values(folders).sort(order('folder_name'));
 
     return (
       <div id='list-body-group'>

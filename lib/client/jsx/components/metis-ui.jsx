@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { selectCurrentFolder } from '../selectors/directory-selector';
 
 import TitleBar  from './nav/title-bar';
 import MenuBar   from './nav/menu-bar';
@@ -28,6 +29,14 @@ class MetisUI extends React.Component {
   }
 
   renderContent() {
+    let { current_folder } = this.props;
+
+    if (current_folder == '/invalid/') return (
+      <div id='invalid-group'>
+        Invalid folder!
+      </div>
+    )
+
     let columnWidths = {
       type: '90px',
       name: '60%',
@@ -37,9 +46,15 @@ class MetisUI extends React.Component {
     };
 
     return (
-      <div id='listing-group'>
-        <ListHead widths={ columnWidths } />
-        <ListBody widths={ columnWidths }/>
+      <div>
+        <div id='control-group'>
+          <FolderBreadcrumb/>
+          <ControlBar/>
+        </div>
+        <div id='listing-group'>
+          <ListHead widths={ columnWidths } />
+          <ListBody widths={ columnWidths }/>
+        </div>
       </div>
     );
   }
@@ -54,10 +69,6 @@ class MetisUI extends React.Component {
         <div id='logo-group'>
           <img src='/img/metis_logo_simple.png' alt='' />
         </div>
-        <div id='control-group'>
-          <FolderBreadcrumb/>
-          <ControlBar/>
-        </div>
         { this.renderContent() }
       </div>
     );
@@ -66,7 +77,8 @@ class MetisUI extends React.Component {
 
 const MetisUIContainer = connect(
   // map state
-  null,
+  (state) => ({current_folder: selectCurrentFolder(state)}),
+
   // map dispatch
   (dispatch) => ({
     retrieveFiles: (folder_name) => dispatch({type: 'RETRIEVE_FILES', folder_name}),
