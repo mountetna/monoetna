@@ -26,9 +26,8 @@ describe FilesController do
 
       @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
 
-      @helmet = 'x'*20
-      @helmet_file = create_file('athena', 'helmet.jpg', @helmet, folder: @helmet_folder)
-      stub_file('blueprints/helmet/helmet.jpg', @helmet, :athena)
+      @helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @helmet_folder)
+      stub_file('blueprints/helmet/helmet.jpg', HELMET, :athena)
     end
 
     it 'should return a list of files and folders for the current folder' do
@@ -70,8 +69,8 @@ describe FilesController do
         file_name: 'helmet.jpg',
         author: 'metis|Metis',
         project_name: 'athena',
-        size: @helmet.length,
-        file_hash: Digest::MD5.hexdigest(@helmet),
+        size: HELMET.length,
+        file_hash: Digest::MD5.hexdigest(HELMET),
         download_url: a_string_matching(%r{http.*athena/download.*blueprints/helmet/helmet.jpg})
       )
     end
@@ -90,6 +89,9 @@ describe FilesController do
       expect(folder).not_to be_nil
       expect(folder.folder_name).to eq('Helmet Blueprints')
       expect(File.directory?(folder.location)).to be_truthy
+
+      # Clean up
+      Dir.delete(folder.location)
     end
 
     it 'refuses to create folders with invalid names' do
@@ -104,6 +106,7 @@ describe FilesController do
 
     it 'creates nested folders' do
       blueprints_folder = create_folder('athena', 'blueprints')
+      stub_folder('blueprints', 'athena')
       header(*Etna::TestAuth.token_header(
         email: 'metis@ucsf.edu', perm: 'e:athena'
       ))
@@ -114,6 +117,9 @@ describe FilesController do
       folder = Metis::Folder.last
       expect(folder).not_to be_nil
       expect(folder.folder_path).to eq(['blueprints', 'Helmet Blueprints'])
+
+      # clean up
+      Dir.delete(folder.location)
     end
 
     it 'refuses to set a file as parent' do
@@ -140,6 +146,7 @@ describe FilesController do
 
     it 'sets a parent folder' do
       blueprints_folder = create_folder('athena', 'blueprints')
+      stub_folder('blueprints', 'athena')
       header(*Etna::TestAuth.token_header(
         email: 'metis@ucsf.edu', perm: 'e:athena'
       ))

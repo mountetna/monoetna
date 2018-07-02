@@ -117,6 +117,11 @@ def stub_file(name, contents, project_name = :stub, bucket_name = 'files')
   make_stub(file_name, contents, project_name)
 end
 
+def stub_folder(name, project_name = :stub, bucket_name = 'files')
+  folder_name = "#{bucket_name}/#{safe_path(name)}"
+  make_stub_dir(folder_name, project_name)
+end
+
 def stub_data(name, contents, project_name = :stub)
   make_stub(name, contents, project_name)
 end
@@ -126,13 +131,20 @@ def stub_partial(name, contents, project_name = :stub)
   make_stub(file_name, contents, project_name)
 end
 
+def make_stub_dir(name, project_name)
+  return if name == '.'
+  folder_name = "spec/#{project_name}/#{name}"
+  FileUtils.mkdir_p(folder_name)
+  stubs.push(folder_name) unless stubs.include?(folder_name)
+end
+
 def make_stub(name, contents, project_name)
+  make_stub_dir(File.dirname(name), project_name)
   file_name = "spec/#{project_name}/#{name}"
-  FileUtils.mkdir_p(File.dirname(file_name))
   File.open(file_name,"w") do |f|
     f.print contents
   end
-  stubs.push(file_name)
+  stubs.push(file_name) unless stubs.include?(file_name)
   return File.expand_path(file_name)
 end
 
@@ -146,9 +158,15 @@ def ensure_stub_dirs
 end
 
 def clear_stubs
-  stubs.each do |stub|
-    File.delete(stub) if File.exists?(stub)
-  end
+  stub_files = stubs.select do |stub|
+    File.exists?(stub) && !File.directory?(stub)
+  end.sort_by(&:size).reverse
+  stub_dirs = stubs.select do |stub|
+    File.exists?(stub) && File.directory?(stub)
+  end.sort_by(&:size).reverse
+
+  stub_files.each { |stub| File.delete(stub) }
+  stub_dirs.each { |stub| FileUtils.rm_r(stub) }
   @stubs = nil
 end
 
@@ -157,6 +175,10 @@ Although they are
 only breath, words
 which I command
 are immortal
+EOT
+HELMET=<<EOT
+  xXx
+ xO|Ox
 EOT
 
 AUTH_USERS = {

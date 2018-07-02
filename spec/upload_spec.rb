@@ -485,6 +485,7 @@ describe UploadController do
 
     it 'sets a folder name when it completes' do
       blueprints_folder = create_folder('athena', 'blueprints')
+      stub_folder('blueprints', 'athena')
       # the next blob completes the data
       upload = prep_upload('blueprints/wisdom.txt')
 
