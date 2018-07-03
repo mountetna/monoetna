@@ -183,6 +183,16 @@ class Metis
       delete
     end
 
+    def protect!
+      self.read_only = true
+      self.save
+    end
+
+    def unprotect!
+      self.read_only = false
+      self.save
+    end
+
     def set_file_data(file_path)
       # Rename the existing file.
       ::File.rename(

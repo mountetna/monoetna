@@ -186,6 +186,7 @@ describe FilesController do
       Dir.delete(folder.location)
     end
   end
+
   context '#remove_folder' do
     before(:each) do
       @blueprints_folder = create_folder('athena', 'blueprints')
@@ -261,6 +262,111 @@ describe FilesController do
     end
   end
 
+  context '#protect_folder' do
+    before(:each) do
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stub_folder('blueprints', 'athena')
+      expect(@blueprints_folder).not_to be_read_only
+    end
+
+    it 'protects a folder' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/protect_folder/files/blueprints',{})
+
+      @blueprints_folder.refresh
+      expect(last_response.status).to eq(200)
+      expect(@blueprints_folder).to be_read_only
+    end
+
+    it 'refuses to protect a folder without permissions' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/protect_folder/files/blueprints',{})
+
+      @blueprints_folder.refresh
+      expect(last_response.status).to eq(403)
+      expect(@blueprints_folder).not_to be_read_only
+    end
+
+    it 'refuses to protect a non-existent folder' do
+      # we attempt to protect a folder that does not exist
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/protect_folder/files/glueprints',{})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid folder')
+
+      # the actual folder is untouched
+      @blueprints_folder.refresh
+      expect(@blueprints_folder).not_to be_read_only
+    end
+
+    it 'refuses to protect a read-only folder' do
+      @blueprints_folder.read_only = true
+      @blueprints_folder.save
+      @blueprints_folder.refresh
+
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/protect_folder/files/blueprints',{})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Folder is read-only')
+      @blueprints_folder.refresh
+      expect(@blueprints_folder).to be_read_only
+    end
+  end
+
+  context '#unprotect_folder' do
+    before(:each) do
+      @blueprints_folder = create_folder('athena', 'blueprints', read_only: true)
+      stub_folder('blueprints', 'athena')
+      expect(@blueprints_folder).to be_read_only
+    end
+
+    it 'unprotects a folder' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/unprotect_folder/files/blueprints',{})
+
+      @blueprints_folder.refresh
+      expect(last_response.status).to eq(200)
+      expect(@blueprints_folder).not_to be_read_only
+    end
+
+    it 'refuses to unprotect a folder without permissions' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/unprotect_folder/files/blueprints',{})
+
+      @blueprints_folder.refresh
+      expect(last_response.status).to eq(403)
+      expect(@blueprints_folder).to be_read_only
+    end
+
+    it 'refuses to unprotect a non-existent folder' do
+      # we attempt to unprotect a folder that does not exist
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/unprotect_folder/files/glueprints',{})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid folder')
+
+      # the actual folder is untouched
+      @blueprints_folder.refresh
+      expect(@blueprints_folder).to be_read_only
+    end
+
+    it 'refuses to unprotect a writeable folder' do
+      @blueprints_folder.read_only = false
+      @blueprints_folder.save
+
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/unprotect_folder/files/blueprints',{})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Folder is not protected')
+      @blueprints_folder.refresh
+      expect(@blueprints_folder).not_to be_read_only
+    end
+  end
+
   context '#remove_file' do
     before(:each) do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
@@ -331,6 +437,110 @@ describe FilesController do
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot remove file')
       expect(Metis::File.all).to include(@wisdom_file)
+    end
+  end
+
+  context '#protect_file' do
+    before(:each) do
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stub_file('wisdom.txt', WISDOM, :athena)
+    end
+
+    it 'protects a file' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/protect_file/files/wisdom.txt',{})
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(200)
+      expect(@wisdom_file).to be_read_only
+    end
+
+    it 'refuses to protect a file without permissions' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/protect_file/files/wisdom.txt',{})
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(403)
+      expect(@wisdom_file).not_to be_read_only
+    end
+
+    it 'refuses to protect a non-existent file' do
+      # we attempt to protect a file that does not exist
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/protect_file/files/folly.txt',{})
+
+      expect(last_response.status).to eq(404)
+      expect(json_body[:error]).to eq('File not found')
+
+      # the actual file is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file).not_to be_read_only
+    end
+
+    it 'refuses to protect a read-only file' do
+      @wisdom_file.read_only = true
+      @wisdom_file.save
+      @wisdom_file.refresh
+
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/protect_file/files/wisdom.txt',{})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('File is read-only')
+      @wisdom_file.refresh
+      expect(@wisdom_file).to be_read_only
+    end
+  end
+
+  context '#unprotect_file' do
+    before(:each) do
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, read_only: true)
+      stub_file('wisdom.txt', WISDOM, :athena)
+      expect(@wisdom_file).to be_read_only
+    end
+
+    it 'unprotects a file' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/unprotect_file/files/wisdom.txt',{})
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(200)
+      expect(@wisdom_file).not_to be_read_only
+    end
+
+    it 'refuses to unprotect a file without permissions' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/unprotect_file/files/wisdom.txt',{})
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(403)
+      expect(@wisdom_file).to be_read_only
+    end
+
+    it 'refuses to unprotect a non-existent file' do
+      # we attempt to unprotect a file that does not exist
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/unprotect_file/files/folly.txt',{})
+
+      expect(last_response.status).to eq(404)
+      expect(json_body[:error]).to eq('File not found')
+
+      # the actual file is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file).to be_read_only
+    end
+
+    it 'refuses to unprotect a writeable file' do
+      @wisdom_file.read_only = false
+      @wisdom_file.save
+
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/unprotect_file/files/wisdom.txt',{})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('File is not protected')
+      @wisdom_file.refresh
+      expect(@wisdom_file).not_to be_read_only
     end
   end
 end

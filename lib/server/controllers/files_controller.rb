@@ -61,6 +61,30 @@ class FilesController < Metis::Controller
     return response
   end
 
+  def protect_folder
+    bucket = require_bucket
+    folder = require_folder(bucket, @params[:folder_path])
+
+    # remove the folder
+    raise Etna::BadRequest, 'Folder is read-only' if folder.read_only?
+
+    folder.protect!
+
+    success_json(folders: [ folder.to_hash ])
+  end
+
+  def unprotect_folder
+    bucket = require_bucket
+    folder = require_folder(bucket, @params[:folder_path])
+
+    # remove the folder
+    raise Etna::BadRequest, 'Folder is not protected' unless folder.read_only?
+
+    folder.unprotect!
+
+    success_json(folders: [ folder.to_hash ])
+  end
+
   def remove_file
     bucket = require_bucket
     file = Metis::File.from_path(bucket, @params[:file_path])
@@ -75,5 +99,33 @@ class FilesController < Metis::Controller
     file.remove!
 
     return response
+  end
+
+  def protect_file
+    bucket = require_bucket
+    file = Metis::File.from_path(bucket, @params[:file_path])
+
+    raise Etna::Error.new('File not found', 404) unless file && file.has_data?
+
+    # remove the file
+    raise Etna::BadRequest, 'File is read-only' if file.read_only?
+
+    file.protect!
+
+    success_json(files: [ file.to_hash ])
+  end
+
+  def unprotect_file
+    bucket = require_bucket
+    file = Metis::File.from_path(bucket, @params[:file_path])
+
+    raise Etna::Error.new('File not found', 404) unless file && file.has_data?
+
+    # remove the file
+    raise Etna::BadRequest, 'File is not protected' unless file.read_only?
+
+    file.unprotect!
+
+    success_json(files: [ file.to_hash ])
   end
 end
