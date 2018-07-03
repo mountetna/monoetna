@@ -201,6 +201,14 @@ describe FilesController do
       expect(Metis::Folder.count).to eq(0)
     end
 
+    it 'refuses to remove a folder without permissions' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'v:athena'))
+      json_post('athena/remove_folder/files/blueprints',{})
+
+      expect(last_response.status).to eq(403)
+      expect(Metis::Folder.count).to eq(1)
+    end
+
     it 'refuses to remove a non-existent folder' do
       # we attempt to remove a folder that does not exist
       header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
@@ -238,6 +246,19 @@ describe FilesController do
       expect(json_body[:error]).to eq('Cannot remove folder')
       expect(Metis::Folder.last).to eq(@blueprints_folder)
     end
+
+    it 'refuses to remove a read-only folder even for an admin' do
+      @blueprints_folder.read_only = true
+      @blueprints_folder.save
+      @blueprints_folder.refresh
+
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/remove_folder/files/blueprints',{})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Cannot remove folder')
+      expect(Metis::Folder.last).to eq(@blueprints_folder)
+    end
   end
 
   context '#remove_file' do
@@ -268,6 +289,15 @@ describe FilesController do
       expect(Metis::File.count).to eq(0)
     end
 
+    it 'refuses to remove a file without permissions' do
+      # we attempt to remove a file that does not exist
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'v:athena'))
+      json_post('athena/remove_file/files/wisdom.txt',{})
+
+      expect(last_response.status).to eq(403)
+      expect(Metis::File.count).to eq(2)
+    end
+
     it 'refuses to remove a non-existent file' do
       # we attempt to remove a file that does not exist
       header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
@@ -283,6 +313,19 @@ describe FilesController do
       @wisdom_file.refresh
 
       header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/remove_file/files/wisdom.txt',{})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Cannot remove file')
+      expect(Metis::File.all).to include(@wisdom_file)
+    end
+
+    it 'refuses to remove a read-only file even for an admin' do
+      @wisdom_file.read_only = true
+      @wisdom_file.save
+      @wisdom_file.refresh
+
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
       json_post('athena/remove_file/files/wisdom.txt',{})
 
       expect(last_response.status).to eq(422)
