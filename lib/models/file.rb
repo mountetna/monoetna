@@ -167,7 +167,7 @@ class Metis
     end
 
     def file_path
-      ::File.join(folder ? folder.folder_path : [], file_name)
+      folder ? ::File.join(folder.folder_path, file_name) : file_name
     end
 
     def actual_size
