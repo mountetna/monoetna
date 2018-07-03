@@ -132,7 +132,7 @@ def stub_partial(name, contents, project_name = :stub)
 end
 
 def make_stub_dir(name, project_name)
-  return if name == '.'
+  return if name == 'files' || name == '.'
   folder_name = "spec/#{project_name}/#{name}"
   FileUtils.mkdir_p(folder_name)
   stubs.push(folder_name) unless stubs.include?(folder_name)

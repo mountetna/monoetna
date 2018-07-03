@@ -174,6 +174,15 @@ class Metis
       has_data? ? ::File.size(location) : nil
     end
 
+    def can_remove?
+      has_data? && !read_only?
+    end
+
+    def remove!
+      ::File.delete(location)
+      delete
+    end
+
     def set_file_data(file_path)
       # Rename the existing file.
       ::File.rename(

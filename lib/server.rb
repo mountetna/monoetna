@@ -25,7 +25,7 @@ class Metis
     post '/:project_name/create_folder/:bucket_name/*folder_path', action: 'files#create_folder', auth: { user: { can_edit?: :project_name } }
 
     post '/:project_name/remove_folder/:bucket_name/*folder_path', action: 'files#remove_folder', auth: { user: { can_edit?: :project_name } }
-    get '/:project_name/remove_file/:bucket_name/*file_path', action: 'files#remove_file', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/remove_file/:bucket_name/*file_path', action: 'files#remove_file', auth: { user: { can_edit?: :project_name } }
 
     def initialize(config)
       super

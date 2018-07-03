@@ -9,7 +9,7 @@ class DownloadController < Metis::Controller
 
     file = Metis::File.from_path(bucket, @params[:file_path])
 
-    return failure(404, 'File not found') unless file && file.has_data?
+    raise Etna::Error.new('File not found', 404) unless file && file.has_data?
 
     return [
       200,

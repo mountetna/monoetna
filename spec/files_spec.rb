@@ -239,4 +239,55 @@ describe FilesController do
       expect(Metis::Folder.last).to eq(@blueprints_folder)
     end
   end
+
+  context '#remove_file' do
+    before(:each) do
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stub_file('wisdom.txt', WISDOM, :athena)
+
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stub_folder('blueprints', 'athena')
+
+      @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      stub_folder('blueprints/helmet', 'athena')
+
+      @helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @helmet_folder)
+      stub_file('blueprints/helmet/helmet.jpg', HELMET, :athena)
+    end
+
+    it 'removes a file' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/remove_file/files/blueprints/helmet/helmet.jpg',{})
+
+      expect(last_response.status).to eq(200)
+      expect(Metis::File.count).to eq(1)
+
+      json_post('athena/remove_file/files/wisdom.txt',{})
+
+      expect(last_response.status).to eq(200)
+      expect(Metis::File.count).to eq(0)
+    end
+
+    it 'refuses to remove a non-existent file' do
+      # we attempt to remove a file that does not exist
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/remove_file/files/folly.txt',{})
+
+      expect(last_response.status).to eq(404)
+      expect(json_body[:error]).to eq('File not found')
+    end
+
+    it 'refuses to remove a read-only file' do
+      @wisdom_file.read_only = true
+      @wisdom_file.save
+      @wisdom_file.refresh
+
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/remove_file/files/wisdom.txt',{})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Cannot remove file')
+      expect(Metis::File.all).to include(@wisdom_file)
+    end
+  end
 end
