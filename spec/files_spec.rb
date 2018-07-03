@@ -181,6 +181,62 @@ describe FilesController do
       expect(Metis::Folder.count).to eq(2)
       expect(folder.folder_path).to eq([ 'blueprints', 'Helmet Blueprints'])
       expect(folder.folder).to eq(blueprints_folder)
+
+      # clean up
+      Dir.delete(folder.location)
+    end
+  end
+  context '#remove_folder' do
+    before(:each) do
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stub_folder('blueprints', 'athena')
+      expect(@blueprints_folder.has_directory?).to be_truthy
+    end
+
+    it 'removes a folder' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/remove_folder/files/blueprints',{})
+
+      expect(last_response.status).to eq(200)
+      expect(Metis::Folder.count).to eq(0)
+    end
+
+    it 'refuses to remove a non-existent folder' do
+      # we attempt to remove a folder that does not exist
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/remove_folder/files/glueprints',{})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid folder')
+
+      # the actual folder is untouched
+      expect(Metis::Folder.last).to eq(@blueprints_folder)
+      expect(@blueprints_folder.has_directory?).to be_truthy
+    end
+
+    it 'refuses to remove a folder that contains file data' do
+      stub_file('blueprints/helmet.jpg', HELMET, :athena)
+
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/remove_folder/files/blueprints',{})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Cannot remove folder')
+      expect(Metis::Folder.last).to eq(@blueprints_folder)
+      expect(Dir.entries(@blueprints_folder.location).size).to eq(3)
+    end
+
+    it 'refuses to remove a read-only folder' do
+      @blueprints_folder.read_only = true
+      @blueprints_folder.save
+      @blueprints_folder.refresh
+
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/remove_folder/files/blueprints',{})
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Cannot remove folder')
+      expect(Metis::Folder.last).to eq(@blueprints_folder)
     end
   end
 end
