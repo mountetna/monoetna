@@ -33,7 +33,7 @@ describe UploadController do
       }
 
       # we use our token to authorize an upload
-      auth_header(:editor)
+      token_header(:editor)
       json_post('authorize/upload', params)
 
       # we expect an authorization url in return
@@ -64,7 +64,7 @@ describe UploadController do
       }
 
       # we use our token to authorize an upload
-      auth_header(:editor)
+      token_header(:editor)
       json_post('authorize/upload', params)
 
       # the upload request is okay despite pre-existing
@@ -89,7 +89,7 @@ describe UploadController do
       }
 
       # we use our token to authorize an upload
-      auth_header(:editor)
+      token_header(:editor)
 
       # here are some good and bad examples to test
       {
@@ -119,7 +119,7 @@ describe UploadController do
       }
 
       # we use our token to authorize an upload
-      auth_header(:editor)
+      token_header(:editor)
       json_post('authorize/upload', params)
 
       # we expect to be forbidden from uploading
@@ -142,7 +142,7 @@ describe UploadController do
       }
 
       # we use our token to authorize an upload
-      auth_header(:editor)
+      token_header(:editor)
       json_post('authorize/upload', params)
 
       # we expect to be forbidden from uploading
@@ -160,7 +160,7 @@ describe UploadController do
         project_name: 'athena'
       }
       # we use our token to authorize an upload
-      auth_header(:editor)
+      token_header(:editor)
       json_post('authorize/upload', params)
 
       # we expect to be forbidden from uploading

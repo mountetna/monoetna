@@ -184,9 +184,15 @@ EOT
 AUTH_USERS = {
   editor: {
     email: 'metis@olympus.org', first: 'Metis', perm: 'e:athena'
+  },
+  viewer: {
+    email: 'zeus@olympus.org', first: 'Zeus', perm: 'v:athena'
+  },
+  admin: {
+    email: 'metis@olympus.org', first: 'Metis', perm: 'a:athena'
   }
 }
-def auth_header(user_type)
+def token_header(user_type)
   header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
 end
 

@@ -32,9 +32,7 @@ describe FilesController do
 
     it 'should return a list of files and folders for the current folder' do
       # our files
-      header(*Etna::TestAuth.token_header(
-        email: 'metis@ucsf.edu', perm: 'e:athena'
-      ))
+      token_header(:editor)
       get('/athena/list/files/')
 
       expect(last_response.status).to eq(200)
@@ -58,9 +56,7 @@ describe FilesController do
 
     it 'should list files from a sub-folder' do
       # our files
-      header(*Etna::TestAuth.token_header(
-        email: 'metis@ucsf.edu', perm: 'e:athena'
-      ))
+      token_header(:editor)
       get('/athena/list/files/blueprints/helmet')
 
       expect(last_response.status).to eq(200)
@@ -77,9 +73,7 @@ describe FilesController do
 
     it 'should require a complete path' do
       # our files
-      header(*Etna::TestAuth.token_header(
-        email: 'metis@ucsf.edu', perm: 'e:athena'
-      ))
+      token_header(:editor)
       get('/athena/list/files/helmet')
 
       expect(last_response.status).to eq(422)
@@ -90,9 +84,7 @@ describe FilesController do
 
   context '#create_folder' do
     it 'creates a folder with the given name' do
-      header(*Etna::TestAuth.token_header(
-        email: 'metis@ucsf.edu', perm: 'e:athena'
-      ))
+      token_header(:editor)
       json_post('athena/create_folder/files/Helmet Blueprints', {})
 
       expect(last_response.status).to eq(200)
@@ -107,9 +99,7 @@ describe FilesController do
     end
 
     it 'refuses to create folders with invalid names' do
-      header(*Etna::TestAuth.token_header(
-        email: 'metis@ucsf.edu', perm: 'e:athena'
-      ))
+      token_header(:editor)
       json_post("athena/create_folder/files/Helmet\nBlueprints", {})
 
       expect(last_response.status).to eq(422)
@@ -119,9 +109,7 @@ describe FilesController do
     it 'creates nested folders' do
       blueprints_folder = create_folder('athena', 'blueprints')
       stub_folder('blueprints', 'athena')
-      header(*Etna::TestAuth.token_header(
-        email: 'metis@ucsf.edu', perm: 'e:athena'
-      ))
+      token_header(:editor)
       json_post('athena/create_folder/files/blueprints/Helmet Blueprints', {})
 
       expect(last_response.status).to eq(200)
@@ -137,9 +125,7 @@ describe FilesController do
     it 'refuses to set a file as parent' do
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
 
-      header(*Etna::TestAuth.token_header(
-        email: 'metis@ucsf.edu', perm: 'e:athena'
-      ))
+      token_header(:editor)
       json_post('athena/create_folder/files/wisdom.txt/Helmet Blueprints', {})
 
       expect(last_response.status).to eq(422)
@@ -147,9 +133,7 @@ describe FilesController do
     end
 
     it 'refuses to create existing folder' do
-      header(*Etna::TestAuth.token_header(
-        email: 'metis@ucsf.edu', perm: 'e:athena'
-      ))
+      token_header(:editor)
       blueprints_folder = create_folder('athena', 'blueprints')
       json_post('athena/create_folder/files/blueprints', {})
 
@@ -158,9 +142,7 @@ describe FilesController do
     end
 
     it 'refuses to create folders with non-existent parent folder' do
-      header(*Etna::TestAuth.token_header(
-        email: 'metis@ucsf.edu', perm: 'e:athena'
-      ))
+      token_header(:editor)
       json_post('athena/create_folder/files/blueprints/Helmet Blueprints', {})
 
       expect(last_response.status).to eq(422)
@@ -170,9 +152,7 @@ describe FilesController do
     it 'sets a parent folder' do
       blueprints_folder = create_folder('athena', 'blueprints')
       stub_folder('blueprints', 'athena')
-      header(*Etna::TestAuth.token_header(
-        email: 'metis@ucsf.edu', perm: 'e:athena'
-      ))
+      token_header(:editor)
       json_post('athena/create_folder/files/blueprints/Helmet Blueprints', {})
 
       folder = Metis::Folder.last
@@ -195,7 +175,7 @@ describe FilesController do
     end
 
     it 'removes a folder' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/remove_folder/files/blueprints',{})
 
       expect(last_response.status).to eq(200)
@@ -203,7 +183,7 @@ describe FilesController do
     end
 
     it 'refuses to remove a folder without permissions' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'v:athena'))
+      token_header(:viewer)
       json_post('athena/remove_folder/files/blueprints',{})
 
       expect(last_response.status).to eq(403)
@@ -212,7 +192,7 @@ describe FilesController do
 
     it 'refuses to remove a non-existent folder' do
       # we attempt to remove a folder that does not exist
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/remove_folder/files/glueprints',{})
 
       expect(last_response.status).to eq(422)
@@ -226,7 +206,7 @@ describe FilesController do
     it 'refuses to remove a folder that contains file data' do
       stub_file('blueprints/helmet.jpg', HELMET, :athena)
 
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/remove_folder/files/blueprints',{})
 
       expect(last_response.status).to eq(422)
@@ -240,7 +220,7 @@ describe FilesController do
       @blueprints_folder.save
       @blueprints_folder.refresh
 
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/remove_folder/files/blueprints',{})
 
       expect(last_response.status).to eq(422)
@@ -253,7 +233,7 @@ describe FilesController do
       @blueprints_folder.save
       @blueprints_folder.refresh
 
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:editor)
       json_post('athena/remove_folder/files/blueprints',{})
 
       expect(last_response.status).to eq(422)
@@ -270,7 +250,7 @@ describe FilesController do
     end
 
     it 'protects a folder' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/protect_folder/files/blueprints',{})
 
       @blueprints_folder.refresh
@@ -279,7 +259,7 @@ describe FilesController do
     end
 
     it 'refuses to protect a folder without permissions' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/protect_folder/files/blueprints',{})
 
       @blueprints_folder.refresh
@@ -289,7 +269,7 @@ describe FilesController do
 
     it 'refuses to protect a non-existent folder' do
       # we attempt to protect a folder that does not exist
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/protect_folder/files/glueprints',{})
 
       expect(last_response.status).to eq(422)
@@ -305,7 +285,7 @@ describe FilesController do
       @blueprints_folder.save
       @blueprints_folder.refresh
 
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/protect_folder/files/blueprints',{})
 
       expect(last_response.status).to eq(403)
@@ -323,7 +303,7 @@ describe FilesController do
     end
 
     it 'unprotects a folder' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/unprotect_folder/files/blueprints',{})
 
       @blueprints_folder.refresh
@@ -332,7 +312,7 @@ describe FilesController do
     end
 
     it 'refuses to unprotect a folder without permissions' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/unprotect_folder/files/blueprints',{})
 
       @blueprints_folder.refresh
@@ -342,7 +322,7 @@ describe FilesController do
 
     it 'refuses to unprotect a non-existent folder' do
       # we attempt to unprotect a folder that does not exist
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/unprotect_folder/files/glueprints',{})
 
       expect(last_response.status).to eq(422)
@@ -357,7 +337,7 @@ describe FilesController do
       @blueprints_folder.read_only = false
       @blueprints_folder.save
 
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/unprotect_folder/files/blueprints',{})
 
       expect(last_response.status).to eq(422)
@@ -383,7 +363,7 @@ describe FilesController do
     end
 
     it 'removes a file' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/remove_file/files/blueprints/helmet/helmet.jpg',{})
 
       expect(last_response.status).to eq(200)
@@ -397,7 +377,7 @@ describe FilesController do
 
     it 'refuses to remove a file without permissions' do
       # we attempt to remove a file that does not exist
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'v:athena'))
+      token_header(:viewer)
       json_post('athena/remove_file/files/wisdom.txt',{})
 
       expect(last_response.status).to eq(403)
@@ -406,7 +386,7 @@ describe FilesController do
 
     it 'refuses to remove a non-existent file' do
       # we attempt to remove a file that does not exist
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/remove_file/files/folly.txt',{})
 
       expect(last_response.status).to eq(404)
@@ -418,7 +398,7 @@ describe FilesController do
       @wisdom_file.save
       @wisdom_file.refresh
 
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/remove_file/files/wisdom.txt',{})
 
       expect(last_response.status).to eq(422)
@@ -431,7 +411,7 @@ describe FilesController do
       @wisdom_file.save
       @wisdom_file.refresh
 
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/remove_file/files/wisdom.txt',{})
 
       expect(last_response.status).to eq(422)
@@ -447,7 +427,7 @@ describe FilesController do
     end
 
     it 'protects a file' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/protect_file/files/wisdom.txt',{})
 
       @wisdom_file.refresh
@@ -456,7 +436,7 @@ describe FilesController do
     end
 
     it 'refuses to protect a file without permissions' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/protect_file/files/wisdom.txt',{})
 
       @wisdom_file.refresh
@@ -466,7 +446,7 @@ describe FilesController do
 
     it 'refuses to protect a non-existent file' do
       # we attempt to protect a file that does not exist
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/protect_file/files/folly.txt',{})
 
       expect(last_response.status).to eq(404)
@@ -482,7 +462,7 @@ describe FilesController do
       @wisdom_file.save
       @wisdom_file.refresh
 
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/protect_file/files/wisdom.txt',{})
 
       expect(last_response.status).to eq(403)
@@ -500,7 +480,7 @@ describe FilesController do
     end
 
     it 'unprotects a file' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/unprotect_file/files/wisdom.txt',{})
 
       @wisdom_file.refresh
@@ -509,7 +489,7 @@ describe FilesController do
     end
 
     it 'refuses to unprotect a file without permissions' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/unprotect_file/files/wisdom.txt',{})
 
       @wisdom_file.refresh
@@ -519,7 +499,7 @@ describe FilesController do
 
     it 'refuses to unprotect a non-existent file' do
       # we attempt to unprotect a file that does not exist
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/unprotect_file/files/folly.txt',{})
 
       expect(last_response.status).to eq(404)
@@ -534,7 +514,7 @@ describe FilesController do
       @wisdom_file.read_only = false
       @wisdom_file.save
 
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:admin)
       json_post('athena/unprotect_file/files/wisdom.txt',{})
 
       expect(last_response.status).to eq(422)
@@ -551,7 +531,7 @@ describe FilesController do
     end
 
     it 'renames a file' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'learn-wisdom.txt')
 
       @wisdom_file.refresh
@@ -560,7 +540,7 @@ describe FilesController do
     end
 
     it 'refuses to rename a file to an invalid name' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/rename_file/files/wisdom.txt', new_file_path: "learn\nwisdom.txt")
 
       @wisdom_file.refresh
@@ -570,7 +550,7 @@ describe FilesController do
     end
 
     it 'refuses to rename a file without permissions' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'v:athena'))
+      token_header(:viewer)
       json_post('athena/rename_file/files/wisdom.txt',new_file_path: 'learn-wisdom.txt')
 
       @wisdom_file.refresh
@@ -580,7 +560,7 @@ describe FilesController do
 
     it 'refuses to rename a non-existent file' do
       # we attempt to unprotect a file that does not exist
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      token_header(:editor)
       json_post('athena/rename_file/files/folly.txt',new_file_path: 'learn-folly.txt')
 
       expect(last_response.status).to eq(404)
@@ -595,7 +575,7 @@ describe FilesController do
       @wisdom_file.read_only = true
       @wisdom_file.save
 
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
@@ -608,7 +588,7 @@ describe FilesController do
       contents_folder = create_folder('athena', 'contents')
       stub_folder('contents', 'athena')
 
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(200)
@@ -621,7 +601,7 @@ describe FilesController do
       contents_folder = create_folder('athena', 'contents', read_only: true)
       stub_folder('contents', 'athena')
 
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(403)
@@ -632,7 +612,7 @@ describe FilesController do
     end
 
     it 'will not move a file to a non-existent folder' do
-      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      token_header(:editor)
       json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(422)

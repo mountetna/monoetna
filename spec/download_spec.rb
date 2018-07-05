@@ -21,7 +21,7 @@ describe DownloadController do
     it 'downloads a file' do
       create_file('labors', 'readme_hercules.txt', @tips)
 
-      header(*Etna::TestAuth.hmac_header({}))
+      hmac_header
       get('/labors/download/files/readme_hercules.txt', { })
 
       expect(last_response.status).to eq(200)
@@ -36,7 +36,7 @@ describe DownloadController do
       # we make the file record, but we don't stub the actual file
       create_file('labors', 'readme_hercules.txt', @tips)
 
-      header(*Etna::TestAuth.hmac_header({}))
+      hmac_header
       get('/labors/download/files/readme_hercules.txt', { })
 
       expect(last_response.status).to eq(404)
@@ -45,7 +45,7 @@ describe DownloadController do
     it 'fails if the file does not exist' do
       # we create no file record
 
-      header(*Etna::TestAuth.hmac_header({}))
+      hmac_header
       get('/labors/download/files/readme_hercules.txt', { })
 
       expect(last_response.status).to eq(404)
