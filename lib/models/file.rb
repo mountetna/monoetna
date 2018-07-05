@@ -193,6 +193,12 @@ class Metis
       self.save
     end
 
+    def rename!(new_folder, new_file_name)
+      self.file_name = new_file_name
+      self.folder_id = new_folder ? new_folder.id : nil
+      self.save
+    end
+
     def set_file_data(file_path)
       # Rename the existing file.
       ::File.rename(

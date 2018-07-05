@@ -128,4 +128,27 @@ class FilesController < Metis::Controller
 
     success_json(files: [ file.to_hash ])
   end
+
+  def rename_file
+    require_param(:new_file_path)
+    bucket = require_bucket
+    file = Metis::File.from_path(bucket, @params[:file_path])
+
+    raise Etna::Error.new('File not found', 404) unless file && file.has_data?
+
+    # remove the file
+    raise Etna::Forbidden, 'File is read-only' if file.read_only?
+
+    raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:new_file_path])
+
+    new_folder_path, new_file_name = Metis::File.path_parts(@params[:new_file_path])
+
+    new_folder = require_folder(bucket, new_folder_path)
+
+    raise Etna::Forbidden, 'Folder is read-only' if new_folder && new_folder.read_only?
+
+    file.rename!(new_folder, new_file_name)
+
+    success_json(files: [ file.to_hash ])
+  end
 end

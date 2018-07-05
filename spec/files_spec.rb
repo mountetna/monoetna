@@ -543,4 +543,103 @@ describe FilesController do
       expect(@wisdom_file).not_to be_read_only
     end
   end
+
+  context '#rename_file' do
+    before(:each) do
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stub_file('wisdom.txt', WISDOM, :athena)
+    end
+
+    it 'renames a file' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'learn-wisdom.txt')
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(200)
+      expect(@wisdom_file.file_name).to eq('learn-wisdom.txt')
+    end
+
+    it 'refuses to rename a file to an invalid name' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/rename_file/files/wisdom.txt', new_file_path: "learn\nwisdom.txt")
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid path')
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+    end
+
+    it 'refuses to rename a file without permissions' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'v:athena'))
+      json_post('athena/rename_file/files/wisdom.txt',new_file_path: 'learn-wisdom.txt')
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(403)
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+    end
+
+    it 'refuses to rename a non-existent file' do
+      # we attempt to unprotect a file that does not exist
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
+      json_post('athena/rename_file/files/folly.txt',new_file_path: 'learn-folly.txt')
+
+      expect(last_response.status).to eq(404)
+      expect(json_body[:error]).to eq('File not found')
+
+      # the actual file is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+    end
+
+    it 'refuses to rename a read-only file' do
+      @wisdom_file.read_only = true
+      @wisdom_file.save
+
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('File is read-only')
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_path).to eq('wisdom.txt')
+    end
+
+    it 'can move a file to a new folder' do
+      contents_folder = create_folder('athena', 'contents')
+      stub_folder('contents', 'athena')
+
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'contents/wisdom.txt')
+
+      expect(last_response.status).to eq(200)
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_path).to eq('contents/wisdom.txt')
+      expect(@wisdom_file.folder).to eq(contents_folder)
+    end
+
+    it 'will not move a file to a read-only folder' do
+      contents_folder = create_folder('athena', 'contents', read_only: true)
+      stub_folder('contents', 'athena')
+
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'contents/wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Folder is read-only')
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_path).to eq('wisdom.txt')
+      expect(@wisdom_file.folder).to be_nil
+    end
+
+    it 'will not move a file to a non-existent folder' do
+      header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'e:athena'))
+      json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'contents/wisdom.txt')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid folder')
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_path).to eq('wisdom.txt')
+      expect(@wisdom_file.folder).to be_nil
+    end
+  end
 end

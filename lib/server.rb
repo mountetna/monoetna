@@ -22,14 +22,17 @@ class Metis
     get '/:project_name/list/:bucket_name/*folder_path', action: 'files#list', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/:bucket_name', action: 'files#list', auth: { user: { can_view?: :project_name } }
 
+    # folder operations
     post '/:project_name/create_folder/:bucket_name/*folder_path', action: 'files#create_folder', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/remove_folder/:bucket_name/*folder_path', action: 'files#remove_folder', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/protect_folder/:bucket_name/*folder_path', action: 'files#protect_folder', auth: { user: { is_admin?: :project_name } }
     post '/:project_name/unprotect_folder/:bucket_name/*folder_path', action: 'files#unprotect_folder', auth: { user: { is_admin?: :project_name } }
 
+    # file operations
     post '/:project_name/remove_file/:bucket_name/*file_path', action: 'files#remove_file', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/protect_file/:bucket_name/*file_path', action: 'files#protect_file', auth: { user: { is_admin?: :project_name } }
     post '/:project_name/unprotect_file/:bucket_name/*file_path', action: 'files#unprotect_file', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/rename_file/:bucket_name/*file_path', action: 'files#rename_file', auth: { user: { can_edit?: :project_name } }
 
     def initialize(config)
       super
