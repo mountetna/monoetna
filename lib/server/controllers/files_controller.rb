@@ -66,7 +66,7 @@ class FilesController < Metis::Controller
     folder = require_folder(bucket, @params[:folder_path])
 
     # remove the folder
-    raise Etna::BadRequest, 'Folder is read-only' if folder.read_only?
+    raise Etna::Forbidden, 'Folder is read-only' if folder.read_only?
 
     folder.protect!
 
@@ -108,7 +108,7 @@ class FilesController < Metis::Controller
     raise Etna::Error.new('File not found', 404) unless file && file.has_data?
 
     # remove the file
-    raise Etna::BadRequest, 'File is read-only' if file.read_only?
+    raise Etna::Forbidden, 'File is read-only' if file.read_only?
 
     file.protect!
 

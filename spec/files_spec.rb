@@ -308,7 +308,7 @@ describe FilesController do
       header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
       json_post('athena/protect_folder/files/blueprints',{})
 
-      expect(last_response.status).to eq(422)
+      expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('Folder is read-only')
       @blueprints_folder.refresh
       expect(@blueprints_folder).to be_read_only
@@ -485,7 +485,7 @@ describe FilesController do
       header(*Etna::TestAuth.token_header(email: 'metis@ucsf.edu', perm: 'a:athena'))
       json_post('athena/protect_file/files/wisdom.txt',{})
 
-      expect(last_response.status).to eq(422)
+      expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('File is read-only')
       @wisdom_file.refresh
       expect(@wisdom_file).to be_read_only
