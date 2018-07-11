@@ -207,6 +207,7 @@ describe FileController do
       @wisdom_file.refresh
       expect(last_response.status).to eq(200)
       expect(@wisdom_file.file_name).to eq('learn-wisdom.txt')
+      expect(@wisdom_file).to be_has_data
     end
 
     it 'refuses to rename a file to an invalid name' do
@@ -217,6 +218,7 @@ describe FileController do
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid path')
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
     end
 
     it 'refuses to rename a file without permissions' do
@@ -227,6 +229,7 @@ describe FileController do
       @wisdom_file.refresh
       expect(last_response.status).to eq(403)
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
     end
 
     it 'refuses to rename a non-existent file' do
@@ -240,6 +243,7 @@ describe FileController do
       # the actual file is untouched
       @wisdom_file.refresh
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
     end
 
     it 'refuses to rename over an existing file' do
@@ -255,7 +259,6 @@ describe FileController do
       # the file we tried to rename is untouched
       @wisdom_file.refresh
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
-
 
       # the file we tried to rename is untouched
       learn_wisdom_file.refresh
@@ -280,6 +283,7 @@ describe FileController do
       expect(json_body[:error]).to eq('File is read-only')
       @wisdom_file.refresh
       expect(@wisdom_file.file_path).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
     end
 
     it 'can move a file to a new folder' do
@@ -293,6 +297,7 @@ describe FileController do
       @wisdom_file.refresh
       expect(@wisdom_file.file_path).to eq('contents/wisdom.txt')
       expect(@wisdom_file.folder).to eq(contents_folder)
+      expect(@wisdom_file).to be_has_data
     end
 
     it 'will not move a file to a read-only folder' do
@@ -307,6 +312,7 @@ describe FileController do
       @wisdom_file.refresh
       expect(@wisdom_file.file_path).to eq('wisdom.txt')
       expect(@wisdom_file.folder).to be_nil
+      expect(@wisdom_file).to be_has_data
     end
 
     it 'will not move a file to a non-existent folder' do
@@ -318,6 +324,7 @@ describe FileController do
       @wisdom_file.refresh
       expect(@wisdom_file.file_path).to eq('wisdom.txt')
       expect(@wisdom_file.folder).to be_nil
+      expect(@wisdom_file).to be_has_data
     end
   end
 end

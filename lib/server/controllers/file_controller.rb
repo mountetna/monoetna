@@ -57,6 +57,10 @@ class FileController < Metis::Controller
 
     raise Etna::Forbidden, 'Folder is read-only' if new_folder && new_folder.read_only?
 
+    existing_new_file = Metis::File.from_folder(bucket, new_folder, new_file_name)
+
+    raise Etna::Forbidden, 'Cannot rename over existing file' if existing_new_file
+
     file.rename!(new_folder, new_file_name)
 
     success_json(files: [ file.to_hash ])

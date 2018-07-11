@@ -70,19 +70,27 @@ class Metis
       has_directory? && Dir.entries(location).size <= 2 && !read_only?
     end
 
+    def rename!(new_folder, new_folder_name)
+      old_location = location
+
+      update(folder: new_folder, folder_name: new_folder_name)
+      refresh
+
+      new_location = location
+      FileUtils.mv(old_location, new_location)
+    end
+
     def remove!
       ::Dir.delete(location)
       delete
     end
 
     def protect!
-      self.read_only = true
-      self.save
+      update(read_only: true)
     end
 
     def unprotect!
-      self.read_only = false
-      self.save
+      update(read_only: false)
     end
 
     def create_actual_folder!

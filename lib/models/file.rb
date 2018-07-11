@@ -123,10 +123,7 @@ class Metis
     end
 
     def compute_hash!
-      if has_data?
-        self.file_hash = Metis::File.md5(location)
-        save
-      end
+      update(file_hash: Metis::File.md5(location)) if has_data?
     end
 
     def has_data?
@@ -184,19 +181,28 @@ class Metis
     end
 
     def protect!
-      self.read_only = true
-      self.save
+      update(read_only: true)
     end
 
     def unprotect!
-      self.read_only = false
-      self.save
+      update(read_only: false)
     end
 
     def rename!(new_folder, new_file_name)
-      self.file_name = new_file_name
-      self.folder_id = new_folder ? new_folder.id : nil
-      self.save
+      old_location = location
+
+      update(
+        file_name: new_file_name,
+        folder_id: new_folder ? new_folder.id : nil
+      )
+
+      new_location = location
+
+      # Actually move the file
+      ::File.rename(
+        old_location,
+        new_location
+      )
     end
 
     def set_file_data(file_path)

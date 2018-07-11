@@ -353,6 +353,10 @@ describe FolderController do
       stub_folder('blueprints', 'athena')
     end
 
+    after(:each) do
+      Dir.delete(@blueprints_folder.location) if ::File.exists?(@blueprints_folder.location)
+    end
+
     it 'renames a folder' do
       token_header(:editor)
       json_post('athena/rename_folder/files/blueprints', new_folder_path: 'blue-prints')
@@ -360,6 +364,7 @@ describe FolderController do
       @blueprints_folder.refresh
       expect(last_response.status).to eq(200)
       expect(@blueprints_folder.folder_name).to eq('blue-prints')
+      expect(@blueprints_folder).to be_has_directory
     end
 
     it 'refuses to rename a folder to an invalid name' do
@@ -382,16 +387,32 @@ describe FolderController do
     end
 
     it 'refuses to rename a non-existent folder' do
-      # we attempt to unprotect a folder that does not exist
+      # we attempt to rename a folder that does not exist
       token_header(:editor)
       json_post('athena/rename_folder/files/redprints',new_folder_path: 'blue-prints')
 
       expect(last_response.status).to eq(404)
-      expect(json_body[:error]).to eq('File not found')
+      expect(json_body[:error]).to eq('Folder not found')
 
       # the actual folder is untouched
       @blueprints_folder.refresh
       expect(@blueprints_folder.folder_name).to eq('blueprints')
+    end
+
+    it 'refuses to rename over an existing folder' do
+      helmet_folder = create_folder('athena', 'helmet')
+      stub_folder('helmet', 'athena')
+
+      token_header(:editor)
+      json_post('athena/rename_folder/files/blueprints',new_folder_path: 'helmet')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Cannot overwrite existing folder')
+
+      # the actual folder is untouched
+      @blueprints_folder.refresh
+      expect(@blueprints_folder.folder_name).to eq('blueprints')
+      expect(@blueprints_folder).to be_has_directory
     end
 
     it 'refuses to rename a read-only folder' do
@@ -402,9 +423,9 @@ describe FolderController do
       json_post('athena/rename_folder/files/blueprints', new_folder_path: 'blue-prints')
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('File is read-only')
+      expect(json_body[:error]).to eq('Folder is read-only')
       @blueprints_folder.refresh
-      expect(@blueprints_folder.folder_path).to eq('blueprints')
+      expect(@blueprints_folder.folder_path).to eq(['blueprints'])
     end
 
     it 'can move a folder to a new folder' do
@@ -416,7 +437,7 @@ describe FolderController do
 
       expect(last_response.status).to eq(200)
       @blueprints_folder.refresh
-      expect(@blueprints_folder.folder_path).to eq('contents/blueprints')
+      expect(@blueprints_folder.folder_path).to eq(['contents','blueprints'])
       expect(@blueprints_folder.folder).to eq(contents_folder)
     end
 
@@ -430,7 +451,7 @@ describe FolderController do
       expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('Folder is read-only')
       @blueprints_folder.refresh
-      expect(@blueprints_folder.folder_path).to eq('blueprints')
+      expect(@blueprints_folder.folder_path).to eq(['blueprints'])
       expect(@blueprints_folder.folder).to be_nil
     end
 
@@ -441,7 +462,7 @@ describe FolderController do
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid folder')
       @blueprints_folder.refresh
-      expect(@blueprints_folder.folder_path).to eq('blueprints')
+      expect(@blueprints_folder.folder_path).to eq(['blueprints'])
       expect(@blueprints_folder.folder).to be_nil
     end
   end

@@ -49,9 +49,9 @@ class Metis
       ) do |f|
         f.author = author
       end
-      file.folder = folder
-      file.author = author
-      file.save
+
+      file.update(folder: folder, author: author)
+
       file.set_file_data(partial_location)
     end
 

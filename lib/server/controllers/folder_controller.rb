@@ -88,21 +88,28 @@ class FolderController < Metis::Controller
   def rename
     require_param(:new_folder_path)
     bucket = require_bucket
-    folder = Metis::Folder.from_path(bucket, @params[:folder_path])
+    folder = Metis::Folder.from_path(bucket, @params[:folder_path]).first
 
-    raise Etna::Error.new('Folder not found', 404) unless folder && folder.has_data?
+    raise Etna::Error.new('Folder not found', 404) unless folder && folder.has_directory?
 
     raise Etna::Forbidden, 'Folder is read-only' if folder.read_only?
 
     raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:new_folder_path])
 
-    new_folder_path, new_folder_name = Metis::File.path_parts(@params[:new_folder_path])
+    new_parent_folder_path, new_folder_name = Metis::File.path_parts(@params[:new_folder_path])
 
-    new_folder = require_folder(bucket, new_folder_path)
+    new_parent_folder = require_folder(bucket, new_parent_folder_path)
 
-    raise Etna::Forbidden, 'Folder is read-only' if new_folder && new_folder.read_only?
+    raise Etna::Forbidden, 'Folder is read-only' if new_parent_folder && new_parent_folder.read_only?
 
-    folder.rename!(new_folder, new_folder_name)
+    existing_new_folder = Metis::Folder.where(
+      bucket: bucket,
+      folder_id: new_parent_folder ? new_parent_folder.id : nil,
+      folder_name: new_folder_name).first
+
+    raise Etna::Forbidden, 'Cannot overwrite existing folder' if existing_new_folder
+
+    folder.rename!(new_parent_folder, new_folder_name)
 
     success_json(folders: [ folder.to_hash ])
   end
