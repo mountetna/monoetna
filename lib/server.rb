@@ -1,7 +1,8 @@
 require 'json'
 
 require_relative './server/controllers/metis_controller'
-require_relative './server/controllers/files_controller'
+require_relative './server/controllers/file_controller'
+require_relative './server/controllers/folder_controller'
 require_relative './server/controllers/upload_controller'
 require_relative './server/controllers/download_controller'
 require_relative './server/controllers/client_controller'
@@ -19,21 +20,21 @@ class Metis
     post '/authorize/download', action: 'download#authorize', auth: { user: { can_view?: :project_name } }
     get '/:project_name/download/:bucket_name/*file_path', action: 'download#download', auth: { hmac: true }, as: :download
 
-    get '/:project_name/list/:bucket_name/*folder_path', action: 'files#list', auth: { user: { can_view?: :project_name } }
-    get '/:project_name/list/:bucket_name', action: 'files#list', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/list/:bucket_name/*folder_path', action: 'folder#list', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/list/:bucket_name', action: 'folder#list', auth: { user: { can_view?: :project_name } }
 
     # folder operations
-    post '/:project_name/create_folder/:bucket_name/*folder_path', action: 'files#create_folder', auth: { user: { can_edit?: :project_name } }
-    post '/:project_name/remove_folder/:bucket_name/*folder_path', action: 'files#remove_folder', auth: { user: { can_edit?: :project_name } }
-    post '/:project_name/protect_folder/:bucket_name/*folder_path', action: 'files#protect_folder', auth: { user: { is_admin?: :project_name } }
-    post '/:project_name/unprotect_folder/:bucket_name/*folder_path', action: 'files#unprotect_folder', auth: { user: { is_admin?: :project_name } }
-    post '/:project_name/rename_folder/:bucket_name/*folder_path', action: 'files#rename_folder', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/create_folder/:bucket_name/*folder_path', action: 'folder#create', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/remove_folder/:bucket_name/*folder_path', action: 'folder#remove', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/protect_folder/:bucket_name/*folder_path', action: 'folder#protect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/unprotect_folder/:bucket_name/*folder_path', action: 'folder#unprotect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/rename_folder/:bucket_name/*folder_path', action: 'folder#rename', auth: { user: { can_edit?: :project_name } }
 
     # file operations
-    post '/:project_name/remove_file/:bucket_name/*file_path', action: 'files#remove_file', auth: { user: { can_edit?: :project_name } }
-    post '/:project_name/protect_file/:bucket_name/*file_path', action: 'files#protect_file', auth: { user: { is_admin?: :project_name } }
-    post '/:project_name/unprotect_file/:bucket_name/*file_path', action: 'files#unprotect_file', auth: { user: { is_admin?: :project_name } }
-    post '/:project_name/rename_file/:bucket_name/*file_path', action: 'files#rename_file', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/remove_file/:bucket_name/*file_path', action: 'file#remove', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/protect_file/:bucket_name/*file_path', action: 'file#protect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/unprotect_file/:bucket_name/*file_path', action: 'file#unprotect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/rename_file/:bucket_name/*file_path', action: 'file#rename', auth: { user: { can_edit?: :project_name } }
 
     def initialize(config)
       super
