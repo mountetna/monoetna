@@ -27,6 +27,7 @@ class Metis
     post '/:project_name/remove_folder/:bucket_name/*folder_path', action: 'files#remove_folder', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/protect_folder/:bucket_name/*folder_path', action: 'files#protect_folder', auth: { user: { is_admin?: :project_name } }
     post '/:project_name/unprotect_folder/:bucket_name/*folder_path', action: 'files#unprotect_folder', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/rename_folder/:bucket_name/*folder_path', action: 'files#rename_folder', auth: { user: { can_edit?: :project_name } }
 
     # file operations
     post '/:project_name/remove_file/:bucket_name/*file_path', action: 'files#remove_file', auth: { user: { can_edit?: :project_name } }

@@ -85,13 +85,34 @@ class FilesController < Metis::Controller
     success_json(folders: [ folder.to_hash ])
   end
 
+  def rename_folder
+    require_param(:new_folder_path)
+    bucket = require_bucket
+    folder = Metis::Folder.from_path(bucket, @params[:folder_path])
+
+    raise Etna::Error.new('Folder not found', 404) unless folder && folder.has_data?
+
+    raise Etna::Forbidden, 'Folder is read-only' if folder.read_only?
+
+    raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:new_folder_path])
+
+    new_folder_path, new_folder_name = Metis::File.path_parts(@params[:new_folder_path])
+
+    new_folder = require_folder(bucket, new_folder_path)
+
+    raise Etna::Forbidden, 'Folder is read-only' if new_folder && new_folder.read_only?
+
+    folder.rename!(new_folder, new_folder_name)
+
+    success_json(folders: [ folder.to_hash ])
+  end
+
   def remove_file
     bucket = require_bucket
     file = Metis::File.from_path(bucket, @params[:file_path])
 
     raise Etna::Error.new('File not found', 404) unless file && file.has_data?
 
-    # remove the file
     raise Etna::BadRequest, 'Cannot remove file' unless file.can_remove?
 
     response = success_json(files: [ file.to_hash ])
@@ -107,7 +128,6 @@ class FilesController < Metis::Controller
 
     raise Etna::Error.new('File not found', 404) unless file && file.has_data?
 
-    # remove the file
     raise Etna::Forbidden, 'File is read-only' if file.read_only?
 
     file.protect!
@@ -121,7 +141,6 @@ class FilesController < Metis::Controller
 
     raise Etna::Error.new('File not found', 404) unless file && file.has_data?
 
-    # remove the file
     raise Etna::BadRequest, 'File is not protected' unless file.read_only?
 
     file.unprotect!
@@ -136,7 +155,6 @@ class FilesController < Metis::Controller
 
     raise Etna::Error.new('File not found', 404) unless file && file.has_data?
 
-    # remove the file
     raise Etna::Forbidden, 'File is read-only' if file.read_only?
 
     raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:new_file_path])
