@@ -28,6 +28,7 @@ const directory = (state, action) => {
       };
 
     case 'ADD_FILES':
+    case 'REMOVE_FILES':
       return {
         ...state,
         files: files(state.files,action)

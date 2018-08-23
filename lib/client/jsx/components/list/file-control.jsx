@@ -17,7 +17,9 @@ class FileControl extends React.Component{
   }
 
   removeFile() {
-    alert(`removing file ${this.props.file.file_name}`);
+    let { removeFile, file} = this.props;
+
+    removeFile(file);
   }
 
   copyLink() {
@@ -72,7 +74,8 @@ class FileControl extends React.Component{
 export default connect(
   null,
   (dispatch) => ({
-    showDialog: (dialog) => dispatch({ type: 'SHOW_DIALOG', dialog})
+    showDialog: (dialog) => dispatch({ type: 'SHOW_DIALOG', dialog}),
+    removeFile: (file) => dispatch({ type: 'REMOVE_FILE', file })
   })
 )(FileControl);
 

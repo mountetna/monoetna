@@ -17,3 +17,21 @@ export const postCreateFolder = (project_name, folder_name) => {
     headers: headers('json')
   }).then(checkStatus).then(parseJSON);
 }
+
+export const deleteFolder = (project_name, folder_name) => {
+  return fetch(`/${project_name}/remove_folder/files/${folder_name}`,
+  {
+    method: 'DELETE',
+    credentials: 'same-origin',
+    headers: headers('json')
+  }).then(checkStatus).then(parseJSON);
+}
+
+export const deleteFile = (project_name, file_name) => {
+  return fetch(`/${project_name}/remove_file/files/${file_name}`,
+  {
+    method: 'DELETE',
+    credentials: 'same-origin',
+    headers: headers('json')
+  }).then(checkStatus).then(parseJSON);
+}
