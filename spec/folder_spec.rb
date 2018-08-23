@@ -83,9 +83,13 @@ describe FolderController do
   end
 
   context '#create' do
+    def post_create_folder path, params={}
+      json_post("athena/create_folder/files/#{path}", params)
+    end
+
     it 'creates a folder with the given name' do
       token_header(:editor)
-      json_post('athena/create_folder/files/Helmet Blueprints', {})
+      post_create_folder('Helmet Blueprints')
 
       expect(last_response.status).to eq(200)
 
@@ -100,7 +104,7 @@ describe FolderController do
 
     it 'refuses to create folders with invalid names' do
       token_header(:editor)
-      json_post("athena/create_folder/files/Helmet\nBlueprints", {})
+      post_create_folder("Helmet\nBlueprints")
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid path')
@@ -110,7 +114,7 @@ describe FolderController do
       blueprints_folder = create_folder('athena', 'blueprints')
       stub_folder('blueprints', 'athena')
       token_header(:editor)
-      json_post('athena/create_folder/files/blueprints/Helmet Blueprints', {})
+      post_create_folder('blueprints/Helmet Blueprints')
 
       expect(last_response.status).to eq(200)
 
@@ -126,7 +130,7 @@ describe FolderController do
       wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
 
       token_header(:editor)
-      json_post('athena/create_folder/files/wisdom.txt/Helmet Blueprints', {})
+      post_create_folder('wisdom.txt/Helmet Blueprints')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid folder')
@@ -135,7 +139,7 @@ describe FolderController do
     it 'refuses to create existing folder' do
       token_header(:editor)
       blueprints_folder = create_folder('athena', 'blueprints')
-      json_post('athena/create_folder/files/blueprints', {})
+      post_create_folder('blueprints')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Folder exists')
@@ -143,7 +147,7 @@ describe FolderController do
 
     it 'refuses to create folders with non-existent parent folder' do
       token_header(:editor)
-      json_post('athena/create_folder/files/blueprints/Helmet Blueprints', {})
+      post_create_folder('blueprints/Helmet Blueprints')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid folder')
@@ -153,7 +157,7 @@ describe FolderController do
       blueprints_folder = create_folder('athena', 'blueprints')
       stub_folder('blueprints', 'athena')
       token_header(:editor)
-      json_post('athena/create_folder/files/blueprints/Helmet Blueprints', {})
+      post_create_folder('blueprints/Helmet Blueprints')
 
       folder = Metis::Folder.last
 
@@ -174,9 +178,13 @@ describe FolderController do
       expect(@blueprints_folder.has_directory?).to be_truthy
     end
 
+    def remove_folder path
+      delete("athena/remove_folder/files/#{path}")
+    end
+
     it 'removes a folder' do
       token_header(:editor)
-      json_post('athena/remove_folder/files/blueprints',{})
+      remove_folder('blueprints')
 
       expect(last_response.status).to eq(200)
       expect(Metis::Folder.count).to eq(0)
@@ -184,7 +192,7 @@ describe FolderController do
 
     it 'refuses to remove a folder without permissions' do
       token_header(:viewer)
-      json_post('athena/remove_folder/files/blueprints',{})
+      remove_folder('blueprints')
 
       expect(last_response.status).to eq(403)
       expect(Metis::Folder.count).to eq(1)
@@ -193,7 +201,7 @@ describe FolderController do
     it 'refuses to remove a non-existent folder' do
       # we attempt to remove a folder that does not exist
       token_header(:editor)
-      json_post('athena/remove_folder/files/glueprints',{})
+      remove_folder('glueprints')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid folder')
@@ -207,7 +215,7 @@ describe FolderController do
       stub_file('blueprints/helmet.jpg', HELMET, :athena)
 
       token_header(:editor)
-      json_post('athena/remove_folder/files/blueprints',{})
+      remove_folder('blueprints')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot remove folder')
@@ -221,7 +229,7 @@ describe FolderController do
       @blueprints_folder.refresh
 
       token_header(:editor)
-      json_post('athena/remove_folder/files/blueprints',{})
+      remove_folder('blueprints')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot remove folder')
@@ -234,7 +242,7 @@ describe FolderController do
       @blueprints_folder.refresh
 
       token_header(:editor)
-      json_post('athena/remove_folder/files/blueprints',{})
+      remove_folder('blueprints')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot remove folder')
@@ -249,9 +257,13 @@ describe FolderController do
       expect(@blueprints_folder).not_to be_read_only
     end
 
+    def protect_folder path
+      json_post("athena/protect_folder/files/#{path}",{})
+    end
+
     it 'protects a folder' do
       token_header(:admin)
-      json_post('athena/protect_folder/files/blueprints',{})
+      protect_folder('blueprints')
 
       @blueprints_folder.refresh
       expect(last_response.status).to eq(200)
@@ -260,7 +272,7 @@ describe FolderController do
 
     it 'refuses to protect a folder without permissions' do
       token_header(:editor)
-      json_post('athena/protect_folder/files/blueprints',{})
+      protect_folder('blueprints')
 
       @blueprints_folder.refresh
       expect(last_response.status).to eq(403)
@@ -270,7 +282,7 @@ describe FolderController do
     it 'refuses to protect a non-existent folder' do
       # we attempt to protect a folder that does not exist
       token_header(:admin)
-      json_post('athena/protect_folder/files/glueprints',{})
+      protect_folder('glueprints')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid folder')
@@ -286,7 +298,7 @@ describe FolderController do
       @blueprints_folder.refresh
 
       token_header(:admin)
-      json_post('athena/protect_folder/files/blueprints',{})
+      protect_folder('blueprints')
 
       expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('Folder is read-only')
@@ -302,9 +314,13 @@ describe FolderController do
       expect(@blueprints_folder).to be_read_only
     end
 
+    def unprotect_folder path
+      json_post("athena/unprotect_folder/files/#{path}",{})
+    end
+
     it 'unprotects a folder' do
       token_header(:admin)
-      json_post('athena/unprotect_folder/files/blueprints',{})
+      unprotect_folder('blueprints')
 
       @blueprints_folder.refresh
       expect(last_response.status).to eq(200)
@@ -313,7 +329,7 @@ describe FolderController do
 
     it 'refuses to unprotect a folder without permissions' do
       token_header(:editor)
-      json_post('athena/unprotect_folder/files/blueprints',{})
+      unprotect_folder('blueprints')
 
       @blueprints_folder.refresh
       expect(last_response.status).to eq(403)
@@ -323,7 +339,7 @@ describe FolderController do
     it 'refuses to unprotect a non-existent folder' do
       # we attempt to unprotect a folder that does not exist
       token_header(:admin)
-      json_post('athena/unprotect_folder/files/glueprints',{})
+      unprotect_folder('glueprints')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid folder')
@@ -338,7 +354,7 @@ describe FolderController do
       @blueprints_folder.save
 
       token_header(:admin)
-      json_post('athena/unprotect_folder/files/blueprints',{})
+      unprotect_folder('blueprints')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Folder is not protected')
@@ -357,9 +373,13 @@ describe FolderController do
       Dir.delete(@blueprints_folder.location) if ::File.exists?(@blueprints_folder.location)
     end
 
+    def rename_folder path, new_path
+      json_post("athena/rename_folder/files/#{path}", new_folder_path: new_path)
+    end
+
     it 'renames a folder' do
       token_header(:editor)
-      json_post('athena/rename_folder/files/blueprints', new_folder_path: 'blue-prints')
+      rename_folder('blueprints', 'blue-prints')
 
       @blueprints_folder.refresh
       expect(last_response.status).to eq(200)
@@ -369,7 +389,7 @@ describe FolderController do
 
     it 'refuses to rename a folder to an invalid name' do
       token_header(:editor)
-      json_post('athena/rename_folder/files/blueprints', new_folder_path: "blue\nprints")
+      rename_folder('blueprints', "blue\nprints")
 
       @blueprints_folder.refresh
       expect(last_response.status).to eq(422)
@@ -379,7 +399,7 @@ describe FolderController do
 
     it 'refuses to rename a folder without permissions' do
       token_header(:viewer)
-      json_post('athena/rename_folder/files/blueprints',new_folder_path: 'blue-prints')
+      rename_folder('blueprints','blue-prints')
 
       @blueprints_folder.refresh
       expect(last_response.status).to eq(403)
@@ -389,7 +409,7 @@ describe FolderController do
     it 'refuses to rename a non-existent folder' do
       # we attempt to rename a folder that does not exist
       token_header(:editor)
-      json_post('athena/rename_folder/files/redprints',new_folder_path: 'blue-prints')
+      rename_folder('redprints','blue-prints')
 
       expect(last_response.status).to eq(404)
       expect(json_body[:error]).to eq('Folder not found')
@@ -404,7 +424,7 @@ describe FolderController do
       stub_folder('helmet', 'athena')
 
       token_header(:editor)
-      json_post('athena/rename_folder/files/blueprints',new_folder_path: 'helmet')
+      rename_folder('blueprints','helmet')
 
       expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('Cannot overwrite existing folder')
@@ -420,7 +440,7 @@ describe FolderController do
       @blueprints_folder.save
 
       token_header(:editor)
-      json_post('athena/rename_folder/files/blueprints', new_folder_path: 'blue-prints')
+      rename_folder('blueprints', 'blue-prints')
 
       expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('Folder is read-only')
@@ -433,7 +453,7 @@ describe FolderController do
       stub_folder('contents', 'athena')
 
       token_header(:editor)
-      json_post('athena/rename_folder/files/blueprints', new_folder_path: 'contents/blueprints')
+      rename_folder('blueprints', 'contents/blueprints')
 
       expect(last_response.status).to eq(200)
       @blueprints_folder.refresh
@@ -446,7 +466,7 @@ describe FolderController do
       stub_folder('contents', 'athena')
 
       token_header(:editor)
-      json_post('athena/rename_folder/files/blueprints', new_folder_path: 'contents/blueprints')
+      rename_folder('blueprints', 'contents/blueprints')
 
       expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('Folder is read-only')
@@ -457,7 +477,7 @@ describe FolderController do
 
     it 'will not move a folder to a non-existent folder' do
       token_header(:editor)
-      json_post('athena/rename_folder/files/blueprints', new_folder_path: 'contents/blueprints')
+      rename_folder('blueprints', 'contents/blueprints')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid folder')

@@ -32,14 +32,19 @@ describe FileController do
       stub_file('blueprints/helmet/helmet.jpg', HELMET, :athena)
     end
 
+    def remove_file(path)
+      delete("athena/remove_file/files/#{path}")
+    end
+
+
     it 'removes a file' do
       token_header(:editor)
-      json_post('athena/remove_file/files/blueprints/helmet/helmet.jpg',{})
+      remove_file('blueprints/helmet/helmet.jpg')
 
       expect(last_response.status).to eq(200)
       expect(Metis::File.count).to eq(1)
 
-      json_post('athena/remove_file/files/wisdom.txt',{})
+      remove_file('wisdom.txt')
 
       expect(last_response.status).to eq(200)
       expect(Metis::File.count).to eq(0)
@@ -48,7 +53,7 @@ describe FileController do
     it 'refuses to remove a file without permissions' do
       # we attempt to remove a file though we are a mere viewer
       token_header(:viewer)
-      json_post('athena/remove_file/files/wisdom.txt',{})
+      remove_file('wisdom.txt')
 
       expect(last_response.status).to eq(403)
       expect(Metis::File.count).to eq(2)
@@ -57,7 +62,7 @@ describe FileController do
     it 'refuses to remove a non-existent file' do
       # we attempt to remove a file that does not exist
       token_header(:editor)
-      json_post('athena/remove_file/files/folly.txt',{})
+      remove_file('folly.txt')
 
       expect(last_response.status).to eq(404)
       expect(json_body[:error]).to eq('File not found')
@@ -69,7 +74,7 @@ describe FileController do
       @wisdom_file.refresh
 
       token_header(:editor)
-      json_post('athena/remove_file/files/wisdom.txt',{})
+      remove_file('wisdom.txt')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot remove file')
@@ -82,7 +87,7 @@ describe FileController do
       @wisdom_file.refresh
 
       token_header(:admin)
-      json_post('athena/remove_file/files/wisdom.txt',{})
+      remove_file('wisdom.txt')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot remove file')
@@ -96,9 +101,13 @@ describe FileController do
       stub_file('wisdom.txt', WISDOM, :athena)
     end
 
+    def protect_file path, params={}
+      json_post("athena/protect_file/files/#{path}", params)
+    end
+
     it 'protects a file' do
       token_header(:admin)
-      json_post('athena/protect_file/files/wisdom.txt',{})
+      protect_file('wisdom.txt')
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(200)
@@ -107,7 +116,7 @@ describe FileController do
 
     it 'refuses to protect a file without permissions' do
       token_header(:editor)
-      json_post('athena/protect_file/files/wisdom.txt',{})
+      protect_file('wisdom.txt')
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(403)
@@ -117,7 +126,7 @@ describe FileController do
     it 'refuses to protect a non-existent file' do
       # we attempt to protect a file that does not exist
       token_header(:admin)
-      json_post('athena/protect_file/files/folly.txt',{})
+      protect_file('folly.txt')
 
       expect(last_response.status).to eq(404)
       expect(json_body[:error]).to eq('File not found')
@@ -133,7 +142,7 @@ describe FileController do
       @wisdom_file.refresh
 
       token_header(:admin)
-      json_post('athena/protect_file/files/wisdom.txt',{})
+      protect_file('wisdom.txt')
 
       expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('File is read-only')
@@ -149,9 +158,13 @@ describe FileController do
       expect(@wisdom_file).to be_read_only
     end
 
+    def unprotect_file path, params={}
+      json_post("athena/unprotect_file/files/#{path}",params)
+    end
+
     it 'unprotects a file' do
       token_header(:admin)
-      json_post('athena/unprotect_file/files/wisdom.txt',{})
+      unprotect_file('wisdom.txt')
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(200)
@@ -160,7 +173,7 @@ describe FileController do
 
     it 'refuses to unprotect a file without permissions' do
       token_header(:editor)
-      json_post('athena/unprotect_file/files/wisdom.txt',{})
+      unprotect_file('wisdom.txt')
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(403)
@@ -170,7 +183,7 @@ describe FileController do
     it 'refuses to unprotect a non-existent file' do
       # we attempt to unprotect a file that does not exist
       token_header(:admin)
-      json_post('athena/unprotect_file/files/folly.txt',{})
+      unprotect_file('folly.txt')
 
       expect(last_response.status).to eq(404)
       expect(json_body[:error]).to eq('File not found')
@@ -185,7 +198,7 @@ describe FileController do
       @wisdom_file.save
 
       token_header(:admin)
-      json_post('athena/unprotect_file/files/wisdom.txt',{})
+      unprotect_file('wisdom.txt')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('File is not protected')
@@ -200,9 +213,13 @@ describe FileController do
       stub_file('wisdom.txt', WISDOM, :athena)
     end
 
+    def rename_file(path, new_path)
+      json_post("athena/rename_file/files/#{path}", new_file_path: new_path)
+    end
+
     it 'renames a file' do
       token_header(:editor)
-      json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'learn-wisdom.txt')
+      rename_file('wisdom.txt', 'learn-wisdom.txt')
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(200)
@@ -212,7 +229,7 @@ describe FileController do
 
     it 'refuses to rename a file to an invalid name' do
       token_header(:editor)
-      json_post('athena/rename_file/files/wisdom.txt', new_file_path: "learn\nwisdom.txt")
+      rename_file('wisdom.txt', "learn\nwisdom.txt")
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(422)
@@ -224,7 +241,7 @@ describe FileController do
     it 'refuses to rename a file without permissions' do
       # the user is a viewer, not an editor
       token_header(:viewer)
-      json_post('athena/rename_file/files/wisdom.txt',new_file_path: 'learn-wisdom.txt')
+      rename_file('wisdom.txt','learn-wisdom.txt')
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(403)
@@ -235,7 +252,7 @@ describe FileController do
     it 'refuses to rename a non-existent file' do
       # we attempt to rename a file that does not exist
       token_header(:editor)
-      json_post('athena/rename_file/files/folly.txt',new_file_path: 'learn-folly.txt')
+      rename_file('folly.txt','learn-folly.txt')
 
       expect(last_response.status).to eq(404)
       expect(json_body[:error]).to eq('File not found')
@@ -251,7 +268,7 @@ describe FileController do
       stub_file('learn-wisdom.txt', WISDOM*2, :athena)
 
       token_header(:editor)
-      json_post('athena/rename_file/files/wisdom.txt',new_file_path: 'learn-wisdom.txt')
+      rename_file('wisdom.txt','learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('Cannot rename over existing file')
@@ -277,7 +294,7 @@ describe FileController do
       @wisdom_file.save
 
       token_header(:editor)
-      json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'learn-wisdom.txt')
+      rename_file('wisdom.txt', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('File is read-only')
@@ -291,7 +308,7 @@ describe FileController do
       stub_folder('contents', 'athena')
 
       token_header(:editor)
-      json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'contents/wisdom.txt')
+      rename_file('wisdom.txt', 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(200)
       @wisdom_file.refresh
@@ -305,7 +322,7 @@ describe FileController do
       stub_folder('contents', 'athena')
 
       token_header(:editor)
-      json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'contents/wisdom.txt')
+      rename_file('wisdom.txt', 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('Folder is read-only')
@@ -317,7 +334,7 @@ describe FileController do
 
     it 'will not move a file to a non-existent folder' do
       token_header(:editor)
-      json_post('athena/rename_file/files/wisdom.txt', new_file_path: 'contents/wisdom.txt')
+      rename_file('wisdom.txt', 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid folder')
