@@ -68,7 +68,7 @@ class MetisUI extends React.Component {
           <MenuBar />
         </div>
         <div id='logo-group'>
-          <img src='/img/metis_logo_simple.png' alt='' />
+          <div id='logo'/>
         </div>
         { this.renderContent() }
         <ModalDialog/>

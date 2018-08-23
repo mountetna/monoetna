@@ -1,0 +1,16 @@
+#nav-menu {
+  font-family: $base-font;
+  position: absolute;
+  left: 0px;
+  right: 0px;
+  bottom: 10px;
+  height: 30px;
+  background: linear-gradient(to right, #e6fafc, #7dcfe8, #15788f, #15788f, #15788f, #15788f);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  .nav-user {
+    margin-right: 5px;
+    color: white;
+  }
+}

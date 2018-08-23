@@ -1,19 +1,10 @@
 import * as React from 'react'
 
-export default class TitleBar extends React.Component{
-  constructor(){
-    super();
-  }
+const TitleBar = (props) => 
+  <div id='title-menu'>
+    <button className='title-menu-title'>
+      Metis : File Browser
+    </button>
+  </div>;
 
-  render(){
-    return (
-      <div id='title-menu'>
-        <button className='title-menu-btn'>
-          { 'Metis' }
-          <br />
-        </button>
-        <img id='ucsf-logo' src='/img/ucsf_logo_dark.png' alt='' />
-      </div>
-    );
-  }
-}
+export default TitleBar;

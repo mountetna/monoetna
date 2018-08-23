@@ -2,6 +2,9 @@
   margin: 10px;
   align-self: center;
   flex-grow: 1;
+  .folder-project {
+    display: inline;
+  }
   .folder-link {
     display: inline;
     font-family: $base-font;

@@ -1,7 +1,7 @@
 import * as Redux from 'redux';
 import * as ReduxLogger from 'redux-logger';
 import directory from './reducers/directory-reducer';
-import user from './reducers/janus-log-reducer';
+import user from './reducers/user-reducer';
 import dialog from './reducers/dialog-reducer';
 
 import * as fileActions from './actions/file_actions';

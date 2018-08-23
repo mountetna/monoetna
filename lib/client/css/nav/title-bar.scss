@@ -1,0 +1,27 @@
+#title-menu {
+  position: absolute;
+  height: 50px;
+  right: 0px;
+  left: 0px;
+  top: 0px;
+  padding-top: 21px;
+  padding-left: 95px;
+  background: #e6fafc;
+
+  .title-menu-title {
+    margin-top: 0px;
+    margin-left: 0px;
+    font-size: 1.8em;
+    font-family: $title-font;
+    line-height: 12px;
+    text-align: left;
+    color: #333;
+    background: none;
+    border: 0px;
+    span {
+      font-size: 0.5em;
+      letter-spacing: 5px;
+    }
+  }
+}
+

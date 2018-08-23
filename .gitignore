@@ -16,7 +16,6 @@ public/
 spec/examples.txt
 
 *.eot
-*.svg
 *.ttf
 *.woff
 *.woff2

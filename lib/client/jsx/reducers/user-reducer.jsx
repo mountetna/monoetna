@@ -18,27 +18,12 @@ const parseToken = (token) => {
 
   let { email, first, last, perm } = JSON.parse(atob(params));
 
-  return {
-    userEmail: email,
-    firstName: first,
-    lastName: last,
-    permissions: parsePermissions(perm)
+  return { email, first, last, permissions: parsePermissions(perm)
   };
 }
 
 const user = (state, action) => {
-  if (!state) state = {
-    userEmail: '',
-    firstName: '',
-    lastName: '',
-    permissions: [],
-
-    masterPerms: false,
-
-    loginStatus: false,
-    loginError: false,
-    loginErrorMsg: 'Invalid sign in.'
-  };
+  if (!state) state = { };
 
   switch(action.type){
     case 'ADD_USER':

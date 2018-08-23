@@ -25,11 +25,15 @@ class FolderBreadcrumb extends React.Component {
     let { current_folder } = this.props;
 
     let folders = (current_folder || '').split(/\//).filter(_=>_);
-    let root_name = `${CONFIG.project_name} files`;
+    let root_name = CONFIG.project_name;
 
     return (
       <div id='folder-breadcrumb'>
         <div key='root' className='folder-link' title={root_name}>
+          <div className='folder-project'>
+            project
+            <span className='folder-sep fas fa-chevron-right'/>
+          </div>
           {
             folders.length > 0 ?
             <RootFolderLink name={ root_name }/>

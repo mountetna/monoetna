@@ -20,15 +20,18 @@
 
 #logo-group {
   position: absolute;
-  top:10px;
-  left:10px;
-  width: 80px;
-  height: 80px;
+  top:3px;
+  left:3px;
+  background: #fff;
+  border-radius: 50px;
   z-index:10001;
-
-  img {
-    width: 80px;
-    height: 80px;
+  #logo {
+    background-image: url('../images/metis-minified.svg');
+    width: 86px;
+    height: 86px;
+    background-position: -2px -2px;
+    border: 4px solid #15788f;
+    border-radius: 50px;
   }
 }
 
