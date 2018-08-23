@@ -39,13 +39,17 @@ describe FileController do
 
     it 'removes a file' do
       token_header(:editor)
+      location = @helmet_file.location
       remove_file('blueprints/helmet/helmet.jpg')
 
       expect(last_response.status).to eq(200)
       expect(Metis::File.count).to eq(1)
+      expect(::File.exists?(location)).to be_falsy
 
+      location = @wisdom_file.location
       remove_file('wisdom.txt')
 
+      expect(::File.exists?(location)).to be_falsy
       expect(last_response.status).to eq(200)
       expect(Metis::File.count).to eq(0)
     end
@@ -56,6 +60,7 @@ describe FileController do
       remove_file('wisdom.txt')
 
       expect(last_response.status).to eq(403)
+      expect(@wisdom_file).to be_has_data
       expect(Metis::File.count).to eq(2)
     end
 
@@ -78,6 +83,7 @@ describe FileController do
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot remove file')
+      expect(@wisdom_file).to be_has_data
       expect(Metis::File.all).to include(@wisdom_file)
     end
 
@@ -91,6 +97,7 @@ describe FileController do
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot remove file')
+      expect(@wisdom_file).to be_has_data
       expect(Metis::File.all).to include(@wisdom_file)
     end
   end
@@ -285,8 +292,8 @@ describe FileController do
       # we can still see the data
       expect(@wisdom_file).to be_has_data
       expect(learn_wisdom_file).to be_has_data
-      expect(File.read(@wisdom_file.location)).to eq(WISDOM)
-      expect(File.read(learn_wisdom_file.location)).to eq(WISDOM*2)
+      expect(::File.read(@wisdom_file.location)).to eq(WISDOM)
+      expect(::File.read(learn_wisdom_file.location)).to eq(WISDOM*2)
     end
 
     it 'refuses to rename a read-only file' do

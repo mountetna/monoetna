@@ -184,9 +184,11 @@ describe FolderController do
 
     it 'removes a folder' do
       token_header(:editor)
+      location = @blueprints_folder.location
       remove_folder('blueprints')
 
       expect(last_response.status).to eq(200)
+      expect(::Dir.exists?(location)).to be_falsy
       expect(Metis::Folder.count).to eq(0)
     end
 
@@ -208,7 +210,7 @@ describe FolderController do
 
       # the actual folder is untouched
       expect(Metis::Folder.last).to eq(@blueprints_folder)
-      expect(@blueprints_folder.has_directory?).to be_truthy
+      expect(@blueprints_folder).to be_has_directory
     end
 
     it 'refuses to remove a folder that contains file data' do
@@ -220,6 +222,7 @@ describe FolderController do
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot remove folder')
       expect(Metis::Folder.last).to eq(@blueprints_folder)
+      expect(@blueprints_folder).to be_has_directory
       expect(Dir.entries(@blueprints_folder.location).size).to eq(3)
     end
 
@@ -247,6 +250,7 @@ describe FolderController do
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot remove folder')
       expect(Metis::Folder.last).to eq(@blueprints_folder)
+      expect(@blueprints_folder).to be_has_directory
     end
   end
 
