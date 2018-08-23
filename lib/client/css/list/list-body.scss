@@ -15,6 +15,12 @@
       background: #eef;
     }
 
+    &:hover {
+      .file-control-group {
+        display: inline;
+      }
+    }
+
 
     .list-entry-column-group {
       flex: 1 1;
@@ -34,10 +40,15 @@
         font-size: 1.75em;
         color: #5ab;
         text-align: center;
+        overflow: unset;
 
         .upload {
           color: #eab;
         }
+      }
+
+      &.control {
+        overflow: unset;
       }
 
       &.size {
@@ -122,15 +133,25 @@
 }
 
 /* Entry Control Elements *****************************************************/
-.file-control-group,
-.upload-control-group {
 
+.file-control-group {
+  height: 100%;
+  width: 115px;
+  vertical-align: top;
+  border: 1px solid gray;
+  border-radius: 2px;
+  padding: 0px 5px;
+  cursor: pointer;
+  font-size: 12px;
+  display: none;
+}
+
+.upload-control-group {
   height: 100%;
   width: 115px;
   vertical-align: top;
 }
 
-.file-control-btn,
 .upload-control-btn {
   width: 26px;
   height: 26px;

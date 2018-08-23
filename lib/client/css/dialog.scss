@@ -1,0 +1,27 @@
+// This is a blank backdrop pane for the dialog, with a click dismiss
+.modal-window {
+  position: absolute;
+  background-color: rgba(#000, 0.05);
+  width: 100%;
+  height: 100vh;
+  z-index: 20000;
+  left: 0px;
+  top: 0px;
+
+  .modal-dialog {
+    // the actual dialog box
+    position: absolute;
+    border: 1px solid #888;
+    padding: 2px;
+    background-color: #fff;
+
+    .list-dialog {
+      font-family: $base-font;
+      li {
+        padding: 2px;
+        font-size: 0.8em;
+        color: #888;
+      }
+    }
+  }
+}

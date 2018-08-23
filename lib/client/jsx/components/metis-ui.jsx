@@ -4,6 +4,7 @@ import { selectCurrentFolder } from '../selectors/directory-selector';
 
 import TitleBar  from './nav/title-bar';
 import MenuBar   from './nav/menu-bar';
+import ModalDialog from './modal-dialog';
 import ListHead  from './list/list-head';
 import ListBody  from './list/list-body';
 import FolderBreadcrumb from './folder-breadcrumb';
@@ -70,6 +71,7 @@ class MetisUI extends React.Component {
           <img src='/img/metis_logo_simple.png' alt='' />
         </div>
         { this.renderContent() }
+        <ModalDialog/>
       </div>
     );
   }

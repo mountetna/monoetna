@@ -2,6 +2,7 @@ import * as Redux from 'redux';
 import * as ReduxLogger from 'redux-logger';
 import directory from './reducers/directory-reducer';
 import user from './reducers/janus-log-reducer';
+import dialog from './reducers/dialog-reducer';
 
 import * as fileActions from './actions/file_actions';
 import * as uploadActions from './actions/upload_actions';
@@ -14,6 +15,7 @@ import workRouter from './routers/work-router';
 const createStore = () => {
   let reducers = {
     directory,
+    dialog,
     user
   };
 
