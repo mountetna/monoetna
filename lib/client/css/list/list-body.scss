@@ -15,8 +15,23 @@
       background: #eef;
     }
 
+    .control-btn-group {
+      height: 100%;
+      width: 115px;
+      vertical-align: top;
+      border: 1px solid gray;
+      border-radius: 2px;
+      padding: 0px 5px;
+      cursor: pointer;
+      font-size: 12px;
+      display: none;
+      &.selected {
+        display: inline;
+      }
+    }
+
     &:hover {
-      .file-control-group {
+      .control-btn-group {
         display: inline;
       }
     }
@@ -133,18 +148,6 @@
 }
 
 /* Entry Control Elements *****************************************************/
-
-.file-control-group {
-  height: 100%;
-  width: 115px;
-  vertical-align: top;
-  border: 1px solid gray;
-  border-radius: 2px;
-  padding: 0px 5px;
-  cursor: pointer;
-  font-size: 12px;
-  display: none;
-}
 
 .upload-control-group {
   height: 100%;

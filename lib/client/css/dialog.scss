@@ -12,13 +12,13 @@
     // the actual dialog box
     position: absolute;
     border: 1px solid #888;
-    padding: 2px;
     background-color: #fff;
 
     .list-dialog {
       font-family: $base-font;
       li {
         padding: 2px;
+        cursor: pointer;
         font-size: 0.8em;
         color: #888;
       }

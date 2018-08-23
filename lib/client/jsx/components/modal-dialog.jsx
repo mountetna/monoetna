@@ -3,11 +3,11 @@ import { connect } from 'react-redux';
 
 class ListDialog extends React.Component {
   render() {
-    let { items } = this.props;
+    let { items, onClick } = this.props;
 
     return <ul className='list-dialog'>
       {
-        items.map((item,i)=> <li onClick={item.callback} key={i}>
+        items.map((item,i)=> <li onClick={() => onClick(item.callback)} key={i}>
           {item.label}
         </li>)
       }
@@ -16,8 +16,20 @@ class ListDialog extends React.Component {
 }
 
 class ModalDialog extends React.Component {
+  dismissDialog() {
+    let { dismissDialog, dialog } = this.props;
+
+    if ('dismiss' in dialog) dialog.dismiss();
+    dismissDialog();
+  }
+
+  clickItem(callback) {
+    callback();
+    this.dismissDialog();
+  }
+
   render() {
-    let { dismissDialog, dialog, width=150 } = this.props;
+    let { dialog, width=150 } = this.props;
 
     if (!dialog || !Object.keys(dialog).length) return null;
 
@@ -33,18 +45,14 @@ class ModalDialog extends React.Component {
 
     let bounds = { top, width };
     let { documentElement } = document;
-    console.log(`Document width is ${documentElement.clientWidth}`);
-    console.log(documentElement);
-    console.log(left);
-    console.log(width);
     if (left + width > documentElement.clientWidth) left = left - width;
 
     if (!DialogComponent) return null;
 
-    return <div className='modal-window' onClick={ dismissDialog }>
+    return <div className='modal-window' onClick={ this.dismissDialog.bind(this) }>
       <div className='modal-dialog' onClick={ (e) => e.stopPropagation() }
         style={ { left, top, width: `${width}px` } }>
-        <DialogComponent { ...dialog_props }/>
+        <DialogComponent { ...dialog_props } onClick={ this.clickItem.bind(this) }/>
       </div>
     </div>;
   }
