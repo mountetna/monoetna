@@ -8,7 +8,7 @@ import { setupWorker } from './worker';
 const XTR_TIME = 2000; // blob transfer time in ms, determines blob size.
 const BLOB_WINDOW = 30; // How many blob uploads to average over.
 const MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
-const MAX_BLOB_SIZE = Math.pow(2, 20);
+const MAX_BLOB_SIZE = Math.pow(2, 22);
 const INITIAL_BLOB_SIZE = Math.pow(2, 10);
 
 const hashBlob = ({nextBlob}) => {
@@ -73,7 +73,7 @@ const createNextBlob = (uploader, upload) => {
   // we will send up to next_byte_position
   let next_byte_position = current_byte_position + next_blob_size;
 
-  // we must also send the hash of the next blob
+  // we must also send the hash of the next blob,
   // so we must compute its size, between next_byte_position (the end
   // of this blob) and final_byte_position (the end of the next blob)
   let new_blob_size = Math.min(
@@ -81,41 +81,47 @@ const createNextBlob = (uploader, upload) => {
         // we want at least the MIN_BLOB_SIZE
         MIN_BLOB_SIZE,
         // but optimistically, based on the average speed
-        Math.floor(next_blob_size * (XTR_TIME / uploader.avgTime * 0.9))
+        Math.floor(XTR_TIME * uploader.avgSpeed)
       ),
       // but we'll stop at most at here
       MAX_BLOB_SIZE,
       // in fact we should stop when we hit the end of the file
       file.size - next_byte_position
   );
+
   let final_byte_position = next_byte_position + new_blob_size;
 
   // Get the two blobs
-  let blob = uploader.nextBlob;
+  let blob_data = uploader.nextBlob;
   uploader.nextBlob = file.slice(next_byte_position, final_byte_position);
 
   // Hash the next blob.
   hashBlob(uploader).then( new_blob_hash => {
     // Finally, send the request
-    let request = { upload, blob, new_blob_size, new_blob_hash };
-    sendBlob(uploader, request);
+    let request = {
+      blob_data,
+      next_blob_size: new_blob_size,
+      next_blob_hash: new_blob_hash
+    };
+    sendBlob(uploader, upload, request);
   });
 }
 
-let sendBlob = (uploader, request) => {
-  let uploadStart = Math.floor(Date.now());
+let sendBlob = (uploader, upload, request) => {
+  let uploadStart = Date.now();
+  let { url } = upload;
 
-  postUploadBlob(request)
+  postUploadBlob(url, request)
     .then(new_upload => {
-      uploader.addUploadTime(uploadStart, request.upload);
+      uploader.addUploadSpeed(uploadStart, upload);
       completeBlob(uploader, {
-        ...request.upload,
+        ...upload,
         ...new_upload
       });
 
     }).catch(
       (error) => {
-        if (error.fetch) failedBlob(uploader, request);
+        if (error.fetch) failedBlob(uploader, upload, request);
         else {
           console.log(error);
           throw error
@@ -124,8 +130,8 @@ let sendBlob = (uploader, request) => {
     );
 }
 
-const failedBlob = (uploader, request) => {
-  if (!uploader.timeout()) sendBlob(uploader, request);
+const failedBlob = (uploader, upload, request) => {
+  if (!uploader.timeout()) sendBlob(uploader, upload, request);
 }
 
 const completeBlob = (uploader, new_upload) => {
@@ -160,7 +166,7 @@ export default (self) => {
     uploader.cancel = false;
     uploader.timeouts = 0; // The number of times an upload has timed out.
     uploader.maxTimeouts = 5; // The number of attepts to upload a blob.
-    uploader.uploadTimes = [];
+    uploader.uploadSpeeds = [];
   };
 
   uploader.reset();
@@ -178,27 +184,26 @@ export default (self) => {
     { type: 'FILE_UPLOAD_REMOVED', upload }
   );
 
-  uploader.addUploadTime = (uploadStart, upload) => {
-    // update the upload intervals for calculating speed
+  uploader.addUploadSpeed = (uploadStart, upload) => {
     let { next_blob_size } = upload;
-    let time = Math.floor(Date.now()) - uploadStart;
-    uploader.uploadTimes.push(time);
-    uploader.uploadTimes = uploader.uploadTimes.slice(-BLOB_WINDOW);
+    let time = Date.now() - uploadStart;
+    uploader.uploadSpeeds.push(next_blob_size / time);
+    uploader.uploadSpeeds = uploader.uploadSpeeds.slice(-BLOB_WINDOW);
   }
 
   // Calcuates the next blob size based upon upload speed.
   uploader.setSpeed = (upload) => {
     let { next_blob_size } = upload;
-    let { uploadTimes } = uploader;
-    if (!uploadTimes.length) {
-      uploader.avgTime = MIN_BLOB_SIZE;
+    let { uploadSpeeds } = uploader;
+    if (!uploadSpeeds.length) {
+      uploader.avgSpeed = MIN_BLOB_SIZE / XTR_TIME;
       return;
     }
 
-    uploader.avgTime = uploadTimes.reduce((sum,t)=>sum+t, 0) / uploadTimes.length;
+    uploader.avgSpeed = uploadSpeeds.reduce((sum,t)=>sum+t, 0) / uploadSpeeds.length;
 
     // rough calculation of the upload speed in kbps for the UI
-    let upload_speed = (next_blob_size * 8) / (uploader.avgTime / 1000);
+    let upload_speed = uploader.avgSpeed * 8 * 1000;
 
     uploader.dispatch({ type: 'FILE_UPLOAD_SPEED', upload, upload_speed });
   }

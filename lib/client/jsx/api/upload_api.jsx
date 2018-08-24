@@ -30,16 +30,13 @@ export const postUploadCancel = (upload_url, request) => {
   return postUpload(upload_url, { ...request, action: 'cancel' }).then(checkStatus);
 }
 
-export const postUploadBlob = ({ upload, blob, new_blob_size, new_blob_hash}) => {
+export const postUploadBlob = (upload_url, request) => {
   let form = new FormData();
-  let { url } = upload;
 
   form.append('action', 'blob');
-  form.append('blob_data', blob);
-  form.append('next_blob_size', new_blob_size);
-  form.append('next_blob_hash', new_blob_hash);
+  Object.keys(request).forEach(key => form.append(key, request[key]));
 
-  return fetch(url,
+  return fetch(upload_url,
   {
     method: 'POST',
     credentials: 'same-origin',
