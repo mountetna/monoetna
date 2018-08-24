@@ -52,10 +52,15 @@
 
       &.type {
         vertical-align: top;
-        font-size: 1.75em;
         color: #5ab;
         text-align: center;
         overflow: unset;
+
+        .lock {
+          color: goldenrod;
+          top: 10px;
+          left: 10px;
+        }
 
         .upload {
           color: #eab;

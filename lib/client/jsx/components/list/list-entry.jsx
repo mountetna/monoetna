@@ -5,6 +5,7 @@ import UploadMeter from './upload-meter';
 import UploadControl from './upload-control';
 import FileControl from './file-control';
 import { FolderLink } from '../folder-link';
+import Icon from '../icon';
 
 const ListEntryColumn = ({className,widths,children}) =>
   <div className={`list-entry-column-group ${className}`}
@@ -14,8 +15,7 @@ const ListEntryColumn = ({className,widths,children}) =>
 
 const ListEntryTypeColumn = ({icon, widths}) =>
   <ListEntryColumn className='type' widths={widths}>
-    <span className={ icon
-    }/>
+    <Icon icon={icon}/>
   </ListEntryColumn>;
 
 const ListEntryControlColumn = ({widths, ...props}) =>
@@ -70,9 +70,21 @@ const ListEntryFilenameColumn = ({file, widths}) => (
   </ListEntryColumn>
 )
 
+const ListEntryFileTypeColumn = ({file,widths}) => {
+  let { read_only } = file;
+
+  if (!read_only)
+    return <ListEntryTypeColumn icon='file-alt' widths={widths}/>;
+
+  return <ListEntryColumn className='type' widths={widths}>
+    <Icon icon='file-alt' overlay='lock'/>
+  </ListEntryColumn>;
+
+};
+
 export const ListFile = ({file,widths}) => (
   <div className='list-entry-group'>
-    <ListEntryTypeColumn icon='far fa-file-alt' widths={widths}/>
+    <ListEntryFileTypeColumn widths={widths} file={file}/>
     <ListEntryFilenameColumn file={file} widths={widths}/>
     <ListEntryUpdatedColumn file={file} widths={widths}/>
     <ListEntrySizeColumn file={file} widths={widths}/>
@@ -82,7 +94,7 @@ export const ListFile = ({file,widths}) => (
 
 export const ListFolder = ({ folder, current_folder, widths }) => (
   <div className='list-entry-group'>
-    <ListEntryTypeColumn icon='fas fa-folder' widths={ widths } />
+    <ListEntryTypeColumn icon='folder' widths={ widths } />
     <ListEntryFoldernameColumn folder={folder}
       current_folder={ current_folder } widths={widths} />
     <ListEntryUpdatedColumn file={folder} widths={widths}/>
@@ -93,7 +105,7 @@ export const ListFolder = ({ folder, current_folder, widths }) => (
 
 export const ListUpload = ({ upload, widths }) => (
   <div className='list-entry-group upload'>
-    <ListEntryTypeColumn icon='upload fas fa-upload' widths={ widths } />
+    <ListEntryTypeColumn icon='upload' widths={ widths } />
     <ListEntryColumn className='name' widths={ widths }>
       <span className='list-entry-file-name'>
         {upload.file_name}

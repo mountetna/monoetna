@@ -11,6 +11,10 @@
     width: 30px;
     height: 28px;
 
+    .overlay {
+      @extend .white-icon;
+    }
+
     color: #999;
     font-family: $base-font;
     font-size: 0.5em;

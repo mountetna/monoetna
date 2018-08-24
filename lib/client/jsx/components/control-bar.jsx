@@ -1,23 +1,14 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { selectCurrentFolder } from '../selectors/directory-selector';
+import Icon from './icon';
 
 // this is the Metis control bar, which contains basic operations
 // like 'upload file' and 'create folder'
 
-const ControlButton = ({onClick, icon, title}) => {
+const ControlButton = ({onClick, icon, overlay, title}) => {
   return <button className='control-btn' onClick={ onClick } title={ title }>
-    {
-      Array.isArray(icon) ?
-        <span className='fa-stack fa-fw'>
-          <i className={ `fa fa-stack-2x fa-${icon[0]}` }/>
-          <i className={ `fa fa-stack-1x fa-${icon[1]} white-icon` }/>
-        </span>
-      :
-        <span className='fa-stack fa-fw'>
-          <i className={ `fa fa-fw fa-2x fa-${icon}` }/>
-        </span>
-    }
+    <Icon icon={icon} overlay={overlay}/>
   </button>
 }
 
@@ -57,7 +48,7 @@ class ControlBar extends React.Component {
           ref={ (input) => this.input = input }
           onChange={ this.fileSelected.bind(this) }
         />
-        <ControlButton onClick={ this.selectFolder.bind(this) } title='Create folder' icon={ [ 'folder', 'plus' ] }/>
+        <ControlButton onClick={ this.selectFolder.bind(this) } title='Create folder' icon='folder' overlay='plus'/>
         <ControlButton onClick={ this.selectFile.bind(this) } title='Upload file' icon='upload'/>
       </div>
     );
