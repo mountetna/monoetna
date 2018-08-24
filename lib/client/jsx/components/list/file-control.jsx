@@ -9,8 +9,11 @@ class FileControl extends React.Component{
   }
 
   protectFile() {
-    alert(`protecting file ${this.props.file.file_name}`);
+    let { protectFile, file} = this.props;
+
+    protectFile(file);
   }
+
 
   renameFile() {
     alert(`renaming file ${this.props.file.file_name}`);
@@ -75,7 +78,8 @@ export default connect(
   null,
   (dispatch) => ({
     showDialog: (dialog) => dispatch({ type: 'SHOW_DIALOG', dialog}),
-    removeFile: (file) => dispatch({ type: 'REMOVE_FILE', file })
+    removeFile: (file) => dispatch({ type: 'REMOVE_FILE', file }),
+    protectFile: (file) => dispatch({ type: 'PROTECT_FILE', file })
   })
 )(FileControl);
 

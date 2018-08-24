@@ -118,6 +118,7 @@ describe FileController do
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(200)
+      expect(json_body[:files].first[:read_only]).to eq(true)
       expect(@wisdom_file).to be_read_only
     end
 

@@ -1,4 +1,4 @@
-import { postRetrieveFiles, postCreateFolder, deleteFile } from '../api/files_api';
+import { postRetrieveFiles, postCreateFolder, postProtectFile, deleteFile } from '../api/files_api';
 
 const addFiles = (files) => ({ type: 'ADD_FILES', files });
 const removeFiles = (files) => ({ type: 'REMOVE_FILES', files });
@@ -25,4 +25,12 @@ export const removeFile = ({file}) => (dispatch) => {
   )
     .then(({files}) => dispatch(removeFiles(files)))
     .catch(error=>alert('Could not remove file!'));
+}
+
+export const protectFile = ({file}) => (dispatch) => {
+  postProtectFile(
+    CONFIG.project_name, file.file_path
+  )
+    .then(({files}) => dispatch(addFiles(files)))
+    .catch(error=>alert('Could not protect file!'));
 }

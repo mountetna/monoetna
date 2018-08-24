@@ -153,6 +153,7 @@ class Metis
         created_at: created_at,
         author: author,
         file_hash: file_hash,
+        read_only: read_only?,
         size: actual_size,
         download_url: request ? Metis::File.download_url(
           request,

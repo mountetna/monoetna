@@ -35,3 +35,12 @@ export const deleteFile = (project_name, file_name) => {
     headers: headers('json')
   }).then(checkStatus).then(parseJSON);
 }
+
+export const postProtectFile = (project_name, file_name) => {
+  return fetch(`/${project_name}/protect_file/files/${file_name}`,
+  {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: headers('json')
+  }).then(checkStatus).then(parseJSON);
+}
