@@ -53,6 +53,8 @@ class Metis
       file.update(folder: folder, author: author)
 
       file.set_file_data(partial_location)
+
+      return file
     end
 
     def complete?

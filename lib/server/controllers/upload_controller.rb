@@ -131,9 +131,14 @@ class UploadController < Metis::Controller
       raise Etna::Forbidden, 'Cannot overwrite existing file!'
     end
 
-    upload.finish!
+    new_file = upload.finish!
 
-    return success_json(upload)
+    # we will embed the new file hash inside the
+    # upload hash
+    upload_hash = upload.to_hash
+    upload_hash[:file] = new_file.to_hash
+
+    return success_json(upload_hash)
   ensure
     upload.delete_with_partial!
   end
