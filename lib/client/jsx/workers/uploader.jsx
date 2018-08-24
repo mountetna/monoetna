@@ -4,197 +4,204 @@
 
 import SparkMD5 from 'spark-md5';
 import { postUploadStart, postUploadBlob, postUploadCancel } from '../api/upload_api';
-/*
- * In milliseconds, the amount of time to transfer one blob. This ultimately
- * sets the blob size.
- */
-const XTR_TIME = 2000;
+import { setupWorker } from './worker';
+const XTR_TIME = 2000; // blob transfer time in ms, determines blob size.
+const BLOB_WINDOW = 30; // How many blob uploads to average over.
 const MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
 const MAX_BLOB_SIZE = Math.pow(2, 20);
 const INITIAL_BLOB_SIZE = Math.pow(2, 10);
 
-export default (self) => {
-  let dispatch = (action) => self.postMessage(action);
+const hashBlob = ({nextBlob}) => {
+  return new Promise((resolve, reject) => {
+    let fileReader = new FileReader();
 
-  let error = (message) => dispatch(
-    { type: 'WORKER_ERROR', worker: 'upload', message }
+    fileReader.onload = (event) => {
+      let hash = SparkMD5.ArrayBuffer.hash(fileReader.result);
+
+      resolve(hash);
+    }
+
+    fileReader.readAsArrayBuffer(nextBlob);
+  });
+};
+
+const initUpload = (uploader, file, url) => {
+  // Hash the next blob for security and error checking.
+  uploader.nextBlob = file.slice(0, INITIAL_BLOB_SIZE);
+
+  hashBlob(uploader).then( next_blob_hash => {
+    let upload = {
+      file_size: file.size,
+      next_blob_size: INITIAL_BLOB_SIZE,
+      next_blob_hash
+    };
+
+    postUploadStart(url, upload)
+      .then(uploader.pause)
+      .catch(
+        () => alert('The upload could not be started.')
+      )
+  });
+};
+
+const cancelUpload = (uploader, upload) => {
+  let { project_name, file_name } = upload;
+  postUploadCancel(upload.url, { project_name, file_name })
+    .then(() => {
+      uploader.dispatch({ type: 'FILE_UPLOAD_REMOVED', upload });
+    }).catch(
+      (error) => alert('The upload could not be canceled.')
+    );
+}
+
+// make a new blob based on the current position in the file
+const createNextBlob = (uploader, upload) => {
+  let { file, current_byte_position, next_blob_size } = upload;
+
+  // after this, we know we have more bytes to send
+  if (uploader.paused || current_byte_position >= file.size) return;
+
+  // report the average upload speed, if any
+  uploader.setSpeed(upload);
+
+  // we have already sent up to current_byte_position
+  // we will send up to next_byte_position
+  let next_byte_position = current_byte_position + next_blob_size;
+
+  // we must also send the hash of the next blob
+  // so we must compute its size, between next_byte_position (the end
+  // of this blob) and final_byte_position (the end of the next blob)
+  let new_blob_size = Math.min(
+      Math.max(
+        // we want at least the MIN_BLOB_SIZE
+        MIN_BLOB_SIZE,
+        // but optimistically, based on the average speed
+        Math.floor(next_blob_size * (XTR_TIME / uploader.avgTime * 0.9))
+      ),
+      // but we'll stop at most at here
+      MAX_BLOB_SIZE,
+      // in fact we should stop when we hit the end of the file
+      file.size - next_byte_position
   );
+  let final_byte_position = next_byte_position + new_blob_size;
 
-  let pause = false;
-  let cancel = false;
-  let timeouts = 0; // The number of times an upload has timed out.
-  let maxTimeouts = 5; // The number of attepts to upload a blob.
+  // Get the two blobs
+  let blob = uploader.nextBlob;
+  uploader.nextBlob = file.slice(next_byte_position, final_byte_position);
 
-  // the main event loop which handles commands passed in
-  self.addEventListener('message', ({data}) => {
-    let { file, url, upload, command } = data;
+  // Hash the next blob.
+  hashBlob(uploader).then( new_blob_hash => {
+    // Finally, send the request
+    let request = { upload, blob, new_blob_size, new_blob_hash };
+    sendBlob(uploader, request);
+  });
+}
 
-    // Check that the incoming data has a valid command.
-    switch (command) {
-      case 'init':
-        pause = false;
-        initUpload(file,url);
-        break;
-      case 'start':
-        pause = false;
-        createBlob(upload);
-        break;
-      case 'pause':
-        pause = true;
-        dispatch({ type: 'FILE_UPLOAD_STATUS', upload, status: 'paused' })
-        break;
-      case 'cancel':
-        pause = true;
-        cancelUpload(upload);
-        break;
-      default:
-        error(`Invalid command ${command}`);
-        break;
+let sendBlob = (uploader, request) => {
+  let uploadStart = Math.floor(Date.now());
+
+  postUploadBlob(request)
+    .then(new_upload => {
+      uploader.addUploadTime(uploadStart, request.upload);
+      completeBlob(uploader, {
+        ...request.upload,
+        ...new_upload
+      });
+
+    }).catch(
+      (error) => {
+        if (error.fetch) failedBlob(uploader, request);
+        else {
+          console.log(error);
+          throw error
+        }
+      }
+    );
+}
+
+const failedBlob = (uploader, request) => {
+  if (!uploader.timeout()) sendBlob(uploader, request);
+}
+
+const completeBlob = (uploader, new_upload) => {
+  let { current_byte_position, file_size } = new_upload;
+  if (current_byte_position < file_size) uploader.active(new_upload);
+  else uploader.complete(new_upload);
+  createNextBlob(uploader, new_upload);
+};
+
+export default (self) => {
+  let uploader = setupWorker(self, {
+    init: ({file,url}) => {
+      uploader.paused = false;
+      initUpload(uploader, file, url);
+    },
+    start: ({upload}) => {
+      uploader.paused = false;
+      createNextBlob(uploader, upload);
+    },
+    pause: ({upload}) => {
+      uploader.paused = true;
+      uploader.pause(upload);
+    },
+    cancel: ({upload}) => {
+      uploader.paused = true;
+      cancelUpload(uploader, upload);
     }
   });
 
-  const initUpload = (file,url) => {
-    // Hash the next blob for security and error checking.
-    let blob = file.slice(0, INITIAL_BLOB_SIZE);
-    let fileReader = new FileReader();
-    fileReader.onload = (event) => {
-      let next_blob_hash = SparkMD5.ArrayBuffer.hash(fileReader.result);
-
-      let upload = {
-        file_size: file.size,
-        next_blob_size: INITIAL_BLOB_SIZE,
-        next_blob_hash
-      };
-
-      postUploadStart(url, upload)
-        .then( response =>
-          dispatch({ type: 'FILE_UPLOAD_STATUS',
-            upload: response, status: 'paused' })
-        )
-        .catch(
-          () => alert('The upload could not be started.')
-        )
-    }
-    fileReader.readAsArrayBuffer(blob);
+  uploader.reset = () => {
+    uploader.paused = false;
+    uploader.cancel = false;
+    uploader.timeouts = 0; // The number of times an upload has timed out.
+    uploader.maxTimeouts = 5; // The number of attepts to upload a blob.
+    uploader.uploadTimes = [];
   };
 
-  const createBlob = (upload) => {
-    let { file, current_byte_position, next_blob_size } = upload;
+  uploader.reset();
 
-    if (pause || current_byte_position >= file.size) return;
+  uploader.status = (upload, status) => uploader.dispatch(
+    { type: 'FILE_UPLOAD_STATUS', upload, status }
+  );
+  uploader.pause = (upload) => uploader.status(upload, 'paused');
+  uploader.active = (upload) => uploader.status(upload, 'active');
+  uploader.complete = ({file,...upload}) => {
+    uploader.status(upload, 'complete');
+    uploader.dispatch({ type: 'ADD_FILES', files: [ file ] });
+  };
 
-    let [ upload_speed, new_blob_size ] = calcNextBlobSize(next_blob_size);
-    let next_byte_position = current_byte_position + next_blob_size;
-    let final_byte_position = next_byte_position + new_blob_size;
-
-    dispatch({ type: 'FILE_UPLOAD_SPEED', upload, upload_speed });
-
-    // Set the outer limit for 'next_blob_size' and 'endByte'.
-    if (final_byte_position > file.size) {
-      final_byte_position = file.size;
-      new_blob_size = final_byte_position - next_byte_position;
-    }
-
-    // Append the current blob to the request.
-    let blob = file.slice(current_byte_position, next_byte_position);
-
-    // Hash the next blob.
-    let nextBlob = file.slice(next_byte_position, final_byte_position);
-
-    let fileReader = new FileReader();
-
-    fileReader.onload = (event) => {
-      let new_blob_hash = SparkMD5.ArrayBuffer.hash(fileReader.result);
-
-      let request = { upload, blob, new_blob_size, new_blob_hash };
-
-      sendBlob(request);
-    }
-    fileReader.readAsArrayBuffer(nextBlob);
-  }
-
-  let blobWindow = 30; // How many blob uploads to average over.
-  let uploadTimes = [];
-
-  let addUploadTime = (time) => {
-    uploadTimes.push(time);
-    uploadTimes = uploadTimes.slice(-blobWindow);
-  }
-
-  let cancelUpload = (upload) => {
-    let { project_name, file_name } = upload;
-    postUploadCancel(upload.url, { project_name, file_name })
-      .then(() => {
-        dispatch({ type: 'FILE_UPLOAD_REMOVED', upload });
-      }).catch(
-        (error) => alert('The upload could not be canceled.')
-      );
-  }
-
-  let sendBlob = (request) => {
-    let uploadStart = Math.floor(Date.now());
-
-    postUploadBlob(request)
-      .then(new_upload => {
-        blobComplete({
-          ...request.upload,
-          ...new_upload
-        });
-
-        // update the upload intervals for calculating speed
-        let uploadEnd = Math.floor(Date.now());
-        addUploadTime(uploadEnd - uploadStart);
-      }).catch(
-        (error) => {
-          if (error.fetch) blobFailed(request);
-          else {
-            console.log(error);
-            throw error
-          }
-        }
-      );
+  uploader.addUploadTime = (uploadStart, upload) => {
+    // update the upload intervals for calculating speed
+    let { next_blob_size } = upload;
+    let time = Math.floor(Date.now()) - uploadStart;
+    uploader.uploadTimes.push(time);
+    uploader.uploadTimes = uploader.uploadTimes.slice(-BLOB_WINDOW);
   }
 
   // Calcuates the next blob size based upon upload speed.
+  uploader.setSpeed = (upload) => {
+    let { next_blob_size } = upload;
+    let { uploadTimes } = uploader;
+    if (!uploadTimes.length) {
+      uploader.avgTime = MIN_BLOB_SIZE;
+      return;
+    }
 
-  let calcNextBlobSize = (current_blob_size) => {
-    if (!uploadTimes.length) return [ null, MIN_BLOB_SIZE ];
-
-    let avgTime = uploadTimes.reduce((sum, time)=>(sum + (time/uploadTimes.length)), 0)
-
-    let nextBlobSize = Math.max(
-      MIN_BLOB_SIZE,
-      Math.min(
-        MAX_BLOB_SIZE,
-        Math.floor(current_blob_size * (XTR_TIME / avgTime * 0.9))
-      )
-    );
+    uploader.avgTime = uploadTimes.reduce((sum,t)=>sum+t, 0) / uploadTimes.length;
 
     // rough calculation of the upload speed in kbps for the UI
-    let uploadSpeed = (current_blob_size * 8) / (avgTime / 1000);
+    let upload_speed = (next_blob_size * 8) / (uploader.avgTime / 1000);
 
-    return [ uploadSpeed, nextBlobSize ];
-  };
-
-  let blobComplete = (new_upload) => {
-    let { current_byte_position, file_size } = new_upload;
-    let status = (current_byte_position < file_size) ? 'active' : 'complete'
-    dispatch({ type: 'FILE_UPLOAD_STATUS', upload: new_upload, status });
-    createBlob(new_upload);
+    uploader.dispatch({ type: 'FILE_UPLOAD_SPEED', upload, upload_speed });
   }
 
-  let blobFailed = (request) => {
-    ++timeouts;
-    if(timeouts == maxTimeouts) {
-      // Reset the uploader.
-      pause = false;
-      cancel = false;
-      timeouts = 0;
-
-      dispatch({ type: 'FILE_UPLOAD_TIMEOUT', upload });
+  uploader.timeout = () => {
+    ++uploader.timeouts;
+    if (uploader.timeouts == uploader.maxTimeouts) {
+      uploader.reset();
+      uploader.dispatch({ type: 'FILE_UPLOAD_TIMEOUT', upload });
+      return false;
     }
-    else {
-      sendBlob(request);
-    }
+    return true;
   }
-}
+};
