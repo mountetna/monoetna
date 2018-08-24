@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { copyText } from '../../utils/copy';
+import { filePath } from '../../utils/file';
 
 class FileControl extends React.Component{
   constructor(props) {
@@ -21,7 +22,9 @@ class FileControl extends React.Component{
   }
 
   renameFile() {
-    alert(`renaming file ${this.props.file.file_name}`);
+    let { renameFile, current_folder, file } = this.props;
+    let new_file_name = prompt("What is the new name of this file?", file.file_name);
+    if (new_file_name) renameFile(file, filePath(current_folder, new_file_name));
   }
 
   removeFile() {
@@ -92,7 +95,8 @@ export default connect(
     showDialog: (dialog) => dispatch({ type: 'SHOW_DIALOG', dialog}),
     removeFile: (file) => dispatch({ type: 'REMOVE_FILE', file }),
     unprotectFile: (file) => dispatch({ type: 'UNPROTECT_FILE', file }),
-    protectFile: (file) => dispatch({ type: 'PROTECT_FILE', file })
+    protectFile: (file) => dispatch({ type: 'PROTECT_FILE', file }),
+    renameFile: (file, new_file_path) => dispatch({ type: 'RENAME_FILE', file, new_file_path })
   })
 )(FileControl);
 

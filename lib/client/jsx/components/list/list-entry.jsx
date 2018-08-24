@@ -6,6 +6,7 @@ import UploadControl from './upload-control';
 import FileControl from './file-control';
 import { FolderLink } from '../folder-link';
 import Icon from '../icon';
+import { filePath } from '../../utils/file';
 
 const ListEntryColumn = ({className,widths,children}) =>
   <div className={`list-entry-column-group ${className}`}
@@ -47,9 +48,7 @@ const foldername = (file) => {
 }
 
 const browse_path = (folder_name, current_folder) => (
-  `/${CONFIG.project_name}/browse/${
-    current_folder == undefined ? '' : `${current_folder}/`
-  }${folder_name}`
+  `/${CONFIG.project_name}/browse/${filePath(current_folder, folder_name)}`
 );
 
 const ListEntryFoldernameColumn = ({folder, current_folder, widths}) => (
@@ -82,13 +81,13 @@ const ListEntryFileTypeColumn = ({file,widths}) => {
 
 };
 
-export const ListFile = ({file,widths}) => (
+export const ListFile = ({file,current_folder,widths}) => (
   <div className='list-entry-group'>
     <ListEntryFileTypeColumn widths={widths} file={file}/>
     <ListEntryFilenameColumn file={file} widths={widths}/>
     <ListEntryUpdatedColumn file={file} widths={widths}/>
     <ListEntrySizeColumn file={file} widths={widths}/>
-    <ListEntryControlColumn file={file} widths={widths}/>
+    <ListEntryControlColumn file={file} current_folder={current_folder} widths={widths}/>
   </div>
 );
 

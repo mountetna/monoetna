@@ -44,6 +44,7 @@ class ListBody extends React.Component{
               <ListFile
                 key={file.file_name}
                 file={file}
+                current_folder={current_folder}
                 widths={widths} />
             )
             : null

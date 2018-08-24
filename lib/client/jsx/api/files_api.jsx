@@ -53,3 +53,13 @@ export const postUnprotectFile = (project_name, file_name) => {
     headers: headers('json')
   }).then(checkStatus).then(parseJSON);
 }
+
+export const postRenameFile = (project_name, file_name, new_file_path) => {
+  return fetch(`/${project_name}/rename_file/files/${file_name}`,
+  {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: headers('json'),
+    body: JSON.stringify({new_file_path})
+  }).then(checkStatus).then(parseJSON);
+}
