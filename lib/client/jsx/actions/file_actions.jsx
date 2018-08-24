@@ -1,4 +1,4 @@
-import { postRetrieveFiles, postCreateFolder, postProtectFile, deleteFile } from '../api/files_api';
+import { postRetrieveFiles, postCreateFolder, postProtectFile, postUnprotectFile, deleteFile } from '../api/files_api';
 
 const addFiles = (files) => ({ type: 'ADD_FILES', files });
 const removeFiles = (files) => ({ type: 'REMOVE_FILES', files });
@@ -33,4 +33,14 @@ export const protectFile = ({file}) => (dispatch) => {
   )
     .then(({files}) => dispatch(addFiles(files)))
     .catch(error=>alert('Could not protect file!'));
+}
+
+export const unprotectFile = ({file}) => (dispatch) => {
+  if (!confirm(`Are you sure you want to unprotect ${file.file_path}?`)) return;
+
+  postUnprotectFile(
+    CONFIG.project_name, file.file_path
+  )
+    .then(({files}) => dispatch(addFiles(files)))
+    .catch(error=>alert('Could not unprotect file!'));
 }

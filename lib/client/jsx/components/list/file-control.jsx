@@ -8,12 +8,17 @@ class FileControl extends React.Component{
     this.state = { dialog: false };
   }
 
+  unprotectFile() {
+    let { unprotectFile, file} = this.props;
+
+    unprotectFile(file);
+  }
+
   protectFile() {
     let { protectFile, file} = this.props;
 
     protectFile(file);
   }
-
 
   renameFile() {
     alert(`renaming file ${this.props.file.file_name}`);
@@ -41,13 +46,20 @@ class FileControl extends React.Component{
 
     this.setState({ dialog: true });
 
+    let items = file.read_only ?
+      [
+        { label: 'Unprotect file', callback: this.unprotectFile.bind(this) }
+      ] : [
+        { label: 'Rename file', callback: this.renameFile.bind(this) },
+        { label: 'Protect file', callback: this.protectFile.bind(this) },
+        { label: 'Remove file', callback: this.removeFile.bind(this) },
+      ];
+
     let dialog = {
       type: 'list',
       items: [
         { label: 'Copy download link', callback: this.copyLink.bind(this) },
-        { label: 'Rename file', callback: this.renameFile.bind(this) },
-        { label: 'Protect file', callback: this.protectFile.bind(this) },
-        { label: 'Remove file', callback: this.removeFile.bind(this) },
+        ...items
       ],
       dismiss: this.dismissDialog.bind(this),
       top,
@@ -79,6 +91,7 @@ export default connect(
   (dispatch) => ({
     showDialog: (dialog) => dispatch({ type: 'SHOW_DIALOG', dialog}),
     removeFile: (file) => dispatch({ type: 'REMOVE_FILE', file }),
+    unprotectFile: (file) => dispatch({ type: 'UNPROTECT_FILE', file }),
     protectFile: (file) => dispatch({ type: 'PROTECT_FILE', file })
   })
 )(FileControl);
