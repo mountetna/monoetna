@@ -45,11 +45,16 @@ const initUpload = (uploader, file, url) => {
 };
 
 const cancelUpload = (uploader, upload) => {
-  let { project_name, file_name } = upload;
-  postUploadCancel(upload.url, { project_name, file_name })
-    .then(() => {
-      uploader.dispatch({ type: 'FILE_UPLOAD_REMOVED', upload });
-    }).catch(
+  let { status, url, project_name, file_name } = upload;
+
+  if (status == 'complete') {
+    uploader.remove(upload);
+    return;
+  }
+
+  postUploadCancel(url, { project_name, file_name })
+    .then(() => uploader.remove(upload))
+    .catch(
       (error) => alert('The upload could not be canceled.')
     );
 }
@@ -169,6 +174,9 @@ export default (self) => {
     uploader.status(upload, 'complete');
     uploader.dispatch({ type: 'ADD_FILES', files: [ file ] });
   };
+  uploader.remove = (upload) => uploader.dispatch(
+    { type: 'FILE_UPLOAD_REMOVED', upload }
+  );
 
   uploader.addUploadTime = (uploadStart, upload) => {
     // update the upload intervals for calculating speed

@@ -37,7 +37,6 @@ export const byteFormat = (bytes, si = false, unit='B') => {
     PREFIXES.length,
     Math.floor(Math.log(bytes) / Math.log(thresh))
   )
-  console.log([bytes, places]);
   bytes = bytes / Math.pow(thresh, places);
 
 

@@ -29,6 +29,6 @@ export const pauseUpload = ({upload}) => (dispatch) => {
 }
 
 export const cancelUpload = ({upload}) => (dispatch) => {
-  if(!confirm('Are you sure you want to remove this upload?')) return;
+  if(upload.status != 'complete' && !confirm('Are you sure you want to remove this upload?')) return;
   dispatch({ type: 'WORK', worker: 'upload', command: 'cancel', upload });
 }
