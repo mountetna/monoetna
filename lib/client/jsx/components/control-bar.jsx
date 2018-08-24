@@ -39,29 +39,24 @@ class ControlBar extends React.Component {
 
     if(event === undefined) return;
 
-    fileSelected( this.input.files[0], current_folder );
+    let { files } = this.input;
+
+    for (let i = 0; i < files.length; i++) fileSelected( files[i], current_folder );
 
     // Reset the input field.
     this.input.value = '';
   }
 
-  setInputRef(input) {
-    this.input = input;
-  }
-
-
   render() {
-    let fileSelector = {
-      style: { display: 'none' },
-      type: 'file',
-      name: 'upload-file',
-      ref: this.setInputRef.bind(this),
-      onChange: this.fileSelected.bind(this)
-    };
-
     return (
       <div id='control-bar'>
-        <input { ...fileSelector } />
+        <input name='upload-file'
+          type='file'
+          multiple='multiple'
+          style={ {display: 'none'} }
+          ref={ (input) => this.input = input }
+          onChange={ this.fileSelected.bind(this) }
+        />
         <ControlButton onClick={ this.selectFolder.bind(this) } title='Create folder' icon={ [ 'folder', 'plus' ] }/>
         <ControlButton onClick={ this.selectFile.bind(this) } title='Upload file' icon='upload'/>
       </div>
