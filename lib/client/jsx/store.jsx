@@ -8,7 +8,6 @@ import * as fileActions from './actions/file_actions';
 import * as uploadActions from './actions/upload_actions';
 import * as userActions from './actions/user_actions';
 
-import { createWorker } from './workers';
 import asyncRouter from './routers/async-router';
 import workRouter from './routers/work-router';
 
@@ -30,13 +29,10 @@ const createStore = () => {
     // returnFile: fileActions.retrieveFile
   };
 
-  let workers = {
-    upload: createWorker( require.resolve('../jsx/workers/uploader'))
-  }
 
   let middleWares = [
     asyncRouter(actions),
-    workRouter(workers)
+    workRouter()
   ];
 
   if(process.env.NODE_ENV != 'production') middleWares.push(ReduxLogger.createLogger());

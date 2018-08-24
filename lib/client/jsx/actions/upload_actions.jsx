@@ -12,8 +12,11 @@ export const fileSelected = ({ file, folder_name }) => (dispatch) => {
       // first set the upload url
       dispatch({ type: 'FILE_UPLOAD_AUTHORIZED', file, file_name, url });
 
-      // then tell the worker to initialize the file
-      dispatch({ type: 'WORK', worker: 'upload', command: 'init', file, url });
+      // initialize a worker for this file
+      dispatch({
+        type: 'WORK', work_type: 'upload', name: file_name,
+        command: 'init', file, url
+      });
     })
     .catch(
       () => alert('The upload could not be authorized.')
@@ -21,14 +24,14 @@ export const fileSelected = ({ file, folder_name }) => (dispatch) => {
 }
 
 export const queueUpload = ({upload}) => (dispatch) => {
-  dispatch({ type: 'WORK', worker: 'upload', command: 'start', upload });
+  dispatch({ type: 'WORK', work_type: 'upload', name: upload.file_name, command: 'start', upload });
 }
 
 export const pauseUpload = ({upload}) => (dispatch) => {
-  dispatch({ type: 'WORK', worker: 'upload', command: 'pause', upload });
+  dispatch({ type: 'WORK', work_type: 'upload', name: upload.file_name, command: 'pause', upload });
 }
 
 export const cancelUpload = ({upload}) => (dispatch) => {
   if(upload.status != 'complete' && !confirm('Are you sure you want to remove this upload?')) return;
-  dispatch({ type: 'WORK', worker: 'upload', command: 'cancel', upload });
+  dispatch({ type: 'WORK', work_type: 'upload', name: upload.file_name, command: 'cancel', upload });
 }
