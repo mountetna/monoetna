@@ -1,4 +1,4 @@
-import { headers, parseJSON, checkStatus } from './fetch_utils';
+import { headers, parseJSON, checkStatus } from '../utils/fetch';
 
 export const postRetrieveFiles = (project_name, folder_name) => {
   return fetch(`/${project_name}/list/files/${folder_name}`, 

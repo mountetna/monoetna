@@ -21,7 +21,6 @@ module.exports = {
   },
   entry: {
     'metis-main': './lib/client/jsx/metis.jsx',
-    'utils': './lib/client/jsx/libraries/utils.jsx',
     'metis-stylesheet': './lib/client/css/metis.scss'
   },
   output: {

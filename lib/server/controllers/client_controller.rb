@@ -6,8 +6,4 @@ class ClientController < Metis::Controller
     @token_name = Metis.instance.config(:token_name)
     erb_view :index
   end
-
-  def user
-    view :user
-  end
 end

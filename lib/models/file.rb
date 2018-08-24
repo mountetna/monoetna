@@ -116,12 +116,6 @@ class Metis
 
     one_to_many :uploads
 
-    def self.has_file?(project_name, file_name)
-      file = self.where(project_name: project_name, file_name: file_name).first
-
-      return file && file.has_data?
-    end
-
     def compute_hash!
       update(file_hash: Metis::File.md5(location)) if has_data?
     end
@@ -214,7 +208,7 @@ class Metis
       )
 
       # update the hash
-      self.update(file_hash: Metis::File.md5(location))
+      compute_hash!
     end
   end
 end

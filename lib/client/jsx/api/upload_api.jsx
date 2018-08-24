@@ -1,4 +1,4 @@
-import { headers, parseJSON, checkStatus } from './fetch_utils';
+import { headers, parseJSON, checkStatus } from '../utils/fetch';
 
 export const postAuthorizeUpload = (project_name, file_path) => {
   let request = { project_name, file_path, bucket_name: 'files' };

@@ -9,17 +9,8 @@ import ListHead  from './list/list-head';
 import ListBody  from './list/list-body';
 import FolderBreadcrumb from './folder-breadcrumb';
 import ControlBar from './control-bar';
-import LoginPanel from './auth/login-panel';
 
 class MetisUI extends React.Component {
-  renderLoginView(){
-    return (
-      <div id='listing-group'>
-        <LoginPanel />
-      </div>
-    );
-  }
-
   componentDidMount() {
     let path = window.location.pathname;
 
@@ -32,7 +23,7 @@ class MetisUI extends React.Component {
   renderContent() {
     let { current_folder } = this.props;
 
-    if (current_folder == '/invalid/') return (
+    if (current_folder == '\ninvalid\n') return (
       <div id='invalid-group'>
         Invalid folder!
       </div>
