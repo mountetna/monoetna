@@ -409,9 +409,8 @@ describe UploadController do
       # the file thinks it has data
       expect(file.has_data?).to be_truthy
 
-      # we get the file hash in the upload
-      file_hash = JSON.parse(file.to_hash.to_json,symbolize_names: true)
-      expect(json_body[:file]).to eq(file_hash)
+      # we get the file hash in the upload with a download_url
+      expect(json_body[:file][:download_url]).not_to be_nil
 
       # the author is set
       expect(file.author).to eq('metis@olympus.org|Metis ')

@@ -136,7 +136,7 @@ class UploadController < Metis::Controller
     # we will embed the new file hash inside the
     # upload hash
     upload_hash = upload.to_hash
-    upload_hash[:file] = new_file.to_hash
+    upload_hash[:file] = new_file.to_hash(@request)
 
     return success_json(upload_hash)
   ensure
