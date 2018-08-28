@@ -92,10 +92,10 @@
       &.updated {
         .list-entry-updated-name {
           @extend .list-entry-text;
-          @extend .light-text
-        }
-        .list-entry-role {
           @extend .light-text;
+          overflow: hidden;
+          white-space: nowrap;
+          text-overflow: ellipsis;
         }
       }
 
