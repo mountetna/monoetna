@@ -36,9 +36,6 @@ const ListEntryUpdatedColumn = ({file, widths}) =>
     <div className='list-entry-updated-name'>
       {dateFormat(file.updated_at)} by {userFormat(file.author)}
     </div>
-    <div className='list-entry-role'>
-      {file.role}
-    </div>
   </ListEntryColumn>;
 
 const basename = (path) => path.split(/\//).pop();
