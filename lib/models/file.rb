@@ -147,6 +147,7 @@ class Metis
         created_at: created_at,
         author: author,
         file_hash: file_hash,
+        archive_id: archive_id,
         read_only: read_only?,
         size: actual_size,
         download_url: request ? Metis::File.download_url(
@@ -200,6 +201,15 @@ class Metis
       )
     end
 
+    def backup!
+      return if !file_hash || archive_id
+
+      Metis.instance.backup.archive(
+        project_name,
+        self
+      )
+    end
+
     def set_file_data(file_path)
       # Rename the existing file.
       ::File.rename(
@@ -207,8 +217,9 @@ class Metis
         location
       )
 
-      # update the hash
-      compute_hash!
+      # clear the hash for recomputation
+      # clear the archive_id for re-backup
+      update(file_hash: nil, archive_id: nil)
     end
   end
 end

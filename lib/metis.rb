@@ -2,6 +2,7 @@
 require 'sequel'
 require 'extlib'
 require 'fileutils'
+require_relative 'backup'
 
 # This class handles the http request and routing
 class Metis
@@ -23,5 +24,9 @@ class Metis
 
   def project_path(project)
     config(:project_paths)[project.to_sym]
+  end
+
+  def backup
+    @backup ||= Metis::Backup.new(config(:backup))
   end
 end

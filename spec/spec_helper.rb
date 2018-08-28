@@ -1,6 +1,7 @@
 require 'yaml'
 require 'logger'
 require 'rack/test'
+require 'webmock/rspec'
 require 'simplecov'
 require 'fileutils'
 SimpleCov.start

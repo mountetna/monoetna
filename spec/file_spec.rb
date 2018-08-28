@@ -1,3 +1,5 @@
+require 'digest'
+
 describe FileController do
   include Rack::Test::Methods
 
@@ -350,6 +352,82 @@ describe FileController do
       expect(@wisdom_file.file_path).to eq('wisdom.txt')
       expect(@wisdom_file.folder).to be_nil
       expect(@wisdom_file).to be_has_data
+    end
+  end
+
+  context '#compute_hash!' do
+    before(:each) do
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stub_file('wisdom.txt', WISDOM, :athena)
+    end
+
+    it 'computes the md5 sum of the file' do
+      @wisdom_file.compute_hash!
+
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_hash).to eq(Digest::MD5.hexdigest(WISDOM))
+    end
+  end
+
+  context '#backup!' do
+    before(:each) do
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stub_file('wisdom.txt', WISDOM, :athena)
+    end
+
+    def glacier_stub(method, path, response={})
+      stub_request(method, "https://glacier.us-east-1.amazonaws.com/-/vaults#{path}")
+        .to_return({
+          status: 200,
+          headers: {
+          'Content-Type' => 'application/json'
+          }
+        }.merge(response))
+    end
+
+    it 'backs up the file to AWS Glacier' do
+      vault_json = {
+        "CreationDate":"2018-08-27T20:56:30.058Z",
+        "LastInventoryDate":nil,
+        "NumberOfArchives":0,
+        "SizeInBytes":0,
+        "VaultARN":"arn:aws:glacier:us-east-1:1999:vaults/metis-test-athena",
+        "VaultName":"metis-test-athena"
+      }.to_json
+
+      glacier_stub( :get, '',
+        body: '{"Marker":null,"VaultList":[]}',
+      )
+      glacier_stub(:put, '/metis-test-athena', status: 201, body: '{}')
+      glacier_stub(:get, '/metis-test-athena',
+        body: vault_json,
+      )
+      glacier_stub(:post, '/metis-test-athena',
+        body: vault_json,
+      )
+      glacier_stub(:post, '/metis-test-athena/multipart-uploads',
+        status: 201,
+        headers: {
+          'X-Amz-Multipart-Upload-Id': 'uploadid',
+          'Content-Type': 'application/json'
+        },
+        body: "{}"
+      )
+      glacier_stub(:put, '/metis-test-athena/multipart-uploads/uploadid',
+        status: 204
+      )
+      glacier_stub(:post, '/metis-test-athena/multipart-uploads/uploadid',
+        status: 201,
+        headers: {
+          'X-Amz-Archive-Id': 'archive_id',
+          'Content-Type': 'application/json',
+        }
+      )
+
+      @wisdom_file.backup!
+
+      @wisdom_file.refresh
+      expect(@wisdom_file.archive_id).to eq('archive_id')
     end
   end
 end
