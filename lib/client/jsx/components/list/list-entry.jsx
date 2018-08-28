@@ -61,7 +61,7 @@ const ListEntryFoldernameColumn = ({folder, current_folder, widths}) => (
   </ListEntryColumn>
 )
 
-const ListEntryFilenameColumn = ({file, widths}) => (
+const ListEntryFileNameColumn = ({file, widths}) => (
   <ListEntryColumn className='name' widths={widths}>
     <div className='list-entry-file-name' title={file.file_name}>
       <a href={file.download_url}>{basename(file.file_name)}</a>
@@ -81,10 +81,19 @@ const ListEntryFileTypeColumn = ({file,widths}) => {
 
 };
 
+const ListEntryFileStatusColumn = ({file, widths}) => (
+  <ListEntryColumn className='status' widths={widths}>
+    { file.file_hash && <Icon icon='shield-alt' title={`MD5: ${file.file_hash}`}/> }
+    { file.archive_id && <Icon icon='cubes' title='Backed up'/> }
+  </ListEntryColumn>
+)
+
+
 export const ListFile = ({file,current_folder,widths}) => (
   <div className='list-entry-group'>
     <ListEntryFileTypeColumn widths={widths} file={file}/>
-    <ListEntryFilenameColumn file={file} widths={widths}/>
+    <ListEntryFileNameColumn file={file} widths={widths}/>
+    <ListEntryFileStatusColumn file={file} widths={widths}/>
     <ListEntryUpdatedColumn file={file} widths={widths}/>
     <ListEntrySizeColumn file={file} widths={widths}/>
     <ListEntryControlColumn file={file} current_folder={current_folder} widths={widths}/>
@@ -96,6 +105,7 @@ export const ListFolder = ({ folder, current_folder, widths }) => (
     <ListEntryTypeColumn icon='folder' widths={ widths } />
     <ListEntryFoldernameColumn folder={folder}
       current_folder={ current_folder } widths={widths} />
+    <ListEntryColumn className='status' widths={widths}/>
     <ListEntryUpdatedColumn file={folder} widths={widths}/>
     <ListEntryColumn className='size' widths={widths}/>
     <ListEntryColumn className='control' widths={widths}/>
@@ -110,6 +120,7 @@ export const ListUpload = ({ upload, widths }) => (
         {upload.file_name}
       </span>
     </ListEntryColumn>
+    <ListEntryColumn className='status' widths={widths}/>
     <ListEntryColumn className='updated' widths={widths}>
       <UploadMeter upload={ upload }/>
     </ListEntryColumn>

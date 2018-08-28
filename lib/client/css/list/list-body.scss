@@ -67,6 +67,17 @@
         }
       }
 
+      &.status {
+        font-size: 0.5em;
+        .shield-alt {
+          color: green;
+        }
+        .cubes {
+          margin-left: 5px;
+          color: dodgerblue;
+        }
+      }
+
       &.control {
         overflow: unset;
       }

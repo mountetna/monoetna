@@ -32,6 +32,7 @@ class MetisUI extends React.Component {
     let columnWidths = {
       type: '90px',
       name: '60%',
+      status: '90px',
       updated: '30%',
       size: '10%',
       control: '100px'
