@@ -55,6 +55,10 @@ class Metis
       file_name.unpack('H*').first
     end
 
+    def self.unsafe_file_name(encoded_file_name)
+      [encoded_file_name].pack('H*')
+    end
+
     def self.md5(path)
       # use md5sum to avoid reading blob
       %x{ md5sum '#{path}' }.split.first
