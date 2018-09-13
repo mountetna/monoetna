@@ -4,6 +4,7 @@ import { userFormat, byteFormat, dateFormat } from '../../utils/format';
 import UploadMeter from './upload-meter';
 import UploadControl from './upload-control';
 import FileControl from './file-control';
+import FolderControl from './folder-control';
 import { FolderLink } from '../folder-link';
 import Icon from '../icon';
 import { filePath } from '../../utils/file';
@@ -17,11 +18,6 @@ const ListEntryColumn = ({className,widths,children}) =>
 const ListEntryTypeColumn = ({icon, widths}) =>
   <ListEntryColumn className='type' widths={widths}>
     <Icon icon={icon}/>
-  </ListEntryColumn>;
-
-const ListEntryControlColumn = ({widths, ...props}) =>
-  <ListEntryColumn className='control' widths={widths}>
-    <FileControl { ...props } />
   </ListEntryColumn>;
 
 const ListEntrySizeColumn = ({file,widths}) =>
@@ -93,7 +89,9 @@ export const ListFile = ({file,current_folder,widths}) => (
     <ListEntryFileStatusColumn file={file} widths={widths}/>
     <ListEntryUpdatedColumn file={file} widths={widths}/>
     <ListEntrySizeColumn file={file} widths={widths}/>
-    <ListEntryControlColumn file={file} current_folder={current_folder} widths={widths}/>
+    <ListEntryColumn className='control' widths={widths}>
+      <FileControl file={file} current_folder={current_folder} />
+    </ListEntryColumn>
   </div>
 );
 
@@ -105,7 +103,9 @@ export const ListFolder = ({ folder, current_folder, widths }) => (
     <ListEntryColumn className='status' widths={widths}/>
     <ListEntryUpdatedColumn file={folder} widths={widths}/>
     <ListEntryColumn className='size' widths={widths}/>
-    <ListEntryColumn className='control' widths={widths}/>
+    <ListEntryColumn className='control' widths={widths}>
+      <FolderControl folder={folder} current_folder={current_folder} />
+    </ListEntryColumn>
   </div>
 );
 
