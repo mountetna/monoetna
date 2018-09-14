@@ -22,6 +22,7 @@ const directory = (state, action) => {
         uploads: uploads(state.uploads,action)
       };
     case 'ADD_FOLDERS':
+    case 'REMOVE_FOLDERS':
       return {
         ...state,
         folders: folders(state.folders,action)

@@ -6,6 +6,7 @@ import {
 const addFiles = (files) => ({ type: 'ADD_FILES', files });
 const removeFiles = (files) => ({ type: 'REMOVE_FILES', files });
 const addFolders = (folders) => ({ type: 'ADD_FOLDERS', folders });
+const removeFolders = (folders) => ({ type: 'REMOVE_FOLDERS', folders });
 
 export const retrieveFiles = ({folder_name}) => (dispatch) =>
   postRetrieveFiles(CONFIG.project_name, folder_name == undefined ? '' : folder_name)
