@@ -468,6 +468,82 @@ describe FolderController do
       expect(@blueprints_folder.folder).to eq(contents_folder)
     end
 
+    it 'can move a sub-folder to a different folder' do
+      @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      stubs.create_folder('athena','blueprints/helmet')
+
+      @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
+      stubs.create_folder('athena','blueprints/helmet/sketches')
+
+      token_header(:editor)
+      rename_folder('blueprints/helmet/sketches', 'blueprints/drawings')
+      stubs.add_folder('athena', 'blueprints/drawings')
+
+      expect(last_response.status).to eq(200)
+      @sketches_folder.refresh
+      expect(@sketches_folder.folder_path).to eq(['blueprints', 'drawings'])
+      expect(@sketches_folder).to be_has_directory
+
+      @helmet_folder.refresh
+      expect(@helmet_folder.folders).to eq([])
+    end
+
+    it 'refuses to move a sub-folder to a non-existent tree' do
+      @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      stubs.create_folder('athena','blueprints/helmet')
+
+      @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
+      stubs.create_folder('athena','blueprints/helmet/sketches')
+
+      token_header(:editor)
+      rename_folder('blueprints/helmet/sketches', 'sketches/blueprints/helmet')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid folder')
+
+      # folders are unchanged
+      @sketches_folder.refresh
+      expect(@sketches_folder.folder_path).to eq(['blueprints', 'helmet', 'sketches'])
+      expect(@sketches_folder).to be_has_directory
+
+      @helmet_folder.refresh
+      expect(@helmet_folder.folders).to eq([@sketches_folder])
+    end
+
+    it 'moves the contents of folders' do
+      @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      stubs.create_folder('athena','blueprints/helmet')
+
+      @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
+      stubs.create_folder('athena','blueprints/helmet/sketches')
+
+      @helmet_file = create_file('athena', 'helmet-sketch.jpg', HELMET, folder: @sketches_folder)
+      stubs.create_file('athena', 'blueprints/helmet/sketches/helmet-sketch.jpg', HELMET)
+
+      @failed_sketches_folder = create_folder('athena', 'failed-sketches', folder: @sketches_folder)
+      stubs.create_folder('athena','blueprints/helmet/sketches/failed-sketches')
+
+      token_header(:editor)
+      rename_folder('blueprints/helmet/sketches', 'sketches')
+      stubs.add_folder('athena', 'sketches')
+
+      expect(last_response.status).to eq(200)
+      @sketches_folder.refresh
+      expect(@sketches_folder.folder_path).to eq(['sketches'])
+      expect(@sketches_folder).to be_has_directory
+
+      @failed_sketches_folder.refresh
+      expect(@failed_sketches_folder.folder_path).to eq(['sketches', 'failed-sketches'])
+      expect(@failed_sketches_folder).to be_has_directory
+
+      @helmet_file.refresh
+      expect(@helmet_file.file_path).to eq('sketches/helmet-sketch.jpg')
+      expect(@helmet_file).to be_has_data
+
+      @helmet_folder.refresh
+      expect(@helmet_folder.folders).to eq([])
+    end
+
     it 'will not move a folder to a read-only folder' do
       contents_folder = create_folder('athena', 'contents', read_only: true)
       stubs.create_folder('athena','contents')

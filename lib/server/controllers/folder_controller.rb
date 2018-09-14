@@ -88,7 +88,7 @@ class FolderController < Metis::Controller
   def rename
     require_param(:new_folder_path)
     bucket = require_bucket
-    folder = Metis::Folder.from_path(bucket, @params[:folder_path]).first
+    folder = Metis::Folder.from_path(bucket, @params[:folder_path]).last
 
     raise Etna::Error.new('Folder not found', 404) unless folder && folder.has_directory?
 

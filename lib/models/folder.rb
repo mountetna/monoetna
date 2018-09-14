@@ -5,44 +5,66 @@ class Metis
 
     many_to_one :folder
 
-    one_to_many :files
+    one_to_many :folders
 
-    plugin :rcte_tree, key: :folder_id
+    one_to_many :files
 
     def self.from_path(bucket, folder_path)
       return [] unless folder_path && bucket
 
       folder_names = folder_path.split(%r!/!)
-      parent_folder_id = nil
 
       db = Metis.instance.db
 
       query = %Q(
         WITH RECURSIVE search_folders(id, depth, path) AS (
-          SELECT id, 1, ARRAY[ #{
+          SELECT f.id, 1, ARRAY[ #{
             folder_names.map do |name|
               db.literal(name)
             end.join(', ')
             } ]
-            FROM folders
-            WHERE bucket_id = #{bucket.id} AND folder_name = #{db.literal(folder_names.first)}
+            FROM folders f
+            WHERE f.bucket_id = #{bucket.id} AND f.folder_name = #{db.literal(folder_names.first)}
           UNION ALL
             SELECT f.id, sf.depth+1, sf.path
             FROM folders f, search_folders sf
-            WHERE bucket_id = #{bucket.id} AND folder_name = sf.path[sf.depth+1] AND sf.depth < #{folder_names.length + 1}
+            WHERE bucket_id = #{bucket.id}
+              AND f.folder_name = sf.path[sf.depth+1]
+              AND f.folder_id = sf.id
+              AND sf.depth < #{folder_names.length + 1}
         )
+
         SELECT f.*
         FROM search_folders AS sf JOIN folders AS f
-        ON f.id=sf.id;
+        ON f.id=sf.id ORDER BY sf.depth ASC;
       )
 
       folders = Metis::Folder.with_sql(query).all
 
-      root_folder = folders.first
-
-      return [] unless !root_folder || root_folder.folder_id == nil
+      # make sure we have found a complete path
+      return [] unless !folders.empty? && folders.first.root_folder? && folders.length == folder_names.length
 
       return folders
+    end
+
+    def parent_folders
+      query =  %Q(
+          WITH RECURSIVE parent_folders(id, folder_id, depth) AS (
+            SELECT f.id, f.folder_id, 1
+              FROM folders f
+              WHERE f.bucket_id = #{bucket.id} AND f.id = #{db.literal(folder_id)}
+            UNION ALL
+              SELECT f.id, f.folder_id, pf.depth+1
+              FROM folders f, parent_folders pf
+              WHERE f.bucket_id = #{bucket.id} AND f.id = pf.folder_id AND depth < 256
+          )
+          SELECT f.*
+          FROM parent_folders AS pf JOIN folders AS f
+          ON f.id=pf.id ORDER BY pf.depth DESC;
+        )
+      Metis::Folder.with_sql(
+        query
+      ).all
     end
 
     def location
@@ -58,8 +80,12 @@ class Metis
       read_only
     end
 
+    def root_folder?
+      folder_id == nil
+    end
+
     def folder_path
-      ancestors.map(&:folder_name) + [ folder_name ]
+      parent_folders.map(&:folder_name) + [ folder_name ]
     end
 
     def has_directory?
@@ -101,6 +127,7 @@ class Metis
       {
         folder_name: folder_name,
         bucket_name: bucket.name,
+        folder_path: ::File.join(folder_path),
         project_name: project_name,
         updated_at: updated_at,
         created_at: created_at,

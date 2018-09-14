@@ -2,9 +2,6 @@
 class Metis
   class File < Sequel::Model
     plugin :timestamps, update_on_create: true
-    plugin :rcte_tree,
-      parent: {name: :folder},
-      ancestors: {name: :folder_path}
 
     many_to_one :bucket
     many_to_one :folder
