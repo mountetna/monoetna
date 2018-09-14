@@ -16,28 +16,27 @@ describe FileController do
   end
 
   after(:each) do
-    clear_stubs
+    stubs.clear
   end
 
   context '#remove' do
     before(:each) do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stub_file('wisdom.txt', WISDOM, :athena)
+      stubs.create_file('athena', 'wisdom.txt', WISDOM)
 
       @blueprints_folder = create_folder('athena', 'blueprints')
-      stub_folder('blueprints', 'athena')
+      stubs.create_folder('athena','blueprints')
 
       @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
-      stub_folder('blueprints/helmet', 'athena')
+      stubs.create_folder('athena','blueprints/helmet')
 
       @helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @helmet_folder)
-      stub_file('blueprints/helmet/helmet.jpg', HELMET, :athena)
+      stubs.create_file('athena', 'blueprints/helmet/helmet.jpg', HELMET)
     end
 
     def remove_file(path)
       delete("athena/remove_file/files/#{path}")
     end
-
 
     it 'removes a file' do
       token_header(:editor)
@@ -107,7 +106,7 @@ describe FileController do
   context '#protect' do
     before(:each) do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stub_file('wisdom.txt', WISDOM, :athena)
+      stubs.create_file('athena', 'wisdom.txt', WISDOM)
     end
 
     def protect_file path, params={}
@@ -164,7 +163,7 @@ describe FileController do
   context '#unprotect' do
     before(:each) do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, read_only: true)
-      stub_file('wisdom.txt', WISDOM, :athena)
+      stubs.create_file('athena', 'wisdom.txt', WISDOM)
       expect(@wisdom_file).to be_read_only
     end
 
@@ -220,7 +219,7 @@ describe FileController do
   context '#rename' do
     before(:each) do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stub_file('wisdom.txt', WISDOM, :athena)
+      stubs.create_file('athena', 'wisdom.txt', WISDOM)
     end
 
     def rename_file(path, new_path)
@@ -230,6 +229,7 @@ describe FileController do
     it 'renames a file' do
       token_header(:editor)
       rename_file('wisdom.txt', 'learn-wisdom.txt')
+      stubs.add_file('athena', 'learn-wisdom.txt')
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(200)
@@ -275,7 +275,7 @@ describe FileController do
 
     it 'refuses to rename over an existing file' do
       learn_wisdom_file = create_file('athena', 'learn-wisdom.txt', WISDOM*2)
-      stub_file('learn-wisdom.txt', WISDOM*2, :athena)
+      stubs.create_file('athena', 'learn-wisdom.txt', WISDOM*2)
 
       token_header(:editor)
       rename_file('wisdom.txt','learn-wisdom.txt')
@@ -315,7 +315,7 @@ describe FileController do
 
     it 'can move a file to a new folder' do
       contents_folder = create_folder('athena', 'contents')
-      stub_folder('contents', 'athena')
+      stubs.create_folder('athena','contents')
 
       token_header(:editor)
       rename_file('wisdom.txt', 'contents/wisdom.txt')
@@ -329,7 +329,7 @@ describe FileController do
 
     it 'will not move a file to a read-only folder' do
       contents_folder = create_folder('athena', 'contents', read_only: true)
-      stub_folder('contents', 'athena')
+      stubs.create_folder('athena','contents')
 
       token_header(:editor)
       rename_file('wisdom.txt', 'contents/wisdom.txt')
@@ -358,7 +358,7 @@ describe FileController do
   context '#compute_hash!' do
     before(:each) do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stub_file('wisdom.txt', WISDOM, :athena)
+      stubs.create_file('athena', 'wisdom.txt', WISDOM)
     end
 
     it 'computes the md5 sum of the file' do
@@ -372,7 +372,7 @@ describe FileController do
   context '#backup!' do
     before(:each) do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stub_file('wisdom.txt', WISDOM, :athena)
+      stubs.create_file('athena', 'wisdom.txt', WISDOM)
     end
 
     def glacier_stub(method, path, response={})

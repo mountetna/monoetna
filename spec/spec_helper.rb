@@ -17,9 +17,8 @@ OUTER_APP = Rack::Builder.new do
   use Rack::Static, urls: ['/css', '/js', '/fonts', '/img'], root: 'lib/client'
   use Etna::ParseBody
   use Etna::SymbolizeParams
-
-  use Etna::TestAuth
   use Metis::SetUid
+  use Etna::TestAuth
   run Metis::Server.new(YAML.load(File.read("config.yml")))
 end
 
@@ -63,6 +62,8 @@ RSpec.configure do |config|
     DatabaseCleaner.clean_with(:truncation)
   end
 
+  config.order = :random
+
   config.around(:each) do |example|
     DatabaseCleaner.cleaning do
       example.run
@@ -70,7 +71,7 @@ RSpec.configure do |config|
   end
 
   config.before(:suite) do
-    ensure_stub_dirs
+    stubs.ensure
   end
 end
 
@@ -102,7 +103,7 @@ def json_post(endpoint, hash)
 end
 
 def stubs
-  @stubs ||= []
+  @stubs ||= Stubs.new
 end
 
 def safe_path(path)
@@ -113,62 +114,115 @@ def safe_path(path)
   )
 end
 
-def stub_file(name, contents, project_name = :stub, bucket_name = 'files')
-  file_name = "#{bucket_name}/#{safe_path(name)}"
-  make_stub(file_name, contents, project_name)
-end
-
-def stub_folder(name, project_name = :stub, bucket_name = 'files')
-  folder_name = "#{bucket_name}/#{safe_path(name)}"
-  make_stub_dir(folder_name, project_name)
-end
-
-def stub_data(name, contents, project_name = :stub)
-  make_stub(name, contents, project_name)
-end
-
-def stub_partial(name, contents, project_name = :stub)
-  file_name = "uploads/#{Metis::File.safe_file_name("#{@metis_uid}-#{name}")}"
-  make_stub(file_name, contents, project_name)
-end
-
-def make_stub_dir(name, project_name)
-  return if name == 'files' || name == '.'
-  folder_name = "spec/#{project_name}/#{name}"
-  FileUtils.mkdir_p(folder_name)
-  stubs.push(folder_name) unless stubs.include?(folder_name)
-end
-
-def make_stub(name, contents, project_name)
-  make_stub_dir(File.dirname(name), project_name)
-  file_name = "spec/#{project_name}/#{name}"
-  File.open(file_name,"w") do |f|
-    f.print contents
+class Stubs
+  def initialize
+    @stubs = []
+    @bucket_name = 'files'
   end
-  stubs.push(file_name) unless stubs.include?(file_name)
-  return File.expand_path(file_name)
-end
 
-def ensure_stub_dirs
-  [ :athena, :labors ].each do |project|
-    [ :uploads, :files ].each do |bucket|
-      dir = "spec/#{project}/#{bucket}"
-      FileUtils.mkdir_p(dir) unless Dir.exists? dir
+  def create_file(project_name, name, contents)
+    file_path = project_path(project_name,bucket_path(name))
+    stub_file(file_path, contents)
+    add_stub(file_path)
+  end
+
+  def create_partial(project_name, name, contents, metis_uid)
+    partial_path = project_path(
+      project_name,
+      "uploads/#{Metis::File.safe_file_name("#{metis_uid}-#{name}")}"
+    )
+    stub_file(partial_path, contents)
+    add_stub(partial_path)
+  end
+
+  def create_data(project_name, name, contents)
+    data_path = project_path(project_name, name)
+    stub_file(data_path, contents)
+    add_stub(data_path)
+  end
+
+  def create_folder(project_name, name)
+    folder_path = project_path(project_name, bucket_path(name))
+    stub_dir(folder_path)
+    add_stub(folder_path)
+  end
+
+  def add_file(project_name, name)
+    file_path = project_path(project_name, bucket_path(name))
+    add_stub(file_path)
+  end
+
+  def add_folder(project_name, name)
+    folder_path = project_path(project_name, bucket_path(name))
+    add_stub(folder_path)
+  end
+
+  private
+
+  def bucket_path(name)
+    "#{@bucket_name}/#{safe_path(name)}"
+  end
+
+  def project_path(project_name, name)
+    ::File.expand_path("spec/#{project_name}/#{name}")
+  end
+
+  def stub_dir(path)
+    FileUtils.mkdir_p(path)
+  end
+
+  def add_stub(path)
+    return nil if path =~ %r!/files$! || path =~ %r!/\.$!
+    stubs.push(path) unless stubs.include?(path)
+    return path
+  end
+
+  def stub_file(path, contents)
+    stub_dir(File.dirname(path))
+    File.open(path,"w") do |f|
+      f.print contents
     end
   end
-end
 
-def clear_stubs
-  stub_files = stubs.select do |stub|
-    File.exists?(stub) && !File.directory?(stub)
-  end.sort_by(&:size).reverse
-  stub_dirs = stubs.select do |stub|
-    File.exists?(stub) && File.directory?(stub)
-  end.sort_by(&:size).reverse
+  public
 
-  stub_files.each { |stub| File.delete(stub) }
-  stub_dirs.each { |stub| FileUtils.rm_r(stub) }
-  @stubs = nil
+  def contents(project)
+    [ :athena, :labors ].map do |project|
+      [ :uploads, :files ].map do |bucket|
+        Dir.glob("spec/#{project}/#{bucket}/*").to_a
+      end
+    end.flatten
+  end
+
+  def ensure
+    [ :athena, :labors ].each do |project|
+      [ :uploads, :files ].each do |bucket|
+        dir = "spec/#{project}/#{bucket}"
+        FileUtils.rm_r(dir) if Dir.exists?(dir)
+        FileUtils.mkdir_p(dir)
+      end
+    end
+  end
+
+  def clear
+    existing_stub_files.each { |stub| File.delete(stub) }
+    existing_stub_dirs.each { |stub| FileUtils.rm_r(stub) }
+    @stubs = []
+  end
+
+  private
+
+  def existing_stub_files
+    @stubs.select do |stub|
+      File.exists?(stub) && !File.directory?(stub)
+    end.sort_by(&:size).reverse
+  end
+
+  def existing_stub_dirs
+    @stubs.select do |stub|
+      File.exists?(stub) && File.directory?(stub)
+    end.sort_by(&:size).reverse
+  end
 end
 
 WISDOM=<<EOT

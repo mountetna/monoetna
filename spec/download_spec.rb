@@ -9,13 +9,13 @@ describe DownloadController do
     before(:each) do
       @tips = "1. Burn the hydra's neck after cutting.\n2. Use a river to clean the stables."
 
-      @location = stub_file('readme_hercules.txt', @tips, :labors)
+      @location = stubs.create_file('labors', 'readme_hercules.txt', @tips)
 
       default_bucket('labors')
     end
 
     after(:each) do
-      clear_stubs
+      stubs.clear
     end
 
     it 'downloads a file' do
@@ -32,7 +32,7 @@ describe DownloadController do
     end
 
     it 'fails if there is no file data' do
-      clear_stubs
+      stubs.clear
       # we make the file record, but we don't stub the actual file
       create_file('labors', 'readme_hercules.txt', @tips)
 

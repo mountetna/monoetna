@@ -16,7 +16,7 @@ describe UploadController do
   end
 
   after(:each) do
-    clear_stubs
+    stubs.clear
   end
 
 
@@ -271,8 +271,7 @@ describe UploadController do
       file = create_file('athena', 'wisdom.txt', WISDOM)
 
       # the current uploaded file-on-disk
-      partial_file = stub_partial(file.file_name, partial, :athena)
-
+      partial_file = stubs.create_partial('athena', 'wisdom.txt', partial, @metis_uid)
 
       # the upload expects the contents of next_blob
       upload = create_upload('athena', 'wisdom.txt', @metis_uid,
@@ -283,7 +282,7 @@ describe UploadController do
       )
 
       # the file-on-disk the client will post
-      wisdom_blob_file = stub_data('wisdom_blob', next_blob, :athena)
+      wisdom_blob_file = stubs.create_data('athena', 'wisdom_blob', next_blob)
 
       # post the new blob
       hmac_header
@@ -309,11 +308,11 @@ describe UploadController do
       next_blob = WISDOM[10..19]
 
       # we create the blob with the wrong contents
-      wisdom_blob_file = stub_data('wisdom_blob', next_blob.reverse, :athena)
+      wisdom_blob_file = stubs.create_data('athena', 'wisdom_blob', next_blob.reverse)
 
       file = create_file('athena', 'wisdom.txt', WISDOM)
 
-      partial_file = stub_partial(file.file_name, partial, :athena)
+      partial_file = stubs.create_partial('athena', file.file_name, partial, @metis_uid)
 
       # the upload expects the correct contents
       upload = create_upload('athena', 'wisdom.txt', @metis_uid,
@@ -346,14 +345,14 @@ describe UploadController do
     before(:each) do
       # the next blob completes the data
       @next_blob = WISDOM[20..-1]
-      @wisdom_blob_file = stub_data('wisdom_blob', @next_blob, :athena)
+      @wisdom_blob_file = stubs.create_data('athena', 'wisdom_blob', @next_blob)
 
       @partial = WISDOM[0..19]
     end
 
     def prep_upload(file_name)
       # the upload expects the final blob
-      @partial_file = stub_partial(file_name, @partial, :athena)
+      @partial_file = stubs.create_partial('athena', file_name, @partial, @metis_uid)
 
       create_upload('athena', file_name, @metis_uid,
         file_size: WISDOM.length,
@@ -387,7 +386,7 @@ describe UploadController do
         }.merge(params)
       )
       Timecop.return
-      @current_file = stub_file(file_name, contents, :athena)
+      @current_file = stubs.create_file('athena', file_name, contents)
     end
 
     it 'finishes the upload' do
@@ -488,7 +487,7 @@ describe UploadController do
 
     it 'sets a folder name when it completes' do
       blueprints_folder = create_folder('athena', 'blueprints')
-      stub_folder('blueprints', 'athena')
+      stubs.create_folder('athena', 'blueprints')
       # the next blob completes the data
       upload = prep_upload('blueprints/wisdom.txt')
 
@@ -562,7 +561,7 @@ describe UploadController do
     it 'should add cancel an upload' do
       # there is partial data
       partial = WISDOM[0..9]
-      partial_file = stub_partial('wisdom.txt', partial, :athena)
+      partial_file = stubs.create_partial('athena', 'wisdom.txt', partial, @metis_uid)
 
       # there is an upload waiting
       upload = create_upload( 'athena', 'wisdom.txt', @metis_uid,
@@ -591,7 +590,7 @@ describe UploadController do
       partial = WISDOM[0..9]
 
       # our file has no existing data
-      partial_file = stub_partial('wisdom.txt', partial, :athena)
+      partial_file = stubs.create_partial('athena', 'wisdom.txt', partial, @metis_uid)
 
       # there is an upload waiting
       upload = create_upload('athena', 'wisdom.txt', @metis_uid,
@@ -622,8 +621,8 @@ describe UploadController do
 
       # our file has existing data
       file = create_file('athena', 'wisdom.txt', WISDOM)
-      current_file = stub_file('wisdom.txt', WISDOM, :athena)
-      partial_file = stub_partial(file.file_name, partial, :athena)
+      current_file = stubs.create_file('athena', 'wisdom.txt', WISDOM)
+      partial_file = stubs.create_partial('athena', file.file_name, partial, @metis_uid)
 
       # there is an upload waiting
       upload = create_upload('athena', 'wisdom.txt', @metis_uid,

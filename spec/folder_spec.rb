@@ -14,20 +14,24 @@ describe FolderController do
   end
 
   after(:each) do
-    clear_stubs
+    stubs.clear
+
+    expect(stubs.contents(:athena)).to be_empty
   end
 
   context '#list' do
     before(:each) do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stub_file('wisdom.txt', WISDOM, :athena)
+      stubs.create_file('athena', 'wisdom.txt', WISDOM)
 
       @blueprints_folder = create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'blueprints')
 
       @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      stubs.create_folder('athena', 'blueprints/helmet')
 
       @helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @helmet_folder)
-      stub_file('blueprints/helmet/helmet.jpg', HELMET, :athena)
+      stubs.create_file('athena', 'blueprints/helmet/helmet.jpg', HELMET)
     end
 
     it 'should return a list of files and folders for the current folder' do
@@ -112,7 +116,7 @@ describe FolderController do
 
     it 'creates nested folders' do
       blueprints_folder = create_folder('athena', 'blueprints')
-      stub_folder('blueprints', 'athena')
+      stubs.create_folder('athena', 'blueprints')
       token_header(:editor)
       post_create_folder('blueprints/Helmet Blueprints')
 
@@ -155,7 +159,7 @@ describe FolderController do
 
     it 'sets a parent folder' do
       blueprints_folder = create_folder('athena', 'blueprints')
-      stub_folder('blueprints', 'athena')
+      stubs.create_folder('athena', 'blueprints')
       token_header(:editor)
       post_create_folder('blueprints/Helmet Blueprints')
 
@@ -174,7 +178,7 @@ describe FolderController do
   context '#remove' do
     before(:each) do
       @blueprints_folder = create_folder('athena', 'blueprints')
-      stub_folder('blueprints', 'athena')
+      stubs.create_folder('athena', 'blueprints')
       expect(@blueprints_folder.has_directory?).to be_truthy
     end
 
@@ -214,7 +218,7 @@ describe FolderController do
     end
 
     it 'refuses to remove a folder that contains file data' do
-      stub_file('blueprints/helmet.jpg', HELMET, :athena)
+      stubs.create_file('athena', 'blueprints/helmet.jpg', HELMET)
 
       token_header(:editor)
       remove_folder('blueprints')
@@ -257,7 +261,7 @@ describe FolderController do
   context '#protect' do
     before(:each) do
       @blueprints_folder = create_folder('athena', 'blueprints')
-      stub_folder('blueprints', 'athena')
+      stubs.create_folder('athena','blueprints')
       expect(@blueprints_folder).not_to be_read_only
     end
 
@@ -314,7 +318,7 @@ describe FolderController do
   context '#unprotect' do
     before(:each) do
       @blueprints_folder = create_folder('athena', 'blueprints', read_only: true)
-      stub_folder('blueprints', 'athena')
+      stubs.create_folder('athena','blueprints')
       expect(@blueprints_folder).to be_read_only
     end
 
@@ -370,11 +374,7 @@ describe FolderController do
   context '#rename' do
     before(:each) do
       @blueprints_folder = create_folder('athena', 'blueprints')
-      stub_folder('blueprints', 'athena')
-    end
-
-    after(:each) do
-      Dir.delete(@blueprints_folder.location) if ::File.exists?(@blueprints_folder.location)
+      stubs.create_folder('athena','blueprints')
     end
 
     def rename_folder path, new_path
@@ -384,6 +384,8 @@ describe FolderController do
     it 'renames a folder' do
       token_header(:editor)
       rename_folder('blueprints', 'blue-prints')
+
+      stubs.add_folder('athena', 'blue-prints')
 
       @blueprints_folder.refresh
       expect(last_response.status).to eq(200)
@@ -425,7 +427,7 @@ describe FolderController do
 
     it 'refuses to rename over an existing folder' do
       helmet_folder = create_folder('athena', 'helmet')
-      stub_folder('helmet', 'athena')
+      stubs.create_folder('athena','helmet')
 
       token_header(:editor)
       rename_folder('blueprints','helmet')
@@ -454,10 +456,11 @@ describe FolderController do
 
     it 'can move a folder to a new folder' do
       contents_folder = create_folder('athena', 'contents')
-      stub_folder('contents', 'athena')
+      stubs.create_folder('athena','contents')
 
       token_header(:editor)
       rename_folder('blueprints', 'contents/blueprints')
+      stubs.add_folder('athena', 'contents/blueprints')
 
       expect(last_response.status).to eq(200)
       @blueprints_folder.refresh
@@ -467,7 +470,7 @@ describe FolderController do
 
     it 'will not move a folder to a read-only folder' do
       contents_folder = create_folder('athena', 'contents', read_only: true)
-      stub_folder('contents', 'athena')
+      stubs.create_folder('athena','contents')
 
       token_header(:editor)
       rename_folder('blueprints', 'contents/blueprints')
