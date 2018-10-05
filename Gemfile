@@ -5,7 +5,6 @@ ruby '2.5.1'
 gem 'rack'
 gem 'jwt'
 gem 'rspec'
-gem 'extlib'
 gem 'simplecov'
 gem 'rack-test', require: "rack/test"
 group :test do
