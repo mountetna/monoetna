@@ -1,6 +1,5 @@
 # metis.rb
 require 'sequel'
-require 'extlib'
 require 'fileutils'
 require_relative 'backup'
 
