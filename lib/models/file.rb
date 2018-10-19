@@ -139,13 +139,13 @@ class Metis
     end
 
     def to_hash(request=nil)
-      result = {
+      {
         file_name: file_name,
         project_name: project_name,
         bucket_name: bucket.name,
         file_path: file_path,
-        updated_at: updated_at,
-        created_at: created_at,
+        updated_at: updated_at.iso8601,
+        created_at: created_at.iso8601,
         author: author,
         file_hash: file_hash,
         archive_id: archive_id,

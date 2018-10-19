@@ -129,8 +129,8 @@ class Metis
         bucket_name: bucket.name,
         folder_path: ::File.join(folder_path),
         project_name: project_name,
-        updated_at: updated_at,
-        created_at: created_at,
+        updated_at: updated_at.iso8601,
+        created_at: created_at.iso8601,
         author: author
       }
     end
