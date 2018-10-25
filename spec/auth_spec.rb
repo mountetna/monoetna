@@ -203,7 +203,7 @@ describe Etna::Auth do
 
       Timecop.freeze(DateTime.now)
 
-      @time = DateTime.now.iso8601
+      @time = (DateTime.now + 10).iso8601
       @nonce = SecureRandom.hex
     end
 
