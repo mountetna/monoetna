@@ -11,20 +11,29 @@ module Etna
       @server = @request.env['etna.server']
       @logger = @request.env['etna.logger']
       @user = @request.env['etna.user']
+      @request_id = @request.env['etna.request_id']
     end
 
     def log(line)
-      @logger.write "#{Time.now.strftime("%d/%b/%Y %H:%M:%S")} #{line}\n"
+      @logger.warn line
     end
 
     def response(&block)
       return instance_eval(&block) if block_given?
 
-      return send(@action) if @action 
+      return send(@action) if @action
 
       [501, {}, ['This controller is not implemented.']]
     rescue Etna::Error => e
+      @logger.error("Exiting with #{e.status}, #{e.message}")
       return failure(e.status, error: e.message)
+    rescue Exception => e
+      @logger.error("Caught unspecified error")
+      @logger.error e.message
+      e.backtrace.each do |trace|
+        @logger.error trace
+      end
+      return failure(500, error: e.message)
     end
 
     def require_params(*params)
