@@ -1,19 +1,19 @@
 #title-menu {
   position: absolute;
-  height: 50px;
+  height: 60px;
   right: 0px;
   left: 0px;
   top: 0px;
-  padding-top: 21px;
-  padding-left: 95px;
-  background: #e6fafc;
+  padding-left: 55px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
 
   .title-menu-title {
     margin-top: 0px;
     margin-left: 0px;
     font-size: 1.8em;
     font-family: $title-font;
-    line-height: 12px;
     text-align: left;
     color: #333;
     background: none;
