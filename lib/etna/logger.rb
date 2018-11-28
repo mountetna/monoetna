@@ -1,3 +1,5 @@
+require 'logger'
+
 module Etna
   class Logger < ::Logger
     def initialize(log_dev, age, size)
