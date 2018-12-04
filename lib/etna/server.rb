@@ -49,7 +49,8 @@ module Etna
       @request = Rack::Request.new(env)
 
       @request.env['etna.server'] = self
-      @request.env['etna.logger'] = @logger
+
+      @logger.request = @request
 
       route = self.class.routes.find do |route|
         route.matches? @request
@@ -81,7 +82,7 @@ module Etna
     end
 
     def setup_logger
-      @logger = Logger.new(
+      @logger = Etna::Logger.new(
         # The name of the log_file, required.
         application.config(:log_file),
         # Number of old copies of the log to keep.
