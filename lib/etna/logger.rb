@@ -11,7 +11,14 @@ module Etna
     end
 
     def format(severity, datetime, progname, msg)
-      "#{severity} #{datetime.iso8601} #{@request.env['etna.request_id']} #{msg}\n"
+      "#{severity}:#{datetime.iso8601}:#{@request.env['etna.request_id']} #{msg}\n"
+    end
+
+    def log_error(e)
+      error(e.message)
+      e.backtrace.each do |trace|
+        error(trace)
+      end
     end
 
     def request=(request)
