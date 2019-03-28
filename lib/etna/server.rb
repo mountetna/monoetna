@@ -95,7 +95,7 @@ module Etna
       @logger.level = Logger.const_defined?(log_level) ? Logger.const_get(log_level) : Logger::WARN
 
       # the application logger is available to anyone
-      application.set_logger(logger)
+      application.set_logger(@logger)
     end
   end
 end

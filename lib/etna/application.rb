@@ -22,7 +22,7 @@ module Etna::Application
   end
 
   def set_logger(logger)
-    @logger = logger)
+    @logger = logger
   end
 
   attr_reader :logger

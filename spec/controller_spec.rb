@@ -66,7 +66,7 @@ describe Etna::Controller do
 
       output = <<EOT
 # Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
-ERROR 2000-01-01T00:00:00+00:00 8fzmq8 Exiting with 403, You cannot do that.
+ERROR:2000-01-01T00:00:00+00:00:8fzmq8 Exiting with 403, You cannot do that.
 EOT
       expect(File.read(@log_file)).to eq(output)
     end
@@ -88,8 +88,8 @@ EOT
       expect(last_response.status).to eq(500)
       output = <<EOT
 # Logfile created on 2000-01-01 00:00:00 +0000 by logger.rb/61378
-ERROR 2000-01-01T00:00:00+00:00 8fzmq8 Caught unspecified error
-ERROR 2000-01-01T00:00:00+00:00 8fzmq8 Something broke.
+ERROR:2000-01-01T00:00:00+00:00:8fzmq8 Caught unspecified error
+ERROR:2000-01-01T00:00:00+00:00:8fzmq8 Something broke.
 EOT
       # it reports the error
       log_contents = File.foreach(@log_file).to_a
