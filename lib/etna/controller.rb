@@ -28,12 +28,9 @@ module Etna
       @logger.error("Exiting with #{e.status}, #{e.message}")
       return failure(e.status, error: e.message)
     rescue Exception => e
-      @logger.error("Caught unspecified error")
-      @logger.error e.message
-      e.backtrace.each do |trace|
-        @logger.error trace
-      end
-      return failure(500, error: e.message)
+      @logger.error('Caught unspecified error')
+      @logger.log_error(e)
+      return failure(500, error: 'Server error.')
     end
 
     def require_params(*params)

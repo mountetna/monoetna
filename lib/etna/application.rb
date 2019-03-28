@@ -21,6 +21,12 @@ module Etna::Application
     @config = opts
   end
 
+  def set_logger(logger)
+    @logger = logger
+  end
+
+  attr_reader :logger
+
   def config(type)
     @config[environment][type]
   end

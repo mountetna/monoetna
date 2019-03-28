@@ -9,77 +9,92 @@ module Etna
     end
 
     def call(env)
-      @request = Rack::Request.new(env)
-      @params = @request.env['rack.request.params']
+      request = Rack::Request.new(env)
 
       # There are two ways to authenticate.
       # Either you have an hmac or you have
       # a valid token. Both of these will
       # not validate individual permissions;
       # this is up to the controller
-      return fail_or_redirect unless approve_hmac || create_user
+      return fail_or_redirect(request) unless approve_hmac(request) || approve_user(request)
 
-      @app.call(env)
+      @app.call(request.env)
     end
 
     private
 
-    def auth(type)
-      (etna_param(:authorization, nil) || '')[/\A#{type.capitalize} (.*)\z/,1]
+    def application
+      @application ||= Etna::Application.find(@app.class)
     end
 
-    def create_user
-      token = @request.cookies[application.config(:token_name)] || auth(:etna)
+    def params(request)
+      request.env['rack.request.params']
+    end
+
+    def auth(request, type)
+      (etna_param(request, :authorization, nil) || '')[/\A#{type.capitalize} (.*)\z/,1]
+    end
+
+    def etna_param(request, item, fill='X_ETNA_')
+      # This comes either from header variable
+      # HTTP_X_SOME_NAME or parameter X-Etna-Some-Name
+      #
+      # We prefer the param so we can use the header elsewhere
+
+      params(request)[:"X-Etna-#{item.to_s.split(/_/).map(&:capitalize).join('-')}"] || request.env["HTTP_#{fill}#{item.upcase}"] 
+    end
+
+    # If the application asks for a redirect for unauthorized users
+    def fail_or_redirect(request, msg = 'You are unauthorized')
+      return [ 401, { 'Content-Type' => 'text/html' }, [msg] ] unless application.config(:auth_redirect)
+
+      uri = URI(
+        application.config(:auth_redirect).chomp('/') + '/login'
+      )
+      uri.query = URI.encode_www_form(refer: request.url)
+      return [ 302, { 'Location' => uri.to_s }, [] ]
+    end
+
+    def approve_user(request)
+      token = request.cookies[application.config(:token_name)] || auth(request, :etna)
 
       return false unless token
 
       begin
         payload, header = application.sign.jwt_decode(token)
-        return @request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h)
+        return request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h)
       rescue
         # bail out if anything goes wrong
         return false
       end
     end
 
-    def etna_param(item, fill='X_ETNA_')
-      # This comes either from header variable
-      # HTTP_X_SOME_NAME or parameter X-Etna-Some-Name
-      #
-      # We prefer the param so we can use the header elsewhere
-
-      @params[:"X-Etna-#{item.to_s.split(/_/).map(&:capitalize).join('-')}"] || @request.env["HTTP_#{fill}#{item.upcase}"] 
-    end
-
     # Names and order of the fields to be signed.
-    def approve_hmac
-      hmac_signature = auth(:hmac)
+    def approve_hmac(request)
+      hmac_signature = auth(request, :hmac)
 
       return false unless hmac_signature
 
-      return false unless headers = etna_param(:headers)
+      return false unless headers = etna_param(request, :headers)
 
       headers = headers.split(/,/).map do |header|
-        [ header.to_sym, etna_param(header) ]
+        [ header.to_sym, etna_param(request, header) ]
       end.to_h
 
       # Now expect the standard headers
-      params = {
-        method: @request.request_method,
-        host: @request.host,
-        path: @request.path,
+      hmac_params = {
+        method: request.request_method,
+        host: request.host,
+        path: request.path,
 
-        expiration: etna_param(:expiration),
-        id: etna_param(:id),
-        nonce: etna_param(:nonce),
+        expiration: etna_param(request, :expiration),
+        id: etna_param(request, :id),
+        nonce: etna_param(request, :nonce),
         headers: headers
       }
 
       begin
-        hmac = Etna::Hmac.new(
-          application,
-          params
-        )
+        hmac = Etna::Hmac.new(application, hmac_params)
       rescue Exception => e
         return false
       end
@@ -87,24 +102,9 @@ module Etna
       return false unless hmac.valid_signature?(hmac_signature)
 
       # success! set the hmac header params as regular params
-      @params.update(headers)
+      params(request).update(headers)
 
-      return @request.env['etna.hmac'] = true
-    end
-
-    # If the application asks for a redirect for unauthorized users
-    def fail_or_redirect(msg = 'You are unauthorized')
-      return [ 401, { 'Content-Type' => 'text/html' }, [msg] ] unless application.config(:auth_redirect)
-
-      uri = URI(
-        application.config(:auth_redirect).chomp('/') + '/login'
-      )
-      uri.query = URI.encode_www_form(refer: @request.url)
-      return [ 302, { 'Location' => uri.to_s }, [] ]
-    end
-
-    def application
-      @application ||= Etna::Application.find(@app.class)
+      return request.env['etna.hmac'] = true
     end
   end
 end
