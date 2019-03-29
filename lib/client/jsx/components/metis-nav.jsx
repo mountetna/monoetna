@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { selectUserName, selectUserRole } from '../../selectors/user-selector';
-import Icon from '../icon';
+import { selectUserName, selectUserRole } from '../selectors/user-selector';
+import Icon from './icon';
 
 const ICONS = {
   administrator: 'user-astronaut',
@@ -9,16 +9,16 @@ const ICONS = {
   viewer: 'user'
 };
 
-const MenuBar = ({first, last, role, permissions}) => {
-  console.log("role are");
-  console.log(role);
-  return <div id='nav-menu'>
-    <div className='nav-user'>
+const MetisNav = ({first, last, role, permissions}) =>
+  <div id='metis-nav'>
+    <div id='logo-group'>
+      <div id='logo'/>
+    </div>
+    <div id='nav-user'>
       { first } { last }
       <Icon icon={ ICONS[role] } title={role}/>
     </div>
-  </div>;
-}
+  </div>
 
 export default connect(
   // map state
@@ -26,4 +26,4 @@ export default connect(
     ...selectUserName(state),
     role: selectUserRole(state)
   })
-)(MenuBar);
+)(MetisNav);

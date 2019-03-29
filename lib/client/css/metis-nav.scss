@@ -1,0 +1,37 @@
+#metis-nav {
+  display: flex;
+  height: 60px;
+  border-bottom: $medium-rule;
+
+  #logo-group {
+    flex-basis: 50px;
+    margin-top: 4px;
+    margin-left: 4px;
+    background: #fff;
+    border-radius: 50px;
+    z-index:10001;
+    #logo {
+      background-image: url('../images/metis-minified.svg');
+      width: 50px;
+      height: 50px;
+      background-size: 108%;
+      background-position: -2px -2px;
+      border: 1px solid $metis-color;
+      border-radius: 50px;
+    }
+  }
+
+  #nav-user {
+    font-family: $base-font;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-right: 5px;
+    color: darkgoldenrod;
+    .icon {
+      color: gray;
+      font-size: 1.2em;
+    }
+  }
+}

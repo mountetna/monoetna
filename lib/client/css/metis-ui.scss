@@ -2,15 +2,9 @@
   height: 100vh;
 }
 
+// this is the main UI group
 #metis-group {
   position: relative;
-}
-
-#header-group {
-  position: relative;
-  width: 100%;
-  height: 60px;
-  z-index: 10000;
 }
 
 #left-column-group {
@@ -18,38 +12,7 @@
   width: 100px;
 }
 
-#logo-group {
-  position: absolute;
-  top:4px;
-  left:4px;
-  background: #fff;
-  border-radius: 50px;
-  z-index:10001;
-  #logo {
-    background-image: url('../images/metis-minified.svg');
-    width: 50px;
-    height: 50px;
-    background-size: 108%;
-    background-position: -2px -2px;
-    border: 1px solid #15788f;
-    border-radius: 50px;
-  }
-}
 
-#user-info-group {
-  line-height: 30px;
-  margin-top: 20px;
-  font-family: $base-font;
-  text-align: center;
-}
 
-#control-group {
-  display: flex;
-}
 
-#invalid-group {
-  margin-top: 20px;
-  padding-left: 10px;
-  font-family: $base-font;
-}
 

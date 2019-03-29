@@ -1,13 +1,7 @@
-#listing-group {
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
 #list-head-group {
-
   width: 100%;
   min-height: 32px;
-  border-bottom: 1px solid #666;
+  border-bottom: $thick-rule;
   display: flex;
 
   .list-head-title {
@@ -34,5 +28,3 @@
     width: 115px;
   }
 }
-
-

@@ -2,13 +2,9 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { selectCurrentFolder } from '../selectors/directory-selector';
 
-import TitleBar  from './nav/title-bar';
-import MenuBar   from './nav/menu-bar';
+import MetisNav from './metis-nav';
+import FolderView from './folder-view';
 import ModalDialog from './modal-dialog';
-import ListHead  from './list/list-head';
-import ListBody  from './list/list-body';
-import FolderBreadcrumb from './folder-breadcrumb';
-import ControlBar from './control-bar';
 
 class MetisUI extends React.Component {
   componentDidMount() {
@@ -20,49 +16,13 @@ class MetisUI extends React.Component {
     this.props.retrieveFiles(folder_name);
   }
 
-  renderContent() {
-    let { current_folder } = this.props;
-
-    if (current_folder == '\ninvalid\n') return (
-      <div id='invalid-group'>
-        Invalid folder!
-      </div>
-    )
-
-    let columnWidths = {
-      type: '90px',
-      name: '60%',
-      status: '90px',
-      updated: '30%',
-      size: '10%',
-      control: '100px'
-    };
-
-    return (
-      <div>
-        <div id='control-group'>
-          <FolderBreadcrumb/>
-          <ControlBar/>
-        </div>
-        <div id='listing-group'>
-          <ListHead widths={ columnWidths } />
-          <ListBody widths={ columnWidths }/>
-        </div>
-      </div>
-    );
-  }
 
   render() {
+    let { current_folder } = this.props;
     return (
       <div id='metis-group'>
-        <div id='header-group'>
-          <TitleBar />
-          <MenuBar />
-        </div>
-        <div id='logo-group'>
-          <div id='logo'/>
-        </div>
-        { this.renderContent() }
+        <MetisNav/>
+        <FolderView folder={current_folder}/>
         <ModalDialog/>
       </div>
     );
