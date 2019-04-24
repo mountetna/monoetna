@@ -95,6 +95,10 @@ class Metis
       [ user.email, "#{user.first} #{user.last}" ].join('|')
     end
 
+    def self.exists?(file_name, bucket, parent_folder)
+      Metis::File.where(file_name: file_name, bucket: bucket, folder_id: parent_folder ? parent_folder.id : nil).count > 0
+    end
+
     private
 
     def self.hmac_url(method, host, path, expiration=0)
@@ -211,12 +215,19 @@ class Metis
       )
     end
 
-    def set_file_data(file_path)
+    def set_file_data(file_path, copy=false)
       # Rename the existing file.
-      ::File.rename(
-        file_path,
-        location
-      )
+      if copy
+        ::FileUtils.copy(
+          file_path,
+          location
+        )
+      else
+        ::File.rename(
+          file_path,
+          location
+        )
+      end
 
       # clear the hash for recomputation
       # clear the archive_id for re-backup

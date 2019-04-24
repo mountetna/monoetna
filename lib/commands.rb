@@ -191,4 +191,34 @@ class Metis
       Metis.instance.load_models
     end
   end
+
+  class Assimilate < Etna::Command
+    usage '<project> <bucket> <path> <files> Add the indicated (non-tracked) files to Metis at the given path'
+
+    def execute project_name, bucket_name, folder_path, *files
+      folder_path = folder_path.sub(%r!^/!,'')
+
+      bucket = Metis::Bucket.where(project_name: project_name, name: bucket_name).first
+
+      if folder_path.empty?
+        files.each do |file_path|
+          Metis::Folder.assimilate(file_path, bucket)
+        end
+      else
+        metis_folder = Metis::Folder.from_path(bucket, folder_path).last
+        unless metis_folder
+          puts "No such folder #{folder_path}"
+          exit
+        end
+        files.each do |file|
+          metis_folder.assimilate(file)
+        end
+      end
+    end
+
+    def setup(config)
+      super
+      Metis.instance.load_models
+    end
+  end
 end
