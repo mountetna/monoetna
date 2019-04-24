@@ -27,11 +27,5 @@ class Metis
 
       return folder
     end
-
-    def parse_path(file_path)
-      raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(file_path)
-
-      Metis::File.path_parts(file_path)
-    end
   end
 end

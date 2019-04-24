@@ -2,7 +2,11 @@ class UploadController < Metis::Controller
   def authorize
     require_params(:project_name, :bucket_name, :file_path)
     bucket = require_bucket
-    folder_path, file_name = parse_path(@params[:file_path])
+
+    raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:file_path])
+
+    folder_path, file_name = Metis::File.path_parts(@params[:file_path])
+
     folder = require_folder(bucket, folder_path)
 
     if folder && folder.read_only?

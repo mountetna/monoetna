@@ -23,7 +23,9 @@ class FolderController < Metis::Controller
 
   def create
     bucket = require_bucket
-    parent_folder_path, folder_name = parse_path(@params[:folder_path])
+    raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:folder_path])
+
+    parent_folder_path, folder_name = Metis::File.path_parts(@params[:folder_path])
     parent_folder = require_folder(bucket, parent_folder_path)
 
     # is there a previous folder here?
