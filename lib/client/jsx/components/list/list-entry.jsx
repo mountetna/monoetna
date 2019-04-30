@@ -40,16 +40,14 @@ const foldername = (file) => {
   return folder_names.reverse().join('/');
 }
 
-const browse_path = (folder_name, current_folder) => (
-  `/${CONFIG.project_name}/browse/${filePath(current_folder, folder_name)}`
-);
-
-const ListEntryFoldernameColumn = ({folder, current_folder, widths}) => (
+const ListEntryFoldernameColumn = ({folder, current_bucket, current_folder, widths}) => (
   <ListEntryColumn className='name' widths={widths}>
     <div className='list-entry-file-name' title={folder.folder_name}>
       <FolderLink
+        bucket_name={current_bucket}
+        folder_path={current_folder}
         folder_name={folder.folder_name}
-        folder_path={current_folder}/>
+      />
     </div>
   </ListEntryColumn>
 )
@@ -95,11 +93,27 @@ export const ListFile = ({file,current_folder,widths}) => (
   </div>
 );
 
-export const ListFolder = ({ folder, current_folder, widths }) => (
+export const ListBucket = ({bucket, widths}) => (
+  <div className='list-entry-group'>
+    <ListEntryTypeColumn icon='trash' widths={ widths } />
+    <ListEntryColumn className='name' widths={widths}>
+      <div className='list-entry-file-name' title={bucket.bucket_name}>
+        <FolderLink bucket_name={bucket.bucket_name} />
+      </div>
+    </ListEntryColumn>
+    <ListEntryColumn className='description' widths={widths}>
+      { bucket.count } files
+    </ListEntryColumn>
+  </div>
+);
+
+export const ListFolder = ({ folder, current_folder, current_bucket, widths }) => (
   <div className='list-entry-group'>
     <ListEntryTypeColumn icon='folder' widths={ widths } />
     <ListEntryFoldernameColumn folder={folder}
-      current_folder={ current_folder } widths={widths} />
+      current_folder={ current_folder }
+      current_bucket={ current_bucket }
+      widths={widths} />
     <ListEntryColumn className='status' widths={widths}/>
     <ListEntryUpdatedColumn file={folder} widths={widths}/>
     <ListEntryColumn className='size' widths={widths}/>

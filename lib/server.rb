@@ -12,7 +12,8 @@ class Metis
   class Server < Etna::Server
     get '/' do success('Metis') end
     get '/:project_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
-    get '/:project_name/browse/*folder_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/browse/:bucket_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/browse/:bucket_name/*folder_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
 
     post '/authorize/upload', action: 'upload#authorize', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/upload/:bucket_name/*file_path', action: 'upload#upload', auth: { hmac: true }, as: :upload
@@ -22,6 +23,7 @@ class Metis
 
     get '/:project_name/list/:bucket_name/*folder_path', action: 'folder#list', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/:bucket_name', action: 'folder#list', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/list/', action: 'folder#bucket_list', auth: { user: { can_view?: :project_name } }
 
     # folder operations
     post '/:project_name/create_folder/:bucket_name/*folder_path', action: 'folder#create', auth: { user: { can_edit?: :project_name } }

@@ -12,5 +12,13 @@ class Metis
        name
      ))
     end
+
+    def to_hash
+      {
+        bucket_name: name,
+        project_name: project_name,
+        count: files.count
+      }
+    end
   end
 end

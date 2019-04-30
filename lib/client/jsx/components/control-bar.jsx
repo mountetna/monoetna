@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { selectCurrentFolder } from '../selectors/directory-selector';
 import Icon from './icon';
 
 // this is the Metis control bar, which contains basic operations
@@ -14,11 +13,11 @@ const ControlButton = ({onClick, icon, overlay, title}) => {
 
 class ControlBar extends React.Component {
   selectFolder(){
-    let { current_folder } = this.props;
+    let { folder_name } = this.props;
 
-    let folder_name = prompt("Enter the folder name", "Untitled Folder");
-    if (!folder_name) return;
-    this.props.createFolder(folder_name, current_folder);
+    let new_folder_name = prompt("Enter the folder name", "Untitled Folder");
+    if (!new_folder_name) return;
+    this.props.createFolder(new_folder_name, folder_name);
   }
 
   selectFile() {
@@ -26,13 +25,13 @@ class ControlBar extends React.Component {
   }
 
   fileSelected(event){
-    let { current_folder, fileSelected } = this.props;
+    let { folder_name, fileSelected } = this.props;
 
     if(event === undefined) return;
 
     let { files } = this.input;
 
-    for (let i = 0; i < files.length; i++) fileSelected( files[i], current_folder );
+    for (let i = 0; i < files.length; i++) fileSelected( files[i], folder_name );
 
     // Reset the input field.
     this.input.value = '';
@@ -57,7 +56,7 @@ class ControlBar extends React.Component {
 
 export default connect(
   // map state
-  (state) => ({current_folder: selectCurrentFolder(state)}),
+  null,
 
   (dispatch) => ({
     fileSelected: (file, folder_name)=>dispatch({ type: 'FILE_SELECTED', file, folder_name }),

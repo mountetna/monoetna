@@ -6,6 +6,7 @@ const directory = (state, action) => {
   if (!state) state = {
     folders: {},
     files: {},
+    buckets: [],
     uploads: {},
     fails: [],
     current_folder: null
@@ -27,6 +28,11 @@ const directory = (state, action) => {
         ...state,
         folders: folders(state.folders,action)
       };
+    case 'ADD_BUCKETS':
+      return {
+        ...state,
+        buckets: action.buckets
+      };
 
     case 'ADD_FILES':
     case 'REMOVE_FILES':
@@ -43,7 +49,8 @@ const directory = (state, action) => {
     case 'SET_CURRENT_FOLDER':
       return {
         ...state,
-        current_folder: action.folder_name
+        current_folder: action.folder_name,
+        current_bucket: action.bucket_name
       }
     default:
       return state;

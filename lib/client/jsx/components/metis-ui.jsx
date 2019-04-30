@@ -1,43 +1,48 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { selectCurrentFolder } from '../selectors/directory-selector';
 
 import MetisNav from './metis-nav';
 import FolderView from './folder-view';
+import BucketView from './bucket-view';
 import ModalDialog from './modal-dialog';
 
-class MetisUI extends React.Component {
-  componentDidMount() {
-    let path = window.location.pathname;
+import { findRoute, setRoutes } from '../router';
 
-    let [ _, folder_name ] = path.match(/browse\/(.*)$/) || [];
-
-    this.props.setCurrentFolder(folder_name == undefined ? folder_name : decodeURI(folder_name));
-    this.props.retrieveFiles(folder_name);
+const ROUTES = [
+  {
+    name: 'bucket',
+    template: ':project_name',
+    component: BucketView
+  },
+  {
+    name: 'folder',
+    template: ':project_name/browse/:bucket_name/*folder_name',
+    component: FolderView
+  },
+  {
+    name: 'root_folder',
+    template: ':project_name/browse/:bucket_name',
+    component: FolderView
   }
+];
 
+setRoutes(ROUTES);
 
+const Invalid = () => <div>Path invalid</div>;
+
+class MetisUI extends React.Component {
   render() {
-    let { current_folder } = this.props;
+    let { route, params }  = findRoute({ path: window.location.pathname } ,ROUTES);
+    let Component = route ? route.component : Invalid;
+
     return (
       <div id='metis-group'>
         <MetisNav/>
-        <FolderView folder={current_folder}/>
+        <Component {...params}/>
         <ModalDialog/>
       </div>
     );
   }
 }
 
-const MetisUIContainer = connect(
-  // map state
-  (state) => ({current_folder: selectCurrentFolder(state)}),
-
-  // map dispatch
-  (dispatch) => ({
-    retrieveFiles: (folder_name) => dispatch({type: 'RETRIEVE_FILES', folder_name}),
-    setCurrentFolder: (folder_name) => dispatch({type: 'SET_CURRENT_FOLDER', folder_name})
-  })
-)(MetisUI);
-
-export default MetisUIContainer;
+export default MetisUI;

@@ -1,4 +1,12 @@
 class FolderController < Metis::Controller
+  def bucket_list
+    buckets = Metis::Bucket.where(
+      project_name: @params[:project_name]
+    ).all
+
+    success_json(buckets: buckets.map(&:to_hash))
+  end
+
   def list
     bucket = require_bucket
     folder = require_folder(bucket, @params[:folder_path])

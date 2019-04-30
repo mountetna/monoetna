@@ -4,11 +4,11 @@ import { connect } from 'react-redux';
 import { ListUpload, ListFile, ListFolder } from './list-entry';
 import ListUploadFailed from './list-upload-failed';
 
-import { selectFiles, selectFolders, selectUploads, selectCurrentFolder } from '../../selectors/directory-selector';
+import { selectFiles, selectFolders, selectUploads } from '../../selectors/directory-selector';
 
 class ListBody extends React.Component{
   render() {
-    let { widths, uploads, files, folders, current_folder } = this.props;
+    let { widths, uploads, files, folders, bucket_name, folder_name } = this.props;
 
     let order = (key) => (a,b) => a[key].localeCompare(b[key]);
     let download_files = Object.values(files).sort(order('file_name'));
@@ -33,7 +33,8 @@ class ListBody extends React.Component{
               <ListFolder
                 key={folder.folder_name}
                 folder={folder}
-                current_folder={current_folder}
+                current_folder={folder_name}
+                current_bucket={bucket_name}
                 widths={widths} />
             )
             : null
@@ -44,7 +45,8 @@ class ListBody extends React.Component{
               <ListFile
                 key={file.file_name}
                 file={file}
-                current_folder={current_folder}
+                current_folder={folder_name}
+                current_bucket={bucket_name}
                 widths={widths} />
             )
             : null
@@ -60,7 +62,6 @@ export default connect(
   (state) => ({
     files: selectFiles(state),
     uploads: selectUploads(state),
-    folders: selectFolders(state),
-    current_folder: selectCurrentFolder(state)
+    folders: selectFolders(state)
   })
 )(ListBody);
