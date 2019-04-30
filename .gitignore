@@ -1,18 +1,23 @@
 .DS_Store
 npm-debug.log
 trash.rb
-server/secrets.rb
+cron.log
+package-lock.json
 
+config.yml
+public/
 /node_modules/
-/client/js/
-/client/img/
-/client/fonts/
+/lib/client/js/
+/lib/client/img/
+/lib/client/fonts/
 /tmp
 /log
 /source
+/coverage
+spec/examples.txt
 
 *.eot
-*.svg
 *.ttf
 *.woff
 *.woff2
+*.swp

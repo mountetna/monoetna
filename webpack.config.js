@@ -8,15 +8,77 @@
  * that are used in totality.
  */
 
+var path = require('path');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
+
 module.exports = {
-
-  'entry': {
-
-    'metis-main': '/var/www/metis/client/js/metis-uploader-controller.js'
+  context: path.resolve(__dirname),
+  resolve: {
+    extensions: [ '.js', '.jsx' ],
+    alias: {
+      'font-awesome': path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free-webfonts')
+    }
   },
-  'output': {
+  entry: {
+    'metis-main': './lib/client/jsx/metis.jsx',
+    'metis-stylesheet': './lib/client/css/metis.scss'
+  },
+  output: {
+    path: __dirname,
+    filename: 'public/js/[name].bundle.js'
+  },
+  module: {
+    rules: [
+      {
+        loader: 'babel-loader',
+        include: [ path.resolve(__dirname, 'lib/client/jsx'), ],
+        test: /\.jsx?$/,
+        query: {
+          presets: ['es2015', 'stage-0', 'react'],
+        }
+      },
 
-    'path': '/var/www/metis/client/js',
-    'filename': '[name].bundle.js'
-  }
+      {
+        loader: 'file-loader',
+        test: /\.(jpe?g|png|svg)$/i,
+        include: [
+          path.resolve(__dirname, 'lib/client/images'),
+        ],
+        options: {
+          name: '[name].[ext]',
+          outputPath: 'public/images/',
+          publicPath: function(url) { return url.replace(/public/,'') }
+        }
+      },
+
+      {
+        test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)(\?.*$|$)/,
+
+        include: [
+          path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free-webfonts')
+        ],
+
+        loader: 'file-loader',
+
+        options: {
+          name: '[name].[ext]',
+          outputPath: 'public/fonts/',
+          publicPath: function(url) { return url.replace(/public/,'') }
+        }
+      },
+
+      {
+        // sass / scss loader for webpack
+        test: /\.(sass|scss)$/,
+
+        loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
+      }
+    ]
+  },
+  plugins: [
+    new ExtractTextPlugin({ // define where to save the file
+      filename: 'public/css/metis.bundle.css',
+      allChunks: true,
+    }),
+  ]
 }

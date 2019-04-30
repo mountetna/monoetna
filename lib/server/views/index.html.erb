@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+
+    <title>
+
+      Metis File Browser
+    </title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link type='text/css' rel='stylesheet' href='/css/metis.bundle.css' />
+
+    <link rel="icon"  type="image/png"  href="/img/favicon.png">
+  </head>
+  <body>
+
+    <div id='ui-group'></div>
+    <script type='text/javascript'>
+      var CONFIG = {
+        token_name: '<%= @token_name %>',
+        project_name: '<%= @params[:project_name] %>'
+      };
+    </script>
+    <script type='text/javascript' src='/js/metis-main.bundle.js'></script>
+  </body>
+</html>

@@ -1,0 +1,22 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+$base-font: 'Open Sans', sans-serif;
+$title-font: 'Open Sans', sans-serif;
+$metis-color: #15788f;
+$thin-rule: 1px solid rgba($metis-color,0.2);
+$medium-rule: 1px solid rgba($metis-color,0.5);
+$thick-rule: 1px solid rgba($metis-color,1.0);
+
+@import 'global';
+@import 'reset';
+@import 'metis-ui';
+@import 'metis-nav';
+@import 'folder-view';
+@import 'dialog';
+
+@import 'media';
+
+$fa-font-path: "~font-awesome/webfonts";
+@import "~font-awesome/scss/fontawesome";
+@import "~font-awesome/scss/fa-regular";
+@import "~font-awesome/scss/fa-solid";

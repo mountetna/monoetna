@@ -1,0 +1,21 @@
+@import 'breadcrumb';
+@import 'control-bar';
+@import 'list/list-head';
+@import 'list/list-body';
+@import 'list/upload-meter';
+
+.invalid-folder-view-group {
+  margin-top: 20px;
+  padding-left: 10px;
+  font-family: $base-font;
+}
+
+.folder-view-group {
+  .control-group {
+    display: flex;
+  }
+  .listing-group {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}

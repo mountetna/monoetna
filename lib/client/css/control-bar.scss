@@ -1,0 +1,28 @@
+#control-bar {
+  flex: 0 0 60px;
+  align-self: center;
+  margin:10px;
+  .control-btn {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 1px;
+    background: #eee;
+    cursor: pointer;
+    width: 30px;
+    height: 28px;
+
+    .overlay {
+      @extend .white-icon;
+    }
+
+    color: #999;
+    font-family: $base-font;
+    font-size: 0.5em;
+    letter-spacing: 1px;
+
+    &:hover {
+      outline: none;
+      color: #5ab;
+    }
+  }
+}

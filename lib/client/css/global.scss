@@ -1,0 +1,99 @@
+body {
+  min-width: 720px;
+  font-size: 1em;
+}
+
+.white-icon {
+  color: #fff;
+}
+
+.light-text {
+  color: #999;
+  font-family: $base-font;
+}
+
+.dark-text {
+  color: #000;
+  font-family: $base-font;
+}
+
+.mono-text {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Generic Search Dropdown CSS ************************************************/
+
+/* INPUT */
+.search-dropdown-input {
+  font-family: $base-font;
+  border: 1px solid #999;
+  width: 100%;
+  background: none;
+}
+
+.search-dropdown-input:focus {
+  border: 1px solid #15788f;
+  outline: none;
+}
+
+.search-dropdown-input:hover,
+.search-dropdown-input:focus {
+  -webkit-box-shadow: inset -1px 1px 1px 0px #ccc;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+  -moz-box-shadow:    inset -1px 1px 1px 0px #ccc;  /* Firefox 3.5 - 3.6 */
+  box-shadow:         inset -1px 1px 1px 0px #ccc;
+}
+
+.search-dropdown-input-inactive {
+  border: 0px;
+  outline: none;
+  width: 100%;
+  background: none;
+}
+
+.search-dropdown-input-active {
+
+  border: 1px solid #15788f;
+}
+
+/* TRAY ENTRY */
+.search-dropdown-tray-entry,
+.search-dropdown-tray-empty{
+
+  border: none;
+  width: 100%;
+  outline: none;
+  background: none;
+  text-align: left;
+}
+
+.search-dropdown-tray-entry:hover {
+
+  background: #7dcfe8;
+}
+ 
+.search-dropdown-tray-entry-active {
+
+  border: none;
+  width: 100%;
+  outline: none;
+  text-align: left;
+  background: #7dcfe8;
+}
+
+/******************************************************************************/
+
+
+a {
+  color: #337ab7;
+  text-decoration: none;
+
+  &:hover, &:focus {
+    color: #23527c;
+    text-decoration: underline;
+  }
+
+  &:focus {
+    outline:5px auto -webkit-focus-ring-color;
+    outline-offset:-2px;
+  }
+}
