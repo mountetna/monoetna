@@ -1,4 +1,4 @@
-module Archimedes
+class Archimedes
   class Manifest < RLTK::Parser::Environment
     def initialize(token, project_name, manifest)
       @token = token

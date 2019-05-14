@@ -1,4 +1,4 @@
-module Archimedes
+class Archimedes
   class Macro
     def initialize template
       @template = template

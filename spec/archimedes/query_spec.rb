@@ -2,7 +2,7 @@ require_relative '../../lib/models/archimedes'
 
 describe Archimedes::Table do
   it 'should retrieve a table of data from Magma' do
-    stub_request(:post, Timur.instance.config(:magma)[:host]+'/query')
+    stub_request(:post, Archimedes.instance.config(:magma)[:host]+'/query')
       .with(
         body: {
           project_name:'timur', 

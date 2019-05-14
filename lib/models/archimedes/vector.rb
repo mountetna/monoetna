@@ -1,4 +1,4 @@
-module Archimedes
+class Archimedes
   class Vector
     include Enumerable
     class << self

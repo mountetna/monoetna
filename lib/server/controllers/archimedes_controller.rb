@@ -1,6 +1,6 @@
 require_relative '../../models/archimedes'
 
-class ArchimedesController <  Timur::Controller
+class ArchimedesController <  Etna::Controller
   def consignment
     manifests = @params[:queries]
 
@@ -34,13 +34,19 @@ class ArchimedesController <  Timur::Controller
       ]
     end.to_h
 
-    success_json(consignments)
+    success(consignments.to_json, 'application/json')
   rescue Archimedes::LanguageError => e
     raise Etna::BadRequest, e.message.to_s
   end
 
+  private
+
   def with_record_name(script)
     @params[:record_name] ? "@record_name = '#{@params[:record_name].gsub(/'/, "''")}'\n#{script}" : script
+  end
+
+  def token
+    @token ||= @request.cookies[Archimedes.instance.config(:token_name)]
   end
 end
 

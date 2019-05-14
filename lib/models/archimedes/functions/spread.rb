@@ -1,4 +1,4 @@
-module Archimedes
+class Archimedes
   # given an input matrix with columns name1, name2, value,
   # returns a matrix with column names $name1, row names $name2
   # and values $value

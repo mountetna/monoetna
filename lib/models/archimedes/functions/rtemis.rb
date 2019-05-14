@@ -1,4 +1,4 @@
-module Archimedes
+class Archimedes
   class RtemisFunctions < Archimedes::Function
     FUNCTIONS = [ :diff_exp, :pca, :center, :scale, :transpose, :sd, :correlation, :wilcox, :beeswarm, :normal, :density ]
 

@@ -1,4 +1,4 @@
-module Archimedes
+class Archimedes
   class InfixParser < RLTK::Parser
     left :QUESTION
     left :MOD

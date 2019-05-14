@@ -12,19 +12,7 @@ describe ArchimedesController do
     md5sum = Digest::MD5.hexdigest(script).to_sym
 
     auth_header(:viewer)
-    json_post('api/consignment/labors', queries: [ script ])
-
-    expect(last_response.status).to eq(200)
-    expect(json_body).to eq(md5sum => { test: 'blah' })
-  end
-
-  it 'runs a consignment record' do
-    viewer = create(:user, :viewer)
-    manifest = create(:manifest, :private, script: "@test = 'blah'", user: viewer)
-    md5sum = Digest::MD5.hexdigest(manifest.script).to_sym
-
-    auth_header(:viewer)
-    json_post('api/consignment/labors', manifest_ids: [ manifest.id ])
+    json_post('labors', queries: [ script ])
 
     expect(last_response.status).to eq(200)
     expect(json_body).to eq(md5sum => { test: 'blah' })

@@ -1,4 +1,4 @@
-module Archimedes
+class Archimedes
   class LanguageError < StandardError
     attr_reader :body
 

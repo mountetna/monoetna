@@ -1,4 +1,4 @@
-module Archimedes
+class Archimedes
   class Matrix
     attr_reader :row_names, :col_names, :rows
 

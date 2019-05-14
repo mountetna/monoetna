@@ -1,4 +1,4 @@
-module Archimedes
+class Archimedes
   class Question < Archimedes::Function
     def call
       query, *_ = @args

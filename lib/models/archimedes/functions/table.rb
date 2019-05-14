@@ -1,4 +1,4 @@
-module Archimedes
+class Archimedes
   class Table < Archimedes::Function
     # This retrieves a matrix of data from Magma. Now it should use
     # the new-and-improved Vector predicate

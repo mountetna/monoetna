@@ -36,7 +36,7 @@ class Rtemis
   private
 
   def request data
-    uri = URI.parse(Timur.instance.config(:rtemis)[:host])
+    uri = URI.parse(Archimedes.instance.config(:rtemis)[:host])
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = uri.scheme == "https"
     request = Net::HTTP::Post.new(uri.request_uri)

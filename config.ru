@@ -4,11 +4,11 @@ require 'yaml'
 require 'bundler'
 Bundler.require(:default)
 
-require_relative 'lib/timur'
+require_relative 'lib/archimedes'
 require_relative 'lib/server'
 
 use Etna::ParseBody
 use Etna::SymbolizeParams
 use Etna::Auth
 
-run Timur::Server.new(YAML.load(File.read('config.yml')))
+run Archimedes::Server.new(YAML.load(File.read('config.yml')))

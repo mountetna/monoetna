@@ -1,7 +1,7 @@
 require 'bundler'
 Bundler.require(:default, :test)
 
-ENV['TIMUR_ENV'] = 'test'
+ENV['ARCHIMEDES_ENV'] = 'test'
 
 require 'webmock/rspec'
 
@@ -14,16 +14,16 @@ require 'database_cleaner'
 require 'rack/test'
 
 require_relative '../lib/server'
-require_relative '../lib/timur'
+require_relative '../lib/archimedes'
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
   use Etna::SymbolizeParams
 
   use Etna::TestAuth
-  run Timur::Server.new(YAML.load(File.read('config.yml')))
+  run Archimedes::Server.new(YAML.load(File.read('config.yml')))
 end
-Magma.instance.configure(Timur.instance.config(:magma))
+Magma.instance.configure(Archimedes.instance.config(:magma))
 
 AUTH_USERS = {
   admin: {

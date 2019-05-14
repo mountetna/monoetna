@@ -1,4 +1,4 @@
-module Archimedes
+class Archimedes
   class Function
     class << self
       def call(token, project_name, function_name, args)

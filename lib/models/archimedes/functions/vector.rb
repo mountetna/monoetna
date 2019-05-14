@@ -1,4 +1,4 @@
-module Archimedes
+class Archimedes
   # A general grab-bag class for functions that don't merit their own
   # class
   class VectorFunctions < Archimedes::FunctionCollection

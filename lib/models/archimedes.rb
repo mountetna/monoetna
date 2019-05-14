@@ -8,6 +8,3 @@ require_relative 'archimedes/language_error'
 require_relative 'archimedes/matrix'
 require_relative 'archimedes/vector'
 require_relative 'rtemis'
-
-module Archimedes;
-end
