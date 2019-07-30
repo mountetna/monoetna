@@ -62,10 +62,14 @@ module Etna
       @response.finish
     end
 
-    def erb_view(name)
+    def erb_partial(name)
       txt = File.read("#{self.class::VIEW_PATH}/#{name}.html.erb")
+      ERB.new(txt).result(binding)
+    end
+
+    def erb_view(name)
       @response['Content-Type'] = 'text/html'
-      @response.write(ERB.new(txt).result(binding))
+      @response.write(erb_partial(name))
       @response.finish
     end
 
