@@ -15,7 +15,7 @@ module Etna
     end
 
     def log(line)
-      @logger.warn line
+      @logger.warn(request_msg(line))
     end
 
     def response(&block)
@@ -25,11 +25,14 @@ module Etna
 
       [501, {}, ['This controller is not implemented.']]
     rescue Etna::Error => e
-      @logger.error("Exiting with #{e.status}, #{e.message}")
+      @logger.error(request_msg("Exiting with #{e.status}, #{e.message}"))
       return failure(e.status, error: e.message)
     rescue Exception => e
-      @logger.error('Caught unspecified error')
-      @logger.log_error(e)
+      @logger.error(request_msg('Caught unspecified error'))
+      @logger.error(request_msg(e.message))
+      e.backtrace.each do |trace|
+        @logger.error(request_msg(trace))
+      end
       return failure(500, error: 'Server error.')
     end
 
@@ -90,6 +93,10 @@ module Etna
       else
         @errors.push(msg)
       end
+    end
+
+    def request_msg(msg)
+      "#{@request_id} #{msg}"
     end
   end
 end

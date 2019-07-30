@@ -11,7 +11,7 @@ module Etna
     end
 
     def format(severity, datetime, progname, msg)
-      "#{severity}:#{datetime.iso8601}:#{@request.env['etna.request_id']} #{msg}\n"
+      "#{severity}:#{datetime.iso8601} #{msg}\n"
     end
 
     def log_error(e)
@@ -21,10 +21,9 @@ module Etna
       end
     end
 
-    def request=(request)
-      @request = request
-      @request.env['etna.logger'] = self
-      @request.env['etna.request_id'] = (rand*36**6).to_i.to_s(36)
+    def log_request(request)
+      request.env['etna.logger'] = self
+      request.env['etna.request_id'] = (rand*36**6).to_i.to_s(36)
     end
   end
 end
