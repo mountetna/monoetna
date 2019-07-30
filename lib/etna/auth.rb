@@ -4,19 +4,18 @@ require_relative 'hmac'
 module Etna
   class Auth
     def initialize(app)
-      raise "Auth must be the last middleware" unless app.is_a?(Etna::Server)
       @app = app
     end
 
     def call(env)
       request = Rack::Request.new(env)
 
-      # There are two ways to authenticate.
-      # Either you have an hmac or you have
-      # a valid token. Both of these will
-      # not validate individual permissions;
-      # this is up to the controller
-      return fail_or_redirect(request) unless approve_hmac(request) || approve_user(request)
+      # There are three ways to authenticate.
+      # Either the route does not require auth,
+      # you have an hmac or you have a valid token.
+      # Both of these will not validate individual
+      # permissions; this is up to the controller
+      return fail_or_redirect(request) unless approve_noauth(request) || approve_hmac(request) || approve_user(request)
 
       @app.call(request.env)
     end
@@ -57,6 +56,12 @@ module Etna
       )
       uri.query = URI.encode_www_form(refer: request.url)
       return [ 302, { 'Location' => uri.to_s }, [] ]
+    end
+
+    def approve_noauth(request)
+      route = server.find_route(request)
+
+      return route && route.noauth?
     end
 
     def approve_user(request)

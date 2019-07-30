@@ -56,6 +56,16 @@ describe Etna::Auth do
       expect(last_response.status).to eq(401)
     end
 
+    it 'succeeds without an authorization header for noauth routes' do
+      Arachne::Server.get('/test', auth: { noauth: true }) { success(nil) }
+      @app = setup_app(Arachne::Server, [ Etna::Auth ])
+
+      # we don't use any headers
+      get('/test')
+
+      expect(last_response.status).to eq(200)
+    end
+
     context 'valid tokens' do
       before(:each) do
         Arachne::Server.get('/test') { success(@user.class) }
