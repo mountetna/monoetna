@@ -17,7 +17,7 @@ describe Etna::Controller do
     Arachne::Server.get('/test') { require_param(:project_name); success('') }
 
     @app = setup_app(
-      Arachne::Server.new(test: { }),
+      Arachne::Server,
       [ Etna::TestAuth ]
     )
 
@@ -52,8 +52,9 @@ describe Etna::Controller do
       Arachne::Server.get('/test') { raise Etna::Forbidden, 'You cannot do that.' }
 
       @app = setup_app(
-        Arachne::Server.new(test: { log_file: @log_file }),
-        [ Etna::TestAuth ]
+        Arachne::Server,
+        [ Etna::TestAuth ],
+        test: { log_file: @log_file }
       )
 
       header(*Etna::TestAuth.token_header(
@@ -75,8 +76,9 @@ EOT
       Arachne::Server.get('/test') { raise 'Something broke.' }
 
       @app = setup_app(
-        Arachne::Server.new(test: { log_file: @log_file }),
-        [ Etna::TestAuth ]
+        Arachne::Server,
+        [ Etna::TestAuth ],
+        test: { log_file: @log_file },
       )
 
       header(*Etna::TestAuth.token_header(

@@ -21,7 +21,7 @@ describe Etna::TestAuth do
     Arachne::Server.get('/test') { user = @user; success('') }
 
     @app = setup_app(
-      Arachne::Server.new(test: { }),
+      Arachne::Server,
       [ Etna::TestAuth ]
     )
     header(*Etna::TestAuth.token_header(

@@ -78,7 +78,7 @@ module Etna
     # The base application class is a singleton independent of this rack server,
     # holding e.g. configuration.
     def application
-      @application ||= Etna::Application.find(self.class)
+      @application ||= Etna::Application.instance
     end
 
     def setup_logger

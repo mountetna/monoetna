@@ -20,7 +20,11 @@ module Etna
     end
 
     def application
-      @application ||= Etna::Application.find(@app.class)
+      @application ||= Etna::Application.instance
+    end
+
+    def server
+      @server ||= application.class.const_get(:Server)
     end
 
     def failure(status, msg)

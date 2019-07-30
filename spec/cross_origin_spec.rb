@@ -9,7 +9,7 @@ describe Etna::CrossOrigin do
         get '/silk' do success('ok') end
       end
     end
-    @app = setup_app(Arachne::Server.new(test: {}), [Etna::CrossOrigin])
+    @app = setup_app(Arachne::Server, [Etna::CrossOrigin])
   end
 
   after(:each) do

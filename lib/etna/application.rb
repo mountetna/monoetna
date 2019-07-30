@@ -17,6 +17,18 @@ module Etna::Application
     ).instance
   end
 
+  def self.register(app)
+    @instance = app
+  end
+
+  def self.instance
+    @instance
+  end
+
+  def initialize
+    Etna::Application.register(self)
+  end
+
   def configure(opts)
     @config = opts
   end

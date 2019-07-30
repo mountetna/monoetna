@@ -14,12 +14,13 @@ ENV['ARACHNE_ENV'] = 'test'
 
 require_relative '../lib/etna'
 
-def setup_app server, layers=[]
+def setup_app(server, layer=nil, config={ test: {} })
+  Etna::Application.find(server).configure(config)
   Rack::Builder.new do
     use Etna::ParseBody
     use Etna::SymbolizeParams
-    layers.each { |layer| use layer }
-    run server
+    use *layer if layer
+    run server.new
   end
 end
 
