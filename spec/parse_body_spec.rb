@@ -15,7 +15,7 @@ describe Etna::ParseBody do
         success(@params[:image])
       end
     end
-    @app = setup_app(Arachne::Server.new(test: {}))
+    @app = setup_app(Arachne::Server)
   end
   after(:each) do
     Object.send(:remove_const, :Arachne)

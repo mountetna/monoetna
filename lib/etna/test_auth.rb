@@ -20,7 +20,11 @@ module Etna
     end
 
     def application
-      @application ||= Etna::Application.find(@app.class)
+      @application ||= Etna::Application.instance
+    end
+
+    def server
+      @server ||= application.class.const_get(:Server)
     end
 
     def failure(status, msg)
@@ -54,12 +58,20 @@ module Etna
       @request.env['etna.hmac'] = true
     end
 
+    def no_auth
+      route = server.find_route(@request)
+
+      return route && route.noauth?
+    end
+
     def call(env)
       @request = Rack::Request.new(env)
 
-      return failure(401, 'Authorization header missing') if auth(:missing)
+      unless no_auth
+        return failure(401, 'Authorization header missing') if auth(:missing)
 
-      return failure(401, 'Authorization header malformed') unless hmac_auth || user_auth
+        return failure(401, 'Authorization header malformed') unless hmac_auth || user_auth
+      end
       @app.call(env)
     end
   end

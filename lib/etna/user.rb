@@ -6,22 +6,35 @@ module Etna
       'V' => :viewer
     }
 
-    attr_reader :first, :last, :email, :permissions
     def initialize params
-      @first, @last, @email, perm = params.values_at(:first, :last, :email, :perm)
+      @first, @last, @email, @encoded_permissions = params.values_at(:first, :last, :email, :perm)
       raise ArgumentError, "No email given!" unless @email
-      @permissions = Hash[
-        perm.split(/\;/).map do |e|
-          role, projects = e.split(/:/)
-          projects.split(/\,/).map do |p|
-            [ p, { role: ROLE_NAMES[role.upcase], restricted: role == role.upcase } ]
-          end
-        end.inject([], &:+)
-      ]
+    end
+
+    attr_reader :first, :last, :email
+
+    def permissions
+      @permissions ||= @encoded_permissions.split(/\;/).map do |roles|
+        role, projects = roles.split(/:/)
+
+        projects.split(/\,/).reduce([]) do |perms,project_name|
+          perms.push([
+            project_name,
+            {
+              role: ROLE_NAMES[role.upcase],
+              restricted: role == role.upcase
+            }
+          ])
+        end
+      end.inject([],:+).to_h
+    end
+
+    def name
+      "#{first} #{last}"
     end
 
     def projects
-      @permissions.keys
+      permissions.keys
     end
 
     ROLE_MATCH = {
@@ -31,7 +44,7 @@ module Etna
       restricted: /[AEV]/,
     }
     def has_roles(project, *roles)
-      perm = @permissions[project.to_s]
+      perm = permissions[project.to_s]
 
       return false unless perm
 
@@ -54,7 +67,7 @@ module Etna
     # automatically see restricted data, they should be granted
     # project-specific access.
     def can_see_restricted? project
-      perm = @permissions[project.to_s]
+      perm = permissions[project.to_s]
       perm && perm[:restricted]
     end
 

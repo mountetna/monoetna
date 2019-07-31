@@ -17,14 +17,37 @@ module Etna::Application
     ).instance
   end
 
+  def self.register(app)
+    @instance = app
+  end
+
+  def self.instance
+    @instance
+  end
+
+  def initialize
+    Etna::Application.register(self)
+  end
+
   def configure(opts)
     @config = opts
   end
 
-  def set_logger(logger)
-    @logger = logger
+  def setup_logger
+    @logger = Etna::Logger.new(
+      # The name of the log_file, required.
+      config(:log_file),
+      # Number of old copies of the log to keep.
+      config(:log_copies) || 5,
+      # How large the log can get before overturning.
+      config(:log_size) || 1048576
+    )
+    log_level = (config(:log_level) || 'warn').upcase.to_sym
+
+    @logger.level = Logger.const_defined?(log_level) ? Logger.const_get(log_level) : Logger::WARN
   end
 
+  # the application logger is available globally
   attr_reader :logger
 
   def config(type)

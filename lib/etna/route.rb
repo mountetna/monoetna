@@ -74,12 +74,17 @@ module Etna
       end
     end
 
+    # the route does not require authorization
+    def noauth?
+      @auth && @auth[:noauth]
+    end
+
     private
 
     def authorized?(request)
       # If there is no @auth requirement, they are ok - this doesn't preclude
       # them being rejected in the controller response
-      !@auth || (user_authorized?(request) && hmac_authorized?(request))
+      !@auth || @auth[:noauth] || (user_authorized?(request) && hmac_authorized?(request))
     end
 
     def user_authorized?(request)

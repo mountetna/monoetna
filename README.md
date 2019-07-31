@@ -111,6 +111,8 @@ While you are free to test @user in your controller (e.g., `return failure(403, 
 
 HMAC routes should use `auth: { hmac: true }`.
 
+Some routes (for example, error or login pages) might require no authentication by Etna::Auth and should use `auth: { noauth: true }`.
+
 ### Etna::TestAuth
 
 This middleware can be included in lieu of the above to set user credentials without a properly-signed token (useful in testing environments).

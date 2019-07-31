@@ -48,15 +48,22 @@ describe Etna::Auth do
 
     it 'fails without an authorization header' do
       Arachne::Server.get('/test') { success(nil) }
-      @app = setup_app(
-        Arachne::Server.new(test: { }),
-        [ Etna::Auth ]
-      )
+      @app = setup_app( Arachne::Server, [ Etna::Auth ])
 
       # we don't use any headers
       get('/test')
 
       expect(last_response.status).to eq(401)
+    end
+
+    it 'succeeds without an authorization header for noauth routes' do
+      Arachne::Server.get('/test', auth: { noauth: true }) { success(nil) }
+      @app = setup_app(Arachne::Server, [ Etna::Auth ])
+
+      # we don't use any headers
+      get('/test')
+
+      expect(last_response.status).to eq(200)
     end
 
     context 'valid tokens' do
@@ -66,12 +73,14 @@ describe Etna::Auth do
         @public_key = OpenSSL::PKey::RSA.new(@private_key).public_key.to_s
 
         @app = setup_app(
-          Arachne::Server.new(test: {
+          Arachne::Server,
+          [ Etna::Auth ],
+          test: {
             rsa_private: @private_key,
             rsa_public: @public_key,
             token_name: 'ARACHNE_TOKEN',
-            token_algo: 'RS256' }),
-          [ Etna::Auth ]
+            token_algo: 'RS256'
+          }
         )
         clear_cookies
       end
@@ -89,7 +98,7 @@ describe Etna::Auth do
         expect(last_response.status).to eq(200)
         expect(last_response.body).to eq('Etna::User')
       end
-      
+
       it 'accepts a token via cookie' do
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
@@ -123,12 +132,13 @@ describe Etna::Auth do
         # sets rsa_private), and client applications that
         # validate those tokens (setting rsa_public).
         @app = setup_app(
-          Arachne::Server.new(test: {
+          Arachne::Server,
+          [ Etna::Auth ],
+          test: {
             rsa_private: @private_key,
             rsa_public: @invalid_public_key, 
             token_algo: 'RS256' 
-          }),
-          [ Etna::Auth ]
+          },
         )
 
         # the token is made using rsa_private, which is the
@@ -156,14 +166,15 @@ describe Etna::Auth do
 
         # We initialize this app, this time with a auth_redirect
         @app = setup_app(
-          Arachne::Server.new(test: {
+          Arachne::Server,
+          [ Etna::Auth ],
+          test: {
             rsa_private: @private_key,
             rsa_public: @invalid_public_key, 
             token_algo: 'RS256',
             auth_redirect: "https://janus.test"
 
-          }),
-          [ Etna::Auth ]
+          }
         )
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
@@ -199,7 +210,11 @@ describe Etna::Auth do
       config = { hmac_keys: { arachne: SecureRandom.hex, athena: SecureRandom.hex  } }
 
       # Etna::Auth will check the hmac's authenticity
-      @app = setup_app( Arachne::Server.new(test: config), [ Etna::Auth ])
+      @app = setup_app(
+        Arachne::Server,
+        [ Etna::Auth ],
+        test: config
+      )
 
       Timecop.freeze(DateTime.now)
 

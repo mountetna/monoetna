@@ -21,7 +21,7 @@ describe Etna::TestAuth do
     Arachne::Server.get('/test') { user = @user; success('') }
 
     @app = setup_app(
-      Arachne::Server.new(test: { }),
+      Arachne::Server,
       [ Etna::TestAuth ]
     )
     header(*Etna::TestAuth.token_header(
@@ -37,6 +37,20 @@ describe Etna::TestAuth do
     expect(user).to be_a(Etna::User)
     expect(user.is_admin?('labors')).to be_truthy
     expect(user.can_edit?('constellations')).to be_falsy
+  end
+
+  it 'allows noauth routes through without a header' do
+    # This exercise is the same as above
+    user = nil
+    Arachne::Server.get('/test', auth: { noauth: true }) { success('') }
+
+    @app = setup_app(
+      Arachne::Server,
+      [ Etna::TestAuth ]
+    )
+    get('/test')
+
+    expect(last_response.status).to eq(200)
   end
 end
 

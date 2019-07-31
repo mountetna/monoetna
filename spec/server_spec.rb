@@ -24,7 +24,7 @@ describe Etna::Server do
     Arachne::Server.route('GET', '/silk') do
       [ 200, {}, [ 'ok' ] ]
     end
-    @app = setup_app(Arachne::Server.new(test: {}))
+    @app = setup_app(Arachne::Server)
 
     get '/silk'
 
@@ -36,7 +36,7 @@ describe Etna::Server do
     Arachne::Server.with(action: 'web#silk') do
       get '/silk'
     end
-    @app = setup_app(Arachne::Server.new(test: {}))
+    @app = setup_app(Arachne::Server)
 
     get '/silk'
 
@@ -46,7 +46,7 @@ describe Etna::Server do
 
   it 'should allow route definitions with actions' do
     Arachne::Server.route('GET', '/silk', action: 'web#silk')
-    @app = setup_app(Arachne::Server.new(test: {}))
+    @app = setup_app(Arachne::Server)
 
     get '/silk'
     expect(last_response.status).to eq(200)
@@ -58,7 +58,7 @@ describe Etna::Server do
     Arachne::Server.post('/silk') { [ 200, {}, [ 'post' ] ] }
     Arachne::Server.put('/silk') { [ 200, {}, [ 'put' ] ] }
     Arachne::Server.delete('/silk') { [ 200, {}, [ 'delete' ] ] }
-    @app = setup_app(Arachne::Server.new(test: {}))
+    @app = setup_app(Arachne::Server)
 
     get '/silk'
     expect(last_response.status).to eq(200)
@@ -81,7 +81,7 @@ describe Etna::Server do
     Arachne::Server.get('weaver/:name') { success(@params[:name]) }
     Arachne::Server.get('/tapestry/:name') { success(@params[:name]) }
     Arachne::Server.get('textile/:name/') { success(@params[:name]) }
-    @app = setup_app(Arachne::Server.new(test: {}))
+    @app = setup_app(Arachne::Server)
 
     get '/weaver/Arachne'
     expect(last_response.body).to eq('Arachne')
@@ -101,7 +101,7 @@ describe Etna::Server do
     Arachne::Server.get('/silk/:thread_weight/:shape') do
       [ 200, {}, [ "#{@params[:thread_weight]}-#{@params[:shape]}" ] ]
     end
-    @app = setup_app(Arachne::Server.new(test: {}))
+    @app = setup_app(Arachne::Server)
 
     get '/silk/25/octagon'
 
@@ -114,7 +114,7 @@ describe Etna::Server do
     Arachne::Server.get('/silk/*description') do
       [ 200, {}, [ @params[:description] ] ]
     end
-    @app = setup_app(Arachne::Server.new(test: {}))
+    @app = setup_app(Arachne::Server)
 
     get URI.encode("/silk/#{description}")
 
@@ -138,7 +138,7 @@ describe Etna::Server do
     Arachne::Server.get('/silk/:query', as: :silk) do
       [ 200, {}, [ route_url(:silk, @params) ] ]
     end
-    @app = setup_app(Arachne::Server.new(test: {}))
+    @app = setup_app(Arachne::Server)
 
     get('/silk/tree')
     expect(last_response.status).to eq(200)
@@ -148,10 +148,7 @@ describe Etna::Server do
   it "applies an auth check" do
     Arachne::Server.get('/test', auth: { user: { can_edit?: :project_name } } ) { success('') }
 
-    @app = setup_app(
-      Arachne::Server.new(test: { }),
-      [ Etna::TestAuth ]
-    )
+    @app = setup_app(Arachne::Server, [ Etna::TestAuth ])
 
     header(*Etna::TestAuth.token_header(
       email: 'janus@two-faces.org',
@@ -174,10 +171,7 @@ describe Etna::Server do
     before(:each) do
       Arachne::Server.get('/test', auth: { hmac: true } ) { success(@params[:project_name]) }
 
-      @app = setup_app(
-        Arachne::Server.new(test: { }),
-        [ Etna::TestAuth ]
-      )
+      @app = setup_app( Arachne::Server, [ Etna::TestAuth ])
     end
 
     it "allows entry if the request is hmac-authorized" do
@@ -204,10 +198,7 @@ describe Etna::Server do
   it "applies multiple auth checks" do
     Arachne::Server.get('/test', auth: { user: { is_superuser?: :project_name, can_see_restricted?: :project_name } } ) { success('') }
 
-    @app = setup_app(
-      Arachne::Server.new(test: { }),
-      [ Etna::TestAuth ]
-    )
+    @app = setup_app(Arachne::Server, [ Etna::TestAuth ])
 
     header(*Etna::TestAuth.token_header(
       email: 'janus@two-faces.org',

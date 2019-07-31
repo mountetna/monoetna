@@ -13,6 +13,12 @@ module Etna
         )
       end
 
+      def find_route(request)
+        @routes.find do |route|
+          route.matches? request
+        end
+      end
+
       def with(options={}, &block)
         @default_options = options
         instance_eval(&block)
@@ -46,31 +52,25 @@ module Etna
     end
 
     def call(env)
-      @request = Rack::Request.new(env)
+      request = Rack::Request.new(env)
 
-      @request.env['etna.server'] = self
+      request.env['etna.server'] = self
 
-      @logger.request = @request
+      application.logger.log_request(request)
 
-      route = self.class.routes.find do |route|
-        route.matches? @request
-      end
+      route = self.class.find_route(request)
 
       if route
-        @params = @request.env['rack.request.params']
-        return route.call(self, @request)
+        @params = request.env['rack.request.params']
+        return route.call(self, request)
       end
 
-      [404, {}, ["There is no such path '#{@request.path}'"]]
+      [404, {}, ["There is no such path '#{request.path}'"]]
     end
 
-    def initialize(config)
-
-      # Setup the application, since we are booting through the rack server.
-      application.configure(config)
-
+    def initialize
       # Setup logging.
-      setup_logger
+      application.setup_logger
     end
 
     private
@@ -78,24 +78,7 @@ module Etna
     # The base application class is a singleton independent of this rack server,
     # holding e.g. configuration.
     def application
-      @application ||= Etna::Application.find(self.class)
-    end
-
-    def setup_logger
-      @logger = Etna::Logger.new(
-        # The name of the log_file, required.
-        application.config(:log_file),
-        # Number of old copies of the log to keep.
-        application.config(:log_copies) || 5,
-        # How large the log can get before overturning.
-        application.config(:log_size) || 1048576
-      )
-      log_level = (application.config(:log_level) || 'warn').upcase.to_sym
-
-      @logger.level = Logger.const_defined?(log_level) ? Logger.const_get(log_level) : Logger::WARN
-
-      # the application logger is available to anyone
-      application.set_logger(@logger)
+      @application ||= Etna::Application.instance
     end
   end
 end
