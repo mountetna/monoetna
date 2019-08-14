@@ -132,32 +132,33 @@ class Metis
     end
 
     def execute(project_name)
-      bucket = Metis::Bucket.where(
+      buckets = Metis::Bucket.where(
         project_name: project_name,
-        name: 'files'
-      ).first
+      ).all
 
-      # database files
-      audit_files(
-        Metis::File.where(
-          project_name: project_name, bucket: bucket, folder_id: nil
-        ).all
-      )
+      buckets.each do |bucket|
+        # database files
+        audit_files(
+          Metis::File.where(
+            project_name: project_name, bucket: bucket, folder_id: nil
+          ).all
+        )
 
-      audit_folders(
-        Metis::Folder.where(
-          project_name: project_name, bucket: bucket, folder_id: nil
-        ).all
-      )
+        audit_folders(
+          Metis::Folder.where(
+            project_name: project_name, bucket: bucket, folder_id: nil
+          ).all
+        )
 
-      puts 'unaccounted:'
-      audit_dirs(
-        Dir.glob("#{bucket.location}/*").select{|l| ::File.directory?(l)}
-      )
+        puts 'unaccounted:'
+        audit_dirs(
+          Dir.glob("#{bucket.location}/*").select{|l| ::File.directory?(l)}
+        )
 
-      audit_blobs(
-        Dir.glob("#{bucket.location}/*").select{|l| !::File.directory?(l)}
-      )
+        audit_blobs(
+          Dir.glob("#{bucket.location}/*").select{|l| !::File.directory?(l)}
+        )
+      end
     end
 
     def setup(config)
