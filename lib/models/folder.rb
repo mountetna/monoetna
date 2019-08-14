@@ -173,6 +173,7 @@ class Metis
         bucket_name: bucket.name,
         folder_path: ::File.join(folder_path),
         project_name: project_name,
+        read_only: read_only,
         updated_at: updated_at.iso8601,
         created_at: created_at.iso8601,
         author: author
