@@ -21,7 +21,7 @@ describe UploadController do
 
 
   def upload_path(project_name,file_name)
-    "#{project_name}/upload/files/#{file_name}"
+    "/#{project_name}/upload/files/#{file_name}"
   end
 
   context '#authorize' do
@@ -34,7 +34,7 @@ describe UploadController do
 
       # we use our token to authorize an upload
       token_header(:editor)
-      json_post('authorize/upload', params)
+      json_post('/authorize/upload', params)
 
       # we expect an authorization url in return
       url = last_response.body
@@ -65,7 +65,7 @@ describe UploadController do
 
       # we use our token to authorize an upload
       token_header(:editor)
-      json_post('authorize/upload', params)
+      json_post('/authorize/upload', params)
 
       # the upload request is okay despite pre-existing
       expect(last_response.status).to eq(200)
@@ -99,7 +99,7 @@ describe UploadController do
         # we try each example and see if it returns the
         # appropriate status
         examples.each do |example|
-          json_post('authorize/upload', params.merge(file_path: example))
+          json_post('/authorize/upload', params.merge(file_path: example))
           expect(last_response.status).to eq(status)
         end
       end
@@ -120,7 +120,7 @@ describe UploadController do
 
       # we use our token to authorize an upload
       token_header(:editor)
-      json_post('authorize/upload', params)
+      json_post('/authorize/upload', params)
 
       # we expect to be forbidden from uploading
       expect(last_response.status).to eq(403)
@@ -143,7 +143,7 @@ describe UploadController do
 
       # we use our token to authorize an upload
       token_header(:editor)
-      json_post('authorize/upload', params)
+      json_post('/authorize/upload', params)
 
       # we expect to be forbidden from uploading
       expect(last_response.status).to eq(422)
@@ -161,7 +161,7 @@ describe UploadController do
       }
       # we use our token to authorize an upload
       token_header(:editor)
-      json_post('authorize/upload', params)
+      json_post('/authorize/upload', params)
 
       # we expect to be forbidden from uploading
       expect(last_response.status).to eq(403)
