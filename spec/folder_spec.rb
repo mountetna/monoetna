@@ -19,19 +19,6 @@ describe FolderController do
     expect(stubs.contents(:athena)).to be_empty
   end
 
-  context '#bucket_list' do
-    it 'should return a list of buckets for the current project' do
-      bucket2 = create( :bucket, project_name: 'athena', name: 'extra' )
-
-      token_header(:viewer)
-      get('/athena/list')
-
-      expect(last_response.status).to eq(200)
-
-      expect(json_body[:buckets]).to eq(Metis::Bucket.all.map(&:to_hash))
-    end
-  end
-
   context '#list' do
     before(:each) do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
@@ -88,10 +75,10 @@ describe FolderController do
       )
     end
 
-    it 'should require a complete path' do
+    it 'should require a valid path' do
       # our files
       token_header(:editor)
-      get('/athena/list/files/helmet')
+      get('/athena/list/files/nonexistent')
 
       expect(last_response.status).to eq(422)
 

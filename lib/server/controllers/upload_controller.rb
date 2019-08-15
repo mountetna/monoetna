@@ -1,7 +1,7 @@
 class UploadController < Metis::Controller
   def authorize
     require_params(:project_name, :bucket_name, :file_path)
-    bucket = require_bucket
+    bucket = require_bucket(false)
 
     raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:file_path])
 
@@ -62,7 +62,7 @@ class UploadController < Metis::Controller
   # the file system with 0 bytes.
   def upload_start
     require_params(:file_size, :next_blob_size, :next_blob_hash)
-    bucket = require_bucket
+    bucket = require_bucket(false)
 
     upload = Metis::Upload.where(
       project_name: @params[:project_name],
@@ -92,7 +92,7 @@ class UploadController < Metis::Controller
   # Upload a chunk of the file.
   def upload_blob
     require_params(:blob_data, :next_blob_size, :next_blob_hash)
-    bucket = require_bucket
+    bucket = require_bucket(false)
 
     upload = Metis::Upload.where(
       project_name: @params[:project_name],
@@ -150,7 +150,7 @@ class UploadController < Metis::Controller
   public
 
   def upload_cancel
-    bucket = require_bucket
+    bucket = require_bucket(false)
 
     upload = Metis::Upload.where(
       project_name: @params[:project_name],

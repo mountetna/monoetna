@@ -242,10 +242,10 @@ AUTH_USERS = {
     email: 'metis@olympus.org', first: 'Metis', perm: 'e:athena'
   },
   viewer: {
-    email: 'zeus@olympus.org', first: 'Zeus', perm: 'v:athena'
+    email: 'athena@olympus.org', first: 'Athena', perm: 'v:athena'
   },
   admin: {
-    email: 'metis@olympus.org', first: 'Metis', perm: 'a:athena'
+    email: 'zeus@olympus.org', first: 'Zeus', perm: 'a:athena'
   }
 }
 def token_header(user_type)
@@ -258,7 +258,7 @@ end
 
 def default_bucket(project_name)
   @default_bucket ||= {}
-  @default_bucket[project_name] ||= create( :bucket, project_name: project_name, name: 'files' )
+  @default_bucket[project_name] ||= create( :bucket, project_name: project_name, name: 'files', owner: 'metis', access: 'viewer')
 end
 
 def create_upload(project_name, file_name, uid, params={})

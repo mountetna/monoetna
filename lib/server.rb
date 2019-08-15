@@ -3,6 +3,7 @@ require 'json'
 require_relative './server/controllers/metis_controller'
 require_relative './server/controllers/file_controller'
 require_relative './server/controllers/folder_controller'
+require_relative './server/controllers/bucket_controller'
 require_relative './server/controllers/upload_controller'
 require_relative './server/controllers/download_controller'
 require_relative './server/controllers/client_controller'
@@ -23,7 +24,12 @@ class Metis
 
     get '/:project_name/list/:bucket_name/*folder_path', action: 'folder#list', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/:bucket_name', action: 'folder#list', auth: { user: { can_view?: :project_name } }
-    get '/:project_name/list/', action: 'folder#bucket_list', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/list/', action: 'bucket#list', auth: { user: { can_view?: :project_name } }
+
+    # bucket operations
+    get '/:project_name/bucket/create/:bucket_name', action: 'bucket#list', auth: { user: { is_admin?: :project_name } }
+    get '/:project_name/bucket/update/:bucket_name', action: 'bucket#list', auth: { user: { is_admin?: :project_name } }
+    get '/:project_name/bucket/remove/:bucket_name', action: 'bucket#list', auth: { user: { is_admin?: :project_name } }
 
     # folder operations
     post '/:project_name/create_folder/:bucket_name/*folder_path', action: 'folder#create', auth: { user: { can_edit?: :project_name } }

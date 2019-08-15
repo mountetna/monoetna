@@ -6,13 +6,16 @@ class Metis
       success(obj.to_json, 'application/json')
     end
 
-    def require_bucket
+    def require_bucket(user_required=true)
       bucket = Metis::Bucket.where(
         project_name: @params[:project_name],
         name: @params[:bucket_name]
       ).first
 
-      raise Etna::BadRequest, 'Invalid bucket!' unless bucket && bucket.allowed?(@user)
+
+      raise Etna::BadRequest, 'Invalid bucket!' unless bucket
+
+      raise Etna::Forbidden, 'Cannot access bucket!' unless !user_required || bucket.allowed?(@user)
 
       return bucket
     end
