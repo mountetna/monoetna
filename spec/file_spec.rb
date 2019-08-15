@@ -35,7 +35,7 @@ describe FileController do
     end
 
     def remove_file(path)
-      delete("athena/remove_file/files/#{path}")
+      delete("athena/file/remove/files/#{path}")
     end
 
     it 'removes a file' do
@@ -110,7 +110,7 @@ describe FileController do
     end
 
     def protect_file path, params={}
-      json_post("athena/protect_file/files/#{path}", params)
+      json_post("athena/file/protect/files/#{path}", params)
     end
 
     it 'protects a file' do
@@ -168,7 +168,7 @@ describe FileController do
     end
 
     def unprotect_file path, params={}
-      json_post("athena/unprotect_file/files/#{path}",params)
+      json_post("athena/file/unprotect/files/#{path}",params)
     end
 
     it 'unprotects a file' do
@@ -223,7 +223,7 @@ describe FileController do
     end
 
     def rename_file(path, new_path)
-      json_post("athena/rename_file/files/#{path}", new_file_path: new_path)
+      json_post("athena/file/rename/files/#{path}", new_file_path: new_path)
     end
 
     it 'renames a file' do

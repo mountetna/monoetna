@@ -88,7 +88,7 @@ describe FolderController do
 
   context '#create' do
     def post_create_folder path, params={}
-      json_post("athena/create_folder/files/#{path}", params)
+      json_post("athena/folder/create/files/#{path}", params)
     end
 
     it 'creates a folder with the given name' do
@@ -183,7 +183,7 @@ describe FolderController do
     end
 
     def remove_folder path
-      delete("athena/remove_folder/files/#{path}")
+      delete("athena/folder/remove/files/#{path}")
     end
 
     it 'removes a folder' do
@@ -266,7 +266,7 @@ describe FolderController do
     end
 
     def protect_folder path
-      json_post("athena/protect_folder/files/#{path}",{})
+      json_post("athena/folder/protect/files/#{path}",{})
     end
 
     it 'protects a folder' do
@@ -323,7 +323,7 @@ describe FolderController do
     end
 
     def unprotect_folder path
-      json_post("athena/unprotect_folder/files/#{path}",{})
+      json_post("athena/folder/unprotect/files/#{path}",{})
     end
 
     it 'unprotects a folder' do
@@ -378,7 +378,7 @@ describe FolderController do
     end
 
     def rename_folder path, new_path
-      json_post("athena/rename_folder/files/#{path}", new_folder_path: new_path)
+      json_post("athena/folder/rename/files/#{path}", new_folder_path: new_path)
     end
 
     it 'renames a folder' do

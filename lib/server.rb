@@ -32,17 +32,17 @@ class Metis
     get '/:project_name/bucket/remove/:bucket_name', action: 'bucket#list', auth: { user: { is_admin?: :project_name } }
 
     # folder operations
-    post '/:project_name/create_folder/:bucket_name/*folder_path', action: 'folder#create', auth: { user: { can_edit?: :project_name } }
-    delete '/:project_name/remove_folder/:bucket_name/*folder_path', action: 'folder#remove', auth: { user: { can_edit?: :project_name } }
-    post '/:project_name/protect_folder/:bucket_name/*folder_path', action: 'folder#protect', auth: { user: { is_admin?: :project_name } }
-    post '/:project_name/unprotect_folder/:bucket_name/*folder_path', action: 'folder#unprotect', auth: { user: { is_admin?: :project_name } }
-    post '/:project_name/rename_folder/:bucket_name/*folder_path', action: 'folder#rename', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/folder/create/:bucket_name/*folder_path', action: 'folder#create', auth: { user: { can_edit?: :project_name } }
+    delete '/:project_name/folder/remove/:bucket_name/*folder_path', action: 'folder#remove', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/folder/protect/:bucket_name/*folder_path', action: 'folder#protect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/folder/unprotect/:bucket_name/*folder_path', action: 'folder#unprotect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/folder/rename/:bucket_name/*folder_path', action: 'folder#rename', auth: { user: { can_edit?: :project_name } }
 
     # file operations
-    delete '/:project_name/remove_file/:bucket_name/*file_path', action: 'file#remove', auth: { user: { can_edit?: :project_name } }
-    post '/:project_name/protect_file/:bucket_name/*file_path', action: 'file#protect', auth: { user: { is_admin?: :project_name } }
-    post '/:project_name/unprotect_file/:bucket_name/*file_path', action: 'file#unprotect', auth: { user: { is_admin?: :project_name } }
-    post '/:project_name/rename_file/:bucket_name/*file_path', action: 'file#rename', auth: { user: { can_edit?: :project_name } }
+    delete '/:project_name/file/remove/:bucket_name/*file_path', action: 'file#remove', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/file/protect/:bucket_name/*file_path', action: 'file#protect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/file/unprotect/:bucket_name/*file_path', action: 'file#unprotect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/file/rename/:bucket_name/*file_path', action: 'file#rename', auth: { user: { can_edit?: :project_name } }
 
     def initialize
       super
