@@ -13,13 +13,14 @@ ENV['METIS_ENV'] = 'test'
 require_relative '../lib/metis'
 require_relative '../lib/server'
 METIS_CONFIG=YAML.load(File.read("config.yml"))
+Metis.instance.configure(METIS_CONFIG)
 OUTER_APP = Rack::Builder.new do
   use Rack::Static, urls: ['/css', '/js', '/fonts', '/img'], root: 'lib/client'
   use Etna::ParseBody
   use Etna::SymbolizeParams
-  use Metis::SetUid
   use Etna::TestAuth
-  run Metis::Server.new(METIS_CONFIG)
+  use Metis::SetUid
+  run Metis::Server.new
 end
 
 RSpec.configure do |config|

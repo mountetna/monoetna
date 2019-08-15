@@ -38,7 +38,7 @@ class Metis
     post '/:project_name/unprotect_file/:bucket_name/*file_path', action: 'file#unprotect', auth: { user: { is_admin?: :project_name } }
     post '/:project_name/rename_file/:bucket_name/*file_path', action: 'file#rename', auth: { user: { can_edit?: :project_name } }
 
-    def initialize(config)
+    def initialize
       super
       application.load_models
     end
