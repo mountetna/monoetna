@@ -165,7 +165,7 @@ describe UploadController do
 
       # we expect to be forbidden from uploading
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Folder is read-only!')
+      expect(json_body[:error]).to eq('Folder is read-only')
       expect(Metis::Upload.count).to eq(0)
     end
   end
@@ -256,7 +256,7 @@ describe UploadController do
 
       # we are forbidden
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('No matching upload!')
+      expect(json_body[:error]).to eq('No matching upload')
     end
   end
 

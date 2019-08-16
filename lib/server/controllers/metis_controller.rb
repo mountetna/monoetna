@@ -13,9 +13,9 @@ class Metis
       ).first
 
 
-      raise Etna::BadRequest, 'Invalid bucket!' unless bucket
+      raise Etna::BadRequest, 'Invalid bucket' unless bucket
 
-      raise Etna::Forbidden, 'Cannot access bucket!' unless !user_required || bucket.allowed?(@user)
+      raise Etna::Forbidden, 'Cannot access bucket' unless !user_required || bucket.allowed?(@user)
 
       return bucket
     end

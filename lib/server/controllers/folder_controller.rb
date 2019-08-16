@@ -61,11 +61,11 @@ class FolderController < Metis::Controller
     bucket = require_bucket
     folder = require_folder(bucket, @params[:folder_path])
 
-    # remove the folder
     raise Etna::BadRequest, 'Cannot remove folder' unless folder.can_remove?
 
     response = success_json(folders: [ folder.to_hash ])
 
+    # actually remove the folder
     folder.remove!
 
     return response

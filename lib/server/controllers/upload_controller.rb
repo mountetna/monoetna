@@ -1,7 +1,7 @@
 class UploadController < Metis::Controller
   def authorize
     require_params(:project_name, :bucket_name, :file_path)
-    bucket = require_bucket(false)
+    bucket = require_bucket
 
     raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:file_path])
 
@@ -10,12 +10,12 @@ class UploadController < Metis::Controller
     folder = require_folder(bucket, folder_path)
 
     if folder && folder.read_only?
-      raise Etna::Forbidden, 'Folder is read-only!'
+      raise Etna::Forbidden, 'Folder is read-only'
     end
 
     file = Metis::File.from_folder(bucket, folder, file_name)
 
-    raise Etna::Forbidden, 'File cannot be overwritten.' if file && file.read_only?
+    raise Etna::Forbidden, 'File cannot be overwritten' if file && file.read_only?
 
     # Create the upload
     upload = Metis::Upload.find_or_create(
@@ -71,7 +71,7 @@ class UploadController < Metis::Controller
       metis_uid: metis_uid,
     ).first
 
-    raise Etna::BadRequest, 'No matching upload!' unless upload
+    raise Etna::BadRequest, 'No matching upload' unless upload
 
     # the upload has been started already, report the current
     # position
@@ -101,7 +101,7 @@ class UploadController < Metis::Controller
       metis_uid: metis_uid
     ).first
 
-    raise Etna::BadRequest, 'Upload has not been started!' unless upload
+    raise Etna::BadRequest, 'Upload has not been started' unless upload
 
     blob_path = @params[:blob_data][:tempfile].path
 
@@ -126,13 +126,13 @@ class UploadController < Metis::Controller
     folder = require_folder(upload.bucket, folder_path)
 
     if folder && folder.read_only?
-      raise Etna::Forbidden, 'Folder is read-only!'
+      raise Etna::Forbidden, 'Folder is read-only'
     end
 
     file = Metis::File.from_folder(upload.bucket, folder, file_name)
 
     if file && file.read_only?
-      raise Etna::Forbidden, 'Cannot overwrite existing file!'
+      raise Etna::Forbidden, 'Cannot overwrite existing file'
     end
 
     new_file = upload.finish!
@@ -159,7 +159,7 @@ class UploadController < Metis::Controller
       metis_uid: metis_uid
     ).first
 
-    raise Etna::BadRequest, 'Upload has not been started!' unless upload
+    raise Etna::BadRequest, 'Upload has not been started' unless upload
 
     # axe the upload data and record
     upload.delete_with_partial!
