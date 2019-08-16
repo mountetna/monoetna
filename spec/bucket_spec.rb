@@ -80,7 +80,7 @@ describe BucketController do
   end
 
   context '#list' do
-    it 'should return a list of buckets for the current project' do
+    it 'returns a list of buckets for the current project' do
       bucket2 = create( :bucket, project_name: 'athena', name: 'extra', access: 'viewer', owner: 'metis' )
 
       token_header(:viewer)
@@ -89,6 +89,190 @@ describe BucketController do
       expect(last_response.status).to eq(200)
 
       expect(json_body[:buckets]).to eq(Metis::Bucket.all.map(&:to_hash))
+    end
+  end
+
+  context '#create' do
+    it 'creates a new bucket' do
+      token_header(:admin)
+      json_post('/athena/bucket/create/my_bucket', owner: 'metis', access: 'viewer')
+
+      # the record is created
+      expect(Metis::Bucket.count).to eq(1)
+      bucket = Metis::Bucket.first
+      expect(bucket.name).to eq('my_bucket')
+      expect(bucket.owner).to eq('metis')
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:bucket]).to eq(bucket.to_hash)
+    end
+
+    it 'requires admin permissions' do
+      token_header(:editor)
+      json_post('/athena/bucket/create/my_bucket', owner: 'metis', access: 'viewer')
+
+      expect(Metis::Bucket.count).to eq(0)
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'prevents illegal bucket names' do
+      token_header(:admin)
+      json_post("/athena/bucket/create/My\nBucket", owner: 'metis', access: 'viewer')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Illegal bucket name')
+    end
+
+    it 'requires a valid owner' do
+      token_header(:admin)
+      json_post("/athena/bucket/create/my_bucket", owner: 'thetis', access: 'viewer')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid owner')
+    end
+
+    it 'requires a valid access' do
+      token_header(:admin)
+      json_post("/athena/bucket/create/my_bucket", owner: 'metis', access: 'casual')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid access')
+    end
+
+    it 'requires a valid access list' do
+      token_header(:admin)
+      json_post("/athena/bucket/create/my_bucket", owner: 'metis', access: 'metis,athena')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid access')
+    end
+  end
+
+  context '#update' do
+    before(:each) do
+      Metis.instance.config(:hmac_keys).update(athena: Metis.instance.sign.uid)
+    end
+
+    after(:each) do
+      Metis.instance.config(:hmac_keys).delete(:athena)
+    end
+
+    it 'requires an existing bucket' do
+      token_header(:admin)
+      json_post('/athena/bucket/update/my_bucket', owner: 'metis', access: 'viewer')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid bucket')
+    end
+
+    it 'requires admin permissions' do
+      token_header(:editor)
+      json_post('/athena/bucket/update/my_bucket', owner: 'metis', access: 'viewer')
+
+      expect(Metis::Bucket.count).to eq(0)
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'updates a bucket' do
+      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
+
+      token_header(:admin)
+      json_post('/athena/bucket/update/my_bucket', owner: 'athena', access: 'viewer', description: 'My Bucket')
+
+      # the record remains
+      bucket.refresh
+      expect(Metis::Bucket.all).to eq([bucket])
+
+      expect(bucket.name).to eq('my_bucket')
+      expect(bucket.owner).to eq('athena')
+      expect(bucket.access).to eq('viewer')
+      expect(bucket.description).to eq('My Bucket')
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:bucket]).to eq(bucket.to_hash)
+    end
+
+    it 'requires a legal owner' do
+      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
+
+      token_header(:admin)
+      json_post('/athena/bucket/update/my_bucket', owner: 'outis', access: 'viewer', description: 'My Bucket')
+
+      # the record remains
+      bucket.refresh
+      expect(Metis::Bucket.all).to eq([bucket])
+
+      expect(bucket.name).to eq('my_bucket')
+      expect(bucket.owner).to eq('metis')
+      expect(bucket.access).to eq('editor')
+      expect(bucket.description).to be_nil
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid owner')
+    end
+
+    it 'requires a legal access' do
+      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
+
+      token_header(:admin)
+      json_post('/athena/bucket/update/my_bucket', owner: 'metis', access: 'casual', description: 'My Bucket')
+
+      # the record remains
+      bucket.refresh
+      expect(Metis::Bucket.all).to eq([bucket])
+
+      expect(bucket.name).to eq('my_bucket')
+      expect(bucket.owner).to eq('metis')
+      expect(bucket.access).to eq('editor')
+      expect(bucket.description).to be_nil
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid access')
+    end
+  end
+
+  context '#remove' do
+    it 'requires an existing bucket' do
+      token_header(:admin)
+      delete('/athena/bucket/remove/my_bucket')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid bucket')
+    end
+
+    it 'requires admin permissions' do
+      token_header(:editor)
+      delete('/athena/bucket/remove/my_bucket')
+
+      expect(Metis::Bucket.count).to eq(0)
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'removes a bucket' do
+      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
+      stubs.create_bucket('athena', 'my_bucket')
+
+      token_header(:admin)
+      delete('/athena/bucket/remove/my_bucket')
+
+      expect(last_response.status).to eq(200)
+      expect(Metis::Bucket.count).to eq(0)
+      expect(File.exists?(bucket.location)).to be_falsy
+    end
+
+    it 'refuses to remove a non-empty bucket' do
+      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
+      stubs.create_bucket('athena', 'my_bucket')
+
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: bucket)
+      stubs.create_file('athena', 'my_bucket', 'wisdom.txt', WISDOM)
+
+      token_header(:admin)
+      delete('/athena/bucket/remove/my_bucket')
+
+      expect(last_response.status).to eq(422)
+      expect(Metis::Bucket.count).to eq(1)
+      expect(json_body[:error]).to eq('Cannot remove bucket')
     end
   end
 end

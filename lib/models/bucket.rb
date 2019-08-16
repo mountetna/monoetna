@@ -10,6 +10,11 @@ class Metis
       viewer: 3
     }
 
+    def self.valid_access?(access)
+      ROLES.keys.include?(access.to_sym) ||
+        access.split(/,/).all?{ |e| e.strip =~ URI::MailTo::EMAIL_REGEXP }
+    end
+
     def allowed?(user)
       # Admins can always see the bucket
       return true if user.is_admin?(project_name)
@@ -30,8 +35,22 @@ class Metis
     def location
      ::File.expand_path(::File.join(
        Metis.instance.project_path(project_name),
+       'buckets',
        name
      ))
+    end
+
+    def remove!
+      ::Dir.delete(location)
+      delete
+    end
+
+    def can_remove?
+      has_directory? && Dir.entries(location).size <= 2
+    end
+
+    def has_directory?
+      ::File.exists?(location) && ::File.directory?(location)
     end
 
     def to_hash

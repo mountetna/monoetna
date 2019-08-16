@@ -27,9 +27,9 @@ class Metis
     get '/:project_name/list/', action: 'bucket#list', auth: { user: { can_view?: :project_name } }
 
     # bucket operations
-    get '/:project_name/bucket/create/:bucket_name', action: 'bucket#list', auth: { user: { is_admin?: :project_name } }
-    get '/:project_name/bucket/update/:bucket_name', action: 'bucket#list', auth: { user: { is_admin?: :project_name } }
-    get '/:project_name/bucket/remove/:bucket_name', action: 'bucket#list', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/bucket/create/:bucket_name', action: 'bucket#create', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/bucket/update/:bucket_name', action: 'bucket#update', auth: { user: { is_admin?: :project_name } }
+    delete '/:project_name/bucket/remove/:bucket_name', action: 'bucket#remove', auth: { user: { is_admin?: :project_name } }
 
     # folder operations
     post '/:project_name/folder/create/:bucket_name/*folder_path', action: 'folder#create', auth: { user: { can_edit?: :project_name } }

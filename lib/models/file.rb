@@ -20,6 +20,10 @@ class Metis
       !!(file_path =~ FILEPATH_MATCH)
     end
 
+    def self.valid_file_name?(file_name)
+      !!(file_name =~ FILENAME_MATCH)
+    end
+
     def self.path_parts(file_path)
       FILEPATH_MATCH.match(file_path) do |match|
         return [
