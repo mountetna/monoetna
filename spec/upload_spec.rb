@@ -386,7 +386,7 @@ describe UploadController do
         }.merge(params)
       )
       Timecop.return
-      @current_file = stubs.create_file('athena', file_name, contents)
+      @current_file = stubs.create_file('athena', 'files', file_name, contents)
     end
 
     it 'finishes the upload' do
@@ -487,7 +487,7 @@ describe UploadController do
 
     it 'sets a folder name when it completes' do
       blueprints_folder = create_folder('athena', 'blueprints')
-      stubs.create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
       # the next blob completes the data
       upload = prep_upload('blueprints/wisdom.txt')
 
@@ -621,7 +621,7 @@ describe UploadController do
 
       # our file has existing data
       file = create_file('athena', 'wisdom.txt', WISDOM)
-      current_file = stubs.create_file('athena', 'wisdom.txt', WISDOM)
+      current_file = stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
       partial_file = stubs.create_partial('athena', file.file_name, partial, @metis_uid)
 
       # there is an upload waiting

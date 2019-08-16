@@ -22,7 +22,7 @@ describe Metis::Assimilate do
     expect(Metis::File.count).to eq(2)
     expect(Metis::Folder.count).to eq(1)
 
-    wisdom_file, helmet_file = Metis::File.all
+    helmet_file, wisdom_file = Metis::File.all.sort_by(&:file_name)
     blueprints_folder = Metis::Folder.first
 
     # the file records are there, nested appropriately, with real data
@@ -51,7 +51,7 @@ describe Metis::Assimilate do
 
   it 'moves files and folders into a folder path' do
     upload_folder = create_folder('athena', 'upload')
-    stubs.create_folder('athena', 'upload')
+    stubs.create_folder('athena', 'files', 'upload')
 
     stubs.create_data('stubs', 'wisdom.txt', WISDOM)
     stubs.create_data('stubs', 'blueprints/helmet.txt', HELMET)
@@ -75,7 +75,7 @@ describe Metis::Assimilate do
 
   it 'refuses to overwrite existing folders' do
     blueprints_folder = create_folder('athena', 'blueprints')
-    stubs.create_folder('athena', 'blueprints')
+    stubs.create_folder('athena', 'files', 'blueprints')
 
     stubs.create_data('stubs', 'blueprints/helmet.txt', HELMET)
 
@@ -89,10 +89,10 @@ describe Metis::Assimilate do
 
   it 'refuses to overwrite existing files' do
     blueprints_folder = create_folder('athena', 'blueprints')
-    stubs.create_folder('athena', 'blueprints')
+    stubs.create_folder('athena', 'files', 'blueprints')
 
     helmet_file = create_file('athena', 'helmet.txt', HELMET, folder: blueprints_folder)
-    stubs.create_file('athena', 'blueprints/helmet.txt', HELMET)
+    stubs.create_file('athena', 'files', 'blueprints/helmet.txt', HELMET)
 
     stubs.create_data('stubs', 'helmet.txt', HELMET)
 
