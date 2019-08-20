@@ -6,25 +6,22 @@ const UploadButton = ({onClick, icon}) =>
     <span className={`fas fa-fw fa-${icon}`}></span>
   </button>;
 
-class UploadControl extends React.Component{
-  render(){
-    let { upload, queueUpload, pauseUpload, cancelUpload, selectUpload } = this.props;
-    let invoke = (callback) => () => callback(upload);
+const UploadControl = ({ upload, queueUpload, pauseUpload, cancelUpload, selectUpload }) => {
+  let invoke = (callback) => () => callback(upload);
 
-    let buttonProps = {
-      paused: { icon: 'play', onClick: invoke(queueUpload) },
-      active: { icon: 'pause', onClick: invoke(pauseUpload) },
-      failed: { icon: 'retweet', onClick: invoke(selectUpload) }
-    };
+  let buttonProps = {
+    paused: { icon: 'play', onClick: invoke(queueUpload) },
+    active: { icon: 'pause', onClick: invoke(pauseUpload) },
+    failed: { icon: 'retweet', onClick: invoke(selectUpload) }
+  };
 
-    return (
-      <div className='upload-control-group'>
-        <UploadButton { ...buttonProps[upload.status] }/>
-        <UploadButton icon='times' onClick={invoke(cancelUpload)}/>
-      </div>
-    );
-  }
-}
+  return (
+    <div className='upload-control-group'>
+      <UploadButton { ...buttonProps[upload.status] }/>
+      <UploadButton icon='times' onClick={invoke(cancelUpload)}/>
+    </div>
+  );
+};
 
 export default connect(
   // map state

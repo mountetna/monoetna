@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ListUpload, ListFile, ListFolder } from './list-entry';
+import ListUpload from './list-upload';
+import ListFolder from './list-folder';
+import ListFile from './list-file';
 import ListUploadFailed from './list-upload-failed';
 
 import { selectFiles, selectFolders, selectUploads } from '../../selectors/directory-selector';

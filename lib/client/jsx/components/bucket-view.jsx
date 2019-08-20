@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import { ListBucket }  from './list/list-entry';
+import ListBucket from './list/list-bucket';
 import ListHead  from './list/list-head';
 import FolderBreadcrumb from './folder-breadcrumb';
 
