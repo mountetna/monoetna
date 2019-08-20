@@ -21,7 +21,7 @@ class Metis
     end
 
     def self.valid_file_name?(file_name)
-      !!(file_name =~ FILENAME_MATCH)
+      !!(file_name =~ /\A#{FILENAME_MATCH.source}\z/)
     end
 
     def self.path_parts(file_path)

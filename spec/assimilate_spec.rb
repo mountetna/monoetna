@@ -74,11 +74,14 @@ describe Metis::Assimilate do
   end
 
   it 'refuses to overwrite existing folders' do
-    blueprints_folder = create_folder('athena', 'blueprints')
-    stubs.create_folder('athena', 'files', 'blueprints')
 
+    # there is a blueprints folder already
+    blueprints_folder = create_folder('athena', 'blueprints')
+
+    stubs.create_folder('athena', 'files', 'blueprints')
     stubs.create_data('stubs', 'blueprints/helmet.txt', HELMET)
 
+    # we try to assimilate the blueprints folder
     expect {
       @cmd.execute('athena', 'files', '/', 'spec/stubs/blueprints')
     }.to raise_error(ArgumentError)
@@ -91,16 +94,32 @@ describe Metis::Assimilate do
     blueprints_folder = create_folder('athena', 'blueprints')
     stubs.create_folder('athena', 'files', 'blueprints')
 
+    # file already exists in the blueprints folder
     helmet_file = create_file('athena', 'helmet.txt', HELMET, folder: blueprints_folder)
     stubs.create_file('athena', 'files', 'blueprints/helmet.txt', HELMET)
 
     stubs.create_data('stubs', 'helmet.txt', HELMET)
 
+    # we try to assimilate the same file
     expect {
       @cmd.execute('athena', 'files', '/blueprints', 'spec/stubs/helmet.txt')
     }.to raise_error(ArgumentError)
 
     expect(Metis::File.count).to eq(1)
     expect(Metis::Folder.count).to eq(1)
+  end
+
+  it 'refuses to assimilate badly named files' do
+    blueprints_folder = create_folder('athena', 'blueprints')
+    stubs.create_folder('athena', 'files', 'blueprints')
+
+    stubs.create_data('stubs', 'helmet::one.txt', HELMET)
+
+    expect {
+      @cmd.execute('athena', 'files', '/blueprints', 'spec/stubs/helmet::one.txt')
+    }.to raise_error(ArgumentError)
+
+    expect(Metis::Folder.count).to eq(1)
+    expect(Metis::File.count).to eq(0)
   end
 end

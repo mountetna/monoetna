@@ -132,6 +132,7 @@ class Metis
       folder_name = file_name = ::File.basename(file_path)
 
       raise ArgumentError unless ::File.exists?(file_path)
+      raise ArgumentError unless Metis::File.valid_file_name?(file_name)
       raise ArgumentError if Metis::File.exists?(file_name, bucket, parent_folder) || Metis::Folder.exists?(folder_name, bucket, parent_folder)
 
       if ::File.directory?(folder_path)
