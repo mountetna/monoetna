@@ -57,6 +57,8 @@ class Metis
       {
         bucket_name: name,
         project_name: project_name,
+        access: access,
+        description: description,
         count: files.count
       }
     end

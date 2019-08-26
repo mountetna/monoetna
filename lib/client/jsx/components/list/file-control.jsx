@@ -53,7 +53,6 @@ class FileControl extends React.Component{
 export default connect(
   null,
   (dispatch) => ({
-    showDialog: (dialog) => dispatch({ type: 'SHOW_DIALOG', dialog}),
     removeFile: (file) => dispatch({ type: 'REMOVE_FILE', file }),
     unprotectFile: (file) => dispatch({ type: 'UNPROTECT_FILE', file }),
     protectFile: (file) => dispatch({ type: 'PROTECT_FILE', file }),

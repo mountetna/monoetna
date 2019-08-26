@@ -5,7 +5,7 @@ import Icon from './icon';
 // this is the Metis control bar, which contains basic operations
 // like 'upload file' and 'create folder'
 
-const ControlButton = ({onClick, icon, overlay, title}) => {
+export const ControlButton = ({onClick, icon, overlay, title}) => {
   return <button className='control-btn' onClick={ onClick } title={ title }>
     <Icon icon={icon} overlay={overlay}/>
   </button>
@@ -13,11 +13,11 @@ const ControlButton = ({onClick, icon, overlay, title}) => {
 
 class ControlBar extends React.Component {
   selectFolder(){
-    let { folder_name } = this.props;
+    let { folder_name, createFolder } = this.props;
 
     let new_folder_name = prompt("Enter the folder name", "Untitled Folder");
-    if (!new_folder_name) return;
-    this.props.createFolder(new_folder_name, folder_name);
+
+    if (new_folder_name) createFolder(new_folder_name, folder_name);
   }
 
   selectFile() {
