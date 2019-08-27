@@ -44,7 +44,7 @@ const ListEntrySizeColumn = ({file,widths}) =>
     </div>
   </ListEntryColumn>;
 
-const ListFile = ({file,current_folder,widths}) => (
+const ListFile = ({file,current_folder,bucket_name,widths}) => (
   <div className='list-entry-group'>
     <ListEntryFileTypeColumn widths={widths} file={file}/>
     <ListEntryFileNameColumn file={file} widths={widths}/>
@@ -52,7 +52,7 @@ const ListFile = ({file,current_folder,widths}) => (
     <ListEntryUpdatedColumn obj={file} widths={widths}/>
     <ListEntrySizeColumn file={file} widths={widths}/>
     <ListEntryColumn className='control' widths={widths}>
-      <FileControl file={file} current_folder={current_folder} />
+      <FileControl file={file} bucket_name={bucket_name} current_folder={current_folder} />
     </ListEntryColumn>
   </div>
 );

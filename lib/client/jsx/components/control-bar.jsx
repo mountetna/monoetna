@@ -13,11 +13,11 @@ export const ControlButton = ({onClick, icon, overlay, title}) => {
 
 class ControlBar extends React.Component {
   selectFolder(){
-    let { folder_name, createFolder } = this.props;
+    let { folder_name, bucket_name, createFolder } = this.props;
 
     let new_folder_name = prompt("Enter the folder name", "Untitled Folder");
 
-    if (new_folder_name) createFolder(new_folder_name, folder_name);
+    if (new_folder_name) createFolder(bucket_name, folder_name, new_folder_name);
   }
 
   selectFile() {
@@ -25,13 +25,13 @@ class ControlBar extends React.Component {
   }
 
   fileSelected(event){
-    let { folder_name, fileSelected } = this.props;
+    let { bucket_name, folder_name, fileSelected } = this.props;
 
     if(event === undefined) return;
 
     let { files } = this.input;
 
-    for (let i = 0; i < files.length; i++) fileSelected( files[i], folder_name );
+    for (let i = 0; i < files.length; i++) fileSelected(bucket_name, folder_name, files[i]);
 
     // Reset the input field.
     this.input.value = '';
@@ -59,7 +59,7 @@ export default connect(
   null,
 
   (dispatch) => ({
-    fileSelected: (file, folder_name)=>dispatch({ type: 'FILE_SELECTED', file, folder_name }),
-    createFolder: (folder_name, parent_folder)=>dispatch({ type: 'CREATE_FOLDER', folder_name, parent_folder })
+    fileSelected: (bucket_name, folder_name, file)=>dispatch({ type: 'FILE_SELECTED', file, folder_name, bucket_name }),
+    createFolder: (bucket_name, parent_folder, folder_name)=>dispatch({ type: 'CREATE_FOLDER', folder_name, parent_folder, bucket_name })
   })
 )(ControlBar);

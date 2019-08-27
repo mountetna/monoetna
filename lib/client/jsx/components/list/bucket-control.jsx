@@ -31,8 +31,8 @@ class BucketControl extends React.Component {
     let { bucket } = this.props;
     let items = [
       { label: 'Configure bucket', callback: this.configureBucket.bind(this), show: true },
-      { label: 'Remove bucket', callback: this.removeBucket.bind(this) },
-    ];
+      bucket.count == 0 && { label: 'Remove bucket', callback: this.removeBucket.bind(this) }
+    ].filter(_=>_);
     return <MenuControl items={items}/>;
   }
 }

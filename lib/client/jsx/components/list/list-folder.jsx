@@ -3,11 +3,11 @@ import { ListEntryColumn, ListEntryTypeColumn, ListEntryUpdatedColumn } from './
 import FolderControl from './folder-control';
 import { FolderLink } from '../folder-link';
 
-const ListEntryFolderNameColumn = ({folder, current_bucket, current_folder, widths}) => (
+const ListEntryFolderNameColumn = ({folder, bucket_name, current_folder, widths}) => (
   <ListEntryColumn className='name' widths={widths}>
     <div className='list-entry-file-name' title={folder.folder_name}>
       <FolderLink
-        bucket_name={current_bucket}
+        bucket_name={bucket_name}
         folder_path={current_folder}
         folder_name={folder.folder_name}
       />
@@ -15,18 +15,18 @@ const ListEntryFolderNameColumn = ({folder, current_bucket, current_folder, widt
   </ListEntryColumn>
 );
 
-const ListFolder = ({ folder, current_folder, current_bucket, widths }) => (
+const ListFolder = ({ folder, current_folder, bucket_name, widths }) => (
   <div className='list-entry-group'>
     <ListEntryTypeColumn icon='folder' widths={ widths } />
     <ListEntryFolderNameColumn folder={folder}
       current_folder={ current_folder }
-      current_bucket={ current_bucket }
+      bucket_name={ bucket_name }
       widths={widths} />
     <ListEntryColumn className='status' widths={widths}/>
     <ListEntryUpdatedColumn obj={folder} widths={widths}/>
     <ListEntryColumn className='size' widths={widths}/>
     <ListEntryColumn className='control' widths={widths}>
-      <FolderControl folder={folder} current_folder={current_folder} />
+      <FolderControl bucket_name={ bucket_name } folder={folder} current_folder={current_folder} />
     </ListEntryColumn>
   </div>
 );

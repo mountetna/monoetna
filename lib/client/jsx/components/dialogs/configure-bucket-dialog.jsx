@@ -29,9 +29,6 @@ class ConfigureBucketDialog extends React.Component {
     let { bucket_name='', description='', access='' } = this.props;
     let access_email = '';
 
-    console.log("Got");
-    console.log(this.props);
-
     if (/\@/.test(access)) {
       access_email = access;
       access = '';
@@ -63,15 +60,22 @@ class ConfigureBucketDialog extends React.Component {
       else access = access.join(',');
     }
 
+    if (!access) errors.push('Access level must be set');
+
     if (errors.length > 0) {
       this.setState({ errors });
       return;
     }
 
     if (mode == 'create')
-      createBucket({ bucket_name, description, access });
-    else
-      updateBucket({ bucket_name: this.props.bucket_name, new_bucket_name: bucket_name, description, access });
+      createBucket({ bucket_name, description, access, owner: 'metis' });
+    else {
+      updateBucket({
+        bucket_name: this.props.bucket_name,
+        new_bucket_name: bucket_name == this.props.bucket_name ? undefined : bucket_name,
+        description, access
+      });
+    }
     dismissDialog();
   }
 

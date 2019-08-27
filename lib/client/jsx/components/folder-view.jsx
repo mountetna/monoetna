@@ -41,7 +41,7 @@ class FolderView extends React.Component {
       <div className='folder-view-group'>
         <div className='control-group'>
           <FolderBreadcrumb folder_name={folder_name} bucket_name={bucket_name}/>
-          <ControlBar folder_name={ folder_name }/>
+          <ControlBar bucket_name={ bucket_name } folder_name={ folder_name }/>
         </div>
         <div className='listing-group'>
           <ListHead columns={ COLUMNS }/>

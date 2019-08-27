@@ -36,7 +36,7 @@ class ListBody extends React.Component{
                 key={folder.folder_name}
                 folder={folder}
                 current_folder={folder_name}
-                current_bucket={bucket_name}
+                bucket_name={bucket_name}
                 widths={widths} />
             )
             : null
@@ -48,7 +48,7 @@ class ListBody extends React.Component{
                 key={file.file_name}
                 file={file}
                 current_folder={folder_name}
-                current_bucket={bucket_name}
+                bucket_name={bucket_name}
                 widths={widths} />
             )
             : null

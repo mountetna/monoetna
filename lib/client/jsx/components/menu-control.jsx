@@ -15,6 +15,7 @@ class MenuControl extends React.Component{
     let dialog = {
       type: 'list',
       items,
+      width: 175,
       top, left: right
     };
 

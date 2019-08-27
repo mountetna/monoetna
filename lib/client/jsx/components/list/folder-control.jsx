@@ -51,11 +51,11 @@ class FolderControl extends React.Component{
 
 export default connect(
   null,
-  (dispatch) => ({
-    removeFolder: (folder) => dispatch({ type: 'REMOVE_FOLDER', folder }),
-    unprotectFolder: (folder) => dispatch({ type: 'UNPROTECT_FOLDER', folder }),
-    protectFolder: (folder) => dispatch({ type: 'PROTECT_FOLDER', folder }),
-    renameFolder: (folder, new_folder_path) => dispatch({ type: 'RENAME_FOLDER', folder, new_folder_path })
+  (dispatch, {bucket_name}) => ({
+    removeFolder: (folder) => dispatch({ type: 'REMOVE_FOLDER', folder, bucket_name }),
+    unprotectFolder: (folder) => dispatch({ type: 'UNPROTECT_FOLDER', folder, bucket_name }),
+    protectFolder: (folder) => dispatch({ type: 'PROTECT_FOLDER', folder, bucket_name }),
+    renameFolder: (folder, new_folder_path) => dispatch({ type: 'RENAME_FOLDER', folder, new_folder_path, bucket_name })
   })
 )(FolderControl);
 

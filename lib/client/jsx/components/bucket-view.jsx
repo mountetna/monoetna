@@ -10,8 +10,9 @@ import { selectBuckets } from '../selectors/directory-selector';
 
 const COLUMNS = [
   { name: 'type', width: '90px' },
-  { name: 'name', width: '60%' },
-  { name: 'description', width: '60%' },
+  { name: 'name', width: '30%' },
+  { name: 'description', width: '50%' },
+  { name: 'access', width: '10%' },
   { name: 'size', width: '10%' },
   { name: 'control', width: '100px', hide: true }
 ];
