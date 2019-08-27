@@ -39,7 +39,7 @@ class UploadController < Metis::Controller
       @params[:file_path]
     )
 
-    success(url)
+    success_json(url: url)
   end
 
   UPLOAD_ACTIONS=[ :start, :blob, :cancel, :reset ]

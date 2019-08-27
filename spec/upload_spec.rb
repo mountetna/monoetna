@@ -37,8 +37,7 @@ describe UploadController do
       json_post('/authorize/upload', params)
 
       # we expect an authorization url in return
-      url = last_response.body
-      uri = URI(url)
+      uri = URI(json_body[:url])
       hmac_params = Rack::Utils.parse_nested_query(uri.query)
 
       expect(last_response.status).to eq(200)
@@ -71,7 +70,7 @@ describe UploadController do
       expect(last_response.status).to eq(200)
 
       # we expect an authorization url in return
-      uri = URI(last_response.body)
+      uri = URI(json_body[:url])
       expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_path]}")
 
       hmac_params = Rack::Utils.parse_nested_query(uri.query)
