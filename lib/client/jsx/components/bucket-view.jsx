@@ -59,7 +59,7 @@ class BucketView extends React.Component {
         <ListHead columns={ COLUMNS }/>
         <div id='list-body-group'>
         {
-          buckets.map(
+          Object.values(buckets).sort(b=>b.created_at).map(
             bucket => <ListBucket key={bucket.bucket_name} widths={COLUMN_WIDTHS} bucket={bucket}/>
           )
         }

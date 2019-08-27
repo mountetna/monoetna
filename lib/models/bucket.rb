@@ -1,6 +1,9 @@
 class Metis
   class Bucket < Sequel::Model
+    plugin :timestamps, update_on_create: true
+
     one_to_many :files
+    one_to_many :folders
 
     ROLES = {
       # stupidly, Etna::User calls this 'admin'
@@ -9,6 +12,10 @@ class Metis
       editor: 2,
       viewer: 3
     }
+
+    def self.valid_bucket_name?(bucket_name)
+      !!(bucket_name =~ /\A\w+\z/)
+    end
 
     def self.valid_access?(access)
       ROLES.keys.include?(access.to_sym) ||
@@ -38,6 +45,16 @@ class Metis
        'buckets',
        name
      ))
+    end
+
+    def rename!(new_bucket_name)
+      old_location = location
+
+      update(name: new_bucket_name)
+      refresh
+
+      new_location = location
+      FileUtils.mv(old_location, new_location)
     end
 
     def remove!

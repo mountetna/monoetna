@@ -183,11 +183,13 @@ describe BucketController do
       bucket.refresh
       expect(Metis::Bucket.all).to eq([bucket])
 
+      # the data is updated
       expect(bucket.name).to eq('my_bucket')
       expect(bucket.owner).to eq('athena')
       expect(bucket.access).to eq('viewer')
       expect(bucket.description).to eq('My Bucket')
 
+      # we get the new bucket back
       expect(last_response.status).to eq(200)
       expect(json_body[:bucket]).to eq(bucket.to_hash)
     end
@@ -202,11 +204,13 @@ describe BucketController do
       bucket.refresh
       expect(Metis::Bucket.all).to eq([bucket])
 
+      # the data remains
       expect(bucket.name).to eq('my_bucket')
       expect(bucket.owner).to eq('metis')
       expect(bucket.access).to eq('editor')
       expect(bucket.description).to be_nil
 
+      # an error is returned
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid owner')
     end
@@ -221,13 +225,39 @@ describe BucketController do
       bucket.refresh
       expect(Metis::Bucket.all).to eq([bucket])
 
+      # the data remains
       expect(bucket.name).to eq('my_bucket')
       expect(bucket.owner).to eq('metis')
       expect(bucket.access).to eq('editor')
       expect(bucket.description).to be_nil
 
+      # an error is returned
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid access')
+    end
+
+    it 'renames a bucket' do
+      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
+      old_location = stubs.create_bucket('athena', 'my_bucket')
+
+      token_header(:admin)
+      json_post('/athena/bucket/update/my_bucket', new_bucket_name: 'new_bucket')
+
+      # the record remains
+      bucket.refresh
+      expect(Metis::Bucket.all).to eq([bucket])
+
+      # the record is updated
+      expect(last_response.status).to eq(200)
+      expect(bucket.name).to eq('new_bucket')
+      expect(bucket.owner).to eq('metis')
+      expect(bucket.access).to eq('editor')
+      expect(bucket.description).to be_nil
+
+      # the bucket has moved
+      expect(bucket.location).not_to eq(old_location)
+      expect(::File.exists?(old_location)).to be_falsy
+      expect(::File.exists?(bucket.location)).to be_truthy
     end
   end
 

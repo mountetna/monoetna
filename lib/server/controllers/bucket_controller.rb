@@ -10,7 +10,7 @@ class BucketController < Metis::Controller
   def create
     require_params(:owner, :access)
 
-    raise Etna::BadRequest, 'Illegal bucket name' unless @params[:bucket_name] =~ /\A\w+\z/
+    raise Etna::BadRequest, 'Illegal bucket name' unless Metis::Bucket.valid_bucket_name?(@params[:bucket_name])
 
     raise Etna::BadRequest, 'Invalid owner' unless Metis.instance.config(:hmac_keys).keys.include?(@params[:owner].to_sym)
 
@@ -28,14 +28,17 @@ class BucketController < Metis::Controller
   def update
     bucket = require_bucket
 
-    raise Etna::BadRequest, 'Invalid owner' unless Metis.instance.config(:hmac_keys).keys.include?(@params[:owner].to_sym)
+    raise Etna::BadRequest, 'Invalid owner' if @params[:owner] && !Metis.instance.config(:hmac_keys).keys.include?(@params[:owner].to_sym)
 
-    raise Etna::BadRequest, 'Invalid access' unless Metis::Bucket.valid_access?(@params[:access])
+    raise Etna::BadRequest, 'Invalid access' if @params[:access] && !Metis::Bucket.valid_access?(@params[:access])
 
+    raise Etna::BadRequest, 'Illegal bucket name' if @params[:new_bucket_name] && !Metis::Bucket.valid_bucket_name?(@params[:new_bucket_name])
 
     bucket.owner = @params[:owner] if @params[:owner]
     bucket.access = @params[:access] if @params[:access]
     bucket.description = @params[:description] if @params[:description]
+    bucket.rename!(@params[:new_bucket_name]) if @params[:new_bucket_name]
+
     bucket.save
 
     success_json(bucket: bucket.to_hash)
