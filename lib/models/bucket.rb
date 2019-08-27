@@ -66,6 +66,10 @@ class Metis
       has_directory? && Dir.entries(location).size <= 2
     end
 
+    def create_actual_bucket!
+      FileUtils.mkdir_p(location)
+    end
+
     def has_directory?
       ::File.exists?(location) && ::File.directory?(location)
     end

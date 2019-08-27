@@ -105,6 +105,9 @@ describe BucketController do
 
       expect(last_response.status).to eq(200)
       expect(json_body[:bucket]).to eq(bucket.to_hash)
+
+      expect(::File.exists?(bucket.location)).to be_truthy
+      expect(::File.directory?(bucket.location)).to be_truthy
     end
 
     it 'requires admin permissions' do
