@@ -33,3 +33,15 @@ export const headers = (...types) => {
 
   return _headers
 }
+
+export const json_fetch = (method) => (path, params) => fetch(path,
+  {
+    method,
+    credentials: 'same-origin',
+    headers: headers('json'),
+    ...params && { body: JSON.stringify(params) }
+  }).then(checkStatus).then(parseJSON);
+
+export const json_get = json_fetch('GET');
+export const json_delete = json_fetch('DELETE');
+export const json_post = json_fetch('POST');

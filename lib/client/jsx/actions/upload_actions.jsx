@@ -4,11 +4,10 @@ import { postAuthorizeUpload } from '../api/upload_api';
  * Call to get approval to make an action on Metis.
  */
 
-export const fileSelected = ({ file, folder_name }) => (dispatch) => {
+export const fileSelected = ({ file, folder_name, bucket_name }) => (dispatch) => {
   let file_name = [ folder_name, file.name ].filter(_=>_).join('/');
-  postAuthorizeUpload(CONFIG.project_name, file_name)
-    .then( response => response.text())
-    .then( url => {
+  postAuthorizeUpload(CONFIG.project_name, bucket_name, file_name)
+    .then( ({url}) => {
       // first set the upload url
       dispatch({ type: 'FILE_UPLOAD_AUTHORIZED', file, file_name, url });
 

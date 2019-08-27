@@ -1,6 +1,7 @@
 import uploads from './upload-reducer';
 import folders from './folder-reducer';
 import files from './file-reducer';
+import buckets from './bucket-reducer';
 
 const directory = (state, action) => {
   if (!state) state = {
@@ -28,10 +29,12 @@ const directory = (state, action) => {
         ...state,
         folders: folders(state.folders,action)
       };
+
     case 'ADD_BUCKETS':
+    case 'REMOVE_BUCKET':
       return {
         ...state,
-        buckets: action.buckets
+        buckets: buckets(state.buckets, action)
       };
 
     case 'ADD_FILES':

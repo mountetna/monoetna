@@ -5,6 +5,8 @@ import user from './reducers/user-reducer';
 import dialog from './reducers/dialog-reducer';
 
 import * as fileActions from './actions/file_actions';
+import * as folderActions from './actions/folder_actions';
+import * as bucketActions from './actions/bucket_actions';
 import * as uploadActions from './actions/upload_actions';
 
 import asyncRouter from './routers/async-router';
@@ -20,6 +22,8 @@ const createStore = () => {
   // action handlers to import
   let actions = {
     ...fileActions,
+    ...folderActions,
+    ...bucketActions,
     ...uploadActions
 
     // here you may define aliases to other actions,
