@@ -2,7 +2,7 @@ class BucketController < Metis::Controller
   def list
     buckets = Metis::Bucket.where(
       project_name: @params[:project_name]
-    ).all
+    ).all.select{|b| b.allowed?(@user)}
 
     success_json(buckets: buckets.map(&:to_hash))
   end

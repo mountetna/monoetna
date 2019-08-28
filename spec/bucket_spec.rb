@@ -81,14 +81,30 @@ describe BucketController do
 
   context '#list' do
     it 'returns a list of buckets for the current project' do
+      bucket1 = create( :bucket, project_name: 'athena', name: 'files', access: 'viewer', owner: 'metis' )
       bucket2 = create( :bucket, project_name: 'athena', name: 'extra', access: 'viewer', owner: 'metis' )
+      bucket3 = create( :bucket, project_name: 'athena', name: 'magma', access: 'viewer', owner: 'athena' )
 
       token_header(:viewer)
       get('/athena/list')
 
       expect(last_response.status).to eq(200)
 
+      expect(json_body[:buckets].count).to eq(3)
       expect(json_body[:buckets]).to eq(Metis::Bucket.all.map(&:to_hash))
+    end
+
+    it 'returns only visible buckets for the current project' do
+      bucket1 = create( :bucket, project_name: 'athena', name: 'files', access: 'viewer', owner: 'metis' )
+      bucket2 = create( :bucket, project_name: 'athena', name: 'extra', access: 'editor', owner: 'metis' )
+      bucket3 = create( :bucket, project_name: 'athena', name: 'magma', access: 'administrator', owner: 'athena' )
+
+      token_header(:viewer)
+      get('/athena/list')
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:buckets]).to eq([bucket1.to_hash])
     end
   end
 
