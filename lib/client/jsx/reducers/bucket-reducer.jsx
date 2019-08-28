@@ -29,6 +29,14 @@ const addBuckets = (old_buckets, action) => {
   };
 }
 
+const removeBucket = (old_buckets, action) => {
+  let { bucket } = action;
+
+  let { [bucket.bucket_name]: deleted_bucket, ...new_buckets } = old_buckets;
+
+  return new_buckets;
+}
+
 const buckets = (old_buckets, action) => {
   if (!old_buckets) old_buckets = {};
 

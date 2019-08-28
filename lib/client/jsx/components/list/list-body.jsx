@@ -18,7 +18,6 @@ class ListBody extends React.Component{
 
     return (
       <div id='list-body-group'>
-        {/* Render the incomplete uploads. */}
         { (Object.values(uploads).length) ?
             Object.values(uploads).map( upload =>
               <ListUpload
@@ -53,6 +52,7 @@ class ListBody extends React.Component{
             )
             : null
         }
+        { !download_files.length && !download_folders.length && !Object.values(uploads).length && <div className='empty'>No contents</div> }
       </div>
     );
   }

@@ -21,17 +21,17 @@ class BucketControl extends React.Component {
     showDialog(dialog);
   }
 
-  removeBucket() {
-    let { removeBucket, bucket } = this.props;
+  destroyBucket() {
+    let { destroyBucket, bucket } = this.props;
 
-    removeFolder(bucket);
+    destroyBucket(bucket);
   }
 
   render() {
     let { bucket } = this.props;
     let items = [
       { label: 'Configure bucket', callback: this.configureBucket.bind(this), show: true },
-      bucket.count == 0 && { label: 'Remove bucket', callback: this.removeBucket.bind(this) }
+      bucket.count == 0 && { label: 'Remove bucket', callback: this.destroyBucket.bind(this) }
     ].filter(_=>_);
     return <MenuControl items={items}/>;
   }
@@ -40,7 +40,7 @@ class BucketControl extends React.Component {
 export default connect(
   null,
   (dispatch) => ({
-    removeBucket: (bucket) => dispatch({ type: 'REMOVE_BUCKET', bucket }),
+    destroyBucket: (bucket) => dispatch({ type: 'DESTROY_BUCKET', bucket }),
     updateBucket: (bucket) => dispatch({ type: 'UPDATE_BUCKET', bucket}),
     showDialog: (dialog) => dispatch({ type: 'SHOW_DIALOG', dialog})
   })

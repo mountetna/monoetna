@@ -9,3 +9,6 @@ export const postUpdateBucket = (project_name, bucket) =>
 
 export const postCreateBucket = (project_name, bucket) =>
   json_post(`/${project_name}/bucket/create/${bucket.bucket_name}`, bucket);
+
+export const deleteBucket = (project_name, bucket_name) =>
+  json_delete(`/${project_name}/bucket/remove/${bucket_name}`);
