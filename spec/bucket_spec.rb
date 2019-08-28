@@ -180,7 +180,7 @@ describe BucketController do
       bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
 
       token_header(:admin)
-      json_post('/athena/bucket/update/my_bucket', owner: 'athena', access: 'viewer', description: 'My Bucket')
+      json_post('/athena/bucket/update/my_bucket', access: 'viewer', description: 'My Bucket')
 
       # the record remains
       bucket.refresh
@@ -188,7 +188,6 @@ describe BucketController do
 
       # the data is updated
       expect(bucket.name).to eq('my_bucket')
-      expect(bucket.owner).to eq('athena')
       expect(bucket.access).to eq('viewer')
       expect(bucket.description).to eq('My Bucket')
 
@@ -197,25 +196,27 @@ describe BucketController do
       expect(json_body[:bucket]).to eq(bucket.to_hash)
     end
 
-    it 'requires a legal owner' do
+    it 'cannot update owner' do
       bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
 
       token_header(:admin)
-      json_post('/athena/bucket/update/my_bucket', owner: 'outis', access: 'viewer', description: 'My Bucket')
+      json_post('/athena/bucket/update/my_bucket', owner: 'athena', access: 'viewer', description: 'My Bucket')
 
       # the record remains
       bucket.refresh
       expect(Metis::Bucket.all).to eq([bucket])
 
-      # the data remains
+      # the data is updated
       expect(bucket.name).to eq('my_bucket')
-      expect(bucket.owner).to eq('metis')
-      expect(bucket.access).to eq('editor')
-      expect(bucket.description).to be_nil
+      expect(bucket.access).to eq('viewer')
+      expect(bucket.description).to eq('My Bucket')
 
-      # an error is returned
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid owner')
+      # except the owner is unchanged
+      expect(bucket.owner).to eq('metis')
+
+      # we get the new bucket back
+      expect(last_response.status).to eq(200)
+      expect(json_body[:bucket]).to eq(bucket.to_hash)
     end
 
     it 'requires a legal access' do
