@@ -26,7 +26,7 @@ $dialog-border: 1px solid #888;
         font-size: 1.0em;
         color: #888;
         &:not(:last-child) {
-          border: $slight-rule;
+          border-bottom: $slight-rule;
         }
         &:hover {
           background: #e6fafc;

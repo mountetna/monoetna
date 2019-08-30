@@ -6,11 +6,11 @@ const UploadButton = ({onClick, icon}) =>
     <span className={`fas fa-fw fa-${icon}`}></span>
   </button>;
 
-const UploadControl = ({ upload, queueUpload, pauseUpload, cancelUpload, selectUpload }) => {
+const UploadControl = ({ upload, continueUpload, pauseUpload, cancelUpload, selectUpload }) => {
   let invoke = (callback) => () => callback(upload);
 
   let buttonProps = {
-    paused: { icon: 'play', onClick: invoke(queueUpload) },
+    paused: { icon: 'play', onClick: invoke(continueUpload) },
     active: { icon: 'pause', onClick: invoke(pauseUpload) },
     failed: { icon: 'retweet', onClick: invoke(selectUpload) }
   };
@@ -30,7 +30,7 @@ export default connect(
   // map dispatch
   (dispatch) => ({
     cancelUpload: (upload) => dispatch({ type: 'CANCEL_UPLOAD', upload }),
-    queueUpload: (upload) => dispatch({ type: 'QUEUE_UPLOAD', upload }),
+    continueUpload: (upload) => dispatch({ type: 'CONTINUE_UPLOAD', upload }),
     pauseUpload: (upload) => dispatch({ type: 'PAUSE_UPLOAD', upload }),
   })
 )(UploadControl);

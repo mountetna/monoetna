@@ -161,10 +161,11 @@ class UploadController < Metis::Controller
 
     raise Etna::BadRequest, 'Upload has not been started' unless upload
 
+    response = success_json(upload: upload.to_hash)
     # axe the upload data and record
     upload.delete_with_partial!
 
-    return success('deleted')
+    return response
   end
 
   private

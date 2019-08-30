@@ -45,3 +45,16 @@ export const json_fetch = (method) => (path, params) => fetch(path,
 export const json_get = json_fetch('GET');
 export const json_delete = json_fetch('DELETE');
 export const json_post = json_fetch('POST');
+
+export const form_post = (path, params) => {
+  let form = new FormData();
+
+  Object.keys(params).forEach(key => form.append(key, params[key]));
+
+  return fetch(path,
+    {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: form
+    }).then(checkStatus).then(parseJSON);
+}

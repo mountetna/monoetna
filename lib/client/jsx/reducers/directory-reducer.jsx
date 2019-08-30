@@ -14,11 +14,10 @@ const directory = (state, action) => {
   };
 
   switch(action.type) {
-    case 'FILE_UPLOAD_STATUS':
-    case 'FILE_UPLOAD_SPEED':
-    case 'FILE_UPLOAD_AUTHORIZED':
-    case 'FILE_UPLOAD_SELECT_PROJECT':
-    case 'FILE_UPLOAD_REMOVED':
+    case 'UPLOAD_STATUS':
+    case 'UPLOAD_SPEED':
+    case 'ADD_UPLOAD':
+    case 'REMOVE_UPLOAD':
       return {
         ...state,
         uploads: uploads(state.uploads,action)
