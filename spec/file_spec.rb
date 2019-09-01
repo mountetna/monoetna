@@ -426,8 +426,21 @@ describe FileController do
 
       @wisdom_file.backup!
 
+      expect(Metis::Backup.count).to eq(1)
+
       @wisdom_file.refresh
-      expect(@wisdom_file.archive_id).to eq('archive_id')
+      expect(@wisdom_file.backup).to eq(Metis::Backup.first)
+    end
+
+    it 'reuses an existing backup' do
+      backup = create(:backup, archive_id: "archived", md5_hash: @wisdom_file.file_hash, description: "description");
+
+      @wisdom_file.backup!
+
+      expect(Metis::Backup.count).to eq(1)
+
+      @wisdom_file.refresh
+      expect(@wisdom_file.backup).to eq(backup)
     end
   end
 end

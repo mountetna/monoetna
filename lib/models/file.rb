@@ -5,6 +5,7 @@ class Metis
 
     many_to_one :bucket
     many_to_one :folder
+    many_to_one :backup
 
     FILENAME_MATCH=/[^<>:;,?"*\|\/\x00-\x1f]+/x
 
@@ -156,7 +157,7 @@ class Metis
         created_at: created_at.iso8601,
         author: author,
         file_hash: file_hash,
-        archive_id: archive_id,
+        archive_id: backup&.archive_id,
         read_only: read_only?,
         size: actual_size,
         download_url: request ? Metis::File.download_url(
@@ -211,9 +212,9 @@ class Metis
     end
 
     def backup!
-      return if !file_hash || archive_id
+      return if !file_hash || backup_id
 
-      Metis.instance.backup.archive(
+      Metis.instance.archiver.archive(
         project_name,
         self
       )
@@ -234,8 +235,8 @@ class Metis
       end
 
       # clear the hash for recomputation
-      # clear the archive_id for re-backup
-      update(file_hash: nil, archive_id: nil)
+      # clear the backup_id for re-backup
+      update(file_hash: nil, backup_id: nil)
     end
   end
 end

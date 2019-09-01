@@ -89,6 +89,9 @@ FactoryBot.define do
   factory :upload, class: Metis::Upload do
     to_create(&:save)
   end
+  factory :backup, class: Metis::Backup do
+    to_create(&:save)
+  end
 end
 
 def fixture(name)

@@ -175,7 +175,7 @@ class Metis
       puts "Found #{needs_hash.count} files to be checksummed."
       needs_hash.each(&:compute_hash!)
 
-      needs_archive = Metis::File.exclude(file_hash: nil).where(archive_id: nil).order(:updated_at).all[0..10]
+      needs_archive = Metis::File.exclude(file_hash: nil).where(backup_id: nil).order(:updated_at).all[0..10]
       puts "Found #{needs_archive.count} files to be archived."
       needs_archive.each do |file|
         begin
