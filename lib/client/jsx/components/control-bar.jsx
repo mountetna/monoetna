@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { selectCurrentFolder } from '../selectors/directory-selector';
 import Icon from './icon';
 
 // this is the Metis control bar, which contains basic operations
 // like 'upload file' and 'create folder'
 
-const ControlButton = ({onClick, icon, overlay, title}) => {
+export const ControlButton = ({onClick, icon, overlay, title}) => {
   return <button className='control-btn' onClick={ onClick } title={ title }>
     <Icon icon={icon} overlay={overlay}/>
   </button>
@@ -14,11 +13,11 @@ const ControlButton = ({onClick, icon, overlay, title}) => {
 
 class ControlBar extends React.Component {
   selectFolder(){
-    let { current_folder } = this.props;
+    let { folder_name, bucket_name, createFolder } = this.props;
 
-    let folder_name = prompt("Enter the folder name", "Untitled Folder");
-    if (!folder_name) return;
-    this.props.createFolder(folder_name, current_folder);
+    let new_folder_name = prompt("Enter the folder name", "Untitled Folder");
+
+    if (new_folder_name) createFolder(bucket_name, folder_name, new_folder_name);
   }
 
   selectFile() {
@@ -26,13 +25,13 @@ class ControlBar extends React.Component {
   }
 
   fileSelected(event){
-    let { current_folder, fileSelected } = this.props;
+    let { bucket_name, folder_name, fileSelected } = this.props;
 
     if(event === undefined) return;
 
     let { files } = this.input;
 
-    for (let i = 0; i < files.length; i++) fileSelected( files[i], current_folder );
+    for (let i = 0; i < files.length; i++) fileSelected(bucket_name, folder_name, files[i]);
 
     // Reset the input field.
     this.input.value = '';
@@ -57,10 +56,10 @@ class ControlBar extends React.Component {
 
 export default connect(
   // map state
-  (state) => ({current_folder: selectCurrentFolder(state)}),
+  null,
 
   (dispatch) => ({
-    fileSelected: (file, folder_name)=>dispatch({ type: 'FILE_SELECTED', file, folder_name }),
-    createFolder: (folder_name, parent_folder)=>dispatch({ type: 'CREATE_FOLDER', folder_name, parent_folder })
+    fileSelected: (bucket_name, folder_name, file)=>dispatch({ type: 'FILE_SELECTED', file, folder_name, bucket_name }),
+    createFolder: (bucket_name, parent_folder, folder_name)=>dispatch({ type: 'CREATE_FOLDER', folder_name, parent_folder, bucket_name })
   })
 )(ControlBar);

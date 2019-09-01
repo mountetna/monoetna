@@ -3,6 +3,7 @@ require 'json'
 require_relative './server/controllers/metis_controller'
 require_relative './server/controllers/file_controller'
 require_relative './server/controllers/folder_controller'
+require_relative './server/controllers/bucket_controller'
 require_relative './server/controllers/upload_controller'
 require_relative './server/controllers/download_controller'
 require_relative './server/controllers/client_controller'
@@ -12,7 +13,8 @@ class Metis
   class Server < Etna::Server
     get '/' do success('Metis') end
     get '/:project_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
-    get '/:project_name/browse/*folder_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/browse/:bucket_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/browse/:bucket_name/*folder_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
 
     post '/authorize/upload', action: 'upload#authorize', auth: { user: { can_edit?: :project_name } }
     post '/:project_name/upload/:bucket_name/*file_path', action: 'upload#upload', auth: { hmac: true }, as: :upload
@@ -22,21 +24,27 @@ class Metis
 
     get '/:project_name/list/:bucket_name/*folder_path', action: 'folder#list', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/:bucket_name', action: 'folder#list', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/list/', action: 'bucket#list', auth: { user: { can_view?: :project_name } }
+
+    # bucket operations
+    post '/:project_name/bucket/create/:bucket_name', action: 'bucket#create', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/bucket/update/:bucket_name', action: 'bucket#update', auth: { user: { is_admin?: :project_name } }
+    delete '/:project_name/bucket/remove/:bucket_name', action: 'bucket#remove', auth: { user: { is_admin?: :project_name } }
 
     # folder operations
-    post '/:project_name/create_folder/:bucket_name/*folder_path', action: 'folder#create', auth: { user: { can_edit?: :project_name } }
-    delete '/:project_name/remove_folder/:bucket_name/*folder_path', action: 'folder#remove', auth: { user: { can_edit?: :project_name } }
-    post '/:project_name/protect_folder/:bucket_name/*folder_path', action: 'folder#protect', auth: { user: { is_admin?: :project_name } }
-    post '/:project_name/unprotect_folder/:bucket_name/*folder_path', action: 'folder#unprotect', auth: { user: { is_admin?: :project_name } }
-    post '/:project_name/rename_folder/:bucket_name/*folder_path', action: 'folder#rename', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/folder/create/:bucket_name/*folder_path', action: 'folder#create', auth: { user: { can_edit?: :project_name } }
+    delete '/:project_name/folder/remove/:bucket_name/*folder_path', action: 'folder#remove', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/folder/protect/:bucket_name/*folder_path', action: 'folder#protect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/folder/unprotect/:bucket_name/*folder_path', action: 'folder#unprotect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/folder/rename/:bucket_name/*folder_path', action: 'folder#rename', auth: { user: { can_edit?: :project_name } }
 
     # file operations
-    delete '/:project_name/remove_file/:bucket_name/*file_path', action: 'file#remove', auth: { user: { can_edit?: :project_name } }
-    post '/:project_name/protect_file/:bucket_name/*file_path', action: 'file#protect', auth: { user: { is_admin?: :project_name } }
-    post '/:project_name/unprotect_file/:bucket_name/*file_path', action: 'file#unprotect', auth: { user: { is_admin?: :project_name } }
-    post '/:project_name/rename_file/:bucket_name/*file_path', action: 'file#rename', auth: { user: { can_edit?: :project_name } }
+    delete '/:project_name/file/remove/:bucket_name/*file_path', action: 'file#remove', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/file/protect/:bucket_name/*file_path', action: 'file#protect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/file/unprotect/:bucket_name/*file_path', action: 'file#unprotect', auth: { user: { is_admin?: :project_name } }
+    post '/:project_name/file/rename/:bucket_name/*file_path', action: 'file#rename', auth: { user: { can_edit?: :project_name } }
 
-    def initialize(config)
+    def initialize
       super
       application.load_models
     end

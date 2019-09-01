@@ -9,7 +9,7 @@ describe DownloadController do
     before(:each) do
       @tips = "1. Burn the hydra's neck after cutting.\n2. Use a river to clean the stables."
 
-      @location = stubs.create_file('labors', 'readme_hercules.txt', @tips)
+      @location = stubs.create_file('labors', 'files', 'readme_hercules.txt', @tips)
 
       default_bucket('labors')
     end

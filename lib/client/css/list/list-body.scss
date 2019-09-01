@@ -38,7 +38,7 @@
 
 
     .list-entry-column-group {
-      flex: 1 1;
+      flex: 0 1;
       overflow: hidden;
       align-self: center;
       padding-right: 5px;
@@ -65,6 +65,10 @@
         .upload {
           color: #eab;
         }
+
+        .trash {
+          color: green;
+        }
       }
 
       &.status {
@@ -80,6 +84,10 @@
 
       &.control {
         overflow: unset;
+      }
+
+      &.description {
+        line-height: 50px;
       }
 
       &.size {
@@ -119,6 +127,12 @@
         }
       }
     }
+  }
+
+  .empty {
+    font-family: $base-font;
+    padding: 5px 0px;
+    color: #ccc;
   }
 }
 

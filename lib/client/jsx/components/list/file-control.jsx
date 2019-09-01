@@ -52,12 +52,11 @@ class FileControl extends React.Component{
 
 export default connect(
   null,
-  (dispatch) => ({
-    showDialog: (dialog) => dispatch({ type: 'SHOW_DIALOG', dialog}),
-    removeFile: (file) => dispatch({ type: 'REMOVE_FILE', file }),
-    unprotectFile: (file) => dispatch({ type: 'UNPROTECT_FILE', file }),
-    protectFile: (file) => dispatch({ type: 'PROTECT_FILE', file }),
-    renameFile: (file, new_file_path) => dispatch({ type: 'RENAME_FILE', file, new_file_path })
+  (dispatch, {bucket_name}) => ({
+    removeFile: (file) => dispatch({ type: 'REMOVE_FILE', file, bucket_name }),
+    unprotectFile: (file) => dispatch({ type: 'UNPROTECT_FILE', file, bucket_name }),
+    protectFile: (file) => dispatch({ type: 'PROTECT_FILE', file, bucket_name }),
+    renameFile: (file, new_file_path) => dispatch({ type: 'RENAME_FILE', file, new_file_path, bucket_name })
   })
 )(FileControl);
 

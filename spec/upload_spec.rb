@@ -21,7 +21,7 @@ describe UploadController do
 
 
   def upload_path(project_name,file_name)
-    "#{project_name}/upload/files/#{file_name}"
+    "/#{project_name}/upload/files/#{file_name}"
   end
 
   context '#authorize' do
@@ -34,11 +34,10 @@ describe UploadController do
 
       # we use our token to authorize an upload
       token_header(:editor)
-      json_post('authorize/upload', params)
+      json_post('/authorize/upload', params)
 
       # we expect an authorization url in return
-      url = last_response.body
-      uri = URI(url)
+      uri = URI(json_body[:url])
       hmac_params = Rack::Utils.parse_nested_query(uri.query)
 
       expect(last_response.status).to eq(200)
@@ -65,13 +64,13 @@ describe UploadController do
 
       # we use our token to authorize an upload
       token_header(:editor)
-      json_post('authorize/upload', params)
+      json_post('/authorize/upload', params)
 
       # the upload request is okay despite pre-existing
       expect(last_response.status).to eq(200)
 
       # we expect an authorization url in return
-      uri = URI(last_response.body)
+      uri = URI(json_body[:url])
       expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_path]}")
 
       hmac_params = Rack::Utils.parse_nested_query(uri.query)
@@ -99,7 +98,7 @@ describe UploadController do
         # we try each example and see if it returns the
         # appropriate status
         examples.each do |example|
-          json_post('authorize/upload', params.merge(file_path: example))
+          json_post('/authorize/upload', params.merge(file_path: example))
           expect(last_response.status).to eq(status)
         end
       end
@@ -120,7 +119,7 @@ describe UploadController do
 
       # we use our token to authorize an upload
       token_header(:editor)
-      json_post('authorize/upload', params)
+      json_post('/authorize/upload', params)
 
       # we expect to be forbidden from uploading
       expect(last_response.status).to eq(403)
@@ -143,7 +142,7 @@ describe UploadController do
 
       # we use our token to authorize an upload
       token_header(:editor)
-      json_post('authorize/upload', params)
+      json_post('/authorize/upload', params)
 
       # we expect to be forbidden from uploading
       expect(last_response.status).to eq(422)
@@ -161,11 +160,11 @@ describe UploadController do
       }
       # we use our token to authorize an upload
       token_header(:editor)
-      json_post('authorize/upload', params)
+      json_post('/authorize/upload', params)
 
       # we expect to be forbidden from uploading
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Folder is read-only!')
+      expect(json_body[:error]).to eq('Folder is read-only')
       expect(Metis::Upload.count).to eq(0)
     end
   end
@@ -256,7 +255,7 @@ describe UploadController do
 
       # we are forbidden
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('No matching upload!')
+      expect(json_body[:error]).to eq('No matching upload')
     end
   end
 
@@ -386,7 +385,7 @@ describe UploadController do
         }.merge(params)
       )
       Timecop.return
-      @current_file = stubs.create_file('athena', file_name, contents)
+      @current_file = stubs.create_file('athena', 'files', file_name, contents)
     end
 
     it 'finishes the upload' do
@@ -487,7 +486,7 @@ describe UploadController do
 
     it 'sets a folder name when it completes' do
       blueprints_folder = create_folder('athena', 'blueprints')
-      stubs.create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
       # the next blob completes the data
       upload = prep_upload('blueprints/wisdom.txt')
 
@@ -621,7 +620,7 @@ describe UploadController do
 
       # our file has existing data
       file = create_file('athena', 'wisdom.txt', WISDOM)
-      current_file = stubs.create_file('athena', 'wisdom.txt', WISDOM)
+      current_file = stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
       partial_file = stubs.create_partial('athena', file.file_name, partial, @metis_uid)
 
       # there is an upload waiting

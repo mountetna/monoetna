@@ -5,10 +5,12 @@ import user from './reducers/user-reducer';
 import dialog from './reducers/dialog-reducer';
 
 import * as fileActions from './actions/file_actions';
+import * as folderActions from './actions/folder_actions';
+import * as bucketActions from './actions/bucket_actions';
 import * as uploadActions from './actions/upload_actions';
 
-import asyncRouter from './routers/async-router';
-import workRouter from './routers/work-router';
+import asyncDispatcher from './dispatchers/async-dispatcher';
+import workDispatcher from './dispatchers/work-dispatcher';
 
 const createStore = () => {
   let reducers = {
@@ -20,6 +22,8 @@ const createStore = () => {
   // action handlers to import
   let actions = {
     ...fileActions,
+    ...folderActions,
+    ...bucketActions,
     ...uploadActions
 
     // here you may define aliases to other actions,
@@ -29,8 +33,8 @@ const createStore = () => {
 
 
   let middleWares = [
-    asyncRouter(actions),
-    workRouter()
+    asyncDispatcher(actions),
+    workDispatcher()
   ];
 
   if(process.env.NODE_ENV != 'production') middleWares.push(ReduxLogger.createLogger());

@@ -1,7 +1,7 @@
 require 'fog/aws'
 
 class Metis
-  class Backup
+  class Archiver
     def initialize(config)
       @config = config
       @glacier = {}
@@ -11,13 +11,28 @@ class Metis
       project_name = project_name.to_sym
       raise ArgumentError, "No vault defined for project #{project_name}!" unless @config.has_key?(project_name)
 
-      archive = vault(project_name).archives.create(
-        body: ::File.open(file.location),
-        multipart_chunk_size: 64*1024*1024,
-        description: "md5:#{file.file_hash} #{file.file_path}"
-      )
+      backup = Metis::Backup.where(md5_hash: file.file_hash).first
 
-      file.update(archive_id: archive.id) if archive
+      if !backup
+        description = "md5:#{file.file_hash} #{file.file_path}"
+
+        archive = vault(project_name).archives.create(
+          body: ::File.open(file.location),
+          multipart_chunk_size: 64*1024*1024,
+          description: "md5:#{file.file_hash} #{file.file_path}"
+        )
+
+        return nil unless archive
+
+        backup = Metis::Backup.create(
+          md5_hash: file.file_hash,
+          description: description,
+          archive_id: archive.id
+        )
+        backup.save
+      end
+
+      file.update(backup_id: backup.id)
     end
 
     private

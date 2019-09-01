@@ -4,39 +4,30 @@ import { connect } from 'react-redux';
 class MenuControl extends React.Component{
   constructor(props) {
     super(props);
-    this.state = { dialog_shown: false };
-  }
-
-  dismissDialog() {
-    this.setState({dialog_shown: false});
+    this.control = React.createRef();
   }
 
   showDialog() {
+    console.log(this.control);
     let { showDialog, items } = this.props;
-    let { top, left } = this.control.getBoundingClientRect();
-
-    this.setState({ dialog_shown: true });
+    let { top, right } = this.control.current.getBoundingClientRect();
 
     let dialog = {
       type: 'list',
       items,
-      dismiss: this.dismissDialog.bind(this),
-      top,
-      left
+      width: 175,
+      top, left: right
     };
 
     showDialog(dialog);
   }
 
-  setControlRef(ref) {
-    this.control = ref;
-  }
-
   render() {
-    let { dialog_shown } = this.state;
-    let className = `control-btn-group ${dialog_shown ? 'selected' : ''}`;
+    let className = 'control-btn-group';
     return (
-      <div ref={ this.setControlRef.bind(this) } className={className} onClick={this.showDialog.bind(this)}>
+      <div ref={this.control}
+        className={className}
+        onClick={this.showDialog.bind(this)}>
         &bull;
         &bull;
         &bull;

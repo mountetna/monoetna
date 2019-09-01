@@ -10,7 +10,7 @@ class Metis
     one_to_many :files
 
     def self.from_path(bucket, folder_path)
-      return [] unless folder_path && bucket
+      return [] unless folder_path && !folder_path.empty? && bucket
 
       folder_names = folder_path.split(%r!/!)
 
@@ -45,6 +45,10 @@ class Metis
       return [] unless !folders.empty? && folders.first.root_folder? && folders.length == folder_names.length
 
       return folders
+    end
+
+    def self.exists?(folder_name, bucket, parent_folder)
+      Metis::Folder.where(folder_name: folder_name, bucket: bucket, folder_id: parent_folder ? parent_folder.id : nil).count > 0
     end
 
     def parent_folders
@@ -123,12 +127,54 @@ class Metis
       FileUtils.mkdir_p(location)
     end
 
+    def self.assimilate(file_path, bucket, parent_folder=nil)
+      folder_path = file_path = ::File.expand_path(file_path)
+      folder_name = file_name = ::File.basename(file_path)
+
+      raise ArgumentError unless ::File.exists?(file_path)
+      raise ArgumentError unless Metis::File.valid_file_name?(file_name)
+      raise ArgumentError if Metis::File.exists?(file_name, bucket, parent_folder) || Metis::Folder.exists?(folder_name, bucket, parent_folder)
+
+      if ::File.directory?(folder_path)
+        # create the folder
+        metis_folder = Metis::Folder.create(
+          project_name: bucket.project_name,
+          folder_name: folder_name,
+          bucket: bucket,
+          folder: parent_folder,
+          author: ''
+        )
+        metis_folder.create_actual_folder!
+
+        puts ">#{folder_path} => #{parent_folder ? parent_folder.folder_path.join('/') : nil}#{folder_name}"
+
+        Dir.glob(["#{folder_path}/*"]).each do |file|
+          metis_folder.assimilate(file)
+        end
+      else
+        puts ".#{file_path} => #{parent_folder ? parent_folder.folder_path.join('/') : nil}#{file_name}"
+        metis_file = Metis::File.find_or_create(
+          project_name: bucket.project_name,
+          file_name: file_name,
+          folder_id: parent_folder ? parent_folder.id : nil,
+          bucket: bucket,
+          author: ''
+        )
+        metis_file.set_file_data(file_path, true)
+      end
+    end
+
+    def assimilate(file_path)
+      Metis::Folder.assimilate(file_path, self.bucket, self)
+    end
+
     def to_hash
       {
         folder_name: folder_name,
         bucket_name: bucket.name,
         folder_path: ::File.join(folder_path),
         project_name: project_name,
+        read_only: read_only,
         updated_at: updated_at.iso8601,
         created_at: created_at.iso8601,
         author: author

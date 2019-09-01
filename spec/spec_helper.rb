@@ -12,14 +12,15 @@ ENV['METIS_ENV'] = 'test'
 
 require_relative '../lib/metis'
 require_relative '../lib/server'
-
+METIS_CONFIG=YAML.load(File.read("config.yml"))
+Metis.instance.configure(METIS_CONFIG)
 OUTER_APP = Rack::Builder.new do
   use Rack::Static, urls: ['/css', '/js', '/fonts', '/img'], root: 'lib/client'
   use Etna::ParseBody
   use Etna::SymbolizeParams
-  use Metis::SetUid
   use Etna::TestAuth
-  run Metis::Server.new(YAML.load(File.read("config.yml")))
+  use Metis::SetUid
+  run Metis::Server.new
 end
 
 RSpec.configure do |config|
@@ -88,6 +89,9 @@ FactoryBot.define do
   factory :upload, class: Metis::Upload do
     to_create(&:save)
   end
+  factory :backup, class: Metis::Backup do
+    to_create(&:save)
+  end
 end
 
 def fixture(name)
@@ -99,7 +103,7 @@ def json_body
 end
 
 def json_post(endpoint, hash)
-  post(URI.encode("/#{endpoint}"), hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
+  post(URI.encode(endpoint), hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
 end
 
 def stubs
@@ -117,13 +121,6 @@ end
 class Stubs
   def initialize
     @stubs = []
-    @bucket_name = 'files'
-  end
-
-  def create_file(project_name, name, contents)
-    file_path = project_path(project_name,bucket_path(name))
-    stub_file(file_path, contents)
-    add_stub(file_path)
   end
 
   def create_partial(project_name, name, contents, metis_uid)
@@ -141,26 +138,39 @@ class Stubs
     add_stub(data_path)
   end
 
-  def create_folder(project_name, name)
-    folder_path = project_path(project_name, bucket_path(name))
+  def create_bucket(project_name, bucket_name)
+    bucket_path = project_path(project_name, "buckets/#{bucket_name}")
+    stub_dir(bucket_path)
+    add_stub(bucket_path)
+  end
+
+  def create_folder(project_name, bucket_name, name)
+    folder_path = project_path(project_name, bucket_path(bucket_name, name))
     stub_dir(folder_path)
     add_stub(folder_path)
   end
 
-  def add_file(project_name, name)
-    file_path = project_path(project_name, bucket_path(name))
+  def create_file(project_name, bucket_name, name, contents)
+    file_path = project_path(project_name, bucket_path(bucket_name, name))
+    stub_file(file_path, contents)
     add_stub(file_path)
   end
 
-  def add_folder(project_name, name)
-    folder_path = project_path(project_name, bucket_path(name))
+  # have stubs track a file created by someone else
+  def add_file(project_name, bucket_name, name)
+    file_path = project_path(project_name, bucket_path(bucket_name, name))
+    add_stub(file_path)
+  end
+
+  def add_folder(project_name, bucket_name, name)
+    folder_path = project_path(project_name, bucket_path(bucket_name, name))
     add_stub(folder_path)
   end
 
   private
 
-  def bucket_path(name)
-    "#{@bucket_name}/#{safe_path(name)}"
+  def bucket_path(bucket_name, name)
+    "buckets/#{bucket_name}/#{safe_path(name)}"
   end
 
   def project_path(project_name, name)
@@ -196,7 +206,7 @@ class Stubs
 
   def ensure
     [ :athena, :labors ].each do |project|
-      [ :uploads, :files ].each do |bucket|
+      [ :uploads, :buckets ].each do |bucket|
         dir = "spec/#{project}/#{bucket}"
         FileUtils.rm_r(dir) if Dir.exists?(dir)
         FileUtils.mkdir_p(dir)
@@ -241,10 +251,10 @@ AUTH_USERS = {
     email: 'metis@olympus.org', first: 'Metis', perm: 'e:athena'
   },
   viewer: {
-    email: 'zeus@olympus.org', first: 'Zeus', perm: 'v:athena'
+    email: 'athena@olympus.org', first: 'Athena', perm: 'v:athena'
   },
   admin: {
-    email: 'metis@olympus.org', first: 'Metis', perm: 'a:athena'
+    email: 'zeus@olympus.org', first: 'Zeus', perm: 'a:athena'
   }
 }
 def token_header(user_type)
@@ -257,7 +267,10 @@ end
 
 def default_bucket(project_name)
   @default_bucket ||= {}
-  @default_bucket[project_name] ||= create( :bucket, project_name: project_name, name: 'files' )
+  @default_bucket[project_name] ||= begin
+    stubs.create_bucket(project_name, 'files')
+    create( :bucket, project_name: project_name, name: 'files', owner: 'metis', access: 'viewer')
+  end
 end
 
 def create_upload(project_name, file_name, uid, params={})
@@ -279,7 +292,7 @@ end
 def create_folder(project_name, folder_name, params={})
   create( :folder,
     {
-      bucket: default_bucket(project_name),
+      bucket: params[:bucket] || default_bucket(project_name),
       project_name: project_name,
       author: 'metis|Metis',
       folder_name: folder_name,
@@ -290,7 +303,7 @@ end
 def create_file(project_name, file_name, contents, params={})
   create( :file,
     {
-      bucket: default_bucket(project_name),
+      bucket: params[:bucket] || default_bucket(project_name),
       project_name: project_name,
       author: 'metis|Metis',
       file_name: file_name,

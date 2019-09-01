@@ -5,7 +5,7 @@ class DownloadController < Metis::Controller
   end
 
   def download
-    bucket = require_bucket
+    bucket = require_bucket(false)
 
     file = Metis::File.from_path(bucket, @params[:file_path])
 

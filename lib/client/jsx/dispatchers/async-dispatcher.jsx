@@ -2,7 +2,7 @@
 // action names and sends data to them.
 import { camelCase } from '../utils/format';
 
-const asyncRouter = actions => {
+const asyncDispatcher = actions => {
   return store => next => action => {
     let { type, ...args } = action;
 
@@ -11,7 +11,7 @@ const asyncRouter = actions => {
     // execute the action if it is one of our
     // defined action handlers
     if (actions[name]) {
-      actions[name](args)(store.dispatch);
+      actions[name](args)(store.dispatch, store.getState);
       return;
     }
 
@@ -19,4 +19,4 @@ const asyncRouter = actions => {
   }
 }
 
-export default asyncRouter;
+export default asyncDispatcher;

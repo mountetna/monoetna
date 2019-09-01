@@ -1,7 +1,7 @@
 # metis.rb
 require 'sequel'
 require 'fileutils'
-require_relative 'backup'
+require_relative 'archiver'
 
 # This class handles the http request and routing
 class Metis
@@ -25,7 +25,7 @@ class Metis
     config(:project_paths)[project.to_sym]
   end
 
-  def backup
-    @backup ||= Metis::Backup.new(config(:backup))
+  def archiver
+    @archiver ||= Metis::Archiver.new(config(:backup))
   end
 end

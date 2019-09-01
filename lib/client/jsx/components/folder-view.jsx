@@ -1,37 +1,63 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 
 import ListBody  from './list/list-body';
 import ListHead  from './list/list-head';
 import FolderBreadcrumb from './folder-breadcrumb';
 import ControlBar from './control-bar';
 
+const COLUMNS = [
+  { name: 'type', width: '90px' },
+  { name: 'name', width: '60%' },
+  { name: 'status', width: '90px', hide: true },
+  { name: 'updated', width: '30%' },
+  { name: 'size', width: '10%' },
+  { name: 'control', width: '100px', hide: true }
+];
 
-const COLUMN_WIDTHS = {
-  type: '90px',
-  name: '60%',
-  status: '90px',
-  updated: '30%',
-  size: '10%',
-  control: '100px'
-};
+const COLUMN_WIDTHS = COLUMNS.reduce( (widths,column) => {
+  widths[column.name] = column.width;
+  return widths;
+}, {} );
 
 const INVALID = '\ninvalid\n';
 
-const FolderView = ({folder}) =>
-  folder == INVALID ?
-    <div className='invalid-folder-view-group'>
-      Invalid folder!
-    </div>
-  :
-    <div className='folder-view-group'>
-      <div className='control-group'>
-        <FolderBreadcrumb/>
-        <ControlBar/>
-      </div>
-      <div className='listing-group'>
-        <ListHead widths={ COLUMN_WIDTHS } />
-        <ListBody widths={ COLUMN_WIDTHS }/>
-      </div>
-    </div>;
+const InvalidFolder = () => <div className='invalid-folder-view-group'>
+  Invalid folder!
+</div>;
 
-export default FolderView;
+class FolderView extends React.Component {
+  componentDidMount() {
+    let { bucket_name, folder_name, retrieveFiles } = this.props;
+
+    retrieveFiles(bucket_name, folder_name);
+  }
+
+  render() {
+    let { bucket_name, folder_name } = this.props;
+    if (folder_name == INVALID) return <InvalidFolder/>
+
+    return (
+      <div className='folder-view-group'>
+        <div className='control-group'>
+          <FolderBreadcrumb folder_name={folder_name} bucket_name={bucket_name}/>
+          <ControlBar bucket_name={ bucket_name } folder_name={ folder_name }/>
+        </div>
+        <div className='listing-group'>
+          <ListHead columns={ COLUMNS }/>
+          <ListBody widths={ COLUMN_WIDTHS } folder_name={folder_name} bucket_name={bucket_name}/>
+        </div>
+      </div>
+    );
+  }
+}
+
+export default connect(
+  // map state
+  null,
+
+  // map dispatch
+  (dispatch) => ({
+    retrieveFiles: (bucket_name, folder_name) => dispatch({type: 'RETRIEVE_FILES', bucket_name, folder_name})
+  })
+)(FolderView);

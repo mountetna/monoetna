@@ -132,32 +132,33 @@ class Metis
     end
 
     def execute(project_name)
-      bucket = Metis::Bucket.where(
+      buckets = Metis::Bucket.where(
         project_name: project_name,
-        name: 'files'
-      ).first
+      ).all
 
-      # database files
-      audit_files(
-        Metis::File.where(
-          project_name: project_name, bucket: bucket, folder_id: nil
-        ).all
-      )
+      buckets.each do |bucket|
+        # database files
+        audit_files(
+          Metis::File.where(
+            project_name: project_name, bucket: bucket, folder_id: nil
+          ).all
+        )
 
-      audit_folders(
-        Metis::Folder.where(
-          project_name: project_name, bucket: bucket, folder_id: nil
-        ).all
-      )
+        audit_folders(
+          Metis::Folder.where(
+            project_name: project_name, bucket: bucket, folder_id: nil
+          ).all
+        )
 
-      puts 'unaccounted:'
-      audit_dirs(
-        Dir.glob("#{bucket.location}/*").select{|l| ::File.directory?(l)}
-      )
+        puts 'unaccounted:'
+        audit_dirs(
+          Dir.glob("#{bucket.location}/*").select{|l| ::File.directory?(l)}
+        )
 
-      audit_blobs(
-        Dir.glob("#{bucket.location}/*").select{|l| !::File.directory?(l)}
-      )
+        audit_blobs(
+          Dir.glob("#{bucket.location}/*").select{|l| !::File.directory?(l)}
+        )
+      end
     end
 
     def setup(config)
@@ -174,7 +175,7 @@ class Metis
       puts "Found #{needs_hash.count} files to be checksummed."
       needs_hash.each(&:compute_hash!)
 
-      needs_archive = Metis::File.exclude(file_hash: nil).where(archive_id: nil).order(:updated_at).all[0..10]
+      needs_archive = Metis::File.exclude(file_hash: nil).where(backup_id: nil).order(:updated_at).all[0..10]
       puts "Found #{needs_archive.count} files to be archived."
       needs_archive.each do |file|
         begin
@@ -182,6 +183,36 @@ class Metis
         rescue ArgumentError => e
           puts "Could not archive #{file.file_name}"
           next
+        end
+      end
+    end
+
+    def setup(config)
+      super
+      Metis.instance.load_models
+    end
+  end
+
+  class Assimilate < Etna::Command
+    usage '<project> <bucket> <path> <files> Add the indicated (non-tracked) files to Metis at the given path'
+
+    def execute project_name, bucket_name, folder_path, *files
+      folder_path = folder_path.sub(%r!^/!,'')
+
+      bucket = Metis::Bucket.where(project_name: project_name, name: bucket_name).first
+
+      if folder_path.empty?
+        files.each do |file_path|
+          Metis::Folder.assimilate(file_path, bucket)
+        end
+      else
+        metis_folder = Metis::Folder.from_path(bucket, folder_path).last
+        unless metis_folder
+          puts "No such folder #{folder_path}"
+          exit
+        end
+        files.each do |file|
+          metis_folder.assimilate(file)
         end
       end
     end
