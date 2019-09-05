@@ -1,3 +1,5 @@
+@import 'menu-control';
+
 #list-body-group {
   height: 100%;
 
@@ -15,25 +17,8 @@
       background: #eef;
     }
 
-    .control-btn-group {
-      height: 100%;
-      width: 115px;
-      vertical-align: top;
-      border: 1px solid gray;
-      border-radius: 2px;
-      padding: 0px 5px;
-      cursor: pointer;
-      font-size: 12px;
-      display: none;
-      &.selected {
-        display: inline;
-      }
-    }
-
     &:hover {
-      .control-btn-group {
-        display: inline;
-      }
+      @include control-btn-hover;
     }
 
 

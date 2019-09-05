@@ -45,7 +45,7 @@ class ConfigureBucketDialog extends React.Component {
   }
 
   submit() {
-    let { createBucket, updateBucket, mode, dismissDialog } = this.props;
+    let { createBucket, updateBucket, dismissDialog } = this.props;
     let { bucket_name, description, access, access_email } = this.state;
 
     let errors = [];
@@ -67,7 +67,7 @@ class ConfigureBucketDialog extends React.Component {
       return;
     }
 
-    if (mode == 'create')
+    if (createBucket)
       createBucket({ bucket_name, description, access, owner: 'metis' });
     else {
       updateBucket({
@@ -81,7 +81,7 @@ class ConfigureBucketDialog extends React.Component {
 
   render() {
     let { bucket_name, description, access, access_email, errors } = this.state;
-    let { mode, onClick } = this.props;
+    let { createBucket, onClick } = this.props;
     return <div className='config-dialog'>
       <div className='title'>Bucket Configuration</div>
       <div className='errors'>{ errors.map(error => <span className='error'>{error}</span>) }</div>
@@ -110,7 +110,7 @@ class ConfigureBucketDialog extends React.Component {
       </ConfigRow>
       <div className='submit'>
         <span className='button'
-          onClick={ this.submit.bind(this) }>{ mode == 'create' ? 'Create' : 'Update' }</span>
+          onClick={ this.submit.bind(this) }>{ createBucket ? 'Create' : 'Update' }</span>
       </div>
     </div>;
   }

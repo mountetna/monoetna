@@ -38,10 +38,7 @@ class BucketView extends React.Component {
     let { project_name, buckets, showDialog, createBucket } = this.props;
 
     let dialog = {
-      type: 'create-bucket',
-      width: 300,
-      height: 1,
-      top: 0, right: 0, left: 0, bottom: 0,
+      type: 'configure-bucket',
       createBucket
     }
 

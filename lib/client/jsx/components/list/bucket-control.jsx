@@ -12,9 +12,6 @@ class BucketControl extends React.Component {
     console.log(bucket);
     let dialog = {
       type: 'configure-bucket',
-      width: 300,
-      height: 1,
-      top: 0, right: 0, left: 0, bottom: 0,
       updateBucket,
       bucket_name, description, access
     }
