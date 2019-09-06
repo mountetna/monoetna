@@ -25,17 +25,12 @@ const ListEntryFileStatusColumn = ({file, widths}) => (
   </ListEntryColumn>
 );
 
-const ListEntryFileTypeColumn = ({file,widths}) => {
-  let { read_only } = file;
-
-  if (!read_only)
-    return <ListEntryTypeColumn icon='file-alt' widths={widths}/>;
-
-  return <ListEntryColumn className='type' widths={widths}>
-    <Icon icon='file-alt' overlay='lock'/>
-  </ListEntryColumn>;
-
-};
+const ListEntryFileTypeColumn = ({file: { read_only },widths}) =>
+  !read_only
+    ? <ListEntryTypeColumn icon='file-alt' widths={widths}/>
+    : <ListEntryColumn className='type' widths={widths}>
+        <Icon icon='file-alt' overlay='lock'/>
+      </ListEntryColumn>;
 
 const ListEntrySizeColumn = ({file,widths}) =>
   <ListEntryColumn className='size' widths={widths}>

@@ -83,7 +83,7 @@ describe FileController do
       remove_file('wisdom.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Cannot remove file')
+      expect(json_body[:error]).to eq('File is read-only')
       expect(@wisdom_file).to be_has_data
       expect(Metis::File.all).to include(@wisdom_file)
     end
@@ -97,7 +97,7 @@ describe FileController do
       remove_file('wisdom.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Cannot remove file')
+      expect(json_body[:error]).to eq('File is read-only')
       expect(@wisdom_file).to be_has_data
       expect(Metis::File.all).to include(@wisdom_file)
     end

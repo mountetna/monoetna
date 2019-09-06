@@ -1,7 +1,15 @@
 import * as React from 'react';
 import { ListEntryColumn, ListEntryTypeColumn, ListEntryUpdatedColumn } from './list-entry';
 import FolderControl from './folder-control';
+import Icon from '../icon';
 import { FolderLink } from '../folder-link';
+
+const ListEntryFolderTypeColumn = ({folder: { read_only },widths}) =>
+  !read_only
+    ? <ListEntryTypeColumn icon='folder' widths={widths}/>
+    : <ListEntryColumn className='type' widths={widths}>
+        <Icon icon='folder' overlay='lock'/>
+      </ListEntryColumn>;
 
 const ListEntryFolderNameColumn = ({folder, bucket_name, current_folder, widths}) => (
   <ListEntryColumn className='name' widths={widths}>
@@ -17,7 +25,7 @@ const ListEntryFolderNameColumn = ({folder, bucket_name, current_folder, widths}
 
 const ListFolder = ({ folder, current_folder, bucket_name, widths }) => (
   <div className='list-entry-group'>
-    <ListEntryTypeColumn icon='folder' widths={ widths } />
+    <ListEntryFolderTypeColumn widths={widths} folder={folder}/>
     <ListEntryFolderNameColumn folder={folder}
       current_folder={ current_folder }
       bucket_name={ bucket_name }

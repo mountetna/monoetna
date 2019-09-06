@@ -5,6 +5,7 @@
 import SparkMD5 from 'spark-md5';
 import { postAuthorizeUpload, postUploadStart, postUploadBlob, postUploadCancel } from '../api/upload_api';
 import { setupWorker } from './worker';
+import { errorMessage } from '../actions/message_actions';
 
 const XTR_TIME = 2000; // blob transfer time in ms, determines blob size.
 const BLOB_WINDOW = 30; // How many blob uploads to average over.
@@ -38,6 +39,12 @@ export default (self) => {
     status: (upload, status) => uploader.dispatch(
       { type: 'UPLOAD_STATUS', upload, status }
     ),
+    message: (title, message_handler, message_type) => errorMessage(
+      uploader.dispatch, message_type, title, message_handler
+    ),
+    warning: (title, message) => uploader.message(title, message, 'warning'),
+    error: (title, message) => uploader.message(title, message, 'error'),
+    notice: (title, message) => uploader.message(title, message, 'notice'),
     pause: (upload) => uploader.status(upload, 'paused'),
     active: (upload) => uploader.status(upload, 'active'),
     complete: (upload) => uploader.status(upload, 'complete'),
@@ -80,11 +87,16 @@ export default (self) => {
 
     authorizeUpload: (base_url, project_name, bucket_name, file, file_name) => {
       postAuthorizeUpload(base_url, project_name, bucket_name, file_name)
-        .then(({url}) => {
-          uploader.dispatch({ type: 'UPLOAD_AUTHORIZED', file, file_name, url })
-        })
+        .then(
+          ({url}) => uploader.dispatch({
+            type: 'UPLOAD_AUTHORIZED', file, file_name, url
+          })
+        )
         .catch(
-          () => alert('The upload could not be authorized.')
+          uploader.warning('Upload failed', error => error)
+        )
+        .catch(
+          uploader.error('Upload failed', error => `Something bad happened: ${error}`)
         )
     },
 
@@ -117,7 +129,7 @@ export default (self) => {
             uploader.dispatch({ type: 'UPLOAD_STARTED', file_name });
           })
           .catch(
-            () => alert('The upload could not be started.')
+            uploader.warning('Upload failed', error => error)
           )
       });
     },
@@ -147,7 +159,7 @@ export default (self) => {
       postUploadCancel(url, { project_name, file_name })
         .then(() => uploader.remove(upload))
         .catch(
-          (error) => alert('The upload could not be canceled.')
+          uploader.error('Upload cancel failed', error => error)
         );
     },
 

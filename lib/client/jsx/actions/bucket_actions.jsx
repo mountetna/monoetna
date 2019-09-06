@@ -1,4 +1,5 @@
 import { postRetrieveBuckets, postUpdateBucket, postCreateBucket, deleteBucket } from '../api/buckets_api';
+import { errorMessage } from './message_actions';
 
 const addBuckets = (buckets) => ({ type: 'ADD_BUCKETS', buckets });
 const removeBucket = (bucket) => ({ type: 'REMOVE_BUCKET', bucket });
@@ -25,6 +26,8 @@ export const destroyBucket = ({bucket}) => (dispatch) => {
     CONFIG.project_name, bucket.bucket_name
   )
     .then(({bucket}) => dispatch(removeBucket(bucket)))
-    .catch(error=>alert('Could not remove bucket!'));
+    .catch(
+      errorMessage(dispatch, 'warning', 'Bucket removal failed', error => error)
+    );
 }
 

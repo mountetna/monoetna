@@ -1,15 +1,14 @@
-export const checkStatus = (response) => {
+export const checkStatus = (response, json=true) => {
   if (response.status >= 200 && response.status < 300) {
-    return response
+    return json ? parseJSON(response) : response;
   } else {
-    var error = new Error(response.statusText)
-    error.response = response
-    error.fetch = true;
-    throw error
+    console.log("Throwing json error");
+    console.log(response);
+    throw parseJSON(response);
   }
 }
 
-export const parseJSON = (response) => response.json()
+export const parseJSON = (response) => response.json();
 
 export const makeBlob = (response) => response.blob()
 
@@ -40,7 +39,8 @@ export const json_fetch = (method) => (path, params) => fetch(path,
     credentials: 'same-origin',
     headers: headers('json'),
     ...params && { body: JSON.stringify(params) }
-  }).then(checkStatus).then(parseJSON);
+  })
+  .then(checkStatus);
 
 export const json_get = json_fetch('GET');
 export const json_delete = json_fetch('DELETE');
@@ -56,5 +56,5 @@ export const form_post = (path, params) => {
       method: 'POST',
       credentials: 'same-origin',
       body: form
-    }).then(checkStatus).then(parseJSON);
+    }).then(checkStatus);
 }

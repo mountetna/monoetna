@@ -14,10 +14,38 @@
 
   .modal-dialog {
     // the actual dialog box
-    position: absolute;
     background-color: #fff;
-    margin: auto;
     border: $dialog-border;
+
+    .message-dialog {
+      width: 300px;
+      padding: 15px;
+      font-family: $base-font;
+      .title {
+        font-family: $base-font;
+        border-bottom: $thin-rule;
+      }
+      .message {
+        padding-top: 15px;
+        display: flex;
+        align-items: center;
+        font-size: 0.8em;
+
+        .icon-grp {
+          .notice {
+            color: $metis-color;
+          }
+          .error {
+            color: red;
+          }
+          .warning {
+            color: goldenrod;
+          }
+          font-size: 0.5em;
+          padding-right: 10px;
+        }
+      }
+    }
 
     .config-dialog {
       width: 300px;

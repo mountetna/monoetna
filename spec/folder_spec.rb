@@ -224,7 +224,7 @@ describe FolderController do
       remove_folder('blueprints')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Cannot remove folder')
+      expect(json_body[:error]).to eq('Folder is not empty')
       expect(Metis::Folder.last).to eq(@blueprints_folder)
       expect(@blueprints_folder).to be_has_directory
       expect(Dir.entries(@blueprints_folder.location).size).to eq(3)
@@ -239,7 +239,7 @@ describe FolderController do
       remove_folder('blueprints')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Cannot remove folder')
+      expect(json_body[:error]).to eq('Folder is read-only')
       expect(Metis::Folder.last).to eq(@blueprints_folder)
     end
 
@@ -252,7 +252,7 @@ describe FolderController do
       remove_folder('blueprints')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Cannot remove folder')
+      expect(json_body[:error]).to eq('Folder is read-only')
       expect(Metis::Folder.last).to eq(@blueprints_folder)
       expect(@blueprints_folder).to be_has_directory
     end

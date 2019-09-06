@@ -1,6 +1,7 @@
 import {
   postRetrieveFiles, postProtectFile, postUnprotectFile, postRenameFile, deleteFile
 } from '../api/files_api';
+import { errorMessage } from './message_actions';
 
 const addFiles = (files) => ({ type: 'ADD_FILES', files });
 const addFolders = (folders) => ({ type: 'ADD_FOLDERS', folders });
@@ -21,7 +22,9 @@ export const removeFile = ({file, bucket_name}) => (dispatch) => {
     CONFIG.project_name, bucket_name, file.file_path
   )
     .then(({files}) => dispatch(removeFiles(files)))
-    .catch(error=>alert('Could not remove file!'));
+    .catch(
+      errorMessage(dispatch, 'warning', 'File removal failed', error => error)
+    );
 }
 
 export const protectFile = ({file, bucket_name}) => (dispatch) => {
@@ -29,7 +32,9 @@ export const protectFile = ({file, bucket_name}) => (dispatch) => {
     CONFIG.project_name, bucket_name, file.file_path
   )
     .then(({files}) => dispatch(addFiles(files)))
-    .catch(error=>alert('Could not protect file!'));
+    .catch(
+      errorMessage(dispatch, 'warning', 'File protection failed', error => error)
+    );
 }
 
 export const unprotectFile = ({file, bucket_name}) => (dispatch) => {
@@ -39,7 +44,9 @@ export const unprotectFile = ({file, bucket_name}) => (dispatch) => {
     CONFIG.project_name, bucket_name, file.file_path
   )
     .then(({files}) => dispatch(addFiles(files)))
-    .catch(error=>alert('Could not unprotect file!'));
+    .catch(
+      errorMessage(dispatch, 'warning', 'File unprotection failed', error => error)
+    );
 }
 
 export const renameFile = ({file, new_file_path, bucket_name}) => (dispatch) => {
@@ -50,6 +57,8 @@ export const renameFile = ({file, new_file_path, bucket_name}) => (dispatch) => 
       dispatch(removeFiles([file]));
       dispatch(addFiles(files));
     })
-    .catch(error=>alert('Could not rename file!'));
+    .catch(
+      errorMessage(dispatch, 'warning', 'File renaming failed', error => error)
+    );
 }
 

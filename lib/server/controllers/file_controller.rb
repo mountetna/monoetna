@@ -5,7 +5,7 @@ class FileController < Metis::Controller
 
     raise Etna::Error.new('File not found', 404) unless file && file.has_data?
 
-    raise Etna::BadRequest, 'Cannot remove file' unless file.can_remove?
+    raise Etna::BadRequest, 'File is read-only' if file.read_only?
 
     response = success_json(files: [ file.to_hash ])
 

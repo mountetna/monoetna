@@ -1,5 +1,4 @@
-import { headers, parseJSON, checkStatus,
-  json_get, json_delete, json_post } from '../utils/fetch';
+import { json_get, json_delete, json_post } from '../utils/fetch';
 
 export const postCreateFolder = (project_name, bucket_name, folder_name) =>
   json_post(`/${project_name}/folder/create/${bucket_name}/${folder_name}`);

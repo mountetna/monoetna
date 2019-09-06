@@ -1,5 +1,4 @@
-import { headers, parseJSON, checkStatus,
-  json_get, json_delete, json_post } from '../utils/fetch';
+import { json_get, json_delete, json_post } from '../utils/fetch';
 
 export const postRetrieveFiles = (project_name, bucket_name, folder_name) =>
   json_get(`/${project_name}/list/${bucket_name}/${folder_name}`);
