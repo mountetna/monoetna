@@ -58,11 +58,11 @@ class FileControl extends React.Component{
     ].concat(
       file.read_only ?
       [
-        { label: 'Unprotect file', callback: this.unprotectFile.bind(this) }
+        { label: 'Unprotect file', callback: this.unprotectFile.bind(this), role: 'administrator' }
       ] : [
-        { label: 'Rename file', callback: this.renameFile.bind(this) },
-        { label: 'Protect file', callback: this.protectFile.bind(this) },
-        { label: 'Remove file', callback: this.removeFile.bind(this) },
+        { label: 'Rename file', callback: this.renameFile.bind(this), role: 'editor' },
+        { label: 'Protect file', callback: this.protectFile.bind(this), role: 'administrator' },
+        { label: 'Remove file', callback: this.removeFile.bind(this), role: 'editor' },
       ]
     );
     return <MenuControl items={items}/>;

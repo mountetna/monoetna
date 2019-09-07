@@ -24,7 +24,7 @@ const ListBucket = ({bucket, widths, role}) => (
     </ListEntryColumn>
     <ListEntryColumn className='control' widths={widths}>
       {
-        role == 'administrator' && <BucketControl bucket={bucket}/>
+        <BucketControl bucket={bucket}/>
       }
     </ListEntryColumn>
   </div>

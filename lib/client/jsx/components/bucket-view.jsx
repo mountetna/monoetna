@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import ListBucket from './list/list-bucket';
 import ListHead  from './list/list-head';
 import FolderBreadcrumb from './folder-breadcrumb';
-import { ControlButton } from './control-bar';
+import ControlBar from './control-bar';
 
 import { selectBuckets } from '../selectors/directory-selector';
 
@@ -42,17 +42,16 @@ class BucketView extends React.Component {
       createBucket
     }
 
+    let buttons = [
+      { onClick: () => showDialog(dialog), title: 'Create bucket',
+        icon: 'trash', overlay: 'plus', role: 'administrator' }
+    ];
+
     return (
       <div className='bucket-view-group'>
         <div className='control-group'>
           <FolderBreadcrumb/>
-          <div id='control-bar'>
-            <ControlButton
-              onClick={ () => showDialog(dialog) }
-              title='Create bucket'
-              icon='trash'
-              overlay='plus'/>
-          </div>
+          <ControlBar buttons={ buttons }/>
         </div>
         <ListHead columns={ COLUMNS }/>
         <div id='list-body-group'>

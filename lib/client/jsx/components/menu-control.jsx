@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
+import { selectUserRole } from '../selectors/user-selector';
 
 const MenuList  = ({items, control, dismiss}) => {
   let { top, right } = control.current.getBoundingClientRect();
@@ -18,7 +20,7 @@ const MenuList  = ({items, control, dismiss}) => {
   </ul>;
 }
 
-export default class MenuControl extends React.Component{
+class MenuControl extends React.Component{
   constructor(props) {
     super(props);
     this.control = React.createRef();
@@ -50,9 +52,13 @@ export default class MenuControl extends React.Component{
   }
 
   render() {
-    let { items } = this.props;
+    let { items, user_role } = this.props;
     let { list_open } = this.state;
     let className = list_open ? 'control selected' : 'control';
+
+    items = items.filter(({role: item_role}) => !item_role || user_role <= item_role);
+
+    if (!items.length) return null;
 
     return (
       <div className='control-btn-group'>
@@ -69,3 +75,7 @@ export default class MenuControl extends React.Component{
     )
   }
 }
+
+export default connect(
+  state => ({ user_role: selectUserRole(state) })
+)(MenuControl)

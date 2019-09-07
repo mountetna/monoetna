@@ -2,8 +2,6 @@ export const checkStatus = (response, json=true) => {
   if (response.status >= 200 && response.status < 300) {
     return json ? parseJSON(response) : response;
   } else {
-    console.log("Throwing json error");
-    console.log(response);
     throw parseJSON(response);
   }
 }

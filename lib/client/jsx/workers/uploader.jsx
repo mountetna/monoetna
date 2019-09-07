@@ -166,9 +166,6 @@ export default (self) => {
     createNextBlob: (upload) => {
       let { file, current_byte_position, next_blob_size } = upload;
 
-      console.log("Resuming from");
-      console.log(upload);
-
       // after this, we know we have more bytes to send
       if (current_byte_position >= file.size) return;
 
@@ -230,10 +227,7 @@ export default (self) => {
         }).catch(
           (error) => {
             if (error.fetch) uploader.failedBlob(upload, request);
-            else {
-              console.log(error);
-              throw error
-            }
+            else throw error;
           }
         );
     },

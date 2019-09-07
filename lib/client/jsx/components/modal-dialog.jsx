@@ -16,8 +16,6 @@ const ModalDialog = ({ dialog, dismissDialog }) => {
 
   if (!DialogComponent) return null;
 
-  console.log(dialog_props);
-
   return <div className='modal-window' onClick={ () => dismissDialog() }>
     <div className='modal-dialog' onClick={ (e) => e.stopPropagation() }>
       <DialogComponent { ...dialog_props } />

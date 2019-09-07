@@ -33,15 +33,53 @@ class FolderView extends React.Component {
     retrieveFiles(bucket_name, folder_name);
   }
 
+  selectFile() {
+    this.input.click();
+  }
+
+  fileSelected(event){
+    let { bucket_name, folder_name, fileSelected } = this.props;
+
+    if(event === undefined) return;
+
+    let { files } = this.input;
+
+    for (let i = 0; i < files.length; i++) fileSelected(bucket_name, folder_name, files[i]);
+
+    // Reset the input field.
+    this.input.value = '';
+  }
+
+  selectFolder(){
+    let { folder_name, bucket_name, createFolder } = this.props;
+
+    let new_folder_name = prompt("Enter the folder name", "Untitled Folder");
+
+    if (new_folder_name) createFolder(bucket_name, folder_name, new_folder_name);
+  }
+
   render() {
     let { bucket_name, folder_name } = this.props;
-    if (folder_name == INVALID) return <InvalidFolder/>
+    if (folder_name == INVALID) return <InvalidFolder/>;
+
+    let buttons = [
+      { onClick: this.selectFolder.bind(this), title: 'Create folder', icon: 'folder', overlay: 'plus', role: 'editor' },
+      { onClick: this.selectFile.bind(this), title: 'Upload file', icon: 'upload', role: 'editor' }
+    ];
 
     return (
       <div className='folder-view-group'>
         <div className='control-group'>
           <FolderBreadcrumb folder_name={folder_name} bucket_name={bucket_name}/>
-          <ControlBar bucket_name={ bucket_name } folder_name={ folder_name }/>
+          <ControlBar buttons={buttons}>
+            <input name='upload-file'
+              type='file'
+              multiple='multiple'
+              style={ {display: 'none'} }
+              ref={ (input) => this.input = input }
+              onChange={ this.fileSelected.bind(this) }
+            />
+          </ControlBar>
         </div>
         <div className='listing-group'>
           <ListHead columns={ COLUMNS }/>
@@ -58,6 +96,8 @@ export default connect(
 
   // map dispatch
   (dispatch) => ({
-    retrieveFiles: (bucket_name, folder_name) => dispatch({type: 'RETRIEVE_FILES', bucket_name, folder_name})
+    retrieveFiles: (bucket_name, folder_name) => dispatch({type: 'RETRIEVE_FILES', bucket_name, folder_name}),
+    fileSelected: (bucket_name, folder_name, file)=>dispatch({ type: 'FILE_SELECTED', file, folder_name, bucket_name }),
+    createFolder: (bucket_name, parent_folder, folder_name)=>dispatch({ type: 'CREATE_FOLDER', folder_name, parent_folder, bucket_name })
   })
 )(FolderView);
