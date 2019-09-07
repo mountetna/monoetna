@@ -30,6 +30,9 @@ describe FolderController do
       @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
       stubs.create_folder('athena', 'files', 'blueprints/helmet')
 
+      @second_helmet_folder = create_folder('athena', 'helmet')
+      stubs.create_folder('athena', 'files', 'helmet')
+
       @helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @helmet_folder)
       stubs.create_file('athena', 'files', 'blueprints/helmet/helmet.jpg', HELMET)
     end
@@ -73,6 +76,16 @@ describe FolderController do
         file_hash: Digest::MD5.hexdigest(HELMET),
         download_url: a_string_matching(%r{http.*athena/download.*blueprints/helmet/helmet.jpg})
       )
+    end
+
+    it 'should list files from a folder with a non-unique name' do
+      # our files
+      token_header(:editor)
+      get('/athena/list/files/helmet')
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:files]).to eq([])
     end
 
     it 'should require a valid path' do

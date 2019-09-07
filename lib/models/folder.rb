@@ -24,7 +24,7 @@ class Metis
             end.join(', ')
             } ]
             FROM folders f
-            WHERE f.bucket_id = #{bucket.id} AND f.folder_name = #{db.literal(folder_names.first)}
+            WHERE f.bucket_id = #{bucket.id} AND f.folder_name = #{db.literal(folder_names.first)} AND f.folder_id IS NULL
           UNION ALL
             SELECT f.id, sf.depth+1, sf.path
             FROM folders f, search_folders sf
