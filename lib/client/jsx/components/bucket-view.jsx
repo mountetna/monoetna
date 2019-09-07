@@ -12,7 +12,7 @@ const COLUMNS = [
   { name: 'type', width: '90px' },
   { name: 'name', width: '30%' },
   { name: 'description', width: '50%' },
-  { name: 'access', width: '10%' },
+  { name: 'access', width: '10%', title: 'Permission level or access list required to use this bucket' },
   { name: 'size', width: '10%' },
   { name: 'control', width: '100px', hide: true }
 ];

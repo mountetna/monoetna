@@ -71,6 +71,10 @@
         overflow: unset;
       }
 
+      &.access {
+        text-overflow: ellipsis;
+      }
+
       &.description {
         line-height: 50px;
       }

@@ -17,7 +17,7 @@ const ListBucket = ({bucket, widths, role}) => (
       { bucket.description }
     </ListEntryColumn>
     <ListEntryColumn className='access' widths={widths}>
-      { bucket.access }
+      <span title={bucket.access}>{ bucket.access }</span>
     </ListEntryColumn>
     <ListEntryColumn className='size' widths={widths}>
       { bucket.count } files
