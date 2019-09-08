@@ -109,6 +109,21 @@ describe Etna::Server do
     expect(last_response.body).to eq('25-octagon')
   end
 
+  it 'enforces route parameters over other parameters' do
+    Arachne::Server.post('/silk/:thread_weight/:shape') do
+      [ 200, {}, [ "#{@params[:thread_weight]}-#{@params[:shape]}" ] ]
+    end
+    @app = setup_app(Arachne::Server)
+
+    post('/silk/25/octagon', { thread_weight: 35, shape: 'dodecagon' }.to_json, 'CONTENT_TYPE' => 'application/json')
+    expect(last_response.status).to eq(200)
+    expect(last_response.body).to eq('25-octagon')
+
+    post('/silk/25/octagon?thread_weight=35&shape=dodecagon')
+    expect(last_response.status).to eq(200)
+    expect(last_response.body).to eq('25-octagon')
+  end
+
   it 'allows route globbing with slashes' do
     description = 'A tapestry/weave of the Olympians.'
     Arachne::Server.get('/silk/*description') do
