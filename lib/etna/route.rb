@@ -47,7 +47,7 @@ module Etna
       update_params(request)
 
       unless authorized?(request)
-        return [ 403, {}, ['You are forbidden from performing this action.'] ]
+        return [ 403, { 'Content-Type' => 'application/json' }, [ { error: 'You are forbidden from performing this action.' }.to_json ] ]
       end
 
       if @action
