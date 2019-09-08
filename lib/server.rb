@@ -11,7 +11,7 @@ require_relative './server/set_uid'
 
 class Metis
   class Server < Etna::Server
-    get '/' do success('Metis') end
+    get '/', action: 'client#index'
     get '/:project_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
     get '/:project_name/browse/:bucket_name', action: 'client#index', auth: { user: { can_view?: :project_name } }
     get '/:project_name/browse/:bucket_name/*folder_name', action: 'client#index', auth: { user: { can_view?: :project_name } }

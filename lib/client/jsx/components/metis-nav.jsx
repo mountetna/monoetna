@@ -12,7 +12,7 @@ const ICONS = {
 const MetisNav = ({first, last, role, permissions}) =>
   <div id='metis-nav'>
     <div id='logo-group'>
-      <div id='logo'/>
+      <a href='/'><div id='logo'/></a>
     </div>
     <div id='nav-user'>
       { first } { last }

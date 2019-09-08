@@ -2,6 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import MetisNav from './metis-nav';
+import RootView from './root-view';
 import FolderView from './folder-view';
 import BucketView from './bucket-view';
 import ModalDialog from './modal-dialog';
@@ -9,6 +10,11 @@ import ModalDialog from './modal-dialog';
 import { findRoute, setRoutes } from '../router';
 
 const ROUTES = [
+  {
+    name: 'root',
+    template: '',
+    component: RootView
+  },
   {
     name: 'bucket',
     template: ':project_name',
