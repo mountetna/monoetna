@@ -29,6 +29,10 @@
       @extend .dark-text;
       font-weight: 900;
     }
+    .done {
+      margin-left: 10px;
+      color: green;
+    }
     @extend .light-text;
   }
 }

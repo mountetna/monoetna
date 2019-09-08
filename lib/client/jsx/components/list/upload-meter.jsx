@@ -6,7 +6,7 @@ const UploadBar = ({upload}) => {
   return <div className='upload-meter-tray'>
     <div className='upload-meter-bar' style={
       {
-        width: file_size == 0 ? '0%' : `${(current_byte_position/file_size)*100}%`
+        width: file_size == 0 ? '100%' : `${(current_byte_position/file_size)*100}%`
       }
     }/>
   </div>
@@ -19,6 +19,7 @@ const UploadCompletion = ({upload}) => {
     <span className='completed' title='kilobytes uploaded'>
       { byteFormat(current_byte_position, true) }
     </span> of { byteFormat(upload.file_size, true) }
+    { file_size == current_byte_position && <i className='done fas fa-check'/> }
   </div>
 }
 
