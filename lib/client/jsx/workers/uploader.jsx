@@ -13,23 +13,146 @@ const MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
 const MAX_BLOB_SIZE = Math.pow(2, 22);
 const INITIAL_BLOB_SIZE = Math.pow(2, 10);
 
-export default (self) => {
-  let uploader = setupWorker(self, {
-    authorize: ({base_url, project_name, bucket_name, file, file_name}) => {
-      uploader.authorizeUpload(base_url, project_name, bucket_name, file, file_name);
-    },
-    start: ({upload}) => {
-      uploader.startUpload(upload);
-    },
-    continue: ({upload}) => {
-      uploader.createNextBlob(upload);
-    },
-    cancel: ({upload}) => {
-      uploader.cancelUpload(upload);
-    }
+const ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e';
+
+export default (uploader) => {
+  setupWorker(uploader, ({command, ...data}) => {
+    if ([ 'authorize', 'start', 'continue', 'cancel' ].includes(command))
+      uploader[command](data);
+    else
+      console.log('Uploader error', `Invalid command ${command}`);
   });
 
   Object.assign(uploader, {
+    // public commands
+    authorize: ({base_url, project_name, bucket_name, file, file_name}) => {
+      postAuthorizeUpload(base_url, project_name, bucket_name, file_name)
+        .then(
+          ({url}) => uploader.dispatch({
+            type: 'UPLOAD_AUTHORIZED', file, file_name, url
+          })
+        )
+        .catch(
+          uploader.warning('Upload failed', error => error)
+        )
+        .catch(
+          uploader.error('Upload failed', error => `Something bad happened: ${error}`)
+        )
+    },
+
+    start: ({upload}) => {
+      let { file, file_size, file_name, url } = upload;
+
+      let next_blob_size = Math.min(file_size, INITIAL_BLOB_SIZE);
+
+      // Hash the next blob
+      uploader.nextBlob = file.slice(0, next_blob_size);
+
+      uploader.hashBlob().then(next_blob_hash => {
+        let request = {
+          file_size,
+          next_blob_size,
+          next_blob_hash
+        };
+
+        postUploadStart(url, request)
+          .then(upload => {
+            // we may need to slice a new blob
+            if (upload.current_byte_position) {
+              uploader.nextBlob = file.slice(
+                upload.current_byte_position,
+                upload.current_byte_position + upload.next_blob_size
+              );
+            }
+            // this will set the upload status correctly in the upload reducer
+            uploader.active(upload);
+
+            // now we simply broadcast an event for our file:
+            uploader.dispatch({ type: 'UPLOAD_STARTED', file_name });
+          })
+          .catch(
+            uploader.warning('Upload failed', error => error)
+          )
+      });
+    },
+
+    continue: ({upload}) => {
+      let { file, current_byte_position, next_blob_size } = upload;
+
+      if (current_byte_position >= file.size) {
+        // probably because of a 0 byte file
+        let request = {
+          action: 'blob',
+          blob_data: file.slice(current_byte_position,current_byte_position),
+          next_blob_size: 0,
+          next_blob_hash: ZERO_HASH
+        };
+        uploader.sendBlob(upload, request);
+        return;
+      }
+
+      // after this, we know we have more bytes to send
+
+      // report the average upload speed, if any
+      uploader.setSpeed(upload);
+
+      // we have already sent up to current_byte_position
+      // we will send up to next_byte_position
+      let next_byte_position = current_byte_position + next_blob_size;
+
+      // we must also send the hash of the next blob,
+      // so we must compute its size, between next_byte_position (the end
+      // of this blob) and final_byte_position (the end of the next blob)
+      let new_blob_size = Math.min(
+          Math.max(
+            // we want at least the MIN_BLOB_SIZE
+            MIN_BLOB_SIZE,
+            // but optimistically, based on the average speed
+            Math.floor(XTR_TIME * uploader.avgSpeed)
+          ),
+          // but we'll stop at most at here
+          MAX_BLOB_SIZE,
+          // in fact we should stop when we hit the end of the file
+          file.size - next_byte_position
+      );
+
+      let final_byte_position = next_byte_position + new_blob_size;
+
+      // Get the two blobs
+      let blob_data = uploader.nextBlob;
+      uploader.nextBlob = file.slice(next_byte_position, final_byte_position);
+
+      // Hash the next blob.
+      uploader.hashBlob().then( new_blob_hash => {
+        // Finally, send the request
+        let request = {
+          action: 'blob',
+          blob_data,
+          next_blob_size: new_blob_size,
+          next_blob_hash: new_blob_hash
+        };
+        uploader.sendBlob(upload, request);
+      });
+    },
+
+    cancel: ({upload}) => {
+      let { status, url, project_name, file_name } = upload;
+
+      if (status == 'complete') {
+        uploader.remove(upload);
+        return;
+      }
+
+      postUploadCancel(url, { project_name, file_name })
+        .then(() => uploader.remove(upload))
+        .catch(
+          uploader.error('Upload cancel failed', error => error)
+        );
+    },
+
+
+    // private methods
+
     reset: () => {
       uploader.timeouts = 0; // The number of times an upload has timed out.
       uploader.maxTimeouts = 5; // The number of attepts to upload a blob.
@@ -85,55 +208,6 @@ export default (self) => {
       return true;
     },
 
-    authorizeUpload: (base_url, project_name, bucket_name, file, file_name) => {
-      postAuthorizeUpload(base_url, project_name, bucket_name, file_name)
-        .then(
-          ({url}) => uploader.dispatch({
-            type: 'UPLOAD_AUTHORIZED', file, file_name, url
-          })
-        )
-        .catch(
-          uploader.warning('Upload failed', error => error)
-        )
-        .catch(
-          uploader.error('Upload failed', error => `Something bad happened: ${error}`)
-        )
-    },
-
-    startUpload: (upload) => {
-      let { file, file_size, file_name, url } = upload;
-
-      // Hash the next blob
-      uploader.nextBlob = file.slice(0, INITIAL_BLOB_SIZE);
-
-      uploader.hashBlob().then(next_blob_hash => {
-        let request = {
-          file_size,
-          next_blob_size: INITIAL_BLOB_SIZE,
-          next_blob_hash
-        };
-
-        postUploadStart(url, request)
-          .then(upload => {
-            // we may need to slice a new blob
-            if (upload.current_byte_position) {
-              uploader.nextBlob = file.slice(
-                upload.current_byte_position,
-                upload.current_byte_position + upload.next_blob_size
-              );
-            }
-            // this will set the upload status correctly in the upload reducer
-            uploader.active(upload);
-
-            // now we simply broadcast a completion status for our file:
-            uploader.dispatch({ type: 'UPLOAD_STARTED', file_name });
-          })
-          .catch(
-            uploader.warning('Upload failed', error => error)
-          )
-      });
-    },
-
     hashBlob: () => {
       return new Promise((resolve, reject) => {
         let fileReader = new FileReader();
@@ -145,69 +219,6 @@ export default (self) => {
         }
 
         fileReader.readAsArrayBuffer(uploader.nextBlob);
-      });
-    },
-
-    cancelUpload: (upload) => {
-      let { status, url, project_name, file_name } = upload;
-
-      if (status == 'complete') {
-        uploader.remove(upload);
-        return;
-      }
-
-      postUploadCancel(url, { project_name, file_name })
-        .then(() => uploader.remove(upload))
-        .catch(
-          uploader.error('Upload cancel failed', error => error)
-        );
-    },
-
-    createNextBlob: (upload) => {
-      let { file, current_byte_position, next_blob_size } = upload;
-
-      // after this, we know we have more bytes to send
-      if (current_byte_position >= file.size) return;
-
-      // report the average upload speed, if any
-      uploader.setSpeed(upload);
-
-      // we have already sent up to current_byte_position
-      // we will send up to next_byte_position
-      let next_byte_position = current_byte_position + next_blob_size;
-
-      // we must also send the hash of the next blob,
-      // so we must compute its size, between next_byte_position (the end
-      // of this blob) and final_byte_position (the end of the next blob)
-      let new_blob_size = Math.min(
-          Math.max(
-            // we want at least the MIN_BLOB_SIZE
-            MIN_BLOB_SIZE,
-            // but optimistically, based on the average speed
-            Math.floor(XTR_TIME * uploader.avgSpeed)
-          ),
-          // but we'll stop at most at here
-          MAX_BLOB_SIZE,
-          // in fact we should stop when we hit the end of the file
-          file.size - next_byte_position
-      );
-
-      let final_byte_position = next_byte_position + new_blob_size;
-
-      // Get the two blobs
-      let blob_data = uploader.nextBlob;
-      uploader.nextBlob = file.slice(next_byte_position, final_byte_position);
-
-      // Hash the next blob.
-      uploader.hashBlob().then( new_blob_hash => {
-        // Finally, send the request
-        let request = {
-          action: 'blob',
-          blob_data,
-          next_blob_size: new_blob_size,
-          next_blob_hash: new_blob_hash
-        };
-        uploader.sendBlob(upload, request);
       });
     },
 
@@ -252,8 +263,6 @@ export default (self) => {
         // broadcast that we have finished uploading the file
         uploader.dispatch({ type: 'UPLOAD_FILE_COMPLETED', upload })
       }
-
-      //uploader.createNextBlob(upload);
     }
 
   });
