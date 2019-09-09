@@ -16,18 +16,26 @@ class Metis
       if !backup
         description = "md5:#{file.file_hash} #{file.file_path}"
 
-        archive = vault(project_name).archives.create(
-          body: ::File.open(file.location),
-          multipart_chunk_size: 64*1024*1024,
-          description: "md5:#{file.file_hash} #{file.file_path}"
-        )
+        archive_id = nil
+        if file.actual_size == 0
+          archive_id = 'zero-byte-file'
+          description = 'A zero-byte file'
+        else
+          archive = vault(project_name).archives.create(
+            body: ::File.open(file.location),
+            multipart_chunk_size: 64*1024*1024,
+            description: "md5:#{file.file_hash} #{file.file_path}"
+          )
 
-        return nil unless archive
+          return nil unless archive
+
+          archive_id = archive.id
+        end
 
         backup = Metis::Backup.create(
           md5_hash: file.file_hash,
           description: description,
-          archive_id: archive.id
+          archive_id: archive_id
         )
         backup.save
       end
