@@ -7,16 +7,26 @@ const removeBucket = (bucket) => ({ type: 'REMOVE_BUCKET', bucket });
 export const retrieveBuckets = () => (dispatch) =>
   postRetrieveBuckets(CONFIG.project_name).then(
     ({buckets}) => dispatch(addBuckets(buckets))
+  )
+  .catch(
+    errorMessage(dispatch, 'warning', 'Bucket updating failed', error => error)
   );
+
 
 export const updateBucket = ({bucket}) => (dispatch) =>
   postUpdateBucket(CONFIG.project_name, bucket).then(
     ({bucket}) => dispatch(addBuckets([bucket]))
+  )
+  .catch(
+    errorMessage(dispatch, 'warning', 'Bucket updating failed', error => error)
   );
 
 export const createBucket = ({bucket}) => (dispatch) =>
   postCreateBucket(CONFIG.project_name, bucket).then(
     ({bucket}) => dispatch(addBuckets([bucket]))
+  )
+  .catch(
+    errorMessage(dispatch, 'warning', 'Bucket creation failed', error => error)
   );
 
 export const destroyBucket = ({bucket}) => (dispatch) => {
