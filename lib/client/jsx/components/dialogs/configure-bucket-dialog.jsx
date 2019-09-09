@@ -109,8 +109,9 @@ class ConfigureBucketDialog extends React.Component {
         }
       </ConfigRow>
       <div className='submit'>
-        <span className='button'
-          onClick={ this.submit.bind(this) }>{ createBucket ? 'Create' : 'Update' }</span>
+        <span className='button' disabled={ !(access || access_email) || !bucket_name } onClick={ this.submit.bind(this) }>
+          { createBucket ? 'Create' : 'Update' }
+        </span>
       </div>
     </div>;
   }

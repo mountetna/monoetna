@@ -95,8 +95,10 @@
         padding: 10px 80px 5px;
         .button {
           @include gray-button;
+          color: #222;
           padding: 3px;
           font-size: 0.8em;
+
         }
       }
 
