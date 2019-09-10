@@ -3,21 +3,24 @@
  */
 
 import SparkMD5 from 'spark-md5';
-import { postAuthorizeUpload, postUploadStart, postUploadBlob, postUploadCancel } from '../api/upload_api';
+import { postUploadStart, postUploadBlob, postUploadCancel } from '../api/upload_api';
 import { setupWorker } from './worker';
 import { errorMessage } from '../actions/message_actions';
 
 const XTR_TIME = 2000; // blob transfer time in ms, determines blob size.
-const BLOB_WINDOW = 30; // How many blob uploads to average over.
 const MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
 const MAX_BLOB_SIZE = Math.pow(2, 22);
 const INITIAL_BLOB_SIZE = Math.pow(2, 10);
 
+const MAX_UPLOADS = 3; // maximum number of simultaneous uploads
+
 const ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e';
+
+const statusFilter = (uploads, s) => uploads.filter(({status}) => status == s);
 
 export default (uploader) => {
   setupWorker(uploader, ({command, ...data}) => {
-    if ([ 'authorize', 'start', 'continue', 'cancel' ].includes(command))
+    if ([ 'start', 'unqueue', 'continue', 'cancel' ].includes(command))
       uploader[command](data);
     else
       console.log('Uploader error', `Invalid command ${command}`);
@@ -25,19 +28,19 @@ export default (uploader) => {
 
   Object.assign(uploader, {
     // public commands
-    authorize: ({base_url, project_name, bucket_name, file, file_name}) => {
-      postAuthorizeUpload(base_url, project_name, bucket_name, file_name)
-        .then(
-          ({url}) => uploader.dispatch({
-            type: 'UPLOAD_AUTHORIZED', file, file_name, url
-          })
-        )
-        .catch(
-          uploader.warning('Upload failed', error => error)
-        )
-        .catch(
-          uploader.error('Upload failed', error => `Something bad happened: ${error}`)
-        )
+    unqueue: ({uploads}) => {
+      let active_uploads = statusFilter(uploads, 'active');
+      let queued_uploads = statusFilter(uploads, 'queued');
+
+      if (active_uploads > MAX_UPLOADS) {
+        // queue some of the active ones
+        let overactive_uploads = active_uploads.slice(MAX_UPLOADS);
+        overactive_uploads.forEach(uploader.queue);
+      } else if (active_uploads < MAX_UPLOADS) {
+        // activate some of the queued ones
+        let unqueued_uploads = queued_uploads.slice(0, MAX_UPLOADS-active_uploads);
+        unqueued_uploads.forEach(upload => uploader.start({upload}))
+      }
     },
 
     start: ({upload}) => {
@@ -46,9 +49,9 @@ export default (uploader) => {
       let next_blob_size = Math.min(file_size, INITIAL_BLOB_SIZE);
 
       // Hash the next blob
-      uploader.nextBlob = file.slice(0, next_blob_size);
+      let nextBlob = file.slice(0, next_blob_size);
 
-      uploader.hashBlob().then(next_blob_hash => {
+      uploader.hashBlob(nextBlob).then(next_blob_hash => {
         let request = {
           file_size,
           next_blob_size,
@@ -57,13 +60,6 @@ export default (uploader) => {
 
         postUploadStart(url, request)
           .then(upload => {
-            // we may need to slice a new blob
-            if (upload.current_byte_position) {
-              uploader.nextBlob = file.slice(
-                upload.current_byte_position,
-                upload.current_byte_position + upload.next_blob_size
-              );
-            }
             // this will set the upload status correctly in the upload reducer
             uploader.active(upload);
 
@@ -77,7 +73,7 @@ export default (uploader) => {
     },
 
     continue: ({upload}) => {
-      let { file, current_byte_position, next_blob_size } = upload;
+      let { file, current_byte_position, next_blob_size, upload_speeds } = upload;
 
       if (current_byte_position >= file.size) {
         // probably because of a 0 byte file
@@ -94,7 +90,9 @@ export default (uploader) => {
       // after this, we know we have more bytes to send
 
       // report the average upload speed, if any
-      uploader.setSpeed(upload);
+      let avgSpeed = !upload_speeds.length
+        ? MIN_BLOB_SIZE / XTR_TIME
+        : upload_speeds.reduce((sum,t)=>sum+t, 0) / upload_speeds.length;
 
       // we have already sent up to current_byte_position
       // we will send up to next_byte_position
@@ -108,7 +106,7 @@ export default (uploader) => {
             // we want at least the MIN_BLOB_SIZE
             MIN_BLOB_SIZE,
             // but optimistically, based on the average speed
-            Math.floor(XTR_TIME * uploader.avgSpeed)
+            Math.floor(XTR_TIME * avgSpeed)
           ),
           // but we'll stop at most at here
           MAX_BLOB_SIZE,
@@ -119,11 +117,11 @@ export default (uploader) => {
       let final_byte_position = next_byte_position + new_blob_size;
 
       // Get the two blobs
-      let blob_data = uploader.nextBlob;
-      uploader.nextBlob = file.slice(next_byte_position, final_byte_position);
+      let blob_data = file.slice(current_byte_position, next_byte_position);
+      let nextBlob = file.slice(next_byte_position, final_byte_position);
 
       // Hash the next blob.
-      uploader.hashBlob().then( new_blob_hash => {
+      uploader.hashBlob(nextBlob).then( new_blob_hash => {
         // Finally, send the request
         let request = {
           action: 'blob',
@@ -138,13 +136,10 @@ export default (uploader) => {
     cancel: ({upload}) => {
       let { status, url, project_name, file_name } = upload;
 
-      if (status == 'complete') {
-        uploader.remove(upload);
-        return;
-      }
-
       postUploadCancel(url, { project_name, file_name })
-        .then(() => uploader.remove(upload))
+        .then(
+          () => uploader.dispatch({ type: 'UPLOAD_FILE_CANCELED', upload })
+        )
         .catch(
           uploader.error('Upload cancel failed', error => error)
         );
@@ -171,32 +166,9 @@ export default (uploader) => {
     pause: (upload) => uploader.status(upload, 'paused'),
     active: (upload) => uploader.status(upload, 'active'),
     complete: (upload) => uploader.status(upload, 'complete'),
+    queue: (upload) => uploader.status(upload, 'queued'),
 
     remove: (upload) => uploader.dispatch({ type: 'REMOVE_UPLOAD', upload }),
-
-    addUploadSpeed: (uploadStart, upload) => {
-      let { next_blob_size } = upload;
-      let time = Date.now() - uploadStart;
-      uploader.uploadSpeeds.push(next_blob_size / time);
-      uploader.uploadSpeeds = uploader.uploadSpeeds.slice(-BLOB_WINDOW);
-    },
-
-    // Calcuates the next blob size based upon upload speed.
-    setSpeed: (upload) => {
-      let { next_blob_size } = upload;
-      let { uploadSpeeds } = uploader;
-      if (!uploadSpeeds.length) {
-        uploader.avgSpeed = MIN_BLOB_SIZE / XTR_TIME;
-        return;
-      }
-
-      uploader.avgSpeed = uploadSpeeds.reduce((sum,t)=>sum+t, 0) / uploadSpeeds.length;
-
-      // rough calculation of the upload speed in kbps for the UI
-      let upload_speed = uploader.avgSpeed * 8 * 1000;
-
-      uploader.dispatch({ type: 'UPLOAD_SPEED', upload, upload_speed });
-    },
 
     timeout: () => {
       ++uploader.timeouts;
@@ -208,7 +180,7 @@ export default (uploader) => {
       return true;
     },
 
-    hashBlob: () => {
+    hashBlob: (blob) => {
       return new Promise((resolve, reject) => {
         let fileReader = new FileReader();
 
@@ -218,7 +190,7 @@ export default (uploader) => {
           resolve(hash);
         }
 
-        fileReader.readAsArrayBuffer(uploader.nextBlob);
+        fileReader.readAsArrayBuffer(blob);
       });
     },
 
@@ -229,14 +201,17 @@ export default (uploader) => {
 
       postUploadBlob(url, request)
         .then(new_upload => {
-          uploader.addUploadSpeed(uploadStart, upload);
+          uploader.dispatch({
+            type: 'UPLOAD_SPEED',
+            upload_speed: request.blob_data.size / Math.max(1, Date.now() - uploadStart),
+            upload
+          });
           uploader.completeBlob({
             ...upload,
             ...new_upload
           });
-
         }).catch(
-          (error) => {
+          error => {
             if (error.fetch) uploader.failedBlob(upload, request);
             else throw error;
           }
@@ -254,17 +229,16 @@ export default (uploader) => {
         uploader.status(upload);
 
         // broadcast that we have finished uploading this blob
-        uploader.dispatch({ type: 'UPLOAD_BLOB_COMPLETED', file_name: upload.file_name })
+        uploader.dispatch({ type: 'UPLOAD_BLOB_COMPLETED', file_name: upload.file_name });
       }
       else {
         // update the status
         uploader.complete(upload);
 
         // broadcast that we have finished uploading the file
-        uploader.dispatch({ type: 'UPLOAD_FILE_COMPLETED', upload })
+        uploader.dispatch({ type: 'UPLOAD_FILE_COMPLETED', upload });
       }
     }
-
   });
 
   uploader.reset();

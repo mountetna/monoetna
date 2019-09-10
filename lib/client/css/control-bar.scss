@@ -16,5 +16,9 @@
     }
 
     @include gray-button;
+
+    &:not(:first-of-type) {
+      border-left: 0;
+    }
   }
 }

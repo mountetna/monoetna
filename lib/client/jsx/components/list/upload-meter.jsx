@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { byteFormat } from '../../utils/format';
+import Icon from '../icon';
 
 const UploadBar = ({upload}) => {
   let { file_size, current_byte_position } = upload;
@@ -12,6 +13,18 @@ const UploadBar = ({upload}) => {
   </div>
 }
 
+const ICONS={
+  complete: 'check',
+  queued: 'clock',
+  active: 'upload',
+  paused: 'pause'
+};
+
+const UploadStatus = ({upload: {status}}) =>
+  <div className='upload-meter-status'>
+    { ICONS[status] ? <Icon icon={ICONS[status]} className={status}/> : status }
+  </div>;
+
 const UploadCompletion = ({upload}) => {
   let { file_size, current_byte_position } = upload;
 
@@ -19,14 +32,18 @@ const UploadCompletion = ({upload}) => {
     <span className='completed' title='kilobytes uploaded'>
       { byteFormat(current_byte_position, true) }
     </span> of { byteFormat(upload.file_size, true) }
-    { file_size == current_byte_position && <i className='done fas fa-check'/> }
   </div>
 }
 
 const UploadSpeed = ({upload}) => {
-  let { paused, upload_speed } = upload;
+  let { paused, upload_speeds } = upload;
 
-  if (!upload_speed || isNaN(upload_speed) || paused) return null;
+  if (!upload_speeds.length || paused) return null;
+
+  let avgSpeed = upload_speeds.reduce((sum,t)=>sum+t, 0) / upload_speeds.length;
+
+  // rough calculation of the upload speed in kbps for the UI
+  let upload_speed = avgSpeed * 8 * 1000;
 
   return (
     <div className='upload-meter-speed'>
@@ -43,6 +60,7 @@ export default class UploadMeter extends React.Component{
     return (
       <div className='upload-meter-group'>
         <UploadBar upload={ upload }/>
+        <UploadStatus upload={ upload }/>
         <UploadCompletion upload={ upload }/>
         <UploadSpeed upload={ upload }/>
       </div>

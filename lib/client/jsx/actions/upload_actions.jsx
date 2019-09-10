@@ -1,53 +1,63 @@
-import { selectUpload } from '../selectors/directory-selector';
+import { selectUpload, selectUploads } from '../selectors/directory-selector';
+import { postAuthorizeUpload } from '../api/upload_api';
+import { errorMessage } from '../actions/message_actions';
 
-const work = (dispatch, worker_name, command, args) => dispatch({
-  type: 'WORK', work_type: 'upload', worker_name, command,
+const work = (dispatch, command, args) => dispatch({
+  type: 'WORK', work_type: 'upload', command,
   ...args
 });
 
-const getUpload = (getState, file_name) => selectUpload(
-  getState(), { project_name: CONFIG.project_name, file_name }
+const getUpload = (state, file_name) => selectUpload(
+  state, { project_name: CONFIG.project_name, file_name }
 );
 
-export const fileSelected = ({ file, folder_name, bucket_name }) => (dispatch) => {
+export const fileSelected = ({ file, folder_name, bucket_name }) => (dispatch, getState) => {
   let file_name = [ folder_name, file.name ].filter(_=>_).join('/');
 
-  work(dispatch, file_name, 'authorize', {
-    base_url: window.location.origin,
-    project_name: CONFIG.project_name, bucket_name, file, file_name
-  });
+  postAuthorizeUpload(window.location.origin, CONFIG.project_name, bucket_name, file_name)
+    .then(
+      ({url}) => {
+        dispatch({ type: 'ADD_UPLOAD', file, file_name, url });
+
+        let upload = getUpload(getState(), file_name);
+
+        dispatch({ type: 'UNQUEUE_UPLOADS' });
+      }
+    )
+    .catch(
+      errorMessage(dispatch, 'warning', 'Upload failed', error => error)
+    )
+    .catch(
+      errorMessage(dispatch, 'error', 'Upload failed',
+        error => `Something bad happened: ${error}`)
+    );
 }
 
 export const uploadAuthorized = ({ file, file_name, url }) => (dispatch, getState) => {
-  dispatch({ type: 'ADD_UPLOAD', file, file_name, url });
-
-  let upload = getUpload(getState, file_name);
-
-  work(dispatch, file_name, 'start', { upload });
 }
 
 export const uploadStarted = ({ file_name }) => (dispatch, getState) => {
-  let upload = getUpload(getState, file_name);
+  let upload = getUpload(getState(), file_name);
 
-  if (upload.status == 'active')
-    work(dispatch, file_name, 'continue', { upload });
+  if (upload.status == 'active') work(dispatch, 'continue', { upload });
 }
 
 export const uploadBlobCompleted = ({file_name}) => (dispatch, getState) => {
-  let upload = getUpload(getState, file_name);
+  let upload = getUpload(getState(), file_name);
 
-  if (upload.status == 'active')
-    work(dispatch, file_name, 'continue', { upload });
+  if (upload.status == 'active') work(dispatch, 'continue', { upload });
 }
 
 export const uploadFileCompleted = ({upload}) => (dispatch) => {
   let { file } = upload;
   dispatch({ type: 'ADD_FILES', files: [ file ] });
+
+  dispatch({ type: 'UNQUEUE_UPLOADS' });
 }
 
 export const continueUpload = ({upload}) => (dispatch) => {
   dispatch({ type: 'UPLOAD_STATUS', upload, status: 'active' });
-  work(dispatch, upload.file_name, 'continue', { upload });
+  work(dispatch, 'continue', { upload });
 }
 
 export const pauseUpload = ({upload}) => (dispatch) => {
@@ -55,6 +65,24 @@ export const pauseUpload = ({upload}) => (dispatch) => {
 }
 
 export const cancelUpload = ({upload}) => (dispatch) => {
-  if(upload.status != 'complete' && !confirm('Are you sure you want to remove this upload?')) return;
-  dispatch({ type: 'WORK', work_type: 'upload', worker_name: upload.file_name, command: 'cancel', upload });
+  if (upload.status == 'complete') {
+    dispatch({ type: 'REMOVE_UPLOAD', upload });
+    return;
+  }
+
+  if (!confirm('Are you sure you want to remove this upload?')) return;
+
+  dispatch({ type: 'WORK', work_type: 'upload', command: 'cancel', upload });
 }
+
+export const uploadFileCanceled = ({upload}) => (dispatch) => {
+  dispatch({ type: 'REMOVE_UPLOAD', upload});
+  dispatch({ type: 'UNQUEUE_UPLOADS' });
+  work(dispatch, '', { uploads });
+}
+
+export const unqueueUploads = () => (dispatch, getState) => {
+  let uploads = Object.values(selectUploads(getState()));
+  work(dispatch, 'unqueue', { uploads });
+}
+
