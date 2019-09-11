@@ -16,7 +16,7 @@ module.exports = {
   resolve: {
     extensions: [ '.js', '.jsx' ],
     alias: {
-      'font-awesome': path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free-webfonts')
+      'font-awesome': path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free')
     }
   },
   entry: {
@@ -34,7 +34,7 @@ module.exports = {
         include: [ path.resolve(__dirname, 'lib/client/jsx'), ],
         test: /\.jsx?$/,
         query: {
-          presets: ['es2015', 'stage-0', 'react'],
+          presets: ['env', 'stage-0', 'react'],
         }
       },
 
@@ -55,7 +55,7 @@ module.exports = {
         test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)(\?.*$|$)/,
 
         include: [
-          path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free-webfonts')
+          path.resolve(__dirname, 'node_modules/@fortawesome/fontawesome-free')
         ],
 
         loader: 'file-loader',

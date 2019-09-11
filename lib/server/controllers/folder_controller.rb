@@ -53,7 +53,9 @@ class FolderController < Metis::Controller
     bucket = require_bucket
     folder = require_folder(bucket, @params[:folder_path])
 
-    raise Etna::BadRequest, 'Cannot remove folder' unless folder.can_remove?
+    raise Etna::BadRequest, 'Folder is read-only' if folder.read_only?
+
+    raise Etna::BadRequest, 'Folder is not empty' unless folder.can_remove?
 
     response = success_json(folders: [ folder.to_hash ])
 

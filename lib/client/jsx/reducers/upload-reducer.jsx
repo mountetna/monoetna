@@ -1,5 +1,7 @@
 import { fileKey } from '../utils/file';
 
+const BLOB_WINDOW = 30; // How many blob uploads to average over.
+
 // helper to create a new upload entry
 const upload = (file, file_name, url) => ({
   file,
@@ -8,7 +10,8 @@ const upload = (file, file_name, url) => ({
   project_name: CONFIG.project_name,
   file_size: file.size,
   current_byte_position: 0,
-  status: 'authorized'
+  status: 'queued',
+  upload_speeds: []
 })
 
 const uploads = (old_uploads, action) => {
@@ -17,7 +20,11 @@ const uploads = (old_uploads, action) => {
   switch(action.type) {
     case 'UPLOAD_SPEED': {
       let { upload, upload_speed } = action;
-      let { project_name, file_name } = upload;
+      let { project_name, file_name, next_blob_size, upload_speeds } = upload;
+
+      upload_speeds.push( upload_speed );
+
+      upload_speeds = upload_speeds.slice(-BLOB_WINDOW);
 
       let key = fileKey(upload);
 
@@ -25,7 +32,7 @@ const uploads = (old_uploads, action) => {
         ...old_uploads,
         [key]: {
           ...old_uploads[key],
-          upload_speed
+          upload_speeds
         }
       };
     }

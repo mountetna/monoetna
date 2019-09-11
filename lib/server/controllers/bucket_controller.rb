@@ -16,10 +16,18 @@ class BucketController < Metis::Controller
 
     raise Etna::BadRequest, 'Invalid access' unless Metis::Bucket.valid_access?(@params[:access])
 
+    existing_bucket = Metis::Bucket.where(
+      project_name: @params[:project_name],
+      name: @params[:bucket_name]
+    ).first
+
+    raise Etna::BadRequest, 'Duplicate bucket name' if existing_bucket
+
     bucket = Metis::Bucket.create(
       project_name: @params[:project_name],
       name: @params[:bucket_name],
       owner: @params[:owner],
+      description: @params[:description],
       access: @params[:access]
     )
     bucket.create_actual_bucket!

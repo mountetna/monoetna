@@ -1,28 +1,33 @@
 import { createWorker } from '../workers';
 
 let WORKERS = {
-  upload: () => createWorker( require.resolve('../workers/uploader'))
+  upload: (dispatch) => createWorker( dispatch, require.resolve('../workers/uploader'))
 }
 
 // a middleware that dispatches commands to worker threads
 const workDispatcher = () => {
-  let workers = {
-    upload: {}
-  };
+  let active_workers = { };
+
   return store => next => action => {
-    let { type, work_type, worker_name, ...args } = action;
+    let { type, work_type, ...args } = action;
 
     if (type != 'WORK') return next(action);
 
     if (!work_type in WORKERS) return;
 
-    if (!(worker_name in workers[work_type])) {
-      let worker = WORKERS[work_type]();
-      worker.addEventListener('message', ({data}) => store.dispatch(data))
-      workers[work_type][worker_name] = worker;
+    if (!(work_type in active_workers)) {
+      try {
+        let worker = WORKERS[work_type](store.dispatch);
+        active_workers[work_type] = worker;
+      } catch(e) {
+        store.dispatch({
+          type: 'WORK_FAILED', work_type, ...args
+        });
+        return;
+      }
     }
 
-    workers[work_type][worker_name].postMessage(args);
+    active_workers[work_type].postMessage(args);
   }
 }
 

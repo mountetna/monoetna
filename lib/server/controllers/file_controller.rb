@@ -5,7 +5,7 @@ class FileController < Metis::Controller
 
     raise Etna::Error.new('File not found', 404) unless file && file.has_data?
 
-    raise Etna::BadRequest, 'Cannot remove file' unless file.can_remove?
+    raise Etna::BadRequest, 'File is read-only' if file.read_only?
 
     response = success_json(files: [ file.to_hash ])
 
@@ -24,7 +24,7 @@ class FileController < Metis::Controller
 
     file.protect!
 
-    success_json(files: [ file.to_hash ])
+    success_json(files: [ file.to_hash(@request) ])
   end
 
   def unprotect
@@ -37,7 +37,7 @@ class FileController < Metis::Controller
 
     file.unprotect!
 
-    success_json(files: [ file.to_hash ])
+    success_json(files: [ file.to_hash(@request) ])
   end
 
   def rename
@@ -63,6 +63,6 @@ class FileController < Metis::Controller
 
     file.rename!(new_folder, new_file_name)
 
-    success_json(files: [ file.to_hash ])
+    success_json(files: [ file.to_hash(@request) ])
   end
 end

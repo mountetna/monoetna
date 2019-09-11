@@ -1,3 +1,11 @@
+$base-font: 'Open Sans', sans-serif;
+$title-font: 'Open Sans', sans-serif;
+$metis-color: #15788f;
+$thin-rule: 1px solid rgba($metis-color,0.2);
+$medium-rule: 1px solid rgba($metis-color,0.5);
+$thick-rule: 1px solid rgba($metis-color,1.0);
+$slight-rule: 1px solid rgba($metis-color,0.1);
+
 body {
   min-width: 720px;
   font-size: 1em;
@@ -62,17 +70,29 @@ a {
 }
 
 @mixin gray_button {
-  border: 1px solid #ccc;
   border-radius: 1px;
-  background: #eee;
   cursor: pointer;
-  color: #999;
+  border: 1px solid #888;
+  background: #eee;
+  color: #444;
+
+  &[disabled] {
+    pointer-events: none;
+    border: 1px solid #ccc;
+    background: #eee;
+    color: #999;
+  }
 
   &:hover {
-    color: #666;
+    border: 1px solid $metis-color;
+    color: $metis-color;
+    background: rgba($metis-color, 0.2);
   }
 
   &:active {
     background: #ccc;
   }
 }
+
+$dialog-border: 1px solid #888;
+

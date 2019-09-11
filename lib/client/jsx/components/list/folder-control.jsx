@@ -39,11 +39,11 @@ class FolderControl extends React.Component{
     let { folder } = this.props;
     let items = folder.read_only ?
       [
-        { label: 'Unprotect folder', callback: this.unprotectFolder.bind(this) }
+        { label: 'Unprotect folder', callback: this.unprotectFolder.bind(this), role: 'administrator' }
       ] : [
-        { label: 'Rename folder', callback: this.renameFolder.bind(this) },
-        { label: 'Protect folder', callback: this.protectFolder.bind(this) },
-        { label: 'Remove folder', callback: this.removeFolder.bind(this) },
+        { label: 'Rename folder', callback: this.renameFolder.bind(this), role: 'editor' },
+        { label: 'Protect folder', callback: this.protectFolder.bind(this), role: 'administrator' },
+        { label: 'Remove folder', callback: this.removeFolder.bind(this), role: 'editor' },
       ];
     return <MenuControl items={items}/>;
   }

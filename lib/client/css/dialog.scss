@@ -1,42 +1,54 @@
 // This is a blank backdrop pane for the dialog, with a click dismiss
 
-$dialog-border: 1px solid #888;
-
 .modal-window {
-  position: absolute;
+  position: fixed;
   background-color: rgba(#000, 0.05);
   width: 100%;
   height: 100vh;
   z-index: 20000;
   left: 0px;
   top: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   .modal-dialog {
     // the actual dialog box
-    position: absolute;
     background-color: #fff;
-    margin: auto;
+    border: $dialog-border;
 
-    .list-dialog {
-      border: $dialog-border;
+    .message-dialog {
+      width: 300px;
+      padding: 15px;
       font-family: $base-font;
-      li {
-        padding: 3px;
-        cursor: pointer;
-        font-size: 1.0em;
-        color: #888;
-        &:not(:last-child) {
-          border-bottom: $slight-rule;
-        }
-        &:hover {
-          background: #e6fafc;
-          color: #333;
+      .title {
+        font-family: $base-font;
+        border-bottom: $thin-rule;
+      }
+      .message {
+        padding-top: 15px;
+        display: flex;
+        align-items: center;
+        font-size: 0.8em;
+
+        .icon-grp {
+          .notice {
+            color: $metis-color;
+          }
+          .error {
+            color: red;
+          }
+          .warning {
+            color: goldenrod;
+          }
+          font-size: 0.5em;
+          padding-right: 10px;
         }
       }
     }
 
     .config-dialog {
-      border: $dialog-border;
+      width: 300px;
       font-family: $base-font;
       padding: 5px;
       .title {
@@ -57,7 +69,7 @@ $dialog-border: 1px solid #888;
       .config-row {
         font-family: $base-font;
         display: flex;
-        padding-bottom: 5px;
+        padding-top: 10px;
         .label {
           flex: 0 0 75px;
           font-size: 0.8em;
@@ -72,16 +84,21 @@ $dialog-border: 1px solid #888;
             border: 0px;
             border-bottom: $medium-rule;
           }
+          input {
+            font-size: 1.0em;
+            width: 200px;
+          }
         }
       }
       .submit {
         display: flex;
-        padding-top: 3px;
-        padding-left: 80px;
+        padding: 10px 80px 5px;
         .button {
           @include gray-button;
+          color: #222;
           padding: 3px;
           font-size: 0.8em;
+
         }
       }
 

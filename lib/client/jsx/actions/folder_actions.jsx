@@ -1,6 +1,7 @@
 import {
   postCreateFolder, postProtectFolder, postUnprotectFolder, postRenameFolder, deleteFolder
 } from '../api/folders_api';
+import { errorMessage } from './message_actions';
 
 const addFolders = (folders) => ({ type: 'ADD_FOLDERS', folders });
 const removeFolders = (folders) => ({ type: 'REMOVE_FOLDERS', folders });
@@ -8,7 +9,9 @@ const removeFolders = (folders) => ({ type: 'REMOVE_FOLDERS', folders });
 export const createFolder = ({bucket_name, folder_name, parent_folder}) => (dispatch) =>
   postCreateFolder(CONFIG.project_name, bucket_name, parent_folder ? `${parent_folder}/${folder_name}` : folder_name)
     .then(({folders}) => dispatch(addFolders(folders)))
-    .catch(error=>alert('Could not create folder!'));
+    .catch(
+      errorMessage(dispatch, 'warning', 'Folder creation failed', error => error)
+    );
 
 export const removeFolder = ({bucket_name, folder}) => (dispatch) => {
   if (!confirm(`Are you sure you want to remove ${folder.folder_path}?`)) return;
@@ -17,15 +20,20 @@ export const removeFolder = ({bucket_name, folder}) => (dispatch) => {
     CONFIG.project_name, bucket_name, folder.folder_path
   )
     .then(({folders}) => dispatch(removeFolders(folders)))
-    .catch(error=>alert('Could not remove folder!'));
+    .catch(
+      errorMessage(dispatch, 'warning', 'Folder removal failed', error => error)
+    );
 }
+
 
 export const protectFolder = ({bucket_name, folder}) => (dispatch) => {
   postProtectFolder(
     CONFIG.project_name, bucket_name, folder.folder_path
   )
     .then(({folders}) => dispatch(addFolders(folders)))
-    .catch(error=>alert('Could not protect folder!'));
+    .catch(
+      errorMessage(dispatch, 'warning', 'Folder protection failed', error => error)
+    );
 }
 
 export const unprotectFolder = ({bucket_name, folder}) => (dispatch) => {
@@ -35,7 +43,9 @@ export const unprotectFolder = ({bucket_name, folder}) => (dispatch) => {
     CONFIG.project_name, bucket_name, folder.folder_path
   )
     .then(({folders}) => dispatch(addFolders(folders)))
-    .catch(error=>alert('Could not unprotect folder!'));
+    .catch(
+      errorMessage(dispatch, 'warning', 'Folder unprotection failed', error => error)
+    );
 }
 
 export const renameFolder = ({bucket_name, folder, new_folder_path}) => (dispatch) => {
@@ -46,5 +56,7 @@ export const renameFolder = ({bucket_name, folder, new_folder_path}) => (dispatc
       dispatch(removeFolders([folder]));
       dispatch(addFolders(folders));
     })
-    .catch(error=>alert('Could not rename folder!'));
+    .catch(
+      errorMessage(dispatch, 'warning', 'Folder renaming failed', error => error)
+    );
 }

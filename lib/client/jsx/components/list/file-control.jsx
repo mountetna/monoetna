@@ -35,18 +35,37 @@ class FileControl extends React.Component{
     copyText(download_url);
   }
 
+  downloadFile() {
+    let { file: { file_name, download_url } } = this.props;
+
+    let download = document.createElement('a');
+    download.setAttribute('href', download_url);
+    download.setAttribute('download', file_name);
+
+    download.style.display = 'none';
+    document.body.appendChild(download);
+
+    download.click();
+
+    document.body.removeChild(download);
+  }
+
   render() {
     let { file } = this.props;
-    let copy_link = { label: 'Copy download link', callback: this.copyLink.bind(this) };
-    let items = file.read_only ?
+    let items = [
+      { label: 'Download file', callback: this.downloadFile.bind(this) },
+      { label: 'Copy download link', callback: this.copyLink.bind(this) }
+    ].concat(
+      file.read_only ?
       [
-        { label: 'Unprotect file', callback: this.unprotectFile.bind(this) }
+        { label: 'Unprotect file', callback: this.unprotectFile.bind(this), role: 'administrator' }
       ] : [
-        { label: 'Rename file', callback: this.renameFile.bind(this) },
-        { label: 'Protect file', callback: this.protectFile.bind(this) },
-        { label: 'Remove file', callback: this.removeFile.bind(this) },
-      ];
-    return <MenuControl items={[ copy_link, ...items ]}/>;
+        { label: 'Rename file', callback: this.renameFile.bind(this), role: 'editor' },
+        { label: 'Protect file', callback: this.protectFile.bind(this), role: 'administrator' },
+        { label: 'Remove file', callback: this.removeFile.bind(this), role: 'editor' },
+      ]
+    );
+    return <MenuControl items={items}/>;
   }
 }
 
