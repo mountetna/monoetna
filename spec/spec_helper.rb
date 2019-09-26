@@ -5,6 +5,7 @@ require 'rack/test'
 require 'bundler'
 require 'securerandom'
 require 'timecop'
+require 'webmock/rspec'
 
 Bundler.setup(:default, :test)
 
