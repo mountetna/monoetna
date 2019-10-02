@@ -12,6 +12,8 @@ class Metis
           value: metis.sign.uid,
           path: '/',
           domain: metis.config(:token_domain),
+          secure: true,
+          same_site: :strict,
           expires: Time.now+Metis.instance.config(:token_life)
         )
 
