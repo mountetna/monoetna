@@ -59,7 +59,9 @@ class FileController < Metis::Controller
 
     existing_new_file = Metis::File.from_folder(bucket, new_folder, new_file_name)
 
-    raise Etna::Forbidden, 'Cannot rename over existing file' if existing_new_file
+    raise Etna::Forbidden, 'Cannot rename over existing file' if Metis::File.exists?(new_file_name, bucket, new_folder)
+
+    raise Etna::Forbidden, 'Cannot rename over existing folder' if  Metis::Folder.exists?(new_file_name, bucket, new_folder)
 
     file.rename!(new_folder, new_file_name)
 

@@ -162,6 +162,15 @@ describe FolderController do
       expect(json_body[:error]).to eq('Folder exists')
     end
 
+    it 'refuses to create over existing file' do
+      token_header(:editor)
+      blueprints_file = create_file('athena', 'blueprints', HELMET)
+      post_create_folder('blueprints')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Cannot overwrite existing file')
+    end
+
     it 'refuses to create folders with non-existent parent folder' do
       token_header(:editor)
       post_create_folder('blueprints/Helmet Blueprints')
@@ -445,8 +454,24 @@ describe FolderController do
       token_header(:editor)
       rename_folder('blueprints','helmet')
 
-      expect(last_response.status).to eq(403)
+      expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot overwrite existing folder')
+
+      # the actual folder is untouched
+      @blueprints_folder.refresh
+      expect(@blueprints_folder.folder_name).to eq('blueprints')
+      expect(@blueprints_folder).to be_has_directory
+    end
+
+    it 'refuses to rename over an existing file' do
+      helmet_file = create_file('athena', 'helmet', HELMET)
+      stubs.create_file('athena', 'files', 'helmet', HELMET)
+
+      token_header(:editor)
+      rename_folder('blueprints','helmet')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Cannot overwrite existing file')
 
       # the actual folder is untouched
       @blueprints_folder.refresh

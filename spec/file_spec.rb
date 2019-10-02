@@ -299,6 +299,31 @@ describe FileController do
       expect(::File.read(learn_wisdom_file.location)).to eq(WISDOM*2)
     end
 
+    it 'refuses to rename over an existing folder' do
+      learn_wisdom_folder = create_folder('athena', 'learn-wisdom.txt')
+      stubs.create_folder('athena', 'files', 'learn-wisdom.txt')
+
+      token_header(:editor)
+      rename_file('wisdom.txt','learn-wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Cannot rename over existing folder')
+
+      # the file we tried to rename is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+
+      # the file we tried to rename is untouched
+      learn_wisdom_folder.refresh
+      expect(Metis::Folder.last).to eq(learn_wisdom_folder)
+      expect(learn_wisdom_folder.folder_name).to eq('learn-wisdom.txt')
+
+      # we can still see the data
+      expect(@wisdom_file).to be_has_data
+      expect(learn_wisdom_folder).to be_has_directory
+      expect(::File.read(@wisdom_file.location)).to eq(WISDOM)
+    end
+
     it 'refuses to rename a read-only file' do
       @wisdom_file.read_only = true
       @wisdom_file.save

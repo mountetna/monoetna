@@ -13,6 +13,8 @@ class UploadController < Metis::Controller
       raise Etna::Forbidden, 'Folder is read-only'
     end
 
+    raise Etna::Forbidden, 'Cannot overwrite existing folder' if Metis::Folder.exists?(file_name, bucket, folder)
+
     file = Metis::File.from_folder(bucket, folder, file_name)
 
     raise Etna::Forbidden, 'File cannot be overwritten' if file && file.read_only?
@@ -133,6 +135,10 @@ class UploadController < Metis::Controller
 
     if file && file.read_only?
       raise Etna::Forbidden, 'Cannot overwrite existing file'
+    end
+
+    if Metis::Folder.exists?(file_name, upload.bucket, folder)
+      raise Etna::Forbidden, 'Cannot overwrite existing folder'
     end
 
     new_file = upload.finish!
