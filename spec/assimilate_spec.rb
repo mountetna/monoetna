@@ -73,24 +73,21 @@ describe Metis::Assimilate do
     Dir.delete(blueprints_folder.location)
   end
 
-  it 'refuses to overwrite existing folders' do
+  it 'skips over existing folders' do
 
     # there is a blueprints folder already
     blueprints_folder = create_folder('athena', 'blueprints')
 
     stubs.create_folder('athena', 'files', 'blueprints')
-    stubs.create_data('stubs', 'blueprints/helmet.txt', HELMET)
 
     # we try to assimilate the blueprints folder
-    expect {
-      @cmd.execute('athena', 'files', '/', 'spec/stubs/blueprints')
-    }.to raise_error(ArgumentError)
+    @cmd.execute('athena', 'files', '/', 'spec/stubs/blueprints')
 
     expect(Metis::File.count).to eq(0)
     expect(Metis::Folder.count).to eq(1)
   end
 
-  it 'refuses to overwrite existing files' do
+  it 'skips over existing files' do
     blueprints_folder = create_folder('athena', 'blueprints')
     stubs.create_folder('athena', 'files', 'blueprints')
 
@@ -101,9 +98,7 @@ describe Metis::Assimilate do
     stubs.create_data('stubs', 'helmet.txt', HELMET)
 
     # we try to assimilate the same file
-    expect {
-      @cmd.execute('athena', 'files', '/blueprints', 'spec/stubs/helmet.txt')
-    }.to raise_error(ArgumentError)
+    @cmd.execute('athena', 'files', '/blueprints', 'spec/stubs/helmet.txt')
 
     expect(Metis::File.count).to eq(1)
     expect(Metis::Folder.count).to eq(1)
