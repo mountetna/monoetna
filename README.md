@@ -1,47 +1,136 @@
-# The Metis File Repository Software.
+# Metis
 
-## Why?
+Metis is a file service for Etna applications. It provides the ability to store
+binary files in folder hierarchies and access them via HTTP API. The underlying
+object storage uses an ordinary filesystem (i.e., files in Metis are stored on
+disk as files)
 
-Here at the Computational Biology Core there is a need to store large files from labratory experiements. These large files could be kept on Amazon S3 but that is undesirable for two reasons.
+## Organization
 
-1. It cost a lot of money to get our files back if we use a service like Amazon S3.
-2. The files need to be near our HPC Cluster for processing and analysis.
+### Projects
 
-## What?
+As with all Etna applications, the basic organizational unit of Metis is the
+project - the user only has rights to data from a project according to their
+project role.
 
-This file server software allows us to upload and download files using HTTP, much in the same way Box does. The server also allows us to do these operations via AJAX calls. To ensure security the server generates HMAC tokens that are used to verify the user and data being transfered. The server also has a small front end to view the files that were uploaded.
+### Buckets
 
-## How?
+Buckets are the root-level containers for each project. A bucket is access
+restricted, either by role or by access list. Bucket names are restricted to
+`symbol_names`, i.e. `[A-Za-z0-9_]+`.
 
-We deploy this server on an Linux system. The application itself is a Ruby/Rack application. The web server is Apache using Phusion Passenger. The file system for saving the actual files is a large disk that we mount on the linux file system. We keep metadata about the files on disk in a Postgres DB.
+### Folders
 
-## Other info?
+Folders are collections of files and folders. Folders may be "protected",
+preventing the creation of new files or folders.
 
-This system has a layer of user authentication. This file server is part of a larger system called Mt. Etna and this file server relys upon our other project, called Janus, for user authentication. The UI is built with Bable JS and Webpack.
+### Files
 
-## Depenencies?
+Files may have any content. Metis will compute MD5 sums for each file and (if
+available) back them up using cloud storage. Files may also be protected from
+modification by admins.
 
-  System Packages:
+### Names
+
+File (and folder) names must match `[^<>:;,?"*\|\/\x00-\x1f]+`, i.e. excluding
+common wildcard, separator and control characters.
+
+## Client
+
+Metis provides a browser client that allows file viewing, download, and
+upload.
+
+## API
+
+### Listing
+
+Listing a folder path will return a JSON list of files and folders at that
+path, including an HMAC-signed `download_url`:
+
 ```
-  'git', 'tmux', 'openssl', 'curl', 'python-pip', 'httpd', 'httpd-devel', 'mod_ssl', 'openssl-devel', 'readline-devel', 'zlib-devel', 'postgresql-devel', 'nodejs', 'postgresql-server', 'postgresql-contrib', 'pygpgme'
+GET /:project_name/list/:bucket_name/*folder_path
 ```
 
-  Ruby Gems: 
-```
-  'rack', 'pg', 'sequel', 'bundler'
-```
+### Buckets
 
-  Node NPM:
+You may get a list of visible buckets for your project:
 ```
-  'babel-cli', 'webpack'
+GET /:project_name/list/
 ```
 
-## Local Development?
+Admins may create, update or delete a bucket:
+```
+POST /:project_name/bucket/create/:bucket_name { owner, access, description }
+POST /:project_name/bucket/update/:bucket_name { access, description, new_bucket_name }
+DELETE /:project_name/bucket/remove/:bucket_name
+```
 
-I run VMs that look like the STAGE and PROD machines. I then mount my local project folder onto that machine. Here is the mount command...
+Bucket access is either a role `administrator, editor, viewer` or a
+comma-separated list of Etna user ids (emails).
 
-  `$ sudo mount -t vboxsf -o rw,uid=1000,gid=1000 metis /var/www/metis`
+### Folders
 
-When you first start up a VM for local development we need to enable symlinks.
+Editors may create, remove and rename folders.
+```
+POST /:project_name/folder/create/:bucket_name/*folder_path
+DELETE /:project_name/folder/remove/:bucket_name/*folder_path
+POST /:project_name/folder/rename/:bucket_name/*folder_path { new_folder_path }
+```
 
-  `$ VBoxManage setextradata metis-dev VBoxInternal2/ SharedFoldersEnableSymlinksCreate/metis 1`
+Admins may protect or unprotect folders:
+```
+POST /:project_name/folder/protect/:bucket_name/*folder_path
+POST '/:project_name/folder/unprotect/:bucket_name/*folder_path
+```
+
+### Files
+
+Editors may remove or rename a file:
+```
+DELETE /:project_name/file/remove/:bucket_name/*file_path
+POST /:project_name/file/rename/:bucket_name/*file_path { new_file_path }
+```
+
+Admins may protect or unprotect a file:
+```
+POST /:project_name/file/protect/:bucket_name/*file_path
+POST /:project_name/file/unprotect/:bucket_name/*file_path
+```
+
+### Uploads
+
+The basic upload cycle first requires the editor to authorize a new file upload
+into a project, bucket and path with their Etna auth token:
+```
+POST /authorize/upload { project_name, bucket_name, file_path }
+```
+If the intended file path is invalid, or the destination is locked, the
+upload authorization will fail.
+
+This returns an HMAC-signed URL to the upload endpoint, which may be
+used to perform the upload:
+```
+POST /:project_name/upload/:bucket_name/*file_path { action, ... }
+```
+
+This endpoint can perform three actions:
+
+We initiate the upload by communicating what we intend to send:
+```
+{ action: 'start', file_size, next_blob_size, next_blob_hash }
+```
+
+We repeatedly send blobs of binary data (using multipart post):
+```
+{ action: 'blob', blob_data, next_blob_size, next_blob_hash }
+```
+
+If the data does not hash correctly upon receipt, Metis will reject the blob.
+
+When we have sent the final blob, the upload completes and Metis returns the
+newly-minted file JSON.
+
+If we are dissatisfied with our progress we may cancel the upload:
+```
+{ action: 'cancel' }
+```
