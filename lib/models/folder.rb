@@ -167,7 +167,7 @@ class Metis
         # create the folder
         raise ArgumentError, 'Cannot write folder over file' if file_exists?
 
-        print_status(folder_exists? && 'exists, continuing')
+        print_status(folder_exists? && 'folder exists, continuing')
 
         metis_folder = Metis::Folder.find_or_create(
           project_name: @bucket.project_name,
@@ -184,8 +184,6 @@ class Metis
       end
 
       def ensure_file
-        print_status
-
         raise ArgumentError, 'Cannot write file over folder' if folder_exists?
 
         metis_file = Metis::File.find(
@@ -204,6 +202,8 @@ class Metis
           return
         end
 
+        print_status
+
         metis_file = Metis::File.create(
           project_name: @bucket.project_name,
           file_name: @name,
@@ -215,7 +215,7 @@ class Metis
       end
 
       def print_status(msg=nil)
-        puts "#{@path} => /#{@parent_folder ? @parent_folder.folder_path.join('/') + '/' : nil }/#{@name}#{msg ? " #{msg}" : nil}"
+        puts "#{@path} => /#{@parent_folder ? @parent_folder.folder_path.join('/') + '/' : nil }#{@name}#{msg ? " #{msg}" : nil}"
       end
     end
 
