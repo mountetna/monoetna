@@ -167,6 +167,24 @@ describe UploadController do
       expect(json_body[:error]).to eq('Folder is read-only')
       expect(Metis::Upload.count).to eq(0)
     end
+
+    it 'does not authorize overwriting an existing folder' do
+      blueprints_folder = create_folder('athena', 'blueprints')
+
+      params = {
+        file_path: 'blueprints',
+        bucket_name: 'files',
+        project_name: 'athena'
+      }
+      # we use our token to authorize an upload
+      token_header(:editor)
+      json_post('/authorize/upload', params)
+
+      # we expect to be forbidden from uploading
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Cannot overwrite existing folder')
+      expect(Metis::Upload.count).to eq(0)
+    end
   end
 
   context '#upload_start' do
@@ -482,6 +500,28 @@ describe UploadController do
 
       # clean up the file
       File.delete(file.location)
+    end
+
+    it 'refuses to complete over an existing folder' do
+      # the next blob completes the data
+      upload = prep_upload('wisdom.txt')
+
+      wisdom_folder = create_folder('athena', 'wisdom.txt')
+
+      # post the blob with no next blob
+      complete_upload('wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Cannot overwrite existing folder')
+
+      # the partial is destroyed
+      expect(File.exists?(@partial_file)).to be_falsy
+
+      # the folder still exists
+      expect(Metis::Folder.count).to eq(1)
+
+      # the file does not
+      expect(Metis::File.count).to eq(0)
     end
 
     it 'sets a folder name when it completes' do

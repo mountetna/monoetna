@@ -127,45 +127,100 @@ class Metis
       FileUtils.mkdir_p(location)
     end
 
-    def self.assimilate(file_path, bucket, parent_folder=nil)
-      folder_path = file_path = ::File.expand_path(file_path)
-      folder_name = file_name = ::File.basename(file_path)
+    class Assimilation
+      def initialize(path, bucket, parent_folder=nil)
+        @path = ::File.expand_path(path)
+        @name = ::File.basename(@path)
+        @bucket = bucket
+        @parent_folder = parent_folder
 
-      raise ArgumentError unless ::File.exists?(file_path)
-      raise ArgumentError unless Metis::File.valid_file_name?(file_name)
-      raise ArgumentError if Metis::File.exists?(file_name, bucket, parent_folder) || Metis::Folder.exists?(folder_name, bucket, parent_folder)
+        raise ArgumentError, "No such file #{@path}" unless ::File.exists?(@path)
+        raise ArgumentError, "Invalid name #{@name}" unless Metis::File.valid_file_name?(@name)
+      end
 
-      if ::File.directory?(folder_path)
+      def execute
+        if folder?
+          metis_folder = ensure_folder
+          Dir.glob(["#{@path}/*"]).each do |file|
+            metis_folder.assimilate(file)
+          end
+        else
+          ensure_file
+        end
+      end
+
+      private
+
+      def folder?
+        ::File.directory?(@path)
+      end
+
+      def folder_exists?
+        Metis::Folder.exists?(@name, @bucket, @parent_folder)
+      end
+
+      def file_exists?
+        Metis::File.exists?(@name, @bucket, @parent_folder)
+      end
+
+      def ensure_folder
         # create the folder
-        metis_folder = Metis::Folder.create(
-          project_name: bucket.project_name,
-          folder_name: folder_name,
-          bucket: bucket,
-          folder: parent_folder,
-          author: ''
-        )
+        raise ArgumentError, 'Cannot write folder over file' if file_exists?
+
+        print_status(folder_exists? && 'folder exists, continuing')
+
+        metis_folder = Metis::Folder.find_or_create(
+          project_name: @bucket.project_name,
+          folder_name: @name,
+          bucket: @bucket,
+          folder_id: @parent_folder&.id
+        ) do |folder|
+          folder.author = '|Metis'
+        end
+
         metis_folder.create_actual_folder!
 
-        puts ">#{folder_path} => #{parent_folder ? parent_folder.folder_path.join('/') : nil}#{folder_name}"
+        return metis_folder
+      end
 
-        Dir.glob(["#{folder_path}/*"]).each do |file|
-          metis_folder.assimilate(file)
-        end
-      else
-        puts ".#{file_path} => #{parent_folder ? parent_folder.folder_path.join('/') : nil}#{file_name}"
-        metis_file = Metis::File.find_or_create(
-          project_name: bucket.project_name,
-          file_name: file_name,
-          folder_id: parent_folder ? parent_folder.id : nil,
-          bucket: bucket,
-          author: ''
+      def ensure_file
+        raise ArgumentError, 'Cannot write file over folder' if folder_exists?
+
+        metis_file = Metis::File.find(
+          project_name: @bucket.project_name,
+          file_name: @name,
+          folder_id: @parent_folder&.id,
+          bucket: @bucket
         )
-        metis_file.set_file_data(file_path, true)
+
+        if metis_file
+          if ::File.size(@path) == metis_file.actual_size
+            print_status('file exists, continuing')
+          else
+            print_status('file size mismatch, continuing')
+          end
+          return
+        end
+
+        print_status
+
+        metis_file = Metis::File.create(
+          project_name: @bucket.project_name,
+          file_name: @name,
+          folder_id: @parent_folder&.id,
+          bucket: @bucket,
+          author: '|Metis'
+        )
+        metis_file.set_file_data(@path, true)
+      end
+
+      def print_status(msg=nil)
+        puts "#{@path} => /#{@parent_folder ? @parent_folder.folder_path.join('/') + '/' : nil }#{@name}#{msg ? " #{msg}" : nil}"
       end
     end
 
     def assimilate(file_path)
-      Metis::Folder.assimilate(file_path, self.bucket, self)
+      Metis::Folder::Assimilation.new(file_path, self.bucket, self).execute
     end
 
     def to_hash

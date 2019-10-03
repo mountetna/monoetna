@@ -28,13 +28,13 @@ describe Metis::SetUid do
       )
     )
 
-    set_cookie "#{Metis.instance.config(:metis_uid_name)}=abcdef0123"
+    set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{Metis.instance.sign.uid}"
     get('/')
     expect(last_response.headers["Set-Cookie"]).to be_nil
     expect(rack_mock_session.cookie_jar[Metis.instance.config(:metis_uid_name)]).not_to be_nil
   end
 
-  it 'complains if the cookie has been mangled' do
+  it 'resets the cookie if it has been mangled' do
     header(
       *Etna::TestAuth.token_header(
         email: 'metis@ucsf.edu', perm: 'e:athena'
@@ -43,7 +43,7 @@ describe Metis::SetUid do
 
     set_cookie "#{Metis.instance.config(:metis_uid_name)}=../../etc/password"
     get('/')
-    expect(last_response.status).to eq(422)
+    expect(last_response.status).to eq(200)
     expect(last_response.headers["Set-Cookie"]).to match(/#{Metis.instance.config(:metis_uid_name)}/)
     expect(rack_mock_session.cookie_jar[Metis.instance.config(:metis_uid_name)]).not_to be_nil
   end

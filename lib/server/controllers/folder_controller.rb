@@ -29,12 +29,9 @@ class FolderController < Metis::Controller
     parent_folder = require_folder(bucket, parent_folder_path)
 
     # is there a previous folder here?
-    folder = Metis::Folder.where(
-      bucket: bucket,
-      folder_id: parent_folder ? parent_folder.id : nil,
-      folder_name: folder_name
-    ).first
-    raise Etna::BadRequest, "Folder exists" if folder
+    raise Etna::BadRequest, "Folder exists" if Metis::Folder.exists?(folder_name, bucket, parent_folder)
+
+    raise Etna::BadRequest, "Cannot overwrite existing file" if Metis::File.exists?(folder_name, bucket, parent_folder)
 
     # create the folder
     folder = Metis::Folder.create(
@@ -106,12 +103,9 @@ class FolderController < Metis::Controller
 
     raise Etna::Forbidden, 'Folder is read-only' if new_parent_folder && new_parent_folder.read_only?
 
-    existing_new_folder = Metis::Folder.where(
-      bucket: bucket,
-      folder_id: new_parent_folder ? new_parent_folder.id : nil,
-      folder_name: new_folder_name).first
+    raise Etna::BadRequest, 'Cannot overwrite existing folder' if Metis::Folder.exists?(new_folder_name, bucket, new_parent_folder)
 
-    raise Etna::Forbidden, 'Cannot overwrite existing folder' if existing_new_folder
+    raise Etna::BadRequest, 'Cannot overwrite existing file' if Metis::File.exists?(new_folder_name, bucket, new_parent_folder)
 
     folder.rename!(new_parent_folder, new_folder_name)
 
