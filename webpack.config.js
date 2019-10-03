@@ -47,7 +47,7 @@ module.exports = {
         options: {
           name: '[name].[ext]',
           outputPath: 'public/images/',
-          publicPath: function(url) { return url.replace(/public/,'') }
+          publicPath: function(url) { return url.match(/^public/) ? url.replace(/public/,'') : `/images/${url}` }
         }
       },
 
@@ -63,7 +63,7 @@ module.exports = {
         options: {
           name: '[name].[ext]',
           outputPath: 'public/fonts/',
-          publicPath: function(url) { return url.replace(/public/,'') }
+          publicPath: function(url) { return url.match(/^public/) ? url.replace(/public/,'') : `/fonts/${url}` }
         }
       },
 
