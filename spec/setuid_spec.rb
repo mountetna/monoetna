@@ -16,7 +16,7 @@ describe Metis::SetUid do
       )
     )
 
-    get('/')
+    get(METIS_URL+'/')
     expect(last_response.headers["Set-Cookie"]).to match(/#{Metis.instance.config(:metis_uid_name)}/)
     expect(rack_mock_session.cookie_jar[Metis.instance.config(:metis_uid_name)]).not_to be_nil
   end
@@ -29,7 +29,7 @@ describe Metis::SetUid do
     )
 
     set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{Metis.instance.sign.uid}"
-    get('/')
+    get(METIS_URL+'/')
     expect(last_response.headers["Set-Cookie"]).to be_nil
     expect(rack_mock_session.cookie_jar[Metis.instance.config(:metis_uid_name)]).not_to be_nil
   end
@@ -42,7 +42,7 @@ describe Metis::SetUid do
     )
 
     set_cookie "#{Metis.instance.config(:metis_uid_name)}=../../etc/password"
-    get('/')
+    get(METIS_URL+'/')
     expect(last_response.status).to eq(200)
     expect(last_response.headers["Set-Cookie"]).to match(/#{Metis.instance.config(:metis_uid_name)}/)
     expect(rack_mock_session.cookie_jar[Metis.instance.config(:metis_uid_name)]).not_to be_nil

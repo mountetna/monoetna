@@ -82,7 +82,7 @@ describe FileController do
       token_header(:editor)
       remove_file('wisdom.txt')
 
-      expect(last_response.status).to eq(422)
+      expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('File is read-only')
       expect(@wisdom_file).to be_has_data
       expect(Metis::File.all).to include(@wisdom_file)
@@ -96,7 +96,7 @@ describe FileController do
       token_header(:admin)
       remove_file('wisdom.txt')
 
-      expect(last_response.status).to eq(422)
+      expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('File is read-only')
       expect(@wisdom_file).to be_has_data
       expect(Metis::File.all).to include(@wisdom_file)
@@ -153,8 +153,8 @@ describe FileController do
       token_header(:admin)
       protect_file('wisdom.txt')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('File is read-only')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('File is already read-only')
       @wisdom_file.refresh
       expect(@wisdom_file).to be_read_only
     end

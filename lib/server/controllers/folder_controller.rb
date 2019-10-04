@@ -52,6 +52,8 @@ class FolderController < Metis::Controller
 
     raise Etna::BadRequest, 'Folder is read-only' if folder.read_only?
 
+    raise Etna::Forbidden, 'Parent folder is read-only' if folder.folder&.read_only?
+
     raise Etna::BadRequest, 'Folder is not empty' unless folder.can_remove?
 
     response = success_json(folders: [ folder.to_hash ])
