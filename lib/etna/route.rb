@@ -11,6 +11,15 @@ module Etna
       @block = block
     end
 
+    def to_hash
+      {
+        method: @method,
+        route: @route,
+        name: @name.to_s,
+        params: parts
+      }.compact
+    end
+
     def matches?(request)
       @method == request.request_method && request.path.match(route_regexp)
     end
@@ -22,16 +31,20 @@ module Etna
 
     UNSAFE=/[^\-_.!~*'()a-zA-Z\d;\/?:@&=+$,]/
 
-    def path(params=nil)
+    def self.path(route, params=nil)
       if params
-        PARAM_TYPES.reduce(@route) do |route,pat|
-          route.gsub(pat) do
+        PARAM_TYPES.reduce(route) do |path,pat|
+          path.gsub(pat) do
            URI.encode( params[$1.to_sym], UNSAFE)
           end
         end
       else
-        @route
+        route
       end
+    end
+
+    def path(params=nil)
+      self.class.path(@route, params)
     end
 
     def parts

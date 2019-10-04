@@ -81,6 +81,10 @@ module Etna
       @response.finish
     end
 
+    def success_json(params)
+      success(params.to_json, 'application/json')
+    end
+
     def failure(status, msg)
       @response['Content-Type'] = 'application/json'
       @response.status = status
