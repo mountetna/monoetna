@@ -3,9 +3,11 @@ class FileController < Metis::Controller
     bucket = require_bucket
     file = Metis::File.from_path(bucket, @params[:file_path])
 
-    raise Etna::Error.new('File not found', 404) unless file && file.has_data?
+    raise Etna::Error.new('File not found', 404) unless file&.has_data?
 
-    raise Etna::BadRequest, 'File is read-only' if file.read_only?
+    raise Etna::Forbidden, 'File is read-only' if file.read_only?
+
+    raise Etna::Forbidden, 'Folder is read-only' if file.folder&.read_only?
 
     response = success_json(files: [ file.to_hash ])
 
@@ -18,9 +20,9 @@ class FileController < Metis::Controller
     bucket = require_bucket
     file = Metis::File.from_path(bucket, @params[:file_path])
 
-    raise Etna::Error.new('File not found', 404) unless file && file.has_data?
+    raise Etna::Error.new('File not found', 404) unless file&.has_data?
 
-    raise Etna::Forbidden, 'File is read-only' if file.read_only?
+    raise Etna::BadRequest, 'File is already read-only' if file.read_only?
 
     file.protect!
 
@@ -31,7 +33,7 @@ class FileController < Metis::Controller
     bucket = require_bucket
     file = Metis::File.from_path(bucket, @params[:file_path])
 
-    raise Etna::Error.new('File not found', 404) unless file && file.has_data?
+    raise Etna::Error.new('File not found', 404) unless file&.has_data?
 
     raise Etna::BadRequest, 'File is not protected' unless file.read_only?
 
@@ -45,9 +47,11 @@ class FileController < Metis::Controller
     bucket = require_bucket
     file = Metis::File.from_path(bucket, @params[:file_path])
 
-    raise Etna::Error.new('File not found', 404) unless file && file.has_data?
+    raise Etna::Error.new('File not found', 404) unless file&.has_data?
 
     raise Etna::Forbidden, 'File is read-only' if file.read_only?
+
+    raise Etna::Forbidden, 'File is read-only' if file.folder&.read_only?
 
     raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:new_file_path])
 
@@ -55,7 +59,7 @@ class FileController < Metis::Controller
 
     new_folder = require_folder(bucket, new_folder_path)
 
-    raise Etna::Forbidden, 'Folder is read-only' if new_folder && new_folder.read_only?
+    raise Etna::Forbidden, 'Folder is read-only' if new_folder&.read_only?
 
     existing_new_file = Metis::File.from_folder(bucket, new_folder, new_file_name)
 
