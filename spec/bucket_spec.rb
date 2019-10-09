@@ -278,6 +278,8 @@ describe BucketController do
       expect(bucket.location).not_to eq(old_location)
       expect(::File.exists?(old_location)).to be_falsy
       expect(::File.exists?(bucket.location)).to be_truthy
+
+      stubs.send(:add_stub, bucket.location)
     end
   end
 

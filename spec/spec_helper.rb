@@ -193,7 +193,7 @@ class Stubs
   end
 
   def project_path(project_name, name)
-    ::File.expand_path("spec/#{project_name}/#{name}")
+    ::File.expand_path("#{Metis.instance.config(:data_path)}/#{project_name}/#{name}")
   end
 
   def stub_dir(path)

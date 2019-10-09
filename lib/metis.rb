@@ -22,7 +22,7 @@ class Metis
   end
 
   def project_path(project)
-    config(:project_paths)[project.to_sym]
+    ::File.join(config(:data_path), project)
   end
 
   def archiver
