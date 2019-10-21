@@ -299,7 +299,7 @@ def create_upload(project_name, file_name, uid, params={})
       file_name: file_name,
       author: Metis::File.author(Etna::User.new(AUTH_USERS[:editor])),
       metis_uid: uid,
-      bucket: default_bucket(project_name),
+      bucket: params[:bucket] || default_bucket(project_name),
       current_byte_position: 0,
       file_size: 0,
       next_blob_size: -1,

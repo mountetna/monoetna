@@ -312,6 +312,20 @@ describe BucketController do
       expect(File.exists?(bucket.location)).to be_falsy
     end
 
+    it 'removes a bucket with uploads' do
+      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
+      stubs.create_bucket('athena', 'my_bucket')
+
+      upload = create_upload( 'athena', 'wisdom.txt', @metis_uid, bucket: bucket)
+
+      token_header(:admin)
+      delete('/athena/bucket/remove/my_bucket')
+
+      expect(last_response.status).to eq(200)
+      expect(Metis::Bucket.count).to eq(0)
+      expect(File.exists?(bucket.location)).to be_falsy
+    end
+
     it 'refuses to remove a non-empty bucket' do
       bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
       stubs.create_bucket('athena', 'my_bucket')
