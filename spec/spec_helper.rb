@@ -142,11 +142,8 @@ class Stubs
     @stubs = []
   end
 
-  def create_partial(project_name, name, contents, metis_uid)
-    partial_path = project_path(
-      project_name,
-      "uploads/#{Metis::File.safe_file_name("#{metis_uid}-#{name}")}"
-    )
+  def create_partial(upload, contents, metis_uid)
+    partial_path = upload.partial_location
     stub_file(partial_path, contents)
     add_stub(partial_path)
   end

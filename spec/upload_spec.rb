@@ -287,16 +287,17 @@ describe UploadController do
       # there is a file record in place
       file = create_file('athena', 'wisdom.txt', WISDOM)
 
-      # the current uploaded file-on-disk
-      partial_file = stubs.create_partial('athena', 'wisdom.txt', partial, @metis_uid)
-
       # the upload expects the contents of next_blob
       upload = create_upload('athena', 'wisdom.txt', @metis_uid,
+
         file_size: WISDOM.length,
-        current_byte_position: File.size(partial_file),
+        current_byte_position: partial.length,
         next_blob_size: next_blob.length,
         next_blob_hash: Digest::MD5.hexdigest(next_blob)
       )
+
+      # the current uploaded file-on-disk
+      partial_file = stubs.create_partial(upload, partial, @metis_uid)
 
       # the file-on-disk the client will post
       wisdom_blob_file = stubs.create_data('athena', 'wisdom_blob', next_blob)
@@ -329,15 +330,15 @@ describe UploadController do
 
       file = create_file('athena', 'wisdom.txt', WISDOM)
 
-      partial_file = stubs.create_partial('athena', file.file_name, partial, @metis_uid)
-
       # the upload expects the correct contents
       upload = create_upload('athena', 'wisdom.txt', @metis_uid,
         file_size: WISDOM.length,
-        current_byte_position: File.size(partial_file),
+        current_byte_position: partial.length,
         next_blob_size: next_blob.length,
         next_blob_hash: Digest::MD5.hexdigest(next_blob)
       )
+
+      partial_file = stubs.create_partial(upload, partial, @metis_uid)
 
       # we post the wrong blob
       hmac_header
@@ -369,14 +370,16 @@ describe UploadController do
 
     def prep_upload(file_name)
       # the upload expects the final blob
-      @partial_file = stubs.create_partial('athena', file_name, @partial, @metis_uid)
-
-      create_upload('athena', file_name, @metis_uid,
+      upload = create_upload('athena', file_name, @metis_uid,
         file_size: WISDOM.length,
-        current_byte_position: File.size(@partial_file),
+        current_byte_position: @partial.length,
         next_blob_size: @next_blob.length,
         next_blob_hash: Digest::MD5.hexdigest(@next_blob)
       )
+
+      @partial_file = stubs.create_partial(upload, @partial, @metis_uid)
+
+      return upload
     end
 
     def complete_upload(file_name)
@@ -600,15 +603,16 @@ describe UploadController do
     it 'should add cancel an upload' do
       # there is partial data
       partial = WISDOM[0..9]
-      partial_file = stubs.create_partial('athena', 'wisdom.txt', partial, @metis_uid)
 
       # there is an upload waiting
       upload = create_upload( 'athena', 'wisdom.txt', @metis_uid,
         file_size: WISDOM.length,
-        current_byte_position: File.size(partial_file),
+        current_byte_position: partial.length,
         next_blob_size: 10,
         next_blob_hash: 10
       )
+
+      partial_file = stubs.create_partial(upload, partial, @metis_uid)
 
       # we post a cancel request with our hmac url
       hmac_header
@@ -628,16 +632,15 @@ describe UploadController do
       # there is partial data
       partial = WISDOM[0..9]
 
-      # our file has no existing data
-      partial_file = stubs.create_partial('athena', 'wisdom.txt', partial, @metis_uid)
-
       # there is an upload waiting
       upload = create_upload('athena', 'wisdom.txt', @metis_uid,
         file_size: WISDOM.length,
-        current_byte_position: File.size(partial_file),
+        current_byte_position: partial.length,
         next_blob_size: 10,
         next_blob_hash: 10
       )
+
+      partial_file = stubs.create_partial(upload, partial, @metis_uid)
 
       # we post a cancel request with our hmac url
       hmac_header
@@ -661,15 +664,16 @@ describe UploadController do
       # our file has existing data
       file = create_file('athena', 'wisdom.txt', WISDOM)
       current_file = stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-      partial_file = stubs.create_partial('athena', file.file_name, partial, @metis_uid)
 
       # there is an upload waiting
       upload = create_upload('athena', 'wisdom.txt', @metis_uid,
         file_size: WISDOM.length,
-        current_byte_position: File.size(partial_file),
+        current_byte_position: partial.length,
         next_blob_size: 10,
         next_blob_hash: 10
       )
+
+      partial_file = stubs.create_partial(upload, partial, @metis_uid)
 
       # we post a cancel request with our hmac url
       hmac_header
