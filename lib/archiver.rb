@@ -4,12 +4,10 @@ class Metis
   class Archiver
     def initialize(config)
       @config = config
-      @glacier = {}
     end
 
-    def archive(project_name, file)
-      project_name = project_name.to_sym
-      raise ArgumentError, "No vault defined for project #{project_name}!" unless @config.has_key?(project_name)
+    def archive(file)
+      raise ArgumentError, "No vault defined!" unless @config
 
       backup = Metis::Backup.where(md5_hash: file.file_hash).first
 
@@ -21,7 +19,7 @@ class Metis
           archive_id = 'zero-byte-file'
           description = 'A zero-byte file'
         else
-          archive = vault(project_name).archives.create(
+          archive = vault.archives.create(
             body: ::File.open(file.location),
             multipart_chunk_size: 64*1024*1024,
             description: "md5:#{file.file_hash} #{file.file_path}"
@@ -45,17 +43,17 @@ class Metis
 
     private
 
-    def vault(project_name)
-      glacier(project_name).vaults.find { |v|
-        v.id == @config[project_name][:directory]
-      } || glacier(project_name).vaults.create(
-        id: @config[project_name][:directory]
+    def vault
+      glacier.vaults.find { |v|
+        v.id == @config[:directory]
+      } || glacier.vaults.create(
+        id: @config[:directory]
       )
     end
 
-    def glacier(project_name)
-      @glacier[project_name] ||= Fog::AWS::Glacier.new(
-        @config[project_name][:credentials]
+    def glacier
+      @glacier ||= Fog::AWS::Glacier.new(
+        @config[:credentials]
       )
     end
   end
