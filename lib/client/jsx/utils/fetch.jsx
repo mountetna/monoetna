@@ -1,14 +1,13 @@
-export const checkStatus = (response, json=true) => {
+export const checkStatus = (response) => {
+  let content = isJSON(response) ? response.json() : response.body();
   if (response.status >= 200 && response.status < 300) {
-    return json ? parseJSON(response) : response;
+    return content;
   } else {
-    throw parseJSON(response);
+    throw content;
   }
 }
 
-export const parseJSON = (response) => response.json();
-
-export const makeBlob = (response) => response.blob()
+const isJSON = (response) => response.headers.get('Content-Type') == 'application/json';
 
 export const headers = (...types) => {
   var _headers = {}

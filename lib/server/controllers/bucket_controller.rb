@@ -55,10 +55,10 @@ class BucketController < Metis::Controller
 
     raise Etna::BadRequest, 'Cannot remove bucket' unless bucket.can_remove?
 
-    response = success_json(bucket: bucket.to_hash)
+    response = { bucket: bucket.to_hash }
 
     bucket.remove!
 
-    return response
+    return success_json(response)
   end
 end

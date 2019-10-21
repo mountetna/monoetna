@@ -56,12 +56,12 @@ class FolderController < Metis::Controller
 
     raise Etna::BadRequest, 'Folder is not empty' unless folder.can_remove?
 
-    response = success_json(folders: [ folder.to_hash ])
+    response = { folders: [ folder.to_hash ] }
 
     # actually remove the folder
     folder.remove!
 
-    return response
+    return success_json(response)
   end
 
   def protect
