@@ -14,10 +14,10 @@ describe Metis::Assimilate do
   end
 
   it 'moves files and folders into the root folder path' do
-    stubs.create_data('stubs', 'wisdom.txt', WISDOM)
-    stubs.create_data('stubs', 'blueprints/helmet.txt', HELMET)
+    wisdom_path = stubs.create_data('stubs', 'wisdom.txt', WISDOM)
+    helmet_path = stubs.create_data('stubs', 'blueprints/helmet.txt', HELMET)
 
-    @cmd.execute('athena', 'files', '/', 'spec/stubs/wisdom.txt', 'spec/stubs/blueprints')
+    @cmd.execute('athena', 'files', '/', wisdom_path, ::File.dirname(helmet_path))
 
     expect(Metis::File.count).to eq(2)
     expect(Metis::Folder.count).to eq(1)
@@ -42,8 +42,8 @@ describe Metis::Assimilate do
     expect(blueprints_folder).to be_has_directory
 
     # the original files are untouched
-    expect(::File.exists?('spec/stubs/wisdom.txt')).to be_truthy
-    expect(::File.exists?('spec/stubs/blueprints/helmet.txt')).to be_truthy
+    expect(::File.exists?(wisdom_path)).to be_truthy
+    expect(::File.exists?(helmet_path)).to be_truthy
     File.delete(wisdom_file.location)
     File.delete(helmet_file.location)
     Dir.delete(blueprints_folder.location)
@@ -53,10 +53,10 @@ describe Metis::Assimilate do
     upload_folder = create_folder('athena', 'upload')
     stubs.create_folder('athena', 'files', 'upload')
 
-    stubs.create_data('stubs', 'wisdom.txt', WISDOM)
-    stubs.create_data('stubs', 'blueprints/helmet.txt', HELMET)
+    wisdom_path = stubs.create_data('stubs', 'wisdom.txt', WISDOM)
+    helmet_path = stubs.create_data('stubs', 'blueprints/helmet.txt', HELMET)
 
-    @cmd.execute('athena', 'files', '/upload', 'spec/stubs/wisdom.txt', 'spec/stubs/blueprints')
+    @cmd.execute('athena', 'files', '/upload', wisdom_path, ::File.dirname(helmet_path))
 
     expect(Metis::File.count).to eq(2)
     expect(Metis::Folder.count).to eq(2)
@@ -95,10 +95,10 @@ describe Metis::Assimilate do
     helmet_file = create_file('athena', 'helmet.txt', HELMET, folder: blueprints_folder)
     stubs.create_file('athena', 'files', 'blueprints/helmet.txt', HELMET)
 
-    stubs.create_data('stubs', 'helmet.txt', HELMET)
+    helmet_path = stubs.create_data('stubs', 'helmet.txt', HELMET)
 
     # we try to assimilate the same file
-    @cmd.execute('athena', 'files', '/blueprints', 'spec/stubs/helmet.txt')
+    @cmd.execute('athena', 'files', '/blueprints', helmet_path)
 
     expect(Metis::File.count).to eq(1)
     expect(Metis::Folder.count).to eq(1)

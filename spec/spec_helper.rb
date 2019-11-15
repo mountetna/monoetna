@@ -142,11 +142,8 @@ class Stubs
     @stubs = []
   end
 
-  def create_partial(project_name, name, contents, metis_uid)
-    partial_path = project_path(
-      project_name,
-      "uploads/#{Metis::File.safe_file_name("#{metis_uid}-#{name}")}"
-    )
+  def create_partial(upload, contents, metis_uid)
+    partial_path = upload.partial_location
     stub_file(partial_path, contents)
     add_stub(partial_path)
   end
@@ -193,7 +190,7 @@ class Stubs
   end
 
   def project_path(project_name, name)
-    ::File.expand_path("spec/#{project_name}/#{name}")
+    ::File.expand_path("#{Metis.instance.config(:data_path)}/#{project_name}/#{name}")
   end
 
   def stub_dir(path)
@@ -299,7 +296,7 @@ def create_upload(project_name, file_name, uid, params={})
       file_name: file_name,
       author: Metis::File.author(Etna::User.new(AUTH_USERS[:editor])),
       metis_uid: uid,
-      bucket: default_bucket(project_name),
+      bucket: params[:bucket] || default_bucket(project_name),
       current_byte_position: 0,
       file_size: 0,
       next_blob_size: -1,

@@ -4,6 +4,7 @@ class Metis
 
     one_to_many :files
     one_to_many :folders
+    one_to_many :uploads
 
     ROLES = {
       # stupidly, Etna::User calls this 'admin'
@@ -58,15 +59,22 @@ class Metis
     end
 
     def remove!
-      ::Dir.delete(location)
+      # Stop all uploads
+      uploads.each(&:delete_with_partial!)
+
+      # delete the directory
+      ::Dir.delete(location) if has_directory?
+
+      # delete the record
       delete
     end
 
     def can_remove?
-      has_directory? && Dir.entries(location).size <= 2
+      files.count == 0 && folders.count == 0
     end
 
     def create_actual_bucket!
+      Metis::Upload.ensure_upload_dir!(project_name)
       FileUtils.mkdir_p(location)
     end
 

@@ -9,7 +9,7 @@ import ControlBar from './control-bar';
 import { selectBuckets } from '../selectors/directory-selector';
 
 const COLUMNS = [
-  { name: 'type', width: '90px' },
+  { name: 'type', width: '60px' },
   { name: 'name', width: '30%' },
   { name: 'description', width: '50%' },
   { name: 'access', width: '10%', title: 'Permission level or access list required to use this bucket' },

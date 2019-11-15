@@ -9,11 +9,11 @@ class FileController < Metis::Controller
 
     raise Etna::Forbidden, 'Folder is read-only' if file.folder&.read_only?
 
-    response = success_json(files: [ file.to_hash ])
+    response = { files: [ file.to_hash ] }
 
     file.remove!
 
-    return response
+    return success_json(response)
   end
 
   def protect

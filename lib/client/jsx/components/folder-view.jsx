@@ -7,7 +7,7 @@ import FolderBreadcrumb from './folder-breadcrumb';
 import ControlBar from './control-bar';
 
 const COLUMNS = [
-  { name: 'type', width: '90px' },
+  { name: 'type', width: '60px' },
   { name: 'name', width: '60%' },
   { name: 'status', width: '90px', hide: true },
   { name: 'updated', width: '30%' },

@@ -214,10 +214,7 @@ class Metis
     def backup!
       return if !file_hash || backup_id
 
-      Metis.instance.archiver.archive(
-        project_name,
-        self
-      )
+      Metis.instance.archiver.archive(self)
     end
 
     def set_file_data(file_path, copy=false)

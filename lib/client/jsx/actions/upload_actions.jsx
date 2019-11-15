@@ -78,7 +78,6 @@ export const cancelUpload = ({upload}) => (dispatch) => {
 export const uploadFileCanceled = ({upload}) => (dispatch) => {
   dispatch({ type: 'REMOVE_UPLOAD', upload});
   dispatch({ type: 'UNQUEUE_UPLOADS' });
-  work(dispatch, '', { uploads });
 }
 
 export const unqueueUploads = () => (dispatch, getState) => {
