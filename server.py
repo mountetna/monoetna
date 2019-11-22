@@ -4,8 +4,7 @@ import flask
 import numpy as np
 import sys
 import traceback
-import importlib
-import methods
+from request_handler import execute
 
 app = Flask(__name__)
 app.config.update(
@@ -15,19 +14,8 @@ app.config.update(
 )
 
 @app.route('/')
-def route_test():
-    return "test page"
-
-
-"""
-input JSON string example
-{
-  "func": "function_name",
-  "args": [
-    1, 2, 3, 4
-  ]
-}
-"""
+def route_home():
+    return "Home"
 
 @app.route('/json/', methods=['POST'])
 def route_json():
@@ -35,22 +23,11 @@ def route_json():
     try:
         # post request formatted
         post_request = request.get_json(force=True)
-        func_name = post_request["func"]
-        
-        args = []
-        if "args" in post_request:
-            if isinstance(post_request["args"], type(None)):
-                pass
-            else:    
-                args = post_request["args"]
-            
-            
-        method = importlib.import_module("%s.%s"%("methods",func_name))
-        return flask.jsonify(method.func(*args))
+        return flask.jsonify(execute(post_request))
             
     except Exception:
-        type, value, tb = sys.exc_info()
-        return flask.jsonify(type=str(type),
+        dtype, value, tb = sys.exc_info()
+        return flask.jsonify(type=str(dtype),
                          error=str(value),
                          traceback=traceback.extract_tb(tb))
 
