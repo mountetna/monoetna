@@ -7,8 +7,11 @@ import pprint
 server_url = "http://127.0.0.1:5000/json/"
   
 # your source code here 
-post_dict = {"func" : "manifesto",
-             "args" : []}
+post_dict = {"func" : "tether",
+             "requests" : [{"func" : "pipe1"}],
+             "args" : [[1,1,1],[2,2,2]]
+                      
+            }
 
 post_json = json.dumps(post_dict)
 
