@@ -29,5 +29,5 @@ def route_json():
         dtype, value, tb = sys.exc_info()
         return flask.jsonify(type=str(dtype),
                          error=str(value),
-                         traceback=traceback.extract_tb(tb))
+                         traceback=traceback.format_exc())
 
