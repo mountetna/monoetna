@@ -7,13 +7,21 @@ import pprint
 server_url = "http://127.0.0.1:5000/json/"
   
 # your source code here 
-post_dict = {"func" : "tether",
-             "requests" : [{"func" : "pipe1"}],
-             "args" : [[1,1,1],[2,2,2]]
+post_dict_str = {"func" : "add", "args" : ["__help__"]}
+
+post_dict_mixed_tether = {"func" : "tether",
+             "args" : [
+                       {"func" : "pipe1",
+                            "args" : [[1,1,1],[1,2,3]]},
+                       {"func" : "pipe2"},
+                       {"func" : "tether",
+                        "requests" : [{"func" : "pipe3"}]}
+                       ]
+                        
                       
             }
 
-post_json = json.dumps(post_dict)
+post_json = json.dumps(post_dict_str)
 
 # data to be sent to api 
 data = post_json
