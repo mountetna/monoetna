@@ -39,6 +39,7 @@ def execute(request):
     #print("%s.%s"%("methods",func_name))
     #print("args:", args, "kwargs:", kwargs)
     method = importlib.import_module("%s.%s"%("methods",func_name))
+    
     return method.func(*args, **kwargs)
         
 def tether(requests, args, kwargs):
@@ -72,4 +73,3 @@ def tether(requests, args, kwargs):
         prev_return = execute(request)
         
     return prev_return
-    
