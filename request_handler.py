@@ -1,6 +1,7 @@
 import importlib
 import methods
 import copy
+from functions import get_func
 
 def execute(request):
     """
@@ -17,30 +18,14 @@ def execute(request):
     output: <tether function> OR method.func(*args, **kwargs)
     """
     
-    args = []
-    kwargs = {}
-    
-    if "args" in request:
-        if isinstance(request["args"], type(None)):
-            pass
-        else:    
-            args = request["args"]
-    
-    if "kwargs" in request:
-        if isinstance(request["kwargs"], type(None)):
-            pass
-        else:    
-            kwargs = request["kwargs"]
+    args = request.get("args",[])
+    kwargs = request.get("kwargs",{})
         
     func_name = request["func"]
     if func_name == "tether":
         return tether(request["requests"], args, kwargs)
     
-    #print("%s.%s"%("methods",func_name))
-    #print("args:", args, "kwargs:", kwargs)
-    method = importlib.import_module("%s.%s"%("methods",func_name))
-    
-    return method.func(*args, **kwargs)
+    return get_func(func_name)(*args, **kwargs)
         
 def tether(requests, args, kwargs):
     """
