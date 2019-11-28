@@ -23,7 +23,6 @@ def execute(request):
         
     func_name = request["func"]
     
-    print(methods.FUNCTIONS)
     if func_name == "tether":
         return tether(request["requests"], args, kwargs)
     if func_name in methods.FUNCTIONS:
