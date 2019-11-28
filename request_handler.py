@@ -1,7 +1,7 @@
 import importlib
 import methods
 import copy
-from functions import get_func
+import methods
 
 def execute(request):
     """
@@ -22,10 +22,14 @@ def execute(request):
     kwargs = request.get("kwargs",{})
         
     func_name = request["func"]
+    
+    print(methods.FUNCTIONS)
     if func_name == "tether":
         return tether(request["requests"], args, kwargs)
-    
-    return get_func(func_name)(*args, **kwargs)
+    if func_name in methods.FUNCTIONS:
+        return methods.FUNCTIONS[func_name](*args, **kwargs)
+    else:
+        return None
         
 def tether(requests, args, kwargs):
     """
