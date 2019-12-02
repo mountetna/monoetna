@@ -5,6 +5,7 @@ import numpy as np
 import sys
 import traceback
 from request_handler import execute
+from errors import FunctionError, TetherError
 
 app = Flask(__name__)
 app.config.update(
@@ -19,15 +20,24 @@ def route_home():
 
 @app.route('/json/', methods=['POST'])
 def route_json():
-    
+
     try:
         # post request formatted
         post_request = request.get_json(force=True)
-        return flask.jsonify(execute(post_request))
-            
+        return flask.jsonify(status = 200, 
+                             output = execute(post_request))
+        
+    except FunctionError as e:
+        return flask.jsonify(msg = e.msg,
+                             status = e.status,
+                             info = e.info)
+    
+    except TetherError as e:
+        return flask.jsonify(msg = e.msg,
+                             status = e.status,
+                             info = e.info,
+                             request_info = e.request_info)
+    
     except Exception:
-        dtype, value, tb = sys.exc_info()
-        return flask.jsonify(type=str(dtype),
-                         error=str(value),
-                         traceback=traceback.format_exc())
-
+        print(traceback.format_exc())
+        return flask.jsonify(msg = 500)
