@@ -2,6 +2,8 @@ import importlib
 import methods
 import copy
 import methods
+from errors import FunctionError, TetherError
+from traceback import format_exc
 
 def execute(request):
     """
@@ -22,13 +24,18 @@ def execute(request):
     kwargs = request.get("kwargs",{})
         
     func_name = request["func"]
-    
     if func_name == "tether":
-        return tether(request["requests"], args, kwargs)
-    if func_name in methods.FUNCTIONS:
-        return methods.FUNCTIONS[func_name](*args, **kwargs)
+        try:
+            return tether(request["requests"], args, kwargs)
+        except FunctionError as e:
+            raise TetherError(request_info = e.info)
+        except:
+            raise
     else:
-        return None
+        try:
+            return methods.FUNCTIONS[func_name](*args, **kwargs)
+        except:
+            raise FunctionError(info = {"func_name" : func_name, "args" : args, "kwargs" : kwargs})
         
 def tether(requests, args, kwargs):
     """
@@ -57,7 +64,7 @@ def tether(requests, args, kwargs):
                 request["kwargs"] = kwargs
             else:
                 request["kwargs"].update(prev_return)
-                
+         
         prev_return = execute(request)
         
     return prev_return
