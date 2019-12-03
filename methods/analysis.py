@@ -5,17 +5,18 @@ from scipy.cluster import hierarchy
 from tools.trees import dict_node
 import math
 import pandas as pd
-import rpy2.robjects as ro
-from rpy2.robjects import r, pandas2ri, vectors
-from rpy2.robjects.packages import STAP
+# errors on import?
+#import rpy2.robjects as ro
+#from rpy2.robjects import r, pandas2ri, vectors
+#from rpy2.robjects.packages import STAP
 import os
+from helper import helper
 
-def correlation(data, by_cols):
-    '''
-    Calculate a correlation matrix and returns a dict
+@helper('''Calculate a correlation matrix and returns a dict
     with the indication name the key and a matrix of dicts with
-    Pearson r values P-values and count (the number of elements compared) as keys
-    '''
+    Pearson r values P-values and count (the number of elements compared) as keys''')
+def correlation(data, by_cols):
+    
     corr_array = []  
     if by_cols:
         x = np.hsplit(data.df_matrix, data.col_size)
@@ -56,12 +57,13 @@ def correlation(data, by_cols):
     }
     return response_output
 
-def z_score(data, by_cols):
-    '''
+@helper('''
     Calculate a z score matrix and returns a dict
     with the indication name the key and a matrix of dicts with
     z score values and count (the number of elements compared) as keys
-    '''
+    ''')
+def z_score(data, by_cols):
+    
     z_array = []  
     if by_cols:
         x = np.hsplit(data.df_matrix, data.col_size)
@@ -97,11 +99,12 @@ def z_score(data, by_cols):
     }
     return response_output       
 
-def density(data,bandwidth):
-    '''
+@helper('''
     Uses gaussian kernel density estimation to return the  x_y values and
     count (number of items used) for a density plot 
-    ''' 
+    ''' )
+def density(data, bandwidth):
+    
     populations_array = np.vsplit(data.df_matrix,data.row_size) 
     density_array =[]
     for i,population in enumerate(populations_array):
@@ -126,6 +129,7 @@ def density(data,bandwidth):
     }
     return response_output    
 
+@helper("Returns dendogram tree")
 def dendrogram(data,by_cols):
     dist_mat = data.to_distance_matrix(by_cols)
     clusters = hierarchy.average(dist_mat) 
@@ -146,6 +150,7 @@ def dendrogram(data,by_cols):
     }
     return response_output
 
+@helper("Differential expression")
 def DE(data,p_val,labels):
   
   pandas2ri.activate()

@@ -1,8 +1,2 @@
-*.pyc
-pythia.wsgi
-.DS_Store
-._*
-log
-*.swp
-
-python_modules
+post_json.py
+*__pycache__*
