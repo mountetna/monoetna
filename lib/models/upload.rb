@@ -30,7 +30,7 @@ class Metis
     def partial_location
       Metis::Upload.upload_location(
         project_name,
-        "#{metis_uid}-#{Digest::MD5.hexdigest(id.to_s)}"
+        Digest::MD5.hexdigest("#{metis_uid}-#{id.to_s}")
       )
     end
 
