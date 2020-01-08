@@ -41,9 +41,9 @@ class Metis
       delete
     end
 
-    def append_blob(blob_path)
+    def append_blob(blob)
       # use cat to avoid reading file
-      %x{ cat #{blob_path} >> "#{partial_location}" }
+      %x{ cat #{blob.path} >> "#{partial_location}" }
 
       self.update(
         current_byte_position: ::File.size(partial_location)
@@ -75,13 +75,13 @@ class Metis
       file_size == ::File.size(partial_location)
     end
 
-    def blob_valid?(next_blob_path)
-      # next_blob_hash and _size are the expected
+    def blob_valid?(blob)
+      # next_blob_hash and next_blob_size are the expected
       # content hash and size of the blob
 
       return (
-        Metis::File.md5(next_blob_path) == next_blob_hash &&
-        ::File.size(next_blob_path) == next_blob_size
+        Metis::File.md5(blob.path) == next_blob_hash &&
+        ::File.size(blob.path) == next_blob_size
       )
     end
   end

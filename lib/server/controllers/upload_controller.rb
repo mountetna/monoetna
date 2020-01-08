@@ -105,11 +105,11 @@ class UploadController < Metis::Controller
 
     raise Etna::BadRequest, 'Upload has not been started' unless upload
 
-    blob_path = @params[:blob_data][:tempfile].path
+    blob = @params[:blob_data][:tempfile]
 
-    raise Etna::BadRequest, 'Blob integrity failed' unless upload.blob_valid?(blob_path)
+    raise Etna::BadRequest, 'Blob integrity failed' unless upload.blob_valid?(blob)
 
-    upload.append_blob(blob_path)
+    upload.append_blob(blob)
 
     upload.update(
       next_blob_size: @params[:next_blob_size],
