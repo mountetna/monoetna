@@ -34,20 +34,25 @@ class Metis
       )
     end
 
+    def append_blob(blob, next_blob_size, next_blob_hash)
+
+      # use cat to avoid reading file
+      # Verify that partial_location is well-formed
+      raise 'Appending to invalid location' unless Metis::File.valid_file_path?(partial_location[1..-1])
+      %x{ cat #{blob.path} >> "#{partial_location}" }
+
+      self.update(
+        current_byte_position: ::File.size(partial_location),
+        next_blob_size: next_blob_size,
+        next_blob_hash: next_blob_hash
+      )
+    end
+
     def delete_with_partial!
       if ::File.exists?(partial_location)
         ::File.delete(partial_location)
       end
       delete
-    end
-
-    def append_blob(blob)
-      # use cat to avoid reading file
-      %x{ cat #{blob.path} >> "#{partial_location}" }
-
-      self.update(
-        current_byte_position: ::File.size(partial_location)
-      )
     end
 
     def finish!
@@ -73,16 +78,6 @@ class Metis
 
     def complete?
       file_size == ::File.size(partial_location)
-    end
-
-    def blob_valid?(blob)
-      # next_blob_hash and next_blob_size are the expected
-      # content hash and size of the blob
-
-      return (
-        Metis::File.md5(blob.path) == next_blob_hash &&
-        ::File.size(blob.path) == next_blob_size
-      )
     end
   end
 end

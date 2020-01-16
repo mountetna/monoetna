@@ -63,7 +63,8 @@ class Metis
 
     def self.md5(path)
       # use md5sum to avoid reading blob
-      %x{ md5sum '#{path}' }.split.first
+      raise 'Invalid path for md5' unless Metis::File.valid_file_path?(path[1..-1])
+      %x{ md5sum "#{path}" }.split.first
     end
 
     def self.upload_url(request, project_name, bucket_name, file_path)
