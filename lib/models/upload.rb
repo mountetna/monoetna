@@ -30,7 +30,21 @@ class Metis
     def partial_location
       Metis::Upload.upload_location(
         project_name,
-        "#{metis_uid}-#{Digest::MD5.hexdigest(id.to_s)}"
+        Digest::MD5.hexdigest("#{metis_uid}-#{id.to_s}")
+      )
+    end
+
+    def append_blob(blob, next_blob_size, next_blob_hash)
+
+      # use cat to avoid reading file
+      # Verify that partial_location is well-formed
+      raise 'Appending to invalid location' unless Metis::File.valid_file_path?(partial_location[1..-1])
+      %x{ cat #{blob.path} >> "#{partial_location}" }
+
+      self.update(
+        current_byte_position: ::File.size(partial_location),
+        next_blob_size: next_blob_size,
+        next_blob_hash: next_blob_hash
       )
     end
 
@@ -39,15 +53,6 @@ class Metis
         ::File.delete(partial_location)
       end
       delete
-    end
-
-    def append_blob(blob_path)
-      # use cat to avoid reading file
-      %x{ cat #{blob_path} >> "#{partial_location}" }
-
-      self.update(
-        current_byte_position: ::File.size(partial_location)
-      )
     end
 
     def finish!
@@ -73,16 +78,6 @@ class Metis
 
     def complete?
       file_size == ::File.size(partial_location)
-    end
-
-    def blob_valid?(next_blob_path)
-      # next_blob_hash and _size are the expected
-      # content hash and size of the blob
-
-      return (
-        Metis::File.md5(next_blob_path) == next_blob_hash &&
-        ::File.size(next_blob_path) == next_blob_size
-      )
     end
   end
 end
