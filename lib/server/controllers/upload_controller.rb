@@ -9,9 +9,7 @@ class UploadController < Metis::Controller
 
     folder = require_folder(bucket, folder_path)
 
-    if folder && folder.read_only?
-      raise Etna::Forbidden, 'Folder is read-only'
-    end
+    raise Etna::Forbidden, 'Folder is read-only' if folder&.read_only?
 
     raise Etna::Forbidden, 'Cannot overwrite existing folder' if Metis::Folder.exists?(file_name, bucket, folder)
 
