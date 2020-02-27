@@ -108,7 +108,7 @@ FactoryBot.define do
   factory :upload, class: Metis::Upload do
     to_create(&:save)
   end
-  factory :backup, class: Metis::Backup do
+  factory :data_block, class: Metis::DataBlock do
     to_create(&:save)
   end
 end
@@ -161,13 +161,13 @@ class Stubs
   end
 
   def create_folder(project_name, bucket_name, name)
-    folder_path = project_path(project_name, bucket_path(bucket_name, name))
-    stub_dir(folder_path)
-    add_stub(folder_path)
+    #folder_path = project_path(project_name, bucket_path(bucket_name, name))
+    #stub_dir(folder_path)
+    #add_stub(folder_path)
   end
 
-  def create_file(project_name, bucket_name, name, contents)
-    file_path = project_path(project_name, bucket_path(bucket_name, name))
+  def create_file(project_name, bucket_name, name, contents, md5_hash=nil)
+    file_path = ::File.expand_path("#{Metis.instance.config(:data_path)}/data_blocks/#{md5_hash || Digest::MD5.hexdigest(contents)}")
     stub_file(file_path, contents)
     add_stub(file_path)
   end
@@ -317,13 +317,18 @@ def create_folder(project_name, folder_name, params={})
 end
 
 def create_file(project_name, file_name, contents, params={})
+  data_block = create(:data_block,
+    description: file_name,
+    md5_hash: params.delete(:md5_hash) || Digest::MD5.hexdigest(contents)
+  )
+
   create( :file,
     {
       bucket: params[:bucket] || default_bucket(project_name),
       project_name: project_name,
       author: 'metis|Metis',
       file_name: file_name,
-      file_hash: contents ? Digest::MD5.hexdigest(contents) : nil
+      data_block: data_block
     }.merge(params)
   )
 end

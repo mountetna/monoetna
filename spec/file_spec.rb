@@ -25,10 +25,10 @@ describe FileController do
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
 
       @blueprints_folder = create_folder('athena', 'blueprints')
-      stubs.create_folder('athena', 'files','blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
 
       @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
-      stubs.create_folder('athena', 'files','blueprints/helmet')
+      stubs.create_folder('athena', 'files', 'blueprints/helmet')
 
       @helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @helmet_folder)
       stubs.create_file('athena', 'files', 'blueprints/helmet/helmet.jpg', HELMET)
@@ -251,7 +251,7 @@ describe FileController do
     it 'refuses to rename a file without permissions' do
       # the user is a viewer, not an editor
       token_header(:viewer)
-      rename_file('wisdom.txt','learn-wisdom.txt')
+      rename_file('wisdom.txt', 'learn-wisdom.txt')
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(403)
@@ -262,7 +262,7 @@ describe FileController do
     it 'refuses to rename a non-existent file' do
       # we attempt to rename a file that does not exist
       token_header(:editor)
-      rename_file('folly.txt','learn-folly.txt')
+      rename_file('folly.txt', 'learn-folly.txt')
 
       expect(last_response.status).to eq(404)
       expect(json_body[:error]).to eq('File not found')
@@ -278,7 +278,7 @@ describe FileController do
       stubs.create_file('athena', 'files', 'learn-wisdom.txt', WISDOM*2)
 
       token_header(:editor)
-      rename_file('wisdom.txt','learn-wisdom.txt')
+      rename_file('wisdom.txt', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('Cannot rename over existing file')
@@ -304,7 +304,7 @@ describe FileController do
       stubs.create_folder('athena', 'files', 'learn-wisdom.txt')
 
       token_header(:editor)
-      rename_file('wisdom.txt','learn-wisdom.txt')
+      rename_file('wisdom.txt', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
       expect(json_body[:error]).to eq('Cannot rename over existing folder')
@@ -320,7 +320,6 @@ describe FileController do
 
       # we can still see the data
       expect(@wisdom_file).to be_has_data
-      expect(learn_wisdom_folder).to be_has_directory
       expect(::File.read(@wisdom_file.location)).to eq(WISDOM)
     end
 
@@ -340,7 +339,7 @@ describe FileController do
 
     it 'can move a file to a new folder' do
       contents_folder = create_folder('athena', 'contents')
-      stubs.create_folder('athena', 'files','contents')
+      stubs.create_folder('athena', 'files', 'contents')
 
       token_header(:editor)
       rename_file('wisdom.txt', 'contents/wisdom.txt')
@@ -354,7 +353,7 @@ describe FileController do
 
     it 'will not move a file to a read-only folder' do
       contents_folder = create_folder('athena', 'contents', read_only: true)
-      stubs.create_folder('athena', 'files','contents')
+      stubs.create_folder('athena', 'files', 'contents')
 
       token_header(:editor)
       rename_file('wisdom.txt', 'contents/wisdom.txt')
@@ -377,95 +376,6 @@ describe FileController do
       expect(@wisdom_file.file_path).to eq('wisdom.txt')
       expect(@wisdom_file.folder).to be_nil
       expect(@wisdom_file).to be_has_data
-    end
-  end
-
-  context '#compute_hash!' do
-    before(:each) do
-      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-    end
-
-    it 'computes the md5 sum of the file' do
-      @wisdom_file.compute_hash!
-
-      @wisdom_file.refresh
-      expect(@wisdom_file.file_hash).to eq(Digest::MD5.hexdigest(WISDOM))
-    end
-  end
-
-  context '#backup!' do
-    before(:each) do
-      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-    end
-
-    def glacier_stub(method, path, response={})
-      stub_request(method, "https://glacier.us-east-1.amazonaws.com/-/vaults#{path}")
-        .to_return({
-          status: 200,
-          headers: {
-          'Content-Type' => 'application/json'
-          }
-        }.merge(response))
-    end
-
-    it 'backs up the file to AWS Glacier' do
-      vault_json = {
-        "CreationDate":"2018-08-27T20:56:30.058Z",
-        "LastInventoryDate":nil,
-        "NumberOfArchives":0,
-        "SizeInBytes":0,
-        "VaultARN":"arn:aws:glacier:us-east-1:1999:vaults/metis-test-athena",
-        "VaultName":"metis-test-athena"
-      }.to_json
-
-      glacier_stub( :get, '',
-        body: '{"Marker":null,"VaultList":[]}',
-      )
-      glacier_stub(:put, '/metis-test-athena', status: 201, body: '{}')
-      glacier_stub(:get, '/metis-test-athena',
-        body: vault_json,
-      )
-      glacier_stub(:post, '/metis-test-athena',
-        body: vault_json,
-      )
-      glacier_stub(:post, '/metis-test-athena/multipart-uploads',
-        status: 201,
-        headers: {
-          'X-Amz-Multipart-Upload-Id': 'uploadid',
-          'Content-Type': 'application/json'
-        },
-        body: "{}"
-      )
-      glacier_stub(:put, '/metis-test-athena/multipart-uploads/uploadid',
-        status: 204
-      )
-      glacier_stub(:post, '/metis-test-athena/multipart-uploads/uploadid',
-        status: 201,
-        headers: {
-          'X-Amz-Archive-Id': 'archive_id',
-          'Content-Type': 'application/json',
-        }
-      )
-
-      @wisdom_file.backup!
-
-      expect(Metis::Backup.count).to eq(1)
-
-      @wisdom_file.refresh
-      expect(@wisdom_file.backup).to eq(Metis::Backup.first)
-    end
-
-    it 'reuses an existing backup' do
-      backup = create(:backup, archive_id: "archived", md5_hash: @wisdom_file.file_hash, description: "description");
-
-      @wisdom_file.backup!
-
-      expect(Metis::Backup.count).to eq(1)
-
-      @wisdom_file.refresh
-      expect(@wisdom_file.backup).to eq(backup)
     end
   end
 end
