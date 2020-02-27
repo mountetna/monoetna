@@ -117,10 +117,6 @@ class Metis
       update(read_only: false)
     end
 
-    def assimilate(file_path)
-      Metis::Folder::Assimilation.new(file_path, self.bucket, self).execute
-    end
-
     def to_hash
       {
         folder_name: folder_name,

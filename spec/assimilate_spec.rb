@@ -39,14 +39,12 @@ describe Metis::Assimilate do
     # folders are also created
     expect(blueprints_folder.folder_name).to eq('blueprints')
     expect(blueprints_folder).to be_root_folder
-    expect(blueprints_folder).to be_has_directory
 
     # the original files are untouched
     expect(::File.exists?(wisdom_path)).to be_truthy
     expect(::File.exists?(helmet_path)).to be_truthy
     File.delete(wisdom_file.location)
     File.delete(helmet_file.location)
-    Dir.delete(blueprints_folder.location)
   end
 
   it 'moves files and folders into a folder path' do
@@ -70,11 +68,9 @@ describe Metis::Assimilate do
 
     File.delete(wisdom_file.location)
     File.delete(helmet_file.location)
-    Dir.delete(blueprints_folder.location)
   end
 
   it 'skips over existing folders' do
-
     # there is a blueprints folder already
     blueprints_folder = create_folder('athena', 'blueprints')
 

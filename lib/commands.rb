@@ -203,7 +203,7 @@ class Metis
 
       if folder_path.empty?
         files.each do |file_path|
-          Metis::Folder::Assimilation.new(file_path, bucket).execute
+          Metis::Assimilation.new(file_path, bucket).execute
         end
       else
         metis_folder = Metis::Folder.from_path(bucket, folder_path).last
@@ -211,8 +211,8 @@ class Metis
           puts "No such folder #{folder_path}"
           exit
         end
-        files.each do |file|
-          metis_folder.assimilate(file)
+        files.each do |file_path|
+          Metis::Assimilation.assimilate_folder(metis_folder, file_path)
         end
       end
     end
