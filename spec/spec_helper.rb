@@ -137,6 +137,49 @@ def safe_path(path)
   )
 end
 
+def glacier_stub(vault_name)
+  vault_json = {
+      "CreationDate":"2018-08-27T20:56:30.058Z",
+      "LastInventoryDate":nil,
+      "NumberOfArchives":0,
+      "SizeInBytes":0,
+      "VaultARN":"arn:aws:glacier:us-east-1:1999:vaults/#{vault_name}",
+      "VaultName": vault_name
+  }.to_json
+  stub_glacier_method(:get, '', body: {Marker: nil,VaultList: []}.to_json)
+  stub_glacier_method(:put, "/#{vault_name}", status: 201, body: '{}')
+  stub_glacier_method(:get, "/#{vault_name}", body: vault_json)
+  stub_glacier_method(:post, "/#{vault_name}", body: vault_json)
+  stub_glacier_method(:post, "/#{vault_name}/multipart-uploads",
+    status: 201,
+    headers: {
+      'X-Amz-Multipart-Upload-Id': 'uploadid',
+      'Content-Type': 'application/json'
+    },
+    body: "{}"
+  )
+  stub_glacier_method(:put, "/#{vault_name}/multipart-uploads/uploadid",
+    status: 204
+  )
+  stub_glacier_method(:post, "/#{vault_name}/multipart-uploads/uploadid",
+    status: 201,
+    headers: {
+      'X-Amz-Archive-Id': 'archive_id',
+      'Content-Type': 'application/json',
+    }
+  )
+end
+
+def stub_glacier_method(method, path, response={})
+  stub_request(method, "https://glacier.us-east-1.amazonaws.com/-/vaults#{path}")
+    .to_return({
+      status: 200,
+      headers: {
+      'Content-Type' => 'application/json'
+      }
+    }.merge(response))
+end
+
 class Stubs
   def initialize
     @stubs = []

@@ -187,19 +187,9 @@ class Metis
     end
 
     def rename!(new_folder, new_file_name)
-      old_location = location
-
       update(
         file_name: new_file_name,
         folder_id: new_folder ? new_folder.id : nil
-      )
-
-      new_location = location
-
-      # Actually move the file
-      ::File.rename(
-        old_location,
-        new_location
       )
     end
   end

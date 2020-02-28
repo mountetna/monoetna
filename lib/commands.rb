@@ -171,11 +171,11 @@ class Metis
     usage 'Checksum and archive files.'
 
     def execute
-      needs_hash = Metis::File.where(file_hash:nil).order(:updated_at).all[0..10]
-      puts "Found #{needs_hash.count} files to be checksummed."
+      needs_hash = Metis::DataBlock.where(md5_hash: Metis::DataBlock::TEMP_MATCH).order(:updated_at).all[0..10]
+      puts "Found #{needs_hash.count} data blocks to be checksummed."
       needs_hash.each(&:compute_hash!)
 
-      needs_archive = Metis::File.exclude(file_hash: nil).where(backup_id: nil).order(:updated_at).all[0..10]
+      needs_archive = Metis::DataBlock.exclude(md5_hash: Metis::DataBlock::TEMP_MATCH).where(archive_id: nil).order(:updated_at).all[0..10]
       puts "Found #{needs_archive.count} files to be archived."
       needs_archive.each do |file|
         begin

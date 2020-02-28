@@ -39,7 +39,36 @@ class Metis
     end
 
     def compute_hash!
-      update(md5_hash: Metis::File.md5(location)) if has_data? && temp_hash?
+      if has_data? && temp_hash?
+        md5_hash = Metis::File.md5(location)
+
+        existing_block = Metis::DataBlock.where(md5_hash: md5_hash).first
+
+        if existing_block
+          # Point the files to the old block
+          Metis::File.where(
+            data_block_id: id
+          ).update(
+            data_block_id: existing_block.id
+          )
+
+          # destroy this redundant record
+          destroy
+          return
+        end
+
+        old_location = location
+
+        update(md5_hash: md5_hash)
+
+        new_location = location
+
+        # Actually move the file
+        ::File.rename(
+          old_location,
+          new_location
+        )
+      end
     end
 
     def backup!
