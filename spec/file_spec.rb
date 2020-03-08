@@ -40,17 +40,20 @@ describe FileController do
 
     it 'removes a file' do
       token_header(:editor)
-      location = @helmet_file.location
+      location = @helmet_file.data_block.location
       remove_file('blueprints/helmet/helmet.jpg')
 
       expect(last_response.status).to eq(200)
       expect(Metis::File.count).to eq(1)
-      expect(::File.exists?(location)).to be_falsy
 
-      location = @wisdom_file.location
+      # the data is not destroyed
+      expect(::File.exists?(location)).to be_truthy
+
+      location = @wisdom_file.data_block.location
       remove_file('wisdom.txt')
 
-      expect(::File.exists?(location)).to be_falsy
+      # the data is not destroyed
+      expect(::File.exists?(location)).to be_truthy
       expect(last_response.status).to eq(200)
       expect(Metis::File.count).to eq(0)
     end
@@ -295,8 +298,8 @@ describe FileController do
       # we can still see the data
       expect(@wisdom_file).to be_has_data
       expect(learn_wisdom_file).to be_has_data
-      expect(::File.read(@wisdom_file.location)).to eq(WISDOM)
-      expect(::File.read(learn_wisdom_file.location)).to eq(WISDOM*2)
+      expect(::File.read(@wisdom_file.data_block.location)).to eq(WISDOM)
+      expect(::File.read(learn_wisdom_file.data_block.location)).to eq(WISDOM*2)
     end
 
     it 'refuses to rename over an existing folder' do
@@ -320,7 +323,7 @@ describe FileController do
 
       # we can still see the data
       expect(@wisdom_file).to be_has_data
-      expect(::File.read(@wisdom_file.location)).to eq(WISDOM)
+      expect(::File.read(@wisdom_file.data_block.location)).to eq(WISDOM)
     end
 
     it 'refuses to rename a read-only file' do

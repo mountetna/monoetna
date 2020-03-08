@@ -5,6 +5,7 @@ Sequel.migration do
       set_column_allow_null :archive_id
       add_column :created_at, DateTime
       add_column :updated_at, DateTime
+      drop_constraint(:backups_description_key, type: :unique)
     end
 
     from(:data_blocks).update(
@@ -30,6 +31,7 @@ Sequel.migration do
       set_column_not_null :archive_id
       drop_column :created_at
       drop_column :updated_at
+      add_unique_constraint :description
     end
     alter_table(:files) do
       rename_column :data_block_id, :backup_id

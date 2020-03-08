@@ -29,12 +29,12 @@ describe Metis::Assimilate do
     expect(wisdom_file.file_name).to eq('wisdom.txt')
     expect(wisdom_file.folder).to be_nil
     expect(wisdom_file).to be_has_data
-    expect(File.read(wisdom_file.location)).to eq(WISDOM)
+    expect(File.read(wisdom_file.data_block.location)).to eq(WISDOM)
 
     expect(helmet_file.file_name).to eq('helmet.txt')
     expect(helmet_file.folder).to eq(blueprints_folder)
     expect(helmet_file).to be_has_data
-    expect(File.read(helmet_file.location)).to eq(HELMET)
+    expect(File.read(helmet_file.data_block.location)).to eq(HELMET)
 
     # folders are also created
     expect(blueprints_folder.folder_name).to eq('blueprints')
@@ -43,8 +43,8 @@ describe Metis::Assimilate do
     # the original files are untouched
     expect(::File.exists?(wisdom_path)).to be_truthy
     expect(::File.exists?(helmet_path)).to be_truthy
-    File.delete(wisdom_file.location)
-    File.delete(helmet_file.location)
+    File.delete(wisdom_file.data_block.location)
+    File.delete(helmet_file.data_block.location)
   end
 
   it 'moves files and folders into a folder path' do
@@ -66,8 +66,8 @@ describe Metis::Assimilate do
     expect(helmet_file.folder).to eq(blueprints_folder)
     expect([wisdom_file, helmet_file]).to all(be_has_data)
 
-    File.delete(wisdom_file.location)
-    File.delete(helmet_file.location)
+    File.delete(wisdom_file.data_block.location)
+    File.delete(helmet_file.data_block.location)
   end
 
   it 'skips over existing folders' do

@@ -135,10 +135,6 @@ class Metis
       read_only
     end
 
-    def location
-      data_block.location
-    end
-
     def to_hash(request=nil)
       {
         file_name: file_name,
@@ -174,7 +170,6 @@ class Metis
     end
 
     def remove!
-      ::File.delete(location)
       delete
     end
 

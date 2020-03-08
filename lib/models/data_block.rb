@@ -52,6 +52,9 @@ class Metis
             data_block_id: existing_block.id
           )
 
+          # destroy the redundant file
+          ::File.delete(location)
+
           # destroy this redundant record
           destroy
           return

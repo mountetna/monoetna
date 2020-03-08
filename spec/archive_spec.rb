@@ -57,9 +57,13 @@ describe Metis::Archive do
 
     @cmd.execute
 
-    # there are only two data blocks; the duplicate is gone
+    # there are only two data blocks; they have data
     expect(Metis::DataBlock.count).to eq(2)
+    expect(Metis::DataBlock.all).to all(be_has_data)
+
+    # the duplicate is gone, along with its data
     expect(Metis::DataBlock[wisdom_data.id]).to be_nil
+    expect(wisdom_data).not_to be_has_data
 
     [ old_wisdom_file, old_wisdom_data,
       wisdom_file, helmet_file, helmet_data ].each(&:refresh)
@@ -69,6 +73,7 @@ describe Metis::Archive do
     expect(old_wisdom_file.data_block_id).to eq(old_wisdom_data.id)
     expect(wisdom_file.data_block_id).to eq(old_wisdom_data.id)
     expect(helmet_file.data_block_id).to eq(helmet_data.id)
+
   end
 
   it 'archives un-archived data blocks' do
