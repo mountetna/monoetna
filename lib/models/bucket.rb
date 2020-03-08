@@ -74,7 +74,6 @@ class Metis
     end
 
     def create_actual_bucket!
-      Metis::Upload.ensure_upload_dir!(project_name)
       FileUtils.mkdir_p(location)
     end
 

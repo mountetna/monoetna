@@ -12,25 +12,13 @@ class Metis
       to_hash.to_json
     end
 
-    def self.ensure_upload_dir!(project_name)
-      location = upload_location(project_name)
-      ::FileUtils.mkdir_p(location) unless ::File.exists?(location)
-    end
-
-    def self.upload_location(project_name, file_name=nil)
-      ::File.expand_path(::File.join(
-        *[
-          Metis.instance.project_path(project_name),
-          'uploads',
-          file_name
-        ].compact
-      ))
-    end
-
     def partial_location
-      Metis::Upload.upload_location(
-        project_name,
-        Digest::MD5.hexdigest("#{metis_uid}-#{id.to_s}")
+      ::File.expand_path(
+        ::File.join(
+          Metis.instance.config(:data_path),
+          'uploads',
+          Digest::MD5.hexdigest("#{metis_uid}-#{id.to_s}")
+        )
       )
     end
 
