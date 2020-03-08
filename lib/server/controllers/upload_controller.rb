@@ -91,7 +91,7 @@ class UploadController < Metis::Controller
 
   # Upload a chunk of the file.
   def upload_blob
-    require_params(:blob_data, :next_blob_size, :next_blob_hash)
+    require_params(:blob_data, :current_byte_position, :next_blob_size, :next_blob_hash)
     bucket = require_bucket(false)
 
     upload = Metis::Upload.where(
@@ -102,6 +102,8 @@ class UploadController < Metis::Controller
     ).first
 
     raise Etna::BadRequest, 'Upload has not been started' unless upload
+
+    raise Etna::BadRequest, 'Wrong byte position' unless @params[:current_byte_position].to_i == upload.current_byte_position
 
     blob = Metis::Blob.new(@params[:blob_data])
 

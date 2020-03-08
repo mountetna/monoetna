@@ -309,6 +309,7 @@ describe UploadController do
         action: 'blob',
         next_blob_size: 10,
         next_blob_hash: 10,
+        current_byte_position: partial.length,
         blob_data: Rack::Test::UploadedFile.new(
           wisdom_blob_file,
           'application/octet-stream'
@@ -347,6 +348,7 @@ describe UploadController do
         action: 'blob',
         next_blob_size: 10,
         next_blob_hash: 10,
+        current_byte_position: partial.length,
         blob_data: Rack::Test::UploadedFile.new(
           wisdom_blob_file,
           'application/octet-stream'
@@ -389,6 +391,7 @@ describe UploadController do
         action: 'blob',
         next_blob_size: 0,
         next_blob_hash: '',
+        current_byte_position: @partial.length,
         blob_data: Rack::Test::UploadedFile.new(
           @wisdom_blob_file,
           'application/octet-stream'
