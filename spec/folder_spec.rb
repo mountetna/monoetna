@@ -199,11 +199,9 @@ describe FolderController do
 
     it 'removes a folder' do
       token_header(:editor)
-      location = @blueprints_folder.location
       remove_folder('blueprints')
 
       expect(last_response.status).to eq(200)
-      expect(::Dir.exists?(location)).to be_falsy
       expect(Metis::Folder.count).to eq(0)
     end
 
@@ -251,6 +249,21 @@ describe FolderController do
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Folder is read-only')
       expect(Metis::Folder.last).to eq(@blueprints_folder)
+    end
+
+    it 'refuses to remove a folder that contains files' do
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @blueprints_folder)
+      stubs.create_file('athena', 'files', 'blueprints/helmet.jpg', HELMET)
+
+      token_header(:editor)
+      remove_folder('blueprints')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Folder is not empty')
+
+      @blueprints_folder.refresh
+      expect(Metis::Folder.last).to eq(@blueprints_folder)
+      expect(@blueprints_folder.files).to eq([helmet_file])
     end
   end
 

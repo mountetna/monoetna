@@ -71,15 +71,6 @@ class Metis
       ).all
     end
 
-    def location
-      ::File.expand_path(::File.join(
-        bucket.location,
-        folder_path.map do |folder_name|
-          Metis::File.safe_file_name(folder_name)
-        end
-      ))
-    end
-
     def read_only?
       read_only
     end
@@ -97,7 +88,7 @@ class Metis
     end
 
     def can_remove?
-      !read_only?
+      !read_only? && files.empty?
     end
 
     def rename!(new_folder, new_folder_name)

@@ -121,9 +121,6 @@ describe BucketController do
 
       expect(last_response.status).to eq(200)
       expect(json_body[:bucket]).to eq(bucket.to_hash)
-
-      expect(::File.exists?(bucket.location)).to be_truthy
-      expect(::File.directory?(bucket.location)).to be_truthy
     end
 
     it 'requires admin permissions' do
@@ -258,7 +255,6 @@ describe BucketController do
 
     it 'renames a bucket' do
       bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
-      old_location = stubs.create_bucket('athena', 'my_bucket')
 
       token_header(:admin)
       json_post('/athena/bucket/update/my_bucket', new_bucket_name: 'new_bucket')
@@ -273,13 +269,6 @@ describe BucketController do
       expect(bucket.owner).to eq('metis')
       expect(bucket.access).to eq('editor')
       expect(bucket.description).to be_nil
-
-      # the bucket has moved
-      expect(bucket.location).not_to eq(old_location)
-      expect(::File.exists?(old_location)).to be_falsy
-      expect(::File.exists?(bucket.location)).to be_truthy
-
-      stubs.send(:add_stub, bucket.location)
     end
   end
 
@@ -302,20 +291,16 @@ describe BucketController do
 
     it 'removes a bucket' do
       bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
-      stubs.create_bucket('athena', 'my_bucket')
 
       token_header(:admin)
       delete('/athena/bucket/remove/my_bucket')
 
       expect(last_response.status).to eq(200)
       expect(Metis::Bucket.count).to eq(0)
-      expect(File.exists?(bucket.location)).to be_falsy
     end
 
     it 'removes a bucket with uploads' do
       bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
-      stubs.create_bucket('athena', 'my_bucket')
-
       upload = create_upload( 'athena', 'wisdom.txt', @metis_uid, bucket: bucket)
 
       token_header(:admin)
@@ -323,7 +308,6 @@ describe BucketController do
 
       expect(last_response.status).to eq(200)
       expect(Metis::Bucket.count).to eq(0)
-      expect(File.exists?(bucket.location)).to be_falsy
     end
 
     it 'refuses to remove a non-empty bucket' do

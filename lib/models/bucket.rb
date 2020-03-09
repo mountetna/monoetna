@@ -40,30 +40,14 @@ class Metis
       return false
     end
 
-    def location
-     ::File.expand_path(::File.join(
-       Metis.instance.project_path(project_name),
-       'buckets',
-       name
-     ))
-    end
-
     def rename!(new_bucket_name)
-      old_location = location
-
       update(name: new_bucket_name)
       refresh
-
-      new_location = location
-      FileUtils.mv(old_location, new_location)
     end
 
     def remove!
       # Stop all uploads
       uploads.each(&:delete_with_partial!)
-
-      # delete the directory
-      ::Dir.delete(location) if has_directory?
 
       # delete the record
       delete
@@ -71,14 +55,6 @@ class Metis
 
     def can_remove?
       files.count == 0 && folders.count == 0
-    end
-
-    def create_actual_bucket!
-      FileUtils.mkdir_p(location)
-    end
-
-    def has_directory?
-      ::File.exists?(location) && ::File.directory?(location)
     end
 
     def to_hash

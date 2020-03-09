@@ -30,7 +30,6 @@ class BucketController < Metis::Controller
       description: @params[:description],
       access: @params[:access]
     )
-    bucket.create_actual_bucket!
     success_json(bucket: bucket.to_hash)
   end
 
