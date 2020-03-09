@@ -166,7 +166,7 @@ class Metis
     end
 
     def can_remove?
-      has_data? && !read_only?
+      !read_only?
     end
 
     def remove!

@@ -83,10 +83,6 @@ class Metis
       parent_folders.map(&:folder_name) + [ folder_name ]
     end
 
-    def has_directory?
-      ::File.exists?(location) && ::File.directory?(location)
-    end
-
     def can_remove?
       !read_only? && files.empty?
     end
