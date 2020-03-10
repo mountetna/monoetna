@@ -39,7 +39,8 @@ export default (uploader) => {
       } else if (active_uploads < MAX_UPLOADS) {
         // activate some of the queued ones
         let unqueued_uploads = queued_uploads.slice(0, MAX_UPLOADS-active_uploads);
-        unqueued_uploads.forEach(upload => uploader.start({upload}))
+        unqueued_uploads.forEach(uploader.active);
+        unqueued_uploads.forEach(upload => uploader.continue({upload}))
       }
     },
 
@@ -61,10 +62,10 @@ export default (uploader) => {
         postUploadStart(url, request)
           .then(upload => {
             // this will set the upload status correctly in the upload reducer
-            uploader.active(upload);
+            uploader.queue(upload);
 
             // now we simply broadcast an event for our file:
-            uploader.dispatch({ type: 'UPLOAD_STARTED', file_name });
+            uploader.dispatch({ type: 'UNQUEUE_UPLOADS' });
           })
           .catch(
             uploader.warning('Upload failed', error => error)
@@ -81,7 +82,8 @@ export default (uploader) => {
           action: 'blob',
           blob_data: file.slice(current_byte_position,current_byte_position),
           next_blob_size: 0,
-          next_blob_hash: ZERO_HASH
+          next_blob_hash: ZERO_HASH,
+          current_byte_position
         };
         uploader.sendBlob(upload, request);
         return;
@@ -127,8 +129,10 @@ export default (uploader) => {
           action: 'blob',
           blob_data,
           next_blob_size: new_blob_size,
-          next_blob_hash: new_blob_hash
+          next_blob_hash: new_blob_hash,
+          current_byte_position
         };
+
         uploader.sendBlob(upload, request);
       });
     },
@@ -144,7 +148,6 @@ export default (uploader) => {
           uploader.error('Upload cancel failed', error => error)
         );
     },
-
 
     // private methods
 

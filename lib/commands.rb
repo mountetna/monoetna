@@ -67,115 +67,15 @@ class Metis
     end
   end
 
-  class Audit < Etna::Command
-    usage '<project_name> Audit project directory'
-
-    COLORS={
-      red: 31,
-      green: 32,
-      yellow: 33
-    }
-
-    def colorize(text, color)
-      "\e[#{COLORS[color]}m#{text}\e[0m"
-    end
-
-    def note(obj)
-      @found ||= {}
-      @found[obj.location] = obj
-    end
-
-    def audit_files(files)
-      files.each do |file|
-        note(file)
-        puts "#{file.file_path} => #{colorize(file.location, ::File.exists?(file.location) ? :green : :red)}"
-      end
-    end
-
-    def audit_folders(folders)
-      folders.each do |folder|
-        note(folder)
-        puts "#{::File.join(folder.folder_path)} => #{colorize(folder.location, ::Dir.exists?(folder.location) ? :green : :red)}"
-        audit_files(folder.files)
-        audit_folders(folder.folders)
-      end
-    end
-
-    def audit_dirs(dirs)
-      dirs.each do |dir|
-        next if @found[dir]
-        folder_path = ::File.join(
-          dir.sub(/^.*files/,'').split(/\//).map do |f|
-            Metis::File.unsafe_file_name(f)
-          end
-        )
-        puts "#{colorize(dir,:red)} => #{colorize(folder_path, :green)}"
-        audit_blobs(
-          Dir.glob("#{dir}/*").select{|l| !::File.directory?(l)}
-        )
-        audit_dirs(
-          Dir.glob("#{dir}/*").select{|l| ::File.directory?(l)}
-        )
-      end
-    end
-
-    def audit_blobs(blobs)
-      blobs.each do |blob|
-        next if @found[blob]
-        file_path = ::File.join(
-          blob.sub(/^.*files/,'').split(/\//).map do |f|
-            Metis::File.unsafe_file_name(f)
-          end
-        )
-        puts "#{colorize(blob,:red)} => #{colorize(file_path, :green)}"
-      end
-    end
-
-    def execute(project_name)
-      buckets = Metis::Bucket.where(
-        project_name: project_name,
-      ).all
-
-      buckets.each do |bucket|
-        # database files
-        audit_files(
-          Metis::File.where(
-            project_name: project_name, bucket: bucket, folder_id: nil
-          ).all
-        )
-
-        audit_folders(
-          Metis::Folder.where(
-            project_name: project_name, bucket: bucket, folder_id: nil
-          ).all
-        )
-
-        puts 'unaccounted:'
-        audit_dirs(
-          Dir.glob("#{bucket.location}/*").select{|l| ::File.directory?(l)}
-        )
-
-        audit_blobs(
-          Dir.glob("#{bucket.location}/*").select{|l| !::File.directory?(l)}
-        )
-      end
-    end
-
-    def setup(config)
-      super
-      Metis.instance.load_models
-    end
-  end
-
   class Archive < Etna::Command
     usage 'Checksum and archive files.'
 
     def execute
-      needs_hash = Metis::File.where(file_hash:nil).order(:updated_at).all[0..10]
-      puts "Found #{needs_hash.count} files to be checksummed."
+      needs_hash = Metis::DataBlock.where(md5_hash: Metis::DataBlock::TEMP_MATCH).order(:updated_at).all[0..10]
+      puts "Found #{needs_hash.count} data blocks to be checksummed."
       needs_hash.each(&:compute_hash!)
 
-      needs_archive = Metis::File.exclude(file_hash: nil).where(backup_id: nil).order(:updated_at).all[0..10]
+      needs_archive = Metis::DataBlock.exclude(md5_hash: Metis::DataBlock::TEMP_MATCH).where(archive_id: nil).order(:updated_at).all[0..10]
       puts "Found #{needs_archive.count} files to be archived."
       needs_archive.each do |file|
         begin
@@ -203,7 +103,7 @@ class Metis
 
       if folder_path.empty?
         files.each do |file_path|
-          Metis::Folder::Assimilation.new(file_path, bucket).execute
+          Metis::Assimilation.new(file_path, bucket).execute
         end
       else
         metis_folder = Metis::Folder.from_path(bucket, folder_path).last
@@ -211,8 +111,8 @@ class Metis
           puts "No such folder #{folder_path}"
           exit
         end
-        files.each do |file|
-          metis_folder.assimilate(file)
+        files.each do |file_path|
+          Metis::Assimilation.assimilate_folder(metis_folder, file_path)
         end
       end
     end

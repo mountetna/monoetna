@@ -41,7 +41,6 @@ class FolderController < Metis::Controller
       bucket: bucket,
       folder: parent_folder
     )
-    folder.create_actual_folder!
 
     success_json(folders: [ folder.to_hash ])
   end
@@ -93,7 +92,7 @@ class FolderController < Metis::Controller
     bucket = require_bucket
     folder = Metis::Folder.from_path(bucket, @params[:folder_path]).last
 
-    raise Etna::Error.new('Folder not found', 404) unless folder && folder.has_directory?
+    raise Etna::Error.new('Folder not found', 404) unless folder
 
     raise Etna::Forbidden, 'Folder is read-only' if folder.read_only?
 

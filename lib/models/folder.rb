@@ -71,15 +71,6 @@ class Metis
       ).all
     end
 
-    def location
-      ::File.expand_path(::File.join(
-        bucket.location,
-        folder_path.map do |folder_name|
-          Metis::File.safe_file_name(folder_name)
-        end
-      ))
-    end
-
     def read_only?
       read_only
     end
@@ -92,26 +83,16 @@ class Metis
       parent_folders.map(&:folder_name) + [ folder_name ]
     end
 
-    def has_directory?
-      ::File.exists?(location) && ::File.directory?(location)
-    end
-
     def can_remove?
-      has_directory? && Dir.entries(location).size <= 2 && !read_only?
+      !read_only? && files.empty?
     end
 
     def rename!(new_folder, new_folder_name)
-      old_location = location
-
       update(folder: new_folder, folder_name: new_folder_name)
       refresh
-
-      new_location = location
-      FileUtils.mv(old_location, new_location)
     end
 
     def remove!
-      ::Dir.delete(location)
       delete
     end
 
@@ -121,106 +102,6 @@ class Metis
 
     def unprotect!
       update(read_only: false)
-    end
-
-    def create_actual_folder!
-      FileUtils.mkdir_p(location)
-    end
-
-    class Assimilation
-      def initialize(path, bucket, parent_folder=nil)
-        @path = ::File.expand_path(path)
-        @name = ::File.basename(@path)
-        @bucket = bucket
-        @parent_folder = parent_folder
-
-        raise ArgumentError, "No such file #{@path}" unless ::File.exists?(@path)
-        raise ArgumentError, "Invalid name #{@name}" unless Metis::File.valid_file_name?(@name)
-      end
-
-      def execute
-        if folder?
-          metis_folder = ensure_folder
-          Dir.glob(["#{@path}/*"]).each do |file|
-            metis_folder.assimilate(file)
-          end
-        else
-          ensure_file
-        end
-      end
-
-      private
-
-      def folder?
-        ::File.directory?(@path)
-      end
-
-      def folder_exists?
-        Metis::Folder.exists?(@name, @bucket, @parent_folder)
-      end
-
-      def file_exists?
-        Metis::File.exists?(@name, @bucket, @parent_folder)
-      end
-
-      def ensure_folder
-        # create the folder
-        raise ArgumentError, 'Cannot write folder over file' if file_exists?
-
-        print_status(folder_exists? && 'folder exists, continuing')
-
-        metis_folder = Metis::Folder.find_or_create(
-          project_name: @bucket.project_name,
-          folder_name: @name,
-          bucket: @bucket,
-          folder_id: @parent_folder&.id
-        ) do |folder|
-          folder.author = '|Metis'
-        end
-
-        metis_folder.create_actual_folder!
-
-        return metis_folder
-      end
-
-      def ensure_file
-        raise ArgumentError, 'Cannot write file over folder' if folder_exists?
-
-        metis_file = Metis::File.find(
-          project_name: @bucket.project_name,
-          file_name: @name,
-          folder_id: @parent_folder&.id,
-          bucket: @bucket
-        )
-
-        if metis_file
-          if ::File.size(@path) == metis_file.actual_size
-            print_status('file exists, continuing')
-          else
-            print_status('file size mismatch, continuing')
-          end
-          return
-        end
-
-        print_status
-
-        metis_file = Metis::File.create(
-          project_name: @bucket.project_name,
-          file_name: @name,
-          folder_id: @parent_folder&.id,
-          bucket: @bucket,
-          author: '|Metis'
-        )
-        metis_file.set_file_data(@path, true)
-      end
-
-      def print_status(msg=nil)
-        puts "#{@path} => /#{@parent_folder ? @parent_folder.folder_path.join('/') + '/' : nil }#{@name}#{msg ? " #{msg}" : nil}"
-      end
-    end
-
-    def assimilate(file_path)
-      Metis::Folder::Assimilation.new(file_path, self.bucket, self).execute
     end
 
     def to_hash

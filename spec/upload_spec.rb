@@ -309,6 +309,7 @@ describe UploadController do
         action: 'blob',
         next_blob_size: 10,
         next_blob_hash: 10,
+        current_byte_position: partial.length,
         blob_data: Rack::Test::UploadedFile.new(
           wisdom_blob_file,
           'application/octet-stream'
@@ -347,6 +348,7 @@ describe UploadController do
         action: 'blob',
         next_blob_size: 10,
         next_blob_hash: 10,
+        current_byte_position: partial.length,
         blob_data: Rack::Test::UploadedFile.new(
           wisdom_blob_file,
           'application/octet-stream'
@@ -389,6 +391,7 @@ describe UploadController do
         action: 'blob',
         next_blob_size: 0,
         next_blob_hash: '',
+        current_byte_position: @partial.length,
         blob_data: Rack::Test::UploadedFile.new(
           @wisdom_blob_file,
           'application/octet-stream'
@@ -423,7 +426,7 @@ describe UploadController do
       file = Metis::File.first
 
       # the actual file exists with the correct content
-      expect(File.read(file.location)).to eq(WISDOM)
+      expect(File.read(file.data_block.location)).to eq(WISDOM)
 
       # the file thinks it has data
       expect(file.has_data?).to be_truthy
@@ -435,7 +438,7 @@ describe UploadController do
       expect(file.author).to eq('metis@olympus.org|Metis ')
 
       # clean up the file
-      File.delete(file.location)
+      File.delete(file.data_block.location)
       Timecop.return
     end
 
@@ -456,7 +459,7 @@ describe UploadController do
       file = Metis::File.first
 
       # the actual file exists with the correct content
-      expect(File.read(file.location)).to eq(WISDOM)
+      expect(File.read(file.data_block.location)).to eq(WISDOM)
 
       # the file thinks it has data
       expect(file.has_data?).to be_truthy
@@ -471,7 +474,7 @@ describe UploadController do
       expect(file.author).to eq('metis@olympus.org|Metis ')
 
       # clean up the file
-      File.delete(file.location)
+      File.delete(file.data_block.location)
     end
 
     it 'refuses to complete over an existing read-only file' do
@@ -491,7 +494,7 @@ describe UploadController do
       file = Metis::File.first
 
       # the actual file exists with the original content
-      expect(File.read(file.location)).to eq(WISDOM*2)
+      expect(File.read(file.data_block.location)).to eq(WISDOM*2)
 
       # the file metadata is the same
       expect(file.created_at).to be_within(1).of(@creation_time.to_time)
@@ -502,7 +505,7 @@ describe UploadController do
       expect(file.has_data?).to be_truthy
 
       # clean up the file
-      File.delete(file.location)
+      File.delete(file.data_block.location)
     end
 
     it 'refuses to complete over an existing folder' do
@@ -547,7 +550,7 @@ describe UploadController do
       expect(file).not_to be_nil
 
       # the actual file exists with the original content
-      expect(File.read(file.location)).to eq(WISDOM)
+      expect(File.read(file.data_block.location)).to eq(WISDOM)
 
       # the file thinks it has data
       expect(file.has_data?).to be_truthy
@@ -563,7 +566,7 @@ describe UploadController do
       expect(file.folder).to eq(blueprints_folder)
 
       # clean up the file
-      File.delete(file.location)
+      File.delete(file.data_block.location)
     end
 
     it 'does not write into a read-only folder' do
@@ -690,7 +693,7 @@ describe UploadController do
       expect(last_response.status).to eq(200)
 
       # clean up
-      File.delete(file.location)
+      File.delete(file.data_block.location)
     end
   end
 end

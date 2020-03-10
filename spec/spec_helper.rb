@@ -108,7 +108,7 @@ FactoryBot.define do
   factory :upload, class: Metis::Upload do
     to_create(&:save)
   end
-  factory :backup, class: Metis::Backup do
+  factory :data_block, class: Metis::DataBlock do
     to_create(&:save)
   end
 end
@@ -137,6 +137,49 @@ def safe_path(path)
   )
 end
 
+def glacier_stub(vault_name)
+  vault_json = {
+      "CreationDate":"2018-08-27T20:56:30.058Z",
+      "LastInventoryDate":nil,
+      "NumberOfArchives":0,
+      "SizeInBytes":0,
+      "VaultARN":"arn:aws:glacier:us-east-1:1999:vaults/#{vault_name}",
+      "VaultName": vault_name
+  }.to_json
+  stub_glacier_method(:get, '', body: {Marker: nil,VaultList: []}.to_json)
+  stub_glacier_method(:put, "/#{vault_name}", status: 201, body: '{}')
+  stub_glacier_method(:get, "/#{vault_name}", body: vault_json)
+  stub_glacier_method(:post, "/#{vault_name}", body: vault_json)
+  stub_glacier_method(:post, "/#{vault_name}/multipart-uploads",
+    status: 201,
+    headers: {
+      'X-Amz-Multipart-Upload-Id': 'uploadid',
+      'Content-Type': 'application/json'
+    },
+    body: "{}"
+  )
+  stub_glacier_method(:put, "/#{vault_name}/multipart-uploads/uploadid",
+    status: 204
+  )
+  stub_glacier_method(:post, "/#{vault_name}/multipart-uploads/uploadid",
+    status: 201,
+    headers: {
+      'X-Amz-Archive-Id': 'archive_id',
+      'Content-Type': 'application/json',
+    }
+  )
+end
+
+def stub_glacier_method(method, path, response={})
+  stub_request(method, "https://glacier.us-east-1.amazonaws.com/-/vaults#{path}")
+    .to_return({
+      status: 200,
+      headers: {
+      'Content-Type' => 'application/json'
+      }
+    }.merge(response))
+end
+
 class Stubs
   def initialize
     @stubs = []
@@ -161,13 +204,13 @@ class Stubs
   end
 
   def create_folder(project_name, bucket_name, name)
-    folder_path = project_path(project_name, bucket_path(bucket_name, name))
-    stub_dir(folder_path)
-    add_stub(folder_path)
+    #folder_path = project_path(project_name, bucket_path(bucket_name, name))
+    #stub_dir(folder_path)
+    #add_stub(folder_path)
   end
 
-  def create_file(project_name, bucket_name, name, contents)
-    file_path = project_path(project_name, bucket_path(bucket_name, name))
+  def create_file(project_name, bucket_name, name, contents, md5_hash=nil)
+    file_path = ::File.expand_path("#{Metis.instance.config(:data_path)}/data_blocks/#{md5_hash || Digest::MD5.hexdigest(contents)}")
     stub_file(file_path, contents)
     add_stub(file_path)
   end
@@ -317,13 +360,18 @@ def create_folder(project_name, folder_name, params={})
 end
 
 def create_file(project_name, file_name, contents, params={})
+  data_block = create(:data_block,
+    description: file_name,
+    md5_hash: params.delete(:md5_hash) || Digest::MD5.hexdigest(contents)
+  )
+
   create( :file,
     {
       bucket: params[:bucket] || default_bucket(project_name),
       project_name: project_name,
       author: 'metis|Metis',
       file_name: file_name,
-      file_hash: contents ? Digest::MD5.hexdigest(contents) : nil
+      data_block: data_block
     }.merge(params)
   )
 end

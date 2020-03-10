@@ -21,7 +21,7 @@ export const fileSelected = ({ file, folder_name, bucket_name }) => (dispatch, g
 
         let upload = getUpload(getState(), file_name);
 
-        dispatch({ type: 'UNQUEUE_UPLOADS' });
+        work(dispatch, 'start', { upload });
       }
     )
     .catch(
@@ -31,9 +31,6 @@ export const fileSelected = ({ file, folder_name, bucket_name }) => (dispatch, g
       errorMessage(dispatch, 'error', 'Upload failed',
         error => `Something bad happened: ${error}`)
     );
-}
-
-export const uploadAuthorized = ({ file, file_name, url }) => (dispatch, getState) => {
 }
 
 export const uploadStarted = ({ file_name }) => (dispatch, getState) => {
@@ -84,4 +81,3 @@ export const unqueueUploads = () => (dispatch, getState) => {
   let uploads = Object.values(selectUploads(getState()));
   work(dispatch, 'unqueue', { uploads });
 }
-

@@ -113,10 +113,7 @@ describe FolderController do
       folder = Metis::Folder.first
       expect(folder).not_to be_nil
       expect(folder.folder_name).to eq('Helmet Blueprints')
-      expect(File.directory?(folder.location)).to be_truthy
-
-      # Clean up
-      Dir.delete(folder.location)
+      expect(folder.folder).to be_nil
     end
 
     it 'refuses to create folders with invalid names' do
@@ -138,9 +135,6 @@ describe FolderController do
       folder = Metis::Folder.last
       expect(folder).not_to be_nil
       expect(folder.folder_path).to eq(['blueprints', 'Helmet Blueprints'])
-
-      # clean up
-      Dir.delete(folder.location)
     end
 
     it 'refuses to set a file as parent' do
@@ -191,17 +185,12 @@ describe FolderController do
       expect(Metis::Folder.count).to eq(2)
       expect(folder.folder_path).to eq([ 'blueprints', 'Helmet Blueprints'])
       expect(folder.folder).to eq(blueprints_folder)
-
-      # clean up
-      Dir.delete(folder.location)
     end
   end
 
   context '#remove' do
     before(:each) do
       @blueprints_folder = create_folder('athena', 'blueprints')
-      stubs.create_folder('athena', 'files', 'blueprints')
-      expect(@blueprints_folder.has_directory?).to be_truthy
     end
 
     def remove_folder path
@@ -210,11 +199,9 @@ describe FolderController do
 
     it 'removes a folder' do
       token_header(:editor)
-      location = @blueprints_folder.location
       remove_folder('blueprints')
 
       expect(last_response.status).to eq(200)
-      expect(::Dir.exists?(location)).to be_falsy
       expect(Metis::Folder.count).to eq(0)
     end
 
@@ -236,20 +223,6 @@ describe FolderController do
 
       # the actual folder is untouched
       expect(Metis::Folder.last).to eq(@blueprints_folder)
-      expect(@blueprints_folder).to be_has_directory
-    end
-
-    it 'refuses to remove a folder that contains file data' do
-      stubs.create_file('athena', 'files', 'blueprints/helmet.jpg', HELMET)
-
-      token_header(:editor)
-      remove_folder('blueprints')
-
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Folder is not empty')
-      expect(Metis::Folder.last).to eq(@blueprints_folder)
-      expect(@blueprints_folder).to be_has_directory
-      expect(Dir.entries(@blueprints_folder.location).size).to eq(3)
     end
 
     it 'refuses to remove a read-only folder' do
@@ -276,14 +249,28 @@ describe FolderController do
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Folder is read-only')
       expect(Metis::Folder.last).to eq(@blueprints_folder)
-      expect(@blueprints_folder).to be_has_directory
+    end
+
+    it 'refuses to remove a folder that contains files' do
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @blueprints_folder)
+      stubs.create_file('athena', 'files', 'blueprints/helmet.jpg', HELMET)
+
+      token_header(:editor)
+      remove_folder('blueprints')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Folder is not empty')
+
+      @blueprints_folder.refresh
+      expect(Metis::Folder.last).to eq(@blueprints_folder)
+      expect(@blueprints_folder.files).to eq([helmet_file])
     end
   end
 
   context '#protect' do
     before(:each) do
       @blueprints_folder = create_folder('athena', 'blueprints')
-      stubs.create_folder('athena', 'files','blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
       expect(@blueprints_folder).not_to be_read_only
     end
 
@@ -340,7 +327,7 @@ describe FolderController do
   context '#unprotect' do
     before(:each) do
       @blueprints_folder = create_folder('athena', 'blueprints', read_only: true)
-      stubs.create_folder('athena', 'files','blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
       expect(@blueprints_folder).to be_read_only
     end
 
@@ -396,7 +383,7 @@ describe FolderController do
   context '#rename' do
     before(:each) do
       @blueprints_folder = create_folder('athena', 'blueprints')
-      stubs.create_folder('athena', 'files','blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
     end
 
     def rename_folder path, new_path
@@ -412,7 +399,6 @@ describe FolderController do
       @blueprints_folder.refresh
       expect(last_response.status).to eq(200)
       expect(@blueprints_folder.folder_name).to eq('blue-prints')
-      expect(@blueprints_folder).to be_has_directory
     end
 
     it 'refuses to rename a folder to an invalid name' do
@@ -427,7 +413,7 @@ describe FolderController do
 
     it 'refuses to rename a folder without permissions' do
       token_header(:viewer)
-      rename_folder('blueprints','blue-prints')
+      rename_folder('blueprints', 'blue-prints')
 
       @blueprints_folder.refresh
       expect(last_response.status).to eq(403)
@@ -437,7 +423,7 @@ describe FolderController do
     it 'refuses to rename a non-existent folder' do
       # we attempt to rename a folder that does not exist
       token_header(:editor)
-      rename_folder('redprints','blue-prints')
+      rename_folder('redprints', 'blue-prints')
 
       expect(last_response.status).to eq(404)
       expect(json_body[:error]).to eq('Folder not found')
@@ -449,10 +435,10 @@ describe FolderController do
 
     it 'refuses to rename over an existing folder' do
       helmet_folder = create_folder('athena', 'helmet')
-      stubs.create_folder('athena', 'files','helmet')
+      stubs.create_folder('athena', 'files', 'helmet')
 
       token_header(:editor)
-      rename_folder('blueprints','helmet')
+      rename_folder('blueprints', 'helmet')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot overwrite existing folder')
@@ -460,7 +446,6 @@ describe FolderController do
       # the actual folder is untouched
       @blueprints_folder.refresh
       expect(@blueprints_folder.folder_name).to eq('blueprints')
-      expect(@blueprints_folder).to be_has_directory
     end
 
     it 'refuses to rename over an existing file' do
@@ -468,7 +453,7 @@ describe FolderController do
       stubs.create_file('athena', 'files', 'helmet', HELMET)
 
       token_header(:editor)
-      rename_folder('blueprints','helmet')
+      rename_folder('blueprints', 'helmet')
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Cannot overwrite existing file')
@@ -476,7 +461,6 @@ describe FolderController do
       # the actual folder is untouched
       @blueprints_folder.refresh
       expect(@blueprints_folder.folder_name).to eq('blueprints')
-      expect(@blueprints_folder).to be_has_directory
     end
 
     it 'refuses to rename a read-only folder' do
@@ -494,7 +478,7 @@ describe FolderController do
 
     it 'can move a folder to a new folder' do
       contents_folder = create_folder('athena', 'contents')
-      stubs.create_folder('athena', 'files','contents')
+      stubs.create_folder('athena', 'files', 'contents')
 
       token_header(:editor)
       rename_folder('blueprints', 'contents/blueprints')
@@ -502,16 +486,16 @@ describe FolderController do
 
       expect(last_response.status).to eq(200)
       @blueprints_folder.refresh
-      expect(@blueprints_folder.folder_path).to eq(['contents','blueprints'])
+      expect(@blueprints_folder.folder_path).to eq(['contents', 'blueprints'])
       expect(@blueprints_folder.folder).to eq(contents_folder)
     end
 
     it 'can move a sub-folder to a different folder' do
       @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
-      stubs.create_folder('athena', 'files','blueprints/helmet')
+      stubs.create_folder('athena', 'files', 'blueprints/helmet')
 
       @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
-      stubs.create_folder('athena', 'files','blueprints/helmet/sketches')
+      stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches')
 
       token_header(:editor)
       rename_folder('blueprints/helmet/sketches', 'blueprints/drawings')
@@ -520,7 +504,6 @@ describe FolderController do
       expect(last_response.status).to eq(200)
       @sketches_folder.refresh
       expect(@sketches_folder.folder_path).to eq(['blueprints', 'drawings'])
-      expect(@sketches_folder).to be_has_directory
 
       @helmet_folder.refresh
       expect(@helmet_folder.folders).to eq([])
@@ -528,10 +511,10 @@ describe FolderController do
 
     it 'refuses to move a sub-folder to a non-existent tree' do
       @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
-      stubs.create_folder('athena', 'files','blueprints/helmet')
+      stubs.create_folder('athena', 'files', 'blueprints/helmet')
 
       @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
-      stubs.create_folder('athena', 'files','blueprints/helmet/sketches')
+      stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches')
 
       token_header(:editor)
       rename_folder('blueprints/helmet/sketches', 'sketches/blueprints/helmet')
@@ -542,7 +525,6 @@ describe FolderController do
       # folders are unchanged
       @sketches_folder.refresh
       expect(@sketches_folder.folder_path).to eq(['blueprints', 'helmet', 'sketches'])
-      expect(@sketches_folder).to be_has_directory
 
       @helmet_folder.refresh
       expect(@helmet_folder.folders).to eq([@sketches_folder])
@@ -550,16 +532,16 @@ describe FolderController do
 
     it 'moves the contents of folders' do
       @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
-      stubs.create_folder('athena', 'files','blueprints/helmet')
+      stubs.create_folder('athena', 'files', 'blueprints/helmet')
 
       @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
-      stubs.create_folder('athena', 'files','blueprints/helmet/sketches')
+      stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches')
 
       @helmet_file = create_file('athena', 'helmet-sketch.jpg', HELMET, folder: @sketches_folder)
       stubs.create_file('athena', 'files', 'blueprints/helmet/sketches/helmet-sketch.jpg', HELMET)
 
       @failed_sketches_folder = create_folder('athena', 'failed-sketches', folder: @sketches_folder)
-      stubs.create_folder('athena', 'files','blueprints/helmet/sketches/failed-sketches')
+      stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches/failed-sketches')
 
       token_header(:editor)
       rename_folder('blueprints/helmet/sketches', 'sketches')
@@ -568,11 +550,9 @@ describe FolderController do
       expect(last_response.status).to eq(200)
       @sketches_folder.refresh
       expect(@sketches_folder.folder_path).to eq(['sketches'])
-      expect(@sketches_folder).to be_has_directory
 
       @failed_sketches_folder.refresh
       expect(@failed_sketches_folder.folder_path).to eq(['sketches', 'failed-sketches'])
-      expect(@failed_sketches_folder).to be_has_directory
 
       @helmet_file.refresh
       expect(@helmet_file.file_path).to eq('sketches/helmet-sketch.jpg')
@@ -584,7 +564,7 @@ describe FolderController do
 
     it 'will not move a folder to a read-only folder' do
       contents_folder = create_folder('athena', 'contents', read_only: true)
-      stubs.create_folder('athena', 'files','contents')
+      stubs.create_folder('athena', 'files', 'contents')
 
       token_header(:editor)
       rename_folder('blueprints', 'contents/blueprints')

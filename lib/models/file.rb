@@ -5,7 +5,7 @@ class Metis
 
     many_to_one :bucket
     many_to_one :folder
-    many_to_one :backup
+    many_to_one :data_block
 
     FILENAME_MATCH=/[^<>:;,?"*\|\/\x00-\x1f]+/x
 
@@ -127,25 +127,12 @@ class Metis
 
     one_to_many :uploads
 
-    def compute_hash!
-      update(file_hash: Metis::File.md5(location)) if has_data?
-    end
-
-    def has_data?
-      file_name && ::File.exists?(location)
+    def file_hash
+      data_block.md5_hash
     end
 
     def read_only?
       read_only
-    end
-
-    def location
-      ::File.expand_path(
-        ::File.join(
-          folder ? folder.location : bucket.location,
-          Metis::File.safe_file_name(file_name)
-        )
-      )
     end
 
     def to_hash(request=nil)
@@ -158,9 +145,9 @@ class Metis
         created_at: created_at.iso8601,
         author: author,
         file_hash: file_hash,
-        archive_id: backup&.archive_id,
+        archive_id: data_block.archive_id,
         read_only: read_only?,
-        size: actual_size,
+        size: data_block.actual_size,
         download_url: request ? Metis::File.download_url(
           request,
           project_name,
@@ -174,16 +161,15 @@ class Metis
       folder ? ::File.join(folder.folder_path, file_name) : file_name
     end
 
-    def actual_size
-      has_data? ? ::File.size(location) : nil
+    def has_data?
+      data_block.has_data?
     end
 
     def can_remove?
-      has_data? && !read_only?
+      !read_only?
     end
 
     def remove!
-      ::File.delete(location)
       delete
     end
 
@@ -196,45 +182,10 @@ class Metis
     end
 
     def rename!(new_folder, new_file_name)
-      old_location = location
-
       update(
         file_name: new_file_name,
         folder_id: new_folder ? new_folder.id : nil
       )
-
-      new_location = location
-
-      # Actually move the file
-      ::File.rename(
-        old_location,
-        new_location
-      )
-    end
-
-    def backup!
-      return if !file_hash || backup_id
-
-      Metis.instance.archiver.archive(self)
-    end
-
-    def set_file_data(file_path, copy=false)
-      # Rename the existing file.
-      if copy
-        ::FileUtils.copy(
-          file_path,
-          location
-        )
-      else
-        ::File.rename(
-          file_path,
-          location
-        )
-      end
-
-      # clear the hash for recomputation
-      # clear the backup_id for re-backup
-      update(file_hash: nil, backup_id: nil)
     end
   end
 end

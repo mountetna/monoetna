@@ -6,39 +6,27 @@ class Metis
       @config = config
     end
 
-    def archive(file)
+    def archive(data_block)
       raise ArgumentError, "No vault defined!" unless @config
 
-      backup = Metis::Backup.where(md5_hash: file.file_hash).first
+      archive_id = nil
 
-      if !backup
-        description = "md5:#{file.file_hash} #{file.file_path}"
-
-        archive_id = nil
-        if file.actual_size == 0
-          archive_id = 'zero-byte-file'
-          description = 'A zero-byte file'
-        else
-          archive = vault.archives.create(
-            body: ::File.open(file.location),
-            multipart_chunk_size: 64*1024*1024,
-            description: "md5:#{file.file_hash} #{file.file_path}"
-          )
-
-          return nil unless archive
-
-          archive_id = archive.id
-        end
-
-        backup = Metis::Backup.create(
-          md5_hash: file.file_hash,
-          description: description,
-          archive_id: archive_id
+      if data_block.actual_size == 0
+        archive_id = 'zero-byte-file'
+      else
+        archive = vault.archives.create(
+          body: ::File.open(data_block.location),
+          multipart_chunk_size: 64*1024*1024,
+          description: "md5:#{data_block.md5_hash} #{data_block.description}"
         )
-        backup.save
+
+        return nil unless archive
+
+        archive_id = archive.id
       end
 
-      file.update(backup_id: backup.id)
+      data_block.archive_id = archive_id
+      data_block.save
     end
 
     private

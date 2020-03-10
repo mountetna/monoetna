@@ -40,7 +40,7 @@ class FolderView extends React.Component {
   fileSelected(event){
     let { bucket_name, folder_name, fileSelected } = this.props;
 
-    if(event === undefined) return;
+    if (event === undefined) return;
 
     let { files } = this.input;
 
@@ -90,14 +90,14 @@ class FolderView extends React.Component {
   }
 }
 
+const retrieveFiles = (bucket_name, folder_name) => ({type: 'RETRIEVE_FILES', bucket_name, folder_name});
+const fileSelected = (bucket_name, folder_name, file)=>({ type: 'FILE_SELECTED', file, folder_name, bucket_name });
+const createFolder = (bucket_name, parent_folder, folder_name)=>({ type: 'CREATE_FOLDER', folder_name, parent_folder, bucket_name });
+
 export default connect(
   // map state
   null,
 
   // map dispatch
-  (dispatch) => ({
-    retrieveFiles: (bucket_name, folder_name) => dispatch({type: 'RETRIEVE_FILES', bucket_name, folder_name}),
-    fileSelected: (bucket_name, folder_name, file)=>dispatch({ type: 'FILE_SELECTED', file, folder_name, bucket_name }),
-    createFolder: (bucket_name, parent_folder, folder_name)=>dispatch({ type: 'CREATE_FOLDER', folder_name, parent_folder, bucket_name })
-  })
+  { retrieveFiles, fileSelected, createFolder }
 )(FolderView);
