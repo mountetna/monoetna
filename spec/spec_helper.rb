@@ -314,6 +314,9 @@ AUTH_USERS = {
   },
   admin: {
     email: 'zeus@olympus.org', first: 'Zeus', perm: 'a:athena'
+  },
+  non_user: {
+    email: 'nessus@centaurs.org', first: 'Nessus', perm: ''
   }
 }
 def token_header(user_type)
