@@ -381,4 +381,190 @@ describe FileController do
       expect(@wisdom_file).to be_has_data
     end
   end
+
+  context '#copy' do
+    before(:each) do
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+    end
+
+    def copy_file(path, new_path, params={})
+      json_post("/athena/file/copy/files/#{path}", {
+        new_file_path: new_path
+      }.merge(params))
+    end
+
+    it 'copies a file' do
+      token_header(:editor)
+      copy_file('wisdom.txt', 'learn-wisdom.txt')
+      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(200)
+
+      # the old file is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is a new file
+      expect(Metis::File.count).to eq(2)
+      new_wisdom_file = Metis::File.last
+      expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
+      expect(new_wisdom_file).to be_has_data
+      expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
+    end
+
+    it 'refuses to copy a file to an invalid name' do
+      token_header(:editor)
+      copy_file('wisdom.txt', "learn\nwisdom.txt")
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid path')
+
+      # the original is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(1)
+    end
+
+    it 'refuses to copy a file without permissions' do
+      # the user is a viewer, not an editor
+      token_header(:viewer)
+      copy_file('wisdom.txt', 'learn-wisdom.txt')
+
+      @wisdom_file.refresh
+      expect(last_response.status).to eq(403)
+
+      # the original is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(1)
+    end
+
+    it 'refuses to copy a non-existent file' do
+      # we attempt to rename a file that does not exist
+      token_header(:editor)
+      copy_file('folly.txt', 'learn-folly.txt')
+
+      expect(last_response.status).to eq(404)
+      expect(json_body[:error]).to eq('File not found')
+
+      # the actual file is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+    end
+
+    it 'refuses to copy over an existing file' do
+      learn_wisdom_file = create_file('athena', 'learn-wisdom.txt', WISDOM*2)
+      stubs.create_file('athena', 'files', 'learn-wisdom.txt', WISDOM*2)
+
+      token_header(:editor)
+      copy_file('wisdom.txt', 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Cannot copy over existing file')
+
+      # the file we tried to rename is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+
+      # the file we tried to rename is untouched
+      learn_wisdom_file.refresh
+      expect(Metis::File.last).to eq(learn_wisdom_file)
+      expect(learn_wisdom_file.file_name).to eq('learn-wisdom.txt')
+
+      # we can still see the data
+      expect(@wisdom_file).to be_has_data
+      expect(learn_wisdom_file).to be_has_data
+      expect(::File.read(@wisdom_file.data_block.location)).to eq(WISDOM)
+      expect(::File.read(learn_wisdom_file.data_block.location)).to eq(WISDOM*2)
+    end
+
+    it 'refuses to copy over an existing folder' do
+      learn_wisdom_folder = create_folder('athena', 'learn-wisdom.txt')
+      stubs.create_folder('athena', 'files', 'learn-wisdom.txt')
+
+      token_header(:editor)
+      copy_file('wisdom.txt', 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Cannot copy over existing folder')
+
+      # the file we tried to copy is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+
+      # the file we tried to copy is untouched
+      learn_wisdom_folder.refresh
+      expect(Metis::Folder.last).to eq(learn_wisdom_folder)
+      expect(learn_wisdom_folder.folder_name).to eq('learn-wisdom.txt')
+
+      # we can still see the data
+      expect(@wisdom_file).to be_has_data
+      expect(::File.read(@wisdom_file.data_block.location)).to eq(WISDOM)
+    end
+
+    it 'can copy a file to a new folder' do
+      contents_folder = create_folder('athena', 'contents')
+      stubs.create_folder('athena', 'files', 'contents')
+
+      token_header(:editor)
+      copy_file('wisdom.txt', 'contents/wisdom.txt')
+
+      expect(last_response.status).to eq(200)
+
+      # the original is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # a new file exists
+      new_wisdom_file = Metis::File.last
+      expect(new_wisdom_file.file_path).to eq('contents/wisdom.txt')
+      expect(new_wisdom_file.folder).to eq(contents_folder)
+      expect(new_wisdom_file).to be_has_data
+      expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
+    end
+
+    it 'will not copy a file to a read-only folder' do
+      contents_folder = create_folder('athena', 'contents', read_only: true)
+      stubs.create_folder('athena', 'files', 'contents')
+
+      token_header(:editor)
+      copy_file('wisdom.txt', 'contents/wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Folder is read-only')
+
+      # the original is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_path).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(1)
+    end
+
+    it 'will not copy a file to a non-existent folder' do
+      token_header(:editor)
+      copy_file('wisdom.txt', 'contents/wisdom.txt')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Invalid folder')
+
+      # the original is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_path).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(1)
+    end
+  end
 end
