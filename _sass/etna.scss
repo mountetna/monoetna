@@ -22,3 +22,19 @@
   top: 30%;
   line-height: unset;
 }
+
+.page-columns {
+  display: flex;
+}
+
+.page-content {
+  flex: 1 1;
+}
+
+.nav {
+  margin-top: 10px;
+  flex-basis: 150px;
+  li {
+    list-style-type: none;
+  }
+}

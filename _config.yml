@@ -13,12 +13,11 @@
 # you will see them accessed via {{ site.title }}, {{ site.email }}, and so on.
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
-title: Etna Blog
-email: saurabh.asthana@ucsf.edu
-description: >- # this means to ignore newlines until "baseurl:"
-  Bioinformatics and more from the slopes of Mount Etna
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+title: Mount Etna Data Library
+email: dscolab@ucsf.edu
+description: Documentation for the Mount Etna data library system
+baseurl: ""
+url: ""
 github_username:  mountetna
 excerpt_separator: <!--more-->
 
