@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Janus | Etna Docs</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Janus" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Documentation for the Mount Etna data library system" />
+<meta property="og:description" content="Documentation for the Mount Etna data library system" />
+<link rel="canonical" href="http://localhost:4000/janus.html" />
+<meta property="og:url" content="http://localhost:4000/janus.html" />
+<meta property="og:site_name" content="Etna Docs" />
+<script type="application/ld+json">
+{"headline":"Janus","description":"Documentation for the Mount Etna data library system","@type":"WebPage","url":"http://localhost:4000/janus.html","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Etna Docs" /></head>
+
+
+  <body>
+    <header class="site-header" role="banner">
+  <a class="site-title" href="/">Etna Docs</a>
+  <div class="site-description">Documentation for the Mount Etna data library system</div>
+</header>
+
+
+    <div class="page-columns">
+      <ul class="nav">
+  
+  <li><a href="/">Introduction</a></li>
+  
+
+  <li class="header">Etna Applications</li>
+  
+    
+  
+    
+  
+    
+      
+        <li class="active">Janus</li>
+      
+    
+  
+    
+      
+        <li><a href="/magma.html"> Magma </a> </li>
+      
+    
+  
+    
+      
+        <li><a href="/metis.html"> Metis </a> </li>
+      
+    
+  
+    
+      
+        <li><a href="/timur.html"> Timur </a> </li>
+      
+    
+  
+    
+  
+    
+  
+</ul>
+
+
+      <main class="page-content" aria-label="Content">
+        <h1 class="no_toc" id="janus">Janus</h1>
+<h2 class="no_toc" id="authentication-service">Authentication Service</h2>
+
+<p>Janus is an authentication and identity service for Etna applications. It is based on the <a href="https://github.com/mountetna/etna">etna</a> gem.</p>
+
+<p>Janus implements the basic user and project structure of Etna applications.</p>
+
+<ul id="markdown-toc">
+  <li><a href="#users" id="markdown-toc-users">Users</a></li>
+  <li><a href="#projects" id="markdown-toc-projects">Projects</a></li>
+  <li><a href="#permissions" id="markdown-toc-permissions">Permissions</a></li>
+  <li><a href="#identification" id="markdown-toc-identification">Identification</a></li>
+  <li><a href="#authenticating" id="markdown-toc-authenticating">Authenticating</a>    <ul>
+      <li><a href="#password-login" id="markdown-toc-password-login">Password login</a></li>
+      <li><a href="#shibboleth-login" id="markdown-toc-shibboleth-login">Shibboleth login</a></li>
+      <li><a href="#public-key-login" id="markdown-toc-public-key-login">Public-key login</a></li>
+    </ul>
+  </li>
+  <li><a href="#configuration" id="markdown-toc-configuration">Configuration</a>    <ul>
+      <li><a href="#generating-keys" id="markdown-toc-generating-keys">Generating keys</a></li>
+    </ul>
+  </li>
+  <li><a href="#user-and-project-setup" id="markdown-toc-user-and-project-setup">User and Project Setup</a>    <ul>
+      <li><a href="#via-command-line" id="markdown-toc-via-command-line">Via Command line</a>        <ul>
+          <li><a href="#creating-a-user" id="markdown-toc-creating-a-user">Creating a user</a></li>
+          <li><a href="#setting-a-public-key" id="markdown-toc-setting-a-public-key">Setting a public key</a></li>
+          <li><a href="#creating-a-project" id="markdown-toc-creating-a-project">Creating a project</a></li>
+          <li><a href="#adding-permissions" id="markdown-toc-adding-permissions">Adding permissions</a></li>
+        </ul>
+      </li>
+      <li><a href="#via-web-portal" id="markdown-toc-via-web-portal">Via web portal</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="users">Users</h2>
+
+<p>A Janus user is primarily identified by an email address. You may add users via the <code class="language-plaintext highlighter-rouge">bin/janus add_user</code> command.</p>
+
+<p>See below on how users may authenticate.</p>
+
+<h2 id="projects">Projects</h2>
+
+<p>A ‘project’ is the entity that produced a particular data set. You may add projects using the <code class="language-plaintext highlighter-rouge">bin/janus add_project</code> command. Generally Etna applications communicate using the <code class="language-plaintext highlighter-rouge">project_name</code> and rarely <code class="language-plaintext highlighter-rouge">The Full Name of the Project</code>.</p>
+
+<h2 id="permissions">Permissions</h2>
+
+<p>Users are granted specific permissions on each project. A permission consists of:</p>
+<ul>
+  <li>user</li>
+  <li>project</li>
+  <li>role - either of <code class="language-plaintext highlighter-rouge">[ 'administrator', 'editor', 'viewer' ]</code></li>
+  <li>restricted - true if the user can see the project’s restricted data</li>
+</ul>
+
+<p>You may add permissions using the <code class="language-plaintext highlighter-rouge">bin/janus permit</code> command.</p>
+
+<h1 id="identification">Identification</h1>
+
+<p>Janus provides identity by yielding a JSON web token (JWT). Client applications may verify this token using Janus’s public key, most likely through the Etna::Auth rack middleware.</p>
+
+<p>The token format is: <code class="language-plaintext highlighter-rouge">&lt;header&gt;.&lt;params&gt;.&lt;signature&gt;</code></p>
+
+<p>Each section is a base64-encoded JSON hash. The params Janus reports are: <code class="language-plaintext highlighter-rouge">{ email, first, last, perm }</code> - the latter encodes the user’s project permissions.</p>
+
+<h1 id="authenticating">Authenticating</h1>
+
+<p>There are three ways to get a token:</p>
+
+<h2 id="password-login">Password login</h2>
+
+<p>The endpoint <code class="language-plaintext highlighter-rouge">/login</code> can be configured to display an HTML form for password entry. If successful, Janus will set a cookie with the token in the response. This endpoint is mostly useful for developers.</p>
+
+<h2 id="shibboleth-login">Shibboleth login</h2>
+
+<p>The <code class="language-plaintext highlighter-rouge">/login</code> endpoint can also be configured as a Shibboleth-protected endpoint for authentication. If successful, Janus will set a cookie with the token in the response. This endpoint is most suitable for browser applications. To use this method for authentication, set <code class="language-plaintext highlighter-rouge">auth_method: shibboleth</code> in the configuration.</p>
+
+<h2 id="public-key-login">Public-key login</h2>
+
+<p>Machine users who cannot use browsers can use a registered public key to generate a token.</p>
+
+<p>The endpoint <code class="language-plaintext highlighter-rouge">/time-signature</code> returns a cryptographic nonce. The user signs the nonce, base64-encodes the signature, and concatenates the result to the nonce.</p>
+
+<p>The endpoint <code class="language-plaintext highlighter-rouge">/generate</code> returns a valid token if the <code class="language-plaintext highlighter-rouge">Authorization</code> header is set to the appropriate value.</p>
+
+<p>Here is a bash script that will successfully generate a Janus token on most systems (you need ‘openssl’, ‘wget’ and ‘base64’ utilities).</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#!/bin/bash
+
+# The base URL for janus
+JANUS_URL=$1
+# Your secret key file in PEM format
+PEM=$2
+# Your email address
+EMAIL=$(echo -n $3 | base64 -w 0)
+
+NONCE=$(wget -q -O - $JANUS_URL/time-signature)
+
+SIG=$(echo -n $NONCE.$EMAIL | openssl dgst -sha256 -sign $PEM | base64 -w 0)
+
+AUTH=$NONCE.$EMAIL.$SIG
+
+TOKEN=$(wget -q -O - --header="Authorization: Signed-Nonce $AUTH" $JANUS_URL/generate )
+
+echo $TOKEN
+</code></pre></div></div>
+
+<h1 id="configuration">Configuration</h1>
+
+<p>Janus is an Etna application and puts all of its configuration into a <code class="language-plaintext highlighter-rouge">config.yml</code> YAML file.</p>
+
+<p>Example:</p>
+
+<p><code class="language-plaintext highlighter-rouge">./config.yml</code></p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>---
+:development:
+  :db:
+    :database: janus
+    :host: localhost
+    :adapter: postgres
+    :encoding: unicode
+    :username: developer
+    :password: &lt;%= @psql_developer_password %&gt;
+    :pool: 5
+    :timeout: 5000
+
+    # We recommend using a search path that is not 'public' (for postgres only).
+    :search_path: [private]
+
+  # How Janus should generate passwords (using Etna::SignService).
+  :pass_algo: sha256
+  :pass_salt: &lt;%= @janus_password_salt %&gt;
+
+  # Token generation options.
+  :token_domain: ucsf.edu
+  :token_life: 86400
+  :token_algo: RS256
+  :token_name: &lt;%= @janus_token_name %&gt;
+
+  :log_level: debug
+  :log_file: '&lt;%= @log_file %&gt;'
+
+  # Janus private key (used to generate the user token).
+  :rsa_private: |
+&lt;%= @rsa_private %&gt;
+
+  # Janus public key. This is required in the config.yml files of other
+  # servers/apps that use the etna gem. We keep it here for reference.
+  :rsa_public: |
+&lt;%= @rsa_public %&gt;
+</code></pre></div></div>
+
+<h2 id="generating-keys">Generating keys</h2>
+
+<p>Janus relies on a RSA public and private key pair. You may generate keys in PEM
+format using the command <code class="language-plaintext highlighter-rouge">bin/janus generate_key_pair &lt;key_size&gt;</code>.</p>
+
+<h1 id="user-and-project-setup">User and Project Setup</h1>
+
+<h2 id="via-command-line">Via Command line</h2>
+
+<h3 id="creating-a-user">Creating a user</h3>
+
+<p>You may add a new user with the <code class="language-plaintext highlighter-rouge">add_user</code> command. The primary identifier for
+a user is an email address. They may also have a first and last name. You may optionally set a password here.</p>
+
+<h3 id="setting-a-public-key">Setting a public key</h3>
+
+<p>Some users will want to set a public key to allow them to generate a janus token via the <code class="language-plaintext highlighter-rouge">/generate</code> endpoint (see above). You may set this key using the <code class="language-plaintext highlighter-rouge">add_user_key</code> command and a public key file. Keys must be in PEM format and must be RSA keys.</p>
+
+<h3 id="creating-a-project">Creating a project</h3>
+
+<p>You may add a new project with the <code class="language-plaintext highlighter-rouge">add_project</code> command.  The project_name is <code class="language-plaintext highlighter-rouge">snake_cased</code> and is the primary referrent for the project throughout Etna applications.  Most Etna applications will not acknowledge a project if there is no corresponding Janus project entry.</p>
+
+<h3 id="adding-permissions">Adding permissions</h3>
+
+<p>Each user has a permission for a project. You may add a permission using the <code class="language-plaintext highlighter-rouge">permit</code> command. Each permission consists of a role (<code class="language-plaintext highlighter-rouge">administrator</code>, <code class="language-plaintext highlighter-rouge">editor</code>, or <code class="language-plaintext highlighter-rouge">viewer</code>) and whether or not the user can see <code class="language-plaintext highlighter-rouge">restricted</code> data.</p>
+
+<h2 id="via-web-portal">Via web portal</h2>
+
+<p>Project permissions may be managed for each user by browsing to <code class="language-plaintext highlighter-rouge">JANUS_HOST/project/:project_name</code>, e.g. https://janus.example.org/project/my_project. This page includes forms to alter roles and privileged data access for each user in your project, disable a user’s access to your project, or add a new user to the project with a given role.</p>
+
+      </main>
+
+    </div>
+
+    <footer class="site-footer">
+
+    <ul>
+      
+        <li><a href="mailto:dscolab@ucsf.edu">dscolab@ucsf.edu</a></li>
+      
+      
+      <li>
+        <a href="https://github.com/mountetna"><span class="icon icon--github"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">mountetna</span></a>
+
+      </li>
+      
+    </ul>
+
+</footer>
+
+  </body>
+
+</html>

@@ -1,0 +1,49 @@
+body { height: 100vh; margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; display: flex; flex-direction: column; }
+
+li { list-style-type: none; }
+
+a { text-decoration: none; color: #2a7ae2; }
+a:visited { color: #165ab3; }
+a:hover { color: black; text-decoration: underline; }
+
+.site-header { background: url("/assets/images/etna.png"); background-size: contain; background-repeat: no-repeat; min-height: 70px; position: relative; border-bottom: #137 1px solid; display: flex; flex-direction: row; padding-left: 300px; }
+
+.site-description { font-size: 19.2px; font-weight: 200; color: #828282; display: inline-block; position: absolute; top: 50%; }
+
+.site-title { font-size: 1.5em; float: unset; margin-top: -13px; position: absolute; top: 30%; line-height: unset; }
+
+.page-box { height: 100%; display: flex; flex-direction: column; }
+
+.page-columns { display: flex; flex: 1; flex-direction: row; overflow: auto; }
+
+.page-content { flex: 1; padding: 0 10px; overflow: auto; }
+.page-content h2 { border-bottom: 1px solid black; }
+.page-content p { margin: 2px; }
+.page-content pre.highlight { background: #e8eefc; padding: 5px; margin: 5px 20px 5px 0px; }
+
+h1, h2, h3, h4, h5, h6 { color: #6b82b0; font-weight: normal; margin: 0px; }
+
+h2, h3, h4, h5, h6 { margin: 15px 0 10px; }
+
+.nav { padding: 10px 0px; flex-basis: 150px; background: #cdf; margin: 0px; }
+.nav li { padding: 0px 10px; }
+.nav li.active { background: #93afe7; }
+
+footer { border-top: 1px solid #cdf; }
+footer ul li { padding-right: 50px; display: inline; }
+
+#markdown-toc { border: 1px solid #e8e8fb; padding: 0.5em; background: #f2f9ff; display: inline-block; counter-reset: item; }
+#markdown-toc::before { content: "Contents"; font-weight: bold; }
+#markdown-toc li { display: block; counter-increment: item; }
+#markdown-toc li:before { content: counter(item); padding-right: 3px; }
+#markdown-toc li ul { counter-reset: subitem; }
+#markdown-toc li ul li { counter-increment: subitem; }
+#markdown-toc li ul li:before { content: counter(item) "." counter(subitem); padding-right: 3px; }
+#markdown-toc li ul li ul { counter-reset: subsubitem; }
+#markdown-toc li ul li ul li { counter-increment: subsubitem; }
+#markdown-toc li ul li ul li:before { content: counter(item) "." counter(subitem) "." counter(subsubitem); padding-right: 3px; }
+
+.table { display: table-cell; border: 1px solid #f3f3f3; padding: 0; margin-left: -1px; }
+.table li { padding: 2px; }
+
+.table-header { background: #e2e9ff; }

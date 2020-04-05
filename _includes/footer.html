@@ -1,32 +1,14 @@
 <footer class="site-footer">
 
-  <div class="wrapper">
-    <div class="footer-col-wrapper">
-      <div class="footer-col footer-col-1">
-      </div>
-
-      <div class="footer-col footer-col-2">
-        <ul class="contact-list">
-          {% if site.email %}
-          <li><a href="mailto:{{ site.email }}">contact</a></li>
-          {% endif %}
-        </ul>
-      </div>
-
-      <div class="footer-col footer-col-3">
-        <ul class="social-media-list">
-          {% if site.github_username %}
-          <li>
-            {% include icon-github.html username=site.github_username %}
-          </li>
-          {% endif %}
-        </ul>
-      </div>
-
-      <div class="footer-col footer-col-4">
-      </div>
-    </div>
-
-  </div>
+    <ul>
+      {% if site.email %}
+        <li><a href="mailto:{{ site.email }}">dscolab@ucsf.edu</a></li>
+      {% endif %}
+      {% if site.github_username %}
+      <li>
+        {% include icon-github.html username=site.github_username %}
+      </li>
+      {% endif %}
+    </ul>
 
 </footer>

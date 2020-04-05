@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Magma | Etna Docs</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Magma" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Documentation for the Mount Etna data library system" />
+<meta property="og:description" content="Documentation for the Mount Etna data library system" />
+<link rel="canonical" href="http://localhost:4000/magma.html" />
+<meta property="og:url" content="http://localhost:4000/magma.html" />
+<meta property="og:site_name" content="Etna Docs" />
+<script type="application/ld+json">
+{"headline":"Magma","description":"Documentation for the Mount Etna data library system","@type":"WebPage","url":"http://localhost:4000/magma.html","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Etna Docs" /></head>
+
+
+  <body>
+    <header class="site-header" role="banner">
+  <a class="site-title" href="/">Etna Docs</a>
+  <div class="site-description">Documentation for the Mount Etna data library system</div>
+</header>
+
+
+    <div class="page-columns">
+      <ul class="nav">
+  
+  <li><a href="/">Introduction</a></li>
+  
+
+  <li class="header">Etna Applications</li>
+  
+    
+  
+    
+  
+    
+      
+        <li><a href="/janus.html"> Janus </a> </li>
+      
+    
+  
+    
+      
+        <li class="active">Magma</li>
+      
+    
+  
+    
+      
+        <li><a href="/metis.html"> Metis </a> </li>
+      
+    
+  
+    
+      
+        <li><a href="/timur.html"> Timur </a> </li>
+      
+    
+  
+    
+  
+    
+  
+</ul>
+
+
+      <main class="page-content" aria-label="Content">
+        <h1 class="no_toc" id="magma">Magma</h1>
+<h2 class="no_toc" id="data-warehouse">Data Warehouse</h2>
+
+<ul id="markdown-toc">
+  <li><a href="#organization" id="markdown-toc-organization">Organization</a>    <ul>
+      <li><a href="#models" id="markdown-toc-models">Models</a></li>
+      <li><a href="#attributes" id="markdown-toc-attributes">Attributes</a></li>
+      <li><a href="#data-restriction" id="markdown-toc-data-restriction">Data restriction</a></li>
+      <li><a href="#validation" id="markdown-toc-validation">Validation</a>        <ul>
+          <li><a href="#dictionaries" id="markdown-toc-dictionaries">Dictionaries</a></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><a href="#api" id="markdown-toc-api">API</a></li>
+  <li><a href="#setup" id="markdown-toc-setup">Setup</a>    <ul>
+      <li><a href="#installation" id="markdown-toc-installation">Installation</a></li>
+      <li><a href="#configuration" id="markdown-toc-configuration">Configuration</a></li>
+      <li><a href="#attributes-1" id="markdown-toc-attributes-1">Attributes</a></li>
+      <li><a href="#migrations" id="markdown-toc-migrations">Migrations</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="organization">Organization</h2>
+
+<p>The purpose of Magma is to define a data hierarchy for each Etna project: a set
+of models to define each of the entities in the project dataset.</p>
+
+<h3 id="models">Models</h3>
+
+<h3 id="attributes">Attributes</h3>
+
+<p>The Magma attribute types are:</p>
+
+<ul class="table">
+  <li class="table-header">Value types</li>
+  <li>identifier</li>
+  <li>string</li>
+  <li>integer</li>
+  <li>float</li>
+  <li>date_time</li>
+  <li>file</li>
+  <li>image</li>
+  <li>matrix</li>
+</ul>
+
+<ul class="table">
+  <li class="table-header">Link types:</li>
+  <li>parent</li>
+  <li>child</li>
+  <li>link</li>
+  <li>collection</li>
+  <li>table</li>
+</ul>
+
+<ul class="table">
+  <li class="table-header">Other types:</li>
+  <li>match</li>
+  <li>restricted</li>
+</ul>
+
+<div style="clear: both;"></div>
+
+<h3 id="data-restriction">Data restriction</h3>
+
+<p>Magma will censor data from users who don’t have “restricted” project access. Data can either be restricted by record or by attribute. To define a restricted model you may add a ‘restricted’ attribute to the model:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyModel &lt; Magma::Model
+  restricted
+end
+</code></pre></div></div>
+
+<p>Any record where <code class="language-plaintext highlighter-rouge">record.restricted</code> is true will be censored for users without restricted access.</p>
+
+<p>To define a restricted attribute on a model, you may add a ‘restricted’ flag to the attribute:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyModel &lt; Magma::Model
+  attribute :some_att, restricted: true
+end
+</code></pre></div></div>
+
+<p>This attribute will always be censored from every record for users without restricted access.</p>
+
+<h3 id="validation">Validation</h3>
+
+<p>Magma models may define validations, which helps ensure the integrity of data
+as it enters Magma (invalid data is rejected).  Magma has two basic forms of
+validation. The first is attribute validation, which adds matchers to each
+attribute on a model, e.g.:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyModel &lt; Magma::Model
+  attribute :att1, type: String, match: /[r]egexp/
+  attribute :att2, type: String, match: [ 'list', 'of', 'options' ]
+end
+</code></pre></div></div>
+
+<p>These validations are hard-coded into the model and may be hard to update. An
+alternative method of validation is via a Magma::Dictionary, which allows a model
+to be validated using data (records) from another model.</p>
+
+<h4 id="dictionaries">Dictionaries</h4>
+
+<p>You may define a dictionary relation as follows:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyModel &lt; Magma::Model
+  attribute :att1
+  attribute :att2
+
+  dictionary DictModel, att1: :dict_att1, att2: :dict_att2
+end
+</code></pre></div></div>
+
+<p>A <code class="language-plaintext highlighter-rouge">my_model</code> record is valid if there is a matching entry in the dictionary
+model, i.e., where <code class="language-plaintext highlighter-rouge">my_record.att1</code> matches <code class="language-plaintext highlighter-rouge">dict_record.att1</code> and
+<code class="language-plaintext highlighter-rouge">my_record.att2</code> matches <code class="language-plaintext highlighter-rouge">dict_record.att2</code>. Here ‘match’ might mean
+‘equality’, but a dictionary may also include a ‘match’ attribute.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class DictModel &lt; Magma::Model
+  attribute :dict_att1
+  match :dict_att2
+end
+</code></pre></div></div>
+
+<p>A match attribute contains json data like <code class="language-plaintext highlighter-rouge">{type,value}</code>. This allows us to construct more complex entries:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># match any value in this Array
+{ type: 'Array', value: [ 'x', 'y', 'z' ] }
+# match within this Range
+{ type: 'Range', value: [ 0, 100 ] }
+# match this Regexp
+{ type: 'Regexp', value: '^something$' }
+# match an ordinary value
+{ type: 'String', value: 'something' }
+</code></pre></div></div>
+
+<h2 id="api">API</h2>
+
+<p><strong>POST <em>/update</em></strong> - accepts a JSON post in this format:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+  "project_name" : "labors",
+  "revisions" : {
+    "monster" : {
+      "Nemean Lion" : {
+        "species" : 'lion'
+      }
+    }
+  }
+}
+</code></pre></div></div>
+
+<p><strong>POST <em>/retrieve</em></strong> - accepts a JSON post in this format:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+  "project_name"    : "labors",
+  "model_name"      : "labor",
+  "record_names"    : [ "Nemean Lion" ],
+  "attribute_names" : [ "name", "number", "completed" ]
+}
+</code></pre></div></div>
+
+<p>In return you will get a payload like this:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+  "models": {
+    "labor": {
+      "documents": {
+        "Nemean Lion": {
+          "name": "Nemean Lion",
+          "number": 1,
+          "completed": true
+        }
+      },
+      "template": {
+        "name": "labor",
+        "attributes": {
+          "name": {
+            "name": "name",
+            "type": "String",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Name",
+            "shown": true
+          }
+          // etc. for ALL attributes, not just requested
+        }
+      }
+    },
+    "identifier": "name",
+    "parent": "project"
+  }
+}
+</code></pre></div></div>
+
+<p><strong>POST <em>/query</em></strong> - accepts JSON queries in Magma’s Query language. See <a href="https://github.com/mountetna/magma/wiki/Query">https://github.com/mountetna/magma/wiki/Query</a> for more details.</p>
+
+<h2 id="setup">Setup</h2>
+
+<h3 id="installation">Installation</h3>
+
+<p>We may start with a basic git checkout:</p>
+
+<p><code class="language-plaintext highlighter-rouge">$ git clone https://github.com/mountetna/magma.git</code></p>
+
+<p>Magma runs as a Ruby Magma is a Rack application, which means you can run it using any Rack-compatible server (e.g. Puma or Passenger).</p>
+
+<h3 id="configuration">Configuration</h3>
+
+<p>Magma has a single YAML config file, <code class="language-plaintext highlighter-rouge">config.yml</code>; DO NOT TRACK this file, as it will hold all of your secrets. It uses the Etna::Application configuration syntax, e.g.:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>---
+:test:
+  :host: https://magma.test
+
+:development:
+  :log_file: ./log/error.log
+</code></pre></div></div>
+
+<p>The environment is by default <code class="language-plaintext highlighter-rouge">development</code> but may be set via the environment variable MAGMA_ENV.</p>
+
+<p>Some things you may configure:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code># This is the database configuration for the Sequel ORM (Documented at https://sequel.jeremyevans.net)
+# Magma uses the postgres adapter; it may not work with other databases.
+:db:
+  :database: magma
+  :host: localhost
+  :adapter: postgres
+  :user: magma
+  :password: AAAAAAAA
+
+# A space-separated lists of magma project directories.
+# See below for details on creating a project.
+:project_path: ./projects/labors/
+
+# Where Magma will attempt to log - some server errors may not be trapped here.
+:log_file: log/error.log
+
+# Magma uses the `fog/aws` gem to connect to S3 for file storage,
+# and Carrierwave to manage uploads
+:storage:
+  :provider: fog/aws
+  :directory: 'my-magma-bucket'
+  :expiration: 1440
+  :credentials:
+    :provider: 'AWS'
+    :aws_access_key_id: 'AKIAETCETERA'
+    :aws_secret_access_key: 'SoMeSecrEtK/Ey'
+    :region: 'us-area-52'
+
+# The algorithm used by the authentication service (Janus) to sign tokens
+# and the public key to validate them.
+:token_algo: RS256
+:rsa_public: |
+  -----BEGIN PUBLIC KEY-----
+  KeYGoEsHeRE==
+  -----END PUBLIC KEY-----
+</code></pre></div></div>
+
+<h3 id="attributes-1">Attributes</h3>
+
+<p>Attributes describe the data elements of the model, their interactions with other models, and so on.</p>
+
+<p><strong><em>attribute</em></strong> - a generic attribute, representing any valid column name in the database</p>
+
+<p><strong><em>identifier</em></strong> - a special attribute, a unique string identifier for records of this model type. Links between records are specified using the <em>identifier</em> attribute. If no identifier is set the identifier defaults to the database <em>id</em>.</p>
+
+<p><u>link types:</u></p>
+
+<p><strong><em>parent</em></strong> - an ancestor in a hierarchy, stored via a foriegn_key column in the model</p>
+
+<p><strong><em>child</em></strong> - a child in a hierarchy, stored in the foreign model
+  link - same as ‘parent’, just intended to represent other sorts of relations for clarity</p>
+
+<p><strong><em>collection</em></strong> - an array of links to children</p>
+
+<p><u>tables:</u></p>
+
+<p><strong><em>table</em></strong> - similar to a collection, except while a collection references a wholly separate model, a table is intended to essentially be a vector of values that loads with this model.</p>
+
+<p><u>file types</u>:</p>
+
+<p><strong><em>file</em></strong> - a generic binary document, stored on S3</p>
+
+<p><strong><em>image</em></strong> - an image, similar to a document except it allows some thumbnailing</p>
+
+<p><u>restriction</u>:
+  <strong><em>restricted</em></strong> - a boolean attribute that determines whether this record is restricted.</p>
+
+<h3 id="migrations">Migrations</h3>
+
+<p>Magma attempts to maintain a strict adherence between its models and
+the database schema by suggesting migrations. These are written in the
+Sequel ORM’s migration language, not pure SQL, so they are fairly
+straightforward to amend when Magma plans incorrectly.</p>
+
+<p>To plan a new set of migrations, the first step is to amend your
+models.  This also works in the case of entirely new models. Simply
+sketch them out as described above, setting out the attributes each
+model requires and creating links between them.</p>
+
+<p>Once you’ve defined your models, you can execute <code class="language-plaintext highlighter-rouge">bin/magma plan</code> to
+create a new migration. If you want to restrict your plan to a single
+project you may do <code class="language-plaintext highlighter-rouge">bin/magma plan &lt;project_name&gt;</code>. Magma will output
+ruby code for a migration using the Sequel ORM - you can save this in
+your project’s migration folder (e.g.
+<code class="language-plaintext highlighter-rouge">project/my_project/migration/01_initial_migration.rb</code>).</p>
+
+<p>After your migrations are in place, you can try to run them using <code class="language-plaintext highlighter-rouge">bin/magma
+migrate</code>, which will attempt to run migrations that have not been run yet. If
+you change your mind, you can roll backwards (depending on how reversible your
+migration is) using <code class="language-plaintext highlighter-rouge">bin/magma migrate &lt;migration version number&gt;</code>.</p>
+
+      </main>
+
+    </div>
+
+    <footer class="site-footer">
+
+    <ul>
+      
+        <li><a href="mailto:dscolab@ucsf.edu">dscolab@ucsf.edu</a></li>
+      
+      
+      <li>
+        <a href="https://github.com/mountetna"><span class="icon icon--github"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">mountetna</span></a>
+
+      </li>
+      
+    </ul>
+
+</footer>
+
+  </body>
+
+</html>

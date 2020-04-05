@@ -1,13 +1,19 @@
 ---
 layout: default
+group: app
 ---
 # Metis
+{:.no_toc}
 ## File Service
+{:.no_toc}
 
 Metis is a file service for Etna applications. It provides the ability to store
 binary files in folder hierarchies and access them via HTTP API. The underlying
 object storage uses an ordinary filesystem (i.e., files in Metis are stored on
 disk as files)
+
+* toc
+{:toc}
 
 ## Organization
 

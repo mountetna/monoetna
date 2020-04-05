@@ -1,13 +1,19 @@
 ---
 layout: default
+group: app
 ---
 
 # Timur
+{:.no_toc}
 ## Data Browser
+{:.no_toc}
 
 Timur is a data browser. It is primarily intended to consume data from Magma, a data warehouse.
 
 There are three ways to interact with Timur:
+
+* TOC
+{:toc}
 
 ## Browse
 

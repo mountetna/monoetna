@@ -1,12 +1,19 @@
 ---
 layout: default
+group: app
 ---
 
 # Janus
+{:.no_toc}
 ## Authentication Service
+{:.no_toc}
+
 Janus is an authentication and identity service for Etna applications. It is based on the [etna](https://github.com/mountetna/etna) gem.
 
 Janus implements the basic user and project structure of Etna applications.
+
+* TOC
+{:toc}
 
 ## Users
 
