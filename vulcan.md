@@ -21,27 +21,27 @@ Here is what is defined in the language already:
 ## Types
 
 The basic types:
-  String - delimited by single quotes, which may be escaped by double-quoting (e.g. 'That''s all folks!')
-  Number - a float
-  true, false - boolean values
-  nil - an empty value
-  Vector - somewhere between an array and an associative array (Hash), this is
+- String - delimited by single quotes, which may be escaped by double-quoting (e.g. 'That''s all folks!')
+- Number - a float
+- true, false - boolean values
+- nil - an empty value
+- Vector - somewhere between an array and an associative array (Hash), this is
   a list of values with optional string labels. Labels may be strings
   ('label') or an identifier (label)
-  Matrix - an array of arrays, with data in rows and columns, along with
+- Matrix - an array of arrays, with data in rows and columns, along with
   string row names and column names.
 
 ## Variables
 
 Data may be bound to variables. There are two kinds of
 variable, exported variables (@blah) and local variables
-($blah).
+(blah).
 
 ## Operators
 
 ### Assignment
 
-`=` -  Valid l-values for assignments are @export or $local variables.
+`=` -  Valid l-values for assignments are @export or local variables.
 
 `@name = 'Hercules'`
 
@@ -149,11 +149,11 @@ in conjunction with the `which` function:
 The concatenation operator lets you join two vectors end-to-end:
 
 ```
-@x = [ 1, 2, 3 ] .. [ 4, 5, 6 ]
+@x = [ 1, 2, 3 ] << [ 4, 5, 6 ]
 # @x => [ 1, 2, 3, 4, 5, 6 ]
 ```
 
-The transpose operator lets you treat a Vector as a column
+The transpose operator `~` lets you treat a Vector as a column
 for matrix math:
 
 ```
@@ -170,17 +170,17 @@ for matrix math:
 The map operator `%%` lets you iterate across the elements of a vector
 
 ```
-@v = [ 1, 2, 3 ] %% ($value, $i, $label) => $value * $i
+@v = [ 1, 2, 3 ] %% (value, i, label) => value * i
 # @v => [ 0, 2, 6 ]
 ```
 
 The reduce operator `>>` lets you reduce the elements of a vector to a value
 
 ```
-@v = [ 1, 2, 3 ] >> ($s = 0, $value, $i, $label) => $s + $v
+@v = [ 1, 2, 3 ] >> (s = 0, value, i, label) => s + v
 # @v => 6
 
-@v = [ 'ant', 'bear', 'cat' ] >> ($s = '', $v) => $s + $v
+@v = [ 'ant', 'bear', 'cat' ] >> (s = '', v) => s + v
 # @v => 'antbearcat'
 ```
 
@@ -225,7 +225,7 @@ The map operator allows you to iterate across the rows of a matrix.  It takes a
 function as its second argument:
 ```
 @x = ::[ a: [ i: 1, j: 2 ], b: [ 3, 4 ] ]
-@y = @x %% ($row, $row_number) => $row * 2 + $row_number
+@y = @x %% (row, row_number) => row * 2 + row_number
 # y =>     a b
        i [ 2 4 ]
        j [ 4 9 ]
@@ -236,13 +236,13 @@ function as its second argument:
 A function declaration may be bound to a variable:
 
 ```
-$multiply = ($arg1, $arg2) => {
-  return $arg1 * $arg2
+multiply = (arg1, arg2) => {
+  return arg1 * arg2
 }
 # or
-$multiply = ($arg1, $arg2) => $arg1 * $arg2
+multiply = (arg1, arg2) => arg1 * arg2
 
-@product = $multiply(2, 3)
+@product = multiply(2, 3)
 # @product => 6
 ```
 
@@ -250,9 +250,9 @@ The function has local scope, and read-only access to the parent scope. Thus,
 you may do this:
 
 ```
-$remultiply = ($arg1, $arg2) => {
-  $x = $multiply($arg1, $arg2)
-  return $x * $x
+remultiply = (arg1, arg2) => {
+  x = multiply(arg1, arg2)
+  return x * x
 }
 ```
 
@@ -260,14 +260,14 @@ but not:
 
 ```
 @y = 5
-$assign_y = ($arg1, $arg2) => {
-  @y = $arg1 * $arg2
+assign_y = (arg1, arg2) => {
+  @y = arg1 * arg2
 }
 ```
 
 You may make default assignments to the arguments:
 ```
-@rigged_multiply = ($x = 2, $y = 4) => $x * $y
+@rigged_multiply = (x = 2, y = 4) => x * y
 
 @a = @rigged_multiply(3)
 # @a => 12
@@ -286,11 +286,11 @@ with string arguments, which are pasted into the macro
 definition and then evaluated.
 
 ```
-$macro = { $arg1 * %1 }
+macro = { arg1 * %1 }
 
-$arg1 = 2
-$arg2 = 3
-@product = $macro( '$arg2' )
+arg1 = 2
+arg2 = 3
+@product = macro( 'arg2' )
 ```
 
 
@@ -299,22 +299,22 @@ $arg2 = 3
 The ternary operator allows conditional expressions:
 
 ```
-$s = 1
-$y = $s == 1 ? 'red' : 'green'
-# $y => 'red'
+s = 1
+y = s == 1 ? 'red' : 'green'
+# y => 'red'
 ```
 
 You can also use if / else statements:
 
 ```
-if ($s == 1)
-  $y = 2
+if (s == 1)
+  y = 2
 else
-  $y = 'red'
+  y = 'red'
 
-# $y => 2
+# y => 2
 
-if ($s == 1 ) {
+if (s == 1 ) {
   @x = 2
   @y = 3
 } else {
