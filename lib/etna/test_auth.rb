@@ -10,13 +10,13 @@ module Etna
       return [ 'Authorization', "Etna #{token}" ]
     end
 
-    def self.token_header(params)
+    def self.token_param(params)
       token = Base64.strict_encode64(params.to_json)
-      return [ 'Authorization', "Etna #{token}" ]
+      return [ Etna::Auth.etna_url_param(:authorization).to_s, "Etna #{token}" ]
     end
 
     def self.hmac_header(signature)
-      return [ 'X-Etna-Signature', signature ]
+      return [ Etna::Auth.etna_url_param(:signature).to_s, signature ]
     end
 
     def self.hmac_params(params)
@@ -27,7 +27,7 @@ module Etna
         signature: params.delete(:signature) || 'invalid',
         headers: params.keys.join(',')
       }.merge(params).map do |item, value|
-        [ Etna::Auth.etna_url_param(item), value ]
+        [ Etna::Auth.etna_url_param(item).to_s, value ]
       end.to_h
     end
 
