@@ -609,7 +609,8 @@ describe FileController do
     it 'copies to a bucket with a different application owner with matching signature' do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'vulcan' )
-      copy_file('wisdom.txt', 'learn-wisdom.txt', new_bucket_name: 'sundry')
+      copy_file('wisdom.txt', 'learn-wisdom.txt', {new_bucket_name: 'sundry'}.merge(
+        hmac_params(id: 'vulcan', signature: 'valid')))
       stubs.add_file('athena', 'files', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(200)
@@ -631,7 +632,7 @@ describe FileController do
       stubs.add_file('athena', 'files', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot write to bucket')
+      expect(json_body[:error]).to eq('Cannot access bucket')
 
       # the old file is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')

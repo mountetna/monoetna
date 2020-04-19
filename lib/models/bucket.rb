@@ -23,7 +23,11 @@ class Metis
         access.split(/,/).all?{ |e| e.strip =~ URI::MailTo::EMAIL_REGEXP }
     end
 
-    def allowed?(user)
+    def allowed?(user, hmac)
+      # if there is no user, or the bucket owner is not metis, it must be
+      # hmac-signed by the bucket owner
+      return hmac&.valid? && hmac.id == owner.to_sym if !user || owner != 'metis'
+
       # Admins can always see the bucket
       return true if user.is_admin?(project_name)
 
