@@ -6,18 +6,21 @@ class Metis
       success(obj.to_json, 'application/json')
     end
 
-    def require_bucket(user_required=true)
+    def require_bucket(bucket_name=nil)
       bucket = Metis::Bucket.where(
         project_name: @params[:project_name],
-        name: @params[:bucket_name]
+        name: bucket_name || @params[:bucket_name]
       ).first
-
 
       raise Etna::BadRequest, 'Invalid bucket' unless bucket
 
-      raise Etna::Forbidden, 'Cannot access bucket' unless !user_required || bucket.allowed?(@user)
+      raise Etna::Forbidden, 'Cannot access bucket' unless hmac_authorized?(bucket) || bucket.allowed?(@user)
 
       return bucket
+    end
+
+    def hmac_authorized?(bucket)
+      @request.env['etna.hmac']
     end
 
     def require_folder(bucket, folder_path)

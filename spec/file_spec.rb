@@ -566,5 +566,79 @@ describe FileController do
       # there is no new file
       expect(Metis::File.count).to eq(1)
     end
+
+    it 'copies a file to a new bucket' do
+      token_header(:editor)
+      sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'metis' )
+      copy_file('wisdom.txt', 'learn-wisdom.txt', new_bucket_name: 'sundry')
+      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(200)
+
+      # the old file is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is a new file
+      expect(Metis::File.count).to eq(2)
+      new_wisdom_file = Metis::File.last
+      expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
+      expect(new_wisdom_file).to be_has_data
+      expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
+
+      expect(new_wisdom_file.bucket).to eq(sundry_bucket)
+    end
+
+    it 'refuses to copy without bucket permissions' do
+      token_header(:editor)
+      sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'administrator', owner: 'metis' )
+      copy_file('wisdom.txt', 'learn-wisdom.txt', new_bucket_name: 'sundry')
+      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Cannot access bucket')
+
+      # the old file is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(1)
+    end
+
+    it 'copies to a bucket with a different application owner with matching signature' do
+      token_header(:editor)
+      sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'vulcan' )
+      copy_file('wisdom.txt', 'learn-wisdom.txt', new_bucket_name: 'sundry')
+      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(200)
+
+      # the old file is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(2)
+    end
+
+    it 'refuses to copy to a bucket with a different owner without a signature' do
+      token_header(:editor)
+      sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'vulcan' )
+      copy_file('wisdom.txt', 'learn-wisdom.txt',
+        hmac_params.merge(signature: 'valid', new_bucket_name: 'sundry')
+      )
+      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Cannot write to bucket')
+
+      # the old file is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(1)
+    end
   end
 end

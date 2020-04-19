@@ -73,6 +73,7 @@ class FileController < Metis::Controller
   def copy
     require_param(:new_file_path)
     bucket = require_bucket
+
     file = Metis::File.from_path(bucket, @params[:file_path])
 
     raise Etna::Error.new('File not found', 404) unless file&.has_data?
@@ -83,19 +84,21 @@ class FileController < Metis::Controller
 
     new_folder_path, new_file_name = Metis::File.path_parts(@params[:new_file_path])
 
-    new_folder = require_folder(bucket, new_folder_path)
+    new_bucket = require_bucket(@params[:new_bucket_name])
+
+    new_folder = require_folder(new_bucket, new_folder_path)
 
     raise Etna::Forbidden, 'Folder is read-only' if new_folder&.read_only?
 
-    raise Etna::Forbidden, 'Cannot copy over existing file' if Metis::File.exists?(new_file_name, bucket, new_folder)
+    raise Etna::Forbidden, 'Cannot copy over existing file' if Metis::File.exists?(new_file_name, new_bucket, new_folder)
 
-    raise Etna::Forbidden, 'Cannot copy over existing folder' if  Metis::Folder.exists?(new_file_name, bucket, new_folder)
+    raise Etna::Forbidden, 'Cannot copy over existing folder' if  Metis::Folder.exists?(new_file_name, new_bucket, new_folder)
 
     new_file = Metis::File.create(
       project_name: @params[:project_name],
       file_name: new_file_name,
       folder_id: new_folder&.id,
-      bucket: bucket,
+      bucket: new_bucket,
       author: Metis::File.author(@user),
       data_block: file.data_block
     )

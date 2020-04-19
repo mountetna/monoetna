@@ -323,8 +323,11 @@ def token_header(user_type)
   header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
 end
 
-def hmac_header
-  header(*Etna::TestAuth.hmac_header({}))
+def hmac_params(params={})
+  Etna::TestAuth.hmac_params(params)
+end
+def hmac_header(signature='valid')
+  header(*Etna::TestAuth.hmac_header(signature))
 end
 
 def default_bucket(project_name)
