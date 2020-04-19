@@ -14,13 +14,9 @@ class Metis
 
       raise Etna::BadRequest, 'Invalid bucket' unless bucket
 
-      raise Etna::Forbidden, 'Cannot access bucket' unless hmac_authorized?(bucket) || bucket.allowed?(@user)
+      raise Etna::Forbidden, 'Cannot access bucket' unless bucket.allowed?(@user, @request.env['etna.hmac'])
 
       return bucket
-    end
-
-    def hmac_authorized?(bucket)
-      @request.env['etna.hmac']
     end
 
     def require_folder(bucket, folder_path)

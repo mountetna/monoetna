@@ -22,7 +22,7 @@ describe DownloadController do
       create_file('labors', 'readme_hercules.txt', @tips)
 
       hmac_header
-      get('/labors/download/files/readme_hercules.txt', { })
+      get('/labors/download/files/readme_hercules.txt')
 
       expect(last_response.status).to eq(200)
 

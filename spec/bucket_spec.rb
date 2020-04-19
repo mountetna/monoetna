@@ -90,8 +90,8 @@ describe BucketController do
 
       expect(last_response.status).to eq(200)
 
-      expect(json_body[:buckets].count).to eq(3)
-      expect(json_body[:buckets]).to eq(Metis::Bucket.all.map(&:to_hash))
+      expect(json_body[:buckets].count).to eq(2)
+      expect(json_body[:buckets].map{|b| b[:bucket_name]}).to include('extra', 'files')
     end
 
     it 'returns only visible buckets for the current project' do

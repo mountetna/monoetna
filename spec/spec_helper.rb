@@ -326,8 +326,14 @@ end
 def hmac_params(params={})
   Etna::TestAuth.hmac_params(params)
 end
-def hmac_header(signature='valid')
-  header(*Etna::TestAuth.hmac_header(signature))
+
+def hmac_header(params={})
+  Etna::TestAuth.hmac_params({
+    id: 'metis',
+    signature: 'valid'
+  }.merge(params)).each do |name, value|
+    header( name.to_s, value )
+  end
 end
 
 def default_bucket(project_name)
