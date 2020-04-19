@@ -62,7 +62,7 @@ class UploadController < Metis::Controller
   # the file system with 0 bytes.
   def upload_start
     require_params(:file_size, :next_blob_size, :next_blob_hash)
-    bucket = require_bucket(false)
+    bucket = require_bucket
 
     upload = Metis::Upload.where(
       project_name: @params[:project_name],
@@ -92,7 +92,7 @@ class UploadController < Metis::Controller
   # Upload a chunk of the file.
   def upload_blob
     require_params(:blob_data, :current_byte_position, :next_blob_size, :next_blob_hash)
-    bucket = require_bucket(false)
+    bucket = require_bucket
 
     upload = Metis::Upload.where(
       project_name: @params[:project_name],
@@ -155,7 +155,7 @@ class UploadController < Metis::Controller
   public
 
   def upload_cancel
-    bucket = require_bucket(false)
+    bucket = require_bucket
 
     upload = Metis::Upload.where(
       project_name: @params[:project_name],
