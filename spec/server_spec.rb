@@ -190,13 +190,10 @@ describe Etna::Server do
     end
 
     it "allows entry if the request is hmac-authorized" do
-      header(*Etna::TestAuth.hmac_header(
-        project_name: 'labors'
-      ))
+      header(*Etna::TestAuth.hmac_header('valid'))
       get('/test')
 
       expect(last_response.status).to eq(200)
-      expect(last_response.body).to eq('labors')
     end
 
     it "refuses entry even for valid users without an hmac" do

@@ -15,7 +15,9 @@ module Etna
       # you have an hmac or you have a valid token.
       # Both of these will not validate individual
       # permissions; this is up to the controller
-      return fail_or_redirect(request) unless approve_noauth(request) || approve_hmac(request) || approve_user(request)
+      if [ approve_noauth(request), approve_hmac(request), approve_user(request) ].all?{|approved| !approved}
+        return fail_or_redirect(request)
+      end
 
       @app.call(request.env)
     end
@@ -38,13 +40,17 @@ module Etna
       (etna_param(request, :authorization, nil) || '')[/\A#{type.capitalize} (.*)\z/,1]
     end
 
+    def self.etna_url_param(item)
+      :"X-Etna-#{item.to_s.split(/_/).map(&:capitalize).join('-')}"
+    end
+
     def etna_param(request, item, fill='X_ETNA_')
       # This comes either from header variable
       # HTTP_X_SOME_NAME or parameter X-Etna-Some-Name
       #
       # We prefer the param so we can use the header elsewhere
 
-      params(request)[:"X-Etna-#{item.to_s.split(/_/).map(&:capitalize).join('-')}"] || request.env["HTTP_#{fill}#{item.upcase}"] 
+      params(request)[Etna::Auth.etna_url_param(item)] || request.env["HTTP_#{fill}#{item.upcase}"] 
     end
 
     # If the application asks for a redirect for unauthorized users
