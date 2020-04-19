@@ -1,0 +1,261 @@
+#!/usr/bin/env ruby
+
+require 'json'
+require 'fileutils'
+require 'digest'
+require 'net/http'
+require 'cgi'
+require 'securerandom'
+
+METIS_CONFIG_FILE=::File.expand_path("~/.metis.json")
+
+def ensure_config
+  if ::File.exists?(METIS_CONFIG_FILE)
+    return JSON.parse(File.read(METIS_CONFIG_FILE), symbolize_names: true)
+  else
+    config = {
+      metis_uid: SecureRandom.hex,
+      metis_uid_name: 'METIS_UID'
+    }
+    ::File.write(METIS_CONFIG_FILE,JSON.pretty_generate(config))
+    return config
+  end
+end
+METIS_CONFIG=ensure_config
+
+INITIAL_BLOB_SIZE = 2**10
+MAX_BLOB_SIZE = 2**22;
+ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e'
+
+class Upload
+  def initialize(file_path)
+    @file_path = file_path
+
+    @next_blob_size = [ file_size, INITIAL_BLOB_SIZE ].min
+    @current_byte_position = 0
+  end
+
+  attr_accessor :next_blob_size
+
+  def current_byte_position=(position)
+    @current_byte_position = position
+    @current_bytes = nil
+    @current_byte_position
+  end
+
+  def current_byte_position
+    @current_byte_position
+  end
+
+  def next_blob!
+    self.current_byte_position = @current_byte_position + @next_blob_size
+
+    @next_blob_size = [
+        MAX_BLOB_SIZE,
+        # in fact we should stop when we hit the end of the file
+        file_size - current_byte_position
+    ].min
+  end
+
+  def complete?
+    @current_byte_position >= file_size
+  end
+
+  def next_blob_hash
+    Digest::MD5.hexdigest(current_bytes)
+  end
+
+  def current_bytes
+    @current_bytes ||= IO.binread(@file_path, @next_blob_size, @current_byte_position)
+  end
+
+  def file_size
+    @file_size ||= ::File.size(@file_path)
+  end
+end
+
+class MetisClient
+  def initialize(host, token)
+    @host = host
+    @token = token
+  end
+
+  def upload(file_or_folder, project_name, bucket_name, folder_path)
+    if ::File.directory?(file_or_folder)
+      upload_folder(file_or_folder, project_name, bucket_name, folder_path)
+    end
+    if ::File.file?(file_or_folder)
+      upload_file(file_or_folder, project_name, bucket_name, folder_path)
+    end
+  end
+
+  def upload_folder(input_folder, project_name, bucket_name, folder_path)
+    actual_path = ::File.expand_path(input_folder)
+    folder_name = ::File.basename(actual_path)
+    new_folder_path = ::File.join(folder_path, folder_name).sub(%r!^/!,'')
+
+    create_folder(project_name, bucket_name, new_folder_path)
+
+    Dir["#{actual_path}/*"].each do |file_or_folder|
+      upload(file_or_folder, project_name, bucket_name, new_folder_path)
+    end
+  end
+
+  def upload_file(input_file, project_name, bucket_name, folder_path)
+    # We go through the full upload cycle. First, authorize the upload
+    actual_path = ::File.expand_path(input_file)
+    file_name = ::File.basename(actual_path)
+    new_file_path = ::File.join(folder_path, file_name)
+
+    response = authorize_upload(project_name, bucket_name, new_file_path)
+
+    abort "Could not upload file #{actual_path} to #{new_file_path}\n#{error(response)}" unless response.code == "200"
+
+    upload_path = json_body(response)[:url].sub(%r!^https://[^/]*?/!, '/')
+
+    upload = Upload.new(actual_path)
+    # start our upload
+    response = json_post(upload_path,
+      file_size: upload.file_size,
+      action: 'start',
+      next_blob_size: upload.next_blob_size,
+      next_blob_hash: upload.next_blob_hash
+    )
+
+    abort "Could not upload file #{actual_path} to #{new_file_path}\n#{error(response)}" unless response.code == "200"
+
+    upload_json = json_body(response)
+
+    upload.current_byte_position = upload_json[:current_byte_position].to_i
+    upload.next_blob_size = upload_json[:next_blob_size].to_i
+
+
+    # upload bytes until we are done
+
+    if upload.complete?
+      response = json_post(upload_path,
+        action: 'blob',
+        blob_data: '',
+        next_blob_size: 0,
+        next_blob_hash: ZERO_HASH,
+        current_byte_position: upload.current_byte_position
+      )
+
+      abort "Could not upload file #{actual_path} to #{new_file_path}\n#{error(response)}" unless response.code == "200"
+
+      return
+    end
+
+    start = Time.now
+    while !upload.complete?
+
+      blob_data = upload.current_bytes
+      current_byte_position = upload.current_byte_position
+
+      upload.next_blob!
+
+      response = multipart_post(upload_path,
+        [ [ 'action', 'blob', ],
+        [ 'blob_data', blob_data, {filename: 'blob'} ],
+        [ 'next_blob_size', upload.next_blob_size.to_s ],
+        [ 'next_blob_hash', upload.next_blob_hash.to_s ],
+        [ 'current_byte_position', current_byte_position.to_s ] ]
+      )
+
+      bar_size = 20
+      completion = (upload.current_byte_position.to_f / upload.file_size)*bar_size
+      progress = "+"*completion + " "*(bar_size-completion)
+
+      rate = (upload.current_byte_position / (Time.now - start).to_f).round(2)
+      if rate > 1024*1024*1024
+        rate = "#{(rate / 1024/1024/1024).round(2)}G"
+      elsif rate > 1024*1024
+        rate = "#{(rate / 1024/1024).round(2)}M"
+      elsif rate > 1024
+        rate = "#{(rate / 1024).round(2)}k"
+      end
+
+      print "\r#{progress} #{new_file_path} - #{rate}B/s"
+
+      abort "Could not upload file #{actual_path} to #{new_file_path}\n#{error(response)}" unless response.code == "200"
+    end
+    puts
+  end
+
+  def authorize_upload(project_name, bucket_name, file_path)
+    json_post('/authorize/upload', project_name: project_name, bucket_name: bucket_name, file_path: file_path)
+  end
+
+  def create_folder(project_name, bucket_name, folder_path)
+    response = json_post("/#{project_name}/folder/create/#{bucket_name}/#{folder_path}")
+    abort "Could not create folder #{folder_path}" unless response.code == "200" || (response.code == "422" && error(response) == 'Folder exists')
+  end
+
+  def json_post(path, body={})
+    post(path) do |req|
+      req['Content-Type'] = 'application/json'
+      req.body = body.to_json
+    end
+  end
+
+  def multipart_post(path, body)
+    post(path) do |req|
+      req.set_form(body, 'multipart/form-data')
+    end
+  end
+
+  def post(path)
+    uri = URI.parse("https://#{@host}#{path}")
+    https = Net::HTTP.new(uri.host,uri.port)
+    https.use_ssl = true
+    req = Net::HTTP::Post.new(uri.request_uri)
+    req['Authorization'] = "Etna #{@token}"
+    cookie = CGI::Cookie.new(METIS_CONFIG[:metis_uid_name], METIS_CONFIG[:metis_uid])
+    req['Cookie'] = cookie.to_s
+
+    yield(req)
+    https.request(req)
+  end
+
+  def json_body(response)
+    JSON.parse(response.body,symbolize_names: true)
+  end
+
+  def error(response)
+    response['Content-Type'] == 'application/json' ? json_body(response)[:error] : response.body
+  end
+end
+
+METIS_PATH=%r!
+  ^metis://
+  (?<host>[^/]*?)
+  /
+  (?<project_name>[^/]*?)
+  /
+  (?<bucket_name>[^/]*?)
+  /
+  (?<folder_path>.*)
+  $
+!x
+
+
+abort 'No environment variable TOKEN is set' if !ENV['TOKEN']
+
+USAGE=<<EOT
+Recursively upload files to a Metis folder
+Usage: metis_put <input files> metis://<host>/<project>/<bucket>/<folder_path> # e.g. metis_put input_folder input_file1 input_file2 metis://metis.etna-development.org/labors/files/my_folder
+EOT
+
+abort USAGE if ARGV.length < 2
+
+*input_files, metis_path = ARGV
+
+path=METIS_PATH.match(metis_path)
+
+abort USAGE unless path
+
+METIS=MetisClient.new(path[:host], ENV['TOKEN'])
+
+input_files.each do |file_or_folder|
+  METIS.upload(file_or_folder, path[:project_name], path[:bucket_name], path[:folder_path])
+end
