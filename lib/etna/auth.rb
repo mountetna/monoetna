@@ -80,7 +80,7 @@ module Etna
 
     # Names and order of the fields to be signed.
     def approve_hmac(request)
-      hmac_signature = auth(request, :hmac)
+      hmac_signature = etna_param(request, :signature)
 
       return false unless hmac_signature
 
@@ -99,7 +99,8 @@ module Etna
         expiration: etna_param(request, :expiration),
         id: etna_param(request, :id),
         nonce: etna_param(request, :nonce),
-        headers: headers
+        headers: headers,
+        test_signature: hmac_signature
       }
 
       begin
@@ -108,12 +109,14 @@ module Etna
         return false
       end
 
-      return false unless hmac.valid_signature?(hmac_signature)
+      request.env['etna.hmac'] = hmac
+
+      return nil unless hmac.valid?
 
       # success! set the hmac header params as regular params
       params(request).update(headers)
 
-      return request.env['etna.hmac'] = true
+      return true
     end
   end
 end

@@ -1,17 +1,20 @@
 module Etna
   class Hmac
+    # These are the items that need to be signed
+    SIGN_ITEMS=[ :method, :host, :path, :expiration, :nonce, :id, :headers ]
+    SIGN_ITEMS.each { |item| attr_reader item }
+
     def initialize application, params
       @application = application
 
-      # These are the items that need to be signed
-      [ :method, :host, :path, :expiration, :nonce, :id, :headers ].each do |item|
+      @test_signature = params.delete(:test_signature)
+
+      SIGN_ITEMS.each do |item|
         raise ArgumentError, "Hmac requires param #{item}" unless params[item]
         instance_variable_set("@#{item}", params[item])
       end
 
       @id = @id.to_sym
-
-      raise ArgumentError, "Invalid id #{@id}" unless @application.config(:hmac_keys).key?(@id)
 
       raise ArgumentError, "Headers must be a Hash" unless @headers.is_a?(Hash)
     end
@@ -19,7 +22,7 @@ module Etna
     # this returns arguments for URI::HTTP.build
     def url_params
       params = {
-        authorization: "Hmac #{signature}",
+        signature: signature,
         expiration: @expiration,
         nonce: @nonce,
         id: @id.to_s,
@@ -38,8 +41,8 @@ module Etna
       }
     end
 
-    def valid_signature? test_signature
-      signature == test_signature && DateTime.parse(@expiration) >= DateTime.now
+    def valid?
+      valid_id? && valid_signature? && valid_timestamp?
     end
 
     def signature
@@ -47,6 +50,18 @@ module Etna
     end
 
     private
+
+    def valid_signature?
+      signature == @test_signature
+    end
+
+    def valid_timestamp?
+      DateTime.parse(@expiration) >= DateTime.now
+    end
+
+    def valid_id?
+      @application.config(:hmac_keys).key?(@id)
+    end
 
     # This scheme is adapted from the Hawk spec
     # (github:hueniverse/hawk) and the Acquia HTTP
