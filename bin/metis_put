@@ -187,7 +187,7 @@ class MetisClient
   end
 
   def create_folder(project_name, bucket_name, folder_path)
-    response = json_post("/#{project_name}/folder/create/#{bucket_name}/#{folder_path}")
+    response = json_post("/#{project_name}/folder/create/#{bucket_name}/#{URI.encode(folder_path)}")
     abort "Could not create folder #{folder_path}" unless response.code == "200" || (response.code == "422" && error(response) == 'Folder exists')
   end
 
