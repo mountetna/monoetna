@@ -131,17 +131,20 @@ class MetisClient
 
 
     # upload bytes until we are done
+    bar_size = 20
 
     if upload.complete?
-      response = json_post(upload_path,
-        action: 'blob',
-        blob_data: '',
-        next_blob_size: 0,
-        next_blob_hash: ZERO_HASH,
-        current_byte_position: upload.current_byte_position
+      response = multipart_post(upload_path,
+        [ [ 'action', 'blob', ],
+        [ 'blob_data', '', {filename: 'blob'} ],
+        [ 'next_blob_size', '0' ],
+        [ 'next_blob_hash', ZERO_HASH ],
+        [ 'current_byte_position', upload.current_byte_position.to_s ] ]
       )
 
       abort "Could not upload file #{actual_path} to #{new_file_path}\n#{error(response)}" unless response.code == "200"
+
+      puts "\r#{"+"*bar_size} #{new_file_path} - 0B/s"
 
       return
     end
@@ -162,7 +165,6 @@ class MetisClient
         [ 'current_byte_position', current_byte_position.to_s ] ]
       )
 
-      bar_size = 20
       completion = (upload.current_byte_position.to_f / upload.file_size)*bar_size
       progress = "+"*completion + " "*(bar_size-completion)
 
