@@ -155,7 +155,7 @@ To run migrations against your test database, run `$ METIS_ENV=test bin/metis mi
 
 ### Data Directory
 
-You can configure where the data blocks are stored in your `config.yml` file. The environment (`test`, `development`, etc.) should have a `:data_path:` value set. Make sure to also create a sub-directory `data_blocks`. For example, if your `config.yml` looks like:
+You can configure where the data blocks are stored in your `config.yml` file. The environment (`test`, `development`, etc.) should have a `:data_path:` value set. Make sure to also create two sub-directories, `uploads` and `data_blocks`. For example, if your `config.yml` looks like:
 
 ```yml
 :development:
@@ -167,6 +167,7 @@ On your disk you'll want to create the following directories:
 ```sh
 data/
   data_blocks/
+  uploads/
 ```
 
 ### Archiving files
