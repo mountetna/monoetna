@@ -144,3 +144,11 @@ If we are dissatisfied with our progress we may cancel the upload:
 ```
 { action: 'cancel' }
 ```
+
+## Setup
+
+### Installation
+
+When you update or install the project, make sure to run migrations. You should do this with the built-in command provided in `$ bin/metis migrate` instead of directly using `Sequel`.
+
+To run migrations against your test database, run `$ METIS_ENV=test bin/metis migrate`.
