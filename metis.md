@@ -168,3 +168,7 @@ On your disk you'll want to create the following directories:
 data/
   data_blocks/
 ```
+
+### Archiving files
+
+When you upload files using the UI, they will appear in your `data_blocks` directory as `temp-` files. To calculate their MD5 hashes (and optionally put them into long-term cloud storage on AWS), you need to run `$ bin/metis archive`.
