@@ -56,8 +56,7 @@ export default (uploader) => {
         let request = {
           file_size,
           next_blob_size,
-          next_blob_hash,
-          current_byte_position: 0
+          next_blob_hash
         };
 
         postUploadStart(url, request)
