@@ -16,11 +16,11 @@ const MAX_UPLOADS = 3; // maximum number of simultaneous uploads
 
 const ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e';
 
-const statusFilter = (uploads, s) => uploads.filter(({status}) => status == s);
+const statusFilter = (uploads, s) => uploads.filter(({ status }) => status == s);
 
 export default (uploader) => {
-  setupWorker(uploader, ({command, ...data}) => {
-    if ([ 'start', 'unqueue', 'continue', 'cancel' ].includes(command))
+  setupWorker(uploader, ({ command, ...data }) => {
+    if (['start', 'unqueue', 'continue', 'cancel'].includes(command))
       uploader[command](data);
     else
       console.log('Uploader error', `Invalid command ${command}`);
@@ -28,7 +28,7 @@ export default (uploader) => {
 
   Object.assign(uploader, {
     // public commands
-    unqueue: ({uploads}) => {
+    unqueue: ({ uploads }) => {
       let active_uploads = statusFilter(uploads, 'active');
       let queued_uploads = statusFilter(uploads, 'queued');
 
@@ -38,13 +38,13 @@ export default (uploader) => {
         overactive_uploads.forEach(uploader.queue);
       } else if (active_uploads < MAX_UPLOADS) {
         // activate some of the queued ones
-        let unqueued_uploads = queued_uploads.slice(0, MAX_UPLOADS-active_uploads);
+        let unqueued_uploads = queued_uploads.slice(0, MAX_UPLOADS - active_uploads);
         unqueued_uploads.forEach(uploader.active);
-        unqueued_uploads.forEach(upload => uploader.continue({upload}))
+        unqueued_uploads.forEach(upload => uploader.continue({ upload }))
       }
     },
 
-    start: ({upload}) => {
+    start: ({ upload }) => {
       let { file, file_size, file_name, url } = upload;
 
       let next_blob_size = Math.min(file_size, INITIAL_BLOB_SIZE);
@@ -56,7 +56,8 @@ export default (uploader) => {
         let request = {
           file_size,
           next_blob_size,
-          next_blob_hash
+          next_blob_hash,
+          current_byte_position: 0
         };
 
         postUploadStart(url, request)
@@ -73,14 +74,14 @@ export default (uploader) => {
       });
     },
 
-    continue: ({upload}) => {
+    continue: ({ upload }) => {
       let { file, current_byte_position, next_blob_size, upload_speeds } = upload;
 
       if (current_byte_position >= file.size) {
         // probably because of a 0 byte file
         let request = {
           action: 'blob',
-          blob_data: file.slice(current_byte_position,current_byte_position),
+          blob_data: file.slice(current_byte_position, current_byte_position),
           next_blob_size: 0,
           next_blob_hash: ZERO_HASH,
           current_byte_position
@@ -94,7 +95,7 @@ export default (uploader) => {
       // report the average upload speed, if any
       let avgSpeed = !upload_speeds.length
         ? MIN_BLOB_SIZE / XTR_TIME
-        : upload_speeds.reduce((sum,t)=>sum+t, 0) / upload_speeds.length;
+        : upload_speeds.reduce((sum, t) => sum + t, 0) / upload_speeds.length;
 
       // we have already sent up to current_byte_position
       // we will send up to next_byte_position
@@ -104,16 +105,16 @@ export default (uploader) => {
       // so we must compute its size, between next_byte_position (the end
       // of this blob) and final_byte_position (the end of the next blob)
       let new_blob_size = Math.min(
-          Math.max(
-            // we want at least the MIN_BLOB_SIZE
-            MIN_BLOB_SIZE,
-            // but optimistically, based on the average speed
-            Math.floor(XTR_TIME * avgSpeed)
-          ),
-          // but we'll stop at most at here
-          MAX_BLOB_SIZE,
-          // in fact we should stop when we hit the end of the file
-          file.size - next_byte_position
+        Math.max(
+          // we want at least the MIN_BLOB_SIZE
+          MIN_BLOB_SIZE,
+          // but optimistically, based on the average speed
+          Math.floor(XTR_TIME * avgSpeed)
+        ),
+        // but we'll stop at most at here
+        MAX_BLOB_SIZE,
+        // in fact we should stop when we hit the end of the file
+        file.size - next_byte_position
       );
 
       let final_byte_position = next_byte_position + new_blob_size;
@@ -123,7 +124,7 @@ export default (uploader) => {
       let nextBlob = file.slice(next_byte_position, final_byte_position);
 
       // Hash the next blob.
-      uploader.hashBlob(nextBlob).then( new_blob_hash => {
+      uploader.hashBlob(nextBlob).then(new_blob_hash => {
         // Finally, send the request
         let request = {
           action: 'blob',
@@ -137,7 +138,7 @@ export default (uploader) => {
       });
     },
 
-    cancel: ({upload}) => {
+    cancel: ({ upload }) => {
       let { status, url, project_name, file_name } = upload;
 
       postUploadCancel(url, { project_name, file_name })
