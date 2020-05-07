@@ -134,3 +134,22 @@ If we are dissatisfied with our progress we may cancel the upload:
 ```
 { action: 'cancel' }
 ```
+
+## Development
+
+### Database Migrations
+
+To run migrations, use the built-in `bin/metis migrate` command, instead of using Sequel directly.
+
+To run migrations on the test database, set `METIS_ENV=test` before the command, like `$ METIS_ENV=test bin/metis migrate`.
+
+### Data Directories
+
+By default (and in the dev VM), uploaded files are stored in `data/`, and then in project subdirectories. Each project subdirectory should have a `uploads/` and `data_blocks/` subdirectories. You should wind up with a structure like:
+
+```sh
+data/
+  ipi/
+    uploads/
+    data_blocks/
+```
