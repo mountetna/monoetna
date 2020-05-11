@@ -144,3 +144,32 @@ If we are dissatisfied with our progress we may cancel the upload:
 ```
 { action: 'cancel' }
 ```
+
+## Setup
+
+### Installation
+
+When you update or install the project, make sure to run migrations. You should do this with the built-in command provided in `$ bin/metis migrate` instead of directly using `Sequel`.
+
+To run migrations against your test database, run `$ METIS_ENV=test bin/metis migrate`.
+
+### Data Directory
+
+You can configure where the data blocks are stored in your `config.yml` file. The environment (`test`, `development`, etc.) should have a `:data_path:` value set. Make sure to also create two sub-directories, `uploads` and `data_blocks`. For example, if your `config.yml` looks like:
+
+```yml
+:development:
+  :data_path: ./data
+```
+
+On your disk you'll want to create the following directories:
+
+```sh
+data/
+  data_blocks/
+  uploads/
+```
+
+### Archiving files
+
+When you upload files using the UI, they will appear in your `data_blocks` directory as `temp-` files. To calculate their MD5 hashes (and optionally put them into long-term cloud storage on AWS), you need to run `$ bin/metis archive`.
