@@ -77,11 +77,11 @@ class Metis
 
       needs_archive = Metis::DataBlock.exclude(md5_hash: Metis::DataBlock::TEMP_MATCH).where(archive_id: nil).order(:updated_at).all[0..10]
       puts "Found #{needs_archive.count} files to be archived."
-      needs_archive.each do |file|
+      needs_archive.each do |data_block|
         begin
-          file.backup!
+          data_block.backup!
         rescue ArgumentError => e
-          puts "Could not archive #{file.file_name}"
+          puts "Could not archive #{data_block.description}"
           next
         end
       end

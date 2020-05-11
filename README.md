@@ -134,3 +134,7 @@ If we are dissatisfied with our progress we may cancel the upload:
 ```
 { action: 'cancel' }
 ```
+
+## Documentation
+
+For the most current documentation about Metis, please refer to the [Mount Etna documentation blog](https://mountetna.github.io/).

@@ -5,9 +5,11 @@
   "main": "./public/js/main.bundle.js",
   "scripts": {
     "clean": "rm -rf ./client/js/*",
-    "build": "npm run babel && npm run webpack",
+    "build": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production",
+    "build-dev": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development",
     "babel": "babel ./client/jsx --out-dir ./client/js",
-    "webpack": "webpack ./client/js/metis-uploader.js ./client/js/main.bundle.js",
+    "webpack": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production --watch",
+    "webpack-dev": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development --watch",
     "test": "jest"
   },
   "license": "ISC",
