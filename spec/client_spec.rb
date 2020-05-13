@@ -54,4 +54,10 @@ describe Etna::Client do
 
     expect{client.weave}.to raise_error(ArgumentError, 'Missing required param fabric')
   end
+
+  it 'allows users to construct an individual route' do
+    client = Etna::Client.new('https://arachne.test', 'token')
+    weave = client.routes.find { |e| e[:name] == 'weave' }
+    expect(client.route_path(weave, {fabric: 'silk'})).to eq '/weave/silk'
+  end
 end
