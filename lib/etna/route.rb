@@ -117,8 +117,8 @@ module Etna
     end
 
     def hmac_authorized?(request)
-      # either there is no hmac requirement, or we have an hmac
-      !@auth[:hmac] || request.env['etna.hmac']
+      # either there is no hmac requirement, or we have a valid hmac
+      !@auth[:hmac] || request.env['etna.hmac'].valid?
     end
 
     def route_name(options)

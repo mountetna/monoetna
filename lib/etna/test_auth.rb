@@ -4,75 +4,77 @@ require_relative 'user'
 # Etna::User as usual that your controller can respond to; you can pass
 # permissions for this user directly in the Authorization header
 module Etna
-  class TestAuth
+  class TestAuth < Auth
     def self.token_header(params)
       token = Base64.strict_encode64(params.to_json)
       return [ 'Authorization', "Etna #{token}" ]
     end
 
-    def self.hmac_header(params)
+    def self.token_param(params)
       token = Base64.strict_encode64(params.to_json)
-      return [ 'Authorization', "Hmac #{token}" ]
+      return [ Etna::Auth.etna_url_param(:authorization).to_s, "Etna #{token}" ]
     end
 
-    def initialize(app)
-      @app = app
+    def self.hmac_header(signature)
+      return [ Etna::Auth.etna_url_param(:signature).to_s, signature ]
     end
 
-    def application
-      @application ||= Etna::Application.instance
+    def self.hmac_params(params)
+      return {
+        expiration: params.delete(:expiration) || DateTime.now.iso8601,
+        id: params.delete(:id) || 'etna',
+        nonce: 'nonce',
+        signature: params.delete(:signature) || 'invalid',
+        headers: params.keys.join(',')
+      }.merge(params).map do |item, value|
+        [ Etna::Auth.etna_url_param(item).to_s, value ]
+      end.to_h
     end
 
-    def server
-      @server ||= application.class.const_get(:Server)
-    end
-
-    def failure(status, msg)
-      [ status, {}, [ msg] ]
-    end
-
-    def auth(type)
-      (@request.env['HTTP_AUTHORIZATION'] || 'Missing header')[/\A#{type.capitalize} (.*)\z/,1]
-    end
-
-    def user_auth
-      token = auth(:etna)
+    def approve_user(request)
+      token = auth(request,:etna)
 
       return false unless token
 
       # here we simply base64-encode our user hash and pass it through
       payload = JSON.parse(Base64.decode64(token))
 
-      @request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h)
+      request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h)
     end
 
-    def hmac_auth
-      token = auth(:hmac)
+    def approve_hmac(request)
+      hmac_signature = etna_param(request, :signature) || 'invalid'
 
-      return false unless token
+      headers = (etna_param(request, :headers)&.split(/,/) || []).map do |header|
+        [ header.to_sym, etna_param(request, header) ]
+      end.to_h
 
-      # here we simply base64-encode our user hash and pass it through
-      payload = JSON.parse(Base64.decode64(token), symbolize_names: true)
+      hmac_params = {
+        method: request.request_method,
+        host: request.host,
+        path: request.path,
 
-      @request.env['rack.request.params'].update(payload)
-      @request.env['etna.hmac'] = true
+        expiration: etna_param(request, :expiration) || DateTime.now.iso8601,
+        id: etna_param(request, :id) || 'etna',
+        nonce: etna_param(request, :nonce) || 'nonce',
+        headers: headers,
+        test_signature: hmac_signature
+      }
+
+      hmac = Etna::TestHmac.new(application, hmac_params)
+
+      request.env['etna.hmac'] = hmac
+
+      return nil unless hmac.valid?
+
+      params(request).update(headers)
+
+      return true
     end
-
-    def no_auth
-      route = server.find_route(@request)
-
-      return route && route.noauth?
-    end
-
-    def call(env)
-      @request = Rack::Request.new(env)
-
-      unless no_auth
-        return failure(401, 'Authorization header missing') if auth(:missing)
-
-        return failure(401, 'Authorization header malformed') unless hmac_auth || user_auth
-      end
-      @app.call(env)
+  end
+  class TestHmac < Hmac
+    def valid?
+      @test_signature == 'valid'
     end
   end
 end

@@ -12,8 +12,7 @@ describe Etna::Auth do
     )
   end
 
-  def hmac_headers(signature, fields)
-    header('Authorization', "Hmac #{signature}")
+  def hmac_headers(fields)
     headers = fields.delete(:headers)
     fields.merge(headers).each do |header_name, value|
       header(
@@ -238,7 +237,7 @@ describe Etna::Auth do
 
       # we set the hmac headers
       hmac_headers(
-        input_hmac.signature,
+        signature: input_hmac.signature,
         expiration: @time,
         id: :arachne,
         nonce: @nonce,
@@ -264,7 +263,7 @@ describe Etna::Auth do
 
       # we set the hmac headers
       hmac_headers(
-        input_hmac.signature,
+        signature: input_hmac.signature,
         expiration: @time,
         id: :arachne,
         nonce: @nonce,
@@ -310,7 +309,8 @@ describe Etna::Auth do
       )
 
       # we set the hmac headers
-      hmac_headers( input_hmac.signature,
+      hmac_headers(
+        signature: input_hmac.signature,
         expiration: @time,
         id: :arachne,
         nonce: @nonce,
@@ -333,7 +333,8 @@ describe Etna::Auth do
       )
 
       # we set the hmac headers
-      hmac_headers( input_hmac.signature,
+      hmac_headers(
+        signature: input_hmac.signature,
         expiration: @time,
         id: :arachne,
         nonce: @nonce,
@@ -397,7 +398,8 @@ describe Etna::Auth do
 
       # we set the hmac headers
       # but we leave out the 'project_name' header
-      hmac_headers( input_hmac.signature,
+      hmac_headers(
+        signature: input_hmac.signature,
         expiration: @time,
         id: :arachne,
         nonce: @nonce,
