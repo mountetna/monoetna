@@ -1,5 +1,3 @@
-require 'pry'
-
 describe Etna::Auth do
   include Rack::Test::Methods
   attr_reader :app
