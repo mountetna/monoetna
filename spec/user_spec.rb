@@ -6,11 +6,13 @@ describe Etna::User do
       email: 'janus@two-faces.org',
       first: 'Janus',
       last: 'Bifrons',
-      perm: 'a:labors;e:olympics,argo;v:constellations'
+      perm: 'a:labors;e:olympics,argo;v:constellations',
+      token: 'xyz123randomtoken'
     )
     expect(u.first).to eq('Janus')
     expect(u.last).to eq('Bifrons')
     expect(u.email).to eq('janus@two-faces.org')
+    expect(u.token).to eq('xyz123randomtoken')
   end
 
   context "permissions" do
