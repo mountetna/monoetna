@@ -10,21 +10,23 @@ require 'readline'
 require 'base64'
 require 'pathname'
 require 'shellwords'
+require 'singleton'
+
+CONFIG_FILE=::File.expand_path("~/.metis.json")
+
+def test_env?
+  ENV['METIS_ENV'] == 'test'
+end
 
 class MetisConfig
   include Singleton
 
-  def config(filename="~/.metis.json")
-    filename = ::File.expand_path(filename)
-    if ::File.exists?(filename)
-      @config = JSON.parse(File.read(filename), symbolize_names: true)
-    else
-      @config = {
-        metis_uid: SecureRandom.hex,
-        metis_uid_name: 'METIS_UID'
-      }
-      ::File.write(filename,JSON.pretty_generate(@config))
-    end
+  def self.[](k)
+    instance[k]
+  end
+
+  def config(config)
+    @config = config
   end
 
   def [](k)
@@ -37,6 +39,7 @@ MAX_BLOB_SIZE = 2**22;
 ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e'
 
 class Upload
+  attr_reader :file_path
   def initialize(file_path)
     @file_path = file_path
 
@@ -94,7 +97,7 @@ class MetisClient
   def authorize_upload(project_name, bucket_name, file_path)
     response = json_post('/authorize/upload', project_name: project_name, bucket_name: bucket_name, file_path: file_path)
 
-    raise MetisClient::Error, "Could not upload file #{actual_path} to #{new_file_path}\n#{error(response)}" unless response.code == "200"
+    raise MetisClient::Error, "Could not upload file to #{file_path}\n#{error(response)}" unless response.code == "200"
 
     return json_body(response)
   end
@@ -107,13 +110,27 @@ class MetisClient
       next_blob_hash: upload.next_blob_hash
     )
 
-    raise MetisClient::Error, "Could not upload file #{actual_path} to #{new_file_path}\n#{error(response)}" unless response.code == "200"
+    raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
 
     json_body(response)
   end
 
+  def blob_upload(upload_path, upload, blob)
+    response = multipart_post(
+      upload_path, [
+        [ 'action', 'blob', ],
+        [ 'blob_data', blob[:blob_data], {filename: 'blob'} ],
+        [ 'next_blob_size', blob[:next_blob_size].to_s ],
+        [ 'next_blob_hash', blob[:next_blob_hash].to_s ],
+        [ 'current_byte_position', blob[:current_byte_position].to_s ]
+      ]
+    )
+
+    raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
+  end
+
   def create_folder(project_name, folder_path)
-    response = json_post("/#{project_name}/folder/create/#{folder_path}")
+    response = json_post("/#{project_name}/folder/create/#{URI.encode(folder_path)}")
     raise MetisClient::Error, "Could not create folder #{folder_path}\n#{error(response)}" unless response.code == "200" || (response.code == "422" && error(response) == 'Folder exists')
   end
 
@@ -129,6 +146,16 @@ class MetisClient
     return nil if response.code == "404"
     raise MetisClient::Error, "Could not list folder #{folder_path}\n#{error(response)}" unless response.code == "200"
     return json_body(response)
+  end
+
+  def rename_folder(project_name,bucket_name,folder_path,new_folder_path)
+    response = json_post("/#{project_name}/folder/rename/#{bucket_name}/#{URI.encode(folder_path)}", new_folder_path: new_folder_path)
+    raise MetisClient::Error, "Could not rename folder #{folder_path}\n#{error(response)}" unless response.code == "200"
+  end
+
+  def rename_file(project_name,bucket_name,file_path,new_file_path)
+    response = json_post("/#{project_name}/file/rename/#{bucket_name}/#{URI.encode(file_path)}", new_file_path: new_file_path)
+    raise MetisClient::Error, "Could not rename file #{file_path}\n#{error(response)}" unless response.code == "200"
   end
 
   private
@@ -155,13 +182,12 @@ class MetisClient
   end
 
   def request(path, method)
-    uri = URI.parse(URI.encode("https://#{@host}#{path}"))
+    uri = URI.parse("https://#{@host}#{path}")
     https = Net::HTTP.new(uri.host,uri.port)
     https.use_ssl = true
-    https.verify_mode = OpenSSL::SSL::VERIFY_NONE
     req = method.new(uri.request_uri)
     req['Authorization'] = "Etna #{@token}"
-    cookie = CGI::Cookie.new(MetisConfig.instance[:metis_uid_name], METIS_CONFIG[:metis_uid])
+    cookie = CGI::Cookie.new(MetisConfig[:metis_uid_name], MetisConfig[:metis_uid])
     req['Cookie'] = cookie.to_s
 
     yield(req) if block_given?
@@ -178,22 +204,10 @@ class MetisClient
   end
 end
 
-METIS_PATH=%r!
-  ^metis://
-  (?<host>[^/]*?)
-  /
-  (?<project_name>[^/]*?)
-  /
-  (?<bucket_name>[^/]*?)
-  /
-  (?<folder_path>.*)
-  $
-!x
-
 class MetisShell
   USAGE=<<EOT
 Recursively upload files to a Metis folder
-Usage: metis_client [metis://<host>]
+Usage: metis_client [metis://<path>]
 EOT
 
   class Command
@@ -261,7 +275,65 @@ EOT
       end
       return [ entries.size, 1, entries.map{0} ]
     end
+  end
 
+  class Mv < Command
+    def run(path, new_path)
+      raise ShellError, 'No project is selected' if !@shell.project_name
+
+      path = @shell.relative_path(path)
+      new_path = @shell.relative_path(new_path)
+
+      name = ::File.basename(path)
+
+      folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(path))
+
+      raise ShellError, "Invalid path #{path}" unless folder
+
+      file = folder[:files].find do |f|
+        f[:file_name] == name
+      end
+
+      if file
+        bucket_name, file_path = path.split('/',2)
+        bucket_name, new_file_path = new_path.split('/',2)
+        @shell.client.rename_file(@shell.project_name, bucket_name, file_path, new_file_path)
+        return
+      end
+
+      folder = folder[:folders].find do |f|
+        f[:folder_name] == name
+      end
+
+      if folder
+        bucket_name, folder_path = path.split('/',2)
+        bucket_name, new_folder_path = new_path.split('/',2)
+        @shell.client.rename_folder(@shell.project_name, bucket_name, folder_path, new_folder_path)
+        return
+      end
+    end
+  end
+
+  class Ls < Command
+    def run(file_path=nil)
+      raise ShellError, 'No project is selected' if !@shell.project_name
+
+      if !@shell.cwd && !file_path
+        neat_display(folders: bucket_names)
+        return
+      end
+
+      folder = @shell.client.list_folder(@shell.project_name, @shell.relative_path(file_path))
+
+      neat_display(
+        folders: folder[:folders].map{|f| f[:folder_name] },
+        files: folder[:files].map{|f| f[:file_name]}
+      )
+    end
+
+    def bucket_names
+      @bucket_names ||= @shell.client.list_buckets(@shell.project_name).map{|b| b[:bucket_name]}
+    end
   end
 
   class Ls < Command
@@ -318,41 +390,60 @@ EOT
 
   class Put < Command
     def run(*input_files)
-      puts input_files
+      raise ShellError, 'No remote folder selected!' unless @shell.cwd
+
+      # get a listing of the folder
+      folder = @shell.client.list_folder(@shell.project_name, @shell.cwd)
+
       input_files.each do |file_or_folder|
-        upload(file_or_folder, @shell.cwd)
+        upload(file_or_folder, @shell.cwd, folder)
       end
     end
 
     private
 
-    def upload(file_or_folder, folder_path)
+    def upload(file_or_folder, folder_path, folder)
       if ::File.directory?(file_or_folder)
-        upload_folder(file_or_folder, folder_path)
+        upload_folder(file_or_folder, folder_path, folder)
       end
       if ::File.file?(file_or_folder)
-        upload_file(file_or_folder, folder_path)
+        upload_file(file_or_folder, folder_path, folder)
       end
     end
 
-    def upload_folder(input_folder, folder_path)
+    def upload_folder(input_folder, folder_path, folder)
       actual_path = ::File.expand_path(input_folder)
       folder_name = ::File.basename(actual_path)
       new_folder_path = ::File.join(folder_path, folder_name).sub(%r!^/!,'')
 
-      @shell.client.create_folder(@shell.project_name, new_folder_path)
+      # see if it exists
+      existing_folder = folder[:folders].find do |f|
+        f[:folder_name] == folder_name
+      end
+
+      if existing_folder
+        new_folder = @shell.client.list_folder(@shell.project_name, new_folder_path)
+      else
+        @shell.client.create_folder(@shell.project_name, new_folder_path)
+        new_folder = { folders: [], files: [] }
+      end
 
       Dir["#{actual_path}/*"].each do |file_or_folder|
-        upload(file_or_folder, new_folder_path)
+        upload(file_or_folder, new_folder_path, new_folder)
       end
     end
 
-    def upload_file(input_file, folder_path)
+    def upload_file(input_file, folder_path, folder)
       # We go through the full upload cycle. First, authorize the upload
       actual_path = ::File.expand_path(input_file)
       file_name = ::File.basename(actual_path)
       bucket_name, new_folder_path = folder_path.split('/',2)
-      new_file_path = ::File.join(new_folder_path, file_name)
+      new_file_path = ::File.join(*[new_folder_path, file_name].compact)
+
+      # see if it exists
+      return if folder[:files].find do |f|
+        f[:file_name] == file_name && f[:size] == ::File.size(actual_path)
+      end
 
       upload_json = @shell.client.authorize_upload(@shell.project_name, bucket_name, new_file_path)
 
@@ -370,16 +461,14 @@ EOT
       # upload bytes until we are done
 
       if upload.complete?
-        response = json_post(upload_path,
-          action: 'blob',
+        @shell.client.blob_upload(upload_path, upload,
           blob_data: '',
           next_blob_size: 0,
           next_blob_hash: ZERO_HASH,
           current_byte_position: upload.current_byte_position
         )
 
-        raise MetisClient::Error, "Could not upload file #{actual_path} to #{new_file_path}\n#{error(response)}" unless response.code == "200"
-
+        puts progress(1, 0, new_file_path)
         return
       end
 
@@ -391,32 +480,36 @@ EOT
 
         upload.next_blob!
 
-        response = multipart_post(upload_path,
-          [ [ 'action', 'blob', ],
-          [ 'blob_data', blob_data, {filename: 'blob'} ],
-          [ 'next_blob_size', upload.next_blob_size.to_s ],
-          [ 'next_blob_hash', upload.next_blob_hash.to_s ],
-          [ 'current_byte_position', current_byte_position.to_s ] ]
+        @shell.client.blob_upload(upload_path, upload,
+          blob_data: blob_data,
+          next_blob_size: upload.next_blob_size,
+          next_blob_hash: upload.next_blob_hash,
+          current_byte_position: current_byte_position
         )
 
-        bar_size = 20
-        completion = (upload.current_byte_position.to_f / upload.file_size)*bar_size
-        progress = "+"*completion + " "*(bar_size-completion)
-
-        rate = (upload.current_byte_position / (Time.now - start).to_f).round(2)
-        if rate > 1024*1024*1024
-          rate = "#{(rate / 1024/1024/1024).round(2)}G"
-        elsif rate > 1024*1024
-          rate = "#{(rate / 1024/1024).round(2)}M"
-        elsif rate > 1024
-          rate = "#{(rate / 1024).round(2)}k"
-        end
-
-        print "\r#{progress} #{new_file_path} - #{rate}B/s"
-
-        raise MetisClient::Error, "Could not upload file #{actual_path} to #{new_file_path}\n#{error(response)}" unless response.code == "200"
+        print progress(
+          upload.current_byte_position.to_f / upload.file_size,
+          (upload.current_byte_position / (Time.now - start).to_f).round(2),
+          new_file_path
+        )
       end
       puts
+    end
+
+    def progress(completion, rate, path)
+      bar_size = 20
+
+      progress = "+"*(bar_size * completion) + " "*(bar_size-completion)
+
+      if rate > 1024*1024*1024
+        rate = "#{(rate / 1024/1024/1024).round(2)}G"
+      elsif rate > 1024*1024
+        rate = "#{(rate / 1024/1024).round(2)}M"
+      elsif rate > 1024
+        rate = "#{(rate / 1024).round(2)}k"
+      end
+
+      "\r#{progress} #{path} - #{rate}B/s"
     end
   end
 
@@ -424,20 +517,17 @@ EOT
   end
 
   METIS_PATH=%r!
-    ^metis://
-    (?<host>[^/]*?)
-    (?<path>/.*)?
-    $
+    ^metis:/(?<path>/.*)?$
   !x
 
-  def initialize(host, *args)
+  def initialize(path, *args)
     @token = ENV['TOKEN']
 
     raise 'No environment variable TOKEN is set' if !@token
 
-    match = METIS_PATH.match(host)
+    match = METIS_PATH.match(path)
 
-    @host = match&.[](:host) || METIS_CONFIG[:host]
+    @host = MetisConfig[:metis_host]
 
     @args = args
 
@@ -546,7 +636,7 @@ EOT
   def project_list
     @project_list ||= begin
       JSON.parse(
-        Base64.decode64(@token.split(/\./)[1])
+        Base64.decode64(@token.split(/\./)[test_env? ? 0 : 1])
       )["perm"].split(/;/).map{|l| l.split(/:/).last.split(/,/) }.flatten
     rescue
       puts "Could not parse token"
@@ -573,6 +663,8 @@ EOT
       puts e.message
     rescue ArgumentError => e
       puts e.message
+    rescue Net::ReadTimeout => e
+      puts e.message
     end
   end
 
@@ -589,9 +681,21 @@ EOT
   end
 end
 
-unless ENV['METIS_ENV'] == 'test'
-  MetisConfig.instance.config("~/.metis.json")
-  MetisShell.new(ARGV[0], *ARGV[1..-1]).run
-end
+unless test_env?
+  if ::File.exists?(CONFIG_FILE)
+    config = JSON.parse(File.read(CONFIG_FILE), symbolize_names: true)
+  else
+    puts "Could not find configuration at #{CONFIG_FILE}, please run `metis_client setup`"
+    exit
 
-puts
+    @config = {
+      metis_uid: SecureRandom.hex,
+      metis_uid_name: 'METIS_UID'
+    }
+    ::File.write(filename,JSON.pretty_generate(@config))
+  end
+
+  MetisConfig.instance.config(config)
+  MetisShell.new(ARGV[0], *ARGV[1..-1]).run
+  puts
+end
