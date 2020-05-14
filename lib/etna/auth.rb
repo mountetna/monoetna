@@ -77,8 +77,7 @@ module Etna
 
       begin
         payload, header = application.sign.jwt_decode(token)
-        payload['token'] = token
-        return request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h)
+        return request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h, token)
       rescue
         # bail out if anything goes wrong
         return false

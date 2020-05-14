@@ -6,8 +6,9 @@ module Etna
       'V' => :viewer
     }
 
-    def initialize params
-      @first, @last, @email, @encoded_permissions, @token = params.values_at(:first, :last, :email, :perm, :token)
+    def initialize params, token=nil
+      @first, @last, @email, @encoded_permissions = params.values_at(:first, :last, :email, :perm)
+      @token = token unless !token
       raise ArgumentError, "No email given!" unless @email
     end
 
