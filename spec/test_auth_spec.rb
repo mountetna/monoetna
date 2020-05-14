@@ -24,12 +24,15 @@ describe Etna::TestAuth do
       Arachne::Server,
       [ Etna::TestAuth ]
     )
-    header(*Etna::TestAuth.token_header(
+
+    token_params = {
       email: 'janus@two-faces.org',
       first: 'Janus',
       last: 'Bifrons',
       perm: 'a:labors;e:olympics,argo;v:constellations'
-    ))
+    }
+
+    header(*Etna::TestAuth.token_header(token_params))
     get('/test')
 
     expect(last_response.status).to eq(200)
@@ -37,12 +40,7 @@ describe Etna::TestAuth do
     expect(user).to be_a(Etna::User)
     expect(user.is_admin?('labors')).to be_truthy
     expect(user.can_edit?('constellations')).to be_falsy
-    expect(user.token).to eq(Base64.strict_encode64({
-      email: 'janus@two-faces.org',
-      first: 'Janus',
-      last: 'Bifrons',
-      perm: 'a:labors;e:olympics,argo;v:constellations'
-    }.to_json))
+    expect(user.token).to eq(Base64.strict_encode64(token_params.to_json))
   end
 
   it 'allows noauth routes through without a header' do
