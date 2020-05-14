@@ -15,16 +15,16 @@ module Etna
 
     attr_reader :routes
 
+    def route_path(route, params)
+      Etna::Route.path(route[:route], params)
+    end
+
     private
 
     def set_routes
       response = options('/')
       status_check!(response)
       @routes = JSON.parse(response.body, symbolize_names: true)
-    end
-
-    def route_path(route, params)
-      Etna::Route.path(route[:route], params)
     end
 
     def define_route_helpers
