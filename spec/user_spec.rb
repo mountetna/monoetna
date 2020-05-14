@@ -1,16 +1,35 @@
 require_relative '../lib/etna/user'
 
 describe Etna::User do
-  it 'returns basic user info' do
+  it 'returns basic user info with token' do
     u = Etna::User.new(
-      email: 'janus@two-faces.org',
-      first: 'Janus',
-      last: 'Bifrons',
-      perm: 'a:labors;e:olympics,argo;v:constellations'
+      {
+        email: 'janus@two-faces.org',
+        first: 'Janus',
+        last: 'Bifrons',
+        perm: 'a:labors;e:olympics,argo;v:constellations'
+      },
+      'xyz123randomtoken'
     )
     expect(u.first).to eq('Janus')
     expect(u.last).to eq('Bifrons')
     expect(u.email).to eq('janus@two-faces.org')
+    expect(u.token).to eq('xyz123randomtoken')
+  end
+
+  it 'returns basic user info without token param' do
+    u = Etna::User.new(
+      {
+        email: 'janus@two-faces.org',
+        first: 'Janus',
+        last: 'Bifrons',
+        perm: 'a:labors;e:olympics,argo;v:constellations'
+      }
+    )
+    expect(u.first).to eq('Janus')
+    expect(u.last).to eq('Bifrons')
+    expect(u.email).to eq('janus@two-faces.org')
+    expect(u.token).to eq(nil)
   end
 
   context "permissions" do

@@ -66,8 +66,10 @@ describe Etna::Auth do
     end
 
     context 'valid tokens' do
+      authenticated_user = nil
       before(:each) do
-        Arachne::Server.get('/test') { success(@user.class) }
+        authenticated_user = nil
+        Arachne::Server.get('/test') { authenticated_user = @user; success(@user.class) }
 
         @public_key = OpenSSL::PKey::RSA.new(@private_key).public_key.to_s
 
@@ -96,6 +98,7 @@ describe Etna::Auth do
         get('/test')
         expect(last_response.status).to eq(200)
         expect(last_response.body).to eq('Etna::User')
+        expect(authenticated_user.token).to eq(token)
       end
 
       it 'accepts a token via cookie' do
@@ -110,6 +113,7 @@ describe Etna::Auth do
         get('/test')
         expect(last_response.status).to eq(200)
         expect(last_response.body).to eq('Etna::User')
+        expect(authenticated_user.token).to eq(token)
       end
     end
 
@@ -135,8 +139,8 @@ describe Etna::Auth do
           [ Etna::Auth ],
           test: {
             rsa_private: @private_key,
-            rsa_public: @invalid_public_key, 
-            token_algo: 'RS256' 
+            rsa_public: @invalid_public_key,
+            token_algo: 'RS256'
           },
         )
 
@@ -169,7 +173,7 @@ describe Etna::Auth do
           [ Etna::Auth ],
           test: {
             rsa_private: @private_key,
-            rsa_public: @invalid_public_key, 
+            rsa_public: @invalid_public_key,
             token_algo: 'RS256',
             auth_redirect: "https://janus.test"
 

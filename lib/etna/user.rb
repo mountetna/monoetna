@@ -6,12 +6,13 @@ module Etna
       'V' => :viewer
     }
 
-    def initialize params
+    def initialize params, token=nil
       @first, @last, @email, @encoded_permissions = params.values_at(:first, :last, :email, :perm)
+      @token = token unless !token
       raise ArgumentError, "No email given!" unless @email
     end
 
-    attr_reader :first, :last, :email
+    attr_reader :first, :last, :email, :token
 
     def permissions
       @permissions ||= @encoded_permissions.split(/\;/).map do |roles|

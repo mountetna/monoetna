@@ -39,7 +39,7 @@ module Etna
       # here we simply base64-encode our user hash and pass it through
       payload = JSON.parse(Base64.decode64(token))
 
-      request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h)
+      request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h, token)
     end
 
     def approve_hmac(request)

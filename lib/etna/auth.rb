@@ -50,7 +50,7 @@ module Etna
       #
       # We prefer the param so we can use the header elsewhere
 
-      params(request)[Etna::Auth.etna_url_param(item)] || request.env["HTTP_#{fill}#{item.upcase}"] 
+      params(request)[Etna::Auth.etna_url_param(item)] || request.env["HTTP_#{fill}#{item.upcase}"]
     end
 
     # If the application asks for a redirect for unauthorized users
@@ -77,7 +77,7 @@ module Etna
 
       begin
         payload, header = application.sign.jwt_decode(token)
-        return request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h)
+        return request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h, token)
       rescue
         # bail out if anything goes wrong
         return false
