@@ -655,6 +655,7 @@ EOT
 
     begin
       path = Shellwords.split(relative_path(dirname) || '').first
+      basename = Shellwords.split(basename).first
       folder = client.list_folder(@project_name, path)
       return [] unless folder && folder.is_a?(Hash)
       [
@@ -662,7 +663,7 @@ EOT
         folder[:files]&.map{|f| f[:file_name]+" "}
       ]
         .flatten.compact
-        .grep(/^#{Regexp.escape(basename||'')}/)
+        .grep(/^#{basename}/)
         .map{|s| [dirname, s].compact.join('/').gsub(/(?<!\\) (?!$)/, '\ ')}
     rescue MetisClient::Error
       []
@@ -683,11 +684,25 @@ EOT
     Readline.completion_append_character = nil
     Readline.basic_word_break_characters = " \t\n\"'`@$><=;|&{("
     Readline.quoting_detection_proc = proc do |input, index|
-      (index > 0 &&
+      (
+        # you are not the first character
+        index > 0 &&
+        # you are a space
         input[index] == ' ' &&
+        # the previous character is a slash
         input[index-1] == '\\' &&
-        (index == 1 || input[index-2] != '\\')) ||
-      ((index + 1 < input.size) && input[index] == '\\' && input[index+1] == ' ' && (index == 0 || input[index-1] != '\\'))
+        # the character before that does not exist, or it is not a slash
+        (index == 1 || input[index-2] != '\\')
+      ) || (
+        # you are not the last character
+        (index + 1 < input.size) &&
+        # you are a slash
+        input[index] == '\\' &&
+        # the character after you is a space
+        input[index+1] == ' ' &&
+        # the character before you does not exist or it is not a slash
+        (index == 0 || input[index-1] != '\\')
+      )
     end
 
     while buf = Readline.readline(prompt, true)
