@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
-
+#
+require 'resolv'
 require 'json'
 require 'fileutils'
 require 'digest'
@@ -12,10 +13,14 @@ require 'pathname'
 require 'shellwords'
 require 'singleton'
 
-CONFIG_FILE=::File.expand_path("~/.metis.json")
+CONFIG_FILE='~/.metis.json'
 
 def test_env?
   ENV['METIS_ENV'] == 'test'
+end
+
+def config_exists?
+  ::File.exist?(::File.expand_path(CONFIG_FILE))
 end
 
 class MetisConfig
@@ -681,21 +686,80 @@ EOT
   end
 end
 
-unless test_env?
-  if ::File.exists?(CONFIG_FILE)
-    config = JSON.parse(File.read(CONFIG_FILE), symbolize_names: true)
-  else
-    puts "Could not find configuration at #{CONFIG_FILE}, please run `metis_client setup`"
-    exit
 
-    @config = {
+class MetisSetup
+  def run
+    if config_exists?
+      puts "Found configuration at #{CONFIG_FILE}, skipping setup."
+      exit
+    end
+
+    config_file_name = get_value("Location for config file", CONFIG_FILE) do |file_name|
+      true_file_name = ::File.expand_path(file_name)
+
+      next("Cannot write to #{file_name}") if ::File.directory?(true_file_name) || !::File.writable?(::File.dirname(true_file_name))
+
+      false
+    end
+
+    save_config(
+      config_file_name,
       metis_uid: SecureRandom.hex,
-      metis_uid_name: 'METIS_UID'
-    }
-    ::File.write(filename,JSON.pretty_generate(@config))
+
+      metis_uid_name: get_value("Cookie name for metis uid", "METIS_UID") { |m| m !~ /^\w+$/ },
+
+      metis_host: get_value("Hostname for metis", "metis.example.org") do |metis_host|
+        begin
+          Resolv.getaddress metis_host
+        rescue Resolv::ResolvError
+          if Readline.readline("Could not resolve #{metis_host}, use anyway? (y/n) ",false) != "y"
+            next("Invalid host")
+          end
+        end
+        false
+      end
+    )
+  end
+  def save_config(config_file_name, config)
+    File.open(::File.expand_path(config_file_name), 'w') do |f|
+      f.puts JSON.pretty_generate(config)
+    end
+
+    # replace the variable CONFIG_FILE above
+    script = File.read(__FILE__)
+    File.open(__FILE__,"w") do |f|
+      f.puts script.gsub(/^CONFIG_FILE=.*/,"CONFIG_FILE='#{config_file_name}'")
+    end
+
+    puts "Config saved at #{config_file_name}"
+    return config
   end
 
-  MetisConfig.instance.config(config)
-  MetisShell.new(ARGV[0], *ARGV[1..-1]).run
-  puts
+  def get_value(prompt, default)
+    value = nil
+    until value do
+      value = Readline.readline("#{prompt}? [#{default}] ",false)
+      value = value.nil? || value.empty? ? default : value
+
+      error = yield(value)
+
+      if error
+        puts error
+        value = nil
+      end
+    end
+    value
+  end
 end
+
+exit if test_env?
+
+
+config = config_exists? ?
+  JSON.parse(File.read(::File.expand_path(CONFIG_FILE)), symbolize_names: true)
+:
+  MetisSetup.new.run
+
+MetisConfig.instance.config(config)
+MetisShell.new(ARGV[0], *ARGV[1..-1]).run
+puts
