@@ -46,7 +46,8 @@ describe MetisShell do
     it 'puts a file into a bucket' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_path = stubs.create_data('stubs', 'helmet.txt', HELMET)
-      #expect_output("metis://athena/armor", "put") { %r!armor/! }
+      #expect_output("metis://athena/armor", "put", helmet_path) { '' }
+      #expect(Metis::File.first.file_name).to eq('helmet.txt')
     end
   end
 end

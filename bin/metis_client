@@ -834,14 +834,15 @@ class MetisSetup
   end
 end
 
-exit if test_env?
+def start
+  config = config_exists? ?
+    JSON.parse(File.read(::File.expand_path(CONFIG_FILE)), symbolize_names: true)
+  :
+    MetisSetup.new.run
 
+  MetisConfig.instance.config(config)
+  MetisShell.new(ARGV[0], *ARGV[1..-1]).run
+  puts
+end
 
-config = config_exists? ?
-  JSON.parse(File.read(::File.expand_path(CONFIG_FILE)), symbolize_names: true)
-:
-  MetisSetup.new.run
-
-MetisConfig.instance.config(config)
-MetisShell.new(ARGV[0], *ARGV[1..-1]).run
-puts
+start unless test_env?
