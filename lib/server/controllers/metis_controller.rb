@@ -37,8 +37,8 @@ class Metis
       #   ["metis", "", "<project>", "<bucket>", "<folder path>" ... "file name"]
       # Should this be in a central gem, like etna, so
       #   we can share it across applications?
-      metis_file_location_parts = revision[attribute_name].split('/')
-      return revision[3]
+      metis_file_location_parts = path.split('/')
+      return metis_file_location_parts[3]
     end
 
     def extract_file_path_from_path(path)
@@ -48,8 +48,20 @@ class Metis
       #   ["metis", "", "<project>", "<bucket>", "<folder path>" ... "file name"]
       # Should this be in a central gem, like etna, so
       #   we can share it across applications?
-      metis_file_location_parts = revision[attribute_name].split('/')
-      return metis_file_location_parts[4..-1].join('/'))
+      metis_file_location_parts = path.split('/')
+      return metis_file_location_parts[4..-1].join('/')
+    end
+
+    def get_file_obj_from_path(path)
+      # Assumes Metis file paths are in the form
+      #    metis://<project>/<bucket>/<folder path>/<file name>
+      # Splitting the above produces
+      #   ["metis", "", "<project>", "<bucket>", "<folder path>" ... "file name"]
+      # Should this be in a central gem, like etna, so
+      #   we can share it across applications?
+      Metis::File.from_path(
+        require_bucket(extract_bucket_from_path(path)),
+        extract_file_path_from_path(path))
     end
   end
 end
