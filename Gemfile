@@ -17,4 +17,5 @@ group :test do
   gem 'timecop'
   gem 'database_cleaner'
   gem 'pry'
+  gem 'pry-byebug'
 end
