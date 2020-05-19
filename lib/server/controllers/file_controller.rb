@@ -143,7 +143,7 @@ class FileController < Metis::Controller
     revisions.each do |revision|
       file = get_file_obj_from_path(revision[:source])
 
-      raise Etna::Error.new('File not found', 404) unless file&.has_data?
+      raise Etna::Error.new("File #{revision[:source]} not found", 404) unless file&.has_data?
 
       # Here we check for removal or linkage
       if revision[:dest]
@@ -158,11 +158,11 @@ class FileController < Metis::Controller
 
         new_folder = require_folder(new_bucket, new_folder_path)
 
-        raise Etna::Forbidden, "#{new_folder} Folder is read-only" if new_folder&.read_only?
+        raise Etna::Forbidden, "#{new_folder.folder_name} folder is read-only" if new_folder&.read_only?
 
         raise Etna::Forbidden, "Cannot copy over existing file #{new_file_name}" if Metis::File.exists?(new_file_name, new_bucket, new_folder)
 
-        raise Etna::Forbidden, "Cannot copy over existing folder #{new_folder_path}" if  Metis::Folder.exists?(new_file_name, new_bucket, new_folder)
+        raise Etna::Forbidden, "Cannot copy over existing folder #{revision[:dest]}" if  Metis::Folder.exists?(new_file_name, new_bucket, new_folder)
       else
         # make sure can delete the source file
         source_file = get_file_obj_from_path(revision[:source])

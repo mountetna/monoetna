@@ -843,7 +843,11 @@ describe FileController do
     it 'refuses to copy a file without permissions' do
       # the user is a viewer, not an editor
       token_header(:viewer)
-      copy_file('wisdom.txt', 'learn-wisdom.txt')
+
+      bulk_update([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/files/learn-wisdom.txt'
+      }])
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(403)
@@ -853,32 +857,49 @@ describe FileController do
       expect(@wisdom_file).to be_has_data
 
       # there is no new file
-      expect(Metis::File.count).to eq(1)
+      expect(Metis::File.count).to eq(2)
+      orig_wisdom_file = Metis::File.first
+      expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
+      orig_helmet_file = Metis::File.last
+      expect(orig_helmet_file.file_name).to eq('helmet.jpg')
     end
 
     it 'refuses to copy a non-existent file' do
       # we attempt to rename a file that does not exist
       token_header(:editor)
-      copy_file('folly.txt', 'learn-folly.txt')
+
+      bulk_update([{
+        source: 'metis://athena/files/folly.txt',
+        dest: 'metis://athena/files/learn-folly.txt'
+      }])
 
       expect(last_response.status).to eq(404)
-      expect(json_body[:error]).to eq('File not found')
+      expect(json_body[:error]).to eq('File metis://athena/files/folly.txt not found')
 
       # the actual file is untouched
-      @wisdom_file.refresh
-      expect(@wisdom_file.file_name).to eq('wisdom.txt')
-      expect(@wisdom_file).to be_has_data
+      expect(Metis::File.count).to eq(2)
+      orig_wisdom_file = Metis::File.first
+      expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
+      orig_helmet_file = Metis::File.last
+      expect(orig_helmet_file.file_name).to eq('helmet.jpg')
     end
 
     it 'refuses to copy over an existing file' do
       learn_wisdom_file = create_file('athena', 'learn-wisdom.txt', WISDOM*2)
       stubs.create_file('athena', 'files', 'learn-wisdom.txt', WISDOM*2)
 
+      expect(Metis::File.count).to eq(3)
+
       token_header(:editor)
-      copy_file('wisdom.txt', 'learn-wisdom.txt')
+      bulk_update([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/files/learn-wisdom.txt'
+      }])
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot copy over existing file')
+      expect(json_body[:error]).to eq('Cannot copy over existing file learn-wisdom.txt')
+
+      expect(Metis::File.count).to eq(3)
 
       # the file we tried to rename is untouched
       @wisdom_file.refresh
@@ -901,10 +922,13 @@ describe FileController do
       stubs.create_folder('athena', 'files', 'learn-wisdom.txt')
 
       token_header(:editor)
-      copy_file('wisdom.txt', 'learn-wisdom.txt')
+      bulk_update([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/files/learn-wisdom.txt'
+      }])
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot copy over existing folder')
+      expect(json_body[:error]).to eq('Cannot copy over existing folder metis://athena/files/learn-wisdom.txt')
 
       # the file we tried to copy is untouched
       @wisdom_file.refresh
@@ -925,7 +949,11 @@ describe FileController do
       stubs.create_folder('athena', 'files', 'contents')
 
       token_header(:editor)
-      copy_file('wisdom.txt', 'contents/wisdom.txt')
+
+      bulk_update([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/files/contents/learn-wisdom.txt'
+      }])
 
       expect(last_response.status).to eq(200)
 
@@ -936,7 +964,7 @@ describe FileController do
 
       # a new file exists
       new_wisdom_file = Metis::File.last
-      expect(new_wisdom_file.file_path).to eq('contents/wisdom.txt')
+      expect(new_wisdom_file.file_path).to eq('contents/learn-wisdom.txt')
       expect(new_wisdom_file.folder).to eq(contents_folder)
       expect(new_wisdom_file).to be_has_data
       expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
@@ -947,10 +975,14 @@ describe FileController do
       stubs.create_folder('athena', 'files', 'contents')
 
       token_header(:editor)
-      copy_file('wisdom.txt', 'contents/wisdom.txt')
+
+      bulk_update([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/files/contents/learn-wisdom.txt'
+      }])
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Folder is read-only')
+      expect(json_body[:error]).to eq('contents folder is read-only')
 
       # the original is untouched
       @wisdom_file.refresh
@@ -958,12 +990,20 @@ describe FileController do
       expect(@wisdom_file).to be_has_data
 
       # there is no new file
-      expect(Metis::File.count).to eq(1)
+      expect(Metis::File.count).to eq(2)
+      orig_wisdom_file = Metis::File.first
+      expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
+      orig_helmet_file = Metis::File.last
+      expect(orig_helmet_file.file_name).to eq('helmet.jpg')
     end
 
     it 'will not copy a file to a non-existent folder' do
       token_header(:editor)
-      copy_file('wisdom.txt', 'contents/wisdom.txt')
+
+      bulk_update([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/files/contents/learn-wisdom.txt'
+      }])
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid folder')
@@ -974,14 +1014,23 @@ describe FileController do
       expect(@wisdom_file).to be_has_data
 
       # there is no new file
-      expect(Metis::File.count).to eq(1)
+      expect(Metis::File.count).to eq(2)
+      orig_wisdom_file = Metis::File.first
+      expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
+      orig_helmet_file = Metis::File.last
+      expect(orig_helmet_file.file_name).to eq('helmet.jpg')
     end
 
     it 'copies a file to a new bucket' do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'metis' )
-      copy_file('wisdom.txt', 'learn-wisdom.txt', new_bucket_name: 'sundry')
-      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
+
+      bulk_update([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/sundry/learn-wisdom.txt'
+      }])
+
+      stubs.add_file('athena', 'sundry', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(200)
 
@@ -990,7 +1039,7 @@ describe FileController do
       expect(@wisdom_file).to be_has_data
 
       # there is a new file
-      expect(Metis::File.count).to eq(2)
+      expect(Metis::File.count).to eq(3)
       new_wisdom_file = Metis::File.last
       expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
       expect(new_wisdom_file).to be_has_data
