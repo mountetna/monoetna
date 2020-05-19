@@ -1,5 +1,3 @@
-require 'pry'
-
 class FileController < Metis::Controller
   def remove
     bucket = require_bucket
