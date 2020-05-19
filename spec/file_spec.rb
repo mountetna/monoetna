@@ -789,11 +789,6 @@ describe FileController do
       expect(Metis::File.all).to include(wisdom_link_file)
     end
 
-    # TODO: Should replicate the above tests when there are multiple revisions
-    #       and the others are valid...
-    # TODO: Test with both copy and remove revisions
-    # TODO: Test can make multiple copies of the same file
-
     it 'copies a file' do
       token_header(:editor)
 
@@ -1117,6 +1112,82 @@ describe FileController do
 
       # there is no new file
       expect(Metis::File.count).to eq(2)
+    end
+
+    it 'refuses to update if a single revision out of multiple is invalid' do
+      contents_folder = create_folder('athena', 'contents', read_only: true)
+      stubs.create_folder('athena', 'files', 'contents')
+
+      token_header(:editor)
+
+      expect(Metis::File.count).to eq(2)
+
+      bulk_update([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/files/contents/learn-wisdom.txt'
+      }, {
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/files/learn-wisdom.txt'
+      }, {
+        source: 'metis://athena/files/wisdom.txt',
+        dest: nil
+      }])
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('contents folder is read-only')
+
+      # the original is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_path).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(2)
+      orig_wisdom_file = Metis::File.first
+      expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
+      orig_helmet_file = Metis::File.last
+      expect(orig_helmet_file.file_name).to eq('helmet.jpg')
+    end
+
+    it 'copies and removes in the same update' do
+      token_header(:editor)
+
+      copy_file('wisdom.txt', 'learn-wisdom.txt')
+      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
+
+      sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'metis' )
+
+      # there is a new file
+      expect(Metis::File.count).to eq(3)
+      new_wisdom_file = Metis::File.last
+      expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
+
+      location = @wisdom_file.data_block.location
+      bulk_update([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/files/learn-wisdom2.txt'
+      }, {
+        source: 'metis://athena/files/learn-wisdom.txt',
+        dest: nil
+      }, {
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/sundry/learn-wisdom3.txt'
+      }, {
+        source: 'metis://athena/files/blueprints/helmet/helmet.jpg',
+        dest: 'metis://athena/sundry/build-helmet.jpg'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(Metis::File.count).to eq(5)
+
+      # the data is not destroyed
+      expect(::File.exists?(location)).to be_truthy
+
+      orig_wisdom_file = Metis::File.first
+      expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
+      third_link_file = Metis::File.last
+      expect(third_link_file.file_name).to eq('build-helmet.jpg')
+      expect(third_link_file.bucket.name).to eq('sundry')
     end
   end
 end
