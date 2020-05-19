@@ -460,30 +460,28 @@ describe FileController do
       expect(@wisdom_file).to be_has_data
     end
 
-    it 'refuses to copy over an existing file' do
+    it 'can replace an existing copy' do
       learn_wisdom_file = create_file('athena', 'learn-wisdom.txt', WISDOM*2)
       stubs.create_file('athena', 'files', 'learn-wisdom.txt', WISDOM*2)
 
       token_header(:editor)
       copy_file('wisdom.txt', 'learn-wisdom.txt')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot copy over existing file')
+      expect(last_response.status).to eq(200)
 
       # the file we tried to rename is untouched
       @wisdom_file.refresh
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
 
       # the file we tried to rename is untouched
-      learn_wisdom_file.refresh
-      expect(Metis::File.last).to eq(learn_wisdom_file)
-      expect(learn_wisdom_file.file_name).to eq('learn-wisdom.txt')
+      new_wisdom_file = Metis::File.last
+      expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
 
       # we can still see the data
       expect(@wisdom_file).to be_has_data
-      expect(learn_wisdom_file).to be_has_data
+      expect(new_wisdom_file).to be_has_data
       expect(::File.read(@wisdom_file.data_block.location)).to eq(WISDOM)
-      expect(::File.read(learn_wisdom_file.data_block.location)).to eq(WISDOM*2)
+      expect(new_wisdom_file.data_block.location).to eq(@wisdom_file.data_block.location)
     end
 
     it 'refuses to copy over an existing folder' do
@@ -879,7 +877,7 @@ describe FileController do
       expect(orig_helmet_file.file_name).to eq('helmet.jpg')
     end
 
-    it 'can copy over an existing file' do
+    it 'can replace an existing copy' do
       learn_wisdom_file = create_file('athena', 'learn-wisdom.txt', WISDOM*2)
       stubs.create_file('athena', 'files', 'learn-wisdom.txt', WISDOM*2)
 

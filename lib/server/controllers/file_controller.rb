@@ -90,9 +90,12 @@ class FileController < Metis::Controller
 
     raise Etna::Forbidden, 'Folder is read-only' if new_folder&.read_only?
 
-    raise Etna::Forbidden, 'Cannot copy over existing file' if Metis::File.exists?(new_file_name, new_bucket, new_folder)
-
     raise Etna::Forbidden, 'Cannot copy over existing folder' if  Metis::Folder.exists?(new_file_name, new_bucket, new_folder)
+
+    if Metis::File.exists?(new_file_name, new_bucket, new_folder)
+      old_dest_file = Metis::File.from_path(new_bucket, @params[:new_file_path])
+      old_dest_file.remove!
+    end
 
     new_file = Metis::File.create(
       project_name: @params[:project_name],
@@ -195,8 +198,8 @@ class FileController < Metis::Controller
         # If the destination file exists, remove it before creating
         #   the new link
         if Metis::File.exists?(new_file_name, new_bucket, new_folder)
-          dest_file = get_file_obj_from_path(revision[:dest])
-          dest_file.remove!
+          old_dest_file = get_file_obj_from_path(revision[:dest])
+          old_dest_file.remove!
         end
 
         new_file = Metis::File.create(
