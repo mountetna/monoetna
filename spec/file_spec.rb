@@ -658,10 +658,10 @@ describe FileController do
       stubs.create_file('athena', 'files', 'blueprints/helmet/helmet.jpg', HELMET)
     end
 
-    def bulk_update(revisions=[])
+    def bulk_update(revisions=[], params={})
       json_post("/athena/file/bulk_update", {
         revisions: revisions
-      })
+      }.merge(params))
     end
 
     def copy_file(path, new_path, params={})
@@ -738,7 +738,7 @@ describe FileController do
       }])
 
       expect(last_response.status).to eq(404)
-      expect(json_body[:error]).to eq('File not found')
+      expect(json_body[:error]).to eq('File metis://athena/files/folly.txt not found')
     end
 
     it 'refuses to remove a read-only file' do
@@ -1051,28 +1051,16 @@ describe FileController do
     it 'refuses to copy without bucket permissions' do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'administrator', owner: 'metis' )
-      copy_file('wisdom.txt', 'learn-wisdom.txt', new_bucket_name: 'sundry')
+
+      bulk_update([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/sundry/learn-wisdom.txt'
+      }])
+
       stubs.add_file('athena', 'files', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot access bucket')
-
-      # the old file is untouched
-      expect(@wisdom_file.file_name).to eq('wisdom.txt')
-      expect(@wisdom_file).to be_has_data
-
-      # there is no new file
-      expect(Metis::File.count).to eq(1)
-    end
-
-    it 'copies to a bucket with a different application owner with matching signature' do
-      token_header(:editor)
-      sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'vulcan' )
-      copy_file('wisdom.txt', 'learn-wisdom.txt', {new_bucket_name: 'sundry'}.merge(
-        hmac_params(id: 'vulcan', signature: 'valid')))
-      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
-
-      expect(last_response.status).to eq(200)
+      expect(json_body[:error]).to eq('Cannot access the destination buckets')
 
       # the old file is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
@@ -1082,23 +1070,53 @@ describe FileController do
       expect(Metis::File.count).to eq(2)
     end
 
-    it 'refuses to copy to a bucket with a different owner without a signature' do
+    it 'copies to a bucket with a different application owner with matching signature' do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'vulcan' )
-      copy_file('wisdom.txt', 'learn-wisdom.txt',
-        hmac_params.merge(signature: 'valid', new_bucket_name: 'sundry')
-      )
-      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot access bucket')
+      bulk_update([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/sundry/learn-wisdom.txt'
+      }], hmac_params(id: 'vulcan', signature: 'valid'))
+
+      stubs.add_file('athena', 'sundry', 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(200)
 
       # the old file is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
       expect(@wisdom_file).to be_has_data
 
       # there is no new file
-      expect(Metis::File.count).to eq(1)
+      expect(Metis::File.count).to eq(3)
+      new_wisdom_file = Metis::File.last
+      expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
+      expect(new_wisdom_file).to be_has_data
+      expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
+
+      expect(new_wisdom_file.bucket).to eq(sundry_bucket)
+    end
+
+    it 'refuses to copy to a bucket with a different owner without a signature' do
+      token_header(:editor)
+      sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'vulcan' )
+
+      bulk_update([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/sundry/learn-wisdom.txt'
+      }])
+
+      stubs.add_file('athena', 'sundry', 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(403)
+      expect(json_body[:error]).to eq('Cannot access the destination buckets')
+
+      # the old file is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(2)
     end
   end
 end
