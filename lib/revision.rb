@@ -18,22 +18,7 @@ class Metis
       return "metis://#{project}/#{bucket}/#{folder_path}/#{file_name}"
     end
 
-    def validate_access_to_buckets(user_authorized_bucket_names)
-      raise Etna::Forbidden, "Cannot access the source bucket #{source_bucket}" unless user_authorized_bucket_names.include? source_bucket
-      raise Etna::Forbidden, "Cannot access the destination bucket #{dest_bucket}" unless user_authorized_bucket_names.include? dest_bucket
-    end
-
-    def source_bucket
-      extract_bucket_from_path(@source)
-    end
-
-    def dest_bucket
-      extract_bucket_from_path(@dest)
-    end
-
-    private
-
-    def extract_bucket_from_path(path)
+    def self.extract_bucket_from_path(path)
       # Assumes Metis file paths are in the form
       #    metis://<project>/<bucket>/<folder path>/<file name>
       # Splitting the above produces
@@ -42,6 +27,38 @@ class Metis
       #   we can share it across applications?
       metis_file_location_parts = path.split('/')
       return metis_file_location_parts[3]
+    end
+
+    def self.extract_file_path_from_path(path)
+      # Assumes Metis file paths are in the form
+      #    metis://<project>/<bucket>/<folder path>/<file name>
+      # Splitting the above produces
+      #   ["metis", "", "<project>", "<bucket>", "<folder path>" ... "file name"]
+      # Should this be in a central gem, like etna, so
+      #   we can share it across applications?
+      metis_file_location_parts = path.split('/')
+      return metis_file_location_parts[4..-1].join('/')
+    end
+
+    def validate_access_to_buckets(user_authorized_bucket_names)
+      raise Etna::Forbidden, "Cannot access the source bucket #{source_bucket}" unless user_authorized_bucket_names.include? source_bucket
+      raise Etna::Forbidden, "Cannot access the destination bucket #{dest_bucket}" unless user_authorized_bucket_names.include? dest_bucket
+    end
+
+    def source_bucket
+      Metis::Revision.extract_bucket_from_path(@source)
+    end
+
+    def dest_bucket
+      Metis::Revision.extract_bucket_from_path(@dest)
+    end
+
+    def source_file_path
+      Metis::Revision.extract_file_path_from_path(@source)
+    end
+
+    def dest_file_path
+      Metis::Revision.extract_file_path_from_path(@dest)
     end
   end
 end

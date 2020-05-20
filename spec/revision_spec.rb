@@ -95,4 +95,36 @@ describe Metis::Revision do
         path = Metis::Revision.path_from_parts('athena', 'files', 'helmet.jpg', 'blueprints/helmet')
         expect(path).to eq('metis://athena/files/blueprints/helmet/helmet.jpg')
     end
+
+    it 'returns the bucket for a given path' do
+        expect(Metis::Revision.extract_bucket_from_path(
+            'metis://athena/files/blueprints/helmet/helmet.jpg'
+        )).to eq('files')
+    end
+
+    it 'returns the file_path for a given path' do
+        expect(Metis::Revision.extract_file_path_from_path(
+            'metis://athena/files/blueprints/helmet/helmet.jpg'
+        )).to eq('blueprints/helmet/helmet.jpg')
+
+        expect(Metis::Revision.extract_file_path_from_path(
+            'metis://athena/files/wisdom.txt'
+        )).to eq('wisdom.txt')
+    end
+
+    it 'correctly returns the source file path' do
+        revision = Metis::Revision.new({
+            source: 'metis://athena/files/blueprints/helmet/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect(revision.source_file_path).to eq('blueprints/helmet/helmet.jpg')
+    end
+
+    it 'correctly returns the dest file path' do
+        revision = Metis::Revision.new({
+            source: 'metis://athena/files/blueprints/helmet/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect(revision.dest_file_path).to eq('wisdom.txt')
+    end
 end
