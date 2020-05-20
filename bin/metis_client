@@ -163,7 +163,7 @@ class MetisClient
   end
 
   def list_folder(project_name,folder_path)
-    response = https.request( get("/#{project_name}/list/#{URI.encode(folder_path)}") )
+    response = https.request( get("/#{project_name}/list/#{URI.encode(folder_path || '')}") )
 
     return nil if response.code == "404"
     raise MetisClient::Error, "Could not list folder #{folder_path}\n#{error(response)}" unless response.code == "200"
@@ -655,7 +655,7 @@ EOT
 
     begin
       path = Shellwords.split(relative_path(dirname) || '').first
-      basename = Shellwords.split(basename).first
+      basename = Shellwords.split(basename || '').first
       folder = client.list_folder(@project_name, path)
       return [] unless folder && folder.is_a?(Hash)
       [
