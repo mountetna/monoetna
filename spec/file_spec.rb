@@ -641,7 +641,7 @@ describe FileController do
     end
   end
 
-  context '#bulk_update' do
+  context '#bulk_copy' do
     before(:each) do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
@@ -656,8 +656,8 @@ describe FileController do
       stubs.create_file('athena', 'files', 'blueprints/helmet/helmet.jpg', HELMET)
     end
 
-    def bulk_update(revisions=[], params={})
-      json_post("/athena/file/bulk_update", {
+    def bulk_copy(revisions=[], params={})
+      json_post("/athena/file/bulk_copy", {
         revisions: revisions
       }.merge(params))
     end
@@ -671,7 +671,7 @@ describe FileController do
     it 'copies a file' do
       token_header(:editor)
 
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/files/learn-wisdom.txt'
       }])
@@ -694,7 +694,7 @@ describe FileController do
     it 'refuses to copy a file to an invalid name' do
       token_header(:editor)
 
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: "metis://athena/files/learn\nwisdom.txt"
       }])
@@ -718,7 +718,7 @@ describe FileController do
       # the user is a viewer, not an editor
       token_header(:viewer)
 
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/files/learn-wisdom.txt'
       }])
@@ -742,7 +742,7 @@ describe FileController do
       # we attempt to rename a file that does not exist
       token_header(:editor)
 
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/folly.txt',
         dest: 'metis://athena/files/learn-folly.txt'
       }])
@@ -765,7 +765,7 @@ describe FileController do
       expect(Metis::File.count).to eq(3)
 
       token_header(:editor)
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/blueprints/helmet/helmet.jpg',
         dest: 'metis://athena/files/learn-wisdom.txt'
       }])
@@ -794,7 +794,7 @@ describe FileController do
       stubs.create_folder('athena', 'files', 'learn-wisdom.txt')
 
       token_header(:editor)
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/files/learn-wisdom.txt'
       }])
@@ -822,7 +822,7 @@ describe FileController do
 
       token_header(:editor)
 
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/files/contents/learn-wisdom.txt'
       }])
@@ -848,7 +848,7 @@ describe FileController do
 
       token_header(:editor)
 
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/files/contents/learn-wisdom.txt'
       }])
@@ -872,7 +872,7 @@ describe FileController do
     it 'will not copy a file to a non-existent folder' do
       token_header(:editor)
 
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/files/contents/learn-wisdom.txt'
       }])
@@ -897,7 +897,7 @@ describe FileController do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'metis' )
 
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/sundry/learn-wisdom.txt'
       }])
@@ -924,7 +924,7 @@ describe FileController do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'administrator', owner: 'metis' )
 
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/sundry/learn-wisdom.txt'
       }])
@@ -946,7 +946,7 @@ describe FileController do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'vulcan' )
 
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/sundry/learn-wisdom.txt'
       }], hmac_params(id: 'vulcan', signature: 'valid'))
@@ -973,7 +973,7 @@ describe FileController do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'vulcan' )
 
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/sundry/learn-wisdom.txt'
       }])
@@ -999,7 +999,7 @@ describe FileController do
 
       expect(Metis::File.count).to eq(2)
 
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/files/contents/learn-wisdom.txt'
       }, {
@@ -1035,7 +1035,7 @@ describe FileController do
       expect(Metis::File.count).to eq(2)
 
       location = @wisdom_file.data_block.location
-      bulk_update([{
+      bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/files/learn-wisdom2.txt'
       }, {
@@ -1058,8 +1058,5 @@ describe FileController do
       expect(third_link_file.file_name).to eq('build-helmet.jpg')
       expect(third_link_file.bucket.name).to eq('sundry')
     end
-
-    # TODO: Add in some tests for removing links as well as
-    #       copy + remove in a single update
   end
 end

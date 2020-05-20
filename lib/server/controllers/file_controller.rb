@@ -108,8 +108,8 @@ class FileController < Metis::Controller
     success_json(files: [ new_file.to_hash(@request) ])
   end
 
-  def bulk_update
-    # We want to support bulk copy / removal operations
+  def bulk_copy
+    # We want to support bulk copy operations
     #   from Magma.
     # First, check that the user has access to all of
     #   the revision buckets and files, and that
@@ -162,8 +162,6 @@ class FileController < Metis::Controller
         end
 
         raise Etna::Forbidden, "Cannot copy over existing folder #{revision[:dest]}" if  Metis::Folder.exists?(new_file_name, new_bucket, new_folder)
-      else
-        # TODO: Here we'll check for ability to remove the `source` link.
       end
     end
 
@@ -192,8 +190,6 @@ class FileController < Metis::Controller
           data_block: file.data_block
         )
         new_files.push(new_file.to_hash(@request))
-      else
-        # TODO: Here we'll remove the `source` link.
       end
     end
     success_json(files: new_files)
