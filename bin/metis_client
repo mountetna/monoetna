@@ -715,7 +715,11 @@ EOT
   end
 
   def relative_path(file_path=nil)
-    path = file_path ? Pathname.new(::File.join(*[@cwd, file_path].compact)).cleanpath.to_s : @cwd
+    path = file_path ?
+      file_path =~ %r!^/! ?
+      file_path.gsub(%r!^/!,'') :
+      Pathname.new(::File.join(*[@cwd, file_path].compact)).cleanpath.to_s :
+      @cwd
     path =~ /^\./ ? nil : path
   end
 
