@@ -150,12 +150,7 @@ class FileController < Metis::Controller
         raise Etna::BadRequest, "Invalid path for dest #{revision[:dest]}" unless Metis::File.valid_file_path?(
           extract_file_path_from_path(revision[:dest]))
 
-        new_folder_path, new_file_name = Metis::File.path_parts(
-          extract_file_path_from_path(revision[:dest]))
-
-        new_bucket = require_bucket(extract_bucket_from_path(revision[:dest]))
-
-        new_folder = require_folder(new_bucket, new_folder_path)
+        new_bucket, new_folder, new_file_name = get_bucket_folder_file_from_path(revision[:dest])
 
         raise Etna::Forbidden, "#{new_folder.folder_name} folder is read-only" if new_folder&.read_only?
 
@@ -179,12 +174,7 @@ class FileController < Metis::Controller
 
       # Here we check for removal or linkage
       if revision[:dest]
-        new_folder_path, new_file_name = Metis::File.path_parts(
-          extract_file_path_from_path(revision[:dest]))
-
-        new_bucket = require_bucket(extract_bucket_from_path(revision[:dest]))
-
-        new_folder = require_folder(new_bucket, new_folder_path)
+        new_bucket, new_folder, new_file_name = get_bucket_folder_file_from_path(revision[:dest])
 
         # If the destination file exists, remove it before creating
         #   the new link

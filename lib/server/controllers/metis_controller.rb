@@ -63,5 +63,16 @@ class Metis
         require_bucket(extract_bucket_from_path(path)),
         extract_file_path_from_path(path))
     end
+
+    def get_bucket_folder_file_from_path(path)
+      new_folder_path, new_file_name = Metis::File.path_parts(
+        extract_file_path_from_path(path))
+
+      new_bucket = require_bucket(extract_bucket_from_path(path))
+
+      new_folder = require_folder(new_bucket, new_folder_path)
+
+      return new_bucket, new_folder, new_file_name
+    end
   end
 end
