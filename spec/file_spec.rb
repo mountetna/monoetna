@@ -668,125 +668,6 @@ describe FileController do
       }.merge(params))
     end
 
-    it 'removes a file link' do
-      token_header(:editor)
-
-      expect(Metis::File.count).to eq(2)
-
-      copy_file('wisdom.txt', 'learn-wisdom.txt')
-      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
-
-      # there is a new file
-      expect(Metis::File.count).to eq(3)
-      new_wisdom_file = Metis::File.last
-      expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
-
-      location = @wisdom_file.data_block.location
-      bulk_update([{
-        source: 'metis://athena/files/learn-wisdom.txt',
-        dest: nil
-      }])
-
-      expect(last_response.status).to eq(200)
-      expect(Metis::File.count).to eq(2)
-
-      # the data is not destroyed
-      expect(::File.exists?(location)).to be_truthy
-
-      orig_wisdom_file = Metis::File.first
-      expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
-      orig_helmet_file = Metis::File.last
-      expect(orig_helmet_file.file_name).to eq('helmet.jpg')
-    end
-
-    it 'refuses to remove a file without permissions' do
-      # we attempt to remove a file though we are a mere viewer
-      token_header(:editor)
-
-      copy_file('wisdom.txt', 'learn-wisdom.txt')
-      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
-
-      token_header(:viewer)
-
-      # there is a new file
-      expect(Metis::File.count).to eq(3)
-      new_wisdom_file = Metis::File.last
-      expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
-
-      bulk_update([{
-        source: 'metis://athena/files/learn-wisdom.txt',
-        dest: nil
-      }])
-
-      expect(last_response.status).to eq(403)
-      expect(@wisdom_file).to be_has_data
-      expect(Metis::File.count).to eq(3)
-
-      wisdom_link = Metis::File.last
-      expect(wisdom_link.file_name).to eq('learn-wisdom.txt')
-    end
-
-    it 'refuses to remove a non-existent file' do
-      # we attempt to remove a file that does not exist
-      token_header(:editor)
-
-      bulk_update([{
-        source: 'metis://athena/files/folly.txt',
-        dest: nil
-      }])
-
-      expect(last_response.status).to eq(404)
-      expect(json_body[:error]).to eq('File metis://athena/files/folly.txt not found')
-    end
-
-    it 'refuses to remove a read-only file' do
-      token_header(:editor)
-
-      copy_file('wisdom.txt', 'learn-wisdom.txt')
-      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
-
-      wisdom_link_file = Metis::File.last
-      expect(wisdom_link_file.file_name).to eq('learn-wisdom.txt')
-
-      wisdom_link_file.read_only = true
-      wisdom_link_file.save
-      wisdom_link_file.refresh
-
-      bulk_update([{
-        source: 'metis://athena/files/learn-wisdom.txt',
-        dest: nil
-      }])
-
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Source file learn-wisdom.txt is read-only')
-      expect(wisdom_link_file).to be_has_data
-      expect(Metis::File.all).to include(wisdom_link_file)
-    end
-
-    it 'refuses to remove a read-only file even for an admin' do
-      token_header(:admin)
-
-      copy_file('wisdom.txt', 'learn-wisdom.txt')
-      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
-
-      wisdom_link_file = Metis::File.last
-      expect(wisdom_link_file.file_name).to eq('learn-wisdom.txt')
-
-      wisdom_link_file.read_only = true
-      wisdom_link_file.save
-      wisdom_link_file.refresh
-
-      bulk_update([{
-        source: 'metis://athena/files/learn-wisdom.txt',
-        dest: nil
-      }])
-
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Source file learn-wisdom.txt is read-only')
-      expect(wisdom_link_file).to be_has_data
-      expect(Metis::File.all).to include(wisdom_link_file)
-    end
-
     it 'copies a file' do
       token_header(:editor)
 
@@ -1126,7 +1007,7 @@ describe FileController do
         dest: 'metis://athena/files/learn-wisdom.txt'
       }, {
         source: 'metis://athena/files/wisdom.txt',
-        dest: nil
+        dest: 'metis://athena/files/learn-wisdom2.txt'
       }])
 
       expect(last_response.status).to eq(403)
@@ -1145,26 +1026,18 @@ describe FileController do
       expect(orig_helmet_file.file_name).to eq('helmet.jpg')
     end
 
-    it 'copies and removes in the same update' do
+    it 'creates multiple links in a single update' do
       token_header(:editor)
-
-      copy_file('wisdom.txt', 'learn-wisdom.txt')
-      stubs.add_file('athena', 'files', 'learn-wisdom.txt')
 
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'metis' )
 
       # there is a new file
-      expect(Metis::File.count).to eq(3)
-      new_wisdom_file = Metis::File.last
-      expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
+      expect(Metis::File.count).to eq(2)
 
       location = @wisdom_file.data_block.location
       bulk_update([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/files/learn-wisdom2.txt'
-      }, {
-        source: 'metis://athena/files/learn-wisdom.txt',
-        dest: nil
       }, {
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/sundry/learn-wisdom3.txt'
@@ -1185,5 +1058,8 @@ describe FileController do
       expect(third_link_file.file_name).to eq('build-helmet.jpg')
       expect(third_link_file.bucket.name).to eq('sundry')
     end
+
+    # TODO: Add in some tests for removing links as well as
+    #       copy + remove in a single update
   end
 end

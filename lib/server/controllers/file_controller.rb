@@ -139,8 +139,6 @@ class FileController < Metis::Controller
 
     raise Etna::Forbidden, "Cannot edit project #{@params[:project_name]}" unless @user.can_edit?(@params[:project_name])
 
-    # I'm not sure there is a way to check Files in bulk,
-    #   without iterating through them all, like this?
     revisions.each do |revision|
       file = get_file_obj_from_path(revision[:source])
 
@@ -170,14 +168,7 @@ class FileController < Metis::Controller
 
         raise Etna::Forbidden, "Cannot copy over existing folder #{revision[:dest]}" if  Metis::Folder.exists?(new_file_name, new_bucket, new_folder)
       else
-        # make sure can delete the source file
-        source_file = get_file_obj_from_path(revision[:source])
-
-        raise Etna::Error.new("Source file #{source_file.file_name} not found", 404) unless source_file&.has_data?
-
-        raise Etna::Forbidden, "Source file #{source_file.file_name} is read-only" if source_file.read_only?
-
-        raise Etna::Forbidden, "Source folder #{source_file.folder} is read-only" if source_file.folder&.read_only?
+        # TODO: Here we'll check for ability to remove the `source` link.
       end
     end
 
@@ -212,11 +203,7 @@ class FileController < Metis::Controller
         )
         new_files.push(new_file.to_hash(@request))
       else
-        source_file = get_file_obj_from_path(revision[:source])
-
-        new_files.push(source_file.to_hash)
-
-        source_file.remove!
+        # TODO: Here we'll remove the `source` link.
       end
     end
     success_json(files: new_files)
