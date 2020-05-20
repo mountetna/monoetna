@@ -932,7 +932,7 @@ describe FileController do
       stubs.add_file('athena', 'files', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot access the destination buckets')
+      expect(json_body[:error]).to eq('Cannot access the destination bucket sundry')
 
       # the old file is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
@@ -981,7 +981,7 @@ describe FileController do
       stubs.add_file('athena', 'sundry', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot access the destination buckets')
+      expect(json_body[:error]).to eq('Cannot access the destination bucket sundry')
 
       # the old file is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
