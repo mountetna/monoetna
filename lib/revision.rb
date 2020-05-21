@@ -26,13 +26,11 @@ class Metis
       #       when params[:dest] will be nil
     end
 
-    def self.path_from_parts(project, bucket, file_name, folder_path=nil)
-      return "metis://#{project}/#{bucket}/#{file_name}" unless folder_path
-
-      return "metis://#{project}/#{bucket}/#{folder_path}/#{file_name}"
+    def self.path_from_parts(project, bucket, file_path)
+      "metis://#{project}/#{bucket}/#{file_path}"
     end
 
-    def self.extract_bucket_from_path(path)
+    def self.extract_bucket_name_from_path(path)
       # Assumes Metis file paths are in the form
       #    metis://<project>/<bucket>/<folder path>/<file name>
       # Splitting the above produces
@@ -53,16 +51,16 @@ class Metis
     end
 
     def validate_access_to_buckets(user_authorized_bucket_names)
-      raise Etna::Forbidden, "Cannot access the source bucket #{source_bucket}" unless user_authorized_bucket_names.include? source_bucket
-      raise Etna::Forbidden, "Cannot access the destination bucket #{dest_bucket}" unless user_authorized_bucket_names.include? dest_bucket
+      raise Etna::Forbidden, "Cannot access the source bucket #{source_bucket_name}" unless user_authorized_bucket_names.include? source_bucket_name
+      raise Etna::Forbidden, "Cannot access the destination bucket #{dest_bucket_name}" unless user_authorized_bucket_names.include? dest_bucket_name
     end
 
-    def source_bucket
-      Metis::Revision.extract_bucket_from_path(@source)
+    def source_bucket_name
+      Metis::Revision.extract_bucket_name_from_path(@source)
     end
 
-    def dest_bucket
-      Metis::Revision.extract_bucket_from_path(@dest)
+    def dest_bucket_name
+      Metis::Revision.extract_bucket_name_from_path(@dest)
     end
 
     def source_file_path
@@ -77,6 +75,13 @@ class Metis
 
     def valid_file_path?(path)
       FILEPATH_MATCH.match(path)
+    end
+
+    def get_bucket(project_name, bucket_name)
+      Metis::Bucket.where(
+        project_name: project_name,
+        name: bucket_name
+      ).first
     end
   end
 end

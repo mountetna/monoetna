@@ -54,7 +54,7 @@ describe Metis::Revision do
             source: 'metis://athena/files/helmet.jpg',
             dest: 'metis://athena/files/wisdom.txt'
         })
-        expect(revision.source_bucket).to eq('files')
+        expect(revision.source_bucket_name).to eq('files')
     end
 
     it 'returns the dest bucket name' do
@@ -62,7 +62,7 @@ describe Metis::Revision do
             source: 'metis://athena/files/helmet.jpg',
             dest: 'metis://athena/files/wisdom.txt'
         })
-        expect(revision.dest_bucket).to eq('files')
+        expect(revision.dest_bucket_name).to eq('files')
     end
 
     it 'throws exception if user cannot access the source bucket' do
@@ -93,18 +93,16 @@ describe Metis::Revision do
         revision.validate_access_to_buckets(['magma', 'files'])
     end
 
-    it 'generates a full Metis path without folder_path' do
+    it 'generates a full Metis path from parts' do
         path = Metis::Revision.path_from_parts('athena', 'files', 'learn-wisdom.txt')
         expect(path).to eq('metis://athena/files/learn-wisdom.txt')
-    end
 
-    it 'generates a full Metis path with folder_path' do
-        path = Metis::Revision.path_from_parts('athena', 'files', 'helmet.jpg', 'blueprints/helmet')
+        path = Metis::Revision.path_from_parts('athena', 'files', 'blueprints/helmet/helmet.jpg')
         expect(path).to eq('metis://athena/files/blueprints/helmet/helmet.jpg')
     end
 
     it 'returns the bucket for a given path' do
-        expect(Metis::Revision.extract_bucket_from_path(
+        expect(Metis::Revision.extract_bucket_name_from_path(
             'metis://athena/files/blueprints/helmet/helmet.jpg'
         )).to eq('files')
     end
