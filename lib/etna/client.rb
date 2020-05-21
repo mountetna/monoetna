@@ -56,6 +56,7 @@ module Etna
       @http ||= begin
                   http = Net::HTTP::Persistent.new
                   http.read_timeout = 3600
+                  http.verify_mode = OpenSSL::SSL::VERIFY_NONE  # TAKE OUT FOR PRODUCTION
                   http
                 end
     end
@@ -93,7 +94,7 @@ module Etna
     def query_request(type, endpoint, params={}, &block)
       uri = request_uri(endpoint)
       uri.query = URI.encode_www_form(params)
-      req = type.new(uri.path, request_params)
+      req = type.new(uri.request_uri, request_params)
       request(uri, req, &block)
     end
 
