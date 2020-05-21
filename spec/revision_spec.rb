@@ -1,3 +1,5 @@
+require 'pry'
+
 describe Metis::Revision do
     include Rack::Test::Methods
 
@@ -138,7 +140,7 @@ describe Metis::Revision do
             Metis::Revision.new({
                 source: "metis://athena/files/learn\nwisdom.txt",
                 dest: nil
-            }).to raise_error(Etna::BadRequest)
-        }
+            })
+        }.to raise_error(Etna::BadRequest)
     end
 end

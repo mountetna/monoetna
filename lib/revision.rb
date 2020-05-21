@@ -4,13 +4,14 @@ class Metis
     FILENAME_MATCH=/[^<>:;,?"*\|\/\x00-\x1f]+/x
 
     FILEPATH_MATCH=%r!
-      ^metis://
-      (?<project_name>[^/]*?)
-      /
-      (?<bucket_name>[^/]*?)
-      /
-      (?<folder_path>.*)
-      $
+      \A
+        metis:\/\/
+        (?<project_name>(#{FILENAME_MATCH.source}))
+        /
+        (?<bucket_name>(#{FILENAME_MATCH.source}))
+        /
+        (?<file_path>(#{FILENAME_MATCH.source}).*)
+      \z
     !x
 
     attr_reader :source, :dest
@@ -47,7 +48,7 @@ class Metis
       #   ["metis", "", "<project>", "<bucket>", "<folder path>" ... "file name"]
       # Should this be in a central gem, like etna, so
       #   we can share it across applications?
-      return FILEPATH_MATCH.match(path)[:folder_path]
+      return FILEPATH_MATCH.match(path)[:file_path]
     end
 
     def validate_access_to_buckets(user_authorized_bucket_names)
@@ -75,13 +76,6 @@ class Metis
 
     def valid_file_path?(path)
       FILEPATH_MATCH.match(path)
-    end
-
-    def get_bucket(project_name, bucket_name)
-      Metis::Bucket.where(
-        project_name: project_name,
-        name: bucket_name
-      ).first
     end
   end
 end
