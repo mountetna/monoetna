@@ -35,4 +35,23 @@ describe Metis::CopyRevision do
             }).to raise_error(Etna::BadRequest)
         }
     end
+
+    it 'creates a CopyRevision from parts' do
+        revision = Metis::CopyRevision.create_from_parts({
+            source: {
+                project_name: 'athena',
+                bucket_name: 'files',
+                file_path: 'blueprints/helmet/helmet.jpg'
+            },
+            dest: {
+                project_name: 'athena',
+                bucket_name: 'files',
+                file_path: 'build-helmet.jpg'
+            }
+        })
+
+        expect(revision.source).to eq('metis://athena/files/blueprints/helmet/helmet.jpg')
+        expect(revision.dest).to eq('metis://athena/files/build-helmet.jpg')
+        expect(revision.instance_of? Metis::CopyRevision).to be_truthy
+    end
 end
