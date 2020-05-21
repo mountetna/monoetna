@@ -351,7 +351,7 @@ EOT
     def run(file_path=nil)
       raise ShellError, 'No project is selected' if !@shell.project_name
 
-      if !@shell.cwd && !file_path
+      if !@shell.cwd && (!file_path || file_path == '.')
         neat_display(folders: bucket_names)
         return
       end
@@ -698,12 +698,13 @@ EOT
   end
 
   def relative_path(file_path=nil)
-    path = file_path ?
-      file_path =~ %r!^/! ?
-      file_path.gsub(%r!^/!,'') :
-      Pathname.new(::File.join(*[@cwd, file_path].compact)).cleanpath.to_s :
-      @cwd
-    path =~ /^\./ ? nil : path
+    path = case file_path
+    when '.', nil then @cwd
+    when %r!^/! then file_path.gsub(%r!^/!,'')
+    else
+      Pathname.new(::File.join(*[@cwd, file_path].compact)).cleanpath.to_s
+    end
+    path unless path =~ /^\./
   end
 
   def project_list
