@@ -19,6 +19,6 @@ class Metis
                 params[:dest][:bucket_name],
                 params[:dest][:file_path])
             })
-          end
+        end
     end
 end
