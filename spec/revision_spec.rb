@@ -95,11 +95,29 @@ describe Metis::Revision do
         revision.validate_access_to_buckets(['magma', 'files'])
     end
 
-    it 'generates a full Metis path from parts' do
-        path = Metis::Revision.path_from_parts('athena', 'files', 'learn-wisdom.txt')
+    it 'creates a Revision from parts' do
+        revision = Metis::Revision.from_parts({
+            source: {
+                project_name: 'athena',
+                bucket_name: 'files',
+                file_path: 'blueprints/helmet/helmet.jpg'
+            },
+            dest: {
+                project_name: 'athena',
+                bucket_name: 'files',
+                file_path: 'build-helmet.jpg'
+            }
+        })
+
+        expect(revision.source).to eq('metis://athena/files/blueprints/helmet/helmet.jpg')
+        expect(revision.dest).to eq('metis://athena/files/build-helmet.jpg')
+    end
+
+    it 'returns a full Metis path from parts' do
+        path = Metis::Revision.send('path_from_parts', 'athena', 'files', 'learn-wisdom.txt')
         expect(path).to eq('metis://athena/files/learn-wisdom.txt')
 
-        path = Metis::Revision.path_from_parts('athena', 'files', 'blueprints/helmet/helmet.jpg')
+        path = Metis::Revision.send('path_from_parts', 'athena', 'files', 'blueprints/helmet/helmet.jpg')
         expect(path).to eq('metis://athena/files/blueprints/helmet/helmet.jpg')
     end
 

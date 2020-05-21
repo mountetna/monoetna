@@ -27,8 +27,17 @@ class Metis
       #       when params[:dest] will be nil
     end
 
-    def self.path_from_parts(project, bucket, file_path)
-      "metis://#{project}/#{bucket}/#{file_path}"
+    def self.from_parts(params)
+      Metis::Revision.new({
+        source: path_from_parts(
+          params[:source][:project_name],
+          params[:source][:bucket_name],
+          params[:source][:file_path]),
+        dest: path_from_parts(
+          params[:dest][:project_name],
+          params[:dest][:bucket_name],
+          params[:dest][:file_path])
+      })
     end
 
     def self.extract_bucket_name_from_path(path)
@@ -76,6 +85,10 @@ class Metis
 
     def valid_file_path?(path)
       FILEPATH_MATCH.match(path)
+    end
+
+    def self.path_from_parts(project_name, bucket_name, file_path)
+      "metis://#{project_name}/#{bucket_name}/#{file_path}"
     end
   end
 end
