@@ -1,5 +1,3 @@
-require 'pry'
-
 describe Metis::Revision do
     include Rack::Test::Methods
 

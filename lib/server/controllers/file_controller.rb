@@ -1,4 +1,3 @@
-require 'pry'
 require_relative '../../copy_revision'
 
 class FileController < Metis::Controller

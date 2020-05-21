@@ -1,4 +1,3 @@
-require 'pry'
 class Metis
   class Revision
     FILENAME_MATCH=/[^<>:;,?"*\|\/\x00-\x1f]+/x
