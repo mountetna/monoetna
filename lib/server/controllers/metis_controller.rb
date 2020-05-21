@@ -30,28 +30,6 @@ class Metis
       return folder
     end
 
-    def extract_bucket_from_path(path)
-      # Assumes Metis file paths are in the form
-      #    metis://<project>/<bucket>/<folder path>/<file name>
-      # Splitting the above produces
-      #   ["metis", "", "<project>", "<bucket>", "<folder path>" ... "file name"]
-      # Should this be in a central gem, like etna, so
-      #   we can share it across applications?
-      metis_file_location_parts = path.split('/')
-      return metis_file_location_parts[3]
-    end
-
-    def extract_file_path_from_path(path)
-      # Assumes Metis file paths are in the form
-      #    metis://<project>/<bucket>/<folder path>/<file name>
-      # Splitting the above produces
-      #   ["metis", "", "<project>", "<bucket>", "<folder path>" ... "file name"]
-      # Should this be in a central gem, like etna, so
-      #   we can share it across applications?
-      metis_file_location_parts = path.split('/')
-      return metis_file_location_parts[4..-1].join('/')
-    end
-
     def get_file_obj_from_path(path)
       # Assumes Metis file paths are in the form
       #    metis://<project>/<bucket>/<folder path>/<file name>
@@ -60,15 +38,15 @@ class Metis
       # Should this be in a central gem, like etna, so
       #   we can share it across applications?
       Metis::File.from_path(
-        require_bucket(extract_bucket_from_path(path)),
-        extract_file_path_from_path(path))
+        require_bucket(Metis::Revision.extract_bucket_from_path(path)),
+        Metis::Revision.extract_file_path_from_path(path))
     end
 
     def get_bucket_folder_file_from_path(path)
       new_folder_path, new_file_name = Metis::File.path_parts(
-        extract_file_path_from_path(path))
+        Metis::Revision.extract_file_path_from_path(path))
 
-      new_bucket = require_bucket(extract_bucket_from_path(path))
+      new_bucket = require_bucket(Metis::Revision.extract_bucket_from_path(path))
 
       new_folder = require_folder(new_bucket, new_folder_path)
 

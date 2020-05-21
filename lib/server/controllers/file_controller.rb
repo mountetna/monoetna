@@ -1,5 +1,5 @@
 require 'pry'
-require_relative '../../revision'
+require_relative '../../copy_revision'
 
 class FileController < Metis::Controller
   def remove
@@ -126,7 +126,7 @@ class FileController < Metis::Controller
 
     raise Etna::Forbidden, "Cannot edit project #{@params[:project_name]}" unless @user.can_edit?(@params[:project_name])
 
-    revisions = @params[:revisions].map {|rev| Metis::Revision.new(rev)}
+    revisions = @params[:revisions].map {|rev| Metis::CopyRevision.new(rev)}
 
     raise Etna::BadRequest, 'At least one revision required' unless revisions.length > 0
 

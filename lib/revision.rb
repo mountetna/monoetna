@@ -1,10 +1,24 @@
 require 'pry'
 class Metis
   class Revision
+    FILENAME_MATCH=/[^<>:;,?"*\|\/\x00-\x1f]+/x
+
+    FILEPATH_MATCH=%r!
+      ^metis://
+      (?<project_name>[^/]*?)
+      /
+      (?<bucket_name>[^/]*?)
+      /
+      (?<folder_path>.*)
+      $
+    !x
+
     attr_reader :source, :dest
     def initialize(params)
       raise Etna::BadRequest, 'All revisions require "source" parameter' unless params.has_key? :source
       raise Etna::BadRequest, 'All revisions require "dest" parameter' unless params.has_key? :dest
+
+      raise Etna::BadRequest, 'Invalid source path' unless valid_file_path?(params[:source])
 
       @source = params[:source]
       @dest = params[:dest]
@@ -25,8 +39,7 @@ class Metis
       #   ["metis", "", "<project>", "<bucket>", "<folder path>" ... "file name"]
       # Should this be in a central gem, like etna, so
       #   we can share it across applications?
-      metis_file_location_parts = path.split('/')
-      return metis_file_location_parts[3]
+      return FILEPATH_MATCH.match(path)[:bucket_name]
     end
 
     def self.extract_file_path_from_path(path)
@@ -36,8 +49,7 @@ class Metis
       #   ["metis", "", "<project>", "<bucket>", "<folder path>" ... "file name"]
       # Should this be in a central gem, like etna, so
       #   we can share it across applications?
-      metis_file_location_parts = path.split('/')
-      return metis_file_location_parts[4..-1].join('/')
+      return FILEPATH_MATCH.match(path)[:folder_path]
     end
 
     def validate_access_to_buckets(user_authorized_bucket_names)
@@ -59,6 +71,12 @@ class Metis
 
     def dest_file_path
       Metis::Revision.extract_file_path_from_path(@dest)
+    end
+
+    private
+
+    def valid_file_path?(path)
+      FILEPATH_MATCH.match(path)
     end
   end
 end

@@ -42,6 +42,13 @@ describe Metis::Revision do
         })
     end
 
+    it 'creates correctly with nil dest' do
+        revision = Metis::Revision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: nil
+        })
+    end
+
     it 'returns the source bucket name' do
         revision = Metis::Revision.new({
             source: 'metis://athena/files/helmet.jpg',
@@ -126,5 +133,14 @@ describe Metis::Revision do
             dest: 'metis://athena/magma/wisdom.txt'
         })
         expect(revision.dest_file_path).to eq('wisdom.txt')
+    end
+
+    it 'throws exception for invalid source path' do
+        expect {
+            Metis::Revision.new({
+                source: "metis://athena/files/learn\nwisdom.txt",
+                dest: nil
+            }).to raise_error(Etna::BadRequest)
+        }
     end
 end
