@@ -27,7 +27,7 @@ class Metis
       #       when params[:dest] will be nil
     end
 
-    def self.from_parts(params)
+    def self.create_from_parts(params)
       Metis::Revision.new({
         source: path_from_parts(
           params[:source][:project_name],
@@ -81,10 +81,23 @@ class Metis
       Metis::Revision.extract_file_path_from_path(@dest)
     end
 
+    def source_file
+      Metis::File.from_path(
+        get_bucket(@source),
+        source_file_path)
+    end
+
     private
 
     def valid_file_path?(path)
       FILEPATH_MATCH.match(path)
+    end
+
+    def get_bucket(path)
+      Metis::Bucket.where(
+        project_name: FILEPATH_MATCH.match(path)[:project_name],
+        name: FILEPATH_MATCH.match(path)[:bucket_name]
+      ).first
     end
 
     def self.path_from_parts(project_name, bucket_name, file_path)

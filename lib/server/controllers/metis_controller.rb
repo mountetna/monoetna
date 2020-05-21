@@ -38,7 +38,7 @@ class Metis
       # Should this be in a central gem, like etna, so
       #   we can share it across applications?
       Metis::File.from_path(
-        require_bucket(Metis::Revision.extract_bucket_from_path(path)),
+        require_bucket(Metis::Revision.extract_bucket_name_from_path(path)),
         Metis::Revision.extract_file_path_from_path(path))
     end
 
@@ -46,7 +46,7 @@ class Metis
       new_folder_path, new_file_name = Metis::File.path_parts(
         Metis::Revision.extract_file_path_from_path(path))
 
-      new_bucket = require_bucket(Metis::Revision.extract_bucket_from_path(path))
+      new_bucket = require_bucket(Metis::Revision.extract_bucket_name_from_path(path))
 
       new_folder = require_folder(new_bucket, new_folder_path)
 

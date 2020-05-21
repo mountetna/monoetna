@@ -420,7 +420,7 @@ describe FileController do
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid path')
+      expect(json_body[:error]).to eq("Invalid path for dest metis://athena/files/learn\nwisdom.txt")
 
       # the original is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
@@ -452,7 +452,7 @@ describe FileController do
       copy_file('folly.txt', 'learn-folly.txt')
 
       expect(last_response.status).to eq(404)
-      expect(json_body[:error]).to eq('File not found')
+      expect(json_body[:error]).to eq('File metis://athena/files/folly.txt not found')
 
       # the actual file is untouched
       @wisdom_file.refresh
@@ -492,7 +492,7 @@ describe FileController do
       copy_file('wisdom.txt', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot copy over existing folder')
+      expect(json_body[:error]).to eq('Cannot copy over existing folder metis://athena/files/learn-wisdom.txt')
 
       # the file we tried to copy is untouched
       @wisdom_file.refresh
@@ -538,7 +538,7 @@ describe FileController do
       copy_file('wisdom.txt', 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Folder is read-only')
+      expect(json_body[:error]).to eq('contents folder is read-only')
 
       # the original is untouched
       @wisdom_file.refresh
@@ -1051,7 +1051,6 @@ describe FileController do
 
       # the data is not destroyed
       expect(::File.exists?(location)).to be_truthy
-
       orig_wisdom_file = Metis::File.first
       expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
       third_link_file = Metis::File.last

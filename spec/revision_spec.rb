@@ -96,7 +96,7 @@ describe Metis::Revision do
     end
 
     it 'creates a Revision from parts' do
-        revision = Metis::Revision.from_parts({
+        revision = Metis::Revision.create_from_parts({
             source: {
                 project_name: 'athena',
                 bucket_name: 'files',
@@ -160,5 +160,16 @@ describe Metis::Revision do
                 dest: nil
             })
         }.to raise_error(Etna::BadRequest)
+    end
+
+    it 'returns the source file' do
+        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+        revision = Metis::Revision.new({
+            source: 'metis://athena/files/wisdom.txt',
+            dest: 'metis://athena/files/blueprints/helmet/helmet.jpg'
+        })
+        expect(revision.source_file.file_name).to eq('wisdom.txt')
     end
 end
