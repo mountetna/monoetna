@@ -369,28 +369,6 @@ EOT
     end
   end
 
-  class Ls < Command
-    def run(file_path=nil)
-      raise ShellError, 'No project is selected' if !@shell.project_name
-
-      if !@shell.cwd && !file_path
-        neat_display(folders: bucket_names)
-        return
-      end
-
-      folder = @shell.client.list_folder(@shell.project_name, @shell.relative_path(file_path))
-
-      neat_display(
-        folders: folder[:folders].map{|f| f[:folder_name] },
-        files: folder[:files].map{|f| f[:file_name]}
-      )
-    end
-
-    def bucket_names
-      @bucket_names ||= @shell.client.list_buckets(@shell.project_name).map{|b| b[:bucket_name]}
-    end
-  end
-
   class Project < Command
     def run(project_name=nil)
       raise ShellError, "No such project#{project_name && " '#{project_name}'" }. Try:\n#{@shell.project_list.join("\t")}" unless @shell.project_list.include?(project_name)
@@ -656,15 +634,20 @@ EOT
     begin
       path = Shellwords.split(relative_path(dirname) || '').first
       basename = Shellwords.split(basename || '').first
-      folder = client.list_folder(@project_name, path)
-      return [] unless folder && folder.is_a?(Hash)
-      [
-        folder[:folders]&.map{|f| f[:folder_name]+"/"},
-        folder[:files]&.map{|f| f[:file_name]+" "}
-      ]
-        .flatten.compact
-        .grep(/^#{basename}/)
-        .map{|s| [dirname, s].compact.join('/').gsub(/(?<!\\) (?!$)/, '\ ')}
+      if path
+        folder = client.list_folder(@project_name, path)
+        return [] unless folder && folder.is_a?(Hash)
+
+        return [
+          folder[:folders]&.map{|f| f[:folder_name]+"/"},
+          folder[:files]&.map{|f| f[:file_name]+" "}
+        ]
+          .flatten.compact
+          .grep(/^#{basename}/)
+          .map{|s| [dirname, s].compact.join('/').gsub(/(?<!\\) (?!$)/, '\ ')}
+      else
+        return client.list_buckets(@project_name).map{|b| b[:bucket_name]+'/'}.grep(/^#{basename}/)
+      end
     rescue MetisClient::Error
       []
     end
