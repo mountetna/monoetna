@@ -399,6 +399,20 @@ EOT
     end
   end
 
+  class Pwd < Command
+    def run
+      puts Dir.pwd
+    end
+  end
+
+  class Lcd < Command
+    def run(dirname)
+      dirname = ::File.expand_path(dirname)
+      raise ShellError, 'No such directory!' unless ::File.directory?(dirname)
+      Dir.chdir(dirname)
+    end
+  end
+
   class Get < Command
     def run(folder_path)
       raise ShellError, 'No remote folder selected!' unless @shell.cwd
