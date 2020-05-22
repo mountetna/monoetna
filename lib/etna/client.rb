@@ -93,7 +93,7 @@ module Etna
     def query_request(type, endpoint, params={}, &block)
       uri = request_uri(endpoint)
       uri.query = URI.encode_www_form(params)
-      req = type.new(uri.path, request_params)
+      req = type.new(uri.request_uri, request_params)
       request(uri, req, &block)
     end
 
