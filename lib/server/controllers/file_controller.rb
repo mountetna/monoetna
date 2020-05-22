@@ -118,7 +118,12 @@ class FileController < Metis::Controller
 
     raise Etna::Forbidden, "Cannot edit project #{@params[:project_name]}" unless @user.can_edit?(@params[:project_name])
 
-    revisions = @params[:revisions].map {|rev| Metis::CopyRevision.new(rev)}
+    revisions = []
+
+    JSON.parse(@params[:revisions]).
+      each { |rev|
+        revisions.push(Metis::CopyRevision.new(rev.transform_keys(&:to_sym)))
+      }
 
     raise Etna::BadRequest, 'At least one revision required' unless revisions.length > 0
 

@@ -658,7 +658,7 @@ describe FileController do
 
     def bulk_copy(revisions=[], params={})
       json_post("/athena/file/bulk_copy", {
-        revisions: revisions
+        revisions: JSON.generate(revisions)
       }.merge(params))
     end
 
