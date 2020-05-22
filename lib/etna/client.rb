@@ -91,6 +91,12 @@ module Etna
     end
 
     def body_request_with_query_params(type, endpoint, query_params={}, params={}, &block)
+      # This is useful when we want to send HMAC parameters in the
+      #   URI Query Params, but more complicated data in
+      #   the body / payload. For example, sending bulk copy
+      #   revisions to Metis is an array of hashes, which
+      #   doesn't translate well to URL query params, so
+      #   we want to send those in the body.
       uri = request_uri(endpoint)
       uri.query = URI.encode_www_form(query_params)
       req = type.new(uri.request_uri,request_params)
