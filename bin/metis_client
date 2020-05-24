@@ -268,6 +268,11 @@ EOT
       raise "#{self.class.command_name} is not implemented!"
     end
 
+    def self.usage(msg=nil)
+      @usage = msg if msg
+      @usage
+    end
+
     private
 
     def neat_display(files:[], folders:[])
@@ -310,7 +315,21 @@ EOT
     end
   end
 
+  class Help < Command
+    def run(command=nil)
+      if command
+        command = Command.list.find { |c| c.command_name == command.to_s }
+        puts command.usage ? "Usage:\n#{command.usage}" : "No help for #{command.command_name}"
+        return
+      else
+        puts "Commands:\n#{Command.list.map(&:command_name).join("\t")}"
+        return
+      end
+    end
+  end
+
   class Mv < Command
+    usage "mv <remote_path> <new_remote_path>"
     def run(path, new_path)
       raise ShellError, 'No project is selected' if !@shell.project_name
 
@@ -348,6 +367,7 @@ EOT
   end
 
   class Ls < Command
+    usage "ls [<remote_folder_path>]"
     def run(file_path=nil)
       raise ShellError, 'No project is selected' if !@shell.project_name
 
@@ -370,6 +390,7 @@ EOT
   end
 
   class Project < Command
+    usage "project [<project_name>]"
     def run(project_name=nil)
       raise ShellError, "No such project#{project_name && " '#{project_name}'" }. Try:\n#{@shell.project_list.join("\t")}" unless @shell.project_list.include?(project_name)
 
@@ -381,6 +402,7 @@ EOT
   end
 
   class Cd < Command
+    usage "cd [<remote_folder_path>]"
     def run(dirname=nil)
       if !dirname
         @shell.cwd = nil
@@ -400,12 +422,14 @@ EOT
   end
 
   class Pwd < Command
+    usage "pwd"
     def run
       puts Dir.pwd
     end
   end
 
   class Lcd < Command
+    usage "cd [<remote_folder_path>]"
     def run(dirname)
       dirname = ::File.expand_path(dirname)
       raise ShellError, 'No such directory!' unless ::File.directory?(dirname)
@@ -414,6 +438,8 @@ EOT
   end
 
   class Get < Command
+    usage "get <remote_folder_path> <local_path>"
+
     def run(folder_path, local_path)
       raise ShellError, 'No remote folder selected!' unless @shell.cwd
 
@@ -470,6 +496,7 @@ EOT
   end
 
   class Put < Command
+    usage "put <input_file1> ... [<input_fileN>] <remote_folder_path>"
     def run(*input_files, folder_path)
       raise ShellError, 'No remote folder selected!' unless folder_path
 
@@ -756,7 +783,7 @@ EOT
     rescue MetisClient::Error => e
       puts e.message
     rescue ArgumentError => e
-      puts e.message
+      puts(command.usage ? "Usage:\n#{command.usage}" : e.message)
     rescue Net::ReadTimeout => e
       puts e.message
     end
