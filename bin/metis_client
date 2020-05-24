@@ -414,10 +414,14 @@ EOT
   end
 
   class Get < Command
-    def run(folder_path)
+    def run(folder_path, local_path)
       raise ShellError, 'No remote folder selected!' unless @shell.cwd
 
-      download_folder(@shell.relative_path(folder_path), ::File.join(Dir.pwd, ::File.basename(folder_path)))
+      path = local_path =~ %r!^/! ?
+        local_path :
+        Pathname.new(::File.join(*[Dir.pwd, local_path].compact)).cleanpath.to_s
+
+      download_folder(@shell.relative_path(folder_path), ::File.join(local_path, ::File.basename(folder_path)))
     end
 
     private
@@ -466,13 +470,13 @@ EOT
   end
 
   class Put < Command
-    def run(*input_files)
-      raise ShellError, 'No remote folder selected!' unless @shell.cwd
+    def run(*input_files, folder_path)
+      raise ShellError, 'No remote folder selected!' unless folder_path
 
       raise ShellError, 'No input files selected!' if input_files.empty?
 
       # get a listing of the folder
-      folder = @shell.client.list_folder(@shell.project_name, @shell.cwd)
+      folder = @shell.client.list_folder(@shell.project_name, @shell.relative_path(folder_path))
 
       input_files.each do |file_or_folder|
         upload(file_or_folder, @shell.cwd, folder)
@@ -484,9 +488,10 @@ EOT
     def upload(file_or_folder, folder_path, folder)
       if ::File.directory?(file_or_folder)
         upload_folder(file_or_folder, folder_path, folder)
-      end
-      if ::File.file?(file_or_folder)
+      elsif ::File.file?(file_or_folder)
         upload_file(file_or_folder, folder_path, folder)
+      else
+        puts "Invalid input #{file_or_folder}"
       end
     end
 
