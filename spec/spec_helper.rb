@@ -314,14 +314,26 @@ AUTH_USERS = {
   },
   admin: {
     email: 'zeus@olympus.org', first: 'Zeus', perm: 'a:athena'
+  },
+  non_user: {
+    email: 'nessus@centaurs.org', first: 'Nessus', perm: ''
   }
 }
 def token_header(user_type)
   header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
 end
 
-def hmac_header
-  header(*Etna::TestAuth.hmac_header({}))
+def hmac_params(params={})
+  Etna::TestAuth.hmac_params(params)
+end
+
+def hmac_header(params={})
+  Etna::TestAuth.hmac_params({
+    id: 'metis',
+    signature: 'valid'
+  }.merge(params)).each do |name, value|
+    header( name.to_s, value )
+  end
 end
 
 def default_bucket(project_name)
