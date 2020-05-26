@@ -701,7 +701,7 @@ describe FileController do
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq("Invalid path for dest metis://athena/files/learn\nwisdom.txt")
+      expect(json_body[:error]).to eq('All revisions require valid "dest" parameter')
 
       # the original is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
@@ -932,7 +932,7 @@ describe FileController do
       stubs.add_file('athena', 'files', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot access the destination bucket sundry')
+      expect(json_body[:error]).to eq('User does not have access to all dest buckets')
 
       # the old file is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
@@ -981,7 +981,7 @@ describe FileController do
       stubs.add_file('athena', 'sundry', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot access the destination bucket sundry')
+      expect(json_body[:error]).to eq('User does not have access to all dest buckets')
 
       # the old file is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')

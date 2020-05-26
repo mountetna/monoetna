@@ -2,23 +2,28 @@ require_relative 'revision'
 
 class Metis
     class CopyRevision < Revision
-        def initialize(params)
-            super(params)
-            raise Etna::BadRequest, 'Copy revisions must have a non-nil "dest" parameter' unless params[:dest]
-            raise Etna::BadRequest, "Invalid path for dest #{params[:dest]}" unless valid_file_path?(params[:dest])
-        end
-
         def self.create_from_parts(params)
             Metis::CopyRevision.new({
-              source: path_from_parts(
+              source: Metis::Path.path_from_parts(
                 params[:source][:project_name],
                 params[:source][:bucket_name],
                 params[:source][:file_path]),
-              dest: path_from_parts(
+              dest: Metis::Path.path_from_parts(
                 params[:dest][:project_name],
                 params[:dest][:bucket_name],
                 params[:dest][:file_path])
             })
+        end
+
+        def valid? (validation_type=nil, user_authorized_bucket_names=nil)
+            case validation_type
+            when 'dest_path'
+              return @dest.valid?
+            when 'dest_bucket_access'
+              return false unless user_authorized_bucket_names
+              return user_authorized_bucket_names.include? @dest.bucket_name
+            end
+            super(validation_type, user_authorized_bucket_names)
         end
     end
 end

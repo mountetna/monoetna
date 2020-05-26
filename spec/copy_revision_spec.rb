@@ -19,23 +19,6 @@ describe Metis::CopyRevision do
       expect(stubs.contents(:athena)).to be_empty
     end
 
-    it 'throws exception if nil dest provided' do
-        expect {
-            Metis::CopyRevision.new({
-                dest: 'metis://athena/files/wisdom.txt'
-            })
-        }.to raise_error(Etna::BadRequest)
-    end
-
-    it 'throws exception for invalid dest path' do
-        expect {
-            Metis::CopyRevision.new({
-                source: "metis://athena/files/wisdom.txt",
-                dest: "metis://athena/files/learn\nwisdom.txt"
-            }).to raise_error(Etna::BadRequest)
-        }
-    end
-
     it 'creates a CopyRevision from parts' do
         revision = Metis::CopyRevision.create_from_parts({
             source: {
@@ -50,8 +33,59 @@ describe Metis::CopyRevision do
             }
         })
 
-        expect(revision.source).to eq('metis://athena/files/blueprints/helmet/helmet.jpg')
-        expect(revision.dest).to eq('metis://athena/files/build-helmet.jpg')
+        expect(revision.source.path).to eq('metis://athena/files/blueprints/helmet/helmet.jpg')
+        expect(revision.dest.path).to eq('metis://athena/files/build-helmet.jpg')
         expect(revision.instance_of? Metis::CopyRevision).to be_truthy
+    end
+
+    it 'creates a Metis::Path as the dest parameter' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: 'metis://athena/files/wisdom.txt'
+        })
+        expect(revision.dest.instance_of? Metis::Path).to eq(true)
+    end
+
+    it 'returns false if user cannot access the dest bucket' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect(revision.valid?('dest_bucket_access', ['files'])).
+          to eq(false)
+    end
+
+    it 'returns true if user can access the dest bucket' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect(revision.valid?('dest_bucket_access', ['magma'])).
+            to eq(true)
+    end
+
+    it 'returns false if the dest path is invalid' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: "metis://athena/magma/learn\nwisdom.txt"
+        })
+        expect(revision.valid?('dest_path')).
+          to eq(false)
+
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: nil
+        })
+        expect(revision.valid?('dest_path')).
+          to eq(false)
+    end
+
+    it 'returns true if the dest path is valid' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect(revision.valid?('dest_path')).
+            to eq(true)
     end
 end

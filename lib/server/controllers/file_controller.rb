@@ -96,9 +96,9 @@ class FileController < Metis::Controller
 
     new_file = Metis::File.copy({
       project_name: @params[:project_name],
-      source_file: revision.source_file,
-      dest_file_path: revision.dest_file_path,
-      dest_bucket_name: revision.dest_bucket_name,
+      source_file: revision.source.file,
+      dest_file_path: revision.dest.file_path,
+      dest_bucket_name: revision.dest.bucket_name,
       user: @user
     })
 
@@ -118,13 +118,15 @@ class FileController < Metis::Controller
       map {|rev| Metis::CopyRevision.new(rev) }
 
     raise Etna::BadRequest, 'At least one revision required' unless revisions.length > 0
+    raise Etna::BadRequest, 'All revisions require valid "source" parameter' unless revisions.all? { |rev| rev.valid? ('source_path')}
+    raise Etna::BadRequest, 'All revisions require valid "dest" parameter' unless revisions.all? { |rev| rev.valid? ('dest_path')}
 
     # In bulk copy mode, we validate the buckets in bulk
     #   since they aren't part of the path (are part of revisions),
     #   and trying to minimize database hits by rejecting early, if
     #   possible.
-    all_source_bucket_names = revisions.map {|rev| rev.source_bucket_name}.uniq
-    all_dest_bucket_names = revisions.map {|rev| rev.dest_bucket_name}.uniq
+    all_source_bucket_names = revisions.map {|rev| rev.source.bucket_name}.uniq
+    all_dest_bucket_names = revisions.map {|rev| rev.dest.bucket_name}.uniq
 
     hmac = @request.env['etna.hmac']
 
@@ -135,7 +137,10 @@ class FileController < Metis::Controller
     ).all.select{|b| b.allowed?(@user, hmac)}.
       map {|bucket| bucket.name}
 
-    revisions.map {|rev| rev.validate_access_to_buckets(user_authorized_bucket_names)}
+    raise Etna::Forbidden, 'User does not have access to all source buckets' unless revisions.all? {
+      |rev| rev.valid?('source_bucket_access', user_authorized_bucket_names)}
+    raise Etna::Forbidden, 'User does not have access to all dest buckets' unless revisions.all? {
+      |rev| rev.valid?('dest_bucket_access', user_authorized_bucket_names)}
 
     revisions.each do |revision|
       validate_copy_revision(revision)
@@ -147,9 +152,9 @@ class FileController < Metis::Controller
 
       new_file = Metis::File.copy({
         project_name: @params[:project_name],
-        source_file: revision.source_file,
-        dest_file_path: revision.dest_file_path,
-        dest_bucket_name: revision.dest_bucket_name,
+        source_file: revision.source.file,
+        dest_file_path: revision.dest.file_path,
+        dest_bucket_name: revision.dest.bucket_name,
         user: @user
       })
 
@@ -161,9 +166,9 @@ class FileController < Metis::Controller
   private
 
   def validate_copy_revision(revision)
-    file = revision.source_file
+    file = revision.source.file
 
-    raise Etna::Error.new("File #{revision.source} not found", 404) unless file&.has_data?
+    raise Etna::Error.new("File #{revision.source.path} not found", 404) unless file&.has_data?
 
     new_bucket, new_folder, new_file_name = get_bucket_folder_file_from_path(revision.dest)
 
