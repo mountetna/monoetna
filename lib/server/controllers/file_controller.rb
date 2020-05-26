@@ -114,12 +114,8 @@ class FileController < Metis::Controller
     # If all revisions are valid, execute them.
     require_param(:revisions)
 
-    revisions = []
-
-    JSON.parse(@params[:revisions]).
-      each { |rev|
-        revisions.push(Metis::CopyRevision.new(rev.transform_keys(&:to_sym)))
-      }
+    revisions = JSON.parse(@params[:revisions], symbolize_names: true).
+      map {|rev| Metis::CopyRevision.new(rev) }
 
     raise Etna::BadRequest, 'At least one revision required' unless revisions.length > 0
 
