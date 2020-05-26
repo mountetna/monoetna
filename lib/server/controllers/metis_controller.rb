@@ -31,22 +31,17 @@ class Metis
     end
 
     def get_file_obj_from_path(path)
-      # Assumes Metis file paths are in the form
-      #    metis://<project>/<bucket>/<folder path>/<file name>
-      # Splitting the above produces
-      #   ["metis", "", "<project>", "<bucket>", "<folder path>" ... "file name"]
-      # Should this be in a central gem, like etna, so
-      #   we can share it across applications?
+      # Assumes path is an instance of Metis::Path
       Metis::File.from_path(
-        require_bucket(Metis::Path.extract_bucket_name_from_path(path)),
-        Metis::Revision.extract_file_path_from_path(path))
+        require_bucket(path.bucket_name),
+        path.file_path)
     end
 
     def get_bucket_folder_file_from_path(path)
-      new_folder_path, new_file_name = Metis::File.path_parts(
-        Metis::Path.extract_file_path_from_path(path))
+      # Assumes path is an instance of Metis::Path
+      new_folder_path, new_file_name = Metis::File.path_parts(path.file_path)
 
-      new_bucket = require_bucket(Metis::Path.extract_bucket_name_from_path(path))
+      new_bucket = require_bucket(path.bucket_name)
 
       new_folder = require_folder(new_bucket, new_folder_path)
 

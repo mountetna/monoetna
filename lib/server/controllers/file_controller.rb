@@ -92,6 +92,9 @@ class FileController < Metis::Controller
       }
     })
 
+    raise Etna::BadRequest, "Invalid path for source #{revision.source.path}" unless revision.source.valid?
+    raise Etna::BadRequest, "Invalid path for dest #{revision.dest.path}" unless revision.dest.valid?
+
     validate_copy_revision(revision)
 
     new_file = Metis::File.copy({
@@ -114,12 +117,12 @@ class FileController < Metis::Controller
     # If all revisions are valid, execute them.
     require_param(:revisions)
 
-    revisions = JSON.parse(@params[:revisions], symbolize_names: true).
+    revisions = @params[:revisions].
       map {|rev| Metis::CopyRevision.new(rev) }
 
     raise Etna::BadRequest, 'At least one revision required' unless revisions.length > 0
-    raise Etna::BadRequest, 'All revisions require valid "source" parameter' unless revisions.all? { |rev| rev.valid? ('source_path')}
-    raise Etna::BadRequest, 'All revisions require valid "dest" parameter' unless revisions.all? { |rev| rev.valid? ('dest_path')}
+    raise Etna::BadRequest, 'All revisions require valid "source" parameter' unless revisions.all? { |rev| rev.source.valid?}
+    raise Etna::BadRequest, 'All revisions require valid "dest" parameter' unless revisions.all? { |rev| rev.dest.valid?}
 
     # In bulk copy mode, we validate the buckets in bulk
     #   since they aren't part of the path (are part of revisions),
@@ -181,6 +184,6 @@ class FileController < Metis::Controller
       raise Etna::Forbidden, "Destination file #{dest_file.file_name} is read-only" if dest_file.read_only?
     end
 
-    raise Etna::Forbidden, "Cannot copy over existing folder #{revision.dest}" if  Metis::Folder.exists?(new_file_name, new_bucket, new_folder)
+    raise Etna::Forbidden, "Cannot copy over existing folder #{revision.dest.path}" if  Metis::Folder.exists?(new_file_name, new_bucket, new_folder)
   end
 end
