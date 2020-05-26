@@ -79,8 +79,6 @@ class FileController < Metis::Controller
     # since source bucket name is part of the path
     bucket = require_bucket
 
-    raise Etna::Forbidden, "Cannot edit project #{@params[:project_name]}" unless @user.can_edit?(@params[:project_name])
-
     revision = Metis::CopyRevision.create_from_parts({
       source: {
         project_name: @params[:project_name],
@@ -115,8 +113,6 @@ class FileController < Metis::Controller
     #   all revisions are valid.
     # If all revisions are valid, execute them.
     require_param(:revisions)
-
-    raise Etna::Forbidden, "Cannot edit project #{@params[:project_name]}" unless @user.can_edit?(@params[:project_name])
 
     revisions = []
 
