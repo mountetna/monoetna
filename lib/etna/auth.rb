@@ -93,7 +93,7 @@ module Etna
       return false unless headers = etna_param(request, :headers)
 
       headers = headers.split(/,/).map do |header|
-        [ header.to_sym, etna_param(request, header) ]
+        [ header.to_sym, params(request)[header.to_sym] || etna_param(request, header) ]
       end.to_h
 
       # Now expect the standard headers

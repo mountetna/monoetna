@@ -56,6 +56,7 @@ module Etna
       @http ||= begin
                   http = Net::HTTP::Persistent.new
                   http.read_timeout = 3600
+                  http.verify_mode = OpenSSL::SSL::VERIFY_NONE  # REMOVE FOR PRODUCTION USE
                   http
                 end
     end
@@ -85,20 +86,6 @@ module Etna
 
     def body_request(type, endpoint, params={}, &block)
       uri = request_uri(endpoint)
-      req = type.new(uri.path,request_params)
-      req.body = params.to_json
-      request(uri, req, &block)
-    end
-
-    def body_request_with_query_params(type, endpoint, query_params={}, params={}, &block)
-      # This is useful when we want to send HMAC parameters in the
-      #   URI Query Params, but more complicated data in
-      #   the body / payload. For example, sending bulk copy
-      #   revisions to Metis is an array of hashes, which
-      #   doesn't translate well to URL query params, so
-      #   we want to send those in the body.
-      uri = request_uri(endpoint)
-      uri.query = URI.encode_www_form(query_params)
       req = type.new(uri.request_uri,request_params)
       req.body = params.to_json
       request(uri, req, &block)
