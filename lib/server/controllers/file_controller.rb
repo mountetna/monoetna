@@ -136,8 +136,6 @@ class FileController < Metis::Controller
 
     hmac = @request.env['etna.hmac']
 
-    raise Etna::Forbidden 'Invalid signature' unless hmac.valid?
-
     user_authorized_bucket_names = Metis::Bucket.where(
       project_name: @params[:project_name],
       owner: ['metis', hmac.id.to_s],
