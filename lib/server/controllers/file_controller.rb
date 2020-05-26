@@ -135,6 +135,9 @@ class FileController < Metis::Controller
     all_dest_bucket_names = revisions.map {|rev| rev.dest_bucket_name}.uniq
 
     hmac = @request.env['etna.hmac']
+
+    raise Etna::Forbidden 'Invalid signature' unless hmac.valid?
+
     user_authorized_bucket_names = Metis::Bucket.where(
       project_name: @params[:project_name],
       owner: ['metis', hmac.id.to_s],
