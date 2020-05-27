@@ -98,7 +98,8 @@ class FileController < Metis::Controller
     })
 
     # The above require_bucket already verified the
-    #   user has access to this bucket.
+    #   user has access to these buckets, but let's
+    #   validate the rest of the information.
     revision.validate([bucket.name, dest_bucket.name])
 
     raise Etna::BadRequest, revision.errors unless revision.errors.length == 0
