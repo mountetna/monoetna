@@ -195,4 +195,23 @@ describe Metis::CopyRevision do
             "Cannot copy over existing folder metis://athena/files/wisdom.txt"
         )
     end
+
+    it 'executes the revision' do
+        expect(Metis::File.count).to eq(1)
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/wisdom.txt',
+            dest: 'metis://athena/files/learn-wisdom.txt'
+        })
+        learn_wisdom = revision.revise!({
+            project_name: 'athena',
+            user: Etna::User.new({
+                first: 'Athena',
+                last: 'Pallas',
+                email: 'athena@olympus.org',
+                perm: 'a:athena'
+            })
+        })
+        expect(Metis::File.count).to eq(2)
+        expect(learn_wisdom.data_block).to eq(@wisdom_file.data_block)
+    end
 end

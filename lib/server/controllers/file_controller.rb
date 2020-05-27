@@ -103,11 +103,8 @@ class FileController < Metis::Controller
 
     raise Etna::BadRequest, revision.errors unless revision.errors.length == 0
 
-    new_file = Metis::File.copy({
+    new_file = revision.revise!({
       project_name: @params[:project_name],
-      source_file: revision.source.file,
-      dest_file_path: revision.dest.file_path,
-      dest_bucket_name: revision.dest.bucket.name,
       user: @user
     })
 
@@ -152,11 +149,8 @@ class FileController < Metis::Controller
     new_files = []
     revisions.each do |revision|
 
-      new_file = Metis::File.copy({
+      new_file = revision.revise!({
         project_name: @params[:project_name],
-        source_file: revision.source.file,
-        dest_file_path: revision.dest.file_path,
-        dest_bucket_name: revision.dest.bucket.name,
         user: @user
       })
 
