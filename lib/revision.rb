@@ -43,9 +43,8 @@ class Metis
     def bucket_names
       # This is kind of weird, but we need the ability to grab
       #   all relevant bucket names, even before validation of
-      #   the CopyRevision (in file_controller).
-      # So, if @dest doesn't exist, we only return the source
-      #   bucket name.
+      #   the Revision.
+      # So, if @source isn't valid, we return empty list.
       if @source.valid?
         return [@source.bucket_name]
       end
