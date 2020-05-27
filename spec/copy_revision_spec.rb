@@ -88,4 +88,13 @@ describe Metis::CopyRevision do
         expect(revision.valid?('dest_path')).
             to eq(true)
     end
+
+    it 'returns the source and dest bucket_names in an array' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect(revision.bucket_names).
+            to eq(['files', 'magma'])
+    end
 end

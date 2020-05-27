@@ -25,5 +25,9 @@ class Metis
             end
             super(validation_type, user_authorized_bucket_names)
         end
+
+        def bucket_names
+          return [@source.bucket_name, @dest.bucket_name]
+        end
     end
 end

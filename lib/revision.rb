@@ -34,5 +34,9 @@ class Metis
       end
       return false
     end
+
+    def bucket_names
+      return [@source.bucket_name]
+    end
   end
 end

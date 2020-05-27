@@ -128,17 +128,14 @@ class FileController < Metis::Controller
     #   since they aren't part of the path (are part of revisions),
     #   and trying to minimize database hits by rejecting early, if
     #   possible.
-    all_source_bucket_names = revisions.map {|rev| rev.source.bucket_name}.uniq
-    all_dest_bucket_names = revisions.map {|rev| rev.dest.bucket_name}.uniq
-
     hmac = @request.env['etna.hmac']
 
     user_authorized_bucket_names = Metis::Bucket.where(
       project_name: @params[:project_name],
       owner: ['metis', hmac.id.to_s],
-      name: all_source_bucket_names + all_dest_bucket_names
+      name: revisions.map(&:bucket_names).flatten.uniq
     ).all.select{|b| b.allowed?(@user, hmac)}.
-      map {|bucket| bucket.name}
+      map(&:name)
 
     raise Etna::Forbidden, 'User does not have access to all source buckets' unless revisions.all? {
       |rev| rev.valid?('source_bucket_access', user_authorized_bucket_names)}

@@ -101,4 +101,13 @@ describe Metis::Revision do
         expect(revision.valid?('source_path')).
             to eq(true)
     end
+
+    it 'returns the source bucket_name in an array' do
+        revision = Metis::Revision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect(revision.bucket_names).
+            to eq(['files'])
+    end
 end
