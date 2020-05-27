@@ -11,6 +11,9 @@ describe Metis::Path do
       @metis_uid = Metis.instance.sign.uid
 
       set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
+
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
     end
 
     after(:each) do
@@ -59,25 +62,16 @@ describe Metis::Path do
     end
 
     it 'returns the path\'s file' do
-        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-
         path = Metis::Path.new('metis://athena/files/wisdom.txt')
         expect(path.file).to eq(@wisdom_file)
     end
 
     it 'returns the path\'s folder' do
-        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-
         path = Metis::Path.new('metis://athena/files/wisdom.txt')
         expect(path.folder).to eq(@wisdom_file.folder)
     end
 
     it 'returns the path\'s folder_path' do
-        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-
         path = Metis::Path.new('metis://athena/files/wisdom.txt')
         expect(path.folder_path).to eq(nil)
 
@@ -86,9 +80,6 @@ describe Metis::Path do
     end
 
     it 'returns the path\'s file_name' do
-        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-
         path = Metis::Path.new('metis://athena/files/wisdom.txt')
         expect(path.file_name).to eq('wisdom.txt')
 
@@ -96,18 +87,17 @@ describe Metis::Path do
         expect(path.file_name).to eq('helmet.jpg')
     end
 
-    it 'returns the path\'s bucket' do
-        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+    it 'returns the path\'s project_name' do
+        path = Metis::Path.new('metis://athena/files/wisdom.txt')
+        expect(path.project_name).to eq('athena')
+    end
 
+    it 'returns the path\'s bucket' do
         path = Metis::Path.new('metis://athena/files/wisdom.txt')
         expect(path.bucket).to eq(@wisdom_file.bucket)
     end
 
     it 'returns the path\'s bucket name' do
-        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-
         path = Metis::Path.new('metis://athena/files/wisdom.txt')
         expect(path.bucket_name).to eq(@wisdom_file.bucket.name)
     end

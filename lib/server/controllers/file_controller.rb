@@ -105,7 +105,6 @@ class FileController < Metis::Controller
     raise Etna::BadRequest, revision.errors unless revision.errors.length == 0
 
     new_file = revision.revise!({
-      project_name: @params[:project_name],
       user: @user
     })
 
@@ -151,7 +150,6 @@ class FileController < Metis::Controller
     revisions.each do |revision|
 
       new_file = revision.revise!({
-        project_name: @params[:project_name],
         user: @user
       })
 

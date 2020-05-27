@@ -63,7 +63,7 @@ class Metis
 
     def revise! (params)
       Metis::File.copy({
-        project_name: params[:project_name],
+        project_name: @source.project_name,
         source_file: @source.file,
         dest_file_path: @dest.file_path,
         dest_bucket_name: @dest.bucket.name,

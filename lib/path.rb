@@ -34,6 +34,10 @@ class Metis
         "metis://#{project_name}/#{bucket_name}/#{file_path}"
       end
 
+      def project_name
+        FILEPATH_MATCH.match(@path)[:project_name]
+      end
+
       def bucket_name
         FILEPATH_MATCH.match(@path)[:bucket_name]
       end
