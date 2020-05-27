@@ -79,29 +79,35 @@ class FileController < Metis::Controller
     # since source bucket name is part of the path
     bucket = require_bucket
 
+    dest_bucket = bucket
+    if @params[:new_bucket_name]
+      dest_bucket = require_bucket(@params[:new_bucket_name])
+    end
+
     revision = Metis::CopyRevision.create_from_parts({
       source: {
         project_name: @params[:project_name],
-        bucket_name: @params[:bucket_name],
+        bucket_name: bucket.name,
         file_path: @params[:file_path]
       },
       dest: {
         project_name: @params[:project_name],
-        bucket_name: @params[:new_bucket_name] ? @params[:new_bucket_name] : @params[:bucket_name],
+        bucket_name: dest_bucket.name,
         file_path: @params[:new_file_path]
       }
     })
 
-    raise Etna::BadRequest, "Invalid path for source #{revision.source.path}" unless revision.source.valid?
-    raise Etna::BadRequest, "Invalid path for dest #{revision.dest.path}" unless revision.dest.valid?
+    # The above require_bucket already verified the
+    #   user has access to this bucket.
+    revision.validate([bucket.name, dest_bucket.name])
 
-    validate_copy_revision(revision)
+    raise Etna::BadRequest, revision.errors unless revision.errors.length == 0
 
     new_file = Metis::File.copy({
       project_name: @params[:project_name],
       source_file: revision.source.file,
       dest_file_path: revision.dest.file_path,
-      dest_bucket_name: revision.dest.bucket_name,
+      dest_bucket_name: revision.dest.bucket.name,
       user: @user
     })
 
@@ -121,8 +127,6 @@ class FileController < Metis::Controller
       map {|rev| Metis::CopyRevision.new(rev) }
 
     raise Etna::BadRequest, 'At least one revision required' unless revisions.length > 0
-    raise Etna::BadRequest, 'All revisions require valid "source" parameter' unless revisions.all? { |rev| rev.source.valid?}
-    raise Etna::BadRequest, 'All revisions require valid "dest" parameter' unless revisions.all? { |rev| rev.dest.valid?}
 
     # In bulk copy mode, we validate the buckets in bulk
     #   since they aren't part of the path (are part of revisions),
@@ -137,14 +141,12 @@ class FileController < Metis::Controller
     ).all.select{|b| b.allowed?(@user, hmac)}.
       map(&:name)
 
-    raise Etna::Forbidden, 'User does not have access to all source buckets' unless revisions.all? {
-      |rev| rev.valid?('source_bucket_access', user_authorized_bucket_names)}
-    raise Etna::Forbidden, 'User does not have access to all dest buckets' unless revisions.all? {
-      |rev| rev.valid?('dest_bucket_access', user_authorized_bucket_names)}
+    revisions.
+      map { |rev| rev.validate(user_authorized_bucket_names) }
 
-    revisions.each do |revision|
-      validate_copy_revision(revision)
-    end
+    errors = revisions.map(&:errors).flatten
+
+    raise Etna::BadRequest, errors unless errors.length == 0
 
     # If we've gotten here, every revision looks good and we can execute them!
     new_files = []
@@ -154,33 +156,12 @@ class FileController < Metis::Controller
         project_name: @params[:project_name],
         source_file: revision.source.file,
         dest_file_path: revision.dest.file_path,
-        dest_bucket_name: revision.dest.bucket_name,
+        dest_bucket_name: revision.dest.bucket.name,
         user: @user
       })
 
       new_files.push(new_file.to_hash(@request))
     end
     success_json(files: new_files)
-  end
-
-  private
-
-  def validate_copy_revision(revision)
-    file = revision.source.file
-
-    raise Etna::Error.new("File #{revision.source.path} not found", 404) unless file&.has_data?
-
-    new_bucket, new_folder, new_file_name = get_bucket_folder_file_from_path(revision.dest)
-
-    raise Etna::Forbidden, "#{new_folder.folder_name} folder is read-only" if new_folder&.read_only?
-
-    # If the destination file exists, check if it is read-only, since
-    #   we will remove it / modify it
-    if Metis::File.exists?(new_file_name, new_bucket, new_folder)
-      dest_file = get_file_obj_from_path(revision.dest)
-      raise Etna::Forbidden, "Destination file #{dest_file.file_name} is read-only" if dest_file.read_only?
-    end
-
-    raise Etna::Forbidden, "Cannot copy over existing folder #{revision.dest.path}" if  Metis::Folder.exists?(new_file_name, new_bucket, new_folder)
   end
 end

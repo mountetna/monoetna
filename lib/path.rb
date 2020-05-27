@@ -18,17 +18,16 @@ class Metis
         \z
       !x
 
-      attr_reader :path
+      attr_reader :path, :bucket
       def initialize(path)
         @path = path
-      end
 
-      def self.extract_bucket_name_from_path(path)
-        return FILEPATH_MATCH.match(path)[:bucket_name]
-      end
-
-      def self.extract_file_path_from_path(path)
-        return FILEPATH_MATCH.match(path)[:file_path]
+        if valid?
+          @bucket = Metis::Bucket.find(
+            project_name: FILEPATH_MATCH.match(@path)[:project_name],
+            name: bucket_name
+          )
+        end
       end
 
       def self.path_from_parts(project_name, bucket_name, file_path)
@@ -36,31 +35,38 @@ class Metis
       end
 
       def bucket_name
-        Metis::Path.extract_bucket_name_from_path(@path)
+        FILEPATH_MATCH.match(@path)[:bucket_name]
+      end
+
+      def folder
+        Metis::Folder.from_path(
+          @bucket, folder_path
+        ).last
+      end
+
+      def folder_path
+        folder_path, _ = Metis::File.path_parts(file_path)
+        return folder_path
       end
 
       def file_path
-        Metis::Path.extract_file_path_from_path(@path)
+        FILEPATH_MATCH.match(@path)[:file_path]
       end
 
       def file
         Metis::File.from_path(
-          get_bucket,
+          @bucket,
           file_path)
+      end
+
+      def file_name
+        _, file_name = Metis::File.path_parts(file_path)
+        return file_name
       end
 
       def valid?
         return false unless FILEPATH_MATCH.match(@path)
         return true
-      end
-
-      private
-
-      def get_bucket
-        Metis::Bucket.where(
-          project_name: FILEPATH_MATCH.match(@path)[:project_name],
-          name: FILEPATH_MATCH.match(@path)[:bucket_name]
-        ).first
       end
     end
   end

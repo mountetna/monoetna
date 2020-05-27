@@ -11,6 +11,9 @@ describe Metis::Revision do
       @metis_uid = Metis.instance.sign.uid
 
       set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
+
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
     end
 
     after(:each) do
@@ -41,22 +44,25 @@ describe Metis::Revision do
         expect(revision.source.instance_of? Metis::Path).to eq(true)
     end
 
-    it 'returns false if user cannot access the source bucket' do
+    it 'adds error message if user cannot access the source bucket' do
         revision = Metis::Revision.new({
-            source: 'metis://athena/files/helmet.jpg',
+            source: 'metis://athena/files/wisdom.txt',
             dest: 'metis://athena/magma/wisdom.txt'
         })
-        expect(revision.valid?('source_bucket_access', ['magma'])).
-          to eq(false)
+        revision.validate(['magma'])
+        expect(revision.errors.length).to eq(1)
+        expect(revision.errors[0]).to eq(
+            "Forbidden: no access to source bucket files"
+        )
     end
 
-    it 'returns true if user can access the source bucket' do
+    it 'does not add error message if user can access the source bucket' do
         revision = Metis::Revision.new({
-            source: 'metis://athena/files/helmet.jpg',
+            source: 'metis://athena/files/wisdom.txt',
             dest: 'metis://athena/magma/wisdom.txt'
         })
-        expect(revision.valid?('source_bucket_access', ['files'])).
-          to eq(true)
+        revision.validate(['files'])
+        expect(revision.errors.length).to eq(0)
     end
 
     it 'creates a Revision from parts' do
@@ -77,29 +83,35 @@ describe Metis::Revision do
         expect(revision.dest.path).to eq('metis://athena/files/build-helmet.jpg')
     end
 
-    it 'returns false if the source path is invalid' do
+    it 'adds error message if the source path is invalid' do
         revision = Metis::Revision.new({
             source: "metis://athena/files/build\nhelmet.jpg",
             dest: "metis://athena/magma/learn-wisdom.txt"
         })
-        expect(revision.valid?('source_path')).
-          to eq(false)
+        revision.validate(['files'])
+        expect(revision.errors.length).to eq(1)
+        expect(revision.errors[0]).to eq(
+            "Invalid source path: metis://athena/files/build\nhelmet.jpg"
+        )
 
         revision = Metis::Revision.new({
             source: nil,
             dest: nil
         })
-        expect(revision.valid?('source_path')).
-          to eq(false)
+        revision.validate(['files'])
+        expect(revision.errors.length).to eq(1)
+        expect(revision.errors[0]).to eq(
+            "Invalid source path: "
+        )
     end
 
-    it 'returns true if the source path is valid' do
+    it 'does not add error message if the source path is valid' do
         revision = Metis::Revision.new({
-            source: 'metis://athena/files/helmet.jpg',
+            source: 'metis://athena/files/wisdom.txt',
             dest: 'metis://athena/magma/wisdom.txt'
         })
-        expect(revision.valid?('source_path')).
-            to eq(true)
+        revision.validate(['files'])
+        expect(revision.errors.length).to eq(0)
     end
 
     it 'returns the source bucket_name in an array' do
@@ -109,5 +121,52 @@ describe Metis::Revision do
         })
         expect(revision.bucket_names).
             to eq(['files'])
+
+        revision = Metis::Revision.new({
+            source: nil,
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect(revision.bucket_names).
+            to eq([])
+    end
+
+    it 'adds error message if source bucket is invalid' do
+        revision = Metis::Revision.new({
+            source: 'metis://athena/war/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        revision.validate(['war'])
+        expect(revision.errors.length).to eq(1)
+        expect(revision.errors[0]).to eq(
+            "Invalid source bucket: war"
+        )
+    end
+
+    it 'adds error message if source file does not exist' do
+        revision = Metis::Revision.new({
+            source: 'metis://athena/files/learn-wisdom.txt',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        revision.validate(['files'])
+        expect(revision.errors.length).to eq(1)
+        expect(revision.errors[0]).to eq(
+            "File metis://athena/files/learn-wisdom.txt not found"
+        )
+    end
+
+    it 'reports multiple errors from validation' do
+        revision = Metis::Revision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        revision.validate(['magma'])
+        expect(revision.errors.length).to eq(2)
+
+        expect(revision.errors[0]).to eq(
+            "File metis://athena/files/helmet.jpg not found"
+        )
+        expect(revision.errors[1]).to eq(
+            "Forbidden: no access to source bucket files"
+        )
     end
 end

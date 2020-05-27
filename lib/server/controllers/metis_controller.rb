@@ -29,23 +29,5 @@ class Metis
 
       return folder
     end
-
-    def get_file_obj_from_path(path)
-      # Assumes path is an instance of Metis::Path
-      Metis::File.from_path(
-        require_bucket(path.bucket_name),
-        path.file_path)
-    end
-
-    def get_bucket_folder_file_from_path(path)
-      # Assumes path is an instance of Metis::Path
-      new_folder_path, new_file_name = Metis::File.path_parts(path.file_path)
-
-      new_bucket = require_bucket(path.bucket_name)
-
-      new_folder = require_folder(new_bucket, new_folder_path)
-
-      return new_bucket, new_folder, new_file_name
-    end
   end
 end

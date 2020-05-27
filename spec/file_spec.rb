@@ -420,7 +420,9 @@ describe FileController do
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq("Invalid path for dest metis://athena/files/learn\nwisdom.txt")
+      expect(json_body[:error]).to eq(
+        "[\"Invalid dest path: metis://athena/files/learn\\nwisdom.txt\"]"
+      )
 
       # the original is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
@@ -451,8 +453,10 @@ describe FileController do
       token_header(:editor)
       copy_file('folly.txt', 'learn-folly.txt')
 
-      expect(last_response.status).to eq(404)
-      expect(json_body[:error]).to eq('File metis://athena/files/folly.txt not found')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq(
+        "[\"File metis://athena/files/folly.txt not found\"]"
+      )
 
       # the actual file is untouched
       @wisdom_file.refresh
@@ -491,8 +495,10 @@ describe FileController do
       token_header(:editor)
       copy_file('wisdom.txt', 'learn-wisdom.txt')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot copy over existing folder metis://athena/files/learn-wisdom.txt')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq(
+        "[\"Cannot copy over existing folder metis://athena/files/learn-wisdom.txt\"]"
+      )
 
       # the file we tried to copy is untouched
       @wisdom_file.refresh
@@ -537,8 +543,10 @@ describe FileController do
       token_header(:editor)
       copy_file('wisdom.txt', 'contents/wisdom.txt')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('contents folder is read-only')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq(
+        "[\"Dest folder contents is read-only\"]"
+      )
 
       # the original is untouched
       @wisdom_file.refresh
@@ -554,7 +562,7 @@ describe FileController do
       copy_file('wisdom.txt', 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq("[\"Invalid dest folder: contents\"]")
 
       # the original is untouched
       @wisdom_file.refresh
@@ -701,7 +709,9 @@ describe FileController do
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('All revisions require valid "dest" parameter')
+      expect(json_body[:error]).to eq(
+        "[\"Invalid dest path: metis://athena/files/learn\\nwisdom.txt\"]"
+      )
 
       # the original is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
@@ -747,8 +757,10 @@ describe FileController do
         dest: 'metis://athena/files/learn-folly.txt'
       }])
 
-      expect(last_response.status).to eq(404)
-      expect(json_body[:error]).to eq('File metis://athena/files/folly.txt not found')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq(
+        "[\"File metis://athena/files/folly.txt not found\"]"
+      )
 
       # the actual file is untouched
       expect(Metis::File.count).to eq(2)
@@ -799,8 +811,10 @@ describe FileController do
         dest: 'metis://athena/files/learn-wisdom.txt'
       }])
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot copy over existing folder metis://athena/files/learn-wisdom.txt')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq(
+        "[\"Cannot copy over existing folder metis://athena/files/learn-wisdom.txt\"]"
+      )
 
       # the file we tried to copy is untouched
       @wisdom_file.refresh
@@ -853,8 +867,10 @@ describe FileController do
         dest: 'metis://athena/files/contents/learn-wisdom.txt'
       }])
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('contents folder is read-only')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq(
+        "[\"Dest folder contents is read-only\"]"
+      )
 
       # the original is untouched
       @wisdom_file.refresh
@@ -878,7 +894,9 @@ describe FileController do
       }])
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq(
+        "[\"Invalid dest folder: contents\"]"
+      )
 
       # the original is untouched
       @wisdom_file.refresh
@@ -931,8 +949,10 @@ describe FileController do
 
       stubs.add_file('athena', 'files', 'learn-wisdom.txt')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('User does not have access to all dest buckets')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq(
+        "[\"Forbidden: no access to dest bucket sundry\"]"
+      )
 
       # the old file is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
@@ -980,8 +1000,10 @@ describe FileController do
 
       stubs.add_file('athena', 'sundry', 'learn-wisdom.txt')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('User does not have access to all dest buckets')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq(
+        "[\"Forbidden: no access to dest bucket sundry\"]"
+      )
 
       # the old file is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
@@ -1010,8 +1032,10 @@ describe FileController do
         dest: 'metis://athena/files/learn-wisdom2.txt'
       }])
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('contents folder is read-only')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq(
+        "[\"Dest folder contents is read-only\"]"
+      )
 
       # the original is untouched
       @wisdom_file.refresh
@@ -1056,6 +1080,43 @@ describe FileController do
       third_link_file = Metis::File.last
       expect(third_link_file.file_name).to eq('build-helmet.jpg')
       expect(third_link_file.bucket.name).to eq('sundry')
+    end
+
+    it 'receives all errors back for multiple invalid revisions' do
+      contents_folder = create_folder('athena', 'contents', read_only: true)
+      stubs.create_folder('athena', 'files', 'contents')
+
+      token_header(:editor)
+
+      expect(Metis::File.count).to eq(2)
+
+      bulk_copy([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/files/contents/learn-wisdom.txt'
+      }, {
+        source: 'metis://athena/files/wisdom.txt',
+        dest: nil
+      }, {
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/sundry/learn-wisdom2.txt'
+      }])
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq(
+        "[\"Dest folder contents is read-only\", \"Invalid dest path: \", \"Invalid dest bucket: sundry\"]"
+      )
+
+      # the original is untouched
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_path).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file
+      expect(Metis::File.count).to eq(2)
+      orig_wisdom_file = Metis::File.first
+      expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
+      orig_helmet_file = Metis::File.last
+      expect(orig_helmet_file.file_name).to eq('helmet.jpg')
     end
   end
 end

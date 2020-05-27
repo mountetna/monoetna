@@ -25,7 +25,7 @@ describe Metis::Path do
 
     it 'returns the bucket name' do
         path = Metis::Path.new('metis://athena/files/helmet.jpg')
-        expect(path.bucket_name).to eq('files')
+        expect(path.bucket.name).to eq('files')
     end
 
     it 'returns a full Metis path from parts' do
@@ -34,22 +34,6 @@ describe Metis::Path do
 
         path = Metis::Path.path_from_parts('athena', 'files', 'blueprints/helmet/helmet.jpg')
         expect(path).to eq('metis://athena/files/blueprints/helmet/helmet.jpg')
-    end
-
-    it 'returns the bucket name for a given path' do
-        expect(Metis::Path.extract_bucket_name_from_path(
-            'metis://athena/files/blueprints/helmet/helmet.jpg'
-        )).to eq('files')
-    end
-
-    it 'returns the file_path for a given path' do
-        expect(Metis::Path.extract_file_path_from_path(
-            'metis://athena/files/blueprints/helmet/helmet.jpg'
-        )).to eq('blueprints/helmet/helmet.jpg')
-
-        expect(Metis::Path.extract_file_path_from_path(
-            'metis://athena/files/wisdom.txt'
-        )).to eq('wisdom.txt')
     end
 
     it 'correctly returns the file path' do
@@ -80,5 +64,51 @@ describe Metis::Path do
 
         path = Metis::Path.new('metis://athena/files/wisdom.txt')
         expect(path.file).to eq(@wisdom_file)
+    end
+
+    it 'returns the path\'s folder' do
+        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+        path = Metis::Path.new('metis://athena/files/wisdom.txt')
+        expect(path.folder).to eq(@wisdom_file.folder)
+    end
+
+    it 'returns the path\'s folder_path' do
+        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+        path = Metis::Path.new('metis://athena/files/wisdom.txt')
+        expect(path.folder_path).to eq(nil)
+
+        path = Metis::Path.new('metis://athena/files/blueprints/helmet/helmet.jpg')
+        expect(path.folder_path).to eq('blueprints/helmet')
+    end
+
+    it 'returns the path\'s file_name' do
+        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+        path = Metis::Path.new('metis://athena/files/wisdom.txt')
+        expect(path.file_name).to eq('wisdom.txt')
+
+        path = Metis::Path.new('metis://athena/files/blueprints/helmet/helmet.jpg')
+        expect(path.file_name).to eq('helmet.jpg')
+    end
+
+    it 'returns the path\'s bucket' do
+        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+        path = Metis::Path.new('metis://athena/files/wisdom.txt')
+        expect(path.bucket).to eq(@wisdom_file.bucket)
+    end
+
+    it 'returns the path\'s bucket name' do
+        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+        path = Metis::Path.new('metis://athena/files/wisdom.txt')
+        expect(path.bucket_name).to eq(@wisdom_file.bucket.name)
     end
 end
