@@ -5,29 +5,29 @@ class Metis
       # Splitting the above produces
       #   ["metis", "", "<project>", "<bucket>", "<folder path>" ... "file name"]
 
-      FILENAME_MATCH=/[^<>:;,?"*\|\/\x00-\x1f]+/x
-
-      FILEPATH_MATCH=%r!
-        \A
-          metis:\/\/
-          (?<project_name>(#{FILENAME_MATCH.source}))
-          /
-          (?<bucket_name>(#{FILENAME_MATCH.source}))
-          /
-          (?<file_path>(#{FILENAME_MATCH.source}).*)
-        \z
-      !x
-
       attr_reader :path, :bucket
       def initialize(path)
         @path = path
 
         if valid?
           @bucket = Metis::Bucket.find(
-            project_name: FILEPATH_MATCH.match(@path)[:project_name],
+            project_name: project_name,
             name: bucket_name
           )
         end
+      end
+
+      def filepath_match
+        @filepath_match ||= %r!
+        \A
+          metis:\/\/
+          (?<project_name>(\w+))
+          /
+          (?<bucket_name>(\w+))
+          /
+          (?<file_path>(#{Metis::File::FILENAME_MATCH.source}).*)
+        \z
+      !x
       end
 
       def self.path_from_parts(project_name, bucket_name, file_path)
@@ -35,11 +35,11 @@ class Metis
       end
 
       def project_name
-        FILEPATH_MATCH.match(@path)[:project_name]
+        filepath_match.match(@path)[:project_name]
       end
 
       def bucket_name
-        FILEPATH_MATCH.match(@path)[:bucket_name]
+        filepath_match.match(@path)[:bucket_name]
       end
 
       def folder
@@ -54,7 +54,7 @@ class Metis
       end
 
       def file_path
-        FILEPATH_MATCH.match(@path)[:file_path]
+        filepath_match.match(@path)[:file_path]
       end
 
       def file
@@ -69,7 +69,7 @@ class Metis
       end
 
       def valid?
-        return false unless FILEPATH_MATCH.match(@path)
+        return false unless filepath_match.match(@path)
         return true
       end
     end
