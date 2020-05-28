@@ -17,7 +17,7 @@ class Metis
         end
       end
 
-      def filepath_match
+      def self.filepath_match
         @filepath_match ||= %r!
         \A
           metis:\/\/
@@ -35,11 +35,11 @@ class Metis
       end
 
       def project_name
-        filepath_match.match(@path)[:project_name]
+        Metis::Path.filepath_match.match(@path)[:project_name]
       end
 
       def bucket_name
-        filepath_match.match(@path)[:bucket_name]
+        Metis::Path.filepath_match.match(@path)[:bucket_name]
       end
 
       def folder
@@ -54,7 +54,7 @@ class Metis
       end
 
       def file_path
-        filepath_match.match(@path)[:file_path]
+        Metis::Path.filepath_match.match(@path)[:file_path]
       end
 
       def file
@@ -69,7 +69,7 @@ class Metis
       end
 
       def valid?
-        return false unless filepath_match.match(@path)
+        return false unless Metis::Path.filepath_match.match(@path)
         return true
       end
     end
