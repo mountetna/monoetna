@@ -47,8 +47,39 @@ common wildcard, separator and control characters.
 
 ## Client
 
+### Browser
+
 Metis provides a browser client that allows file viewing, download, and
 upload.
+
+### Command-line
+
+`bin/metis_client` is a command-line client to interact with metis. To run the client requires Ruby 2.5+.
+
+#### Setup
+
+To run the metis client, copy your Janus token (by visiting e.g.
+`janus.example.org`) and set this as an environment variable in your shell (e.g.
+`export TOKEN=your.janus.token`). Then run `bin/metis_client`.
+
+The first time the client runs it will guide you through setup of these variables:
+- metis_host - the host name of the metis server
+- metis_uid_name - the token name for your metis_uid
+If these values are set incorrectly or not set, the client will fail to connect to Metis.
+
+#### Commands
+
+- *help* - Help! Use this command to get usage information on other commands.
+- *project* - List projects or select a project on metis
+- *ls* - List a folder path on metis
+- *cd* - Change your current metis folder path
+- *pwd* - Print your local directory
+- *lcd* - Change your local directory
+- *get* - Recursively download a directory from metis
+
+If you have edit permission you may also:
+- *mv* - Rename a file on metis
+- *put* - Upload a folder to metis
 
 ## API
 
