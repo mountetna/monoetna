@@ -429,7 +429,7 @@ EOT
   end
 
   class Lcd < Command
-    usage "cd [<remote_folder_path>]"
+    usage "lcd <local_folder_path>"
     def run(dirname)
       dirname = ::File.expand_path(dirname)
       raise ShellError, 'No such directory!' unless ::File.directory?(dirname)
@@ -618,7 +618,10 @@ EOT
   def initialize(path, *args)
     @token = ENV['TOKEN']
 
-    raise 'No environment variable TOKEN is set' if !@token
+    if !@token
+      puts "No environment variable TOKEN is set. Set your token with `export TOKEN=<your.janus.token>` before running metis_client."
+      exit
+    end
 
     match = METIS_PATH.match(path)
 
@@ -626,7 +629,7 @@ EOT
 
     @args = args
 
-    raise "No metis host selected\n#{USAGE}" if !@host
+    raise 'No metis host selected' if !@host
 
     if match&.[](:path)
       set_path(match[:path])
