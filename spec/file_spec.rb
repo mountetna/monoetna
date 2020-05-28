@@ -374,7 +374,7 @@ describe FileController do
       rename_file('wisdom.txt', 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq('Invalid folder: contents')
       @wisdom_file.refresh
       expect(@wisdom_file.file_path).to eq('wisdom.txt')
       expect(@wisdom_file.folder).to be_nil
@@ -421,7 +421,7 @@ describe FileController do
       @wisdom_file.refresh
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq(
-        "[\"Invalid dest path: metis://athena/files/learn\\nwisdom.txt\"]"
+        "[\"Invalid path: metis://athena/files/learn\\nwisdom.txt\"]"
       )
 
       # the original is untouched
@@ -545,7 +545,7 @@ describe FileController do
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq(
-        "[\"Dest folder contents is read-only\"]"
+        "[\"Folder contents is read-only\"]"
       )
 
       # the original is untouched
@@ -562,7 +562,7 @@ describe FileController do
       copy_file('wisdom.txt', 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq("[\"Invalid dest folder: contents\"]")
+      expect(json_body[:error]).to eq("Invalid folder: contents")
 
       # the original is untouched
       @wisdom_file.refresh
@@ -710,7 +710,7 @@ describe FileController do
       @wisdom_file.refresh
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq(
-        "[\"Invalid dest path: metis://athena/files/learn\\nwisdom.txt\"]"
+        "[\"Invalid path: metis://athena/files/learn\\nwisdom.txt\"]"
       )
 
       # the original is untouched
@@ -869,7 +869,7 @@ describe FileController do
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq(
-        "[\"Dest folder contents is read-only\"]"
+        "[\"Folder contents is read-only\"]"
       )
 
       # the original is untouched
@@ -895,7 +895,7 @@ describe FileController do
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq(
-        "[\"Invalid dest folder: contents\"]"
+        "[\"Invalid folder: contents\"]"
       )
 
       # the original is untouched
@@ -951,7 +951,7 @@ describe FileController do
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq(
-        "[\"Forbidden: no access to dest bucket sundry\"]"
+        "[\"Invalid bucket: sundry\"]"
       )
 
       # the old file is untouched
@@ -1002,7 +1002,7 @@ describe FileController do
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq(
-        "[\"Forbidden: no access to dest bucket sundry\"]"
+        "[\"Invalid bucket: sundry\"]"
       )
 
       # the old file is untouched
@@ -1034,7 +1034,7 @@ describe FileController do
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq(
-        "[\"Dest folder contents is read-only\"]"
+        "[\"Folder contents is read-only\"]"
       )
 
       # the original is untouched
@@ -1103,7 +1103,7 @@ describe FileController do
 
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq(
-        "[\"Dest folder contents is read-only\", \"Invalid dest path: \", \"Invalid dest bucket: sundry\"]"
+        "[\"Folder contents is read-only\", \"Invalid path: \", \"Invalid bucket: sundry\"]"
       )
 
       # the original is untouched

@@ -25,7 +25,7 @@ class Metis
 
       folder = Metis::Folder.from_path(bucket, folder_path).last
 
-      raise Etna::BadRequest, 'Invalid folder' unless folder
+      raise Etna::BadRequest, "Invalid folder: #{folder_path}" unless folder
 
       return folder
     end

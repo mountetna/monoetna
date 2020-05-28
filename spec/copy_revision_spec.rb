@@ -405,4 +405,25 @@ describe Metis::CopyRevision do
         expect(revision.errors).to eq(nil)
         expect(revision.valid?).to eq(false)
     end
+
+
+    it 'returns the dest and source paths in an array' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect(revision.paths.length).to eq(2)
+        expect(revision.paths[0].path).
+            to eq('metis://athena/files/helmet.jpg')
+        expect(revision.paths[1].path).
+            to eq('metis://athena/magma/wisdom.txt')
+
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: nil
+        })
+        expect(revision.paths.length).to eq(1)
+        expect(revision.paths[0].path).
+            to eq('metis://athena/files/helmet.jpg')
+    end
 end

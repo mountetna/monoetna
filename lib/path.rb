@@ -29,11 +29,11 @@ class Metis
       end
 
       def project_name
-        Metis::Path.filepath_match.match(@path)[:project_name]
+        valid? ? Metis::Path.filepath_match.match(@path)[:project_name] : nil
       end
 
       def bucket_name
-        Metis::Path.filepath_match.match(@path)[:bucket_name]
+        valid? ? Metis::Path.filepath_match.match(@path)[:bucket_name] : nil
       end
 
       def folder_path
@@ -42,7 +42,7 @@ class Metis
       end
 
       def file_path
-        Metis::Path.filepath_match.match(@path)[:file_path]
+        valid? ? Metis::Path.filepath_match.match(@path)[:file_path] : nil
       end
 
       def file_name

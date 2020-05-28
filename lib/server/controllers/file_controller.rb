@@ -75,19 +75,39 @@ class FileController < Metis::Controller
   def copy
     require_param(:new_file_path)
 
+    source_bucket = require_bucket
+
+    dest_bucket = source_bucket
+    if @params[:new_bucket_name]
+      dest_bucket = require_bucket(@params[:new_bucket_name])
+    end
+
     revision = Metis::CopyRevision.new({
       source: Metis::Path.path_from_parts(
         @params[:project_name],
-        @params[:bucket_name],
+        source_bucket.name,
         @params[:file_path]
       ),
       dest: Metis::Path.path_from_parts(
         @params[:project_name],
-        @params[:new_bucket_name] ? @params[:new_bucket_name] : @params[:bucket_name],
+        dest_bucket.name,
         @params[:new_file_path]
       ),
       user: @user
     })
+
+    revision.set_bucket(revision.source, [source_bucket, dest_bucket])
+    revision.set_bucket(revision.dest, [source_bucket, dest_bucket])
+
+    source_folder_path, _ = Metis::File.path_parts(@params[:file_path])
+    dest_folder_path, _ = Metis::File.path_parts(@params[:new_file_path])
+
+    revision.set_folder(
+      revision.source,
+      [require_folder(source_bucket, source_folder_path)]) if source_folder_path
+    revision.set_folder(
+      revision.dest,
+      [require_folder(dest_bucket, dest_folder_path)]) if dest_folder_path
 
     revision.validate
 
@@ -97,7 +117,6 @@ class FileController < Metis::Controller
   end
 
   def bulk_copy
-    binding.pry
     # We want to support bulk copy operations
     #   from Magma.
     # First, check that the user has access to all of
@@ -136,15 +155,19 @@ class FileController < Metis::Controller
       bucket_folder_paths = revisions.
         map(&:paths).flatten.
         select{|p| p.bucket_name == bucket.name}.
-        map(&:folder_path).flatten.unique
+        map(&:folder_path).flatten.compact.uniq
 
       bucket_folders = bucket_folder_paths.map {
-        |folder_path| Metis::Folder.from_path(folder_path)
-      }
+        |folder_path| Metis::Folder.from_path(bucket, folder_path).last
+      }.flatten.compact
 
       revisions.each do |rev|
-        rev.set_folder(rev.source, bucket_folders)
-        rev.set_folder(rev.dest, bucket_folders)
+        if rev.source.mpath.bucket_name == bucket.name
+          rev.set_folder(rev.source, bucket_folders)
+        end
+        if rev.dest.mpath.bucket_name == bucket.name
+          rev.set_folder(rev.dest, bucket_folders)
+        end
       end
     end
 

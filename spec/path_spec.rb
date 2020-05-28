@@ -81,4 +81,19 @@ describe Metis::Path do
         path = Metis::Path.new('metis://athena/files/wisdom.txt')
         expect(path.bucket_name).to eq(@wisdom_file.bucket.name)
     end
+
+    it 'returns nil bucket name for invalid path' do
+        path = Metis::Path.new(nil)
+        expect(path.bucket_name).to eq(nil)
+    end
+
+    it 'returns nil project name for invalid path' do
+        path = Metis::Path.new(nil)
+        expect(path.project_name).to eq(nil)
+    end
+
+    it 'returns nil file_path for invalid path' do
+        path = Metis::Path.new(nil)
+        expect(path.file_path).to eq(nil)
+    end
 end

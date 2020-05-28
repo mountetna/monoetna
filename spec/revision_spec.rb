@@ -75,8 +75,9 @@ describe Metis::Revision do
             source: 'metis://athena/files/helmet.jpg',
             dest: 'metis://athena/magma/wisdom.txt'
         })
-        expect(revision.paths).
-            to eq(['metis://athena/files/helmet.jpg'])
+        expect(revision.paths.length).to eq(1)
+        expect(revision.paths[0].path).
+            to eq('metis://athena/files/helmet.jpg')
 
         revision = Metis::Revision.new({
             source: nil,
@@ -94,6 +95,16 @@ describe Metis::Revision do
         expect(revision.source.bucket).to eq(nil)
         revision.set_bucket(revision.source, [default_bucket('athena')])
         expect(revision.source.bucket).to eq(default_bucket('athena'))
+    end
+
+    it 'cannot set bucket if invalid Metis Path' do
+        revision = Metis::Revision.new({
+            source: 'metis://athena/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect(revision.source.bucket).to eq(nil)
+        revision.set_bucket(revision.source, [default_bucket('athena')])
+        expect(revision.source.bucket).to eq(nil)
     end
 
     it 'does not set the bucket on a Metis Path with Objects if does not match' do
@@ -131,6 +142,33 @@ describe Metis::Revision do
         })
         revision.set_bucket(revision.source, [default_bucket('athena')])
 
+        expect(revision.source.folder).to eq(nil)
+        revision.set_folder(revision.source, [blueprints_folder])
+        expect(revision.source.folder).to eq(nil)
+    end
+
+    it 'cannot set folder if invalid Metis Path' do
+        blueprints_folder = create_folder('athena', 'blueprints')
+        stubs.create_folder('athena', 'files', 'blueprints')
+
+        revision = Metis::Revision.new({
+            source: 'metis://athena/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        revision.set_bucket(revision.source, [default_bucket('athena')])
+        expect(revision.source.folder).to eq(nil)
+        revision.set_folder(revision.source, [blueprints_folder])
+        expect(revision.source.folder).to eq(nil)
+    end
+
+    it 'cannot set folder if no bucket on Metis Path' do
+        blueprints_folder = create_folder('athena', 'blueprints')
+        stubs.create_folder('athena', 'files', 'blueprints')
+
+        revision = Metis::Revision.new({
+            source: 'metis://athena/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
         expect(revision.source.folder).to eq(nil)
         revision.set_folder(revision.source, [blueprints_folder])
         expect(revision.source.folder).to eq(nil)

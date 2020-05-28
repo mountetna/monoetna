@@ -14,12 +14,14 @@ class Metis
     end
 
     def set_bucket(path_with_objects, user_authorized_buckets)
+      return unless path_with_objects.mpath.valid?
       path_with_objects.bucket = user_authorized_buckets.find {
         |b| b.name == path_with_objects.mpath.bucket_name
       }
     end
 
     def set_folder(path_with_objects, bucket_folders)
+      return unless path_with_objects.mpath.valid?
       path_with_objects.folder = bucket_folders.find {
         |f| f.folder_path.join('/') == path_with_objects.mpath.folder_path
       }
@@ -46,7 +48,7 @@ class Metis
     end
 
     def paths
-      [@source.mpath.path].compact
+      @source.mpath.valid? ? [@source.mpath] : []
     end
 
     private

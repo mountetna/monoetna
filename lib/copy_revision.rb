@@ -22,8 +22,8 @@ class Metis
 
     def paths
       source_paths = super
-      source_paths.push(@dest.mpath.path) if @dest
-      return source_paths.compact
+      source_paths.push(@dest.mpath) if @dest.mpath.valid?
+      return source_paths
     end
 
     def revise!

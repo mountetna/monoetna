@@ -146,7 +146,7 @@ describe UploadController do
 
       # we expect to be forbidden from uploading
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq('Invalid folder: blueprints')
       expect(Metis::Upload.count).to eq(0)
     end
 
@@ -593,7 +593,7 @@ describe UploadController do
       complete_upload('blueprints/wisdom.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq('Invalid folder: blueprints')
 
       # the partial is destroyed
       expect(File.exists?(@partial_file)).to be_falsy
