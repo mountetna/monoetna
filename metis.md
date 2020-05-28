@@ -67,6 +67,20 @@ The first time the client runs it will guide you through setup of these variable
 - metis_uid_name - the token name for your metis_uid
 If these values are set incorrectly or not set, the client will fail to connect to Metis.
 
+#### Invocation
+
+With no arguments `metis_client` will put you into an interactive shell where
+you may use the commands below.
+
+A valid metis path as optional first argument to `metis_client` will set the
+client's project, bucket and folder. E.g., `metis_client
+metis://athena/armor/blueprints` will start the shell connected to the 'athena'
+project, in the 'armor' bucket, in the 'blueprints' folder.
+
+Subsequent arguments will be treated as commands and executed
+non-interactively, e.g. `metis_client metis://athena/armor/blueprints ls` will
+list the contents of the `blueprints` folder.
+
 #### Commands
 
 - *help* - Help! Use this command to get usage information on other commands.
