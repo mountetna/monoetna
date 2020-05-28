@@ -21,12 +21,12 @@ class Metis
 
     def set_folder(path_with_objects, bucket_folders)
       path_with_objects.folder = bucket_folders.find {
-        |f| f.folder_path == path_with_objects.mpath.folder_path
+        |f| f.folder_path.join('/') == path_with_objects.mpath.folder_path
       }
     end
 
     def valid?
-      @errors&.empty?
+      !!@errors&.empty?
     end
 
     def validate (user_authorized_bucket_names)
@@ -46,7 +46,7 @@ class Metis
     end
 
     def paths
-      [@source.mpath]
+      [@source.mpath.path].compact
     end
 
     private
@@ -68,7 +68,7 @@ class Metis
       return false
     end
 
-    def validate_file(mpath_w_objs, check_read_only=false)
+    def validate_file(mpath_w_objs, file_check_type='source')
       errors_found = false
 
       file = Metis::File.from_folder(
@@ -76,12 +76,12 @@ class Metis
         mpath_w_objs.folder,
         mpath_w_objs.mpath.file_name)
 
-      if !file&.has_data?
+      if !file&.has_data? && file_check_type == 'source'
         @errors.push("File #{mpath_w_objs.mpath.path} not found")
         errors_found = true
       end
 
-      if check_read_only && file&.read_only?
+      if file&.read_only? && file_check_type == 'dest'
         @errors.push("File #{mpath_w_objs.mpath.path} is read-only")
         errors_found = true
       end
@@ -101,7 +101,7 @@ class Metis
           mpath_w_objs.folder)
 
           @errors.push(
-            "Cannot copy over existing folder #{dest_mpath.path}"
+            "Cannot copy over existing folder #{mpath_w_objs.mpath.path}"
           )
           errors_found = true
       end
@@ -109,13 +109,13 @@ class Metis
       if mpath_w_objs.mpath.folder_path
         if !mpath_w_objs.folder
           @errors.push(
-            "Invalid dest folder: #{mpath_w_objs.mpath.folder_path}"
+            "Invalid folder: #{mpath_w_objs.mpath.folder_path}"
           )
           errors_found = true
         end
         if mpath_w_objs.folder&.read_only?
           @errors.push(
-            "Dest folder #{mpath_w_objs.mpath.folder_name} is read-only"
+            "Folder #{mpath_w_objs.mpath.folder_path} is read-only"
           )
           errors_found = true
         end
@@ -125,29 +125,16 @@ class Metis
     end
 
     def validate_source (source_mpath_w_objs)
-      # First just check syntax of the path
-      # Next check the bucket -- does it exist? Have access?
-      #   When bulk setting buckets, if user not authorized to access the bucket or
-      #   the bucket doesn't exist,
-      #   just set it as nil. Then in validation check, any nil bucket
-      #   returns "Invalid bucket"
-      # Get all folders from the consolidated paths and buckets
-      # Set these in the revisions / paths.
-      # Then check the parent folder (dest only):
-      #   dest: If it exists, if it is read-only
-      # Then check the file_path.
-      #   For source: does it exist and have data?
-      #   For dest: is it read-only, is it really a folder?, etc.
       return unless validate_mpath(source_mpath_w_objs.mpath)
       return unless validate_bucket(source_mpath_w_objs)
-      return unless validate_file(source_mpath_w_objs)
+      return unless validate_file(source_mpath_w_objs, 'source')
     end
 
     def validate_dest (dest_mpath_w_objs)
       return unless validate_mpath(dest_mpath_w_objs.mpath)
       return unless validate_bucket(dest_mpath_w_objs)
       return unless validate_folder(dest_mpath_w_objs)
-      return unless validate_file(dest_mpath_w_objs, true)
+      return unless validate_file(dest_mpath_w_objs, 'dest')
     end
   end
 end

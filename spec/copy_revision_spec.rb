@@ -10,6 +10,13 @@ describe Metis::CopyRevision do
 
       @metis_uid = Metis.instance.sign.uid
 
+      @user = Etna::User.new({
+        first: 'Athena',
+        last: 'Pallas',
+        email: 'athena@olympus.org',
+        perm: 'a:athena'
+      })
+
       set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
 
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
@@ -22,31 +29,13 @@ describe Metis::CopyRevision do
       expect(stubs.contents(:athena)).to be_empty
     end
 
-    it 'creates a CopyRevision from parts' do
-        revision = Metis::CopyRevision.create_from_parts({
-            source: {
-                project_name: 'athena',
-                bucket_name: 'files',
-                file_path: 'blueprints/helmet/helmet.jpg'
-            },
-            dest: {
-                project_name: 'athena',
-                bucket_name: 'files',
-                file_path: 'build-helmet.jpg'
-            }
-        })
-
-        expect(revision.source.path).to eq('metis://athena/files/blueprints/helmet/helmet.jpg')
-        expect(revision.dest.path).to eq('metis://athena/files/build-helmet.jpg')
-        expect(revision.instance_of? Metis::CopyRevision).to be_truthy
-    end
-
-    it 'creates a Metis::Path as the dest parameter' do
+    it 'creates a Metis::PathWithObjects as the dest parameter' do
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/wisdom.txt',
-            dest: 'metis://athena/files/wisdom.txt'
+            dest: 'metis://athena/files/wisdom.txt',
+            user: @user
         })
-        expect(revision.dest.instance_of? Metis::Path).to eq(true)
+        expect(revision.dest.instance_of? Metis::PathWithObjects).to eq(true)
     end
 
     it 'adds error message if user cannot access the dest bucket' do
@@ -54,79 +43,102 @@ describe Metis::CopyRevision do
 
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/wisdom.txt',
-            dest: 'metis://athena/sundry/wisdom.txt'
+            dest: 'metis://athena/sundry/wisdom.txt',
+            user: @user
         })
-        revision.validate(['files'])
-
+        revision.source.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Forbidden: no access to dest bucket sundry"
+            "Invalid bucket: sundry"
         )
     end
 
     it 'does not add error message if user can access the dest bucket' do
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/wisdom.txt',
-            dest: 'metis://athena/files/wisdom.txt'
+            dest: 'metis://athena/files/wisdom.txt',
+            user: @user
         })
-        revision.validate(['files'])
-        expect(revision.errors.length).to eq(0)
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
+        expect(revision.errors).to eq([])
     end
 
     it 'adds error message if the dest path is invalid' do
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/wisdom.txt',
-            dest: "metis://athena/files/learn\nwisdom.txt"
+            dest: "metis://athena/files/learn\nwisdom.txt",
+            user: @user
         })
-        revision.validate(['files'])
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Invalid dest path: metis://athena/files/learn\nwisdom.txt"
+            "Invalid path: metis://athena/files/learn\nwisdom.txt"
         )
 
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/wisdom.txt',
-            dest: nil
+            dest: nil,
+            user: @user
         })
-        revision.validate(['files'])
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Invalid dest path: "
+            "Invalid path: "
         )
     end
 
     it 'does not add error message if the dest path is valid' do
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/wisdom.txt',
-            dest: 'metis://athena/files/learn-wisdom.txt'
+            dest: 'metis://athena/files/learn-wisdom.txt',
+            user: @user
         })
-        revision.validate(['files'])
-
-        expect(revision.errors.length).to eq(0)
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
+        expect(revision.errors).to eq([])
 
         blueprints_folder = create_folder('athena', 'blueprints')
         stubs.create_folder('athena', 'files', 'blueprints')
 
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/wisdom.txt',
-            dest: 'metis://athena/files/blueprints/build-helmet.jpg'
+            dest: 'metis://athena/files/blueprints/build-helmet.jpg',
+            user: @user
         })
-        revision.validate(['files'])
-
-        expect(revision.errors.length).to eq(0)
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        revision.dest.folder = blueprints_folder
+        expect(revision.errors).to eq(nil)
+        revision.validate
+        expect(revision.errors).to eq([])
     end
 
     it 'returns the source and dest bucket_names in an array' do
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/helmet.jpg',
-            dest: 'metis://athena/files/wisdom.txt'
+            dest: 'metis://athena/files/wisdom.txt',
+            user: @user
         })
         expect(revision.bucket_names).
             to eq(['files', 'files'])
 
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/helmet.jpg',
-            dest: nil
+            dest: nil,
+            user: @user
         })
         expect(revision.bucket_names).
             to eq(['files'])
@@ -138,12 +150,18 @@ describe Metis::CopyRevision do
 
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/wisdom.txt',
-            dest: 'metis://athena/files/contents/wisdom.txt'
+            dest: 'metis://athena/files/contents/wisdom.txt',
+            user: @user
         })
-        revision.validate(['files'])
+
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        revision.dest.folder = contents_folder
+        expect(revision.errors).to eq(nil)
+        revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Dest folder contents is read-only"
+            "Folder contents is read-only"
         )
     end
 
@@ -153,43 +171,54 @@ describe Metis::CopyRevision do
 
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/wisdom.txt',
-            dest: 'metis://athena/files/wisdom2.txt'
+            dest: 'metis://athena/files/wisdom2.txt',
+            user: @user
         })
-        revision.validate(['files'])
+
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Dest file wisdom2.txt is read-only"
+            "File metis://athena/files/wisdom2.txt is read-only"
         )
     end
 
     it 'reports multiple errors from validation' do
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/helmet.jpg',
-            dest: nil
+            dest: nil,
+            user: @user
         })
-        revision.validate(['magma'])
-        expect(revision.errors.length).to eq(3)
+        revision.source.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
+
+        expect(revision.errors.length).to eq(2)
 
         expect(revision.errors[0]).to eq(
             "File metis://athena/files/helmet.jpg not found"
         )
         expect(revision.errors[1]).to eq(
-            "Forbidden: no access to source bucket files"
-        )
-        expect(revision.errors[2]).to eq(
-            "Invalid dest path: "
+            "Invalid path: "
         )
     end
 
-    it 'adds error message if trying to copy over an existing bucket' do
+    it 'adds error message if trying to copy over an existing folder' do
         wisdom_folder = create_folder('athena', 'wisdom.txt')
         stubs.create_folder('athena', 'files', 'wisdom.txt')
 
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/wisdom.txt',
-            dest: 'metis://athena/files/wisdom.txt'
+            dest: 'metis://athena/files/wisdom.txt',
+            user: @user
         })
-        revision.validate(['files'])
+
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
             "Cannot copy over existing folder metis://athena/files/wisdom.txt"
@@ -200,18 +229,180 @@ describe Metis::CopyRevision do
         expect(Metis::File.count).to eq(1)
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/wisdom.txt',
-            dest: 'metis://athena/files/learn-wisdom.txt'
+            dest: 'metis://athena/files/learn-wisdom.txt',
+            user: @user
         })
-        learn_wisdom = revision.revise!({
-            project_name: 'athena',
-            user: Etna::User.new({
-                first: 'Athena',
-                last: 'Pallas',
-                email: 'athena@olympus.org',
-                perm: 'a:athena'
-            })
-        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        revision.validate
+        learn_wisdom = revision.revise!
         expect(Metis::File.count).to eq(2)
         expect(learn_wisdom.data_block).to eq(@wisdom_file.data_block)
+    end
+
+    it 'throws exception if you try to revise without setting user' do
+        expect(Metis::File.count).to eq(1)
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/wisdom.txt',
+            dest: 'metis://athena/files/learn-wisdom.txt'
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        revision.validate
+        expect {
+            revision.revise!
+        }.to raise_error(StandardError)
+
+        expect(Metis::File.count).to eq(1)
+    end
+
+    it 'adds error message if source bucket is invalid' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/war/helmet.jpg',
+            dest: 'metis://athena/files/wisdom.txt',
+            user: @user
+        })
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
+        expect(revision.errors.length).to eq(1)
+        expect(revision.errors[0]).to eq(
+            "Invalid bucket: war"
+        )
+    end
+
+    it 'adds error message if source file does not exist' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/learn-wisdom.txt',
+            dest: 'metis://athena/files/wisdom.txt',
+            user: @user
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
+        expect(revision.errors.length).to eq(1)
+        expect(revision.errors[0]).to eq(
+            "File metis://athena/files/learn-wisdom.txt not found"
+        )
+    end
+
+    it 'adds error message if the source path is invalid' do
+        revision = Metis::CopyRevision.new({
+            source: "metis://athena/files/build\nhelmet.jpg",
+            dest: "metis://athena/magma/learn-wisdom.txt",
+            user: @user
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
+        expect(revision.errors.length).to eq(1)
+        expect(revision.errors[0]).to eq(
+            "Invalid path: metis://athena/files/build\nhelmet.jpg"
+        )
+
+        revision = Metis::CopyRevision.new({
+            source: nil,
+            dest: nil,
+            user: @user
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
+        expect(revision.errors.length).to eq(2)
+        expect(revision.errors[0]).to eq(
+            "Invalid path: "
+        )
+        expect(revision.errors[1]).to eq(
+            "Invalid path: "
+        )
+    end
+
+    it 'does not add error message if the source path is valid' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/wisdom.txt',
+            dest: 'metis://athena/files/learn-wisdom.txt',
+            user: @user
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
+        expect(revision.errors).to eq([])
+    end
+
+    it 'adds error message if user cannot access the source bucket' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/magma/wisdom.txt',
+            dest: 'metis://athena/files/wisdom.txt',
+            user: @user
+        })
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
+        expect(revision.errors.length).to eq(1)
+        expect(revision.errors[0]).to eq(
+            "Invalid bucket: magma"
+        )
+    end
+
+    it 'does not add error message if user can access the source bucket' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/wisdom.txt',
+            dest: 'metis://athena/magma/wisdom.txt',
+            user: @user
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
+        expect(revision.errors).to eq([])
+    end
+
+    it 'will not execute the revision if not valid' do
+        expect(Metis::File.count).to eq(1)
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/wisdom.txt',
+            dest: nil,
+            user: @user
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        revision.validate
+        expect(revision.errors.length).to eq(1)
+        expect {
+            revision.revise!
+        }.to raise_error(StandardError)
+
+        expect(Metis::File.count).to eq(1)
+
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/wisdom.txt',
+            dest: 'metis://athena/files/wisdom.txt',
+            user: @user
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        expect {
+            revision.revise!
+        }.to raise_error(StandardError)
+
+        expect(Metis::File.count).to eq(1)
+    end
+
+    it 'is invalid if validate not run' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/wisdom.txt',
+            dest: 'metis://athena/files/wisdom.txt',
+            user: @user
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = default_bucket('athena')
+        expect(revision.errors).to eq(nil)
+        expect(revision.valid?).to eq(false)
     end
 end

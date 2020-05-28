@@ -4,8 +4,8 @@ class Metis
   class CopyRevision < Revision
     def validate
       @errors = []
-      validate_source(@source.mpath)
-      validate_dest(@dest.mpath)
+      validate_source(@source)
+      validate_dest(@dest)
     end
 
     def bucket_names
@@ -23,11 +23,12 @@ class Metis
     def paths
       source_paths = super
       source_paths.push(@dest.mpath.path) if @dest
-      return source_paths
+      return source_paths.compact
     end
 
     def revise!
       raise 'Invalid revision, cannot revise!' unless valid?
+      raise 'Cannot revise without a user' unless @user
 
       Metis::File.copy({
         project_name: @source.mpath.project_name,

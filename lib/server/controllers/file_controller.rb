@@ -75,33 +75,21 @@ class FileController < Metis::Controller
   def copy
     require_param(:new_file_path)
 
-    # Keep this here to verify the bucket is valid,
-    # since source bucket name is part of the path
-    bucket = require_bucket
-
-    dest_bucket = bucket
-    if @params[:new_bucket_name]
-      dest_bucket = require_bucket(@params[:new_bucket_name])
-    end
-
     revision = Metis::CopyRevision.new({
       source: Metis::Path.path_from_parts(
         @params[:project_name],
-        bucket.name,
+        @params[:bucket_name],
         @params[:file_path]
       ),
       dest: Metis::Path.path_from_parts(
         @params[:project_name],
-        dest_bucket.name,
+        @params[:new_bucket_name] ? @params[:new_bucket_name] : @params[:bucket_name],
         @params[:new_file_path]
       ),
       user: @user
     })
 
-    # The above require_bucket already verified the
-    #   user has access to these buckets, but let's
-    #   validate the rest of the information.
-    revision.validate([bucket.name, dest_bucket.name])
+    revision.validate
 
     raise Etna::BadRequest, revision.errors unless revision.valid?
 
@@ -109,6 +97,7 @@ class FileController < Metis::Controller
   end
 
   def bulk_copy
+    binding.pry
     # We want to support bulk copy operations
     #   from Magma.
     # First, check that the user has access to all of
@@ -124,10 +113,8 @@ class FileController < Metis::Controller
 
     raise Etna::BadRequest, 'At least one revision required' unless revisions.length > 0
 
-    # In bulk copy mode, we validate the buckets in bulk
-    #   since they aren't part of the path (are part of revisions),
-    #   and trying to minimize database hits by rejecting early, if
-    #   possible.
+    # In bulk copy mode, we fetch the buckets and folders in bulk
+    #   and set them on the revision objects, to try and minimize database hits
     hmac = @request.env['etna.hmac']
 
     user_authorized_buckets = Metis::Bucket.where(
@@ -160,17 +147,6 @@ class FileController < Metis::Controller
         rev.set_folder(rev.dest, bucket_folders)
       end
     end
-
-    # paths = revisions.map(&:paths).flatten
-    # paths.bulk_fetch --> get buckets / folders / files in a bulk operation, and set them for each path?
-    #   in bulk fetch:
-    # Metis::Bucket.where(
-    #   project_name: @params[:project_name],
-    #   owner: ['metis', hmac.id.to_s],
-    #   name: revisions.map(&:bucket_names).flatten.uniq
-    # ).all.select{|b| b.allowed?(@user, hmac)}
-    # Let's keep Path as non-operations, just parsing string
-    # Loading File, Folder, Bucket keep in the Revision.... using existing Metis::File, Folder methods.
 
     revisions.map { |rev| rev.validate }
 
