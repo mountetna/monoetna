@@ -44,6 +44,16 @@ describe Metis::Revision do
         expect(revision.source.instance_of? Metis::Path).to eq(true)
     end
 
+    it 'throws exception if you try to directly call the abstract validate method' do
+        revision = Metis::Revision.new({
+            source: 'metis://athena/files/wisdom.txt',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect {
+            revision.validate([])
+        }.to raise_error(StandardError)
+    end
+
     it 'adds error message if user cannot access the source bucket' do
         revision = Metis::Revision.new({
             source: 'metis://athena/files/wisdom.txt',

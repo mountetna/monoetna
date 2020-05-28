@@ -2,51 +2,10 @@ require_relative 'revision'
 
 class Metis
   class CopyRevision < Revision
-    def self.create_from_parts(params)
-      Metis::CopyRevision.new({
-        source: Metis::Path.path_from_parts(
-          params[:source][:project_name],
-          params[:source][:bucket_name],
-          params[:source][:file_path]),
-        dest: Metis::Path.path_from_parts(
-          params[:dest][:project_name],
-          params[:dest][:bucket_name],
-          params[:dest][:file_path])
-      })
-    end
-
-    def validate (user_authorized_bucket_names)
-      super(user_authorized_bucket_names)
-
-      @errors.push("Invalid dest path: #{@dest.path}") unless @dest.valid?
-
-      if @dest.valid?
-        @errors.push("Invalid dest bucket: #{@dest.bucket_name}") unless @dest.bucket
-
-        if @dest.bucket
-          @errors.push(
-            "Forbidden: no access to dest bucket #{@dest.bucket.name}"
-          ) unless user_authorized_bucket_names.include? @dest.bucket.name
-
-          dest_folder = @dest.folder
-
-          if @dest.folder_path
-            @errors.push("Invalid dest folder: #{@dest.folder_path}") unless dest_folder
-            @errors.push("Dest folder #{dest_folder.folder_name} is read-only") if dest_folder&.read_only?
-          end
-
-          dest_file = @dest.file
-
-          if dest_file
-            @errors.push("Dest file #{@dest.file_name} is read-only") if dest_file.read_only?
-          end
-
-          @errors.push(
-            "Cannot copy over existing folder #{@dest.path}"
-          ) if  Metis::Folder.exists?(@dest.file_name, @dest.bucket, dest_folder)
-
-        end
-      end
+    def validate
+      @errors = []
+      validate_source(@source.mpath)
+      validate_dest(@dest.mpath)
     end
 
     def bucket_names
@@ -55,19 +14,27 @@ class Metis
       #   the CopyRevision.
       # So, if @dest doesn't exist, we don't return it
       source_bucket_names = super
-      if @dest.valid?
-        return source_bucket_names.push(@dest.bucket_name)
+      if @dest.mpath.valid?
+        return source_bucket_names.push(@dest.mpath.bucket_name)
       end
       return source_bucket_names
     end
 
-    def revise! (params)
+    def paths
+      source_paths = super
+      source_paths.push(@dest.mpath.path) if @dest
+      return source_paths
+    end
+
+    def revise!
+      raise 'Invalid revision, cannot revise!' unless valid?
+
       Metis::File.copy({
-        project_name: @source.project_name,
+        project_name: @source.mpath.project_name,
         source_file: @source.file,
-        dest_file_path: @dest.file_path,
-        dest_bucket_name: @dest.bucket.name,
-        user: params[:user]
+        dest_file_path: @dest.mpath.file_path,
+        dest_bucket_name: @dest.mpath.bucket_name,
+        user: @user
       })
     end
   end

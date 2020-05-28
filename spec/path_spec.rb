@@ -26,11 +26,6 @@ describe Metis::Path do
         path = Metis::Path.new('metis://athena/files/helmet.jpg')
     end
 
-    it 'returns the bucket name' do
-        path = Metis::Path.new('metis://athena/files/helmet.jpg')
-        expect(path.bucket.name).to eq('files')
-    end
-
     it 'returns a full Metis path from parts' do
         path = Metis::Path.path_from_parts('athena', 'files', 'learn-wisdom.txt')
         expect(path).to eq('metis://athena/files/learn-wisdom.txt')
@@ -61,16 +56,6 @@ describe Metis::Path do
         expect(path.valid?).to eq(true)
     end
 
-    it 'returns the path\'s file' do
-        path = Metis::Path.new('metis://athena/files/wisdom.txt')
-        expect(path.file).to eq(@wisdom_file)
-    end
-
-    it 'returns the path\'s folder' do
-        path = Metis::Path.new('metis://athena/files/wisdom.txt')
-        expect(path.folder).to eq(@wisdom_file.folder)
-    end
-
     it 'returns the path\'s folder_path' do
         path = Metis::Path.new('metis://athena/files/wisdom.txt')
         expect(path.folder_path).to eq(nil)
@@ -90,11 +75,6 @@ describe Metis::Path do
     it 'returns the path\'s project_name' do
         path = Metis::Path.new('metis://athena/files/wisdom.txt')
         expect(path.project_name).to eq('athena')
-    end
-
-    it 'returns the path\'s bucket' do
-        path = Metis::Path.new('metis://athena/files/wisdom.txt')
-        expect(path.bucket).to eq(@wisdom_file.bucket)
     end
 
     it 'returns the path\'s bucket name' do

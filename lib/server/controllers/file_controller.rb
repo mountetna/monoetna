@@ -84,17 +84,18 @@ class FileController < Metis::Controller
       dest_bucket = require_bucket(@params[:new_bucket_name])
     end
 
-    revision = Metis::CopyRevision.create_from_parts({
-      source: {
-        project_name: @params[:project_name],
-        bucket_name: bucket.name,
-        file_path: @params[:file_path]
-      },
-      dest: {
-        project_name: @params[:project_name],
-        bucket_name: dest_bucket.name,
-        file_path: @params[:new_file_path]
-      }
+    revision = Metis::CopyRevision.new({
+      source: Metis::Path.path_from_parts(
+        @params[:project_name],
+        bucket.name,
+        @params[:file_path]
+      ),
+      dest: Metis::Path.path_from_parts(
+        @params[:project_name],
+        dest_bucket.name,
+        @params[:new_file_path]
+      ),
+      user: @user
     })
 
     # The above require_bucket already verified the
@@ -102,13 +103,9 @@ class FileController < Metis::Controller
     #   validate the rest of the information.
     revision.validate([bucket.name, dest_bucket.name])
 
-    raise Etna::BadRequest, revision.errors unless revision.errors.length == 0
+    raise Etna::BadRequest, revision.errors unless revision.valid?
 
-    new_file = revision.revise!({
-      user: @user
-    })
-
-    success_json(files: [ new_file.to_hash(@request) ])
+    success_json(files: [ revision.revise!.to_hash(@request) ])
   end
 
   def bulk_copy
@@ -121,7 +118,9 @@ class FileController < Metis::Controller
     require_param(:revisions)
 
     revisions = @params[:revisions].
-      map {|rev| Metis::CopyRevision.new(rev) }
+      map {|rev| Metis::CopyRevision.new(rev.merge({
+        user: @user
+      })) }
 
     raise Etna::BadRequest, 'At least one revision required' unless revisions.length > 0
 
@@ -131,30 +130,58 @@ class FileController < Metis::Controller
     #   possible.
     hmac = @request.env['etna.hmac']
 
-    user_authorized_bucket_names = Metis::Bucket.where(
+    user_authorized_buckets = Metis::Bucket.where(
       project_name: @params[:project_name],
       owner: ['metis', hmac.id.to_s],
       name: revisions.map(&:bucket_names).flatten.uniq
-    ).all.select{|b| b.allowed?(@user, hmac)}.
-      map(&:name)
+    ).all.select{|b| b.allowed?(@user, hmac)}
 
-    revisions.
-      map { |rev| rev.validate(user_authorized_bucket_names) }
+    revision_bucket_folders = {}
+
+    revisions.each do |rev|
+      rev.set_bucket(rev.source, user_authorized_buckets)
+      rev.set_bucket(rev.dest, user_authorized_buckets)
+    end
+
+    user_authorized_buckets.each do |bucket|
+      # Bulk-fetch all the unique folders that are in the
+      #   revisions.
+      bucket_folder_paths = revisions.
+        map(&:paths).flatten.
+        select{|p| p.bucket_name == bucket.name}.
+        map(&:folder_path).flatten.unique
+
+      bucket_folders = bucket_folder_paths.map {
+        |folder_path| Metis::Folder.from_path(folder_path)
+      }
+
+      revisions.each do |rev|
+        rev.set_folder(rev.source, bucket_folders)
+        rev.set_folder(rev.dest, bucket_folders)
+      end
+    end
+
+    # paths = revisions.map(&:paths).flatten
+    # paths.bulk_fetch --> get buckets / folders / files in a bulk operation, and set them for each path?
+    #   in bulk fetch:
+    # Metis::Bucket.where(
+    #   project_name: @params[:project_name],
+    #   owner: ['metis', hmac.id.to_s],
+    #   name: revisions.map(&:bucket_names).flatten.uniq
+    # ).all.select{|b| b.allowed?(@user, hmac)}
+    # Let's keep Path as non-operations, just parsing string
+    # Loading File, Folder, Bucket keep in the Revision.... using existing Metis::File, Folder methods.
+
+    revisions.map { |rev| rev.validate }
 
     errors = revisions.map(&:errors).flatten
 
     raise Etna::BadRequest, errors unless errors.length == 0
 
     # If we've gotten here, every revision looks good and we can execute them!
-    new_files = []
-    revisions.each do |revision|
-
-      new_file = revision.revise!({
-        user: @user
-      })
-
-      new_files.push(new_file.to_hash(@request))
-    end
-    success_json(files: new_files)
+    success_json(
+      files: revisions.map(&:revise!).
+        map {|new_file| new_file.to_hash(@request)}
+    )
   end
 end
