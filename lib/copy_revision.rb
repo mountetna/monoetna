@@ -20,10 +20,10 @@ class Metis
       return source_bucket_names
     end
 
-    def paths
-      source_paths = super
-      source_paths.push(@dest.mpath) if @dest.mpath.valid?
-      return source_paths
+    def mpaths
+      source_mpaths = super
+      source_mpaths.push(@dest.mpath) if @dest.mpath.valid?
+      return source_mpaths
     end
 
     def revise!

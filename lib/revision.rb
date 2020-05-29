@@ -47,7 +47,7 @@ class Metis
       return []
     end
 
-    def paths
+    def mpaths
       @source.mpath.valid? ? [@source.mpath] : []
     end
 

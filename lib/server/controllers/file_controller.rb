@@ -153,7 +153,7 @@ class FileController < Metis::Controller
       # Bulk-fetch all the unique folders that are in the
       #   revisions.
       bucket_folder_paths = revisions.
-        map(&:paths).flatten.
+        map(&:mpaths).flatten.
         select{|p| p.bucket_name == bucket.name}.
         map(&:folder_path).flatten.compact.uniq
 

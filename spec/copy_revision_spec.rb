@@ -412,18 +412,18 @@ describe Metis::CopyRevision do
             source: 'metis://athena/files/helmet.jpg',
             dest: 'metis://athena/magma/wisdom.txt'
         })
-        expect(revision.paths.length).to eq(2)
-        expect(revision.paths[0].path).
+        expect(revision.mpaths.length).to eq(2)
+        expect(revision.mpaths[0].path).
             to eq('metis://athena/files/helmet.jpg')
-        expect(revision.paths[1].path).
+        expect(revision.mpaths[1].path).
             to eq('metis://athena/magma/wisdom.txt')
 
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/helmet.jpg',
             dest: nil
         })
-        expect(revision.paths.length).to eq(1)
-        expect(revision.paths[0].path).
+        expect(revision.mpaths.length).to eq(1)
+        expect(revision.mpaths[0].path).
             to eq('metis://athena/files/helmet.jpg')
     end
 end
