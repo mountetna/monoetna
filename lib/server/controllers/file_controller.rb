@@ -173,7 +173,6 @@ class FileController < Metis::Controller
 
     revisions.map { |rev| rev.validate }
 
-    # errors = revisions.map(&:errors).flatten
     errors = revisions.select{|r| !r.valid?}.map(&:to_hash)
 
     return failure(422, errors: errors) unless errors.length == 0
