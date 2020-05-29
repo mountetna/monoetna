@@ -421,7 +421,7 @@ describe Metis::CopyRevision do
             to eq('metis://athena/files/helmet.jpg')
     end
 
-    it 'returns a JSON representation' do
+    it 'returns a hash representation' do
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/magma/wisdom.txt',
             dest: 'metis://athena/files/wisdom.txt',
@@ -429,7 +429,7 @@ describe Metis::CopyRevision do
         })
         revision.dest.bucket = default_bucket('athena')
 
-        expect(revision.to_json).to eq({
+        expect(revision.to_hash).to eq({
             source: 'metis://athena/magma/wisdom.txt',
             dest: 'metis://athena/files/wisdom.txt',
             errors: nil
@@ -437,7 +437,7 @@ describe Metis::CopyRevision do
 
         revision.validate
 
-        expect(revision.to_json).to eq({
+        expect(revision.to_hash).to eq({
             source: 'metis://athena/magma/wisdom.txt',
             dest: 'metis://athena/files/wisdom.txt',
             errors: ["Invalid bucket: \"magma\""]

@@ -1225,6 +1225,7 @@ describe FileController do
       }], hmac_params(id: 'magma', signature: 'valid'))
 
       expect(last_response.status).to eq(422)
+
       expect(json_body[:errors].length).to eq(2)
       expect(json_body[:errors]).to eq(
         [{"dest": "metis://athena/sundry/learn-wisdom3.txt",

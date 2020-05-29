@@ -39,7 +39,7 @@ class Metis
       })
     end
 
-    def to_json
+    def to_hash
       {
         dest: @dest.mpath.path,
         source: @source.mpath.path,
