@@ -401,7 +401,6 @@ describe Metis::CopyRevision do
         expect(revision.valid?).to eq(false)
     end
 
-
     it 'returns the dest and source paths in an array' do
         revision = Metis::CopyRevision.new({
             source: 'metis://athena/files/helmet.jpg',
@@ -420,5 +419,28 @@ describe Metis::CopyRevision do
         expect(revision.mpaths.length).to eq(1)
         expect(revision.mpaths[0].path).
             to eq('metis://athena/files/helmet.jpg')
+    end
+
+    it 'returns a JSON representation' do
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/magma/wisdom.txt',
+            dest: 'metis://athena/files/wisdom.txt',
+            user: @user
+        })
+        revision.dest.bucket = default_bucket('athena')
+
+        expect(revision.to_json).to eq({
+            source: 'metis://athena/magma/wisdom.txt',
+            dest: 'metis://athena/files/wisdom.txt',
+            errors: nil
+        })
+
+        revision.validate
+
+        expect(revision.to_json).to eq({
+            source: 'metis://athena/magma/wisdom.txt',
+            dest: 'metis://athena/files/wisdom.txt',
+            errors: ["Invalid bucket: \"magma\""]
+        })
     end
 end

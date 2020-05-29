@@ -719,7 +719,9 @@ describe FileController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
-        "Invalid path: \"metis://athena/files/learn\nwisdom.txt\""
+        {"dest": "metis://athena/files/learn\nwisdom.txt",
+         "errors": ["Invalid path: \"metis://athena/files/learn\nwisdom.txt\""],
+         "source": "metis://athena/files/wisdom.txt"}
       )
 
       # the original is untouched
@@ -769,7 +771,9 @@ describe FileController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
-        "File \"metis://athena/files/folly.txt\" not found"
+        {"dest": "metis://athena/files/learn-folly.txt",
+         "errors": ["File \"metis://athena/files/folly.txt\" not found"],
+         "source": "metis://athena/files/folly.txt"}
       )
 
       # the actual file is untouched
@@ -824,7 +828,9 @@ describe FileController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
-        "Cannot copy over existing folder: \"metis://athena/files/learn-wisdom.txt\""
+        {"dest": "metis://athena/files/learn-wisdom.txt",
+        "errors": ["Cannot copy over existing folder: \"metis://athena/files/learn-wisdom.txt\""],
+        "source": "metis://athena/files/wisdom.txt"}
       )
 
       # the file we tried to copy is untouched
@@ -881,7 +887,9 @@ describe FileController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
-        "Folder \"contents\" is read-only"
+        {"dest": "metis://athena/files/contents/learn-wisdom.txt",
+         "errors": ["Folder \"contents\" is read-only"],
+         "source": "metis://athena/files/wisdom.txt"}
       )
 
       # the original is untouched
@@ -908,7 +916,9 @@ describe FileController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
-        "Invalid folder: \"contents\""
+        {"dest": "metis://athena/files/contents/learn-wisdom.txt",
+         "errors": ["Invalid folder: \"contents\""],
+         "source": "metis://athena/files/wisdom.txt"}
       )
 
       # the original is untouched
@@ -965,7 +975,9 @@ describe FileController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
-        "Invalid bucket: \"sundry\""
+        {"dest": "metis://athena/sundry/learn-wisdom.txt",
+         "errors": ["Invalid bucket: \"sundry\""],
+         "source": "metis://athena/files/wisdom.txt"}
       )
 
       # the old file is untouched
@@ -1017,7 +1029,9 @@ describe FileController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
-        "Invalid bucket: \"sundry\""
+        {"dest": "metis://athena/sundry/learn-wisdom.txt",
+         "errors": ["Invalid bucket: \"sundry\""],
+         "source": "metis://athena/files/wisdom.txt"}
       )
 
       # the old file is untouched
@@ -1050,7 +1064,9 @@ describe FileController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
-        "Folder \"contents\" is read-only"
+        {"dest": "metis://athena/files/contents/learn-wisdom.txt",
+         "errors": ["Folder \"contents\" is read-only"],
+         "source": "metis://athena/files/wisdom.txt"}
       )
 
       # the original is untouched
@@ -1120,7 +1136,15 @@ describe FileController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors].length).to eq(3)
       expect(json_body[:errors]).to eq(
-        ["Folder \"contents\" is read-only", "Invalid path: \"\"", "Invalid bucket: \"sundry\""]
+        [{"dest": "metis://athena/files/contents/learn-wisdom.txt",
+          "errors": ["Folder \"contents\" is read-only"],
+          "source": "metis://athena/files/wisdom.txt"},
+         {"dest": nil,
+          "errors": ["Invalid path: \"\""],
+          "source": "metis://athena/files/wisdom.txt"},
+         {"dest": "metis://athena/sundry/learn-wisdom2.txt",
+          "errors": ["Invalid bucket: \"sundry\""],
+          "source": "metis://athena/files/wisdom.txt"}]
       )
 
       # the original is untouched
@@ -1203,7 +1227,12 @@ describe FileController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors].length).to eq(2)
       expect(json_body[:errors]).to eq(
-        ["Invalid bucket: \"sundry\"", "Invalid bucket: \"sundry\""])
+        [{"dest": "metis://athena/sundry/learn-wisdom3.txt",
+         "errors": ["Invalid bucket: \"sundry\""],
+         "source": "metis://athena/files/wisdom.txt"},
+        {"dest": "metis://athena/sundry/build-helmet.jpg",
+         "errors": ["Invalid bucket: \"sundry\""],
+         "source": "metis://athena/files/blueprints/helmet/helmet.jpg"}])
 
       expect(Metis::File.count).to eq(2)
 

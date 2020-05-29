@@ -38,5 +38,13 @@ class Metis
         user: @user
       })
     end
+
+    def to_json
+      {
+        dest: @dest.mpath.path,
+        source: @source.mpath.path,
+        errors: @errors
+      }
+    end
   end
 end
