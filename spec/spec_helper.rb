@@ -304,6 +304,12 @@ HELMET=<<EOT
   xXx
  xO|Ox
 EOT
+SHINY_HELMET=<<EOT
+ *****
+  xXx
+ xO|Ox
+EOT
+
 
 AUTH_USERS = {
   editor: {

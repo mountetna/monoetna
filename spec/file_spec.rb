@@ -1107,9 +1107,7 @@ describe FileController do
 
       # the data is not destroyed
       expect(::File.exists?(location)).to be_truthy
-      orig_wisdom_file = Metis::File.first
-      expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
-      third_link_file = Metis::File.last
+      third_link_file = Metis::File.find(file_name: 'build-helmet.jpg')
       expect(third_link_file.file_name).to eq('build-helmet.jpg')
       expect(third_link_file.bucket.name).to eq('sundry')
     end
@@ -1160,15 +1158,18 @@ describe FileController do
       expect(orig_helmet_file.file_name).to eq('helmet.jpg')
     end
 
-    it 'can copy files to multiple buckets in single operation' do
+    it 'can copy files from multiple buckets to multiple buckets in single operation' do
       contents_folder = create_folder('athena', 'contents')
       stubs.create_folder('athena', 'files', 'contents')
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'metis' )
       magma_bucket = create( :bucket, project_name: 'athena', name: 'magma', access: 'administrator', owner: 'magma' )
 
+      shiny_helmet_file = create_file('athena', 'shiny-helmet.jpg', SHINY_HELMET, bucket: sundry_bucket)
+      stubs.create_file('athena', 'sundry', 'shiny-helmet.jpg', SHINY_HELMET)
+
       token_header(:editor)
 
-      expect(Metis::File.count).to eq(2)
+      expect(Metis::File.count).to eq(3)
 
       location = @wisdom_file.data_block.location
       bulk_copy([{
@@ -1183,10 +1184,13 @@ describe FileController do
       }, {
         source: 'metis://athena/files/blueprints/helmet/helmet.jpg',
         dest: 'metis://athena/sundry/build-helmet.jpg'
+      }, {
+        source: 'metis://athena/sundry/shiny-helmet.jpg',
+        dest: 'metis://athena/magma/polish-helmet.jpg'
       }], hmac_params(id: 'magma', signature: 'valid'))
 
       expect(last_response.status).to eq(200)
-      expect(Metis::File.count).to eq(6)
+      expect(Metis::File.count).to eq(8)
 
       # the data is not destroyed
       expect(::File.exists?(location)).to be_truthy
@@ -1194,20 +1198,22 @@ describe FileController do
       expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
       learn_wisdom_2_file = Metis::File.find(file_name: 'learn-wisdom2.txt')
       expect(learn_wisdom_2_file.bucket.name).to eq('magma')
-      last_copy_file = Metis::File.last
-      expect(last_copy_file.file_name).to eq('build-helmet.jpg')
-      expect(last_copy_file.bucket.name).to eq('sundry')
+      build_helmet_file = Metis::File.find(file_name: 'build-helmet.jpg')
+      expect(build_helmet_file.bucket.name).to eq('sundry')
     end
 
-    it 'refuses to copy to multiple buckets if does not have permissions for one' do
+    it 'refuses to copy from multiple buckets to multiple buckets if does not have permissions for one' do
       contents_folder = create_folder('athena', 'contents')
       stubs.create_folder('athena', 'files', 'contents')
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'administrator', owner: 'metis' )
       magma_bucket = create( :bucket, project_name: 'athena', name: 'magma', access: 'administrator', owner: 'magma' )
 
+      shiny_helmet_file = create_file('athena', 'shiny-helmet.jpg', SHINY_HELMET, bucket: sundry_bucket)
+      stubs.create_file('athena', 'sundry', 'shiny-helmet.jpg', SHINY_HELMET)
+
       token_header(:editor)
 
-      expect(Metis::File.count).to eq(2)
+      expect(Metis::File.count).to eq(3)
 
       location = @wisdom_file.data_block.location
       bulk_copy([{
@@ -1222,20 +1228,26 @@ describe FileController do
       }, {
         source: 'metis://athena/files/blueprints/helmet/helmet.jpg',
         dest: 'metis://athena/sundry/build-helmet.jpg'
+      }, {
+        source: 'metis://athena/sundry/shiny-helmet.jpg',
+        dest: 'metis://athena/magma/polish-helmet.jpg'
       }], hmac_params(id: 'magma', signature: 'valid'))
 
       expect(last_response.status).to eq(422)
 
-      expect(json_body[:errors].length).to eq(2)
+      expect(json_body[:errors].length).to eq(3)
       expect(json_body[:errors]).to eq(
         [{"dest": "metis://athena/sundry/learn-wisdom3.txt",
          "errors": ["Invalid bucket: \"sundry\""],
          "source": "metis://athena/files/wisdom.txt"},
         {"dest": "metis://athena/sundry/build-helmet.jpg",
          "errors": ["Invalid bucket: \"sundry\""],
-         "source": "metis://athena/files/blueprints/helmet/helmet.jpg"}])
+         "source": "metis://athena/files/blueprints/helmet/helmet.jpg"},
+        {"dest": "metis://athena/magma/polish-helmet.jpg",
+         "errors": ["Invalid bucket: \"sundry\""],
+         "source": "metis://athena/sundry/shiny-helmet.jpg"}])
 
-      expect(Metis::File.count).to eq(2)
+      expect(Metis::File.count).to eq(3)
 
       # the data is not destroyed
       expect(::File.exists?(location)).to be_truthy
