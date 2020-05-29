@@ -1,5 +1,4 @@
 describe Metis::Path do
-    include Rack::Test::Methods
 
     def app
       OUTER_APP
@@ -7,10 +6,6 @@ describe Metis::Path do
 
     before(:each) do
       default_bucket('athena')
-
-      @metis_uid = Metis.instance.sign.uid
-
-      set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
 
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)

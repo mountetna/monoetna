@@ -1,5 +1,4 @@
 describe Metis::CopyRevision do
-    include Rack::Test::Methods
 
     def app
       OUTER_APP
@@ -8,16 +7,12 @@ describe Metis::CopyRevision do
     before(:each) do
       default_bucket('athena')
 
-      @metis_uid = Metis.instance.sign.uid
-
       @user = Etna::User.new({
         first: 'Athena',
         last: 'Pallas',
         email: 'athena@olympus.org',
         perm: 'a:athena'
       })
-
-      set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
 
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
@@ -51,7 +46,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Invalid bucket: sundry"
+            "Invalid bucket: \"sundry\""
         )
     end
 
@@ -80,7 +75,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Invalid path: metis://athena/files/learn\nwisdom.txt"
+            "Invalid path: \"metis://athena/files/learn\nwisdom.txt\""
         )
 
         revision = Metis::CopyRevision.new({
@@ -94,7 +89,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Invalid path: "
+            "Invalid path: \"\""
         )
     end
 
@@ -161,7 +156,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Folder contents is read-only"
+            "Folder \"contents\" is read-only"
         )
     end
 
@@ -181,7 +176,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "File metis://athena/files/wisdom2.txt is read-only"
+            "File \"metis://athena/files/wisdom2.txt\" is read-only"
         )
     end
 
@@ -198,10 +193,10 @@ describe Metis::CopyRevision do
         expect(revision.errors.length).to eq(2)
 
         expect(revision.errors[0]).to eq(
-            "File metis://athena/files/helmet.jpg not found"
+            "File \"metis://athena/files/helmet.jpg\" not found"
         )
         expect(revision.errors[1]).to eq(
-            "Invalid path: "
+            "Invalid path: \"\""
         )
     end
 
@@ -221,7 +216,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Cannot copy over existing folder metis://athena/files/wisdom.txt"
+            "Cannot copy over existing folder: \"metis://athena/files/wisdom.txt\""
         )
     end
 
@@ -267,7 +262,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Invalid bucket: war"
+            "Invalid bucket: \"war\""
         )
     end
 
@@ -283,7 +278,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "File metis://athena/files/learn-wisdom.txt not found"
+            "File \"metis://athena/files/learn-wisdom.txt\" not found"
         )
     end
 
@@ -299,7 +294,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Invalid path: metis://athena/files/build\nhelmet.jpg"
+            "Invalid path: \"metis://athena/files/build\nhelmet.jpg\""
         )
 
         revision = Metis::CopyRevision.new({
@@ -313,10 +308,10 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(2)
         expect(revision.errors[0]).to eq(
-            "Invalid path: "
+            "Invalid path: \"\""
         )
         expect(revision.errors[1]).to eq(
-            "Invalid path: "
+            "Invalid path: \"\""
         )
     end
 
@@ -344,7 +339,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Invalid bucket: magma"
+            "Invalid bucket: \"magma\""
         )
     end
 

@@ -56,7 +56,7 @@ class Metis
       if mpath.valid?
         return true
       end
-      @errors.push("Invalid path: #{mpath.path}")
+      @errors.push("Invalid path: \"#{mpath.path}\"")
       return false
     end
 
@@ -66,7 +66,7 @@ class Metis
       if mpath_w_objs.bucket
         return true
       end
-      @errors.push("Invalid bucket: #{mpath_w_objs.mpath.bucket_name}")
+      @errors.push("Invalid bucket: \"#{mpath_w_objs.mpath.bucket_name}\"")
       return false
     end
 
@@ -79,12 +79,12 @@ class Metis
         mpath_w_objs.mpath.file_name)
 
       if !file&.has_data? && file_check_type == 'source'
-        @errors.push("File #{mpath_w_objs.mpath.path} not found")
+        @errors.push("File \"#{mpath_w_objs.mpath.path}\" not found")
         errors_found = true
       end
 
       if file&.read_only? && file_check_type == 'dest'
-        @errors.push("File #{mpath_w_objs.mpath.path} is read-only")
+        @errors.push("File \"#{mpath_w_objs.mpath.path}\" is read-only")
         errors_found = true
       end
 
@@ -103,7 +103,7 @@ class Metis
           mpath_w_objs.folder)
 
           @errors.push(
-            "Cannot copy over existing folder #{mpath_w_objs.mpath.path}"
+            "Cannot copy over existing folder: \"#{mpath_w_objs.mpath.path}\""
           )
           errors_found = true
       end
@@ -111,13 +111,13 @@ class Metis
       if mpath_w_objs.mpath.folder_path
         if !mpath_w_objs.folder
           @errors.push(
-            "Invalid folder: #{mpath_w_objs.mpath.folder_path}"
+            "Invalid folder: \"#{mpath_w_objs.mpath.folder_path}\""
           )
           errors_found = true
         end
         if mpath_w_objs.folder&.read_only?
           @errors.push(
-            "Folder #{mpath_w_objs.mpath.folder_path} is read-only"
+            "Folder \"#{mpath_w_objs.mpath.folder_path}\" is read-only"
           )
           errors_found = true
         end

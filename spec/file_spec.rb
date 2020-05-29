@@ -374,7 +374,7 @@ describe FileController do
       rename_file('wisdom.txt', 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder: contents')
+      expect(json_body[:error]).to eq('Invalid folder: "contents"')
       @wisdom_file.refresh
       expect(@wisdom_file.file_path).to eq('wisdom.txt')
       expect(@wisdom_file.folder).to be_nil
@@ -420,8 +420,9 @@ describe FileController do
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"Invalid path: metis://athena/files/learn\\nwisdom.txt\"]"
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "Invalid path: \"metis://athena/files/learn\nwisdom.txt\""
       )
 
       # the original is untouched
@@ -454,8 +455,9 @@ describe FileController do
       copy_file('folly.txt', 'learn-folly.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"File metis://athena/files/folly.txt not found\"]"
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "File \"metis://athena/files/folly.txt\" not found"
       )
 
       # the actual file is untouched
@@ -496,8 +498,9 @@ describe FileController do
       copy_file('wisdom.txt', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"Cannot copy over existing folder metis://athena/files/learn-wisdom.txt\"]"
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "Cannot copy over existing folder: \"metis://athena/files/learn-wisdom.txt\""
       )
 
       # the file we tried to copy is untouched
@@ -544,8 +547,9 @@ describe FileController do
       copy_file('wisdom.txt', 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"Folder contents is read-only\"]"
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "Folder \"contents\" is read-only"
       )
 
       # the original is untouched
@@ -562,7 +566,7 @@ describe FileController do
       copy_file('wisdom.txt', 'contents/wisdom.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq("Invalid folder: contents")
+      expect(json_body[:error]).to eq("Invalid folder: \"contents\"")
 
       # the original is untouched
       @wisdom_file.refresh
@@ -602,7 +606,9 @@ describe FileController do
       stubs.add_file('athena', 'files', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot access bucket')
+      expect(json_body[:error]).to eq(
+        "Cannot access bucket: \"sundry\""
+      )
 
       # the old file is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
@@ -638,7 +644,9 @@ describe FileController do
       stubs.add_file('athena', 'files', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot access bucket')
+      expect(json_body[:error]).to eq(
+        "Cannot access bucket: \"sundry\""
+      )
 
       # the old file is untouched
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
@@ -709,8 +717,9 @@ describe FileController do
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"Invalid path: metis://athena/files/learn\\nwisdom.txt\"]"
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "Invalid path: \"metis://athena/files/learn\nwisdom.txt\""
       )
 
       # the original is untouched
@@ -758,8 +767,9 @@ describe FileController do
       }])
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"File metis://athena/files/folly.txt not found\"]"
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "File \"metis://athena/files/folly.txt\" not found"
       )
 
       # the actual file is untouched
@@ -812,8 +822,9 @@ describe FileController do
       }])
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"Cannot copy over existing folder metis://athena/files/learn-wisdom.txt\"]"
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "Cannot copy over existing folder: \"metis://athena/files/learn-wisdom.txt\""
       )
 
       # the file we tried to copy is untouched
@@ -868,8 +879,9 @@ describe FileController do
       }])
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"Folder contents is read-only\"]"
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "Folder \"contents\" is read-only"
       )
 
       # the original is untouched
@@ -894,8 +906,9 @@ describe FileController do
       }])
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"Invalid folder: contents\"]"
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "Invalid folder: \"contents\""
       )
 
       # the original is untouched
@@ -950,8 +963,9 @@ describe FileController do
       stubs.add_file('athena', 'files', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"Invalid bucket: sundry\"]"
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "Invalid bucket: \"sundry\""
       )
 
       # the old file is untouched
@@ -1001,8 +1015,9 @@ describe FileController do
       stubs.add_file('athena', 'sundry', 'learn-wisdom.txt')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"Invalid bucket: sundry\"]"
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "Invalid bucket: \"sundry\""
       )
 
       # the old file is untouched
@@ -1033,8 +1048,9 @@ describe FileController do
       }])
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"Folder contents is read-only\"]"
+      expect(json_body[:errors].length).to eq(1)
+      expect(json_body[:errors][0]).to eq(
+        "Folder \"contents\" is read-only"
       )
 
       # the original is untouched
@@ -1050,7 +1066,7 @@ describe FileController do
       expect(orig_helmet_file.file_name).to eq('helmet.jpg')
     end
 
-    it 'creates multiple links in a single update' do
+    it 'creates multiple copies in a single update' do
       token_header(:editor)
 
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'metis' )
@@ -1102,8 +1118,9 @@ describe FileController do
       }])
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq(
-        "[\"Folder contents is read-only\", \"Invalid path: \", \"Invalid bucket: sundry\"]"
+      expect(json_body[:errors].length).to eq(3)
+      expect(json_body[:errors]).to eq(
+        ["Folder \"contents\" is read-only", "Invalid path: \"\"", "Invalid bucket: \"sundry\""]
       )
 
       # the original is untouched

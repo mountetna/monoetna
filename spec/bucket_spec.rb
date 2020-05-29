@@ -178,7 +178,7 @@ describe BucketController do
       json_post('/athena/bucket/update/my_bucket', owner: 'metis', access: 'viewer')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid bucket')
+      expect(json_body[:error]).to eq('Invalid bucket: "my_bucket"')
     end
 
     it 'requires admin permissions' do
@@ -278,7 +278,7 @@ describe BucketController do
       delete('/athena/bucket/remove/my_bucket')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid bucket')
+      expect(json_body[:error]).to eq('Invalid bucket: "my_bucket"')
     end
 
     it 'requires admin permissions' do

@@ -111,9 +111,9 @@ class FileController < Metis::Controller
 
     revision.validate
 
-    raise Etna::BadRequest, revision.errors unless revision.valid?
+    return failure(422, errors: revision.errors) unless revision.valid?
 
-    success_json(files: [ revision.revise!.to_hash(@request) ])
+    return success_json(files: [ revision.revise!.to_hash(@request) ])
   end
 
   def bulk_copy
@@ -175,10 +175,10 @@ class FileController < Metis::Controller
 
     errors = revisions.map(&:errors).flatten
 
-    raise Etna::BadRequest, errors unless errors.length == 0
+    return failure(422, errors: errors) unless errors.length == 0
 
     # If we've gotten here, every revision looks good and we can execute them!
-    success_json(
+    return success_json(
       files: revisions.map(&:revise!).
         map {|new_file| new_file.to_hash(@request)}
     )
