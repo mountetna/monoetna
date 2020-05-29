@@ -123,9 +123,9 @@ module Etna
     def json_error(body)
       msg = JSON.parse(body, symbolize_names: true)
       if (msg.has_key?(:errors) && msg[:errors].is_a?(Array))
-        return msg[:errors].join(', ')
+        return JSON.generate(msg[:errors])
       elsif msg.has_key?(:error)
-        return msg[:error]
+        return JSON.generate(msg[:error])
       end
     end
 
