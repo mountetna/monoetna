@@ -87,11 +87,10 @@ class UploadController < Metis::Controller
         file_path: @params[:file_path],
         bucket: bucket,
         project_name: @params[:project_name],
-        user: Etna::User.new({
-          email: hmac.id.to_s,  # The best we can do from the HMAC?
-          first: hmac.id.to_s,  # The best we can do from the HMAC?
-          last: hmac.id.to_s  # The best we can do from the HMAC?
-        })
+        user: Etna::User.new(
+          email: hmac.id.to_s,
+          first: hmac.id.to_s,
+          last: hmac.id.to_s)
       })
     end
 
