@@ -18,18 +18,12 @@ class UploadController < Metis::Controller
     raise Etna::Forbidden, 'File cannot be overwritten' if file && file.read_only?
 
     # Create the upload
-    upload = Metis::Upload.find_or_create(
-      file_name: @params[:file_path],
+    upload = create_upload({
+      file_path: @params[:file_path],
       bucket: bucket,
-      metis_uid: metis_uid,
-      project_name: @params[:project_name]
-    ) do |f|
-      f.author = Metis::File.author(@user)
-      f.file_size = 0
-      f.current_byte_position = 0
-      f.next_blob_size = -1
-      f.next_blob_hash = ''
-    end
+      project_name: @params[:project_name],
+      user: @user
+    })
 
     # Make a MAC url
     url = Metis::File.upload_url(
@@ -58,6 +52,21 @@ class UploadController < Metis::Controller
 
   private
 
+  def create_upload(params)
+    Metis::Upload.find_or_create(
+      file_name: params[:file_path],
+      bucket: params[:bucket],
+      metis_uid: metis_uid,
+      project_name: params[:project_name]
+    ) do |f|
+      f.author = Metis::File.author(params[:user])
+      f.file_size = 0
+      f.current_byte_position = 0
+      f.next_blob_size = -1
+      f.next_blob_hash = ''
+    end
+  end
+
   # create a metadata entry in the database and also a file on
   # the file system with 0 bytes.
   def upload_start
@@ -71,7 +80,20 @@ class UploadController < Metis::Controller
       metis_uid: metis_uid,
     ).first
 
-    raise Etna::BadRequest, 'No matching upload' unless upload
+    if !upload
+      require_params(:project_name, :bucket_name, :file_path)
+      hmac = @request.env['etna.hmac']
+      upload = create_upload({
+        file_path: @params[:file_path],
+        bucket: bucket,
+        project_name: @params[:project_name],
+        user: Etna::User.new({
+          email: hmac.id.to_s,  # The best we can do from the HMAC?
+          first: hmac.id.to_s,  # The best we can do from the HMAC?
+          last: hmac.id.to_s  # The best we can do from the HMAC?
+        })
+      })
+    end
 
     # the upload has been started already, report the current
     # position
