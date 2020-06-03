@@ -9,6 +9,7 @@ gem 'simplecov'
 gem 'rack-test', require: "rack/test"
 group :test do
   gem 'pry'
+  gem 'pry-byebug'
   gem 'timecop'
   gem 'webmock'
   gem 'net-http-persistent'
