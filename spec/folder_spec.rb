@@ -95,7 +95,7 @@ describe FolderController do
 
       expect(last_response.status).to eq(422)
 
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq('Invalid folder: "nonexistent"')
     end
   end
 
@@ -144,7 +144,7 @@ describe FolderController do
       post_create_folder('wisdom.txt/Helmet Blueprints')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq('Invalid folder: "wisdom.txt"')
     end
 
     it 'refuses to create existing folder' do
@@ -170,7 +170,7 @@ describe FolderController do
       post_create_folder('blueprints/Helmet Blueprints')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq('Invalid folder: "blueprints"')
     end
 
     it 'sets a parent folder' do
@@ -219,7 +219,7 @@ describe FolderController do
       remove_folder('glueprints')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq('Invalid folder: "glueprints"')
 
       # the actual folder is untouched
       expect(Metis::Folder.last).to eq(@blueprints_folder)
@@ -302,7 +302,7 @@ describe FolderController do
       protect_folder('glueprints')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq('Invalid folder: "glueprints"')
 
       # the actual folder is untouched
       @blueprints_folder.refresh
@@ -359,7 +359,7 @@ describe FolderController do
       unprotect_folder('glueprints')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq('Invalid folder: "glueprints"')
 
       # the actual folder is untouched
       @blueprints_folder.refresh
@@ -520,7 +520,7 @@ describe FolderController do
       rename_folder('blueprints/helmet/sketches', 'sketches/blueprints/helmet')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq('Invalid folder: "sketches/blueprints"')
 
       # folders are unchanged
       @sketches_folder.refresh
@@ -581,7 +581,7 @@ describe FolderController do
       rename_folder('blueprints', 'contents/blueprints')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder')
+      expect(json_body[:error]).to eq('Invalid folder: "contents"')
       @blueprints_folder.refresh
       expect(@blueprints_folder.folder_path).to eq(['blueprints'])
       expect(@blueprints_folder.folder).to be_nil

@@ -43,7 +43,8 @@ class Metis
     post '/:project_name/file/protect/:bucket_name/*file_path', action: 'file#protect', auth: { user: { is_admin?: :project_name } }
     post '/:project_name/file/unprotect/:bucket_name/*file_path', action: 'file#unprotect', auth: { user: { is_admin?: :project_name } }
     post '/:project_name/file/rename/:bucket_name/*file_path', action: 'file#rename', auth: { user: { can_edit?: :project_name } }
-    post '/:project_name/file/copy/:bucket_name/*file_path', action: 'file#copy', auth: { user: { can_view?: :project_name } }
+    post '/:project_name/file/copy/:bucket_name/*file_path', action: 'file#copy', auth: { user: { can_edit?: :project_name } }
+    post '/:project_name/files/copy', action: 'file#bulk_copy', auth: { user: { can_edit?: :project_name } }
 
     def initialize
       super
