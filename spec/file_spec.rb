@@ -406,7 +406,7 @@ describe FileController do
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
       expect(@wisdom_file).to be_has_data
 
-      # there is a new file
+      # there is a new file that points to the same data block
       expect(Metis::File.count).to eq(2)
       new_wisdom_file = Metis::File.last
       expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
@@ -429,7 +429,7 @@ describe FileController do
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
       expect(@wisdom_file).to be_has_data
 
-      # there is no new file
+      # there is no new file created
       expect(Metis::File.count).to eq(1)
     end
 
@@ -445,7 +445,7 @@ describe FileController do
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
       expect(@wisdom_file).to be_has_data
 
-      # there is no new file
+      # there is no new file created
       expect(Metis::File.count).to eq(1)
     end
 
@@ -464,6 +464,9 @@ describe FileController do
       @wisdom_file.refresh
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
       expect(@wisdom_file).to be_has_data
+
+      # there is no new file created
+      expect(Metis::File.count).to eq(1)
     end
 
     it 'can replace an existing copy' do
@@ -479,11 +482,11 @@ describe FileController do
       @wisdom_file.refresh
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
 
-      # the file we tried to rename is untouched
+      # the file we updated keeps the old filename
       new_wisdom_file = Metis::File.last
       expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
 
-      # we can still see the data
+      # The file we updated points to the new data block
       expect(@wisdom_file).to be_has_data
       expect(new_wisdom_file).to be_has_data
       expect(::File.read(@wisdom_file.data_block.location)).to eq(WISDOM)
@@ -507,12 +510,12 @@ describe FileController do
       @wisdom_file.refresh
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
 
-      # the file we tried to copy is untouched
+      # the folder we tried to overwrite is untouched
       learn_wisdom_folder.refresh
       expect(Metis::Folder.last).to eq(learn_wisdom_folder)
       expect(learn_wisdom_folder.folder_name).to eq('learn-wisdom.txt')
 
-      # we can still see the data
+      # we can still see the original file's data
       expect(@wisdom_file).to be_has_data
       expect(::File.read(@wisdom_file.data_block.location)).to eq(WISDOM)
     end
@@ -531,7 +534,7 @@ describe FileController do
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
       expect(@wisdom_file).to be_has_data
 
-      # a new file exists
+      # a new file exists in a new folder
       new_wisdom_file = Metis::File.last
       expect(new_wisdom_file.file_path).to eq('contents/wisdom.txt')
       expect(new_wisdom_file.folder).to eq(contents_folder)
@@ -589,7 +592,7 @@ describe FileController do
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
       expect(@wisdom_file).to be_has_data
 
-      # there is a new file
+      # there is a new file in the new bucket
       expect(Metis::File.count).to eq(2)
       new_wisdom_file = Metis::File.last
       expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
@@ -687,6 +690,8 @@ describe FileController do
     it 'copies a file' do
       token_header(:editor)
 
+      expect(Metis::File.count).to eq(2)
+
       bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/files/learn-wisdom.txt'
@@ -710,6 +715,8 @@ describe FileController do
     it 'refuses to copy a file to an invalid name' do
       token_header(:editor)
 
+      expect(Metis::File.count).to eq(2)
+
       bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: "metis://athena/files/learn\nwisdom.txt"
@@ -729,6 +736,7 @@ describe FileController do
       expect(@wisdom_file).to be_has_data
 
       # there is no new file
+      expect(Metis::File.count).to eq(2)
       orig_wisdom_file = Metis::File.first
       expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
       orig_helmet_file = Metis::File.last
@@ -738,6 +746,8 @@ describe FileController do
     it 'refuses to copy a file without permissions' do
       # the user is a viewer, not an editor
       token_header(:viewer)
+
+      expect(Metis::File.count).to eq(2)
 
       bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
@@ -760,8 +770,10 @@ describe FileController do
     end
 
     it 'refuses to copy a non-existent file' do
-      # we attempt to rename a file that does not exist
+      # we attempt to copy a file that does not exist
       token_header(:editor)
+
+      expect(Metis::File.count).to eq(2)
 
       bulk_copy([{
         source: 'metis://athena/files/folly.txt',
@@ -776,7 +788,7 @@ describe FileController do
          "source": "metis://athena/files/folly.txt"}
       )
 
-      # the actual file is untouched
+      # no new file is created
       expect(Metis::File.count).to eq(2)
       orig_wisdom_file = Metis::File.first
       expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
@@ -800,16 +812,16 @@ describe FileController do
 
       expect(Metis::File.count).to eq(3)
 
-      # the file we tried to rename is untouched
+      # the file we copied is untouched
       @wisdom_file.refresh
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
 
-      # the file we tried to rename now points to the new location
+      # the file we updated now points to the new location
       new_link_file = Metis::File.last
       expect(new_link_file.file_name).to eq('learn-wisdom.txt')
       expect(new_link_file.data_block.location).to eq(@helmet_file.data_block.location)
 
-      # we can still see the data
+      # we can still see the original data
       expect(@wisdom_file).to be_has_data
       expect(new_link_file).to be_has_data
       expect(::File.read(@wisdom_file.data_block.location)).to eq(WISDOM)
@@ -837,7 +849,7 @@ describe FileController do
       @wisdom_file.refresh
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
 
-      # the file we tried to copy is untouched
+      # the folder we tried to overwrite is untouched
       learn_wisdom_folder.refresh
       expect(Metis::Folder.last).to eq(learn_wisdom_folder)
       expect(learn_wisdom_folder.folder_name).to eq('learn-wisdom.txt')
@@ -879,6 +891,8 @@ describe FileController do
 
       token_header(:editor)
 
+      expect(Metis::File.count).to eq(2)
+
       bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/files/contents/learn-wisdom.txt'
@@ -907,6 +921,8 @@ describe FileController do
 
     it 'will not copy a file to a non-existent folder' do
       token_header(:editor)
+
+      expect(Metis::File.count).to eq(2)
 
       bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
@@ -938,6 +954,8 @@ describe FileController do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'metis' )
 
+      expect(Metis::File.count).to eq(2)
+
       bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/sundry/learn-wisdom.txt'
@@ -951,7 +969,7 @@ describe FileController do
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
       expect(@wisdom_file).to be_has_data
 
-      # there is a new file
+      # there is a new file in the new bucket
       expect(Metis::File.count).to eq(3)
       new_wisdom_file = Metis::File.last
       expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
@@ -964,6 +982,8 @@ describe FileController do
     it 'refuses to copy without bucket permissions' do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'administrator', owner: 'metis' )
+
+      expect(Metis::File.count).to eq(2)
 
       bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
@@ -992,6 +1012,8 @@ describe FileController do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'vulcan' )
 
+      expect(Metis::File.count).to eq(2)
+
       bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
         dest: 'metis://athena/sundry/learn-wisdom.txt'
@@ -1005,7 +1027,7 @@ describe FileController do
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
       expect(@wisdom_file).to be_has_data
 
-      # there is no new file
+      # there is a new file in the new bucket
       expect(Metis::File.count).to eq(3)
       new_wisdom_file = Metis::File.last
       expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
@@ -1018,6 +1040,8 @@ describe FileController do
     it 'refuses to copy to a bucket with a different owner without a signature' do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'vulcan' )
+
+      expect(Metis::File.count).to eq(2)
 
       bulk_copy([{
         source: 'metis://athena/files/wisdom.txt',
@@ -1087,7 +1111,6 @@ describe FileController do
 
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'metis' )
 
-      # there is a new file
       expect(Metis::File.count).to eq(2)
 
       location = @wisdom_file.data_block.location
@@ -1103,10 +1126,12 @@ describe FileController do
       }])
 
       expect(last_response.status).to eq(200)
-      expect(Metis::File.count).to eq(5)
 
       # the data is not destroyed
       expect(::File.exists?(location)).to be_truthy
+
+      # There are some new files
+      expect(Metis::File.count).to eq(5)
       third_link_file = Metis::File.find(file_name: 'build-helmet.jpg')
       expect(third_link_file.file_name).to eq('build-helmet.jpg')
       expect(third_link_file.bucket.name).to eq('sundry')
@@ -1150,7 +1175,7 @@ describe FileController do
       expect(@wisdom_file.file_path).to eq('wisdom.txt')
       expect(@wisdom_file).to be_has_data
 
-      # there is no new file
+      # there is are no new files
       expect(Metis::File.count).to eq(2)
       orig_wisdom_file = Metis::File.first
       expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
@@ -1190,10 +1215,12 @@ describe FileController do
       }], hmac_params(id: 'magma', signature: 'valid'))
 
       expect(last_response.status).to eq(200)
-      expect(Metis::File.count).to eq(8)
 
       # the data is not destroyed
       expect(::File.exists?(location)).to be_truthy
+
+      # There are new files
+      expect(Metis::File.count).to eq(8)
       orig_wisdom_file = Metis::File.first
       expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
       learn_wisdom_2_file = Metis::File.find(file_name: 'learn-wisdom2.txt')
@@ -1247,6 +1274,7 @@ describe FileController do
          "errors": ["Invalid bucket: \"sundry\""],
          "source": "metis://athena/sundry/shiny-helmet.jpg"}])
 
+      # there are no new files
       expect(Metis::File.count).to eq(3)
 
       # the data is not destroyed
