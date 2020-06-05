@@ -42,6 +42,9 @@ jobs:
         cp config.yml.test config.yml
         bin/metis create_db
         bin/metis migrate
+    - name: Create empty stub folder for Assimilate test
+      run: |
+        mkdir -p spec/stubs/blueprints
     - name: Run test suite
       id: first_test_run
       run: |
