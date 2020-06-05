@@ -13,7 +13,7 @@
   :hmac_keys:
     :metis: haggis
   :data_path: ./spec/data
-    :secret_key:
+  :secret_key:
   :upload_expiration: 60
   :download_expiration: 60
   :metis_uid_name: METIS_TEST_UID
