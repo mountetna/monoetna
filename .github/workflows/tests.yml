@@ -40,6 +40,7 @@ jobs:
         PGUSER: developer
       run: |
         cp config.yml.test config.yml
+        bin/metis create_db
         bin/metis migrate
     - name: Run test suite
       id: first_test_run
