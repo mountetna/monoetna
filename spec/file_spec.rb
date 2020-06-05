@@ -1221,8 +1221,8 @@ describe FileController do
 
       # There are new files
       expect(Metis::File.count).to eq(8)
-      orig_wisdom_file = Metis::File.first
-      expect(orig_wisdom_file.file_name).to eq('wisdom.txt')
+      orig_wisdom_file = Metis::File.find(file_name: 'wisdom.txt')
+      expect(orig_wisdom_file.data_block.location).to eq(location)
       learn_wisdom_2_file = Metis::File.find(file_name: 'learn-wisdom2.txt')
       expect(learn_wisdom_2_file.bucket.name).to eq('magma')
       build_helmet_file = Metis::File.find(file_name: 'build-helmet.jpg')
