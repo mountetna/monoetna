@@ -12,3 +12,4 @@
   :log_level: error
   :hmac_keys:
     :metis: haggis
+  :data_path: ./spec/data
