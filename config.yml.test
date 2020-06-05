@@ -13,3 +13,16 @@
   :hmac_keys:
     :metis: haggis
   :data_path: ./spec/data
+    :secret_key:
+  :upload_expiration: 60
+  :download_expiration: 60
+  :metis_uid_name: METIS_TEST_UID
+  :token_domain: example.org
+  :token_life: 31536000
+  :backup:
+    :directory: 'metis-test-athena'
+    :credentials:
+      :aws_access_key_id: 'SOMEID'
+      :aws_secret_access_key: 'someKey'
+      #:aws_access_key_id:
+      #:aws_secret_access_key:
