@@ -45,6 +45,9 @@ jobs:
     - name: Create empty stub folder for Assimilate test
       run: |
         mkdir -p spec/stubs/blueprints
+    - name: Create empty data folder for Upload tests
+      run: |
+        mkdir -p spec/data
     - name: Run test suite
       id: first_test_run
       run: |
