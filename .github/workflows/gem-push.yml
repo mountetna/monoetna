@@ -2,9 +2,9 @@ name: Ruby Gem
 
 on:
   push:
-    branches: [ master ]
+    branches: [ graft-fix-gem-push ]
   pull_request:
-    branches: [ master ]
+    branches: [ graft-fix-gem-push ]
 
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
     - name: Set up Ruby 2.5
       uses: actions/setup-ruby@v1
       with:
-        version: 2.5.x
+        ruby-version: 2.5.x
 
     - name: Publish to RubyGems
       run: |
