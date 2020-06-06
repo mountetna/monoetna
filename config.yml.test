@@ -8,7 +8,7 @@
     :user: developer
     :password: password
   :host: https://metis.test
-  :log_file: /dev/stdout
+  :log_file: /dev/null
   :log_level: error
   :hmac_keys:
     :metis: haggis
