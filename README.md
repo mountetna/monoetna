@@ -1,3 +1,5 @@
+![Run tests](https://github.com/mountetna/metis/workflows/Run%20tests/badge.svg)
+
 # Metis
 
 Metis is a file service for Etna applications. It provides the ability to store
