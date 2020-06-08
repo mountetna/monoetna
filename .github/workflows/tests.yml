@@ -42,9 +42,10 @@ jobs:
         cp config.yml.test config.yml
         bin/metis create_db
         bin/metis migrate
-    - name: Create empty stub folder for Assimilate test
+    - name: Create empty stub folder for Assimilate tests
       run: |
         mkdir -p spec/stubs/blueprints
+        mkdir -p spec/data/data_blocks
     - name: Create empty data folder for Upload tests
       run: |
         mkdir -p spec/data
