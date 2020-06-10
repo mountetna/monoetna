@@ -1,1 +1,0 @@
-export { UploadControl, UploadMeter } from './lib/dist/main';

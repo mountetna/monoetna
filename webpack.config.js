@@ -17,7 +17,8 @@ module.exports = {
     extensions: [ '.js', '.jsx' ],
     alias: {
       'font-awesome': path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free')
-    }
+    },
+    symlinks: false
   },
   entry: {
     'main': './src/index.js',
@@ -25,7 +26,39 @@ module.exports = {
   },
   output: {
     path: __dirname,
-    filename: './lib/dist/[name].js'
+    filename: './dist/[name].js',
+    library: 'etna',
+    libraryTarget: 'umd',
+  },
+  externals: {
+    react: {
+      root: 'React',
+      commonjs2: 'react',
+      commonjs: 'react',
+      amd: 'react',
+      umd: 'react',
+    },
+    'react-dom': {
+      root: 'ReactDOM',
+      commonjs2: 'react-dom',
+      commonjs: 'react-dom',
+      amd: 'react-dom',
+      umd: 'react-dom',
+    },
+    'react-redux': {
+      root: 'ReactRedux',
+      commonjs2: 'react-redux',
+      commonjs: 'react-redux',
+      amd: 'react-redux',
+      umd: 'react-redux',
+    },
+    'redux': {
+      root: 'Redux',
+      commonjs2: 'redux',
+      commonjs: 'redux',
+      amd: 'redux',
+      umd: 'redux',
+    },
   },
   module: {
     rules: [
@@ -34,7 +67,7 @@ module.exports = {
         include: [ path.resolve(__dirname, 'src/jsx'), ],
         test: /\.jsx?$/,
         query: {
-          presets: ['env', 'stage-0', 'react'],
+          presets: ['@babel/env', '@babel/preset-react'],
         }
       },
 

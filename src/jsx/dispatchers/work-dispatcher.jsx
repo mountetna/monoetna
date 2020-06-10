@@ -1,4 +1,4 @@
-import { createWorker } from '../workers';
+import { createWorker } from '../workers/index';
 import { WORK, WORK_FAILED } from '../actions/upload_actions';
 
 let WORKERS = {

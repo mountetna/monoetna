@@ -4,7 +4,6 @@ import { errorMessage } from '../actions/message_actions';
 
 export const ADD_UPLOAD = 'ADD_UPLOAD';
 export const ADD_FILES = 'ADD_FILES';
-export const UNQUEUE_UPLOADS = 'UNQUEUE_UPLOADS';
 export const UPLOAD_STATUS = 'UPLOAD_STATUS';
 export const REMOVE_UPLOAD = 'REMOVE_UPLOAD';
 export const WORK = 'WORK';

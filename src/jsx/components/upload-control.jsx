@@ -28,5 +28,9 @@ export default connect(
   null,
 
   // map dispatch
-  null
+  (dispatch) => ({
+    cancelUpload: (upload) => dispatch({ type: 'CANCEL_UPLOAD', upload }),
+    continueUpload: (upload) => dispatch({ type: 'CONTINUE_UPLOAD', upload }),
+    pauseUpload: (upload) => dispatch({ type: 'PAUSE_UPLOAD', upload }),
+  })
 )(UploadControl);
