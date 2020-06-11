@@ -7,6 +7,54 @@ binary files in folder hierarchies and access them via HTTP API. The underlying
 object storage uses an ordinary filesystem (i.e., files in Metis are stored on
 disk as files)
 
+##
+
+### Docker
+
+#### Usage
+
+A `Makefile` is present to simplify usage of docker via docker-compose.
+You will need to ensure that
+1. `docker` is installed and running its daemon. `docker ps` should succeed.  (Your user may need to belong to the `docker` group)
+2. `docker-compose` is installed and available on your path.  `docker-compose --help` should succeed.
+3.  Port 3000 is available on your host machine to bind to IFF you are accessing it via `https://localhost:3000`
+
+`Makefile` is used over other task managers because virtually every modern system can get `gnumake` atleast fairly easily,
+without having to install other software outside the containers.
+
+`make help` lists all commands for using the docker system.
+* `make up` brings up the database, webpack, and ruby server
+* `make down` brings it all down
+* `make migrate` runs migrations against the database
+* `make logs` shows logs of all running containers
+* `make bash` opens a bash shell in the context of the ruby server
+* `make psql` connects a to the metis container database
+
+#### Files
+
+The main files related to running metis in development are:
+
+* config.yml(.template) - Contains runtime configuration for your environment.  
+The config.yml.template provides a default set of configuration that will work
+with the docker setup.  On first `make up` it will be copied to `config.yml`.  Note
+that `config.yml` itself is not checked in, so you can configure as you need locally.
+* docker-compose.yml - defines the services that will run together
+for the metis project specifically.  Edit this to modify any environment
+variables, or docker setup, specific to metis's development environment.
+* docker/app/Dockerfile - a dockerfile that sets up and runs the metis web app.  Configures
+ruby, installs bundler, loads all files from the docker/app/* into the container.
+* docker/app/docker-entrypoint.sh - A script that is run before any command inside
+the container.  Ensures gems are loaded up to date, waits for the db to be available,
+performs potential npm installation, and then runs the command.  Used both by the
+webserver and the webpack bundle.
+* docker/app/puma.sh - the development puma server command.
+* docker/db/Dockerfile - The relatively simple docker file that brings up the postgres db
+for metis.
+* docker/db/docker-entrypoint-initdb.d - a directory containing scripts that will be
+run to initialize the database container, mostly just initializes the actual databases
+and creates roles.
+
+
 ## Organization
 
 ### Projects

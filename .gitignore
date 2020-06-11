@@ -15,9 +15,13 @@ public/
 /source
 /coverage
 spec/examples.txt
+/.bundle
+/.idea
 
 *.eot
 *.ttf
 *.woff
 *.woff2
 *.swp
+.docker-build-mark
+

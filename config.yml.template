@@ -1,0 +1,61 @@
+---
+:test:
+  :log_file: /dev/null
+  :secret_key: 
+  :upload_expiration: 60
+  :download_expiration: 60
+  :metis_uid_name: METIS_TEST_UID
+  :token_domain: example.org
+  :token_life: 31536000
+
+  :data_path: ./spec/data
+  :backup:
+    :directory: 'metis-test-athena'
+    :credentials:
+      :aws_access_key_id: 'SOMEID'
+      :aws_secret_access_key: 'someKey'
+  :hmac_keys:
+    :metis: haggis
+  :db:
+    :adapter: postgres
+    :host: metis_db
+    :database: metis_test
+    :user: developer
+    :password: password
+    :search_path: [ public ]
+
+:development:
+  :log_file: log/error.log
+  :auth_redirect: https://janus.etna-development.local
+  :token_name: JANUS_DEV_TOKEN
+  :token_algo: RS256
+  :metis_uid_name: METIS_DEV_UID
+  :token_domain: etna-development.local
+  :token_life: 31536000
+  :upload_expiration: 60
+  :download_expiration: 86400
+  :hmac_keys:
+    :metis: 35e7c8775406612c431b654663fed668
+  :data_path: ./data
+  :rsa_public: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6pLkfi2RXd3jHWKh9W37
+    k7Nw5aZxIQRCf9b5b0uUIqyk4ODH1Pd4s/hhYq/9c+HT2304NkiqRw4cVOHMgk8N
+    O+a+7F+HgspJZopyEBCJvBloBoPKrpkZv0FeVHYwiDM2kf3GFDzTPBdUSpYJimtn
+    HF29DdEoj6O5xL9uGW97QZ34JYacIeG7GmVGjYnCvA87S0miDUxvGlu40g+VJhND
+    mLXMzWa5vTxyGb4cEQSL6rryVxmBlonG4J41K7A04/7tftKvWrqsCWAfSCusNs8w
+    CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
+    NQIDAQAB
+    -----END PUBLIC KEY-----
+  :db:
+    :adapter: postgres
+    :host: metis_db
+    :database: metis_development
+    :user: developer
+    :password: password
+    :search_path: [ public ]
+  :backup:
+    :directory: 'metis-dev-ucsf-immunoprofiler-ipi'
+    :credentials:
+      :aws_access_key_id: 
+      :aws_secret_access_key: 

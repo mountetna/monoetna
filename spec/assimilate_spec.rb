@@ -77,7 +77,7 @@ describe Metis::Assimilate do
     stubs.create_folder('athena', 'files', 'blueprints')
 
     # we try to assimilate the blueprints folder
-    @cmd.execute('athena', 'files', '/', 'spec/stubs/blueprints')
+    @cmd.execute('athena', 'files', '/', 'spec/data/stubs/blueprints')
 
     expect(Metis::File.count).to eq(0)
     expect(Metis::Folder.count).to eq(1)
