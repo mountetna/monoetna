@@ -2,9 +2,7 @@ name: Ruby Gem
 
 on:
   push:
-    branches: [ graft-fix-gem-push-1 ]
-  pull_request:
-    branches: [ graft-fix-gem-push-1 ]
+    branches: [ master ]
 
 jobs:
   build:
