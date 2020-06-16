@@ -3,6 +3,8 @@ name: Ruby Gem
 on:
   push:
     branches: [ graft-fix-gem-push ]
+  pull_request:
+    branches: [ graft-fix-gem-push ]
 
 jobs:
   build:
