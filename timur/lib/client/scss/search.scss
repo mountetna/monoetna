@@ -1,0 +1,54 @@
+@import "globals";
+@import "attribute";
+
+#search {
+  font-family: $body_font;
+  .button {
+    @include green_button;
+    margin-left: 4px;
+  }
+  .filter {
+    @include text_defaults;
+    margin: 0 9px;
+  }
+  .control {
+    padding-top: 10px;
+    padding-bottom: 4px;
+
+  }
+  .query {
+  }
+  .pages {
+    .page_size {
+      display: block;
+      padding: 2px 4px;
+      select {
+        margin-left: 4px;
+        vertical-align: middle;
+      }
+    }
+    .results {
+      display: block;
+      padding: 2px 4px;
+      .model_name {
+        display: inline;
+        color: #33333c;
+      }
+    }
+  }
+  select {
+    border: 1px solid $input_border_color;
+    padding: 3px;
+    border-radius: 1px;
+    color: #33333c;
+    font-family: $value_font;
+    font-size: 16px;
+    background: $input_background_color;
+    &:focus {
+      border: 1px solid forestgreen;
+    }
+  }
+  .label {
+    padding: 4px;
+  }
+}

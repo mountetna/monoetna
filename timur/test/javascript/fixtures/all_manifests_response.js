@@ -1,0 +1,49 @@
+export const plot = {
+  "configuration":{
+    "config":{
+      "displayModeBar":true,
+      "modeBarButtonsToRemove":[
+        "sendDataToCloud",
+        "lasso2d",
+        "toggleSpikelines"
+      ],
+      "showLink":false
+    },
+    "data":[
+      {
+        "id":0.9668614107081013,
+        "manifestSeriesX":"var1",
+        "manifestSeriesY":"var2",
+        "mode":"markers",
+        "name":"series1",
+        "type":"scatter",
+        "uid":"4f8972"
+      }
+    ],
+    "layout":{
+      "height":900,
+      "title":"test",
+      "width":1600,
+      "xaxis":{
+        "gridcolor":"#bdbdbd",
+        "showgrid":true,
+        "showline":true,
+        "title":"test x axis"
+      },
+      "yaxis":{
+        "gridcolor":"#bdbdbd",
+        "showgrid":true,
+        "showline":true,
+        "title":"test y axis"
+      }
+    },
+    "plotType":"scatter"
+  },
+  "created_at":"2017-09-19T21:06:30.430Z",
+  "id":3,
+  "is_editable":true,
+  "manifest_id":11,
+  "name":"test",
+  "plot_type":"scatter",
+  "updated_at":"2017-09-19T21:06:30.430Z"
+};

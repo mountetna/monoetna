@@ -1,0 +1,75 @@
+{
+  "name": "Timur",
+  "version": "1.0.0",
+  "description": "Front end to the Mt. Etna system.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mountetna/timur.git"
+  },
+  "dependencies": {
+    "babel-core": "^6.26.0",
+    "codemirror": "^5.39.0",
+    "css-loader": "^0.28.10",
+    "d3": "^5.5.0",
+    "d3-ease": "^1.0.3",
+    "downloadjs": "^1.4.7",
+    "js-cookie": "^2.2.0",
+    "json2csv": "^4.0.1",
+    "marked": "^0.3.17",
+    "md5": "^2.2.1",
+    "plotly.js": "^1.35.0",
+    "react": "^16.4.1",
+    "react-codemirror2": "^5.1.0",
+    "react-dom": "^16.4.1",
+    "react-fontawesome": "^1.6.1",
+    "react-move": "^2.7.0",
+    "react-plotlyjs": "^0.4.4",
+    "react-redux": "^5.0.7",
+    "react-table": "6.8.6",
+    "redux": "^3.7.2",
+    "redux-thunk": "^2.2.0",
+    "reselect": "^3.0.1",
+    "webworkify-webpack": "^2.1.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^7.1.1",
+    "babel-jest": "^21.0.2",
+    "babel-loader": "^7.1.4",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-react": "^6.24.1",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
+    "eslint": "^3.15.0",
+    "eslint-plugin-react": "^6.9.0",
+    "extract-text-webpack-plugin": "^3.0.2",
+    "file-loader": "^1.1.11",
+    "isomorphic-fetch": "^2.2.1",
+    "jest": "^21.1.0",
+    "nock": "^9.0.16",
+    "node-sass": "^4.7.2",
+    "redux-logger": "^3.0.6",
+    "redux-mock-store": "^1.3.0",
+    "sass-loader": "^6.0.7",
+    "webpack": "^3.11.0"
+  },
+  "jest": {
+    "testMatch": [
+      "**/test/javascript/**/?(*.)(spec|test).js?(x)"
+    ],
+    "testURL": "http://www.fake.com",
+    "collectCoverageFrom": [
+      "lib/client/jsx/**/*.js?(x)"
+    ],
+    "setupTestFrameworkScriptFile": "./test/setup.js"
+  },
+  "scripts": {
+    "lint": "$(npm bin)/eslint --ext .jsx,.js.jsx,.js ./lib/client/jsx/** ",
+    "lintfile": "$(npm bin)/eslint --ext .jsx,.js.jsx,.js ",
+    "test": "jest",
+    "build": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production",
+    "build-dev": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development",
+    "webpack": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production --watch",
+    "webpack-dev": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development --watch"
+  }
+}

@@ -1,0 +1,167 @@
+@import 'globals';
+
+// Axis component styling
+.axis {
+  path, line {
+    stroke: #E0E0E0;
+  }
+
+  &.axis-Left, &.axis-Bottom line {
+    stroke-dasharray: 2, 2;
+  }
+
+  text {
+    fill: black;
+  }
+
+  &.axis-Bottom text, .axis-timeline-bottom text {
+    transform: rotate(-45deg);
+    text-anchor: end;
+  }
+}
+
+.category-plot {
+  .axis.axis-Bottom line {
+    opacity: 0;
+  }
+}
+
+// Legend component styling
+.legend-container {
+  display: flex;
+  justify-content: center;
+
+  .category-group {
+    display: inline-block;
+    margin-right: 24px;
+    vertical-align: middle;
+
+    .label-rect {
+      display: inline-block;
+      margin-right: 8px;
+      width: 16px;
+      height: 8px;
+      vertical-align: middle;
+    }
+
+    .label-text {
+      display: inline;
+      font-size: 11px;
+    }
+  }
+}
+
+.swarm-series {
+  .dot {
+    text {
+      font-size: 8px;
+      dominant-baseline: middle;
+      cursor: default;
+    }
+    &:hover {
+      circle {
+        stroke: gold;
+        stroke-width: 2px;
+      }
+    }
+  }
+}
+
+// Box series in category plot
+.box-series {
+  .box-group {
+    line {
+      stroke-width: 1.2px;
+    }
+    rect {
+      //fill: white;
+      stroke-width: 1.2px;
+      fill-opacity: 0.5;
+    }
+    text {
+      visibility: hidden;
+      font-size: 8px;
+      dominant-baseline: middle;
+      cursor: default;
+    }
+
+    &:hover text {
+      visibility: visible;
+    }
+
+  }
+  .outlier-group {
+    text {
+      visibility: hidden;
+      font-size: 8px;
+      dominant-baseline: middle;
+      cursor: default;
+    }
+    .outlier:hover text {
+      visibility: visible;
+    }
+  }
+}
+
+.scatter-series {
+  .dot {
+    text {
+      visibility: hidden;
+      font-size: 8px;
+      dominant-baseline: middle;
+      cursor: default;
+    }
+    &:hover {
+      text {
+        visibility: visible;
+      }
+      circle {
+        stroke: gold;
+        stroke-width: 2px;
+      }
+    }
+  }
+}
+
+// Bar series in category plot
+.bar-series {
+  rect {
+    fill-opacity: 0.5;
+    stroke-width: 1.2px;
+  }
+}
+
+
+// Timeline plot
+.timeline-graph {
+  .axis.axis-Left text {
+    display: none;
+  }
+
+  .clip_path_obj{
+    clip-path: url(#clip);
+  }
+
+  .resize-wrapper{
+    margin-right: 100px;
+  }
+
+  .tooltip-bg{
+    stroke: $dark-grey;
+    stroke-width: 1px;
+    fill: $med-grey-2;
+    pointer-events: none;
+  }
+
+  .tooltip-arrow{
+    fill: $med-grey-2;
+    pointer-events: none;
+  }
+
+  .tooltip-text{
+    display: inline;
+    font-size: 0.8em;
+    fill: $light-grey;
+    font-family: $body_font;
+  }
+}

@@ -1,0 +1,145 @@
+$body_font: 'Open Sans', sans-serif;
+$title_font: 'Montserrat', sans-serif;
+$value_font: 'Cousine', monospace;
+$talk_font: 'Crimson Text', serif;
+$quote_font: 'Lora', serif;
+
+$input_border_color: #c0c0c0;
+$input_background_color: #f9f9f9;
+
+$dark-grey: #222;
+$med-grey-2: #888;
+$light-grey: #ccc;
+
+$link_hover_color: #518651;
+
+@mixin text_defaults {
+  color: darkorchid;
+  font-family: $value_font;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+
+  @include text_basics;
+}
+
+@mixin text_basics {
+  border: none;
+  cursor: text;
+  border-bottom: 1px solid #dfdfdf;
+  background: rgba(gray,0.05);
+  &:focus {
+    border-bottom: 1px solid forestgreen;
+  }
+}
+
+@mixin text_box {
+  font-family: $value_font;
+  font-size: 14px;
+  border: 0px none black;
+  border-top: 1px solid forestgreen;
+  border-left: 1px solid forestgreen;
+  box-shadow: 2px 2px 3px 1px #ddd inset;
+}
+
+@mixin green_link {
+  color: forestgreen;
+  font-weight: bold;
+
+  &:hover {
+    text-decoration: underline
+  }
+
+  span {
+    margin-left: 5px;
+    padding-right: 5px;
+  }
+}
+
+$thin_rule: 1px solid rgba(forestgreen,0.1);
+
+@mixin basic_button($color, $background) {
+  cursor: pointer;
+  font-family: $body_font;
+  color: white;
+  padding: 4px;
+  font-size: 14px;
+  background-color: $background;
+  border: 1px solid $background;
+  border-radius: 2px;
+  transition-duration: 0.2s;
+  &:disabled {
+    color: grey;
+    border: 1px solid #eee;
+    background-color: #eee;
+    &:hover {
+      background-color: #eee;
+      color: grey;
+    }
+  }
+  &:hover {
+    background-color: rgba($background,0.3);
+    color: $color;
+  }
+}
+
+@mixin green_button {
+  @include basic-button(forestgreen, forestgreen);
+}
+
+@mixin header_button {
+  cursor: pointer;
+  font-size: 20px;
+  color: forestgreen;
+}
+
+@mixin icon_button {
+  cursor: pointer;
+  color: gray;
+  margin: 2px;
+  &:hover {
+    color: forestgreen;
+  }
+  &.delete {
+    &:hover {
+      color: indianred;
+    }
+  }
+  &.save, &.download, &.copy {
+    &:hover {
+      color: dodgerblue;
+    }
+  }
+}
+/* NEW GLOBALS ****************************************************************/
+
+.disabled{
+  background: none;
+  outline: none;
+}
+
+input:focus{
+  outline-offset: 0px;
+}
+
+.home-page-header-group{
+  margin-left: 0px;
+  padding-left: 15px;
+}
+
+.home-page-project-link{
+  color: #333;
+  margin-left: 15px;
+  padding-top: 15px;
+  display: block;
+  font-size: 16px;
+}
+
+.home-page-project-link:hover{
+  text-decoration: underline;
+}
+
+.home-page-project-role{
+  font-size: 12px;
+  opacity: .5;
+}

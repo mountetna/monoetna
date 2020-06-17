@@ -1,0 +1,67 @@
+@import "globals";
+
+.table {
+  font-family: $value_font;
+  .ReactTable {
+    border: none;
+    .rt-thead {
+      box-shadow: none;
+      border-bottom: 3px solid forestgreen;
+      color: forestgreen;
+      font-family: $body_font;
+      .rt-tr {
+        text-align: left;
+        .rt-th {
+          padding: 2px 2px;
+        }
+      }
+    }
+    .-pagination {
+      font-size: 0.75em;
+      justify-content: flex-start;
+      .-previous,.-next {
+        flex: 0;
+        display: flex;
+        align-items: center;
+        font-size: 25px;
+        padding: 0px 5px;
+
+        &:hover {
+          color: limegreen;
+          background-color: rgba(limegreen, 0.3);
+        }
+
+        .pagination-nav {
+          color: forestgreen;
+          cursor: pointer;
+          display: flex;
+
+          &.disabled {
+            color: #dfdfdf;
+          }
+        }
+      }
+      .-center {
+        flex: 0;
+        padding: 0px 50px;
+        input {
+          padding: 2px;
+          border-radius: 1px;
+          border: 1px solid $input_border_color;
+          background: $input_background_color;
+        }
+      }
+      box-shadow: none;
+      border-top: none;
+      padding: 0px;
+    }
+    .rt-tbody {
+      .rt-tr-group {
+        border-bottom: $thin_rule;
+        .rt-td {
+          border-right: $thin_rule;
+        }
+      }
+    }
+  }
+}
