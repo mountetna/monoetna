@@ -1,0 +1,16 @@
+.root {
+  padding: 15px;
+  font-family: $base-font;
+  .title {
+    font-size: 1.2em;
+  }
+  .projects {
+    font-size: 1.0em;
+    .project {
+      padding-top: 10px;
+      .project_name {
+        padding-right: 2px;
+      }
+    }
+  }
+}

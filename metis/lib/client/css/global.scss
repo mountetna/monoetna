@@ -1,0 +1,98 @@
+$base-font: 'Open Sans', sans-serif;
+$title-font: 'Open Sans', sans-serif;
+$metis-color: #15788f;
+$thin-rule: 1px solid rgba($metis-color,0.2);
+$medium-rule: 1px solid rgba($metis-color,0.5);
+$thick-rule: 1px solid rgba($metis-color,1.0);
+$slight-rule: 1px solid rgba($metis-color,0.1);
+
+body {
+  min-width: 720px;
+  font-size: 1em;
+}
+
+.white-icon {
+  color: #fff;
+}
+
+.light-text {
+  color: #999;
+  font-family: $base-font;
+}
+
+.dark-text {
+  color: #000;
+  font-family: $base-font;
+}
+
+.mono-text {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+a {
+  color: #337ab7;
+  text-decoration: none;
+
+  &:hover, &:focus {
+    color: #23527c;
+    text-decoration: underline;
+  }
+
+  &:focus {
+    outline:5px auto -webkit-focus-ring-color;
+    outline-offset:-2px;
+  }
+}
+
+@mixin basic_button($color, $background) {
+  cursor: pointer;
+  font-family: $base-font;
+  color: white;
+  padding: 4px;
+  font-size: 14px;
+  background-color: $background;
+  border: 1px solid $background;
+  border-radius: 2px;
+  transition-duration: 0.2s;
+  &:disabled {
+    color: grey;
+    border: 1px solid #eee;
+    background-color: #eee;
+    &:hover {
+      background-color: #eee;
+      color: grey;
+    }
+  }
+  &:hover {
+    background-color: rgba($background,0.3);
+    color: $color;
+  }
+}
+
+@mixin gray_button {
+  border-radius: 1px;
+  cursor: pointer;
+  border: 1px solid #888;
+  background: #eee;
+  color: #444;
+
+  &[disabled] {
+    pointer-events: none;
+    border: 1px solid #ccc;
+    background: #eee;
+    color: #999;
+  }
+
+  &:hover {
+    border: 1px solid $metis-color;
+    color: $metis-color;
+    background: rgba($metis-color, 0.2);
+  }
+
+  &:active {
+    background: #ccc;
+  }
+}
+
+$dialog-border: 1px solid #888;
+

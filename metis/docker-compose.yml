@@ -1,0 +1,64 @@
+version: "3.4"
+volumes:
+  app-gems:
+    driver: local
+  db-data:
+    driver: local
+  node-modules:
+    driver: local
+  data-dir:
+    driver: local
+  log-dir:
+    driver: local
+  tmp-dir:
+    driver: local
+  public-dir:
+    driver: local
+
+x-metis_base: &metis_base
+  build:
+    context: .
+    dockerfile: docker/app/Dockerfile.development
+  volumes:
+    - .:/app:cached
+    - app-gems:/app/vendor/bundle:rw
+    - node-modules:/app/node_modules:rw
+    - data-dir:/app/data:rw
+    - log-dir:/app/log:rw
+    - tmp-dir:/app/tmp:rw
+    - public-dir:/app/public:rw
+  environment: &app_environment
+    COVERAGE: 'true'
+    DATABASE_HOST: 'db'
+    METIS_ENV: 'development'
+
+services:
+  metis_app:
+    <<: *metis_base
+    ports:
+      - 3000:3000
+    command: ./docker/app/puma.sh
+    depends_on:
+      - metis_db
+
+  metis_webpack:
+    <<: *metis_base
+    environment:
+      <<: *app_environment
+      RUN_NPM_INSTALL: 'true'
+      SKIP_RUBY_SETUP: 'true'
+    command: npm run webpack
+
+  metis_db:
+    build:
+      context: .
+      dockerfile: docker/db/Dockerfile
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: metis_development
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+    ports:
+      - 5432
+    container_name: metis_db_1

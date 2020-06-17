@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require 'bundler'
+Bundler.require :default
+
+require 'yaml'
+require_relative '../lib/metis'
+require_relative '../lib/commands'
+
+config = YAML.load(File.read(File.expand_path("../../config.yml",__FILE__)))
+
+Metis.instance.run_command(config, *ARGV)

@@ -1,0 +1,18 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans);
+
+
+@import 'global';
+
+@import 'reset';
+@import 'metis-ui';
+@import 'metis-nav';
+@import 'folder-view';
+@import 'dialog';
+@import 'root';
+
+@import 'media';
+
+$fa-font-path: "~font-awesome/webfonts";
+@import "~font-awesome/scss/fontawesome";
+@import "~font-awesome/scss/regular";
+@import "~font-awesome/scss/solid";

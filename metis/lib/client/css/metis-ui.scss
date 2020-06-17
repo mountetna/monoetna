@@ -1,0 +1,22 @@
+#ui-group {
+  height: 100vh;
+}
+
+// this is the main UI group
+#metis-group {
+  position: relative;
+}
+
+#left-column-group {
+  float: left;
+  width: 100px;
+}
+
+
+.control-group {
+  display: flex;
+  height: 48px;
+}
+
+
+
