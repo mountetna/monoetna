@@ -1,0 +1,33 @@
+#nav {
+  height: 60px;
+  border-bottom: 1px solid #666699;
+  display: flex;
+
+  #logo {
+    flex-basis: 50px;
+    margin-top: 4px;
+    margin-left: 4px;
+    .image {
+      width: 50px;
+      height: 50px;
+      background-size: 108%;
+      background-position: -2px -2px;
+      border: 1px solid $janus-color;
+      border-radius: 50px;
+      background-image: url('/img/janus.svg');
+    }
+  }
+
+  #login {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-right: 5px;
+    color: darkgoldenrod;
+    .icon {
+      color: gray;
+      font-size: 1.2em;
+    }
+  }
+}

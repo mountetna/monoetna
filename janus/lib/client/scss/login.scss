@@ -1,0 +1,61 @@
+#login-group {
+  position: absolute;
+  width: 240px;
+  left: -120px;
+  margin-left: 50%;
+  margin-top: 20px;
+  padding-bottom: 10px;
+  border: 1px solid #999;
+
+  .log-input {
+    width: 196px;
+    height: 35px;
+    border: 1px solid #999;
+    margin-top: 10px;
+    margin-left: 20px;
+    text-indent: 5px;
+    outline: none;
+
+    &:focus {
+      border: 1px solid #666699;
+      outline: none;
+    }
+    &:hover,&:focus {
+      -webkit-box-shadow: inset -1px 1px 1px 0px #ccc;  /* Safari 3-4, iOS 4.0.2 - 4.2, Android 2.3+ */
+      -moz-box-shadow:    inset -1px 1px 1px 0px #ccc;  /* Firefox 3.5 - 3.6 */
+      box-shadow:         inset -1px 1px 1px 0px #ccc;
+    }
+  }
+
+  .login-button {
+    position: relative;
+    padding: 5px;
+    border: 1px solid #666;
+    border-radius: 1px;
+    background: #999;
+    cursor: pointer;
+    margin-top: 15px;
+    margin-left: 20px;
+    width: 200px;
+
+    color: #fff;
+    font-size: 1em;
+    letter-spacing: 1px;
+
+    &:focus {
+      outline:none;
+      border:1px solid #666699;
+      background: #ccc;
+    }
+  }
+
+  .log-error-message {
+    display: none;
+    width: 200px;
+    height: 20px;
+    margin-left: 20px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 1em;
+  }
+}

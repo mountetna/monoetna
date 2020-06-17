@@ -1,0 +1,48 @@
+.project {
+  @include janus-box;
+
+  select, input {
+    @include janus-input;
+  }
+
+  .approve {
+    @include janus-icon(dodgerblue);
+  }
+  .cancel {
+    @include janus-icon(forestgreen);
+  }
+
+  .new {
+    padding: 15px 7px 0px 7px;
+    font-size: 0.9em;
+  }
+
+  .filter {
+    width: 400px;
+  }
+  .items {
+    max-height: 410px;
+    overflow: auto;
+  }
+  .item {
+    display: flex;
+    align-items: center;
+    &.header {
+      border-bottom: 1px solid rgba(#6ca689,0.6);
+    }
+    &.summary {
+      font-size: 0.8em;
+      color: #1d6a86;
+      font-style: italic;
+    }
+    &.permission {
+      border-bottom: 1px solid rgba(#6d9eb0,0.1);
+    }
+    .cell {
+      flex: 1 0 0;
+      &.submit {
+        flex: 0 0 50px;
+      }
+    }
+  }
+}

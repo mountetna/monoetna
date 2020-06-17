@@ -1,0 +1,55 @@
+#projects-group {
+  @include janus-box;
+  .projects {
+    max-height: 400px;
+    overflow: auto;
+  }
+  .new {
+    padding: 5px 7px 0px 7px;
+    font-size: 0.9em;
+  }
+
+  .approve {
+    @include janus-icon(dodgerblue);
+  }
+
+  .item {
+    display: flex;
+    .cell {
+      padding-right: 5px;
+      input {
+        @include janus-input;
+      }
+
+    }
+  }
+}
+
+#identity-group {
+  @include janus-box;
+}
+
+#keys-group {
+  @include janus-box;
+  .item {
+    color: darkgoldenrod;
+    font-family: monospace;
+  }
+
+  #error {
+    color: crimson;
+    background: rgba(255,0,0,0.1);
+    padding: 2px 4px;
+    margin-bottom: 4px;
+    width: 346px;
+    font-size: 0.8em;
+  }
+
+  textarea {
+    display: block;
+    margin-bottom: 7px;
+    width: 350px;
+    border: 1px solid rgba($janus-color, 0.2);
+    font-size: 0.8em;
+  }
+}

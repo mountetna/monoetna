@@ -1,0 +1,20 @@
+{
+  "name": "janus",
+  "version": "1.0.0",
+  "description": "Janus is an authentication and identity service for Etna applications. It is based on the [etna](https://github.com/mountetna/etna) gem.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mountetna/janus.git"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {
+    "sass": "^1.22.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

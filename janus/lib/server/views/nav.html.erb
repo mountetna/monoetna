@@ -1,0 +1,28 @@
+<div id="nav">
+  <div id="logo">
+    <a href="/">
+      <div class="image"></div>
+    </a>
+  </div>
+  <div id="login">
+    <% if @user %>
+      <%= @user.name %>
+      <% if @params[:project_name] %>
+        <% if @user.is_superuser? %>
+          <i class="icon fa fa-fw fa-user-ninja" title="admin"></i>
+        <% else %>
+          <% case @user.permissions[@params[:project_name]][:role]
+            when :admin %>
+            <i class="icon fa fa-fw fa-user-astronaut" title="admin"></i>
+          <% when :editor %>
+            <i class="icon fa fa-fw fa-user-edit" title="editor"></i>
+          <% when :viewer %>
+            <i class="icon fa fa-fw fa-user" title="viewer"></i>
+          <% end %>
+        <% end %>
+      <% end %>
+    <% else %>
+      Login required
+    <% end %>
+  </div>
+</div>

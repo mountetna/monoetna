@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+  <%= erb_partial(:header) %>
+  <body>
+    <div id='ui-group'>
+      <%= erb_partial(:nav) %>
+      <div id='janus-group'>
+        <div id='left-column-group'>
+        </div>
+        <form id='login-group' method='post' action='/validate-login'>
+          <input type='hidden' name='refer' value='<%= @params[:refer] %>' />
+          <input name='email' id='email-input' class='log-input' type='text' placeholder='Enter your email' />
+          <br />
+          <input name='password' id='pass-input' class='log-input' type='password' placeholder='Enter your password' />
+          <br />
+          <input type='submit' class='login-button' value='SIGN IN' />
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
