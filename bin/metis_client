@@ -3,6 +3,7 @@
 require 'optparse'
 require 'resolv'
 require 'json'
+require 'date'
 require 'fileutils'
 require 'digest'
 require 'net/http'
@@ -302,10 +303,11 @@ EOT
       parser.parse!(options)
     end
 
-    def neat_display(files:[], folders:[])
+    def neat_display(files:[], folders:[], buckets: [])
       entries = [
         *files,
-        *folders.map{|f| f+"/"}
+        *folders.map{|f| f+"/"},
+        *buckets.map{|f| f+"/"}
       ].compact.sort
 
       return if entries.empty?
@@ -395,24 +397,73 @@ EOT
 
   class Ls < Command
     usage "ls [<remote_folder_path>]"
+
+    def parse(args)
+      parse_opts(args) do |opts|
+        opts.on("-l", "--long", "List file properties") do |n|
+          options[:long] = true
+        end
+      end
+    end
+
     def run(file_path=nil)
       raise ShellError, 'No project is selected' if !@shell.project_name
 
       if file_path == '/' || !@shell.cwd && (!file_path || file_path == '.')
-        neat_display(folders: bucket_names)
+        display(buckets: @shell.client.list_buckets(@shell.project_name) || [])
         return
       end
 
       folder = @shell.client.list_folder(@shell.project_name, @shell.relative_path(file_path))
 
-      neat_display(
-        folders: folder[:folders].map{|f| f[:folder_name] },
-        files: folder[:files].map{|f| f[:file_name]}
+      display(
+        folders: folder[:folders] || [],
+        files: folder[:files] || []
       )
     end
 
-    def bucket_names
-      @bucket_names ||= @shell.client.list_buckets(@shell.project_name).map{|b| b[:bucket_name]}
+    def display(files: [], folders: [], buckets: [])
+      if options[:long]
+        rows = []
+
+        items = buckets + folders + files
+
+        rows = (folders + files).map do |file|
+          [
+            file[:author].split('|').first,
+            file[:size].to_s,
+            DateTime.parse(file[:updated_at]).yield_self { |d|
+              d.year < DateTime.now.year ?
+                d.strftime("%b %d  %Y") :
+                d.strftime("%b %d %H:%M")
+            },
+            file[:file_name] || "#{file[:folder_name]}/"
+          ]
+        end + buckets.map do |bucket|
+          [
+            bucket[:access],
+            bucket[:count],
+            bucket[:description],
+            "#{bucket[:bucket_name]}/"
+          ]
+        end
+
+        widths = 4.times.map do |i|
+          rows.map { |row| row[i].size }.max
+        end
+
+        txt = rows.map do |row|
+          row.map.with_index { |v,i| "%#{widths[i]}s" % [ v ] }.join(" ")
+        end
+
+        puts txt.flatten.join("\n")
+      else
+        neat_display(
+          files: files.map{|f| f[:file_name]},
+          folders: folders.map{|f| f[:folder_name]},
+          buckets: buckets.map{|b| b[:bucket_name]}
+        )
+      end
     end
   end
 
