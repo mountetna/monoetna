@@ -1,3 +1,6 @@
+![Run JavaScript tests](https://github.com/mountetna/etna/workflows/Run%20JavaScript%20tests/badge.svg)  ![Run Ruby tests](https://github.com/mountetna/etna/workflows/Run%20Ruby%20tests/badge.svg)
+
+
 # Mount Etna common library
 
 This repository is meant to provide a Ruby gem and some JavaScript
