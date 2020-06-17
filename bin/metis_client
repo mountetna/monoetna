@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 #
+require 'optparse'
 require 'resolv'
 require 'json'
 require 'fileutils'
@@ -260,12 +261,19 @@ EOT
         .downcase
     end
 
+    attr_reader :options
+
     def initialize(shell)
       @shell = shell
+      @options = {}
     end
 
     def run(*args)
       raise "#{self.class.command_name} is not implemented!"
+    end
+
+    def done?
+      @done
     end
 
     def self.usage(msg=nil)
@@ -273,7 +281,26 @@ EOT
       @usage
     end
 
+    def parse(options)
+      parse_opts(options)
+    end
+
     private
+
+    def parse_opts(options, &block)
+      parser = OptionParser.new do |opts|
+        opts.banner = self.class.usage
+
+        yield opts if block_given?
+
+        opts.on("-h", "--help", "Prints this help") do
+          puts opts
+          @done = true
+        end
+      end
+
+      parser.parse!(options)
+    end
 
     def neat_display(files:[], folders:[])
       entries = [
@@ -635,6 +662,7 @@ EOT
       set_path(match[:path])
     end
   end
+
   attr_reader :project_name
   attr_accessor :cwd
 
@@ -780,7 +808,9 @@ EOT
     end
 
     begin
-      command.new(self).run(*args)
+      cmd = command.new(self)
+      args = cmd.parse(args)
+      cmd.run(*args) unless cmd.done?
     rescue ShellError => e
       puts e.message
     rescue MetisClient::Error => e
