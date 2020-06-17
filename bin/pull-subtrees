@@ -23,9 +23,9 @@ subtrees=$($DIR/list-subtrees)
 cd $DIR/..
 for subtree in $subtrees; do
   if [ -e $subtree ]; then
-    echo git subtree pull --prefix=$subtree $subtree master
+    git subtree pull --prefix=$subtree $subtree master
   else
-    echo git remote add $subtree git@github.com:mountetna/$subtree.git
-    echo git subtree add --prefix=$subtree $subtree master
+    git remote add $subtree git@github.com:mountetna/$subtree.git
+    git subtree add --prefix=$subtree $subtree master
   fi
 done
