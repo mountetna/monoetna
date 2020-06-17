@@ -1,0 +1,9 @@
+/.bundle
+/public
+/coverage
+/tmp
+/test
+/log/*
+*.gem
+*.swp
+spec/examples.txt
