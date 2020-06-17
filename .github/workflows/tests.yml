@@ -11,13 +11,33 @@ jobs:
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
+    - uses: actions/cache@v2
+        with:
+            path: vendor/bundle
+            key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+            restore-keys: |
+              ${{ runner.os }}-gems-
     - name: Set up Node 12
       uses: actions/setup-node@v1
       with:
         node-version: '12'
-    - name: Bundle install
+    - name: Set up Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: '2.5.7'
+    - name: NPM install
       run: |
         npm install
+    - name: Bundle install Gems
+        run: |
+        gem install bundler -v 2.1.4
+        bundle config path vendor/bundle
+        bundle install --jobs 4 --retry 3
     - name: Run UI test suite
+      id: npm_test_run
       run: |
         npm run test
+    - name: Run test suite
+      if: ${{ steps.npm_test_run.outcome == 'success' }}
+      run: |
+        bundle exec rspec spec/
