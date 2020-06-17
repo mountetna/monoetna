@@ -303,45 +303,6 @@ EOT
       parser.parse!(options)
     end
 
-    def neat_display(files:[], folders:[], buckets: [])
-      entries = [
-        *files,
-        *folders.map{|f| f+"/"},
-        *buckets.map{|f| f+"/"}
-      ].compact.sort
-
-      return if entries.empty?
-
-      rows, cols, col_widths = calculate_dimensions(entries)
-
-      rows.times do |row|
-        puts cols.times.map { |col| entries[ col * rows + row ]&.ljust(col_widths[col]) }.join('')
-      end
-    end
-
-    def calculate_dimensions(entries)
-      term_width = ENV['COLUMNS'].to_i
-      min_column_width = 3
-      max_columns = [term_width/min_column_width + 1, entries.size ].min
-      max_columns.downto(1).each do |cols|
-        rows, mod = entries.size.divmod(cols)
-
-        if mod != 0
-          next if (rows + 1) * (cols - 1) >= entries.size
-          rows = rows + 1
-        end
-
-        col_widths = (0...cols).map do |col|
-          width = (0...rows).map { |row| entries[col * rows + row]&.size }.compact.max
-          (col < cols - 1) ? (width + 2) : (width)
-        end
-
-        next if col_widths.sum > term_width - 2
-
-        return [ rows, cols, col_widths ]
-      end
-      return [ entries.size, 1, entries.map{0} ]
-    end
   end
 
   class Help < Command
@@ -426,46 +387,82 @@ EOT
 
     def display(files: [], folders: [], buckets: [])
       if options[:long]
-        rows = []
-
-        items = buckets + folders + files
-
-        rows = (folders + files).map do |file|
-          [
-            file[:author].split('|').first,
-            file[:size].to_s,
-            DateTime.parse(file[:updated_at]).yield_self { |d|
-              d.year < DateTime.now.year ?
-                d.strftime("%b %d  %Y") :
-                d.strftime("%b %d %H:%M")
-            },
-            file[:file_name] || "#{file[:folder_name]}/"
-          ]
-        end + buckets.map do |bucket|
-          [
-            bucket[:access],
-            bucket[:count],
-            bucket[:description],
-            "#{bucket[:bucket_name]}/"
-          ]
-        end
-
-        widths = 4.times.map do |i|
-          rows.map { |row| row[i].size }.max
-        end
-
-        txt = rows.map do |row|
-          row.map.with_index { |v,i| "%#{widths[i]}s" % [ v ] }.join(" ")
-        end
-
-        puts txt.flatten.join("\n")
+        long_display(files: files, folders: folders, buckets: buckets)
       else
-        neat_display(
-          files: files.map{|f| f[:file_name]},
-          folders: folders.map{|f| f[:folder_name]},
-          buckets: buckets.map{|b| b[:bucket_name]}
-        )
+        neat_display(files: files, folders: folders, buckets: buckets)
       end
+    end
+
+    def long_display(files: [], folders: [], buckets: [])
+      rows = (folders + files).map do |file|
+        [
+          file[:author].split('|').first.to_s,
+          file[:size].to_s,
+          DateTime.parse(file[:updated_at]).yield_self { |d|
+            d.year < DateTime.now.year ?
+              d.strftime("%b %d  %Y") :
+              d.strftime("%b %d %H:%M")
+          },
+          file[:file_name] || "#{file[:folder_name]}/"
+        ]
+      end + buckets.map do |bucket|
+        [
+          bucket[:access],
+          bucket[:count],
+          bucket[:description],
+          "#{bucket[:bucket_name]}/"
+        ]
+      end
+
+      widths = 4.times.map do |i|
+        rows.map { |row| row[i].size }.max
+      end
+
+      txt = rows.map do |row|
+        row.map.with_index { |v,i| "%#{widths[i]}s" % [ v ] }.join(" ")
+      end
+
+      puts txt.flatten.join("\n")
+    end
+
+    def neat_display(files: [], folders: [], buckets: [])
+      entries = [
+        *files.map{|f| f[:file_name]},
+        *folders.map{|f| f[:folder_name]+"/"},
+        *buckets.map{|b| b[:bucket_name]+"/"}
+      ].compact.sort
+
+      return if entries.empty?
+
+      rows, cols, col_widths = calculate_dimensions(entries)
+
+      rows.times do |row|
+        puts cols.times.map { |col| entries[ col * rows + row ]&.ljust(col_widths[col]) }.join('')
+      end
+    end
+
+    def calculate_dimensions(entries)
+      term_width = ENV['COLUMNS'].to_i
+      min_column_width = 3
+      max_columns = [term_width/min_column_width + 1, entries.size ].min
+      max_columns.downto(1).each do |cols|
+        rows, mod = entries.size.divmod(cols)
+
+        if mod != 0
+          next if (rows + 1) * (cols - 1) >= entries.size
+          rows = rows + 1
+        end
+
+        col_widths = (0...cols).map do |col|
+          width = (0...rows).map { |row| entries[col * rows + row]&.size }.compact.max
+          (col < cols - 1) ? (width + 2) : (width)
+        end
+
+        next if col_widths.sum > term_width - 2
+
+        return [ rows, cols, col_widths ]
+      end
+      return [ entries.size, 1, entries.map{0} ]
     end
   end
 
