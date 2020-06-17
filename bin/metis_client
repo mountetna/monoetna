@@ -409,12 +409,14 @@ EOT
     def run(file_path=nil)
       raise ShellError, 'No project is selected' if !@shell.project_name
 
-      if file_path == '/' || !@shell.cwd && (!file_path || file_path == '.')
+      file_path = @shell.relative_path(file_path)
+
+      if !file_path || file_path == '/'
         display(buckets: @shell.client.list_buckets(@shell.project_name) || [])
         return
       end
 
-      folder = @shell.client.list_folder(@shell.project_name, @shell.relative_path(file_path))
+      folder = @shell.client.list_folder(@shell.project_name, file_path)
 
       display(
         folders: folder[:folders] || [],
