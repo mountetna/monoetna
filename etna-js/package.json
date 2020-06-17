@@ -1,0 +1,23 @@
+{
+  "name": "etna",
+  "version": "1.0.0",
+  "description": "Shared JS modules for Mount Etna.",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "./node_modules/webpack/bin/webpack.js --mode=production",
+    "build-dev": "./node_modules/webpack/bin/webpack.js --mode=development",
+    "test": "jest"
+  },
+  "author": "",
+  "license": "GPL-2.0-only",
+  "dependencies": {
+  },
+  "peerDependencies": {
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "react-redux": "^7.1.3",
+    "redux": "^4.0.5"
+  },
+  "devDependencies": {
+  }
+}
