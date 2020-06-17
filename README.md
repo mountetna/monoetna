@@ -1,7 +1,12 @@
+![Run JavaScript tests](https://github.com/mountetna/etna/workflows/Run%20JavaScript%20tests/badge.svg)  ![Run Ruby tests](https://github.com/mountetna/etna/workflows/Run%20Ruby%20tests/badge.svg)
+
+
 # Mount Etna common library
 
-This repository is meant to provide a Ruby gem (and later some javascript
-modules) to give a common server infrastructure for Mount Etna projects.
+This repository is meant to provide a Ruby gem and some JavaScript
+modules to give a common server infrastructure for Mount Etna projects.
+
+## Ruby Gem
 
 The gem may be built by hand or installed from github with bundler:
 
@@ -148,3 +153,13 @@ Commands are subclassed from Etna::Command
 The command is responsible for creating a database
 connection, etc., if appropriate by overriding its #setup
 method.
+
+## JavaScript Shared Library
+
+The JavaScript components are shared across Mount Etna projects. You can install them via NPM into your project with: `npm install --save git+https://git@github.com/mountetna/etna.git` or with a specific version / sha, like `npm install --save git+https://git@github.com/mountetna/etna.git#1.1.0-ui`
+
+To use the components in your project, just `import` the source components. i.e.
+
+```
+import UploadControl from 'etna/src/jsx/components/upload-control';
+```
