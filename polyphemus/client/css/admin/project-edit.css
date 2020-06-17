@@ -1,0 +1,19 @@
+#project-name-column {
+
+  min-width: 200px;
+}
+
+#project-group-column {
+
+  width: 200px;
+}
+
+#project-control-column {
+
+  padding: 0px;
+}
+
+#project-edit-group {
+
+  width: 100%;
+}

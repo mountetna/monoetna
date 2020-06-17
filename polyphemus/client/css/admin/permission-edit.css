@@ -1,0 +1,75 @@
+#permission-user-column {
+
+  width: 240px;
+}
+
+#permission-project-column {
+
+  width: 340px;
+}
+
+#permission-control-column {
+
+  padding: 0px;
+}
+
+#permission-edit-group {
+
+  width: 100%;
+}
+
+#permission-file-selector {
+
+  display: none;
+}
+
+/* Specific Search Dropdown CSS ***********************************************/
+
+/* GROUPING */
+.perm-project-search-dd-group {
+
+  position: relative;
+}
+
+/* BUTTON */
+.perm-project-search-dd-btn {
+
+  position: absolute;
+  top: 3px;
+  right: 1px;
+  height: 14px;
+  width: 18px;
+  outline: none;
+  padding: 0px;
+  border: 0px;
+  outline: 0px;
+  background: #fff;
+  border-left: 1px solid #999;
+}
+
+/* TRAY */
+.perm-project-search-dd-tray {
+
+  position: absolute;
+  top: 21px;
+  left: 0px;
+  width: 100%;
+  padding: 5px;
+
+  border: 1px solid #7db4b5;
+  background: #fff;
+}
+
+/* SPECIFIC OVERRIDES, see global.css */
+.search-dropdown-input {
+
+  font-size: 1em;
+  height: 18px;
+}
+
+.search-dropdown-input-inactive {
+
+  margin-left: 1px;
+}
+
+/******************************************************************************/
