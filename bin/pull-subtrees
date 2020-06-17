@@ -1,0 +1,31 @@
+#! /usr/bin/env bash
+set -e
+set -x
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+subtrees=$($DIR/list-subtrees)
+
+cd $DIR/..
+for subtree in $subtrees; do
+  if [ -e $subtree ]; then
+    echo git subtree pull --prefix=$subtree $subtree master
+  else
+    echo git remote add $subtree git@github.com:mountetna/$subtree.git
+    echo git subtree add --prefix=$subtree $subtree master
+  fi
+done

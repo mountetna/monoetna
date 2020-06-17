@@ -1,0 +1,26 @@
+#! /usr/bin/env bash
+set -e
+set -x
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+subtrees=$($DIR/list-subtrees)
+
+cd $DIR/..
+for subtree in subtress; do
+  git subtree push --prefix=$subtree $subtree master
+done
