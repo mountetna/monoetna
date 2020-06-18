@@ -136,12 +136,14 @@ describe('Uploader', () => {
       expect(mockWorker.postMessage).toHaveBeenNthCalledWith(1, {
         type: 'UPLOAD_STATUS',
         upload: {
-          status: 'active',
-          url: 'http://localhost',
-          project_name: 'labors',
-          file: {}, // Can't expect a File object back from the server
-          file_size: file.size,
-          file_name: file.name
+          upload: {
+            status: 'active',
+            url: 'http://localhost',
+            project_name: 'labors',
+            file: {}, // Can't expect a File object back from the server
+            file_size: file.size,
+            file_name: file.name
+          }
         },
         status: 'queued'
       });
