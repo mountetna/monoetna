@@ -11,6 +11,7 @@ export const UNQUEUE_UPLOADS = 'UNQUEUE_UPLOADS';
 export const CANCEL_UPLOAD = 'CANCEL_UPLOAD';
 export const CONTINUE_UPLOAD = 'CONTINUE_UPLOAD';
 export const PAUSE_UPLOAD = 'PAUSE_UPLOAD';
+export const UPLOAD_SPEED = 'UPLOAD_SPEED';
 export const WORK_FAILED = 'WORK_FAILED';
 
 
