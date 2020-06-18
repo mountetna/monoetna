@@ -71,7 +71,7 @@ export default (uploader) => {
           // That also makes testing easier.
           return postUploadStart(url, request);
         })
-        .then(({ upload }) => {
+        .then((upload) => {
           // this will set the upload status correctly in the upload reducer
           uploader.queue(upload);
 
@@ -83,6 +83,8 @@ export default (uploader) => {
 
     continue: ({upload}) => {
       let { file, current_byte_position, next_blob_size, upload_speeds } = upload;
+
+      debugger;
 
       if (current_byte_position >= file.size) {
         // probably because of a 0 byte file
