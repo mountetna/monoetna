@@ -19,13 +19,19 @@ done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 subtrees=$($DIR/list-subtrees)
-
 cd $DIR/..
+
+target_branch=$1
+[ -z "$target_branch" ] && target_branch="$(git symbolic-ref --short HEAD)"
+
+
 for subtree in $subtrees; do
+  git remote add $subtree git@github.com:mountetna/$subtree.git || true
   if [ -e $subtree ]; then
-    git subtree pull --prefix=$subtree $subtree master
+    if git show-branch remotes/$subtree/$target_branch &>/dev/null; then
+      git subtree pull --prefix=$subtree $subtree $target_branch
+    fi
   else
-    git remote add $subtree git@github.com:mountetna/$subtree.git
-    git subtree add --prefix=$subtree $subtree master
+    git subtree add --prefix=$subtree $subtree $target_branch
   fi
 done

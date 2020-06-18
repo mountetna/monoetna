@@ -1,0 +1,64 @@
+version: "3.4"
+volumes:
+  data-dir:
+    driver: local
+  janus-app-gems:
+    driver: local
+  janus-db-data:
+    driver: local
+  janus-node-modules:
+    driver: local
+  janus-data-dir:
+    driver: local
+  janus-log-dir:
+    driver: local
+  janus-tmp-dir:
+    driver: local
+  janus-public-dir:
+    driver: local
+
+x-janus_base: &janus_base
+  build:
+    context: .
+    dockerfile: docker/app/Dockerfile.development
+  volumes:
+    - .:/app:cached
+    - janus-app-gems:/app/vendor/bundle:rw
+    - janus-node-modules:/app/node_modules:rw
+    - janus-data-dir:/app/data:rw
+    - janus-log-dir:/app/log:rw
+    - janus-tmp-dir:/app/tmp:rw
+    - janus-public-dir:/app/public:rw
+  environment: &app_environment
+    COVERAGE: 'true'
+    DATABASE_HOST: 'janus_db'
+    JANUS_ENV: 'development'
+
+services:
+  janus_app:
+    <<: *janus_base
+    ports:
+      - 3001:3000
+    command: ./docker/app/puma.sh
+
+  janus_webpack:
+    <<: *janus_base
+    environment:
+      <<: *app_environment
+      RUN_NPM_INSTALL: 'true'
+      SKIP_RUBY_SETUP: 'true'
+    command: sass --watch lib/client/scss/janus.scss:lib/client/css/janus.css
+
+  janus_db:
+    build:
+      context: .
+      dockerfile: docker/db/Dockerfile
+    volumes:
+      - janus-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: janus_development
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+    ports:
+      - 5432
+    container_name: janus_db_1
