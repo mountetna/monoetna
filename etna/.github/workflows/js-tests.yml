@@ -8,7 +8,7 @@ jobs:
     - uses: actions/cache@v2
       with:
         path: |
-          node_modules
+          packages/etna/node_modules
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node
@@ -18,8 +18,9 @@ jobs:
         node-version: '12'
     - name: NPM install
       run: |
+        cd packages/etna-js
         npm install
     - name: Run UI test suite
-      id: npm_test_run
       run: |
+        cd packages/etna-js
         npm run test

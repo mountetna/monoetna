@@ -1,4 +1,12 @@
 {
+  "name": "etna-js",
+  "version": "1.1.1-ui",
+  "description": "Shared JS modules for Mount Etna.",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "",
+  "license": "GPL-2.0-only",
   "dependencies": {},
   "peerDependencies": {
     "react": "^16.12.0",
@@ -29,9 +37,23 @@
     "spark-md5": "^3.0.1",
     "webworkify-webpack": "^2.1.5"
   },
+  "jest": {
+    "testMatch": [
+      "**/__tests__/**/?(*.)(spec|test).js?(x)"
+    ],
+    "collectCoverageFrom": [
+      "**/*.js?(x)"
+    ],
+    "setupFilesAfterEnv": [
+      "./spec/setup.js"
+    ],
+    "setupFiles": [
+      "raf/polyfill"
+    ]
+  },
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/mountenta/etna.git",
+    "type": "git",
+    "url": "https://github.com/mountenta/etna.git",
     "directory": "packages/etna"
   }
 }

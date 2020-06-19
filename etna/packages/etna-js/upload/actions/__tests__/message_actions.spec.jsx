@@ -1,6 +1,6 @@
 import * as actions from '../message_actions';
 
-import { mockStore } from '../../spec/helpers';
+import { mockStore } from '../../../spec/helpers';
 
 describe('message actions', () => {
   it('generates action to show a dialog', () => {
