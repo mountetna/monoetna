@@ -1,3 +1,4 @@
+export COMPOSE_PROJECT_NAME=monoetna
 projects := $(shell ls ../*/Makefile | grep -v docker | xargs -n 1 dirname | xargs -n 1 basename)
 compose_ymls     := $(shell ls ../*/docker-compose.yml)
 

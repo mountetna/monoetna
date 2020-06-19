@@ -1,3 +1,4 @@
+export COMPOSE_PROJECT_NAME=monoetna
 projects := $(shell ls ./*/Makefile | grep -v docker | xargs -n 1 dirname | xargs -n 1 basename)
 compose_ymls     := $(shell ls ./*/docker-compose.yml)
 
@@ -12,7 +13,7 @@ help: ## Display help text
 .PHONY: build
 build: ## Forces a rebuild of all projects' development dockerfiles
 				@ make -C docker build
-				@ for project in $(projects); do make -C $$project build; done
+				@ set -e && for project in $(projects); do make -C $$project build; done
 
 .PHONY: up
 up: ## Starts up all containers of this project in the background
@@ -44,4 +45,4 @@ migrate: ## Runs migrations in a specific app context
 
 .PHONY: test
 test: ## Runs all projects' tests
-				@ for project in $(projects); do make -C $$project test; done
+				@ set -e && for project in $(projects); do make -C $$project test; done

@@ -1,4 +1,5 @@
 # SHELL := /bin/bash
+export COMPOSE_PROJECT_NAME=monoetna
 DB_PORT = $(shell docker inspect --format='{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' janus_db_1)
 
 help: ## Display help text
