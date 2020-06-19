@@ -71,7 +71,7 @@ export default (uploader) => {
           // That also makes testing easier.
           return postUploadStart(url, request);
         })
-        .then(({ upload }) => {
+        .then((upload) => {
           // this will set the upload status correctly in the upload reducer
           uploader.queue(upload);
 

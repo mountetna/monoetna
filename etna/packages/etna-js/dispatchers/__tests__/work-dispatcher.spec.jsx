@@ -3,7 +3,7 @@ import { mockStore } from '../../spec/helpers';
 import renderer from 'react-test-renderer';
 import workDispatcher from '../work-dispatcher';
 import { WORKERS } from '../work-dispatcher';
-import { WORK, WORK_FAILED } from '../../actions/upload_actions';
+import { WORK, WORK_FAILED } from '../../upload/actions/upload_actions';
 
 describe('workDispatcher', () => {
   let store;

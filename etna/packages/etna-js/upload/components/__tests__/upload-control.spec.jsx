@@ -1,6 +1,6 @@
 import React from 'react';
 import { mount, shallow } from 'enzyme';
-import { mockStore } from '../../spec/helpers';
+import { mockStore } from '../../../spec/helpers';
 import renderer from 'react-test-renderer';
 import UploadControl from '../upload-control';
 import {
