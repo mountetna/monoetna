@@ -41,6 +41,18 @@ describe MetisShell do
       expect_output("metis://athena/armor", "ls") { %r!helmet.jpg.*helmet/!m }
     end
 
+    it 'lists files and folders in long format' do
+      Timecop.freeze(DateTime.parse("2020-06-17T04:37"))
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+      expect_output("metis://athena/armor", "ls", "-l") {
+        "metis  Jun 17 04:37    helmet/\n"+
+        "metis  Jun 17 04:37 helmet.jpg\n"
+      }
+      Timecop.return
+    end
+
     it 'lists from a directory' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
