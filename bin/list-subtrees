@@ -3,7 +3,6 @@ set -e
 set -x
 
 echo "etna
-etna-js
 magma
 timur
 janus
