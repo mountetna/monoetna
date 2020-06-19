@@ -1,4 +1,4 @@
-import { form_post, json_post } from '../utils/fetch';
+import { form_post, json_post } from '../../utils/fetch';
 
 export const postAuthorizeUpload = (base_url, project_name, bucket_name, file_path) => {
   let request = { project_name, file_path, bucket_name };

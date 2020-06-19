@@ -1,5 +1,5 @@
 import React from 'react';
-import { mockStore } from '../../spec/helpers';
+import { mockStore } from '../../../spec/helpers';
 import renderer from 'react-test-renderer';
 import UploadReducer from '../upload-reducer';
 

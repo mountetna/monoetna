@@ -1,4 +1,4 @@
-import { stubUrl, cleanStubs } from '../../spec/helpers';
+import { stubUrl, cleanStubs } from '../../../spec/helpers';
 import { SHOW_DIALOG } from '../../actions/message_actions';
 
 import uploader from '../uploader';

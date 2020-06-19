@@ -1,6 +1,6 @@
-import { selectUpload, selectUploads } from '../selectors/directory-selector';
+import { selectUpload, selectUploads } from '../../selectors/directory-selector';
 import { postAuthorizeUpload } from '../api/upload_api';
-import { errorMessage } from '../actions/message_actions';
+import { errorMessage } from './message_actions';
 
 export const ADD_UPLOAD = 'ADD_UPLOAD';
 export const ADD_FILES = 'ADD_FILES';

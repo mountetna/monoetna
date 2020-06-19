@@ -4,7 +4,7 @@ import 'regenerator-runtime/runtime';
 import * as actions from '../upload_actions';
 import { SHOW_DIALOG } from '../message_actions';
 
-import { mockStore, stubUrl } from '../../spec/helpers';
+import { mockStore, stubUrl } from '../../../spec/helpers';
 
 describe('upload actions', () => {
   it('unqueueUploads generates actions to unqueue all uploads from web worker', () => {
