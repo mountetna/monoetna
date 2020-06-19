@@ -161,7 +161,7 @@ describe UserController do
 
       # Janus complains
       expect(last_response.status).to eq(401)
-      expect(last_response.body).to eq('Authorization header missing')
+      expect(last_response.body).to eq('You are unauthorized')
 
       # The user's key is unset
       user.refresh

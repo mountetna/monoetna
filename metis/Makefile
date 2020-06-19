@@ -1,5 +1,6 @@
 # SHELL := /bin/bash
 DB_PORT = $(shell docker inspect --format='{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' metis_db_1)
+export COMPOSE_PROJECT_NAME=monoetna
 
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \

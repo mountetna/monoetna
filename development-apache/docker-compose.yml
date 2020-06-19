@@ -1,0 +1,15 @@
+version: "3.4"
+volumes:
+  data-dir:
+    driver: local
+
+services:
+  apache:
+    image: "library/httpd:2.4.43"
+    volumes:
+      - ./certs:/root/certs
+      - ./docker-httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - data-dir:/app/data:rw
+    ports:
+      - "443:443"
+      - "80:80"

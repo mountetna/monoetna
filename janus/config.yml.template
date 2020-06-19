@@ -1,0 +1,112 @@
+---
+:development:
+  :db:
+    :adapter: postgres
+    :host: janus_db
+    :database: janus_development
+    :user: developer
+    :password: password
+  :auth_redirect: https://janus.development.local
+  :pass_algo: sha256
+  :pass_salt: 
+  :token_algo: RS256
+  :token_salt: qwerty
+  :token_name: JANUS_DEV_TOKEN
+  :token_domain: development.local
+  :token_seed_length: 128
+  :token_life: 86400
+  :rsa_public: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6pLkfi2RXd3jHWKh9W37
+    k7Nw5aZxIQRCf9b5b0uUIqyk4ODH1Pd4s/hhYq/9c+HT2304NkiqRw4cVOHMgk8N
+    O+a+7F+HgspJZopyEBCJvBloBoPKrpkZv0FeVHYwiDM2kf3GFDzTPBdUSpYJimtn
+    HF29DdEoj6O5xL9uGW97QZ34JYacIeG7GmVGjYnCvA87S0miDUxvGlu40g+VJhND
+    mLXMzWa5vTxyGb4cEQSL6rryVxmBlonG4J41K7A04/7tftKvWrqsCWAfSCusNs8w
+    CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
+    NQIDAQAB
+    -----END PUBLIC KEY-----
+  :rsa_private: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEpAIBAAKCAQEA6pLkfi2RXd3jHWKh9W37k7Nw5aZxIQRCf9b5b0uUIqyk4ODH
+    1Pd4s/hhYq/9c+HT2304NkiqRw4cVOHMgk8NO+a+7F+HgspJZopyEBCJvBloBoPK
+    rpkZv0FeVHYwiDM2kf3GFDzTPBdUSpYJimtnHF29DdEoj6O5xL9uGW97QZ34JYac
+    IeG7GmVGjYnCvA87S0miDUxvGlu40g+VJhNDmLXMzWa5vTxyGb4cEQSL6rryVxmB
+    lonG4J41K7A04/7tftKvWrqsCWAfSCusNs8wCgX77PmgC3zcOpKDZW0LVb2x7qhp
+    67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwuNQIDAQABAoIBAQCzPfd3Kx6vGUPY
+    SmvzfE0GedFEykAbuIOP6BbFonzZWg7K/zfzVf5Xlu3jWRNUnzUhvLddU305umCP
+    w9JfqEQ2h4VQXVbQ6/3WaufpuplksA07HS2c6MQxzqNj6sP+7xM9zyqygB/xBOqV
+    67vyl0s886voiPBzgeoLmzNoIDWQ1swn6CkrYbdzQXdygJyZARaIJd29V8j/sn3N
+    lo4YsWbREL3obio7/SPPTcW828QNo7EJD889E4nZIWaV+im8lU+GSdMl1PoDLSw8
+    ofwV+TE67fYl3eDUYjep7J0Cv/BuqabILZzC3sRFKcd2mHU1zBTfkPHkRIzB41QO
+    1IuKijUpAoGBAPdI0ICbHve+VfwGIcp/LP3sXz8jMP2QZmtdCImKtsrXuOJm1J0U
+    sM4aH0CuNHnGP9Tde91g5SaPkoqWBC8omcN7KFO4PPfWZchdiUC7p5JFM9ms1pHQ
+    n0iEsOfyglEWP9E4F3MzCh8+4rXnp8XiI3fVWpDJVvOgz3UkB8jyTsKvAoGBAPLX
+    ZKretBuZMeK+qBbcXs08vqigSCGPDWnWtM4AJwh4kCMRC9NsN2+14GiD+20o+HgB
+    U1Tdy0dVUBZO9Wbgi0TDMigbdhu05ikFkt2KcYJzFWxIpKmNaL8cYD9s67aVsLRS
+    ObT3zL6eE7/A1rFYP6RO13Oh5sZl//hzjqy9eSZbAoGAHo4uxVVllDM+qK+RSVZB
+    lva4JjMRAKPxI98RCP3M7G+PdtpB907xMeZkajecYFew13qurYIljog7EUjMJ4+a
+    wF7dcsrXLcCePw3fwdHuONK4P3Nt6AKhS/KpcV+z3pUjOZT2wNNTstywYs3HG1qA
+    C3Sfhjh6uAvs1oqnM5tNRB0CgYEA4ckO2igyga6QSWhHVOoUYvLlulc8eadOK2fr
+    t9VAdYnTSidhPXRSntUWD1cXgEklrD5fQnrttCdITVWgqcSA+LAchFn0GJK7pMx/
+    3ugH3egutP1dzB+kknxJqO8Wwi6vmxkQeogjn9/OMO2VMFMC6Tw86lBQB4ty0Yhv
+    0YBhkh0CgYAoHeKYVyB44iWL6gbSlEjzD9q5NzumOozH4C7ca45xjm1Eb/3LYjO7
+    WwFm1suFNYhrkLLw87rAva0KtJ8IIYXnGGVTYvjQcR0AFzz725mnZHnc1HpPfV8p
+    5iAouaD8udTGdpjBFyOW5PKJOVQMVIae3UEjA6bydCWJWSHlDB4+FA==
+    -----END RSA PRIVATE KEY-----
+  :log_file: ./log/app.log
+
+:test:
+  :db:
+    :adapter: postgres
+    :host: janus_db
+    :database: janus_test
+    :user: developer
+    :password: password
+    :pool: 5
+
+  :log_file: /dev/null
+
+  :pass_algo: sha256
+  :pass_salt: 
+  :token_algo: RS256
+  :token_name: JANUS_TOKEN
+  :token_domain: test.test
+  :token_life: 60
+  :rsa_private: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIEpAIBAAKCAQEA6pLkfi2RXd3jHWKh9W37k7Nw5aZxIQRCf9b5b0uUIqyk4ODH
+    1Pd4s/hhYq/9c+HT2304NkiqRw4cVOHMgk8NO+a+7F+HgspJZopyEBCJvBloBoPK
+    rpkZv0FeVHYwiDM2kf3GFDzTPBdUSpYJimtnHF29DdEoj6O5xL9uGW97QZ34JYac
+    IeG7GmVGjYnCvA87S0miDUxvGlu40g+VJhNDmLXMzWa5vTxyGb4cEQSL6rryVxmB
+    lonG4J41K7A04/7tftKvWrqsCWAfSCusNs8wCgX77PmgC3zcOpKDZW0LVb2x7qhp
+    67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwuNQIDAQABAoIBAQCzPfd3Kx6vGUPY
+    SmvzfE0GedFEykAbuIOP6BbFonzZWg7K/zfzVf5Xlu3jWRNUnzUhvLddU305umCP
+    w9JfqEQ2h4VQXVbQ6/3WaufpuplksA07HS2c6MQxzqNj6sP+7xM9zyqygB/xBOqV
+    67vyl0s886voiPBzgeoLmzNoIDWQ1swn6CkrYbdzQXdygJyZARaIJd29V8j/sn3N
+    lo4YsWbREL3obio7/SPPTcW828QNo7EJD889E4nZIWaV+im8lU+GSdMl1PoDLSw8
+    ofwV+TE67fYl3eDUYjep7J0Cv/BuqabILZzC3sRFKcd2mHU1zBTfkPHkRIzB41QO
+    1IuKijUpAoGBAPdI0ICbHve+VfwGIcp/LP3sXz8jMP2QZmtdCImKtsrXuOJm1J0U
+    sM4aH0CuNHnGP9Tde91g5SaPkoqWBC8omcN7KFO4PPfWZchdiUC7p5JFM9ms1pHQ
+    n0iEsOfyglEWP9E4F3MzCh8+4rXnp8XiI3fVWpDJVvOgz3UkB8jyTsKvAoGBAPLX
+    ZKretBuZMeK+qBbcXs08vqigSCGPDWnWtM4AJwh4kCMRC9NsN2+14GiD+20o+HgB
+    U1Tdy0dVUBZO9Wbgi0TDMigbdhu05ikFkt2KcYJzFWxIpKmNaL8cYD9s67aVsLRS
+    ObT3zL6eE7/A1rFYP6RO13Oh5sZl//hzjqy9eSZbAoGAHo4uxVVllDM+qK+RSVZB
+    lva4JjMRAKPxI98RCP3M7G+PdtpB907xMeZkajecYFew13qurYIljog7EUjMJ4+a
+    wF7dcsrXLcCePw3fwdHuONK4P3Nt6AKhS/KpcV+z3pUjOZT2wNNTstywYs3HG1qA
+    C3Sfhjh6uAvs1oqnM5tNRB0CgYEA4ckO2igyga6QSWhHVOoUYvLlulc8eadOK2fr
+    t9VAdYnTSidhPXRSntUWD1cXgEklrD5fQnrttCdITVWgqcSA+LAchFn0GJK7pMx/
+    3ugH3egutP1dzB+kknxJqO8Wwi6vmxkQeogjn9/OMO2VMFMC6Tw86lBQB4ty0Yhv
+    0YBhkh0CgYAoHeKYVyB44iWL6gbSlEjzD9q5NzumOozH4C7ca45xjm1Eb/3LYjO7
+    WwFm1suFNYhrkLLw87rAva0KtJ8IIYXnGGVTYvjQcR0AFzz725mnZHnc1HpPfV8p
+    5iAouaD8udTGdpjBFyOW5PKJOVQMVIae3UEjA6bydCWJWSHlDB4+FA==
+    -----END RSA PRIVATE KEY-----
+  :rsa_public: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6pLkfi2RXd3jHWKh9W37
+    k7Nw5aZxIQRCf9b5b0uUIqyk4ODH1Pd4s/hhYq/9c+HT2304NkiqRw4cVOHMgk8N
+    O+a+7F+HgspJZopyEBCJvBloBoPKrpkZv0FeVHYwiDM2kf3GFDzTPBdUSpYJimtn
+    HF29DdEoj6O5xL9uGW97QZ34JYacIeG7GmVGjYnCvA87S0miDUxvGlu40g+VJhND
+    mLXMzWa5vTxyGb4cEQSL6rryVxmBlonG4J41K7A04/7tftKvWrqsCWAfSCusNs8w
+    CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
+    NQIDAQAB
+    -----END PUBLIC KEY-----

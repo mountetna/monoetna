@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 set -e
-set -x
+set -o pipefail
 
 prog=$0
 error() {
@@ -18,14 +18,12 @@ while [ -h "$SOURCE" ]; do
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-subtrees=$($DIR/list-subtrees)
-
-target_branch=$1
-[ -z "$target_branch" ] && target_branch="$(git symbolic-ref --short HEAD)"
-
-cd $DIR/..
-for subtree in $subtrees; do
-  if git show-branch remotes/$subtree/$target_branch &>/dev/null; then
-    git subtree push --prefix=$subtree $subtree $target_branch
-  fi
+cp $DIR/empty-docker-compose.yml /tmp/composed.yml
+for compose_yml in $@; do
+    docker-compose -f $compose_yml config > /tmp/next.yml
+    docker-compose -f /tmp/next.yml -f /tmp/composed.yml config > /tmp/composed.yml.next
+    mv /tmp/composed.yml.next /tmp/composed.yml
 done
+
+cat /tmp/composed.yml
+
