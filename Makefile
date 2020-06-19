@@ -40,3 +40,8 @@ psql: ## Starts a psql shell in an app environment
 .PHONY: migrate
 migrate: ## Runs migrations in a specific app context
 				@ echo Run this within a specific app context, ie: make -C janus migrate
+
+.PHONY: test
+test: ## Runs all projects' tests
+				make -C metis test
+				make -C janus test

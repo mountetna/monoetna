@@ -5,8 +5,11 @@
   :upload_expiration: 60
   :download_expiration: 60
   :metis_uid_name: METIS_TEST_UID
-  :token_domain: example.org
+  :token_domain: test
   :token_life: 31536000
+  :host: https://metis.test
+  :upload_expiration: 60
+  :download_expiration: 60
 
   :data_path: ./spec/data
   :backup:

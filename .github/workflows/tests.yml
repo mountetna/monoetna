@@ -1,0 +1,23 @@
+name: Run tests
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+#  TODO: Research how github actions supports docker image caching.
+#    - uses: actions/cache@v2
+#      with:
+#        path: vendor/bundle
+#        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+#        restore-keys: |
+#          ${{ runner.os }}-gems-
+    - name: Run test suite
+      id: first_test_run
+      run: |
+        make test
+    - name: Run test suite again to detect flaky failures
+      if: ${{ steps.first_test_run.outcome == 'success' }}
+      run: |
+        make test
