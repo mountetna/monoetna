@@ -6,7 +6,6 @@ ENV BUNDLER_VERSION 2.1.4
 ENV DOCKERIZE_VERSION 0.5.0
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
 ENV NODE_VERSION 12.18.1
-ENV SERVICE_NAME janus
 
 # add postgres 10 repo for debian stretch
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
