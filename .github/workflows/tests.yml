@@ -13,6 +13,15 @@ jobs:
 #        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
 #        restore-keys: |
 #          ${{ runner.os }}-gems-
+    - name: Build docker images
+      run: |
+        make build
+    - name: Start up services
+      run: |
+        make up
+        sleep 5
+        make ps
+        make logs
     - name: Run test suite
       id: first_test_run
       run: |

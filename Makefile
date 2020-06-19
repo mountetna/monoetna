@@ -1,5 +1,5 @@
-projects := $(shell ls ../*/Makefile | grep -v docker | xargs -n 1 dirname | xargs -n 1 basename)
-compose_ymls     := $(shell ls ../*/docker-compose.yml)
+projects := $(shell ls ./*/Makefile | grep -v docker | xargs -n 1 dirname | xargs -n 1 basename)
+compose_ymls     := $(shell ls ./*/docker-compose.yml)
 
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \
@@ -12,6 +12,7 @@ help: ## Display help text
 .PHONY: build
 build: ## Forces a rebuild of all projects' development dockerfiles
 				@ make -C docker build
+				@ for project in $(projects); do make -C $$project build; done
 
 .PHONY: up
 up: ## Starts up all containers of this project in the background
@@ -43,5 +44,4 @@ migrate: ## Runs migrations in a specific app context
 
 .PHONY: test
 test: ## Runs all projects' tests
-				make -C metis test
-				make -C janus test
+				@ for project in $(projects); do make -C $$project test; done
