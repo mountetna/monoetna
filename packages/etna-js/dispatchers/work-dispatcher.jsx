@@ -1,9 +1,9 @@
-import { createWorker } from '../workers/index';
-import { WORK, WORK_FAILED } from '../actions/upload_actions';
+import { createWorker } from '../upload/workers/index';
+import { WORK, WORK_FAILED } from '../upload/actions/upload_actions';
 
 // Export for testing
 export const WORKERS = {
-  upload: (dispatch) => createWorker( dispatch, require.resolve('../workers/uploader'))
+  upload: (dispatch) => createWorker( dispatch, require.resolve('../upload/workers/uploader'))
 }
 
 // a middleware that dispatches commands to worker threads

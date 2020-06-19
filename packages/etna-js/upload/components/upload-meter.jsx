@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { byteFormat } from '../utils/format';
-import Icon from './icon';
+import { byteFormat } from '../../utils/format';
+import Icon from '../../components/icon';
 
 const UploadBar = ({upload}) => {
   let { file_size, current_byte_position } = upload;

@@ -1,6 +1,6 @@
 import * as api from '../upload_api';
 
-import { mockStore, stubUrl, cleanStubs } from '../../spec/helpers';
+import { mockStore, stubUrl, cleanStubs } from '../../../spec/helpers';
 
 describe('upload api', () => {
   afterEach(() => {

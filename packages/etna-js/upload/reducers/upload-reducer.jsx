@@ -1,4 +1,4 @@
-import { fileKey } from '../utils/file';
+import { fileKey } from '../../utils/file';
 import {
   UPLOAD_SPEED,
   UPLOAD_STATUS,
