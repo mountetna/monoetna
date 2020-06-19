@@ -1,0 +1,22 @@
+version: "3.4"
+volumes:
+  etna-app-gems:
+    driver: local
+  etna-node-modules:
+    driver: local
+
+x-etna_base: &etna_base
+  build:
+    context: .
+    dockerfile: docker/app/Dockerfile.development
+  volumes:
+    - .:/app:cached
+    - etna-app-gems:/app/vendor/bundle:rw
+    - etna-node-modules:/app/node_modules:rw
+  environment: &etna_environment
+    COVERAGE: 'true'
+
+services:
+  etna_app:
+    <<: *etna_base
+    command: echo initialized

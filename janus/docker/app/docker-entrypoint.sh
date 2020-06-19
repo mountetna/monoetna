@@ -13,11 +13,6 @@ if [ -z "$SKIP_RUBY_SETUP" ]; then
     dockerize -wait tcp://janus_db:5432 -timeout 60s
     ./bin/janus migrate
   fi
-else
-  while ! bundle check >/dev/null 2>&1; do
-    echo "Awaiting for make bundle on host..."
-    sleep 5
-  done
 fi
 
 if [ -n "$RUN_NPM_INSTALL" ]; then

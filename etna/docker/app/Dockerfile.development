@@ -1,12 +1,12 @@
-FROM ruby:2.5.7
+FROM ruby:2.5.1
 WORKDIR /app
 
-ENV RUBY_VERSION 2.5.7
+ENV RUBY_VERSION 2.5.1
 ENV BUNDLER_VERSION 2.1.4
 ENV DOCKERIZE_VERSION 0.5.0
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
 ENV NODE_VERSION 12.18.1
-ENV SERVICE_NAME metis
+ENV SERVICE_NAME janus
 
 # add postgres 10 repo for debian stretch
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
@@ -40,12 +40,11 @@ RUN gem install bundler --default -v "=$BUNDLER_VERSION"
 RUN gem update --system
 
 # We also the GEM_PATH to be this BUNDLE_PATH so that ides (Rubymine) will find gems easier.
-ENV GEM_HOME="$BUNDLE_PATH"
-ENV GEM_PATH="/root/.gem/ruby/2.5.0:/usr/local/lib/ruby/gems/2.5.0:/usr/local/bundle:$BUNDLE_PATH"
+ENV GEM_PATH="/root/.gem/ruby/2.5.0:/usr/local/lib/ruby/gems/2.5.0:/usr/local/bundle:$BUNDLE_PATH/ruby/2.5.0"
 
 # bash improvements for developer environment
 RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
     bash ~/.bash_it/install.sh --silent && \
     echo "export SCM_CHECK=false" >> ~/.bashrc
 
-ENTRYPOINT ["/app/docker/app/docker-entrypoint.sh"]
+ENTRYPOINT [ "/app/docker/app/docker-entrypoint.sh" ]

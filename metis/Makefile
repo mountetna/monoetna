@@ -43,14 +43,14 @@ bundle: ## Executes a bundle install inside of the metis app context.
 build: ## Rebuilds the metis docker environment.  Does not clear volumes or databases, just rebuilds code components.
 				@ docker-compose build
 
-.PHONY: console
-console: ## Starts an irb console inside of the metis app context.
-				docker exec -ti "$$(docker ps --format '{{.Names}}' | grep metis_app)" bundle exec irb
+.PHONY: irb
+irb: ## Starts an irb console inside of the metis app context.
+				@ docker-compose run --rm metis_app bundle exec irb
 
 .PHONY: migrate
 migrate: ## Executes dev and test migrations inside of the metis app context.
-				@ docker exec "$$(docker ps --format '{{.Names}}' | grep metis_app)" ./bin/metis migrate
-				@ docker exec -e METIS_ENV=test "$$(docker ps --format '{{.Names}}' | grep metis_app)" ./bin/metis migrate
+				@ docker-compose run --rm metis_app ./bin/metis migrate
+				@ docker-compose run -e METIS_ENV=test --rm metis_app ./bin/metis migrate
 
 .PHONY: test
 test: ## Execute (all) rspec tests inside of the metis app context.
@@ -58,7 +58,7 @@ test: ## Execute (all) rspec tests inside of the metis app context.
 
 .PHONY: bash
 bash: ## Start a bash shell inside of the app context.
-				@docker exec -ti "$$(docker ps --format '{{.Names}}' | grep metis_app)" bash
+				@ docker-compose run -e SKIP_RUBY_SETUP=1 --rm metis_app bash
 
 .PHONY: db-port
 db-port: ## Print the db port associated with the app.
@@ -66,7 +66,7 @@ db-port: ## Print the db port associated with the app.
 
 .PHONY: psql
 psql: ## Start a psql shell conntected to the metis development db
-				@ docker exec -ti -e PGPASSWORD=password "$$(docker ps --format '{{.Names}}' | grep metis_app)" psql -h metis_db -U developer -d metis_development
+				@ docker-compose run --rm metis_app psql -h metis_db -U developer -d metis_development
 
 .PHONY: logs
 logs: ## Follow logs of running containers
