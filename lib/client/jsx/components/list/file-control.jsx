@@ -35,6 +35,12 @@ class FileControl extends React.Component{
     copyText(download_url);
   }
 
+  copyMetisPath() {
+    let { file: { project_name, bucket_name, file_path } } = this.props;
+
+    copyText(`metis://${project_name}/${bucket_name}/${file_path}`);
+  }
+
   downloadFile() {
     let { file: { file_name, download_url } } = this.props;
 
@@ -54,7 +60,8 @@ class FileControl extends React.Component{
     let { file } = this.props;
     let items = [
       { label: 'Download file', callback: this.downloadFile.bind(this) },
-      { label: 'Copy download link', callback: this.copyLink.bind(this) }
+      { label: 'Copy download link', callback: this.copyLink.bind(this) },
+      { label: 'Copy metis path', callback: this.copyMetisPath.bind(this) }
     ].concat(
       file.read_only ?
       [
