@@ -2,7 +2,6 @@
 npm-debug.log
 trash.rb
 cron.log
-package-lock.json
 
 config.yml
 public/

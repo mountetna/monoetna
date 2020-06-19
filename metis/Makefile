@@ -55,6 +55,7 @@ migrate: ## Executes dev and test migrations inside of the metis app context.
 .PHONY: test
 test: ## Execute (all) rspec tests inside of the metis app context.
 				@ docker-compose run -e METIS_ENV=test --rm metis_app bundle exec rspec
+				@ docker-compose run -e RUN_NPM_INSTALL=1 -e SKIP_RUBY_SETUP=1 --rm metis_app npm test
 
 .PHONY: bash
 bash: ## Start a bash shell inside of the app context.

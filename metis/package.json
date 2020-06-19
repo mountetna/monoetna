@@ -10,7 +10,7 @@
     "babel": "babel ./client/jsx --out-dir ./client/js",
     "webpack": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production --watch",
     "webpack-dev": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development --watch",
-    "test": "jest"
+    "test": "jest && webpack"
   },
   "license": "ISC",
   "dependencies": {
