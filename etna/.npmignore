@@ -8,3 +8,9 @@
 *.swp
 spec/examples.txt
 node_modules
+lib/
+etna.gemspec
+.rspec
+.ruby-version
+Gemfile
+Gemfile.lock
