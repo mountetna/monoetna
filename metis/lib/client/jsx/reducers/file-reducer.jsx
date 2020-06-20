@@ -19,8 +19,13 @@ const addFiles = (old_files, action) => {
   let { files } = action;
 
   let new_files = files.reduce((c, file) => {
-    let key = fileKey(file);
-    c[key] = file;
+    // Recursive files won't end up inside the current directory view.
+    // TODO: Consolidate the file reducer logic here with etna-js so that more
+    // logic can be shared and a smarter interface designed.
+    if (!file.webkitRelativePath || file.webkitRelativePath == file.name) {
+      let key = fileKey(file);
+      c[key] = file;
+    }
     return c;
   }, {});
 

@@ -25,24 +25,12 @@ class FolderController < Metis::Controller
     bucket = require_bucket
     raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:folder_path])
 
-    parent_folder_path, folder_name = Metis::File.path_parts(@params[:folder_path])
-    parent_folder = require_folder(bucket, parent_folder_path)
+    folders = []
+    Metis.instance.db.transaction do
+      folders = mkdir_p(bucket, @params[:folder_path], @params[:project_name], Metis::File.author(@user))
+    end
 
-    # is there a previous folder here?
-    raise Etna::BadRequest, "Folder exists" if Metis::Folder.exists?(folder_name, bucket, parent_folder)
-
-    raise Etna::BadRequest, "Cannot overwrite existing file" if Metis::File.exists?(folder_name, bucket, parent_folder)
-
-    # create the folder
-    folder = Metis::Folder.create(
-      project_name: @params[:project_name],
-      folder_name: folder_name,
-      author: Metis::File.author(@user),
-      bucket: bucket,
-      folder: parent_folder
-    )
-
-    success_json(folders: [ folder.to_hash ])
+    success_json(folders: [ folders.first.to_hash ])
   end
 
   def remove
@@ -111,5 +99,31 @@ class FolderController < Metis::Controller
     folder.rename!(new_parent_folder, new_folder_name)
 
     success_json(folders: [ folder.to_hash ])
+  end
+
+  protected
+
+  def mkdir_p(bucket, folder_path, project_name, author)
+    existing_folders = Metis::Folder.from_path(bucket, folder_path, allow_partial_match: true)
+    folder_names = folder_path.split(%r!/!)
+
+    folder_names.inject([]) do |parents, folder_name|
+      existing = existing_folders.shift
+      next (parents << existing) unless existing.nil?
+
+
+      if Metis::File.exists?(folder_name, bucket, parents.last)
+        raise Etna::BadRequest, "Cannot overwrite existing file" if parents.length == folder_names.length - 1
+        raise Etna::BadRequest, "Invalid folder: \"#{folder_name}\""
+      end
+
+      parents << Metis::Folder.create(
+        project_name: project_name,
+        folder_name: folder_name,
+        author: author,
+        bucket: bucket,
+        folder: parents.last
+      )
+    end
   end
 end

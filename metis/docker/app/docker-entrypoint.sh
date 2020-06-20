@@ -8,6 +8,9 @@ export PATH="/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH"
 if [ -z "$SKIP_RUBY_SETUP" ]; then
   bundle check || bundle install -j "$(nproc)"
   mkdir -p tmp/pids
+  mkdir -p data/uploads
+  mkdir -p data/data_blocks
+  mkdir -p data/blueprints
   mkdir -p spec/data/stubs/blueprints
   mkdir -p spec/data/data_blocks
 

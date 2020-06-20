@@ -147,13 +147,16 @@ describe FolderController do
       expect(json_body[:error]).to eq('Invalid folder: "wisdom.txt"')
     end
 
-    it 'refuses to create existing folder' do
+    it 'creating an existing folder is idempotent' do
       token_header(:editor)
       blueprints_folder = create_folder('athena', 'blueprints')
       post_create_folder('blueprints')
 
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Folder exists')
+      expect do
+        expect(last_response.status).to eq(200)
+      end.to_not change { Metis::Folder.count }
+
+      expect(json_body[:folders].length).to eq(1)
     end
 
     it 'refuses to create over existing file' do
@@ -165,12 +168,13 @@ describe FolderController do
       expect(json_body[:error]).to eq('Cannot overwrite existing file')
     end
 
-    it 'refuses to create folders with non-existent parent folder' do
+    it 'allows creation of folders with non-existent parent folder' do
       token_header(:editor)
       post_create_folder('blueprints/Helmet Blueprints')
 
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder: "blueprints"')
+      expect(last_response.status).to eq(200)
+      folder = Metis::Folder.last
+      expect(folder.folder_path).to eq([ 'blueprints', 'Helmet Blueprints'])
     end
 
     it 'sets a parent folder' do
