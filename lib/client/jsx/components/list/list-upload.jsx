@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ListEntryColumn, ListEntryTypeColumn, ListEntryUpdatedColumn } from './list-entry';
-import UploadMeter from './upload-meter';
-import UploadControl from './upload-control';
+import UploadMeter from 'etna/components/upload-meter';
+import UploadControl from 'etna/components/upload-control';
 
 const ListUpload = ({ upload, widths }) => (
   <div className='list-entry-group upload'>

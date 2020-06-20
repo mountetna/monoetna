@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import UploadControl from './upload-control';
+import UploadControl from 'etna/components/upload-control';
 
 export default class ListUploadFailed extends React.Component{
   constructor(props){
@@ -13,7 +13,7 @@ export default class ListUploadFailed extends React.Component{
 
   selectUpload(){
     /*
-     * We are using a button to surragate the file input so we may have 
+     * We are using a button to surragate the file input so we may have
      * a custom browse button.
      */
     let failedFile = this.props.failedFile;
