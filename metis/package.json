@@ -15,9 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.12.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
-    "babel-preset-stage-0": "^6.24.1",
+    "etna": "git+https://git@github.com/mountetna/etna.git#1.1.1-ui",
     "js-cookie": "^2.2.1",
     "md5": "^2.2.1",
     "react": "^16.12.0",
@@ -28,9 +26,12 @@
     "webworkify-webpack": "^2.1.5"
   },
   "devDependencies": {
+    "@babel/core": "^7.10.2",
+    "@babel/preset-env": "^7.10.2",
+    "@babel/preset-react": "^7.10.1",
     "babel-eslint": "^7.1.1",
     "babel-jest": "^21.0.2",
-    "babel-loader": "^7.1.5",
+    "babel-loader": "^8.1.0",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-polyfill": "^6.3.14",
     "css-loader": "^0.28.11",
