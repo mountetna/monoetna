@@ -6,13 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-#  TODO: Research how github actions supports docker image caching.
-#    - uses: actions/cache@v2
-#      with:
-#        path: vendor/bundle
-#        key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
-#        restore-keys: |
-#          ${{ runner.os }}-gems-
     - name: Build docker images
       run: |
         make build
@@ -22,11 +15,30 @@ jobs:
         sleep 5
         make ps
         make logs
-    - name: Run test suite
-      id: first_test_run
+
+    - name: Run metis test suite
+      id: metis_first_test_run
       run: |
-        make test
+        make -C metis test
     - name: Run test suite again to detect flaky failures
-      if: ${{ steps.first_test_run.outcome == 'success' }}
+      if: ${{ steps.metis_first_test_run.outcome == 'success' }}
       run: |
-        make test
+        make -C metis test
+
+    - name: Run janus test suite
+      id: janus_first_test_run
+      run: |
+        make -C janus test
+    - name: Run test suite again to detect flaky failures
+      if: ${{ steps.janus_first_test_run.outcome == 'success' }}
+      run: |
+        make -C janus test
+
+    - name: Run etna test suite
+      id: etna_first_test_run
+      run: |
+        make -C etna test
+    - name: Run test suite again to detect flaky failures
+      if: ${{ steps.etna_first_test_run.outcome == 'success' }}
+      run: |
+        make -C etna test

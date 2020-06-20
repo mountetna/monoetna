@@ -17,7 +17,8 @@ module.exports = {
     extensions: [ '.js', '.jsx' ],
     alias: {
       'font-awesome': path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free')
-    }
+    },
+    symlinks: false
   },
   entry: {
     'metis-main': './lib/client/jsx/metis.jsx',
@@ -31,13 +32,20 @@ module.exports = {
     rules: [
       {
         loader: 'babel-loader',
+        include: [ path.resolve(__dirname, 'node_modules/etna/'), ],
+        test: /\.jsx?$/,
+        query: {
+          presets: ['@babel/env', '@babel/react'],
+        }
+      },
+      {
+        loader: 'babel-loader',
         include: [ path.resolve(__dirname, 'lib/client/jsx'), ],
         test: /\.jsx?$/,
         query: {
-          presets: ['env', 'stage-0', 'react'],
+          presets: ['@babel/env', '@babel/react'],
         }
       },
-
       {
         loader: 'file-loader',
         test: /\.(jpe?g|png|svg)$/i,
