@@ -23,6 +23,10 @@ vendor/bundle: Gemfile Gemfile.lock docker/app/Dockerfile
 config.yml:
 				cp config.yml.template config.yml
 
+.PHONY: setup-links
+setup-links: ## Sets up local development links for npm and ruby packages to use local copies of files.
+				@ docker-compose run --rm  -e SKIP_RUBY_SETUP=1 metis_app ./setup-links
+
 .PHONY: up
 up: config.yml .docker-build-mark ## Starts up the database, worker, and webservers of metis in the background.
 				@ docker-compose up -d

@@ -144,7 +144,7 @@ describe FolderController do
       post_create_folder('wisdom.txt/Helmet Blueprints')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid folder: "wisdom.txt"')
+      expect(json_body[:error]).to eq('Cannot overwrite existing file')
     end
 
     it 'creating an existing folder is idempotent' do
@@ -175,6 +175,7 @@ describe FolderController do
       expect(last_response.status).to eq(200)
       folder = Metis::Folder.last
       expect(folder.folder_path).to eq([ 'blueprints', 'Helmet Blueprints'])
+      expect(Metis::Folder.count).to eq(2)
     end
 
     it 'sets a parent folder' do

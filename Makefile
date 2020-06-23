@@ -46,3 +46,7 @@ migrate: ## Runs migrations in a specific app context
 .PHONY: test
 test: ## Runs all projects' tests
 				@ set -e && for project in $(projects); do make -C $$project test; done
+
+.PHONY: setup-links
+setup-links: ## Sets up local development links for npm and ruby packages to use local copies of files.
+				@ make -C metis setup-links

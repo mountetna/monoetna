@@ -1,0 +1,6 @@
+#! /usr/bin/env bash
+set -e
+
+npm link /etna/packages/etna-js
+
+

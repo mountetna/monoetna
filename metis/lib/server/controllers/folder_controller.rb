@@ -113,8 +113,7 @@ class FolderController < Metis::Controller
 
 
       if Metis::File.exists?(folder_name, bucket, parents.last)
-        raise Etna::BadRequest, "Cannot overwrite existing file" if parents.length == folder_names.length - 1
-        raise Etna::BadRequest, "Invalid folder: \"#{folder_name}\""
+        raise Etna::BadRequest, "Cannot overwrite existing file"
       end
 
       parents << Metis::Folder.create(
