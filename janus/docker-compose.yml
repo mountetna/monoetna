@@ -6,8 +6,6 @@ volumes:
     driver: local
   janus-db-data:
     driver: local
-  janus-node-modules:
-    driver: local
   janus-data-dir:
     driver: local
   janus-log-dir:
@@ -24,7 +22,7 @@ x-janus_base: &janus_base
   volumes:
     - .:/app:cached
     - janus-app-gems:/app/vendor/bundle:rw
-    - janus-node-modules:/app/node_modules:rw
+    - ./node_modules:/app/node_modules:cached
     - janus-data-dir:/app/data:rw
     - janus-log-dir:/app/log:rw
     - janus-tmp-dir:/app/tmp:rw

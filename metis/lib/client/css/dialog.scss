@@ -47,6 +47,23 @@
       }
     }
 
+
+    .upload-dialog {
+      width: 300px;
+      font-family: $base-font;
+      padding: 5px;
+
+      .title {
+        font-family: $base-font;
+        border-bottom: $thin-rule;
+        padding: 3px 5px;
+      }
+
+      .button {
+        margin: 5px;
+      }
+    }
+
     .config-dialog {
       width: 300px;
       font-family: $base-font;

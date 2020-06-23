@@ -47,6 +47,10 @@ build: ## Rebuilds the janus docker environment.  Does not clear volumes or data
 irb: ## Starts an irb console inside of the janus app context.
 				@ docker-compose run --rm janus_app bundle exec irb
 
+.PHONY: restart
+restart: ## Restarts background janus processes
+				@ docker-compose restart
+
 .PHONY: migrate
 migrate: ## Executes dev and test migrations inside of the janus app context.
 				@ docker-compose run --rm janus_app ./bin/janus migrate

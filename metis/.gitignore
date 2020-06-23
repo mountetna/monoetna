@@ -5,7 +5,8 @@ cron.log
 
 config.yml
 public/
-/node_modules/
+/node_modules/*
+!/node_modules/.gitkeep
 /lib/client/js/
 /lib/client/img/
 /lib/client/fonts/
@@ -25,3 +26,5 @@ spec/examples.txt
 .docker-build-mark
 
 spec/data/
+
+.npm-packages

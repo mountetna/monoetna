@@ -22,7 +22,7 @@ x-metis_base: &metis_base
   volumes:
     - .:/app:cached
     - app-gems:/app/vendor/bundle:rw
-    - ./node_modules:/app/node_modules:rw
+    - ./node_modules:/app/node_modules:cached
     - data-dir:/app/data:rw
     - log-dir:/app/log:rw
     - tmp-dir:/app/tmp:rw

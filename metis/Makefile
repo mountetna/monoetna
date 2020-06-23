@@ -25,7 +25,7 @@ config.yml:
 
 .PHONY: setup-links
 setup-links: ## Sets up local development links for npm and ruby packages to use local copies of files.
-				@ docker-compose run --rm  -e SKIP_RUBY_SETUP=1 metis_app ./setup-links
+	@ docker-compose run --rm metis_app npm link ../etna/packages/etna-js
 
 .PHONY: up
 up: config.yml .docker-build-mark ## Starts up the database, worker, and webservers of metis in the background.
@@ -34,6 +34,10 @@ up: config.yml .docker-build-mark ## Starts up the database, worker, and webserv
 .PHONY: down
 down: ## Ends background metis processes
 				@ docker-compose down --remove-orphans
+
+.PHONY: restart
+restart: ## Restarts background metis processes
+				@ docker-compose restart
 
 .PHONY: ps
 ps: ## Lists status of running metis processes

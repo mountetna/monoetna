@@ -13,7 +13,6 @@ help: ## Display help text
 .PHONY: build
 build: ## Forces a rebuild of all projects' development dockerfiles
 				@ make -C docker build
-				@ set -e && for project in $(projects); do make -C $$project build; done
 
 .PHONY: up
 up: ## Starts up all containers of this project in the background
@@ -43,10 +42,14 @@ psql: ## Starts a psql shell in an app environment
 migrate: ## Runs migrations in a specific app context
 				@ echo Run this within a specific app context, ie: make -C janus migrate
 
+.PHONY: restart
+restart: ## Restarts running services for a project
+				@ echo Run this within a specific app context, ie: make -C metis restart
+
 .PHONY: test
 test: ## Runs all projects' tests
 				@ set -e && for project in $(projects); do make -C $$project test; done
 
 .PHONY: setup-links
-setup-links: ## Sets up local development links for npm and ruby packages to use local copies of files.
-				@ make -C metis setup-links
+setup-links: ## Sets up local development links for npm (and one day ruby) packages to use local copies of files.
+				@ for project in $(projects); do make -C $$project setup-links; done

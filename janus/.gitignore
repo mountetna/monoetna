@@ -5,7 +5,8 @@ trash.rb
 /lib/client/css
 /db/seed.sql
 
-/node_modules/
+/node_modules/*
+!/node_modules/.gitkeep
 /tmp
 /log
 /source

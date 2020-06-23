@@ -1,6 +1,6 @@
 export COMPOSE_PROJECT_NAME=monoetna
 projects := $(shell ls ../*/Makefile | grep -v docker | xargs -n 1 dirname | xargs -n 1 basename)
-compose_ymls     := $(shell ls ../*/docker-compose.yml)
+compose_ymls     := $(shell ls ../*/docker-compose.yml | grep -v 'docker/docker-compose.yml')
 
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \
@@ -11,6 +11,7 @@ help: ## Display help text
 .DEFAULT_GOAL := help
 
 docker-compose.yml: $(compose_ymls) ./compose ./empty-docker-compose.yml
+				@ echo 'Rebuilding docker-compose.yml from projects $(compose_ymls)'
 				@ ./compose $(compose_ymls) > .tmp
 				@ mv .tmp docker-compose.yml
 
@@ -19,9 +20,9 @@ docker-compose.yml: $(compose_ymls) ./compose ./empty-docker-compose.yml
 				@ touch .docker-build-mark
 
 .PHONY: build
-build: ## Forces a rebuild of all projects' development dockerfiles
+build: docker-compose.yml ## Forces a rebuild of all projects' development dockerfiles
 				@ echo $(projects)
-				@ for project in $(projects); do cd ../$$project && make build; done
+				@ set -e; for project in $(projects); do cd ../$$project && make build; done
 				@ touch .docker-build-mark
 
 .PHONY: up

@@ -33,8 +33,11 @@ class FolderView extends React.Component {
     retrieveFiles(bucket_name, folder_name);
   }
 
-  selectFile() {
-    this.uploadFileInput.click();
+  selectUpload() {
+    this.props.showUploadModal(
+      () => this.uploadFileInput.click(),
+      () => this.uploadDirInput.click(),
+    );
   }
 
   prepareFiles(event, input) {
@@ -50,10 +53,6 @@ class FolderView extends React.Component {
 
   fileSelected(event){
     this.prepareFiles(event, this.uploadFileInput);
-  }
-
-  selectDir() {
-    this.uploadDirInput.click();
   }
 
   dirSelected(event) {
@@ -74,8 +73,7 @@ class FolderView extends React.Component {
 
     let buttons = [
       { onClick: this.selectFolder.bind(this), title: 'Create folder', icon: 'folder', overlay: 'plus', role: 'editor' },
-      { onClick: this.selectFile.bind(this), title: 'Upload file', icon: 'upload', role: 'editor' },
-      { onClick: this.selectDir.bind(this), title: 'Upload Directory', icon: 'cloud-upload-alt', role: 'editor' },
+      { onClick: this.selectUpload.bind(this), title: 'Upload file(s)', icon: 'upload', role: 'editor' },
     ];
 
     return (
@@ -116,11 +114,12 @@ class FolderView extends React.Component {
 const retrieveFiles = (bucket_name, folder_name) => ({type: 'RETRIEVE_FILES', bucket_name, folder_name});
 const fileSelected = (bucket_name, folder_name, file)=>({ type: 'FILE_SELECTED', file, folder_name, bucket_name });
 const createFolder = (bucket_name, parent_folder, folder_name)=>({ type: 'CREATE_FOLDER', folder_name, parent_folder, bucket_name });
+const showUploadModal = (startFileUpload, startDirectoryUpload) => ({ type: 'SHOW_DIALOG', dialog: { type: 'upload_dialog', startDirectoryUpload, startFileUpload } })
 
 export default connect(
   // map state
   null,
 
   // map dispatch
-  { retrieveFiles, fileSelected, createFolder }
+  { retrieveFiles, fileSelected, createFolder, showUploadModal }
 )(FolderView);
