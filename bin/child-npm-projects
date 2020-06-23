@@ -21,7 +21,8 @@ cd $DIR/..
 
 shopt -s globstar
 
-# Hard coded for now, could become more sophisticated later, see below
+# Hard coded for now, could become more sophisticated later.
+# Ideally all of this goes away when we can build and deploy production entirely from monorepo
 echo etna-js etna/packages/etna-js
 
 # for package_json in **/package.json; do

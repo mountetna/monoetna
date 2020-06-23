@@ -1,6 +1,5 @@
 #! /usr/bin/env bash
 set -e
-set -x
 
 prog=$0
 error() {
@@ -30,35 +29,39 @@ function mkArtifactSha() {
     local artifactName=$1
     local targetDir=$2
 
-    (
     cd $(mktemp -d)
-    cp -r $orig/.git ./
+    refSpec=refs/artifacts/$artifactName/$SHA
+
+    (
+    cp -r $DIR/../.git ./
     git checkout --orphan "$artifactName-$SHA"
-    cp -r $orig/$targetDir ./
+    cp -r $orig/$targetDir/* ./
     git add .
     git commit -m "Artifact $artifactName for sha $SHA"
     sha=$(git rev-parse --verify HEAD)
-    refSpec=refs/artifacts/$artifactName/$SHA
     git update-ref "$refSpec" $sha
-    git checkout "$refSpec"
-    git push origin $refSpec"
-    echo $sha
+    git push origin "$refSpec" --force
     ) &>/dev/null
+
+    git rev-parse --verify "$refSpec"
     cd $orig
 }
 
 
-for dep in $DIR/../child-npm-projects; do
-    echo $dep | read -r package_name dir
+IFS=$'\n'
+for dep in $($DIR/child-npm-projects); do
+    IFS=' '
+    read -r package_name dir < <(echo "$dep")
     echo "Updating $package_name from $dir"
     sha=$(mkArtifactSha npm-$package_name $dir)
     echo "Got new ref sha $sha"
     new_dep="git\+https:\/\/git@github\.com\/mountetna\/monoetna\.git\#$sha"
 
-    for package_json in $DIR/**/package.json; do
+    for package_json in $DIR/../**/package.json; do
+        echo "Processing $package_json"
         cd $(dirname $package_json)
-        echo "Applying update to $package_json"
-        if grep '"$dep":' package.json &>/dev/null; then
+        if grep "\"$package_name\":" package.json &>/dev/null; then
+          echo "Applying update to $package_json"
           sed -i -e "s/\"$package_name\":\ \".*\"/\"$package_name\":\ \"$new_dep\"/" package.json
           npm update $package_name
         fi
