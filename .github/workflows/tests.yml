@@ -19,6 +19,7 @@ jobs:
     - name:  Push npm artifacts and update package.json
       run: |
         bin/update-package-references
+        git status
         git add .
         git commit -m "Updated package.json references to artifacts"
         git push
