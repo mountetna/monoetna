@@ -1,5 +1,9 @@
-name: Run tests
-on: [push, pull_request]
+name: Run tests & prepare package.json updates
+on:
+  push:
+    branches:
+      - '*'
+      - !master
 
 jobs:
   update-artifacts-and-refs:
