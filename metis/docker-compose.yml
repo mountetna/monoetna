@@ -27,6 +27,7 @@ x-metis_base: &metis_base
     - log-dir:/app/log:rw
     - tmp-dir:/app/tmp:rw
     - public-dir:/app/public:rw
+    - ../etna:/etna:cached
   environment: &app_environment
     COVERAGE: 'true'
     DATABASE_HOST: 'db'
