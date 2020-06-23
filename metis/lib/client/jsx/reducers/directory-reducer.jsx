@@ -1,4 +1,4 @@
-import uploads from 'etna-js/reducers/upload-reducer';
+import uploads from 'etna-js/upload/reducers/upload-reducer';
 import folders from './folder-reducer';
 import files from './file-reducer';
 import buckets from './bucket-reducer';
@@ -8,7 +8,7 @@ import {
   UPLOAD_SPEED,
   ADD_UPLOAD,
   REMOVE_UPLOAD
-} from 'etna-js/actions/upload_actions';
+} from 'etna-js/upload/actions/upload_actions';
 
 const directory = (state, action) => {
   if (!state) state = {
