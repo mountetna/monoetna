@@ -7,10 +7,10 @@ import dialog from './reducers/dialog-reducer';
 import * as fileActions from './actions/file_actions';
 import * as folderActions from './actions/folder_actions';
 import * as bucketActions from './actions/bucket_actions';
-import * as uploadActions from 'etna/actions/upload_actions';
+import * as uploadActions from 'etna-js/actions/upload_actions';
 
 import asyncDispatcher from './dispatchers/async-dispatcher';
-import workDispatcher from 'etna/dispatchers/work-dispatcher';
+import workDispatcher from 'etna-js/dispatchers/work-dispatcher';
 
 const createStore = () => {
   let reducers = {

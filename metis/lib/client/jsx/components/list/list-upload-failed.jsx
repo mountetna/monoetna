@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import UploadControl from 'etna/components/upload-control';
+import UploadControl from 'etna-js/components/upload-control';
 
 export default class ListUploadFailed extends React.Component{
   constructor(props){
