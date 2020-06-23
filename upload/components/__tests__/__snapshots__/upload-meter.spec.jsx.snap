@@ -1,0 +1,145 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`UploadMeter matches snapshot when upload is completed 1`] = `
+<div
+  className="upload-meter-group"
+>
+  <div
+    className="upload-meter-tray"
+  >
+    <div
+      className="upload-meter-bar"
+      style={
+        Object {
+          "width": "100%",
+        }
+      }
+    />
+  </div>
+  <div
+    className="upload-meter-status"
+  >
+    <span
+      className="icon-grp fa-stack fa-fw"
+    >
+      <i
+        className="icon complete check fa fa-2x fa-check"
+      />
+    </span>
+  </div>
+  <div
+    className="upload-meter-completion"
+  >
+    <span
+      className="completed"
+      title="kilobytes uploaded"
+    >
+      100 B
+    </span>
+     of 
+    100 B
+  </div>
+  <div
+    className="upload-meter-speed"
+  >
+    <span
+      title="kilobits per second"
+    >
+      3.3 Mbps
+    </span>
+  </div>
+</div>
+`;
+
+exports[`UploadMeter matches snapshot when upload is in progress 1`] = `
+<div
+  className="upload-meter-group"
+>
+  <div
+    className="upload-meter-tray"
+  >
+    <div
+      className="upload-meter-bar"
+      style={
+        Object {
+          "width": "50%",
+        }
+      }
+    />
+  </div>
+  <div
+    className="upload-meter-status"
+  >
+    <span
+      className="icon-grp fa-stack fa-fw"
+    >
+      <i
+        className="icon active upload fa fa-2x fa-upload"
+      />
+    </span>
+  </div>
+  <div
+    className="upload-meter-completion"
+  >
+    <span
+      className="completed"
+      title="kilobytes uploaded"
+    >
+      50 B
+    </span>
+     of 
+    100 B
+  </div>
+  <div
+    className="upload-meter-speed"
+  >
+    <span
+      title="kilobits per second"
+    >
+      5.0 Mbps
+    </span>
+  </div>
+</div>
+`;
+
+exports[`UploadMeter matches snapshot when upload starting 1`] = `
+<div
+  className="upload-meter-group"
+>
+  <div
+    className="upload-meter-tray"
+  >
+    <div
+      className="upload-meter-bar"
+      style={
+        Object {
+          "width": "0%",
+        }
+      }
+    />
+  </div>
+  <div
+    className="upload-meter-status"
+  >
+    <span
+      className="icon-grp fa-stack fa-fw"
+    >
+      <i
+        className="icon paused pause fa fa-2x fa-pause"
+      />
+    </span>
+  </div>
+  <div
+    className="upload-meter-completion"
+  >
+    <span
+      className="completed"
+      title="kilobytes uploaded"
+    >
+      0 B
+    </span>
+     of 
+    100 B
+  </div>
+</div>
+`;

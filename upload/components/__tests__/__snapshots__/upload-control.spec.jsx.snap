@@ -1,0 +1,70 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`UploadControl renders the pause and cancel buttons when status is active 1`] = `
+<div
+  className="upload-control-group"
+>
+  <button
+    className="upload-control-btn"
+    onClick={[Function]}
+  >
+    <span
+      className="fas fa-fw fa-pause"
+    />
+  </button>
+  <button
+    className="upload-control-btn"
+    onClick={[Function]}
+  >
+    <span
+      className="fas fa-fw fa-times"
+    />
+  </button>
+</div>
+`;
+
+exports[`UploadControl renders the play and cancel buttons when status is paused 1`] = `
+<div
+  className="upload-control-group"
+>
+  <button
+    className="upload-control-btn"
+    onClick={[Function]}
+  >
+    <span
+      className="fas fa-fw fa-play"
+    />
+  </button>
+  <button
+    className="upload-control-btn"
+    onClick={[Function]}
+  >
+    <span
+      className="fas fa-fw fa-times"
+    />
+  </button>
+</div>
+`;
+
+exports[`UploadControl renders the retry and cancel buttons when status is failed 1`] = `
+<div
+  className="upload-control-group"
+>
+  <button
+    className="upload-control-btn"
+    onClick={[Function]}
+  >
+    <span
+      className="fas fa-fw fa-retweet"
+    />
+  </button>
+  <button
+    className="upload-control-btn"
+    onClick={[Function]}
+  >
+    <span
+      className="fas fa-fw fa-times"
+    />
+  </button>
+</div>
+`;
