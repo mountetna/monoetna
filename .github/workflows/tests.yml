@@ -4,6 +4,9 @@ on:
     branches:
       - '*'
       - !master
+  pull:
+    branches:
+      - '*'
 
 jobs:
   update-artifacts-and-refs:
