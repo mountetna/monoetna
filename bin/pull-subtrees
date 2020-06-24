@@ -28,7 +28,7 @@ target_branch=$1
 for subtree in $subtrees; do
   git remote add $subtree git@github.com:mountetna/$subtree.git || true
   if [ -e $subtree ]; then
-    if git show-branch remotes/$subtree/$target_branch &>/dev/null; then
+    if git ls-remote $subtree | grep "heads/$target_branch"; then
       git subtree pull --prefix=$subtree $subtree $target_branch
     fi
   else
