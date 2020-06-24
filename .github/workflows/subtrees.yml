@@ -26,7 +26,7 @@ jobs:
         env:
           IS_CI: true
         run: |
-          bin/update-package-references &&
+          bin/update-package-references
   sync-to-and-from-subtrees:
     runs-on: ubuntu-latest
     needs: update-artifacts-and-refs
