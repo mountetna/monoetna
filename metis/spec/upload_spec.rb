@@ -249,7 +249,7 @@ describe UploadController do
       )
     end
 
-    it 'should not resume someone elses upload' do
+    it 'should create a new upload on start, if does not exist' do
       file = create_file('athena', 'wisdom.txt', WISDOM)
 
       # we create an upload, but the metis_uid is different from ours
@@ -261,6 +261,8 @@ describe UploadController do
         next_blob_hash: 10
       )
 
+      expect(Metis::Upload.count).to eq(1)
+
       # we attempt to post to the path
       hmac_header
       json_post(
@@ -271,9 +273,9 @@ describe UploadController do
         next_blob_hash: 10
       )
 
-      # we are forbidden
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('No matching upload')
+      # we get a different upload back
+      expect(last_response.status).to eq(200)
+      expect(Metis::Upload.count).to eq(2)
     end
   end
 
