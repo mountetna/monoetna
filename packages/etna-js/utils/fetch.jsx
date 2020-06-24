@@ -34,7 +34,7 @@ export const headers = (...types) => {
 export const json_fetch = (method) => (path, params) =>
   fetch(path, {
     method,
-    credentials: 'same-origin',
+    credentials: 'include',
     headers: headers('json'),
     ...(params && { body: JSON.stringify(params) })
   }).then(checkStatus);

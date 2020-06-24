@@ -31,7 +31,7 @@ export const fileSelected = ({ file, folder_name, bucket_name }) => (dispatch, g
   // TODO: Check for more standards way of doing this in the future, or if IE support is required.
   const relativePath = file.webkitRelativePath;
   const dest = relativePath || file.name;
-  let file_name = [ folder_name, dest ].filter(_=>_).join('/');
+  let file_name = [folder_name, dest].filter(_ => _).join('/');
 
   // In the case of a directory upload, we need to first ensure that a containing directory exists.
   if (relativePath) {
@@ -50,11 +50,14 @@ export const fileSelected = ({ file, folder_name, bucket_name }) => (dispatch, g
   function performUpload() {
     return postAuthorizeUpload(window.location.origin, CONFIG.project_name, bucket_name, file_name)
       .then(
-        ({url}) => {
-          dispatch({type: ADD_UPLOAD, project_name: CONFIG.project_name, file, file_name, url});
-          let upload = getUpload(getState(), file_name);
-
-          work(dispatch, 'start', {upload});
+        ({ url }) => {
+          startUploadActions({
+            dispatch,
+            getState,
+            file,
+            file_name,
+            url
+          });
         }
       )
       .catch(
@@ -67,35 +70,54 @@ export const fileSelected = ({ file, folder_name, bucket_name }) => (dispatch, g
   }
 }
 
+export const startUploadActions = ({
+  file,
+  file_name,
+  url,
+  dispatch,
+  getState
+}) => {
+  dispatch({
+    type: ADD_UPLOAD,
+    project_name: CONFIG.project_name,
+    file,
+    file_name,
+    url
+  });
+  let upload = getUpload(getState(), file_name);
+
+  work(dispatch, "start", { upload });
+};
+
 export const uploadStarted = ({ file_name }) => (dispatch, getState) => {
   let upload = getUpload(getState(), file_name);
 
   if (upload.status == 'active') work(dispatch, 'continue', { upload });
 }
 
-export const uploadBlobCompleted = ({file_name}) => (dispatch, getState) => {
+export const uploadBlobCompleted = ({ file_name }) => (dispatch, getState) => {
   let upload = getUpload(getState(), file_name);
 
   if (upload.status == 'active') work(dispatch, 'continue', { upload });
 }
 
-export const uploadFileCompleted = ({upload}) => (dispatch) => {
+export const uploadFileCompleted = ({ upload }) => (dispatch) => {
   let { file } = upload;
-  dispatch({ type: ADD_FILES, files: [ file ] });
+  dispatch({ type: ADD_FILES, files: [file] });
 
   dispatch({ type: UNQUEUE_UPLOADS });
 }
 
-export const continueUpload = ({upload}) => (dispatch) => {
+export const continueUpload = ({ upload }) => (dispatch) => {
   dispatch({ type: UPLOAD_STATUS, upload, status: 'active' });
   work(dispatch, 'continue', { upload });
 };
 
-export const pauseUpload = ({upload}) => (dispatch) => {
+export const pauseUpload = ({ upload }) => (dispatch) => {
   dispatch({ type: UPLOAD_STATUS, upload, status: 'paused' });
 }
 
-export const cancelUpload = ({upload}) => (dispatch) => {
+export const cancelUpload = ({ upload }) => (dispatch) => {
   if (upload.status == 'complete') {
     dispatch({ type: REMOVE_UPLOAD, upload });
     return;
@@ -106,7 +128,7 @@ export const cancelUpload = ({upload}) => (dispatch) => {
   dispatch({ type: WORK, work_type: 'upload', command: 'cancel', upload });
 }
 
-export const uploadFileCanceled = ({upload}) => (dispatch) => {
+export const uploadFileCanceled = ({ upload }) => (dispatch) => {
   dispatch({ type: REMOVE_UPLOAD, upload });
   dispatch({ type: UNQUEUE_UPLOADS });
 }
