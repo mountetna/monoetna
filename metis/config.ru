@@ -9,6 +9,7 @@ Metis.instance.configure(YAML.load(File.read("config.yml")))
 
 # Used primarily by development servers.  These are served via apache in production.
 use Rack::Static, urls: ['/css', '/fonts', '/img', '/js'], root: 'public'
+use Etna::CrossOrigin
 use Etna::ParseBody
 use Etna::SymbolizeParams
 use Etna::Auth
