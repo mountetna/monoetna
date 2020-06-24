@@ -9,7 +9,7 @@ class Metis
 
     one_to_many :files
 
-    def self.from_path(bucket, folder_path)
+    def self.from_path(bucket, folder_path, allow_partial_match: false)
       return [] unless folder_path && !folder_path.empty? && bucket
 
       folder_names = folder_path.split(%r!/!)
@@ -39,10 +39,15 @@ class Metis
         ON f.id=sf.id ORDER BY sf.depth ASC;
       )
 
-      folders = Metis::Folder.with_sql(query).all
+      # Find the set of folders that consecutively link as a chain from the root.
+      folders = Metis::Folder.with_sql(query).all.inject([]) do |parents, folder|
+        break parents unless folder.folder == parents.last
+        parents << folder
+      end
 
-      # make sure we have found a complete path
-      return [] unless !folders.empty? && folders.first.root_folder? && folders.length == folder_names.length
+      if folders.length != folder_names.length
+        return [] unless allow_partial_match
+      end
 
       return folders
     end

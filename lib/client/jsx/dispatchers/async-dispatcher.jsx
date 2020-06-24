@@ -11,8 +11,7 @@ const asyncDispatcher = actions => {
     // execute the action if it is one of our
     // defined action handlers
     if (actions[name]) {
-      actions[name](args)(store.dispatch, store.getState);
-      return;
+      return actions[name](args)(store.dispatch, store.getState);
     }
 
     return next(action);

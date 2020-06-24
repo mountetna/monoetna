@@ -10,12 +10,12 @@
     "babel": "babel ./client/jsx --out-dir ./client/js",
     "webpack": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production --watch",
     "webpack-dev": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development --watch",
-    "test": "jest"
+    "test": "jest && webpack"
   },
   "license": "ISC",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.12.0",
-    "etna": "git+https://git@github.com/mountetna/etna.git#1.1.1-ui",
+    "etna-js": "git+https://git@github.com/mountetna/monoetna.git#c0f6add9596488d65f573367ed097b19d66e05f9",
     "js-cookie": "^2.2.1",
     "md5": "^2.2.1",
     "react": "^16.12.0",

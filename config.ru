@@ -7,7 +7,8 @@ require './lib/server'
 
 Metis.instance.configure(YAML.load(File.read("config.yml")))
 
-use Rack::Static, urls: ['/css', '/fonts', '/img'], root: 'lib/client'
+# Used primarily by development servers.  These are served via apache in production.
+use Rack::Static, urls: ['/css', '/fonts', '/img', '/js'], root: 'public'
 use Etna::ParseBody
 use Etna::SymbolizeParams
 use Etna::Auth

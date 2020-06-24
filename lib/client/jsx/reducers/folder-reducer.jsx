@@ -1,4 +1,4 @@
-import { folderKey } from '../utils/file';
+import { folderKey } from 'etna-js/utils/file';
 
 const addFolders = (action, old_folders) => {
   let { folders } = action;
