@@ -2,6 +2,7 @@
 set -e
 
 export PATH="/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH"
+cp npmrc ~/.npmrc || true
 
 if [ -z "$SKIP_RUBY_SETUP" ]; then
   bundle check || bundle install -j "$(nproc)"
