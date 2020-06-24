@@ -42,8 +42,7 @@ make -C janus bash
 3. Push your changes to master, aka the monoetna repo.
 4. Create PR in monoetna repo, showing the entire change set
 5. Merge to master on monoetna
-6. __!! run `./bin/pull-subtrees` to consume changes from child repos.__  If you forget this step, your push may fail.
-7. run `./bin/push-subtrees` to push changes from this repo to child repos
+6. A github action will start and push your changes to the subtree repos automatically!
 
 ### Branches
 
