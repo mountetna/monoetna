@@ -88,9 +88,9 @@ class UploadController < Metis::Controller
         bucket: bucket,
         project_name: @params[:project_name],
         user: Etna::User.new(
-          email: hmac.id.to_s,
-          first: hmac.id.to_s,
-          last: hmac.id.to_s)
+          email: (hmac.headers[:email] || hmac.id).to_s,
+          first: (hmac.headers[:first] || hmac.id).to_s,
+          last: (hmac.headers[:last] || hmac.id).to_s)
       })
     end
 
