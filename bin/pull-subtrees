@@ -34,7 +34,7 @@ for subtree in $subtrees; do
 
   if [ -e $subtree ]; then
     if git ls-remote $subtree | grep "heads/$target_branch"; then
-      git subtree pull --prefix=$subtree $subtree $target_branch
+      git subtree pull -q --prefix=$subtree $subtree $target_branch
     fi
   else
     git subtree add --prefix=$subtree $subtree $target_branch || true
