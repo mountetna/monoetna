@@ -16,7 +16,7 @@ const upload = (project_name, file, file_name, url) => ({
   project_name,
   file_size: file.size,
   current_byte_position: 0,
-  status: 'queued',
+  status: 'preparing',
   upload_speeds: [],
 })
 
