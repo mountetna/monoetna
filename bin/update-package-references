@@ -68,8 +68,3 @@ for dep in $($DIR/child-npm-projects); do
     done
 done
 
-
-
-# on my branch, give me the latest package-lock.json based on my branch.
-
-

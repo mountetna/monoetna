@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Configure git
         run: |
           git config --global user.name 'GithubAction'
@@ -16,13 +18,13 @@ jobs:
           git config --global core.mergeoptions --no-edit
       - name:  pull-subtrees
         run: |
-          bin/pull-subtrees
+          bin/pull-subtrees master
       - name:  push-subtrees
         run: |
-          bin/push-subtrees
+          bin/push-subtrees master
       - name:  pull-subtrees again (for any new pushed refs)
         run: |
-          bin/push-subtrees
+          bin/pull-subtrees master
       - name: push to master
         run: |
           git push
