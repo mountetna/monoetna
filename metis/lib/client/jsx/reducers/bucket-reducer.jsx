@@ -1,4 +1,4 @@
-import { fileKey } from '../utils/file';
+import { fileKey } from 'etna-js/utils/file';
 
 const removeFiles = (old_files, action) => {
   let { files } = action;

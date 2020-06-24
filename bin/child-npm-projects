@@ -1,0 +1,35 @@
+#! /usr/bin/env bash
+set -e
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+cd $DIR/..
+
+shopt -s globstar
+
+# Hard coded for now, could become more sophisticated later.
+# Ideally all of this goes away when we can build and deploy production entirely from monorepo
+echo etna-js etna/packages/etna-js
+
+# for package_json in **/package.json; do
+  # name=$(cat $package_json | ruby -e 'require "json"; puts JSON.parse(STDIN.read)["name"] || ""')
+  # if ! [ -z "$name" ]; then
+    # echo $name $(dirname $package_json)
+  # fi
+# done
+
+

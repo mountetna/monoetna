@@ -32,7 +32,7 @@ module.exports = {
     rules: [
       {
         loader: 'babel-loader',
-        include: [ path.resolve(__dirname, 'node_modules/etna/'), ],
+        include: [ path.resolve(__dirname, 'node_modules/etna-js/'), ],
         test: /\.jsx?$/,
         query: {
           presets: ['@babel/env', '@babel/react'],

@@ -43,9 +43,13 @@ bundle: ## Executes a bundle install inside of the janus app context.
 build: ## Rebuilds the janus docker environment.  Does not clear volumes or databases, just rebuilds code components.
 				@ docker-compose build
 
-.PHONY: console
-console: ## Starts an irb console inside of the janus app context.
-				docker exec -ti "$$(docker ps --format '{{.Names}}' | grep janus_app)" bundle exec irb
+.PHONY: irb
+irb: ## Starts an irb console inside of the janus app context.
+				@ docker-compose run --rm janus_app bundle exec irb
+
+.PHONY: restart
+restart: ## Restarts background janus processes
+				@ docker-compose restart
 
 .PHONY: migrate
 migrate: ## Executes dev and test migrations inside of the janus app context.
@@ -58,7 +62,7 @@ test: ## Execute (all) rspec tests inside of the janus app context.
 
 .PHONY: bash
 bash: ## Start a bash shell inside of the app context.
-				@docker exec -ti "$$(docker ps --format '{{.Names}}' | grep janus_app)" bash
+				@ docker-compose run -e SKIP_RUBY_SETUP=1 --rm janus_app bash
 
 .PHONY: db-port
 db-port: ## Print the db port associated with the app.
@@ -66,7 +70,7 @@ db-port: ## Print the db port associated with the app.
 
 .PHONY: psql
 psql: ## Start a psql shell conntected to the janus development db
-				@ docker exec -ti -e PGPASSWORD=password "$$(docker ps --format '{{.Names}}' | grep janus_app)" psql -h janus_db -U developer -d janus_development
+				@ docker-compose run --rm janus_app psql -h janus_db -U developer -d janus_development
 
 .PHONY: logs
 logs: ## Follow logs of running containers

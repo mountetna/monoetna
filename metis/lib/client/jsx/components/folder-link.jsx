@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { filePath } from '../utils/file';
+import { filePath } from 'etna-js/utils/file';
 
 const browse_path = (bucket_name, folder_name, current_folder, log) => {
   let path = filePath(current_folder, folder_name);

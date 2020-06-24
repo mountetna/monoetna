@@ -6,7 +6,7 @@ import ListFolder from './list-folder';
 import ListFile from './list-file';
 import ListUploadFailed from './list-upload-failed';
 
-import { selectFiles, selectFolders, selectUploads } from '../../selectors/directory-selector';
+import { selectFiles, selectFolders, selectUploads } from 'etna-js/selectors/directory-selector';
 
 class ListBody extends React.Component{
   render() {
@@ -61,8 +61,8 @@ class ListBody extends React.Component{
 
 export default connect(
   // map state
-  (state) => ({
-    files: selectFiles(state),
+  (state, { folder_name }) => ({
+    files: selectFiles(state, folder_name),
     uploads: selectUploads(state),
     folders: selectFolders(state)
   })
