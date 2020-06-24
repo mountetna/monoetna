@@ -32,6 +32,6 @@ for subtree in $subtrees; do
       git subtree pull --prefix=$subtree $subtree $target_branch
     fi
   else
-    git subtree add --prefix=$subtree $subtree $target_branch
+    git subtree add --prefix=$subtree $subtree $target_branch || true
   fi
 done
