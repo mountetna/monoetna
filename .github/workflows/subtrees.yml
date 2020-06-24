@@ -5,8 +5,31 @@ on:
       - master
 
 jobs:
+  update-artifacts-and-refs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure git
+        run: |
+          git config --global user.name 'GithubAction'
+          git config --global user.email 'mountetna@users.noreply.github.com'
+          git status
+      - name: Reattach HEAD to Head Ref
+        run: git checkout $(echo ${{ github.head_ref }} | sed -E 's|refs/[a-zA-Z]+/||')
+        if: github.head_ref != ''
+      - name: Reattach HEAD to Head Ref
+        run: git checkout $(echo ${{ github.ref }} | sed -E 's|refs/[a-zA-Z]+/||')
+        if: github.head_ref == ''
+      - name:  Push npm artifacts and update package.json
+        run: |
+          bin/update-package-references
+          git status
+          git add .
+          git commit -m "Updated package.json references to artifacts"
+          git push
   sync-to-and-from-subtrees:
     runs-on: ubuntu-latest
+    needs: update-artifacts-and-refs
     steps:
       - uses: actions/checkout@v2
         with:
@@ -17,15 +40,11 @@ jobs:
           git config --global user.name 'GithubAction'
           git config --global user.email 'mountetna@users.noreply.github.com'
           git config --global core.mergeoptions --no-edit
-      - name:  pull-subtrees
+      - name:  sync-subtrees
+        env:
+          IS_CI: true
         run: |
           bin/pull-subtrees master
-      - name:  push-subtrees
-        run: |
           bin/push-subtrees master
-      - name:  pull-subtrees again (for any new pushed refs)
-        run: |
           bin/pull-subtrees master
-      - name: push to master
-        run: |
           git push

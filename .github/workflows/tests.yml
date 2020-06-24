@@ -8,30 +8,7 @@ on:
       - '!master'
 
 jobs:
-  update-artifacts-and-refs:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Configure git
-      run: |
-        git config --global user.name 'GithubAction'
-        git config --global user.email 'mountetna@users.noreply.github.com'
-        git status
-    - name: Reattach HEAD to Head Ref
-      run: git checkout $(echo ${{ github.head_ref }} | sed -E 's|refs/[a-zA-Z]+/||')
-      if: github.head_ref != ''
-    - name: Reattach HEAD to Head Ref
-      run: git checkout $(echo ${{ github.ref }} | sed -E 's|refs/[a-zA-Z]+/||')
-      if: github.head_ref == ''
-    - name:  Push npm artifacts and update package.json
-      run: |
-        bin/update-package-references
-        git status
-        git add .
-        git commit -m "Updated package.json references to artifacts"
-        git push
   test:
-    needs: update-artifacts-and-refs
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -40,13 +17,15 @@ jobs:
     - name: Build docker images
       run: |
         make build
+    - name: Setup links
+      run: |
+        make setup-links
     - name: Start up services
       run: |
         make up
         sleep 5
         make ps
         make logs
-
     - name: Run metis test suite
       id: metis_first_test_run
       run: |

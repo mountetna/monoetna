@@ -26,7 +26,12 @@ target_branch=$1
 
 
 for subtree in $subtrees; do
-  git remote add $subtree git@github.com:mountetna/$subtree.git || true
+  if [ -z "$IS_CI" ]; then
+    git remote add $subtree git@github.com:mountetna/$subtree.git || true
+  else
+    git remote add $subtree https://github.com/mountetna/$subtree.git || true
+  fi
+
   if [ -e $subtree ]; then
     if git ls-remote $subtree | grep "heads/$target_branch"; then
       git subtree pull --prefix=$subtree $subtree $target_branch
