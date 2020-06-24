@@ -28,3 +28,4 @@ spec/examples.txt
 spec/data/
 
 .npm-packages
+.npmrc
