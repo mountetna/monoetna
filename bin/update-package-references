@@ -19,6 +19,14 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 cd $DIR/..
 
+lastCommited=$(git log --pretty=oneline --abbrev-commit | grep "Updated package.json references to artifacts" | head -n 1 | cut -d' ' -f1)
+lastCommitted=${lastCommitted:-HEAD~1}
+
+if  ! (git diff --name-only $lastCommitted | grep etna-js/); then
+  echo 'No changes to etna-js found, skipping'
+  exit 0
+fi
+
 shopt -s globstar
 
 SHA=$(git rev-parse --verify HEAD)
@@ -68,8 +76,11 @@ for dep in $($DIR/child-npm-projects); do
     done
 done
 
-
-
-# on my branch, give me the latest package-lock.json based on my branch.
-
+if ! [ -z "$IS_CI" ]; then
+    git add .
+    git commit
+    git status && git add .
+    git commit -m "Updated package.json references to artifacts"
+    git push
+fi
 

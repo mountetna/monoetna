@@ -25,7 +25,7 @@ target_branch=$1
 
 cd $DIR/..
 for subtree in $subtrees; do
-  if git show-branch remotes/$subtree/$target_branch &>/dev/null; then
-    git subtree push --prefix=$subtree $subtree $target_branch
+  if git ls-remote $subtree | grep "heads/$target_branch"; then
+    git subtree push -q --prefix=$subtree $subtree $target_branch || true
   fi
 done
