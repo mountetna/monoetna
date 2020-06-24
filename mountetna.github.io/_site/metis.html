@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Metis | Etna Docs</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Metis" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Documentation for the Mount Etna data library system" />
+<meta property="og:description" content="Documentation for the Mount Etna data library system" />
+<link rel="canonical" href="http://localhost:4000/metis.html" />
+<meta property="og:url" content="http://localhost:4000/metis.html" />
+<meta property="og:site_name" content="Etna Docs" />
+<script type="application/ld+json">
+{"headline":"Metis","description":"Documentation for the Mount Etna data library system","@type":"WebPage","url":"http://localhost:4000/metis.html","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Etna Docs" /></head>
+
+
+  <body>
+    <header class="site-header" role="banner">
+  <a class="site-title" href="/">Etna Docs</a>
+  <div class="site-description">Documentation for the Mount Etna data library system</div>
+</header>
+
+
+    <div class="page-columns">
+      <ul class="nav">
+  
+  <li><a href="/">Introduction</a></li>
+  
+
+  <li class="header">Etna Applications</li>
+  
+    
+  
+    
+  
+    
+      
+        <li><a href="/janus.html"> Janus </a> </li>
+      
+    
+  
+    
+      
+        <li><a href="/magma.html"> Magma </a> </li>
+      
+    
+  
+    
+      
+        <li class="active">Metis</li>
+      
+    
+  
+    
+      
+        <li><a href="/timur.html"> Timur </a> </li>
+      
+    
+  
+    
+  
+    
+  
+</ul>
+
+
+      <main class="page-content" aria-label="Content">
+        <h1 class="no_toc" id="metis">Metis</h1>
+<h2 class="no_toc" id="file-service">File Service</h2>
+
+<p>Metis is a file service for Etna applications. It provides the ability to store
+binary files in folder hierarchies and access them via HTTP API. The underlying
+object storage uses an ordinary filesystem (i.e., files in Metis are stored on
+disk as files)</p>
+
+<ul id="markdown-toc">
+  <li><a href="#organization" id="markdown-toc-organization">Organization</a>    <ul>
+      <li><a href="#projects" id="markdown-toc-projects">Projects</a></li>
+      <li><a href="#buckets" id="markdown-toc-buckets">Buckets</a></li>
+      <li><a href="#folders" id="markdown-toc-folders">Folders</a></li>
+      <li><a href="#files" id="markdown-toc-files">Files</a></li>
+      <li><a href="#names" id="markdown-toc-names">Names</a></li>
+    </ul>
+  </li>
+  <li><a href="#client" id="markdown-toc-client">Client</a></li>
+  <li><a href="#api" id="markdown-toc-api">API</a>    <ul>
+      <li><a href="#listing" id="markdown-toc-listing">Listing</a></li>
+      <li><a href="#buckets-1" id="markdown-toc-buckets-1">Buckets</a></li>
+      <li><a href="#folders-1" id="markdown-toc-folders-1">Folders</a></li>
+      <li><a href="#files-1" id="markdown-toc-files-1">Files</a></li>
+      <li><a href="#uploads" id="markdown-toc-uploads">Uploads</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="organization">Organization</h2>
+
+<h3 id="projects">Projects</h3>
+
+<p>As with all Etna applications, the basic organizational unit of Metis is the
+project - the user only has rights to data from a project according to their
+project role.</p>
+
+<h3 id="buckets">Buckets</h3>
+
+<p>Buckets are the root-level containers for each project. A bucket is access
+restricted, either by role or by access list. Bucket names are restricted to
+<code class="language-plaintext highlighter-rouge">symbol_names</code>, i.e. <code class="language-plaintext highlighter-rouge">[A-Za-z0-9_]+</code>.</p>
+
+<h3 id="folders">Folders</h3>
+
+<p>Folders are collections of files and folders. Folders may be “protected”,
+preventing the creation of new files or folders.</p>
+
+<h3 id="files">Files</h3>
+
+<p>Files may have any content. Metis will compute MD5 sums for each file and (if
+available) back them up using cloud storage. Files may also be protected from
+modification by admins.</p>
+
+<h3 id="names">Names</h3>
+
+<p>File (and folder) names must match <code class="language-plaintext highlighter-rouge">[^&lt;&gt;:;,?"*\|\/\x00-\x1f]+</code>, i.e. excluding
+common wildcard, separator and control characters.</p>
+
+<h2 id="client">Client</h2>
+
+<p>Metis provides a browser client that allows file viewing, download, and
+upload.</p>
+
+<h2 id="api">API</h2>
+
+<h3 id="listing">Listing</h3>
+
+<p>Listing a folder path will return a JSON list of files and folders at that
+path, including an HMAC-signed <code class="language-plaintext highlighter-rouge">download_url</code>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /:project_name/list/:bucket_name/*folder_path
+</code></pre></div></div>
+
+<h3 id="buckets-1">Buckets</h3>
+
+<p>You may get a list of visible buckets for your project:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /:project_name/list/
+</code></pre></div></div>
+
+<p>Admins may create, update or delete a bucket:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POST /:project_name/bucket/create/:bucket_name { owner, access, description }
+POST /:project_name/bucket/update/:bucket_name { access, description, new_bucket_name }
+DELETE /:project_name/bucket/remove/:bucket_name
+</code></pre></div></div>
+
+<p>Bucket access is either a role <code class="language-plaintext highlighter-rouge">administrator, editor, viewer</code> or a
+comma-separated list of Etna user ids (emails).</p>
+
+<h3 id="folders-1">Folders</h3>
+
+<p>Editors may create, remove and rename folders.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POST /:project_name/folder/create/:bucket_name/*folder_path
+DELETE /:project_name/folder/remove/:bucket_name/*folder_path
+POST /:project_name/folder/rename/:bucket_name/*folder_path { new_folder_path }
+</code></pre></div></div>
+
+<p>Admins may protect or unprotect folders:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POST /:project_name/folder/protect/:bucket_name/*folder_path
+POST '/:project_name/folder/unprotect/:bucket_name/*folder_path
+</code></pre></div></div>
+
+<h3 id="files-1">Files</h3>
+
+<p>Editors may remove or rename a file:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>DELETE /:project_name/file/remove/:bucket_name/*file_path
+POST /:project_name/file/rename/:bucket_name/*file_path { new_file_path }
+</code></pre></div></div>
+
+<p>Admins may protect or unprotect a file:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POST /:project_name/file/protect/:bucket_name/*file_path
+POST /:project_name/file/unprotect/:bucket_name/*file_path
+</code></pre></div></div>
+
+<h3 id="uploads">Uploads</h3>
+
+<p>The basic upload cycle first requires the editor to authorize a new file upload
+into a project, bucket and path with their Etna auth token:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POST /authorize/upload { project_name, bucket_name, file_path }
+</code></pre></div></div>
+<p>If the intended file path is invalid, or the destination is locked, the
+upload authorization will fail.</p>
+
+<p>This returns an HMAC-signed URL to the upload endpoint, which may be
+used to perform the upload:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POST /:project_name/upload/:bucket_name/*file_path { action, ... }
+</code></pre></div></div>
+
+<p>This endpoint can perform three actions:</p>
+
+<p>We initiate the upload by communicating what we intend to send:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{ action: 'start', file_size, next_blob_size, next_blob_hash }
+</code></pre></div></div>
+
+<p>We repeatedly send blobs of binary data (using multipart post):</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{ action: 'blob', blob_data, next_blob_size, next_blob_hash }
+</code></pre></div></div>
+
+<p>If the data does not hash correctly upon receipt, Metis will reject the blob.</p>
+
+<p>When we have sent the final blob, the upload completes and Metis returns the
+newly-minted file JSON.</p>
+
+<p>If we are dissatisfied with our progress we may cancel the upload:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{ action: 'cancel' }
+</code></pre></div></div>
+
+      </main>
+
+    </div>
+
+    <footer class="site-footer">
+
+    <ul>
+      
+        <li><a href="mailto:dscolab@ucsf.edu">dscolab@ucsf.edu</a></li>
+      
+      
+      <li>
+        <a href="https://github.com/mountetna"><span class="icon icon--github"><svg viewBox="0 0 16 16" width="16px" height="16px"><path fill="#828282" d="M7.999,0.431c-4.285,0-7.76,3.474-7.76,7.761 c0,3.428,2.223,6.337,5.307,7.363c0.388,0.071,0.53-0.168,0.53-0.374c0-0.184-0.007-0.672-0.01-1.32 c-2.159,0.469-2.614-1.04-2.614-1.04c-0.353-0.896-0.862-1.135-0.862-1.135c-0.705-0.481,0.053-0.472,0.053-0.472 c0.779,0.055,1.189,0.8,1.189,0.8c0.692,1.186,1.816,0.843,2.258,0.645c0.071-0.502,0.271-0.843,0.493-1.037 C4.86,11.425,3.049,10.76,3.049,7.786c0-0.847,0.302-1.54,0.799-2.082C3.768,5.507,3.501,4.718,3.924,3.65 c0,0,0.652-0.209,2.134,0.796C6.677,4.273,7.34,4.187,8,4.184c0.659,0.003,1.323,0.089,1.943,0.261 c1.482-1.004,2.132-0.796,2.132-0.796c0.423,1.068,0.157,1.857,0.077,2.054c0.497,0.542,0.798,1.235,0.798,2.082 c0,2.981-1.814,3.637-3.543,3.829c0.279,0.24,0.527,0.713,0.527,1.437c0,1.037-0.01,1.874-0.01,2.129 c0,0.208,0.14,0.449,0.534,0.373c3.081-1.028,5.302-3.935,5.302-7.362C15.76,3.906,12.285,0.431,7.999,0.431z"/></svg>
+</span><span class="username">mountetna</span></a>
+
+      </li>
+      
+    </ul>
+
+</footer>
+
+  </body>
+
+</html>
