@@ -35,6 +35,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.SYNC_ACCESS_TOKEN }}
+          fetch-depth: 0
       - name: Configure git
         run: |
           git config --global user.name 'GithubAction'
