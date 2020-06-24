@@ -16,7 +16,7 @@ const MAX_UPLOADS = 3; // maximum number of simultaneous uploads
 
 const ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e';
 
-const statusFilter = (uploads, s) => uploads.filter(({status}) => status == s);
+const statusFilter = (uploads, s) => uploads.filter(({status}) => status === s);
 
 export default (uploader) => {
   setupWorker(uploader, ({command, ...data}) => {

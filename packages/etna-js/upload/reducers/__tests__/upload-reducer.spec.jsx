@@ -121,7 +121,7 @@ describe('Upload Reducer', () => {
         url: 'https://www.mountolympus.org',
         file_size: 1024,
         current_byte_position: 0,
-        status: 'queued',
+        status: 'preparing',
         upload_speeds: []
       },
       'labors:lion.txt': {},

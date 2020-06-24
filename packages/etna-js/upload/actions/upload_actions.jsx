@@ -25,25 +25,46 @@ const getUpload = (state, file_name) => selectUpload(
 );
 
 export const fileSelected = ({ file, folder_name, bucket_name }) => (dispatch, getState) => {
-  let file_name = [ folder_name, file.name ].filter(_=>_).join('/');
+  // Note: webkitRelativePath is NOT on the standards track, although it is supported in Firefox and Chrome currently.
+  // There doesn't currently (June 2020) seem to be a standards way of getting these relative paths of directory uploads
+  // other than using this attribute, which seems to work well enough for our target audiences for now.
+  // TODO: Check for more standards way of doing this in the future, or if IE support is required.
+  const relativePath = file.webkitRelativePath;
+  const dest = relativePath || file.name;
+  let file_name = [ folder_name, dest ].filter(_=>_).join('/');
 
-  return postAuthorizeUpload(window.location.origin, CONFIG.project_name, bucket_name, file_name)
-    .then(
-      ({url}) => {
-        dispatch({ type: ADD_UPLOAD, project_name: CONFIG.project_name, file, file_name, url });
+  // In the case of a directory upload, we need to first ensure that a containing directory exists.
+  if (relativePath) {
+    const parentDir = relativePath.split("/").slice(0, -1).join('/');
+    if (parentDir) {
+      return performMkdir(parentDir).then(performUpload);
+    }
+  }
 
-        let upload = getUpload(getState(), file_name);
+  return performUpload();
 
-        work(dispatch, 'start', { upload });
-      }
-    )
-    .catch(
-      errorMessage(dispatch, 'warning', 'Upload failed', error => error)
-    )
-    .catch(
-      errorMessage(dispatch, 'error', 'Upload failed',
-        error => `Something bad happened: ${error}`)
-    );
+  function performMkdir(parentDir) {
+    return dispatch({ type: 'CREATE_FOLDER', bucket_name, folder_name: parentDir, parent_folder: folder_name });
+  }
+
+  function performUpload() {
+    return postAuthorizeUpload(window.location.origin, CONFIG.project_name, bucket_name, file_name)
+      .then(
+        ({url}) => {
+          dispatch({type: ADD_UPLOAD, project_name: CONFIG.project_name, file, file_name, url});
+          let upload = getUpload(getState(), file_name);
+
+          work(dispatch, 'start', {upload});
+        }
+      )
+      .catch(
+        errorMessage(dispatch, 'warning', 'Upload failed', error => error)
+      )
+      .catch(
+        errorMessage(dispatch, 'error', 'Upload failed',
+          error => `Something bad happened: ${error}`)
+      );
+  }
 }
 
 export const uploadStarted = ({ file_name }) => (dispatch, getState) => {

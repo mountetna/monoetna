@@ -16,8 +16,8 @@ const upload = (project_name, file, file_name, url) => ({
   project_name,
   file_size: file.size,
   current_byte_position: 0,
-  status: 'queued',
-  upload_speeds: []
+  status: 'preparing',
+  upload_speeds: [],
 })
 
 const uploads = (old_uploads, action) => {
@@ -51,6 +51,7 @@ const uploads = (old_uploads, action) => {
         next_blob_size,
         next_blob_hash } = upload;
       let key = fileKey(upload);
+
       return {
         ...old_uploads,
         [key]: {
@@ -61,7 +62,7 @@ const uploads = (old_uploads, action) => {
           next_blob_hash
         }
       };
-    };
+    }
     case ADD_UPLOAD: {
       // Copy the selected file data to 'uploads' object.
       let { file, file_name, url, project_name } = action;
