@@ -59,10 +59,10 @@ describe Metis::Assimilate do
     expect(Metis::File.count).to eq(2)
     expect(Metis::Folder.count).to eq(2)
 
-    upload_folder = Metis::Folder.where(folder_name='upload')
-    blueprints_folder = Metis::Folder.where(folder_name='blueprints')
-    wisdom_file = Metis::File.where(file_name='wisdom.txt')
-    helmet_file = Metis::File.where(file_name='helmet.txt')
+    upload_folder = Metis::Folder.where(folder_name: 'upload').first
+    blueprints_folder = Metis::Folder.where(folder_name: 'blueprints').first
+    wisdom_file = Metis::File.where(file_name: 'wisdom.txt').first
+    helmet_file = Metis::File.where(file_name: 'helmet.txt').first
 
     expect(wisdom_file.folder).to eq(upload_folder)
     expect(helmet_file.folder).to eq(blueprints_folder)
