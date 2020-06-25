@@ -38,6 +38,8 @@ services:
     ports:
       - 3001:3000
     command: ./docker/app/puma.sh
+    depends_on:
+      - janus_db
 
   janus_webpack:
     <<: *janus_base
