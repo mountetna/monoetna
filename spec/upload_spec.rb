@@ -44,7 +44,7 @@ describe UploadController do
       expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_path]}")
       expect(hmac_params['X-Etna-Id']).to eq('metis')
       upload = Metis::Upload.first
-      expect(upload).not_to be_nil
+      expect(upload).to be_nil  # No Uploads now until upload_start
     end
 
     it 'should re-use uploads' do

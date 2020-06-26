@@ -17,14 +17,6 @@ class UploadController < Metis::Controller
 
     raise Etna::Forbidden, 'File cannot be overwritten' if file && file.read_only?
 
-    # Create the upload
-    upload = create_upload({
-      file_path: @params[:file_path],
-      bucket: bucket,
-      project_name: @params[:project_name],
-      user: @user
-    })
-
     # Make a MAC url
     url = Metis::File.upload_url(
       @request,
@@ -52,47 +44,27 @@ class UploadController < Metis::Controller
 
   private
 
-  def create_upload(params)
-    Metis::Upload.find_or_create(
-      file_name: params[:file_path],
-      bucket: params[:bucket],
-      metis_uid: metis_uid,
-      project_name: params[:project_name]
-    ) do |f|
-      f.author = Metis::File.author(params[:user])
-      f.file_size = 0
-      f.current_byte_position = 0
-      f.next_blob_size = -1
-      f.next_blob_hash = ''
-    end
-  end
 
   # create a metadata entry in the database and also a file on
   # the file system with 0 bytes.
   def upload_start
     require_params(:file_size, :next_blob_size, :next_blob_hash)
     bucket = require_bucket
+    
+    hmac = @request.env['etna.hmac']
 
-    upload = Metis::Upload.where(
+    upload = Metis::Upload.fetch(
       project_name: @params[:project_name],
       file_name: @params[:file_path],
       bucket: bucket,
       metis_uid: metis_uid,
-    ).first
-
-    if !upload
-      require_params(:project_name, :bucket_name, :file_path)
-      hmac = @request.env['etna.hmac']
-      upload = create_upload({
-        file_path: @params[:file_path],
-        bucket: bucket,
-        project_name: @params[:project_name],
-        user: Etna::User.new(
+      user: hmac ?
+        Etna::User.new(
           email: (hmac.headers[:email] || hmac.id).to_s,
           first: (hmac.headers[:first] || hmac.id).to_s,
-          last: (hmac.headers[:last] || hmac.id).to_s)
-      })
-    end
+          last: (hmac.headers[:last] || hmac.id).to_s) :
+        @user
+    )
 
     # the upload has been started already, report the current
     # position
