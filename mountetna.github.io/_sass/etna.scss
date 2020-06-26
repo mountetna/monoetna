@@ -1,0 +1,181 @@
+body {
+  height: 100vh;
+  margin: 0;
+  font-family: $base-font-family;
+  display: flex;
+  flex-direction: column;
+}
+
+li {
+  list-style-type: none;
+}
+
+a {
+  text-decoration: none;
+  color: #2a7ae2;
+  &:visited {
+    color: #165ab3;
+  }
+  &:hover {
+    color: black;
+    text-decoration: underline;
+  }
+}
+
+.site-header {
+  background: url('/assets/images/etna.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  min-height: 70px;
+  position: relative;
+  border-bottom: #137 1px solid;
+  display: flex;
+  flex-direction: row;
+  padding-left: 300px;
+}
+
+.site-description {
+  @include relative-font-size(1.2);
+  font-weight: 200;
+  color: $grey-color;
+  display: inline-block;
+  position: absolute;
+  top: 50%;
+
+}
+.site-title {
+  font-size: 1.5em;
+  float: unset;
+  margin-top: -13px;
+  position: absolute;
+  top: 30%;
+  line-height: unset;
+}
+
+.site-header {
+}
+
+.page-box {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-columns {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  overflow: auto;
+}
+
+.page-content {
+  flex: 1;
+  padding: 0 10px;
+  overflow: auto;
+
+  h2 {
+    border-bottom: 1px solid black;
+  }
+  p {
+    margin: 2px;
+  }
+
+  pre.highlight {
+    background: #e8eefc;
+    padding: 5px;
+    margin: 5px 20px 5px 0px;
+  }
+
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #6b82b0;
+  font-weight: normal;
+  margin: 0px;
+}
+h2, h3, h4, h5, h6 {
+  margin: 15px 0 10px;
+}
+
+.nav {
+  padding: 10px 0px;
+  flex-basis: 150px;
+  background: #cdf;
+  margin: 0px;
+
+  li {
+    padding: 0px 10px;
+    &.active {
+      background: #93afe7;
+    }
+  }
+}
+
+footer {
+  border-top: 1px solid #cdf;
+  ul {
+    li {
+      padding-right: 50px;
+      display: inline;
+    }
+  }
+}
+
+// Adding 'Contents' headline to the TOC
+#markdown-toc {
+  border: 1px solid #e8e8fb;
+  padding: 0.5em;
+  background: #f2f9ff;
+  display: inline-block;
+
+  &::before {
+    content: "Contents";
+    font-weight: bold;
+  }
+
+  // Using numbers instead of bullets for listing
+  $gap: 3px;
+  counter-reset: item;
+  li {
+    display: block;
+    counter-increment: item;
+    &:before {
+      content: counter(item); 
+      padding-right: $gap;
+    }
+    ul {
+      counter-reset: subitem;
+      li {
+        counter-increment:subitem;
+        &:before {
+          content: counter(item) "." counter(subitem);
+          padding-right: $gap;
+        }
+        ul {
+          counter-reset: subsubitem;
+          li {
+            counter-increment:subsubitem;
+            &:before {
+              content: counter(item) "." counter(subitem) "." counter(subsubitem);
+              padding-right: $gap;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
+.table {
+  display: table-cell;
+  border: 1px solid #f3f3f3;
+  padding: 0;
+  li {
+    padding: 2px;
+  }
+  margin-left: -1px;
+}
+.table-header {
+  background: #e2e9ff;
+}

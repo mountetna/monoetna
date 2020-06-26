@@ -1,0 +1,14 @@
+<footer class="site-footer">
+
+    <ul>
+      {% if site.email %}
+        <li><a href="mailto:{{ site.email }}">dscolab@ucsf.edu</a></li>
+      {% endif %}
+      {% if site.github_username %}
+      <li>
+        {% include icon-github.html username=site.github_username %}
+      </li>
+      {% endif %}
+    </ul>
+
+</footer>
