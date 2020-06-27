@@ -1,19 +1,62 @@
 import {
   postRetrieveFiles, postProtectFile, postUnprotectFile, postRenameFile, deleteFile
 } from '../api/files_api';
-import { errorMessage } from './message_actions';
+import {errorMessage} from './message_actions';
+import {assertIsSome} from "etna-js/utils/asserts";
+import DownZip from 'downzip/src/downzip';
 
-const addFiles = (files) => ({ type: 'ADD_FILES', files });
-const addFolders = (folders) => ({ type: 'ADD_FOLDERS', folders });
-const removeFiles = (files) => ({ type: 'REMOVE_FILES', files });
+const downZip = new DownZip();
+const addFiles = (files) => ({type: 'ADD_FILES', files});
+const addFolders = (folders) => ({type: 'ADD_FOLDERS', folders});
+const removeFiles = (files) => ({type: 'REMOVE_FILES', files});
 
 export const retrieveFiles = ({folder_name, bucket_name}) => (dispatch) =>
   postRetrieveFiles(CONFIG.project_name, bucket_name || 'files', folder_name == undefined ? '' : folder_name)
-    .then(({files, folders})=>{
+    .then(({files, folders}) => {
       dispatch(addFiles(files));
       dispatch(addFolders(folders));
     })
-    .catch(error => dispatch({ type: 'INVALID_FOLDER' }));
+    .catch(error => dispatch({type: 'INVALID_FOLDER'}));
+
+export const listFilesRecursive = ({folder_name, bucket_name}) => (dispatch) => {
+  assertIsSome({folder_name, bucket_name});
+  const joinableFolderPath = (folder_name ? folder_name + "/" : "");
+  return postRetrieveFiles(CONFIG.project_name, bucket_name, folder_name).then(({files, folders}) =>
+    Promise.all(folders.map(({folder_name: subFolder}) => listFilesRecursive({
+      folder_name: joinableFolderPath + subFolder,
+      bucket_name
+    })(dispatch))).then(otherLists => [].concat(files, ...otherLists).sort((a, b) => a.file_path < b.file_path ? -1 : 1))
+  );
+}
+
+export const downloadFilesZip = ({ folder_name, files }) => (dispatch) => {
+  // a stable identifier to share to cache some downzip work when re-clicked.
+  const downloadId = Array.from(files.map(({ file_hash }) => file_hash).join(".")).reduce((s, c) => Math.imul(31, s) + c.charCodeAt(0) | 0, 0)
+  const folderParts = folder_name.split("/");
+  const zipName = folderParts.join("--") + ".zip";
+
+  return downZip.downzip(downloadId, zipName, files.map(({ size, download_url, file_path }) => ({
+    name: file_path,
+    downloadUrl: download_url,
+    size
+  }))).then(downloadUrl => {
+    if (!downloadUrl)  {
+      console.error('Could not complete download, your browser may not support Service Workers or the service worker could not be installed.');
+      return;
+    }
+
+    const a = document.createElement('a');
+    a.setAttribute('href', downloadUrl);
+    a.setAttribute('download', zipName);
+    document.body.append(a);
+    a.click();
+    a.remove();
+  })
+}
+
+export function prepareDownload(files) {
+  console.log({files});
+}
 
 export const removeFile = ({file, bucket_name}) => (dispatch) => {
   if (!confirm(`Are you sure you want to remove ${file.file_path}?`)) return;

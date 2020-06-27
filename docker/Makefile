@@ -40,4 +40,4 @@ ps: docker-compose.yml ## Shows ps of all projects' containers
 
 .PHONY: logs
 logs: docker-compose.yml ## Shows logs of all running projects' containers
-				@ docker-compose logs
+				@ docker-compose logs -f

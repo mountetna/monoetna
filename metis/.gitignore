@@ -27,5 +27,7 @@ spec/examples.txt
 
 spec/data/
 
+downzip-sw.js
+
 .npm-packages
 .npmrc

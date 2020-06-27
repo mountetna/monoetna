@@ -3,10 +3,6 @@ import * as api from '../upload_api';
 import { mockStore, stubUrl, cleanStubs } from '../../../spec/helpers';
 
 describe('upload api', () => {
-  afterEach(() => {
-    cleanStubs();
-  });
-
   it('postAuthorizeUpload makes a request to the authorize upload route', () => {
     global.fetch = require('node-fetch');
     global.CONFIG = {
@@ -17,7 +13,7 @@ describe('upload api', () => {
       verb: 'post',
       path: '/authorize/upload',
       request: {
-        project_name: 'labors',
+        project_name: global.CONFIG.project_name,
         file_path: 'profiles/hydra.txt',
         bucket_name: 'monsters'
       },

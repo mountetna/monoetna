@@ -29,7 +29,7 @@
 
 :development:
   :log_file: log/error.log
-  :auth_redirect: https://janus.etna-development.local
+  :auth_redirect: https://janus.development.local
   :token_name: JANUS_DEV_TOKEN
   :token_algo: RS256
   :metis_uid_name: METIS_DEV_UID
