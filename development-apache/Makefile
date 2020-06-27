@@ -24,3 +24,7 @@ down: ## Stops the background apache process
 .PHONY: logs
 logs: ## Follow logs of running containers
 				docker-compose logs -f
+
+.PHONY: build
+build: ## Rebuilds the apache docker environment
+				@ docker-compose build
