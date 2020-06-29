@@ -311,6 +311,34 @@ describe UploadController do
       expect(Metis::Upload.count).to eq(2)
       expect(Metis::Upload.last.author).to eq('athena@olympus.org|Athena Pallas')
     end
+
+    it 'should reject a request without a valid HMAC' do
+      file = create_file('athena', 'wisdom.txt', WISDOM)
+
+      # we create an upload, but the metis_uid is different from ours
+      upload = create_upload(
+        'athena', 'wisdom.txt', @metis_uid.reverse,
+        file_size: WISDOM.length,
+        current_byte_position: 10,
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
+
+      expect(Metis::Upload.count).to eq(1)
+
+      # we attempt to post to the path
+      json_post(
+        upload_path('athena', 'wisdom.txt'),
+        action: 'start',
+        file_size: WISDOM.length,
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
+
+      # we get a different upload back
+      expect(last_response.status).to eq(401)
+      expect(Metis::Upload.count).to eq(1)
+    end
   end
 
   context '#upload_blob' do
