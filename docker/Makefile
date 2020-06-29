@@ -41,3 +41,7 @@ ps: docker-compose.yml ## Shows ps of all projects' containers
 .PHONY: logs
 logs: docker-compose.yml ## Shows logs of all running projects' containers
 				@ docker-compose logs -f
+
+.PHONY: logs-recent
+logs-recent: docker-compose.yml ## For CI
+				@ docker-compose logs
