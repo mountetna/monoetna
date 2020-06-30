@@ -76,6 +76,7 @@ for dep in $($DIR/child-npm-projects); do
     done
 done
 
+cd $DIR/..
 if ! [ -z "$IS_CI" ]; then
     git add .
     git commit
