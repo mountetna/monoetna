@@ -47,7 +47,7 @@ jobs:
       # Clone the repo again configured with the GITHUB_TOKEN that won't trigger another workflow :'(
       - uses: actions/checkout@v2
         with:
-          path: ../derp
+          path: derp
 
       - name:  Push!
         run: |
