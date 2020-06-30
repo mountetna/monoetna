@@ -57,7 +57,7 @@ migrate: ## Executes dev and test migrations inside of the janus app context.
 				@ docker-compose run -e JANUS_ENV=test --rm janus_app ./bin/janus migrate
 
 .PHONY: test
-test: ## Execute (all) rspec tests inside of the janus app context.
+test: config.yml ## Execute (all) rspec tests inside of the janus app context.
 				@ docker-compose run -e JANUS_ENV=test --rm janus_app bundle exec rspec
 
 .PHONY: bash

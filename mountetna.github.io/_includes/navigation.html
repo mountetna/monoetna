@@ -1,0 +1,24 @@
+<ul class="nav">
+  {% if page.url == "/" %}
+  <li class="active">Introduction</li>
+  {% else %}
+  <li><a href="/">Introduction</a></li>
+  {% endif %}
+
+  {% if page.url == "/etna.html" %}
+  <li class="active">Framework</li>
+  {% else %}
+  <li><a href="/etna.html">Framework</a></li>
+  {% endif %}
+
+  <li class="header">Etna Applications</li>
+  {% for node in site.pages %}
+    {% if node.group == 'app' %}
+      {% if node.url == page.url %}
+        <li class="active">{{ node.title }}</li>
+      {% else %}
+        <li><a href="{{node.url}}"> {{ node.title }} </a> </li>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+</ul>

@@ -81,6 +81,5 @@ if ! [ -z "$IS_CI" ]; then
     git commit
     git status && git add .
     git commit -m "Updated package.json references to artifacts"
-    git push
 fi
 
