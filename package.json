@@ -15,11 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.12.0",
-<<<<<<< HEAD
     "etna-js": "git+https://git@github.com/mountetna/monoetna.git#1277217c35bd4a215e681dc4379325bd1ca6522e",
-=======
-    "etna-js": "git+https://git@github.com/mountetna/monoetna.git#2ded38074512e05b0defc594f59c23e83c88279c",
->>>>>>> master
     "js-cookie": "^2.2.1",
     "md5": "^2.2.1",
     "react": "^16.12.0",
