@@ -5,7 +5,7 @@ import {errorMessage} from './message_actions';
 import {assertIsSome} from "etna-js/utils/asserts";
 import DownZip from 'downzip/src/downzip';
 
-const downZip = new DownZip();
+const downZip = new DownZip({ scope: document.location.pathname });
 const addFiles = (files) => ({type: 'ADD_FILES', files});
 const addFolders = (folders) => ({type: 'ADD_FOLDERS', folders});
 const removeFiles = (files) => ({type: 'REMOVE_FILES', files});
@@ -18,7 +18,7 @@ export const retrieveFiles = ({folder_name, bucket_name}) => (dispatch) =>
     })
     .catch(error => dispatch({type: 'INVALID_FOLDER'}));
 
-export const listFilesRecursive = ({folder_name, bucket_name}) => (dispatch) => {
+export const listFilesRecursive = ({folder_name = "", bucket_name}) => (dispatch) => {
   assertIsSome({folder_name, bucket_name});
   const joinableFolderPath = (folder_name ? folder_name + "/" : "");
   return postRetrieveFiles(CONFIG.project_name, bucket_name, folder_name).then(({files, folders}) =>
@@ -33,7 +33,7 @@ export const downloadFilesZip = ({ folder_name, files }) => (dispatch) => {
   // a stable identifier to share to cache some downzip work when re-clicked.
   const downloadId = Array.from(files.map(({ file_hash }) => file_hash).join(".")).reduce((s, c) => Math.imul(31, s) + c.charCodeAt(0) | 0, 0)
   const folderParts = folder_name.split("/");
-  const zipName = folderParts.join("--") + ".zip";
+  const zipName = folderParts.join("--");
 
   return downZip.downzip(downloadId, zipName, files.map(({ size, download_url, file_path }) => ({
     name: file_path,
@@ -45,12 +45,16 @@ export const downloadFilesZip = ({ folder_name, files }) => (dispatch) => {
       return;
     }
 
-    const a = document.createElement('a');
-    a.setAttribute('href', downloadUrl);
-    a.setAttribute('download', zipName);
-    document.body.append(a);
-    a.click();
-    a.remove();
+      console.log({ downloadUrl });
+
+      const a = document.createElement('a');
+      a.setAttribute('href', downloadUrl);
+      document.body.append(a);
+      a.click();
+
+      setTimeout(function() {
+        a.remove();
+      }, 0);
   })
 }
 

@@ -89,7 +89,7 @@ module.exports = {
     }),
     new CopyPlugin([
       {
-        from: 'node_modules/downzip/dist/downzip-sw.js',
+        from: 'downzip-sw.js',
         to: 'public/js/',
       }
     ], {
