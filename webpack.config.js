@@ -10,7 +10,8 @@
 
 var path = require('path');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
-var CopyPlugin = require('copy-webpack-plugin')
+const EventHooksPlugin = require('event-hooks-webpack-plugin');
+const fs = require('fs-extra')
 
 module.exports = {
   context: path.resolve(__dirname),
@@ -87,14 +88,11 @@ module.exports = {
       filename: 'public/css/metis.bundle.css',
       allChunks: true,
     }),
-    new CopyPlugin([
-      {
-        from: 'downzip-sw.js',
-        to: 'public/js/',
+    new EventHooksPlugin({
+      'after-emit': (compilation, done) => {
+        console.log('\n\nCopying source files to compiled\n\n')
+        fs.copy('downzip-sw.js', 'public/js/downzip-sw.js', done);
       }
-    ], {
-      debug: 'debug',
-      force: true,
-    }),
+    })
   ]
 }
