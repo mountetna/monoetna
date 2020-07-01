@@ -58,3 +58,4 @@ build-iPhoneSimulator/
 .idea
 
 .docker-build-mark
+downzip-sw.js
