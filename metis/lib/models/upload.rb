@@ -68,5 +68,21 @@ class Metis
     def complete?
       file_size == ::File.size(partial_location)
     end
+
+    def self.fetch(params)
+      Metis::Upload.find_or_create(
+        file_name: params[:file_name],
+        bucket: params[:bucket],
+        metis_uid: params[:metis_uid],
+        project_name: params[:project_name]
+      ) do |f|
+        f.author = Metis::File.author(params[:user])
+        f.file_size = 0
+        f.current_byte_position = 0
+        f.next_blob_size = -1
+        f.next_blob_hash = ''
+      end
+    end
+  
   end
 end
