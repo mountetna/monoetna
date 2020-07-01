@@ -28,3 +28,7 @@ logs: ## Follow logs of running containers
 .PHONY: build
 build: ## Rebuilds the apache docker environment
 				@ docker-compose build
+
+.PHONE: test
+test: ## Stub
+				@ echo 'Success'

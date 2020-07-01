@@ -8,6 +8,9 @@ module.exports = {
   transformIgnorePatterns: [
     // "node_modules/(?!(etna-js)/)"
   ],
+  moduleNameMapper: {
+    "^service-worker-loader\!": "<rootDir>/__mocks__/service-worker-loader.js"
+  },
   testMatch: [
     "**/__tests__/**/?(*.)(spec|test).js?(x)"
   ],
