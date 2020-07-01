@@ -20,6 +20,8 @@
     "copy-webpack-plugin": "^4.6.0",
     "downzip": "git+https://git@github.com/mountetna/downzip.git",
     "etna-js": "git+https://git@github.com/mountetna/monoetna.git#1f1c9ccd6ba8d71cdfcdff5e4fbb29b9634ac445",
+    "event-hooks-webpack-plugin": "^1.0.0",
+    "fs-extra": "^9.0.1",
     "js-cookie": "^2.2.1",
     "md5": "^2.2.1",
     "react": "^16.12.0",
