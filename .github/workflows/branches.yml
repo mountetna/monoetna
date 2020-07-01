@@ -23,7 +23,7 @@ jobs:
         make up
         sleep 5
         make ps
-        make logs
+        make logs-recent
     - name: Run metis test suite
       id: metis_first_test_run
       run: |

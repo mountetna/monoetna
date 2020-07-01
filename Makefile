@@ -30,6 +30,10 @@ ps: ## Shows ps of all projects' containers
 logs: ## Shows logs of all running projects' containers
 				@ make -C docker logs
 
+.PHONY: logs-recent
+logs-recent: ## For CI
+				@ make -C docker logs-recent
+
 .PHONY: bash
 bash: ## Starts a bash shell in an app environment
 				@ echo Run this within a specific app context, ie: make -C metis bash
