@@ -377,10 +377,6 @@ describe('upload actions', () => {
 
     expect(store.getActions()).toEqual([]);
 
-    global.fetch = require('node-fetch');
-    global.CONFIG = {
-      project_name: 'labors'
-    };
     const file_name = 'hydra.txt';
 
     const upload = {

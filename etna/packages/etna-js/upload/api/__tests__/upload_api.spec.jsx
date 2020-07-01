@@ -4,11 +4,6 @@ import { mockStore, stubUrl, cleanStubs } from '../../../spec/helpers';
 
 describe('upload api', () => {
   it('postAuthorizeUpload makes a request to the authorize upload route', () => {
-    global.fetch = require('node-fetch');
-    global.CONFIG = {
-      project_name: 'labors'
-    };
-
     stubUrl({
       verb: 'post',
       path: '/authorize/upload',
@@ -34,11 +29,6 @@ describe('upload api', () => {
   });
 
   it('postUploadStart makes a request to the upload route with start action', () => {
-    global.fetch = require('node-fetch');
-    global.CONFIG = {
-      project_name: 'labors'
-    };
-
     stubUrl({
       verb: 'post',
       path: '/upload',
@@ -64,11 +54,6 @@ describe('upload api', () => {
   });
 
   it('postUploadCancel makes a request to the upload route with cancel action', () => {
-    global.fetch = require('node-fetch');
-    global.CONFIG = {
-      project_name: 'labors'
-    };
-
     stubUrl({
       verb: 'post',
       path: '/upload',
@@ -94,11 +79,6 @@ describe('upload api', () => {
   });
 
   it('postUploadBlob makes a request to the upload route with data blob', () => {
-    global.fetch = require('node-fetch');
-    global.CONFIG = {
-      project_name: 'labors'
-    };
-
     stubUrl({
       verb: 'post',
       path: '/upload',
