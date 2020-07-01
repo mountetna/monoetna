@@ -10,11 +10,12 @@
 
 var path = require('path');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var CopyPlugin = require('copy-webpack-plugin')
 
 module.exports = {
   context: path.resolve(__dirname),
   resolve: {
-    extensions: [ '.js', '.jsx' ],
+    extensions: ['.js', '.jsx'],
     alias: {
       'font-awesome': path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free')
     },
@@ -26,25 +27,19 @@ module.exports = {
   },
   output: {
     path: __dirname,
-    filename: 'public/js/[name].bundle.js'
+    filename: 'public/js/[name].bundle.js',
+    publicPath: '/js/',
   },
   module: {
     rules: [
       {
         loader: 'babel-loader',
-        include: [ path.resolve(__dirname, 'node_modules/etna-js/'), ],
+        include: [
+          path.resolve(__dirname, 'node_modules/etna-js/'),
+          path.resolve(__dirname, 'node_modules/downzip/'),
+          path.resolve(__dirname, 'lib/client/jsx')
+        ],
         test: /\.jsx?$/,
-        query: {
-          presets: ['@babel/env', '@babel/react'],
-        }
-      },
-      {
-        loader: 'babel-loader',
-        include: [ path.resolve(__dirname, 'lib/client/jsx'), ],
-        test: /\.jsx?$/,
-        query: {
-          presets: ['@babel/env', '@babel/react'],
-        }
       },
       {
         loader: 'file-loader',
@@ -55,7 +50,9 @@ module.exports = {
         options: {
           name: '[name].[ext]',
           outputPath: 'public/images/',
-          publicPath: function(url) { return url.match(/^public/) ? url.replace(/public/,'') : `/images/${url}` }
+          publicPath: function (url) {
+            return url.match(/^public/) ? url.replace(/public/, '') : `/images/${url}`
+          }
         }
       },
 
@@ -71,7 +68,9 @@ module.exports = {
         options: {
           name: '[name].[ext]',
           outputPath: 'public/fonts/',
-          publicPath: function(url) { return url.match(/^public/) ? url.replace(/public/,'') : `/fonts/${url}` }
+          publicPath: function (url) {
+            return url.match(/^public/) ? url.replace(/public/, '') : `/fonts/${url}`
+          }
         }
       },
 
@@ -87,6 +86,15 @@ module.exports = {
     new ExtractTextPlugin({ // define where to save the file
       filename: 'public/css/metis.bundle.css',
       allChunks: true,
+    }),
+    new CopyPlugin([
+      {
+        from: 'downzip-sw.js',
+        to: 'public/js/',
+      }
+    ], {
+      debug: 'debug',
+      force: true,
     }),
   ]
 }

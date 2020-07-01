@@ -21,8 +21,6 @@ if [ -z "$SKIP_RUBY_SETUP" ]; then
 fi
 
 if [ -n "$RUN_NPM_INSTALL" ]; then
-  npm --version
-  node --version
   npm install --unsafe-perm
 fi
 
