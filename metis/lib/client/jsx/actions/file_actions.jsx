@@ -35,11 +35,18 @@ export const downloadFilesZip = ({ folder_name, files }) => (dispatch) => {
   const folderParts = folder_name.split("/");
   const zipName = folderParts.join("--");
 
-  return downZip.downzip(downloadId, zipName, files.map(({ size, download_url, file_path }) => ({
+  const downzipInitialized = downZip.downzip(downloadId, zipName, files.map(({ size, download_url, file_path }) => ({
     name: file_path,
     downloadUrl: download_url,
     size
-  }))).then(downloadUrl => {
+  })));
+
+  if (!downzipInitialized) {
+    alert('Your browser does not support the ServiceWorker necessary for large file download stream.  Please upgrade or switch to a recent Chrome');
+    return Promise.reject(null);
+  }
+
+  return downzipInitialized.then(downloadUrl => {
     if (!downloadUrl)  {
       console.error('Could not complete download, your browser may not support Service Workers or the service worker could not be installed.');
       return;
