@@ -3,8 +3,8 @@ class Metis
     many_to_one :bucket
 
     def to_hash
-      [ :project_name, :file_name, :author, :current_byte_position, :next_blob_size, :next_blob_hash ].map do |s|
-        [ s, send(s) ]
+      [:project_name, :file_name, :author, :current_byte_position, :next_blob_size, :next_blob_hash].map do |s|
+        [s, send(s)]
       end.to_h
     end
 
@@ -14,11 +14,11 @@ class Metis
 
     def partial_location
       ::File.expand_path(
-        ::File.join(
-          Metis.instance.config(:data_path),
-          'uploads',
-          Digest::MD5.hexdigest("#{metis_uid}-#{id.to_s}")
-        )
+          ::File.join(
+              Metis.instance.config(:data_path),
+              'uploads',
+              Digest::MD5.hexdigest("#{metis_uid}-#{id.to_s}")
+          )
       )
     end
 
@@ -30,9 +30,9 @@ class Metis
       %x{ cat #{blob.path} >> "#{partial_location}" }
 
       self.update(
-        current_byte_position: ::File.size(partial_location),
-        next_blob_size: next_blob_size,
-        next_blob_hash: next_blob_hash
+          current_byte_position: ::File.size(partial_location),
+          next_blob_size: next_blob_size,
+          next_blob_hash: next_blob_hash
       )
     end
 
@@ -51,10 +51,10 @@ class Metis
       data_block = Metis::DataBlock.create_from(file_name, partial_location)
 
       file = Metis::File.find_or_create(
-        project_name: project_name,
-        file_name: new_file_name,
-        folder_id: folder&.id,
-        bucket: bucket
+          project_name: project_name,
+          file_name: new_file_name,
+          folder_id: folder&.id,
+          bucket: bucket
       ) do |f|
         f.author = author
         f.data_block = data_block
@@ -70,30 +70,21 @@ class Metis
     end
 
     def self.fetch(params)
-      reset = params.delete(:reset)
-
-      reset_upload_hash = {
-          author: Metis::File.author(params[:user]),
-          file_size: 0,
-          current_byte_position: 0,
-          next_blob_size: -1,
-          next_blob_hash: '',
-      }
-
       Metis::Upload.find_or_create(
-        file_name: params[:file_name],
-        bucket: params[:bucket],
-        metis_uid: params[:metis_uid],
-        project_name: params[:project_name]
+          file_name: params[:file_name],
+          bucket: params[:bucket],
+          metis_uid: params[:metis_uid],
+          project_name: params[:project_name]
       ) do |upload|
-        # In the new case, update these attributes before the first save
-        upload.set(reset_upload_hash)
-      end.tap do |upload|
-        if reset
-          upload.update(reset_upload_hash)
-        end
+        upload.set(
+            author: Metis::File.author(params[:user]),
+            file_size: 0,
+            current_byte_position: 0,
+            next_blob_size: -1,
+            next_blob_hash: '',
+        )
       end
     end
-  
+
   end
 end

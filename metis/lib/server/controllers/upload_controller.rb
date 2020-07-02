@@ -52,32 +52,36 @@ class UploadController < Metis::Controller
     bucket = require_bucket
     
     hmac = @request.env['etna.hmac']
+    user = user_by_hmac(hmac)
 
     upload = Metis::Upload.fetch(
       project_name: @params[:project_name],
       file_name: @params[:file_path],
       bucket: bucket,
       metis_uid: metis_uid,
-      reset: @params[:reset],
-      user: hmac && hmac.valid? ?
-        Etna::User.new(
-          email: (hmac.headers[:email] || hmac.id).to_s,
-          first: (hmac.headers[:first] || hmac.id).to_s,
-          last: (hmac.headers[:last] || hmac.id).to_s) :
-        @user
+      user: user,
     )
+
+    requires_reset = @params[:reset] || @params[:file_size] != upload.file_size
 
     # the upload has been started already, report the current
     # position
-    if upload.current_byte_position > 0
+    if upload.current_byte_position > 0 && !requires_reset
       return success_json(upload)
     end
 
-    upload.update(
-      file_size: @params[:file_size].to_i,
-      next_blob_size: @params[:next_blob_size],
-      next_blob_hash: @params[:next_blob_hash]
-    )
+    upload_update = {
+        file_size: @params[:file_size].to_i,
+        next_blob_size: @params[:next_blob_size],
+        next_blob_hash: @params[:next_blob_hash],
+        current_byte_position: 0,
+    }
+
+    if requires_reset
+      upload_update[:author] = Metis::File.author(user)
+    end
+
+    upload.update(upload_update)
 
     # Send upload initiated
     success_json(upload)
@@ -115,6 +119,14 @@ class UploadController < Metis::Controller
   end
 
   private
+
+  def user_by_hmac(hmac)
+    return Etna::User.new(
+        email: (hmac.headers[:email] || hmac.id).to_s,
+        first: (hmac.headers[:first] || hmac.id).to_s,
+        last: (hmac.headers[:last] || hmac.id).to_s) if hmac and hmac.valid?
+    @user
+  end
 
   def complete_upload(upload)
     folder_path, file_name = Metis::File.path_parts(upload.file_name)
