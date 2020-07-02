@@ -6,6 +6,7 @@ import SparkMD5 from 'spark-md5';
 import { postUploadStart, postUploadBlob, postUploadCancel } from '../api/upload_api';
 import { setupWorker } from './worker';
 import { errorMessage } from '../actions/message_actions';
+import { checkStatus } from "../../utils/fetch";
 
 const XTR_TIME = 2000; // blob transfer time in ms, determines blob size.
 const MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
@@ -50,7 +51,7 @@ export default (uploader) => {
       }
     },
 
-    start: ({upload}) => {
+    start: ({upload, reset = false}) => {
       let { file, file_size, file_name, url } = upload;
 
       let next_blob_size = Math.min(file_size, INITIAL_BLOB_SIZE);
@@ -64,7 +65,8 @@ export default (uploader) => {
           let request = {
             file_size,
             next_blob_size,
-            next_blob_hash
+            next_blob_hash,
+            reset
           };
 
           // Let's return this so we can chain promises.
@@ -155,7 +157,7 @@ export default (uploader) => {
     // private methods
 
     reset: () => {
-      uploader.timeouts = 0; // The number of times an upload has timed out.
+      uploader.timeouts = {}; // The number of times an upload has timed out.
       uploader.maxTimeouts = 5; // The number of attepts to upload a blob.
       uploader.uploadSpeeds = [];
     },
@@ -174,14 +176,18 @@ export default (uploader) => {
 
     remove: (upload) => uploader.dispatch({ type: 'REMOVE_UPLOAD', upload }),
 
-    timeout: () => {
-      ++uploader.timeouts;
-      if (uploader.timeouts == uploader.maxTimeouts) {
-        uploader.reset();
+    timeout: (upload) => {
+      const { url } = upload;
+      const { timeouts, maxTimeouts } = uploader;
+
+      timeouts[url] = timeouts[url] || 0;
+
+      if (++timeouts[url] >= maxTimeouts) {
         uploader.dispatch({ type: 'UPLOAD_TIMEOUT', upload });
-        return false;
+        return true;
       }
-      return true;
+
+      return false;
     },
 
     hashBlob: (blob) => {
@@ -203,27 +209,39 @@ export default (uploader) => {
       let uploadStart = Date.now();
       let { url } = upload;
 
-      return postUploadBlob(url, request)
-        .then((new_upload) => {
-          uploader.dispatch({
-            type: 'UPLOAD_SPEED',
-            upload_speed:
-              request.blob_data.size / Math.max(1, Date.now() - uploadStart),
-            upload
-          });
-          uploader.completeBlob({
-            ...upload,
-            ...new_upload
-          });
-        })
-        .catch((error) => {
-          if (error.fetch) uploader.failedBlob(upload, request);
-          else throw error;
+      return postUploadBlob(url, request, false)
+        .then(response => {
+          if (response.status === 422) {
+            // The blob has a mismatch on its hash or content.  It's possible that a concurrent upload may have occurred
+            // and corrupted the server's view of the data.  Perform a reset on the upload and try again if we have not
+            // already failed too many times.
+            if (!uploader.timeout(upload)) {
+              return uploader.start({upload, reset: true});
+            }
+            return;
+          }
+
+          return checkStatus(response).then((new_upload) => {
+            uploader.dispatch({
+              type: 'UPLOAD_SPEED',
+              upload_speed:
+                request.blob_data.size / Math.max(1, Date.now() - uploadStart),
+              upload
+            });
+
+            uploader.completeBlob({
+              ...upload,
+              ...new_upload
+            });
+          }).catch((error) => {
+              if (error.error) uploader.failedBlob(upload, request);
+              else throw error;
+            });
         });
     },
 
     failedBlob: (upload, request) => {
-      if (!uploader.timeout()) uploader.sendBlob(upload, request);
+      if (!uploader.timeout(upload)) return uploader.sendBlob(upload, request);
     },
 
     completeBlob: (upload) => {

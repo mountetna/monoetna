@@ -58,6 +58,7 @@ class UploadController < Metis::Controller
       file_name: @params[:file_path],
       bucket: bucket,
       metis_uid: metis_uid,
+      reset: @params[:reset],
       user: hmac && hmac.valid? ?
         Etna::User.new(
           email: (hmac.headers[:email] || hmac.id).to_s,

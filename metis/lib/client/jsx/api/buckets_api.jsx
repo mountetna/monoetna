@@ -1,4 +1,4 @@
-import { json_get, json_delete, json_post } from '../utils/fetch';
+import { json_get, json_delete, json_post } from 'etna-js/utils/fetch';
 
 export const postRetrieveBuckets = (project_name) =>
   json_get(`/${project_name}/list`);

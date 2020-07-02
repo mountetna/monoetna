@@ -11,15 +11,34 @@ export const stubUrl = ({
   request,
   status = 200,
   headers = {},
-  host = 'http://www.fake.com'
+  host = 'http://localhost'
 }) => {
-  nock(host)
-    [verb](path, request)
-    .reply(status, response, {
-      'Access-Control-Allow-Origin': '*',
-      'Content-type': 'application/json',
-      ...headers
-    });
+  let nocked;
+
+  return new Promise((resolve, reject) => {
+    nocked = nock(host)
+      [verb](path, request)
+      .reply(status, () => {
+        console.log('stubUrl: Received request matching', { verb, path, request });
+        resolve(nocked);
+        return response;
+      }, {
+        'Access-Control-Allow-Origin': '*',
+        'Content-type': 'application/json',
+        ...headers
+      });
+  });
 };
 
 export const cleanStubs = () => nock.cleanAll();
+
+global.expect.extend({
+  toResolve: async (promise) => {
+    const resolved = await promise.then(() => true, () => false);
+    if (resolved) {
+      return { pass: true, message: 'Expected promise to resolve, and it did' };
+    }
+
+    return { pass: false, message: 'Expected promise to resolve, but it rejected' };
+  }
+})

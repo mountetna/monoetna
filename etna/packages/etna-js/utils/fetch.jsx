@@ -1,5 +1,5 @@
-export const checkStatus = (response) => {
-  let content = isJSON(response) ? response.json() : response.body();
+export const checkStatus = async (response) => {
+  let content = isJSON(response) ? response.json() : response.text();
   if (response.status >= 200 && response.status < 300) {
     return content;
   } else {
@@ -43,7 +43,7 @@ export const json_get = json_fetch('GET');
 export const json_delete = json_fetch('DELETE');
 export const json_post = json_fetch('POST');
 
-export const form_post = (path, params) => {
+export const form_post = (path, params, performCheckStatus = true) => {
   let form = new FormData();
 
   Object.keys(params).forEach((key) => form.append(key, params[key]));
@@ -52,5 +52,5 @@ export const form_post = (path, params) => {
     method: 'POST',
     credentials: 'same-origin',
     body: form
-  }).then(checkStatus);
+  }).then(performCheckStatus ? checkStatus : (v) => v);
 };

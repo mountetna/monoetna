@@ -70,17 +70,28 @@ class Metis
     end
 
     def self.fetch(params)
+      reset = params.delete(:reset)
+
+      reset_upload_hash = {
+          author: Metis::File.author(params[:user]),
+          file_size: 0,
+          current_byte_position: 0,
+          next_blob_size: -1,
+          next_blob_hash: '',
+      }
+
       Metis::Upload.find_or_create(
         file_name: params[:file_name],
         bucket: params[:bucket],
         metis_uid: params[:metis_uid],
         project_name: params[:project_name]
-      ) do |f|
-        f.author = Metis::File.author(params[:user])
-        f.file_size = 0
-        f.current_byte_position = 0
-        f.next_blob_size = -1
-        f.next_blob_hash = ''
+      ) do |upload|
+        # In the new case, update these attributes before the first save
+        upload.set(reset_upload_hash)
+      end.tap do |upload|
+        if reset
+          upload.update(reset_upload_hash)
+        end
       end
     end
   
