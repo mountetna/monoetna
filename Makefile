@@ -1,6 +1,5 @@
 export COMPOSE_PROJECT_NAME=monoetna
 projects := $(shell ls ./*/Makefile | grep -v docker | xargs -n 1 dirname | xargs -n 1 basename)
-compose_ymls     := $(shell ls ./*/docker-compose.yml)
 
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \
@@ -29,6 +28,10 @@ ps: ## Shows ps of all projects' containers
 .PHONY: logs
 logs: ## Shows logs of all running projects' containers
 				@ make -C docker logs
+
+.PHONY: logs-recent
+logs-recent: ## For CI
+				@ make -C docker logs-recent
 
 .PHONY: bash
 bash: ## Starts a bash shell in an app environment

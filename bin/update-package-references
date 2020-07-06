@@ -19,7 +19,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 cd $DIR/..
 
-lastCommited=$(git log --pretty=oneline --abbrev-commit | grep "Updated package.json references to artifacts" | head -n 1 | cut -d' ' -f1)
+lastCommitted=$(git log --pretty=oneline --abbrev-commit | grep "Updated package.json references to artifacts" | head -n 1 | cut -d' ' -f1)
 lastCommitted=${lastCommitted:-HEAD~1}
 
 if  ! (git diff --name-only $lastCommitted | grep etna-js/); then
@@ -78,9 +78,8 @@ done
 
 cd $DIR/..
 if ! [ -z "$IS_CI" ]; then
+    git status
     git add .
-    git commit
-    git status && git add .
     git commit -m "Updated package.json references to artifacts"
 fi
 
