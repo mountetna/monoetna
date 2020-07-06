@@ -150,13 +150,40 @@ describe FolderController do
     it 'creating an existing folder is idempotent' do
       token_header(:editor)
       blueprints_folder = create_folder('athena', 'blueprints')
-      post_create_folder('blueprints')
 
       expect do
-        expect(last_response.status).to eq(200)
+        post_create_folder('blueprints')
       end.to_not change { Metis::Folder.count }
 
+      expect(last_response.status).to eq(200)
       expect(json_body[:folders].length).to eq(1)
+    end
+
+    describe 'for two concurrent transactions' do
+      before(:each) do
+        # Sets up a 'race condition' in which, just after reading other folders, but before creating a missing
+        # folder, another folder is created by a sepeaate connection (and not visible on the original transaction)
+        # that violates the unique constraint.
+        expect(Metis::Folder).to receive(:from_path).and_wrap_original do |m, *args|
+          m.call(*args).tap do
+            connection_two = Sequel.connect(Metis.instance.config(:db))
+            expect(Metis::Folder).to receive(:db).and_return(connection_two)
+            create_folder('athena', 'blueprints')
+            RSpec::Mocks.space.proxy_for(Metis::Folder).reset
+          end
+        end
+      end
+
+      it 'creating an existing folder is idempotent' do
+        token_header(:editor)
+
+        expect do
+          post_create_folder('blueprints')
+        end.to change { Metis::Folder.count }.by(1)
+
+        expect(last_response.status).to eq(200)
+        expect(json_body[:folders].length).to eq(1)
+      end
     end
 
     it 'refuses to create over existing file' do
