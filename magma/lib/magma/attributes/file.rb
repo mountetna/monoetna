@@ -1,49 +1,89 @@
 class Magma
   class FileAttribute < Attribute
-    def initialize(name, model, opts)
-      file_type = self.is_a?(Magma::ImageAttribute) ? :image : :file
-      Magma.instance.storage.setup_uploader(model, name, file_type) 
-      super
-    end
 
     def database_type
-      String
+      :json
     end
 
-    def update(record, new_value)
-      super
-      record.modified!(@name)
+    def revision_to_loader(record_name, new_value)
+      case new_value[:path]
+      when '::blank'
+        return [ name, {
+          location: '::blank',
+          filename: '::blank',
+          original_filename: '::blank'
+        }]
+      when '::temp'
+        return nil
+      when %r!^metis://!
+        return [ name, {
+          location: new_value[:path],
+          filename: filename(record_name, new_value[:path]),
+          original_filename: new_value[:original_filename]
+        }]
+      else
+        return [ name, {
+          location: nil,
+          filename: nil,
+          original_filename: nil
+        }]
+      end
+    end
 
-      return record[@name]
+    def revision_to_payload(record_name, new_value, user)
+      case new_value[:path]
+      when '::temp'
+        return [ name, { path: temporary_filepath(user) } ]
+      when '::blank'
+        return [ name, { path: '::blank' } ]
+      when %r!^metis://!
+        _, value = revision_to_loader(record_name, new_value)
+        return [ name, query_to_payload(value) ]
+      when nil
+        return [ name, nil ]
+      end
+    end
+
+    def query_to_payload(data)
+      return nil unless data
+
+      path = data[:filename]
+      return nil unless path
+
+      case path
+      when '::blank'
+        return { path: path }
+      when '::temp'
+        return { path: path }
+      else
+        return {
+          url: Magma.instance.storage.download_url(@magma_model.project_name, path),
+          path: path,
+          original_filename: data[:original_filename]
+        }
+      end
+    end
+
+    def query_to_tsv(value)
+      file = query_to_payload(value)
+      file ? file[:url] : nil
+    end
+
+    def entry(value, loader)
+      [ name, value.to_json ]
     end
 
     private
 
-    def filename(record, path)
-      ext = path ? ::File.extname(path) : 'dat'
-      "#{@model.class.name.snake_case}-#{@attribute_name}-#{record.identifier}.#{ext}"
+    def filename(record_name, path)
+      ext = path ? ::File.extname(path) : ''
+      ext = '.dat' if ext.empty?
+      "#{@magma_model.model_name}-#{record_name}-#{name}#{ext}"
     end
 
-    public
-
-    def json_for record
-      path = record[@name]
-      return nil unless path
-
-      path.is_a?(Array) ?
-        {
-          upload_url: Magma.instance.storage.upload_url(@model.project_name, *path)
-        }
-        :
-        {
-          url: Magma.instance.storage.download_url(@model.project_name, path),
-          path: File.basename(path)
-        }
-    end
-
-    def txt_for(record)
-      file = json_for(record)
-      file ? file[:url] : nil
+    def temporary_filepath(user)
+      Magma.instance.storage.upload_url(
+        @magma_model.project_name, "tmp/#{Magma.instance.sign.uid}", user)
     end
   end
 end
