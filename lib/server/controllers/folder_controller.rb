@@ -25,11 +25,7 @@ class FolderController < Metis::Controller
     bucket = require_bucket
     raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:folder_path])
 
-    folders = []
-    Metis.instance.db.transaction do
-      folders = mkdir_p(bucket, @params[:folder_path], @params[:project_name], Metis::File.author(@user))
-    end
-
+    folders = mkdir_p(bucket, @params[:folder_path], @params[:project_name], Metis::File.author(@user))
     success_json(folders: [ folders.first.to_hash ])
   end
 
@@ -116,13 +112,23 @@ class FolderController < Metis::Controller
         raise Etna::BadRequest, "Cannot overwrite existing file"
       end
 
-      parents << Metis::Folder.create(
-        project_name: project_name,
-        folder_name: folder_name,
-        author: author,
-        bucket: bucket,
-        folder: parents.last
+      begin
+        parents << Metis::Folder.create(
+          folder_name: folder_name,
+          bucket_id: bucket&.id,
+          folder_id: parents.last&.id,
+          project_name: project_name,
+          author: author,
       )
+      rescue  Sequel::UniqueConstraintViolation => e
+        ## Can occur if two simult requests get to the create line after both reading no existing_folders.
+        ## Because of the uniq index constraint, this will occur for one of the requests, while the other should succeed.
+        ## In that case, fall back to querying the other transaction's entry.
+        ## Note: find_or_create does not fix this, it still does not handle the unique constraint and simply
+        ## queries or creates, which is not good enough for READ COMMITTED isolation where a read might not see a yet
+        ## committed create.
+        parents << Metis::Folder.find(bucket_id: bucket&.id, folder_id: parents.last&.id, folder_name: folder_name)
+      end
     end
   end
 end
