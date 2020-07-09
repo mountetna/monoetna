@@ -1,8 +1,8 @@
 export class Debouncer {
-  constructor({eager= true, windowMs = 100, maxGating = null} = {}) {
+  constructor({eager= false, windowMs = 100, maxGating = null} = {}) {
     this.windowMs = windowMs;
     this.lastTimeout = null;
-    this.eager = true;
+    this.eager = eager;
     this.maxGating = maxGating;
     this.reset();
   }

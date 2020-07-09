@@ -18,6 +18,7 @@ export function createWorker(dispatch, script) {
 }
 
 export function terminateWorker(worker) {
+  console.log({ worker });
   worker.removeEventListener('message', worker.messageHandler);
   worker.terminate();
   workerMap.delete(worker);

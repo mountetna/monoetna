@@ -4,6 +4,8 @@ import nock from 'nock';
 import { stringifyRequest } from 'nock/lib/common';
 const raf = (global.requestAnimationFrame = (cb) => setTimeout(cb, 0));
 
+jest.mock('webworkify-webpack');
+
 const Enzyme = require('enzyme');
 const EnzymeAdapter = require('enzyme-adapter-react-16');
 // Setup enzyme's react adapter

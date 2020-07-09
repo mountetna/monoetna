@@ -1,20 +1,23 @@
 import {stubUrl, cleanStubs, joinedDeferredPromises} from '../../../spec/helpers';
-import {SHOW_DIALOG} from '../../actions/message_actions';
 import setupUploadWorker, {
-  AddUploadCommand, CancelUploadCommand, ErrorEvent,
-  hashBlob,
+  AddUploadCommand,
+  CancelUploadCommand,
   PauseUploadCommand,
-  UpdateEvent,
+  UploadErrorEvent,
+  hashBlob,
   Upload,
-  ZERO_HASH
+  ZERO_HASH, UPLOAD_COMPLETE, UPLOAD_ERROR
 } from '../uploader';
 import {fileKey} from "../../../utils/file";
 
+let activeUploaders = [];
 class TestUploadWorker {
   constructor(opts) {
     const postMessage = this._postMessage = jest.fn();
     const addEventListener = jest.fn();
+
     this.uploader = setupUploadWorker({postMessage, addEventListener}, opts);
+    activeUploaders.push(this.uploader);
 
     expect(addEventListener).toHaveBeenCalled();
     expect(addEventListener.mock.calls[0][0]).toEqual('message');
@@ -54,7 +57,7 @@ describe('Uploader', () => {
     cleanStubs();
   });
 
-  const uploadFor = (file) => new Upload({
+  const uploadFor = (file) => Upload({
     file,
     file_name: 'test/' + file.name,
     project_name: 'test',
@@ -149,6 +152,15 @@ describe('Uploader', () => {
     }));
   }
 
+  afterEach(async () => {
+    // Allow all active uploaders to drain their async work away.
+    // TODO: Comprehensive self registerable teardown and scoping would be nice.
+    for(let uploader of activeUploaders) {
+      await uploader.schedule.allPending().catch(e => console.warn(e));
+    }
+    activeUploaders.length = 0;
+  })
+
   describe('error handling', () => {
     describe('exceptions during blob', () => {
       describe('retryable errors', () => {
@@ -176,20 +188,20 @@ describe('Uploader', () => {
             ],
           );
 
-          worker.dispatch(new AddUploadCommand(aUpload));
+          worker.dispatch(AddUploadCommand(aUpload));
 
           await Promise.all(expectedRequests);
           expect(await worker.uploader.schedule.allPending().catch(e => e.toString())).toEqual('Error: Last')
 
 
-          let [prev, next] = worker.popEvent(({type}) => type === 'error');
-          expect([next]).toContainEqual(new ErrorEvent('error', 'Upload of file test/a.txt', 'Last', {
+          let [prev, next] = worker.popEvent(({type}) => type === UPLOAD_ERROR);
+          expect([next]).toContainEqual(UploadErrorEvent('error', 'Upload of file test/a.txt', 'Last', {
             ...aUpload,
             next_blob_size: 10,
             status: 'paused'
           }));
 
-          [prev, next] = worker.popEvent(({type}) => type === 'error');
+          [prev, next] = worker.popEvent(({type}) => type === UPLOAD_ERROR);
           expect(next).toBeUndefined();
         })
       })
@@ -204,7 +216,7 @@ describe('Uploader', () => {
           [stubUploadStart(aUpload, false, {error: 'Error message'}, 500),],
         );
 
-        worker.dispatch(new AddUploadCommand(aUpload));
+        worker.dispatch(AddUploadCommand(aUpload));
 
         await worker.uploader.schedule.allPending().catch(e => e);
         await Promise.all(expectedRequests);
@@ -212,13 +224,13 @@ describe('Uploader', () => {
         let [prev, next] = worker.popEvent(({uploads} = {}) => uploads[fileKey(aUpload)].status === 'paused');
         expect(next.uploads[fileKey(aUpload)].status).toEqual('paused');
 
-        [prev, next] = worker.popEvent(({type}) => type === 'error');
-        expect([next]).toContainEqual(new ErrorEvent('error', 'Upload of file test/a.txt', 'Error message', {
+        [prev, next] = worker.popEvent(({type}) => type === UPLOAD_ERROR);
+        expect([next]).toContainEqual(UploadErrorEvent('error', 'Upload of file test/a.txt', 'Error message', {
           ...aUpload,
           status: 'paused'
         }));
 
-        [prev, next] = worker.popEvent(({type}) => type === 'error');
+        [prev, next] = worker.popEvent(({type}) => type === UPLOAD_ERROR);
         expect(next).toBeUndefined();
       })
     })
@@ -240,8 +252,8 @@ describe('Uploader', () => {
           ],
         );
 
-        worker.dispatch(new AddUploadCommand(bUpload));
-        worker.dispatch(new AddUploadCommand(aUpload));
+        worker.dispatch(AddUploadCommand(bUpload));
+        worker.dispatch(AddUploadCommand(aUpload));
 
         await Promise.all(expectedRequests);
         // Empty all events
@@ -259,7 +271,7 @@ describe('Uploader', () => {
           ]
         );
 
-        worker.dispatch(new CancelUploadCommand(bUpload));
+        worker.dispatch(CancelUploadCommand(bUpload));
 
         await worker.uploader.schedule.allPending();
         await Promise.all(expectedRequests);
@@ -269,9 +281,9 @@ describe('Uploader', () => {
 
 
         // The removed upload is not 'completed'.
-        [_, next] = worker.popEvent(({type}) => type === 'complete');
+        [_, next] = worker.popEvent(({type}) => type === UPLOAD_COMPLETE);
         expect(fileKey(next.upload)).not.toEqual(fileKey(bUpload));
-        [_, next] = worker.popEvent(({type}) => type === 'complete');
+        [_, next] = worker.popEvent(({type}) => type === UPLOAD_COMPLETE);
         expect(next).toBeUndefined();
       });
     });
@@ -290,12 +302,12 @@ describe('Uploader', () => {
           ],
         );
 
-        worker.dispatch(new AddUploadCommand(bUpload));
-        worker.dispatch(new AddUploadCommand(aUpload));
+        worker.dispatch(AddUploadCommand(bUpload));
+        worker.dispatch(AddUploadCommand(aUpload));
 
         await Promise.all(expectedRequests);
 
-        worker.dispatch(new PauseUploadCommand(bUpload));
+        worker.dispatch(PauseUploadCommand(bUpload));
 
         let [_, next] = worker.popEvent(({uploads = {}}) => uploads[fileKey(bUpload)].status === 'paused');
         expect([next.uploads[fileKey(aUpload)].status === 'queued']);
@@ -313,16 +325,16 @@ describe('Uploader', () => {
           ],
         );
 
-        worker.dispatch(new AddUploadCommand(bUpload));
+        worker.dispatch(AddUploadCommand(bUpload));
 
         await Promise.all(expectedRequests);
 
-        [_, next] = worker.popEvent(({type}) => type === 'complete');
+        [_, next] = worker.popEvent(({type}) => type === UPLOAD_COMPLETE);
         expect([fileKey(next.upload)]).toContainEqual(fileKey(bUpload));
       })
     });
 
-    it('allows up to maxUploads, and starts new uploads as others finish', async () => {
+    it('allows up to maxUploads, and starts Uploads as others finish', async () => {
       let worker = new TestUploadWorker(opts);
 
       let emptyUpload = uploadFor(emptyFile);
@@ -350,10 +362,10 @@ describe('Uploader', () => {
         ],
       );
 
-      worker.dispatch(new AddUploadCommand(emptyUpload));
-      worker.dispatch(new AddUploadCommand(aUpload));
-      worker.dispatch(new AddUploadCommand(bUpload));
-      worker.dispatch(new AddUploadCommand(shortUpload));
+      worker.dispatch(AddUploadCommand(emptyUpload));
+      worker.dispatch(AddUploadCommand(aUpload));
+      worker.dispatch(AddUploadCommand(bUpload));
+      worker.dispatch(AddUploadCommand(shortUpload));
 
       await Promise.all(expectedRequests);
       await worker.uploader.schedule.allPending();
@@ -365,11 +377,11 @@ describe('Uploader', () => {
       expect([next.uploads[fileKey(bUpload)].status]).toContainEqual('queued');
       expect([next.uploads[fileKey(shortUpload)].status]).toContainEqual('queued');
 
-      [prev, next] = worker.popEvent(({type}) => type === 'complete');
+      [prev, next] = worker.popEvent(({type}) => type === UPLOAD_COMPLETE);
       expect([prev.uploads[fileKey(emptyUpload)].status]).toContainEqual('complete');
       expect([fileKey(next.upload)]).toContainEqual(fileKey(emptyUpload));
 
-      [prev, next] = worker.popEvent(({type}) => type === 'complete');
+      [prev, next] = worker.popEvent(({type}) => type === UPLOAD_COMPLETE);
       expect([prev.uploads[fileKey(aUpload)].status]).toContainEqual('complete');
 
       // Now that two have completed, the others should be active and running
@@ -377,7 +389,7 @@ describe('Uploader', () => {
       expect([prev.uploads[fileKey(shortUpload)].status]).toContainEqual('active');
       expect([fileKey(next.upload)]).toContainEqual(fileKey(aUpload));
 
-      [prev, next] = worker.popEvent(({type}) => type === 'complete');
+      [prev, next] = worker.popEvent(({type}) => type === UPLOAD_COMPLETE);
       expect([prev.uploads[fileKey(bUpload)].status]).toContainEqual('complete');
       expect([fileKey(next.upload)]).toContainEqual(fileKey(bUpload));
 

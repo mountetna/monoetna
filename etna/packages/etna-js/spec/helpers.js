@@ -2,7 +2,7 @@ import nock from 'nock';
 import thunk from 'redux-thunk';
 import configureMockStore from 'redux-mock-store';
 
-export const mockStore = configureMockStore([thunk]);
+export const mockStore = (state, middleware = []) => configureMockStore([thunk, ...middleware])(state);
 
 export const stubUrl = ({
   verb = 'get',

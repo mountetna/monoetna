@@ -4,11 +4,11 @@ import {postUploadStart, postUploadBlob, postUploadCancel} from '../api/upload_a
 import {setupWorker} from './worker';
 import {checkStatus} from "../../utils/fetch";
 
-import {ADD_UPLOAD, CANCEL_UPLOAD, PAUSE_UPLOAD} from "../actions/upload_actions";
 import {fileKey} from "../../utils/file";
 import {Cancellable} from "../../utils/cancellable";
 import {Debouncer} from "../../utils/debouncer";
 import {Schedule} from "../../utils/schedule";
+import {assertIsSome} from "../../utils/asserts";
 
 const XTR_TIME = 2000; // blob transfer time in ms, determines blob size.
 const MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
@@ -16,6 +16,16 @@ const MAX_BLOB_SIZE = Math.pow(2, 22);
 const MAX_UPLOADS = 3; // maximum number of simultaneous uploads
 const UPLOAD_SPEED_WINDOW = 30;
 export const ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e';
+
+// Commands in
+export const ADD_UPLOAD = 'ADD_UPLOAD';
+export const CANCEL_UPLOAD = 'CANCEL_UPLOAD';
+export const PAUSE_UPLOAD = 'PAUSE_UPLOAD';
+
+// Events out
+export const UPDATE_UPLOADS = 'UPDATE_UPLOADS';
+export const UPLOAD_COMPLETE = 'UPLOAD_COMPLETE';
+export const UPLOAD_ERROR = 'UPLOAD_ERROR';
 
 // Main entrypoint for the worker.  Creates uploader and connects it to the postMessage and message event handlers to
 // communicate with host webpage.
@@ -27,89 +37,84 @@ export default (worker, opts = {}) => {
 };
 
 // Event posted by the uploader when any upload state changes, includes bundle of all upload objects.
-export class UpdateEvent {
-  constructor(uploads) {
-    this.type = 'update';
-    this.uploads = uploads;
-  }
+export function UpdateUploadsEvent(uploads) {
+  return {
+    type: UPDATE_UPLOADS,
+    uploads: uploads,
+  };
 }
 
 // Event posted by the uploader when any upload successfully completes.
-export class UploadCompleteEvent {
-  constructor(upload) {
-    this.type = 'complete';
-    this.upload = upload;
+export function UploadCompleteEvent(upload) {
+  return {
+    type: UPLOAD_COMPLETE,
+    upload,
   }
 }
 
 // Event posted by the uploader for any user facing failures during upload.
-export class ErrorEvent {
-  constructor(message_type, title, message, upload = undefined) {
-    this.type = 'error';
-    this.message = message;
-    this.title = title;
-    this.message_type = message_type;
-    this.upload = upload;
-  }
+export function UploadErrorEvent(message_type, title, message, upload = undefined) {
+  return {
+    type: UPLOAD_ERROR,
+    message: message,
+    title: title,
+    message_type: message_type,
+    upload: upload,
+  };
 }
 
 // Command to send to the uploader that adds a new / restarts an existing upload
 // by the given fileKey of that upload object.
-export class AddUploadCommand {
-  constructor(upload) {
-    this.command = ADD_UPLOAD;
-    this.upload = upload;
-  }
+export function AddUploadCommand(upload) {
+  return {
+    command: ADD_UPLOAD,
+    upload: upload,
+  };
 }
 
 // Command to send to the uploader that cancels and removes an existing upload
 // by the given fileKey of that upload object.  Safe if the upload does not exist.
-export class CancelUploadCommand {
-  constructor(upload) {
-    this.command = CANCEL_UPLOAD;
-    this.upload = upload;
-  }
+export function CancelUploadCommand(upload) {
+  return {
+    command: CANCEL_UPLOAD,
+    upload: upload,
+  };
 }
 
 // Command to send the uploader that pauses an existing upload by the given fileKey of
 // that upload object.  Has no effect if the given upload did not already exist.
-export class PauseUploadCommand {
-  constructor(upload) {
-    this.command = PAUSE_UPLOAD;
-    this.upload = upload;
-  }
+export function PauseUploadCommand(upload) {
+  return {
+    command: PAUSE_UPLOAD,
+    upload: upload,
+  };
 }
 
-// Dumb 'POJO' for upload model that provides
-//   1.  Defaults for upload state fields
-//   2.  Documentation for expected upload fields
-// Do not assume that upload objects passed around will be instances of this
-// class specifically; logic should not be added onto this class.
-//  It is here more as a convenience for the sake of creating objects with
-// the correct fields through the constructor itself.
-export class Upload {
-  constructor({
-    status = 'preparing',
-    file_name = '',
-    project_name = '',
+export function Upload({
+    file_name,
+    project_name,
+    url,
+    file,
     next_blob_size = 0,
     upload_speeds = [],
+    status = 'preparing',
     current_byte_position = 0,
     next_blob_hash = ZERO_HASH,
-    file = new File([], file_name),
-    url = '',
     file_size = file.size,
   }) {
-    this.status = status;
-    this.file_name = file_name;
-    this.project_name = project_name;
-    this.next_blob_size = next_blob_size;
-    this.next_blob_hash = next_blob_hash;
-    this.upload_speeds = upload_speeds;
-    this.current_byte_position = current_byte_position;
-    this.file = file;
-    this.url = url;
-    this.file_size = file_size;
+    assertIsSome({ file_name, project_name, url, file });
+
+  return {
+    status: status,
+    file_name: file_name,
+    project_name: project_name,
+    next_blob_size: next_blob_size,
+    next_blob_hash: next_blob_hash,
+    upload_speeds: upload_speeds,
+    current_byte_position: current_byte_position,
+    file: file,
+    url: url,
+    file_size: file_size,
   }
 }
 
@@ -186,13 +191,13 @@ export class Uploader {
     this.eventSource.subscribe(({command, upload}) => {
       switch (command) {
         case ADD_UPLOAD:
-          this.addUpload(new AddUploadCommand(upload));
+          this.addUpload(AddUploadCommand(upload));
           break;
         case CANCEL_UPLOAD:
-          this.cancelUpload(new CancelUploadCommand(upload));
+          this.cancelUpload(CancelUploadCommand(upload));
           break;
         case PAUSE_UPLOAD:
-          this.pauseUpload(new PauseUploadCommand(upload));
+          this.pauseUpload(PauseUploadCommand(upload));
           break;
         default:
           console.error('Unexpected uploader command', command);
@@ -243,7 +248,7 @@ export class Uploader {
     }
 
     this.schedule.addWork(
-      this.debouncer.ready(() => this.eventSink.dispatch(new UpdateEvent(this.uploads)))
+      this.debouncer.ready(() => this.eventSink.dispatch(UpdateUploadsEvent(this.uploads)))
     );
   }
 
@@ -266,9 +271,9 @@ export class Uploader {
         ({cancelled, result: upload}) => {
           if (cancelled) return {cancelled}
           upload = this.updateUpload({...upload, status: 'complete'});
-          this.eventSink.dispatch(new UploadCompleteEvent(upload));
+          this.eventSink.dispatch(UploadCompleteEvent(upload));
         },
-        err => this.reportErrorAndPause(uploadKey, `Upload of file ${file_name}`, err)));
+        err => this.reportErrorAndPause(uploadKey, `Upload of file ${file_name}`, err))).catch(e => console.warn(e));
   }
 
   * cancellableUpload(uploadKey, reset) {
@@ -386,7 +391,7 @@ export class Uploader {
     reportErrorAndThrow({title});
 
     function reportErrorAndThrow({title, message = 'An unknown error occurred, try again later', e = err}) {
-      self.eventSink.dispatch(new ErrorEvent('error', title, message, upload));
+      self.eventSink.dispatch(UploadErrorEvent('error', title, message, upload));
       throw e;
     }
   }
