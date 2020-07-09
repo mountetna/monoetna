@@ -15,30 +15,56 @@ export const stubUrl = ({
 }) => {
   let nocked;
 
+  console.log('Stubbing for', {request, path, verb, response}, '\nactive')
+
   return new Promise((resolve, reject) => {
-    nocked = nock(host)
-      [verb](path, request)
-      .reply(status, () => {
-        console.log('stubUrl: Received request matching', { verb, path, request });
-        resolve(nocked);
-        return response;
-      }, {
-        'Access-Control-Allow-Origin': '*',
-        'Content-type': 'application/json',
-        ...headers
-      });
+    const base = nock(host)[verb](path, request);
+    nocked = response instanceof Function
+      ? base.reply(function (uri, body, cb) {
+        response(uri, body, function () {
+          console.log('responding to', { uri, body }, '\nusing custom response cb')
+          nock.removeInterceptor(base);
+          resolve();
+          return cb.apply(this, arguments);
+        })
+      })
+      : base.reply(function () {
+        console.log('responding to', { path, request }, '\nreplying with', { status, response })
+        nock.removeInterceptor(base);
+        resolve();
+        return [status, response, {
+          'Access-Control-Allow-Origin': '*',
+          'Content-type': 'application/json',
+          ...headers
+        }]
+      })
   });
 };
 
+export async function joinedDeferredPromises(...promiseChains) {
+  const result = [];
+  for (let promiseChain of promiseChains) {
+    const deferredChain = await Promise.all(promiseChain);
+    result.push(deferredChain.reduce((p, n) => p.then(n), Promise.resolve()));
+  }
+  return result;
+}
+
 export const cleanStubs = () => nock.cleanAll();
+
+export function delay(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 global.expect.extend({
   toResolve: async (promise) => {
     const resolved = await promise.then(() => true, () => false);
     if (resolved) {
-      return { pass: true, message: 'Expected promise to resolve, and it did' };
+      return {pass: true, message: 'Expected promise to resolve, and it did'};
     }
 
-    return { pass: false, message: 'Expected promise to resolve, but it rejected' };
+    return {pass: false, message: 'Expected promise to resolve, but it rejected'};
   }
 })

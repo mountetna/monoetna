@@ -1,4 +1,4 @@
-export const checkStatus = async (response) => {
+export const checkStatus = (response) => {
   let content = isJSON(response) ? response.json() : response.text();
   if (response.status >= 200 && response.status < 300) {
     return content;

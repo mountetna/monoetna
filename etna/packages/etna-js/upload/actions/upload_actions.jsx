@@ -89,12 +89,6 @@ export const startUploadActions = ({
   work(dispatch, "start", { upload });
 };
 
-export const uploadStarted = ({ file_name }) => (dispatch, getState) => {
-  let upload = getUpload(getState(), file_name);
-
-  if (upload.status == 'active') work(dispatch, 'continue', { upload });
-}
-
 export const uploadBlobCompleted = ({ file_name }) => (dispatch, getState) => {
   let upload = getUpload(getState(), file_name);
 

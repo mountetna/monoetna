@@ -1,266 +1,474 @@
-/*
- * This class will upload a file as blobs to the Metis upload endpoint.
- */
-
+import 'regenerator-runtime/runtime';
 import SparkMD5 from 'spark-md5';
-import { postUploadStart, postUploadBlob, postUploadCancel } from '../api/upload_api';
-import { setupWorker } from './worker';
-import { errorMessage } from '../actions/message_actions';
-import { checkStatus } from "../../utils/fetch";
+import {postUploadStart, postUploadBlob, postUploadCancel} from '../api/upload_api';
+import {setupWorker} from './worker';
+import {checkStatus} from "../../utils/fetch";
+
+import {ADD_UPLOAD, CANCEL_UPLOAD, PAUSE_UPLOAD} from "../actions/upload_actions";
+import {fileKey} from "../../utils/file";
+import {Cancellable} from "../../utils/cancellable";
+import {Debouncer} from "../../utils/debouncer";
+import {Schedule} from "../../utils/schedule";
 
 const XTR_TIME = 2000; // blob transfer time in ms, determines blob size.
 const MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
 const MAX_BLOB_SIZE = Math.pow(2, 22);
-const INITIAL_BLOB_SIZE = Math.pow(2, 10);
-
 const MAX_UPLOADS = 3; // maximum number of simultaneous uploads
+const UPLOAD_SPEED_WINDOW = 30;
+export const ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e';
 
-const ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e';
+// Main entrypoint for the worker.  Creates uploader and connects it to the postMessage and message event handlers to
+// communicate with host webpage.
+export default (worker, opts = {}) => {
+  const {dispatch, subscribe} = setupWorker(worker);
+  const uploader = new Uploader({dispatch}, {subscribe}, opts);
+  uploader.start();
+  return uploader;
+};
 
-const statusFilter = (uploads, s) => uploads.filter(({status}) => status === s);
+// Event posted by the uploader when any upload state changes, includes bundle of all upload objects.
+export class UpdateEvent {
+  constructor(uploads) {
+    this.type = 'update';
+    this.uploads = uploads;
+  }
+}
 
-export default (uploader) => {
-  setupWorker(uploader, ({command, ...data}) => {
-    if ([ 'start', 'unqueue', 'continue', 'cancel' ].includes(command))
-      uploader[command](data);
-    else
-      console.log('Uploader error', `Invalid command ${command}`);
+// Event posted by the uploader when any upload successfully completes.
+export class UploadCompleteEvent {
+  constructor(upload) {
+    this.type = 'complete';
+    this.upload = upload;
+  }
+}
+
+// Event posted by the uploader for any user facing failures during upload.
+export class ErrorEvent {
+  constructor(message_type, title, message, upload = undefined) {
+    this.type = 'error';
+    this.message = message;
+    this.title = title;
+    this.message_type = message_type;
+    this.upload = upload;
+  }
+}
+
+// Command to send to the uploader that adds a new / restarts an existing upload
+// by the given fileKey of that upload object.
+export class AddUploadCommand {
+  constructor(upload) {
+    this.command = ADD_UPLOAD;
+    this.upload = upload;
+  }
+}
+
+// Command to send to the uploader that cancels and removes an existing upload
+// by the given fileKey of that upload object.  Safe if the upload does not exist.
+export class CancelUploadCommand {
+  constructor(upload) {
+    this.command = CANCEL_UPLOAD;
+    this.upload = upload;
+  }
+}
+
+// Command to send the uploader that pauses an existing upload by the given fileKey of
+// that upload object.  Has no effect if the given upload did not already exist.
+export class PauseUploadCommand {
+  constructor(upload) {
+    this.command = PAUSE_UPLOAD;
+    this.upload = upload;
+  }
+}
+
+// Dumb 'POJO' for upload model that provides
+//   1.  Defaults for upload state fields
+//   2.  Documentation for expected upload fields
+// Do not assume that upload objects passed around will be instances of this
+// class specifically; logic should not be added onto this class.
+//  It is here more as a convenience for the sake of creating objects with
+// the correct fields through the constructor itself.
+export class Upload {
+  constructor({
+    status = 'preparing',
+    file_name = '',
+    project_name = '',
+    next_blob_size = 0,
+    upload_speeds = [],
+    current_byte_position = 0,
+    next_blob_hash = ZERO_HASH,
+    file = new File([], file_name),
+    url = '',
+    file_size = file.size,
+  }) {
+    this.status = status;
+    this.file_name = file_name;
+    this.project_name = project_name;
+    this.next_blob_size = next_blob_size;
+    this.next_blob_hash = next_blob_hash;
+    this.upload_speeds = upload_speeds;
+    this.current_byte_position = current_byte_position;
+    this.file = file;
+    this.url = url;
+    this.file_size = file_size;
+  }
+}
+
+// Just convenience for the fact that 'unpausing' is really identical to adding a paused upload.
+export const UnpauseUploadCommand = AddUploadCommand;
+
+// Exported for test purposes
+export function hashBlob(blob) {
+  return new Promise((resolve, reject) => {
+    let fileReader = new FileReader();
+
+    fileReader.onload = (event) => {
+      let hash = SparkMD5.ArrayBuffer.hash(fileReader.result);
+
+      resolve(hash);
+    }
+
+    fileReader.readAsArrayBuffer(blob);
   });
+}
 
-  Object.assign(uploader, {
-    // public commands
-    unqueue: ({uploads}) => {
-      let active_uploads = statusFilter(uploads, 'active');
-      let queued_uploads = statusFilter(uploads, 'queued');
-
-      if (active_uploads.length > MAX_UPLOADS) {
-        // queue some of the active ones
-        let overactive_uploads = active_uploads.slice(MAX_UPLOADS);
-        overactive_uploads.forEach(uploader.queue);
-      } else if (
-        active_uploads.length < MAX_UPLOADS &&
-        queued_uploads.length > 0
-      ) {
-        // activate some of the queued ones
-        let unqueued_uploads = queued_uploads.slice(
-          0,
-          MAX_UPLOADS - active_uploads.length
-        );
-        unqueued_uploads.forEach(uploader.active);
-        unqueued_uploads.forEach(upload => uploader.continue({upload}));
+// Main Service Class for managing uploads.  Uploader maintains its own uploads state
+// and performs side effects to push the data to the server.  The main interface is through
+// the eventSink and eventSource objects passed to the constructor.
+export class Uploader {
+  constructor(
+    // receives events from the uploader.  See Event classes above.
+    eventSink = {
+      dispatch(data) {
       }
     },
-
-    start: ({upload, reset = false}) => {
-      let { file, file_size, file_name, url } = upload;
-
-      let next_blob_size = Math.min(file_size, INITIAL_BLOB_SIZE);
-
-      // Hash the next blob
-      let nextBlob = file.slice(0, next_blob_size);
-
-      return uploader
-        .hashBlob(nextBlob)
-        .then((next_blob_hash) => {
-          let request = {
-            file_size,
-            next_blob_size,
-            next_blob_hash,
-            reset
-          };
-
-          // Let's return this so we can chain promises.
-          // That also makes testing easier.
-          return postUploadStart(url, request);
-        })
-        .then((upload) => {
-          // this will set the upload status correctly in the upload reducer
-          uploader.queue(upload);
-
-          // now we simply broadcast an event for our file:
-          uploader.dispatch({ type: 'UNQUEUE_UPLOADS' });
-        })
-        .catch(uploader.warning('Upload failed', (error) => error));
-    },
-
-    continue: ({upload}) => {
-      let { file, current_byte_position, next_blob_size, upload_speeds } = upload;
-
-      if (current_byte_position >= file.size) {
-        // probably because of a 0 byte file
-        let request = {
-          action: 'blob',
-          blob_data: file.slice(current_byte_position,current_byte_position),
-          next_blob_size: 0,
-          next_blob_hash: ZERO_HASH,
-          current_byte_position
-        };
-        return uploader.sendBlob(upload, request);
+    eventSource = {
+      // main input interface.  After Uploader.start is called, it passes a handler to this method that is
+      // expected to provide that handler future commands.  See Command classes above.
+      subscribe(f) {
       }
+    },
+    {
+      maxUploads = MAX_UPLOADS,
+      minBlobSize = MIN_BLOB_SIZE,
+      maxBlobSize = MAX_BLOB_SIZE,
+      maxUploadFailures = 5,
+      backoffFactor = 1000,
+      debouncerOptions = {},
+    } = {},
+  ) {
+    this.numUploadFailuresByKey = {};
+    this.maxUploadFailures = maxUploadFailures;
+    this.backOffFactor = backoffFactor;
 
-      // after this, we know we have more bytes to send
+    this.eventSource = eventSource;
+    this.eventSink = eventSink;
 
-      // report the average upload speed, if any
+    // Maps uploadKeys -> upload object state
+    this.uploads = {};
+    this.maxUploads = maxUploads;
+    this.minBlobSize = minBlobSize;
+    this.maxBlobSize = maxBlobSize;
+
+    // Maps uploadKeys -> cancellables
+    this.running = {};
+
+    // Keeps track of pending synchronize work, useful for tests to await all work being complete.
+    this.schedule = new Schedule();
+
+    // Batches updates together into groups that do not occur more than once every 100ms.
+    this.debouncer = new Debouncer({maxGating: 100, windowMs: 100, eager: true, ...debouncerOptions});
+  }
+
+  start() {
+    // Idempotent start.
+    this.start = () => null;
+
+    this.eventSource.subscribe(({command, upload}) => {
+      switch (command) {
+        case ADD_UPLOAD:
+          this.addUpload(new AddUploadCommand(upload));
+          break;
+        case CANCEL_UPLOAD:
+          this.cancelUpload(new CancelUploadCommand(upload));
+          break;
+        case PAUSE_UPLOAD:
+          this.pauseUpload(new PauseUploadCommand(upload));
+          break;
+        default:
+          console.error('Unexpected uploader command', command);
+      }
+    });
+  }
+
+  cancelRunningUpload(key) {
+    let running = this.running[key];
+    delete this.running[key];
+    running.cancel();
+  }
+
+  restartUploadCancellable(key) {
+    if (key in this.running) this.cancelRunningUpload(key);
+    return this.running[key] = new Cancellable();
+  }
+
+  // Called anytime the uploads state is changed.
+  // Cancels any uploads that are no longer in the active state,
+  // then attempts to find an upload to start if there is less than maxUploads in active or paused state.
+  // Recursive -- when initiating a new upload, this method will re-enter via updateUpload, thus
+  // each turn about will activate one upload at a time until no new ones need activation.
+  synchronize() {
+    // Cancel any running that are no longer in uploads or are paused
+    for (let key in this.running) {
+      // Cancel any non active uploads that are still running.  This immediately stops
+      // those running to end via the cancellable.
+      if (!(key in this.uploads) || this.uploads[key].status !== 'active') {
+        this.cancelRunningUpload(key);
+      }
+    }
+
+    // Count the number of uploads that are either active or paused; they count against the maxUploads count
+    const runningOrPaused = Object.values(this.uploads).filter(({status}) => status === 'active' || status === 'paused');
+    const availableStartCount = this.maxUploads - runningOrPaused.length;
+
+    // Start any queued uploads up to the max
+    for (let key in this.uploads) {
+      // Do not continue if there are not more available start slots.
+      if (availableStartCount <= 0) break;
+      const upload = this.uploads[key];
+      if (upload.status === 'queued') {
+        // This will trigger an update and re-enter, so we immediately stop
+        this.startUpload(key, 'queued');
+        return;
+      }
+    }
+
+    this.schedule.addWork(
+      this.debouncer.ready(() => this.eventSink.dispatch(new UpdateEvent(this.uploads)))
+    );
+  }
+
+  startUpload(uploadKey, expectedStatus, reset = false) {
+    let {file_name, status} = this.uploads[uploadKey];
+    // Invariant control, to ensure that when we start uploads, we are not assuming the incorrect state of the
+    // upload for that key.
+    // ie: synchronize expects new startUploads to be in queued, and sendNextBlob retries assume the upload is still
+    // 'active'.  If these assumptions were wrong, it would signal a bug that we'd want our tests to catch, so
+    // we must throw an exception.
+    if (status !== expectedStatus) {
+      throw new Error(`Cannot restart download of ${file_name}, was ${status} and not ${expectedStatus}`);
+    }
+
+    this.updateUpload({...this.uploads[uploadKey], status: 'active'});
+
+    const cancellable = this.restartUploadCancellable(uploadKey);
+    return this.schedule.addWork(cancellable.run(this.cancellableUpload(uploadKey, reset))
+      .then(
+        ({cancelled, result: upload}) => {
+          if (cancelled) return {cancelled}
+          upload = this.updateUpload({...upload, status: 'complete'});
+          this.eventSink.dispatch(new UploadCompleteEvent(upload));
+        },
+        err => this.reportErrorAndPause(uploadKey, `Upload of file ${file_name}`, err)));
+  }
+
+  * cancellableUpload(uploadKey, reset) {
+    let {file, file_size, url} = this.uploads[uploadKey];
+    let next_blob_size = Math.min(file_size, this.minBlobSize);
+    let nextBlob = file.slice(0, next_blob_size);
+
+    const next_blob_hash = yield hashBlob(nextBlob);
+
+    let request = {
+      file_size,
+      next_blob_size,
+      next_blob_hash,
+      reset
+    };
+
+    let {current_byte_position} = this.updateUpload(yield postUploadStart(url, request));
+    let unsentZeroByteFile = current_byte_position === 0;
+
+    // Continue uploading while either there is more to send, or nothing has been sent (case of 0 byte file)
+    while (current_byte_position < file.size || unsentZeroByteFile) {
+      ({current_byte_position} = yield* this.sendNextBlob(uploadKey));
+      unsentZeroByteFile = false;
+    }
+
+    return this.uploads[uploadKey];
+  }
+
+  * sendNextBlob(uploadKey) {
+    const upload = this.uploads[uploadKey];
+    const {url, upload_speeds} = upload;
+
+    const request = yield this.prepareNextBlobParams(upload);
+    const uploadStart = Date.now();
+    const {response, err} = yield postUploadBlob(url, request, false).then(response => ({response}), err => ({err}));
+    const serverUpload = yield* this.checkForRetry(uploadKey, response, err);
+    const uploadSpeed = request.blob_data.size / Math.max(1, Date.now() - uploadStart);
+
+    return this.updateUpload({
+      ...serverUpload,
+      upload_speeds: [...upload_speeds, uploadSpeed].slice(-UPLOAD_SPEED_WINDOW)
+    });
+  }
+
+  * checkForRetry(uploadKey, response = null, err = null) {
+    let reset = false;
+    let retry = false;
+
+    // Network errors won't produce a response
+    if (response == null) {
+      retry = true;
+    } else if (response.status === 422) {
+      // The blob has a mismatch on its hash or content.  It's possible that a concurrent upload may have occurred
+      // and corrupted the server's view of the data.
+      reset = true;
+      retry = true;
+    } else if (response.status >= 500) {
+      retry = true;
+    }
+
+    // Retries will not be attempted, however, if the number of retries has already succeeded the max.
+    if (retry && ++this.numUploadFailuresByKey[uploadKey] >= this.maxUploadFailures) {
+      retry = false;
+    }
+
+    if (!retry) {
+      // Handle the case that the deserialization of the response fails during body transfer or
+      // due to non json response.
+      if (response) {
+        const bodyPromise = checkStatus(response);
+        const {body, err} = yield bodyPromise.then(body => ({body}), err => ({err}));
+        if (err) {
+          return yield* this.checkForRetry(uploadKey, null, err);
+        }
+
+        return body;
+      }
+      else throw err;
+    }
+
+    let retryCount = this.numUploadFailuresByKey[uploadKey];
+    console.warn('Retrying request for', uploadKey, 'failed with', response ? response.status : err)
+
+    const timeout = Math.pow(2, retryCount) * this.backOffFactor;
+
+    yield new Promise((resolve, reject) => {
+      // 2000ms
+      // 4000ms
+      // 8000ms
+      // 16000ms
+      setTimeout(() => {
+        // this will cancel the current cancellable and start a new processing of the upload.
+        this.startUpload(uploadKey, 'active', reset);
+        resolve();
+      }, timeout);
+    });
+  }
+
+  reportErrorAndPause(uploadKey, title, err) {
+    let upload = this.uploads[uploadKey];
+    upload = this.pauseUpload({upload});
+    return this.reportError(title, err, upload);
+  }
+
+  reportError(title, err, upload = undefined) {
+    const self = this;
+
+    if (err instanceof Promise) {
+      return err.then(
+        ({error}) => reportErrorAndThrow({title, message: error, e: new Error(error)}),
+        e => reportErrorAndThrow({title, e}),
+      );
+    }
+
+    reportErrorAndThrow({title});
+
+    function reportErrorAndThrow({title, message = 'An unknown error occurred, try again later', e = err}) {
+      self.eventSink.dispatch(new ErrorEvent('error', title, message, upload));
+      throw e;
+    }
+  }
+
+  prepareNextBlobParams(upload) {
+    const {file, current_byte_position, next_blob_size, upload_speeds} = upload;
+    let newBlobHash = Promise.resolve(ZERO_HASH);
+    let newBlobSize = 0;
+
+    // we have already sent up to current_byte_position
+    // we will send up to next_byte_position
+    let next_byte_position = current_byte_position + next_blob_size;
+    let blob_data = file.slice(current_byte_position, next_byte_position);
+
+    // If there is still more file to send, estimate the new blob segment's details.
+    if (current_byte_position < file.size) {
       let avgSpeed = !upload_speeds.length
-        ? MIN_BLOB_SIZE / XTR_TIME
+        ? this.minBlobSize / XTR_TIME
         : upload_speeds.reduce((sum, t) => sum + t, 0) / upload_speeds.length;
-
-      // we have already sent up to current_byte_position
-      // we will send up to next_byte_position
-      let next_byte_position = current_byte_position + next_blob_size;
 
       // we must also send the hash of the next blob,
       // so we must compute its size, between next_byte_position (the end
       // of this blob) and final_byte_position (the end of the next blob)
-      let new_blob_size = Math.min(
+      newBlobSize = Math.min(
         Math.max(
           // we want at least the MIN_BLOB_SIZE
-          MIN_BLOB_SIZE,
+          this.minBlobSize,
           // but optimistically, based on the average speed
           Math.floor(XTR_TIME * avgSpeed)
         ),
         // but we'll stop at most at here
-        MAX_BLOB_SIZE,
+        this.maxBlobSize,
         // in fact we should stop when we hit the end of the file
         file.size - next_byte_position
       );
 
-      let final_byte_position = next_byte_position + new_blob_size;
-
-      // Get the two blobs
-      let blob_data = file.slice(current_byte_position, next_byte_position);
-      let nextBlob = file.slice(next_byte_position, final_byte_position);
-
-      // Hash the next blob.
-      return uploader.hashBlob(nextBlob).then((new_blob_hash) => {
-        // Finally, send the request
-        let request = {
-          action: 'blob',
-          blob_data,
-          next_blob_size: new_blob_size,
-          next_blob_hash: new_blob_hash,
-          current_byte_position
-        };
-
-        return uploader.sendBlob(upload, request);
-      });
-    },
-
-    cancel: ({upload}) => {
-      let { status, url, project_name, file_name } = upload;
-
-      return postUploadCancel(url, { project_name, file_name })
-        .then(() => uploader.dispatch({ type: 'UPLOAD_FILE_CANCELED', upload }))
-        .catch(uploader.error('Upload cancel failed', (error) => error));
-    },
-
-    // private methods
-
-    reset: () => {
-      uploader.timeouts = {}; // The number of times an upload has timed out.
-      uploader.maxTimeouts = 5; // The number of attepts to upload a blob.
-      uploader.uploadSpeeds = [];
-    },
-
-    status: (upload, status) =>
-      uploader.dispatch({ type: 'UPLOAD_STATUS', upload, status }),
-    message: (title, message_handler, message_type) =>
-      errorMessage(uploader.dispatch, message_type, title, message_handler),
-    warning: (title, message) => uploader.message(title, message, 'warning'),
-    error: (title, message) => uploader.message(title, message, 'error'),
-    notice: (title, message) => uploader.message(title, message, 'notice'),
-    pause: (upload) => uploader.status(upload, 'paused'),
-    active: (upload) => uploader.status(upload, 'active'),
-    complete: (upload) => uploader.status(upload, 'complete'),
-    queue: (upload) => uploader.status(upload, 'queued'),
-
-    remove: (upload) => uploader.dispatch({ type: 'REMOVE_UPLOAD', upload }),
-
-    timeout: (upload) => {
-      const { url } = upload;
-      const { timeouts, maxTimeouts } = uploader;
-
-      timeouts[url] = timeouts[url] || 0;
-
-      if (++timeouts[url] >= maxTimeouts) {
-        uploader.dispatch({ type: 'UPLOAD_TIMEOUT', upload });
-        return true;
-      }
-
-      return false;
-    },
-
-    hashBlob: (blob) => {
-      return new Promise((resolve, reject) => {
-        let fileReader = new FileReader();
-
-        fileReader.onload = (event) => {
-          let hash = SparkMD5.ArrayBuffer.hash(fileReader.result);
-
-          resolve(hash);
-        }
-
-        fileReader.readAsArrayBuffer(blob);
-      });
-    },
-
-    // make a new blob based on the current position in the file
-    sendBlob: (upload, request) => {
-      let uploadStart = Date.now();
-      let { url } = upload;
-
-      return postUploadBlob(url, request, false)
-        .then(response => {
-          if (response.status === 422) {
-            // The blob has a mismatch on its hash or content.  It's possible that a concurrent upload may have occurred
-            // and corrupted the server's view of the data.  Perform a reset on the upload and try again if we have not
-            // already failed too many times.
-            if (!uploader.timeout(upload)) {
-              return uploader.start({upload, reset: true});
-            }
-            return;
-          }
-
-          return checkStatus(response).then((new_upload) => {
-            uploader.dispatch({
-              type: 'UPLOAD_SPEED',
-              upload_speed:
-                request.blob_data.size / Math.max(1, Date.now() - uploadStart),
-              upload
-            });
-
-            uploader.completeBlob({
-              ...upload,
-              ...new_upload
-            });
-          }).catch((error) => {
-              if (error.error) uploader.failedBlob(upload, request);
-              else throw error;
-            });
-        });
-    },
-
-    failedBlob: (upload, request) => {
-      if (!uploader.timeout(upload)) return uploader.sendBlob(upload, request);
-    },
-
-    completeBlob: (upload) => {
-      let { current_byte_position, file_size } = upload;
-      if (current_byte_position < file_size) {
-        // update the status
-        uploader.status(upload);
-
-        // broadcast that we have finished uploading this blob
-        uploader.dispatch({ type: 'UPLOAD_BLOB_COMPLETED', file_name: upload.file_name });
-      } else {
-        // update the status
-        uploader.complete(upload);
-
-        // broadcast that we have finished uploading the file
-        uploader.dispatch({ type: 'UPLOAD_FILE_COMPLETED', upload });
-      }
+      let final_byte_position = next_byte_position + newBlobSize;
+      let newBlob = file.slice(next_byte_position, final_byte_position);
+      newBlobHash = hashBlob(newBlob);
     }
-  });
 
-  uploader.reset();
-};
+    return newBlobHash.then(newBlobHash => {
+      return {
+        action: 'blob',
+        blob_data,
+        next_blob_size: newBlobSize,
+        next_blob_hash: newBlobHash,
+        current_byte_position
+      };
+    });
+  }
+
+  updateUpload(upload) {
+    const key = fileKey(upload);
+    this.uploads = {...this.uploads, [key]: {...(this.uploads[key] || {}), ...upload}};
+    this.synchronize();
+
+    return this.uploads[key];
+  }
+
+  removeUpload(upload) {
+    const key = fileKey(upload);
+    this.uploads = {...this.uploads};
+    delete this.uploads[key];
+    this.synchronize();
+  }
+
+  addUpload({upload}) {
+    const key = fileKey(upload);
+    this.numUploadFailuresByKey[key] = 0;
+    return this.updateUpload({...upload, status: 'queued'});
+  }
+
+  cancelUpload({upload}) {
+    const {url, project_name, file_name} = upload;
+    this.removeUpload(upload);
+
+    return postUploadCancel(url, {project_name, file_name})
+      .catch(err => this.reportError('Upload cancel failed', err));
+  }
+
+  pauseUpload({upload}) {
+    return this.updateUpload({...upload, status: 'paused'});
+  }
+}
