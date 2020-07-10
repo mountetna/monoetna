@@ -69,7 +69,7 @@ export const uploadComplete = ({ upload }) => (dispatch) => {
 }
 
 export const cancelUpload = ({ upload }) => (dispatch) => {
-  if (!confirm('Are you sure you want to remove this upload?')) return;
+  if (upload.status !== 'complete' && !confirm('Are you sure you want to remove this upload?')) return;
   dispatchUploadWork(dispatch, CancelUploadCommand(upload))
 }
 

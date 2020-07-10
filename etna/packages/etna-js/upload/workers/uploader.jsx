@@ -469,8 +469,10 @@ export class Uploader {
     const {url, project_name, file_name} = upload;
     this.removeUpload(upload);
 
-    return postUploadCancel(url, {project_name, file_name})
-      .catch(err => this.reportError('Upload cancel failed', err));
+    if (upload.status !== 'complete') {
+      postUploadCancel(url, {project_name, file_name})
+        .catch(err => this.reportError('Upload cancel failed', err));
+    }
   }
 
   pauseUpload({upload}) {
