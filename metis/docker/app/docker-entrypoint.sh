@@ -24,4 +24,8 @@ if [ -n "$RUN_NPM_INSTALL" ]; then
   npm install --unsafe-perm
 fi
 
+if [ -n "$TEST" ]; then
+  npm link ../etna/packages/etna-js
+fi
+
 exec "$@"

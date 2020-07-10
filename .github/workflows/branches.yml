@@ -15,12 +15,6 @@ jobs:
     - name: Build docker images
       run: |
         make build
-    - name: Start up services
-      run: |
-        make up
-        sleep 15
-        make ps
-        make logs-recent
     - name: Setup links
       run: |
         make setup-links
