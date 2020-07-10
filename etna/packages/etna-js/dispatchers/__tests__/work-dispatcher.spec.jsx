@@ -64,4 +64,38 @@ describe('workDispatcher', () => {
 
     WORKERS['upload'] = realCreateWorker;
   });
+
+  beforeEach(() => {
+    WORKERS['fail-me'] = () => { throw new Error('Oh no!'); }
+  })
+
+  afterEach(() => {
+    delete WORKERS['fail-me'];
+  })
+
+  it('dispatches error message when fails to instantiate worker', () => {
+    const mockNext = jest.fn();
+
+    const otherArgs = {
+      random: 'text'
+    };
+
+    const action = {
+      type: WORK,
+      work_type: 'fail-me',
+      command: otherArgs
+    };
+
+    expect(store.getActions()).toEqual([]);
+
+    workDispatcher()(store)(mockNext)(action);
+
+    expect(store.getActions()).toEqual([
+      {
+        type: WORK_FAILED,
+        work_type: 'fail-me',
+        command: otherArgs
+      }
+    ]);
+  });
 });
