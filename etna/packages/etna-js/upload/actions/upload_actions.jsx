@@ -60,7 +60,7 @@ export const fileSelected = ({ file, folder_name, bucket_name }) => (dispatch, g
 }
 
 export const unpauseUpload = ({ upload }) => (dispatch) => {
-  dispatchUploadWork(dispatch, new UnpauseUploadCommand(upload));
+  dispatchUploadWork(dispatch, UnpauseUploadCommand(upload));
 }
 
 export const uploadComplete = ({ upload }) => (dispatch) => {
