@@ -15,15 +15,15 @@ jobs:
     - name: Build docker images
       run: |
         make build
-    - name: Setup links
-      run: |
-        make setup-links
     - name: Start up services
       run: |
         make up
-        sleep 5
+        sleep 15
         make ps
         make logs-recent
+    - name: Setup links
+      run: |
+        make setup-links
     - name: Run metis test suite
       id: metis_first_test_run
       run: |
