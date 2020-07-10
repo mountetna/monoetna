@@ -32,6 +32,7 @@ x-metis_base: &metis_base
     COVERAGE: 'true'
     DATABASE_HOST: 'db'
     METIS_ENV: 'development'
+    MASTER_BUILD: "${MASTER_BUILD}"
 
 services:
   metis_app:

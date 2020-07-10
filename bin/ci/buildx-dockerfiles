@@ -1,0 +1,38 @@
+#! /usr/bin/env bash
+set -e
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+cd $DIR/../..
+
+shopt -s globstar
+
+for Dockerfile in **/Dockerfile.development; do
+  project_dir=$(dirname $Dockerfile)
+  while ! [[ $(dirname $project_dir) == "." ]]; do
+    project_dir=$(dirname $project_dir)
+  done
+
+  echo Building $Dockerfile in $project_dir...
+  docker buildx build \
+    --cache-from "type=local,src=/tmp/.buildx-cache" \
+    --cache-to "type=local,dest=/tmp/.buildx-cache" \
+    --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x \
+    --output "type=image,push=false" \
+    --tag mountetna/$project_dir:development \
+    --file $Dockerfile $project_dir
+done
