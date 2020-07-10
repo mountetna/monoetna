@@ -31,7 +31,6 @@ for Dockerfile in **/Dockerfile.development; do
   docker buildx build \
     --cache-from "type=local,src=/tmp/.buildx-cache" \
     --cache-to "type=local,dest=/tmp/.buildx-cache" \
-    --platform linux/386,linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64,linux/ppc64le,linux/s390x \
     --output "type=image,push=false" \
     --tag mountetna/$project_dir:development \
     --file $Dockerfile $project_dir
