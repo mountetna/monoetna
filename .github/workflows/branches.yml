@@ -31,9 +31,13 @@ jobs:
     - name: Ready volumes and containers
       run: |
         cd docker && make create
+    - run: cd docker && docker-compose -p monoetna push || true
+      if: steps.cache-docker.outputs.cache-hit != 'true'
+      name: Push images to cache location
     - name: Load volumes from cache
       run: |
-        [[ -e /tmp/packages-volumes.tar ]] && docker run --rm -v /tmp:/backup/ `docker volume list -q | egrep -v '^.{64}$' | egrep 'node-modules|gems' | awk '{print "-v " $1 ":/mnt/" $1}'` alpine tar -xf /backup/packages-volumes.tar -C /mnt
+        docker run --rm -v /tmp:/backup/ `docker volume list -q | egrep -v '^.{64}$' | egrep 'node-modules|gems' | awk '{print "-v " $1 ":/mnt/" $1}'` alpine tar -xf /backup/packages-volumes.tar -C /mnt
+      if: steps.cache-packages-volumes.outputs.cache-hit == 'true'
     - name: Run metis test suite
       id: metis_first_test_run
       run: |
@@ -46,8 +50,7 @@ jobs:
       id: etna_first_test_run
       run: |
         make -C etna test
-    - run: cd docker && docker-compose -p monoetna push || true
-      if: steps.cache-docker.outputs.cache-hit != 'true'
     - run: |
         docker run --rm `docker volume list -q | egrep -v '^.{64}$' | egrep 'node-modules|gems' | awk '{print "-v " $1 ":/mnt/" $1}'` alpine tar -C /mnt -cj . > /tmp/packages-volumes.tar
+      name: Push packages volumes to cache location
       if: steps.cache-packages-volumes.outputs.cache-hit != 'true'
