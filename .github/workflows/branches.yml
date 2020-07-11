@@ -16,7 +16,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: tmp/docker-registry
-        key: docker-registry-{{ hashFiles('**/docker/**') }}-{{ hashFiles('**/Dockerfile.development') }}-{{ hashFiles('**/docker-compose.yml') }}
+        key: etna-dr-{{ hashFiles('**/docker/**') }}-{{ hashFiles('**/Dockerfile.development') }}-{{ hashFiles('**/docker-compose.yml') }}
     - name: Ready images from cache
       run: |
         docker run -d -p 5000:5000 --restart=always --name registry -v tmp/docker-registry:/var/lib/registry registry:2 && npx wait-on tcp:5000
@@ -25,14 +25,17 @@ jobs:
     - name: Run metis test suite
       id: metis_first_test_run
       run: |
+        make -C metis build
         make -C metis test
     - name: Run janus test suite
       id: janus_first_test_run
       run: |
+        make -C janus build
         make -C janus test
     - name: Run etna test suite
       id: etna_first_test_run
       run: |
+        make -C etna build
         make -C etna test
     - run: cd docker && docker-compose -p monoetna push || true
       if: steps.cache-docker.outputs.cache-hit != 'true'
