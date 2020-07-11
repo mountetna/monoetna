@@ -19,7 +19,7 @@ jobs:
         key: etna-dr-{{ hashFiles('**/docker/**') }}-{{ hashFiles('**/Dockerfile.development') }}-{{ hashFiles('**/docker-compose.yml') }}
     - name: Ready images from cache
       run: |
-        docker run -d -p 5000:5000 --restart=always --name registry -v tmp/docker-registry:/var/lib/registry registry:2 && npx wait-on tcp:5000
+        docker run -d -p 5000:5000 --restart=always --name registry -v $PWD/tmp/docker-registry:/var/lib/registry registry:2 && npx wait-on tcp:5000
         REPOSITORY=localhost:5000\\/mountetna make tag
         cd docker && docker-compose -p monoetna pull || true
     - name: Run metis test suite
