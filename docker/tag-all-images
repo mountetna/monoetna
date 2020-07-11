@@ -27,6 +27,6 @@ for compose_file in **/docker-compose.yml; do
         [[ $original_image =~ [^/]*/ ]] && continue # not a local image
 
         echo Tagging $original_image into $1/$original_image
-        sed -i $compose_file -e "s/${original_image}/${1}\/${original_image}/g"
+        sed -i $compose_file -e "s/image: ${original_image}/image: ${1}\/${original_image}/g"
     done
 done
