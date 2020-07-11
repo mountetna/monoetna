@@ -48,4 +48,4 @@ logs-recent: docker-compose.yml ## For CI
 
 .PHONY: tag
 tag: docker-compose.yml ## For CI
-				@ ./tag-all-images $$REPOSITORY
+				./tag-all-images $$REPOSITORY
