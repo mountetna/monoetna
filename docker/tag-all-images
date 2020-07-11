@@ -1,0 +1,26 @@
+#! /usr/bin/env bash
+set -e
+set -o pipefail
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+for original_image in $(cat $DIR/docker-compose.yml | grep image | sed -e 's/.*image: \(.*\)/\1/g' | uniq); do
+    [[ $original_image =~ [^/]*/ ]] && continue # not a local image
+
+    echo Tagging $original_image into $1/$original_image
+    sed -i $DIR/docker-compose.yml -e "s/${original_image}/${1}\/${original_image}/g"
+done

@@ -19,6 +19,7 @@ x-metis_base: &metis_base
   build:
     context: .
     dockerfile: docker/app/Dockerfile.development
+  image: metis_base
   volumes:
     - .:/app:cached
     - app-gems:/app/vendor/bundle:rw

@@ -56,3 +56,7 @@ test: ## Runs all projects' tests
 .PHONY: setup-links
 setup-links: ## Sets up local development links for npm (and one day ruby) packages to use local copies of files.
 				@ for project in $(projects); do make -C $$project setup-links; done
+
+.PHONE: tag
+tag:
+				@ make -C docker tag
