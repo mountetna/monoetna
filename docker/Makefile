@@ -49,3 +49,7 @@ logs-recent: docker-compose.yml ## For CI
 .PHONY: tag
 tag: docker-compose.yml ## For CI
 				./tag-all-images $$REPOSITORY
+
+.PHONY: create
+create: docker-compose.yml ## For CI
+				@ docker-compose up --no-start
