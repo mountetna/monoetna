@@ -16,7 +16,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: tmp/docker-registry
-        key: etna-dr-{{ hashFiles('**/docker/**') }}-{{ hashFiles('**/Dockerfile.development') }}-{{ hashFiles('**/docker-compose.yml') }}
+        key: dr-etna-{{ hashFiles('**/docker/**') }}-{{ hashFiles('**/Dockerfile.development') }}-{{ hashFiles('**/docker-compose.yml') }}
     - name: Ready images from cache
       run: |
         docker run -d -p 5000:5000 --restart=always --name registry -v $PWD/tmp/docker-registry:/var/lib/registry registry:2 && npx wait-on tcp:5000
