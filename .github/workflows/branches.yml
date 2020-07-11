@@ -25,17 +25,14 @@ jobs:
     - name: Run metis test suite
       id: metis_first_test_run
       run: |
-        make -C metis build
         make -C metis test
     - name: Run janus test suite
       id: janus_first_test_run
       run: |
-        make -C janus build
         make -C janus test
     - name: Run etna test suite
       id: etna_first_test_run
       run: |
-        make -C etna build
         make -C etna test
     - run: cd docker && docker-compose -p monoetna push || true
       if: steps.cache-docker.outputs.cache-hit != 'true'
