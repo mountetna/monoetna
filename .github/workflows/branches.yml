@@ -56,6 +56,10 @@ jobs:
           NODE_ENV: development
         run: |
           make -C timur test
+      - name: Run magma test suite
+        id: magma_first_test_run
+        run: |
+          make -C magma test
       - run: |
           docker run --rm `docker volume list -q | egrep -v '^.{64}$' | egrep 'node-modules|gems' | awk '{print "-v " $1 ":/mnt/" $1}'` alpine tar -C /mnt -cj . > /tmp/packages-volumes.tar
         name: Push packages volumes to cache location
