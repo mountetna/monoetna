@@ -45,3 +45,11 @@ logs: docker-compose.yml ## Shows logs of all running projects' containers
 .PHONY: logs-recent
 logs-recent: docker-compose.yml ## For CI
 				@ docker-compose logs
+
+.PHONY: tag
+tag: docker-compose.yml ## For CI
+				./tag-all-images $$REPOSITORY
+
+.PHONY: create
+create: docker-compose.yml ## For CI
+				@ docker-compose up --no-start

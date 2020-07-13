@@ -5,7 +5,9 @@ volumes:
 
 services:
   apache:
-    image: "library/httpd:2.4.43"
+    build:
+      context: .
+      dockerfile: Dockerfile.development
     volumes:
       - ./certs:/root/certs
       - ./docker-httpd.conf:/usr/local/apache2/conf/httpd.conf

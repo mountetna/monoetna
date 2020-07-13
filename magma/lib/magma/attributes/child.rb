@@ -1,19 +1,8 @@
 class Magma
   class ChildAttribute < Attribute
     include Magma::Link
-    def initialize(name, model, opts)
-      model.one_to_one(name)
-      super
-    end
-
-    def json_for record
-      record[@name]
-    end
-
-    def update record, link
-      link_model.update_or_create(link_model.identity => link) do |obj|
-        obj[ self_id ] = record.id
-      end
+    def query_to_payload(value)
+      value
     end
 
     def missing_column?
@@ -25,6 +14,12 @@ class Magma
         return if value.nil? || value.empty?
         link_validate(value, &block)
       end
+    end
+
+    private
+
+    def after_magma_model_set
+      @magma_model.one_to_one(attribute_name.to_sym)
     end
   end
 end

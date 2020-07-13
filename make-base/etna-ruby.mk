@@ -19,4 +19,4 @@ test:: config.yml
 				@ docker-compose run -e ${app_name_capitalized}_ENV=test --rm ${app_service_name} bundle exec rspec
 
 psql::
-				@ docker-compose run --rm ${app_service_name} psql -h ${app_db_name} -U developer -d ${app_name}_development
+				@ docker-compose run -e SKIP_RUBY_SETUP=1 --rm ${app_service_name} psql -h ${app_db_name} -U developer -d ${app_name}_development

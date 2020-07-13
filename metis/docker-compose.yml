@@ -19,6 +19,7 @@ x-metis_base: &metis_base
   build:
     context: .
     dockerfile: docker/app/Dockerfile.development
+  image: metis_base
   volumes:
     - .:/app:cached
     - app-gems:/app/vendor/bundle:rw
@@ -29,9 +30,10 @@ x-metis_base: &metis_base
     - public-dir:/app/public:rw
     - ../etna:/etna:cached
   environment: &app_environment
-    COVERAGE: 'true'
-    DATABASE_HOST: 'db'
-    METIS_ENV: 'development'
+    COVERAGE: "true"
+    DATABASE_HOST: "db"
+    METIS_ENV: "development"
+    MASTER_BUILD: "${MASTER_BUILD}"
 
 services:
   metis_app:
@@ -46,8 +48,8 @@ services:
     <<: *metis_base
     environment:
       <<: *app_environment
-      RUN_NPM_INSTALL: 'true'
-      SKIP_RUBY_SETUP: 'true'
+      RUN_NPM_INSTALL: "true"
+      SKIP_RUBY_SETUP: "true"
     command: npm run webpack
 
   metis_db:
