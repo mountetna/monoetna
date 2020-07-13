@@ -242,7 +242,7 @@ export class Uploader {
       const upload = this.uploads[key];
       if (upload.status === 'queued') {
         this.updateUpload({...this.uploads[key], status: 'active'}, false);
-        this.startUpload(key, 'queued');
+        this.startUpload(key);
       }
     }
 
@@ -251,15 +251,11 @@ export class Uploader {
     );
   }
 
-  startUpload(uploadKey, expectedStatus, reset = false) {
+  startUpload(uploadKey, reset = false) {
     let {file_name, status} = this.uploads[uploadKey];
-    // Invariant control, to ensure that when we start uploads, we are not assuming the incorrect state of the
-    // upload for that key.
-    // ie: synchronize expects new startUploads to be in queued, and sendNextBlob retries assume the upload is still
-    // 'active'.  If these assumptions were wrong, it would signal a bug that we'd want our tests to catch, so
-    // we must throw an exception.
-    if (status !== expectedStatus) {
-      throw new Error(`Cannot restart download of ${file_name}, was ${status} and not ${expectedStatus}`);
+    // Invariant control, to ensure that running uploads have already been marked as active.
+    if (status !== 'active') {
+      throw new Error(`Cannot restart download of ${file_name}, was ${status} and not active`);
     }
 
     const cancellable = this.restartUploadCancellable(uploadKey);
@@ -366,7 +362,7 @@ export class Uploader {
       // 16000ms
       setTimeout(() => {
         // this will cancel the current cancellable and start a new processing of the upload.
-        this.startUpload(uploadKey, 'active', reset);
+        this.startUpload(uploadKey, reset);
         resolve();
       }, timeout);
     });
