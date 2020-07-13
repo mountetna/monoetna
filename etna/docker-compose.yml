@@ -9,6 +9,7 @@ x-etna_base: &etna_base
   build:
     context: .
     dockerfile: docker/app/Dockerfile.development
+  image: etna_base
   volumes:
     - .:/app:cached
     - etna-app-gems:/app/vendor/bundle:rw

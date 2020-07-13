@@ -56,3 +56,7 @@ test: ## Runs all projects' tests
 .PHONY: setup-links
 setup-links: ## Sets up local development links for npm (and one day ruby) packages to use local copies of files.
 				@ for project in $(projects); do make -C $$project setup-links; done
+
+.PHONE: tag
+tag:  ## For ci, alters the project docker-compose.yml such that images contain specified repository tagging
+				@ make -C docker tag

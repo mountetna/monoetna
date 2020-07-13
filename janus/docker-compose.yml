@@ -19,6 +19,7 @@ x-janus_base: &janus_base
   build:
     context: .
     dockerfile: docker/app/Dockerfile.development
+  image: janus_base
   volumes:
     - .:/app:cached
     - janus-app-gems:/app/vendor/bundle:rw
