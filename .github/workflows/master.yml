@@ -30,6 +30,8 @@ jobs:
         run: |
           bin/update-package-references
       - name: Run smoke tests
+        env:
+          MASTER_BUILD: 1 # Will cause tests to use the true package artifacts, not local source.
         run: |
           make test
       - name: Configure git
