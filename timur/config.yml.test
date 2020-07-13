@@ -1,4 +1,13 @@
----
+:test:
+  :db:
+    :host: timur_db
+    :adapter: postgresql
+    :encoding: unicode
+    :user: developer
+    :password: password
+    :pool: 5
+    :timeout: 5000
+    :database: timur_test
 
 :test:
   :db:
@@ -32,3 +41,4 @@
     :host: https://rtemis.test
   :metis:
     :host: https://metis.test
+  :log_file: /dev/null

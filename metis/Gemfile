@@ -18,4 +18,7 @@ group :test do
   gem 'database_cleaner'
   gem 'pry'
   gem 'pry-byebug'
+  gem 'ruby-debug-ide'
+  gem 'debase'
 end
+
