@@ -3,7 +3,7 @@ module.exports = {
     fetch: require('node-fetch'),
     CONFIG: {
       project_name: 'labors'
-    }
+    },
   },
   transformIgnorePatterns: [
     // "node_modules/(?!(etna-js)/)"

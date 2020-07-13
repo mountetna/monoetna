@@ -9,7 +9,7 @@ import * as folderActions from './actions/folder_actions';
 import * as bucketActions from './actions/bucket_actions';
 import * as uploadActions from 'etna-js/upload/actions/upload_actions';
 
-import asyncDispatcher from './dispatchers/async-dispatcher';
+import asyncDispatcher from 'etna-js/dispatchers/async-dispatcher';
 import workDispatcher from 'etna-js/dispatchers/work-dispatcher';
 
 const createStore = () => {

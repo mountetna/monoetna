@@ -1,410 +1,393 @@
-import { stubUrl, cleanStubs } from '../../../spec/helpers';
-import { SHOW_DIALOG } from '../../actions/message_actions';
+import {stubUrl, cleanStubs, joinedDeferredPromises} from '../../../spec/helpers';
+import setupUploadWorker, {
+  AddUploadCommand,
+  CancelUploadCommand,
+  PauseUploadCommand,
+  UploadErrorEvent,
+  hashBlob,
+  Upload,
+  ZERO_HASH, UPLOAD_COMPLETE, UPLOAD_ERROR
+} from '../uploader';
+import {fileKey} from "../../../utils/file";
+import {Subscription} from "../../../utils/subscription";
 
-import uploader from '../uploader';
+const uploadSubscription = new Subscription();
+
+class TestUploadWorker {
+  constructor(opts) {
+    const postMessage = this._postMessage = jest.fn();
+    const addEventListener = jest.fn();
+
+    this.uploader = setupUploadWorker({postMessage, addEventListener}, opts);
+    uploadSubscription.addCleanup(this.uploader.subscription);
+
+    expect(addEventListener).toHaveBeenCalled();
+    expect(addEventListener.mock.calls[0][0]).toEqual('message');
+
+    this._messageHandler = addEventListener.mock.calls[0][1];
+  }
+
+  dispatch(data) {
+    this._messageHandler({data});
+  }
+
+  popEvent(predicate) {
+    let next;
+    do {
+      next = this._postMessage.mock.calls.shift();
+    } while (next && !predicate(next = next[0]) && (this.prev = next))
+
+    const {prev} = this;
+    this.prev = next;
+    return [prev, next];
+  }
+}
+
+function serverUploadResponse({project_name, file_name, author, current_byte_position, next_blob_size, next_blob_hash}) {
+  return {
+    project_name,
+    file_name,
+    author,
+    current_byte_position,
+    next_blob_hash,
+    next_blob_size
+  }
+}
 
 describe('Uploader', () => {
   afterEach(() => {
-    cleanStubs();
+    uploadSubscription.end();
   });
 
-  it('unqueue command puts some active uploads into the queue', () => {
-    const mockWorker = {
-      postMessage: jest.fn(),
-      addEventListener: jest.fn()
-    };
-
-    uploader(mockWorker);
-
-    const uploads = [
-      { name: '1', status: 'active' },
-      { name: '2', status: 'active' },
-      { name: '3', status: 'active' },
-      { name: '4', status: 'active' }
-    ];
-    mockWorker.unqueue({ uploads });
-
-    expect(mockWorker.postMessage).toHaveBeenCalledWith({
-      type: 'UPLOAD_STATUS',
-      upload: { name: '4', status: 'active' },
-      status: 'queued'
-    });
+  const uploadFor = (file) => Upload({
+    file,
+    file_name: 'test/' + file.name,
+    project_name: 'test',
+    url: 'http://localhost/' + file.name
   });
 
-  it('unqueue command removes queued uploads and starts / continues them', () => {
-    const mockWorker = {
-      postMessage: jest.fn(),
-      addEventListener: jest.fn()
-    };
+  const opts = {maxBlobSize: 10, maxUploads: 2, minBlobSize: 10, debouncerOptions: {maxGating: 0, eager: true}};
+  const emptyFile = new File([], 'empty.txt');
+  const aFile = new File(['some text would go here'], 'a.txt'); // 24
+  const bFile = new File(['different text would go here'], 'b.txt'); // 29
+  const shortFile = new File(['hi'], 'short.txt'); // 2
 
-    uploader(mockWorker);
+  function stubUploadStart(upload, reset, response = null, status = 200) {
+    const {file} = upload;
 
-    // We set ``continue()`` to a mock here, because we'll
-    //    test that method's functionality in separate specs.
-    mockWorker.continue = jest.fn();
+    let hash;
+    if (file.size === 0) {
+      hash = Promise.resolve(ZERO_HASH)
+    } else {
+      hash = hashBlob(file.slice(0, opts.minBlobSize))
+    }
 
-    const uploads = [
-      { name: '1', status: 'active' },
-      { name: '2', status: 'active' },
-      { name: '3', status: 'queued' },
-      { name: '4', status: 'queued' }
-    ];
-    mockWorker.unqueue({ uploads });
+    if (response == null) {
+      response = serverUploadResponse({
+        ...upload,
+        next_blob_size: Math.min(file.size, opts.minBlobSize),
+      })
+    }
 
-    expect(mockWorker.postMessage).toHaveBeenCalledWith({
-      type: 'UPLOAD_STATUS',
-      upload: { name: '3', status: 'queued' },
-      status: 'active'
-    });
-    expect(mockWorker.continue).toHaveBeenCalledWith({
-      upload: { name: '3', status: 'queued' }
-    });
-  });
-
-  it('unqueue command does nothing when MAX_UPLOADS already active even with queued uploads', () => {
-    const mockWorker = {
-      postMessage: jest.fn(),
-      addEventListener: jest.fn()
-    };
-
-    uploader(mockWorker);
-
-    const uploads = [
-      { name: '1', status: 'active' },
-      { name: '2', status: 'active' },
-      { name: '3', status: 'active' },
-      { name: '4', status: 'queued' }
-    ];
-    mockWorker.unqueue({ uploads });
-
-    expect(mockWorker.postMessage).not.toHaveBeenCalled();
-  });
-
-  it('unqueue command does nothing when no queued uploads and active <= MAX_UPLOADS', () => {
-    const mockWorker = {
-      postMessage: jest.fn(),
-      addEventListener: jest.fn()
-    };
-
-    uploader(mockWorker);
-
-    const uploads = [
-      { name: '1', status: 'active' },
-      { name: '2', status: 'active' },
-      { name: '3', status: 'active' }
-    ];
-    mockWorker.unqueue({ uploads });
-
-    expect(mockWorker.postMessage).not.toHaveBeenCalled();
-  });
-
-  it('start command sends POST request and dispatches message on success', (done) => {
-    const mockWorker = {
-      postMessage: jest.fn(),
-      addEventListener: jest.fn()
-    };
-
-    uploader(mockWorker);
-
-    const file = new File(['Once upon a time...'], 'legends.txt');
-
-    const upload = {
-      status: 'active',
-      url: 'http://localhost',
-      project_name: 'labors',
-      file,
-      file_size: file.size,
-      file_name: file.name
-    };
-
-    stubUrl({
-      verb: 'post',
-      path: '/',
-      request: {
-        file_size: 19,
-        next_blob_size: 19,
-        next_blob_hash: '4aba72c5db1e9a47b575fdbe12a273de',
-        action: 'start'
-      },
-      response: { upload },
-      host: 'http://localhost'
-    });
-
-    mockWorker.start({ upload }).then(() => {
-      expect(mockWorker.postMessage).toHaveBeenNthCalledWith(1, {
-        type: 'UPLOAD_STATUS',
-        upload: {
-          upload: {
-            status: 'active',
-            url: 'http://localhost',
-            project_name: 'labors',
-            file: {}, // Can't expect a File object back from the server
-            file_size: file.size,
-            file_name: file.name
-          }
+    return hash.then(next_blob_hash => {
+      return () => stubUrl({
+        verb: 'post',
+        path: '/' + file.name,
+        request: {
+          file_size: file.size,
+          next_blob_size: Math.min(file.size, opts.minBlobSize),
+          next_blob_hash,
+          action: 'start',
+          reset,
         },
-        status: 'queued'
+        response,
+        status,
+        host: 'http://localhost'
       });
+    })
+  }
 
-      expect(mockWorker.postMessage).toHaveBeenNthCalledWith(2, {
-        type: 'UNQUEUE_UPLOADS'
-      });
-      done();
-    });
-  });
+  function stubUploadBlob(upload, newBlobSize, response = null, status = 200) {
+    const {current_byte_position, file, next_blob_size} = upload;
+    const blob_data = file.slice(current_byte_position, current_byte_position + next_blob_size);
 
-  it('continue command sends 0 blob request if current byte > file.size', (done) => {
-    const mockWorker = {
-      postMessage: jest.fn(),
-      addEventListener: jest.fn()
-    };
-
-    uploader(mockWorker);
-
-    const file = new File(['Once upon a time...'], 'legends.txt');
-
-    const upload = {
-      status: 'active',
-      url: 'http://localhost',
-      project_name: 'labors',
-      file,
-      file_size: file.size,
-      file_name: file.name,
-      current_byte_position: 50,
-      next_blob_size: 19,
-      upload_speeds: []
-    };
-
-    const responseUpload = {
-      status: 'active',
-      url: 'http://localhost',
-      project_name: 'labors',
-      file: {},
-      current_byte_position: 50,
-      next_blob_size: 0,
-      upload_speeds: []
-    };
-
-    stubUrl({
-      verb: 'post',
-      path: '/',
-      request: (body) => {
-        // No great way to match on form data
-        return body === '[object FormData]';
-      },
-      response: responseUpload,
-      host: 'http://localhost'
-    });
-
-    mockWorker.continue({ upload }).then(() => {
-      expect(mockWorker.postMessage).toHaveBeenNthCalledWith(1, {
-        type: 'UPLOAD_SPEED',
-        upload,
-        upload_speed: 0
-      });
-
-      expect(mockWorker.postMessage).toHaveBeenNthCalledWith(2, {
-        status: 'complete',
-        type: 'UPLOAD_STATUS',
-        upload: {
+    return hashBlob(file.slice(current_byte_position + next_blob_size, current_byte_position + next_blob_size + newBlobSize)).then(newBlobHash => {
+      if (response == null) {
+        response = serverUploadResponse({
           ...upload,
-          ...responseUpload
-        }
+          next_blob_size: newBlobSize,
+          next_blob_hash: newBlobHash,
+          current_byte_position: current_byte_position + next_blob_size
+        })
+      }
+
+      return () => stubUrl({
+        verb: 'post',
+        path: '/' + file.name,
+        request: new FormData({
+          action: 'blob',
+          blob_data,
+          next_blob_size: newBlobSize,
+          next_blob_hash: newBlobHash,
+          current_byte_position
+        }).toString(),
+        response,
+        status,
+        host: 'http://localhost'
       });
+    })
+  }
 
-      expect(mockWorker.postMessage).toHaveBeenNthCalledWith(3, {
-        type: 'UPLOAD_FILE_COMPLETED',
-        upload: {
-          ...upload,
-          ...responseUpload
-        }
-      });
-      done();
-    });
-  });
-
-  it('continue command sends blob request if current byte < file.size', (done) => {
-    const mockWorker = {
-      postMessage: jest.fn(),
-      addEventListener: jest.fn()
-    };
-
-    uploader(mockWorker);
-
-    const file = new File(['Once upon a time...'], 'legends.txt');
-
-    const upload = {
-      status: 'active',
-      url: 'http://localhost',
-      project_name: 'labors',
-      file,
-      file_size: file.size,
-      file_name: file.name,
-      current_byte_position: 0,
-      next_blob_size: 19,
-      upload_speeds: []
-    };
-
-    const responseUpload = {
-      status: 'active',
-      url: 'http://localhost',
-      project_name: 'labors',
-      file: {},
-      current_byte_position: 50,
-      next_blob_size: 0,
-      upload_speeds: []
-    };
-
-    stubUrl({
+  function stubUploadCancel(upload, status = 200, response = {}) {
+    const {file, project_name, file_name} = upload;
+    return Promise.resolve(() => stubUrl({
       verb: 'post',
-      path: '/',
-      request: (body) => {
-        // No great way to match on form data
-        return body === '[object FormData]';
-      },
-      response: responseUpload,
-      host: 'http://localhost'
-    });
-
-    mockWorker.continue({ upload }).then(() => {
-      // Can't guarantee the upload speed for this message, so
-      //   we just check that it is called 3 times? Can we make
-      //   this better?
-      expect(mockWorker.postMessage).toHaveBeenCalledTimes(3);
-
-      done();
-    });
-  });
-
-  it('start command sends POST request and dispatches message on error', (done) => {
-    const mockWorker = {
-      postMessage: jest.fn(),
-      addEventListener: jest.fn()
-    };
-
-    uploader(mockWorker);
-
-    const file = new File(['Once upon a time...'], 'legends.txt');
-
-    const upload = {
-      status: 'active',
-      url: 'http://localhost',
-      project_name: 'labors',
-      file,
-      file_size: file.size,
-      file_name: file.name
-    };
-
-    stubUrl({
-      verb: 'post',
-      path: '/',
+      path: '/' + file.name,
       request: {
-        file_size: 19,
-        next_blob_size: 19,
-        next_blob_hash: '4aba72c5db1e9a47b575fdbe12a273de',
-        action: 'start'
+        project_name,
+        file_name,
+        action: 'cancel',
       },
-      status: 422,
-      response: { error: 'Bad request' },
+      response,
+      status,
       host: 'http://localhost'
+    }));
+  }
+
+  describe('error handling', () => {
+    describe('exceptions during blob', () => {
+      describe('retryable errors', () => {
+        it('retries 500s, 422s, body parsing, and network exceptions up to maxRetries via start, and resets only on 422s', async () => {
+          let worker = new TestUploadWorker({...opts, maxUploadFailures: 5, backoffFactor: 1});
+          let aUpload = uploadFor(aFile);
+
+          let expectedRequests = await joinedDeferredPromises(
+            [
+              stubUploadStart(aUpload, false),
+              stubUploadBlob({...aUpload, next_blob_size: 10}, 10, {error: 'Oh no'}, 500),
+              stubUploadStart({...aUpload, next_blob_size: 10}, false),
+              stubUploadBlob({...aUpload, next_blob_size: 10}, 10, (uri, body, cb) => {
+                cb(new Error('Network ERR'))
+              }),
+              stubUploadStart({...aUpload, next_blob_size: 10}, false),
+              stubUploadBlob({...aUpload, next_blob_size: 10}, 10, 'Not json!', 200),
+              stubUploadStart({...aUpload, next_blob_size: 10}, false),
+              stubUploadBlob({...aUpload, next_blob_size: 10}, 10, '', 422),
+
+              // Reset from the above 422
+              stubUploadStart(aUpload, true),
+              // The final request that will fail due to max retries
+              stubUploadBlob({...aUpload, next_blob_size: 10}, 10, {error: 'Last'}, 500),
+            ],
+          );
+
+          worker.dispatch(AddUploadCommand(aUpload));
+
+          await Promise.all(expectedRequests);
+          expect(await worker.uploader.schedule.allPending().catch(e => e.toString())).toEqual('Error: Last')
+
+
+          let [prev, next] = worker.popEvent(({type}) => type === UPLOAD_ERROR);
+          expect([next]).toContainEqual(UploadErrorEvent('error', 'Upload of file test/a.txt', 'Last', {
+            ...aUpload,
+            next_blob_size: 10,
+            status: 'paused'
+          }));
+
+          [prev, next] = worker.popEvent(({type}) => type === UPLOAD_ERROR);
+          expect(next).toBeUndefined();
+        })
+      })
     });
 
-    mockWorker.start({ upload }).then(() => {
-      expect(mockWorker.postMessage).toHaveBeenNthCalledWith(1, {
-        type: SHOW_DIALOG,
-        dialog: {
-          type: 'message',
-          title: 'Upload failed',
-          message: 'Bad request',
-          message_type: 'warning'
-        }
-      });
-      done();
-    });
+    describe('exceptions during start', () => {
+      it('pauses the upload and emits an error', async () => {
+        let worker = new TestUploadWorker(opts);
+        let aUpload = uploadFor(aFile);
+
+        let expectedRequests = await joinedDeferredPromises(
+          [stubUploadStart(aUpload, false, {error: 'Error message'}, 500),],
+        );
+
+        worker.dispatch(AddUploadCommand(aUpload));
+
+        await worker.uploader.schedule.allPending().catch(e => e);
+        await Promise.all(expectedRequests);
+
+        let [prev, next] = worker.popEvent(({uploads} = {}) => uploads[fileKey(aUpload)].status === 'paused');
+        expect(next.uploads[fileKey(aUpload)].status).toEqual('paused');
+
+        [prev, next] = worker.popEvent(({type}) => type === UPLOAD_ERROR);
+        expect([next]).toContainEqual(UploadErrorEvent('error', 'Upload of file test/a.txt', 'Error message', {
+          ...aUpload,
+          status: 'paused'
+        }));
+
+        [prev, next] = worker.popEvent(({type}) => type === UPLOAD_ERROR);
+        expect(next).toBeUndefined();
+      })
+    })
   });
 
-  it('cancel command sends POST request and dispatches message on success', (done) => {
-    const mockWorker = {
-      postMessage: jest.fn(),
-      addEventListener: jest.fn()
-    };
+  describe('queueing and uploading', () => {
+    describe('in the face of removing an upload', () => {
+      it('stops the cancelled upload, then allows others to proceed', async () => {
+        let worker = new TestUploadWorker({...opts, maxUploads: 1});
 
-    uploader(mockWorker);
+        let bUpload = uploadFor(bFile);
+        let aUpload = uploadFor(aFile);
 
-    const upload = {
-      status: 'active',
-      url: 'http://localhost',
-      project_name: 'labors',
-      file_name: 'hydra.txt'
-    };
+        // We'll start the b upload, and pause it after getting one chunk up.
+        let expectedRequests = await joinedDeferredPromises(
+          [
+            stubUploadStart(bUpload, false),
+            stubUploadBlob({...bUpload, next_blob_size: 10}, 10),
+          ],
+        );
 
-    stubUrl({
-      verb: 'post',
-      path: '/',
-      request: {
-        project_name: 'labors',
-        file_name: 'hydra.txt',
-        action: 'cancel'
-      },
-      response: { success: true },
-      host: 'http://localhost'
-    });
+        worker.dispatch(AddUploadCommand(bUpload));
+        worker.dispatch(AddUploadCommand(aUpload));
 
-    mockWorker.cancel({ upload }).then(() => {
-      expect(mockWorker.postMessage).toHaveBeenCalledWith({
-        type: 'UPLOAD_FILE_CANCELED',
-        upload
+        await Promise.all(expectedRequests);
+        // Empty all events
+        worker.popEvent(() => false);
+
+        expectedRequests = await joinedDeferredPromises(
+          [
+            stubUploadStart(aUpload, false),
+            stubUploadBlob({...aUpload, next_blob_size: 10}, 10),
+            stubUploadBlob({...aUpload, next_blob_size: 10, current_byte_position: 10}, 3),
+            stubUploadBlob({...aUpload, next_blob_size: 3, current_byte_position: 20}, 0),
+          ],
+          [
+            stubUploadCancel(bUpload),
+          ]
+        );
+
+        worker.dispatch(CancelUploadCommand(bUpload));
+
+        await worker.uploader.schedule.allPending();
+        await Promise.all(expectedRequests);
+
+        let [_, next] = worker.popEvent(({uploads}) => uploads);
+        expect(next.uploads).not.toHaveProperty(fileKey(bUpload));
+
+
+        // The removed upload is not 'completed'.
+        [_, next] = worker.popEvent(({type}) => type === UPLOAD_COMPLETE);
+        expect(fileKey(next.upload)).not.toEqual(fileKey(bUpload));
+        [_, next] = worker.popEvent(({type}) => type === UPLOAD_COMPLETE);
+        expect(next).toBeUndefined();
       });
-      done();
-    });
-  });
-
-  it('cancel command sends POST request and dispatches message on error', (done) => {
-    const mockWorker = {
-      postMessage: jest.fn(),
-      addEventListener: jest.fn()
-    };
-
-    uploader(mockWorker);
-
-    const upload = {
-      status: 'active',
-      url: 'http://localhost',
-      project_name: 'labors',
-      file_name: 'hydra.txt'
-    };
-
-    stubUrl({
-      verb: 'post',
-      path: '/',
-      request: {
-        project_name: 'labors',
-        file_name: 'hydra.txt',
-        action: 'cancel'
-      },
-      status: 422,
-      response: { error: true },
-      host: 'http://localhost'
     });
 
-    mockWorker.cancel({ upload }).then(() => {
-      expect(mockWorker.postMessage).toHaveBeenCalledWith({
-        dialog: {
-          message: true,
-          message_type: 'error',
-          title: 'Upload cancel failed',
-          type: 'message'
-        },
-        type: 'SHOW_DIALOG'
-      });
-      done();
-    });
-  });
+    describe('in the face of pausing', () => {
+      it('stops, then resumes on add, without yielding to other uploads', async () => {
+        let worker = new TestUploadWorker({...opts, maxUploads: 1});
+        let bUpload = uploadFor(bFile);
+        let aUpload = uploadFor(aFile);
 
-  // Not sure how to test the setupWorker() execute callback,
-  //   unless we export it somehow.
-  xit('logs an exception if non-approved command is sent', () => {
-    // Should this really throw an exception instead of just logging??
-    global.console = jest.fn();
+        // We'll start the b upload, and pause it after getting one chunk up.
+        let expectedRequests = await joinedDeferredPromises(
+          [
+            stubUploadStart(bUpload, false),
+            stubUploadBlob({...bUpload, next_blob_size: 10}, 10),
+          ],
+        );
+
+        worker.dispatch(AddUploadCommand(bUpload));
+        worker.dispatch(AddUploadCommand(aUpload));
+
+        await Promise.all(expectedRequests);
+
+        worker.dispatch(PauseUploadCommand(bUpload));
+
+        let [_, next] = worker.popEvent(({uploads = {}}) => uploads[fileKey(bUpload)].status === 'paused');
+        expect([next.uploads[fileKey(aUpload)].status === 'queued']);
+
+
+        expectedRequests = await joinedDeferredPromises(
+          [
+            stubUploadStart(bUpload, false),
+            stubUploadBlob({...bUpload, next_blob_size: 10}, 10),
+            stubUploadBlob({...bUpload, next_blob_size: 10, current_byte_position: 10}, 8),
+            stubUploadBlob({...bUpload, next_blob_size: 8, current_byte_position: 20}, 0),
+          ],
+          [
+            stubUploadStart(aUpload, false),
+          ],
+        );
+
+        worker.dispatch(AddUploadCommand(bUpload));
+
+        await Promise.all(expectedRequests);
+
+        [_, next] = worker.popEvent(({type}) => type === UPLOAD_COMPLETE);
+        expect([fileKey(next.upload)]).toContainEqual(fileKey(bUpload));
+      })
+    });
+
+    it('allows up to maxUploads, and starts Uploads as others finish', async () => {
+      let worker = new TestUploadWorker(opts);
+
+      let emptyUpload = uploadFor(emptyFile);
+      let aUpload = uploadFor(aFile);
+      let bUpload = uploadFor(bFile);
+      let shortUpload = uploadFor(shortFile);
+
+      let expectedRequests = await joinedDeferredPromises(
+        [stubUploadStart(emptyUpload, false), stubUploadBlob(emptyUpload, 0)],
+        [
+          stubUploadStart(bUpload, false),
+          stubUploadBlob({...bUpload, next_blob_size: 10}, 10),
+          stubUploadBlob({...bUpload, next_blob_size: 10, current_byte_position: 10}, 8),
+          stubUploadBlob({...bUpload, next_blob_size: 8, current_byte_position: 20}, 0),
+        ],
+        [
+          stubUploadStart(aUpload, false),
+          stubUploadBlob({...aUpload, next_blob_size: 10}, 10),
+          stubUploadBlob({...aUpload, next_blob_size: 10, current_byte_position: 10}, 3),
+          stubUploadBlob({...aUpload, next_blob_size: 3, current_byte_position: 20}, 0),
+        ],
+        [
+          stubUploadStart(shortUpload, false),
+          stubUploadBlob({...shortUpload, next_blob_size: 2}, 0),
+        ],
+      );
+
+      worker.dispatch(AddUploadCommand(emptyUpload));
+      worker.dispatch(AddUploadCommand(aUpload));
+      worker.dispatch(AddUploadCommand(bUpload));
+      worker.dispatch(AddUploadCommand(shortUpload));
+
+      await Promise.all(expectedRequests);
+      await worker.uploader.schedule.allPending();
+
+      let [prev, next] = worker.popEvent(({uploads}) => Object.keys(uploads || {}).length === 4);
+
+      expect([next.uploads[fileKey(emptyUpload)].status]).toContainEqual('active');
+      expect([next.uploads[fileKey(aUpload)].status]).toContainEqual('active');
+      expect([next.uploads[fileKey(bUpload)].status]).toContainEqual('queued');
+      expect([next.uploads[fileKey(shortUpload)].status]).toContainEqual('queued');
+
+      [prev, next] = worker.popEvent(({type}) => type === UPLOAD_COMPLETE);
+      expect([prev.uploads[fileKey(emptyUpload)].status]).toContainEqual('complete');
+      expect([fileKey(next.upload)]).toContainEqual(fileKey(emptyUpload));
+
+      [prev, next] = worker.popEvent(({type}) => type === UPLOAD_COMPLETE);
+      expect([prev.uploads[fileKey(aUpload)].status]).toContainEqual('complete');
+
+      // Now that two have completed, the others should be active and running
+      expect([prev.uploads[fileKey(bUpload)].status]).toContainEqual('active');
+      expect([prev.uploads[fileKey(shortUpload)].status]).toContainEqual('active');
+      expect([fileKey(next.upload)]).toContainEqual(fileKey(aUpload));
+
+      [prev, next] = worker.popEvent(({type}) => type === UPLOAD_COMPLETE);
+      expect([prev.uploads[fileKey(bUpload)].status]).toContainEqual('complete');
+      expect([fileKey(next.upload)]).toContainEqual(fileKey(bUpload));
+
+      // Verify upload_speeds are being processed
+      expect([prev.uploads[fileKey(bUpload)].upload_speeds.length]).toContainEqual(3);
+    });
   });
 });
