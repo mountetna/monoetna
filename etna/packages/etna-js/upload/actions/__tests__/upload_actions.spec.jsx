@@ -1,5 +1,4 @@
 import 'core-js/stable';
-import 'regenerator-runtime/runtime';
 
 import * as actions from '../upload_actions';
 import { SHOW_DIALOG } from '../message_actions';
@@ -312,10 +311,6 @@ describe('upload actions', () => {
 
     expect(store.getActions()).toEqual([]);
 
-    global.fetch = require('node-fetch');
-    global.CONFIG = {
-      project_name: 'labors'
-    };
     const file_name = 'hydra.txt';
 
     const upload = {
@@ -382,10 +377,6 @@ describe('upload actions', () => {
 
     expect(store.getActions()).toEqual([]);
 
-    global.fetch = require('node-fetch');
-    global.CONFIG = {
-      project_name: 'labors'
-    };
     const file_name = 'hydra.txt';
 
     const upload = {

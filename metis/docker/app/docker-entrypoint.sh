@@ -21,9 +21,12 @@ if [ -z "$SKIP_RUBY_SETUP" ]; then
 fi
 
 if [ -n "$RUN_NPM_INSTALL" ]; then
-  npm --version
-  node --version
   npm install --unsafe-perm
+
+  if [ -z "$MASTER_BUILD" ]; then
+    echo 'Not master build, performing link to local etna-js...'
+    npm link ../etna/packages/etna-js
+  fi
 fi
 
 exec "$@"

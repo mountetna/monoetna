@@ -117,8 +117,6 @@ describe('Uploader', () => {
       file_name: file.name
     };
 
-    global.fetch = require('node-fetch');
-
     stubUrl({
       verb: 'post',
       path: '/',
@@ -186,8 +184,6 @@ describe('Uploader', () => {
       next_blob_size: 0,
       upload_speeds: []
     };
-
-    global.fetch = require('node-fetch');
 
     stubUrl({
       verb: 'post',
@@ -259,8 +255,6 @@ describe('Uploader', () => {
       upload_speeds: []
     };
 
-    global.fetch = require('node-fetch');
-
     stubUrl({
       verb: 'post',
       path: '/',
@@ -300,8 +294,6 @@ describe('Uploader', () => {
       file_size: file.size,
       file_name: file.name
     };
-
-    global.fetch = require('node-fetch');
 
     stubUrl({
       verb: 'post',
@@ -346,8 +338,6 @@ describe('Uploader', () => {
       file_name: 'hydra.txt'
     };
 
-    global.fetch = require('node-fetch');
-
     stubUrl({
       verb: 'post',
       path: '/',
@@ -383,8 +373,6 @@ describe('Uploader', () => {
       project_name: 'labors',
       file_name: 'hydra.txt'
     };
-
-    global.fetch = require('node-fetch');
 
     stubUrl({
       verb: 'post',

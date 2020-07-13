@@ -1,6 +1,5 @@
 export COMPOSE_PROJECT_NAME=monoetna
 projects := $(shell ls ./*/Makefile | grep -v docker | xargs -n 1 dirname | xargs -n 1 basename)
-compose_ymls     := $(shell ls ./*/docker-compose.yml)
 
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \
@@ -30,6 +29,10 @@ ps: ## Shows ps of all projects' containers
 logs: ## Shows logs of all running projects' containers
 				@ make -C docker logs
 
+.PHONY: logs-recent
+logs-recent: ## For CI
+				@ make -C docker logs-recent
+
 .PHONY: bash
 bash: ## Starts a bash shell in an app environment
 				@ echo Run this within a specific app context, ie: make -C metis bash
@@ -53,3 +56,7 @@ test: ## Runs all projects' tests
 .PHONY: setup-links
 setup-links: ## Sets up local development links for npm (and one day ruby) packages to use local copies of files.
 				@ for project in $(projects); do make -C $$project setup-links; done
+
+.PHONE: tag
+tag:  ## For ci, alters the project docker-compose.yml such that images contain specified repository tagging
+				@ make -C docker tag

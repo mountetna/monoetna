@@ -20,3 +20,5 @@ package-lock.json
 .bundle
 .idea
 .docker-build-mark
+.yarn-packages
+.npm-packages

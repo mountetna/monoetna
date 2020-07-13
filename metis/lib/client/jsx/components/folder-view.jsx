@@ -67,6 +67,13 @@ class FolderView extends React.Component {
     if (new_folder_name) createFolder(bucket_name, folder_name, new_folder_name);
   }
 
+  selectFolderDownload() {
+    let { bucket_name, folder_name } = this.props;
+    this.props.listFilesRecursive(bucket_name, folder_name).then(files => {
+      return this.props.downloadFilesZip(files, this.props.folder_name);
+    });
+  }
+
   render() {
     let { bucket_name, folder_name } = this.props;
     if (folder_name == INVALID) return <InvalidFolder/>;
@@ -74,6 +81,7 @@ class FolderView extends React.Component {
     let buttons = [
       { onClick: this.selectFolder.bind(this), title: 'Create folder', icon: 'folder', overlay: 'plus', role: 'editor' },
       { onClick: this.selectUpload.bind(this), title: 'Upload file(s)', icon: 'upload', role: 'editor' },
+      { onClick: this.selectFolderDownload.bind(this), title: 'Download directory as zip', icon: 'download', role: 'viewer' },
     ];
 
     return (
@@ -115,11 +123,13 @@ const retrieveFiles = (bucket_name, folder_name) => ({type: 'RETRIEVE_FILES', bu
 const fileSelected = (bucket_name, folder_name, file)=>({ type: 'FILE_SELECTED', file, folder_name, bucket_name });
 const createFolder = (bucket_name, parent_folder, folder_name)=>({ type: 'CREATE_FOLDER', folder_name, parent_folder, bucket_name });
 const showUploadModal = (startFileUpload, startDirectoryUpload) => ({ type: 'SHOW_DIALOG', dialog: { type: 'upload_dialog', startDirectoryUpload, startFileUpload } })
+const listFilesRecursive = (bucket_name, folder_name) => ({ type: 'LIST_FILES_RECURSIVE', folder_name, bucket_name });
+const downloadFilesZip = (files, folder_name) => ({ type: 'DOWNLOAD_FILES_ZIP', files, folder_name });
 
 export default connect(
   // map state
   null,
 
   // map dispatch
-  { retrieveFiles, fileSelected, createFolder, showUploadModal }
+  { retrieveFiles, fileSelected, createFolder, showUploadModal, listFilesRecursive, downloadFilesZip }
 )(FolderView);

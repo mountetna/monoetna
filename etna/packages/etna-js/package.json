@@ -37,20 +37,6 @@
     "spark-md5": "^3.0.1",
     "webworkify-webpack": "^2.1.5"
   },
-  "jest": {
-    "testMatch": [
-      "**/__tests__/**/?(*.)(spec|test).js?(x)"
-    ],
-    "collectCoverageFrom": [
-      "**/*.js?(x)"
-    ],
-    "setupFilesAfterEnv": [
-      "./spec/setup.js"
-    ],
-    "setupFiles": [
-      "raf/polyfill"
-    ]
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/mountenta/etna.git",
