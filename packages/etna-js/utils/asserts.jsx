@@ -4,7 +4,7 @@ export function assertIsSome(thing) {
   if (keys.length === 1) {
     const value = thing[keys[0]];
     if (value == null) {
-      throw new Error(`Expected ${key} to be present, value was ${value}`);
+      throw new Error(`Expected ${keys[0]} to be present, value was ${value}`);
     }
     return value;
   } else if (keys.length > 1) {
