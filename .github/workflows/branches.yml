@@ -52,6 +52,8 @@ jobs:
           make -C etna test
       - name: Run timur test suite
         id: timur_first_test_run
+        env:
+          NODE_ENV: development
         run: |
           make -C timur test
       - run: |
