@@ -29,8 +29,4 @@ if [ -n "$RUN_NPM_INSTALL" ]; then
   fi
 fi
 
-if [ -n "$TEST" ]; then
-  npm link ../etna/packages/etna-js
-fi
-
 exec "$@"

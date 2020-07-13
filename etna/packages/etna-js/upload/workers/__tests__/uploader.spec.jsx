@@ -9,15 +9,17 @@ import setupUploadWorker, {
   ZERO_HASH, UPLOAD_COMPLETE, UPLOAD_ERROR
 } from '../uploader';
 import {fileKey} from "../../../utils/file";
+import {Subscription} from "../../../utils/subscription";
 
-let activeUploaders = [];
+const uploadSubscription = new Subscription();
+
 class TestUploadWorker {
   constructor(opts) {
     const postMessage = this._postMessage = jest.fn();
     const addEventListener = jest.fn();
 
     this.uploader = setupUploadWorker({postMessage, addEventListener}, opts);
-    activeUploaders.push(this.uploader);
+    uploadSubscription.addCleanup(this.uploader.subscription);
 
     expect(addEventListener).toHaveBeenCalled();
     expect(addEventListener.mock.calls[0][0]).toEqual('message');
@@ -54,7 +56,7 @@ function serverUploadResponse({project_name, file_name, author, current_byte_pos
 
 describe('Uploader', () => {
   afterEach(() => {
-    cleanStubs();
+    uploadSubscription.end();
   });
 
   const uploadFor = (file) => Upload({
@@ -151,15 +153,6 @@ describe('Uploader', () => {
       host: 'http://localhost'
     }));
   }
-
-  afterEach(async () => {
-    // Allow all active uploaders to drain their async work away.
-    // TODO: Comprehensive self registerable teardown and scoping would be nice.
-    for(let uploader of activeUploaders) {
-      await uploader.schedule.allPending().catch(e => console.warn(e));
-    }
-    activeUploaders.length = 0;
-  })
 
   describe('error handling', () => {
     describe('exceptions during blob', () => {

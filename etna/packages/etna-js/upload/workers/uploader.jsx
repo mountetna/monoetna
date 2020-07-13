@@ -9,6 +9,7 @@ import {Cancellable} from "../../utils/cancellable";
 import {Debouncer} from "../../utils/debouncer";
 import {Schedule} from "../../utils/schedule";
 import {assertIsSome} from "../../utils/asserts";
+import {Subscription} from "../../utils/subscription";
 
 const XTR_TIME = 2000; // blob transfer time in ms, determines blob size.
 const MIN_BLOB_SIZE = Math.pow(2, 10); // in bytes
@@ -182,6 +183,8 @@ export class Uploader {
 
     // Batches updates together into groups that do not occur more than once every 100ms.
     this.debouncer = new Debouncer({maxGating: 100, windowMs: 100, eager: true, ...debouncerOptions});
+
+    this.subscription = new Subscription();
   }
 
   start() {
@@ -213,7 +216,9 @@ export class Uploader {
 
   restartUploadCancellable(key) {
     if (key in this.running) this.cancelRunningUpload(key);
-    return this.running[key] = new Cancellable();
+    const newCancellable = this.running[key] = new Cancellable();
+    this.subscription.addCleanup(newCancellable.cancel);
+    return newCancellable;
   }
 
   // Called anytime the uploads state is changed.
@@ -233,7 +238,7 @@ export class Uploader {
 
     // Count the number of uploads that are either active or paused; they count against the maxUploads count
     const runningOrPaused = Object.values(this.uploads).filter(({status}) => status === 'active' || status === 'paused');
-    const availableStartCount = this.maxUploads - runningOrPaused.length;
+    let availableStartCount = this.maxUploads - runningOrPaused.length;
 
     // Start any queued uploads up to the max
     for (let key in this.uploads) {
@@ -243,11 +248,13 @@ export class Uploader {
       if (upload.status === 'queued') {
         this.updateUpload({...this.uploads[key], status: 'active'}, false);
         this.startUpload(key);
+        availableStartCount -= 1;
       }
     }
 
     this.schedule.addWork(
-      this.debouncer.ready(() => this.eventSink.dispatch(UpdateUploadsEvent(this.uploads)))
+      this.debouncer.ready(this.subscription.addSubscribedCallback(() =>
+        this.eventSink.dispatch(UpdateUploadsEvent(this.uploads))))
     );
   }
 
@@ -362,8 +369,13 @@ export class Uploader {
       // 16000ms
       setTimeout(() => {
         // this will cancel the current cancellable and start a new processing of the upload.
-        this.startUpload(uploadKey, reset);
-        resolve();
+        try {
+          this.startUpload(uploadKey, reset);
+          resolve();
+        } catch(e) {
+          console.error(e);
+          reject(e);
+        }
       }, timeout);
     });
   }

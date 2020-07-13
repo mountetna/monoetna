@@ -5,8 +5,8 @@ import { SHOW_DIALOG } from '../message_actions';
 
 import {delay, mockStore, stubUrl} from '../../../spec/helpers';
 import {ADD_FILES, unpauseUpload, WORK} from "../upload_actions";
-import {AddUploadCommand, UnpauseUploadCommand, Upload, UPLOAD_COMPLETE} from "../../workers/uploader";
-import workDispatcher, {terminateAllWorkers} from "../../../dispatchers/work-dispatcher";
+import {AddUploadCommand, Upload, UPLOAD_COMPLETE} from "../../workers/uploader";
+import workDispatcher from "../../../dispatchers/work-dispatcher";
 import asyncDispatcher from "../../../dispatchers/async-dispatcher";
 
 describe('upload actions', () => {
@@ -14,10 +14,6 @@ describe('upload actions', () => {
   const emptyUpload = Upload({ file_name: 'empty.txt', project_name: CONFIG.project_name, url: 'http://localhost/empty', file: emptyFile });
 
   describe('worker integration', () => {
-    afterEach(() => {
-      terminateAllWorkers();
-    })
-
     it('shows dialogs for upload failures', async () => {
       const { getActions, dispatch } = mockStore({}, [asyncDispatcher(actions), workDispatcher()]);
 

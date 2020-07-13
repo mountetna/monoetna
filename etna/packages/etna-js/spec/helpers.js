@@ -1,6 +1,7 @@
 import nock from 'nock';
 import thunk from 'redux-thunk';
 import configureMockStore from 'redux-mock-store';
+import {appSubscription} from "../utils/subscription";
 
 export const mockStore = (state, middleware = []) => configureMockStore([thunk, ...middleware])(state);
 
@@ -50,7 +51,17 @@ export async function joinedDeferredPromises(...promiseChains) {
   return result;
 }
 
+// This remains here for backwards compatibility, but moving forward it is invoked automatically
+// by the bellow for each blocks as well, so doing this in individual tests should not be required.
 export const cleanStubs = () => nock.cleanAll();
+
+beforeEach(() => {
+  appSubscription.addCleanup(cleanStubs);
+})
+
+afterEach(() => {
+  appSubscription.end();
+})
 
 export function delay(ms) {
   return new Promise((resolve) => {
