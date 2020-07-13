@@ -33,7 +33,7 @@
   :token_name: JANUS_DEV_TOKEN
   :token_algo: RS256
   :metis_uid_name: METIS_DEV_UID
-  :token_domain: etna-development.local
+  :token_domain: development.local
   :token_life: 31536000
   :upload_expiration: 60
   :download_expiration: 86400
