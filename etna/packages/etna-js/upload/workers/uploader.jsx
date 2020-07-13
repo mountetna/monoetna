@@ -241,9 +241,8 @@ export class Uploader {
       if (availableStartCount <= 0) break;
       const upload = this.uploads[key];
       if (upload.status === 'queued') {
-        // This will trigger an update and re-enter, so we immediately stop
+        this.updateUpload({...this.uploads[key], status: 'active'}, false);
         this.startUpload(key, 'queued');
-        return;
       }
     }
 
@@ -263,10 +262,8 @@ export class Uploader {
       throw new Error(`Cannot restart download of ${file_name}, was ${status} and not ${expectedStatus}`);
     }
 
-    this.updateUpload({...this.uploads[uploadKey], status: 'active'});
-
     const cancellable = this.restartUploadCancellable(uploadKey);
-    return this.schedule.addWork(cancellable.run(this.cancellableUpload(uploadKey, reset))
+    return this.schedule.addWork(cancellable.run(this.uploadLoop(uploadKey, reset))
       .then(
         ({cancelled, result: upload}) => {
           if (cancelled) return {cancelled}
@@ -276,7 +273,7 @@ export class Uploader {
         err => this.reportErrorAndPause(uploadKey, `Upload of file ${file_name}`, err))).catch(e => console.warn(e));
   }
 
-  * cancellableUpload(uploadKey, reset) {
+  * uploadLoop(uploadKey, reset) {
     let {file, file_size, url} = this.uploads[uploadKey];
     let next_blob_size = Math.min(file_size, this.minBlobSize);
     let nextBlob = file.slice(0, next_blob_size);
@@ -296,6 +293,7 @@ export class Uploader {
     // Continue uploading while either there is more to send, or nothing has been sent (case of 0 byte file)
     while (current_byte_position < file.size || unsentZeroByteFile) {
       ({current_byte_position} = yield* this.sendNextBlob(uploadKey));
+
       unsentZeroByteFile = false;
     }
 
@@ -309,7 +307,9 @@ export class Uploader {
     const request = yield this.prepareNextBlobParams(upload);
     const uploadStart = Date.now();
     const {response, err} = yield postUploadBlob(url, request, false).then(response => ({response}), err => ({err}));
+
     const serverUpload = yield* this.checkForRetry(uploadKey, response, err);
+
     const uploadSpeed = request.blob_data.size / Math.max(1, Date.now() - uploadStart);
 
     return this.updateUpload({
@@ -444,10 +444,13 @@ export class Uploader {
     });
   }
 
-  updateUpload(upload) {
+  updateUpload(upload, synchronize = true) {
     const key = fileKey(upload);
     this.uploads = {...this.uploads, [key]: {...(this.uploads[key] || {}), ...upload}};
-    this.synchronize();
+
+    if (synchronize) {
+      this.synchronize();
+    }
 
     return this.uploads[key];
   }

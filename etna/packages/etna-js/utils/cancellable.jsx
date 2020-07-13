@@ -2,7 +2,7 @@ import {Schedule} from "./schedule";
 
 export class Cancellable {
   constructor() {
-    this.cancelled = new Promise((resolve, reject) => {
+    this.cancelledPromise = new Promise((resolve, reject) => {
       this.cancel = () => resolve({cancelled: true});
     });
   }
@@ -10,7 +10,7 @@ export class Cancellable {
   race(promise) {
     return Promise.race([
       promise.then(result => ({result})),
-      this.cancelled,
+      this.cancelledPromise,
     ]);
   }
 
