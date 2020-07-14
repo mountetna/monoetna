@@ -82,10 +82,7 @@ describe('upload api', () => {
     stubUrl({
       verb: 'post',
       path: '/upload',
-      request: (body) => {
-        // Can't figure out how to match on form data itself
-        return body === '[object FormData]';
-      },
+      request: /action\=blob/,
       response: { success: true },
       host: 'http://localhost'
     });
