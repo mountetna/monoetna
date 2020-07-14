@@ -35,6 +35,16 @@ make -C janus bash
 ○ → ./bin/janus permit some.guy@ucsf.edu test-project administrator
 ```
 
+To use magma and timur effectively, you'll want to create an `ipi` project as well.
+
+```bash
+# Make sure services are already running with make up in top level directory.
+make -C janus bash
+○ → ./bin/janus add_project 'ipi' 'Immuno Profiler Project'
+○ → ./bin/janus permit some.guy@ucsf.edu test-project administrator
+```
+
+
 ## Workflow
 
 1. Create a branch in monoetna as per your feature.
