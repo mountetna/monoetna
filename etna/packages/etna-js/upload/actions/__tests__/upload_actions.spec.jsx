@@ -3,308 +3,84 @@ import 'core-js/stable';
 import * as actions from '../upload_actions';
 import { SHOW_DIALOG } from '../message_actions';
 
-import { mockStore, stubUrl } from '../../../spec/helpers';
+import {delay, mockStore, stubUrl} from '../../../spec/helpers';
+import {ADD_FILES, unpauseUpload, WORK} from "../upload_actions";
+import {AddUploadCommand, Upload, UPLOAD_COMPLETE} from "../../workers/uploader";
+import workDispatcher from "../../../dispatchers/work-dispatcher";
+import asyncDispatcher from "../../../dispatchers/async-dispatcher";
 
 describe('upload actions', () => {
-  it('unqueueUploads generates actions to unqueue all uploads from web worker', () => {
-    const store = mockStore({});
+  const emptyFile = new File([], 'empty.txt');
+  const emptyUpload = Upload({ file_name: 'empty.txt', project_name: CONFIG.project_name, url: 'http://localhost/empty', file: emptyFile });
 
-    expect(store.getActions()).toEqual([]);
+  describe('worker integration', () => {
+    it('shows dialogs for upload failures', async () => {
+      const { getActions, dispatch } = mockStore({}, [asyncDispatcher(actions), workDispatcher()]);
 
-    actions.unqueueUploads()(store.dispatch, () => {
-      return {
-        directory: {
-          uploads: [
-            {
-              file: 'upload-file.txt'
-            }
-          ]
+      // Test assumption: empty file uploads still pass through start and blob once.
+      // This just makes the stubbing very simple.
+      // Once for the start
+      stubUrl({
+        verb: 'post',
+        path: '/empty',
+        response: { error: 'Oh no' },
+        status: 401,
+        request: /.*/,
+      })
+
+      dispatch(unpauseUpload({ upload: emptyUpload }));
+
+      for (let i = 0; i < 10; ++i) {
+        await delay(100);
+        if (getActions().map(({ type }) => type).includes(SHOW_DIALOG)) break;
+      }
+
+      expect(getActions()).toContainEqual({
+        type: SHOW_DIALOG,
+        dialog: {
+          message: 'Oh no',
+          message_type: 'error',
+          title: 'Upload of file empty.txt',
+          type: 'message'
         }
-      };
-    });
+      });
+    })
 
-    expect(store.getActions()).toEqual([
-      {
-        type: actions.WORK,
-        work_type: 'upload',
-        command: 'unqueue',
-        uploads: [
-          {
-            file: 'upload-file.txt'
-          }
-        ]
+    it('upload completion adds files', async () => {
+      const { getActions, dispatch } = mockStore({}, [asyncDispatcher(actions), workDispatcher()]);
+
+      const { file_name, project_name, url, current_byte_position } = emptyUpload;
+
+      // Test assumption: empty file uploads still pass through start and blob once.
+      // This just makes the stubbing very simple.
+      // Once for the start
+      stubUrl({
+        verb: 'post',
+        path: '/empty',
+        response: { file_name, project_name, url, current_byte_position },
+        request: /.*/,
+      })
+      // Once for the blob
+      stubUrl({
+        verb: 'post',
+        path: '/empty',
+        response: { file_name, project_name, url, current_byte_position },
+        request: /.*/,
+      })
+
+      dispatch(unpauseUpload({ upload: emptyUpload }));
+
+      for (let i = 0; i < 10; ++i) {
+        await delay(100);
+        if (getActions().map(({ type }) => type).includes(UPLOAD_COMPLETE)) break;
       }
-    ]);
-  });
 
-  it('uploadFileCanceled generates action to cancel specific file upload', () => {
-    const store = mockStore({});
-
-    expect(store.getActions()).toEqual([]);
-
-    const upload = {
-      file: 'upload-file.txt'
-    };
-
-    actions.uploadFileCanceled({ upload })(store.dispatch);
-
-    expect(store.getActions()).toEqual([
-      {
-        type: actions.REMOVE_UPLOAD,
-        upload
-      },
-      {
-        type: actions.UNQUEUE_UPLOADS
-      }
-    ]);
-  });
-
-  it('cancelUpload generates action to remove a completed file upload when cancelUpload called', () => {
-    const store = mockStore({});
-
-    expect(store.getActions()).toEqual([]);
-
-    const upload = {
-      file: 'upload-file.txt',
-      status: 'complete'
-    };
-
-    actions.cancelUpload({ upload })(store.dispatch);
-
-    expect(store.getActions()).toEqual([
-      {
-        type: actions.REMOVE_UPLOAD,
-        upload
-      }
-    ]);
-  });
-
-  it('cancelUpload does nothing if user cancels the confirmation window', () => {
-    window.confirm = jest.fn(() => false);
-    const store = mockStore({});
-
-    expect(store.getActions()).toEqual([]);
-
-    const upload = {
-      file: 'upload-file.txt',
-      status: 'active'
-    };
-
-    actions.cancelUpload({ upload })(store.dispatch);
-
-    expect(store.getActions()).toEqual([]);
-  });
-
-  it('cancelUpload generates work action if user confirms the cancellation', () => {
-    window.confirm = jest.fn(() => true);
-    const store = mockStore({});
-
-    expect(store.getActions()).toEqual([]);
-
-    const upload = {
-      file: 'upload-file.txt',
-      status: 'active'
-    };
-
-    actions.cancelUpload({ upload })(store.dispatch);
-
-    expect(store.getActions()).toEqual([
-      { type: actions.WORK, work_type: 'upload', command: 'cancel', upload }
-    ]);
-  });
-
-  it('pauseUpload generates paused action if user pauses the upload', () => {
-    const store = mockStore({});
-
-    expect(store.getActions()).toEqual([]);
-
-    const upload = {
-      file: 'upload-file.txt',
-      status: 'active'
-    };
-
-    actions.pauseUpload({ upload })(store.dispatch);
-
-    expect(store.getActions()).toEqual([
-      { type: actions.UPLOAD_STATUS, status: 'paused', upload }
-    ]);
-  });
-
-  it('continueUpload generates actions to continue an upload', () => {
-    const store = mockStore({});
-
-    expect(store.getActions()).toEqual([]);
-
-    const upload = {
-      file: 'upload-file.txt',
-      status: 'active'
-    };
-
-    actions.continueUpload({ upload })(store.dispatch);
-
-    expect(store.getActions()).toEqual([
-      { type: actions.UPLOAD_STATUS, status: 'active', upload },
-      {
-        type: actions.WORK,
-        work_type: 'upload',
-        command: 'continue',
-        upload
-      }
-    ]);
-  });
-
-  it('uploadFileCompleted generates actions when file upload completed', () => {
-    const store = mockStore({});
-
-    expect(store.getActions()).toEqual([]);
-
-    const upload = {
-      file: 'upload-file.txt',
-      status: 'active'
-    };
-
-    actions.uploadFileCompleted({ upload })(store.dispatch);
-
-    expect(store.getActions()).toEqual([
-      { type: actions.ADD_FILES, files: [upload.file] },
-      {
-        type: actions.UNQUEUE_UPLOADS
-      }
-    ]);
-  });
-
-  it('uploadBlobCompleted does nothing with a blob if the upload is not active', () => {
-    const store = mockStore({});
-
-    expect(store.getActions()).toEqual([]);
-
-    global.CONFIG = {
-      project_name: 'labors'
-    };
-    const file_name = 'hydra.txt';
-
-    const getState = () => {
-      return {
-        directory: {
-          uploads: {
-            'labors:hydra.txt': {
-              file: 'hydra.txt',
-              status: 'paused'
-            }
-          }
-        }
-      };
-    };
-
-    actions.uploadBlobCompleted({ file_name })(store.dispatch, getState);
-
-    expect(store.getActions()).toEqual([]);
-  });
-
-  it('uploadBlobCompleted dispatches work action to upload blob if the upload is active', () => {
-    const store = mockStore({});
-
-    expect(store.getActions()).toEqual([]);
-
-    global.CONFIG = {
-      project_name: 'labors'
-    };
-    const file_name = 'hydra.txt';
-
-    const upload = {
-      file: file_name,
-      status: 'active'
-    };
-
-    const getState = () => {
-      return {
-        directory: {
-          uploads: {
-            'labors:hydra.txt': {
-              file: file_name,
-              status: 'active'
-            }
-          }
-        }
-      };
-    };
-
-    actions.uploadBlobCompleted({ file_name })(store.dispatch, getState);
-
-    expect(store.getActions()).toEqual([
-      {
-        type: actions.WORK,
-        work_type: 'upload',
-        command: 'continue',
-        upload
-      }
-    ]);
-  });
-
-  it('uploadStarted does not start an upload if the upload is not active', () => {
-    const store = mockStore({});
-
-    expect(store.getActions()).toEqual([]);
-
-    global.CONFIG = {
-      project_name: 'labors'
-    };
-    const file_name = 'hydra.txt';
-
-    const getState = () => {
-      return {
-        directory: {
-          uploads: {
-            'labors:hydra.txt': {
-              file: 'hydra.txt',
-              status: 'paused'
-            }
-          }
-        }
-      };
-    };
-
-    actions.uploadStarted({ file_name })(store.dispatch, getState);
-
-    expect(store.getActions()).toEqual([]);
-  });
-
-  it('uploadStarted dispatches work action to start upload if the upload is active', () => {
-    const store = mockStore({});
-
-    expect(store.getActions()).toEqual([]);
-
-    global.CONFIG = {
-      project_name: 'labors'
-    };
-    const file_name = 'hydra.txt';
-
-    const upload = {
-      file: file_name,
-      status: 'active'
-    };
-
-    const getState = () => {
-      return {
-        directory: {
-          uploads: {
-            'labors:hydra.txt': upload
-          }
-        }
-      };
-    };
-
-    actions.uploadStarted({ file_name })(store.dispatch, getState);
-
-    expect(store.getActions()).toEqual([
-      {
-        type: actions.WORK,
-        work_type: 'upload',
-        command: 'continue',
-        upload
-      }
-    ]);
-  });
+      expect(getActions()).toContainEqual({
+        type: ADD_FILES,
+        files: [emptyFile],
+      });
+    })
+  })
 
   it('fileSelected dispatches work actions to start upload', async () => {
     const store = mockStore({});
@@ -353,20 +129,16 @@ describe('upload actions', () => {
     })(dispatch, getState);
 
     expect(dispatch).toHaveBeenNthCalledWith(1, {
-      type: actions.ADD_UPLOAD,
-      project_name: CONFIG.project_name,
-      file: {
-        name: file_name
-      },
-      file_name: 'profiles/hydra.txt',
-      url
-    });
-
-    expect(dispatch).toHaveBeenNthCalledWith(2, {
-      type: actions.WORK,
+      type: WORK,
       work_type: 'upload',
-      command: 'start',
-      upload
+      command: AddUploadCommand(Upload({
+        project_name: CONFIG.project_name,
+        file: {
+          name: file_name
+        },
+        file_name: 'profiles/hydra.txt',
+        url
+      }))
     });
   });
 

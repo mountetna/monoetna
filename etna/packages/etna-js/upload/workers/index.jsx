@@ -6,9 +6,10 @@ const maxWorkers = window.navigator.hardwareConcurrency || 4;
 let workerMap = new Map();
 
 export function createWorker(dispatch, script) {
-  if (workerMap.size === maxWorkers) {
-    throw `too many workers max: ${maxWorkers} - make sure to clean them up with terminateWorker`;
+  if (workerMap.size >= maxWorkers) {
+    console.warn(`too many workers max: ${maxWorkers} - make sure to clean them up with terminateWorker`);
   }
+
   let worker = work(script);
   worker.messageHandler = ({data}) => dispatch(data);
   worker.addEventListener('message', worker.messageHandler);
@@ -17,6 +18,7 @@ export function createWorker(dispatch, script) {
 }
 
 export function terminateWorker(worker) {
+  console.log({ worker });
   worker.removeEventListener('message', worker.messageHandler);
   worker.terminate();
   workerMap.delete(worker);

@@ -1,6 +1,5 @@
 import React from 'react';
 import { mockStore } from '../../spec/helpers';
-import renderer from 'react-test-renderer';
 import workDispatcher from '../work-dispatcher';
 import { WORKERS } from '../work-dispatcher';
 import { WORK, WORK_FAILED } from '../../upload/actions/upload_actions';
@@ -57,17 +56,23 @@ describe('workDispatcher', () => {
     const action = {
       type: WORK,
       work_type: 'upload',
-      otherArgs
+      command: otherArgs
     };
     workDispatcher()(store)(mockNext)(action);
 
-    expect(mockWorker.postMessage).toHaveBeenCalledWith({ otherArgs });
+    expect(mockWorker.postMessage).toHaveBeenCalledWith(otherArgs);
 
     WORKERS['upload'] = realCreateWorker;
   });
 
-  // Okay, super hacky, but induce an error because we
-  //   don't include webpack as a dependency
+  beforeEach(() => {
+    WORKERS['fail-me'] = () => { throw new Error('Oh no!'); }
+  })
+
+  afterEach(() => {
+    delete WORKERS['fail-me'];
+  })
+
   it('dispatches error message when fails to instantiate worker', () => {
     const mockNext = jest.fn();
 
@@ -77,8 +82,8 @@ describe('workDispatcher', () => {
 
     const action = {
       type: WORK,
-      work_type: 'upload',
-      otherArgs
+      work_type: 'fail-me',
+      command: otherArgs
     };
 
     expect(store.getActions()).toEqual([]);
@@ -88,8 +93,8 @@ describe('workDispatcher', () => {
     expect(store.getActions()).toEqual([
       {
         type: WORK_FAILED,
-        work_type: 'upload',
-        otherArgs
+        work_type: 'fail-me',
+        command: otherArgs
       }
     ]);
   });

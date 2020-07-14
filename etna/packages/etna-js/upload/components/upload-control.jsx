@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 
 import {
   CANCEL_UPLOAD,
-  CONTINUE_UPLOAD,
+  UNPAUSE_UPLOAD,
   PAUSE_UPLOAD
 } from '../actions/upload_actions';
 
@@ -37,7 +37,7 @@ export default connect(
   // map dispatch
   (dispatch) => ({
     cancelUpload: (upload) => dispatch({ type: CANCEL_UPLOAD, upload }),
-    continueUpload: (upload) => dispatch({ type: CONTINUE_UPLOAD, upload }),
+    continueUpload: (upload) => dispatch({ type: UNPAUSE_UPLOAD, upload }),
     pauseUpload: (upload) => dispatch({ type: PAUSE_UPLOAD, upload })
   })
 )(UploadControl);
