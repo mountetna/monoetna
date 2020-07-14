@@ -1,5 +1,6 @@
-import { createWorker } from '../upload/workers/index';
+import {createWorker, terminateWorker} from '../upload/workers/index';
 import { WORK, WORK_FAILED } from '../upload/actions/upload_actions';
+import {appSubscription} from "../utils/subscription";
 
 // Export for testing
 export const WORKERS = {
@@ -8,13 +9,16 @@ export const WORKERS = {
 
 // a middleware that dispatches commands to worker threads
 const workDispatcher = () => {
-  let active_workers = { };
+  let active_workers = {};
+
+  appSubscription.addCleanup(function clearAllWorkers() {
+    Object.values(active_workers).forEach(terminateWorker)
+  });
 
   return store => next => action => {
-    let { type, work_type, ...args } = action;
+    let { type, work_type, command } = action;
 
     if (type != WORK) return next(action);
-
     if (!work_type in WORKERS) return;
 
     if (!(work_type in active_workers)) {
@@ -23,13 +27,13 @@ const workDispatcher = () => {
         active_workers[work_type] = worker;
       } catch(e) {
         store.dispatch({
-          type: WORK_FAILED, work_type, ...args
+          type: WORK_FAILED, work_type, command
         });
         return;
       }
     }
 
-    active_workers[work_type].postMessage(args);
+    active_workers[work_type].postMessage(command);
   }
 }
 

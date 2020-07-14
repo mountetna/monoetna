@@ -4,11 +4,8 @@ import files from './file-reducer';
 import buckets from './bucket-reducer';
 
 import {
-  UPLOAD_STATUS,
-  UPLOAD_SPEED,
-  ADD_UPLOAD,
-  REMOVE_UPLOAD
-} from 'etna-js/upload/actions/upload_actions';
+  UPDATE_UPLOADS,
+} from 'etna-js/upload/workers/uploader';
 
 const directory = (state, action) => {
   if (!state) state = {
@@ -21,10 +18,7 @@ const directory = (state, action) => {
   };
 
   switch (action.type) {
-    case UPLOAD_STATUS:
-    case UPLOAD_SPEED:
-    case ADD_UPLOAD:
-    case REMOVE_UPLOAD:
+    case UPDATE_UPLOADS:
       return {
         ...state,
         uploads: uploads(state.uploads, action)

@@ -5,7 +5,7 @@ import renderer from 'react-test-renderer';
 import UploadControl from '../upload-control';
 import {
   CANCEL_UPLOAD,
-  CONTINUE_UPLOAD,
+  UNPAUSE_UPLOAD,
   PAUSE_UPLOAD
 } from '../../actions/upload_actions';
 
@@ -121,7 +121,7 @@ describe('UploadControl', () => {
     ]);
   });
 
-  it('dispatches CONTINUE_UPLOAD action when play button clicked', () => {
+  it('dispatches UNPAUSE_UPLOAD action when play button clicked', () => {
     expect(store.getActions()).toEqual([]);
     const component = mount(
       <UploadControl upload={{ status: 'paused' }} store={store} />
@@ -132,7 +132,7 @@ describe('UploadControl', () => {
 
     expect(store.getActions()).toEqual([
       {
-        type: CONTINUE_UPLOAD,
+        type: UNPAUSE_UPLOAD,
         upload: {
           status: 'paused'
         }
