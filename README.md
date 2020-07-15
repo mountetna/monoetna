@@ -25,10 +25,14 @@ magma.development.local 127.0.0.1
 timur.development.local 127.0.0.1
 ```
 
+### Seeding janus and metis
+
 In addition, you'll want to configure some users and projects into your janus environment.
 
 ```bash
-# Make sure services are already running with make up in top level directory.
+# Ensures bundle has run
+make prepare
+# Enters bash console in janus
 make -C janus bash
 ○ → ./bin/janus add_project 'test-project' 'Test Project'
 ○ → ./bin/janus add_user some.guy@ucsf.edu Zach Collins password
@@ -44,6 +48,36 @@ make -C janus bash
 ○ → ./bin/janus permit some.guy@ucsf.edu test-project administrator
 ```
 
+### Seeding timur and magma
+
+You'll want to also likely setup some useful data for timur and magma.  These seeds are large (~2GB total) but give you
+fairly useful data to test again.
+
+```bash
+# Make sure other services are not accessing the db by turning them off
+make down
+./bin/seed_databases
+```
+
+NOTE:  This does delete your development timur and magma databases on each run.  It is a complete in place
+replacement of those with the seed data.
+
+## Issues
+
+If you run into issues building docker images, one quick solution is to try
+
+```bash
+cd docker
+docker-compose -p monoetna --no-cache
+```
+
+Also, check if your processes are having issues with
+
+```bash
+make ps
+make logs
+make -C metis logs
+```
 
 ## Workflow
 

@@ -72,8 +72,7 @@ function doDownloads() {
       doDownloads
     fi
 
-    echo "$0 will clear your local development database and overwrite it with data from the download seeds."
-    echo "In particular, these seeds often assume user id=1 is your development login."
+    echo "$0 will clear your local magma/timur development database and overwrite it with data from the download seeds."
     read -p "Continue?  y/n: "
 
     if ! [[ "$REPLY" =~ y|Y ]]; then
