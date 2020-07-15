@@ -1,4 +1,4 @@
-name: Run tests & prepare package.json updates
+name: Run tests
 on:
   push:
     branches:
