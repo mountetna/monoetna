@@ -134,6 +134,17 @@ class MetisClient
       next_blob_hash: upload.next_blob_hash
     )
 
+    # We'll try one more time, resetting it
+    if response.code != '200'
+      response = json_post(upload_path,
+        file_size: upload.file_size,
+        action: 'start',
+        next_blob_size: upload.next_blob_size,
+        next_blob_hash: upload.next_blob_hash,
+        reset: true
+      )
+    end
+
     raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
 
     json_body(response)
