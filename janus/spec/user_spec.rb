@@ -57,6 +57,12 @@ describe User do
 
     Timecop.return
   end
+
+  it 'complains if the email address is not all-lower-case' do
+    expect {
+      create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'Janus@two-faces.org')
+    }.to raise_error(Sequel::ValidationFailed)
+  end
 end
 
 describe UserController do

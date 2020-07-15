@@ -54,23 +54,25 @@ class AdminController < Janus::Controller
     require_params(:email, :name, :role)
     @project = Project[project_name: @params[:project_name]]
 
+    @email = @params[:email].downcase
+
     raise Etna::Forbidden, 'Cannot set admin role!' if @params[:role] == 'administrator'
 
     raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless [ 'viewer', 'editor' ].include?(@params[:role])
 
-    if @project.permissions.any? { |p| p.user.email == @params[:email] }
+    if @project.permissions.any? { |p| p.user.email == @email }
       raise Etna::BadRequest, "Duplicate permission on project #{@params[:project_name]}!"
     end
 
-    user = User[email: @params[:email]]
+    user = User[email: @email]
     unless user
-      raise Etna::BadRequest, 'Badly formed email address' unless @params[:email] =~ URI::MailTo::EMAIL_REGEXP
+      raise Etna::BadRequest, 'Badly formed email address' unless @email =~ URI::MailTo::EMAIL_REGEXP
 
       names = @params[:name].split
       raise Etna::BadRequest, 'Missing name' if names.empty?
       first, last = names.length > 1 ? [ names[0..-2].join(' '), names.last ] : names
 
-      user = User.create(email: @params[:email], first_name: first, last_name: last)
+      user = User.create(email: @email, first_name: first, last_name: last)
     end
 
     permission = Permission.create(project: @project, user: user, role: @params[:role])
