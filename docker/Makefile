@@ -30,6 +30,11 @@ up: docker-compose.yml .docker-build-mark ## Starts up all containers of this pr
 				@ for project in $(projects); do cd ../$$project && make config.yml || true; done
 				@ docker-compose up -d
 
+.PHONY: prepare
+prepare: docker-compose.yml .docker-build-mark ## Prepares all containers of this project by installing npm and bundle, but does not start servers.
+				@ for project in $(projects); do cd ../$$project && make config.yml || true; done
+				@ for project in $(projects); do cd ../$$project && make prepare || true; done
+
 .PHONY: down
 down: docker-compose.yml ## Ends all projects' processes
 				@ docker-compose down --remove-orphans
@@ -53,3 +58,9 @@ tag: docker-compose.yml ## For CI
 .PHONY: create
 create: docker-compose.yml ## For CI
 				@ docker-compose up --no-start
+
+.PHONY: clean
+clean: docker-compose.yml
+				@ docker-compose down -v --remove-orphans
+				@ docker-compose build --no-cache
+				@ docker-compose create
