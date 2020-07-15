@@ -143,7 +143,7 @@ class MetisClient
 
   def retry_upload(upload_path, upload)
     number_attempts = MetisConfig[:max_retries] || 1
-    for retry_number in 0..number_attempts do
+    for retry_number in 1..number_attempts do
       response = json_post(upload_path,
         file_size: upload.file_size,
         action: 'start',
