@@ -1,4 +1,5 @@
 export COMPOSE_PROJECT_NAME=monoetna
+export NODE_ENV=development
 projects := $(shell ls ./*/Makefile | grep -v docker | xargs -n 1 dirname | xargs -n 1 basename)
 
 help: ## Display help text
@@ -16,6 +17,10 @@ build: ## Forces a rebuild of all projects' development dockerfiles
 .PHONY: up
 up: ## Starts up all containers of this project in the background
 				@ make -C docker up
+
+.PHONY: prepare
+prepare: ## Prepares all containers by running npm and bundle installs, without starting servers.
+				@ make -C docker prepare
 
 .PHONY: down
 down: ## Ends all projects' processes
@@ -60,3 +65,7 @@ setup-links: ## Sets up local development links for npm (and one day ruby) packa
 .PHONE: tag
 tag:  ## For ci, alters the project docker-compose.yml such that images contain specified repository tagging
 				@ make -C docker tag
+
+.PHONE: clean
+clean:  ## Drops all data volumes, wiping all development databases and caches, and rebuilds all docker images cleanly.
+				@ make -C docker clean
