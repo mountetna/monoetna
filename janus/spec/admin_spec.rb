@@ -416,6 +416,23 @@ describe AdminController do
       expect(Permission.first.user).to eq(user)
     end
 
+    it 'squashes case in email addresses' do
+      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+      perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
+
+      auth_header(:janus)
+      json_post('add_user/door', email: 'Portunus@two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
+
+      expect(last_response.status).to eq(302)
+
+      expect(Permission.count).to eq(2)
+      expect(User.count).to eq(2)
+      expect(User.first.email).to eq(user.email)
+      expect(User.last.email).to eq('portunus@two-faces.org')
+    end
+
     it 'forbids a non-admin from adding a user' do
       user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
       #user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
