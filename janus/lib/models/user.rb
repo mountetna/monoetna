@@ -1,6 +1,11 @@
 class User < Sequel::Model
   one_to_many :permissions
 
+  def validate
+    super
+    errors.add(:email, 'must be lowercase') if email =~ /[A-Z]/
+  end
+
   def name
     [ first_name, last_name ].compact.join(' ')
   end

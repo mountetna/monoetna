@@ -1,0 +1,44 @@
+#! /usr/bin/env bash
+set -e
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+cd $DIR/..
+
+metisPath=$1
+
+if [[ -e /dest ]]; then
+    destPath=/dest
+else
+    destPath=$(readlink -m $2)
+fi
+
+if [[ -z "$TOKEN" ]] || [[ -z "$metisPath" ]] || [[ -z "$destPath" ]]; then
+  echo "usage: TOKEN=metistoken $0 <metis-path> <dest>"
+  exit 1
+fi
+
+if [[ -e /dest ]]; then
+    echo '{ "metis_uid": "cf593c49caece3b878378f0094a3476f", "metis_uid_name": "METIS_UID", "metis_host": "metis.ucsf.edu" }' > /root/.metis.json
+    cd /dest
+    /app/bin/metis_client $metisPath get ./ /dest/
+else
+  # Ensure images are created
+  make -C docker create
+  docker-compose -p monoetna run -e TOKEN="$TOKEN" -v $destPath:/dest -v $DIR:/root/bin metis_app /root/bin/download_metis_dir "$metisPath"
+fi
+
