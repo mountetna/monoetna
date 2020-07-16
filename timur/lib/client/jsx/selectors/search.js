@@ -29,6 +29,16 @@ export const selectSearchAttributeNames = createSelector(
   (search) => search.attribute_names
 );
 
+export const selectSearchFilterString = createSelector(
+  selectSearchData,
+  (search) => search.filter_string
+);
+
+export const selectSearchFilterParams = createSelector(
+  selectSearchData,
+  (search) => search.filter_params
+);
+
 export const constructSingleFilterString = createSelector(
   selectSearchData,
   ({filter_params, filter_string}) => {

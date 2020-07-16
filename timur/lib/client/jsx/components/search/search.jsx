@@ -1,4 +1,3 @@
-import Pager from '../pager';
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 
@@ -10,11 +9,14 @@ import {selectModelNames} from '../../selectors/magma';
 import {
   requestTSV,
   requestModels,
-  requestDocuments,
+  requestDocuments
 } from '../../actions/magma_actions';
 import {
   selectSearchCache,
   selectSearchAttributeNames,
+  constructSingleFilterString,
+  selectSearchFilterParams,
+  selectSearchFilterString
 } from '../../selectors/search';
 import {
   cacheSearchPage,
@@ -22,6 +24,7 @@ import {
   setSearchPage,
   emptySearchCache,
   setSearchAttributeNames,
+  setFilterString
 } from '../../actions/search_actions';
 
 import ModelViewer from '../model_viewer';
@@ -53,7 +56,7 @@ class Search extends Component {
           page: page,
           page_size: this.state.page_size,
           collapse_tables: true,
-          exchange_name: `request-${this.state.selected_model}`,
+          exchange_name: `request-${this.state.selected_model}`
         })
         .then((response) => {
           this.handleRequestDocumentsSuccess(page, newSearch, response);
@@ -131,7 +134,7 @@ class Search extends Component {
           type='text'
           className='filter'
           placeholder='Filter query'
-          onChange={(e) => this.setState({current_filter: e.target.value})}
+          onChange={(e) => this.props.setFilterString(e.target.value)}
         />
 
         <input
@@ -206,6 +209,12 @@ export default connect(
     model_names: selectModelNames(state),
     cache: selectSearchCache(state),
     attribute_names: selectSearchAttributeNames(state),
+    // @Zach: this selector should return a single "final" filter string,
+    //    regardless if the user is using Advanced or Basic mode.
+    //    Empty string is no filter entered.
+    current_filter: constructSingleFilterString(state),
+    filter_string: selectSearchFilterString(state),
+    filter_params: selectSearchFilterParams(state)
   }),
   {
     requestModels,
@@ -213,8 +222,9 @@ export default connect(
     setSearchPage,
     setSearchPageSize,
     setSearchAttributeNames,
+    setFilterString,
     emptySearchCache,
     requestDocuments,
-    requestTSV,
+    requestTSV
   }
 )(Search);
