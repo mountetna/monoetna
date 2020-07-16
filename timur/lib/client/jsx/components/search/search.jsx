@@ -10,18 +10,18 @@ import {selectModelNames} from '../../selectors/magma';
 import {
   requestTSV,
   requestModels,
-  requestDocuments
+  requestDocuments,
 } from '../../actions/magma_actions';
 import {
   selectSearchCache,
-  selectSearchAttributeNames
-} from '../../selectors/search_cache';
+  selectSearchAttributeNames,
+} from '../../selectors/search';
 import {
   cacheSearchPage,
   setSearchPageSize,
   setSearchPage,
   emptySearchCache,
-  setSearchAttributeNames
+  setSearchAttributeNames,
 } from '../../actions/search_actions';
 
 import ModelViewer from '../model_viewer';
@@ -53,7 +53,7 @@ class Search extends Component {
           page: page,
           page_size: this.state.page_size,
           collapse_tables: true,
-          exchange_name: `request-${this.state.selected_model}`
+          exchange_name: `request-${this.state.selected_model}`,
         })
         .then((response) => {
           this.handleRequestDocumentsSuccess(page, newSearch, response);
@@ -111,41 +111,41 @@ class Search extends Component {
     const buttonClasses = buttonDisabled ? 'button disabled' : 'button';
 
     return (
-      <div className="query">
-        <span className="label">Show table</span>
+      <div className='query'>
+        <span className='label'>Show table</span>
         <SelectInput
-          name="model"
+          name='model'
           values={this.props.model_names}
           onChange={this.onSelectTableChange}
-          showNone="enabled"
+          showNone='enabled'
         />
 
-        <span className="label">Page size</span>
+        <span className='label'>Page size</span>
         <SelectInput
           values={[10, 25, 50, 200]}
           defaultValue={this.state.page_size}
           onChange={(page_size) => this.setState({page_size})}
-          showNone="disabled"
+          showNone='disabled'
         />
         <input
-          type="text"
-          className="filter"
-          placeholder="Filter query"
+          type='text'
+          className='filter'
+          placeholder='Filter query'
           onChange={(e) => this.setState({current_filter: e.target.value})}
         />
 
         <input
-          id="search-pg-search-btn"
-          type="button"
+          id='search-pg-search-btn'
+          type='button'
           className={buttonClasses}
-          value="Search"
+          value='Search'
           disabled={buttonDisabled}
           onClick={() => this.getPage(0, true)}
         />
         <input
-          id="search-pg-tsv-btn"
+          id='search-pg-tsv-btn'
           className={buttonClasses}
-          type="button"
+          type='button'
           value={'\u21af TSV'}
           disabled={buttonDisabled}
           onClick={() =>
@@ -167,18 +167,18 @@ class Search extends Component {
     let pages = model_name ? Math.ceil(results / page_size) : -1;
 
     return (
-      <div id="search">
-        <div className="control">
+      <div id='search'>
+        <div className='control'>
           {this.renderQuery()}
           {results && !loading && (
-            <div className="results">
+            <div className='results'>
               Found {results} records in{' '}
-              <span className="model_name">{model_name}</span>
+              <span className='model_name'>{model_name}</span>
             </div>
           )}
         </div>
         {model_name && !loading ? (
-          <div className="documents">
+          <div className='documents'>
             <ModelViewer
               model_name={model_name}
               record_names={record_names}
@@ -191,7 +191,7 @@ class Search extends Component {
         ) : (
           <GridLoader
             css={spinnerCss}
-            color="green"
+            color='green'
             size={20}
             loading={loading}
           />
@@ -205,7 +205,7 @@ export default connect(
   (state, props) => ({
     model_names: selectModelNames(state),
     cache: selectSearchCache(state),
-    attribute_names: selectSearchAttributeNames(state)
+    attribute_names: selectSearchAttributeNames(state),
   }),
   {
     requestModels,
@@ -215,6 +215,6 @@ export default connect(
     setSearchAttributeNames,
     emptySearchCache,
     requestDocuments,
-    requestTSV
+    requestTSV,
   }
 )(Search);
