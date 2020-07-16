@@ -41,7 +41,8 @@ class Search extends Component {
   }
 
   getPage = (page, newSearch = false) => {
-    let {attribute_names} = this.props;
+    let {attribute_names, current_filter} = this.props;
+    let {page_size, selected_model} = this.state;
 
     page = page + 1;
 
@@ -49,14 +50,14 @@ class Search extends Component {
       this.setState({loading: true});
       this.props
         .requestDocuments({
-          model_name: this.state.selected_model,
+          model_name: selected_model,
           record_names: 'all',
           attribute_names: attribute_names,
-          filter: this.props.current_filter,
+          filter: current_filter,
           page: page,
-          page_size: this.state.page_size,
+          page_size: page_size,
           collapse_tables: true,
-          exchange_name: `request-${this.state.selected_model}`
+          exchange_name: `request-${selected_model}`
         })
         .then((response) => {
           this.handleRequestDocumentsSuccess(page, newSearch, response);
