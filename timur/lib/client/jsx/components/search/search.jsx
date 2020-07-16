@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 
 import {css} from '@emotion/core';
-import GridLoader from 'react-spinners/GridLoader';
+import ClimbingBoxLoader from 'react-spinners/ClimbingBoxLoader';
 
 import SelectInput from '../inputs/select_input';
 import {selectModelNames} from '../../selectors/magma';
@@ -52,7 +52,7 @@ class Search extends Component {
           model_name: this.state.selected_model,
           record_names: 'all',
           attribute_names: attribute_names,
-          filter: this.state.current_filter,
+          filter: this.props.current_filter,
           page: page,
           page_size: this.state.page_size,
           collapse_tables: true,
@@ -134,7 +134,7 @@ class Search extends Component {
           type='text'
           className='filter'
           placeholder='Filter query'
-          onChange={(e) => this.props.setFilterString(e.target.value)}
+          onBlur={(e) => this.props.setFilterString(e.target.value)}
         />
 
         <input
@@ -192,7 +192,7 @@ class Search extends Component {
             />
           </div>
         ) : (
-          <GridLoader
+          <ClimbingBoxLoader
             css={spinnerCss}
             color='green'
             size={20}

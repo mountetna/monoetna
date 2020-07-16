@@ -46,14 +46,17 @@ export const constructSingleFilterString = createSelector(
     // filter_string used for advanced filter
     // Only one should be populated.
 
-    if (filter_string) return filter_string;
+    if (filter_string) {
+      return filter_string;
+    }
 
-    if (filter_params)
+    if (filter_params) {
       return filter_params
         .map((param) => {
           return `${param.attribute}${param.operator}${param.value}`;
         })
         .join(' ');
+    }
 
     return '';
   }

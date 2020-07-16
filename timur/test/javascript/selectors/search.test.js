@@ -1,6 +1,8 @@
 import {
   selectSearchAttributeNames,
-  constructSingleFilterString
+  constructSingleFilterString,
+  selectSearchFilterParams,
+  selectSearchFilterString
 } from '../../../lib/client/jsx/selectors/search';
 
 describe('selectSearchAttributeNames', () => {
@@ -14,6 +16,39 @@ describe('selectSearchAttributeNames', () => {
     let attribute_names = selectSearchAttributeNames(state);
 
     expect(attribute_names).toEqual(['name', 'stats', 'species']);
+  });
+});
+
+describe('selectSearchFilterParams', () => {
+  it('returns the filter_params from the search state', () => {
+    let state = {
+      search: {
+        attribute_names: ['name', 'stats', 'species'],
+        filter_params: [{attribute: 'species', operator: '=', value: 'lion'}]
+      }
+    };
+
+    let filter_params = selectSearchFilterParams(state);
+
+    expect(filter_params).toEqual([
+      {attribute: 'species', operator: '=', value: 'lion'}
+    ]);
+  });
+});
+
+describe('selectSearchFilterString', () => {
+  it('returns the filter_string from the search state', () => {
+    let state = {
+      search: {
+        attribute_names: ['name', 'stats', 'species'],
+        filter_params: [{attribute: 'species', operator: '=', value: 'lion'}],
+        filter_string: 'all'
+      }
+    };
+
+    let filter_string = selectSearchFilterString(state);
+
+    expect(filter_string).toEqual('all');
   });
 });
 
@@ -46,5 +81,17 @@ describe('constructSingleFilterString', () => {
     let filter_string = constructSingleFilterString(state);
 
     expect(filter_string).toEqual('species=lion name~/nem/ lives<2 stats>5');
+  });
+
+  it('returns empty string if no filter_string or no filter_params', () => {
+    let state = {
+      search: {
+        attribute_names: ['species', 'name', 'lives', 'stats']
+      }
+    };
+
+    let filter_string = constructSingleFilterString(state);
+
+    expect(filter_string).toEqual('');
   });
 });
