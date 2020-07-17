@@ -22,6 +22,7 @@
     "core-js": "^3.6.5",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.2",
+    "identity-obj-proxy": "^3.0.0",
     "jest": "^26.1.0",
     "json-delta": "^1.0.1",
     "nock": "^12.0.3",
