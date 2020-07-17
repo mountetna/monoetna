@@ -5,6 +5,9 @@ module.exports = {
       project_name: 'labors'
     }
   },
+  moduleNameMapper: {
+    "\\.(css|scss)$": "identity-obj-proxy"
+  },
   testMatch: [
     "**/__tests__/**/?(*.)(spec|test).js?(x)"
   ],
