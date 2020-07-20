@@ -13,12 +13,14 @@ export const cacheSearchPage = (
   page,
   model_name,
   record_names,
+  attribute_names,
   clear_cache
 ) => ({
   type: CACHE_SEARCH_PAGE,
   page,
   model_name,
   record_names,
+  attribute_names,
   clear_cache
 });
 

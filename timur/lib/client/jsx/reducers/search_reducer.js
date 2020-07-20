@@ -43,7 +43,8 @@ const searchReducer = (search, action) => {
       return {
         ...search,
         model_name: action.model_name,
-        pages: pages(search.pages, action)
+        pages: pages(search.pages, action),
+        cached_attribute_names: action.attribute_names
       };
     case EMPTY_SEARCH_CACHE:
       return {

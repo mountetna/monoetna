@@ -1,11 +1,17 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 
+import * as _ from 'lodash';
+
 import {css} from '@emotion/core';
 import ClimbingBoxLoader from 'react-spinners/ClimbingBoxLoader';
 
 import SelectInput from '../inputs/select_input';
-import {selectModelNames} from '../../selectors/magma';
+import {
+  selectModelNames,
+  selectTemplate,
+  displayAttributes
+} from '../../selectors/magma';
 import {
   requestTSV,
   requestModels,
@@ -28,21 +34,27 @@ import {
 } from '../../actions/search_actions';
 
 import ModelViewer from '../model_viewer';
+import TreeView, {getSelectedLeaves} from 'etna-js/components/TreeView';
 
 const spinnerCss = css`
   display: block;
   margin: 2rem auto;
 `;
 
-class Search extends Component {
+export class Search extends Component {
   constructor(props) {
     super(props);
     this.state = {page_size: 10, loading: false};
   }
 
   getPage = (page, newSearch = false) => {
-    let {attribute_names, current_filter} = this.props;
-    let {page_size, selected_model} = this.state;
+    let {attribute_names, cache, current_filter} = this.props;
+    let {cached_attribute_names} = cache;
+
+    // Need to re-fetch a page if the user has clicked a new set of
+    //    attribute names from the TreeView
+    newSearch =
+      newSearch || !_.isEqual(cached_attribute_names, attribute_names);
 
     page = page + 1;
 
@@ -60,6 +72,8 @@ class Search extends Component {
           exchange_name: `request-${selected_model}`
         })
         .then((response) => {
+          // Should clear the cache, especially if the attribute_names changed
+          if (newSearch) this.props.emptySearchCache();
           this.handleRequestDocumentsSuccess(page, newSearch, response);
         })
         .catch(this.handleRequestDocumentsError);
@@ -83,16 +97,11 @@ class Search extends Component {
   componentDidMount() {
     this.props.requestModels();
     this.props.emptySearchCache();
-
-    // @Zach -- This sets the search attribute_names to the default.
-    // When we have UI widgets to control this, we
-    //   will need to tie the setSearchAttributes() action
-    //   into those widgets and remove this.
-    // setSearchAttributes() expects 'all' or a list of attribute names.
     this.props.setSearchAttributeNames('all');
   }
 
   makePageCache = (page, page_size, payload) => {
+    let {attribute_names} = this.props;
     let model = payload.models[this.state.selected_model];
     if (model.count) this.setState({results: model.count});
     if (page_size) this.props.setSearchPageSize(page_size);
@@ -101,12 +110,19 @@ class Search extends Component {
       page,
       this.state.selected_model,
       Object.keys(model.documents),
-      page == 1
+      attribute_names,
+      page == 1 // clears the cache if you return to page 1
     );
   };
 
   onSelectTableChange = (model_name) => {
+    this.props.setSearchAttributeNames('all');
+    this.props.emptySearchCache();
     this.setState({selected_model: model_name});
+  };
+
+  handleTreeViewSelectionsChange = (new_state) => {
+    this.props.setSearchAttributeNames(getSelectedLeaves(new_state));
   };
 
   renderQuery() {
@@ -164,11 +180,69 @@ class Search extends Component {
     );
   }
 
+  convertAttributeNameListToTreeState = (attribute_names) => {
+    return attribute_names.reduce((result, attribute_name, index, array) => {
+      result[attribute_name] = true;
+      return result;
+    }, {});
+  };
+
+  getDisplayAttributeOptions = () => {
+    let {selected_model} = this.state;
+    let {magma_state} = this.props;
+
+    if (!selected_model) return;
+
+    // Have to use the selector here instead of in connect()
+    //   because the selected_model is in component state instead
+    //   of global state.
+    const template = selectTemplate({magma: magma_state}, selected_model);
+    let display_attribute_options = displayAttributes(template);
+
+    // display_attribute_options is currently just a flat list of strings
+    // To support nesting, we need to re-format it into a list of 1-item lists.
+    display_attribute_options = display_attribute_options.map((opt) => [opt]);
+
+    return display_attribute_options;
+  };
+
   render() {
-    let {cache} = this.props;
-    let {current_page, page_size, model_name, record_names} = cache;
-    let {results, loading} = this.state;
+    let {cache, attribute_names} = this.props;
+    let {
+      current_page,
+      page_size,
+      model_name,
+      record_names,
+      cached_attribute_names
+    } = cache;
+    let {results, selected_model, loading} = this.state;
     let pages = model_name ? Math.ceil(results / page_size) : -1;
+    const _this = this; // for use in ModelBody
+
+    const display_attribute_options = this.getDisplayAttributeOptions();
+
+    if (display_attribute_options) {
+      // We should attempt to re-order the ModelViewer's cached_attribute_names
+      //    in the same order as the template's display_attribute_options.
+      // This will change in the future once we finalize what a global
+      //    attribute ordering should be.
+      cached_attribute_names = cached_attribute_names
+        ? _.flatten(
+            display_attribute_options.filter(
+              (opt) =>
+                // This will certainly change when it's an array of items
+                cached_attribute_names.includes(_.last(opt)) ||
+                cached_attribute_names === 'all'
+            )
+          )
+        : null;
+    }
+
+    // Initialize the TreeView state, if not "all"
+    const selected_options =
+      attribute_names && attribute_names !== 'all'
+        ? this.convertAttributeNameListToTreeState(attribute_names)
+        : null;
 
     return (
       <div id='search'>
@@ -181,27 +255,50 @@ class Search extends Component {
             </div>
           )}
         </div>
-        {model_name && !loading ? (
-          <div className='documents'>
-            <ModelViewer
-              model_name={model_name}
-              record_names={record_names}
-              page={current_page - 1}
-              pages={pages}
-              page_size={page_size}
-              setPage={this.getPage.bind(this)}
-            />
-          </div>
-        ) : (
-          <ClimbingBoxLoader
-            css={spinnerCss}
-            color='green'
-            size={20}
-            loading={loading}
-          />
-        )}
+        <ModelBody />
       </div>
     );
+
+    function ModelBody() {
+      return (
+        <div className='body'>
+          {selected_model && (
+            <div className='attributes'>
+              <h3>{selected_model} attributes</h3>
+              <TreeView
+                selected={selected_options}
+                options={display_attribute_options}
+                onSelectionsChange={_this.handleTreeViewSelectionsChange}
+              />
+            </div>
+          )}
+          {model_name && !loading ? (
+            <div className='documents'>
+              <ModelViewer
+                model_name={model_name}
+                record_names={record_names}
+                page={current_page - 1}
+                pages={pages}
+                page_size={page_size}
+                setPage={_this.getPage}
+                restricted_attribute_names={
+                  cached_attribute_names !== 'all'
+                    ? cached_attribute_names
+                    : null
+                }
+              />
+            </div>
+          ) : (
+            <ClimbingBoxLoader
+              css={spinnerCss}
+              color='green'
+              size={20}
+              loading={loading}
+            />
+          )}
+        </div>
+      );
+    }
   }
 }
 
@@ -210,12 +307,10 @@ export default connect(
     model_names: selectModelNames(state),
     cache: selectSearchCache(state),
     attribute_names: selectSearchAttributeNames(state),
-    // @Zach: this selector should return a single "final" filter string,
-    //    regardless if the user is using Advanced or Basic mode.
-    //    Empty string is no filter entered.
     current_filter: constructSingleFilterString(state),
     filter_string: selectSearchFilterString(state),
-    filter_params: selectSearchFilterParams(state)
+    filter_params: selectSearchFilterParams(state),
+    magma_state: state.magma
   }),
   {
     requestModels,

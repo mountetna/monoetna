@@ -1,5 +1,6 @@
 var path = require('path');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var webpack = require('webpack');
 
 module.exports = (env) => ({
   context: path.resolve(__dirname),
@@ -27,11 +28,20 @@ module.exports = (env) => ({
         // Skip any files outside of your project's `src` directory
         include: [
           path.resolve(__dirname, 'lib/client/jsx'),
-          path.resolve(__dirname, 'node_modules/etna-js/')
+          path.resolve(__dirname, 'node_modules/etna-js/'),
+          '/etna/packages/etna-js'
         ],
 
         // Only run `.js` and `.jsx` files through Babel
         test: /\.jsx?$/
+      },
+      {
+        loader: ['style-loader', 'css-loader'],
+        include: [
+          path.resolve(__dirname, 'node_modules/etna-js/'),
+          '/etna/packages/etna-js'
+        ],
+        test: /\.css$/
       },
 
       {
@@ -68,6 +78,11 @@ module.exports = (env) => ({
       // define where to save the file
       filename: 'public/css/timur.bundle.css',
       allChunks: true
+    }),
+    new webpack.DefinePlugin({
+      'process.env': {
+        NODE_ENV: JSON.stringify(env ? env.NODE_ENV : 'development')
+      }
     })
   ]
 });
