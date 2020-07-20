@@ -50,6 +50,7 @@ export class Search extends Component {
   getPage = (page, newSearch = false) => {
     let {attribute_names, cache, current_filter} = this.props;
     let {cached_attribute_names} = cache;
+    let {selected_model, page_size} = this.state;
 
     // Need to re-fetch a page if the user has clicked a new set of
     //    attribute names from the TreeView
@@ -122,6 +123,8 @@ export class Search extends Component {
   };
 
   handleTreeViewSelectionsChange = (new_state) => {
+    console.log('new state');
+    console.log(new_state);
     this.props.setSearchAttributeNames(getSelectedLeaves(new_state));
   };
 
@@ -220,6 +223,8 @@ export class Search extends Component {
     const _this = this; // for use in ModelBody
 
     const display_attribute_options = this.getDisplayAttributeOptions();
+    console.log('display_attribute_options');
+    console.log(display_attribute_options);
 
     if (display_attribute_options) {
       // We should attempt to re-order the ModelViewer's cached_attribute_names
@@ -243,6 +248,9 @@ export class Search extends Component {
       attribute_names && attribute_names !== 'all'
         ? this.convertAttributeNameListToTreeState(attribute_names)
         : null;
+
+    console.log('selected_options');
+    console.log(selected_options);
 
     return (
       <div id='search'>

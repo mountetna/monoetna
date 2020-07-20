@@ -10,6 +10,7 @@ class SearchCache {
         ? search.pages[search.current_page].record_names
         : null;
     this.page_size = search.page_size;
+    this.cached_attribute_names = search.cached_attribute_names;
   }
 
   isCached(page) {
