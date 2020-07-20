@@ -21,3 +21,8 @@ export function assertIsSome(thing) {
   }
   return thing;
 }
+
+export function trace(v, msg = v) {
+  console.log(msg);
+  return v;
+}
