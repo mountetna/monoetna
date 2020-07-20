@@ -134,7 +134,7 @@ class MetisClient
       next_blob_hash: upload.next_blob_hash
     )
 
-    response = retry_upload(upload_path, upload) if response.code != '200'
+    response = retry_upload(upload_path, upload) if response.code == '422'
 
     raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
 
@@ -142,8 +142,8 @@ class MetisClient
   end
 
   def retry_upload(upload_path, upload)
-    number_attempts = MetisConfig[:max_retries] || 1
-    for retry_number in 1..number_attempts do
+    max_number_attempts = MetisConfig[:max_retries] || 1
+    for retry_number in 1..max_number_attempts do
       response = json_post(upload_path,
         file_size: upload.file_size,
         action: 'start',
@@ -153,7 +153,7 @@ class MetisClient
       )
       if response.code == '200'
         return response
-      elsif retry_number == number_attempts
+      elsif retry_number == max_number_attempts
         return response
       end
     end
