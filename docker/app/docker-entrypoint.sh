@@ -11,7 +11,8 @@ if [ -z "$SKIP_RUBY_SETUP" ]; then
 fi
 
 if [ -n "$RUN_NPM_INSTALL" ]; then
-  npm install --unsafe-perm
+  cd packages/etna-js
+  npm install
 fi
 
 exec "$@"
