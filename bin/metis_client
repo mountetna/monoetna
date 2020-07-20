@@ -126,12 +126,13 @@ class MetisClient
     return json_body(response)
   end
 
-  def start_upload(upload_path, upload)
+  def start_upload(upload_path, upload, reset=false)
     response = json_post(upload_path,
       file_size: upload.file_size,
       action: 'start',
       next_blob_size: upload.next_blob_size,
-      next_blob_hash: upload.next_blob_hash
+      next_blob_hash: upload.next_blob_hash,
+      reset: reset
     )
 
     response = retry_upload(upload_path, upload) if response.code == '422'
@@ -170,7 +171,13 @@ class MetisClient
       ]
     )
 
+    # reset the upload
+    return true if response.code == '422'
+
     raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
+
+    # no reset required
+    return false
   end
 
   def create_folder(project_name, folder_path)
@@ -669,12 +676,20 @@ EOT
       # upload bytes until we are done
 
       if upload.complete?
-        @shell.client.blob_upload(upload_path, upload,
+        reset_required = @shell.client.blob_upload(upload_path, upload,
           blob_data: '',
           next_blob_size: 0,
           next_blob_hash: ZERO_HASH,
           current_byte_position: upload.current_byte_position
         )
+
+        if reset_required
+          # restart the upload
+          upload_json = @shell.client.start_upload(upload_path, upload, true)
+
+          upload.current_byte_position = upload_json[:current_byte_position].to_i
+          upload.next_blob_size = upload_json[:next_blob_size].to_i
+        end
 
         puts progress(1, 0, new_file_path)
         return
