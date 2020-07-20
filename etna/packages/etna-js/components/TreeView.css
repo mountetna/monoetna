@@ -1,0 +1,7 @@
+.etna-tree-view {
+    line-height: 200%;
+}
+
+.etna-tree-view .child {
+    margin-left: 10px;
+}
