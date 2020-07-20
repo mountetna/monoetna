@@ -684,6 +684,7 @@ EOT
         )
 
         if reset_required
+          puts "Resetting the upload for " + new_file_path + " ... blob upload failed"
           # restart the upload
           upload_json = @shell.client.start_upload(upload_path, upload, true)
 
