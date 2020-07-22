@@ -27,7 +27,7 @@ const pages = (pages, action) => {
 };
 
 const searchReducer = (search, action) => {
-  if (!search) search = {pages: {}};
+  if (!search) search = {pages: {}, attribute_names: 'all'};
   switch (action.type) {
     case SET_SEARCH_PAGE_SIZE:
       return {

@@ -1,23 +1,61 @@
 @import 'globals';
 @import 'attribute';
 
+.search-filters-modal {
+  width: 600px;
+  padding: 20px;
+  border: 1px solid black;
+  border-radius: 4px;
+  background: white;
+  max-height: 70vh;
+
+
+  .actions {
+    text-align: right;
+
+    button {
+      @include green_button;
+    }
+  }
+}
+
+
+.search-attribute-filters-modal {
+  width: 600px;
+  padding: 20px;
+  border: 1px solid black;
+  border-radius: 4px;
+  background: white;
+  max-height: 70vh;
+
+
+  .actions {
+    text-align: right;
+
+    button {
+      @include green_button;
+    }
+  }
+}
+
 #search {
   font-family: $body_font;
-  width: 100%;
   margin: 5px 3%;
 
+  .query-builder {
+    line-height: 200%;
+
+    .pointer {
+      margin: 0 10px;
+    }
+  }
+
+  .pointer {
+    cursor: pointer;
+  }
+
   .body {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
     margin-top: 10px;
-
-    .attributes {
-      width: 300px;
-    }
-
-    .documents {
-    }
   }
 
   .button {
@@ -36,6 +74,11 @@
     padding-bottom: 4px;
     text-align: center;
   }
+
+  select {
+    margin-right: 8px;
+  }
+
   .query {
   }
   .pages {
@@ -70,5 +113,6 @@
   }
   .label {
     padding: 4px;
+    margin-right: 4px;
   }
 }
