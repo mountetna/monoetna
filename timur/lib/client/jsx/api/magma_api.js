@@ -55,7 +55,13 @@ export const getTSVForm = (model_name, filter, attribute_names) => {
   for (let name in data) {
     let value = data[name];
     if (value != undefined && value != null) {
-      form.appendChild(input(name, value));
+      if (value instanceof Array) {
+        value.forEach((val) => {
+          form.appendChild(input(name + '[]', val));
+        });
+      } else {
+        form.appendChild(input(name, value));
+      }
     }
   }
 

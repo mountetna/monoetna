@@ -23,7 +23,7 @@ exports[`Search renders 1`] = `
           disabled={false}
           value=""
         >
-           --- 
+           ---
         </option>
         <option
           value={0}
@@ -54,7 +54,7 @@ exports[`Search renders 1`] = `
           disabled={true}
           value=""
         >
-           --- 
+           ---
         </option>
         <option
           value={0}
@@ -79,7 +79,7 @@ exports[`Search renders 1`] = `
       </select>
       <input
         className="filter"
-        onChange={[Function]}
+        onBlur={[Function]}
         placeholder="Filter query"
         type="text"
       />
@@ -102,11 +102,15 @@ exports[`Search renders 1`] = `
     </div>
   </div>
   <div
-    className="documents"
+    className="body"
   >
     <div
-      className="table"
-    />
+      className="documents"
+    >
+      <div
+        className="table"
+      />
+    </div>
   </div>
 </div>
 `;

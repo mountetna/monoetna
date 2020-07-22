@@ -17,9 +17,16 @@ describe('cacheSearchPage', () => {
     const model_name = 'monsters';
     const record_names = ['Nemean Lion', 'Lernean Hydra', 'Augean Stables'];
     const clear_cache = false;
+    const attribute_names = ['name', 'species'];
 
     store.dispatch(
-      actions.cacheSearchPage(page, model_name, record_names, clear_cache)
+      actions.cacheSearchPage(
+        page,
+        model_name,
+        record_names,
+        attribute_names,
+        clear_cache
+      )
     );
 
     expect(store.getActions()).toEqual([
@@ -28,6 +35,7 @@ describe('cacheSearchPage', () => {
         model_name,
         record_names,
         clear_cache,
+        attribute_names,
         type: actions.CACHE_SEARCH_PAGE
       }
     ]);
@@ -95,5 +103,71 @@ describe('setSearchAttributeNames', () => {
     expect(store.getActions()).toEqual([
       {attribute_names, type: actions.SET_SEARCH_ATTRIBUTE_NAMES}
     ]);
+  });
+});
+
+describe('addFilterParam', () => {
+  it('dispatches action to add hash filter param', () => {
+    const store = mockStore({});
+    const filter_param = {
+      attribute: 'stats',
+      operator: 'contains',
+      value: '/[a-z]/'
+    };
+
+    store.dispatch(actions.addFilterParam(filter_param));
+
+    expect(store.getActions()).toEqual([
+      {filter_param, type: actions.ADD_FILTER_PARAM}
+    ]);
+  });
+});
+
+describe('removeFilterParam', () => {
+  it('dispatches action to remove hash filter param', () => {
+    const store = mockStore({});
+    const filter_param = {
+      attribute: 'stats',
+      operator: 'contains',
+      value: '/[a-z]/'
+    };
+
+    store.dispatch(actions.removeFilterParam(filter_param));
+
+    expect(store.getActions()).toEqual([
+      {filter_param, type: actions.REMOVE_FILTER_PARAM}
+    ]);
+  });
+});
+
+describe('clearFilterParams', () => {
+  it('dispatches action to clear all filter params', () => {
+    const store = mockStore({});
+
+    store.dispatch(actions.clearFilterParams());
+
+    expect(store.getActions()).toEqual([{type: actions.CLEAR_FILTER_PARAMS}]);
+  });
+});
+
+describe('setFilterString', () => {
+  it('dispatches action to set an advanced filter string', () => {
+    const store = mockStore({});
+
+    store.dispatch(actions.setFilterString('monsters == all'));
+
+    expect(store.getActions()).toEqual([
+      {filter_string: 'monsters == all', type: actions.SET_FILTER_STRING}
+    ]);
+  });
+});
+
+describe('clearFilterString', () => {
+  it('dispatches action to clear an advanced filter string', () => {
+    const store = mockStore({});
+
+    store.dispatch(actions.clearFilterString());
+
+    expect(store.getActions()).toEqual([{type: actions.CLEAR_FILTER_STRING}]);
   });
 });
