@@ -23,7 +23,7 @@ exports[`Search renders 1`] = `
           disabled={false}
           value=""
         >
-           ---
+           --- 
         </option>
         <option
           value={0}
@@ -54,7 +54,7 @@ exports[`Search renders 1`] = `
           disabled={true}
           value=""
         >
-           ---
+           --- 
         </option>
         <option
           value={0}
