@@ -695,7 +695,7 @@ EOT
         end
         puts
         break
-      rescue MetisClient::UploadError:
+      end rescue MetisClient::UploadError
         reset = true
         current_attempt_number += 1
       end
