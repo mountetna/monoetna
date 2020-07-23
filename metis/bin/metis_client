@@ -650,6 +650,7 @@ EOT
       max_number_attempts = MetisConfig[:max_retries] || 1
       current_attempt_number = 1
       reset = false
+
       while current_attempt_number <= max_number_attempts do
         upload_json = @shell.client.start_upload(upload_path, upload, reset)
         # start our upload
@@ -693,9 +694,10 @@ EOT
           )
         end
         puts
-        current_attempt_number += 1
+        break
       rescue MetisClient::UploadError:
         reset = true
+        current_attempt_number += 1
       end
     end
   end
