@@ -28,11 +28,18 @@ export default class SelectInput extends Component {
   }
 
   render() {
-    let { children, values, showNone, defaultValue } = this.props;
-    defaultValue = defaultValue || (showNone ? '' : null);
+    let { children, values, showNone, defaultValue, value, onChange, ...props } = this.props;
+
+    if (!('value' in this.props)) {
+      if (defaultValue == null && showNone) {
+        defaultValue = '';
+      } else if (defaultValue != null) {
+        defaultValue = values.indexOf(defaultValue);
+      }
+    }
 
     return(
-      <select defaultValue={ defaultValue } onChange={ this.onChange.bind(this) } >
+      <select value={value} defaultValue={ defaultValue } onChange={ this.onChange.bind(this) } {...props} >
         { children }
         { NoneOption(showNone) }
         { values.map(Option) }

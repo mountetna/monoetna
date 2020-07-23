@@ -6,21 +6,61 @@ import {useModal} from "etna-js/components/ModalDialogContainer";
 import TreeView, {getSelectedLeaves} from 'etna-js/components/TreeView';
 import SelectInput from "../inputs/select_input";
 
-export function QueryBuilder({ display_attributes, setFilterString }) {
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
+export function QueryBuilder({ display_attributes, setFilterString, selectedModel, attribute_names }) {
   const { openModal } = useModal();
   const [filtersState, setFiltersState] = useState([]);
 
   useEffect(() => {
-    // TODO: Compse the filter string from filtersState and calling setFilterString
+    setFiltersState([]);
+  }, [selectedModel]);
+
+  useEffect(() => {
+    setFiltersState(filtersState.filter(({attribute}) => attribute_names === 'all' || attribute_names.includes(attribute)));
+  }, [attribute_names]);
+
+  useEffect(() => {
+    setFilterString(filtersState.map(({attribute, operator, operand}) => {
+      switch (operator) {
+        case 'Greater than':
+          operator = '>';
+          break;
+        case 'Less than':
+          operator = '<';
+          break;
+        case 'Equals':
+          operator = '=';
+          break;
+        case 'Contains':
+          operand = `.*${escapeRegExp(operand)}.*`;
+          operator = '~';
+          break;
+        case 'Starts with':
+          operand = `${escapeRegExp(operand)}.*`;
+          operator = '~';
+          break;
+        case 'Ends with':
+          operand = `.*${escapeRegExp(operand)}`;
+          operator = '~';
+          break;
+      }
+
+      return `${attribute}${operator}${operand}`;
+    }).join(" "))
   }, [setFilterString, filtersState]);
 
   const onOpenAttributeFilter = () => {
-    openModal(<FilterAttributesModal display_attributes={display_attributes}/>);
+    openModal(<FilterAttributesModal display_attributes={display_attributes} />);
   };
 
   const onOpenFilters = () => {
-    openModal(<QueryFilterModal filtersState={filtersState} setFiltersState={setFilterString} />);
-  }
+    openModal(<QueryFilterModal display_attributes={display_attributes} 
+                                filtersState={filtersState} 
+                                setFiltersState={setFiltersState} />);
+  };
 
   return <div className='query-builder'>
     <a className='pointer' onClick={onOpenAttributeFilter}>
@@ -61,59 +101,98 @@ FilterAttributesModal = connect(
 )(FilterAttributesModal);
 
 const operators = [
-  '>',
-  '<'
+  'Less than',
+  'Greater than',
+  'Equals',
+  'Contains',
+  'Starts with',
+  'Ends with',
 ];
 
-function QueryFilterModal({ attribute_names, filterState: initialFilterState, setFilterState: updateParentFilterState }) {
-  const { dismissModal } = useModal();
-  let [filterState, setLocalFilterState] = useState(initialFilterState);
+const defaultFilterRowState = {
+  attribute: '',
+  operator: operators[0],
+  operand: '',
+}
 
-  function setFilterState(state) {
-    setLocalFilterState(state);
-    updateParentFilterState(state);
+function QueryFilterModal({
+  attribute_names,
+  display_attributes,
+  filtersState: initialFiltersState,
+  setFiltersState: updateParentFiltersState
+}) {
+  const { dismissModal } = useModal();
+  let [filtersState, setLocalFiltersState] = useState(initialFiltersState);
+
+  function setFiltersState(state) {
+    setLocalFiltersState(state);
+    updateParentFiltersState(state);
   }
 
   if (attribute_names === 'all') {
-    // TODO HERE
-    attribute_names = [];
+    attribute_names = display_attributes;
   }
 
-  // TODO HERE
-    function onFilterAttributeChange(idx) {
-      return function (value) {
+  function FiltersStateHandler(rowAttribute) {
+    return function (idx) {
+      return function (value, evt) {
         if (!value) {
-          filterState = [...filterState];
-          filterState.splice(idx, 1);
-          setFilterState(filterState);
+          filtersState = [...filtersState];
+          filtersState.splice(idx, 1);
         } else {
           if (idx === -1) {
-            filterState = [...filterState, { attribute: value }];
-            setFilterState(filterState);
+            filtersState = [...filtersState, { ...defaultFilterRowState, [rowAttribute]: value }];
           } else {
-            filterState = [...filterState];
-            filterState.splice(idx, 1, { ...filterState[idx], attribute: value });
+            filtersState = [...filtersState];
+            filtersState.splice(idx, 1, { ...filtersState[idx], [rowAttribute]: value });
           }
         }
+        setFiltersState(filtersState);
       }
     }
+  }
+
+  const onFilterAttributeChange = FiltersStateHandler('attribute');
+  const onFilterOperandChange = FiltersStateHandler('operand');
+  const onFilterOperatorChange = FiltersStateHandler('operator');
 
   return (
     <div className='search-filters-modal'>
-      <div>
+      {filtersState.map(({attribute, operator, operand}, idx) => <div className='filters' key={idx}>
         <SelectInput
+          values={attribute_names}
+          defaultValue={attribute}
+          onChange={onFilterAttributeChange(idx)}
+          showNone='enabled'
+          className='filter attribute'
+        />
+
+        <SelectInput
+          values={operators}
+          defaultValue={operator}
+          onChange={onFilterOperatorChange(idx)}
+          showNone='enabled'
+          className='filter operator'
+        />
+
+        <input
+          type='text'
+          className='filter operand'
+          defaultValue={operand}
+          onBlur={(e) => onFilterOperandChange(idx)(e.target.value)}
+        />
+      </div>)}
+      <div>
+        New Filter On <SelectInput
           name='model'
           values={attribute_names}
+          value=''
           showNone='enabled'
-        />
-        <SelectInput
-          name='model'
-          values={operators}
-          showNone='enabled'
+          onChange={onFilterAttributeChange(-1)}
         />
       </div>
       <div className='actions'>
-        <button onClick={dismissModal} disabled={attribute_names.length === 0}>Ok</button>
+        <button onClick={dismissModal}>Ok</button>
       </div>
     </div>
   );
@@ -129,7 +208,7 @@ function attributeNamesToSelected(attributeNames) {
 }
 
 export default connect(
-  (state) => ({}),
+  (state) => ({ attribute_names: selectSearchAttributeNames(state), }),
   {
     setFilterString,
   }

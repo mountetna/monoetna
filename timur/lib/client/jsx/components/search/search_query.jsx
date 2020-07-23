@@ -73,7 +73,7 @@ export function SearchQuery({
     <div className='query'>
       <CollapsibleArrow label={tableOptionsLine}>
         { selectedModel && <div>
-          {showAdvanced ? advancedSearch : <QueryBuilder display_attributes={display_attributes} /> }
+          {showAdvanced ? advancedSearch : <QueryBuilder selectedModel={selectedModel} display_attributes={display_attributes} /> }
         </div> }
       </CollapsibleArrow>
     </div>
