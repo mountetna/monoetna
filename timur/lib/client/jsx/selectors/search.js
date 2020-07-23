@@ -1,4 +1,5 @@
 import {createSelector} from 'reselect';
+import {displayAttributes, selectTemplate} from "./magma";
 
 class SearchCache {
   constructor(search) {
@@ -29,6 +30,25 @@ export const selectSearchAttributeNames = createSelector(
   selectSearchData,
   (search) => search.attribute_names
 );
+
+export const selectSelectedModel = createSelector(
+  selectSearchData,
+  ({ selected_model }) => selected_model,
+)
+
+export const selectExpandedDisplayAttributeNames = createSelector(
+  selectSelectedModel,
+  ({ magma }) => magma,
+  (selectedModel, magma) => {
+    if (!selectedModel) return [];
+
+    // Have to use the selector here instead of in connect()
+    //   because the selectedModel is in component state instead
+    //   of global state.
+    const template = selectTemplate({ magma }, selectedModel);
+    return displayAttributes(template);
+  }
+)
 
 export const selectSearchFilterString = createSelector(
   selectSearchData,

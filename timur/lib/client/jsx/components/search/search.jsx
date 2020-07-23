@@ -22,7 +22,7 @@ import {
   selectSearchAttributeNames,
   constructSingleFilterString,
   selectSearchFilterParams,
-  selectSearchFilterString
+  selectSearchFilterString, selectSelectedModel, selectExpandedDisplayAttributeNames
 } from '../../selectors/search';
 import {
   cacheSearchPage,
@@ -30,7 +30,8 @@ import {
   setSearchPage,
   emptySearchCache,
   setSearchAttributeNames,
-  setFilterString
+  setFilterString,
+  setSelectedModel,
 } from '../../actions/search_actions';
 
 import ModelViewer from '../model_viewer';
@@ -54,12 +55,12 @@ const loadingSpinner =
 
 export function Search({
   attribute_names, cache, current_filter, requestDocuments, setSearchPageSize, cacheSearchPage, setSearchPage,
-  requestModels, emptySearchCache, setSearchAttributeNames, model_names, requestTSV, magma_state
+  selectedModel, requestModels, emptySearchCache, setSearchAttributeNames, model_names, requestTSV, magma_state,
+  setSelectedModel, display_attributes,
 }) {
   const [pageSize, setPageSize] = useState(10);
-  const [selectedModel, setSelectedModel] = useState(undefined);
   const [results, setResults] = useState(0);
-  const { current_page, page_size, model_name, record_names, } = cache;
+  const { current_page, model_name, record_names, } = cache;
   let { cached_attribute_names } = cache;
 
   // On mount, essentially.
@@ -73,6 +74,7 @@ export function Search({
     setSearchAttributeNames('all');
     emptySearchCache();
     setSelectedModel(model_name);
+    setResults(0);
   }, [setSearchAttributeNames, emptySearchCache, setSelectedModel]);
 
   const [loading, loadDocuments] = useAsyncWork(function* loadDocuments(page, newSearch) {
@@ -90,7 +92,7 @@ export function Search({
     if (newSearch) emptySearchCache();
 
     let model = payload.models[selectedModel];
-    setResults(model.count);
+    if ('count' in model) setResults(model.count);
     if (!newSearch) setSearchPageSize(pageSize);
     cacheSearchPage(
       page,
@@ -102,17 +104,7 @@ export function Search({
     // Cancel only when multiple consecutive invocations are run.
   }, { cancelWhenChange: [] });
 
-  let pages = model_name ? Math.ceil(results / page_size) : -1;
-
-  const display_attributes = useMemo(() => {
-    if (!selectedModel) return [];
-
-    // Have to use the selector here instead of in connect()
-    //   because the selectedModel is in component state instead
-    //   of global state.
-    const template = selectTemplate({ magma: magma_state }, selectedModel);
-    return displayAttributes(template);
-  }, [selectedModel, magma_state]);
+  let pages = model_name ? Math.ceil(results / pageSize) : -1;
 
   // We should attempt to re-order the ModelViewer's cached_attribute_names
   //    in the same order as the template's display_attribute_options.
@@ -135,7 +127,7 @@ export function Search({
         <SearchQuery loading={loading} onSelectTableChange={onSelectTableChange} pageSize={pageSize}
                      display_attributes={display_attributes}
                      selectedModel={selectedModel} setPage={setPage} setPageSize={setPageSize} />
-        <Loading loading={results === 0 || loading}>
+        <Loading loading={results === 0 || loading} delay={500} cacheLastView={true}>
           <div className='results'>
             Found {results} records in{' '}
             <span className='model_name'>{model_name}</span>
@@ -143,14 +135,14 @@ export function Search({
         </Loading>
       </div>
       <div className='body'>
-        <Loading loading={!model_name || (loading && loadingSpinner)} delay={400}>
+        <Loading loading={!model_name || (loading && loadingSpinner)} delay={500} cacheLastView={true}>
           <div className='documents'>
             <ModelViewer
               model_name={model_name}
               record_names={record_names}
               page={current_page - 1}
               pages={pages}
-              page_size={page_size}
+              page_size={pageSize}
               setPage={setPage}
               restricted_attribute_names={
                 cached_attribute_names !== 'all'
@@ -181,6 +173,8 @@ export default connect(
     model_names: selectModelNames(state),
     cache: selectSearchCache(state),
     attribute_names: selectSearchAttributeNames(state),
+    selectedModel: selectSelectedModel(state),
+    display_attributes: selectExpandedDisplayAttributeNames(state),
     current_filter: constructSingleFilterString(state),
     filter_string: selectSearchFilterString(state),
     filter_params: selectSearchFilterParams(state),
@@ -195,6 +189,7 @@ export default connect(
     setFilterString,
     emptySearchCache,
     requestDocuments,
-    requestTSV
+    requestTSV,
+    setSelectedModel,
   }
 )(Search);

@@ -10,7 +10,8 @@ import {
   REMOVE_FILTER_PARAM,
   CLEAR_FILTER_PARAMS,
   SET_FILTER_STRING,
-  CLEAR_FILTER_STRING
+  CLEAR_FILTER_STRING,
+  SET_SELECTED_MODEL,
 } from '../actions/search_actions';
 
 const pages = (pages, action) => {
@@ -38,6 +39,11 @@ const searchReducer = (search, action) => {
       return {
         ...search,
         current_page: action.page
+      };
+    case SET_SELECTED_MODEL:
+      return {
+        ...search,
+        selected_model: action.selected_model,
       };
     case CACHE_SEARCH_PAGE:
       return {

@@ -30,12 +30,15 @@ export default class SelectInput extends Component {
   render() {
     let { children, values, showNone, defaultValue, value, onChange, ...props } = this.props;
 
-    if (!('value' in this.props)) {
+    if (value === undefined) {
       if (defaultValue == null && showNone) {
         defaultValue = '';
       } else if (defaultValue != null) {
         defaultValue = values.indexOf(defaultValue);
       }
+    } else {
+      const idx = values.indexOf(value);
+      if (idx !== -1) value = idx + '';
     }
 
     return(

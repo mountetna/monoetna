@@ -10,10 +10,12 @@ import React, { useState, useEffect } from 'react';
     Not loading content here!
   </Loading>
  */
-export function Loading({ children, loading = null, delay = 0 }) {
+export function Loading({ children, loading = null, delay = 0, cacheLastView = false }) {
   const [hasDelayed, setHasDelayed] = useState(true);
+  const [lastChildren, setLastChildren] = useState(children);
 
   useEffect(() => {
+    if (!loading) setLastChildren(children);
     if (!loading || !delay) return;
     setHasDelayed(false);
     const timer = setTimeout(() => setHasDelayed(true), delay);
@@ -23,6 +25,10 @@ export function Loading({ children, loading = null, delay = 0 }) {
   if (loading && hasDelayed) {
     if (loading === true) return null;
     return loading;
+  }
+
+  if (loading && !hasDelayed && cacheLastView) {
+    return lastChildren;
   }
 
   return <React.Fragment>

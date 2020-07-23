@@ -8,6 +8,7 @@ export const REMOVE_FILTER_PARAM = 'REMOVE_FILTER_PARAM';
 export const CLEAR_FILTER_PARAMS = 'CLEAR_FILTER_PARAMS';
 export const SET_FILTER_STRING = 'SET_FILTER_STRING';
 export const CLEAR_FILTER_STRING = 'CLEAR_FILTER_STRING';
+export const SET_SELECTED_MODEL = 'SET_SELECTED_MODEL';
 
 export const cacheSearchPage = (
   page,
@@ -58,6 +59,8 @@ export const addFilterParam = (filter_param) => ({
   type: ADD_FILTER_PARAM,
   filter_param
 });
+
+export const setSelectedModel = (selected_model) => ({ type: SET_SELECTED_MODEL, selected_model });
 
 export const removeFilterParam = (filter_param) => ({
   type: REMOVE_FILTER_PARAM,

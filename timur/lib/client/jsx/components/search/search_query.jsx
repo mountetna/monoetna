@@ -26,6 +26,7 @@ export function SearchQuery({
     <SelectInput
       name='model'
       values={model_names}
+      value={selectedModel}
       onChange={onSelectTableChange}
       showNone='enabled'
     />
