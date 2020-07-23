@@ -652,52 +652,54 @@ EOT
       reset = false
 
       while current_attempt_number <= max_number_attempts do
-        upload_json = @shell.client.start_upload(upload_path, upload, reset)
-        # start our upload
+        begin
+          upload_json = @shell.client.start_upload(upload_path, upload, reset)
+          # start our upload
 
-        upload.current_byte_position = upload_json[:current_byte_position].to_i
-        upload.next_blob_size = upload_json[:next_blob_size].to_i
+          upload.current_byte_position = upload_json[:current_byte_position].to_i
+          upload.next_blob_size = upload_json[:next_blob_size].to_i
 
-        # upload bytes until we are done
+          # upload bytes until we are done
 
-        if upload.complete?
-          reset_required = @shell.client.blob_upload(upload_path, upload,
-            blob_data: '',
-            next_blob_size: 0,
-            next_blob_hash: ZERO_HASH,
-            current_byte_position: upload.current_byte_position
-          )
+          if upload.complete?
+            reset_required = @shell.client.blob_upload(upload_path, upload,
+              blob_data: '',
+              next_blob_size: 0,
+              next_blob_hash: ZERO_HASH,
+              current_byte_position: upload.current_byte_position
+            )
 
-          puts progress(1, 0, new_file_path)
-          return
+            puts progress(1, 0, new_file_path)
+            return
+          end
+
+          start = Time.now
+          while !upload.complete?
+
+            blob_data = upload.current_bytes
+            current_byte_position = upload.current_byte_position
+
+            upload.next_blob!
+
+            @shell.client.blob_upload(upload_path, upload,
+              blob_data: blob_data,
+              next_blob_size: upload.next_blob_size,
+              next_blob_hash: upload.next_blob_hash,
+              current_byte_position: current_byte_position
+            )
+
+            print progress(
+              upload.current_byte_position.to_f / upload.file_size,
+              (upload.current_byte_position / (Time.now - start).to_f).round(2),
+              new_file_path
+            )
+          end
+          puts
+          break
+        rescue MetisClient::UploadError
+          reset = true
+          current_attempt_number += 1
         end
-
-        start = Time.now
-        while !upload.complete?
-
-          blob_data = upload.current_bytes
-          current_byte_position = upload.current_byte_position
-
-          upload.next_blob!
-
-          @shell.client.blob_upload(upload_path, upload,
-            blob_data: blob_data,
-            next_blob_size: upload.next_blob_size,
-            next_blob_hash: upload.next_blob_hash,
-            current_byte_position: current_byte_position
-          )
-
-          print progress(
-            upload.current_byte_position.to_f / upload.file_size,
-            (upload.current_byte_position / (Time.now - start).to_f).round(2),
-            new_file_path
-          )
-        end
-        puts
-        break
-      end rescue MetisClient::UploadError
-        reset = true
-        current_attempt_number += 1
       end
     end
   end
