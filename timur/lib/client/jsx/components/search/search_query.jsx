@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import SelectInput from '../inputs/select_input';
 import {selectModelNames} from "../../selectors/magma";
 import {
-  constructSingleFilterString,
+  selectSearchFilterString,
   selectSearchAttributeNames,
 } from "../../selectors/search";
 import {requestTSV} from "../../actions/magma_actions";
@@ -15,7 +15,7 @@ import QueryBuilder from "./query_builder";
 
 export function SearchQuery({
   selectedModel, setFilterString, loading, requestTSV, model_names, onSelectTableChange,
-  pageSize, setPageSize, setPage, current_filter, attribute_names, display_attributes,
+  pageSize, setPageSize, setPage, attribute_names, display_attributes, filter_string,
 }) {
   const buttonDisabled = !selectedModel || loading;
   const buttonClasses = buttonDisabled ? 'button disabled' : 'button';
@@ -56,7 +56,7 @@ export function SearchQuery({
       onClick={() =>
         requestTSV(
           selectedModel,
-          current_filter,
+          filter_string,
           attribute_names
         )
       }
@@ -86,7 +86,7 @@ export default connect(
   (state) => ({
     model_names: selectModelNames(state),
     attribute_names: selectSearchAttributeNames(state),
-    current_filter: constructSingleFilterString(state),
+    filter_string: selectSearchFilterString(state),
   }),
   {
     setSearchAttributeNames,

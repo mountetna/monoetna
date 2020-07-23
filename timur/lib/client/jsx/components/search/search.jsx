@@ -1,4 +1,4 @@
-import React, {useMemo, useEffect, useState, useCallback} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {connect} from 'react-redux';
 
 import 'regenerator-runtime/runtime';
@@ -9,8 +9,6 @@ import ClimbingBoxLoader from 'react-spinners/ClimbingBoxLoader';
 
 import {
   selectModelNames,
-  selectTemplate,
-  displayAttributes
 } from '../../selectors/magma';
 import {
   requestTSV,
@@ -20,7 +18,6 @@ import {
 import {
   selectSearchCache,
   selectSearchAttributeNames,
-  constructSingleFilterString,
   selectSearchFilterParams,
   selectSearchFilterString, selectSelectedModel, selectExpandedDisplayAttributeNames
 } from '../../selectors/search';
@@ -54,8 +51,8 @@ const loadingSpinner =
 
 
 export function Search({
-  attribute_names, cache, current_filter, requestDocuments, setSearchPageSize, cacheSearchPage, setSearchPage,
-  selectedModel, requestModels, emptySearchCache, setSearchAttributeNames, model_names, requestTSV, magma_state,
+  attribute_names, cache, requestDocuments, setSearchPageSize, cacheSearchPage, setSearchPage,
+  selectedModel, requestModels, emptySearchCache, setSearchAttributeNames, filter_string,
   setSelectedModel, display_attributes,
 }) {
   const [pageSize, setPageSize] = useState(10);
@@ -82,7 +79,7 @@ export function Search({
       model_name: selectedModel,
       record_names: 'all',
       attribute_names: attribute_names,
-      filter: current_filter,
+      filter: filter_string,
       page: page,
       page_size: pageSize,
       collapse_tables: true,
@@ -175,7 +172,6 @@ export default connect(
     attribute_names: selectSearchAttributeNames(state),
     selectedModel: selectSelectedModel(state),
     display_attributes: selectExpandedDisplayAttributeNames(state),
-    current_filter: constructSingleFilterString(state),
     filter_string: selectSearchFilterString(state),
     filter_params: selectSearchFilterParams(state),
     magma_state: state.magma

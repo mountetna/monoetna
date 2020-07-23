@@ -59,26 +59,3 @@ export const selectSearchFilterParams = createSelector(
   selectSearchData,
   (search) => search.filter_params
 );
-
-export const constructSingleFilterString = createSelector(
-  selectSearchData,
-  ({filter_params, filter_string}) => {
-    // filter_params used for basic filter
-    // filter_string used for advanced filter
-    // Only one should be populated.
-
-    if (filter_string) {
-      return filter_string;
-    }
-
-    if (filter_params) {
-      return filter_params
-        .map((param) => {
-          return `${param.attribute}${param.operator}${param.value}`;
-        })
-        .join(' ');
-    }
-
-    return '';
-  }
-);
