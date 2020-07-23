@@ -5,14 +5,13 @@ import {trace} from "../utils/asserts";
 
 require('./TreeView.css')
 
-const parentSymbol = Symbol('parent');
-
 export default function TreeView({
   options = [],
   selected: selectedProp,
   collapsible = false,
   onSelectionsChange = (newState) => null,
-  ItemLabelView = TreeViewDefaultItemLabelView
+  ItemLabelView = TreeViewDefaultItemLabelView,
+  flowHorizontally = false,
 } = {}) {
   const [selectedState, setSelected] = useState(() => initializeState(options));
 
@@ -22,7 +21,7 @@ export default function TreeView({
 
   const selected = selectedProp == null ? selectedState : selectedProp;
 
-  return <div className='etna-tree-view'>
+  return <div className={ flowHorizontally ? 'etna-tree-view vert' : 'etna-tree-view'}>
     {Nodes(options, selected)}
   </div>;
 
@@ -38,10 +37,10 @@ export default function TreeView({
   }
 
   function WrapNode(label, children) {
-    return collapsible ? <CollapsibleArrow label={label}>{children}</CollapsibleArrow> : <div>
+    return collapsible ? <CollapsibleArrow label={label}>{children}</CollapsibleArrow> : <React.Fragment>
       <div>{label}</div>
       {children}
-    </div>
+    </React.Fragment>
   }
 
   function isSelected(options, selected) {
@@ -52,7 +51,7 @@ export default function TreeView({
   function select(node, path, nodeOptions, nodeSelected) {
     const newState = { ...selected };
     const newSelected = path.reduce((s, p) => (s[p] = { ...s[p] }), newState);
-    newSelected[node] = initializeState(nodeOptions, nodeSelected, !isSelected(nodeOptions, nodeSelected));
+    newSelected[node] = initializeState(nodeOptions, node, !isSelected(nodeOptions, nodeSelected));
 
 
     setSelected(newState);
