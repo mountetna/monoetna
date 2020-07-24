@@ -1,6 +1,9 @@
-import React, {useCallback, useState, useEffect} from 'react';
+import React, {useCallback, useState, useEffect, useMemo} from 'react';
 import {connect} from "react-redux";
-import {selectSearchAttributeNames} from "../../selectors/search";
+import {
+  selectDisplayAttributeNamesAndTypes,
+  selectSortedAttributeNames
+} from "../../selectors/search";
 import {setFilterString, setSearchAttributeNames} from "../../actions/search_actions";
 import {useModal} from "etna-js/components/ModalDialogContainer";
 import TreeView, {getSelectedLeaves} from 'etna-js/components/TreeView';
@@ -19,7 +22,7 @@ export function QueryBuilder({ display_attributes, setFilterString, selectedMode
   }, [selectedModel]);
 
   useEffect(() => {
-    setFiltersState(filtersState.filter(({attribute}) => attribute_names === 'all' || attribute_names.includes(attribute)));
+    setFiltersState(filtersState.filter(({attribute}) => attribute_names.includes(attribute)));
   }, [attribute_names]);
 
   useEffect(() => {
@@ -62,9 +65,10 @@ export function QueryBuilder({ display_attributes, setFilterString, selectedMode
                                 setFiltersState={setFiltersState} />);
   };
 
+  const columnsText = attribute_names.length === display_attributes.length ? '' : `(${attribute_names.length} / ${display_attributes.length})`;
   return <div className='query-builder'>
     <a className='pointer' onClick={onOpenAttributeFilter}>
-      Add/Remove Attributes
+      Add/Remove Columns { columnsText }
     </a>
     <a className='pointer' onClick={onOpenFilters}>
       Add/Remove Filters
@@ -72,31 +76,43 @@ export function QueryBuilder({ display_attributes, setFilterString, selectedMode
   </div>;
 }
 
-function FilterAttributesModal({ setSearchAttributeNames, display_attributes, attribute_names }) {
-  const display_attribute_options = [['All', display_attributes.map(e => [e])]];
+function FilterAttributesModal({ setSearchAttributeNames, display_attributes, attributeNames, attributeNamesAndTypes }) {
+  const displayAttributeOptions = [['All', display_attributes.map(e => [e])]];
   const { dismissModal } = useModal();
-  const handleTreeViewSelectionsChange = useCallback((new_state) => {
-    setSearchAttributeNames(getSelectedLeaves(new_state));
-  }, [setSearchAttributeNames]);
+  const [selectedState, setSelectedState] = useState(() => attributeNamesToSelected(attributeNames));
 
+  const disabledAttributeNames = useMemo(() => {
+    return attributeNamesAndTypes
+      .filter(([_, type]) => type === 'identifier' || type === 'parent')
+      .map(([name]) => name);
+  }, [attributeNamesAndTypes]);
+
+  function onOk() {
+    setSearchAttributeNames(getSelectedLeaves(selectedState));
+    dismissModal();
+  }
 
   return (
     <div className='search-attribute-filters-modal'>
       <TreeView
         flowHorizontally={true}
-        selected={attributeNamesToSelected(attribute_names)}
-        options={display_attribute_options}
-        onSelectionsChange={handleTreeViewSelectionsChange}
+        selected={selectedState}
+        disabled={attributeNamesToDisabled(disabledAttributeNames)}
+        options={displayAttributeOptions}
+        onSelectionsChange={setSelectedState}
       />
       <div className='actions'>
-        <button onClick={dismissModal} disabled={attribute_names.length === 0}>Ok</button>
+        <button onClick={onOk} disabled={attributeNames.length === 0}>Ok</button>
       </div>
     </div>
   );
 }
 
 FilterAttributesModal = connect(
-  (state) => ({ attribute_names: selectSearchAttributeNames(state), }),
+  (state) => ({
+    attributeNames: selectSortedAttributeNames(state),
+    attributeNamesAndTypes: selectDisplayAttributeNamesAndTypes(state),
+  }),
   { setSearchAttributeNames, }
 )(FilterAttributesModal);
 
@@ -117,7 +133,6 @@ const defaultFilterRowState = {
 
 function QueryFilterModal({
   attribute_names,
-  display_attributes,
   filtersState: initialFiltersState,
   setFiltersState: updateParentFiltersState
 }) {
@@ -127,10 +142,6 @@ function QueryFilterModal({
   function setFiltersState(state) {
     setLocalFiltersState(state);
     updateParentFiltersState(state);
-  }
-
-  if (attribute_names === 'all') {
-    attribute_names = display_attributes;
   }
 
   function FiltersStateHandler(rowAttribute) {
@@ -199,7 +210,7 @@ function QueryFilterModal({
 }
 
 QueryFilterModal = connect(
-  (state) => ({ attribute_names: selectSearchAttributeNames(state), }),
+  (state) => ({ attribute_names: selectSortedAttributeNames(state), }),
 )(QueryFilterModal);
 
 function attributeNamesToSelected(attributeNames) {
@@ -207,8 +218,12 @@ function attributeNamesToSelected(attributeNames) {
   return { All: attributeNames.reduce((o, p) => (o[p] = true, o), {}) };
 }
 
+function attributeNamesToDisabled(attributeNames) {
+  return { All: attributeNames.reduce((o, p) => (o[p] = true, o), {}) };
+}
+
 export default connect(
-  (state) => ({ attribute_names: selectSearchAttributeNames(state), }),
+  (state) => ({ attribute_names: selectSortedAttributeNames(state), }),
   {
     setFilterString,
   }

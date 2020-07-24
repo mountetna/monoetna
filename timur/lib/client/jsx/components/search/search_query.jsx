@@ -4,7 +4,7 @@ import SelectInput from '../inputs/select_input';
 import {selectModelNames} from "../../selectors/magma";
 import {
   selectSearchFilterString,
-  selectSearchAttributeNames,
+  selectSortedAttributeNames,
 } from "../../selectors/search";
 import {requestTSV} from "../../actions/magma_actions";
 import {
@@ -85,7 +85,7 @@ export function SearchQuery({
 export default connect(
   (state) => ({
     model_names: selectModelNames(state),
-    attribute_names: selectSearchAttributeNames(state),
+    attribute_names: selectSortedAttributeNames(state),
     filter_string: selectSearchFilterString(state),
   }),
   {
