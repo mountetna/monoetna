@@ -1,0 +1,28 @@
+---
+driver:
+  name: docker
+
+provisioner:
+  name: chef_zero
+  always_update_cookbooks: true
+
+platforms:
+  - name: centos-8
+    driver_config:
+      image: centos-docker
+      platform: centos
+      mount:
+        - source=/sys/fs/cgroup,destination=/sys/fs/cgroup,ro
+      privileged: true
+
+transport:
+  name: docker
+
+verifier:
+  name: inspec
+
+suites:
+  - name: default
+    run_list:
+      - recipe[docker-cookbook::default]
+    attributes:
