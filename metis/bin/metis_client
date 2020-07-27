@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-#
+
 require 'optparse'
 require 'resolv'
 require 'json'
@@ -574,16 +574,29 @@ EOT
 
   class Put < Command
     usage "put <input_file1> ... [<input_fileN>] <remote_folder_path>"
+
+    def parse(args)
+      parse_opts(args) do |opts|
+        opts.on("-x", "--leave-existing", "Do not update existing files that match by name") do |n|
+          options[:leave_existing] = true
+        end
+      end
+    end
+
+
     def run(*input_files, folder_path)
       raise ShellError, 'No remote folder selected!' unless folder_path
 
       raise ShellError, 'No input files selected!' if input_files.empty?
 
       # get a listing of the folder
-      folder = @shell.client.list_folder(@shell.project_name, @shell.relative_path(folder_path))
+      folder_path = @shell.relative_path(folder_path)
+      
+      folder = @shell.client.list_folder(@shell.project_name, folder_path)
+      raise ShellError, "Remote root folder #{folder_path} does not exist!" if folder.nil?
 
       input_files.each do |file_or_folder|
-        upload(file_or_folder, @shell.cwd, folder)
+       upload(file_or_folder, folder_path, folder)
       end
     end
 
@@ -630,7 +643,7 @@ EOT
 
       # see if it exists
       return if folder[:files].find do |f|
-        f[:file_name] == file_name && f[:size] == ::File.size(actual_path)
+        f[:file_name] == file_name && (f[:size] == ::File.size(actual_path) || options[:leave_existing])
       end
 
       upload_json = @shell.client.authorize_upload(@shell.project_name, bucket_name, new_file_path)
