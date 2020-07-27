@@ -64,8 +64,8 @@ export const selectDisplayAttributeNamesAndTypes = createSelector(
 )
 
 const columnTypePriority = {
-  'parent': 1,
-  'identifier': 2,
+  'identifier': 1,
+  'parent': 2,
 }
 
 export const selectSortedDisplayAttributeNames = createSelector(
