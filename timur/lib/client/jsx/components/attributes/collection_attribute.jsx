@@ -2,7 +2,7 @@ import MagmaLink from '../magma_link';
 import {connect} from 'react-redux';
 
 import {reviseDocument} from '../../actions/magma_actions';
-import React, {Component} from 'react';
+import React, {Component, useMemo} from 'react';
 import ListInput from '../inputs/list_input';
 import SlowTextInput from '../inputs/slow_text_input';
 
@@ -20,10 +20,14 @@ const CollectionAttribute = ({
       numeric: true,
       sensitivity: 'base'
     });
+    const sortedCollection = useMemo(
+      () => [...(value || [])].sort(collator.compare),
+      [value]
+    );
     return (
       <div className='attribute'>
         <div className='collection'>
-          {(value || []).sort(collator.compare).map((link) => (
+          {sortedCollection.map((link) => (
             <div key={link} className='collection_item'>
               <MagmaLink link={link} model={attribute.link_model_name} />
             </div>
