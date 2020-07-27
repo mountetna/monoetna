@@ -13,7 +13,7 @@ function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
-export function QueryBuilder({ display_attributes, setFilterString, selectedModel, attribute_names }) {
+export function QueryBuilder({ display_attributes, setFilterString, selectedModel, attribute_names, setShowAdvanced }) {
   const { openModal } = useModal();
   const [filtersState, setFiltersState] = useState([]);
 
@@ -66,12 +66,17 @@ export function QueryBuilder({ display_attributes, setFilterString, selectedMode
   };
 
   const columnsText = attribute_names.length === display_attributes.length ? '' : `(${attribute_names.length} / ${display_attributes.length})`;
+  const filtersText = filtersState.length === 0 ? '' : `${filtersState.length} filters`;
+
   return <div className='query-builder'>
     <a className='pointer' onClick={onOpenAttributeFilter}>
       Add/Remove Columns { columnsText }
     </a>
     <a className='pointer' onClick={onOpenFilters}>
-      Add/Remove Filters
+      Add/Remove Filters { filtersText }
+    </a>
+    <a className='pointer' onClick={() => setShowAdvanced(true)}>
+      Advanced Searched
     </a>
   </div>;
 }
@@ -192,6 +197,10 @@ function QueryFilterModal({
           defaultValue={operand}
           onBlur={(e) => onFilterOperandChange(idx)(e.target.value)}
         />
+
+        <a className='pointer' onClick={() => onFilterOperandChange(idx)('')}>
+          X
+        </a>
       </div>)}
       <div>
         New Filter On <SelectInput

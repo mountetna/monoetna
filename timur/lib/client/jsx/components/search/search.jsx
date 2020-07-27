@@ -61,6 +61,7 @@ export function Search({
 }) {
   const [pageSize, setPageSize] = useState(10);
   const [results, setResults] = useState(0);
+  const [lastLoadedAttributeState, setLastLoadedAttributeState] = useState(attributesNamesState);
   const { current_page, model_name, record_names, } = cache;
   let { cached_attribute_names } = cache;
 
@@ -91,10 +92,11 @@ export function Search({
     });
 
     if (newSearch) emptySearchCache();
+    if (!newSearch) setSearchPageSize(pageSize);
 
     let model = payload.models[selectedModel];
     if ('count' in model) setResults(model.count);
-    if (!newSearch) setSearchPageSize(pageSize);
+    setLastLoadedAttributeState(attributesNamesState);
     cacheSearchPage(
       page,
       selectedModel,
@@ -161,6 +163,7 @@ export function Search({
     page++;
     // Need to re-fetch a page if the user has clicked a new set of
     //    attribute names from the TreeView
+    newSearch = newSearch || attributesNamesState !== lastLoadedAttributeState;
     if (!cache.isCached(page.toString()) || newSearch) {
       loadDocuments(page, newSearch)
     }

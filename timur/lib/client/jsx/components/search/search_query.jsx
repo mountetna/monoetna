@@ -63,18 +63,24 @@ export function SearchQuery({
     />
   </React.Fragment>;
 
-  const advancedSearch = <input
-    type='text'
-    className='filter'
-    placeholder='Filter query'
-    onBlur={(e) => setFilterString(e.target.value)}
-  />;
+  const advancedSearch = <div>
+    <input
+      type='text'
+      className='filter'
+      placeholder='Filter query'
+      defaultValue={filter_string}
+      onBlur={(e) => setFilterString(e.target.value)}
+    />
+    <a className='pointer' onClick={() => setShowAdvanced(false)}>
+      Basic Search
+    </a>
+  </div>;
 
   return (
     <div className='query'>
       <CollapsibleArrow label={tableOptionsLine}>
         { selectedModel && <div>
-          {showAdvanced ? advancedSearch : <QueryBuilder selectedModel={selectedModel} display_attributes={display_attributes} /> }
+          {showAdvanced ? advancedSearch : <QueryBuilder setShowAdvanced={setShowAdvanced} selectedModel={selectedModel} display_attributes={display_attributes} /> }
         </div> }
       </CollapsibleArrow>
     </div>
