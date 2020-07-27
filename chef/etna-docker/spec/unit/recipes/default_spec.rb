@@ -1,12 +1,12 @@
 #
-# Cookbook Name:: docker-cookbook
+# Cookbook Name:: etna-docker
 # Spec:: default
 #
 # Copyright (c) 2020 The Authors, All Rights Reserved.
 
 require 'spec_helper'
 
-describe 'docker-cookbook::default' do
+describe 'etna-docker::default' do
   context 'When all attributes are default, on an unspecified platform' do
     let(:chef_run) do
       runner = ChefSpec::ServerRunner.new

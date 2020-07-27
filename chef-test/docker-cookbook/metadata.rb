@@ -1,7 +1,0 @@
-name 'docker-cookbook'
-maintainer 'The Authors'
-maintainer_email 'you@example.com'
-license 'all_rights'
-description 'Installs/Configures docker-cookbook'
-long_description 'Installs/Configures docker-cookbook'
-version '0.1.0'

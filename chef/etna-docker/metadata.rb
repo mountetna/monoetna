@@ -1,0 +1,7 @@
+name 'etna-docker'
+maintainer 'The Authors'
+maintainer_email 'you@example.com'
+license 'all_rights'
+description 'Installs/Configures docker deployments for etna'
+long_description 'Installs/Configures etna-docker'
+version '0.1.0'

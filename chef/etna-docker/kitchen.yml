@@ -12,8 +12,10 @@ platforms:
       image: centos-docker
       platform: centos
       mount:
-        - source=/sys/fs/cgroup,destination=/sys/fs/cgroup,ro
+        - type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup,ro
       privileged: true
+      run_command: /usr/sbin/init
+      use_internal_docker_network: true
 
 transport:
   name: docker
@@ -24,5 +26,5 @@ verifier:
 suites:
   - name: default
     run_list:
-      - recipe[docker-cookbook::default]
+      - recipe[etna-docker::default]
     attributes:

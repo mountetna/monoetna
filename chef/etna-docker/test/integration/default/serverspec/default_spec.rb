@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'docker-cookbook::default' do
+describe 'etna-docker' do
   # Serverspec examples can be found at
   # http://serverspec.org/resource_types.html
   it 'does something' do

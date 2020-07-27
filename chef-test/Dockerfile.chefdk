@@ -1,7 +1,0 @@
-FROM chef/chefdk
-RUN apt-get update -y
-RUN apt-get install docker.io curl -y
-ENV CHEF_LICENSE=accept
-RUN chef gem install kitchen-docker
-RUN chef gem install inspec
-WORKDIR /data
