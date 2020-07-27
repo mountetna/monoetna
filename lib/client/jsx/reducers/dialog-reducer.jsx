@@ -4,7 +4,7 @@ const dialog = (state, action) => {
   switch(action.type) {
     case 'SHOW_DIALOG':
       return {
-        ...action.dialog
+        ...action.dialog,
       };
     case 'DISMISS_DIALOG':
       return {};
