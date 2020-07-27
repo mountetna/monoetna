@@ -12,7 +12,7 @@ import React, { useState, useEffect } from 'react';
  */
 export function Loading({ children, loading = null, delay = 0, cacheLastView = false }) {
   const [hasDelayed, setHasDelayed] = useState(true);
-  const [lastChildren, setLastChildren] = useState(children);
+  const [lastChildren, setLastChildren] = useState(null);
 
   useEffect(() => {
     if (!loading) setLastChildren(children);
