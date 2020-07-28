@@ -130,17 +130,31 @@ class MetisClient
     return json_body(response)
   end
 
-  def start_upload(upload_path, upload, reset=false)
+  def start_upload(upload_path, upload)
+    response = json_post(upload_path,
+      file_size: upload.file_size,
+      action: 'start',
+      next_blob_size: upload.next_blob_size,
+      next_blob_hash: upload.next_blob_hash
+    )
+
+    raise MetisClient::UploadError, "Problem starting the upload on Metis: #{error(response)}" if response.code == '422'
+    raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
+
+    json_body(response)
+  end
+
+  def reset_upload(upload_path, upload)
     response = json_post(upload_path,
       file_size: upload.file_size,
       action: 'start',
       next_blob_size: upload.next_blob_size,
       next_blob_hash: upload.next_blob_hash,
-      reset: reset
+      reset: true
     )
 
-    raise MetisClient::UploadError, "Problem starting the upload on Metis: #{error(response)}" if response.code == '422'
-    raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
+    raise MetisClient::UploadError, "Problem resetting the upload on Metis: #{error(response)}" if response.code == '422'
+    raise MetisClient::Error, "Could not reset file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
 
     json_body(response)
   end
@@ -224,6 +238,7 @@ class MetisClient
     @https ||= begin
       https = Net::HTTP.new(@host,443)
       https.use_ssl = true
+      https.verify_mode = OpenSSL::SSL::VERIFY_NONE  # DO NOT USE IN PRODUCTION
       https
     end
   end
@@ -646,58 +661,63 @@ EOT
 
       upload = Upload.new(actual_path)
 
-
-      max_number_attempts = MetisConfig[:max_retries] || 1
+      max_number_attempts = MetisConfig[:max_retries] || 2
       current_attempt_number = 1
-      reset = false
+
+      upload_json = @shell.client.start_upload(upload_path, upload)
+      # start our upload
+
+      upload.current_byte_position = upload_json[:current_byte_position].to_i
+      upload.next_blob_size = upload_json[:next_blob_size].to_i
 
       while current_attempt_number <= max_number_attempts do
-        upload_json = @shell.client.start_upload(upload_path, upload, reset)
-        # start our upload
+        begin
+          # upload bytes until we are done
 
-        upload.current_byte_position = upload_json[:current_byte_position].to_i
-        upload.next_blob_size = upload_json[:next_blob_size].to_i
+          if upload.complete?
+            reset_required = @shell.client.blob_upload(upload_path, upload,
+              blob_data: '',
+              next_blob_size: 0,
+              next_blob_hash: ZERO_HASH,
+              current_byte_position: upload.current_byte_position
+            )
 
-        # upload bytes until we are done
+            puts progress(1, 0, new_file_path)
+            return
+          end
 
-        if upload.complete?
-          reset_required = @shell.client.blob_upload(upload_path, upload,
-            blob_data: '',
-            next_blob_size: 0,
-            next_blob_hash: ZERO_HASH,
-            current_byte_position: upload.current_byte_position
-          )
+          start = Time.now
+          while !upload.complete?
 
-          puts progress(1, 0, new_file_path)
-          return
+            blob_data = upload.current_bytes
+            current_byte_position = upload.current_byte_position
+
+            upload.next_blob!
+
+            @shell.client.blob_upload(upload_path, upload,
+              blob_data: blob_data,
+              next_blob_size: upload.next_blob_size,
+              next_blob_hash: upload.next_blob_hash,
+              current_byte_position: current_byte_position
+            )
+
+            print progress(
+              upload.current_byte_position.to_f / upload.file_size,
+              (upload.current_byte_position / (Time.now - start).to_f).round(2),
+              new_file_path
+            )
+          end
+          puts
+          break
+        rescue MetisClient::UploadError => e
+          upload = Upload.new(actual_path)
+          upload_json = @shell.client.reset_upload(upload_path, upload)
+          upload.current_byte_position = 0
+
+          current_attempt_number += 1
+          puts "UploadError -- retrying the upload" if current_attempt_number <= max_number_attempts
+          puts "UploadError -- max retries reached. Giving up." if current_attempt_number > max_number_attempts
         end
-
-        start = Time.now
-        while !upload.complete?
-
-          blob_data = upload.current_bytes
-          current_byte_position = upload.current_byte_position
-
-          upload.next_blob!
-
-          @shell.client.blob_upload(upload_path, upload,
-            blob_data: blob_data,
-            next_blob_size: upload.next_blob_size,
-            next_blob_hash: upload.next_blob_hash,
-            current_byte_position: current_byte_position
-          )
-
-          print progress(
-            upload.current_byte_position.to_f / upload.file_size,
-            (upload.current_byte_position / (Time.now - start).to_f).round(2),
-            new_file_path
-          )
-        end
-        puts
-        break
-      end rescue MetisClient::UploadError
-        reset = true
-        current_attempt_number += 1
       end
     end
   end
