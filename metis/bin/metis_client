@@ -704,6 +704,7 @@ EOT
           puts
           break
         rescue MetisClient::UploadError => e
+          puts "#{e.message}"
           upload = Upload.new(actual_path)
           upload_json = @shell.client.reset_upload(upload_path, upload)
           upload.current_byte_position = 0
