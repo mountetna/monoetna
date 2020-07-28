@@ -36,6 +36,7 @@ jobs:
   sync-subtrees:
     needs: ["push-artifacts"]
     if: "needs.push-artifacts.outputs.updated != 'true'"
+    runs-on: ubuntu-latest
     steps:
       - name: Run smoke tests
         env:
