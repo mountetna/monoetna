@@ -660,7 +660,7 @@ EOT
 
       upload = Upload.new(actual_path)
 
-      max_number_attempts = MetisConfig[:max_retries] || 2
+      max_number_attempts = MetisConfig[:max_attempts] || 2
       current_attempt_number = 1
 
       while current_attempt_number <= max_number_attempts do
