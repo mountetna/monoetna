@@ -1,0 +1,32 @@
+---
+driver:
+  name: docker
+
+provisioner:
+  name: chef_zero
+  always_update_cookbooks: true
+
+platforms:
+  - name: centos-8
+    driver_config:
+      image: centos-docker
+      platform: centos
+      mount:
+        - type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup,ro
+        - type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock
+      privileged: true
+      run_command: /usr/sbin/init
+      use_internal_docker_network: true
+
+transport:
+  name: docker
+
+verifier:
+  name: inspec
+
+suites:
+  - name: default
+    run_list:
+      # Runs twice to ensure idempotency
+      - recipe[base_v2::default, base_v2::default]
+    attributes:

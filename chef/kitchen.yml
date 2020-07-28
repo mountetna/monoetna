@@ -1,0 +1,36 @@
+---
+driver:
+  name: docker
+
+provisioner:
+  name: chef_zero
+  always_update_cookbooks: true
+
+platforms:
+  - name: centos-8
+    driver_config:
+      image: centos-docker
+      platform: centos
+      mount:
+        - type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup,ro
+        - type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock
+      privileged: true
+      run_command: /usr/sbin/init
+      use_internal_docker_network: true
+
+transport:
+  name: docker
+
+verifier:
+  name: inspec
+
+suites:
+  - name: default
+    run_list:
+      # Test idempotency by running all the things twice
+      - recipe[base_v2::default]
+      - recipe[etna_docker::default]
+      - recipe[base_v2::default]
+      - recipe[etna_docker::default]
+    attributes:
+      psql_developer_password: password

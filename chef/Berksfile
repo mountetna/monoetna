@@ -1,0 +1,5 @@
+source 'https://supermarket.chef.io'
+
+cookbook 'base_v2', path: 'base_v2/'
+cookbook 'docker', path: 'docker/'
+cookbook 'etna_docker', path: 'etna_docker/'
