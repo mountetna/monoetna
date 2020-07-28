@@ -3,6 +3,9 @@ export const EMPTY_SEARCH_CACHE = 'EMPTY_SEARCH_PAGE';
 export const SET_SEARCH_PAGE = 'SET_SEARCH_PAGE';
 export const SET_SEARCH_PAGE_SIZE = 'SET_SEARCH_PAGE_SIZE';
 export const SET_SEARCH_ATTRIBUTE_NAMES = 'SET_SEARCH_ATTRIBUTE_NAMES';
+export const SET_FILTER_STRING = 'SET_FILTER_STRING';
+export const CLEAR_FILTER_STRING = 'CLEAR_FILTER_STRING';
+export const SET_SELECTED_MODEL = 'SET_SELECTED_MODEL';
 
 export const cacheSearchPage = (
   page,
@@ -36,4 +39,15 @@ export const setSearchPageSize = (page_size) => ({
 export const setSearchAttributeNames = (attribute_names) => ({
   type: SET_SEARCH_ATTRIBUTE_NAMES,
   attribute_names
+});
+
+export const setSelectedModel = (selected_model) => ({ type: SET_SELECTED_MODEL, selected_model });
+
+export const setFilterString = (filter_string) => ({
+  type: SET_FILTER_STRING,
+  filter_string
+});
+
+export const clearFilterString = () => ({
+  type: CLEAR_FILTER_STRING
 });

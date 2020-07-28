@@ -1,9 +1,14 @@
+import * as _ from 'lodash';
+
 import {
   CACHE_SEARCH_PAGE,
   EMPTY_SEARCH_CACHE,
   SET_SEARCH_PAGE,
   SET_SEARCH_PAGE_SIZE,
-  SET_SEARCH_ATTRIBUTE_NAMES
+  SET_SEARCH_ATTRIBUTE_NAMES,
+  SET_FILTER_STRING,
+  CLEAR_FILTER_STRING,
+  SET_SELECTED_MODEL,
 } from '../actions/search_actions';
 
 const pages = (pages, action) => {
@@ -20,7 +25,7 @@ const pages = (pages, action) => {
 };
 
 const searchReducer = (search, action) => {
-  if (!search) search = {pages: {}};
+  if (!search) search = {pages: {}, attribute_names: 'all'};
   switch (action.type) {
     case SET_SEARCH_PAGE_SIZE:
       return {
@@ -31,6 +36,11 @@ const searchReducer = (search, action) => {
       return {
         ...search,
         current_page: action.page
+      };
+    case SET_SELECTED_MODEL:
+      return {
+        ...search,
+        selected_model: action.selected_model,
       };
     case CACHE_SEARCH_PAGE:
       return {
@@ -49,6 +59,19 @@ const searchReducer = (search, action) => {
       return {
         ...search,
         attribute_names: action.attribute_names
+      };
+    case SET_FILTER_STRING:
+      // User is using advanced filtering, so make sure to clear out
+      //   any (basic) filter_params
+      return {
+        ...search,
+        filter_string: action.filter_string,
+        filter_params: null
+      };
+    case CLEAR_FILTER_STRING:
+      return {
+        ...search,
+        filter_string: null
       };
     default:
       return search;

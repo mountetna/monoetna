@@ -4,7 +4,9 @@ import {
   EMPTY_SEARCH_CACHE,
   SET_SEARCH_PAGE,
   SET_SEARCH_PAGE_SIZE,
-  SET_SEARCH_ATTRIBUTE_NAMES
+  SET_SEARCH_ATTRIBUTE_NAMES,
+  SET_FILTER_STRING,
+  CLEAR_FILTER_STRING,
 } from '../../../lib/client/jsx/actions/search_actions';
 
 describe('search reducer', () => {
@@ -144,6 +146,32 @@ describe('search reducer', () => {
     ).toEqual({
       model_name: null,
       pages: {}
+    });
+  });
+
+  it('sets the advanced filter string', () => {
+    expect(
+      reducer(
+        {
+          filter_params: [{attribute: 'species', operator: '==', value: 'lion'}]
+        },
+        {type: SET_FILTER_STRING, filter_string: 'all'}
+      )
+    ).toEqual({
+      filter_string: 'all',
+      filter_params: null
+    });
+  });
+
+  it('clears the advanced filter string', () => {
+    expect(
+      reducer(
+        {filter_string: 'all', other: 'data'},
+        {type: CLEAR_FILTER_STRING}
+      )
+    ).toEqual({
+      other: 'data',
+      filter_string: null
     });
   });
 });

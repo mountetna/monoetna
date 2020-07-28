@@ -5,14 +5,14 @@ import {trace} from "../utils/asserts";
 
 require('./TreeView.css')
 
-const parentSymbol = Symbol('parent');
-
 export default function TreeView({
   options = [],
   selected: selectedProp,
+  disabled = {},
   collapsible = false,
   onSelectionsChange = (newState) => null,
-  ItemLabelView = TreeViewDefaultItemLabelView
+  ItemLabelView = TreeViewDefaultItemLabelView,
+  flowHorizontally = false,
 } = {}) {
   const [selectedState, setSelected] = useState(() => initializeState(options));
 
@@ -22,26 +22,28 @@ export default function TreeView({
 
   const selected = selectedProp == null ? selectedState : selectedProp;
 
-  return <div className='etna-tree-view'>
-    {Nodes(options, selected)}
+  return <div className={ flowHorizontally ? 'etna-tree-view vert' : 'etna-tree-view'}>
+    {Nodes(options, selected, disabled)}
   </div>;
 
-  function Nodes(options, selected, path = []) {
-    const inner = (node, options, selected, path) => WrapNode(
-      <ItemLabelView node={node} path={path} onChange={() => select(node, path, options, selected)}
+  function Nodes(options, selected, disabled={}, path = []) {
+    const inner = (node, options, selected = {}, disabled = {}, path =[]) => WrapNode(
+      <ItemLabelView node={node} path={path}
+                     onChange={() => select(node, path, options, selected, disabled)}
+                     disabled={isDisabled(options, disabled)}
                      checked={isSelected(options, selected)}/>,
-      Nodes(options, selected, path.concat([node])));
+      Nodes(options, selected, disabled, path.concat([node])));
 
     return options.map(([node, childOptions = []]) => <div className='child' key={node}>
-      {inner(node, childOptions, selected[node], path)}
+      {inner(node, childOptions, selected[node], disabled[node], path)}
     </div>)
   }
 
   function WrapNode(label, children) {
-    return collapsible ? <CollapsibleArrow label={label}>{children}</CollapsibleArrow> : <div>
+    return collapsible ? <CollapsibleArrow label={label}>{children}</CollapsibleArrow> : <React.Fragment>
       <div>{label}</div>
       {children}
-    </div>
+    </React.Fragment>
   }
 
   function isSelected(options, selected) {
@@ -49,20 +51,39 @@ export default function TreeView({
     return !options.find(([optionNode, childOptions = []]) => !isSelected(childOptions, selected[optionNode]))
   }
 
-  function select(node, path, nodeOptions, nodeSelected) {
+  function isDisabled(options, disabled) {
+    if (options.length === 0) return disabled === true;
+    return !options.find(([optionNode, childOptions = []]) => !isDisabled(childOptions, disabled[optionNode]))
+  }
+
+
+  function select(node, path, nodeOptions, nodeSelected, nodeDisabled) {
     const newState = { ...selected };
     const newSelected = path.reduce((s, p) => (s[p] = { ...s[p] }), newState);
-    newSelected[node] = initializeState(nodeOptions, nodeSelected, !isSelected(nodeOptions, nodeSelected));
+    const originalSelected = path.reduce((s, p) => s[p], selected);
 
+    if (nodeDisabled !== true) {
+      newSelected[node] = initializeState(nodeOptions, node, !isSelected(nodeOptions, nodeSelected), nodeDisabled);
+
+      function restoreDisabled(disabled = {}, original = {}, selected = {}) {
+        Object.keys(disabled).forEach(k => {
+          if (disabled[k] === true) selected[k] = original[k]
+          if (disabled[k] != null) restoreDisabled(disabled[k], original[k], selected[k]);
+        });
+      }
+
+      console.log(nodeDisabled, node, originalSelected, newSelected);
+      restoreDisabled(nodeDisabled, originalSelected[node], newSelected[node]);
+    }
 
     setSelected(newState);
     onSelectionsChange(newState);
   }
 }
 
-export function TreeViewDefaultItemLabelView({ node, onChange, checked, path }) {
+export function TreeViewDefaultItemLabelView({ node, onChange, checked, path, disabled }) {
   return <span>
-    <CheckBox data-node={node} data-path={path} onChange={onChange} checked={checked}/>
+    <CheckBox data-node={node} data-path={path} onChange={onChange} checked={checked} disabled={disabled} />
     {node}
   </span>
 }

@@ -105,3 +105,25 @@ describe('setSearchAttributeNames', () => {
     ]);
   });
 });
+
+describe('setFilterString', () => {
+  it('dispatches action to set an advanced filter string', () => {
+    const store = mockStore({});
+
+    store.dispatch(actions.setFilterString('monsters == all'));
+
+    expect(store.getActions()).toEqual([
+      {filter_string: 'monsters == all', type: actions.SET_FILTER_STRING}
+    ]);
+  });
+});
+
+describe('clearFilterString', () => {
+  it('dispatches action to clear an advanced filter string', () => {
+    const store = mockStore({});
+
+    store.dispatch(actions.clearFilterString());
+
+    expect(store.getActions()).toEqual([{type: actions.CLEAR_FILTER_STRING}]);
+  });
+});
