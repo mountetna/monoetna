@@ -238,7 +238,6 @@ class MetisClient
     @https ||= begin
       https = Net::HTTP.new(@host,443)
       https.use_ssl = true
-      https.verify_mode = OpenSSL::SSL::VERIFY_NONE  # DO NOT USE IN PRODUCTION
       https
     end
   end
