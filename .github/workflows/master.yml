@@ -6,7 +6,6 @@ on:
 
 jobs:
   push-artifacts:
-    if: "!contains(github.event.head_commit.author.name, 'GithubAction')"
     runs-on: ubuntu-latest
     outputs:
       updated: ${{ steps.update-package-references.outputs.updated }}
@@ -20,13 +19,8 @@ jobs:
           git config --global user.name 'GithubAction'
           git config --global user.email 'mountetna@users.noreply.github.com'
           git status
-      - name: Reattach HEAD to Head Ref
-        run: git checkout $(echo ${{ github.head_ref }} | sed -E 's|refs/[a-zA-Z]+/||')
-        if: github.head_ref != ''
-      - name: Reattach HEAD to Head Ref
-        run: git checkout $(echo ${{ github.ref }} | sed -E 's|refs/[a-zA-Z]+/||')
-        if: github.head_ref == ''
       - name:  Push npm artifacts and update package.json
+        if: "!contains(github.event.head_commit.author.name, 'GithubAction')"
         id: update-package-references
         env:
           IS_CI: true
@@ -35,7 +29,7 @@ jobs:
           git push
   sync-subtrees:
     needs: ["push-artifacts"]
-    if: "needs.push-artifacts.result == 'skipped' || needs.push-artifacts.outputs.updated != 'true'"
+    if: "needs.push-artifacts.outputs.updated != 'true'"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
