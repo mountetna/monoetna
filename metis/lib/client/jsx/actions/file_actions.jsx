@@ -29,10 +29,11 @@ export const listFilesRecursive = ({folder_name = "", bucket_name}) => (dispatch
   );
 }
 
-export const downloadFilesZip = ({ folder_name, files }) => (dispatch) => {
+export const downloadFilesZip = ({ folder_name = "", files = [], bucket_name = "" }) => (dispatch) => {
   // a stable identifier to share to cache some downzip work when re-clicked.
   const downloadId = Array.from(files.map(({ file_hash }) => file_hash).join(".")).reduce((s, c) => Math.imul(31, s) + c.charCodeAt(0) | 0, 0)
-  const folderParts = folder_name.split("/");
+  let folderParts = folder_name.split("/");
+  if (!folder_name) folderParts = [bucket_name];
   const zipName = folderParts.join("--");
 
   return downZip.downzip(downloadId, zipName, files.map(({ size, download_url, file_path }) => ({
