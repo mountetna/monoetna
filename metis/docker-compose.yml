@@ -4,8 +4,6 @@ volumes:
     driver: local
   db-data:
     driver: local
-  node-modules:
-    driver: local
   data-dir:
     driver: local
   log-dir:
@@ -16,14 +14,11 @@ volumes:
     driver: local
 
 x-metis_base: &metis_base
-  build:
-    context: .
-    dockerfile: docker/app/Dockerfile.development
-  image: metis_base
+  image: etna-base
   volumes:
     - .:/app:cached
-    - app-gems:/app/vendor/bundle:rw
     - ./node_modules:/app/node_modules:cached
+    - app-gems:/app/vendor/bundle:rw
     - data-dir:/app/data:rw
     - log-dir:/app/log:rw
     - tmp-dir:/app/tmp:rw
@@ -31,15 +26,12 @@ x-metis_base: &metis_base
     - ../etna:/etna:cached
   environment: &app_environment
     COVERAGE: "true"
-    DATABASE_HOST: "db"
     METIS_ENV: "development"
     MASTER_BUILD: "${MASTER_BUILD}"
 
 services:
   metis_app:
     <<: *metis_base
-    ports:
-      - 3000:3000
     command: ./docker/app/puma.sh
     depends_on:
       - metis_db
@@ -53,15 +45,12 @@ services:
     command: npm run webpack
 
   metis_db:
-    build:
-      context: .
-      dockerfile: docker/db/Dockerfile
+    image: development-psql
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: metis_development
       POSTGRES_PASSWORD: password
       POSTGRES_USER: developer
-    ports:
-      - 5432
+      APP_NAME: metis
     container_name: metis_db_1

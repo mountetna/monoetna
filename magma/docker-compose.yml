@@ -9,19 +9,8 @@ volumes:
   magma-tmp-dir:
     driver: local
 
-networks:
-  edge_net:
-    ipam:
-      driver: default
-      config:
-        - subnet: '172.16.238.0/24'
-        - subnet: '2001:3984:3989::/64'
-
 x-magma_base: &magma_base
-  build:
-    context: .
-    dockerfile: docker/app/Dockerfile.development
-  image: magma_base
+  image: etna-base
   volumes:
     - .:/app:cached
     - magma-app-gems:/app/vendor/bundle:rw

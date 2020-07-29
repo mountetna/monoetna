@@ -10,7 +10,7 @@ help: ## Display help text
 .PHONY: help
 .DEFAULT_GOAL := help
 
-docker-compose.yml: $(compose_ymls) ./compose ./empty-docker-compose.yml
+docker-compose.yml: $(compose_ymls) ./compose ./docker-compose.shared.yml
 				@ echo 'Rebuilding docker-compose.yml from projects $(compose_ymls)'
 				@ ./compose $(compose_ymls) > .tmp
 				@ mv .tmp docker-compose.yml

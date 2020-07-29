@@ -1,0 +1,75 @@
+#! /usr/bin/env bash
+set -e
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+cd $DIR/..
+
+function usage() {
+  echo "$0 [-f] <Dockerfile> <tag> [<dep> [<dep2> ...]]" 1>&2
+}
+
+force=
+if [[ "$1" == "-f" ]]; then
+    force=1
+    shift
+fi
+
+Dockerfile=$1
+tag=$2
+
+if [[ -z "$Dockerfile" ]] || [[ -z "$tag" ]]; then
+    usage
+    exit 1
+fi
+
+shift; shift
+
+function newestAmongst() {
+    newestFile=$1
+    lastModifiedFile=$(find $2 -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
+    if [ "$lastModifiedFile" -nt "$newestFile" ]; then
+        echo $lastModifiedFile
+     else
+        echo $newestFile
+     fi
+}
+
+MARKERS_DIR=${MARKERS_DIR:-/tmp/etna-build-markers}
+mkdir -p $MARKERS_DIR
+marker=$(echo $Dockerfile $tag | md5sum | cut -d ' ' -f1)
+
+mounts="-v /var/run/docker.sock:/var/run/docker.sock:ro"
+mounts="$mounts --mount type=bind,source=$(realpath $(dirname $Dockerfile)),target=/build"
+newestFile=$(newestAmongst $Dockerfile $(dirname $Dockerfile))
+
+while (( "$#" )); do
+    mounts="$mounts --mount type=bind,source=$(realpath $1),target=/build/$(basename $1)"
+    marker=$(echo $marker $1 | md5sum | cut -d ' ' -f1)
+    newestFile=$(newestAmongst $newestFile $1)
+    shift
+done
+
+if [[ -z "$force" ]] && [[ -e "$MARKERS_DIR/$marker" ]] && [ "$newestFile" -ot "$MARKERS_DIR/$marker" ]; then
+  echo "Image $tag already up to date, skipping build"
+  exit 0
+fi
+
+touch $MARKERS_DIR/$marker
+
+BUILD_CMD="docker build --tag $tag -f $(basename $Dockerfile) ."
+docker run --rm -w /build $mounts docker:19.03.12 $BUILD_CMD
