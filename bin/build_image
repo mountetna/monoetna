@@ -20,12 +20,18 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 cd $DIR/..
 
 function usage() {
-  echo "$0 [-f] <Dockerfile> <tag> [<dep> [<dep2> ...]]" 1>&2
+  echo "$0 [-f] [-d] <Dockerfile> <tag> [<dep> [<dep2> ...]]" 1>&2
 }
 
 force=
+digestOnly=
 if [[ "$1" == "-f" ]]; then
     force=1
+    shift
+fi
+
+if [[ "$1" == "-d" ]]; then
+    digestOnly=1
     shift
 fi
 
@@ -39,37 +45,56 @@ fi
 
 shift; shift
 
-function newestAmongst() {
-    newestFile=$1
-    lastModifiedFile=$(find $2 -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
+digest=
+newestFile=$Dockerfile
+function addToDigest() {
+     digest=$(echo $(cat) $digest | md5sum | cut -d ' ' -f1)
+}
+function recursiveDigest() {
+     find "$1" -type f -exec md5sum {} \;
+}
+function findNewest() {
+    lastModifiedFile=$(find $1 -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
     if [ "$lastModifiedFile" -nt "$newestFile" ]; then
-        echo $lastModifiedFile
-     else
-        echo $newestFile
+        newestFile="$lastModifiedFile"
      fi
 }
 
+cat $0 | addToDigest
+
 MARKERS_DIR=${MARKERS_DIR:-/tmp/etna-build-markers}
 mkdir -p $MARKERS_DIR
-marker=$(echo $Dockerfile $tag | md5sum | cut -d ' ' -f1)
 
 mounts="-v /var/run/docker.sock:/var/run/docker.sock:ro"
 mounts="$mounts --mount type=bind,source=$(realpath $(dirname $Dockerfile)),target=/build"
-newestFile=$(newestAmongst $Dockerfile $(dirname $Dockerfile))
+recursiveDigest "$(dirname $Dockerfile)" | addToDigest
+findNewest "$(dirname $Dockerfile)"
 
 while (( "$#" )); do
     mounts="$mounts --mount type=bind,source=$(realpath $1),target=/build/$(basename $1)"
-    marker=$(echo $marker $1 | md5sum | cut -d ' ' -f1)
-    newestFile=$(newestAmongst $newestFile $1)
+    recursiveDigest "$(realpath $1)" | addToDigest
+    findNewest "$1"
     shift
 done
 
-if [[ -z "$force" ]] && [[ -e "$MARKERS_DIR/$marker" ]] && [ "$newestFile" -ot "$MARKERS_DIR/$marker" ]; then
+if ! [[ -z "$onlyDigest" ]]; then
+  echo "$digest"
+  return
+fi
+
+marker=$MARKERS_DIR/$tag
+if [[ -z "$force" && "$newestFile" -ot "$marker" ]]; then
   echo "Image $tag already up to date, skipping build"
   exit 0
 fi
 
-touch $MARKERS_DIR/$marker
+sleep 1
+touch $marker
 
-BUILD_CMD="docker build --tag $tag -f $(basename $Dockerfile) ."
+# For ci to pull before building again.
+if ! [[ -z "$PULL_IMAGES" ]]; then
+  docker pull $tag
+fi
+
+BUILD_CMD="docker build --tag $tag --cache-from $tag -f $(basename $Dockerfile) ."
 docker run --rm -w /build $mounts docker:19.03.12 $BUILD_CMD

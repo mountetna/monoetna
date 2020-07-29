@@ -24,10 +24,9 @@ x-metis_base: &metis_base
     - tmp-dir:/app/tmp:rw
     - public-dir:/app/public:rw
     - ../etna:/etna:cached
-  environment: &app_environment
-    COVERAGE: "true"
+  environment:
     METIS_ENV: "development"
-    MASTER_BUILD: "${MASTER_BUILD}"
+    # MASTER_BUILD: "${MASTER_BUILD}"
 
 services:
   metis_app:
