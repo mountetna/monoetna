@@ -183,6 +183,8 @@ class Magma
         match, att_name, operator, value = term.match(FILTER_TERM).to_a
         raise ArgumentError, "Filter term '#{term}' does not parse" if match.nil?
 
+        value = unescape(value)
+
         att = attributes.find{|a| a.name == att_name.to_sym}
         raise ArgumentError, "#{att_name} is not an attribute" unless att.is_a?(Magma::Attribute)
         case att
@@ -201,6 +203,11 @@ class Magma
         else
           raise ArgumentError, "Cannot query for #{att_name}"
         end
+      end
+
+      def unescape(value)
+        # spaces are escaped with a '-', and '-' is escaped with '--'
+        value.gsub(/--|-/, { '--' => '-', '-' => ' ' })
       end
 
       def string_op operator

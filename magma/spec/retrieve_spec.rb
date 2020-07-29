@@ -341,6 +341,20 @@ describe RetrieveController do
       expect(json_body[:models][:labor][:documents].count).to eq(2)
     end
 
+    it 'can filter with escaped spaces in the value' do
+      lion = create(:labor, :lion, name: 'L i-on')
+      retrieve(
+          project_name: 'labors',
+          model_name: 'labor',
+          record_names: 'all',
+          attribute_names: 'all',
+          filter: 'name~L-i--'
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:models][:labor][:documents].count).to eq(1)
+    end
+
     it 'can filter on numbers' do
       poison = create(:prize, name: 'poison', worth: 5)
       poop = create(:prize, name: 'poop', worth: 0)

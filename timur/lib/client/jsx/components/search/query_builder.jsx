@@ -1,7 +1,7 @@
 import React, {useCallback, useState, useEffect, useMemo} from 'react';
 import {connect} from "react-redux";
 import {
-  selectDisplayAttributeNamesAndTypes,
+  selectDisplayAttributeNamesAndTypes, selectSearchFilterString,
   selectSortedAttributeNames
 } from "../../selectors/search";
 import {setFilterString, setSearchAttributeNames} from "../../actions/search_actions";
@@ -9,44 +9,52 @@ import {useModal} from "etna-js/components/ModalDialogContainer";
 import TreeView, {getSelectedLeaves} from 'etna-js/components/TreeView';
 import SelectInput from "../inputs/select_input";
 
-function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+function escapeValueWhitespace(string) {
+  return string.replace(/[ \-]/, (v) => v === ' ' ? '-' : '--');
 }
 
-export function QueryBuilder({ display_attributes, setFilterString, selectedModel, attribute_names, setShowAdvanced }) {
+function escapeRegexValue(string) {
+  return escapeValueWhitespace(string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+}
+
+export function QueryBuilder({ display_attributes, setFilterString, selectedModel, attribute_names, filter_string }) {
   const { openModal } = useModal();
   const [filtersState, setFiltersState] = useState([]);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   useEffect(() => {
     setFiltersState([]);
   }, [selectedModel]);
 
   useEffect(() => {
-    setFiltersState(filtersState.filter(({attribute}) => attribute_names.includes(attribute)));
+    setFiltersState(filtersState.filter(({ attribute }) => attribute_names.includes(attribute)));
   }, [attribute_names]);
 
   useEffect(() => {
-    setFilterString(filtersState.map(({attribute, operator, operand}) => {
+    setFilterString(filtersState.map(({ attribute, operator, operand }) => {
       switch (operator) {
         case 'Greater than':
           operator = '>';
+          operand = escapeValueWhitespace(operand);
           break;
         case 'Less than':
           operator = '<';
+          operand = escapeValueWhitespace(operand);
           break;
         case 'Equals':
           operator = '=';
+          operand = escapeValueWhitespace(operand);
           break;
         case 'Contains':
-          operand = `.*${escapeRegExp(operand)}.*`;
+          operand = `.*${escapeRegexValue(operand)}.*`;
           operator = '~';
           break;
         case 'Starts with':
-          operand = `${escapeRegExp(operand)}.*`;
+          operand = `${escapeRegexValue(operand)}.*`;
           operator = '~';
           break;
         case 'Ends with':
-          operand = `.*${escapeRegExp(operand)}`;
+          operand = `.*${escapeRegexValue(operand)}`;
           operator = '~';
           break;
       }
@@ -56,28 +64,47 @@ export function QueryBuilder({ display_attributes, setFilterString, selectedMode
   }, [setFilterString, filtersState]);
 
   const onOpenAttributeFilter = () => {
-    openModal(<FilterAttributesModal display_attributes={display_attributes} />);
+    openModal(<FilterAttributesModal display_attributes={display_attributes}/>);
   };
 
   const onOpenFilters = () => {
-    openModal(<QueryFilterModal display_attributes={display_attributes} 
-                                filtersState={filtersState} 
-                                setFiltersState={setFiltersState} />);
+    openModal(<QueryFilterModal display_attributes={display_attributes}
+                                filtersState={filtersState}
+                                setFiltersState={setFiltersState}/>);
   };
 
   const columnsText = attribute_names.length === display_attributes.length ? '' : `(${attribute_names.length} / ${display_attributes.length})`;
   const filtersText = filtersState.length === 0 ? '' : `${filtersState.length} filters`;
 
-  return <div className='query-builder'>
-    <a className='pointer' onClick={onOpenAttributeFilter}>
-      Add/Remove Columns { columnsText }
+
+  const columnFiltering = <a className='pointer' onClick={onOpenAttributeFilter}>
+    Add/Remove Columns {columnsText}
+  </a>;
+
+  const advancedSearch = <React.Fragment>
+    <input
+      type='text'
+      className='filter'
+      placeholder='Filter query'
+      defaultValue={filter_string}
+      onBlur={(e) => setFilterString(e.target.value)}
+    />
+    <a className='pointer' onClick={() => setShowAdvanced(false)}>
+      Basic Search
     </a>
+  </React.Fragment>;
+
+  const basicSearch = <React.Fragment>
     <a className='pointer' onClick={onOpenFilters}>
-      Add/Remove Filters { filtersText }
+      Add/Remove Filters {filtersText}
     </a>
     <a className='pointer' onClick={() => setShowAdvanced(true)}>
       Advanced Searched
     </a>
+  </React.Fragment>
+
+  return <div className='query-builder'>
+    {columnFiltering} {showAdvanced ? advancedSearch : basicSearch}
   </div>;
 }
 
@@ -174,7 +201,7 @@ function QueryFilterModal({
 
   return (
     <div className='search-filters-modal'>
-      {filtersState.map(({attribute, operator, operand}, idx) => <div className='filters' key={idx}>
+      {filtersState.map(({ attribute, operator, operand }, idx) => <div className='filters' key={idx}>
         <SelectInput
           values={attribute_names}
           defaultValue={attribute}
@@ -204,12 +231,12 @@ function QueryFilterModal({
       </div>)}
       <div>
         New Filter On <SelectInput
-          name='model'
-          values={attribute_names}
-          value=''
-          showNone='enabled'
-          onChange={onFilterAttributeChange(-1)}
-        />
+        name='model'
+        values={attribute_names}
+        value=''
+        showNone='enabled'
+        onChange={onFilterAttributeChange(-1)}
+      />
       </div>
       <div className='actions'>
         <button onClick={dismissModal}>Ok</button>
@@ -232,7 +259,10 @@ function attributeNamesToDisabled(attributeNames) {
 }
 
 export default connect(
-  (state) => ({ attribute_names: selectSortedAttributeNames(state), }),
+  (state) => ({
+    attribute_names: selectSortedAttributeNames(state),
+    filter_string: selectSearchFilterString(state),
+  }),
   {
     setFilterString,
   }

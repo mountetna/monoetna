@@ -19,7 +19,6 @@ export function SearchQuery({
 }) {
   const buttonDisabled = !selectedModel || loading;
   const buttonClasses = buttonDisabled ? 'button disabled' : 'button';
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const tableOptionsLine = <React.Fragment>
     <span className='label'>Show table</span>
@@ -63,25 +62,10 @@ export function SearchQuery({
     />
   </React.Fragment>;
 
-  const advancedSearch = <div>
-    <input
-      type='text'
-      className='filter'
-      placeholder='Filter query'
-      defaultValue={filter_string}
-      onBlur={(e) => setFilterString(e.target.value)}
-    />
-    <a className='pointer' onClick={() => setShowAdvanced(false)}>
-      Basic Search
-    </a>
-  </div>;
-
   return (
     <div className='query'>
       <CollapsibleArrow label={tableOptionsLine}>
-        { selectedModel && <div>
-          {showAdvanced ? advancedSearch : <QueryBuilder setShowAdvanced={setShowAdvanced} selectedModel={selectedModel} display_attributes={display_attributes} /> }
-        </div> }
+        { selectedModel && <QueryBuilder selectedModel={selectedModel} display_attributes={display_attributes} /> }
       </CollapsibleArrow>
     </div>
   );
