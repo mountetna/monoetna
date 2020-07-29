@@ -206,8 +206,8 @@ class Magma
       end
 
       def unescape(value)
-        # spaces are escaped with a '-', and '-' is escaped with '--'
-        value.gsub(/--|-/, { '--' => '-', '-' => ' ' })
+        # spaces are escaped with a '_', and '_' is escaped with '__'
+        value.gsub(/__|_/, { '__' => '_', '_' => ' ' })
       end
 
       def string_op operator

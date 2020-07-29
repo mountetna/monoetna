@@ -342,13 +342,13 @@ describe RetrieveController do
     end
 
     it 'can filter with escaped spaces in the value' do
-      lion = create(:labor, :lion, name: 'L i-on')
+      lion = create(:labor, :lion, name: 'L i_on')
       retrieve(
           project_name: 'labors',
           model_name: 'labor',
           record_names: 'all',
           attribute_names: 'all',
-          filter: 'name~L-i--'
+          filter: 'name~L_i__'
       )
 
       expect(last_response.status).to eq(200)

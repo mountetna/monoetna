@@ -10,7 +10,7 @@ import TreeView, {getSelectedLeaves} from 'etna-js/components/TreeView';
 import SelectInput from "../inputs/select_input";
 
 function escapeValueWhitespace(string) {
-  return string.replace(/[ \-]/, (v) => v === ' ' ? '-' : '--');
+  return string.replace(/[ \_]/, (v) => v === ' ' ? '_' : '__');
 }
 
 function escapeRegexValue(string) {
