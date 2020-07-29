@@ -5,9 +5,10 @@ on:
       - master
 
 jobs:
-  sync-artifacts-and-subtrees:
-    if: "!contains(github.event.head_commit.author.name, 'GithubAction')"
+  push-artifacts:
     runs-on: ubuntu-latest
+    outputs:
+      updated: ${{ steps.update-package-references.outputs.updated }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -18,27 +19,26 @@ jobs:
           git config --global user.name 'GithubAction'
           git config --global user.email 'mountetna@users.noreply.github.com'
           git status
-      - name: Reattach HEAD to Head Ref
-        run: git checkout $(echo ${{ github.head_ref }} | sed -E 's|refs/[a-zA-Z]+/||')
-        if: github.head_ref != ''
-      - name: Reattach HEAD to Head Ref
-        run: git checkout $(echo ${{ github.ref }} | sed -E 's|refs/[a-zA-Z]+/||')
-        if: github.head_ref == ''
       - name:  Push npm artifacts and update package.json
+        if: "!contains(github.event.head_commit.author.name, 'GithubAction')"
+        id: update-package-references
         env:
           IS_CI: true
         run: |
           bin/update-package-references
           git push
+  sync-subtrees:
+    needs: ["push-artifacts"]
+    if: "needs.push-artifacts.outputs.updated != 'true'"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
       - name: Run smoke tests
         env:
           MASTER_BUILD: 1 # Will cause tests to use the true package artifacts, not local source.
-        run: |
-          make test
-      - name: Push package reference updates
-        run: |
-          git config --global user.name 'GithubAction'
-          git config --global user.email 'mountetna@users.noreply.github.com'
+        run: make test
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.SYNC_ACCESS_TOKEN }}

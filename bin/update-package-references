@@ -81,5 +81,6 @@ if ! [ -z "$IS_CI" ]; then
     git status
     git add .
     git commit -m "Updated package.json references to artifacts"
+    echo "::set-output name=updated::true"
 fi
 
