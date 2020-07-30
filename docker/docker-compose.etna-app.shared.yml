@@ -1,0 +1,68 @@
+volumes:
+  "${APP_DASH_PREFIX}app-gems":
+    driver: local
+  "${APP_DASH_PREFIX}log-dir":
+    driver: local
+    name: "${APP_DASH_PREFIX}log-dir"
+  "${APP_DASH_PREFIX}tmp-dir":
+    driver: local
+    name: "${APP_DASH_PREFIX}tmp-dir"
+  "${APP_DASH_PREFIX}public-dir":
+    driver: local
+    name: "${APP_DASH_PREFIX}public-dir"
+
+x-base-etna-app: &base-etna-app
+  image: etna-base
+  volumes:
+    - .:/app:cached
+    - ${APP_DASH_PREFIX}app-gems:/app/vendor/bundle:rw
+    - ${APP_DASH_PREFIX}log-dir:/app/log:rw
+    - ${APP_DASH_PREFIX}tmp-dir:/app/tmp:rw
+    - ${APP_DASH_PREFIX}public-dir:/app/public:rw
+    - ../etna:/etna:cached
+  environment:
+    "${APP_ENV_PREFIX}ENV": "development"
+    APP_NAME: "${APP_NAME}"
+
+  networks:
+    default:
+    local-net:
+  extra_hosts:
+    - 'metis.development.local:172.16.238.10'
+    - 'magma.development.local:172.16.238.10'
+    - 'janus.development.local:172.16.238.10'
+    - 'timur.development.local:172.16.238.10'
+
+x-base-etna-services: &base-etna-services
+  "${APP_NAME}_app":
+    <<: *base-etna-app
+    command: ./puma.sh
+    depends_on:
+      - "${APP_NAME}_db"
+
+  "${APP_NAME}_webpack":
+    <<: *base-etna-app
+    environment:
+      RUN_NPM_INSTALL: "true"
+      SKIP_RUBY_SETUP: "true"
+    command: npm run webpack
+
+  "${APP_NAME}_db":
+    image: development-psql
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: "${APP_NAME}_development"
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+      APP_NAME: "${APP_NAME}"
+    container_name: "${APP_NAME}_db_1"
+
+  "${APP_NAME}_app_fe":
+    image: alpine
+    command: 'echo 1'
+    volumes:
+      - ${APP_DASH_PREFIX}public-dir:/app/public:rw
+
+services:
+  <<: *base-etna-services

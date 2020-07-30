@@ -1,9 +1,7 @@
-# Base for composed docker-compose.yml file.  See ./compose
 version: "3.4"
 
-# Network used route *.development.local back to apache for internal http
 networks:
-  edge_net:
+  local-net:
     ipam:
       driver: default
       config:

@@ -1,0 +1,63 @@
+#! /usr/bin/env bash
+set -e
+set -o pipefail
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+yq() {
+  docker run --rm -i -v /tmp:/workdir mikefarah/yq yq $@
+}
+
+echo > /tmp/composed.yml
+
+for merge_target in $COMPOSE_MIXINS; do
+  cp $merge_target /tmp/
+#  yq m composed.yml $(basename $merge_target)
+done
+
+function getValue() {
+  echo "$1" | jq r -p v - "$2"
+}
+
+function listKeys() {
+  echo "$1" | jq r -p p - "$2.*"
+}
+
+function isScalar() {
+  head=$(echo "$1" | yq r - -j | head -c 1)
+  ! [[ $head == "{" || $head == "[" ]]
+}
+
+function smart_merge() {
+  local curDoc=$1
+}
+
+APP_NAME=$(dirname $1)
+APP_DASH_PREFIX=${APP_NAME}-
+APP_ENV_PREFIX=$(echo "$APP_NAME" | tr '[:lower:]' '[:upper:]')_
+# Historical compose.yml naming
+[[ $APP_NAME == "metis" ]] && APP_DASH_PREFIX=
+
+sed -i 's@${APP_NAME}@'"$APP_NAME"'@' /tmp/composed.yml
+sed -i 's@${APP_DASH_PREFIX}@'"$APP_DASH_PREFIX"'@' /tmp/composed.yml
+sed -i 's@${APP_ENV_PREFIX}@'"$APP_ENV_PREFIX"'@' /tmp/composed.yml
+
+if [[ -e $1 ]]; then
+fi
+
+#mv /tmp/composed.yml $1
+cat /tmp/composed.yml
