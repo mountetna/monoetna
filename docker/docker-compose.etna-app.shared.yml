@@ -11,7 +11,7 @@ volumes:
     driver: local
     name: "${APP_DASH_PREFIX}public-dir"
 
-x-base-etna-app: &base-etna-app
+x-base-etna-service: &base-etna-service
   image: etna-base
   volumes:
     - .:/app:cached
@@ -34,20 +34,20 @@ x-base-etna-app: &base-etna-app
     - 'timur.development.local:172.16.238.10'
 
 x-base-etna-services: &base-etna-services
-  "${APP_NAME}_app":
-    <<: *base-etna-app
+  "${APP_NAME}_app": &base-etna-app
+    <<: *base-etna-service
     command: ./puma.sh
     depends_on:
       - "${APP_NAME}_db"
 
-  "${APP_NAME}_webpack":
-    <<: *base-etna-app
+  "${APP_NAME}_webpack": &base-etna-webpack
+    <<: *base-etna-service
     environment:
       RUN_NPM_INSTALL: "true"
       SKIP_RUBY_SETUP: "true"
     command: npm run webpack
 
-  "${APP_NAME}_db":
+  "${APP_NAME}_db": &base-etna-db
     image: development-psql
     volumes:
       - db-data:/var/lib/postgresql/data
@@ -58,11 +58,8 @@ x-base-etna-services: &base-etna-services
       APP_NAME: "${APP_NAME}"
     container_name: "${APP_NAME}_db_1"
 
-  "${APP_NAME}_app_fe":
+  "${APP_NAME}_app_fe": &base-etna-fe
     image: alpine
     command: 'echo 1'
     volumes:
       - ${APP_DASH_PREFIX}public-dir:/app/public:rw
-
-services:
-  <<: *base-etna-services
