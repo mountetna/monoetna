@@ -660,6 +660,12 @@ EOT
 
       upload = Upload.new(actual_path)
 
+      upload_json = @shell.client.start_upload(upload_path, upload)
+      # start our upload
+
+      upload.current_byte_position = upload_json[:current_byte_position].to_i
+      upload.next_blob_size = upload_json[:next_blob_size].to_i
+
       max_number_attempts = MetisConfig[:max_attempts] || 2
       current_attempt_number = 1
 
