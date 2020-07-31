@@ -12,60 +12,52 @@ help: ## Display help text
 
 .PHONY: build
 build: ## Forces a rebuild of all projects' development dockerfiles
-				@ make -C docker build
+	@ make -C docker build
+
+.PHONY: create
+create: ## Builds, installs, but does not start, all project containers.
+	@ make -C docker install-into-volumes
 
 .PHONY: up
 up: ## Starts up all containers of this project in the background
-				@ make -C docker up
-
-.PHONY: prepare
-prepare: ## Prepares all containers by running npm and bundle installs, without starting servers.
-				@ make -C docker prepare
+	@ make -C docker up
 
 .PHONY: down
 down: ## Ends all projects' processes
-				@ make -C docker down
+	@ make -C docker down
 
 .PHONY: ps
 ps: ## Shows ps of all projects' containers
-				@ make -C docker ps
+	@ make -C docker ps
 
 .PHONY: logs
 logs: ## Shows logs of all running projects' containers
-				@ make -C docker logs
+	@ make -C docker logs
 
 .PHONY: logs-recent
 logs-recent: ## For CI
-				@ make -C docker logs-recent
+	@ make -C docker logs-recent
 
 .PHONY: bash
 bash: ## Starts a bash shell in an app environment
-				@ echo Run this within a specific app context, ie: make -C metis bash
+	@ echo Run this within a specific app context, ie: make -C metis bash
 
 .PHONY: psql
 psql: ## Starts a psql shell in an app environment
-				@ echo Run this within a specific app context, ie: make -C janus psql
+	@ echo Run this within a specific app context, ie: make -C janus psql
 
 .PHONY: migrate
 migrate: ## Runs migrations in a specific app context
-				@ echo Run this within a specific app context, ie: make -C janus migrate
+	@ echo Run this within a specific app context, ie: make -C janus migrate
 
 .PHONY: restart
 restart: ## Restarts running services for a project
-				@ echo Run this within a specific app context, ie: make -C metis restart
+	@ echo Run this within a specific app context, ie: make -C metis restart
 
 .PHONY: test
 test: ## Runs all projects' tests
-				@ set -e && for project in $(projects); do make -C $$project test; done
-
-.PHONY: setup-links
-setup-links: ## Sets up local development links for npm (and one day ruby) packages to use local copies of files.
-				@ for project in $(projects); do make -C $$project setup-links; done
-
-.PHONE: tag
-tag:  ## For ci, alters the project docker-compose.yml such that images contain specified repository tagging
-				@ make -C docker tag
+	@ set -e && for project in $(projects); do make -C $$project test; done
 
 .PHONE: clean
 clean:  ## Drops all data volumes, wiping all development databases and caches, and rebuilds all docker images cleanly.
-				@ make -C docker clean
+	@ make -C docker clean

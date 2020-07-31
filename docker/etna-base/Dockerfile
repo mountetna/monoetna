@@ -6,8 +6,6 @@ ENV BUNDLER_VERSION 2.1.4
 ENV DOCKERIZE_VERSION 0.5.0
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
 
-ARG APP_NAME
-
 ADD certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
 RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
 
@@ -47,4 +45,11 @@ RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
     bash ~/.bash_it/install.sh --silent && \
     echo "export SCM_CHECK=false" >> ~/.bashrc
 
-ENTRYPOINT ["/app/docker/docker-entrypoint.sh"]
+RUN mkdir -p /app/tmp/pids
+RUN mkdir -p /app/public/js
+RUN mkdir -p /app/public/css
+RUN mkdir -p /app/public/images
+RUN mkdir -p /app/log
+RUN mkdir -p /app/vendor/bundle
+RUN mkdir -p /app/data
+

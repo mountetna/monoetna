@@ -8,48 +8,53 @@ help: ## Display help text
 
 .PHONY: build
 build:: ## Forces a rebuild of project development dockerfiles
-				@ true
+	@ true
 
 .PHONY: up
 up:: ## Starts up the docker containers associated with the given project(s) in the background
-				@ true
+	@ true
 
 .PHONY: down
 down:: ## Ends the background docker containers associated with the given project(s)
-				@ true
+	@ true
 
 .PHONY: ps
 ps:: ## Shows status of the containers running with the given project(s)
-				@ true
+	@ true
 
 .PHONY: logs
 logs:: ## Shows logs of the running containers with the given project(s)
-				@ true
+	@ true
 
 .PHONY: bash
 bash:: ## Starts a bash shell in an app environment for the given project
-				@ true
+	@ true
 
 .PHONY: psql
 psql:: ## Starts a psql shell in an app environment for the given project
-				@ true
+	@ true
 
 .PHONY: migrate
 migrate:: ## Runs migrations in an app environment for the given project
-				@ true
+	@ true
 
 .PHONY: restart
 restart:: ## Restarts all containers for the given project(s)
-				@ true
+	@ true
 
 .PHONY: test
 test:: ## Runs all tests for the given project(s)
-				@ true
-
-.PHONY: setup-links
-setup-links:: ## Sets up local development links such that local code is preferred over locked files.
-				@ true
+	@ true
 
 .PHONY: irb
 irb:: ## Starts up an irb session in the context of the given project
-				@ true
+	@ true
+
+install-into-volumes::
+	@ true
+
+config-ready::
+	@ true
+
+docker-ready::
+	@ true

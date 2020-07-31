@@ -20,7 +20,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 cd $DIR/..
 
 function usage() {
-  echo "$0 [-f] [-d] <Dockerfile> <tag> [<dep> [<dep2> ...]]" 1>&2
+  echo "$0 [-f] [-d] <Dockerfile> [<dep> [<dep2> ...]]" 1>&2
 }
 
 force=
@@ -36,9 +36,10 @@ if [[ "$1" == "-d" ]]; then
 fi
 
 Dockerfile=$1
-tag=$2
+tag=$(dirname $Dockerfile)
+tag="${IMAGES_PREFIX}${tag}${IMAGES_POSTFIX}"
 
-if [[ -z "$Dockerfile" ]] || [[ -z "$tag" ]]; then
+if [[ -z "$Dockerfile" ]]; then
     usage
     exit 1
 fi
@@ -78,11 +79,11 @@ while (( "$#" )); do
 done
 
 if ! [[ -z "$onlyDigest" ]]; then
-  echo "$digest"
-  return
+  echo "$Dockerfile $digest"
+  exit 0
 fi
 
-marker=$MARKERS_DIR/$tag
+marker=$MARKERS_DIR/$(dirname $Dockerfile)
 if [[ -z "$force" && "$newestFile" -ot "$marker" ]]; then
   echo "Image $tag already up to date, skipping build"
   exit 0

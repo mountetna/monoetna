@@ -36,7 +36,7 @@ APP_ENV_PREFIX=$(echo "$APP_NAME" | tr '[:lower:]' '[:upper:]')_
 
 set -f
 for mergeTarget in $COMPOSE_MIXINS; do
-  echo "Applying $mergeTarget"
+  echo "Applying $mergeTarget to $1"
   cp $DIR/$mergeTarget /tmp/
   sed 's@${APP_NAME}@'"$APP_NAME"'@g' -i /tmp/$mergeTarget
   sed 's@${APP_DASH_PREFIX}@'"$APP_DASH_PREFIX"'@g' -i /tmp/$mergeTarget
@@ -45,14 +45,12 @@ for mergeTarget in $COMPOSE_MIXINS; do
   IFS=$'\n'
   for key in $(yq r -p p $mergeTarget "*"); do
     if [[ $key =~ x-.* ]]; then
-      echo "Handling $key with extension"
       if ! [[ "$(yq r -D @@@ -p v composed.yml "$key")" == "@@@" ]]; then
         sed -i /tmp/composed.yml -e "/^$key:/,/^\w*\$/d"
       fi
 
       sed -e "/^$key:/,/^\w*\$/!d" /tmp/$mergeTarget >> /tmp/composed.yml
     else
-      echo "Handling $key without extension"
       yq r -D ' ' -p pv composed.yml "$key" > /tmp/a
       yq r -D ' ' -p pv $mergeTarget "$key" > /tmp/b
       yq m --append a b > /tmp/c
@@ -68,5 +66,4 @@ for mergeTarget in $COMPOSE_MIXINS; do
   unset IFS
 done
 
-#mv /tmp/composed.yml $1
-cat /tmp/composed.yml
+mv /tmp/composed.yml $1
