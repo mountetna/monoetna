@@ -1,10 +1,8 @@
-export COMPOSE_PROJECT_NAME=monoetna
-app_service_name=${app_name}_app
+export COMPOSE_PROJECT_NAME:=monoetna
+export COMPOSE_MIXINS:=docker-compose.shared.yml $(COMPOSE_MIXINS)
+app_service_name:=${app_name}_app
 
-prepare-compose::
-	export COMPOSE_MIXINS="docker-compose.shared.yml $COMPOSE_MIXINS"
-
-docker-compose.yml:: prepare-compose $(wildcard ../docker/*.shared.yml) ../docker/default_compose
+docker-compose.yml:: $(wildcard ../docker/*.shared.yml) ../docker/default_compose
 	../docker/default_compose docker-compose.yml
 
 .PHONY: images

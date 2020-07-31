@@ -1,12 +1,10 @@
-app_service_name=${app_name}_app
-app_db_name=${app_name}_db
-app_name_capitalized=$(shell echo ${app_name} | tr [a-z] [A-Z])
-
-prepare-compose::
-	export COMPOSE_MIXINS="docker-compose.etna-app.shared.yml $COMPOSE_MIXINS"
+app_service_name:=${app_name}_app
+app_db_name:=${app_name}_db
+app_name_capitalized:=$(shell echo ${app_name} | tr [a-z] [A-Z])
+export COMPOSE_MIXINS:=docker-compose.etna-app.shared.yml $(COMPOSE_MIXINS)
 
 config.yml: config.yml.template
-	@ [[ ! -e config.yml || (read -p "$DIR/config.yml.template has been updated recently, copy it into config.yml? y/n" && $REPLY =~ [yY]) ]] && cp config.yml.template config.yml
+	../make-base/maybe-move-config
 
 config-ready:: config.yml
 	@ true

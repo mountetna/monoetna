@@ -1,18 +1,57 @@
-version: "3.4"
-volumes:
-  app-gems:
-    driver: local
-  db-data:
-    driver: local
-  data-dir:
-    driver: local
-  log-dir:
-    driver: local
-  tmp-dir:
-    driver: local
-  public-dir:
-    driver: local
 
+version: "3.4"
+
+x-base-etna-service: &base-etna-service
+  image: etna-base
+  volumes:
+    - .:/app:cached
+    - app-gems:/app/vendor/bundle:rw
+    - log-dir:/app/log:rw
+    - tmp-dir:/app/tmp:rw
+    - public-dir:/app/public:rw
+    - ../etna:/etna:cached
+  environment:
+    "METIS_ENV": "development"
+    APP_NAME: "metis"
+
+  networks:
+    default:
+    local-net:
+  extra_hosts:
+    - 'metis.development.local:172.16.238.10'
+    - 'magma.development.local:172.16.238.10'
+    - 'janus.development.local:172.16.238.10'
+    - 'timur.development.local:172.16.238.10'
+x-base-etna-services: &base-etna-services
+  "metis_app": &base-etna-app
+    <<: *base-etna-service
+    command: ./puma.sh
+    depends_on:
+      - "metis_db"
+
+  "metis_webpack": &base-etna-webpack
+    <<: *base-etna-service
+    environment:
+      RUN_NPM_INSTALL: "true"
+      SKIP_RUBY_SETUP: "true"
+    command: npm run webpack
+
+  "metis_db": &base-etna-db
+    image: development-psql
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: "metis_development"
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+      APP_NAME: "metis"
+    container_name: "metis_db_1"
+
+  "metis_app_fe": &base-etna-fe
+    image: alpine
+    command: 'echo 1'
+    volumes:
+      - public-dir:/app/public:rw
 x-metis_base: &metis_base
   image: etna-base
   volumes:
@@ -38,7 +77,6 @@ services:
   metis_webpack:
     <<: *metis_base
     environment:
-      <<: *app_environment
       RUN_NPM_INSTALL: "true"
       SKIP_RUBY_SETUP: "true"
     command: npm run webpack
@@ -49,7 +87,29 @@ services:
       - db-data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: metis_development
-      POSTGRES_PASSWORD: password
-      POSTGRES_USER: developer
-      APP_NAME: metis
-    container_name: metis_db_1
+    name: "tmp-dir"
+
+networks:
+  local-net:
+    ipam:
+      driver: default
+      config:
+        - subnet: '172.16.238.0/24'
+        - subnet: '2001:3984:3989::/64'
+
+volumes:
+  app-gems:
+    driver: local
+  log-dir:
+    driver: local
+    name: "log-dir"
+  tmp-dir:
+    driver: local
+    name: "tmp-dir"
+  public-dir:
+    driver: local
+    name: "public-dir"
+  data-dir:
+    driver: local
+    name: "data-dir"
+

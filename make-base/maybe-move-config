@@ -1,0 +1,30 @@
+#! /usr/bin/env bash
+set -e
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+
+if [[ -e config.yml ]]; then
+    read -p "$(basename $PWD)/config.yml.template has been updated recently, copy it into config.yml? y/n"
+    if ! [[ $REPLY =~ [yY] ]]; then
+        touch config.yml
+        exit 0
+    fi
+fi
+
+cp config.yml.template config.yml
+

@@ -18,6 +18,8 @@ while [ -h "$SOURCE" ]; do
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
+PATH="$DIR/../bin:$PATH"
+
 yq() {
   docker run --rm -i -v /tmp:/workdir mikefarah/yq yq $@
 }
@@ -28,13 +30,56 @@ else
   echo > /tmp/composed.yml
 fi
 
-APP_NAME=$(dirname $1)
+APP_NAME=$(basename "$(dirname "$(realpath "$1")")")
 APP_DASH_PREFIX=${APP_NAME}-
 APP_ENV_PREFIX=$(echo "$APP_NAME" | tr '[:lower:]' '[:upper:]')_
 # Historical compose.yml naming
 [[ $APP_NAME == "metis" ]] && APP_DASH_PREFIX=
 
+function findKeyRange() {
+  IFS=$'\n'
+  local lineno=0
+  local start=
+  local end=
+  while read line; do
+    lineno=$((lineno+1))
+    if [[ -z "$start" ]]; then
+      ! [[ "$line" =~ ^"${2}": ]] && continue
+      start=$lineno
+    else
+      ! [[ "$line" =~ ^[^\ #] ]] && continue
+      end=$lineno
+      break
+    fi
+  done < $1
+
+  [[ -z "$start" ]] && lineno=0 && start=1
+  [[ -z "$end" ]] && end=$((lineno + 1))
+  echo "$start,$end"
+}
+
+function getKey() {
+  local start="$(findKeyRange $1 $2 | cut -d ',' -f1)"
+  local end="$(findKeyRange $1 $2 | cut -d ',' -f2)"
+  cat $1 | tail -n+$start | head -n $((end - start))
+}
+
+function replaceKey() {
+  local start="$(findKeyRange $1 $2 | cut -d ',' -f1)"
+  local end="$(findKeyRange $1 $2 | cut -d ',' -f2)"
+  local head="$(cat $1 | head -n $((start - 1)))
+"
+  local tail="$(cat $1 | tail -n+$((end)))
+"
+
+  local body="$head
+$3
+$tail"
+  echo "$body" > $1
+}
+
 set -f
+idx=0
 for mergeTarget in $COMPOSE_MIXINS; do
   echo "Applying $mergeTarget to $1"
   cp $DIR/$mergeTarget /tmp/
@@ -43,27 +88,27 @@ for mergeTarget in $COMPOSE_MIXINS; do
   sed 's@${APP_ENV_PREFIX}@'"$APP_ENV_PREFIX"'@g' -i /tmp/$mergeTarget
 
   IFS=$'\n'
-  for key in $(yq r -p p $mergeTarget "*"); do
+  for key in $(yq r -p p $mergeTarget "*" | tac); do
+    idx=$((idx + 1))
+    echo "Applying key $key"
     if [[ $key =~ x-.* ]]; then
-      if ! [[ "$(yq r -D @@@ -p v composed.yml "$key")" == "@@@" ]]; then
-        sed -i /tmp/composed.yml -e "/^$key:/,/^\w*\$/d"
-      fi
-
-      sed -e "/^$key:/,/^\w*\$/!d" /tmp/$mergeTarget >> /tmp/composed.yml
+      # Anchored extension keys
+      IFS= replaceKey /tmp/composed.yml $key "$(getKey /tmp/$mergeTarget $key)"
     else
+      # Top level keys
       yq r -D ' ' -p pv composed.yml "$key" > /tmp/a
       yq r -D ' ' -p pv $mergeTarget "$key" > /tmp/b
-      yq m --append a b > /tmp/c
+      yq m a b > /tmp/c
+      echo >> /tmp/c
 
-      if ! [[ "$(yq r -D @@@ -p v composed.yml "$key")" == "@@@" ]]; then
-        sed -i /tmp/composed.yml -e "/^$key:/,/^\w*\$/d"
-      fi
 
-      echo >> /tmp/composed.yml
-      cat /tmp/c >> /tmp/composed.yml
+      IFS= replaceKey /tmp/composed.yml $key "$(getKey /tmp/c $key)"
     fi
+    cp /tmp/composed.yml /tmp/composed.yml.${idx}
+    echo $key >> /tmp/composed.yml.${idx}
   done
   unset IFS
 done
 
-mv /tmp/composed.yml $1
+cat -s /tmp/composed.yml > /tmp/composed.yml.a
+mv /tmp/composed.yml.a $1
