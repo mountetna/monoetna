@@ -127,6 +127,7 @@ class FolderController < Metis::Controller
         ## Note: find_or_create does not fix this, it still does not handle the unique constraint and simply
         ## queries or creates, which is not good enough for READ COMMITTED isolation where a read might not see a yet
         ## committed create.
+        Metis.instance.logger.log_error(e)
         parents << Metis::Folder.find(bucket_id: bucket&.id, folder_id: parents.last&.id, folder_name: folder_name)
       end
     end
