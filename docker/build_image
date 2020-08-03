@@ -17,8 +17,6 @@ while [ -h "$SOURCE" ]; do
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-cd $DIR/..
-
 function usage() {
   echo "$0 [-f] [-d] <Dockerfile> [<dep> [<dep2> ...]]" 1>&2
 }
@@ -36,7 +34,8 @@ if [[ "$1" == "-d" ]]; then
 fi
 
 Dockerfile=$1
-tag=$(dirname $Dockerfile)
+tag=$(basename "$(dirname "$(realpath $Dockerfile)")")
+baseTag="$tag"
 tag="${IMAGES_PREFIX}${tag}${IMAGES_POSTFIX}"
 
 if [[ -z "$Dockerfile" ]]; then
@@ -44,15 +43,16 @@ if [[ -z "$Dockerfile" ]]; then
     exit 1
 fi
 
-shift; shift
+shift
 
 digest=
 newestFile=$Dockerfile
 function addToDigest() {
-     digest=$(echo $(cat) $digest | md5sum | cut -d ' ' -f1)
+     digest=$(echo $(cat -) $digest | md5sum | cut -d ' ' -f1)
 }
 function recursiveDigest() {
      find "$1" -type f -exec md5sum {} \;
+     echo
 }
 function findNewest() {
     lastModifiedFile=$(find $1 -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
@@ -83,7 +83,7 @@ if ! [[ -z "$onlyDigest" ]]; then
   exit 0
 fi
 
-marker=$MARKERS_DIR/$(dirname $Dockerfile)
+marker=$MARKERS_DIR/$baseTag
 if [[ -z "$force" && "$newestFile" -ot "$marker" ]]; then
   echo "Image $tag already up to date, skipping build"
   exit 0

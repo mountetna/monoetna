@@ -10,9 +10,4 @@ if [ -z "$SKIP_RUBY_SETUP" ]; then
   bundle check || bundle install -j "$(nproc)"
 fi
 
-if [ -n "$RUN_NPM_INSTALL" ]; then
-  cd packages/etna-js
-  npm install
-fi
-
 exec "$@"

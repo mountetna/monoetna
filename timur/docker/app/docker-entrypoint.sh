@@ -24,7 +24,6 @@ if [ -n "$RUN_NPM_INSTALL" ]; then
     npm link ../etna/packages/etna-js
   fi
 
-  ./bin/timur create_routes
 fi
 
 exec "$@"

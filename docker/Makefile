@@ -1,7 +1,7 @@
 export COMPOSE_PROJECT_NAME=monoetna
 projects := $(shell ls ../*/Makefile | grep -v docker | xargs -n 1 dirname | xargs -n 1 basename)
 compose_ymls     := $(shell ls ../*/docker-compose.yml | grep -v 'docker/docker-compose.yml')
-images := $(shell ls */)
+images := $(shell echo */)
 
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \
@@ -19,14 +19,13 @@ docker-compose.yml: $(compose_ymls) ./compose $(wildcard ./*.shared.yml) ./defau
 
 .PHONY: config-ready
 config-ready: docker-compose.yml
-	@ for project in $(projects); do cd ../$$project && make config-ready; done
 
 .PHONY: docker-ready
 docker-ready: config-ready build
 
 .PHONY: build
 build: ## Builds all development related docker images
-	@ for image in $(images); do make -C $image; done
+	@ for image in $(images); do make -s -C $$image 1>/dev/null; done
 
 .PHONY: up
 up: docker-ready ## Starts up all containers of this project in the background

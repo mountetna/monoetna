@@ -2,8 +2,9 @@
 version: "3.4"
 
 x-base-etna-service: &base-etna-service
+  # Base configuration used by most etna services.
   image: etna-base
-  volumes:
+  volumes: &base-etna-service-volumes
     - .:/app:cached
     - app-gems:/app/vendor/bundle:rw
     - log-dir:/app/log:rw
@@ -13,6 +14,7 @@ x-base-etna-service: &base-etna-service
   environment:
     "METIS_ENV": "development"
     APP_NAME: "metis"
+  entrypoint: entrypoints/development.sh
 
   networks:
     default:
@@ -22,14 +24,18 @@ x-base-etna-service: &base-etna-service
     - 'magma.development.local:172.16.238.10'
     - 'janus.development.local:172.16.238.10'
     - 'timur.development.local:172.16.238.10'
+
 x-base-etna-services: &base-etna-services
+  # Default list of services an etna app may have.
   "metis_app": &base-etna-app
+    # The ruby webserver
     <<: *base-etna-service
-    command: ./puma.sh
+    command: ./bin/puma.sh
     depends_on:
       - "metis_db"
 
   "metis_webpack": &base-etna-webpack
+    # The ruby webpack server watching for changes
     <<: *base-etna-service
     environment:
       RUN_NPM_INSTALL: "true"
@@ -37,6 +43,7 @@ x-base-etna-services: &base-etna-services
     command: npm run webpack
 
   "metis_db": &base-etna-db
+    # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
     image: development-psql
     volumes:
       - db-data:/var/lib/postgresql/data
@@ -48,46 +55,20 @@ x-base-etna-services: &base-etna-services
     container_name: "metis_db_1"
 
   "metis_app_fe": &base-etna-fe
+    # The application level apache frontend serving static assets, data, and proxying the main app.
     image: alpine
     command: 'echo 1'
     volumes:
-      - public-dir:/app/public:rw
-x-metis_base: &metis_base
-  image: etna-base
-  volumes:
-    - .:/app:cached
-    - ./node_modules:/app/node_modules:cached
-    - app-gems:/app/vendor/bundle:rw
-    - data-dir:/app/data:rw
-    - log-dir:/app/log:rw
-    - tmp-dir:/app/tmp:rw
-    - public-dir:/app/public:rw
-    - ../etna:/etna:cached
-  environment:
-    METIS_ENV: "development"
-    # MASTER_BUILD: "${MASTER_BUILD}"
+      - public-dir:/app/public:r
+
+x-metis-data-volumes: &metis-data-volumes
+  - data-dir:/app/data:rw
 
 services:
+  <<: *base-etna-services
   metis_app:
-    <<: *metis_base
-    command: ./docker/app/puma.sh
-    depends_on:
-      - metis_db
-
-  metis_webpack:
-    <<: *metis_base
-    environment:
-      RUN_NPM_INSTALL: "true"
-      SKIP_RUBY_SETUP: "true"
-    command: npm run webpack
-
-  metis_db:
-    image: development-psql
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_DB: metis_development
-    name: "tmp-dir"
+    <<: *base-etna-app
+    volumes: [*base-etna-service-volumes, *metis-data-volumes]
 
 networks:
   local-net:

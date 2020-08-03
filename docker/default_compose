@@ -62,20 +62,22 @@ function getKey() {
   local start="$(findKeyRange $1 $2 | cut -d ',' -f1)"
   local end="$(findKeyRange $1 $2 | cut -d ',' -f2)"
   cat $1 | tail -n+$start | head -n $((end - start))
+  echo \#
 }
 
 function replaceKey() {
-  local start="$(findKeyRange $1 $2 | cut -d ',' -f1)"
-  local end="$(findKeyRange $1 $2 | cut -d ',' -f2)"
-  local head="$(cat $1 | head -n $((start - 1)))
-"
-  local tail="$(cat $1 | tail -n+$((end)))
-"
+  replacement="${3%?}"
+  IFS= local start="$(findKeyRange $1 $2 | cut -d ',' -f1)"
+  IFS= local end="$(findKeyRange $1 $2 | cut -d ',' -f2)"
+  IFS= local head="$(cat $1 | head -n $((start - 1)); echo \#)"
+  IFS= local tail="$(cat $1 | tail -n+$((end)); echo \#)"
 
-  local body="$head
-$3
-$tail"
-  echo "$body" > $1
+  head="${head%?}"
+  tail="${tail%?}"
+
+  echo "$head
+$replacement
+$tail" > $1
 }
 
 set -f
@@ -93,7 +95,7 @@ for mergeTarget in $COMPOSE_MIXINS; do
     echo "Applying key $key"
     if [[ $key =~ x-.* ]]; then
       # Anchored extension keys
-      IFS= replaceKey /tmp/composed.yml $key "$(getKey /tmp/$mergeTarget $key)"
+      replaceKey /tmp/composed.yml $key "$(getKey /tmp/$mergeTarget $key)"
     else
       # Top level keys
       yq r -D ' ' -p pv composed.yml "$key" > /tmp/a

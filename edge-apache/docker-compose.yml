@@ -1,30 +1,31 @@
+
 version: "3.4"
+
 volumes:
   data-dir:
     driver: local
 
 networks:
-  edge_net:
+  local-net:
     ipam:
       driver: default
       config:
-        - subnet: "172.16.238.0/24"
-        - subnet: "2001:3984:3989::/64"
+        - subnet: '172.16.238.0/24'
+        - subnet: '2001:3984:3989::/64'
 
 services:
   apache:
-    build:
-      context: .
-      dockerfile: Dockerfile.development
+    image: etna-apache
     volumes:
-      - ./certs:/root/certs
+      - ../development-certs/certs:/root/certs
       - ./docker-httpd.conf:/usr/local/apache2/conf/httpd.conf
-      - data-dir:/app/data:rw
+      - data-dir:/app/data
     ports:
       - "443:443"
       - "80:80"
     networks:
-      edge_net:
+      local-net:
         ipv4_address: 172.16.238.10
         ipv6_address: 2001:3984:3989::10
       default:
+

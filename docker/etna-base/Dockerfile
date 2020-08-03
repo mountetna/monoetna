@@ -52,4 +52,5 @@ RUN mkdir -p /app/public/images
 RUN mkdir -p /app/log
 RUN mkdir -p /app/vendor/bundle
 RUN mkdir -p /app/data
-
+COPY npmrc /app/.npmrc
+COPY entrypoints /app/entrypoints
