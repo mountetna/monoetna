@@ -54,7 +54,7 @@ describe Etna::Controller do
       @app = setup_app(
         Arachne::Server,
         [ Etna::TestAuth ],
-        test: { log_file: @log_file, hmac_keys: {etna: 'key'} }
+        test: { log_file: @log_file }
       )
 
       header(*Etna::TestAuth.token_header(
@@ -78,7 +78,7 @@ EOT
       @app = setup_app(
         Arachne::Server,
         [ Etna::TestAuth ],
-        test: { log_file: @log_file, hmac_keys: {etna: 'key'} },
+        test: { log_file: @log_file },
       )
 
       header(*Etna::TestAuth.token_header(
