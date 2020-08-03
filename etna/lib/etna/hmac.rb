@@ -60,6 +60,7 @@ module Etna
     end
 
     def valid_id?
+      return false if !@application.config(:hmac_keys)
       @application.config(:hmac_keys).key?(@id)
     end
 
