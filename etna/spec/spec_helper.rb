@@ -15,7 +15,7 @@ ENV['ARACHNE_ENV'] = 'test'
 
 require_relative '../lib/etna'
 
-def setup_app(server, layer=nil, config={ test: {} })
+def setup_app(server, layer=nil, config={ test: {hmac_keys: {etna: 'key'}} })
   Etna::Application.find(server).configure(config)
   Rack::Builder.new do
     use Etna::ParseBody

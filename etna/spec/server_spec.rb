@@ -163,7 +163,8 @@ describe Etna::Server do
   it "applies an auth check" do
     Arachne::Server.get('/test', auth: { user: { can_edit?: :project_name } } ) { success('') }
 
-    @app = setup_app(Arachne::Server, [ Etna::TestAuth ])
+    @app = setup_app(Arachne::Server, [ Etna::TestAuth ],
+      test: { hmac_keys: {etna: 'key'} })
 
     header(*Etna::TestAuth.token_header(
       email: 'janus@two-faces.org',
