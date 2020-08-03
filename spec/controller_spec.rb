@@ -78,7 +78,7 @@ EOT
       @app = setup_app(
         Arachne::Server,
         [ Etna::TestAuth ],
-        test: { log_file: @log_file, hmac_keys: {etna: 'key'} },
+        test: { log_file: @log_file, hmac_keys: { etna: 'key' } },
       )
 
       header(*Etna::TestAuth.token_header(
