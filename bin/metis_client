@@ -710,13 +710,16 @@ EOT
           break
         rescue MetisClient::UploadError => e
           puts "#{e.message}"
-          upload = Upload.new(actual_path)
-          upload_json = @shell.client.reset_upload(upload_path, upload)
-          upload.current_byte_position = 0
-
           current_attempt_number += 1
-          puts "UploadError -- retrying the upload" if current_attempt_number <= max_number_attempts
-          puts "UploadError -- max retries reached. Giving up." if current_attempt_number > max_number_attempts
+
+          if current_attempt_number <= max_number_attempts
+            puts "UploadError -- retrying the upload"
+            upload = Upload.new(actual_path)
+            upload_json = @shell.client.reset_upload(upload_path, upload)
+            upload.current_byte_position = 0
+          else
+            puts "UploadError -- max retries reached. Giving up."
+          end
         end
       end
     end
