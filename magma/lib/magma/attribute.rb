@@ -169,18 +169,25 @@ class Magma
       super
       validate_validation_json
       validate_attribute_name_format
+      validate_type
     end
 
     def validate_validation_json
       return unless validation
       validation_object
     rescue => e
+      Magma.instance.logger.log_error(e)
       errors.add(:validation, "is not properly formatted")
     end
 
     def validate_attribute_name_format
       return if attribute_name == attribute_name&.snake_case
       errors.add(:attribute_name, "must be snake_case")
+    end
+
+    def validate_type
+      return if Magma.const_defined?("#{type.classify}Attribute")
+      errors.add(:type, "is not a supported type")
     end
   end
 end

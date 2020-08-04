@@ -23,7 +23,7 @@ module Etna
         )
       when %r{multipart/form-data}i
         params.update(
-          Rack::Multipart.parse_multipart(env)
+          Rack::Multipart.parse_multipart(env) || {}
         )
       end
       # Always parse the params that are url-encoded.

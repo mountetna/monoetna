@@ -70,7 +70,7 @@ class FolderView extends React.Component {
   selectFolderDownload() {
     let { bucket_name, folder_name } = this.props;
     this.props.listFilesRecursive(bucket_name, folder_name).then(files => {
-      return this.props.downloadFilesZip(files, this.props.folder_name);
+      return this.props.downloadFilesZip(files, this.props.folder_name, this.props.bucket_name);
     });
   }
 
@@ -124,7 +124,7 @@ const fileSelected = (bucket_name, folder_name, file)=>({ type: 'FILE_SELECTED',
 const createFolder = (bucket_name, parent_folder, folder_name)=>({ type: 'CREATE_FOLDER', folder_name, parent_folder, bucket_name });
 const showUploadModal = (startFileUpload, startDirectoryUpload) => ({ type: 'SHOW_DIALOG', dialog: { type: 'upload_dialog', startDirectoryUpload, startFileUpload } })
 const listFilesRecursive = (bucket_name, folder_name) => ({ type: 'LIST_FILES_RECURSIVE', folder_name, bucket_name });
-const downloadFilesZip = (files, folder_name) => ({ type: 'DOWNLOAD_FILES_ZIP', files, folder_name });
+const downloadFilesZip = (files, folder_name, bucket_name) => ({ type: 'DOWNLOAD_FILES_ZIP', files, folder_name, bucket_name });
 
 export default connect(
   // map state

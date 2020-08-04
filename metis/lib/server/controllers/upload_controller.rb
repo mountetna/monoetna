@@ -50,7 +50,7 @@ class UploadController < Metis::Controller
   def upload_start
     require_params(:file_size, :next_blob_size, :next_blob_hash)
     bucket = require_bucket
-    
+
     hmac = @request.env['etna.hmac']
     user = user_by_hmac(hmac)
 
@@ -79,6 +79,7 @@ class UploadController < Metis::Controller
 
     if requires_reset
       upload_update[:author] = Metis::File.author(user)
+      upload.delete_partial!
     end
 
     upload.update(upload_update)
