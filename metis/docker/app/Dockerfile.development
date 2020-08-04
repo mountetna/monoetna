@@ -18,6 +18,8 @@ RUN apt-get update \
       libopenblas-base \
       libcurl4-openssl-dev \
       libssl-dev \
+      libvips \
+      libvips-dev \
       parallel \
       postgresql-client-10 \
       --no-install-recommends &&\

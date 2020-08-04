@@ -7,6 +7,8 @@ gem 'pg'
 gem 'sequel'
 gem 'fog-aws'
 gem 'etna'
+gem 'ruby-vips'
+gem 'mimemagic'
 
 group :test do
   gem 'rspec'
