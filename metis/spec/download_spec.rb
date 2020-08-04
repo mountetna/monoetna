@@ -56,5 +56,14 @@ describe DownloadController do
 
       expect(last_response.status).to eq(401)
     end
+
+    it 'fails with the thumbnail query param if not a recognized image mimetype' do
+      create_file('labors', 'readme_hercules.txt', @tips)
+
+      hmac_header(params={thumbnail: true})
+      get('/labors/download/files/readme_hercules.txt')
+
+      expect(last_response.status).to eq(422)
+    end
   end
 end
