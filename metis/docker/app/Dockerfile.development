@@ -19,7 +19,6 @@ RUN apt-get update \
       libcurl4-openssl-dev \
       libssl-dev \
       libvips \
-      libvips-dev \
       parallel \
       postgresql-client-10 \
       --no-install-recommends &&\
