@@ -10,15 +10,16 @@ x-base-etna-service: &base-etna-service
     - janus-log-dir:/app/log:rw
     - janus-tmp-dir:/app/tmp:rw
     - janus-public-dir:/app/public:rw
+    - janus-data-dir:/app/data:rw
     - ../etna:/etna:cached
-  environment:
+  environment: &base-etna-env
     "JANUS_ENV": "development"
     APP_NAME: "janus"
-  entrypoint: entrypoints/development.sh
+  entrypoint: /entrypoints/development.sh
 
   networks:
     default:
-    local-net:
+    edge_net:
   extra_hosts:
     - 'metis.development.local:172.16.238.10'
     - 'magma.development.local:172.16.238.10'
@@ -38,6 +39,7 @@ x-base-etna-services: &base-etna-services
     # The ruby webpack server watching for changes
     <<: *base-etna-service
     environment:
+      <<: *base-etna-env
       RUN_NPM_INSTALL: "true"
       SKIP_RUBY_SETUP: "true"
     command: npm run webpack
@@ -59,10 +61,10 @@ x-base-etna-services: &base-etna-services
     image: alpine
     command: 'echo 1'
     volumes:
-      - janus-public-dir:/app/public:r
+      - janus-public-dir:/app/public:ro
 
 networks:
-  local-net:
+  edge_net:
     ipam:
       driver: default
       config:
@@ -74,6 +76,7 @@ volumes:
     driver: local
   janus-db-data:
     driver: local
+    name: "janus-db-data"
   janus-log-dir:
     driver: local
     name: "janus-log-dir"
@@ -83,6 +86,9 @@ volumes:
   janus-public-dir:
     driver: local
     name: "janus-public-dir"
+  janus-data-dir:
+    driver: local
+    name: "janus-data-dir"
 
 services:
   <<: *base-etna-services

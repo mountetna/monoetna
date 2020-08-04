@@ -22,3 +22,4 @@ package-lock.json
 .docker-build-mark
 .yarn-packages
 .npm-packages
+.npmrc

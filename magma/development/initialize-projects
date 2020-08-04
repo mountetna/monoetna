@@ -8,9 +8,15 @@ function findEnvConfig() {
   ~/yq r /app/config.yml ":${MAGMA_ENV:development}"
 }
 
-for project in $(findEnvConfig | grep ':project_path:' | sed -e 's/.*:project_path:\s*//g'); do
-  echo "Initializing $project..."
-  bin/magma create_db "$(basename $project)"
-done
+if [ -z "$SKIP_RUBY_SETUP" ]; then
+  if [ -z "$SKIP_DB_WAIT" ]; then
+    for project in $(findEnvConfig | grep ':project_path:' | sed -e 's/.*:project_path:\s*//g'); do
+      echo "Initializing $project..."
+      bin/magma create_schema "$(basename $project)"
+      bin/magma create_db "$(basename $project)"
+    done
 
-bin/magma global_migrate
+    bin/magma migrate
+    bin/magma global_migrate
+  fi
+fi

@@ -4,13 +4,16 @@ volumes:
     driver: local
   "${APP_DASH_PREFIX}log-dir":
     driver: local
-    name: "${APP_DASH_PREFIX}log-dir"
   "${APP_DASH_PREFIX}tmp-dir":
     driver: local
-    name: "${APP_DASH_PREFIX}tmp-dir"
   "${APP_DASH_PREFIX}public-dir":
     driver: local
-    name: "${APP_DASH_PREFIX}public-dir"
+  "${APP_DASH_PREFIX}data-dir":
+    driver: local
+  "${APP_DASH_PREFIX}db-data":
+    driver: local
+    name: "${APP_DASH_PREFIX}db-data"
+
 
 x-base-etna-service: &base-etna-service
   # Base configuration used by most etna services.
@@ -21,15 +24,16 @@ x-base-etna-service: &base-etna-service
     - ${APP_DASH_PREFIX}log-dir:/app/log:rw
     - ${APP_DASH_PREFIX}tmp-dir:/app/tmp:rw
     - ${APP_DASH_PREFIX}public-dir:/app/public:rw
+    - ${APP_DASH_PREFIX}data-dir:/app/data:rw
     - ../etna:/etna:cached
-  environment:
+  environment: &base-etna-env
     "${APP_ENV_PREFIX}ENV": "development"
     APP_NAME: "${APP_NAME}"
-  entrypoint: entrypoints/development.sh
+  entrypoint: /entrypoints/development.sh
 
   networks:
     default:
-    local-net:
+    edge_net:
   extra_hosts:
     - 'metis.development.local:172.16.238.10'
     - 'magma.development.local:172.16.238.10'
@@ -49,6 +53,7 @@ x-base-etna-services: &base-etna-services
     # The ruby webpack server watching for changes
     <<: *base-etna-service
     environment:
+      <<: *base-etna-env
       RUN_NPM_INSTALL: "true"
       SKIP_RUBY_SETUP: "true"
     command: npm run webpack
@@ -70,4 +75,4 @@ x-base-etna-services: &base-etna-services
     image: alpine
     command: 'echo 1'
     volumes:
-      - ${APP_DASH_PREFIX}public-dir:/app/public:r
+      - ${APP_DASH_PREFIX}public-dir:/app/public:ro

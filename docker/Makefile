@@ -25,7 +25,7 @@ docker-ready: config-ready build
 
 .PHONY: build
 build: ## Builds all development related docker images
-	@ for image in $(images); do make -s -C $$image 1>/dev/null; done
+	@ for image in $(images); do make -s -C $$image; done
 
 .PHONY: up
 up: docker-ready ## Starts up all containers of this project in the background

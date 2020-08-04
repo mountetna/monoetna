@@ -10,15 +10,16 @@ x-base-etna-service: &base-etna-service
     - magma-log-dir:/app/log:rw
     - magma-tmp-dir:/app/tmp:rw
     - magma-public-dir:/app/public:rw
+    - magma-data-dir:/app/data:rw
     - ../etna:/etna:cached
-  environment:
+  environment: &base-etna-env
     "MAGMA_ENV": "development"
     APP_NAME: "magma"
-  entrypoint: entrypoints/development.sh
+  entrypoint: /entrypoints/development.sh
 
   networks:
     default:
-    local-net:
+    edge_net:
   extra_hosts:
     - 'metis.development.local:172.16.238.10'
     - 'magma.development.local:172.16.238.10'
@@ -38,6 +39,7 @@ x-base-etna-services: &base-etna-services
     # The ruby webpack server watching for changes
     <<: *base-etna-service
     environment:
+      <<: *base-etna-env
       RUN_NPM_INSTALL: "true"
       SKIP_RUBY_SETUP: "true"
     command: npm run webpack
@@ -59,10 +61,10 @@ x-base-etna-services: &base-etna-services
     image: alpine
     command: 'echo 1'
     volumes:
-      - magma-public-dir:/app/public:r
+      - magma-public-dir:/app/public:ro
 
 networks:
-  local-net:
+  edge_net:
     ipam:
       driver: default
       config:
@@ -74,6 +76,7 @@ volumes:
     driver: local
   magma-db-data:
     driver: local
+    name: "magma-db-data"
   magma-log-dir:
     driver: local
     name: "magma-log-dir"
@@ -83,11 +86,14 @@ volumes:
   magma-public-dir:
     driver: local
     name: "magma-public-dir"
+  magma-data-dir:
+    driver: local
+    name: "magma-data-dir"
 
 services:
   <<: *base-etna-services
   "magma_webpack":
-    <<: *base-etna-webpack
+    image: alpine
     # Magma does not really have a webpack setup
-    command: 'echo 1'
+    command: echo 1
 

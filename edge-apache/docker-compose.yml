@@ -6,7 +6,7 @@ volumes:
     driver: local
 
 networks:
-  local-net:
+  edge_net:
     ipam:
       driver: default
       config:
@@ -24,7 +24,7 @@ services:
       - "443:443"
       - "80:80"
     networks:
-      local-net:
+      edge_net:
         ipv4_address: 172.16.238.10
         ipv6_address: 2001:3984:3989::10
       default:

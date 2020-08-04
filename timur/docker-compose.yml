@@ -10,15 +10,16 @@ x-base-etna-service: &base-etna-service
     - timur-log-dir:/app/log:rw
     - timur-tmp-dir:/app/tmp:rw
     - timur-public-dir:/app/public:rw
+    - timur-data-dir:/app/data:rw
     - ../etna:/etna:cached
-  environment:
+  environment: &base-etna-env
     "TIMUR_ENV": "development"
     APP_NAME: "timur"
-  entrypoint: entrypoints/development.sh
+  entrypoint: /entrypoints/development.sh
 
   networks:
     default:
-    local-net:
+    edge_net:
   extra_hosts:
     - 'metis.development.local:172.16.238.10'
     - 'magma.development.local:172.16.238.10'
@@ -38,6 +39,7 @@ x-base-etna-services: &base-etna-services
     # The ruby webpack server watching for changes
     <<: *base-etna-service
     environment:
+      <<: *base-etna-env
       RUN_NPM_INSTALL: "true"
       SKIP_RUBY_SETUP: "true"
     command: npm run webpack
@@ -59,11 +61,12 @@ x-base-etna-services: &base-etna-services
     image: alpine
     command: 'echo 1'
     volumes:
-      - timur-public-dir:/app/public:r
+      - timur-public-dir:/app/public:ro
 
 volumes:
   timur-db-data:
     driver: local
+    name: "timur-db-data"
   timur-log-dir:
     driver: local
     name: "timur-log-dir"
@@ -75,9 +78,12 @@ volumes:
     name: "timur-public-dir"
   timur-app-gems:
     driver: local
+  timur-data-dir:
+    driver: local
+    name: "timur-data-dir"
 
 networks:
-  local-net:
+  edge_net:
     ipam:
       driver: default
       config:
@@ -86,4 +92,11 @@ networks:
 
 services:
   <<: *base-etna-services
+  "timur_webpack":
+    # The ruby webpack server watching for changes
+    <<: *base-etna-webpack
+    environment:
+      <<: *base-etna-env
+      RUN_NPM_INSTALL: "true"
+      SKIP_RUBY_SETUP: "" # Ruby setup required
 

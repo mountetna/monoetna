@@ -4,6 +4,7 @@ WORKDIR /app
 ENV RUBY_VERSION 2.5.7
 ENV BUNDLER_VERSION 2.1.4
 ENV DOCKERIZE_VERSION 0.5.0
+ENV NODE_VERSION 12.18.1
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
 
 ADD certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
@@ -23,6 +24,9 @@ RUN apt-get update \
       postgresql-client-10 \
       --no-install-recommends &&\
     rm -rf /var/lib/apt/lists/*
+
+RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | tar --strip-components=1 -xzC /usr/local/ \
+    && npm install -g yarn
 
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
 
@@ -45,12 +49,8 @@ RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
     bash ~/.bash_it/install.sh --silent && \
     echo "export SCM_CHECK=false" >> ~/.bashrc
 
-RUN mkdir -p /app/tmp/pids
-RUN mkdir -p /app/public/js
-RUN mkdir -p /app/public/css
-RUN mkdir -p /app/public/images
-RUN mkdir -p /app/log
-RUN mkdir -p /app/vendor/bundle
-RUN mkdir -p /app/data
-COPY npmrc /app/.npmrc
-COPY entrypoints /app/entrypoints
+RUN mkdir -p /opt/
+COPY npmrc /opt/npmrc
+COPY entrypoints /entrypoints
+
+ENTRYPOINT ["/bin/sh", "-c"]

@@ -1,6 +1,6 @@
 
 networks:
-  local-net:
+  edge_net:
     ipam:
       driver: default
       config:

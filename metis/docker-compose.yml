@@ -10,15 +10,16 @@ x-base-etna-service: &base-etna-service
     - log-dir:/app/log:rw
     - tmp-dir:/app/tmp:rw
     - public-dir:/app/public:rw
+    - data-dir:/app/data:rw
     - ../etna:/etna:cached
-  environment:
+  environment: &base-etna-env
     "METIS_ENV": "development"
     APP_NAME: "metis"
-  entrypoint: entrypoints/development.sh
+  entrypoint: /entrypoints/development.sh
 
   networks:
     default:
-    local-net:
+    edge_net:
   extra_hosts:
     - 'metis.development.local:172.16.238.10'
     - 'magma.development.local:172.16.238.10'
@@ -38,6 +39,7 @@ x-base-etna-services: &base-etna-services
     # The ruby webpack server watching for changes
     <<: *base-etna-service
     environment:
+      <<: *base-etna-env
       RUN_NPM_INSTALL: "true"
       SKIP_RUBY_SETUP: "true"
     command: npm run webpack
@@ -59,19 +61,13 @@ x-base-etna-services: &base-etna-services
     image: alpine
     command: 'echo 1'
     volumes:
-      - public-dir:/app/public:r
-
-x-metis-data-volumes: &metis-data-volumes
-  - data-dir:/app/data:rw
+      - public-dir:/app/public:ro
 
 services:
   <<: *base-etna-services
-  metis_app:
-    <<: *base-etna-app
-    volumes: [*base-etna-service-volumes, *metis-data-volumes]
 
 networks:
-  local-net:
+  edge_net:
     ipam:
       driver: default
       config:
@@ -93,4 +89,7 @@ volumes:
   data-dir:
     driver: local
     name: "data-dir"
+  db-data:
+    driver: local
+    name: "db-data"
 
