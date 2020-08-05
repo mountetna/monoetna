@@ -13,14 +13,15 @@ volumes:
   etna-app-gems:
     driver: local
 
-x-etna_base: &etna_base
-  image: etna-base
-  volumes:
-    - .:/app:cached
-    - etna-app-gems:/app/vendor/bundle:rw
-
 services:
   etna_app:
-    <<: *etna_base
     command: echo initialized
+    image: etna-base
+    volumes:
+      - .:/app:cached
+      - etna-app-gems:/app/vendor/bundle:rw
+      - ../docker/etna-base/entrypoints:/entrypoints:ro
+    entrypoint: /entrypoints/development.sh
+    environment:
+      SKIP_DB_WAIT: 1
 

@@ -6,8 +6,8 @@ ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCK
 
 RUN apt-get update -y
 RUN apt-get install -y libapache2-mod-xsendfile libapache2-mod-shib2 curl
+RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
+
 COPY certs /root/certs
 COPY httpd.conf /usr/local/apache2/conf/httpd.conf
-
-RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
 

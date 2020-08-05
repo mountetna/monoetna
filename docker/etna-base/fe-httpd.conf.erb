@@ -1,7 +1,7 @@
-ServerName <%= @app_name %>_fe
-
 <VirtualHost *:80>
   DocumentRoot /app/public
+
+  ServerName <%= @app_name %>_app_fe
 
   # Disable TRACE and TRACK. This bit here prevents a certain kind of attack
   # which leaks info by repeatedly calling these two methods.

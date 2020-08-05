@@ -26,6 +26,11 @@ up: ## Starts up all containers of this project in the background
 down: ## Ends all projects' processes
 	@ make -C docker down
 
+.PHONY: restart
+restart: ## Restarts all projects' processes
+	@ make -C docker down
+	@ make -C docker up
+
 .PHONY: ps
 ps: ## Shows ps of all projects' containers
 	@ make -C docker ps
@@ -49,10 +54,6 @@ psql: ## Starts a psql shell in an app environment
 .PHONY: migrate
 migrate: ## Runs migrations in a specific app context
 	@ echo Run this within a specific app context, ie: make -C janus migrate
-
-.PHONY: restart
-restart: ## Restarts running services for a project
-	@ echo Run this within a specific app context, ie: make -C metis restart
 
 .PHONY: test
 test: ## Runs all projects' tests

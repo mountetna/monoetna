@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 set -e
+set -x
 
 if [ -z "$SKIP_BUILD" ]; then
   /entrypoints/build.sh
@@ -22,12 +23,15 @@ if [ -z "$SKIP_BUILD" ]; then
   fi
 
   if [ -n "$RUN_NPM_INSTALL" ]; then
-    npm link ../etna/packages/etna-js
+    [ -e ../etna ] && npm link ../etna/packages/etna-js
   fi
+
+  mkdir -p /app/data/uploads
+  mkdir -p /app/data/data_blocks
 fi
 
 if [ -n "$WAIT_FOR_APP" ]; then
   dockerize -wait tcp://${APP_NAME}_app:3000 -timeout 60s
 fi
 
-exec "$@"
+exec $@

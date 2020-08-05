@@ -1,4 +1,3 @@
-
 version: "3.4"
 
 volumes:
@@ -14,11 +13,11 @@ networks:
         - subnet: '2001:3984:3989::/64'
 
 services:
-  apache:
+  edge-apache:
     image: etna-apache
     volumes:
       - ../development-certs/certs:/root/certs
-      - ./docker-httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./development-edge-httpd.conf:/usr/opt/httpd.conf.d/main.conf
       - data-dir:/app/data
     ports:
       - "443:443"

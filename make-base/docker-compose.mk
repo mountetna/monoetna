@@ -19,7 +19,7 @@ up:: docker-ready
 	@ docker-compose up -d
 
 down:: docker-compose.yml
-	@ docker-compose down --remove-orphans
+	@ docker-compose down
 
 ps::
 	@ docker-compose ps
@@ -35,3 +35,6 @@ install-into-volumes:: docker-ready
 
 logs::
 	@ docker-compose logs -f
+
+test:: docker-ready
+	@ true

@@ -11,6 +11,7 @@ x-base-etna-service: &base-etna-service
     - timur-tmp-dir:/app/tmp:rw
     - timur-public-dir:/app/public:rw
     - timur-data-dir:/app/data:rw
+    - timur-opt-dir:/usr/opt:rw
     - ../etna:/etna:cached
   environment: &base-etna-env
     "TIMUR_ENV": "development"
@@ -58,10 +59,19 @@ x-base-etna-services: &base-etna-services
 
   "timur_app_fe": &base-etna-fe
     # The application level apache frontend serving static assets, data, and proxying the main app.
-    image: alpine
-    command: 'echo 1'
+    image: etna-apache
     volumes:
       - timur-public-dir:/app/public:ro
+      - timur-opt-dir:/usr/opt:ro
+      - ../docker/etna-base/entrypoints:/entrypoints:ro
+    depends_on:
+      - "timur_app"
+    entrypoint: /entrypoints/development.sh
+    command: ["httpd", "-DFOREGROUND"]
+    environment:
+      SKIP_BUILD: "1"
+      WAIT_FOR_APP: "1"
+      APP_NAME: "timur"
 
 volumes:
   timur-db-data:
@@ -81,6 +91,8 @@ volumes:
   timur-data-dir:
     driver: local
     name: "timur-data-dir"
+  timur-opt-dir:
+    driver: local
 
 networks:
   edge_net:

@@ -35,8 +35,8 @@ make prepare
 # Enters bash console in janus
 make -C janus bash
 ○ → ./bin/janus add_project 'test-project' 'Test Project'
-○ → ./bin/janus add_user some.guy@ucsf.edu Zach Collins password
-○ → ./bin/janus permit some.guy@ucsf.edu test-project administrator
+○ → ./bin/janus add_user developer@ucsf.edu 'Developer' password
+○ → ./bin/janus permit developer@ucsf.edu test-project administrator
 ```
 
 To use magma and timur effectively, you'll want to create an `ipi` project as well.
@@ -45,7 +45,7 @@ To use magma and timur effectively, you'll want to create an `ipi` project as we
 # Make sure services are already running with make up in top level directory.
 make -C janus bash
 ○ → ./bin/janus add_project ipi 'Immuno Profiler Project'
-○ → ./bin/janus permit some.guy@ucsf.edu ipi administrator
+○ → ./bin/janus permit developer@ucsf.edu ipi administrator
 ```
 
 ### Seeding timur and magma
