@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-set -e
+set -xe
 
 export PATH="/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH"
 # Default directories
@@ -22,10 +22,19 @@ if [ -n "$RUN_NPM_INSTALL" ]; then
   npm install --unsafe-perm
 fi
 
+# Prepare the httpd conf hooks
+mkdir -p /usr/opt/httpd.conf.d
+echo "@app_name = '${APP_NAME}'" > /usr/opt/vars.rb
+rm -rf /usr/opt/httpd.conf.d/*.include
+
+# NPMRC helps with npm link.
+cp /opt/npmrc /app/.npmrc
+
 if [ -e /app/build ]; then
   for hook in /app/build/*; do
-    [ -e "$hook" ] && . "$hook"
+    [ -x "$hook" ] && $hook
   done
 fi
 
-cp /opt/npmrc /app/.npmrc
+erb -r /usr/opt/vars.rb -- /opt/fe.conf.erb > /usr/opt/httpd.conf.d/main.conf
+

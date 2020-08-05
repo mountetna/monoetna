@@ -12,7 +12,8 @@ volumes:
     driver: local
   "${APP_DASH_PREFIX}db-data":
     driver: local
-    name: "${APP_DASH_PREFIX}db-data"
+  "${APP_DASH_PREFIX}opt-dir":
+    driver: local
 
 
 x-base-etna-service: &base-etna-service
@@ -25,6 +26,7 @@ x-base-etna-service: &base-etna-service
     - ${APP_DASH_PREFIX}tmp-dir:/app/tmp:rw
     - ${APP_DASH_PREFIX}public-dir:/app/public:rw
     - ${APP_DASH_PREFIX}data-dir:/app/data:rw
+    - ${APP_DASH_PREFIX}opt-dir:/usr/opt:rw
     - ../etna:/etna:cached
   environment: &base-etna-env
     "${APP_ENV_PREFIX}ENV": "development"
@@ -72,7 +74,17 @@ x-base-etna-services: &base-etna-services
 
   "${APP_NAME}_app_fe": &base-etna-fe
     # The application level apache frontend serving static assets, data, and proxying the main app.
-    image: alpine
-    command: 'echo 1'
+    image: etna-apache
     volumes:
       - ${APP_DASH_PREFIX}public-dir:/app/public:ro
+      - ${APP_DASH_PREFIX}opt-dir:/usr/opt:ro
+      - ../docker/etna-base/entrypoints:/entrypoints:ro
+    depends_on:
+      - "${APP_NAME}_app"
+    entrypoint: /entrypoints/development.sh
+    command: ["httpd", "-DFOREGROUND"]
+    environment:
+      SKIP_BUILD: "1"
+      WAIT_FOR_APP: "1"
+      APP_NAME: "${APP_NAME}"
+

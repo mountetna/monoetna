@@ -49,8 +49,9 @@ RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
     bash ~/.bash_it/install.sh --silent && \
     echo "export SCM_CHECK=false" >> ~/.bashrc
 
-RUN mkdir -p /opt/
+RUN mkdir -p /opt
 COPY npmrc /opt/npmrc
 COPY entrypoints /entrypoints
+COPY fe-httpd.conf.erb /opt/fe.conf.erb
 
 ENTRYPOINT ["/bin/sh", "-c"]

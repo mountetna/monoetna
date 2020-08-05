@@ -11,6 +11,7 @@ x-base-etna-service: &base-etna-service
     - janus-tmp-dir:/app/tmp:rw
     - janus-public-dir:/app/public:rw
     - janus-data-dir:/app/data:rw
+    - janus-opt-dir:/usr/opt:rw
     - ../etna:/etna:cached
   environment: &base-etna-env
     "JANUS_ENV": "development"
@@ -58,10 +59,19 @@ x-base-etna-services: &base-etna-services
 
   "janus_app_fe": &base-etna-fe
     # The application level apache frontend serving static assets, data, and proxying the main app.
-    image: alpine
-    command: 'echo 1'
+    image: etna-apache
     volumes:
       - janus-public-dir:/app/public:ro
+      - janus-opt-dir:/usr/opt:ro
+      - ../docker/etna-base/entrypoints:/entrypoints:ro
+    depends_on:
+      - "janus_app"
+    entrypoint: /entrypoints/development.sh
+    command: ["httpd", "-DFOREGROUND"]
+    environment:
+      SKIP_BUILD: "1"
+      WAIT_FOR_APP: "1"
+      APP_NAME: "janus"
 
 networks:
   edge_net:
@@ -89,6 +99,10 @@ volumes:
   janus-data-dir:
     driver: local
     name: "janus-data-dir"
+  janus-opt-data:
+    driver: local
+  janus-opt-dir:
+    driver: local
 
 services:
   <<: *base-etna-services
