@@ -160,8 +160,10 @@ class Metis
     usage '# delete unused (orphaned) data blocks'
 
     def execute
+      zero_hash = 'd41d8cd98f00b204e9800998ecf8427e'
+
       used_data_block_ids = Metis::File.all().map { |file| file.data_block.id }.uniq
-      orphaned_data_blocks = Metis::DataBlock.exclude(id: used_data_block_ids).all
+      orphaned_data_blocks = Metis::DataBlock.exclude(id: used_data_block_ids).exclude(md5_hash: zero_hash).all
       puts "Found #{orphaned_data_blocks.count} orphaned data blocks to be deleted."
       orphaned_data_blocks.each(&:delete)
     end

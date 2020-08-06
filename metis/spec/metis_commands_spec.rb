@@ -51,6 +51,38 @@ describe 'Metis Commands' do
       @wisdom_file.delete
       @helmet_file.delete
     end
+
+    it "does not delete the zero-hash data block" do
+        expected = "Found 0 orphaned data blocks to be deleted.\n"
+
+        zero_hash = 'd41d8cd98f00b204e9800998ecf8427e'
+
+        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+        @helmet_file = create_file('athena', 'helmet.jpg', HELMET)
+        stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+
+        @zero_hash_data_block = create(:data_block,
+          description: 'zero-byte hash',
+          md5_hash: zero_hash
+        )
+
+        expect(Metis::File.count).to eq(2)
+        expect(Metis::DataBlock.count).to eq(3)
+
+        expect {
+          delete_orphan_data_blocks
+        }.to output(expected).to_stdout
+
+        expect(Metis::File.count).to eq(2)
+        expect(Metis::DataBlock.count).to eq(3)
+
+        # Clean up the test
+        @wisdom_file.delete
+        @helmet_file.delete
+        @zero_hash_data_block.delete
+      end
   end
 
   let(:metis_instance) { double('Metis') }
