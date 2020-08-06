@@ -3,37 +3,37 @@ describe 'Metis Commands' do
     subject(:delete_orphan_data_blocks) { described_class.new.execute }
 
     it "does not delete used data blocks" do
-        expected = "Found 0 orphaned data blocks to be deleted.\n"
-
-        @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
-        stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
-
-        @helmet_file = create_file('athena', 'helmet.jpg', HELMET)
-        stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
-
-        expect(Metis::File.count).to eq(2)
-        expect(Metis::DataBlock.count).to eq(2)
-
-        expect {
-          delete_orphan_data_blocks
-        }.to output(expected).to_stdout
-
-        expect(Metis::File.count).to eq(2)
-        expect(Metis::DataBlock.count).to eq(2)
-
-        # Clean up the test
-        @wisdom_file.delete
-        @helmet_file.delete
-      end
-
-    it "deletes orphaned data blocks" do
-      expected = "Found 1 orphaned data blocks to be deleted.\n"
+      expected = "Found 0 orphaned data blocks to be deleted.\n"
 
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
 
       @helmet_file = create_file('athena', 'helmet.jpg', HELMET)
       stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+
+      expect(Metis::File.count).to eq(2)
+      expect(Metis::DataBlock.count).to eq(2)
+
+      expect {
+        delete_orphan_data_blocks
+      }.to output(expected).to_stdout
+
+      expect(Metis::File.count).to eq(2)
+      expect(Metis::DataBlock.count).to eq(2)
+
+      # Clean up the test
+      @wisdom_file.delete
+      @helmet_file.delete
+    end
+
+    it "deletes orphaned data blocks" do
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      @helmet_file = create_file('athena', 'helmet.jpg', HELMET)
+      stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+
+      expected = "Found 1 orphaned data blocks to be deleted.\nDeleted data_block with hash #{@wisdom_file.data_block.md5_hash}\n"
 
       expect(Metis::File.count).to eq(2)
       expect(Metis::DataBlock.count).to eq(2)
