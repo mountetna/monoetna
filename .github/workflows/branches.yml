@@ -12,56 +12,36 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - id: cache-packages-volumes
-        uses: actions/cache@v2
-        with:
-          path: |
-            /tmp/packages-volumes.tar
-          key: packages-{{ hashFiles('**/package-lock.json') }}-{{ hashFiles('**/Gemfile.lock') }}
-      - id: cache-docker
-        uses: actions/cache@v2
-        with:
-          path: /tmp/docker-registry
-          key: dr-etna-{{ hashFiles('**/docker/**') }}-{{ hashFiles('**/Dockerfile.development') }}-{{ hashFiles('**/docker-compose.yml') }}
-      - name: Ready images from cache
-        run: |
-          docker run -d -p 5000:5000 --restart=always --name registry -v /tmp/docker-registry:/var/lib/registry registry:2 && npx wait-on tcp:5000
-          REPOSITORY=localhost:5000\\/mountetna make tag
-          cd docker && docker-compose -p monoetna pull || true
-      - name: Ready volumes and containers
-        run: |
-          cd docker && make create
-      - run: cd docker && docker-compose -p monoetna push || true
-        if: steps.cache-docker.outputs.cache-hit != 'true'
-        name: Push images to cache location
-      - name: Load volumes from cache
-        run: |
-          docker run --rm -v /tmp:/backup/ `docker volume list -q | egrep -v '^.{64}$' | egrep 'node-modules|gems' | awk '{print "-v " $1 ":/mnt/" $1}'` alpine tar -xf /backup/packages-volumes.tar -C /mnt
-        if: steps.cache-packages-volumes.outputs.cache-hit == 'true'
       - name: Run metis test suite
         id: metis_first_test_run
+        env: &release-env
+          PULL_IMAGES: 1
+          IMAGES_PREFIX: etnaagent/
+          IMAGES_POSTFIX: :master
         run: |
-          make -C metis test
+          make -C metis release
       - name: Run janus test suite
         id: janus_first_test_run
+        env:
+          <<: *release-env
         run: |
-          make -C janus test
+          make -C janus release
       - name: Run etna test suite
         id: etna_first_test_run
+        env:
+          <<: *release-env
         run: |
-          make -C etna test
+          make -C etna release
       - name: Run timur test suite
         id: timur_first_test_run
         env:
-          NODE_ENV: development
+          <<: *release-env
         run: |
-          make -C timur test
+          make -C timur release
       - name: Run magma test suite
         id: magma_first_test_run
+        env:
+          <<: *release-env
         run: |
-          make -C magma test
-      - run: |
-          docker run --rm `docker volume list -q | egrep -v '^.{64}$' | egrep 'node-modules|gems' | awk '{print "-v " $1 ":/mnt/" $1}'` alpine tar -C /mnt -cj . > /tmp/packages-volumes.tar
-        name: Push packages volumes to cache location
-        if: steps.cache-packages-volumes.outputs.cache-hit != 'true'
+          make -C magma release
 

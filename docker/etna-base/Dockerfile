@@ -53,4 +53,5 @@ RUN mkdir -p /opt
 COPY src/npmrc /opt/npmrc
 COPY src/entrypoints /entrypoints
 COPY src/fe-httpd.conf.erb /opt/fe.conf.erb
+COPY etna /etna
 

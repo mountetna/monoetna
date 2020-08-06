@@ -3,7 +3,6 @@ app_db_name:=${app_name}_db
 app_name_capitalized:=$(shell echo ${app_name} | tr [a-z] [A-Z])
 COMPOSE_MIXINS:=docker-compose.etna-app.shared.yml $(COMPOSE_MIXINS)
 BUILD_ARGS:=--build-arg SKIP_RUBY_SETUP= $(BUILD_ARGS)
-BUILD_REQS:=../etna $(BUILD_REQS)
 
 config.yml: config.yml.template
 	../make-base/maybe-move-config
@@ -31,5 +30,5 @@ release:: Dockerfile
 	@ true
 
 release-test:: docker-ready
-	docker-compose start $(app_db_name)
+	docker-compose up -d $(app_db_name)
 	docker run --rm --network monoetna_default $(fullTag) bundle exec rspec

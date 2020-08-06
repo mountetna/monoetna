@@ -64,5 +64,11 @@ release: ## Builds static docker images staged for release, runs tests against t
 	@ set -e && for project in $(projects); do make -C $$project release; done
 
 .PHONE: clean
-clean:  ## Drops all data volumes, wiping all development databases and caches, and rebuilds all docker images cleanly.
-	@ make -C docker clean
+clean:  ## Cleans many dangling docker references, recovering much disk space.
+	docker images | grep monoetna | cut -d ' ' -f1 | xargs -n1 docker image rm || true
+	docker images | grep docker_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
+	docker images | grep metis_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
+	docker images | grep janus_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
+	docker images | grep timur_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
+	docker container prune
+	docker image prune

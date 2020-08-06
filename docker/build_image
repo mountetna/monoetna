@@ -21,7 +21,7 @@ function usage() {
   echo "$0 [-f] [-d] <Dockerfile> [<dep> [<dep2> ...]]" 1>&2
 }
 
-force=
+force=${FORCE_BUILD-:}
 digestOnly=
 if [[ "$1" == "-f" ]]; then
     force=1
@@ -33,9 +33,13 @@ if [[ "$1" == "-d" ]]; then
     shift
 fi
 
+
+MARKERS_DIR=${MARKERS_DIR:-/tmp/etna-build-markers}
+mkdir -p $MARKERS_DIR
 Dockerfile=$1
 baseTag=$(basename "$(dirname "$(realpath $Dockerfile)")")
 tag="${IMAGES_PREFIX}${baseTag}${IMAGES_POSTFIX}"
+marker=$MARKERS_DIR/$baseTag
 
 if [[ -z "$Dockerfile" ]]; then
     usage
@@ -50,8 +54,10 @@ function addToDigest() {
      digest=$(echo $(cat -) $digest | md5sum | cut -d ' ' -f1)
 }
 function recursiveDigest() {
+  if [[ -n "$digestOnly" ]]; then
      find "$1" -type f -exec md5sum {} \;
      echo
+  fi
 }
 function findNewest() {
     lastModifiedFile=$(find $1 -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
@@ -60,10 +66,21 @@ function findNewest() {
      fi
 }
 
-cat $0 | addToDigest
+# Handle any base image dependency
+while read depImage; do
+  baseDepImage=$depImage
+  depImage="$DIR/$baseDepImage"
+  if ! [[ -e "$depImage" ]]; then
+    continue;
+  fi
+  recursiveDigest "$(realpath $depImage)" | addToDigest
+  findNewest "$depImage"
+  if [[ $newestFile -ot $MARKERS_DIR/$baseDepImage ]]; then
+    newestFile=$MARKERS_DIR/$baseDepImage
+  fi
+done < <(cat $Dockerfile | xargs -n2 echo | cut -d ' ' -f2)
 
-MARKERS_DIR=${MARKERS_DIR:-/tmp/etna-build-markers}
-mkdir -p $MARKERS_DIR
+cat $0 | addToDigest
 
 mounts="-v /var/run/docker.sock:/var/run/docker.sock:ro"
 mounts="$mounts --mount type=bind,source=$(realpath $(dirname $Dockerfile)),target=/build/src"
@@ -98,7 +115,6 @@ if ! [[ -z "$onlyDigest" ]]; then
   exit 0
 fi
 
-marker=$MARKERS_DIR/$baseTag
 if [[ -z "$force" && "$newestFile" -ot "$marker" ]]; then
   echo "Image $tag already up to date, skipping build"
   exit 0
@@ -106,8 +122,9 @@ fi
 
 sleep 1
 
-BUILD_CMD="cp src/.dockerignore . || true && docker build --tag $tag --cache-from $tag $* -f src/$(basename $Dockerfile) ."
+BUILD_CMD="cp src/.dockerignore . || true && docker build --rm --force-rm --tag $tag --cache-from $tag $* -f src/$(basename $Dockerfile) ."
 
 set -x
+docker image prune -f
 docker run --rm -w /build $mounts docker:19.03.12 sh -c "$BUILD_CMD"
 touch $marker

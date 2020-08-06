@@ -1,3 +1,14 @@
+GIT
+  remote: https://github.com/mountetna/monoetna.git
+  revision: 412ee380040b0bccdc6bf3dd63c1d50e8607313b
+  branch: refs/artifacts/gem-etna/8995c01822a417a29c8705b031a9926586040cb3
+  specs:
+    etna (0.1.13)
+      jwt
+      multipart-post
+      net-http-persistent
+      rack
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -13,11 +24,6 @@ GEM
     database_cleaner (1.8.5)
     diff-lcs (1.4.4)
     docile (1.3.2)
-    etna (0.1.13)
-      jwt
-      multipart-post
-      net-http-persistent
-      rack
     factory_bot (6.1.0)
       activesupport (>= 5.0.0)
     i18n (1.8.3)
@@ -70,7 +76,7 @@ PLATFORMS
 
 DEPENDENCIES
   database_cleaner
-  etna
+  etna!
   factory_bot
   jwt
   nokogiri

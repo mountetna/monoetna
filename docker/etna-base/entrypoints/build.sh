@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 set -e
 
@@ -16,8 +16,27 @@ mkdir -p /app/log
 mkdir -p /app/vendor/bundle
 mkdir -p /app/data/
 
+shopt -s globstar
+
 if [ -z "$SKIP_RUBY_SETUP" ]; then
+#  if [ -e ../etna ]; then
+#    bundle config set disable_local_branch_check true
+#    bundle config set local.etna /etna
+#  fi
   bundle check || bundle install -j "$(nproc)"
+
+  # This jank due to the wacky way bundle enforces git repo behavior means we have to hijack the production
+  # checkout.  When we can have deploys use the gem inside the container _rather than_ the external bundled one,
+  # this will become simpler.
+  if [ -e ../etna ]; then
+    mv /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/.git /tmp/.git
+    rm -rf /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/*
+    cp -r /etna/* /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/
+    rm -rf /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/packages
+    mv /tmp/.git /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/
+    cd /app
+    bundle install
+  fi
 fi
 
 if [ -n "$RUN_NPM_INSTALL" ]; then
@@ -47,7 +66,3 @@ fi
 if [ -n "$RUN_NPM_INSTALL" ]; then
   if [ -e ../etna ]; then npm link ../etna/packages/etna-js; fi
 fi
-
-#if [ -z "$SKIP_RUBY_SETUP" ]; then
-#  if [ -e ../etna ]; then npm link ../etna/packages/etna-js; fi
-#fi
