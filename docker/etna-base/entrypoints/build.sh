@@ -16,11 +16,9 @@ mkdir -p /app/log
 mkdir -p /app/vendor/bundle
 mkdir -p /app/data/
 
-
 if [ -z "$SKIP_RUBY_SETUP" ]; then
   bundle check || bundle install -j "$(nproc)"
 fi
-
 
 if [ -n "$RUN_NPM_INSTALL" ]; then
   npm install --unsafe-perm
@@ -42,3 +40,14 @@ fi
 
 erb -r /usr/opt/vars.rb -- /opt/fe.conf.erb > /usr/opt/httpd.conf.d/main.conf
 
+if ! [ -e config.yml ] && [ -e config.yml.template ]; then
+  cp config.yml.template config.yml
+fi
+
+if [ -n "$RUN_NPM_INSTALL" ]; then
+  if [ -e ../etna ]; then npm link ../etna/packages/etna-js; fi
+fi
+
+#if [ -z "$SKIP_RUBY_SETUP" ]; then
+#  if [ -e ../etna ]; then npm link ../etna/packages/etna-js; fi
+#fi

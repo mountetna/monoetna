@@ -1,9 +1,9 @@
 export COMPOSE_PROJECT_NAME:=monoetna
-export COMPOSE_MIXINS:=docker-compose.shared.yml $(COMPOSE_MIXINS)
+COMPOSE_MIXINS:=docker-compose.shared.yml $(COMPOSE_MIXINS)
 app_service_name:=${app_name}_app
 
 docker-compose.yml:: $(wildcard ../docker/*.shared.yml) ../docker/default_compose
-	../docker/default_compose docker-compose.yml
+	COMPOSE_MIXINGS="$(COMPOSE_MIXINGS)" ../docker/default_compose docker-compose.yml
 
 .PHONY: images
 images: docker-compose.yml
@@ -38,3 +38,16 @@ logs::
 
 test:: docker-ready
 	@ true
+
+.dockerignore:
+	cp ../docker/.dockerignore .
+
+release-build:: .dockerignore
+	if [ -n "$$PULL_IMAGES" ]; then docker pull $(fullTag); fi
+	make -C ../docker build
+	if [[ -e Dockerfile ]]; then ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); fi
+
+release::
+	make release-build
+	make release-test
+	if [[ -e Dockerfile && -n "$$PUSH_IMAGES" ]]; then docker push $(fullTag); fi

@@ -34,9 +34,8 @@ if [[ "$1" == "-d" ]]; then
 fi
 
 Dockerfile=$1
-tag=$(basename "$(dirname "$(realpath $Dockerfile)")")
-baseTag="$tag"
-tag="${IMAGES_PREFIX}${tag}${IMAGES_POSTFIX}"
+baseTag=$(basename "$(dirname "$(realpath $Dockerfile)")")
+tag="${IMAGES_PREFIX}${baseTag}${IMAGES_POSTFIX}"
 
 if [[ -z "$Dockerfile" ]]; then
     usage
@@ -46,7 +45,7 @@ fi
 shift
 
 digest=
-newestFile=$Dockerfile
+newestFile=$0
 function addToDigest() {
      digest=$(echo $(cat -) $digest | md5sum | cut -d ' ' -f1)
 }
@@ -67,11 +66,27 @@ MARKERS_DIR=${MARKERS_DIR:-/tmp/etna-build-markers}
 mkdir -p $MARKERS_DIR
 
 mounts="-v /var/run/docker.sock:/var/run/docker.sock:ro"
-mounts="$mounts --mount type=bind,source=$(realpath $(dirname $Dockerfile)),target=/build"
+mounts="$mounts --mount type=bind,source=$(realpath $(dirname $Dockerfile)),target=/build/src"
 recursiveDigest "$(dirname $Dockerfile)" | addToDigest
 findNewest "$(dirname $Dockerfile)"
 
+foundMounts=
+
 while (( "$#" )); do
+    if [[ "$1" == "--" ]]; then
+      shift
+      break
+    fi
+
+    # Dedup mounts
+    if echo "$foundMounts" | grep "$(realpath "$1")" &>/dev/null; then
+      shift
+      continue
+    fi
+
+    foundMounts="$(realpath "$1")
+$foundMounts"
+
     mounts="$mounts --mount type=bind,source=$(realpath $1),target=/build/$(basename $1)"
     recursiveDigest "$(realpath $1)" | addToDigest
     findNewest "$1"
@@ -90,12 +105,9 @@ if [[ -z "$force" && "$newestFile" -ot "$marker" ]]; then
 fi
 
 sleep 1
+
+BUILD_CMD="cp src/.dockerignore . || true && docker build --tag $tag --cache-from $tag $* -f src/$(basename $Dockerfile) ."
+
+set -x
+docker run --rm -w /build $mounts docker:19.03.12 sh -c "$BUILD_CMD"
 touch $marker
-
-# For ci to pull before building again.
-if ! [[ -z "$PULL_IMAGES" ]]; then
-  docker pull $tag
-fi
-
-BUILD_CMD="docker build --tag $tag --cache-from $tag -f $(basename $Dockerfile) ."
-docker run --rm -w /build $mounts docker:19.03.12 $BUILD_CMD

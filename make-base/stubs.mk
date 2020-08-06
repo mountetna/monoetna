@@ -1,3 +1,6 @@
+baseTag:=$(shell basename "$$(pwd)")
+fullTag:=$(IMAGES_PREFIX)$(baseTag)$(IMAGES_POSTFIX)
+
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \
 		sed 's/^[^:]*://' | sort | uniq | \
@@ -44,6 +47,18 @@ restart:: ## Restarts all containers for the given project(s)
 
 .PHONY: test
 test:: ## Runs all tests for the given project(s)
+	@ true
+
+.PHONY: release
+release:: ## Builds static docker images staged for release, runs tests against them, and pushes them to dockerhub (requires PUSH=1)
+	@ true
+
+.PHONY: release-build
+release-build::
+	@ true
+
+.PHONY: release-test
+release-test::
 	@ true
 
 .PHONY: irb

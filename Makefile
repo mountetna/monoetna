@@ -59,6 +59,10 @@ migrate: ## Runs migrations in a specific app context
 test: ## Runs all projects' tests
 	@ set -e && for project in $(projects); do make -C $$project test; done
 
+.PHONY: release
+release: ## Builds static docker images staged for release, runs tests against them, and pushes them to dockerhub (requires PUSH_IMAGES=1)
+	@ set -e && for project in $(projects); do make -C $$project release; done
+
 .PHONE: clean
 clean:  ## Drops all data volumes, wiping all development databases and caches, and rebuilds all docker images cleanly.
 	@ make -C docker clean

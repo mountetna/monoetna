@@ -22,10 +22,6 @@ if [ -z "$SKIP_BUILD" ]; then
     fi
   fi
 
-  if [ -n "$RUN_NPM_INSTALL" ]; then
-    [ -e ../etna ] && npm link ../etna/packages/etna-js
-  fi
-
   mkdir -p /app/data/uploads
   mkdir -p /app/data/data_blocks
 fi

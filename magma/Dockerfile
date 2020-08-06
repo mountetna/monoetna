@@ -5,8 +5,5 @@ ARG SKIP_RUBY_SETUP=1
 # Perform these steps first to allow better caching behavior
 ADD src/Gemfile src/Gemfile.lock /app/
 RUN bundle install -j "$(nproc)"
-ADD src/package.json src/package-lock.json /app/
-RUN npm install
 ADD src /app/
 RUN /entrypoints/build.sh
-RUN $(npm bin)/sass lib/client/scss/janus.scss:lib/client/css/janus.css

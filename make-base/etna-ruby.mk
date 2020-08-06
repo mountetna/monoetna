@@ -1,7 +1,9 @@
 app_service_name:=${app_name}_app
 app_db_name:=${app_name}_db
 app_name_capitalized:=$(shell echo ${app_name} | tr [a-z] [A-Z])
-export COMPOSE_MIXINS:=docker-compose.etna-app.shared.yml $(COMPOSE_MIXINS)
+COMPOSE_MIXINS:=docker-compose.etna-app.shared.yml $(COMPOSE_MIXINS)
+BUILD_ARGS:=--build-arg SKIP_RUBY_SETUP= $(BUILD_ARGS)
+BUILD_REQS:=../etna $(BUILD_REQS)
 
 config.yml: config.yml.template
 	../make-base/maybe-move-config
@@ -21,3 +23,13 @@ test:: docker-ready
 
 psql:: docker-ready
 	@ docker-compose run -e SKIP_RUBY_SETUP=1 -e PGPASSWORD=password --rm ${app_service_name} psql -h ${app_db_name} -U developer -d ${app_name}_development
+
+Dockerfile:
+	cp ../docker/etna-base/release/Dockerfile .
+
+release:: Dockerfile
+	@ true
+
+release-test:: docker-ready
+	docker-compose start $(app_db_name)
+	docker run --rm --network monoetna_default $(fullTag) bundle exec rspec
