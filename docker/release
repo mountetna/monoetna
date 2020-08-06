@@ -1,0 +1,29 @@
+#! /usr/bin/env bash
+set -e
+set -o pipefail
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+cp $DIR/docker-compose.shared.yml /tmp/composed.yml
+for compose_yml in $@; do
+    docker-compose -f $compose_yml config > /tmp/next.yml
+    docker-compose -f /tmp/next.yml -f /tmp/composed.yml config > /tmp/composed.yml.next
+    mv /tmp/composed.yml.next /tmp/composed.yml
+done
+
+cat /tmp/composed.yml
+
