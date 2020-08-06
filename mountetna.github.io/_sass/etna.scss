@@ -75,6 +75,9 @@ a {
   h2 {
     border-bottom: 1px solid black;
   }
+  h3 {
+    border-bottom: 1px solid skyblue;
+  }
   p {
     margin: 2px;
   }
@@ -102,6 +105,10 @@ h4,
 h5,
 h6 {
   margin: 15px 0 10px;
+}
+
+h4 {
+  font-weight: bold;
 }
 
 .nav {
@@ -189,26 +196,19 @@ footer {
 
 .row {
   display: flex;
-  border: 1px solid darkgray;
-  border-radius: 5px;
-  margin: 1rem;
+  flex-direction: column;
 }
 
 .column {
   flex: 1;
-  padding: 1rem;
-  margin: 1rem;
-
-  p {
-    margin: 1rem 0rem;
-  }
 }
 
-.column.image {
-  flex: 1;
-  border-left: 2px dashed darkgray;
-
+.image {
   img {
+    display: block;
+    margin: 12px 0px;
     max-height: 240px;
+    border: 1px solid #ccc;
+    box-shadow: 0px 0px 3px 0px #ddd;
   }
 }
