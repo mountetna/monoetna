@@ -47,8 +47,8 @@ describe MetisShell do
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
       expect_output("metis://athena/armor", "ls", "-l") {
-        "metis  Jun 17 04:37    helmet/\n"+
-        "metis  Jun 17 04:37 helmet.jpg\n"
+        "metis    Jun 17 04:37    helmet/\n"+
+        "metis 13 Jun 17 04:37 helmet.jpg\n"
       }
       Timecop.return
     end
