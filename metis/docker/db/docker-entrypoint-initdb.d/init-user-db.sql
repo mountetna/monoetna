@@ -1,2 +1,0 @@
-CREATE DATABASE metis_test;
-GRANT ALL PRIVILEGES ON DATABASE metis_test TO developer;
