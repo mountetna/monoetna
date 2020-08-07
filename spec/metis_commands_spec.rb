@@ -1,10 +1,13 @@
+require 'pry'
 describe 'Metis Commands' do
-  describe Metis::DeleteOrphanDataBlocks do
-    subject(:delete_orphan_data_blocks) { described_class.new.execute }
+  describe Metis::RemoveOrphanDataBlocks do
+    subject(:remove_orphan_data_blocks) { described_class.new.execute }
 
-    it "does not delete used data blocks" do
-      expected = "Found 0 orphaned data blocks to be deleted.\n"
+    after(:each) do
+      stubs.clear
+    end
 
+    it "does not remove used data blocks" do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
 
@@ -13,48 +16,59 @@ describe 'Metis Commands' do
 
       expect(Metis::File.count).to eq(2)
       expect(Metis::DataBlock.count).to eq(2)
+      wisdom_file_block_location = @wisdom_file.data_block.location
+      helmet_file_block_location = @helmet_file.data_block.location
+      expect(::File.exists?(wisdom_file_block_location)).to eq(true)
+      expect(::File.exists?(helmet_file_block_location)).to eq(true)
 
-      expect {
-        delete_orphan_data_blocks
-      }.to output(expected).to_stdout
+      remove_orphan_data_blocks
 
       expect(Metis::File.count).to eq(2)
       expect(Metis::DataBlock.count).to eq(2)
+      expect(::File.exists?(wisdom_file_block_location)).to eq(true)
+      expect(::File.exists?(helmet_file_block_location)).to eq(true)
 
       # Clean up the test
       @wisdom_file.delete
       @helmet_file.delete
     end
 
-    it "deletes orphaned data blocks" do
+    it "removes orphaned data blocks" do
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
 
       @helmet_file = create_file('athena', 'helmet.jpg', HELMET)
       stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
 
-      expected = "Found 1 orphaned data blocks to be deleted.\nDeleted data_block with hash #{@wisdom_file.data_block.md5_hash}\n"
-
       expect(Metis::File.count).to eq(2)
       expect(Metis::DataBlock.count).to eq(2)
+
+      wisdom_block_md5_hash = @wisdom_file.data_block.md5_hash
+      wisdom_file_block_location = @wisdom_file.data_block.location
+      helmet_file_block_location = @helmet_file.data_block.location
+
+      expect(::File.exists?(wisdom_file_block_location)).to eq(true)
+      expect(::File.exists?(helmet_file_block_location)).to eq(true)
 
       @wisdom_file.update({data_block: @helmet_file.data_block})
 
-      expect {
-        delete_orphan_data_blocks
-      }.to output(expected).to_stdout
+      remove_orphan_data_blocks
 
       expect(Metis::File.count).to eq(2)
-      expect(Metis::DataBlock.count).to eq(1)
+      expect(Metis::DataBlock.count).to eq(2)
+      expect(::File.exists?(wisdom_file_block_location)).to eq(false)
+      expect(::File.exists?(helmet_file_block_location)).to eq(true)
+
+      removed_data_block = Metis::DataBlock.find({:md5_hash => wisdom_block_md5_hash})
+
+      expect(removed_data_block.removed).to eq(true)
 
       # Clean up the test
       @wisdom_file.delete
       @helmet_file.delete
     end
 
-    it "does not delete the zero-hash data block" do
-        expected = "Found 0 orphaned data blocks to be deleted.\n"
-
+    it "does not remove the zero-hash data block" do
         zero_hash = 'd41d8cd98f00b204e9800998ecf8427e'
 
         @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
@@ -67,20 +81,32 @@ describe 'Metis Commands' do
           description: 'zero-byte hash',
           md5_hash: zero_hash
         )
+        stubs.create_file('athena', 'files', @zero_hash_data_block.md5_hash, '')
+
+        wisdom_file_block_location = @wisdom_file.data_block.location
+        helmet_file_block_location = @helmet_file.data_block.location
+        zero_hash_block_location = @zero_hash_data_block.location
 
         expect(Metis::File.count).to eq(2)
         expect(Metis::DataBlock.count).to eq(3)
 
-        expect {
-          delete_orphan_data_blocks
-        }.to output(expected).to_stdout
+        expect(::File.exists?(wisdom_file_block_location)).to eq(true)
+        expect(::File.exists?(helmet_file_block_location)).to eq(true)
+        expect(::File.exists?(zero_hash_block_location)).to eq(true)
+
+        remove_orphan_data_blocks
 
         expect(Metis::File.count).to eq(2)
         expect(Metis::DataBlock.count).to eq(3)
+
+        expect(::File.exists?(wisdom_file_block_location)).to eq(true)
+        expect(::File.exists?(helmet_file_block_location)).to eq(true)
+        expect(::File.exists?(zero_hash_block_location)).to eq(true)
 
         # Clean up the test
         @wisdom_file.delete
         @helmet_file.delete
+        @zero_hash_data_block.remove!
         @zero_hash_data_block.delete
       end
   end

@@ -29,7 +29,6 @@
 
 :development:
   :log_file: log/error.log
-  :md5_log_file: log/md5_deletions.log
   :auth_redirect: https://janus.development.local
   :token_name: JANUS_DEV_TOKEN
   :token_algo: RS256

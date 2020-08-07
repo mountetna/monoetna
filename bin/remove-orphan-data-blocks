@@ -5,4 +5,4 @@ source ~/.bashrc
 
 cd $(dirname `dirname "$0"`)
 echo $(date)
-bin/metis delete_orphan_data_blocks
+bin/metis remove_orphan_data_blocks
