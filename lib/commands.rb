@@ -164,7 +164,7 @@ class Metis
 
       logger = Etna::Logger.new(
         # The name of the log_file, required.
-        Metis.instance.config(:md5_log_file),
+        Metis.instance.config(:md5_log_file) || 'md5_deletions.log',
         # Number of old copies of the log to keep.
         Metis.instance.config(:md5_log_copies) || 5,
         # How large the log can get before overturning.
