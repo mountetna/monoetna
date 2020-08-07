@@ -22,5 +22,9 @@ Sequel.migration do
   down do
     drop_table(:data_block_metadata)
     drop_index "data_block_metadata_key_data_block_id_idx"
+
+    alter_table(:data_block) do
+      drop_column :removed_at
+    end
   end
 end
