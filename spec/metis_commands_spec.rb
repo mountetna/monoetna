@@ -1,4 +1,3 @@
-require 'pry'
 describe 'Metis Commands' do
   describe Metis::RemoveOrphanDataBlocks do
     subject(:remove_orphan_data_blocks) { described_class.new.execute }
