@@ -36,6 +36,7 @@ import {
   selectTemplate, selectDocument, selectRevision
 } from '../../selectors/magma';
 import { selectUserProjectRole } from '../../selectors/user_selector';
+import {showMessages} from "../../actions/message_actions";
 
 class Browser extends React.Component{
   constructor(props){
@@ -129,7 +130,14 @@ class Browser extends React.Component{
         attribute_names,
         exchange_name,
         success: this.browseMode.bind(this)
-      });
+      }).then(payload => {
+        let model = payload.models[model_name];
+        if (TIMUR_CONFIG.project_name === 'mvir1' && model_name === 'patient') {
+          if (Object.values(model.documents).find(({ consent }) => consent === 'Initial Waiver')) {
+            showMessages(['This patient has not completed their consent form!'])
+          }
+        }
+      })
     }
   }
 
@@ -248,6 +256,8 @@ export default connect(
   // map dispatch
   {
     requestPlots, requestManifests, requestView, requestAnswer,
-    requestDocuments, discardRevision, sendRevisions, setLocation
+    requestDocuments, discardRevision, sendRevisions, setLocation,
+    showMessages,
   }
 )(Browser);
+

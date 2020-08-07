@@ -39,6 +39,7 @@ import ModelViewer from '../model_viewer';
 import useAsyncWork from "etna-js/hooks/useAsyncWork";
 import SearchQuery from "./search_query";
 import {Loading} from "etna-js/components/Loading";
+import {showMessages} from "../../actions/message_actions";
 
 const spinnerCss = css`
   display: block;
@@ -53,11 +54,10 @@ const loadingSpinner =
     loading={true}
   />
 
-
 export function Search({
   queryableAttributes, cache, requestDocuments, setSearchPageSize, cacheSearchPage, setSearchPage,
   selectedModel, requestModels, emptySearchCache, setSearchAttributeNames, filter_string,
-  setSelectedModel, display_attributes, attributesNamesState,
+  setSelectedModel, display_attributes, attributesNamesState, showMessages
 }) {
   const [pageSize, setPageSize] = useState(10);
   const [results, setResults] = useState(0);
@@ -96,6 +96,14 @@ export function Search({
 
     let model = payload.models[selectedModel];
     if ('count' in model) setResults(model.count);
+
+
+    if (TIMUR_CONFIG.project_name === 'mvir1' && selectedModel === 'patient') {
+      if (Object.values(model.documents).find(({ consent }) => consent === 'Initial Waiver')) {
+        showMessages(['One or more patients in this result set are still in Initial Waiver status!'])
+      }
+    }
+
     setLastLoadedAttributeState(attributesNamesState);
     cacheSearchPage(
       page,
@@ -194,5 +202,6 @@ export default connect(
     requestDocuments,
     requestTSV,
     setSelectedModel,
+    showMessages,
   }
 )(Search);
