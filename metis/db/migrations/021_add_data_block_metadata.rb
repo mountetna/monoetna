@@ -6,6 +6,8 @@ Sequel.migration do
       foreign_key :data_block_id, :data_blocks, null: false
       String :key, null: false
       String :value, null: false
+      DateTime :created_at, null: false
+      DateTime :updated_at, null: false
     end
 
     alter_table(:data_block_metadatas) do
