@@ -156,38 +156,22 @@ class Metis
     end
   end
 
-  class DeleteOrphanDataBlocks < Etna::Command
-    usage '# delete unused (orphaned) data blocks'
+  class RemoveOrphanDataBlocks < Etna::Command
+    usage '# remove unused (orphaned) data blocks'
 
     def execute
       zero_hash = 'd41d8cd98f00b204e9800998ecf8427e'
 
-      logger = Etna::Logger.new(
-        # The name of the log_file, required.
-        Metis.instance.config(:md5_log_file) || 'md5_deletions.log',
-        # Number of old copies of the log to keep.
-        Metis.instance.config(:md5_log_copies) || 5,
-        # How large the log can get before overturning.
-        Metis.instance.config(:md5_log_size) || 1048576
-      )
-
-      logger.level = Logger::INFO
-
       used_data_block_ids = Metis::File.all().map { |file| file.data_block.id }.uniq
-      orphaned_data_blocks = Metis::DataBlock.exclude(id: used_data_block_ids).exclude(md5_hash: zero_hash).all
-      count_message = "Found #{orphaned_data_blocks.count} orphaned data blocks to be deleted."
-      puts count_message
-      logger.info(count_message) if orphaned_data_blocks.count > 0
+      orphaned_data_blocks = Metis::DataBlock.exclude(id: used_data_block_ids, removed: false).exclude(md5_hash: zero_hash).all
+      Metis.instance.logger.info("Found #{orphaned_data_blocks.count} orphaned data blocks to be removed.") if orphaned_data_blocks.count > 0
       orphaned_data_blocks.each do |orphaned_data_block|
         begin
-          md5_hash_to_delete = orphaned_data_block.md5_hash
-          orphaned_data_block.delete
-          delete_confirm_message = "Deleted data_block with hash #{md5_hash_to_delete}"
-          puts delete_confirm_message
-          logger.info(delete_confirm_message)
+          md5_hash_to_remove = orphaned_data_block.md5_hash
+          orphaned_data_block.remove!
+          Metis.instance.logger.info("Removed data_block with hash #{md5_hash_to_remove}")
         rescue Error => e
-          puts e.message
-          logger.error("Error deleting data_block with id #{orphaned_data_block.id}: #{e.message}")
+          Metis.instance.logger.log_error(e)
         end
       end
     end
