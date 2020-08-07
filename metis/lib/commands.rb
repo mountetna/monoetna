@@ -67,6 +67,27 @@ class Metis
     end
   end
 
+  class QueryDataBlocks < Etna::Command
+    usage '<key> [<value-matcher>] Displays hash & paths of data_blocks with metadata matching the regex matcher'
+
+    def execute(key, matcher='.*')
+      seen_data_blocks = Set.new
+      Metis::DataBlockMetadata.eager(:data_block).where(key: key, value: Regexp.new(matcher)).each do |md|
+        if seen_data_blocks.include? md.data_block_id
+          next
+        end
+
+        seen_data_blocks.add(md.data_block_id)
+        puts "#{md.data_block.md5_hash} #{md.data_block.location}"
+      end
+    end
+
+    def setup(config)
+      super
+      Metis.instance.load_models
+    end
+  end
+
   class Archive < Etna::Command
     usage 'Checksum and archive files.'
 
