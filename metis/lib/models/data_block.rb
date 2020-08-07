@@ -34,6 +34,14 @@ class Metis
       end
     end
 
+    def removed?
+      !removed_at.nil?
+    end
+
+    def mark_removed!
+      update(removed_at: DateTime.now)
+    end
+
     def temp_hash?
       md5_hash =~ TEMP_MATCH
     end

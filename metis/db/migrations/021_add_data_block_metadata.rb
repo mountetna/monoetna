@@ -13,6 +13,10 @@ Sequel.migration do
     alter_table(:data_block_metadata) do
       add_index [:key, :data_block_id], name: "data_block_metadata_key_data_block_id_idx", unique: true
     end
+
+    alter_table(:data_block) do
+      add_column :removed_at, DateTime, null: true
+    end
   end
 
   down do
