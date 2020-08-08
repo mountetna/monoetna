@@ -172,7 +172,27 @@ A match attribute contains json data like `{type,value}`. This allows us to cons
     { type: 'String', value: 'something' }
 
 
-## API
+## Usage
+
+### Clients
+
+The main way to interact with Magma is via the API. In the simplest case this
+can be done using curl or wget to POST if one sets the
+`Authorization: Etna <your token>` header; but any HTTP client will suffice.
+Visit your Janus instance to get a current token, or make use of other ways to
+[authenticate with Janus]({{ site.baseurl }}{% link janus.md %}).
+
+To use `Etna::Client` to connect to Magma in Ruby, you may `gem install etna` and then create a new client:
+
+```
+require 'etna'
+
+e = Etna::Client.new('https://magma.example.org', ENV['TOKEN'])
+
+payload = e.retrieve(project_name: 'labors', model_name: 'monster', record_names: [ 'Nemean Lion', 'Lernean Hydra' ], attribute_names: "all")
+```
+
+### API
 
 The main way to interact with Magma directly is via its API (you may also perform a great many of the same operations using the data browser [Timur]({{ site.baseurl }}{% link timur.md %})).
 
@@ -180,7 +200,7 @@ There are four main endpoints: `update`, `retrieve`, `query`, and
 `update_model`. All of them expect a POST in JSON format with a valid Etna
 authorization header (i.e., `Authorization: Etna <valid janus token>`).
 
-### /update
+#### /update
 
 **Example request**
 
@@ -221,7 +241,7 @@ authorization header (i.e., `Authorization: Etna <valid janus token>`).
 
 	In addition each of these values may be set to `null`.
 
-### /retrieve
+#### /retrieve
 
 **Example request**
 
@@ -279,9 +299,13 @@ N.B. while it appears at first that you can retrieve "all" models and "all" reco
 
 The output is in "payload" format, containing a hash `{ models }` keyed by model_name, and returning for each model `{ documents, template }`. The template is a complete description of the model sufficient for import into another Magma instance. The returned documents are keyed by the record identifiers, with each record containing values for the attributes requested in `attribute_names`.
 
-### /query
+#### /query
 
 accepts JSON queries in Magma's Query language. See <https://github.com/mountetna/magma/wiki/Query> for more details.
+
+#### /update_model
+
+Coming soon.
 
 ## Setup
 
