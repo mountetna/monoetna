@@ -16,8 +16,9 @@ The purpose of Magma is to define a data graph for each Etna project: a set of
 models for each of the entities in the project dataset.
 
 Each model has a set of attributes, which may broadly be divided into value
-types (which hold, e.g., an integer or a reference to a binary file) and link
-types, which define relationships between the models in Magma.
+types, which hold, e.g., an `integer` or a reference to a binary `file`, and link
+types, e.g. `parent` or `collection`, which define relationships between the
+models in Magma.
 
 Attached to each model is a collection of records, containing a data value for
 each attribute, including links to other records and files stored on metis.
@@ -25,12 +26,12 @@ each attribute, including links to other records and files stored on metis.
 ### Models
 
 The shape of the data graph (and thus the relationships defined in each of the models) has some constraint:
-- the root is always the `project` model
-- every other model must have a single parent, that is, the graph is a tree.
-- all links must be reciprocal, that is, for each `parent` or `link` attribute
+* the root is always the `project` model
+* every other model must have a single parent, i.e., the graph is a tree.
+* all links must be reciprocal, i.e., for each `parent` or `link` attribute
   there must be a `child`, `collection`, or `table` attribute.
-- there can be no disconnected subgraphs
-- Magma strongly prefers, but does not require, a unique string identifier for each model
+* there can be no disconnected subgraphs
+* Magma strongly prefers, but does not require, a unique string identifier for each model
 
 Here is a sketch of what the graph for the "olympics" project might look like:
 
@@ -67,6 +68,9 @@ using the `link` attribute we may indicate other one-to-one or one-to-many
 relationships, which allows the graph to be more like a directed acyclic graph
 (DAG) than a tree.
 
+Models may also specify a dictionary model and mapping to be used for more
+complex validations (see below on dictionary validation).
+
 ### Attributes
 
 Each attribute has, at least, a unique attribute name within its
@@ -74,28 +78,29 @@ model, and a distinct attribute type.
 
 The Magma attribute types are:
 
-- {:.table-header} Value types
+**Value types**
 - `identifier` - The canonical name of a record, used to query and update the record. It is nice to have a precise validation on this attribute to ensure identifier integrity. The identifier is not strictly required; in its place Magma will substitute a database-derived id. However, Magma strongly prefers the use of identifiers, and the absence of an identifier is normally in conjunction with the `table` attribute.
 - `string` - Any string.
 - `integer` - Any integer (currently < 2\*\*31).
 - `float` - Any floating-point number (currently does not support NaN, Infinity, or -Infinity).
+- `boolean` - True or false.
 - `date_time` - A date and time (usually expected in ISO8601 format)
 - `file` - A reference to a file on Metis. Magma makes use of a private bucket on Metis to store files, so only Magma (not Metis) may return references to or authorize removal/update of these files.
 - `image` - A reference to an image, similar to `file`.
 - `matrix` - A vector of floats with fixed column labels (stored as an Array validation on the attribute). The aggregate of these vectors across the records of the model form a complete matrix, which may be sliced row-wise using record identifiers or column-wise using the column labels.
 
 
-- {:.table-header} Outgoing link types:
+**Outgoing link types**
 - `parent` - Each model (except the root 'project' model) must have a single parent attribute.
 - `link` - A reference to another model that is not the parent
 
 
-- {:.table-header} Incoming link types:
+**Incoming link types**
 - `child` - A one-to-one relationship.
 - `collection` - A one-to-many relationship.
 - `table` - A one-to-many relationship, but usually with a model lacking an identifier, making it useful to attach a table of data where the relevant identifier belongs to the parent record (e.g., a patient may have a table of drug treatments).
 
-- {:.table-header} Other types:
+**Other types**
 - `match` - An obscure type useful in writing dictionary-based validations
 - `restricted` - a boolean value, but with special behavior that will cause Magma to censor the record from anyone lacking the `privileged` flag on their Janus token.
 
@@ -111,15 +116,13 @@ In addition to its type, each attribute may set several other fields:
 - `unique` - a flag for whether the values in this attribute should be unique across records.
 - `validation` - a JSON value allowing validation of input values for this attribute
 
-{:.table}
-
 ### Records
 
-What does the actual data look like? For each model, Magma can store
+A record is a set of values for each attribute in the model. The set of
+records for a project form a data graph with a single project record at
+the root.
 
 <div style="clear: both;"></div>
-
-### Data restriction
 
 ### Validation
 
@@ -133,11 +136,10 @@ attribute on a model, e.g.:
       attribute :att2, type: String, match: [ 'list', 'of', 'options' ]
     end
 
-These validations are hard-coded into the model and may be hard to update. An
-alternative method of validation is via a Magma::Dictionary, which allows a model
-to be validated using data (records) from another model.
-
 #### Dictionaries
+
+An alternative method of validation is via a Magma::Dictionary, which allows a
+model to be validated using data (records) from another model.
 
 You may define a dictionary relation as follows:
 
@@ -172,7 +174,15 @@ A match attribute contains json data like `{type,value}`. This allows us to cons
 
 ## API
 
-  **POST _/update_** - accepts a JSON post in this format:
+The main way to interact with Magma directly is via its API (you may also perform a great many of the same operations using the data browser [Timur]({{ site.baseurl }}{% link timur.md %})).
+
+There are four main endpoints: `update`, `retrieve`, `query`, and
+`update_model`. All of them expect a POST in JSON format with a valid Etna
+authorization header (i.e., `Authorization: Etna <valid janus token>`).
+
+### /update
+
+**Example request**
 
     {
       "project_name" : "labors",
@@ -185,7 +195,35 @@ A match attribute contains json data like `{type,value}`. This allows us to cons
       }
     }
 
-  **POST _/retrieve_** - accepts a JSON post in this format:
+**Arguments**
+
+- `project_name` - the project key
+
+- `revisions` - A hash with model names as keys and a set of model revisions as values. Each model revision is a hash with record identifiers as keys and a record update as value. The record update, in turn, is a hash with attribute names as keys and data as values.
+
+  You may include any number of models, with any number of records for each model, in your revisions. Record entries need not be complete (not every attribute needs to be set), or even consistent (a different subset of attributes can be set on each record). Contrary to the name, /update will both insert new records AND update existing records.
+
+  Valid data values vary by attribute:
+
+	- `identifier`, `string` - a string
+	- `integer` - an integer
+	- `float` - a float
+	- `boolean` - true or false
+	- `date_time` - A date/time in an ISO8601-formatted string (e.g., "2020-02-02", or "2020-02-02T20:20")
+	- `file`, `image` - A hash in the form `{ path, original_filename }`. `original_filename` is optional and may be any string. `path` may take the values `null` (to set an empty file state), `::blank` (to set a blank file state), `::temp` (to return a Metis upload url), or a valid Metis path, i.e., `metis://<project_name>/<bucket_name>/<file_path>` (to link the file into the Magma record).
+	- `matrix` - An array of floats or integers.
+	- `parent`, `link`, `child` - a valid string identifier for the linked model. If there is no such record, Magma will create it with the given identifier. 
+	- `collection` - An array of valid string identifiers for the linked model. If there are no such records, Magma will create them with the given identifiers.
+	- `table` - An array of temporary ids. The corresponding records in the
+	  linked model should be inserted at the same time using the same
+	  temporary id, which takes the form `::temp<any string>`.
+	- `match` - A hash of the form `{type, value}`, where type may be `"Array", "Regexp", "Range", with a corresponding value.
+
+	In addition each of these values may be set to `null`.
+
+### /retrieve
+
+**Example request**
 
     {
       "project_name"    : "labors",
@@ -194,7 +232,7 @@ A match attribute contains json data like `{type,value}`. This allows us to cons
       "attribute_names" : [ "name", "number", "completed" ]
     }
 
-  In return you will get a payload like this:
+**Response**
 
     {
       "models": {
@@ -225,99 +263,39 @@ A match attribute contains json data like `{type,value}`. This allows us to cons
       }
     }
 
-  **POST _/query_** - accepts JSON queries in Magma's Query language. See <https://github.com/mountetna/magma/wiki/Query> for more details.
+**Arguments**
+
+- `project_name` - the project key
+- `model_name` - the model you wish to retrieve (in `snake_case`), or `"all"`
+- `record_names` - an array of record identifiers from the model in `model_name`, or `"all"`
+- `attribute_names` - an array of attribute names, or the strings `"identifier"` or `"all"`
+- `collapse_tables` - whether to return records from linked models via table attributes specified in `attribute_names`
+- `format` - `"json"` or `"tsv"` - the latter will force `collapse_tables: true`
+- `filter` - a string defining a filter to apply to the records - a space-separated list of terms in the form `<column_name><operator><value>`, e.g. `"age>60"`. Valid operators for `string` and `identifier` columns are `=`,`~` (which will match a regular expression value) and for numeric or `date_time` columns are `=`,`>`,`<`,`<=`, `>=`
+- `page_size` - Splits retrieval into sets of `page_size` records
+- `page` - Retrieves page number `page` (1-indexed) records. The retrieval of page 1 will also include a count of all records.
+
+N.B. while it appears at first that you can retrieve "all" models and "all" records, in fact the endpoint will allow only `{ model_name: "all", record_names: "all", attribute_names: "identifier" }`, the so-called identifier search, which returns all of the identifiers for the project.
+
+The output is in "payload" format, containing a hash `{ models }` keyed by model_name, and returning for each model `{ documents, template }`. The template is a complete description of the model sufficient for import into another Magma instance. The returned documents are keyed by the record identifiers, with each record containing values for the attributes requested in `attribute_names`.
+
+### /query
+
+accepts JSON queries in Magma's Query language. See <https://github.com/mountetna/magma/wiki/Query> for more details.
 
 ## Setup
 
 ### Installation
 
-We may start with a basic git checkout:
+Start with a basic git checkout:
 
 `$ git clone https://github.com/mountetna/magma.git`
 
-Magma runs as a Ruby Magma is a Rack application, which means you can run it using any Rack-compatible server (e.g. Puma or Passenger).
-
+Magma is a Rack application, which means you can run it using any Rack-compatible server (e.g. Puma or Passenger).
 
 ### Configuration
 
-Magma has a single YAML config file, `config.yml`; DO NOT TRACK this file, as it will hold all of your secrets. It uses the Etna::Application configuration syntax, e.g.:
-
-    ---
-    :test:
-      :host: https://magma.test
-
-    :development:
-      :log_file: ./log/error.log
-
-The environment is by default `development` but may be set via the environment variable MAGMA_ENV.
-
-Some things you may configure:
-
-    # This is the database configuration for the Sequel ORM (Documented at https://sequel.jeremyevans.net)
-    # Magma uses the postgres adapter; it may not work with other databases.
-    :db:
-      :database: magma
-      :host: localhost
-      :adapter: postgres
-      :user: magma
-      :password: AAAAAAAA
-
-    # A space-separated lists of magma project directories.
-    # See below for details on creating a project.
-    :project_path: ./projects/labors/
-
-    # Where Magma will attempt to log - some server errors may not be trapped here.
-    :log_file: log/error.log
-
-    # Magma uses the `fog/aws` gem to connect to S3 for file storage,
-    # and Carrierwave to manage uploads
-    :storage:
-      :provider: fog/aws
-      :directory: 'my-magma-bucket'
-      :expiration: 1440
-      :credentials:
-        :provider: 'AWS'
-        :aws_access_key_id: 'AKIAETCETERA'
-        :aws_secret_access_key: 'SoMeSecrEtK/Ey'
-        :region: 'us-area-52'
-
-    # The algorithm used by the authentication service (Janus) to sign tokens
-    # and the public key to validate them.
-    :token_algo: RS256
-    :rsa_public: |
-      -----BEGIN PUBLIC KEY-----
-      KeYGoEsHeRE==
-      -----END PUBLIC KEY-----
-
-### Attributes
-
-Attributes describe the data elements of the model, their interactions with other models, and so on.
-
-  **_attribute_** - a generic attribute, representing any valid column name in the database
-
-  **_identifier_** - a special attribute, a unique string identifier for records of this model type. Links between records are specified using the _identifier_ attribute. If no identifier is set the identifier defaults to the database _id_.
-
-  <u>link types:</u>
-
-  **_parent_** - an ancestor in a hierarchy, stored via a foriegn_key column in the model
-
-  **_child_** - a child in a hierarchy, stored in the foreign model
-  link - same as 'parent', just intended to represent other sorts of relations for clarity
-
-  **_collection_** - an array of links to children
-
-  <u>tables:</u>
-
-  **_table_** - similar to a collection, except while a collection references a wholly separate model, a table is intended to essentially be a vector of values that loads with this model.
-
-  <u>file types</u>:
-
-  **_file_** - a generic binary document, stored on S3
-
-  **_image_** - an image, similar to a document except it allows some thumbnailing
-
-  <u>restriction</u>:
-  **_restricted_** - a boolean attribute that determines whether this record is restricted.
+Magma has a single YAML config file, `config.yml`; DO NOT TRACK this file, as it will hold all of your secrets. It uses the Etna::Application configuration syntax. See [config.yml.template](https://raw.githubusercontent.com/mountetna/magma/master/config.yml.template) for an example configuration.
 
 ### Migrations
 
@@ -326,17 +304,16 @@ the database schema by suggesting migrations. These are written in the
 Sequel ORM's migration language, not pure SQL, so they are fairly
 straightforward to amend when Magma plans incorrectly.
 
-To plan a new set of migrations, the first step is to amend your
-models.  This also works in the case of entirely new models. Simply
-sketch them out as described above, setting out the attributes each
-model requires and creating links between them.
+To plan a new set of migrations, the first step is to amend your models.  This
+also works in the case of entirely new models. Simply sketch them out as
+described above, setting out the attributes each model requires and creating
+links between them.
 
-Once you've defined your models, you can execute `bin/magma plan` to
-create a new migration. If you want to restrict your plan to a single
-project you may do `bin/magma plan <project_name>`. Magma will output
-ruby code for a migration using the Sequel ORM - you can save this in
-your project's migration folder (e.g.
-`project/my_project/migration/01_initial_migration.rb`).
+Once you've defined your models, you can execute `bin/magma plan` to create a
+new migration. If you want to restrict your plan to a single project you may do
+`bin/magma plan <project_name>`. Magma will output ruby code for a migration
+using the Sequel ORM - you can save this in your project's migration folder
+(e.g.  `project/my_project/migration/01_initial_migration.rb`).
 
 After your migrations are in place, you can try to run them using `bin/magma
 migrate`, which will attempt to run migrations that have not been run yet. If

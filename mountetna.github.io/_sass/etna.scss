@@ -6,7 +6,19 @@ body {
   flex-direction: column;
 }
 
+ul {
+  padding-left: 20px;
+  margin: 0;
+}
 li {
+  list-style-type: square;
+  &::marker {
+    font-size: 0.8em;
+    color: #346;
+  }
+}
+
+li.table-header {
   list-style-type: none;
 }
 
@@ -77,9 +89,6 @@ a {
   }
   h3 {
     border-bottom: 1px solid skyblue;
-  }
-  p {
-    margin: 2px;
   }
 
   pre.highlight {
