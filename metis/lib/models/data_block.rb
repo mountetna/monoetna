@@ -97,5 +97,18 @@ class Metis
         )
       )
     end
+
+    def remove!
+      delete_block!
+      update(removed: true, updated_at: DateTime.now)
+    end
+
+    private
+
+    def delete_block!
+      if ::File.exists?(location)
+        ::File.delete(location)
+      end
+    end
   end
 end

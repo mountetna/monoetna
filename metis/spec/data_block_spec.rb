@@ -73,4 +73,46 @@ describe Metis::DataBlock do
       expect(@wisdom_data.archive_id).to eq('archive_id')
     end
   end
+
+  context '#remove!' do
+    it 'removes the data_block from disk and sets removed flag' do
+      @creation_time = DateTime.now - 10
+      Timecop.freeze(@creation_time)
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      wisdom_data = wisdom_file.data_block
+
+      expect(::File.exists?(wisdom_data.location)).to eq(true)
+      expect(wisdom_data.removed).to eq(false)
+      expect(wisdom_data.updated_at.iso8601).to eq(@creation_time.to_s)
+
+      @update_time = DateTime.now
+      Timecop.freeze(@update_time)
+
+      wisdom_data.remove!
+
+      expect(::File.exists?(wisdom_data.location)).to eq(false)
+      expect(wisdom_data.removed).to eq(true)
+      expect(wisdom_data.updated_at.iso8601).to eq(@update_time.to_s)
+      Timecop.return
+    end
+
+    it 'only changes removed flag if the block location does not exist on disk' do
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      wisdom_data = wisdom_file.data_block
+
+      ::File.delete(wisdom_data.location)
+
+      expect(::File.exists?(wisdom_data.location)).to eq(false)
+      expect(wisdom_data.removed).to eq(false)
+
+      wisdom_data.remove!
+
+      expect(::File.exists?(wisdom_data.location)).to eq(false)
+      expect(wisdom_data.removed).to eq(true)
+    end
+  end
 end
