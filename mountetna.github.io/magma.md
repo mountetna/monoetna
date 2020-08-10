@@ -180,7 +180,7 @@ The main way to interact with Magma is via the API. In the simplest case this
 can be done using curl or wget to POST if one sets the
 `Authorization: Etna <your token>` header; but any HTTP client will suffice.
 Visit your Janus instance to get a current token, or make use of other ways to
-[authenticate with Janus]({{ site.baseurl }}{% link janus.md %}).
+[authenticate with Janus]({{ site.baseurl }}{% link janus.md %}#authenticating).
 
 To use `Etna::Client` to connect to Magma in Ruby, you may `gem install etna` and then create a new client:
 
@@ -202,20 +202,7 @@ authorization header (i.e., `Authorization: Etna <valid janus token>`).
 
 #### /update
 
-**Example request**
-
-    {
-      "project_name" : "labors",
-      "revisions" : {
-        "monster" : {
-          "Nemean Lion" : {
-            "species" : 'lion'
-          }
-        }
-      }
-    }
-
-**Arguments**
+**Parameters**
 
 - `project_name` - the project key
 
@@ -241,9 +228,44 @@ authorization header (i.e., `Authorization: Etna <valid janus token>`).
 
 	In addition each of these values may be set to `null`.
 
+**Examples**
+
+The basic revision format looks like this:
+
+    {
+      "project_name" : "labors",
+      "revisions" : {
+        "monster" : {
+          "Nemean Lion" : {
+            "species" : 'lion'
+          },
+	  "Lernean Hydra" : {
+	    "species" : 'hydra'
+	  }
+        }
+      }
+    }
+
 #### /retrieve
 
-**Example request**
+**Parameters**
+
+Required parameters:
+- `project_name` - the project key
+- `model_name` - the model you wish to retrieve (in `snake_case`), or `"all"`
+- `record_names` - an array of record identifiers from the model in `model_name`, or `"all"`
+- `attribute_names` - an array of attribute names, or the strings `"identifier"` or `"all"`
+
+Optional parameters:
+- `collapse_tables` - whether to return records from linked models via table attributes specified in `attribute_names`
+- `format` - `"json"` or `"tsv"` - the latter will force `collapse_tables: true`
+- `filter` - a string defining a filter to apply to the records - a space-separated list of terms in the form `<column_name><operator><value>`, e.g. `"age>60"`. Valid operators for `string` and `identifier` columns are `=`,`~` (which will match a regular expression value) and for numeric or `date_time` columns are `=`,`>`,`<`,`<=`, `>=`
+- `page_size` - Splits retrieval into sets of `page_size` records
+- `page` - Retrieves page number `page` (1-indexed) records. The retrieval of page 1 will also include a count of all records.
+
+**Examples**
+
+A basic request for a record looks like this:
 
     {
       "project_name"    : "labors",
@@ -252,7 +274,7 @@ authorization header (i.e., `Authorization: Etna <valid janus token>`).
       "attribute_names" : [ "name", "number", "completed" ]
     }
 
-**Response**
+The output is in "payload" format, containing a hash `{ models }` keyed by model_name, and returning for each model `{ documents, template }`. The template is a complete description of the model sufficient for import into another Magma instance. The returned documents are keyed by the record identifiers, with each record containing values for the attributes requested in `attribute_names`.
 
     {
       "models": {
@@ -283,25 +305,115 @@ authorization header (i.e., `Authorization: Etna <valid janus token>`).
       }
     }
 
-**Arguments**
+A few special cases exist. Here is the "template" query, which will retrieve all of the project templates but no documents:
 
-- `project_name` - the project key
-- `model_name` - the model you wish to retrieve (in `snake_case`), or `"all"`
-- `record_names` - an array of record identifiers from the model in `model_name`, or `"all"`
-- `attribute_names` - an array of attribute names, or the strings `"identifier"` or `"all"`
-- `collapse_tables` - whether to return records from linked models via table attributes specified in `attribute_names`
-- `format` - `"json"` or `"tsv"` - the latter will force `collapse_tables: true`
-- `filter` - a string defining a filter to apply to the records - a space-separated list of terms in the form `<column_name><operator><value>`, e.g. `"age>60"`. Valid operators for `string` and `identifier` columns are `=`,`~` (which will match a regular expression value) and for numeric or `date_time` columns are `=`,`>`,`<`,`<=`, `>=`
-- `page_size` - Splits retrieval into sets of `page_size` records
-- `page` - Retrieves page number `page` (1-indexed) records. The retrieval of page 1 will also include a count of all records.
+    { "project_name": "labors", "model_name": "all", "record_names":[], "attribute_names": "all" }
 
-N.B. while it appears at first that you can retrieve "all" models and "all" records, in fact the endpoint will allow only `{ model_name: "all", record_names: "all", attribute_names: "identifier" }`, the so-called identifier search, which returns all of the identifiers for the project.
 
-The output is in "payload" format, containing a hash `{ models }` keyed by model_name, and returning for each model `{ documents, template }`. The template is a complete description of the model sufficient for import into another Magma instance. The returned documents are keyed by the record identifiers, with each record containing values for the attributes requested in `attribute_names`.
+The "identifier" query will retrieve all of the project identifiers at once: 
+
+    { "project_name": "labors", "model_name": "all", "record_names": "all", "attribute_names": "identifier" }
 
 #### /query
 
-accepts JSON queries in Magma's Query language. See <https://github.com/mountetna/magma/wiki/Query> for more details.
+The Magma Query API lets you pull data out of Magma through an expressive query interface.
+
+**Parameters**
+
+- `project_name` - the project key
+- `query` - An array of query predicates (see below for details)
+
+A general form ofthe query is:
+
+    [ *predicate_args, *verb_args, *predicate_args, *verb_args, ... ]
+
+  * predicate - an object in magma (model, record, attribute)
+  * verb - a function yielding a new predicate
+
+A basic query might look like this:
+
+    [ 'labor', '::all', 'name' ]
+
+A breakdown of the terms:
+`labor` - specifies the model we wish to search, yielding a model predicate
+`::all` - a verb argument to the model predicate, iterating across all of the items in the model, and yielding a record predicate
+`name` - a verb argument to the record predicate specifying an attribute name, yielding a value and terminating the query
+
+While the query must eventually terminate in a value (or array of values if an
+array argument is passed to a record predicate), via records we might traverse
+through the graph first:
+
+    [ 'labor', '::all', 'monster', 'victim', '::first', 'city' ]
+
+The response:
+
+    {
+       "answer" : [ [ 'Nemean Lion', 'Nemean Lion' ], [ 'Lernean Hydra', 'Lernean Hydra' ] ]
+       "format" : ['labors::labor#name', 'labors::labor#name']
+    }
+
+The format describes the returned values. If the format is an array, the format
+will contain a list of items with the given format. The format is usually
+written in `project_name::model_name#attribute_name` format.
+
+A more advanced query might include a filter:
+
+    [ 'monster', [ '::has', 'stats' ], '::all', 'name' ]
+
+Filters may be applied to any model we traverse through:
+
+    [ 'labor', '::all', 'prize', [ 'worth', '>', '200' ], '::first', 'name' ]
+
+**Predicates**
+
+There are a handful of predicate types, each of which take various arguments. 
+
+##### Model
+
+A Model predicate is our query starting point and specifies a set of records. Model predicates can accept an arbitrary number of filter [] arguments, followed by:
+
+    ::first - reduce this model to a single item
+    ::all - return a vector of values for this model, labeled with this model's identifiers
+
+##### Record
+
+A Record predicate follows after a Model predicate. The valid arguments are:
+
+    <attribute_name> - a string specifying an attribute on this model
+    ::has, <attribute_name> - a boolean test for the existence of <attribute_name> (i.e., the data is not null)
+    ::identifier - an alias for the attribute_name of this Model's identifier. E.g., if a Sample has identifier attribute 'sample_name', '::identifier' will return the same value as 'sample_name'
+
+##### Column
+
+Column attributes usually just return their value. However, you may optionally follow them with arguments to apply a boolean test.
+
+`string`
+
+    ::equals, <string> - A boolean test for equality, e.g. [ 'sample_name', '::equals', 'Dumbo' ]
+    ::in, [ list of strings ] - A boolean test for membership, e.g., [ 'sample_name', '::in', [ 'ant', 'bear', 'cat' ] ]
+    ::matches, <string> - A boolean test for a regular expression match, e.g., [ 'sample_name', '::matches', '[GD]umbo' ]
+
+`integer`, `date_time`
+
+    ::<= - less than or equals
+    ::< - less than
+    ::>= - greater than or equals
+    ::> - greater than
+    ::= - equals
+
+`boolean`
+
+    ::true - is true
+    ::false - is false
+
+`file`, `image`
+
+    ::url - a URL to retrieve this file resource
+    ::path - the filename/path for this file resource
+
+`matrix`
+
+    ::slice - retrieve a subset of columns from the matrix
 
 #### /update_model
 

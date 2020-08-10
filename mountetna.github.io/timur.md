@@ -16,20 +16,24 @@ Timur is a data browser. It is primarily intended to view data in Magma (the dat
 
 ## Browse
 
-Timur's Browse view provides a way to browse individual records by navigating up and down the data hierarchy.
+Timur's Browse view provides a way to browse individual records by navigating through the data hierarchy.
 
-### Managing Data Files
+Using Timur, you can view and edit any attributes on a given Magma record.
 
-Using Timur, you can view and edit any files that relate to a given Magma record. For example, data files, images, PDFs, etc. These types of attributes will appear with one of three states, depending on the value assigned.
-
-In this example, `Stats` and `Avatar` are two file attributes for the `Nemean Lion` record.
+In this example, we are viewing the `Nemean Lion` record.
 ![Viewing sample attributes on Timur](/assets/images/timur/sample-view-only.png)
 {:.image}
 
-
-When editing the sample data, users will see three buttons to set the state of the attribute.
+After clicking the edit button we can edit the attributes on the record.
 ![Editing sample attributes on Timur reveals three buttons for file and image attributes](/assets/images/timur/sample-edit-view.png)
 {:.image}
+
+Edits to any attributes are not saved to Magma until you hit the save button;
+you may cancel all edits (including file uploads) before saving.
+
+### Managing Files
+
+File attributes can be set into one of three states: no file, blank, and a reference to a file in Metis.
 
 #### No File
 
@@ -43,11 +47,11 @@ When editing, this action deletes any currently assigned value to the attribute.
 
 #### Blank File
 
-When the attribute has explicitly been marked as "Blank", the attribute shows a gray `Blank file` value. This means that the system does not expect a file for the attribute, and it has been deliberately marked as such. Note that this differs from the `No file` value.
+When the file has explicitly been marked as "Blank", the attribute shows a gray `Blank file` value. This means, distinct from 'no file', that we do not *expect* a file here, and it has been deliberately marked as blank.
 ![Blank File text when attribute has been marked as blank](/assets/images/timur/blank-file-attribute.png)
 {:.image}
 
-When editing, this action marks the file attribute as deliberately blank.
+When editing, this action marks the file attribute as blank.
 ![Blank file button circled in the UI](/assets/images/timur/blank-file-attribute-callout.png)
 {:.image}
 
@@ -76,7 +80,7 @@ Paste this value into the Timur input field, and when you save the record the va
 ## Search
 
 The Search interface allows simple filtering of records by their attribute data and bulk download via TSV.
-The filter uses the Magma /retrieve api's filter syntax, described in detail here: https://github.com/mountetna/magma/wiki/Retrieve
+The filter uses the Magma /retrieve api's [filter syntax]({{ site.baseurl }}{% link magma.md %}#retrieve).
 
 ## Manifests
 
