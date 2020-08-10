@@ -100,7 +100,7 @@ class Metis
 
     def remove!
       delete_block!
-      update(removed: true)
+      update(removed: true, updated_at: DateTime.now)
     end
 
     private
