@@ -114,5 +114,28 @@ describe Metis::DataBlock do
       expect(::File.exists?(wisdom_data.location)).to eq(false)
       expect(wisdom_data.removed).to eq(true)
     end
+
+    it 'does not execute anything if block already removed' do
+      past_time = DateTime.now - 10
+      Timecop.freeze(past_time)
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      wisdom_data = wisdom_file.data_block
+      wisdom_data.update(removed: true)
+
+      expect(::File.exists?(wisdom_data.location)).to eq(true)
+      expect(wisdom_data.removed).to eq(true)
+      expect(wisdom_data.updated_at.iso8601).to eq(past_time.to_s)
+
+      Timecop.return
+
+      wisdom_data.remove!
+
+      # Since no action should have been taken
+      expect(::File.exists?(wisdom_data.location)).to eq(true)
+      expect(wisdom_data.removed).to eq(true)
+      expect(wisdom_data.updated_at.iso8601).to eq(past_time.to_s)
+    end
   end
 end
