@@ -67,6 +67,42 @@ describe 'Metis Commands' do
       @helmet_file.delete
     end
 
+    it "does not remove already removed data blocks" do
+      past_time = DateTime.now - 10
+      Timecop.freeze(past_time)
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      @helmet_file = create_file('athena', 'helmet.jpg', HELMET)
+      stubs.create_file('athena', 'files', 'helmet.jpg', HELMET)
+
+      expect(Metis::File.count).to eq(2)
+      expect(Metis::DataBlock.count).to eq(2)
+
+      wisdom_block = @wisdom_file.data_block
+      wisdom_file_block_location = @wisdom_file.data_block.location
+      helmet_file_block_location = @helmet_file.data_block.location
+
+      expect(::File.exists?(wisdom_file_block_location)).to eq(true)
+      expect(::File.exists?(helmet_file_block_location)).to eq(true)
+
+      wisdom_block.update(removed: true)
+      @wisdom_file.data_block = wisdom_block
+
+      Timecop.return
+
+      remove_orphan_data_blocks
+
+      expect(Metis::File.count).to eq(2)
+      expect(Metis::DataBlock.count).to eq(2)
+
+      expect(wisdom_block.updated_at.iso8601).to eq(past_time.to_s)
+
+      # Clean up the test
+      @wisdom_file.delete
+      @helmet_file.delete
+    end
+
     it "does not remove the zero-hash data block" do
         zero_hash = 'd41d8cd98f00b204e9800998ecf8427e'
 

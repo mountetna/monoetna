@@ -99,8 +99,10 @@ class Metis
     end
 
     def remove!
-      delete_block!
-      update(removed: true, updated_at: DateTime.now)
+      if !removed
+        delete_block!
+        update(removed: true, updated_at: DateTime.now)
+      end
     end
 
     private

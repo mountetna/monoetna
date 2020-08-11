@@ -163,7 +163,7 @@ class Metis
       zero_hash = 'd41d8cd98f00b204e9800998ecf8427e'
 
       used_data_block_ids = Metis::File.all().map { |file| file.data_block.id }.uniq
-      orphaned_data_blocks = Metis::DataBlock.exclude(id: used_data_block_ids, removed: false).exclude(md5_hash: zero_hash).all
+      orphaned_data_blocks = Metis::DataBlock.exclude(id: used_data_block_ids).exclude(removed: true).exclude(md5_hash: zero_hash).all
       Metis.instance.logger.info("Found #{orphaned_data_blocks.count} orphaned data blocks to be removed.") if orphaned_data_blocks.count > 0
       orphaned_data_blocks.each do |orphaned_data_block|
         begin
