@@ -31,7 +31,7 @@ class Metis
 
     def delete(data_block)
       raise ArgumentError, "No vault defined!" unless @config
-      raise ArgumentError, "Data block not archived!" unless data_block.archive_id
+      return unless data_block.archive_id
 
       archive = vault.archives.get(data_block.archive_id)
       archive.destroy
