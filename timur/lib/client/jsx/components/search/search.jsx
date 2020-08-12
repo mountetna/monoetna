@@ -13,7 +13,6 @@ import {
 import {
   requestTSV,
   requestModels,
-  requestDocuments
 } from '../../actions/magma_actions';
 import {
   selectSearchCache,
@@ -40,6 +39,7 @@ import useAsyncWork from "etna-js/hooks/useAsyncWork";
 import SearchQuery from "./search_query";
 import {Loading} from "etna-js/components/Loading";
 import {showMessages} from "../../actions/message_actions";
+import {useRequestDocuments} from "../../hooks/useRequestDocuments";
 
 const spinnerCss = css`
   display: block;
@@ -55,7 +55,7 @@ const loadingSpinner =
   />
 
 export function Search({
-  queryableAttributes, cache, requestDocuments, setSearchPageSize, cacheSearchPage, setSearchPage,
+  queryableAttributes, cache, setSearchPageSize, cacheSearchPage, setSearchPage,
   selectedModel, requestModels, emptySearchCache, setSearchAttributeNames, filter_string,
   setSelectedModel, display_attributes, attributesNamesState, showMessages
 }) {
@@ -63,6 +63,7 @@ export function Search({
   const [results, setResults] = useState(0);
   const [lastLoadedAttributeState, setLastLoadedAttributeState] = useState(attributesNamesState);
   const { current_page, model_name, record_names, } = cache;
+  const requestDocuments = useRequestDocuments();
   let { cached_attribute_names } = cache;
 
   // On mount, essentially.
@@ -96,13 +97,6 @@ export function Search({
 
     let model = payload.models[selectedModel];
     if ('count' in model) setResults(model.count);
-
-
-    if (TIMUR_CONFIG.project_name === 'mvir1' && selectedModel === 'patient') {
-      if (Object.values(model.documents).find(({ consent }) => consent === 'Initial Waiver')) {
-        showMessages(['One or more patients in this result set are still in Initial Waiver status!'])
-      }
-    }
 
     setLastLoadedAttributeState(attributesNamesState);
     cacheSearchPage(
@@ -199,7 +193,6 @@ export default connect(
     setSearchAttributeNames,
     setFilterString,
     emptySearchCache,
-    requestDocuments,
     requestTSV,
     setSelectedModel,
     showMessages,

@@ -8,6 +8,7 @@ import {setFilterString, setSearchAttributeNames} from "../../actions/search_act
 import {useModal} from "etna-js/components/ModalDialogContainer";
 import TreeView, {getSelectedLeaves} from 'etna-js/components/TreeView';
 import SelectInput from "../inputs/select_input";
+import {isWaiverPatientAttribute} from "../../utils/patients";
 
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
@@ -82,8 +83,7 @@ export function QueryBuilder({ display_attributes, setFilterString, selectedMode
 }
 
 function disabledAttributeForProject(projectName, modelName) {
-  return ([name, type]) => type === 'identifier' || type === 'parent' ||
-    (projectName === 'mvir1' && modelName === 'patient' && name === 'consent')
+  return ([name, type]) => type === 'identifier' || type === 'parent' || isWaiverPatientAttribute(modelName, name)
 }
 
 function FilterAttributesModal({ setSearchAttributeNames, display_attributes, attributeNames, attributeNamesAndTypes, selectedModel }) {

@@ -28,11 +28,11 @@ x-timur_base: &timur_base
   volumes:
     - .:/app:cached
     - app-gems:/app/vendor/bundle:rw
-    - ./node_modules:/app/node_modules:cached
+    - ./node_modules:/app/node_modules:rw
     - timur-log-dir:/app/log:rw
     - timur-tmp-dir:/app/tmp:rw
     - timur-public-dir:/app/public:rw
-    - ../etna:/etna:cached
+    - ../etna:/etna:rw
   environment: &app_environment
     COVERAGE: "true"
     DATABASE_HOST: "timur_db"

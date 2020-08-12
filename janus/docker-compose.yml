@@ -23,7 +23,7 @@ x-janus_base: &janus_base
   volumes:
     - .:/app:cached
     - janus-app-gems:/app/vendor/bundle:rw
-    - ./node_modules:/app/node_modules:cached
+    - ./node_modules:/app/node_modules:rw
     - janus-data-dir:/app/data:rw
     - janus-log-dir:/app/log:rw
     - janus-tmp-dir:/app/tmp:rw
