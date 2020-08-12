@@ -173,6 +173,12 @@ def glacier_stub(vault_name)
       'Content-Type': 'application/json',
     }
   )
+  stub_glacier_method(:delete, "/#{vault_name}/archives/archive_id",
+    status: 204,
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  )
 end
 
 def stub_glacier_method(method, path, response={})
