@@ -65,10 +65,11 @@ release: ## Builds static docker images staged for release, runs tests against t
 
 .PHONE: clean
 clean:  ## Cleans many dangling docker references, recovering much disk space.
+	docker container prune
 	docker images | grep monoetna | cut -d ' ' -f1 | xargs -n1 docker image rm || true
 	docker images | grep docker_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
 	docker images | grep metis_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
+	docker images | grep magma_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
 	docker images | grep janus_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
 	docker images | grep timur_ | cut -d ' ' -f1 | xargs -n1 docker image rm || true
-	docker container prune
 	docker image prune

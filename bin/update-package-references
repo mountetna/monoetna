@@ -1,4 +1,12 @@
 #! /usr/bin/env bash
+# Script that updates package.json and Gemfile etna references to a special sha that contains
+# etna-js or etna packages respectively.  This acts as a stopgap to allow our current deployment
+# process to continue building as is while we move to docker based deployments, where these packages
+# will be already linked into the image directly.
+# This process is useful since it allows editing common libs in etna without also requiring the step
+# of pushing to ruby gems and npm.
+# Will delete when docker images are deployable with etna libs pre-packaged.
+
 set -e
 
 prog=$0
@@ -52,7 +60,6 @@ function mkArtifactSha() {
     rm -rf packages || true
     git add .
     git commit -m "Artifact $artifactName for sha $SHA"
-#    git push origin HEAD --force
     sha=$(git rev-parse --verify HEAD)
     git update-ref "$refSpec" $sha
     git push origin "$refSpec" --force

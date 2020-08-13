@@ -23,6 +23,7 @@ jobs:
         if: "!contains(github.event.head_commit.author.name, 'GithubAction')"
         id: update-package-references
         env:
+          # Used by `update-package-references` script to actually push the built updated references.
           IS_CI: true
         run: |
           bin/update-package-references

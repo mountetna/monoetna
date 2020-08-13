@@ -1,17 +1,1 @@
-src/node_modules
-src/etna
-src/data
-src/build
-src/development
-src/tmp
-src/log
-src/docker
-src/.bundle
-src/.npm-packages
-src/coverage
-src/.docker-build-mark
-src/Dockerfile
-src/README.md
-src/LICENSE
-src/config.yml
-src/Makefile
+# Add timur specific dockerignore items.  Base is taken from docker/.dockerignore

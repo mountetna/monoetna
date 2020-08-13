@@ -40,11 +40,10 @@ test:: docker-ready
 	@ true
 
 .dockerignore:
-	cp ../docker/.dockerignore .
+	cp ../docker/.dockerignore.template ./.dockerignore
 
 release-build:: .dockerignore
 	if [ -n "$$PULL_IMAGES" ]; then docker pull $(fullTag); fi
-	make -C ../docker build
 	if [[ -e Dockerfile ]]; then ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); fi
 
 release::
