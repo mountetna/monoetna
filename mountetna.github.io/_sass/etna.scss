@@ -6,7 +6,19 @@ body {
   flex-direction: column;
 }
 
+ul {
+  padding-left: 20px;
+  margin: 0;
+}
 li {
+  list-style-type: square;
+  &::marker {
+    font-size: 0.8em;
+    color: #346;
+  }
+}
+
+li.table-header {
   list-style-type: none;
 }
 
@@ -75,8 +87,8 @@ a {
   h2 {
     border-bottom: 1px solid black;
   }
-  p {
-    margin: 2px;
+  h3 {
+    border-bottom: 1px solid skyblue;
   }
 
   pre.highlight {
@@ -102,6 +114,14 @@ h4,
 h5,
 h6 {
   margin: 15px 0 10px;
+}
+
+h4 {
+  font-weight: bold;
+}
+
+h5 {
+  font-size: 1em;
 }
 
 .nav {
@@ -189,26 +209,19 @@ footer {
 
 .row {
   display: flex;
-  border: 1px solid darkgray;
-  border-radius: 5px;
-  margin: 1rem;
+  flex-direction: row;
 }
 
 .column {
   flex: 1;
-  padding: 1rem;
-  margin: 1rem;
-
-  p {
-    margin: 1rem 0rem;
-  }
 }
 
-.column.image {
-  flex: 1;
-  border-left: 2px dashed darkgray;
-
+.image {
   img {
+    display: block;
+    margin: 12px 0px;
     max-height: 240px;
+    border: 1px solid #ccc;
+    box-shadow: 0px 0px 3px 0px #ddd;
   }
 }

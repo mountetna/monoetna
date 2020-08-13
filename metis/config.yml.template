@@ -1,7 +1,7 @@
 ---
 :test:
   :log_file: /dev/null
-  :secret_key: 
+  :secret_key:
   :upload_expiration: 60
   :download_expiration: 60
   :metis_uid_name: METIS_TEST_UID
@@ -60,5 +60,5 @@
   :backup:
     :directory: 'metis-dev-ucsf-immunoprofiler-ipi'
     :credentials:
-      :aws_access_key_id: 
-      :aws_secret_access_key: 
+      :aws_access_key_id:
+      :aws_secret_access_key:

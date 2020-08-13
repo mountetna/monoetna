@@ -21,6 +21,11 @@ class Magma
       end
     end
 
+    def setup(config)
+      super
+      Magma.instance.setup_db
+    end
+
     private
 
     def load_model(project_name, model_name, template)
@@ -45,6 +50,7 @@ class Magma
         merge(
           project_name: project_name,
           model_name: model_name,
+          column_name: attribute[:attribute_name],
           type: attribute[:attribute_type],
           validation: Sequel.pg_json_wrap(attribute[:validation]),
         )

@@ -97,5 +97,21 @@ class Metis
         )
       )
     end
+
+    def remove!
+      if !removed
+        delete_block!
+        update(removed: true, updated_at: DateTime.now)
+        Metis.instance.archiver.delete(self) if archive_id
+      end
+    end
+
+    private
+
+    def delete_block!
+      if ::File.exists?(location)
+        ::File.delete(location)
+      end
+    end
   end
 end

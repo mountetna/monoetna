@@ -74,7 +74,7 @@ module Etna
   end
   class TestHmac < Hmac
     def valid?
-      @test_signature == 'valid'
+      @test_signature == 'valid' || super
     end
   end
 end
