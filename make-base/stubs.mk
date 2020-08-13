@@ -65,9 +65,6 @@ release-test::
 irb:: ## Starts up an irb session in the context of the given project
 	@ true
 
-install-into-volumes::
-	@ true
-
 config-ready::
 	@ true
 

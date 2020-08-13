@@ -32,10 +32,6 @@ up: docker-ready ## Starts up all containers of this project in the background
 	@ for project in $(projects); do cd ../$$project && make config.yml || true; done
 	@ docker-compose up -d
 
-.PHONY: install-into-volumes
-install-into-volumes: docker-ready
-	@ for project in $(projects); do cd ../$$project && make install-into-volumes; done
-
 .PHONY: down
 down: docker-compose.yml ## Ends all projects' processes
 	@ docker-compose down --remove-orphans
@@ -51,10 +47,6 @@ logs: ## Shows logs of all running projects' containers
 .PHONY: logs-recent
 logs-recent: ## For CI
 	@ docker-compose logs
-
-.PHONY: create
-create: docker-ready ## For CI
-	@ docker-compose up --no-start
 
 .PHONY: clean
 clean: docker-ready

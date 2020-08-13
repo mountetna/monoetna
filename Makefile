@@ -14,10 +14,6 @@ help: ## Display help text
 build: ## Forces a rebuild of all projects' development dockerfiles
 	@ make -C docker build
 
-.PHONY: create
-create: ## Builds, installs, but does not start, all project containers.
-	@ make -C docker install-into-volumes
-
 .PHONY: up
 up: ## Starts up all containers of this project in the background
 	@ make -C docker up

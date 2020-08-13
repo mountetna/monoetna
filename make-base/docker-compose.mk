@@ -30,9 +30,6 @@ restart:: docker-ready
 bash:: docker-ready
 	@ docker-compose run -e SKIP_RUBY_SETUP=1 --rm $(app_service_name) bash
 
-install-into-volumes:: docker-ready
-	@ docker-compose run -e RUN_NPM_INSTALL=1 --rm $(app_service_name) echo 1
-
 logs::
 	@ docker-compose logs -f
 
