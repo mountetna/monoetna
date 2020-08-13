@@ -220,6 +220,7 @@ class Metis
     def update_bucket!(new_bucket)
       raise 'Bucket does not match folder bucket' if folder != nil and folder.bucket_id != new_bucket.id
       update(bucket: new_bucket)
+      refresh
     end
   end
 end

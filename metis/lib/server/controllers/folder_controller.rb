@@ -97,6 +97,40 @@ class FolderController < Metis::Controller
     success_json(folders: [ folder.to_hash ])
   end
 
+  def move
+    require_param(:new_folder_path)
+    bucket = require_bucket
+
+    folder = Metis::Folder.from_path(bucket, @params[:folder_path]).last
+
+    raise Etna::Error.new('Folder not found', 404) unless folder
+
+    raise Etna::Forbidden, 'Folder is read-only' if folder.read_only?
+
+    # Accept a Metis path as :new_folder_path to allow users to specify
+    #   a new bucket (and in the future, a new project?)
+    binding.pry
+    new_folder_path = @params[:new_folder_path]
+    metis_path = Metis::Path.new(new_folder_path)
+    raise Etna::BadRequest, 'Invalid path' unless metis_path.valid?
+
+    new_parent_folder_path, new_folder_name = Metis::File.path_parts(metis_path.file_path)
+
+    new_bucket = require_bucket(metis_path.bucket_name)
+
+    new_parent_folder = require_folder(new_bucket, new_parent_folder_path)
+
+    raise Etna::Forbidden, 'Folder is read-only' if new_parent_folder && new_parent_folder.read_only?
+
+    raise Etna::BadRequest, 'Cannot overwrite existing folder' if Metis::Folder.exists?(new_folder_name, bucket, new_parent_folder)
+
+    raise Etna::BadRequest, 'Cannot overwrite existing file' if Metis::File.exists?(new_folder_name, bucket, new_parent_folder)
+
+    folder.update_bucket_and_rename!(new_parent_folder, new_folder_name, new_bucket)
+
+    success_json(folders: [ folder.to_hash ])
+  end
+
   protected
 
   def mkdir_p(bucket, folder_path, project_name, author)
