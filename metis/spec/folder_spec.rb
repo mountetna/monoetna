@@ -1,4 +1,3 @@
-require 'pry'
 describe FolderController do
   include Rack::Test::Methods
 
@@ -790,6 +789,9 @@ describe FolderController do
 
       @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
       stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches')
+
+      @backup_blueprints_folder = create_folder('athena', 'blueprints', bucket: @backup_files_bucket)
+      stubs.create_folder('athena', 'backup_files', 'blueprints')
 
       token_header(:editor)
       move_folder('blueprints/helmet/sketches', 'metis://athena/backup_files/blueprints/drawings')
