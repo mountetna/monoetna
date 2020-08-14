@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: Run metis test suite
         id: metis_first_test_run
-        env: &release-env
+        env:
           PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
@@ -23,25 +23,33 @@ jobs:
       - name: Run janus test suite
         id: janus_first_test_run
         env:
-          <<: *release-env
+          PULL_IMAGES: 1
+          IMAGES_PREFIX: etnaagent/
+          IMAGES_POSTFIX: :master
         run: |
           make -C janus release
       - name: Run etna test suite
         id: etna_first_test_run
         env:
-          <<: *release-env
+          PULL_IMAGES: 1
+          IMAGES_PREFIX: etnaagent/
+          IMAGES_POSTFIX: :master
         run: |
           make -C etna release
       - name: Run timur test suite
         id: timur_first_test_run
         env:
-          <<: *release-env
+          PULL_IMAGES: 1
+          IMAGES_PREFIX: etnaagent/
+          IMAGES_POSTFIX: :master
         run: |
           make -C timur release
       - name: Run magma test suite
         id: magma_first_test_run
         env:
-          <<: *release-env
+          PULL_IMAGES: 1
+          IMAGES_PREFIX: etnaagent/
+          IMAGES_POSTFIX: :master
         run: |
           make -C magma release
 

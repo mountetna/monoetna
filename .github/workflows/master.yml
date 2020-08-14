@@ -37,7 +37,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Test + Push Release
-        env: &release-env
+        env:
           PULL_IMAGES: 1
           PUSH_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
