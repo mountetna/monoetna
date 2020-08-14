@@ -418,8 +418,11 @@ describe FolderController do
       stubs.create_folder('athena', 'files', 'blueprints')
     end
 
-    def rename_folder path, new_path
-      json_post("/athena/folder/rename/files/#{path}", new_folder_path: new_path)
+    def rename_folder path, new_path, new_bucket_name=nil
+      json_post(
+        "/athena/folder/rename/files/#{path}",
+        new_folder_path: new_path,
+        new_bucket_name: new_bucket_name)
     end
 
     it 'renames a folder' do
@@ -439,7 +442,9 @@ describe FolderController do
 
       @blueprints_folder.refresh
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid path')
+      expect(json_body[:errors]).to eq(
+        ["Invalid path: \"metis://athena/files/blue\nprints\""]
+      )
       expect(@blueprints_folder.folder_name).to eq('blueprints')
     end
 
@@ -457,8 +462,10 @@ describe FolderController do
       token_header(:editor)
       rename_folder('redprints', 'blue-prints')
 
-      expect(last_response.status).to eq(404)
-      expect(json_body[:error]).to eq('Folder not found')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(
+        ["Folder not found: \"metis://athena/files/redprints\""]
+      )
 
       # the actual folder is untouched
       @blueprints_folder.refresh
@@ -473,7 +480,9 @@ describe FolderController do
       rename_folder('blueprints', 'helmet')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Cannot overwrite existing folder')
+      expect(json_body[:errors]).to eq(
+        ["Cannot copy over existing folder: \"metis://athena/files/helmet\""]
+      )
 
       # the actual folder is untouched
       @blueprints_folder.refresh
@@ -488,7 +497,9 @@ describe FolderController do
       rename_folder('blueprints', 'helmet')
 
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Cannot overwrite existing file')
+      expect(json_body[:errors]).to eq(
+        ["Cannot overwrite existing file: \"metis://athena/files/helmet\""]
+      )
 
       # the actual folder is untouched
       @blueprints_folder.refresh
@@ -500,10 +511,12 @@ describe FolderController do
       @blueprints_folder.save
 
       token_header(:editor)
-      rename_folder('blueprints', 'blue-prints')
+      rename_folder('blueprints', 'blue_prints')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Folder is read-only')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(
+        ["Folder \"metis://athena/files/blueprints\" is read-only"]
+      )
       @blueprints_folder.refresh
       expect(@blueprints_folder.folder_path).to eq(['blueprints'])
     end
@@ -601,8 +614,10 @@ describe FolderController do
       token_header(:editor)
       rename_folder('blueprints', 'contents/blueprints')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Folder is read-only')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(
+        ["Folder \"contents\" is read-only"]
+      )
       @blueprints_folder.refresh
       expect(@blueprints_folder.folder_path).to eq(['blueprints'])
       expect(@blueprints_folder.folder).to be_nil
@@ -624,7 +639,7 @@ describe FolderController do
       stubs.create_bucket('athena', 'backup_files')
 
       token_header(:editor)
-      rename_folder('blueprints', 'metis://athena/backup_files/blue-prints')
+      rename_folder('blueprints', 'blue-prints', 'backup_files')
 
       stubs.add_folder('athena', 'backup_files', 'blue-prints')
 
@@ -677,227 +692,4 @@ describe FolderController do
       expect(@helmet_file.folder).to eq(@helmet_folder)
     end
   end
-
-  # context '#move' do
-  #   before(:each) do
-  #     @backup_files_bucket = create( :bucket, project_name: 'athena', name: 'backup_files', owner: 'metis', access: 'viewer')
-  #     stubs.create_bucket('athena', 'backup_files')
-
-  #     @blueprints_folder = create_folder('athena', 'blueprints')
-  #     stubs.create_folder('athena', 'files', 'blueprints')
-  #   end
-
-  #   def move_folder path, new_path
-  #     json_post("/athena/folder/move/files/#{path}", new_folder_path: new_path)
-  #   end
-
-  #   it 'refuses to move a folder to an invalid name' do
-  #     token_header(:editor)
-  #     move_folder('blueprints', "blue\nprints")
-
-  #     @blueprints_folder.refresh
-  #     expect(last_response.status).to eq(422)
-  #     expect(json_body[:error]).to eq('Invalid path')
-  #     expect(@blueprints_folder.folder_name).to eq('blueprints')
-  #     expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
-  #   end
-
-  #   it 'refuses to move a folder without permissions' do
-  #     token_header(:viewer)
-  #     move_folder('blueprints', 'metis://athena/backup_files/blue-prints')
-
-  #     @blueprints_folder.refresh
-  #     expect(last_response.status).to eq(403)
-  #     expect(@blueprints_folder.folder_name).to eq('blueprints')
-  #     expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
-  #   end
-
-  #   it 'refuses to move a non-existent folder' do
-  #     # we attempt to rename a folder that does not exist
-  #     token_header(:editor)
-  #     move_folder('redprints', 'metis://athena/backup_files/red-prints')
-
-  #     expect(last_response.status).to eq(404)
-  #     expect(json_body[:error]).to eq('Folder not found')
-
-  #     # the actual folder is untouched
-  #     @blueprints_folder.refresh
-  #     expect(@blueprints_folder.folder_name).to eq('blueprints')
-  #     expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
-  #   end
-
-  #   it 'refuses to move over an existing folder' do
-  #     helmet_folder = create_folder('athena', 'helmet', bucket: @backup_files_bucket)
-  #     stubs.create_folder('athena', 'backup_files', 'helmet')
-
-  #     token_header(:editor)
-  #     move_folder('blueprints', 'metis://athena/backup_files/helmet')
-
-  #     expect(last_response.status).to eq(422)
-  #     expect(json_body[:error]).to eq('Cannot overwrite existing folder')
-
-  #     # the actual folder is untouched
-  #     @blueprints_folder.refresh
-  #     expect(@blueprints_folder.folder_name).to eq('blueprints')
-  #     expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
-  #   end
-
-  #   it 'refuses to move over an existing file' do
-  #     helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: @backup_files_bucket)
-  #     stubs.create_file('athena', 'backup_files', 'helmet.jpg', HELMET)
-
-  #     token_header(:editor)
-  #     move_folder('blueprints', 'metis://athena/backup_files/helmet.jpg')
-
-  #     expect(last_response.status).to eq(422)
-  #     expect(json_body[:error]).to eq('Cannot overwrite existing file')
-
-  #     # the actual folder is untouched
-  #     @blueprints_folder.refresh
-  #     expect(@blueprints_folder.folder_name).to eq('blueprints')
-  #     expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
-  #   end
-
-  #   it 'refuses to move a read-only folder' do
-  #     @blueprints_folder.read_only = true
-  #     @blueprints_folder.save
-
-  #     token_header(:editor)
-  #     move_folder('blueprints', 'metis://athena/backup_files/blue-prints')
-
-  #     expect(last_response.status).to eq(403)
-  #     expect(json_body[:error]).to eq('Folder is read-only')
-  #     @blueprints_folder.refresh
-  #     expect(@blueprints_folder.folder_path).to eq(['blueprints'])
-  #     expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
-  #   end
-
-  #   it 'can move a folder to a new folder' do
-  #     contents_folder = create_folder('athena', 'contents', bucket: @backup_files_bucket)
-  #     stubs.create_folder('athena', 'backup_files', 'contents')
-
-  #     token_header(:editor)
-  #     move_folder('blueprints', 'metis://athena/backup_files/contents/blueprints')
-  #     stubs.add_folder('athena', 'backup_files', 'contents/blueprints')
-
-  #     expect(last_response.status).to eq(200)
-  #     @blueprints_folder.refresh
-  #     expect(@blueprints_folder.folder_path).to eq(['contents', 'blueprints'])
-  #     expect(@blueprints_folder.folder).to eq(contents_folder)
-  #     expect(@blueprints_folder.bucket).to eq(@backup_files_bucket)
-  #   end
-
-  #   it 'can move a sub-folder to a different folder' do
-  #     @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
-  #     stubs.create_folder('athena', 'files', 'blueprints/helmet')
-
-  #     @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
-  #     stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches')
-
-  #     @backup_blueprints_folder = create_folder('athena', 'blueprints', bucket: @backup_files_bucket)
-  #     stubs.create_folder('athena', 'backup_files', 'blueprints')
-
-  #     token_header(:editor)
-  #     move_folder('blueprints/helmet/sketches', 'metis://athena/backup_files/blueprints/drawings')
-  #     stubs.add_folder('athena', 'backup_files', 'blueprints/drawings')
-
-  #     expect(last_response.status).to eq(200)
-  #     @sketches_folder.refresh
-  #     expect(@sketches_folder.folder_path).to eq(['blueprints', 'drawings'])
-  #     expect(@sketches_folder.bucket).to eq(@backup_files_bucket)
-
-  #     @helmet_folder.refresh
-  #     expect(@helmet_folder.folders).to eq([])
-  #     expect(@helmet_folder.bucket).not_to eq(@backup_files_bucket)
-  #   end
-
-  #   it 'refuses to move a sub-folder to a non-existent tree' do
-  #     @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
-  #     stubs.create_folder('athena', 'files', 'blueprints/helmet')
-
-  #     @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
-  #     stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches')
-
-  #     token_header(:editor)
-  #     move_folder('blueprints/helmet/sketches', 'metis://athena/backup_files/sketches/blueprints/helmet')
-
-  #     expect(last_response.status).to eq(422)
-  #     expect(json_body[:error]).to eq('Invalid folder: "sketches/blueprints"')
-
-  #     # folders and buckets are unchanged
-  #     @sketches_folder.refresh
-  #     expect(@sketches_folder.folder_path).to eq(['blueprints', 'helmet', 'sketches'])
-  #     expect(@sketches_folder.bucket).not_to eq(@backup_files_bucket)
-
-  #     @helmet_folder.refresh
-  #     expect(@helmet_folder.folders).to eq([@sketches_folder])
-  #     expect(@helmet_folder.bucket).not_to eq(@backup_files_bucket)
-  #   end
-
-  #   it 'moves the contents of folders' do
-  #     @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
-  #     stubs.create_folder('athena', 'files', 'blueprints/helmet')
-
-  #     @sketches_folder = create_folder('athena', 'sketches', folder: @helmet_folder)
-  #     stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches')
-
-  #     @helmet_file = create_file('athena', 'helmet-sketch.jpg', HELMET, folder: @sketches_folder)
-  #     stubs.create_file('athena', 'files', 'blueprints/helmet/sketches/helmet-sketch.jpg', HELMET)
-
-  #     @failed_sketches_folder = create_folder('athena', 'failed-sketches', folder: @sketches_folder)
-  #     stubs.create_folder('athena', 'files', 'blueprints/helmet/sketches/failed-sketches')
-
-  #     token_header(:editor)
-  #     move_folder('blueprints/helmet/sketches', 'metis://athena/backup_files/sketches')
-  #     stubs.add_folder('athena', 'backup_files', 'sketches')
-
-  #     expect(last_response.status).to eq(200)
-  #     @sketches_folder.refresh
-  #     expect(@sketches_folder.folder_path).to eq(['sketches'])
-  #     expect(@sketches_folder.bucket).to eq(@backup_files_bucket)
-
-  #     @failed_sketches_folder.refresh
-  #     expect(@failed_sketches_folder.folder_path).to eq(['sketches', 'failed-sketches'])
-  #     expect(@failed_sketches_folder.bucket).to eq(@backup_files_bucket)
-
-  #     @helmet_file.refresh
-  #     expect(@helmet_file.file_path).to eq('sketches/helmet-sketch.jpg')
-  #     expect(@helmet_file).to be_has_data
-  #     expect(@helmet_file.bucket).to eq(@backup_files_bucket)
-
-  #     @helmet_folder.refresh
-  #     expect(@helmet_folder.folders).to eq([])
-  #     expect(@helmet_folder.bucket).not_to eq(@backup_files_bucket)
-
-  #     @blueprints_folder.refresh
-  #     expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
-  #   end
-
-  #   it 'will not move a folder to a read-only folder' do
-  #     contents_folder = create_folder('athena', 'contents', bucket: @backup_files_bucket, read_only: true)
-  #     stubs.create_folder('athena', 'backup_files', 'contents')
-
-  #     token_header(:editor)
-  #     move_folder('blueprints', 'metis://athena/backup_files/contents/blueprints')
-
-  #     expect(last_response.status).to eq(403)
-  #     expect(json_body[:error]).to eq('Folder is read-only')
-  #     @blueprints_folder.refresh
-  #     expect(@blueprints_folder.folder_path).to eq(['blueprints'])
-  #     expect(@blueprints_folder.folder).to be_nil
-  #     expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
-  #   end
-
-  #   it 'will not move a folder to a non-existent folder' do
-  #     token_header(:editor)
-  #     move_folder('blueprints', 'metis://athena/backup_files/contents/blueprints')
-
-  #     expect(last_response.status).to eq(422)
-  #     expect(json_body[:error]).to eq('Invalid folder: "contents"')
-  #     @blueprints_folder.refresh
-  #     expect(@blueprints_folder.folder_path).to eq(['blueprints'])
-  #     expect(@blueprints_folder.folder).to be_nil
-  #     expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
-  #   end
-  # end
 end
