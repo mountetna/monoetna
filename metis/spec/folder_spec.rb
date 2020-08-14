@@ -691,5 +691,39 @@ describe FolderController do
       expect(@helmet_folder.folder).to eq(@blueprints_folder)
       expect(@helmet_file.folder).to eq(@helmet_folder)
     end
+
+    it 'can update even when the new folder name exists in the old bucket' do
+      @drafts_folder = create_folder('athena', 'drafts', bucket: default_bucket('athena'))
+      stubs.create_folder('athena', 'files', 'drafts')
+
+      expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
+      expect(@blueprints_folder.folder_name).to eq('blueprints')
+
+      @blueprints_folder.update_bucket_and_rename!(
+        nil, 'drafts', @backup_files_bucket)
+
+      @blueprints_folder.refresh
+
+      expect(@blueprints_folder.bucket).to eq(@backup_files_bucket)
+      expect(@blueprints_folder.folder_name).to eq('drafts')
+    end
+
+    it 'cannot update when the new folder name exists in the new bucket' do
+      @drafts_folder = create_folder('athena', 'drafts', bucket: @backup_files_bucket)
+      stubs.create_folder('athena', 'files', 'drafts')
+
+      expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
+      expect(@blueprints_folder.folder_name).to eq('blueprints')
+
+      expect {
+        @blueprints_folder.update_bucket_and_rename!(
+          nil, 'drafts', @backup_files_bucket)
+      }.to raise_error(StandardError)
+
+      @blueprints_folder.refresh
+
+      expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
+      expect(@blueprints_folder.folder_name).to eq('blueprints')
+    end
   end
 end

@@ -97,25 +97,17 @@ class Metis
       refresh
     end
 
-    def update_bucket!(new_bucket)
-      update(bucket: new_bucket)
+    def update_bucket_and_rename!(new_folder, new_folder_name, new_bucket)
+      update(folder: new_folder, folder_name: new_folder_name, bucket: new_bucket)
 
       # Need to recursively update all sub-folders and files
       files.each { |file|
         file.update_bucket!(new_bucket)
       }
       folders.each { |folder|
-        folder.update_bucket!(new_bucket)
+        folder.update_bucket_and_rename!(self, folder.folder_name, new_bucket)
       }
 
-      refresh
-    end
-
-    def update_bucket_and_rename!(new_folder, new_folder_name, new_bucket)
-      # rename first to avoid any potential collisions with folder names
-      #    in the new bucket
-      rename!(new_folder, new_folder_name)
-      update_bucket!(new_bucket)
       refresh
     end
 
