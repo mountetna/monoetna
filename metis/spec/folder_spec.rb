@@ -120,6 +120,73 @@ describe FolderController do
       stubs.create_file('athena', 'files', 'blueprints/helmet/helmet.jpg', HELMET)
     end
 
+    it 'can paginate a list of folders for the given bucket' do
+      # Our files bucket
+      token_header(:editor)
+      get('/athena/list_all_folders/files/?limit=1')
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:files]).to eq (nil)
+      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].first).to include(
+        folder_name: 'blueprints',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        bucket_name: 'files'
+      )
+
+      get('/athena/list_all_folders/files/?limit=1&offset=2')
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:files]).to eq (nil)
+      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].first).to include(
+        folder_name: 'helmet',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        bucket_name: 'files',
+        folder_path: 'blueprints/helmet'
+      )
+
+      get('/athena/list_all_folders/files/?offset=1')
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:files]).to eq (nil)
+      expect(json_body[:folders].length).to eq(2)
+
+      expect(json_body[:folders].first).to include(
+        folder_name: 'helmet',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        bucket_name: 'files'
+      )
+      expect(json_body[:folders].last).to include(
+        folder_name: 'helmet',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        bucket_name: 'files',
+        folder_path: 'blueprints/helmet'
+      )
+
+      get('/athena/list_all_folders/files/?limit=5&offset=20')
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:files]).to eq (nil)
+      expect(json_body[:folders].length).to eq(0)
+
+      get('/athena/list_all_folders/files/?limit=50&offset=-20')
+
+      expect(last_response.status).to eq(422)
+
+      get('/athena/list_all_folders/files/?limit=-50&offset=20')
+
+      expect(last_response.status).to eq(422)
+    end
+
     it 'should return a list of folders for the given bucket' do
       # Our files bucket
       token_header(:editor)
