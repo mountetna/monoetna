@@ -136,14 +136,53 @@ describe FolderController do
         folder_name: 'helmet',
         author: 'metis|Metis',
         project_name: 'athena',
-        bucket_name: 'files',
-        folder_path: 'blueprints/helmet'
+        bucket_name: 'files'
       )
       expect(json_body[:folders].last).to include(
         folder_name: 'helmet',
         author: 'metis|Metis',
         project_name: 'athena',
+        bucket_name: 'files',
+        folder_path: 'blueprints/helmet'
+      )
+    end
+
+
+    it 'should return a list of folders for the given bucket even when folders have been re-organized' do
+      # So we cannot assume that folder_id points to a "smaller id" folder,
+      #   i.e. folder_id > id.
+
+      @blueprints_folder.update(folder: @second_helmet_folder)
+      @blueprints_folder.refresh
+
+      # Our files bucket
+      token_header(:editor)
+      get('/athena/list_all_folders/files/')
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:files]).to eq (nil)
+      expect(json_body[:folders].length).to eq(3)
+
+      expect(json_body[:folders].first).to include(
+        folder_name: 'helmet',
+        author: 'metis|Metis',
+        project_name: 'athena',
         bucket_name: 'files'
+      )
+      expect(json_body[:folders][1]).to include(
+        folder_name: 'blueprints',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        bucket_name: 'files',
+        folder_path: 'helmet/blueprints'
+      )
+      expect(json_body[:folders].last).to include(
+        folder_name: 'helmet',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        bucket_name: 'files',
+        folder_path: 'helmet/blueprints/helmet'
       )
     end
 
@@ -783,6 +822,21 @@ describe FolderController do
 
       expect(@blueprints_folder.bucket).not_to eq(@backup_files_bucket)
       expect(@blueprints_folder.folder_name).to eq('blueprints')
+    end
+  end
+
+  context '#to_hash' do
+    before(:each) do
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
+    end
+
+    it 'removes the :folder_path key if given with_path=false' do
+      expect(@blueprints_folder.to_hash(false).has_key?(:folder_path)).to eq(false)
+    end
+
+    it 'includes :folder_path in the return hash by default' do
+      expect(@blueprints_folder.to_hash[:folder_path]).to eq('blueprints')
     end
   end
 end
