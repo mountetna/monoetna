@@ -26,6 +26,12 @@ class FolderController < Metis::Controller
   def list_all_folders
     bucket = require_bucket
 
+    limit = @params.has_key?(:limit) ? @params[:limit].to_i : nil
+    offset = @params.has_key?(:offset) ? @params[:offset].to_i : nil
+
+    raise Etna::BadRequest, "Invalid offset" if offset && offset < 0
+    raise Etna::BadRequest, "Invalid limit" if limit && limit < 0
+
     # We start with the root folders, and iterate
     #   from there.
     parent_folder_ids = nil
@@ -42,9 +48,17 @@ class FolderController < Metis::Controller
 
       parent_folder_ids = child_folders.map { |fold| fold[:id] }
       folders += child_folders
+
+      break if limit && offset && (folders.length >= limit + offset)
     end
 
-    success_json(folders: folder_hashes_with_calculated_paths(folders))
+    limit = limit ? limit : folders.length
+    offset = offset ? offset : 0
+
+    folder_hashes = folder_hashes_with_calculated_paths(folders).slice(offset, limit)
+
+    success_json(
+      folders: folder_hashes ? folder_hashes : [])
   end
 
   def create
@@ -180,7 +194,8 @@ class FolderController < Metis::Controller
 
   def folder_hashes_with_calculated_paths(folders)
     # Calculate the folder_path, instead of
-    #   doing it in the database
+    #   doing it in the database. Assumes that
+    #   folders have been sorted by depth.
 
     # To reduce database calls for each folder, we'll
     #   store a Hash of folder_id: path, and construct
