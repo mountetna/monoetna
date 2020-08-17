@@ -99,6 +99,65 @@ describe FolderController do
     end
   end
 
+  context '#list_all_folders' do
+    before(:each) do
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
+
+      @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet')
+
+      @second_helmet_folder = create_folder('athena', 'helmet')
+      stubs.create_folder('athena', 'files', 'helmet')
+
+      @helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @helmet_folder)
+      stubs.create_file('athena', 'files', 'blueprints/helmet/helmet.jpg', HELMET)
+    end
+
+    it 'should return a list of folders for the given bucket' do
+      # Our files bucket
+      token_header(:editor)
+      get('/athena/list_all_folders/files/')
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:files]).to eq (nil)
+      expect(json_body[:folders].length).to eq(3)
+      expect(json_body[:folders].first).to include(
+        folder_name: 'blueprints',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        bucket_name: 'files'
+      )
+      expect(json_body[:folders][1]).to include(
+        folder_name: 'helmet',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        bucket_name: 'files',
+        folder_path: 'blueprints/helmet'
+      )
+      expect(json_body[:folders].last).to include(
+        folder_name: 'helmet',
+        author: 'metis|Metis',
+        project_name: 'athena',
+        bucket_name: 'files'
+      )
+    end
+
+    it 'should require a valid bucket' do
+      # our files bucket
+      token_header(:editor)
+      get('/athena/list_all_folders/nonexistent')
+
+      expect(last_response.status).to eq(422)
+
+      expect(json_body[:error]).to eq('Invalid bucket: "nonexistent"')
+    end
+  end
+
   context '#create' do
     def post_create_folder path, params={}
       json_post("/athena/folder/create/files/#{path}", params)

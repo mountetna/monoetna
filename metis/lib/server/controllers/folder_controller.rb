@@ -23,6 +23,18 @@ class FolderController < Metis::Controller
     success_json(files: files, folders: folders)
   end
 
+  def list_all_folders
+    bucket = require_bucket
+
+    folders = Metis::Folder.where(
+      bucket: bucket
+    ).all.map do |fold|
+      fold.to_hash
+    end
+
+    success_json(folders: folders)
+  end
+
   def create
     bucket = require_bucket
     raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:folder_path])
