@@ -26,13 +26,27 @@ class FolderController < Metis::Controller
   def list_all_folders
     bucket = require_bucket
 
-    folders = Metis::Folder.where(
-      bucket: bucket
-    ).all.map do |fold|
-      fold.to_hash
+    # We start with the root folders, and iterate
+    #   from there.
+    parent_folder_ids = nil
+    folders = []
+    have_leaves = true
+
+    while have_leaves
+      child_folders = Metis::Folder.where(
+        bucket: bucket,
+        folder_id: parent_folder_ids
+      ).all
+
+      if child_folders.length == 0
+        have_leaves = false
+      else
+        parent_folder_ids = child_folders.map { |fold| fold[:id] }
+        folders += child_folders
+      end
     end
 
-    success_json(folders: folders)
+    success_json(folders: folder_hashes_with_calculated_paths(folders))
   end
 
   def create
@@ -163,6 +177,27 @@ class FolderController < Metis::Controller
         Metis.instance.logger.log_error(e)
         parents << Metis::Folder.find(bucket_id: bucket&.id, folder_id: parents.last&.id, folder_name: folder_name)
       end
+    end
+  end
+
+  def folder_hashes_with_calculated_paths(folders)
+    # Calculate the folder_path, instead of
+    #   doing it in the database
+
+    # To reduce database calls for each folder, we'll
+    #   store a Hash of folder_id: path, and construct
+    #   the folder_path attribute as we iterate through the folders.
+    path_map = {}
+
+    folders.map do |fold|
+      folder_id_sym = fold.id.to_s.to_sym
+
+      path_map[folder_id_sym] = fold.folder_id ?
+        "#{path_map[fold.folder_id.to_s.to_sym]}/#{fold.folder_name}" :
+        fold.folder_name
+      folder_hash = fold.to_hash(false)
+      folder_hash[:folder_path] = path_map[folder_id_sym]
+      folder_hash
     end
   end
 end
