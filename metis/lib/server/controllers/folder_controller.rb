@@ -32,18 +32,16 @@ class FolderController < Metis::Controller
     folders = []
     have_leaves = true
 
-    while have_leaves
+    loop do
       child_folders = Metis::Folder.where(
         bucket: bucket,
         folder_id: parent_folder_ids
       ).all
 
-      if child_folders.length == 0
-        have_leaves = false
-      else
-        parent_folder_ids = child_folders.map { |fold| fold[:id] }
-        folders += child_folders
-      end
+      break if child_folders.length == 0
+
+      parent_folder_ids = child_folders.map { |fold| fold[:id] }
+      folders += child_folders
     end
 
     success_json(folders: folder_hashes_with_calculated_paths(folders))

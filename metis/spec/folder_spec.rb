@@ -101,6 +101,9 @@ describe FolderController do
 
   context '#list_all_folders' do
     before(:each) do
+      @backup_files_bucket = create( :bucket, project_name: 'athena', name: 'backup_files', owner: 'metis', access: 'viewer')
+      stubs.create_bucket('athena', 'backup_files')
+
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
 
@@ -147,6 +150,16 @@ describe FolderController do
       )
     end
 
+    it 'should return no folders for a bucket when none exist' do
+      # Our files bucket
+      token_header(:editor)
+      get('/athena/list_all_folders/backup_files/')
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:files]).to eq (nil)
+      expect(json_body[:folders]).to eq([])
+    end
 
     it 'should return a list of folders for the given bucket even when folders have been re-organized' do
       # So we cannot assume that folder_id points to a "smaller id" folder,
