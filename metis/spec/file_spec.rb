@@ -1281,4 +1281,53 @@ describe FileController do
       expect(::File.exists?(location)).to be_truthy
     end
   end
+
+  context '#update_bucket!' do
+    before(:each) do
+      @backup_files_bucket = create( :bucket, project_name: 'athena', name: 'backup_files', owner: 'metis', access: 'viewer')
+      stubs.create_bucket('athena', 'backup_files')
+
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
+
+      @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet')
+
+      @helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @helmet_folder)
+      stubs.create_file('athena', 'files', 'blueprints/helmet/helmet.jpg', HELMET)
+    end
+
+    it 'moves a file to the new bucket when does not have a parent folder' do
+      expect(@wisdom_file.bucket).not_to eq(@backup_files_bucket)
+
+      @wisdom_file.update_bucket!(@backup_files_bucket)
+
+      expect(@wisdom_file.bucket).to eq(@backup_files_bucket)
+    end
+
+    it 'moves a file to the new bucket when does have a parent folder' do
+      backup_blueprints_folder = create_folder('athena', 'blueprints', bucket: @backup_files_bucket)
+      stubs.create_folder('athena', 'backup_files', 'blueprints')
+
+      expect(@helmet_file.bucket).not_to eq(@backup_files_bucket)
+      @helmet_file.folder = backup_blueprints_folder
+
+      @helmet_file.update_bucket!(@backup_files_bucket)
+
+      expect(@helmet_file.bucket).to eq(@backup_files_bucket)
+    end
+
+    it 'cannot move a file to a different bucket than its folder\'s bucket' do
+      expect(@helmet_file.bucket).not_to eq(@backup_files_bucket)
+
+      expect {
+        @helmet_file.update_bucket!(@backup_files_bucket)
+      }.to raise_error(StandardError)
+
+      expect(@helmet_file.bucket).not_to eq(@backup_files_bucket)
+    end
+  end
 end

@@ -1,3 +1,5 @@
+require_relative '../../folder_rename_revision'
+
 class FolderController < Metis::Controller
   def list
     bucket = require_bucket
@@ -73,28 +75,47 @@ class FolderController < Metis::Controller
 
   def rename
     require_param(:new_folder_path)
-    bucket = require_bucket
-    folder = Metis::Folder.from_path(bucket, @params[:folder_path]).last
 
-    raise Etna::Error.new('Folder not found', 404) unless folder
+    source_bucket = require_bucket
 
-    raise Etna::Forbidden, 'Folder is read-only' if folder.read_only?
+    dest_bucket = source_bucket
+    if @params[:new_bucket_name]
+      dest_bucket = require_bucket(@params[:new_bucket_name])
+    end
 
-    raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:new_folder_path])
+    revision = Metis::FolderRenameRevision.new({
+      source: Metis::Path.path_from_parts(
+        @params[:project_name],
+        source_bucket.name,
+        @params[:folder_path]
+      ),
+      dest: Metis::Path.path_from_parts(
+        @params[:project_name],
+        dest_bucket.name,
+        @params[:new_folder_path]
+      ),
+      user: @user
+    })
 
-    new_parent_folder_path, new_folder_name = Metis::File.path_parts(@params[:new_folder_path])
+    revision.set_bucket(revision.source, [source_bucket, dest_bucket])
+    revision.set_bucket(revision.dest, [source_bucket, dest_bucket])
 
-    new_parent_folder = require_folder(bucket, new_parent_folder_path)
+    # we need the dest parent folder here, so we call File#path_parts
+    source_folder_path, _ = Metis::File.path_parts(@params[:folder_path])
+    dest_folder_path, _ = Metis::File.path_parts(@params[:new_folder_path])
 
-    raise Etna::Forbidden, 'Folder is read-only' if new_parent_folder && new_parent_folder.read_only?
+    revision.set_folder(
+      revision.source,
+      [require_folder(source_bucket, source_folder_path)].compact)
+    revision.set_folder(
+      revision.dest,
+      [require_folder(dest_bucket, dest_folder_path)].compact) if dest_folder_path
 
-    raise Etna::BadRequest, 'Cannot overwrite existing folder' if Metis::Folder.exists?(new_folder_name, bucket, new_parent_folder)
+    revision.validate
 
-    raise Etna::BadRequest, 'Cannot overwrite existing file' if Metis::File.exists?(new_folder_name, bucket, new_parent_folder)
+    return failure(422, errors: revision.errors) unless revision.valid?
 
-    folder.rename!(new_parent_folder, new_folder_name)
-
-    success_json(folders: [ folder.to_hash ])
+    return success_json(folders: [ revision.revise!.to_hash ])
   end
 
   protected
