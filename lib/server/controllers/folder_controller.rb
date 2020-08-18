@@ -217,8 +217,7 @@ class FolderController < Metis::Controller
         get_folder_path(
           fold,
           folders_by_id,
-          path_cache,
-          paged_folders.length != all_folders.length) :
+          path_cache) :
         fold.folder_name
       folder_hash = fold.to_hash(false)
       folder_hash[:folder_path] = path_cache[folder_id_sym]
@@ -226,19 +225,20 @@ class FolderController < Metis::Controller
     }
   end
 
-  def get_folder_path(folder, folders_by_id, path_cache, paged)
-    # Not paged, so parent paths should always exist in the path_cache
-    return "#{path_cache[folder.folder_id.to_s.to_sym]}/#{folder.folder_name}" if !paged
-
-    # Use the cached path value if it exists (useful for a branch-y tree + paging)
-    folder_id_sym = folder.id.to_s.to_sym
-    return path_cache[folder_id_sym] if path_cache.has_key?(folder_id_sym)
-
+  def get_folder_path(folder, folders_by_id, path_cache)
     # No parent folder, so just return this (root) folder's folder_name
     return folder.folder_name if !folder.folder_id
 
+    # Use the cached path value for the parent folder if it exists
+    return "#{path_cache[folder.folder_id.to_s.to_sym]}/#{folder.folder_name}" if
+      path_cache.has_key?(folder.folder_id.to_s.to_sym)
+
+    # Use the cached path value for the given folder if it exists
+    folder_id_sym = folder.id.to_s.to_sym
+    return path_cache[folder_id_sym] if path_cache.has_key?(folder_id_sym)
+
     # Find the path for the parent folder, recursively
     parent_folder = folders_by_id[folder.folder_id].first
-    "#{get_folder_path(parent_folder, folders_by_id, path_cache, paged)}/#{folder.folder_name}"
+    "#{get_folder_path(parent_folder, folders_by_id, path_cache)}/#{folder.folder_name}"
   end
 end
