@@ -233,10 +233,6 @@ class FolderController < Metis::Controller
     return "#{path_cache[folder.folder_id.to_s.to_sym]}/#{folder.folder_name}" if
       path_cache.has_key?(folder.folder_id.to_s.to_sym)
 
-    # Use the cached path value for the given folder if it exists
-    folder_id_sym = folder.id.to_s.to_sym
-    return path_cache[folder_id_sym] if path_cache.has_key?(folder_id_sym)
-
     # Find the path for the parent folder, recursively
     parent_folder = folders_by_id[folder.folder_id].first
     "#{get_folder_path(parent_folder, folders_by_id, path_cache)}/#{folder.folder_name}"
