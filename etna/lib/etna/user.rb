@@ -7,7 +7,9 @@ module Etna
     }
 
     def initialize params, token=nil
-      @first, @last, @email, @encoded_permissions = params.values_at(:first, :last, :email, :perm)
+      @first, @last, @email, @encoded_permissions, encoded_flags = params.values_at(:first, :last, :email, :perm, :flags)
+
+      @flags = encoded_flags&.split(/;/) || []
       @token = token unless !token
       raise ArgumentError, "No email given!" unless @email
     end
@@ -28,6 +30,10 @@ module Etna
           ])
         end
       end.inject([],:+).to_h
+    end
+
+    def has_flag?(flag)
+      @flags.include?(flag)
     end
 
     def name
