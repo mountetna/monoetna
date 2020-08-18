@@ -198,7 +198,10 @@ class FolderController < Metis::Controller
       break if child_folders.length == 0
 
       parent_folder_ids = child_folders.map { |fold| fold.id }
-      sorted_folders += child_folders
+
+      # Sort ... trying to make pagination consistent.
+      sorted_folders += child_folders.sort { |f1, f2|
+        f1[:folder_name] <=> f2[:folder_name] }
     end
 
     sorted_folders.map { |fold|
