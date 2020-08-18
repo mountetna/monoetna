@@ -4,19 +4,44 @@ require 'singleton'
 
 module Etna
   class Client
-    def initialize(host, token)
+    def initialize(host, token, routes_available: true)
       @host = host.sub(%r!/$!,'')
       @token = token
 
-      set_routes
 
-      define_route_helpers
+      if routes_available
+        set_routes
+        define_route_helpers
+      end
     end
 
     attr_reader :routes
 
     def route_path(route, params)
       Etna::Route.path(route[:route], params)
+    end
+
+    def multipart_post(endpoint, content, &block)
+      uri = request_uri(endpoint)
+      multipart = Net::HTTP::Post::Multipart.new uri.path, content
+      multipart.add_field('Authorization', "Etna #{@token}")
+      request(uri, multipart, &block)
+    end
+
+    def post(endpoint, params={}, &block)
+      body_request(Net::HTTP::Post, endpoint, params, &block)
+    end
+
+    def get(endpoint, params={}, &block)
+      query_request(Net::HTTP::Get, endpoint, params, &block)
+    end
+
+    def options(endpoint, params={}, &block)
+      query_request(Net::HTTP::Options, endpoint, params, &block)
+    end
+
+    def delete(endpoint, params={}, &block)
+      body_request(Net::HTTP::Delete, endpoint, params, &block)
     end
 
     private
@@ -60,28 +85,6 @@ module Etna
                 end
     end
 
-    def multipart_post(endpoint, content, &block)
-      uri = request_uri(endpoint)
-      multipart = Net::HTTP::Post::Multipart.new uri.path, content
-      multipart.add_field('Authorization', "Etna #{@token}")
-      request(uri, multipart, &block)
-    end
-
-    def post(endpoint, params={}, &block)
-      body_request(Net::HTTP::Post, endpoint, params, &block)
-    end
-
-    def get(endpoint, params={}, &block)
-      query_request(Net::HTTP::Get, endpoint, params, &block)
-    end
-
-    def options(endpoint, params={}, &block)
-      query_request(Net::HTTP::Options, endpoint, params, &block)
-    end
-
-    def delete(endpoint, params={}, &block)
-      body_request(Net::HTTP::Delete, endpoint, params, &block)
-    end
 
     def body_request(type, endpoint, params={}, &block)
       uri = request_uri(endpoint)

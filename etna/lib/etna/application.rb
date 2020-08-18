@@ -40,10 +40,10 @@ module Etna::Application
       # Number of old copies of the log to keep.
       config(:log_copies) || 5,
       # How large the log can get before overturning.
-      config(:log_size) || 1048576
+      config(:log_size) || 1048576,
+      rollbar_config: config(:rollbar) || {},
     )
     log_level = (config(:log_level) || 'warn').upcase.to_sym
-
     @logger.level = Logger.const_defined?(log_level) ? Logger.const_get(log_level) : Logger::WARN
   end
 

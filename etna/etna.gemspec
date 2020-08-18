@@ -14,4 +14,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'jwt'
   spec.add_dependency 'net-http-persistent'
   spec.add_dependency 'multipart-post'
+  spec.add_dependency 'rollbar'
 end
