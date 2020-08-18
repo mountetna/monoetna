@@ -32,30 +32,15 @@ class FolderController < Metis::Controller
     raise Etna::BadRequest, "Invalid offset" if offset && offset < 0
     raise Etna::BadRequest, "Invalid limit" if limit && limit < 0
 
-    # We start with the root folders, and iterate
-    #   from there.
-    parent_folder_ids = nil
-    folders = []
-    have_leaves = true
+    folders = Metis::Folder.where(
+      bucket: bucket
+    ).all.group_by { |fold| fold.folder_id }
 
-    loop do
-      child_folders = Metis::Folder.where(
-        bucket: bucket,
-        folder_id: parent_folder_ids
-      ).all
-
-      break if child_folders.length == 0
-
-      parent_folder_ids = child_folders.map { |fold| fold[:id] }
-      folders += child_folders
-
-      break if limit && offset && (folders.length >= limit + offset)
-    end
-
-    limit = limit ? limit : folders.length
+    limit = limit ? limit : folders.values.flatten.length
     offset = offset ? offset : 0
 
-    folder_hashes = folder_hashes_with_calculated_paths(folders).slice(offset, limit)
+    folder_hashes = folder_hashes_with_calculated_paths(folders).
+      slice(offset, limit)
 
     success_json(
       folders: folder_hashes ? folder_hashes : [])
@@ -192,7 +177,7 @@ class FolderController < Metis::Controller
     end
   end
 
-  def folder_hashes_with_calculated_paths(folders)
+  def folder_hashes_with_calculated_paths(folders_by_folder_id)
     # Calculate the folder_path, instead of
     #   doing it in the database. Assumes that
     #   folders have been sorted by depth.
@@ -202,7 +187,21 @@ class FolderController < Metis::Controller
     #   the folder_path attribute as we iterate through the folders.
     path_map = {}
 
-    folders.map do |fold|
+    # We need the folders sorted by depth
+    sorted_folders = []
+    parent_folder_ids = [nil]
+
+    loop do
+      child_folders = folders_by_folder_id.values_at(
+        *parent_folder_ids).flatten.compact
+
+      break if child_folders.length == 0
+
+      parent_folder_ids = child_folders.map { |fold| fold.id }
+      sorted_folders += child_folders
+    end
+
+    sorted_folders.map { |fold|
       folder_id_sym = fold.id.to_s.to_sym
 
       path_map[folder_id_sym] = fold.folder_id ?
@@ -211,6 +210,6 @@ class FolderController < Metis::Controller
       folder_hash = fold.to_hash(false)
       folder_hash[:folder_path] = path_map[folder_id_sym]
       folder_hash
-    end
+    }
   end
 end
