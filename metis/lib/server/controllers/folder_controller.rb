@@ -29,8 +29,8 @@ class FolderController < Metis::Controller
     limit = @params.has_key?(:limit) ? @params[:limit].to_i : nil
     offset = @params.has_key?(:offset) ? @params[:offset].to_i : nil
 
-    raise Etna::BadRequest, "Invalid offset" if offset && offset < 0
-    raise Etna::BadRequest, "Invalid limit" if limit && limit < 0
+    raise Etna::BadRequest, "Invalid offset" if offset&.negative?
+    raise Etna::BadRequest, "Invalid limit" if limit&.negative?
 
     folders = Metis::Folder.where(
       bucket: bucket
