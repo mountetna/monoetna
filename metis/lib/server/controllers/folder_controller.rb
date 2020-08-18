@@ -34,16 +34,15 @@ class FolderController < Metis::Controller
 
     folders = Metis::Folder.where(
       bucket: bucket
-    ).all.group_by { |fold| fold.folder_id }
+    ).all
 
-    limit = limit ? limit : folders.values.flatten.length
+    limit = limit ? limit : folders.length
     offset = offset ? offset : 0
 
-    folder_hashes = folder_hashes_with_calculated_paths(folders).
-      slice(offset, limit)
+    folder_hashes = folder_hashes_with_calculated_paths(folders, offset, limit)
 
     success_json(
-      folders: folder_hashes ? folder_hashes : [])
+      folders: folder_hashes)
   end
 
   def create
@@ -177,19 +176,16 @@ class FolderController < Metis::Controller
     end
   end
 
-  def folder_hashes_with_calculated_paths(folders_by_folder_id)
+  def folder_hashes_with_calculated_paths(all_folders, offset, limit)
     # Calculate the folder_path, instead of
-    #   doing it in the database. Assumes that
-    #   folders have been sorted by depth.
-
-    # To reduce database calls for each folder, we'll
-    #   store a Hash of folder_id: path, and construct
-    #   the folder_path attribute as we iterate through the folders.
-    path_map = {}
-
-    # We need the folders sorted by depth
+    #   doing it in the database.
+    # Sorting folders by depth level makes some subsequent calculations simpler,
+    #   especially when not paging.
     sorted_folders = []
     parent_folder_ids = [nil]
+
+    folders_by_folder_id = all_folders.group_by { |fold| fold.folder_id }
+    folders_by_id = all_folders.group_by { |fold| fold.id }
 
     loop do
       child_folders = folders_by_folder_id.values_at(
@@ -202,17 +198,46 @@ class FolderController < Metis::Controller
       # Sort ... trying to make pagination consistent.
       sorted_folders += child_folders.sort { |f1, f2|
         f1[:folder_name] <=> f2[:folder_name] }
+
+      break if sorted_folders.length >= limit + offset
     end
 
-    sorted_folders.map { |fold|
+    paged_folders = sorted_folders.slice(offset, limit)
+    return [] unless paged_folders
+
+    # To prevent too much redundant calculation,
+    #   cache the path map for discovered folders.
+    path_cache = {}
+
+    paged_folders.map { |fold|
       folder_id_sym = fold.id.to_s.to_sym
 
-      path_map[folder_id_sym] = fold.folder_id ?
-        "#{path_map[fold.folder_id.to_s.to_sym]}/#{fold.folder_name}" :
+      path_cache[folder_id_sym] = fold.folder_id ?
+        get_folder_path(
+          fold,
+          folders_by_id,
+          path_cache,
+          paged_folders.length != all_folders.length) :
         fold.folder_name
       folder_hash = fold.to_hash(false)
-      folder_hash[:folder_path] = path_map[folder_id_sym]
+      folder_hash[:folder_path] = path_cache[folder_id_sym]
       folder_hash
     }
+  end
+
+  def get_folder_path(folder, folders_by_id, path_cache, paged)
+    # Not paged, so parent paths should always exist in the path_cache
+    return "#{path_cache[folder.folder_id.to_s.to_sym]}/#{folder.folder_name}" if !paged
+
+    # Use the cached path value if it exists (useful for a branch-y tree + paging)
+    folder_id_sym = folder.id.to_s.to_sym
+    return path_cache[folder_id_sym] if path_cache.has_key?(folder_id_sym)
+
+    # No parent folder, so just return this (root) folder's folder_name
+    return folder.folder_name if !folder.folder_id
+
+    # Find the path for the parent folder, recursively
+    parent_folder = folders_by_id[folder.folder_id].first
+    "#{get_folder_path(parent_folder, folders_by_id, path_cache, paged)}/#{folder.folder_name}"
   end
 end
