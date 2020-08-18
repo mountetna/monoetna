@@ -180,7 +180,7 @@ class FolderController < Metis::Controller
     # Calculate the folder_path, instead of
     #   doing it in the database.
     # Sorting folders by depth level makes some subsequent calculations simpler,
-    #   especially when not paging.
+    #   especially when not paging. Shallow -> deep
     sorted_folders = []
     parent_folder_ids = [nil]
 
@@ -195,7 +195,8 @@ class FolderController < Metis::Controller
 
       parent_folder_ids = child_folders.map { |fold| fold.id }
 
-      # Sort ... trying to make pagination consistent.
+      # Sort by folder_name within each depth level
+      #   ... trying to make pagination consistent.
       sorted_folders += child_folders.sort { |f1, f2|
         f1[:folder_name] <=> f2[:folder_name] }
 
@@ -206,7 +207,7 @@ class FolderController < Metis::Controller
     return [] unless paged_folders
 
     # To prevent too much redundant calculation,
-    #   cache the path map for discovered folders.
+    #   cache the path for discovered folders.
     path_cache = {}
 
     paged_folders.map { |fold|
