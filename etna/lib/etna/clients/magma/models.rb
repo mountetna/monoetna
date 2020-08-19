@@ -1,12 +1,12 @@
-require 'struct'
 require_relative '../../json_serializable_struct'
 require_relative '../../multipart_serializable_nested_hash'
+require_relative '../../directed_graph'
 
 # TODO:  In the near future, I'd like to transition to specifying apis via SWAGGER and generating model stubs from the
 # common definitions.  For nowe I've written them out by hand here.
 module Etna
   module Clients
-    module Magma
+    class Magma
       class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, keyword_init: true)
         include JsonSerializableStruct
 
@@ -113,11 +113,21 @@ module Etna
           Model.new(raw[model_key])
         end
 
-        def to_directed_graph
-          graph = DirectedGraph.new
+        def to_directed_graph(include_casual_links=false)
+          graph = ::DirectedGraph.new
 
           model_keys.each do |model_name|
             graph.add_connection(model(model_name).template.parent, model_name)
+
+            if include_casual_links
+              attributes = model(model_name).template.attributes
+              attributes.attribute_keys.each do |attribute_name|
+                linked_model_name = attributes.attribute(attribute_name).link_model_name
+                if linked_model_name
+                  graph.add_connection(model_name, linked_model_name)
+                end
+              end
+            end
           end
 
           graph
@@ -213,6 +223,10 @@ module Etna
 
         def type
           @raw['type'] && AttributeType.new(@raw['type'])
+        end
+
+        def link_model_name
+          raw['link_model_name']
         end
       end
 

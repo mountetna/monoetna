@@ -17,4 +17,19 @@ class DirectedGraph
     parent_parents = @parents[parent] ||= {}
     parents[parent] = parent_parents
   end
+
+  def descendants(parent)
+    result = []
+    seen = Set.new
+    queue = @children[parent].keys
+    queue = queue.nil? ? [] : queue.dup
+    while child = queue.pop
+      next if seen.include? child
+      seen.add(child)
+      result << child
+      queue.push *@children[child].keys
+    end
+
+    result
+  end
 end
