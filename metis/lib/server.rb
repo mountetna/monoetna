@@ -24,6 +24,7 @@ class Metis
 
     get '/:project_name/list/:bucket_name/*folder_path', action: 'folder#list', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/:bucket_name', action: 'folder#list', auth: { user: { can_view?: :project_name } }
+    get '/:project_name/list_all_folders/:bucket_name', action: 'folder#list_all_folders', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/', action: 'bucket#list', auth: { user: { can_view?: :project_name } }
 
     # bucket operations

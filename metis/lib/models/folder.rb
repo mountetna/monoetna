@@ -123,17 +123,21 @@ class Metis
       update(read_only: false)
     end
 
-    def to_hash
-      {
+    def to_hash(with_path=true)
+      my_hash = {
         folder_name: folder_name,
         bucket_name: bucket.name,
-        folder_path: ::File.join(folder_path),
+        folder_path: with_path ? ::File.join(folder_path) : nil,
         project_name: project_name,
         read_only: read_only,
         updated_at: updated_at.iso8601,
         created_at: created_at.iso8601,
         author: author
       }
+
+      my_hash.delete(:folder_path) if !with_path
+
+      return my_hash
     end
   end
 end
