@@ -20,8 +20,10 @@ class User < Sequel::Model
       perm:  permissions.map(&:project_role).group_by(&:first)
         .sort_by(&:first).map do |role_key, project_roles|
         [ role_key, project_roles.map(&:last).sort.join(',') ].join(':')
-      end.join(';')
-    }
+      end.join(';'),
+
+      flags: flags&.join(';')
+    }.compact
   end
 
   def key_fingerprint
@@ -32,7 +34,6 @@ class User < Sequel::Model
     OpenSSL::Digest::MD5.hexdigest(data_string).scan(/../).join(':')
   end
 
-  # WARNING! In the event of a shibboleth login 'pass_hash' == nil!
   def create_token!
     # Time is in seconds, nil = no expiration
     expires = Time.now.utc + Janus.instance.config(:token_life)

@@ -29,6 +29,8 @@ class Janus
 
     post '/add_project', action: 'admin#add_project', auth: { user: { is_superuser?: true } }
 
+    post '/flag_user', action: 'admin#flag_user', auth: { user: { is_superuser?: true } }
+
     post '/update_key', action: 'user#update_key'
 
     def initialize
