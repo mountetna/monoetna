@@ -1,0 +1,53 @@
+version: "3.4"
+volumes:
+  polyphemus-gems:
+    driver: local
+  polyphemus-db-data:
+    driver: local
+  polyphemus-node-modules:
+    driver: local
+  polyphemus-log-dir:
+    driver: local
+  polyphemus-tmp-dir:
+    driver: local
+  polyphemus-public-dir:
+    driver: local
+
+networks:
+  edge_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.16.238.0/24"
+        - subnet: "2001:3984:3989::/64"
+
+x-polyphemus_base: &polyphemus_base
+  build:
+    context: .
+    dockerfile: docker/app/Dockerfile.development
+  volumes:
+    - .:/app:cached
+    - polyphemus-gems:/app/vendor/bundle:rw
+    - polyphemus-log-dir:/app/log:rw
+    - polyphemus-tmp-dir:/app/tmp:rw
+    - ../etna:/etna:cached
+  environment: &app_environment
+    COVERAGE: "true"
+    DATABASE_HOST: "polyphemus_db"
+    POLYPHEMUS_ENV: "development"
+    MASTER_BUILD: "${MASTER_BUILD}"
+  # Maps external facing host names to the internal ip for development-apache.
+  extra_hosts:
+    - "magma.development.local:172.16.238.10"
+    - "metis.development.local:172.16.238.10"
+    - "rtemis.development.local:172.16.238.10"
+  networks:
+    edge_net:
+    default:
+
+services:
+  polyphemus_app:
+    <<: *polyphemus_base
+    ports:
+      - 3004:3000
+    command: echo 1
