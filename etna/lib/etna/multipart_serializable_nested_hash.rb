@@ -33,7 +33,7 @@ module Etna
       end
     end
 
-    def self.encode_multipart_content(base_key = '')
+    def encode_multipart_content(base_key = '')
       value = self
       if value.respond_to? :as_json
         value = value.as_json
