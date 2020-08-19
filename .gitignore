@@ -16,3 +16,5 @@ trash.rb
 *.ttf
 *.woff
 *.woff2
+config.yml
+
