@@ -23,43 +23,40 @@ module Etna
           #   attribute_names:  "all"
           # }
           def retrieve(retrieval_request)
-            params = {
-                project_name: project_name,
-            }
+            json = @etna_client.post('/retrieve', retrieval_request) do |res|
+              JSON.parse(res.body)
+            end
 
-            RetrievalResponse.new(@etna_client.post('/retrieve', params))
+            RetrievalResponse.new(json)
           end
 
           # This 'query' end point is used to fetch data by graph query
           # See question.rb for more detail
-          def query(token, project_name, question, &block)
-            params = {project_name: project_name, query: question}
-            json_post(:query, token, params, {500 => params, 400 => params}, &block)
+          def query(query_request)
+            json = @etna_client.post('/query', query_request) do |res|
+              JSON.parse(res.body)
+            end
+
+            QueryResponse.new(json)
           end
 
           # Post revisions to Magma records
           # { model_name: { record_name: { attribute1: 1, attribute2: 2 } } } }
           # data can also be a File or IO stream
-          def update(token, project_name, revisions, &block)
-            content = []
-
-            # We need to store revision data in a multipart/form-data object.
-            # We will construct a key like this:
-            # revisions['model_name']['record_name']['attribute_name']
-            revisions.each do |model_name, model_revisions|
-              model_revisions.each do |record_name, revision|
-                revision.each do |att_name, value|
-                  content << [
-                      "revisions[#{ model_name }][#{ record_name }][#{ att_name }]#{ value.is_a?(Array) ? '[]' : nil }",
-                      value.respond_to?(:read) ? UploadIO.new(value, 'application/octet-stream') : value
-                  ]
-                end
-              end
+          def update(update_request)
+            json = @etna_client.multipart_post('/update', update_request.encode_multipart_content) do |res|
+              JSON.parse(res.body)
             end
 
-            content << ['project_name', project_name]
+            UpdateResponse.new(json)
+          end
 
-            multipart_post(:update, token, content, {400 => {update: revisions}}, &block)
+          def update_model(update_model_request)
+            json = @etna_client.post('/update_model', update_model_request) do |res|
+              JSON.parse(res.body)
+            end
+
+            UpdateModelResponse.new(json)
           end
 
           private
@@ -76,12 +73,12 @@ module Etna
             post(endpoint, 'application/json', token, params.to_json, status_errors, &block)
           end
 
-          def multipart_post(endpoint, token, content, status_errors = {}, &block)
+          def multipart_post(endpoint, token, content, status_errors = {})
             uri = URI("#{@host}/#{endpoint}")
             multipart = Net::HTTP::Post::Multipart.new uri.path, content
             multipart.add_field('Authorization', "Etna #{token}")
 
-            request(uri, multipart, status_errors, &block)
+            request(uri, multipart, status_errors)
           end
 
           def post(endpoint, content_type, token, body, status_errors, &block)

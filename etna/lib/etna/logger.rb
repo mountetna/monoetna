@@ -3,18 +3,9 @@ require 'rollbar'
 
 module Etna
   class Logger < ::Logger
-    def initialize(log_dev, age, size, rollbar:)
-      super
-
+    def initialize(log_dev, age, size)
       self.formatter = proc do |severity, datetime, progname, msg|
         format(severity, datetime, progname, msg)
-      end
-
-      if rollbar && rollbar[:access_token]
-        Rollbar.configure do |config|
-          config.access_token = rollbar[:access_token]
-        end
-        @configured_rollbar = true
       end
     end
 
@@ -28,9 +19,7 @@ module Etna
         error(trace)
       end
 
-      if @configured_rollbar
-        Rollbar.error(e)
-      end
+      Rollbar.error(e)
     end
 
     def log_request(request)

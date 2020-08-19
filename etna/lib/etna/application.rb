@@ -5,6 +5,7 @@
 
 require_relative './sign_service'
 require 'singleton'
+require 'rollbar'
 
 module Etna::Application
   def self.included(other)
@@ -31,6 +32,12 @@ module Etna::Application
 
   def configure(opts)
     @config = opts
+
+    if (rollbar_config = config(:rollbar)) && rollbar_config[:access_token]
+      Rollbar.configure do |config|
+        config.access_token = rollbar_config[:access_token]
+      end
+    end
   end
 
   def setup_logger
@@ -41,7 +48,6 @@ module Etna::Application
       config(:log_copies) || 5,
       # How large the log can get before overturning.
       config(:log_size) || 1048576,
-      rollbar_config: config(:rollbar) || {},
     )
     log_level = (config(:log_level) || 'warn').upcase.to_sym
     @logger.level = Logger.const_defined?(log_level) ? Logger.const_get(log_level) : Logger::WARN
