@@ -49,5 +49,5 @@ services:
   polyphemus_app:
     <<: *polyphemus_base
     ports:
-      - 3002:3000
+      - 3004:3000
     command: echo 1
