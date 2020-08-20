@@ -119,10 +119,7 @@ module Etna
         def to_directed_graph(include_casual_links=false)
           graph = ::DirectedGraph.new
 
-          p model_keys
-
           model_keys.each do |model_name|
-            puts model_name
             graph.add_connection(model(model_name).template.parent, model_name)
 
             if include_casual_links

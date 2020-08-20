@@ -16,8 +16,6 @@ class DirectedGraph
     parents = @parents[child] ||= {}
     parent_parents = @parents[parent] ||= {}
     parents[parent] = parent_parents
-
-    puts "adding connection #{child} < #{parent}"
   end
 
   def descendants(parent)
@@ -25,12 +23,13 @@ class DirectedGraph
 
     seen.add(parent)
     queue = @children[parent].keys.dup
-    puts "initial keys #{queue}"
     parent_queue = @parents[parent].keys.dup
 
+    # Because this is not an acyclical graph, the definition of descendants needs to be stronger;
+    # here we believe that any path that would move through --any-- parent to this child would not be considered
+    # descendant, so we first find all those parents and mark them as 'seen' so that they are not traveled.
     while next_parent = parent_queue.pop
       next if seen.include?(next_parent)
-      puts "ignoring #{next_parent} for exclusion as parent"
       seen.add(next_parent)
       parent_queue.push(*@parents[next_parent].keys)
     end
@@ -40,7 +39,6 @@ class DirectedGraph
 
     while child = queue.pop
       next if seen.include? child
-      puts "considering #{child}"
       seen.add(child)
       path = (paths[child] ||= [parent])
 
@@ -49,8 +47,6 @@ class DirectedGraph
 
         unless paths.include? child_child
           paths[child_child] = path + [child]
-        else
-          puts "ignoring #{child_child}"
         end
       end
     end

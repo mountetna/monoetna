@@ -9,4 +9,6 @@ group :development, :test do
   gem 'pry'
   gem 'pry-byebug'
   gem 'webmock'
+  gem 'debase'
+  gem 'ruby-debug-ide'
 end
