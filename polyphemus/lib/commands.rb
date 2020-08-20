@@ -27,6 +27,21 @@ class Polyphemus
     end
   end
 
+  class GetMetisFolders < Etna::Command
+    usage "Fetch a list of Metis folders from a bucket"
+
+    def execute
+      client = Polyphemus.instance.metis_client
+      folders = client.folder_list_all_folders(
+        Etna::Clients::Metis::ListFoldersRequest.new(project_name: 'mvir1', bucket_name: 'data')).folders
+      folders.all.each { |f| p f.folder_path }
+    end
+
+    def setup(config)
+      super
+    end
+  end
+
   class Console < Etna::Command
     usage 'Open a console with a connected Polyphemus instance.'
 
