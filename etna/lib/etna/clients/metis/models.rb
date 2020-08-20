@@ -4,7 +4,7 @@ require_relative '../../json_serializable_struct'
 module Etna
   module Clients
     class Metis
-      class ListFoldersRequest < Struct.new(:project_name, :bucket_name, keyword_init: true)
+      class ListFoldersRequest < Struct.new(:project_name, :bucket_name, :offset, :limit, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)
