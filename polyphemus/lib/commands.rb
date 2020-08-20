@@ -32,7 +32,7 @@ class Polyphemus
 
     def execute
       client = Polyphemus.instance.metis_client
-      folders = client.folder_list_all_folders(
+      folders = client.list_all_folders(
         Etna::Clients::Metis::ListFoldersRequest.new(project_name: 'mvir1', bucket_name: 'data')).folders
       folders.all.each { |f| p f.folder_path }
     end
