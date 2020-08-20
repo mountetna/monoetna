@@ -12,7 +12,31 @@ module Etna
         end
       end
 
-      class ListFoldersResponse
+      class RenameFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, :new_bucket_name, :new_folder_path, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+      end
+
+      class ListFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+      end
+
+      class CreateFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+      end
+
+      class FoldersResponse
         attr_reader :raw
 
         def initialize(raw = {})
@@ -21,6 +45,24 @@ module Etna
 
         def folders
           Folders.new(raw[:folders])
+        end
+      end
+
+      class FoldersAndFilesResponse < FoldersResponse
+        def files
+          Files.new(raw[:files])
+        end
+      end
+
+      class Files
+        attr_reader :raw
+
+        def initialize(raw = {})
+          @raw = raw
+        end
+
+        def all
+          raw.map { |file| File.new(file) }
         end
       end
 
@@ -33,6 +75,22 @@ module Etna
 
         def all
           raw.map { |folder| Folder.new(folder) }
+        end
+      end
+
+      class File
+        attr_reader :raw
+
+        def initialize(raw = {})
+          @raw = raw
+        end
+
+        def file_path
+          raw[:file_path]
+        end
+
+        def file_name
+          raw[:file_name]
         end
       end
 

@@ -14,8 +14,23 @@ module Etna
       end
 
       def folder_list_all_folders(list_all_folders_request)
-        ListFoldersResponse.new(
+        FoldersResponse.new(
           @etna_client.folder_list_all_folders(list_all_folders_request.to_h))
+      end
+
+      def folder_list(list_folder_request)
+        FoldersAndFilesResponse.new(
+          @etna_client.folder_list(list_folder_request.to_h))
+      end
+
+      def folder_rename(rename_folder_request)
+        FoldersResponse.new(
+          @etna_client.folder_rename(rename_folder_request.to_h))
+      end
+
+      def folder_create(create_folder_request)
+        FoldersResponse.new(
+          @etna_client.folder_create(create_folder_request.to_h))
       end
     end
   end
