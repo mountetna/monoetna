@@ -3,6 +3,7 @@ app_db_name:=${app_name}_db
 app_name_capitalized:=$(shell echo ${app_name} | tr [a-z] [A-Z])
 COMPOSE_MIXINS:=docker-compose.etna-app.shared.yml $(COMPOSE_MIXINS)
 BUILD_ARGS:=--build-arg SKIP_RUBY_SETUP= $(BUILD_ARGS)
+export BUILD_REQS:=../docker/etna-base $(BUILD_REQS)
 
 config.yml: config.yml.template
 	../make-base/maybe-move-config

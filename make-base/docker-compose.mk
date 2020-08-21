@@ -40,10 +40,10 @@ test:: docker-ready
 	cp ../docker/.dockerignore.template ./.dockerignore
 
 release-build:: .dockerignore
-	if [ -n "$$PULL_IMAGES" ]; then docker pull $(fullTag) || true; fi
 	mkdir -p /tmp/releases
 	touch /tmp/releases/success
 	../docker/build_image -d Dockerfile $(BUILD_REQS) > /tmp/digest
+	if ! grep "$(cat /tmp/digest)" /tmp/releases/success && [ -n "$$PULL_IMAGES" ]; then docker pull $(fullTag) || true; fi
 	if ! grep "$(cat /tmp/digest)" /tmp/releases/success; then ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); fi
 
 release::

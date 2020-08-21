@@ -4,6 +4,7 @@
 node_modules
 etna
 data
+!/spec/data
 tmp
 log
 docker
