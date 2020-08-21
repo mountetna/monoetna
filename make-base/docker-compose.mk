@@ -43,11 +43,12 @@ release-build:: .dockerignore
 	mkdir -p /tmp/releases
 	touch /tmp/releases/success
 	../docker/build_image -d Dockerfile $(BUILD_REQS) > /tmp/digest
-	if ! grep "$(cat /tmp/digest)" /tmp/releases/success && [ -n "$$PULL_IMAGES" ]; then docker pull $(fullTag) || true; fi
-	if ! grep "$(cat /tmp/digest)" /tmp/releases/success; then ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); fi
+	cat /tmp/digest
+	if ! grep "$$(cat /tmp/digest)" /tmp/releases/success && [ -n "$$PULL_IMAGES" ]; then docker pull $(fullTag) || true; fi
+	if ! grep "$$(cat /tmp/digest)" /tmp/releases/success; then ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); fi
 
 release::
 	make release-build
-	if ! grep "$(cat /tmp/digest)" /tmp/releases/success; then make release-test; fi
-	if ! grep "$(cat /tmp/digest)" /tmp/releases/success; then docker push $(fullTag); fi
+	if ! grep "$$(cat /tmp/digest)" /tmp/releases/success; then make release-test; fi
+	if ! grep "$$(cat /tmp/digest)" /tmp/releases/success && [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi
 	cat /tmp/digest >> /tmp/releases/success
