@@ -82,10 +82,7 @@ describe 'WithMetisWaiverHelpers Module' do
   end
 
   it 'does not throw an exception when does not find a valid pool to restrict' do
-    expect {
-      test_class.restrict_pool_data('pool-b')
-    }.to raise_error(Etna::Error)
-
+    test_class.restrict_pool_data('pool-b')
     expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
   end
 
