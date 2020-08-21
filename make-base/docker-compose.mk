@@ -41,9 +41,13 @@ test:: docker-ready
 
 release-build:: .dockerignore
 	if [ -n "$$PULL_IMAGES" ]; then docker pull $(fullTag) || true; fi
-	if [[ -e Dockerfile ]]; then ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); fi
+	mkdir -p /tmp/releases
+	touch /tmp/releases/success
+	../docker/build_image -d Dockerfile $(BUILD_REQS) > /tmp/digest
+	if ! grep "$(cat /tmp/digest)" /tmp/releases/success; then ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); fi
 
 release::
 	make release-build
-	make release-test
-	if [[ -e Dockerfile && -n "$$PUSH_IMAGES" ]]; then docker push $(fullTag); fi
+	if ! grep "$(cat /tmp/digest)" /tmp/releases/success; then make release-test; fi
+	if ! grep "$(cat /tmp/digest)" /tmp/releases/success; then docker push $(fullTag); fi
+	cat /tmp/digest >> /tmp/releases/success

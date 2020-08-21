@@ -101,7 +101,7 @@ while read depImage; do
 
   #- If that image exists a sub directory of the docker folder, that image is recursively built using make,
   #- and its source files are tracked for the purposes of rebuild caching and digest of this build.
-  make -C "$DIR/$baseDepImage"
+  [[ -z "$digestOnly" ]] && make -C "$DIR/$baseDepImage"
   recursiveDigest "$(realpath $depImage)" | addToDigest
   findNewest "$depImage"
   if [[ $newestFile -ot $MARKERS_DIR/$baseDepImage ]]; then

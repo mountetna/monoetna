@@ -33,6 +33,12 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
+      - name: Cache release successes
+        uses: actions/cache@v2
+        with:
+          path: |
+            /tmp/releases
+          key: ${{ runner.os }}
       - name: docker login
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}

@@ -16,6 +16,12 @@ jobs:
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
+      - name: Cache release successes
+        uses: actions/cache@v2
+        with:
+          path: |
+            /tmp/releases
+          key: ${{ runner.os }}
       - name: Run metis test suite
         id: metis_first_test_run
         env:
