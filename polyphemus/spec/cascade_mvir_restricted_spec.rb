@@ -8,6 +8,7 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
        'Dan': { name: 'Dan', restricted: false, consent: 'Initial Waiver' },
        'Fred': { name: 'Fred', restricted: true, consent: 'Initial Waiver' },
        'Mike': { name: 'Mike', restricted: false, consent: 'No Samples/Data' },
+       'Danielle': { name: 'Danielle', restricted: true, consent: 'Full Study' },
     }
   }
 
@@ -82,6 +83,7 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
           "Mike" => {"restricted" => "true"},
           "Dan" => {"restricted" => "true"},
           "Dave" => {"restricted" => "false"},
+          "Danielle" => {"restricted" => "false"}
       }
     })
   end
