@@ -3,7 +3,7 @@ COMPOSE_MIXINS:=docker-compose.shared.yml $(COMPOSE_MIXINS)
 app_service_name:=${app_name}_app
 
 docker-compose.yml:: $(wildcard ../docker/*.shared.yml) ../docker/default_compose
-	COMPOSE_MIXINGS="$(COMPOSE_MIXINGS)" ../docker/default_compose docker-compose.yml
+	COMPOSE_MIXINS="$(COMPOSE_MIXINS)" ../docker/default_compose docker-compose.yml
 
 .PHONY: images
 images: docker-compose.yml

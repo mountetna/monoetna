@@ -1,13 +1,14 @@
 GIT
   remote: https://github.com/mountetna/monoetna.git
-  revision: 412ee380040b0bccdc6bf3dd63c1d50e8607313b
-  branch: refs/artifacts/gem-etna/8995c01822a417a29c8705b031a9926586040cb3
+  revision: 4b0cd9ba312304b52672e8c4b7a521b318bf03d9
+  branch: refs/artifacts/gem-etna/58f4c58cb360d13a4e4f0e5bd644803bfd0be801
   specs:
-    etna (0.1.13)
+    etna (0.1.15)
       jwt
       multipart-post
       net-http-persistent
       rack
+      rollbar
 
 GEM
   remote: http://rubygems.org/
@@ -74,7 +75,7 @@ GEM
       mini_magick (>= 4.9.5, < 5)
       ruby-vips (>= 2.0.17, < 3)
     ipaddress (0.8.3)
-    jwt (2.2.1)
+    jwt (2.2.2)
     method_source (0.9.2)
     mime-types (3.3.1)
       mime-types-data (~> 3.2015)
@@ -102,6 +103,7 @@ GEM
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
     rake (13.0.1)
+    rollbar (2.27.0)
     rspec (3.9.0)
       rspec-core (~> 3.9.0)
       rspec-expectations (~> 3.9.0)
@@ -147,8 +149,8 @@ DEPENDENCIES
   carrierwave-sequel
   curb
   database_cleaner
-  etna!
   debase
+  etna!
   factory_bot
   fog-aws
   mini_magick

@@ -1,13 +1,14 @@
 GIT
   remote: https://github.com/mountetna/monoetna.git
-  revision: 412ee380040b0bccdc6bf3dd63c1d50e8607313b
-  branch: refs/artifacts/gem-etna/8995c01822a417a29c8705b031a9926586040cb3
+  revision: 4b0cd9ba312304b52672e8c4b7a521b318bf03d9
+  branch: refs/artifacts/gem-etna/58f4c58cb360d13a4e4f0e5bd644803bfd0be801
   specs:
-    etna (0.1.13)
+    etna (0.1.15)
       jwt
       multipart-post
       net-http-persistent
       rack
+      rollbar
 
 GEM
   remote: https://rubygems.org/
@@ -28,7 +29,7 @@ GEM
       activesupport (>= 5.0.0)
     i18n (1.8.3)
       concurrent-ruby (~> 1.0)
-    jwt (2.2.1)
+    jwt (2.2.2)
     method_source (1.0.0)
     mini_portile2 (2.4.0)
     minitest (5.14.1)
@@ -47,6 +48,7 @@ GEM
     rack-throttle (0.7.0)
       bundler (>= 1.0.0)
       rack (>= 1.0.0)
+    rollbar (2.27.0)
     rspec (3.9.0)
       rspec-core (~> 3.9.0)
       rspec-expectations (~> 3.9.0)

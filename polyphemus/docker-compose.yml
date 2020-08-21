@@ -1,10 +1,6 @@
-version: "3.4"
+
 volumes:
-  polyphemus-gems:
-    driver: local
-  polyphemus-db-data:
-    driver: local
-  polyphemus-node-modules:
+  polyphemus-app-gems:
     driver: local
   polyphemus-log-dir:
     driver: local
@@ -12,42 +8,97 @@ volumes:
     driver: local
   polyphemus-public-dir:
     driver: local
+  polyphemus-data-dir:
+    driver: local
+  polyphemus-db-data:
+    driver: local
+  polyphemus-opt-dir:
+    driver: local
+
+x-base-etna-service: &base-etna-service
+  # Base configuration used by most etna services.
+  image: etna-base
+  volumes: &base-etna-service-volumes
+    - .:/app:cached
+    - polyphemus-app-gems:/app/vendor/bundle:rw
+    - polyphemus-log-dir:/app/log:rw
+    - polyphemus-tmp-dir:/app/tmp:rw
+    - polyphemus-public-dir:/app/public:rw
+    - polyphemus-data-dir:/app/data:rw
+    - polyphemus-opt-dir:/usr/opt:rw
+    - ../etna:/etna:cached
+  environment: &base-etna-env
+    "POLYPHEMUS_ENV": "development"
+    APP_NAME: "polyphemus"
+  entrypoint: /entrypoints/development.sh
+
+  networks:
+    default:
+    edge_net:
+  extra_hosts:
+    - 'metis.development.local:172.16.238.10'
+    - 'magma.development.local:172.16.238.10'
+    - 'janus.development.local:172.16.238.10'
+    - 'timur.development.local:172.16.238.10'
+
+x-base-etna-services: &base-etna-services
+  # Default list of services an etna app may have.
+  "polyphemus_app": &base-etna-app
+    # The ruby webserver
+    <<: *base-etna-service
+    command: ./bin/puma.sh
+    depends_on:
+      - "polyphemus_db"
+
+  "polyphemus_webpack": &base-etna-webpack
+    # The ruby webpack server watching for changes
+    <<: *base-etna-service
+    environment:
+      <<: *base-etna-env
+      RUN_NPM_INSTALL: "true"
+      SKIP_RUBY_SETUP: "true"
+    command: npm run webpack
+
+  "polyphemus_db": &base-etna-db
+    # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
+    image: development-psql
+    volumes:
+      - polyphemus-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: "polyphemus_development"
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+      APP_NAME: "polyphemus"
+    container_name: "polyphemus_db_1"
+
+  "polyphemus_app_fe": &base-etna-fe
+    # The application level apache frontend serving static assets, data, and proxying the main app.
+    image: etna-apache
+    volumes:
+      - polyphemus-public-dir:/app/public:ro
+      - polyphemus-opt-dir:/usr/opt:ro
+      - ../docker/etna-base/entrypoints:/entrypoints:ro
+    depends_on:
+      - "polyphemus_app"
+    entrypoint: /entrypoints/development.sh
+    command: ["httpd", "-DFOREGROUND"]
+    environment:
+      SKIP_BUILD: "1"
+      WAIT_FOR_APP: "1"
+      APP_NAME: "polyphemus"
+
+version: "3.4"
 
 networks:
   edge_net:
     ipam:
       driver: default
       config:
-        - subnet: "172.16.238.0/24"
-        - subnet: "2001:3984:3989::/64"
-
-x-polyphemus_base: &polyphemus_base
-  build:
-    context: .
-    dockerfile: docker/app/Dockerfile.development
-  volumes:
-    - .:/app:cached
-    - polyphemus-gems:/app/vendor/bundle:rw
-    - polyphemus-log-dir:/app/log:rw
-    - polyphemus-tmp-dir:/app/tmp:rw
-    - ../etna:/etna:cached
-  environment: &app_environment
-    COVERAGE: "true"
-    DATABASE_HOST: "polyphemus_db"
-    POLYPHEMUS_ENV: "development"
-    MASTER_BUILD: "${MASTER_BUILD}"
-  # Maps external facing host names to the internal ip for development-apache.
-  extra_hosts:
-    - "magma.development.local:172.16.238.10"
-    - "metis.development.local:172.16.238.10"
-    - "rtemis.development.local:172.16.238.10"
-  networks:
-    edge_net:
-    default:
+        - subnet: '172.16.238.0/24'
+        - subnet: '2001:3984:3989::/64'
 
 services:
-  polyphemus_app:
-    <<: *polyphemus_base
-    ports:
-      - 3004:3000
-    command: echo 1
+  "polyphemus_app":
+    <<: *base-etna-app
+    depends_on: []
+

@@ -89,7 +89,7 @@ function updateNpmReferences() {
     if grep "\"$package_name\":" package.json &>/dev/null; then
       echo "Applying update to $package_json"
       sed -i -e "s/\"$package_name\":\ \".*\"/\"$package_name\":\ \"$new_dep\"/" package.json
-      docker-compose run --rm "$(basename "$(dirname "$package_json")")_app" npm update $package_name
+      docker-compose run -e SKIP_RUBY_SETUP=1 --rm "$(basename "$(dirname "$package_json")")_app" npm update $package_name
     fi
   done
 }
@@ -107,7 +107,7 @@ function updateBundleReferences() {
       echo "Applying update to $gemfile"
       sed -i -e "s@gem[ \t]\+[\"']etna[\"'].*@gem '${package_name}', git: '${git}', branch: 'refs/artifacts/$artifactName/$SHA'@" "$gemfile"
       cd $DIR/..
-      docker-compose run --rm "$(basename "$(dirname "$gemfile")")_app" bundle update $package_name
+      docker-compose run -e SKIP_RUBY_SETUP=1 --rm "$(basename "$(dirname "$gemfile")")_app" bundle update $package_name
     fi
   done
 }

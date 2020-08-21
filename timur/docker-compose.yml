@@ -104,11 +104,3 @@ networks:
 
 services:
   <<: *base-etna-services
-  "timur_webpack":
-    # The ruby webpack server watching for changes
-    <<: *base-etna-webpack
-    environment:
-      <<: *base-etna-env
-      RUN_NPM_INSTALL: "true"
-      SKIP_RUBY_SETUP: "" # Ruby setup required
-

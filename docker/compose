@@ -18,6 +18,9 @@ while [ -h "$SOURCE" ]; do
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
+export USER_ID=$(id -u)
+export GROUP_ID=$(id -g)
+
 cp $DIR/docker-compose.shared.yml /tmp/composed.yml
 for compose_yml in $@; do
     docker-compose -f $compose_yml config > /tmp/next.yml
