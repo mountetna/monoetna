@@ -19,17 +19,38 @@ class DirectedGraph
   end
 
   def descendants(parent)
-    result = []
     seen = Set.new
-    queue = @children[parent].keys
+
+    seen.add(parent)
+    queue = @children[parent].keys.dup
+    parent_queue = @parents[parent].keys.dup
+
+    # Because this is not an acyclical graph, the definition of descendants needs to be stronger;
+    # here we believe that any path that would move through --any-- parent to this child would not be considered
+    # descendant, so we first find all those parents and mark them as 'seen' so that they are not traveled.
+    while next_parent = parent_queue.pop
+      next if seen.include?(next_parent)
+      seen.add(next_parent)
+      parent_queue.push(*@parents[next_parent].keys)
+    end
+
     queue = queue.nil? ? [] : queue.dup
+    paths = {}
+
     while child = queue.pop
       next if seen.include? child
       seen.add(child)
-      result << child
-      queue.push *@children[child].keys
+      path = (paths[child] ||= [parent])
+
+      @children[child].keys.each do |child_child|
+        queue.push child_child
+
+        unless paths.include? child_child
+          paths[child_child] = path + [child]
+        end
+      end
     end
 
-    result
+    paths
   end
 end

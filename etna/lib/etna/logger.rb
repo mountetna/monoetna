@@ -14,6 +14,21 @@ module Etna
       "#{severity}:#{datetime.iso8601} #{msg}\n"
     end
 
+    def warn(msg, &block)
+      super
+      Rollbar.warn(msg)
+    end
+
+    def error(msg, &block)
+      super
+      Rollbar.error(msg)
+    end
+
+    def fatal(msg, &block)
+      super
+      Rollbar.error(msg)
+    end
+
     def log_error(e)
       error(e.message)
       e.backtrace.each do |trace|
