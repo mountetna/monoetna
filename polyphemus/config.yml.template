@@ -1,0 +1,7 @@
+:development:
+  :magma:
+    :host: https://magma.ucsf.edu
+
+:production:
+  :magma:
+    :host: https://magma.ucsf.edu

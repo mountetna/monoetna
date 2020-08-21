@@ -1,7 +1,12 @@
 source 'https://rubygems.org'
 
-ruby '2.2.2'
+gem 'etna'
+# gem 'etna', path: '../etna/'
 
-gem 'rack'
-gem 'thin'
-gem 'rspec'
+group :development, :test do
+  gem 'rspec'
+  gem 'simplecov'
+  gem 'pry'
+  gem 'pry-byebug'
+  gem 'webmock'
+end

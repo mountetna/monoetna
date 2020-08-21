@@ -63,6 +63,19 @@ describe User do
       create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'Janus@two-faces.org')
     }.to raise_error(Sequel::ValidationFailed)
   end
+
+  it 'sets flags on the user' do
+    user = create(
+      :user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org',
+      flags: [ 'doors', 'portals', 'ports' ]
+    )
+
+    # the token reports the flags
+    token = user.create_token!
+    payload, headers = Janus.instance.sign.jwt_decode(token)
+
+    expect(payload['flags']).to eq(user.flags.join(';'))
+  end
 end
 
 describe UserController do

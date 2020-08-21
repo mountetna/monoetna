@@ -104,4 +104,22 @@ class AdminController < Janus::Controller
     @response.redirect('/')
     @response.finish
   end
+
+  def flag_user
+    require_params(:flags, :email)
+
+    user = User.find(email: @params[:email])
+
+    if @params[:flags] &&
+        !(@params[:flags].is_a?(Array) &&
+          @params[:flags].all?{|f| f.is_a?(String) && f =~ /^\w+$/})
+      raise Etna::BadRequest, "Flags should be an array of words"
+    end
+
+    raise Etna::BadRequest, "No such user #{@params[:email]}" unless user
+
+    user.update(flags: @params[:flags])
+
+    success_json(user.to_hash)
+  end
 end

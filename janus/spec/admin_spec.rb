@@ -526,4 +526,62 @@ describe AdminController do
       expect(Project.count).to eq(0)
     end
   end
+
+  context 'flag_user' do
+    it 'sets flags on the user' do
+      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+
+      auth_header(:superuser)
+      json_post('flag_user', email: 'portunus@two-faces.org', flags: [ 'doors' ])
+
+      # the flags are set
+      expect(last_response.status).to eq(200)
+      expect(json_body[:flags]).to eq([ 'doors' ])
+
+      # we get the flags back
+      user.refresh
+      expect(user.flags).to eq([ 'doors' ])
+    end
+
+    it 'clears flags on the user' do
+      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org', flags: [ 'doors' ])
+
+      auth_header(:superuser)
+      json_post('flag_user', email: 'portunus@two-faces.org', flags: nil)
+
+      # the flags are set
+      expect(last_response.status).to eq(200)
+      expect(json_body[:flags]).to eq(nil)
+
+      # we get the flags back
+      user.refresh
+      expect(user.flags).to eq(nil)
+    end
+
+    it 'does not set invalid flags' do
+      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+
+      auth_header(:superuser)
+      json_post('flag_user', email: 'portunus@two-faces.org', flags: [ 'lll', 2 ])
+
+      expect(last_response.status).to eq(422)
+
+      # the flags are unchanged
+      user.refresh
+      expect(user.flags).to eq(nil)
+    end
+
+    it 'prevents non-superusers from setting flags' do
+      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+
+      auth_header(:portunus)
+      json_post('flag_user', email: 'portunus@two-faces.org', flags: [ 'doors' ])
+
+      expect(last_response.status).to eq(403)
+
+      # the flags are not changed
+      user.refresh
+      expect(user.flags).to eq(nil)
+    end
+  end
 end

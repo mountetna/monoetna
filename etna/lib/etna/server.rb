@@ -66,6 +66,9 @@ module Etna
       end
 
       [404, {}, ["There is no such path '#{request.path}'"]]
+    rescue => e
+      application.logger.log_error(e)
+      raise
     end
 
     def initialize
