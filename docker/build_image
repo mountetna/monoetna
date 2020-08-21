@@ -71,6 +71,7 @@ shift
 # Calculate digests when invoked with -d
 digest=
 function addToDigest() {
+     echo 'trying to digest...'
      digest=$(echo $(cat -) $digest | md5sum | cut -d ' ' -f1)
 }
 function recursiveDigest() {
@@ -140,7 +141,7 @@ $foundMounts"
     shift
 done
 
-if ! [[ -z "$onlyDigest" ]]; then
+if [[ -n "$digestOnly" ]]; then
   echo "$Dockerfile $digest"
   exit 0
 fi
