@@ -13,5 +13,7 @@
     :host: https://magma.test
   :metis:
     :host: https://metis.test
+    :release_bucket: this_is_releasable
+    :restrict_bucket: dont_show_anyone
   :mvir1:
     :token: mvir1-token
