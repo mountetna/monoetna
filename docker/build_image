@@ -69,10 +69,10 @@ fi
 shift
 
 # Calculate digests when invoked with -d
-digest=
+export digestFile=$(mktemp)
 function addToDigest() {
-     echo 'trying to digest...'
-     digest=$(echo $(cat -) $digest | md5sum | cut -d ' ' -f1)
+     digest=$(cat $digestFile)
+     echo $(cat -) $digest | md5sum | cut -d ' ' -f1 > $digestFile
 }
 function recursiveDigest() {
   if [[ -n "$digestOnly" ]]; then
@@ -142,6 +142,7 @@ $foundMounts"
 done
 
 if [[ -n "$digestOnly" ]]; then
+  digest=$(cat $digestFile)
   echo "$Dockerfile $digest"
   exit 0
 fi
