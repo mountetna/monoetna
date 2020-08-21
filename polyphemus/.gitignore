@@ -17,4 +17,4 @@ trash.rb
 *.woff
 *.woff2
 config.yml
-
+coverage

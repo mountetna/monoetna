@@ -1,0 +1,3 @@
+example_id                                  | status | run_time        |
+------------------------------------------- | ------ | --------------- |
+./spec/cascade_mvir_restricted_spec.rb[1:1] | passed | 0.03481 seconds |
