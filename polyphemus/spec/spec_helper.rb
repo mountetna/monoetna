@@ -15,6 +15,11 @@ require_relative '../lib/polyphemus'
 
 Polyphemus.instance.configure(YAML.load(File.read('config.yml')))
 
+METIS_HOST = Polyphemus.instance.config(:metis)[:host]
+RELEASE_BUCKET = Polyphemus.instance.config(:metis)[:release_bucket]
+RESTRICT_BUCKET = Polyphemus.instance.config(:metis)[:restrict_bucket]
+PROJECT = 'mvir1'
+
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
   use Etna::SymbolizeParams
@@ -43,4 +48,25 @@ end
 
 def json_post(endpoint, hash)
   post("/#{endpoint}", hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
+end
+
+def stub_parent_exists(params={})
+  stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_create_folder(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_rename_folder(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
 end

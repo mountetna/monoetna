@@ -1,0 +1,112 @@
+{
+  "folders": [
+    {
+      "folder_name": "assay",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay"
+    },
+    {
+      "folder_name": "processed",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed"
+    },
+    {
+      "folder_name": "raw",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw"
+    },
+    {
+      "folder_name": "Danielle-D7",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/Danielle-D7"
+    },
+    {
+      "folder_name": "Danielle-D14",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/Danielle-D14"
+    },
+    {
+      "folder_name": "Fred-D10",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/Fred-D10"
+    },
+    {
+      "folder_name": "summary",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/Fred-D10/summary"
+    },
+    {
+      "folder_name": "Fred-D8",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/Fred-D8"
+    },
+    {
+      "folder_name": "Danielle-D7",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/Danielle-D7"
+    },
+    {
+      "folder_name": "Danielle-D14",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/Danielle-D14"
+    },
+    {
+      "folder_name": "Fred-D10",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/Fred-D10"
+    },
+    {
+      "folder_name": "summmary",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/Fred-D10/summary"
+    },
+    {
+      "folder_name": "Fred-D8",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/Fred-D8"
+    },
+    {
+      "folder_name": "pool-b",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/pool-b"
+    },
+    {
+      "folder_name": "pool-c",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/pool-c"
+    },
+    {
+      "folder_name": "pool-b",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/pool-b"
+    },
+    {
+      "folder_name": "summary",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/pool-b/summary"
+    },
+    {
+      "folder_name": "pool-c",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/pool-c"
+    }
+  ]
+}

@@ -59,6 +59,39 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
         .to_return({ body: {
             'answer': all_pools.map {|p| [nil, p] }
         }.to_json })
+
+    route_payload = JSON.generate([
+      {:method=>"GET", :route=>"/:project_name/list_all_folders/:bucket_name", :name=>"folder_list_all_folders", :params=>["project_name", "bucket_name"]},
+      {:method=>"GET", :route=>"/:project_name/list/:bucket_name/*folder_path", :name=>"folder_list", :params=>["project_name", "bucket_name", "folder_path"]},
+      {:method=>"POST", :route=>"/:project_name/folder/rename/:bucket_name/*folder_path", :name=>"folder_rename", :params=>["project_name", "bucket_name", "folder_path"]},
+      {:method=>"POST", :route=>"/:project_name/folder/create/:bucket_name/*folder_path", :name=>"folder_create", :params=>["project_name", "bucket_name", "folder_path"]}
+    ])
+
+    stub_request(:options, "https://metis.test/").
+      to_return({
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: route_payload
+      })
+    stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RELEASE_BUCKET}/)
+      .to_return({
+        status: 200,
+        headers: {
+        'Content-Type' => 'application/json'
+        },
+        body: JSON.parse(File.read('spec/fixtures/metis_release_folder_fixture.json')).to_json
+      })
+
+    stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RESTRICT_BUCKET}/)
+      .to_return({
+        status: 200,
+        headers: {
+        'Content-Type' => 'application/json'
+        },
+        body: JSON.parse(File.read('spec/fixtures/metis_restrict_folder_fixture.json')).to_json
+      })
   end
 
   after(:each) do
