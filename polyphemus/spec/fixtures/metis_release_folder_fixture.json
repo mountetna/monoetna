@@ -19,64 +19,64 @@
       "folder_path": "assay/raw"
     },
     {
-      "folder_name": "Dan-D0",
+      "folder_name": "Dan-D0-ASSAY1",
       "bucket_name": "release",
       "project_name": "test",
-      "folder_path": "assay/processed/Dan-D0"
+      "folder_path": "assay/processed/Dan-D0-ASSAY1"
     },
     {
-      "folder_name": "Dan-D12",
+      "folder_name": "Dan-D12-ASSAY1",
       "bucket_name": "release",
       "project_name": "test",
-      "folder_path": "assay/processed/Dan-D12"
-    },
-    {
-      "folder_name": "summary",
-      "bucket_name": "release",
-      "project_name": "test",
-      "folder_path": "assay/processed/Dan-D12/summary"
-    },
-    {
-      "folder_name": "Mike-D0",
-      "bucket_name": "release",
-      "project_name": "test",
-      "folder_path": "assay/processed/Mike-D0"
-    },
-    {
-      "folder_name": "Mike-D12",
-      "bucket_name": "release",
-      "project_name": "test",
-      "folder_path": "assay/processed/Mike-D12"
-    },
-    {
-      "folder_name": "Dan-D0",
-      "bucket_name": "release",
-      "project_name": "test",
-      "folder_path": "assay/raw/Dan-D0"
-    },
-    {
-      "folder_name": "Dan-D12",
-      "bucket_name": "release",
-      "project_name": "test",
-      "folder_path": "assay/raw/Dan-D12"
+      "folder_path": "assay/processed/Dan-D12-ASSAY1"
     },
     {
       "folder_name": "summary",
       "bucket_name": "release",
       "project_name": "test",
-      "folder_path": "assay/raw/Dan-D12/summary"
+      "folder_path": "assay/processed/Dan-D12-ASSAY1/summary"
     },
     {
-      "folder_name": "Mike-D0",
+      "folder_name": "Mike-D0-ASSAY3",
       "bucket_name": "release",
       "project_name": "test",
-      "folder_path": "assay/raw/Mike-D0"
+      "folder_path": "assay/processed/Mike-D0-ASSAY3"
     },
     {
-      "folder_name": "Mike-D12",
+      "folder_name": "Mike-D12-ASSAY3",
       "bucket_name": "release",
       "project_name": "test",
-      "folder_path": "assay/raw/Mike-D12"
+      "folder_path": "assay/processed/Mike-D12-ASSAY3"
+    },
+    {
+      "folder_name": "Dan-D0-ASSAY3",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/Dan-D0-ASSAY3"
+    },
+    {
+      "folder_name": "Dan-D12-ASSAY3",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/Dan-D12-ASSAY3"
+    },
+    {
+      "folder_name": "summary",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/Dan-D12-ASSAY3/summary"
+    },
+    {
+      "folder_name": "Mike-D0-ASSAY4",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/Mike-D0-ASSAY4"
+    },
+    {
+      "folder_name": "Mike-D12-ASSAY4",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/Mike-D12-ASSAY4"
     },
     {
       "folder_name": "pool-a",

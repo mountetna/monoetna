@@ -45,6 +45,14 @@ class Polyphemus
       raise "project must be implemented in subclasses!"
     end
 
+    def patient_name_regex(patient_name)
+      /.*\/#{patient_name}-[\w-]+$/
+    end
+
+    def pool_regex(pool_name)
+      /.*\/#{pool_name}$/
+    end
+
     def restrict_patient_data(patient_name)
       # Move a folder from release_bucket to restrict_bucket
       # If can't find the patient_name folder, throw exception.
@@ -52,7 +60,7 @@ class Polyphemus
       # This expects a Patient name like MVIR1-HS10,
       #   not an assay name, like MVIR1-HS10-D4BLD1-CYM2
       patient_folders = release_folders.select { |folder|
-          folder.folder_path =~ /.*\/#{patient_name}-\w+$/
+          folder.folder_path =~ patient_name_regex(patient_name)
       }
 
       # If we want to check by page, we would need to do
@@ -80,7 +88,7 @@ class Polyphemus
       # This expects a Patient name like MVIR1-HS10,
       #   not an assay name, like MVIR1-HS10-D4BLD1-CYM2
       patient_folders = restrict_folders.select { |folder|
-          folder.folder_path =~ /.*\/#{patient_name}-\w+$/
+          folder.folder_path =~ patient_name_regex(patient_name)
       }
 
       # If we want to check by page, we would need to do
@@ -107,7 +115,7 @@ class Polyphemus
       #   to get the whole pool_name instead of a patient_name
       #   that we can't match to folder names.
       pool_folders = release_folders.select { |folder|
-          folder.folder_path =~ /.*\/#{pool_name}$/
+          folder.folder_path =~ pool_regex(pool_name)
       }
 
       # If we want to check by page, we would need to do
@@ -134,7 +142,7 @@ class Polyphemus
       #   to get the whole pool_name instead of a patient_name
       #   that we can't match to folder names.
       pool_folders = restrict_folders.select { |folder|
-          folder.folder_path =~ /.*\/#{pool_name}$/
+          folder.folder_path =~ pool_regex(pool_name)
       }
 
       # If we want to check by page, we would need to do
@@ -269,35 +277,36 @@ class Polyphemus
         elsif ! should_be_restricted && patient['restricted']
           unrestrict!(patient)
         end
-      end
 
-      cascade_to_pools
+        # Want to check that pools match patient state, even if the patient
+        #   flag is not flipped in this transaction.
+        cascade_to_pools(patient_name, should_be_restricted || should_be_deleted)
+      end
     end
 
-    def cascade_to_pools
+    def cascade_to_pools(patient_name, should_be_restricted)
+
       request = Etna::Clients::Magma::QueryRequest.new(project_name: project)
       request.query = [ 'cytof',
-                        [ 'timepoint', 'patient', 'restricted', '::true' ],
+                        [ 'timepoint', 'patient', 'name', '::equals', patient_name ],
                         '::all', 'cytof_pool', '::identifier' ]
-      all_restricted_pools = magma_client.query(request).answer.map { |r| r[1] }.sort.uniq
+      all_related_pools = magma_client.query(request).answer.map { |r| r[1] }.sort.uniq
 
-      request.query = [ 'cytof_pool', '::all', '::identifier' ]
-      all_pools = magma_client.query(request).answer.map { |r| r[1] }.sort.uniq
+      all_related_pools.each do |pool|
+        request.query = request.query = [ 'cytof_pool', ['pool_name', '::equals', pool], '::all', 'restricted' ]
+        currently_restricted = magma_client.query(request).answer.first[1]
 
-      all_pools.each do |pool|
-        if all_restricted_pools.include? pool
+        if !currently_restricted && should_be_restricted
           logger.info "Cytof pool #{pool} includes a restricted patient, restricting."
 
-          # This should be done per-pool, like patients, not bulk?
           restrict_pool_data(pool)
 
           update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
           update_request.update_revision('cytof_pool', pool, restricted: true)
           magma_client.update(update_request)
-        else
+        elsif currently_restricted && !should_be_restricted
           logger.info "Cytof pool #{pool} does not include a restricted patient, relaxing."
 
-          # This should be done per-pool, like patients, not bulk?
           release_pool_data(pool)
 
           update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
@@ -314,10 +323,9 @@ class Polyphemus
       # This code path should be --eventually consistent--  That is to say, we should ensure each operation
       # is idempotent (may need to be repeated), and that the patient is not marked restricted until all other
       # related tasks are complete and the state is consistent.
-      # Metis update here!
 
       if delete_metis_files
-        # do metis deletion attempt
+        # do metis movement attempt for now -- no auto-delete
         restrict_patient_data(name)
       else
         # do metis movement attempt
@@ -337,7 +345,6 @@ class Polyphemus
       # This code path should be --eventually consistent--  That is to say, we should ensure each operation
       # is idempotent (may need to be repeated), and that the patient is not marked restricted until all other
       # related tasks are complete and the state is consistent.
-      # Metis update here!
       release_patient_data(name)
 
       update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
