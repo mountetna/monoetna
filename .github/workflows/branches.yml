@@ -67,4 +67,11 @@ jobs:
           IMAGES_POSTFIX: :master
         run: |
           make -C magma release
-
+      - name: Run polyphemus tests
+        id: polyphemus_first_test_run
+        env:
+          PULL_IMAGES: 1
+          IMAGES_PREFIX: etnaagent/
+          IMAGES_POSTFIX: :master
+        run: |
+          make -C polyphemus release

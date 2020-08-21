@@ -1,7 +1,6 @@
 source 'https://rubygems.org'
 
 gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/58f4c58cb360d13a4e4f0e5bd644803bfd0be801'
-# gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/58f4c58cb360d13a4e4f0e5bd644803bfd0be801'
 
 group :development, :test do
   gem 'rspec'
@@ -9,4 +8,6 @@ group :development, :test do
   gem 'pry'
   gem 'pry-byebug'
   gem 'webmock'
+  gem 'debase'
+  gem 'ruby-debug-ide'
 end
