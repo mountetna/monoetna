@@ -33,6 +33,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1
+      - name: docker login
+        env:
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
       - name: Test + Push Release
         env:
           PULL_IMAGES: 1

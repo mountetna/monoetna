@@ -157,7 +157,12 @@ sleep 1
 BUILD_CMD="
 cat src/.dockerignore /assist/.dockerignore | grep -v '#' | awk '{print \"src/\"\$0}' > .dockerignore ; \\
 docker build --rm --force-rm \\
-  --tag $tag --cache-from $tag $* -f src/$(basename $Dockerfile) ."
+  --tag $baseTag --cache-from $tag $* -f src/$(basename $Dockerfile) ."
+
+if [[ "$baseTag" != "$tag" ]]; then
+  BUILD_CMD="$BUILD_CMD
+docker tag $baseTag $tag"
+fi
 
 set -x
 # Docker can 'leak' intermediate build images from different runs, unfortunately, even with --rm and --force-rm.
