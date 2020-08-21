@@ -11,7 +11,7 @@ module Etna
         include JsonSerializableStruct
 
         def initialize(**params)
-          super({model_name: 'all', attribute_names: 'identifier', record_names: []}.update(params))
+          super({model_name: 'all', attribute_names: 'all', record_names: []}.update(params))
         end
       end
 
@@ -21,6 +21,7 @@ module Etna
 
       class UpdateRequest < Struct.new(:revisions, :project_name, keyword_init: true)
         include JsonSerializableStruct
+        include MultipartSerializableNestedHash
 
         def initialize(**params)
           super({revisions: {}}.update(params))
@@ -35,7 +36,6 @@ module Etna
 
       class UpdateModelRequest < Struct.new(:project_name, :actions, keyword_init: true)
         include JsonSerializableStruct
-        include MultipartSerializableNestedHash
 
         def initialize(**params)
           super({actions: []}.update(params))
@@ -46,8 +46,11 @@ module Etna
         end
       end
 
-      class AddAttributeAction < Struct.new(:model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :restricted, :unique, :validation, keyword_init: true)
+      class AddAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'add_attribute'}.update(args))
+        end
       end
 
       class AttributeValidation < Struct.new(:type, :value, :begin, :end, keyword_init: true)
@@ -122,9 +125,19 @@ module Etna
             if include_casual_links
               attributes = model(model_name).template.attributes
               attributes.attribute_keys.each do |attribute_name|
-                linked_model_name = attributes.attribute(attribute_name).link_model_name
+                attribute = attributes.attribute(attribute_name)
+
+                linked_model_name = attribute.link_model_name
                 if linked_model_name
-                  graph.add_connection(model_name, linked_model_name)
+                  if attribute.attribute_type == AttributeType::PARENT
+                    graph.add_connection(linked_model_name, model_name)
+                  elsif attribute.attribute_type == AttributeType::COLLECTION
+                    graph.add_connection(model_name, linked_model_name)
+                  elsif attribute.attribute_type == AttributeType::CHILD
+                    graph.add_connection(model_name, linked_model_name)
+                  elsif attribute.attribute_type == AttributeType::LINK
+                    graph.add_connection(model_name, linked_model_name)
+                  end
                 end
               end
             end
@@ -221,8 +234,8 @@ module Etna
           @raw['attribute_name'] || ""
         end
 
-        def type
-          @raw['type'] && AttributeType.new(@raw['type'])
+        def attribute_type
+          @raw['attribute_type'] && AttributeType.new(@raw['attribute_type'])
         end
 
         def link_model_name
