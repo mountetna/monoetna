@@ -10,14 +10,16 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       }
     }
 
-    let(:all_pools) { ['pool-a'] }
-    let(:restricted_pools) { ['pool-a'] }
-
     before(:each) do
       @all_updates = []
 
       WebMock.disable_net_connect!
-      stub_magma_setup(patients_to_restrict, all_pools, restricted_pools)
+      stub_magma_setup(patients_to_restrict)
+      stub_magma_linked_pools('Sally', [])
+      stub_magma_linked_pools('Dan', ['pool-a'])
+      stub_magma_linked_pools('Mike', ['pool-d'])
+      stub_magma_pool_state('pool-a', [false])
+      stub_magma_pool_state('pool-d', [true])
       stub_metis_setup
     end
 
@@ -72,15 +74,14 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       }
     }
 
-    let(:all_pools) { ['pool-b'] }
-    let(:restricted_pools) { [] }
-
     before(:each) do
       @all_updates = []
 
       WebMock.disable_net_connect!
 
-      stub_magma_setup(patients_to_release, all_pools, restricted_pools)
+      stub_magma_setup(patients_to_release)
+      stub_magma_linked_pools('Danielle', ['pool-b'])
+      stub_magma_pool_state('pool-b', [true])
       stub_metis_setup
     end
 

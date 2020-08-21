@@ -71,7 +71,27 @@ def stub_rename_folder(params={})
   })
 end
 
-def stub_magma_setup(patient_documents, all_pools, restricted_pools)
+def stub_magma_linked_pools(patient_name, linked_pools)
+  stub_request(:post, 'https://magma.test/query')
+    .with(body: hash_including({ project_name: 'mvir1',
+                                query: [ 'cytof',
+                                          [ 'timepoint', 'patient', 'name', '::equals', patient_name ],
+                                          '::all', 'cytof_pool', '::identifier' ] }))
+    .to_return({ body: {
+        'answer': linked_pools.map {|p| [nil, p] }
+    }.to_json })
+end
+
+def stub_magma_pool_state(pool_name, pool_states)
+  stub_request(:post, 'https://magma.test/query')
+    .with(body: hash_including({ project_name: 'mvir1',
+                                query: [ 'cytof_pool', ['pool_name', '::equals', pool_name], '::all', 'restricted' ] }))
+    .to_return({ body: {
+        'answer': pool_states.map {|p| [nil, p] }
+    }.to_json })
+end
+
+def stub_magma_setup(patient_documents)
   stub_request(:post, 'https://magma.test/retrieve')
     .with(body: hash_including({ project_name: 'mvir1', model_name: 'patient',
                                 attribute_names: 'all', record_names: 'all' }))
@@ -96,22 +116,6 @@ def stub_magma_setup(patient_documents, all_pools, restricted_pools)
   @all_updates << info.params["revisions"]
   { body: '{}' }
   end
-
-  stub_request(:post, 'https://magma.test/query')
-    .with(body: hash_including({ project_name: 'mvir1',
-                                query: [ 'cytof',
-                                          [ 'timepoint', 'patient', 'restricted', '::true' ],
-                                          '::all', 'cytof_pool', '::identifier' ] }))
-    .to_return({ body: {
-        'answer': restricted_pools.map {|p| [nil, p] }
-    }.to_json })
-
-  stub_request(:post, 'https://magma.test/query')
-    .with(body: hash_including({ project_name: 'mvir1',
-                                query: [ 'cytof_pool', '::all', '::identifier' ] }))
-    .to_return({ body: {
-        'answer': all_pools.map {|p| [nil, p] }
-    }.to_json })
 end
 
 def stub_metis_setup
