@@ -70,7 +70,8 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
   context 'when releasing patients and pools' do
     let(:patients_to_release) {
       {
-        'Danielle': { name: 'Danielle', restricted: true, consent: 'Full Study' }
+        'Danielle': { name: 'Danielle', restricted: true, consent: 'Full Study' },
+        'Dan': { name: 'Dan', restricted: false, consent: 'Full Study' }
       }
     }
 
@@ -80,8 +81,10 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       WebMock.disable_net_connect!
 
       stub_magma_setup(patients_to_release)
+      stub_magma_linked_pools('Dan', ['pool-c'])
       stub_magma_linked_pools('Danielle', ['pool-b'])
       stub_magma_pool_state('pool-b', [true])
+      stub_magma_pool_state('pool-c', [false])
       stub_metis_setup
     end
 
