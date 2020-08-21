@@ -1,7 +1,7 @@
 PATH
   remote: ../etna
   specs:
-    etna (0.1.15)
+    etna (0.1.16)
       jwt
       multipart-post
       net-http-persistent

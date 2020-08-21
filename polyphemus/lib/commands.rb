@@ -68,8 +68,7 @@ class Polyphemus
       #   make sure that we find the patient_name, so basically
       #   have to fetch all folders...
       msg = "No found folders in #{release_bucket_name} -- is #{patient_name} a valid patient name?"
-      logger.error(msg) if patient_folders.length == 0
-      raise Etna::Error, msg if patient_folders.length == 0
+      logger.warn(msg) if patient_folders.length == 0
 
       patient_folders.each { |folder|
           rename_folder(
@@ -96,8 +95,7 @@ class Polyphemus
       #   make sure that we find the patient_name, so basically
       #   have to fetch all folders...
       msg = "No found folders in #{restrict_bucket_name} -- is #{patient_name} a valid patient name?"
-      logger.error(msg) if patient_folders.length == 0
-      raise Etna::Error, msg if patient_folders.length == 0
+      logger.warn(msg) if patient_folders.length == 0
 
       patient_folders.each { |folder|
           rename_folder(
@@ -123,8 +121,7 @@ class Polyphemus
       #   make sure that we find the patient_name, so basically
       #   have to fetch all folders...
       msg = "No found folders in #{release_bucket_name} -- is #{pool_name} a valid pool name?"
-      logger.error(msg) if pool_folders.length == 0
-      raise Etna::Error, msg if pool_folders.length == 0
+      logger.warn(msg) if pool_folders.length == 0
 
       pool_folders.each { |folder|
           rename_folder(
@@ -150,8 +147,7 @@ class Polyphemus
       #   make sure that we find the patient_name, so basically
       #   have to fetch all folders...
       msg = "No found folders in #{restrict_bucket_name} -- is #{pool_name} a valid pool name?"
-      logger.error(msg) if pool_folders.length == 0
-      raise Etna::Error, msg if pool_folders.length == 0
+      logger.warn(msg) if pool_folders.length == 0
 
       pool_folders.each { |folder|
           rename_folder(
