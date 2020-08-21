@@ -1,7 +1,19 @@
 :development:
   :magma:
-    :host: https://magma.ucsf.edu
+    :host: https://magma.development.local
+  :metis:
+    :host: https://metis.development.local
+    :release_bucket: this_is_releasable
+    :restrict_bucket: dont_show_anyone
+  :mvir1:
+    :token: my-token # create a long lived token with janus
 
-:production:
+:test:
   :magma:
-    :host: https://magma.ucsf.edu
+    :host: https://magma.test
+  :metis:
+    :host: https://metis.test
+    :release_bucket: this_is_releasable
+    :restrict_bucket: dont_show_anyone
+  :mvir1:
+    :token: mvir1-token
