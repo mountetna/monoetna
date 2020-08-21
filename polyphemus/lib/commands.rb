@@ -292,11 +292,16 @@ class Polyphemus
         if all_restricted_pools.include? pool
           logger.info "Cytof pool #{pool} includes a restricted patient, restricting."
 
-          #
+          # This should be done per-pool, like patients, not bulk?
+          restrict_pool_data(pool)
 
           update_request.update_revision('cytof_pool', pool, restricted: true)
         else
           logger.info "Cytof pool #{pool} does not include a restricted patient, relaxing."
+
+          # This should be done per-pool, like patients, not bulk?
+          release_pool_data(pool)
+
           update_request.update_revision('cytof_pool', pool, restricted: false)
         end
       end
@@ -315,8 +320,10 @@ class Polyphemus
 
       if delete_metis_files
         # do metis deletion attempt
+        restrict_patient_data(name)
       else
         # do metis movement attempt
+        restrict_patient_data(name)
       end
 
 
@@ -333,6 +340,7 @@ class Polyphemus
       # is idempotent (may need to be repeated), and that the patient is not marked restricted until all other
       # related tasks are complete and the state is consistent.
       # Metis update here!
+      release_patient_data(name)
 
       update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
       update_request.update_revision('patient', name, restricted: false)

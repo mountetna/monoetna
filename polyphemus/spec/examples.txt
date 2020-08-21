@@ -1,13 +1,16 @@
-example_id                                  | status | run_time        |
-------------------------------------------- | ------ | --------------- |
-./spec/cascade_mvir_restricted_spec.rb[1:1] | passed | 0.0263 seconds  |
-./spec/metis_waiver_helper_spec.rb[1:1]     | passed | 0.01445 seconds |
-./spec/metis_waiver_helper_spec.rb[1:2]     | passed | 0.0085 seconds  |
-./spec/metis_waiver_helper_spec.rb[1:3]     | passed | 0.02856 seconds |
-./spec/metis_waiver_helper_spec.rb[1:4]     | passed | 0.00304 seconds |
-./spec/metis_waiver_helper_spec.rb[1:5]     | passed | 0.02472 seconds |
-./spec/metis_waiver_helper_spec.rb[1:6]     | passed | 0.0026 seconds  |
-./spec/metis_waiver_helper_spec.rb[1:7]     | passed | 0.01109 seconds |
-./spec/metis_waiver_helper_spec.rb[1:8]     | passed | 0.00253 seconds |
-./spec/metis_waiver_helper_spec.rb[1:9]     | passed | 0.01231 seconds |
-./spec/metis_waiver_helper_spec.rb[1:10]    | passed | 0.00558 seconds |
+example_id                                    | status | run_time        |
+--------------------------------------------- | ------ | --------------- |
+./spec/cascade_mvir_restricted_spec.rb[1:1:1] | passed | 0.07822 seconds |
+./spec/cascade_mvir_restricted_spec.rb[1:1:2] | passed | 0.04889 seconds |
+./spec/cascade_mvir_restricted_spec.rb[1:2:1] | passed | 0.0365 seconds  |
+./spec/cascade_mvir_restricted_spec.rb[1:2:2] | passed | 0.03463 seconds |
+./spec/metis_waiver_helper_spec.rb[1:1]       | passed | 0.00554 seconds |
+./spec/metis_waiver_helper_spec.rb[1:2]       | passed | 0.00353 seconds |
+./spec/metis_waiver_helper_spec.rb[1:3]       | passed | 0.01691 seconds |
+./spec/metis_waiver_helper_spec.rb[1:4]       | passed | 0.00365 seconds |
+./spec/metis_waiver_helper_spec.rb[1:5]       | passed | 0.01932 seconds |
+./spec/metis_waiver_helper_spec.rb[1:6]       | passed | 0.00241 seconds |
+./spec/metis_waiver_helper_spec.rb[1:7]       | passed | 0.01034 seconds |
+./spec/metis_waiver_helper_spec.rb[1:8]       | passed | 0.00306 seconds |
+./spec/metis_waiver_helper_spec.rb[1:9]       | passed | 0.01253 seconds |
+./spec/metis_waiver_helper_spec.rb[1:10]      | passed | 0.00539 seconds |

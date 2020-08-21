@@ -70,3 +70,81 @@ def stub_rename_folder(params={})
     status: params[:status] || 200
   })
 end
+
+def stub_magma_setup(patient_documents, all_pools, restricted_pools)
+  stub_request(:post, 'https://magma.test/retrieve')
+    .with(body: hash_including({ project_name: 'mvir1', model_name: 'patient',
+                                attribute_names: 'all', record_names: 'all' }))
+    .to_return({ body: {
+        'models': { 'patient': { 'documents': patient_documents } }
+    }.to_json })
+
+  stub_request(:post, 'https://magma.test/update')
+    .to_return do |request|
+
+  body = StringIO.new(request.body)
+  content_length = body.read.length
+  body.rewind
+
+  tempfile = Rack::Multipart::Parser::TEMPFILE_FACTORY
+  bufsize = Rack::Multipart::Parser::BUFSIZE
+  params = Rack::Utils.default_query_parser
+
+  info = Rack::Multipart::Parser.parse body, content_length, request.headers['Content-Type'], tempfile, bufsize, params
+
+  expect(info.params["project_name"]).to eq("mvir1")
+  @all_updates << info.params["revisions"]
+  { body: '{}' }
+  end
+
+  stub_request(:post, 'https://magma.test/query')
+    .with(body: hash_including({ project_name: 'mvir1',
+                                query: [ 'cytof',
+                                          [ 'timepoint', 'patient', 'restricted', '::true' ],
+                                          '::all', 'cytof_pool', '::identifier' ] }))
+    .to_return({ body: {
+        'answer': restricted_pools.map {|p| [nil, p] }
+    }.to_json })
+
+  stub_request(:post, 'https://magma.test/query')
+    .with(body: hash_including({ project_name: 'mvir1',
+                                query: [ 'cytof_pool', '::all', '::identifier' ] }))
+    .to_return({ body: {
+        'answer': all_pools.map {|p| [nil, p] }
+    }.to_json })
+end
+
+def stub_metis_setup
+  route_payload = JSON.generate([
+    {:method=>"GET", :route=>"/:project_name/list_all_folders/:bucket_name", :name=>"folder_list_all_folders", :params=>["project_name", "bucket_name"]},
+    {:method=>"GET", :route=>"/:project_name/list/:bucket_name/*folder_path", :name=>"folder_list", :params=>["project_name", "bucket_name", "folder_path"]},
+    {:method=>"POST", :route=>"/:project_name/folder/rename/:bucket_name/*folder_path", :name=>"folder_rename", :params=>["project_name", "bucket_name", "folder_path"]},
+    {:method=>"POST", :route=>"/:project_name/folder/create/:bucket_name/*folder_path", :name=>"folder_create", :params=>["project_name", "bucket_name", "folder_path"]}
+  ])
+
+  stub_request(:options, METIS_HOST).
+    to_return({
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: route_payload
+    })
+  stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RELEASE_BUCKET}/)
+    .to_return({
+      status: 200,
+      headers: {
+      'Content-Type' => 'application/json'
+      },
+      body: JSON.parse(File.read('spec/fixtures/metis_release_folder_fixture.json')).to_json
+    })
+
+  stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RESTRICT_BUCKET}/)
+    .to_return({
+      status: 200,
+      headers: {
+      'Content-Type' => 'application/json'
+      },
+      body: JSON.parse(File.read('spec/fixtures/metis_restrict_folder_fixture.json')).to_json
+    })
+end
