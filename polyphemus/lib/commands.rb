@@ -25,6 +25,10 @@ class Polyphemus
     def magma_client
       @magma_client ||= Etna::Clients::Magma.new(token: token, host: Polyphemus.instance.config(:magma)[:host])
     end
+
+    def metis_client
+      @metis_client ||= Etna::Clients::Metis.new(token: token, host: Polyphemus.instance.config(:metis)[:host])
+    end
   end
 
   module WithLogger
@@ -32,6 +36,10 @@ class Polyphemus
       Polyphemus.instance.logger
     end
   end
+
+  # module WithMetisHelpers
+  #   def
+  # end
 
   class CascadeMvirPatientWaiverToRestricted < Etna::Command
     include WithEtnaClients
@@ -88,6 +96,9 @@ class Polyphemus
       all_pools.each do |pool|
         if all_restricted_pools.include? pool
           logger.info "Cytof pool #{pool} includes a restricted patient, restricting."
+
+          #
+
           update_request.update_revision('cytof_pool', pool, restricted: true)
         else
           logger.info "Cytof pool #{pool} does not include a restricted patient, relaxing."
@@ -140,12 +151,17 @@ class Polyphemus
   end
 
   class GetMetisFolders < Etna::Command
+    include WithEtnaClients
+
     usage "Fetch a list of Metis folders from a bucket"
 
+    def project
+      :mvir1
+    end
+
     def execute
-      client = Polyphemus.instance.metis_client
-      folders = client.list_all_folders(
-        Etna::Clients::Metis::ListFoldersRequest.new(project_name: 'mvir1', bucket_name: 'data')).folders
+      folders = metis_client.list_all_folders(
+        Etna::Clients::Metis::ListFoldersRequest.new(project_name: project, bucket_name: 'data')).folders
       folders.all.each { |f| p f.folder_path }
     end
 

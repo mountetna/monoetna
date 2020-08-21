@@ -9,7 +9,7 @@ class Polyphemus
     Etna::Clients::Magma.new(token: token, host: config(:magma)[:host])
   end
 
-  def metis_client
-    @metis_client ||= Etna::Clients::Metis.new({ token: ENV['TOKEN'] }.update(config(:metis)))
+  def metis_client(token = ENV['TOKEN'])
+    Etna::Clients::Metis.new(token: token, host: config(:metis)[:host])
   end
 end

@@ -10,6 +10,13 @@ module Etna
         def initialize(**params)
           super({}.update(params))
         end
+
+        def to_h
+          # The :project_name comes in from Polyphemus as a symbol value,
+          #   we need to make sure it's a string because it's going
+          #   in the URL.
+          super().compact.transform_values(&:to_s)
+        end
       end
 
       class RenameFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, :new_bucket_name, :new_folder_path, keyword_init: true)
@@ -17,6 +24,13 @@ module Etna
 
         def initialize(**params)
           super({}.update(params))
+        end
+
+        def to_h
+          # The :project_name comes in from Polyphemus as a symbol value,
+          #   we need to make sure it's a string because it's going
+          #   in the URL.
+          super().compact.transform_values(&:to_s)
         end
       end
 
@@ -26,6 +40,13 @@ module Etna
         def initialize(**params)
           super({}.update(params))
         end
+
+        def to_h
+          # The :project_name comes in from Polyphemus as a symbol value,
+          #   we need to make sure it's a string because it's going
+          #   in the URL.
+          super().compact.transform_values(&:to_s)
+        end
       end
 
       class CreateFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
@@ -33,6 +54,13 @@ module Etna
 
         def initialize(**params)
           super({}.update(params))
+        end
+
+        def to_h
+          # The :project_name comes in from Polyphemus as a symbol value,
+          #   we need to make sure it's a string because it's going
+          #   in the URL.
+          super().compact.transform_values(&:to_s)
         end
       end
 

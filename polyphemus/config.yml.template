@@ -1,11 +1,15 @@
 :development:
   :magma:
     :host: https://magma.development.local
+  :metis:
+    :host: https://metis.development.local
   :mvir1:
     :token: my-token # create a long lived token with janus
 
 :test:
   :magma:
     :host: https://magma.test
+  :metis:
+    :host: https://metis.test
   :mvir1:
     :token: mvir1-token
