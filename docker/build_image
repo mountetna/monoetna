@@ -141,19 +141,6 @@ $foundMounts"
     shift
 done
 
-if [[ -n "$digestOnly" ]]; then
-  digest=$(cat $digestFile)
-  echo "$Dockerfile $digest"
-  exit 0
-fi
-
-if [[ -z "$force" && "$newestFile" -ot "$marker" ]]; then
-  echo "Image $tag already up to date, skipping build"
-  exit 0
-fi
-
-sleep 1
-
 #- The build process also combines the docker/.dockerignore file with the Dockerfile project's own for a combined
 #- filtering.
 BUILD_CMD="
@@ -165,6 +152,21 @@ if [[ "$baseTag" != "$tag" ]]; then
   BUILD_CMD="$BUILD_CMD
 docker tag $baseTag $tag"
 fi
+
+echo "$BUILD_CMD" | addToDigest
+
+if [[ -n "$digestOnly" ]]; then
+  digest=$(cat $digestFile)
+  echo "$digest"
+  exit 0
+fi
+
+if [[ -z "$force" && "$newestFile" -ot "$marker" ]]; then
+  echo "Image $tag already up to date, skipping build"
+  exit 0
+fi
+
+sleep 1
 
 set -x
 # Docker can 'leak' intermediate build images from different runs, unfortunately, even with --rm and --force-rm.
