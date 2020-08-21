@@ -31,5 +31,5 @@ release:: Dockerfile
 
 release-test:: docker-ready
 	docker-compose up -d $(app_db_name)
-	docker run --rm -e RELEASE_TEST=1 --network monoetna_default $(fullTag) /entrypoints/development.sh
+	docker run --rm -e APP_NAME=$(app_name) -e RELEASE_TEST=1 --network monoetna_default $(fullTag) /entrypoints/development.sh
 	docker run --rm --network monoetna_default $(fullTag) bundle exec rspec
