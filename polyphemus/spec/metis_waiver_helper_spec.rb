@@ -24,13 +24,9 @@ describe 'WithMetisWaiverHelpers Module' do
     expect(WebMock).to have_requested(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RESTRICT_BUCKET}/)
   end
 
-  it 'throws exception when does not find a valid patient to release' do
+  it 'does not throw an exception when does not find a valid patient to release' do
     stub_parent_exists
-
-    expect {
-      test_class.release_patient_data('Dan')
-    }.to raise_error(Etna::Error)
-
+    test_class.release_patient_data('Dan')
     expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
   end
 
@@ -47,13 +43,10 @@ describe 'WithMetisWaiverHelpers Module' do
     expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RESTRICT_BUCKET}/).times(4)
   end
 
-  it 'throws exception when does not find a valid patient to restrict' do
+  it 'does not throw  an exception when does not find a valid patient to restrict' do
     stub_parent_exists
 
-    expect {
-      test_class.restrict_patient_data('Danielle')
-    }.to raise_error(Etna::Error)
-
+    test_class.restrict_patient_data('Danielle')
     expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
   end
 
@@ -70,11 +63,8 @@ describe 'WithMetisWaiverHelpers Module' do
     expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/).times(4)
   end
 
-  it 'throws exception when does not find a valid pool to release' do
-    expect {
-      test_class.release_pool_data('pool-a')
-    }.to raise_error(Etna::Error)
-
+  it 'does not throw an exception when does not find a valid pool to release' do
+    test_class.release_pool_data('pool-a')
     expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RESTRICT_BUCKET}/)
   end
 
@@ -91,7 +81,7 @@ describe 'WithMetisWaiverHelpers Module' do
     expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RESTRICT_BUCKET}/).twice
   end
 
-  it 'throws exception when does not find a valid pool to restrict' do
+  it 'does not throw an exception when does not find a valid pool to restrict' do
     expect {
       test_class.restrict_pool_data('pool-b')
     }.to raise_error(Etna::Error)
