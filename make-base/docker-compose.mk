@@ -49,6 +49,6 @@ release-build:: .dockerignore
 
 release::
 	make release-build
-	if ! grep "$$(cat /tmp/digest)" /tmp/releases/success; then make release-test; fi
+	if ! grep "$$(cat /tmp/digest)" /tmp/releases/success && ! [ -n "$$NO_TEST" ]; then make release-test; fi
 	if ! grep "$$(cat /tmp/digest)" /tmp/releases/success && [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi
 	cat /tmp/digest >> /tmp/releases/success

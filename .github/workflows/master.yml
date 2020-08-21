@@ -38,7 +38,7 @@ jobs:
         with:
           path: |
             /tmp/releases
-          key: ${{ runner.os }}
+          key: releases-master-${{ runner.os }}
       - name: docker login
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
@@ -49,6 +49,7 @@ jobs:
           PUSH_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
+          NO_TEST: 1
         run: make release
       - uses: actions/checkout@v2
         with:

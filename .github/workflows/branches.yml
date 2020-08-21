@@ -21,7 +21,7 @@ jobs:
         with:
           path: |
             /tmp/releases
-          key: ${{ runner.os }}
+          key: releases-branches-${{ runner.os }}
       - name: Run metis test suite
         id: metis_first_test_run
         env:
