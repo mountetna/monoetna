@@ -1,8 +1,6 @@
 require 'date'
 require 'logger'
 
-require 'pry'
-
 class Polyphemus
   class Help < Etna::Command
     usage 'List this help'
