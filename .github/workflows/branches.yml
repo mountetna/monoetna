@@ -22,15 +22,15 @@ jobs:
           path: |
             /tmp/releases
           key: releases-branches-${{ runner.os }}
-          restore-keys:
-            - releases-master-${{ runner.os }}
-            - releases-master-
-            - releases-
+          restore-keys: |
+            releases-master-${{ runner.os }}
+            releases-master-
+            releases-branches-
+            releases-
       - name: Run metis test suite
         id: metis_first_test_run
         env:
           PULL_IMAGES: 1
-          PUSH_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
@@ -39,7 +39,6 @@ jobs:
         id: janus_first_test_run
         env:
           PULL_IMAGES: 1
-          PUSH_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
@@ -48,7 +47,6 @@ jobs:
         id: etna_first_test_run
         env:
           PULL_IMAGES: 1
-          PUSH_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
@@ -57,7 +55,6 @@ jobs:
         id: timur_first_test_run
         env:
           PULL_IMAGES: 1
-          PUSH_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
@@ -66,7 +63,6 @@ jobs:
         id: magma_first_test_run
         env:
           PULL_IMAGES: 1
-          PUSH_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
