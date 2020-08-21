@@ -3,7 +3,9 @@ set -e
 set -x
 
 if [ -z "$SKIP_BUILD" ]; then
-  /entrypoints/build.sh
+  if [ -z "$RELEASE_TEST" ]; then
+    /entrypoints/build.sh
+  fi
 
   export PATH="/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH"
 
