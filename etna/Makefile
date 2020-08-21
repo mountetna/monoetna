@@ -8,3 +8,6 @@ test::
 
 bash::
 	@ docker-compose run -e SKIP_RUBY_SETUP=1 --rm etna_app bash
+
+release-test:: test
+	true

@@ -22,6 +22,10 @@ jobs:
           path: |
             /tmp/releases
           key: releases-branches-${{ runner.os }}
+          restore-keys:
+            - releases-master-${{ runner.os }}
+            - releases-master-
+            - releases-
       - name: Run metis test suite
         id: metis_first_test_run
         env:
