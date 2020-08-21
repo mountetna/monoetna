@@ -42,7 +42,7 @@ test:: docker-ready
 release-build:: .dockerignore
 	mkdir -p /tmp/releases
 	touch /tmp/releases/success
-	rm /tmp/digest
+	echo '' > /tmp/digest
 	../docker/build_image -d Dockerfile $(BUILD_REQS) > /tmp/digest
 	cat /tmp/digest
 	if ! grep "$$(cat /tmp/digest)" /tmp/releases/success && [ -n "$$PULL_IMAGES" ]; then docker pull $(fullTag) || true; fi
