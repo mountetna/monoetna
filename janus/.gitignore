@@ -16,7 +16,6 @@ coverage
 public
 spec/examples.txt
 *.swp
-package-lock.json
 .bundle
 .idea
 .docker-build-mark
