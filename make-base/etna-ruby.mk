@@ -31,4 +31,5 @@ release:: Dockerfile
 
 release-test:: docker-ready
 	docker-compose up -d $(app_db_name)
+	docker run --rm --network monoetna_default $(fullTag) dockerize -wait tcp://$(app_db_name):5432 -timout 10s
 	docker run --rm --network monoetna_default $(fullTag) bundle exec rspec
