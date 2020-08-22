@@ -32,6 +32,7 @@ jobs:
           IMAGES_POSTFIX: :master
         run: |
           make -C docker docker-ready
+          cp docker/docker-compose.yml ./
           bin/update-package-references
           git push
   sync-subtrees:
