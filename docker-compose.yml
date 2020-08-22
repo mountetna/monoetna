@@ -1,0 +1,455 @@
+networks:
+  edge_net:
+    ipam:
+      config:
+      - subnet: 172.16.238.0/24
+      - subnet: 2001:3984:3989::/64
+      driver: default
+services:
+  edge-apache:
+    image: etna-apache
+    networks:
+      default: {}
+      edge_net:
+        ipv4_address: 172.16.238.10
+        ipv6_address: 2001:3984:3989::10
+    ports:
+    - published: 80
+      target: 80
+    - published: 443
+      target: 443
+    volumes:
+    - data-dir:/app/data:rw
+    - /home/runner/work/monoetna/monoetna/development-certs/certs:/root/certs:rw
+    - /home/runner/work/monoetna/monoetna/edge-apache/development-edge-httpd.conf:/usr/opt/httpd.conf.d/main.conf:rw
+  etna_app:
+    command: echo initialized
+    entrypoint: /entrypoints/development.sh
+    environment:
+      SKIP_DB_WAIT: 1
+    image: etna-base
+    volumes:
+    - /home/runner/work/monoetna/monoetna/etna:/app:cached
+    - etna-app-gems:/app/vendor/bundle:rw
+    - /home/runner/work/monoetna/monoetna/docker/etna-base/entrypoints:/entrypoints:ro
+  janus_app:
+    command: ./bin/puma.sh
+    depends_on:
+    - janus_db
+    entrypoint: /entrypoints/development.sh
+    environment:
+      APP_NAME: janus
+      JANUS_ENV: development
+    extra_hosts:
+      janus.development.local: 172.16.238.10
+      magma.development.local: 172.16.238.10
+      metis.development.local: 172.16.238.10
+      timur.development.local: 172.16.238.10
+    image: etna-base
+    networks:
+      default: {}
+      edge_net: {}
+    volumes:
+    - /home/runner/work/monoetna/monoetna/janus:/app:cached
+    - janus-data-dir:/app/data:rw
+    - janus-log-dir:/app/log:rw
+    - janus-public-dir:/app/public:rw
+    - janus-tmp-dir:/app/tmp:rw
+    - janus-app-gems:/app/vendor/bundle:rw
+    - /home/runner/work/monoetna/monoetna/etna:/etna:cached
+    - janus-opt-dir:/usr/opt:rw
+  janus_app_fe:
+    command:
+    - httpd
+    - -DFOREGROUND
+    depends_on:
+    - janus_app
+    entrypoint: /entrypoints/development.sh
+    environment:
+      APP_NAME: janus
+      SKIP_BUILD: '1'
+      WAIT_FOR_APP: '1'
+    image: etna-apache
+    volumes:
+    - janus-public-dir:/app/public:ro
+    - /home/runner/work/monoetna/monoetna/docker/etna-base/entrypoints:/entrypoints:ro
+    - janus-opt-dir:/usr/opt:ro
+  janus_db:
+    container_name: janus_db_1
+    environment:
+      APP_NAME: janus
+      POSTGRES_DB: janus_development
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+    image: development-psql-9
+    volumes:
+    - janus-db-data:/var/lib/postgresql/data:rw
+  janus_webpack:
+    command: sass --watch lib/client/scss/janus.scss:lib/client/css/janus.css
+    entrypoint: /entrypoints/development.sh
+    environment:
+      APP_NAME: janus
+      JANUS_ENV: development
+      RUN_NPM_INSTALL: "true"
+      SKIP_RUBY_SETUP: "true"
+    extra_hosts:
+      janus.development.local: 172.16.238.10
+      magma.development.local: 172.16.238.10
+      metis.development.local: 172.16.238.10
+      timur.development.local: 172.16.238.10
+    image: etna-base
+    networks:
+      default: {}
+      edge_net: {}
+    volumes:
+    - /home/runner/work/monoetna/monoetna/janus:/app:cached
+    - janus-data-dir:/app/data:rw
+    - janus-log-dir:/app/log:rw
+    - janus-public-dir:/app/public:rw
+    - janus-tmp-dir:/app/tmp:rw
+    - janus-app-gems:/app/vendor/bundle:rw
+    - /home/runner/work/monoetna/monoetna/etna:/etna:cached
+    - janus-opt-dir:/usr/opt:rw
+  magma_app:
+    command: ./bin/puma.sh
+    depends_on:
+    - magma_db
+    entrypoint: /entrypoints/development.sh
+    environment:
+      APP_NAME: magma
+      MAGMA_ENV: development
+    extra_hosts:
+      janus.development.local: 172.16.238.10
+      magma.development.local: 172.16.238.10
+      metis.development.local: 172.16.238.10
+      timur.development.local: 172.16.238.10
+    image: etna-base
+    networks:
+      default: {}
+      edge_net: {}
+    volumes:
+    - /home/runner/work/monoetna/monoetna/magma:/app:cached
+    - magma-data-dir:/app/data:rw
+    - magma-log-dir:/app/log:rw
+    - magma-public-dir:/app/public:rw
+    - magma-tmp-dir:/app/tmp:rw
+    - magma-app-gems:/app/vendor/bundle:rw
+    - /home/runner/work/monoetna/monoetna/etna:/etna:cached
+    - magma-opt-dir:/usr/opt:rw
+  magma_app_fe:
+    command:
+    - httpd
+    - -DFOREGROUND
+    depends_on:
+    - magma_app
+    entrypoint: /entrypoints/development.sh
+    environment:
+      APP_NAME: magma
+      SKIP_BUILD: '1'
+      WAIT_FOR_APP: '1'
+    image: etna-apache
+    volumes:
+    - magma-public-dir:/app/public:ro
+    - /home/runner/work/monoetna/monoetna/docker/etna-base/entrypoints:/entrypoints:ro
+    - magma-opt-dir:/usr/opt:ro
+  magma_db:
+    container_name: magma_db_1
+    environment:
+      APP_NAME: magma
+      POSTGRES_DB: magma_development
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+    image: development-psql
+    volumes:
+    - magma-db-data:/var/lib/postgresql/data:rw
+  magma_webpack:
+    command: echo 1
+    image: alpine
+  metis_app:
+    command: ./bin/puma.sh
+    depends_on:
+    - metis_db
+    entrypoint: /entrypoints/development.sh
+    environment:
+      APP_NAME: metis
+      METIS_ENV: development
+    extra_hosts:
+      janus.development.local: 172.16.238.10
+      magma.development.local: 172.16.238.10
+      metis.development.local: 172.16.238.10
+      timur.development.local: 172.16.238.10
+    image: etna-base
+    networks:
+      default: {}
+      edge_net: {}
+    volumes:
+    - /home/runner/work/monoetna/monoetna/metis:/app:cached
+    - data-dir:/app/data:rw
+    - log-dir:/app/log:rw
+    - public-dir:/app/public:rw
+    - tmp-dir:/app/tmp:rw
+    - app-gems:/app/vendor/bundle:rw
+    - /home/runner/work/monoetna/monoetna/etna:/etna:cached
+    - opt-dir:/usr/opt:rw
+  metis_app_fe:
+    command:
+    - httpd
+    - -DFOREGROUND
+    depends_on:
+    - metis_app
+    entrypoint: /entrypoints/development.sh
+    environment:
+      APP_NAME: metis
+      SKIP_BUILD: '1'
+      WAIT_FOR_APP: '1'
+    image: etna-apache
+    volumes:
+    - public-dir:/app/public:ro
+    - /home/runner/work/monoetna/monoetna/docker/etna-base/entrypoints:/entrypoints:ro
+    - opt-dir:/usr/opt:ro
+  metis_db:
+    container_name: metis_db_1
+    environment:
+      APP_NAME: metis
+      POSTGRES_DB: metis_development
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+    image: development-psql
+    volumes:
+    - db-data:/var/lib/postgresql/data:rw
+  metis_webpack:
+    command: npm run webpack
+    entrypoint: /entrypoints/development.sh
+    environment:
+      APP_NAME: metis
+      METIS_ENV: development
+      RUN_NPM_INSTALL: "true"
+      SKIP_RUBY_SETUP: "true"
+    extra_hosts:
+      janus.development.local: 172.16.238.10
+      magma.development.local: 172.16.238.10
+      metis.development.local: 172.16.238.10
+      timur.development.local: 172.16.238.10
+    image: etna-base
+    networks:
+      default: {}
+      edge_net: {}
+    volumes:
+    - /home/runner/work/monoetna/monoetna/metis:/app:cached
+    - data-dir:/app/data:rw
+    - log-dir:/app/log:rw
+    - public-dir:/app/public:rw
+    - tmp-dir:/app/tmp:rw
+    - app-gems:/app/vendor/bundle:rw
+    - /home/runner/work/monoetna/monoetna/etna:/etna:cached
+    - opt-dir:/usr/opt:rw
+  polyphemus_app:
+    command: ./bin/puma.sh
+    depends_on:
+    - polyphemus_db
+    entrypoint: /entrypoints/development.sh
+    environment:
+      APP_NAME: polyphemus
+      POLYPHEMUS_ENV: development
+    extra_hosts:
+      janus.development.local: 172.16.238.10
+      magma.development.local: 172.16.238.10
+      metis.development.local: 172.16.238.10
+      timur.development.local: 172.16.238.10
+    image: etna-base
+    networks:
+      default: {}
+      edge_net: {}
+    volumes:
+    - /home/runner/work/monoetna/monoetna/polyphemus:/app:cached
+    - polyphemus-data-dir:/app/data:rw
+    - polyphemus-log-dir:/app/log:rw
+    - polyphemus-public-dir:/app/public:rw
+    - polyphemus-tmp-dir:/app/tmp:rw
+    - polyphemus-app-gems:/app/vendor/bundle:rw
+    - /home/runner/work/monoetna/monoetna/etna:/etna:cached
+    - polyphemus-opt-dir:/usr/opt:rw
+  polyphemus_db:
+    container_name: polyphemus_db_1
+    environment:
+      APP_NAME: polyphemus
+      POSTGRES_DB: polyphemus_development
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+    image: development-psql
+    volumes:
+    - polyphemus-db-data:/var/lib/postgresql/data:rw
+  timur_app:
+    command: ./bin/puma.sh
+    depends_on:
+    - timur_db
+    entrypoint: /entrypoints/development.sh
+    environment:
+      APP_NAME: timur
+      TIMUR_ENV: development
+    extra_hosts:
+      janus.development.local: 172.16.238.10
+      magma.development.local: 172.16.238.10
+      metis.development.local: 172.16.238.10
+      timur.development.local: 172.16.238.10
+    image: etna-base
+    networks:
+      default: {}
+      edge_net: {}
+    volumes:
+    - /home/runner/work/monoetna/monoetna/timur:/app:cached
+    - timur-data-dir:/app/data:rw
+    - timur-log-dir:/app/log:rw
+    - timur-public-dir:/app/public:rw
+    - timur-tmp-dir:/app/tmp:rw
+    - timur-app-gems:/app/vendor/bundle:rw
+    - /home/runner/work/monoetna/monoetna/etna:/etna:cached
+    - timur-opt-dir:/usr/opt:rw
+  timur_app_fe:
+    command:
+    - httpd
+    - -DFOREGROUND
+    depends_on:
+    - timur_app
+    entrypoint: /entrypoints/development.sh
+    environment:
+      APP_NAME: timur
+      SKIP_BUILD: '1'
+      WAIT_FOR_APP: '1'
+    image: etna-apache
+    volumes:
+    - timur-public-dir:/app/public:ro
+    - /home/runner/work/monoetna/monoetna/docker/etna-base/entrypoints:/entrypoints:ro
+    - timur-opt-dir:/usr/opt:ro
+  timur_db:
+    container_name: timur_db_1
+    environment:
+      APP_NAME: timur
+      POSTGRES_DB: timur_development
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+    image: development-psql
+    volumes:
+    - timur-db-data:/var/lib/postgresql/data:rw
+  timur_webpack:
+    command: npm run webpack
+    entrypoint: /entrypoints/development.sh
+    environment:
+      APP_NAME: timur
+      RUN_NPM_INSTALL: "true"
+      SKIP_RUBY_SETUP: "true"
+      TIMUR_ENV: development
+    extra_hosts:
+      janus.development.local: 172.16.238.10
+      magma.development.local: 172.16.238.10
+      metis.development.local: 172.16.238.10
+      timur.development.local: 172.16.238.10
+    image: etna-base
+    networks:
+      default: {}
+      edge_net: {}
+    volumes:
+    - /home/runner/work/monoetna/monoetna/timur:/app:cached
+    - timur-data-dir:/app/data:rw
+    - timur-log-dir:/app/log:rw
+    - timur-public-dir:/app/public:rw
+    - timur-tmp-dir:/app/tmp:rw
+    - timur-app-gems:/app/vendor/bundle:rw
+    - /home/runner/work/monoetna/monoetna/etna:/etna:cached
+    - timur-opt-dir:/usr/opt:rw
+version: '3.4'
+volumes:
+  app-gems:
+    driver: local
+  data-dir:
+    driver: local
+  db-data:
+    driver: local
+    name: db-data
+  etna-app-gems:
+    driver: local
+  janus-app-gems:
+    driver: local
+  janus-data-dir:
+    driver: local
+    name: janus-data-dir
+  janus-db-data:
+    driver: local
+    name: janus-db-data
+  janus-log-dir:
+    driver: local
+    name: janus-log-dir
+  janus-opt-data:
+    driver: local
+  janus-opt-dir:
+    driver: local
+  janus-public-dir:
+    driver: local
+    name: janus-public-dir
+  janus-tmp-dir:
+    driver: local
+    name: janus-tmp-dir
+  log-dir:
+    driver: local
+    name: log-dir
+  magma-app-gems:
+    driver: local
+  magma-data-dir:
+    driver: local
+    name: magma-data-dir
+  magma-db-data:
+    driver: local
+    name: magma-db-data
+  magma-log-dir:
+    driver: local
+    name: magma-log-dir
+  magma-opt-dir:
+    driver: local
+  magma-public-dir:
+    driver: local
+    name: magma-public-dir
+  magma-tmp-dir:
+    driver: local
+    name: magma-tmp-dir
+  opt-dir:
+    driver: local
+  polyphemus-app-gems:
+    driver: local
+  polyphemus-data-dir:
+    driver: local
+  polyphemus-db-data:
+    driver: local
+  polyphemus-log-dir:
+    driver: local
+  polyphemus-opt-dir:
+    driver: local
+  polyphemus-public-dir:
+    driver: local
+  polyphemus-tmp-dir:
+    driver: local
+  public-dir:
+    driver: local
+    name: public-dir
+  timur-app-gems:
+    driver: local
+  timur-data-dir:
+    driver: local
+    name: timur-data-dir
+  timur-db-data:
+    driver: local
+    name: timur-db-data
+  timur-log-dir:
+    driver: local
+    name: timur-log-dir
+  timur-opt-dir:
+    driver: local
+  timur-public-dir:
+    driver: local
+    name: timur-public-dir
+  timur-tmp-dir:
+    driver: local
+    name: timur-tmp-dir
+  tmp-dir:
+    driver: local
+    name: tmp-dir
+
