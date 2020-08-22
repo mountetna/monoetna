@@ -175,7 +175,9 @@ if [[ "$newestFile" -ot "$marker" ]]; then
   echo -e "${RED}Being forced to build despite up to date marker.${NC}"
 fi
 
-echo -e "${CYAN}Detected change in $newestFile ($(date -r $newestFile)) over $marker ($(date -r $marker)), issuing build${NC}"
+if [ -e $marker ]; then
+  echo -e "${CYAN}Detected change in $newestFile ($(date -r $newestFile)) over $marker ($(date -r $marker)), issuing build${NC}"
+fi
 
 sleep 1
 
