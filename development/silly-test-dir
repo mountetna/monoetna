@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# TODO: Fix the spec.
+mkdir -p /app/spec/data/stubs/blueprints
+
