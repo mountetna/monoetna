@@ -30,6 +30,7 @@ jobs:
           PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
+          IS_CI: 1
         run: |
           make -C docker docker-ready
           cp docker/docker-compose.yml ./
