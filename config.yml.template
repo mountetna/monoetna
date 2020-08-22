@@ -5,7 +5,7 @@
     :host: https://metis.development.local
     :release_bucket: this_is_releasable
     :restrict_bucket: dont_show_anyone
-  :mvir1:
+  :polyphemus:
     :token: my-token # create a long lived token with janus
 
 :test:
@@ -15,5 +15,5 @@
     :host: https://metis.test
     :release_bucket: this_is_releasable
     :restrict_bucket: dont_show_anyone
-  :mvir1:
+  :polyphemus:
     :token: mvir1-token

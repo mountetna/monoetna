@@ -19,7 +19,7 @@ class Polyphemus
     end
 
     def token
-      Polyphemus.instance.config(project)[:token]
+      Polyphemus.instance.config(:polyphemus)[:token]
     end
 
     def magma_client
