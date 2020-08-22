@@ -1,23 +1,27 @@
+
+networks:
+  edge_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: '172.16.238.0/24'
+        - subnet: '2001:3984:3989::/64'
+
 version: "3.4"
+
 volumes:
   etna-app-gems:
     driver: local
-  etna-node-modules:
-    driver: local
-
-x-etna_base: &etna_base
-  build:
-    context: .
-    dockerfile: docker/app/Dockerfile.development
-  image: etna_base
-  volumes:
-    - .:/app:cached
-    - etna-app-gems:/app/vendor/bundle:rw
-    - etna-node-modules:/app/node_modules:rw
-  environment: &etna_environment
-    COVERAGE: 'true'
 
 services:
   etna_app:
-    <<: *etna_base
     command: echo initialized
+    image: etna-base
+    volumes:
+      - .:/app:cached
+      - etna-app-gems:/app/vendor/bundle:rw
+      - ../docker/etna-base/entrypoints:/entrypoints:ro
+    entrypoint: /entrypoints/development.sh
+    environment:
+      SKIP_DB_WAIT: 1
+
