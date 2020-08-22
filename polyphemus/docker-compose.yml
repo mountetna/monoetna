@@ -100,5 +100,6 @@ networks:
 services:
   "polyphemus_app":
     <<: *base-etna-app
-    depends_on: []
+  "polyphemus_db":
+    <<: *base-etna-db
 
