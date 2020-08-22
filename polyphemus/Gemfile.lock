@@ -1,5 +1,7 @@
-PATH
-  remote: ../etna
+GIT
+  remote: https://github.com/mountetna/monoetna.git
+  revision: 15c184bd9d695136974f00b387367b324f4c7b9e
+  branch: refs/artifacts/gem-etna/df79a48e618dd4150e302e4260f75ce1baf30bb2
   specs:
     etna (0.1.16)
       jwt

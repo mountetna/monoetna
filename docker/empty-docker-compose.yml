@@ -1,2 +1,0 @@
-# Base for composed docker-compose.yml file.  See ./compose
-version: "3.4"

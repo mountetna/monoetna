@@ -1,3 +1,6 @@
+baseTag:=$(shell basename "$$(pwd)")
+fullTag:=$(IMAGES_PREFIX)$(baseTag)$(IMAGES_POSTFIX)
+
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \
 		sed 's/^[^:]*://' | sort | uniq | \
@@ -8,48 +11,62 @@ help: ## Display help text
 
 .PHONY: build
 build:: ## Forces a rebuild of project development dockerfiles
-				@ true
+	@ true
 
 .PHONY: up
 up:: ## Starts up the docker containers associated with the given project(s) in the background
-				@ true
+	@ true
 
 .PHONY: down
 down:: ## Ends the background docker containers associated with the given project(s)
-				@ true
+	@ true
 
 .PHONY: ps
 ps:: ## Shows status of the containers running with the given project(s)
-				@ true
+	@ true
 
 .PHONY: logs
 logs:: ## Shows logs of the running containers with the given project(s)
-				@ true
+	@ true
 
 .PHONY: bash
 bash:: ## Starts a bash shell in an app environment for the given project
-				@ true
+	@ true
 
 .PHONY: psql
 psql:: ## Starts a psql shell in an app environment for the given project
-				@ true
+	@ true
 
 .PHONY: migrate
 migrate:: ## Runs migrations in an app environment for the given project
-				@ true
+	@ true
 
 .PHONY: restart
 restart:: ## Restarts all containers for the given project(s)
-				@ true
+	@ true
 
 .PHONY: test
 test:: ## Runs all tests for the given project(s)
-				@ true
+	@ true
 
-.PHONY: setup-links
-setup-links:: ## Sets up local development links such that local code is preferred over locked files.
-				@ true
+.PHONY: release
+release:: ## Builds static docker images staged for release, runs tests against them, and pushes them to dockerhub (requires PUSH=1)
+	@ true
+
+.PHONY: release-build
+release-build::
+	@ true
+
+.PHONY: release-test
+release-test::
+	@ true
 
 .PHONY: irb
 irb:: ## Starts up an irb session in the context of the given project
-				@ true
+	@ true
+
+config-ready::
+	@ true
+
+docker-ready::
+	@ true
