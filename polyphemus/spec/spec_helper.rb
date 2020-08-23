@@ -71,23 +71,23 @@ def stub_rename_folder(params={})
   })
 end
 
-def stub_magma_linked_pools(patient_name, linked_pools)
+def stub_magma_restricted_pools(linked_pools)
   stub_request(:post, 'https://magma.test/query')
     .with(body: hash_including({ project_name: 'mvir1',
                                 query: [ 'cytof',
-                                          [ 'timepoint', 'patient', 'name', '::equals', patient_name ],
+                                          [ 'timepoint', 'patient', 'restricted', '::true' ],
                                           '::all', 'cytof_pool', '::identifier' ] }))
     .to_return({ body: {
         'answer': linked_pools.map {|p| [nil, p] }
     }.to_json })
 end
 
-def stub_magma_pool_state(pool_name, pool_states)
+def stub_magma_all_pools(all_pools)
   stub_request(:post, 'https://magma.test/query')
     .with(body: hash_including({ project_name: 'mvir1',
-                                query: [ 'cytof_pool', ['pool_name', '::equals', pool_name], '::all', 'restricted' ] }))
+                                query: [ 'cytof_pool', '::all', '::identifier' ] }))
     .to_return({ body: {
-        'answer': pool_states.map {|p| [nil, p] }
+        'answer': all_pools.map {|p| [nil, p] }
     }.to_json })
 end
 
