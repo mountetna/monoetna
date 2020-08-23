@@ -121,7 +121,7 @@ class Polyphemus
       #   make sure that we find the patient_name, so basically
       #   have to fetch all folders...
       msg = "No found folders in #{release_bucket_name} -- is #{pool_name} a valid pool name?"
-      logger.warn(msg) if pool_folders.length == 0
+      return logger.warn(msg) if pool_folders.length == 0
 
       pool_folders.each { |folder|
           rename_folder(
@@ -147,7 +147,7 @@ class Polyphemus
       #   make sure that we find the patient_name, so basically
       #   have to fetch all folders...
       msg = "No found folders in #{restrict_bucket_name} -- is #{pool_name} a valid pool name?"
-      logger.warn(msg) if pool_folders.length == 0
+      return logger.warn(msg) if pool_folders.length == 0
 
       pool_folders.each { |folder|
           rename_folder(
@@ -273,26 +273,24 @@ class Polyphemus
         elsif ! should_be_restricted && patient['restricted']
           unrestrict!(patient)
         end
-
-        # Want to check that pools match patient state, even if the patient
-        #   flag is not flipped in this transaction.
-        cascade_to_pools(patient_name, should_be_restricted || should_be_deleted)
       end
+
+      # Check all pools and verify status
+      cascade_to_pools
     end
 
-    def cascade_to_pools(patient_name, should_be_restricted)
+    def cascade_to_pools
 
       request = Etna::Clients::Magma::QueryRequest.new(project_name: project)
       request.query = [ 'cytof',
-                        [ 'timepoint', 'patient', 'name', '::equals', patient_name ],
+                        [ 'timepoint', 'patient', 'restricted', '::true' ],
                         '::all', 'cytof_pool', '::identifier' ]
-      all_related_pools = magma_client.query(request).answer.map { |r| r[1] }.sort.uniq
+      all_restricted_pools = magma_client.query(request).answer.map { |r| r[1] }.sort.uniq
 
-      all_related_pools.each do |pool|
-        request.query = request.query = [ 'cytof_pool', ['pool_name', '::equals', pool], '::all', 'restricted' ]
-        currently_restricted = magma_client.query(request).answer.first[1]
-
-        if !currently_restricted && should_be_restricted
+      request.query = [ 'cytof_pool', '::all', '::identifier' ]
+      all_pools = magma_client.query(request).answer.map { |r| r[1] }.sort.uniq
+      all_pools.each do |pool|
+        if all_restricted_pools.include? pool
           logger.info "Cytof pool #{pool} includes a restricted patient, restricting."
 
           restrict_pool_data(pool)
@@ -300,7 +298,7 @@ class Polyphemus
           update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
           update_request.update_revision('cytof_pool', pool, restricted: true)
           magma_client.update(update_request)
-        elsif currently_restricted && !should_be_restricted
+        else
           logger.info "Cytof pool #{pool} does not include a restricted patient, relaxing."
 
           release_pool_data(pool)

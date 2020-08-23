@@ -42,7 +42,8 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
         acc
       end).to eq({
         "cytof_pool" => {
-          "pool-a" => {"restricted" => "true"}
+          "pool-a" => {"restricted" => "true"},
+          "pool-b" => {"restricted" => "false"}
         },
         "patient" => {
             "Mike" => {"restricted" => "true"},
@@ -103,6 +104,7 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       end).to eq({
         "cytof_pool" => {
           "pool-b" => {"restricted" => "false"},
+          "pool-c" => {"restricted" => "false"},
         },
         "patient" => {
             "Danielle" => {"restricted" => "false"}
