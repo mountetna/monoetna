@@ -15,11 +15,8 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
 
       WebMock.disable_net_connect!
       stub_magma_setup(patients_to_restrict)
-      stub_magma_linked_pools('Sally', [])
-      stub_magma_linked_pools('Dan', ['pool-a'])
-      stub_magma_linked_pools('Mike', ['pool-d'])
-      stub_magma_pool_state('pool-a', [false])
-      stub_magma_pool_state('pool-d', [true])
+      stub_magma_restricted_pools(['pool-a', 'pool-c'])
+      stub_magma_all_pools(['pool-a', 'pool-c'])
       stub_metis_setup
     end
 
@@ -43,7 +40,7 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       end).to eq({
         "cytof_pool" => {
           "pool-a" => {"restricted" => "true"},
-          "pool-b" => {"restricted" => "false"}
+          "pool-c" => {"restricted" => "true"}
         },
         "patient" => {
             "Mike" => {"restricted" => "true"},
@@ -63,6 +60,7 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       # This should ignore the "summary" sub-folder that is under a patient
       # There is one folder in assay/processed and one in assay/raw for each pool, in the fixtures
       # This should ignore the "summary" sub-folder that is under the pool
+      # pool-c not in the release folder fixture, so it shouldn't have requests
       expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/).times(10)
       expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/).times(10)
     end
@@ -82,10 +80,8 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       WebMock.disable_net_connect!
 
       stub_magma_setup(patients_to_release)
-      stub_magma_linked_pools('Dan', ['pool-c'])
-      stub_magma_linked_pools('Danielle', ['pool-b'])
-      stub_magma_pool_state('pool-b', [true])
-      stub_magma_pool_state('pool-c', [false])
+      stub_magma_restricted_pools([])
+      stub_magma_all_pools(['pool-b', 'pool-d'])
       stub_metis_setup
     end
 
@@ -104,7 +100,7 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       end).to eq({
         "cytof_pool" => {
           "pool-b" => {"restricted" => "false"},
-          "pool-c" => {"restricted" => "false"},
+          "pool-d" => {"restricted" => "false"},
         },
         "patient" => {
             "Danielle" => {"restricted" => "false"}
@@ -123,6 +119,7 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       # This should ignore the "summary" sub-folder that is under a patient
       # There is one folder in assay/processed and one in assay/raw for each pool, in the fixtures
       # This should ignore the "summary" sub-folder that is under the pool
+      # pool-d isn't in the restricted folder fixture, so it shouldn't have requests
       expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RELEASE_BUCKET}/).times(6)
       expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RESTRICT_BUCKET}/).times(6)
 
