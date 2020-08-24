@@ -70,3 +70,7 @@ fi
 if [ -n "$RUN_NPM_INSTALL" ]; then
   if [ -e ../etna ]; then npm link ../etna/packages/etna-js; fi
 fi
+
+if [ "$APP_NAME" = "timur" ]; then
+  ./bin/timur create_routes
+fi
