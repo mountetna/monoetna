@@ -33,7 +33,7 @@ jobs:
           IS_CI: 1
         run: |
           make -C docker docker-ready
-          cp docker/docker-compose.yml ./
+          ln -sf docker/docker-compose.yml docker-compose.yml
           bin/update-package-references
           git push
   sync-subtrees:
