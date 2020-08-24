@@ -1,0 +1,13 @@
+.etna-tree-view {
+    line-height: 200%;
+}
+
+.etna-tree-view .child {
+    margin-left: 10px;
+}
+
+.etna-tree-view.vert .child {
+    columns: 3;
+    overflow: hidden;
+    white-space: nowrap;
+}
