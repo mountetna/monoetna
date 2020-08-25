@@ -12,3 +12,5 @@ config.yml
 *.swp
 
 /projects
+.projects-mark
+.npmrc

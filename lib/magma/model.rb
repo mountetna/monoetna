@@ -1,30 +1,32 @@
-Sequel::Model.plugin :timestamps, update_on_create: true
-Sequel::Model.require_valid_table = false
-Sequel.extension :inflector
-
 class Magma
-  Model = Class.new(Sequel::Model)
-   
-  class Model
+  class Model < Sequel::Model
     class << self
       Magma::Attribute.descendants.
         reject { |attribute| attribute == Magma::ForeignKeyAttribute }.
         each do |attribute|
           define_method attribute.attribute_type do |attribute_name=nil, opts={}|
             @parent = attribute_name if attribute == Magma::ParentAttribute
-            attributes[attribute_name] = attribute.new(attribute_name, self, opts)
+            attributes[attribute_name] = attribute.new(opts.merge(
+              project_name: project_name,
+              model_name: model_name,
+              attribute_name: attribute_name,
+              magma_model: self
+            ))
           end
         end
 
       alias_method :document, :file
 
-      def load_attributes(attributes = {})
+      def load_attributes(attributes = [])
         attributes.each do |attribute|
-          send(
-            attribute[:type],
-            attribute[:attribute_name].to_sym,
-            attribute.slice(*Magma::Attribute::EDITABLE_OPTIONS)
-          )
+          @parent = attribute.name if attribute.is_a?(Magma::ParentAttribute)
+          attribute.magma_model = self
+          self.attributes[attribute.name] = attribute
+
+          if !attribute.is_a?(Magma::Link) && attribute.attribute_name != attribute.column_name
+            alias_method attribute.attribute_name, attribute.column_name
+            alias_method "#{attribute.attribute_name}=", "#{attribute.column_name}="
+          end
         end
       end
 
@@ -52,7 +54,26 @@ class Magma
       # attributes point to pieces of data, including
       # records and collections of records
       def attributes
-        @attributes ||= {}
+        @attributes ||= base_attributes
+      end
+
+      def base_attributes
+        {
+          created_at: Magma::DateTimeAttribute.new(
+            attribute_name: :created_at,
+            project_name: project_name,
+            model_name: model_name,
+            magma_model: self,
+            hidden: true
+          ),
+          updated_at: Magma::DateTimeAttribute.new(
+            attribute_name: :updated_at,
+            project_name: project_name,
+            model_name: model_name,
+            magma_model: self,
+            hidden: true
+          )
+        }
       end
 
       def has_attribute?(name)
@@ -60,15 +81,15 @@ class Magma
       end
 
       def identity
-        @identity || primary_key
+        @identity ||= identifier(primary_key, hidden: true, primary_key: true)
       end
 
-      def identity=(identity)
-        @identity = (identity)
+      def identity=(identifier_attribute)
+        @identity = identifier_attribute
       end
 
       def has_identifier?
-        @identity
+        !identity.primary_key?
       end
 
       def parent_model_name
@@ -91,7 +112,7 @@ class Magma
               [ name, attributes[name].json_template ]
             end
           ],
-          identifier: identity,
+          identifier: identity.attribute_name.to_sym,
           dictionary: @dictionary && @dictionary.to_hash,
           parent: parent_model_name
         }.delete_if {|k,v| v.nil? }
@@ -104,63 +125,6 @@ class Magma
       # This function is too bulky, it needs to be refactored into smaller
       # pieces.
       def multi_update(records:, src_id: identity, dest_id: identity)
-
-        return if records.empty?
-
-        # Get the name of the columns to update for the record.
-        update_columns = records.first.keys - [src_id]
-        return if update_columns.empty?
-
-        # Get a handle to the DB.
-        db = Magma.instance.db
-
-        db.transaction do
-
-          temp_table_name = :"bulk_update_#{project_name}_#{table_name.column}"
-
-          orig_table_name = "#{project_name}.#{table_name.column}".to_sym
-
-          # Create a temporary database and drop when done, also copy the source
-          # table structure (by Sequel model) onto the temp table.
-          temp_table_query = <<-EOT
-            CREATE TEMP TABLE #{temp_table_name}
-            ON COMMIT DROP
-            AS SELECT * FROM #{orig_table_name} WHERE 1=0;
-          EOT
-
-          db.run(temp_table_query)
-
-          # In the event of foreign keys we create another column in our
-          # temporary table for matching later.
-          temp_table_query = <<-EOT
-            ALTER TABLE #{temp_table_name}
-            ADD COLUMN #{src_id} integer;
-          EOT
-
-          unless columns.include?(src_id)
-            db.run(temp_table_query)
-          end
-
-          # Insert the records into the temporary DB.
-          db[temp_table_name].multi_insert(records)
-
-          # Generate the column name mapping from the temporary database to the 
-          # permanent one.
-          column_alias = update_columns.map do |column| 
-            "#{column}=src.#{column}"
-          end.join(', ')
-
-          # Move the data from the temporary database into the permanent one.
-          # This should also destroy the temporary database.
-          temp_table_query = <<-EOT
-            UPDATE #{orig_table_name} AS dest
-            SET #{column_alias}
-            FROM #{temp_table_name} AS src
-            WHERE dest.#{dest_id} = src.#{src_id};
-          EOT
-
-          db.run(temp_table_query)
-        end
       end
 
       def update_or_create(*args)
@@ -191,9 +155,6 @@ class Magma
         end
 
         super
-        %i(created_at updated_at).each do |timestamp|
-          magma_model.date_time(timestamp, {hidden: true})
-        end
       end
 
       # Sets the appropriate postgres schema for the model. There should be a
@@ -211,7 +172,7 @@ class Magma
     end
 
     def identifier
-      send model.identity
+      send model.identity.column_name
     end
 
     # Run a loader on a hook from carrier_wave.

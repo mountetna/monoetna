@@ -8,6 +8,7 @@ describe Magma::Project do
         project_name: "labors",
         model_name: "monster",
         attribute_name: "size",
+        column_name: "size",
         type: "string",
         created_at: Time.now,
         updated_at: Time.now,
@@ -20,6 +21,7 @@ describe Magma::Project do
         project_name: "labors",
         model_name: "monster",
         attribute_name: "color",
+        column_name: "color",
         type: "string",
         created_at: Time.now,
         updated_at: Time.now,
@@ -42,6 +44,7 @@ describe Magma::Project do
         project_name: "labors",
         model_name: "monster",
         attribute_name: "alter_ego",
+        column_name: "alter_ego",
         type: "link",
         created_at: Time.now,
         updated_at: Time.now,
@@ -56,24 +59,26 @@ describe Magma::Project do
     end
 
     it "gives database model attributes precedence over those defined in Ruby" do
-      original_attribute = Labors::Monster.attributes[:name]
+      project = Magma::Project.new(project_dir: "./spec/fixtures/movies")
+      original_attribute = Movies::Villain.attributes[:name]
 
       Magma.instance.db[:attributes].insert(
-        project_name: "labors",
-        model_name: "monster",
+        project_name: "movies",
+        model_name: "villain",
         attribute_name: "name",
+        column_name: "name",
         type: "string",
         created_at: Time.now,
         updated_at: Time.now,
         description: "Only something I would know"
       )
 
-      project = Magma::Project.new(project_dir: "./labors")
-      attribute = Labors::Monster.attributes[:name]
+      project = Magma::Project.new(project_dir: "./spec/movies")
+      attribute = Movies::Villain.attributes[:name]
 
       expect(attribute.description).to eq("Only something I would know")
 
-      Labors::Monster.attributes[:name] = original_attribute
+      Movies::Villain.attributes[:name] = original_attribute
     end
 
     it "raises an error when the database has attributes for a model that doesn't exist" do
@@ -81,6 +86,7 @@ describe Magma::Project do
         project_name: "labors",
         model_name: "ghost",
         attribute_name: "name",
+        column_name: "name",
         type: "string",
         created_at: Time.now,
         updated_at: Time.now,
@@ -100,10 +106,18 @@ describe Magma::Project do
         updated_at: Time.now
       )
 
+      Magma.instance.db[:models].insert(
+          project_name: "movies",
+          model_name: "status",
+          created_at: Time.now,
+          updated_at: Time.now
+      )
+
       Magma.instance.db[:attributes].insert(
         project_name: "movies",
         model_name: "hero",
         attribute_name: "name",
+        column_name: "name",
         type: "string",
         created_at: Time.now,
         updated_at: Time.now,
@@ -114,6 +128,8 @@ describe Magma::Project do
 
       expect(project.models[:hero]).to eq(Movies::Hero)
       expect(Movies::Hero.attributes[:name].description).to eq("The hero's name")
+
+      expect(project.models[:status]).to eq(Movies::Status)
     end
   end
 

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -e
+
+function findEnvConfig() {
+  wget https://github.com/mikefarah/yq/releases/download/3.3.2/yq_linux_amd64 -o /dev/null -O ~/yq
+  chmod +x ~/yq
+  ~/yq r /app/config.yml ":${MAGMA_ENV:development}"
+}
+
+if [ -z "$SKIP_RUBY_SETUP" ]; then
+  if [ -z "$SKIP_DB_WAIT" ]; then
+    for project in $(findEnvConfig | grep ':project_path:' | sed -e 's/.*:project_path:\s*//g'); do
+      echo "Initializing $project..."
+      bin/magma create_schema "$(basename $project)"
+      bin/magma create_db "$(basename $project)"
+    done
+
+    bin/magma migrate
+    bin/magma global_migrate
+  fi
+fi

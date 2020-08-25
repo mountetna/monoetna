@@ -5,34 +5,62 @@ class Magma
   class LoadProject < Etna::Command
     usage '[project_name, path/to/file.json] # Import attributes into database for given project name from JSON file'
 
-    def options
-      Magma::Attribute.options - [:loader] + [:created_at, :updated_at]
-    end
-
     def execute(project_name, file_name)
       file = File.open(file_name)
       file_data = JSON.parse(file.read, symbolize_names: true)
 
-      db = Magma.instance.db
-      models = file_data[:models]
+      file_data[:models].each do |model_name, model_json|
+        model_name = model_name.to_s
+        template = model_json[:template]
 
-      models.keys.each do |model|
-        model_name = models[model][:template][:name]
-        attributes = models[model][:template][:attributes]
-        attributes.each do |attribute_name, attribute|
-          attribute_type = attribute[:attribute_type]
-          attribute.slice!(*options)
-          attribute.merge!(
-            project_name: project_name, 
-            model_name: model_name,
-            type: attribute_type,
-            validation: Sequel.pg_json_wrap(attribute[:validation]),
-            attribute_name: attribute_name.to_s
-          )
+        load_model(project_name, model_name, template)
 
-          db[:attributes].insert(attribute)
+        template[:attributes].each do |attribute_name, attribute|
+          load_attribute(project_name, model_name, attribute)
         end
       end
+    end
+
+    def setup(config)
+      super
+      Magma.instance.setup_db
+    end
+
+    private
+
+    def load_model(project_name, model_name, template)
+      dictionary_json = if template[:dictionary]
+        template[:dictionary][:attributes].merge(
+          dictionary_model: template[:dictionary][:dictionary_model]
+        )
+      else
+        nil
+      end
+
+      Magma.instance.db[:models].insert(
+        project_name: project_name,
+        model_name: model_name,
+        dictionary: Sequel.pg_json_wrap(dictionary_json),
+      )
+    end
+
+    def load_attribute(project_name, model_name, attribute)
+      row = attribute.
+        slice(*options).
+        merge(
+          project_name: project_name,
+          model_name: model_name,
+          column_name: attribute[:attribute_name],
+          type: attribute[:attribute_type],
+          validation: Sequel.pg_json_wrap(attribute[:validation]),
+        )
+
+      Magma.instance.db[:attributes].insert(row)
+    end
+
+    def options
+      require_relative './attribute'
+      @options ||= Magma::Attribute.options - [:loader] + [:created_at, :updated_at, :attribute_name]
     end
   end
 
@@ -49,7 +77,7 @@ class Magma
 
   class Migrate < Etna::Command
     usage '[<version_number>] # Run migrations for the current environment.'
-    
+
     def execute(version=nil)
       Sequel.extension(:migration)
       db = Magma.instance.db
@@ -96,8 +124,8 @@ class Magma
 
   # When building migrations from scratch this command does not output
   # an order that respects foreign key constraints. i.e. The order in which the
-  # migration creates tries to create the tables is out of whack and causes 
-  # error messages that tables are required but do not exist. Most of the time 
+  # migration creates tries to create the tables is out of whack and causes
+  # error messages that tables are required but do not exist. Most of the time
   # this is not an issue (because we are only doing slight modifications), but
   # when we do a new migration of an established database errors do arise.
   # Presently we are manually reorgaizing the initial migration (putting the
@@ -224,7 +252,7 @@ EOT
     def create_schema
       puts "Creating namespace (schema) #{@project_name} in database #{@db_config[:database]}"
 
-      Magma.instance.db.run "CREATE SCHEMA #{@project_name}"
+      Magma.instance.db.run "CREATE SCHEMA IF NOT EXISTS #{@project_name}"
     end
 
     def create_db

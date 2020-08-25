@@ -35,8 +35,8 @@ describe RetrieveController do
     json_template = json_body[:models][:aspect][:template]
 
     # all attributes are present
-    expect(json_template[:attributes].keys.sort).to eq(
-      [ :created_at, :monster, :name, :source, :updated_at, :value ]
+    expect(json_template[:attributes].keys).to eq(
+      Labors::Aspect.attributes.keys
     )
 
     # attributes are well-formed
@@ -53,6 +53,7 @@ describe RetrieveController do
 
     # the dictionary model is reported
     expect(json_template[:dictionary]).to eq(
+      dictionary_model: "Labors::Codex",
       project_name: 'labors',
       model_name: 'codex',
       attributes: {monster: 'monster', name: 'aspect', source: 'tome', value: 'lore'}
@@ -98,7 +99,7 @@ describe RetrieveController do
   context 'files' do
     it 'retrieves file attributes with storage links' do
       Timecop.freeze(DateTime.new(500))
-      monster = create(:monster, :lion, stats: 'stats.txt')
+      monster = create(:monster, :lion, stats: '{"filename": "stats.txt", "original_filename": ""}')
 
       retrieve(
         project_name: 'labors',
@@ -108,7 +109,6 @@ describe RetrieveController do
       )
 
       expect(last_response.status).to eq(200)
-
       uri = URI.parse(json_document(:monster, 'Nemean Lion')[:stats][:url])
       params = Rack::Utils.parse_nested_query(uri.query)
 
@@ -167,7 +167,7 @@ describe RetrieveController do
         project_name: 'labors',
         model_name: 'prize',
         record_names: prizes[0..1].map(&:id),
-        attribute_names: 'all' 
+        attribute_names: 'all'
       )
 
       expect(json_body[:models][:prize][:documents].keys).to eq(prizes[0..1].map(&:id).map(&:to_s).map(&:to_sym))
@@ -219,7 +219,7 @@ describe RetrieveController do
       stables_prizes = create_list(:prize, 3, labor: stables)
 
       selected_prize_ids = (lion_prizes + hydra_prizes).map do |prize|
-        prize.send(Labors::Prize.identity).to_s
+        prize.send(Labors::Prize.identity.column_name).to_s
       end.sort
 
       retrieve(
@@ -252,7 +252,7 @@ describe RetrieveController do
       stables_prizes = create_list(:prize, 3, labor: stables)
 
       selected_prize_ids = (lion_prizes + hydra_prizes).map do |prize|
-        prize.send(Labors::Prize.identity).to_s
+        prize.send(Labors::Prize.identity.column_name).to_s
       end.sort
 
       retrieve(
@@ -304,6 +304,23 @@ describe RetrieveController do
       header, *table = CSV.parse(last_response.body, col_sep: "\t")
 
       expect(table.length).to eq(12)
+    end
+
+    it 'can retrieve a TSV of collection attribute' do
+      project = create(:project, name: 'The Twelve Labors of Hercules')
+      labors = create_list(:labor, 3, project: project)
+
+      retrieve(
+        model_name: 'project',
+        record_names: [ project.name ],
+        attribute_names: [ 'labor' ],
+        project_name: 'labors',
+        format: 'tsv'
+      )
+
+      header, *table = CSV.parse(last_response.body, col_sep: "\t")
+
+      expect(table.length).to eq(1)
     end
   end
 
@@ -457,6 +474,24 @@ describe RetrieveController do
 
       expect(json_body[:models][:labor][:count]).to eq(9)
     end
+
+    it 'returns a descriptive error when no results are retrieved on paginated query' do
+      lion = create(:labor, :lion)
+      hydra = create(:labor, :hydra)
+      stables = create(:labor, :stables)
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'name~xyz123',
+        page: 1,
+        page_size: 10
+      )
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(["Page 1 not found"])
+    end
   end
 
   context 'restriction' do
@@ -500,7 +535,7 @@ describe RetrieveController do
         project_name: 'labors',
         model_name: 'victim',
         record_names: 'all',
-        attribute_names: [ 'country' ]
+        attribute_names: 'all'
       )
       countries = json_body[:models][:victim][:documents].values.map{|victim| victim[:country]}
       expect(countries).to all(be_nil)

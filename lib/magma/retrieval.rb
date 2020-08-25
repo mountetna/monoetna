@@ -34,17 +34,12 @@ class Magma
 
         if @requested_attribute_names != "all"
           attributes.sort_by! do |att|
-            if att.name == @model.identity
+            if att == @model.identity
               -1
             else
               @requested_attribute_names.index(att.name)
             end
           end
-        end
-
-        # if there is no identifier, use the :id column
-        if !@model.has_identifier?
-          attributes.push(OpenStruct.new(name: :id))
         end
 
         attributes
@@ -75,7 +70,7 @@ class Magma
 
     def requested?(att)
       # identifiers are always included
-      @model.identity == att.name ||
+      @model.identity == att ||
       # they asked for all attribute_names
       @requested_attribute_names == 'all' ||
       # the attribute was requested by name
@@ -88,7 +83,13 @@ class Magma
 
     def to_records(answer)
       answer.map do |name, row|
-        Hash[ @attribute_names.zip(row) ]
+        Hash[
+          @attribute_names.map.with_index do |attribute_name, i|
+            attribute_name == :id ?
+              [ :id, row[i] ] :
+            [ attribute_name, @model.attributes[attribute_name].query_to_payload(row[i]) ]
+          end
+        ]
       end
     end
 
@@ -130,7 +131,9 @@ class Magma
         when Magma::ForeignKeyAttribute, Magma::ChildAttribute
           [ att.name.to_s, '::identifier' ]
         when Magma::FileAttribute, Magma::ImageAttribute
-          [ att.name.to_s, '::path' ]
+          # Change to ::all because File.query_to_payload
+          #   now expects a hash
+          [ att.name.to_s, '::all' ]
         when Magma::MatchAttribute
           [ att.name.to_s ]
         else

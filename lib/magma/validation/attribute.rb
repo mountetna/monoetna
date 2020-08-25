@@ -8,6 +8,7 @@ class Magma
 
       def validate(document)
         document.each do |att_name,value|
+          next if att_name == :id || att_name == :$identifier
           if att_name == :temp_id
             unless value.is_a? Magma::TempId
               yield "temp_id should be of class Magma::TempId"
@@ -65,7 +66,7 @@ class Magma
         end
 
         def link_validate(value, &block)
-          @validator.validate(@attribute.link_model, @attribute.link_model.identity => value) do |error|
+          @validator.validate(@attribute.link_model, @attribute.link_model.identity.attribute_name.to_sym => value) do |error|
             yield format_error(value)
           end
         end

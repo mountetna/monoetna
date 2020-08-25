@@ -6,10 +6,9 @@ require_relative 'magma/validation'
 require_relative 'magma/validation_object'
 require_relative 'magma/loader'
 require_relative 'magma/migration'
-require_relative 'magma/attribute'
 require_relative 'magma/dictionary'
-require_relative 'magma/model'
 require_relative 'magma/revision'
+require_relative 'magma/censor'
 require_relative 'magma/commands'
 require_relative 'magma/payload'
 require_relative 'magma/metric'
@@ -46,6 +45,7 @@ class Magma
 
   def load_models(validate = true)
     setup_db
+    setup_sequel
 
     @storage = Magma::Storage.setup
 
@@ -55,6 +55,15 @@ class Magma
     end
 
     validate_models if validate
+  end
+
+  def setup_sequel
+    Sequel::Model.plugin :timestamps, update_on_create: true
+    Sequel::Model.require_valid_table = false
+    Sequel.extension :inflector
+    Sequel.extension :migration
+    require_relative 'magma/attribute'
+    require_relative 'magma/model'
   end
 
   class Magma::ValidationError < StandardError
@@ -117,5 +126,13 @@ class Magma
     ObjectSpace.each_object(Class).select do |k|
       k < klass
     end
+  end
+
+  def test?
+    ENV["MAGMA_ENV"] == "test"
+  end
+
+  def server_pid
+    File.read(config(:server_pidfile)).chomp.to_i
   end
 end
