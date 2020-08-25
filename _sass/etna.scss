@@ -6,7 +6,19 @@ body {
   flex-direction: column;
 }
 
+ul {
+  padding-left: 20px;
+  margin: 0;
+}
 li {
+  list-style-type: square;
+  &::marker {
+    font-size: 0.8em;
+    color: #346;
+  }
+}
+
+li.table-header {
   list-style-type: none;
 }
 
@@ -23,7 +35,7 @@ a {
 }
 
 .site-header {
-  background: url('/assets/images/etna.png');
+  background: url("/assets/images/etna.png");
   background-size: contain;
   background-repeat: no-repeat;
   min-height: 70px;
@@ -41,7 +53,6 @@ a {
   display: inline-block;
   position: absolute;
   top: 50%;
-
 }
 .site-title {
   font-size: 1.5em;
@@ -76,8 +87,8 @@ a {
   h2 {
     border-bottom: 1px solid black;
   }
-  p {
-    margin: 2px;
+  h3 {
+    border-bottom: 1px solid skyblue;
   }
 
   pre.highlight {
@@ -85,16 +96,32 @@ a {
     padding: 5px;
     margin: 5px 20px 5px 0px;
   }
-
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: #6b82b0;
   font-weight: normal;
   margin: 0px;
 }
-h2, h3, h4, h5, h6 {
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin: 15px 0 10px;
+}
+
+h4 {
+  font-weight: bold;
+}
+
+h5 {
+  font-size: 1em;
 }
 
 .nav {
@@ -140,13 +167,13 @@ footer {
     display: block;
     counter-increment: item;
     &:before {
-      content: counter(item); 
+      content: counter(item);
       padding-right: $gap;
     }
     ul {
       counter-reset: subitem;
       li {
-        counter-increment:subitem;
+        counter-increment: subitem;
         &:before {
           content: counter(item) "." counter(subitem);
           padding-right: $gap;
@@ -154,9 +181,10 @@ footer {
         ul {
           counter-reset: subsubitem;
           li {
-            counter-increment:subsubitem;
+            counter-increment: subsubitem;
             &:before {
-              content: counter(item) "." counter(subitem) "." counter(subsubitem);
+              content: counter(item) "." counter(subitem) "."
+                counter(subsubitem);
               padding-right: $gap;
             }
           }
@@ -165,7 +193,6 @@ footer {
     }
   }
 }
-
 
 .table {
   display: table-cell;
@@ -178,4 +205,23 @@ footer {
 }
 .table-header {
   background: #e2e9ff;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.column {
+  flex: 1;
+}
+
+.image {
+  img {
+    display: block;
+    margin: 12px 0px;
+    max-height: 240px;
+    border: 1px solid #ccc;
+    box-shadow: 0px 0px 3px 0px #ddd;
+  }
 }
