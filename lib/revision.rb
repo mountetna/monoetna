@@ -94,13 +94,13 @@ class Metis
       return errors_found
     end
 
-    def validate_folder(mpath_w_objs)
+    def validate_folder(mpath_w_objs, folder_check_type='source')
       errors_found = false
 
-      if Metis::Folder.exists?(
+      if (Metis::Folder.exists?(
           mpath_w_objs.mpath.file_name,
           mpath_w_objs.bucket,
-          mpath_w_objs.folder)
+          mpath_w_objs.folder) && folder_check_type == 'dest')
 
           @errors.push(
             "Cannot copy over existing folder: \"#{mpath_w_objs.mpath.path}\""
@@ -135,7 +135,7 @@ class Metis
     def validate_dest (dest_mpath_w_objs)
       return unless validate_mpath(dest_mpath_w_objs.mpath)
       return unless validate_bucket(dest_mpath_w_objs)
-      return unless validate_folder(dest_mpath_w_objs)
+      return unless validate_folder(dest_mpath_w_objs, 'dest')
       return unless validate_file(dest_mpath_w_objs, 'dest')
     end
   end

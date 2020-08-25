@@ -44,7 +44,7 @@ describe UploadController do
       expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_path]}")
       expect(hmac_params['X-Etna-Id']).to eq('metis')
       upload = Metis::Upload.first
-      expect(upload).not_to be_nil
+      expect(upload).to be_nil  # No Uploads now until upload_start
     end
 
     it 'should re-use uploads' do
@@ -190,7 +190,7 @@ describe UploadController do
   context '#upload_start' do
     it 'should start an upload' do
       # we expect the appropriate records to have been created
-      upload = create_upload( 'athena', 'wisdom.txt', @metis_uid )
+      upload = create_upload( 'athena', 'wisdom.txt', @metis_uid, file_size: WISDOM.length)
 
       # we post to the upload path with hmac authorization
       hmac_header
@@ -249,7 +249,74 @@ describe UploadController do
       )
     end
 
-    it 'should not resume someone elses upload' do
+    context 'when reset=true and the upload exists' do
+      it 'should reset the position of the upload' do
+        file = create_file('athena', 'wisdom.txt', WISDOM)
+        upload = create_upload( 'athena', 'wisdom.txt', @metis_uid,
+                                current_byte_position: 10,
+                                file_size: WISDOM.length,
+                                next_blob_size: 10,
+                                next_blob_hash: 'abcdef'
+        )
+
+        # we attempt to initiate a new upload
+        hmac_header
+        json_post(
+            upload_path('athena', 'wisdom.txt'),
+            action: 'start',
+            file_size: WISDOM.length,
+            next_blob_size: 3,
+            next_blob_hash: 'defabc',
+            reset: true,
+        )
+
+        # we receive back the status of the new upload
+        expect(last_response.status).to eq(200)
+        expect(json_body).to eq(
+                                 current_byte_position: 0,
+                                 next_blob_size: 3,
+                                 next_blob_hash: 'defabc',
+                                 author: 'metis|metis metis',
+                                 project_name: 'athena',
+                                 file_name: 'wisdom.txt'
+                             )
+      end
+    end
+
+    context 'when the upload exists and the filesize differs' do
+      it 'should reset the position of the upload' do
+        file = create_file('athena', 'wisdom.txt', WISDOM)
+        upload = create_upload( 'athena', 'wisdom.txt', @metis_uid,
+                                current_byte_position: 10,
+                                file_size: WISDOM.length,
+                                next_blob_size: 10,
+                                next_blob_hash: 'abcdef'
+        )
+
+        # we attempt to initiate a new upload
+        hmac_header
+        json_post(
+            upload_path('athena', 'wisdom.txt'),
+            action: 'start',
+            file_size: WISDOM.length + 3,
+            next_blob_size: 3,
+            next_blob_hash: 'defabc',
+          )
+
+        # we receive back the status of the new upload
+        expect(last_response.status).to eq(200)
+        expect(json_body).to eq(
+                                 current_byte_position: 0,
+                                 next_blob_size: 3,
+                                 next_blob_hash: 'defabc',
+                                 author: 'metis|metis metis',
+                                 project_name: 'athena',
+                                 file_name: 'wisdom.txt'
+                             )
+      end
+    end
+
+    it 'should create a new upload on start, if does not exist' do
       file = create_file('athena', 'wisdom.txt', WISDOM)
 
       # we create an upload, but the metis_uid is different from ours
@@ -261,6 +328,8 @@ describe UploadController do
         next_blob_hash: 10
       )
 
+      expect(Metis::Upload.count).to eq(1)
+
       # we attempt to post to the path
       hmac_header
       json_post(
@@ -271,9 +340,71 @@ describe UploadController do
         next_blob_hash: 10
       )
 
-      # we are forbidden
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('No matching upload')
+      # we get a different upload back
+      expect(last_response.status).to eq(200)
+      expect(Metis::Upload.count).to eq(2)
+    end
+
+    it 'should create a new upload on start using hmac email, first, and last, if does not exist' do
+      file = create_file('athena', 'wisdom.txt', WISDOM)
+
+      # we create an upload, but the metis_uid is different from ours
+      upload = create_upload(
+        'athena', 'wisdom.txt', @metis_uid.reverse,
+        file_size: WISDOM.length,
+        current_byte_position: 10,
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
+
+      expect(Metis::Upload.count).to eq(1)
+
+      # we attempt to post to the path
+      hmac_header(params={
+        email: 'athena@olympus.org',
+        first: 'Athena',
+        last: 'Pallas'
+      })
+      json_post(
+        upload_path('athena', 'wisdom.txt'),
+        action: 'start',
+        file_size: WISDOM.length,
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
+
+      # we get a different upload back
+      expect(last_response.status).to eq(200)
+      expect(Metis::Upload.count).to eq(2)
+      expect(Metis::Upload.last.author).to eq('athena@olympus.org|Athena Pallas')
+    end
+
+    it 'should reject a request without a valid HMAC' do
+      file = create_file('athena', 'wisdom.txt', WISDOM)
+
+      # we create an upload, but the metis_uid is different from ours
+      upload = create_upload(
+        'athena', 'wisdom.txt', @metis_uid.reverse,
+        file_size: WISDOM.length,
+        current_byte_position: 10,
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
+
+      expect(Metis::Upload.count).to eq(1)
+
+      # we attempt to post to the path
+      json_post(
+        upload_path('athena', 'wisdom.txt'),
+        action: 'start',
+        file_size: WISDOM.length,
+        next_blob_size: 10,
+        next_blob_hash: 10
+      )
+
+      # we get a different upload back
+      expect(last_response.status).to eq(401)
+      expect(Metis::Upload.count).to eq(1)
     end
   end
 

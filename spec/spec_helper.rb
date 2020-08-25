@@ -78,22 +78,27 @@ RSpec.configure do |config|
   config.before(:suite) do
     FactoryBot.find_definitions
 
-    DatabaseCleaner.strategy = :transaction
+    # DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
 
   config.order = :random
 
   config.around(:each) do |example|
-    DatabaseCleaner.cleaning do
-      example.run
-    end
+    # Unfortunately, DatabaseCleaner + Sequel does not properly handle the auto_savepointing, which means that
+    # exceptions handled in rescue blocks do not behave correctly in tests (where as they would be fine outside of
+    # tests).  Thus, we are forced to manually handle the transaction wrapping of examples manually to set this option.
+    # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
+    #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
+    Metis.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
   end
 
   config.before(:suite) do
     stubs.ensure
   end
 end
+
+
 
 FactoryBot.define do
   factory :file, class: Metis::File do
@@ -165,6 +170,12 @@ def glacier_stub(vault_name)
     status: 201,
     headers: {
       'X-Amz-Archive-Id': 'archive_id',
+      'Content-Type': 'application/json',
+    }
+  )
+  stub_glacier_method(:delete, "/#{vault_name}/archives/archive_id",
+    status: 204,
+    headers: {
       'Content-Type': 'application/json',
     }
   )

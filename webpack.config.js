@@ -10,14 +10,23 @@
 
 var path = require('path');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+const EventHooksPlugin = require('event-hooks-webpack-plugin');
+const fs = require('fs-extra');
 
 module.exports = {
   context: path.resolve(__dirname),
   resolve: {
-    extensions: [ '.js', '.jsx' ],
+    extensions: ['.js', '.jsx'],
     alias: {
-      'font-awesome': path.join(__dirname, 'node_modules/@fortawesome/fontawesome-free')
-    }
+      'font-awesome': path.join(
+        __dirname,
+        'node_modules/@fortawesome/fontawesome-free'
+      ),
+      react: path.join(__dirname, 'node_modules/react'),
+      'react-dom': path.join(__dirname, 'node_modules/react-dom'),
+      'react-redux': path.join(__dirname, 'node_modules/react-redux')
+    },
+    symlinks: false
   },
   entry: {
     'metis-main': './lib/client/jsx/metis.jsx',
@@ -25,29 +34,32 @@ module.exports = {
   },
   output: {
     path: __dirname,
-    filename: 'public/js/[name].bundle.js'
+    filename: 'public/js/[name].bundle.js',
+    publicPath: '/js/'
   },
   module: {
     rules: [
       {
         loader: 'babel-loader',
-        include: [ path.resolve(__dirname, 'lib/client/jsx'), ],
-        test: /\.jsx?$/,
-        query: {
-          presets: ['env', 'stage-0', 'react'],
-        }
+        include: [
+          path.resolve(__dirname, 'node_modules/etna-js/'),
+          path.resolve(__dirname, 'node_modules/downzip/'),
+          path.resolve(__dirname, 'lib/client/jsx')
+        ],
+        test: /\.jsx?$/
       },
-
       {
         loader: 'file-loader',
         test: /\.(jpe?g|png|svg)$/i,
-        include: [
-          path.resolve(__dirname, 'lib/client/images'),
-        ],
+        include: [path.resolve(__dirname, 'lib/client/images')],
         options: {
           name: '[name].[ext]',
           outputPath: 'public/images/',
-          publicPath: function(url) { return url.match(/^public/) ? url.replace(/public/,'') : `/images/${url}` }
+          publicPath: function (url) {
+            return url.match(/^public/)
+              ? url.replace(/public/, '')
+              : `/images/${url}`;
+          }
         }
       },
 
@@ -63,7 +75,11 @@ module.exports = {
         options: {
           name: '[name].[ext]',
           outputPath: 'public/fonts/',
-          publicPath: function(url) { return url.match(/^public/) ? url.replace(/public/,'') : `/fonts/${url}` }
+          publicPath: function (url) {
+            return url.match(/^public/)
+              ? url.replace(/public/, '')
+              : `/fonts/${url}`;
+          }
         }
       },
 
@@ -76,9 +92,16 @@ module.exports = {
     ]
   },
   plugins: [
-    new ExtractTextPlugin({ // define where to save the file
+    new ExtractTextPlugin({
+      // define where to save the file
       filename: 'public/css/metis.bundle.css',
-      allChunks: true,
+      allChunks: true
     }),
+    new EventHooksPlugin({
+      'after-emit': (compilation, done) => {
+        console.log('\n\nCopying source files to compiled\n\n');
+        fs.copy('downzip-sw.js', 'public/js/downzip-sw.js', done);
+      }
+    })
   ]
-}
+};

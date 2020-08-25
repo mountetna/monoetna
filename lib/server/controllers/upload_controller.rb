@@ -17,20 +17,6 @@ class UploadController < Metis::Controller
 
     raise Etna::Forbidden, 'File cannot be overwritten' if file && file.read_only?
 
-    # Create the upload
-    upload = Metis::Upload.find_or_create(
-      file_name: @params[:file_path],
-      bucket: bucket,
-      metis_uid: metis_uid,
-      project_name: @params[:project_name]
-    ) do |f|
-      f.author = Metis::File.author(@user)
-      f.file_size = 0
-      f.current_byte_position = 0
-      f.next_blob_size = -1
-      f.next_blob_hash = ''
-    end
-
     # Make a MAC url
     url = Metis::File.upload_url(
       @request,
@@ -58,32 +44,45 @@ class UploadController < Metis::Controller
 
   private
 
+
   # create a metadata entry in the database and also a file on
   # the file system with 0 bytes.
   def upload_start
     require_params(:file_size, :next_blob_size, :next_blob_hash)
     bucket = require_bucket
 
-    upload = Metis::Upload.where(
+    hmac = @request.env['etna.hmac']
+    user = user_by_hmac(hmac)
+
+    upload = Metis::Upload.fetch(
       project_name: @params[:project_name],
       file_name: @params[:file_path],
       bucket: bucket,
       metis_uid: metis_uid,
-    ).first
+      user: user,
+    )
 
-    raise Etna::BadRequest, 'No matching upload' unless upload
+    requires_reset = @params[:reset] || @params[:file_size] != upload.file_size
 
     # the upload has been started already, report the current
     # position
-    if upload.current_byte_position > 0
+    if upload.current_byte_position > 0 && !requires_reset
       return success_json(upload)
     end
 
-    upload.update(
-      file_size: @params[:file_size].to_i,
-      next_blob_size: @params[:next_blob_size],
-      next_blob_hash: @params[:next_blob_hash]
-    )
+    upload_update = {
+        file_size: @params[:file_size].to_i,
+        next_blob_size: @params[:next_blob_size],
+        next_blob_hash: @params[:next_blob_hash],
+        current_byte_position: 0,
+    }
+
+    if requires_reset
+      upload_update[:author] = Metis::File.author(user)
+      upload.delete_partial!
+    end
+
+    upload.update(upload_update)
 
     # Send upload initiated
     success_json(upload)
@@ -121,6 +120,14 @@ class UploadController < Metis::Controller
   end
 
   private
+
+  def user_by_hmac(hmac)
+    return Etna::User.new(
+        email: (hmac.headers[:email] || hmac.id).to_s,
+        first: (hmac.headers[:first] || hmac.id).to_s,
+        last: (hmac.headers[:last] || hmac.id).to_s) if hmac and hmac.valid?
+    @user
+  end
 
   def complete_upload(upload)
     folder_path, file_name = Metis::File.path_parts(upload.file_name)

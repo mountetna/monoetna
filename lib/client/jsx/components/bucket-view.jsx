@@ -6,7 +6,7 @@ import ListHead  from './list/list-head';
 import FolderBreadcrumb from './folder-breadcrumb';
 import ControlBar from './control-bar';
 
-import { selectBuckets } from '../selectors/directory-selector';
+import { selectBuckets } from 'etna-js/selectors/directory-selector';
 
 const COLUMNS = [
   { name: 'type', width: '60px' },

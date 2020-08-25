@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
 #
+require 'optparse'
 require 'resolv'
 require 'json'
+require 'date'
 require 'fileutils'
 require 'digest'
 require 'net/http'
@@ -111,6 +113,10 @@ end
 class MetisClient
   class Error < StandardError
   end
+
+  class UploadError < StandardError
+  end
+
   def initialize(host, token)
     @host = host
     @token = token
@@ -132,7 +138,23 @@ class MetisClient
       next_blob_hash: upload.next_blob_hash
     )
 
+    raise MetisClient::UploadError, "Problem starting the upload on Metis: #{error(response)}" if response.code == '422'
     raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
+
+    json_body(response)
+  end
+
+  def reset_upload(upload_path, upload)
+    response = json_post(upload_path,
+      file_size: upload.file_size,
+      action: 'start',
+      next_blob_size: upload.next_blob_size,
+      next_blob_hash: upload.next_blob_hash,
+      reset: true
+    )
+
+    raise MetisClient::UploadError, "Problem resetting the upload on Metis: #{error(response)}" if response.code == '422'
+    raise MetisClient::Error, "Could not reset file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
 
     json_body(response)
   end
@@ -148,6 +170,7 @@ class MetisClient
       ]
     )
 
+    raise MetisClient::UploadError, "Problem with uploading the blob: #{error(response)}" if response.code == '422'
     raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
   end
 
@@ -260,12 +283,19 @@ EOT
         .downcase
     end
 
+    attr_reader :options
+
     def initialize(shell)
       @shell = shell
+      @options = {}
     end
 
     def run(*args)
       raise "#{self.class.command_name} is not implemented!"
+    end
+
+    def done?
+      @done
     end
 
     def self.usage(msg=nil)
@@ -273,46 +303,27 @@ EOT
       @usage
     end
 
+    def parse(options)
+      parse_opts(options)
+    end
+
     private
 
-    def neat_display(files:[], folders:[])
-      entries = [
-        *files,
-        *folders.map{|f| f+"/"}
-      ].compact.sort
+    def parse_opts(options, &block)
+      parser = OptionParser.new do |opts|
+        opts.banner = self.class.usage
 
-      return if entries.empty?
+        yield opts if block_given?
 
-      rows, cols, col_widths = calculate_dimensions(entries)
-
-      rows.times do |row|
-        puts cols.times.map { |col| entries[ col * rows + row ]&.ljust(col_widths[col]) }.join('')
+        opts.on("-h", "--help", "Prints this help") do
+          puts opts
+          @done = true
+        end
       end
+
+      parser.parse!(options)
     end
 
-    def calculate_dimensions(entries)
-      term_width = ENV['COLUMNS'].to_i
-      min_column_width = 3
-      max_columns = [term_width/min_column_width + 1, entries.size ].min
-      max_columns.downto(1).each do |cols|
-        rows, mod = entries.size.divmod(cols)
-
-        if mod != 0
-          next if (rows + 1) * (cols - 1) >= entries.size
-          rows = rows + 1
-        end
-
-        col_widths = (0...cols).map do |col|
-          width = (0...rows).map { |row| entries[col * rows + row]&.size }.compact.max
-          (col < cols - 1) ? (width + 2) : (width)
-        end
-
-        next if col_widths.sum > term_width - 2
-
-        return [ rows, cols, col_widths ]
-      end
-      return [ entries.size, 1, entries.map{0} ]
-    end
   end
 
   class Help < Command
@@ -368,24 +379,111 @@ EOT
 
   class Ls < Command
     usage "ls [<remote_folder_path>]"
+
+    def parse(args)
+      parse_opts(args) do |opts|
+        opts.on("-l", "--long", "List file properties") do |n|
+          options[:long] = true
+        end
+      end
+    end
+
     def run(file_path=nil)
       raise ShellError, 'No project is selected' if !@shell.project_name
 
-      if file_path == '/' || !@shell.cwd && (!file_path || file_path == '.')
-        neat_display(folders: bucket_names)
+      file_path = @shell.relative_path(file_path)
+
+      if !file_path || file_path == '/'
+        display(buckets: @shell.client.list_buckets(@shell.project_name) || [])
         return
       end
 
-      folder = @shell.client.list_folder(@shell.project_name, @shell.relative_path(file_path))
+      folder = @shell.client.list_folder(@shell.project_name, file_path)
 
-      neat_display(
-        folders: folder[:folders].map{|f| f[:folder_name] },
-        files: folder[:files].map{|f| f[:file_name]}
+      display(
+        folders: folder[:folders] || [],
+        files: folder[:files] || []
       )
     end
 
-    def bucket_names
-      @bucket_names ||= @shell.client.list_buckets(@shell.project_name).map{|b| b[:bucket_name]}
+    def display(files: [], folders: [], buckets: [])
+      if options[:long]
+        long_display(files: files, folders: folders, buckets: buckets)
+      else
+        neat_display(files: files, folders: folders, buckets: buckets)
+      end
+    end
+
+    def long_display(files: [], folders: [], buckets: [])
+      rows = (folders + files).map do |file|
+        [
+          file[:author].split('|').first.to_s,
+          file[:size].to_s,
+          DateTime.parse(file[:updated_at]).yield_self { |d|
+            d.year < DateTime.now.year ?
+              d.strftime("%b %d  %Y") :
+              d.strftime("%b %d %H:%M")
+          },
+          file[:file_name] || "#{file[:folder_name]}/"
+        ]
+      end + buckets.map do |bucket|
+        [
+          bucket[:access],
+          bucket[:count],
+          bucket[:description],
+          "#{bucket[:bucket_name]}/"
+        ]
+      end
+
+      widths = 4.times.map do |i|
+        rows.map { |row| row[i].size }.max
+      end
+
+      txt = rows.map do |row|
+        row.map.with_index { |v,i| "%#{widths[i]}s" % [ v ] }.join(" ")
+      end
+
+      puts txt.flatten.join("\n")
+    end
+
+    def neat_display(files: [], folders: [], buckets: [])
+      entries = [
+        *files.map{|f| f[:file_name]},
+        *folders.map{|f| f[:folder_name]+"/"},
+        *buckets.map{|b| b[:bucket_name]+"/"}
+      ].compact.sort
+
+      return if entries.empty?
+
+      rows, cols, col_widths = calculate_dimensions(entries)
+
+      rows.times do |row|
+        puts cols.times.map { |col| entries[ col * rows + row ]&.ljust(col_widths[col]) }.join('')
+      end
+    end
+
+    def calculate_dimensions(entries)
+      term_width = ENV['COLUMNS'].to_i
+      min_column_width = 3
+      max_columns = [term_width/min_column_width + 1, entries.size ].min
+      max_columns.downto(1).each do |cols|
+        rows, mod = entries.size.divmod(cols)
+
+        if mod != 0
+          next if (rows + 1) * (cols - 1) >= entries.size
+          rows = rows + 1
+        end
+
+        col_widths = (0...cols).map do |col|
+          width = (0...rows).map { |row| entries[col * rows + row]&.size }.compact.max
+          (col < cols - 1) ? (width + 2) : (width)
+        end
+
+        next if col_widths.sum > term_width - 2
+
+        return [ rows, cols, col_widths ]
+      end
+      return [ entries.size, 1, entries.map{0} ]
     end
   end
 
@@ -562,49 +660,68 @@ EOT
 
       upload = Upload.new(actual_path)
 
-
       upload_json = @shell.client.start_upload(upload_path, upload)
       # start our upload
 
       upload.current_byte_position = upload_json[:current_byte_position].to_i
       upload.next_blob_size = upload_json[:next_blob_size].to_i
 
-      # upload bytes until we are done
+      max_number_attempts = MetisConfig[:max_attempts] || 2
+      current_attempt_number = 1
 
-      if upload.complete?
-        @shell.client.blob_upload(upload_path, upload,
-          blob_data: '',
-          next_blob_size: 0,
-          next_blob_hash: ZERO_HASH,
-          current_byte_position: upload.current_byte_position
-        )
+      while current_attempt_number <= max_number_attempts do
+        begin
+          # upload bytes until we are done
 
-        puts progress(1, 0, new_file_path)
-        return
+          if upload.complete?
+            reset_required = @shell.client.blob_upload(upload_path, upload,
+              blob_data: '',
+              next_blob_size: 0,
+              next_blob_hash: ZERO_HASH,
+              current_byte_position: upload.current_byte_position
+            )
+
+            puts progress(1, 0, new_file_path)
+            return
+          end
+
+          start = Time.now
+          while !upload.complete?
+
+            blob_data = upload.current_bytes
+            current_byte_position = upload.current_byte_position
+
+            upload.next_blob!
+
+            @shell.client.blob_upload(upload_path, upload,
+              blob_data: blob_data,
+              next_blob_size: upload.next_blob_size,
+              next_blob_hash: upload.next_blob_hash,
+              current_byte_position: current_byte_position
+            )
+
+            print progress(
+              upload.current_byte_position.to_f / upload.file_size,
+              (upload.current_byte_position / (Time.now - start).to_f).round(2),
+              new_file_path
+            )
+          end
+          puts
+          break
+        rescue MetisClient::UploadError => e
+          puts "#{e.message}"
+          current_attempt_number += 1
+
+          if current_attempt_number <= max_number_attempts
+            puts "UploadError -- retrying the upload"
+            upload = Upload.new(actual_path)
+            upload_json = @shell.client.reset_upload(upload_path, upload)
+            upload.current_byte_position = 0
+          else
+            puts "UploadError -- max retries reached. Giving up."
+          end
+        end
       end
-
-      start = Time.now
-      while !upload.complete?
-
-        blob_data = upload.current_bytes
-        current_byte_position = upload.current_byte_position
-
-        upload.next_blob!
-
-        @shell.client.blob_upload(upload_path, upload,
-          blob_data: blob_data,
-          next_blob_size: upload.next_blob_size,
-          next_blob_hash: upload.next_blob_hash,
-          current_byte_position: current_byte_position
-        )
-
-        print progress(
-          upload.current_byte_position.to_f / upload.file_size,
-          (upload.current_byte_position / (Time.now - start).to_f).round(2),
-          new_file_path
-        )
-      end
-      puts
     end
   end
 
@@ -635,6 +752,7 @@ EOT
       set_path(match[:path])
     end
   end
+
   attr_reader :project_name
   attr_accessor :cwd
 
@@ -780,7 +898,9 @@ EOT
     end
 
     begin
-      command.new(self).run(*args)
+      cmd = command.new(self)
+      args = cmd.parse(args)
+      cmd.run(*args) unless cmd.done?
     rescue ShellError => e
       puts e.message
     rescue MetisClient::Error => e

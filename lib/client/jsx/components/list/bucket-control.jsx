@@ -1,7 +1,5 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { copyText } from '../../utils/copy';
-import { filePath } from '../../utils/file';
 import MenuControl from '../menu-control';
 
 class BucketControl extends React.Component {

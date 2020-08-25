@@ -33,21 +33,30 @@ class FolderView extends React.Component {
     retrieveFiles(bucket_name, folder_name);
   }
 
-  selectFile() {
-    this.input.click();
+  selectUpload() {
+    this.props.showUploadModal(
+      () => this.uploadFileInput.click(),
+      () => this.uploadDirInput.click(),
+    );
   }
 
-  fileSelected(event){
+  prepareFiles(event, input) {
     let { bucket_name, folder_name, fileSelected } = this.props;
-
     if (event === undefined) return;
-
-    let { files } = this.input;
+    let { files } = input;
 
     for (let i = 0; i < files.length; i++) fileSelected(bucket_name, folder_name, files[i]);
 
     // Reset the input field.
-    this.input.value = '';
+    input.value = '';
+  }
+
+  fileSelected(event){
+    this.prepareFiles(event, this.uploadFileInput);
+  }
+
+  dirSelected(event) {
+    this.prepareFiles(event, this.uploadDirInput);
   }
 
   selectFolder(){
@@ -58,13 +67,21 @@ class FolderView extends React.Component {
     if (new_folder_name) createFolder(bucket_name, folder_name, new_folder_name);
   }
 
+  selectFolderDownload() {
+    let { bucket_name, folder_name } = this.props;
+    this.props.listFilesRecursive(bucket_name, folder_name).then(files => {
+      return this.props.downloadFilesZip(files, this.props.folder_name, this.props.bucket_name);
+    });
+  }
+
   render() {
     let { bucket_name, folder_name } = this.props;
     if (folder_name == INVALID) return <InvalidFolder/>;
 
     let buttons = [
       { onClick: this.selectFolder.bind(this), title: 'Create folder', icon: 'folder', overlay: 'plus', role: 'editor' },
-      { onClick: this.selectFile.bind(this), title: 'Upload file', icon: 'upload', role: 'editor' }
+      { onClick: this.selectUpload.bind(this), title: 'Upload file(s)', icon: 'upload', role: 'editor' },
+      { onClick: this.selectFolderDownload.bind(this), title: 'Download directory as zip', icon: 'download', role: 'viewer' },
     ];
 
     return (
@@ -72,12 +89,24 @@ class FolderView extends React.Component {
         <div className='control-group'>
           <FolderBreadcrumb folder_name={folder_name} bucket_name={bucket_name}/>
           <ControlBar buttons={buttons}>
+            { /* For uploading individual files */ }
             <input name='upload-file'
               type='file'
               multiple='multiple'
               style={ {display: 'none'} }
-              ref={ (input) => this.input = input }
+              ref={ (input) => this.uploadFileInput = input }
               onChange={ this.fileSelected.bind(this) }
+            />
+
+            { /* For uploading directories */ }
+            <input name='upload-directory'
+              type='file'
+              webkitdirectory='webkitdirectory'
+              directory='directory'
+              multiple='multiple'
+              style={ {display: 'none'} }
+              ref={ (input) => this.uploadDirInput = input }
+              onChange={ this.dirSelected.bind(this) }
             />
           </ControlBar>
         </div>
@@ -93,11 +122,14 @@ class FolderView extends React.Component {
 const retrieveFiles = (bucket_name, folder_name) => ({type: 'RETRIEVE_FILES', bucket_name, folder_name});
 const fileSelected = (bucket_name, folder_name, file)=>({ type: 'FILE_SELECTED', file, folder_name, bucket_name });
 const createFolder = (bucket_name, parent_folder, folder_name)=>({ type: 'CREATE_FOLDER', folder_name, parent_folder, bucket_name });
+const showUploadModal = (startFileUpload, startDirectoryUpload) => ({ type: 'SHOW_DIALOG', dialog: { type: 'upload_dialog', startDirectoryUpload, startFileUpload } })
+const listFilesRecursive = (bucket_name, folder_name) => ({ type: 'LIST_FILES_RECURSIVE', folder_name, bucket_name });
+const downloadFilesZip = (files, folder_name, bucket_name) => ({ type: 'DOWNLOAD_FILES_ZIP', files, folder_name, bucket_name });
 
 export default connect(
   // map state
   null,
 
   // map dispatch
-  { retrieveFiles, fileSelected, createFolder }
+  { retrieveFiles, fileSelected, createFolder, showUploadModal, listFilesRecursive, downloadFilesZip }
 )(FolderView);

@@ -71,11 +71,11 @@ class Metis
     usage 'Checksum and archive files.'
 
     def execute
-      needs_hash = Metis::DataBlock.where(md5_hash: Metis::DataBlock::TEMP_MATCH).order(:updated_at).all[0..10]
+      needs_hash = Metis::DataBlock.where(md5_hash: Metis::DataBlock::TEMP_MATCH, removed: false).order(:updated_at).all[0..10]
       puts "Found #{needs_hash.count} data blocks to be checksummed."
       needs_hash.each(&:compute_hash!)
 
-      needs_archive = Metis::DataBlock.exclude(md5_hash: Metis::DataBlock::TEMP_MATCH).where(archive_id: nil).order(:updated_at).all[0..10]
+      needs_archive = Metis::DataBlock.exclude(md5_hash: Metis::DataBlock::TEMP_MATCH).where(archive_id: nil, removed: false).order(:updated_at).all[0..10]
       puts "Found #{needs_archive.count} files to be archived."
       needs_archive.each do |data_block|
         begin
@@ -153,6 +153,33 @@ class Metis
       rescue Sequel::DatabaseConnectionError
         @no_db = true
       end
+    end
+  end
+
+  class RemoveOrphanDataBlocks < Etna::Command
+    usage '# remove unused (orphaned) data blocks'
+
+    def execute
+      zero_hash = 'd41d8cd98f00b204e9800998ecf8427e'
+
+      used_data_block_ids = Metis::File.all().map { |file| file.data_block.id }.uniq
+      orphaned_data_blocks = Metis::DataBlock.exclude(id: used_data_block_ids).exclude(removed: true).exclude(md5_hash: zero_hash).all
+      Metis.instance.logger.info("Found #{orphaned_data_blocks.count} orphaned data blocks to be removed.") if orphaned_data_blocks.count > 0
+      orphaned_data_blocks.each do |orphaned_data_block|
+        begin
+          md5_hash_to_remove = orphaned_data_block.md5_hash
+          orphaned_data_block.remove!
+          Metis.instance.logger.info("Removed data_block with hash #{md5_hash_to_remove}")
+        rescue Error => e
+          Metis.instance.logger.log_error(e)
+        end
+      end
+    end
+
+    def setup(config)
+      super
+      Metis.instance.setup_logger
+      Metis.instance.load_models
     end
   end
 end

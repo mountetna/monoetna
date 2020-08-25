@@ -1,64 +1,107 @@
-version: "3.4"
-volumes:
-  app-gems:
-    driver: local
-  db-data:
-    driver: local
-  node-modules:
-    driver: local
-  data-dir:
-    driver: local
-  log-dir:
-    driver: local
-  tmp-dir:
-    driver: local
-  public-dir:
-    driver: local
 
-x-metis_base: &metis_base
-  build:
-    context: .
-    dockerfile: docker/app/Dockerfile.development
-  volumes:
+version: "3.4"
+
+x-base-etna-service: &base-etna-service
+  # Base configuration used by most etna services.
+  image: etna-base
+  volumes: &base-etna-service-volumes
     - .:/app:cached
     - app-gems:/app/vendor/bundle:rw
-    - node-modules:/app/node_modules:rw
-    - data-dir:/app/data:rw
     - log-dir:/app/log:rw
     - tmp-dir:/app/tmp:rw
     - public-dir:/app/public:rw
-  environment: &app_environment
-    COVERAGE: 'true'
-    DATABASE_HOST: 'db'
-    METIS_ENV: 'development'
+    - data-dir:/app/data:rw
+    - opt-dir:/usr/opt:rw
+    - ../etna:/etna:cached
+  environment: &base-etna-env
+    "METIS_ENV": "development"
+    APP_NAME: "metis"
+  entrypoint: /entrypoints/development.sh
 
-services:
-  metis_app:
-    <<: *metis_base
-    ports:
-      - 3000:3000
-    command: ./docker/app/puma.sh
+  networks:
+    default:
+    edge_net:
+  extra_hosts:
+    - 'metis.development.local:172.16.238.10'
+    - 'magma.development.local:172.16.238.10'
+    - 'janus.development.local:172.16.238.10'
+    - 'timur.development.local:172.16.238.10'
+
+x-base-etna-services: &base-etna-services
+  # Default list of services an etna app may have.
+  "metis_app": &base-etna-app
+    # The ruby webserver
+    <<: *base-etna-service
+    command: ./bin/puma.sh
     depends_on:
-      - metis_db
+      - "metis_db"
 
-  metis_webpack:
-    <<: *metis_base
+  "metis_webpack": &base-etna-webpack
+    # The ruby webpack server watching for changes
+    <<: *base-etna-service
     environment:
-      <<: *app_environment
-      RUN_NPM_INSTALL: 'true'
-      SKIP_RUBY_SETUP: 'true'
+      <<: *base-etna-env
+      RUN_NPM_INSTALL: "true"
+      SKIP_RUBY_SETUP: "true"
     command: npm run webpack
 
-  metis_db:
-    build:
-      context: .
-      dockerfile: docker/db/Dockerfile
+  "metis_db": &base-etna-db
+    # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
+    image: development-psql
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: metis_development
+      POSTGRES_DB: "metis_development"
       POSTGRES_PASSWORD: password
       POSTGRES_USER: developer
-    ports:
-      - 5432
-    container_name: metis_db_1
+      APP_NAME: "metis"
+    container_name: "metis_db_1"
+
+  "metis_app_fe": &base-etna-fe
+    # The application level apache frontend serving static assets, data, and proxying the main app.
+    image: etna-apache
+    volumes:
+      - public-dir:/app/public:ro
+      - opt-dir:/usr/opt:ro
+      - ../docker/etna-base/entrypoints:/entrypoints:ro
+    depends_on:
+      - "metis_app"
+    entrypoint: /entrypoints/development.sh
+    command: ["httpd", "-DFOREGROUND"]
+    environment:
+      SKIP_BUILD: "1"
+      WAIT_FOR_APP: "1"
+      APP_NAME: "metis"
+
+services:
+  <<: *base-etna-services
+
+networks:
+  edge_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: '172.16.238.0/24'
+        - subnet: '2001:3984:3989::/64'
+
+volumes:
+  app-gems:
+    driver: local
+  log-dir:
+    driver: local
+    name: "log-dir"
+  tmp-dir:
+    driver: local
+    name: "tmp-dir"
+  public-dir:
+    driver: local
+    name: "public-dir"
+  data-dir:
+    driver: local
+    name: "data-dir"
+  db-data:
+    driver: local
+    name: "db-data"
+  opt-dir:
+    driver: local
+

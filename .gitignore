@@ -2,11 +2,11 @@
 npm-debug.log
 trash.rb
 cron.log
-package-lock.json
 
 config.yml
 public/
-/node_modules/
+/node_modules/*
+!/node_modules/.gitkeep
 /lib/client/js/
 /lib/client/img/
 /lib/client/fonts/
@@ -25,3 +25,10 @@ spec/examples.txt
 *.swp
 .docker-build-mark
 
+spec/data/
+
+downzip-sw.js
+
+.npm-packages
+.yarn-packages
+.npmrc
