@@ -23,8 +23,6 @@ config.yml
 /public/img
 /public/coverage
 
-package-lock.json
-
 # Ignore all logfiles and tempfiles.
 /log/*
 !/log/.keep
@@ -42,3 +40,5 @@ tmp
 # Ignore jest reporting files
 /coverage
 /spec/examples.txt
+.npm-packages
+.npmrc

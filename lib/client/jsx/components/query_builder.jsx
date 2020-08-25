@@ -2,7 +2,6 @@ import { connect } from 'react-redux';
 
 import React, { Component } from 'react';
 import { requestPredicates, requestModels } from '../actions/magma_actions';
-import { Animate } from 'react-move';
 import PredicateChainSet from './query_builder/predicate_chain_set';
 
 // helper to format the predicate state into an actual query
@@ -100,7 +99,6 @@ class QueryBuilder extends Component {
 
   render() {
     let { query, shown } = this.state;
-    console.log(query);
     return <div id='query'>
       <div className='visibility'>
         <button onClick={ this.toggleShown.bind(this) }>

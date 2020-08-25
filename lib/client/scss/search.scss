@@ -1,11 +1,93 @@
-@import "globals";
-@import "attribute";
+@import 'globals';
+@import 'attribute';
+
+.search-filters-modal {
+  width: 600px;
+  padding: 20px;
+  border: 1px solid black;
+  border-radius: 4px;
+  background: white;
+  max-height: 70vh;
+  line-height: 200%;
+
+  .actions {
+    text-align: right;
+
+    button {
+      @include green_button;
+    }
+  }
+
+  .filters {
+    display: flex;
+    flex-direction: row;
+    margin: 5px 0px;
+  }
+
+  .filter {
+    @include text_defaults;
+    margin: 0 5px;
+  }
+
+  .attribute {
+    flex-grow: 1;
+  }
+
+  .operator {
+    flex-grow: 0;
+    width: 130px;
+  }
+
+  .operand {
+    flex-grow: 1;
+  }
+}
+
+
+.search-attribute-filters-modal {
+  width: 600px;
+  padding: 20px;
+  border: 1px solid black;
+  border-radius: 4px;
+  background: white;
+  max-height: 70vh;
+
+
+  .actions {
+    text-align: right;
+
+    button {
+      @include green_button;
+    }
+  }
+}
+
+.pointer {
+  cursor: pointer;
+}
 
 #search {
   font-family: $body_font;
+  margin: 5px 3%;
+
+  .pointer {
+    margin: 0 10px;
+  }
+
+  .query-builder {
+    line-height: 200%;
+  }
+
+  .body {
+    margin-top: 10px;
+  }
+
   .button {
     @include green_button;
     margin-left: 4px;
+  }
+  .button.disabled {
+    cursor: not-allowed;
   }
   .filter {
     @include text_defaults;
@@ -14,8 +96,13 @@
   .control {
     padding-top: 10px;
     padding-bottom: 4px;
-
+    text-align: center;
   }
+
+  select {
+    margin-right: 8px;
+  }
+
   .query {
   }
   .pages {
@@ -50,5 +137,6 @@
   }
   .label {
     padding: 4px;
+    margin-right: 4px;
   }
 }

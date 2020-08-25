@@ -1,6 +1,8 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { findRoute, setRoutes } from './router';
+import {connect} from 'react-redux';
+import {findRoute, setRoutes} from './router';
+
+import Modal from 'react-modal';
 
 // Components.
 import Manifests from './components/manifest/manifests';
@@ -10,14 +12,15 @@ import {HomePageContainer as HomePage} from './components/home_page';
 import TimurNav from './components/timur_nav';
 import Messages from './components/messages';
 
-import { showMessages } from './actions/message_actions';
-import { updateLocation } from './actions/location_actions';
+import {showMessages} from './actions/message_actions';
+import {updateLocation} from './actions/location_actions';
 
 import ModelMap from './components/model_map';
 import Search from './components/search/search';
 import Activity from './components/activity';
 import Noauth from './components/noauth';
-import { selectUser } from './selectors/user_selector';
+import {selectUser} from './selectors/user_selector';
+import {ModalDialogContainer} from "etna-js/components/ModalDialogContainer";
 
 const ROUTES = [
   {
@@ -83,12 +86,12 @@ const ROUTES = [
     template: ':project_name/plot/:plot_id',
     component: Plotter,
     mode: 'plots'
-  },
+  }
 ];
 
 setRoutes(ROUTES);
 
-const Empty = () => <div/>;
+const Empty = () => <div />;
 
 class TimurUI extends React.Component {
   constructor(props) {
@@ -98,19 +101,19 @@ class TimurUI extends React.Component {
   }
 
   updateLocation() {
-    let { updateLocation } = this.props;
+    let {updateLocation} = this.props;
     updateLocation(location);
   }
 
   render() {
-    let { location, showMessages, environment, user } = this.props;
+    let {location, showMessages, environment, user} = this.props;
 
-    let { route, params }  = findRoute(location,ROUTES);
+    let {route, params} = findRoute(location, ROUTES);
     let Component;
     let mode;
 
     if (!route) {
-      showMessages([ '### You have lost your way: Path Invalid.' ]);
+      showMessages(['### You have lost your way: Path Invalid.']);
       mode = 'home';
       Component = Empty;
     } else {
@@ -124,15 +127,19 @@ class TimurUI extends React.Component {
     // this key allows us to remount the component when the params change
     let key = JSON.stringify(params);
 
-    return <div id='ui-container'>
-      <TimurNav environment={ environment } mode={ mode }/>
-      <Messages />
-      <Component key={key} {...params}/>
-    </div>
+    return (
+      <ModalDialogContainer>
+        <div id="ui-container">
+          <TimurNav environment={environment} mode={mode} />
+          <Messages />
+          <Component key={key} {...params} />
+        </div>
+      </ModalDialogContainer>
+    );
   }
 }
 
 export default connect(
-  (state) => ({ location: state.location, user: selectUser(state) }),
-  { showMessages, updateLocation }
+  (state) => ({location: state.location, user: selectUser(state)}),
+  {showMessages, updateLocation}
 )(TimurUI);

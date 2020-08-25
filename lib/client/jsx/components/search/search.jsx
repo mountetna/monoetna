@@ -1,139 +1,198 @@
-import Pager from '../pager';
-import React, {Component} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {connect} from 'react-redux';
 
-import SelectInput from '../inputs/select_input';
-import { selectModelNames } from '../../selectors/magma';
-import { requestTSV, requestModels, requestDocuments } from '../../actions/magma_actions';
-import { selectSearchCache } from '../../selectors/search_cache';
-import { cacheSearchPage, setSearchPageSize, setSearchPage, emptySearchCache } from '../../actions/search_actions';
+import 'regenerator-runtime/runtime';
+import * as _ from 'lodash';
+
+import {css} from '@emotion/core';
+import ClimbingBoxLoader from 'react-spinners/ClimbingBoxLoader';
+
+import {
+  selectModelNames,
+} from '../../selectors/magma';
+import {
+  requestTSV,
+  requestModels,
+  requestDocuments
+} from '../../actions/magma_actions';
+import {
+  selectSearchCache,
+  selectSearchAttributeNames,
+  selectSearchFilterParams,
+  selectSearchFilterString,
+  selectSelectedModel,
+  selectSortedAttributeNames,
+  selectExpandedDisplayAttributeNames,
+  selectSortedDisplayAttributeNames
+} from '../../selectors/search';
+import {
+  cacheSearchPage,
+  setSearchPageSize,
+  setSearchPage,
+  emptySearchCache,
+  setSearchAttributeNames,
+  setFilterString,
+  setSelectedModel,
+} from '../../actions/search_actions';
 
 import ModelViewer from '../model_viewer';
+import useAsyncWork from "etna-js/hooks/useAsyncWork";
+import SearchQuery from "./search_query";
+import {Loading} from "etna-js/components/Loading";
 
-class Search extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { page_size: 10 }
-  }
+const spinnerCss = css`
+  display: block;
+  margin: 2rem auto;
+`;
 
-  getPage(page, newSearch=false) {
-    page = page + 1;
-    if (!this.pageCached(page) || newSearch) {
-      this.props.requestDocuments({
-        model_name: this.state.selected_model,
-        record_names: 'all',
-        attribute_names: 'all',
-        filter: this.state.current_filter,
-        page: page,
-        page_size: this.state.page_size,
-        collapse_tables: true,
-        exchange_name: `request-${this.state.selected_model}`,
-        success: this.makePageCache.bind(this, page, 
-          newSearch ? this.state.page_size : null)
-      })
-    }
-    this.props.setSearchPage(page)
-  }
+const loadingSpinner =
+  <ClimbingBoxLoader
+    css={spinnerCss}
+    color='green'
+    size={20}
+    loading={true}
+  />
 
-  pageCached(page) {
-    let { cache } = this.props;
-    return cache.isCached(page.toString())
-  }
 
-  componentDidMount() {
-    this.props.requestModels()
-    this.props.emptySearchCache();
-  }
+export function Search({
+  queryableAttributes, cache, requestDocuments, setSearchPageSize, cacheSearchPage, setSearchPage,
+  selectedModel, requestModels, emptySearchCache, setSearchAttributeNames, filter_string,
+  setSelectedModel, display_attributes, attributesNamesState,
+}) {
+  const [pageSize, setPageSize] = useState(10);
+  const [results, setResults] = useState(0);
+  const [lastLoadedAttributeState, setLastLoadedAttributeState] = useState(attributesNamesState);
+  const { current_page, model_name, record_names, } = cache;
+  let { cached_attribute_names } = cache;
 
-  makePageCache(page, page_size, payload) {
-    let model = payload.models[this.state.selected_model]
-    if (model.count) this.setState({ results: model.count })
-    if (page_size) this.props.setSearchPageSize(page_size)
-    this.props.cacheSearchPage(
+  // On mount, essentially.
+  useEffect(() => {
+    requestModels();
+    emptySearchCache();
+    setSearchAttributeNames('all');
+  }, [])
+
+  const onSelectTableChange = useCallback((model_name) => {
+    setSearchAttributeNames('all');
+    emptySearchCache();
+    setSelectedModel(model_name);
+    setResults(0);
+  }, [setSearchAttributeNames, emptySearchCache, setSelectedModel]);
+
+  const [loading, loadDocuments] = useAsyncWork(function* loadDocuments(page, newSearch) {
+    const payload = yield requestDocuments({
+      model_name: selectedModel,
+      record_names: 'all',
+      attribute_names: queryableAttributes,
+      filter: filter_string,
+      page: page,
+      page_size: pageSize,
+      collapse_tables: true,
+      exchange_name: `request-${selectedModel}`
+    });
+
+    if (newSearch) emptySearchCache();
+    if (!newSearch) setSearchPageSize(pageSize);
+
+    let model = payload.models[selectedModel];
+    if ('count' in model) setResults(model.count);
+    setLastLoadedAttributeState(attributesNamesState);
+    cacheSearchPage(
       page,
-      this.state.selected_model,
+      selectedModel,
       Object.keys(model.documents),
-      page == 1
+      queryableAttributes,
+      page === 1 // clears the cache if you return to page 1
+    );
+    // Cancel only when multiple consecutive invocations are run.
+  }, { cancelWhenChange: [] });
+
+  let pages = model_name ? Math.ceil(results / pageSize) : -1;
+
+  // We should attempt to re-order the ModelViewer's cached_attribute_names
+  //    in the same order as the template's display_attribute_options.
+  // This will change in the future once we finalize what a global
+  //    attribute ordering should be.
+  cached_attribute_names = cached_attribute_names
+    ? _.flatten(
+      display_attributes.filter(
+        (opt) =>
+          cached_attribute_names.includes(opt) ||
+          cached_attribute_names === 'all'
+      )
     )
-  }
+    : null;
 
-  renderQuery() {
-    return <div className='query'>
-      <span className='label'>Show table</span>
-      <SelectInput name='model'
-        values={ this.props.model_names }
-        onChange={ (model_name) => this.setState({ selected_model: model_name }) }
-        showNone='enabled'/>
-
-      <span className='label'>Page size</span>
-      <SelectInput 
-        values={ [ 10, 25, 50, 200 ] }
-        defaultValue={ this.state.page_size }
-        onChange={ (page_size) => this.setState({ page_size }) }
-        showNone='disabled'/>
-      <input type='text' className='filter' 
-        placeholder='Filter query'
-        onChange={ (e) => this.setState({ current_filter: e.target.value }) }/>
-
-      <input type='button' className='button' value='Search' 
-        disabled={ !this.state.selected_model }
-        onClick={ 
-          () => this.getPage(0, true)
-        } />
-      <input className='button' 
-        type='button' 
-        value={'\u21af TSV'} 
-        disabled={ !this.state.selected_model }
-        onClick={ () => this.props.requestTSV(this.state.selected_model, 
-          this.state.current_filter) }/>
-    </div>
-  }
-
-  render() {
-    let { cache } = this.props;
-    let { current_page, page_size, model_name, record_names } = cache;
-    let { results } = this.state;
-    let pages = model_name ? Math.ceil(results / page_size) : -1;
-
-    return <div id='search'>
+  return (
+    <div id='search'>
       <div className='control'>
-        {
-          this.renderQuery()
-        }
-        {
-          results && <div className='results'>
-            Found { results } records in <span className='model_name'>{ model_name }</span>
+        <SearchQuery loading={loading} onSelectTableChange={onSelectTableChange} pageSize={pageSize}
+                     display_attributes={display_attributes}
+                     selectedModel={selectedModel} setPage={setPage} setPageSize={setPageSize} />
+        <Loading loading={results === 0 || loading} delay={500} cacheLastView={true}>
+          <div className='results'>
+            Found {results} records in{' '}
+            <span className='model_name'>{model_name}</span>
           </div>
-        }
+        </Loading>
       </div>
-      {
-        model_name ? <div className='documents'>
-          <ModelViewer
-            model_name={ model_name }
-            record_names={ record_names }
-            page={ current_page-1 }
-            pages={ pages }
-            page_size={ page_size }
-            setPage={ this.getPage.bind(this) }
-          />
-        </div> : null
-      }
+      <div className='body'>
+        <Loading loading={!model_name || (loading && loadingSpinner)} delay={500} cacheLastView={true}>
+          <div className='documents'>
+            <ModelViewer
+              model_name={model_name}
+              record_names={record_names}
+              page={current_page - 1}
+              pages={pages}
+              page_size={pageSize}
+              setPage={setPage}
+              restricted_attribute_names={
+                cached_attribute_names !== 'all'
+                  ? cached_attribute_names
+                  : null
+              }
+            />
+          </div>
+        </Loading>
+      </div>
     </div>
+  );
+
+  function setPage(page, newSearch) {
+    // The page model offset + 1
+    page++;
+    // Need to re-fetch a page if the user has clicked a new set of
+    //    attribute names from the TreeView
+    newSearch = newSearch || attributesNamesState !== lastLoadedAttributeState;
+    if (!cache.isCached(page.toString()) || newSearch) {
+      loadDocuments(page, newSearch)
+    }
+    setSearchPage(page)
   }
 }
 
 export default connect(
   (state, props) => ({
     model_names: selectModelNames(state),
-    cache: selectSearchCache(state)
+    cache: selectSearchCache(state),
+    queryableAttributes: selectSortedAttributeNames(state),
+    attributesNamesState: selectSearchAttributeNames(state),
+    selectedModel: selectSelectedModel(state),
+    display_attributes: selectSortedDisplayAttributeNames(state),
+    filter_string: selectSearchFilterString(state),
+    filter_params: selectSearchFilterParams(state),
+    magma_state: state.magma
   }),
   {
     requestModels,
     cacheSearchPage,
     setSearchPage,
     setSearchPageSize,
+    setSearchAttributeNames,
+    setFilterString,
     emptySearchCache,
     requestDocuments,
     requestTSV,
+    setSelectedModel,
   }
-)(Search)
+)(Search);

@@ -2,19 +2,23 @@ var path = require('path');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var webpack = require('webpack');
 
-module.exports = env => ({
-  context: path.resolve(__dirname, 'lib/client'),
+module.exports = (env) => ({
+  context: path.resolve(__dirname),
   resolve: {
-    extensions: [ '.js', '.jsx', '.scss', '.png', '.jpg', '.jpeg', '.svg' ],
+    extensions: ['.js', '.jsx', '.scss', '.png', '.jpg', '.jpeg', '.svg'],
     alias: {
       'code-mirror': path.join(__dirname, 'node_modules/codemirror/lib'),
-      'react-table': path.join(__dirname, 'node_modules/react-table')
-    }
+      'react-table': path.join(__dirname, 'node_modules/react-table'),
+      react: path.join(__dirname, 'node_modules/react'),
+      'react-dom': path.join(__dirname, 'node_modules/react-dom')
+    },
+    symlinks: false
   },
-  entry: ['./jsx/timur.jsx', './scss/application.scss' ],
+  entry: ['./lib/client/jsx/timur.jsx', './lib/client/scss/application.scss'],
   output: {
     filename: 'public/js/timur.bundle.js',
-    path: __dirname
+    path: __dirname,
+    publicPath: '/js/'
   },
   module: {
     rules: [
@@ -24,24 +28,26 @@ module.exports = env => ({
         // Skip any files outside of your project's `src` directory
         include: [
           path.resolve(__dirname, 'lib/client/jsx'),
+          path.resolve(__dirname, 'node_modules/etna-js/'),
+          '/etna/packages/etna-js'
         ],
 
         // Only run `.js` and `.jsx` files through Babel
-        test: /\.jsx?$/,
-
-        // Options to configure babel with
-        query: {
-          presets: ['env', 'react'],
-          plugins: ['transform-object-rest-spread']
-        }
+        test: /\.jsx?$/
+      },
+      {
+        loader: ['style-loader', 'css-loader'],
+        include: [
+          path.resolve(__dirname, 'node_modules/etna-js/'),
+          '/etna/packages/etna-js'
+        ],
+        test: /\.css$/
       },
 
       {
         test: /\.(jpe?g|png|svg)$/i,
 
-        include: [
-          path.resolve(__dirname, 'lib/client/img'),
-        ],
+        include: [path.resolve(__dirname, 'lib/client/img')],
 
         loader: 'file-loader',
 
@@ -54,21 +60,29 @@ module.exports = env => ({
 
       {
         // sass / scss loader for webpack
-        test: /\.(sass|scss)$/,
+        test: /\.(sass|scss|css)$/,
+        include: [
+          path.resolve(
+            __dirname,
+            'node_modules/react-loader-spinner/dist/loader/css'
+          ),
+          path.resolve(__dirname, 'lib/client/scss')
+        ],
 
         loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
       }
     ]
   },
   plugins: [
-    new ExtractTextPlugin({ // define where to save the file
+    new ExtractTextPlugin({
+      // define where to save the file
       filename: 'public/css/timur.bundle.css',
-      allChunks: true,
+      allChunks: true
     }),
     new webpack.DefinePlugin({
       'process.env': {
-        NODE_ENV: JSON.stringify(env.NODE_ENV),
+        NODE_ENV: JSON.stringify(env ? env.NODE_ENV : 'development')
       }
     })
-  ],
+  ]
 });
