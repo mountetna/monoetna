@@ -148,7 +148,9 @@ class Polyphemus
 
     def metis_waiver_helper
       require_relative './metis/waiver_helper'
-      @metis_waiver_helper ||= MetisWaiverHelper.new(project)
+      @metis_waiver_helper ||= MetisWaiverHelper.new(
+        Etna::Clients::ProjectClientAdapter.new(project, metis_client)
+      )
     end
 
     def setup(config)

@@ -5,7 +5,11 @@ require_relative '../lib/metis/waiver_helper'
 
 
 describe 'MetisWaiverHelper class' do
-  let(:test_class) { MetisWaiverHelper.new(PROJECT) }
+  let(:test_class) { MetisWaiverHelper.new(
+    Etna::Clients::ProjectClientAdapter.new(
+      PROJECT,
+      Etna::Clients::Metis.new(token: 'fake-token', host: 'https://metis.test')
+  )) }
 
   before(:each) do
     stub_metis_setup

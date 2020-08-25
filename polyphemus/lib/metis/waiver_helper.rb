@@ -5,8 +5,8 @@ class MetisWaiverHelper
   include Polyphemus::WithEtnaClients
   include Polyphemus::WithLogger
 
-  def initialize(project_name)
-    @project_name = project_name.to_s
+  def initialize(metis_client)
+    @metis_client = metis_client
   end
 
   def patient_name_regex(patient_name)
@@ -32,11 +32,10 @@ class MetisWaiverHelper
     #   make sure that we find the patient_name, so basically
     #   have to fetch all folders...
     msg = "No found folders in #{release_bucket_name} -- is #{patient_name} a valid patient name?"
-    logger.warn(msg) if patient_folders.length == 0
+    return logger.warn(msg) if patient_folders.length == 0
 
     patient_folders.each { |folder|
-        metis_client.move_folder(
-            @project_name,
+        @metis_client.rename_folder(
             release_bucket_name,
             folder.folder_path,
             restrict_bucket_name,
@@ -60,11 +59,10 @@ class MetisWaiverHelper
     #   make sure that we find the patient_name, so basically
     #   have to fetch all folders...
     msg = "No found folders in #{restrict_bucket_name} -- is #{patient_name} a valid patient name?"
-    logger.warn(msg) if patient_folders.length == 0
+    return logger.warn(msg) if patient_folders.length == 0
 
     patient_folders.each { |folder|
-        metis_client.move_folder(
-            @project_name,
+        @metis_client.rename_folder(
             restrict_bucket_name,
             folder.folder_path,
             release_bucket_name,
@@ -90,8 +88,7 @@ class MetisWaiverHelper
     return logger.warn(msg) if pool_folders.length == 0
 
     pool_folders.each { |folder|
-        metis_client.move_folder(
-            @project_name,
+        @metis_client.rename_folder(
             release_bucket_name,
             folder.folder_path,
             restrict_bucket_name,
@@ -117,8 +114,7 @@ class MetisWaiverHelper
     return logger.warn(msg) if pool_folders.length == 0
 
     pool_folders.each { |folder|
-        metis_client.move_folder(
-            @project_name,
+        @metis_client.rename_folder(
             restrict_bucket_name,
             folder.folder_path,
             release_bucket_name,
@@ -138,10 +134,10 @@ class MetisWaiverHelper
   end
 
   def release_folders
-    @release_folders ||= metis_client.fetch_folders(@project_name, release_bucket_name).all
+    @release_folders ||= @metis_client.fetch_folders(release_bucket_name).all
   end
 
   def restrict_folders
-    @restrict_folders ||= metis_client.fetch_folders(@project_name, restrict_bucket_name).all
+    @restrict_folders ||= @metis_client.fetch_folders(restrict_bucket_name).all
   end
 end
