@@ -36,7 +36,7 @@ cd $DIR/..
 git log --pretty=oneline --abbrev-commit | head -n 50
 git log --pretty=oneline --abbrev-commit | grep "etna reference updates" || true
 
-lastCommitted=$(git log --pretty=oneline --abbrev-commit | grep "etna reference updates" | head -n 1 | cut -d' ' -f1)
+lastCommitted=$(git log --pretty=oneline --abbrev-commit --no-merges | grep "etna reference updates" | head -n 1 | cut -d' ' -f1)
 echo "Last etna reference update $lastCommitted"
 lastCommitted=${lastCommitted:-HEAD~100}
 echo "Checking for changes since $lastCommitted"
