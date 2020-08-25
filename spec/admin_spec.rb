@@ -353,6 +353,36 @@ describe AdminController do
       expect(user2.email).to eq('portunus@two-faces.org')
     end
 
+    it 'does not allow an admin to add a user to a project twice' do
+      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+      perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
+      perm2 = create(:permission, project: door, user: user2, role: 'viewer', privileged: false)
+
+      auth_header(:janus)
+      json_post('add_user/door', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Duplicate permission on project door!')
+
+      expect(Permission.count).to eq(2)
+      expect(User.count).to eq(2)
+
+      user2.refresh
+      perm2.refresh
+
+      # nothing has changed
+      expect(perm2).not_to be_privileged
+      expect(perm2.user).to eq(user2)
+      expect(perm2.project).to eq(door)
+      expect(perm2.role).to eq('viewer')
+
+      expect(user2.name).to eq('Portunus')
+      expect(user2.email).to eq('portunus@two-faces.org')
+    end
+
     it 'does not allow admin to give privilege to a new user' do
       user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
       user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
@@ -416,6 +446,23 @@ describe AdminController do
       expect(Permission.first.user).to eq(user)
     end
 
+    it 'squashes case in email addresses' do
+      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+      perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
+
+      auth_header(:janus)
+      json_post('add_user/door', email: 'Portunus@two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
+
+      expect(last_response.status).to eq(302)
+
+      expect(Permission.count).to eq(2)
+      expect(User.count).to eq(2)
+      expect(User.first.email).to eq(user.email)
+      expect(User.last.email).to eq('portunus@two-faces.org')
+    end
+
     it 'forbids a non-admin from adding a user' do
       user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
       #user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
@@ -477,6 +524,64 @@ describe AdminController do
       expect(json_body[:error]).to eq('project_name_full cannot be empty')
 
       expect(Project.count).to eq(0)
+    end
+  end
+
+  context 'flag_user' do
+    it 'sets flags on the user' do
+      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+
+      auth_header(:superuser)
+      json_post('flag_user', email: 'portunus@two-faces.org', flags: [ 'doors' ])
+
+      # the flags are set
+      expect(last_response.status).to eq(200)
+      expect(json_body[:flags]).to eq([ 'doors' ])
+
+      # we get the flags back
+      user.refresh
+      expect(user.flags).to eq([ 'doors' ])
+    end
+
+    it 'clears flags on the user' do
+      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org', flags: [ 'doors' ])
+
+      auth_header(:superuser)
+      json_post('flag_user', email: 'portunus@two-faces.org', flags: nil)
+
+      # the flags are set
+      expect(last_response.status).to eq(200)
+      expect(json_body[:flags]).to eq(nil)
+
+      # we get the flags back
+      user.refresh
+      expect(user.flags).to eq(nil)
+    end
+
+    it 'does not set invalid flags' do
+      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+
+      auth_header(:superuser)
+      json_post('flag_user', email: 'portunus@two-faces.org', flags: [ 'lll', 2 ])
+
+      expect(last_response.status).to eq(422)
+
+      # the flags are unchanged
+      user.refresh
+      expect(user.flags).to eq(nil)
+    end
+
+    it 'prevents non-superusers from setting flags' do
+      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+
+      auth_header(:portunus)
+      json_post('flag_user', email: 'portunus@two-faces.org', flags: [ 'doors' ])
+
+      expect(last_response.status).to eq(403)
+
+      # the flags are not changed
+      user.refresh
+      expect(user.flags).to eq(nil)
     end
   end
 end

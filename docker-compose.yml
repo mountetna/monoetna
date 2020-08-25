@@ -1,0 +1,116 @@
+
+version: "3.4"
+
+x-base-etna-service: &base-etna-service
+  # Base configuration used by most etna services.
+  image: etna-base
+  volumes: &base-etna-service-volumes
+    - .:/app:cached
+    - janus-app-gems:/app/vendor/bundle:rw
+    - janus-log-dir:/app/log:rw
+    - janus-tmp-dir:/app/tmp:rw
+    - janus-public-dir:/app/public:rw
+    - janus-data-dir:/app/data:rw
+    - janus-opt-dir:/usr/opt:rw
+    - ../etna:/etna:cached
+  environment: &base-etna-env
+    "JANUS_ENV": "development"
+    APP_NAME: "janus"
+  entrypoint: /entrypoints/development.sh
+
+  networks:
+    default:
+    edge_net:
+  extra_hosts:
+    - 'metis.development.local:172.16.238.10'
+    - 'magma.development.local:172.16.238.10'
+    - 'janus.development.local:172.16.238.10'
+    - 'timur.development.local:172.16.238.10'
+
+x-base-etna-services: &base-etna-services
+  # Default list of services an etna app may have.
+  "janus_app": &base-etna-app
+    # The ruby webserver
+    <<: *base-etna-service
+    command: ./bin/puma.sh
+    depends_on:
+      - "janus_db"
+
+  "janus_webpack": &base-etna-webpack
+    # The ruby webpack server watching for changes
+    <<: *base-etna-service
+    environment:
+      <<: *base-etna-env
+      RUN_NPM_INSTALL: "true"
+      SKIP_RUBY_SETUP: "true"
+    command: npm run webpack
+
+  "janus_db": &base-etna-db
+    # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
+    image: development-psql
+    volumes:
+      - janus-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: "janus_development"
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: developer
+      APP_NAME: "janus"
+    container_name: "janus_db_1"
+
+  "janus_app_fe": &base-etna-fe
+    # The application level apache frontend serving static assets, data, and proxying the main app.
+    image: etna-apache
+    volumes:
+      - janus-public-dir:/app/public:ro
+      - janus-opt-dir:/usr/opt:ro
+      - ../docker/etna-base/entrypoints:/entrypoints:ro
+    depends_on:
+      - "janus_app"
+    entrypoint: /entrypoints/development.sh
+    command: ["httpd", "-DFOREGROUND"]
+    environment:
+      SKIP_BUILD: "1"
+      WAIT_FOR_APP: "1"
+      APP_NAME: "janus"
+
+networks:
+  edge_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: '172.16.238.0/24'
+        - subnet: '2001:3984:3989::/64'
+
+volumes:
+  janus-app-gems:
+    driver: local
+  janus-db-data:
+    driver: local
+    name: "janus-db-data"
+  janus-log-dir:
+    driver: local
+    name: "janus-log-dir"
+  janus-tmp-dir:
+    driver: local
+    name: "janus-tmp-dir"
+  janus-public-dir:
+    driver: local
+    name: "janus-public-dir"
+  janus-data-dir:
+    driver: local
+    name: "janus-data-dir"
+  janus-opt-data:
+    driver: local
+  janus-opt-dir:
+    driver: local
+
+services:
+  <<: *base-etna-services
+  janus_webpack:
+    <<: *base-etna-webpack
+    command: sass --watch lib/client/scss/janus.scss:lib/client/css/janus.css
+
+  janus_db:
+    <<: *base-etna-db
+    image: development-psql-9
+

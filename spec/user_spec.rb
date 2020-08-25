@@ -57,6 +57,25 @@ describe User do
 
     Timecop.return
   end
+
+  it 'complains if the email address is not all-lower-case' do
+    expect {
+      create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'Janus@two-faces.org')
+    }.to raise_error(Sequel::ValidationFailed)
+  end
+
+  it 'sets flags on the user' do
+    user = create(
+      :user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org',
+      flags: [ 'doors', 'portals', 'ports' ]
+    )
+
+    # the token reports the flags
+    token = user.create_token!
+    payload, headers = Janus.instance.sign.jwt_decode(token)
+
+    expect(payload['flags']).to eq(user.flags.join(';'))
+  end
 end
 
 describe UserController do
@@ -161,7 +180,7 @@ describe UserController do
 
       # Janus complains
       expect(last_response.status).to eq(401)
-      expect(last_response.body).to eq('Authorization header missing')
+      expect(last_response.body).to eq('You are unauthorized')
 
       # The user's key is unset
       user.refresh

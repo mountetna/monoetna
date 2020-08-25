@@ -5,7 +5,8 @@ trash.rb
 /lib/client/css
 /db/seed.sql
 
-/node_modules/
+/node_modules/*
+!/node_modules/.gitkeep
 /tmp
 /log
 /source
@@ -15,4 +16,9 @@ coverage
 public
 spec/examples.txt
 *.swp
-package-lock.json
+.bundle
+.idea
+.docker-build-mark
+.yarn-packages
+.npm-packages
+.npmrc

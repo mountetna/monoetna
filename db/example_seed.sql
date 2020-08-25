@@ -1,6 +1,6 @@
-# BIG WARNING! MAKE SURE YOU ROTATE THE KEYS BELOW!
-# I am only including them here as an example.
-# These keys are not in production and never should be!
+-- BIG WARNING! MAKE SURE YOU ROTATE THE KEYS BELOW!
+-- I am only including them here as an example.
+-- These keys are not in production and never should be!
 
 INSERT INTO private.apps (app_key, app_name)
 VALUES
