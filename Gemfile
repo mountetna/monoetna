@@ -1,12 +1,14 @@
 source 'http://rubygems.org'
 
-ruby '2.5.7'
+ruby '~> 2.5'
 
 gem 'rack'
 gem 'jwt'
 gem 'rspec'
 gem 'simplecov'
 gem 'rack-test', require: "rack/test"
+gem 'rollbar'
+
 group :test do
   gem 'pry'
   gem 'pry-byebug'
@@ -14,4 +16,6 @@ group :test do
   gem 'webmock'
   gem 'net-http-persistent'
   gem 'multipart-post'
+  gem 'debase'
+  gem 'ruby-debug-ide'
 end
