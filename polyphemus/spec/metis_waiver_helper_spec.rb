@@ -1,17 +1,11 @@
 require 'webmock/rspec'
 require 'json'
 require_relative '../lib/commands'
+require_relative '../lib/metis/waiver_helper'
 
-class TestClass
-  include Polyphemus::WithMetisWaiverHelpers
 
-  def project
-    :mvir1
-  end
-end
-
-describe 'WithMetisWaiverHelpers Module' do
-  let(:test_class) { TestClass.new }
+describe 'MetisWaiverHelper class' do
+  let(:test_class) { MetisWaiverHelper.new(PROJECT) }
 
   before(:each) do
     stub_metis_setup
