@@ -1,4 +1,8 @@
 #! /usr/bin/env bash
+#- Script that updates package.json and Gemfile etna references to a special sha that contains
+#- etna-js or etna packages respectively.  It also updates versions in lock files to ensure that
+#- the current code in this commit is always deployable as a dependency.
+
 set -e
 
 prog=$0
@@ -9,6 +13,11 @@ error() {
 }
 trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
 
+function usage() {
+  echo "$0 [-f]" 1>&2
+	cat $SOURCE | grep -E '^#-.*$$' | sed -e 's@^#- @  @' 1>&2
+}
+
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
   DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
@@ -17,13 +26,25 @@ while [ -h "$SOURCE" ]; do
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
+if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
+  usage
+  exit 0
+fi
+
 cd $DIR/..
 
-lastCommitted=$(git log --pretty=oneline --abbrev-commit | grep "Updated package.json references to artifacts" | head -n 1 | cut -d' ' -f1)
-lastCommitted=${lastCommitted:-HEAD~1}
+git log --pretty=oneline --abbrev-commit | head -n 50
+git log --pretty=oneline --abbrev-commit | grep "etna reference updates" || true
 
-if  ! (git diff --name-only $lastCommitted | grep etna-js/); then
-  echo 'No changes to etna-js found, skipping'
+lastCommitted=$(git log --pretty=oneline --abbrev-commit | grep "etna reference updates" | head -n 1 | cut -d' ' -f1)
+echo "Last etna reference update $lastCommitted"
+lastCommitted=${lastCommitted:-HEAD~100}
+echo "Checking for changes since $lastCommitted"
+
+#- -f
+#-   Used to force updates even if no changes to etna are detected in the current commit log.
+if  ! (git diff --name-only $lastCommitted | grep etna/) && [[ $1 != "-f" ]]; then
+  echo 'No changes to etna found, skipping'
   exit 0
 fi
 
@@ -44,43 +65,80 @@ function mkArtifactSha() {
     cp -r $DIR/../.git ./
     git checkout --orphan "$artifactName-$SHA"
     cp -r $orig/$targetDir/* ./
+    rm -rf packages || true
     git add .
     git commit -m "Artifact $artifactName for sha $SHA"
     sha=$(git rev-parse --verify HEAD)
     git update-ref "$refSpec" $sha
     git push origin "$refSpec" --force
-    ) &>/dev/null
+    ) 1>/dev/null
 
     git rev-parse --verify "$refSpec"
     cd $orig
 }
 
+function updateNpmReferences() {
+  local package_name=$1
+  local sha=$2
+  local new_dep="git\+https:\/\/git@github\.com\/mountetna\/monoetna\.git\#$sha"
 
-IFS=$'\n'
-for dep in $($DIR/child-npm-projects); do
-    IFS=' '
-    read -r package_name dir < <(echo "$dep")
-    echo "Updating $package_name from $dir"
-    sha=$(mkArtifactSha npm-$package_name $dir)
-    echo "Got new ref sha $sha"
-    new_dep="git\+https:\/\/git@github\.com\/mountetna\/monoetna\.git\#$sha"
+  for package_json in $DIR/../**/package.json; do
+    if [[ "$package_json" =~ ./node_modules/ ]]; then continue; fi
+    echo "Processing $package_json"
+    cd "$(dirname "$package_json")"
+    if grep "\"$package_name\":" package.json &>/dev/null; then
+      echo "Applying update to $package_json"
+      sed -i -e "s/\"$package_name\":\ \".*\"/\"$package_name\":\ \"$new_dep\"/" package.json
+      cd $DIR/..
+      docker-compose run -e SKIP_RUBY_SETUP=1 --rm "$(basename "$(dirname "$package_json")")_app" npm update $package_name
+    fi
+  done
+}
 
-    for package_json in $DIR/../**/package.json; do
-        echo "Processing $package_json"
-        cd $(dirname $package_json)
-        if grep "\"$package_name\":" package.json &>/dev/null; then
-          echo "Applying update to $package_json"
-          sed -i -e "s/\"$package_name\":\ \".*\"/\"$package_name\":\ \"$new_dep\"/" package.json
-          npm update $package_name
-        fi
-    done
-done
+function updateBundleReferences() {
+  local package_name=$1
+  local artifactName=$2
+  local git="https:\/\/github\.com\/mountetna\/monoetna\.git"
+
+  for gemfile in $DIR/../**/Gemfile; do
+    if ! [[ -e "$(dirname $gemfile)/docker-compose.yml" ]]; then continue; fi
+    echo "Processing $gemfile"
+    cd "$(dirname "$gemfile")"
+    if grep "gem[ \t]\+[\"']etna[\"']" "$gemfile" &>/dev/null; then
+      echo "Applying update to $gemfile"
+      sed -i -e "s@gem[ \t]\+[\"']etna[\"'].*@gem '${package_name}', git: '${git}', branch: 'refs/artifacts/$artifactName/$SHA'@" "$gemfile"
+      cd $DIR/..
+      docker-compose run -e SKIP_RUBY_SETUP=1 --rm "$(basename "$(dirname "$gemfile")")_app" bundle update $package_name
+    fi
+  done
+}
+
+export COMPOSE_PROJECT_NAME=monoetna
+
+# First, handle etna-js
+cd $DIR/..
+package_name='etna-js'
+dir='etna/packages/etna-js'
+echo "Updating $package_name from $dir"
+sha=$(mkArtifactSha npm-$package_name $dir)
+echo "Got new ref sha $sha"
+updateNpmReferences "$package_name" "$sha"
+
+# Next, handle etna
+cd $DIR/..
+package_name='etna'
+dir='etna'
+echo "Updating $package_name from $dir"
+sha=$(mkArtifactSha gem-${package_name} $dir)
+echo "Updating $package_name from $dir"
+updateBundleReferences "$package_name" "gem-${package_name}"
+
 
 cd $DIR/..
 if ! [ -z "$IS_CI" ]; then
     git status
     git add .
-    git commit -m "Updated package.json references to artifacts"
+    git commit -m "etna reference updates"
     echo "::set-output name=updated::true"
 fi
 

@@ -33,6 +33,8 @@ describe 'Metis Commands' do
     end
 
     it "removes orphaned data blocks" do
+      glacier_stub('metis-test-athena')
+
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
 
@@ -45,6 +47,7 @@ describe 'Metis Commands' do
       wisdom_block_md5_hash = @wisdom_file.data_block.md5_hash
       wisdom_file_block_location = @wisdom_file.data_block.location
       helmet_file_block_location = @helmet_file.data_block.location
+      @wisdom_file.data_block.update(archive_id: 'archive_id')
 
       expect(::File.exists?(wisdom_file_block_location)).to eq(true)
       expect(::File.exists?(helmet_file_block_location)).to eq(true)

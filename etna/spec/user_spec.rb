@@ -98,6 +98,34 @@ describe Etna::User do
     end
   end
 
+  context "flags" do
+    it 'checks flags' do
+      u = Etna::User.new(
+        {
+          email: 'janus@two-faces.org',
+          first: 'Janus',
+          last: 'Bifrons',
+          perm: '',
+          flags: 'doors;portals'
+        },
+        'xyz123randomtoken'
+      )
+      expect(u.has_flag?('doors')).to be_truthy
+    end
+    it 'checks flags if none are set' do
+      u = Etna::User.new(
+        {
+          email: 'janus@two-faces.org',
+          first: 'Janus',
+          last: 'Bifrons',
+          perm: '',
+        },
+        'xyz123randomtoken'
+      )
+      expect(u.has_flag?('doors')).to be_falsy
+    end
+  end
+
   it "gives global permission to an administrator" do
     admin = Etna::User.new(
       email: 'janus@two-faces.org',

@@ -97,6 +97,20 @@ class Metis
       refresh
     end
 
+    def update_bucket_and_rename!(new_folder, new_folder_name, new_bucket)
+      update(folder: new_folder, folder_name: new_folder_name, bucket: new_bucket)
+
+      # Need to recursively update all sub-folders and files
+      files.each { |file|
+        file.update_bucket!(new_bucket)
+      }
+      folders.each { |folder|
+        folder.update_bucket_and_rename!(self, folder.folder_name, new_bucket)
+      }
+
+      refresh
+    end
+
     def remove!
       delete
     end
@@ -109,17 +123,21 @@ class Metis
       update(read_only: false)
     end
 
-    def to_hash
-      {
+    def to_hash(with_path=true)
+      my_hash = {
         folder_name: folder_name,
         bucket_name: bucket.name,
-        folder_path: ::File.join(folder_path),
+        folder_path: with_path ? ::File.join(folder_path) : nil,
         project_name: project_name,
         read_only: read_only,
         updated_at: updated_at.iso8601,
         created_at: created_at.iso8601,
         author: author
       }
+
+      my_hash.delete(:folder_path) if !with_path
+
+      return my_hash
     end
   end
 end

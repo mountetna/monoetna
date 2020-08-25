@@ -1,10 +1,10 @@
 require 'logger'
+require 'rollbar'
 
 module Etna
   class Logger < ::Logger
     def initialize(log_dev, age, size)
       super
-
       self.formatter = proc do |severity, datetime, progname, msg|
         format(severity, datetime, progname, msg)
       end
@@ -14,11 +14,28 @@ module Etna
       "#{severity}:#{datetime.iso8601} #{msg}\n"
     end
 
+    def warn(msg, &block)
+      super
+      Rollbar.warn(msg)
+    end
+
+    def error(msg, &block)
+      super
+      Rollbar.error(msg)
+    end
+
+    def fatal(msg, &block)
+      super
+      Rollbar.error(msg)
+    end
+
     def log_error(e)
       error(e.message)
       e.backtrace.each do |trace|
         error(trace)
       end
+
+      Rollbar.error(e)
     end
 
     def log_request(request)

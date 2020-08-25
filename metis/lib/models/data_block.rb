@@ -102,6 +102,7 @@ class Metis
       if !removed
         delete_block!
         update(removed: true, updated_at: DateTime.now)
+        Metis.instance.archiver.delete(self) if archive_id
       end
     end
 
