@@ -3,6 +3,7 @@ require 'net/http/post/multipart'
 require 'singleton'
 require_relative '../../client'
 require_relative './models'
+
 module Etna
   module Clients
     class Metis
