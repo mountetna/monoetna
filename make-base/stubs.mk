@@ -1,6 +1,3 @@
-baseTag:=$(shell basename "$$(pwd)")
-fullTag:=$(IMAGES_PREFIX)$(baseTag)$(IMAGES_POSTFIX)
-
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \
 		sed 's/^[^:]*://' | sort | uniq | \
