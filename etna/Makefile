@@ -10,5 +10,5 @@ bash::
 	@ docker-compose run -e SKIP_RUBY_SETUP=1 --rm etna_app bash
 
 release-test::
-	docker run --rm -e APP_NAME=etna -e RELEASE_TEST=1 --network monoetna_default $(fullTag) bundle exec rspec
-	docker run --rm -e APP_NAME=etna -e RELEASE_TEST=1 --network monoetna_default $(fullTag) npm test
+	docker run --rm -e APP_NAME=etna -e RELEASE_TEST=1 -e SKIP_DB_WAIT=1 --network monoetna_default $(fullTag) /entrypoints/development.sh bundle exec rspec
+	docker run --rm -e APP_NAME=etna -e RELEASE_TEST=1 -e SKIP_RUBY_SETUP=1 -e RUN_NPM_INSTALL=1 -e SKIP_DB_WAIT=1 --network monoetna_default $(fullTag) /entrypoints/development.sh npm test
