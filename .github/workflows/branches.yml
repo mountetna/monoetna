@@ -16,15 +16,8 @@ jobs:
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
-      - name: Cache release successes
-        uses: actions/cache@v2
-        with:
-          path: |
-            /tmp/releases
-          key: releases-branches-${{ runner.os }}
       - name: Download all images
         env:
-          PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
@@ -32,7 +25,6 @@ jobs:
       - name: Run metis test suite
         id: metis_first_test_run
         env:
-          PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
@@ -40,7 +32,6 @@ jobs:
       - name: Run janus test suite
         id: janus_first_test_run
         env:
-          PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
@@ -48,7 +39,6 @@ jobs:
       - name: Run timur test suite
         id: timur_first_test_run
         env:
-          PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
@@ -56,7 +46,6 @@ jobs:
       - name: Run magma test suite
         id: magma_first_test_run
         env:
-          PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
@@ -64,7 +53,6 @@ jobs:
       - name: Run polyphemus tests
         id: polyphemus_first_test_run
         env:
-          PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
@@ -74,7 +62,6 @@ jobs:
       - name: Run etna test suite
         id: etna_first_test_run
         env:
-          PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
