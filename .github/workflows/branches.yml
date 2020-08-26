@@ -28,7 +28,7 @@ jobs:
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master
         run: |
-          ./bin/x-all-images docker pull %
+          ./bin/x-all-images bash -c 'docker pull % || true'
       - name: Run metis test suite
         id: metis_first_test_run
         env:
