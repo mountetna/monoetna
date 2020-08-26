@@ -1,2 +1,3 @@
 FROM etna-base
-# STUB
+RUN rm -rf /app && ln -sfT /etna /app
+RUN bundle install
