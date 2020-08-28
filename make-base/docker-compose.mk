@@ -1,6 +1,8 @@
 export COMPOSE_PROJECT_NAME:=monoetna
 COMPOSE_MIXINS:=docker-compose.shared.yml $(COMPOSE_MIXINS)
 app_service_name:=${app_name}_app
+baseTag:=$(shell basename "$$(pwd)")
+fullTag:=$(IMAGES_PREFIX)$(baseTag)$(IMAGES_POSTFIX)
 
 docker-compose.yml:: $(wildcard ../docker/*.shared.yml) ../docker/default_compose
 	COMPOSE_MIXINS="$(COMPOSE_MIXINS)" ../docker/default_compose docker-compose.yml
@@ -40,19 +42,12 @@ test:: docker-ready
 	cp ../docker/.dockerignore.template ./.dockerignore
 
 release-build:: .dockerignore
-	mkdir -p /tmp/releases
-	touch /tmp/releases/success
-	echo '' > /tmp/digest
-	../docker/build_image -d Dockerfile $(BUILD_REQS) > /tmp/digest
-	cat /tmp/digest
-	if ! grep "$$(cat /tmp/digest)" /tmp/releases/success && [ -n "$$PULL_IMAGES" ]; then docker pull $(fullTag) || true; fi
-	if ! grep "$$(cat /tmp/digest)" /tmp/releases/success; then ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); fi
+	../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS)
 
 release::
 	make release-build
-	if ! grep "$$(cat /tmp/digest)" /tmp/releases/success && ! [ -n "$$NO_TEST" ]; then make release-test; fi
-	if  grep "$$(cat /tmp/digest)" /tmp/releases/success && [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi
-	cat /tmp/digest >> /tmp/releases/success
+	if ! [ -n "$$NO_TEST" ]; then make release-test; fi
+	if   [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi
 
 release-test::
 	true

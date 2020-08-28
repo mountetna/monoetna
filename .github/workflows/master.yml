@@ -23,13 +23,16 @@ jobs:
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
+      - name: Download all images
+        env:
+          IMAGES_PREFIX: etnaagent/
+          IMAGES_POSTFIX: :master
+        run: |
+          ./bin/x-all-images docker pull %
       - name:  Push artifacts and update package.json / Gemfile
         if: "!contains(github.event.head_commit.author.name, 'GithubAction')"
         id: update-package-references
         env:
-          PULL_IMAGES: 1
-          IMAGES_PREFIX: etnaagent/
-          IMAGES_POSTFIX: :master
           IS_CI: 1
         run: |
           make -C docker docker-ready
@@ -48,9 +51,14 @@ jobs:
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
+      - name: Download all images
+        env:
+          IMAGES_PREFIX: etnaagent/
+          IMAGES_POSTFIX: :master
+        run: |
+          ./bin/x-all-images docker pull %
       - name: Test + Push Release
         env:
-          PULL_IMAGES: 1
           PUSH_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
           IMAGES_POSTFIX: :master

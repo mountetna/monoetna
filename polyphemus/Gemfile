@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/09b523cc8db9471a05be3cf472d76520ffa41009'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/cc615bf8e7a4eadfd1b4cb92e25266cb922e4b33'
 
 group :development, :test do
   gem 'rspec'
