@@ -1,0 +1,15 @@
+components:
+  schemas:
+    Bucket:
+      type: object
+      properties:
+        bucket_name:
+          type: string
+        project_name:
+          type: string
+        access:
+          $ref: "./janus_schemas.yml#/components/schemas/Role"
+        description:
+          type: string
+        count:
+          type: integer

@@ -7,15 +7,51 @@ class DirectedGraph
   attr_reader :children
   attr_reader :parents
 
+  def include?(node)
+    @children.include?(node)
+  end
+
+  def add_node(node)
+    [@children[node] ||= {}, @parents[node] ||= {}]
+  end
+
   def add_connection(parent, child)
-    children = @children[parent] ||= {}
-    child_children = @children[child] ||= {}
-
+    children, parent_parents = add_node(parent)
+    parents, child_children = add_node(child)
     children[child] = child_children
-
-    parents = @parents[child] ||= {}
-    parent_parents = @parents[parent] ||= {}
     parents[parent] = parent_parents
+  end
+
+  def order_nodes
+    processed = Set.new
+    result = []
+
+    queue = @children.keys.dup.sort.map { |k| [k, []] }
+    while (node, parents = queue.shift)
+      next if processed.include?(node)
+
+      unseen = @children[node].keys.filter { |i| !processed.include?(i) }
+      if unseen.empty?
+        result << node
+        processed.add(node)
+        next
+      end
+
+      new_parents = parents.dup
+      new_parents << node
+
+      unseen.each do |unseen_node|
+        if parents.include?(unseen_node)
+          raise "Cannot order nodes, cyclical dependency found #{parents.join(' -> ')} -> #{unseen_node}"
+        end
+
+        queue.unshift([unseen_node, new_parents])
+      end
+
+      queue.unshift([node, parents])
+    end
+
+    result
   end
 
   def descendants(parent)

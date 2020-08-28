@@ -1,0 +1,36 @@
+openapi: 3.0.0
+info:
+  title: Metis File Api
+  description: File system interactions with the metis file store
+  version: 0.1.0
+servers:
+  - url: https://metis.ucsf.edu
+    description: Production
+    x-tag: production
+  - url: https://metis-stage.ucsf.edu
+    description: Staging
+    x-tag: staging
+  - url: https://metis.development.local
+    description: Development
+    x-tag: development
+paths:
+  /{project_name}/list/:
+    get:
+      x-method-name: project_bucket_list
+      summary: Returns the list of buckets in a project.
+      parameters:
+        - in: path
+          name: project_name
+          required: true
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  buckets:
+                    type: array
+                    items:
+                      $ref: './schemas/metis_schemas.yml#/components/schemas/Bucket'

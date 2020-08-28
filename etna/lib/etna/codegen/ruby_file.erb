@@ -1,0 +1,18 @@
+<% identifiers.each(&:render) %>
+
+<% relative_requires.each do |require| %>
+<%= require.render %>
+<% end %>
+<% requires.each do |require| %>
+<%= require.render %>
+<% end %>
+
+<% (module_scopes[...-1]).each do |scope| %>
+<%= scope %> end
+<% end %>
+
+<%= module_scopes.last %>
+<% identifers.each do |identifier| %>
+  <%= identifier.render %>
+<% end %>
+end

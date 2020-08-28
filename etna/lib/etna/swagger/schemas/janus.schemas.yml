@@ -1,0 +1,5 @@
+components:
+  schemas:
+    Role:
+      type: string
+      enum: [admin, administrator, editor, viewer]

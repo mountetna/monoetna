@@ -1,0 +1,22 @@
+class <%= identifier %>
+  attr_reader :etna_client, :opts
+
+  <%= commented(description) %>
+
+  SERVERS = {
+      <% servers.each do |server| %>
+        <%= server['x-tag'] %>: <%= server['url'] %> <%= commented(server['description'] || '') %>
+      <% end %>
+  }
+
+  def initialize(host:, token:, **opts)
+    raise 'client configuration is missing host.' unless host
+    raise 'client configuration is missing token.' unless token
+    @opts = opts
+    @etna_client = ::Etna::Client.new(host, token, routes_available: false)
+  end
+
+  <%= methods.each do |method| %>
+  <%= method.render %>
+  <% end %>
+end

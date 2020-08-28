@@ -1,0 +1,44 @@
+def <%= identifier %>(<%= params_name %> = <%= params_default %>, &block)
+  raw_result = nil
+
+  <% if path_segments.length == 1 %>
+  path = <%= path_segments.first %>
+  <% else %>
+  path = []
+  <% path_segments.each do |segment| %>
+  path << <%= segment %>
+  <% end %>
+  path = path.join('')
+  <% end %>
+
+  <% if http_method == 'get' %>
+  @etna_client.get(path, <%= params_name %>.as_json) do |response|
+  <% elsif request_content_type == 'application/json' %>
+  @etna_client.send(:<%= http_method %>, path, <%= params_name %>) do |response|
+  <% elsif request_content_type == 'multipart/form-data' %>
+  @etna_client.send(:multipart_<%= http_method %>, path, <%= params_name %>.encode_multipart_content) do |response|
+  <% end %>
+    if block_given?
+      return yield response
+    end
+
+    <% response_by_status.each do |status, response_schema| %>
+    if response.code == '<%= status %>'
+    <% if response_schema['content'] %>
+    <% response_schema['content'].each do |content_type, content_schema| %>
+      if response.content_type =~ /^<%= content_type.gsub(/\//, '\/') %>;/
+        <% if content_type == "application/json" %>
+        body_hash = JSON.parse(response.body)
+        <% end %>
+        <% if content_schema['schema'] %>
+        <%= swagger_schema_identifier(content_schema['schema']) %>.new(body_hash)
+        <% end %>
+      end
+    <% end %>
+    <% end %>
+    end
+    <% end %>
+
+    return response.body.read
+  end
+end
