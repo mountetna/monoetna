@@ -24,6 +24,15 @@ module Etna
       end
 
       def rename_folder(rename_folder_request)
+        if rename_folder_request.create_parent
+          create_parent_request = CreateFolderRequest.new(
+            project_name: rename_folder_request.project_name,
+            bucket_name: rename_folder_request.new_bucket_name,
+            folder_path: parent_folder_path(rename_folder_request.new_folder_path)
+          )
+          create_folder(create_parent_request) if !folder_exists?(create_parent_request)
+        end
+
         FoldersResponse.new(
           @etna_client.folder_rename(rename_folder_request.to_h))
       end
@@ -31,6 +40,34 @@ module Etna
       def create_folder(create_folder_request)
         FoldersResponse.new(
           @etna_client.folder_create(create_folder_request.to_h))
+      end
+
+      def folder_exists?(create_folder_request)
+        # NOTE: this doesn't test if the folder_path itself exists
+        #   This can be confusing for root folders, because
+        #       they have no parents, so you don't need
+        #       to create anything.
+        return true if create_folder_request.folder_path.empty? # root folder
+
+        # returns 422 if the folder_path does not exist
+        begin
+          list_folder(
+              Etna::Clients::Metis::ListFolderRequest.new(
+                project_name: create_folder_request.project_name,
+                bucket_name: create_folder_request.bucket_name,
+                folder_path: create_folder_request.folder_path
+            ))
+        rescue Etna::Error => e
+            return false if e.status == 422
+            raise
+        end
+        return true
+      end
+
+      private
+
+      def parent_folder_path(folder_path)
+        folder_path.split('/')[0..-2].join('/')
       end
     end
   end
