@@ -16,7 +16,6 @@ module Etna
 
     def warn(msg, &block)
       super
-      Rollbar.warn(msg)
     end
 
     def error(msg, &block)
