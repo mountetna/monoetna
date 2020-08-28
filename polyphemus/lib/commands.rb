@@ -324,7 +324,7 @@ class Polyphemus
 
       unless patient['restricted']
         logger.warn("Attempting to restrict access to #{name}")
-        Rollbar.warn("Attempting to restrict access to #{name}")
+        Rollbar.info("Attempting to restrict access to #{name}")
         update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
         update_request.update_revision('patient', name, restricted: true)
         magma_client.update(update_request)
@@ -334,7 +334,7 @@ class Polyphemus
     def unrestrict!(patient)
       name = patient['name']
       logger.warn("Attempting to unrestrict access to #{name}")
-      Rollbar.warn("Attempting to unrestrict access to #{name}")
+      Rollbar.info("Attempting to unrestrict access to #{name}")
 
       release_patient_data(name)
 
