@@ -16,7 +16,7 @@ class <%= identifier %>
     @etna_client = ::Etna::Client.new(host, token, routes_available: false)
   end
 
-  <%= methods.each do |method| %>
+  <% methods.each do |method| %>
   <%= method.render %>
   <% end %>
 end

@@ -1,34 +1,40 @@
 describe Etna::Codegen::Templated do
-  class DeferringContainer < Etna::Codegen::Context
-    def initialize(template, key)
-      super(key)
-      @template = template
-      @values_watch = template.watch(@values)
+  class Template < Etna::Codegen::Context
+    include Etna::Codegen::Templated
+    render_with_erb 'test_template_self.erb', __FILE__
+
+    def sub_items
+      @sub_items ||= TemplateEach.new(a: 1)
     end
 
-    def notify(obj)
-      @template.notify(obj)
+    def helper(v)
+      "helped #{v}\n"
     end
   end
 
-  class MyTemplate < Etna::Codegen::Context
-    include ::Etna::Codegen::Templated
-    render_with_erb 'test_template.erb', __FILE__
-
-    def a
-      @a ||= DeferringContainer.new(self, {})
-    end
-
-    def b
-      @b ||= DeferringContainer.new(self, {})
-    end
-
-    def maybe
-
-    end
+  class TemplateEach < Etna::Codegen::Context
+    include Etna::Codegen::Templated
+    render_with_erb 'test_template_each.erb', __FILE__
 
     def items
-      watch(@values)
+      @values.values
     end
+
+    def add_one(v)
+      sub_context(key: v) { |key| v }
+    end
+  end
+
+  it 'works' do
+    expect(Template.new(blah: 1).render).to eql("  a
+  b
+  c
+helped t
+Hello
+World
+
+Thing
+
+")
   end
 end

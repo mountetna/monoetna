@@ -28,7 +28,7 @@ module Etna
             result = constructor.new(key)
           end
 
-          notify(@values) if self.respond_to? :notify
+          notify(result) if self.respond_to? :notify
           result
         end
 
@@ -37,7 +37,7 @@ module Etna
 
       def prepare_key(key)
         raise "key must be a Hash, found #{key.class}" unless key.is_a? Hash
-        overlap = (key.key & @key.key)
+        overlap = (key.keys & @key.keys)
         raise "sub_resource keys overlap with parent: #{self} - #{overlap}" unless overlap.empty?
         @key.dup.update(key)
       end

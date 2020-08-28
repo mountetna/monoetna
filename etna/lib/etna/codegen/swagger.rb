@@ -1,5 +1,5 @@
 require 'yaml'
-require_relative 'scopes'
+require_relative 'contexts'
 require_relative 'ruby'
 
 module Etna

@@ -7,7 +7,7 @@
 <%= require.render %>
 <% end %>
 
-<% (module_scopes[...-1]).each do |scope| %>
+<% (module_scopes.slice(0, module_scopes.length - 1)).each do |scope| %>
 <%= scope %> end
 <% end %>
 
