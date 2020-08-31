@@ -1,5 +1,6 @@
 require 'date'
 require 'logger'
+require 'rollbar'
 
 class Polyphemus
   class Help < Etna::Command
@@ -268,7 +269,7 @@ class Polyphemus
           # Magma does not support delete right now, so we restrict the models, but we can unlink and
           # delete the files in metis
           restrict!(patient, delete_metis_files: true)
-        elsif should_be_restricted && ! patient['restricted']
+        elsif should_be_restricted
           restrict!(patient)
         elsif ! should_be_restricted && patient['restricted']
           unrestrict!(patient)
@@ -312,11 +313,6 @@ class Polyphemus
 
     def restrict!(patient, delete_metis_files: false)
       name = patient['name']
-      logger.warn("Attempting to restrict access to #{name}")
-
-      # This code path should be --eventually consistent--  That is to say, we should ensure each operation
-      # is idempotent (may need to be repeated), and that the patient is not marked restricted until all other
-      # related tasks are complete and the state is consistent.
 
       if delete_metis_files
         # do metis movement attempt for now -- no auto-delete
@@ -326,19 +322,20 @@ class Polyphemus
         restrict_patient_data(name)
       end
 
-
-      update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
-      update_request.update_revision('patient', name, restricted: true)
-      magma_client.update(update_request)
+      unless patient['restricted']
+        logger.warn("Attempting to restrict access to #{name}")
+        Rollbar.info("Attempting to restrict access to #{name}")
+        update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
+        update_request.update_revision('patient', name, restricted: true)
+        magma_client.update(update_request)
+      end
     end
 
     def unrestrict!(patient)
       name = patient['name']
       logger.warn("Attempting to unrestrict access to #{name}")
+      Rollbar.info("Attempting to unrestrict access to #{name}")
 
-      # This code path should be --eventually consistent--  That is to say, we should ensure each operation
-      # is idempotent (may need to be repeated), and that the patient is not marked restricted until all other
-      # related tasks are complete and the state is consistent.
       release_patient_data(name)
 
       update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
