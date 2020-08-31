@@ -1,0 +1,8 @@
+<% items.each do |require_path| %>
+  <% if require_path.start_with? '.' %>
+require_relative <%= require_path.to_json %>
+  <% else %>
+require <%= require_path.to_json %>
+  <% end %>
+<% end %>
+

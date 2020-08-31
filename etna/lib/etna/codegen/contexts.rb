@@ -5,10 +5,11 @@ module Etna
     # Simple container class that collects inherited context, making deeply nested objects
     # easier to manage, while providing simple memoization of sub resources by key.
     class Context
+      attr_reader :key
+
       def initialize(key)
         @key = {}
         @values = {}
-
         @key = prepare_key(key)
       end
 
@@ -31,8 +32,6 @@ module Etna
           notify(result) if self.respond_to? :notify
           result
         end
-
-        key
       end
 
       def prepare_key(key)
@@ -56,12 +55,12 @@ module Etna
 
       protected
 
-      def build_file(project_path, &block)
-        if project_path.start_with?('.') || project_path.start_with?('/')
-          raise "project_path #{project_path} is not valid, cannot start with . or /"
+      def build_file(file_path, &block)
+        if file_path.start_with?('.') || file_path.start_with?('/')
+          raise "file_path #{file_path} is not valid, cannot start with . or /"
         end
 
-        sub_context(file: project_path) do |key|
+        sub_context(project_path: ProjectPath.new(self, file_path)) do |key|
           block.call(key)
         end
       end
@@ -83,13 +82,13 @@ module Etna
         adjusted_root = "."
         if @project != other.project
           if @project.package_name != other.project.package_name
-            return nil
+            return [other.project.package_name] + other.path.split('/')
           end
 
           adjusted_root = Pathname.new(other.project.target_path).relative_path_from(@project.target_path).to_s
         end
 
-        File.join(adjusted_root, Pathname.new(other.path).relative_path_from(@path).to_s)
+        File.join(adjusted_root, Pathname.new(other.path).relative_path_from(@path).to_s).split('/')
       end
     end
   end

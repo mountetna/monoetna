@@ -15,13 +15,6 @@ module Etna
         @swagger_cache ||= SwaggerFile.new(self, path)
       end
 
-      def etna_client(swagger_file)
-        app_name = swagger_file.basename(".*.yml")
-        build_file("clients/#{app_name}/client.rb") do |key|
-          Ruby::EtnaClientFile.new(key.update(app_name: app_name, swagger_file: swagger_file, scopes: {module: "Etna::Clients"}))
-        end
-      end
-
       def generate_api(swagger_file)
         etna_client(app_name)
       end
@@ -29,6 +22,15 @@ module Etna
       def generate_all
         Dir[File.expand_path("../../swagger/*.yml", __FILE__)].each do |api_file|
           generate_api(load_swagger(api_file))
+        end
+      end
+
+      private
+
+      def etna_client(swagger_file)
+        app_name = swagger_file.basename(".*.yml")
+        build_file("clients/#{app_name}/client.rb") do |key|
+          Ruby::EtnaClientFile.new(key.update(app_name: app_name, swagger_file: swagger_file, scopes: {module: "Etna::Clients"}))
         end
       end
     end

@@ -1,4 +1,5 @@
 require 'erb'
+require_relative 'contexts'
 
 module Etna
   module Codegen
@@ -59,8 +60,9 @@ module Etna
           class << self
             def render_with_erb(erb, relative = __FILE__)
               erb = ERB.new(File.open(File.expand_path("../#{erb}", relative)).read, nil, '<>', 'self.buffer')
-              erb.def_method(self, '_render', relative)
+              erb.def_method(self, '_render(items)', relative)
             end
+            
           end
         end
       end
@@ -95,7 +97,12 @@ module Etna
         if @cached.nil?
           @parts = []
           @buffer = MagicBuffer.new
-          _render
+          if self.is_a? Context
+            _render(@values.values)
+          else
+            _render([])
+          end
+
           @parts = @buffer.flush
         end
 

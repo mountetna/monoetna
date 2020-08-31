@@ -16,10 +16,6 @@ describe Etna::Codegen::Templated do
     include Etna::Codegen::Templated
     render_with_erb 'test_template_each.erb', __FILE__
 
-    def items
-      @values.values
-    end
-
     def add_one(v)
       sub_context(key: v) { |key| v }
     end
