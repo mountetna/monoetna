@@ -71,7 +71,7 @@ class Polyphemus
           restrict!(patient, delete_metis_files: true)
         elsif should_be_restricted
           restrict!(patient)
-        elsif ! should_be_restricted && patient['restricted']
+        elsif ! should_be_restricted
           unrestrict!(patient)
         end
       end
