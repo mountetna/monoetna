@@ -12,11 +12,24 @@ export const stubUrl = ({
   request,
   status = 200,
   headers = {},
-  host = 'http://localhost'
+  host = 'http://localhost',
+  url,
 }) => {
   let nocked;
 
-  console.log('Stubbing for', {request, path, verb, response}, '\nactive')
+  if (url) {
+    if (!(url instanceof URL)) {
+      url = new URL(url);
+    }
+
+    host = url.protocol + "//" + url.hostname;
+    path = url.pathname;
+    if (url.search) {
+      path += "?" + url.search;
+    }
+  }
+
+  console.log('Stubbing for', {request, path, verb, response, host}, '\nactive')
 
   return new Promise((resolve, reject) => {
     const base = nock(host)[verb](path, request);
