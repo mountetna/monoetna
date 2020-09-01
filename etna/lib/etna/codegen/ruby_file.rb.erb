@@ -1,11 +1,9 @@
 <%= rendered(requires) %>
-
 <% (module_scopes.slice(0, module_scopes.length - 1)).each do |scope| %>
-<%= scope %> end
+<%= scope %>
+end
 <% end %>
 
-<%= module_scopes.last %>
-<% items.each do |identifier| %>
-  <%= rendered(identifier) %>
-<% end %>
+<%= module_scopes.last %><% items.each do |identifier| %>
+<%= rendered(identifier) %><% end %>
 end

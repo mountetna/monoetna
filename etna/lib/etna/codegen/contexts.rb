@@ -1,4 +1,5 @@
 require_relative '../directed_graph'
+require 'fileutils'
 
 module Etna
   module Codegen
@@ -49,8 +50,28 @@ module Etna
     class Project < Context
       def initialize(package_name)
         super(project: self, package_name: @package_name)
-        @build_path = ::Tempfile.mkdir
         @package_name = package_name
+      end
+
+      def build(dest)
+        Tempfile.open('etna-swagger') do |tmp|
+          build_path = tmp.path + "_dir"
+          begin
+            FileUtils.mkdir_p(build_path)
+
+            @values.each do |key, file|
+              path = File.join(build_path, key[:project_path].path)
+              FileUtils.mkdir_p(File.dirname(path))
+              File.open(path, File::CREAT | File::WRONLY) do |f|
+                f << file.render
+              end
+            end
+
+            FileUtils.cp_r build_path + '/.', dest
+          ensure
+            FileUtils.rm_rf(build_path)
+          end
+        end
       end
 
       protected

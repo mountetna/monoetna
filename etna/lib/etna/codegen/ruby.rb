@@ -1,6 +1,8 @@
 require_relative 'templates'
 require 'json'
 
+
+
 module Etna
   module Codegen
     module Ruby
@@ -16,7 +18,7 @@ module Etna
 
       module HasFileContext
         def imported_identifier(scopes:, project_path:, identifier:, **key)
-          requires.add_require(project_path: project_path)
+          @key[:file].requires.add_require(project_path: project_path)
           "#{relative_scope(scopes: scopes)}::#{identifier}"
         end
       end
@@ -24,6 +26,10 @@ module Etna
       class File < Context
         include Templated
         render_with_erb 'ruby_file.rb.erb'
+
+        def initialize(key)
+          super({file: self}.update(key))
+        end
 
         def requires
           @requires ||= RequiresSet.new(@key)
@@ -63,6 +69,8 @@ module Etna
       end
 
       class Definition < Context
+        include HasFileContext
+
         def identifier
           @key[:identifier]
         end
@@ -75,12 +83,16 @@ module Etna
       end
 
       class MethodDefinition < Definition
-        def identifier
+        include HasFileContext
+
+        def method_name
           @key[:method_name]
         end
       end
 
       class EtnaClientFile < File
+        include HasFileContext
+
         def client_class
           sub_context(EtnaClient, identifier: app_name.capitalize)
         end
@@ -91,6 +103,7 @@ module Etna
       end
 
       class EtnaClient < Definition
+        include HasFileContext
         include Templated
         render_with_erb 'etna_client.rb.erb'
 
@@ -103,20 +116,16 @@ module Etna
         end
 
         def method(method_name)
-          sub_context(method_name: method_name) { |key| EtnaClientPathMethod.new(key, flattened_methods[method_name]) }
+          sub_context(method_name: method_name) { |key| EtnaClientPathMethod.new(key, flattened_schema_methods[method_name]) }
         end
 
         def all_methods
-          flattened_methods.keys.map { |k| method(k) }
+          flattened_schema_methods.keys.map { |k| method(k) }
         end
 
         private
 
-        def methods
-          @values.values
-        end
-
-        def flattened_methods
+        def flattened_schema_methods
           result = {}
           @flattened_methods ||= schema.dig('paths').each do |path, http_methods|
             http_methods.each do |http_method, v|

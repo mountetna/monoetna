@@ -1,6 +1,7 @@
 require 'yaml'
 require_relative 'contexts'
 require_relative 'ruby'
+require_relative '../logger'
 
 module Etna
   module Codegen
@@ -12,25 +13,33 @@ module Etna
       end
 
       def load_swagger(path)
-        @swagger_cache ||= SwaggerFile.new(self, path)
+        @swagger_cache[path] ||= SwaggerFile.new(self, path)
       end
 
       def generate_api(swagger_file)
-        etna_client(app_name)
+        client = etna_client(swagger_file).client_class
+        client.all_methods.each do |method_name|
+          client.method(method_name)
+        end
       end
 
       def generate_all
         Dir[File.expand_path("../../swagger/*.yml", __FILE__)].each do |api_file|
           generate_api(load_swagger(api_file))
         end
+
+        build(File.expand_path("../../generated", __FILE__ ))
       end
 
       private
 
       def etna_client(swagger_file)
-        app_name = swagger_file.basename(".*.yml")
+        app_name = swagger_file.basename(".api.yml")
         build_file("clients/#{app_name}/client.rb") do |key|
-          Ruby::EtnaClientFile.new(key.update(app_name: app_name, swagger_file: swagger_file, scopes: {module: "Etna::Clients"}))
+          Ruby::EtnaClientFile.new(key.update(
+              app_name: app_name,
+              swagger_file: swagger_file,
+              scopes: {module: "Etna::Clients"}))
         end
       end
     end

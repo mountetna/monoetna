@@ -59,7 +59,7 @@ module Etna
         mod.instance_eval do
           class << self
             def render_with_erb(erb, relative = __FILE__)
-              erb = ERB.new(File.open(File.expand_path("../#{erb}", relative)).read, nil, '<>', 'self.buffer')
+              erb = ERB.new(File.open(File.expand_path("../#{erb}", relative)).read, nil, nil, 'self.buffer')
               erb.def_method(self, '_render(items)', relative)
             end
             
