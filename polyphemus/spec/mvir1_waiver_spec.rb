@@ -2,8 +2,6 @@ require 'webmock/rspec'
 require 'json'
 require_relative '../lib/commands'
 require_relative '../lib/metis/mvir1_waiver'
-require 'pry'
-
 
 describe 'Mvir1Waiver class' do
   let(:test_class) { Mvir1Waiver.new(
