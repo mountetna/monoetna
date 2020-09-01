@@ -15,13 +15,6 @@ describe 'Mvir1Waiver class' do
     stub_metis_setup
   end
 
-  it 'fetches all data folders when called' do
-    test_class.send('folders', :release_bucket)
-    test_class.send('folders', :restrict_bucket)
-    expect(WebMock).to have_requested(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RELEASE_BUCKET}/)
-    expect(WebMock).to have_requested(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RESTRICT_BUCKET}/)
-  end
-
   it 'does not throw an exception when does not find a valid patient to release' do
     stub_parent_exists
     test_class.release_patient_data('Dan')

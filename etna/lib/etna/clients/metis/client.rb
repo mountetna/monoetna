@@ -64,6 +64,37 @@ module Etna
         return true
       end
 
+      def folders(project_name:, bucket_name:)
+        @folders ||= Hash.new { |h, key|
+          h[key] = list_all_folders(
+            Etna::Clients::Metis::ListFoldersRequest.new(
+              project_name: project_name,
+              bucket_name: key
+            )).folders.all
+        }
+
+        @folders[bucket_name]
+      end
+
+      def rename_folders_by_regex(project_name:, source_bucket:, source_folders:, dest_bucket:, regex:)
+        found_folders = source_folders.select { |folder|
+            folder.folder_path =~ regex
+        }
+
+        return if found_folders.length == 0
+
+        found_folders.each { |folder|
+            rename_folder(Etna::Clients::Metis::RenameFolderRequest.new(
+              bucket_name: source_bucket,
+              project_name: project_name,
+              folder_path: folder.folder_path,
+              new_bucket_name: dest_bucket,
+              new_folder_path: folder.folder_path,
+              create_parent: true)
+            )
+        }
+      end
+
       private
 
       def parent_folder_path(folder_path)

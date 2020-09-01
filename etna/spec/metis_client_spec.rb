@@ -151,4 +151,11 @@ describe 'Metis Client class' do
     expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/)
     expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
   end
+
+  it 'fetches all data folders when called' do
+    test_class.folders(project_name: PROJECT, bucket_name: RELEASE_BUCKET)
+    test_class.folders(project_name: PROJECT, bucket_name: RESTRICT_BUCKET)
+    expect(WebMock).to have_requested(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RELEASE_BUCKET}/)
+    expect(WebMock).to have_requested(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RESTRICT_BUCKET}/)
+  end
 end
