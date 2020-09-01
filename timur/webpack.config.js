@@ -11,7 +11,7 @@ module.exports = (env) => ({
       'react-table': path.join(__dirname, 'node_modules/react-table'),
       react: path.join(__dirname, 'node_modules/react'),
       'react-dom': path.join(__dirname, 'node_modules/react-dom'),
-      'react-redux': path.join(__dirname, 'node_modules/react-redux'),
+      'react-redux': path.join(__dirname, 'node_modules/react-redux')
     },
     symlinks: false
   },
@@ -30,7 +30,7 @@ module.exports = (env) => ({
         include: [
           path.resolve(__dirname, 'lib/client/jsx'),
           path.resolve(__dirname, 'node_modules/etna-js/'),
-          '/etna/packages/etna-js',
+          '/etna/packages/etna-js'
         ],
 
         // Only run `.js` and `.jsx` files through Babel
@@ -67,7 +67,12 @@ module.exports = (env) => ({
             __dirname,
             'node_modules/react-loader-spinner/dist/loader/css'
           ),
-          path.resolve(__dirname, 'lib/client/scss')
+          path.resolve(__dirname, 'lib/client/scss'),
+          path.resolve(
+            __dirname,
+            'node_modules/react-notifications-component/dist'
+          ),
+          path.resolve(__dirname, 'node_modules/animate.css/')
         ],
 
         loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
