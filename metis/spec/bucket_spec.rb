@@ -325,4 +325,89 @@ describe BucketController do
       expect(json_body[:error]).to eq('Cannot remove bucket')
     end
   end
+
+  context '#find' do
+    it 'returns files and folders according to supplied parameters' do
+      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'viewer', owner: 'metis')
+      stubs.create_bucket('athena', 'my_bucket')
+
+      public_folder = create_folder('athena', 'public', bucket: bucket)
+      stubs.create_folder('athena', 'my_bucket', 'public')
+
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: bucket, folder: public_folder)
+      stubs.create_file('athena', 'my_bucket', 'public', 'wisdom.txt', WISDOM)
+
+      token_header(:viewer)
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: 'w%'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders]).to eq([])
+      expect(json_body[:files].length).to eq(1)
+      expect(json_body[:files].first[:file_name]).to eq(wisdom_file.file_name)
+
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '%i%'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].first[:folder_name]).to eq(public_folder.folder_name)
+      expect(json_body[:files].length).to eq(1)
+      expect(json_body[:files].first[:file_name]).to eq(wisdom_file.file_name)
+
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '%ic%'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].first[:folder_name]).to eq(public_folder.folder_name)
+      expect(json_body[:files]).to eq([])
+    end
+
+    it 'returns error if user does not have access to view project' do
+      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
+      stubs.create_bucket('athena', 'my_bucket')
+
+      public_folder = create_folder('athena', 'wisdom', bucket: bucket)
+      stubs.create_folder('athena', 'my_bucket', 'public')
+
+      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: bucket, folder: public_folder)
+      stubs.create_file('athena', 'my_bucket', 'public', 'wisdom.txt', WISDOM)
+
+      token_header(:viewer)
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: 'w%'
+      }])
+
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'returns no data if no search results found' do
+      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'viewer', owner: 'metis')
+      stubs.create_bucket('athena', 'my_bucket')
+
+
+      token_header(:viewer)
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: 'private%'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:files]).to eq([])
+      expect(json_body[:folders]).to eq([])
+    end
+  end
 end

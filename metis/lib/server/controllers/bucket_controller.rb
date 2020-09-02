@@ -1,3 +1,5 @@
+require_relative '../../query_builder'
+
 class BucketController < Metis::Controller
   def list
     buckets = Metis::Bucket.where(
@@ -59,5 +61,37 @@ class BucketController < Metis::Controller
     bucket.remove!
 
     return success_json(response)
+  end
+
+  def find
+    bucket = require_bucket
+    require_params(:project_name, :params)
+    params = @params[:params]
+
+    file_query = Metis::QueryBuilder.new(
+      Metis::File.where(
+        project_name: @params[:project_name],
+        bucket: bucket),
+      params
+    )
+
+    # Should try to optimize this?
+    files = file_query.build.all.map do |file|
+      file.to_hash(@request)
+    end
+
+    folder_query = Metis::QueryBuilder.new(
+      Metis::Folder.where(
+        project_name: @params[:project_name],
+        bucket: bucket
+      ),
+      params
+    )
+
+    folders = folder_query.build.all.map do |fold|
+      fold.to_hash
+    end
+
+    success_json(files: files, folders: folders)
   end
 end
