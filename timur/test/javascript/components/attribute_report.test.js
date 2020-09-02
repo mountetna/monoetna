@@ -7,9 +7,7 @@ const monster = require('../fixtures/template_monster.json');
 describe('AttributeReport', () => {
   it('renders', () => {
     const tree = renderer
-      .create(
-        <AttributeReport attribute={monster.attributes.name} />
-      )
+      .create(<AttributeReport attribute={monster.attributes.name} />)
       .toJSON();
 
     expect(tree).toMatchSnapshot();

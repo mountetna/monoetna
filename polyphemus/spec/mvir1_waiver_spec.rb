@@ -1,27 +1,16 @@
 require 'webmock/rspec'
 require 'json'
 require_relative '../lib/commands'
+require_relative '../lib/metis/mvir1_waiver'
 
-class TestClass
-  include Polyphemus::WithMetisWaiverHelpers
-
-  def project
-    :mvir1
-  end
-end
-
-describe 'WithMetisWaiverHelpers Module' do
-  let(:test_class) { TestClass.new }
+describe 'Mvir1Waiver class' do
+  let(:test_class) { Mvir1Waiver.new(
+    metis_client: Etna::Clients::Metis.new(token: 'fake-token', host: 'https://metis.test'),
+    project_name: PROJECT
+  ) }
 
   before(:each) do
     stub_metis_setup
-  end
-
-  it 'fetches all data folders when called' do
-    test_class.send('release_folders')
-    test_class.send('restrict_folders')
-    expect(WebMock).to have_requested(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RELEASE_BUCKET}/)
-    expect(WebMock).to have_requested(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RESTRICT_BUCKET}/)
   end
 
   it 'does not throw an exception when does not find a valid patient to release' do

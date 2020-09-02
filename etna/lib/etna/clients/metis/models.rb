@@ -19,11 +19,11 @@ module Etna
         end
       end
 
-      class RenameFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, :new_bucket_name, :new_folder_path, keyword_init: true)
+      class RenameFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, :new_bucket_name, :new_folder_path, :create_parent, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)
-          super({}.update(params))
+          super({create_parent: false}.update(params))
         end
 
         def to_h
