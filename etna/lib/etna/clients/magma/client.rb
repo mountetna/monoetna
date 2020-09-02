@@ -52,7 +52,7 @@ module Etna
         UpdateResponse.new(json)
       end
 
-      def update_model(update_model_request = UpdateModelResponse.new)
+      def update_model(update_model_request = UpdateModelRequest.new)
         json = nil
         @etna_client.post('/update_model', update_model_request) do |res|
           json = JSON.parse(res.body)
