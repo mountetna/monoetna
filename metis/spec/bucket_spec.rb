@@ -327,16 +327,24 @@ describe BucketController do
   end
 
   context '#find' do
-    it 'returns files and folders according to supplied parameters' do
-      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'viewer', owner: 'metis')
+    before(:each) do
+      @bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'viewer', owner: 'metis')
       stubs.create_bucket('athena', 'my_bucket')
 
-      public_folder = create_folder('athena', 'public', bucket: bucket)
+      @public_folder = create_folder('athena', 'public', bucket: @bucket)
       stubs.create_folder('athena', 'my_bucket', 'public')
 
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: bucket, folder: public_folder)
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: @bucket, folder: @public_folder)
       stubs.create_file('athena', 'my_bucket', 'public', 'wisdom.txt', WISDOM)
+    end
 
+    after(:each) do
+      stubs.clear
+
+      expect(stubs.contents(:athena)).to be_empty
+    end
+
+    it 'returns files and folders according to supplied parameters' do
       token_header(:viewer)
       json_post("/athena/find/my_bucket", params: [{
         attribute: 'name',
@@ -347,7 +355,7 @@ describe BucketController do
       expect(last_response.status).to eq(200)
       expect(json_body[:folders]).to eq([])
       expect(json_body[:files].length).to eq(1)
-      expect(json_body[:files].first[:file_name]).to eq(wisdom_file.file_name)
+      expect(json_body[:files].first[:file_name]).to eq(@wisdom_file.file_name)
 
       json_post("/athena/find/my_bucket", params: [{
         attribute: 'name',
@@ -357,9 +365,9 @@ describe BucketController do
 
       expect(last_response.status).to eq(200)
       expect(json_body[:folders].length).to eq(1)
-      expect(json_body[:folders].first[:folder_name]).to eq(public_folder.folder_name)
+      expect(json_body[:folders].first[:folder_name]).to eq(@public_folder.folder_name)
       expect(json_body[:files].length).to eq(1)
-      expect(json_body[:files].first[:file_name]).to eq(wisdom_file.file_name)
+      expect(json_body[:files].first[:file_name]).to eq(@wisdom_file.file_name)
 
       json_post("/athena/find/my_bucket", params: [{
         attribute: 'name',
@@ -369,22 +377,98 @@ describe BucketController do
 
       expect(last_response.status).to eq(200)
       expect(json_body[:folders].length).to eq(1)
-      expect(json_body[:folders].first[:folder_name]).to eq(public_folder.folder_name)
+      expect(json_body[:folders].first[:folder_name]).to eq(@public_folder.folder_name)
       expect(json_body[:files]).to eq([])
     end
 
-    it 'returns error if user does not have access to view project' do
-      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'editor', owner: 'metis')
-      stubs.create_bucket('athena', 'my_bucket')
-
-      public_folder = create_folder('athena', 'wisdom', bucket: bucket)
-      stubs.create_folder('athena', 'my_bucket', 'public')
-
-      wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: bucket, folder: public_folder)
-      stubs.create_file('athena', 'my_bucket', 'public', 'wisdom.txt', WISDOM)
-
+    it 'can specify type flag to search only for files' do
       token_header(:viewer)
       json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: 'w%',
+        type: 'file'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders]).to eq([])
+      expect(json_body[:files].length).to eq(1)
+      expect(json_body[:files].first[:file_name]).to eq(@wisdom_file.file_name)
+
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '%i%',
+        type: 'file'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders]).to eq([])
+      expect(json_body[:files].length).to eq(1)
+      expect(json_body[:files].first[:file_name]).to eq(@wisdom_file.file_name)
+
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '%ic%',
+        type: 'file'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq([])
+      expect(json_body[:files]).to eq([])
+    end
+
+    it 'can specify type flag to search only for folders' do
+      token_header(:viewer)
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: 'w%',
+        type: 'folder'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders]).to eq([])
+      expect(json_body[:files]).to eq([])
+
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '%i%',
+        type: 'folder'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].first[:folder_name]).to eq(@public_folder.folder_name)
+      expect(json_body[:files]).to eq([])
+
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '%ic%',
+        type: 'folder'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].first[:folder_name]).to eq(@public_folder.folder_name)
+      expect(json_body[:files]).to eq([])
+    end
+
+    it 'returns error if user does not have access to view bucket' do
+      restricted_bucket = create( :bucket, project_name: 'athena', name: 'restricted_bucket', access: 'editor', owner: 'metis')
+      stubs.create_bucket('athena', 'restricted_bucket')
+
+      public_folder = create_folder('athena', 'public', bucket: restricted_bucket)
+      stubs.create_folder('athena', 'restricted_bucket', 'public')
+
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: restricted_bucket, folder: public_folder)
+      stubs.create_file('athena', 'restricted_bucket', 'public', 'helmet.jpg', HELMET)
+
+      token_header(:viewer)
+      json_post("/athena/find/restricted_bucket", params: [{
         attribute: 'name',
         predicate: '=~',
         value: 'w%'
@@ -394,10 +478,6 @@ describe BucketController do
     end
 
     it 'returns no data if no search results found' do
-      bucket = create( :bucket, project_name: 'athena', name: 'my_bucket', access: 'viewer', owner: 'metis')
-      stubs.create_bucket('athena', 'my_bucket')
-
-
       token_header(:viewer)
       json_post("/athena/find/my_bucket", params: [{
         attribute: 'name',

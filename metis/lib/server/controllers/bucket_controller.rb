@@ -1,4 +1,4 @@
-require_relative '../../query_builder'
+require_relative '../../query'
 
 class BucketController < Metis::Controller
   def list
@@ -74,19 +74,20 @@ class BucketController < Metis::Controller
         bucket: bucket),
       params
     )
+    query = Metis::Query.new(
+      project_name: @params[:project_name],
+      bucket_name: @params[:bucket_name],
+      params: params)
+
+    results = query.execute
+
+    files = results[:files]
+    folders = results[:folders]
 
     # Should try to optimize this?
     files = file_query.build.all.map do |file|
       file.to_hash(@request)
     end
-
-    folder_query = Metis::QueryBuilder.new(
-      Metis::Folder.where(
-        project_name: @params[:project_name],
-        bucket: bucket
-      ),
-      params
-    )
 
     folders = folder_query.build.all.map do |fold|
       fold.to_hash

@@ -3,8 +3,6 @@ require 'date'
 class Metis
   class QueryBuilder
 
-    attr_reader :base_query
-
     def initialize(base_query, params)
       @base_query = base_query
       @params = params
@@ -14,8 +12,7 @@ class Metis
       @params.each do |param|
         next unless param.key?(:attribute) && param.key?(:predicate) && param.key?(:value)
 
-        # Modify query behavior based on "type" of attribute....but no way
-        #   to know that from the user params?
+        # Modify query behavior based on "type" of attribute
         case param[:attribute]
         when 'created_at', 'updated_at'
           @base_query = @base_query.where{|o|
@@ -33,8 +30,12 @@ class Metis
 
     private
 
+    def is_file_query
+      @base_query.model == Metis::File
+    end
+
     def model_name_attribute
-      @base_query.model == Metis::File ? :file_name : :folder_name
+      is_file_query ? :file_name : :folder_name
     end
   end
 end
