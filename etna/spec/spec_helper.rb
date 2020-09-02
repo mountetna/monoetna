@@ -58,3 +58,64 @@ RSpec.configure do |config|
   # you configure your source control system to ignore this file.
   config.example_status_persistence_file_path = "spec/examples.txt"
 end
+
+METIS_HOST = 'https://metis.test'
+PROJECT = 'test'
+RESTRICT_BUCKET = 'restrict'
+RELEASE_BUCKET = 'release'
+
+def stub_metis_setup
+  route_payload = JSON.generate([
+    {:method=>"GET", :route=>"/:project_name/list_all_folders/:bucket_name", :name=>"folder_list_all_folders", :params=>["project_name", "bucket_name"]},
+    {:method=>"GET", :route=>"/:project_name/list/:bucket_name/*folder_path", :name=>"folder_list", :params=>["project_name", "bucket_name", "folder_path"]},
+    {:method=>"POST", :route=>"/:project_name/folder/rename/:bucket_name/*folder_path", :name=>"folder_rename", :params=>["project_name", "bucket_name", "folder_path"]},
+    {:method=>"POST", :route=>"/:project_name/folder/create/:bucket_name/*folder_path", :name=>"folder_create", :params=>["project_name", "bucket_name", "folder_path"]}
+  ])
+
+  stub_request(:options, METIS_HOST).
+    to_return({
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: route_payload
+    })
+  stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RELEASE_BUCKET}/)
+    .to_return({
+      status: 200,
+      headers: {
+      'Content-Type' => 'application/json'
+      },
+      body: JSON.parse(File.read('spec/fixtures/metis_release_folder_fixture.json')).to_json
+    })
+
+  stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RESTRICT_BUCKET}/)
+    .to_return({
+      status: 200,
+      headers: {
+      'Content-Type' => 'application/json'
+      },
+      body: JSON.parse(File.read('spec/fixtures/metis_restrict_folder_fixture.json')).to_json
+    })
+end
+
+def stub_parent_exists(params={})
+  stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_create_folder(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_rename_folder(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end

@@ -3,8 +3,8 @@ module.exports = {
     fetch: require('node-fetch'),
     TIMUR_CONFIG: {
       project_name: 'labors',
-      magma_host: 'https://magma.test',
-    },
+      magma_host: 'https://magma.test'
+    }
   },
   testURL: 'http://localhost',
   transformIgnorePatterns: ['node_modules/(?!(etna-js)/)'],
@@ -15,7 +15,8 @@ module.exports = {
     '^react-redux$': '<rootDir>/node_modules/react-redux',
     '^react-dom$': '<rootDir>/node_modules/react-dom',
     '^enzyme$': '<rootDir>/node_modules/enzyme',
-    '^enzyme-adapter-react-16$': '<rootDir>/node_modules/enzyme-adapter-react-16',
+    '^enzyme-adapter-react-16$':
+      '<rootDir>/node_modules/enzyme-adapter-react-16'
   },
   testMatch: ['**/test/**/?(*.)(spec|test).js?(x)'],
   collectCoverageFrom: ['**/*.js?(x)'],

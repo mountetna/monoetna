@@ -19,3 +19,4 @@ trash.rb
 config.yml
 .bundle
 coverage
+spec/examples.txt

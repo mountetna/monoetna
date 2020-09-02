@@ -4,21 +4,21 @@ import {mount} from 'enzyme';
 import {act} from 'react-dom/test-utils';
 import {mockStore} from '../helpers';
 import {stubUrl} from 'etna-js/spec/helpers';
-import Browser from "../../../lib/client/jsx/components/browser/browser";
-import {defaultView} from "../../../lib/client/jsx/reducers/view_reducer";
+import Browser from '../../../lib/client/jsx/components/browser/browser';
+import {defaultView} from '../../../lib/client/jsx/reducers/view_reducer';
 
 describe('Browser', () => {
   let store;
 
   const models = {
-    monster: { template: require('../fixtures/template_monster.json') },
-    labor: { template: require('../fixtures/template_labor.json') },
-    project: { template: require('../fixtures/template_project.json') }
+    monster: {template: require('../fixtures/template_monster.json')},
+    labor: {template: require('../fixtures/template_labor.json')},
+    project: {template: require('../fixtures/template_project.json')}
   };
 
   beforeEach(() => {
     store = mockStore({
-      magma: { models },
+      magma: {models}
     });
   });
 
@@ -37,40 +37,40 @@ describe('Browser', () => {
         verb: 'get',
         url: Routes.manifests_fetch_path('labors'),
         status: 200,
-        response: {},
+        response: {}
       }),
 
       stubUrl({
         verb: 'get',
         url: Routes.plots_fetch_path('labors'),
         status: 200,
-        response: { plots: [] },
+        response: {plots: []}
       }),
 
       stubUrl({
         verb: 'get',
         url: Routes.view_path('labors', 'monster'),
         status: 200,
-        response: { view: defaultView({}) },
-      }),
-    ]
+        response: {view: defaultView({})}
+      })
+    ];
 
     let browser = mount(
       <Provider store={store}>
-        <Browser model_name='monster' record_name='joe'/>
+        <Browser model_name='monster' record_name='joe' />
       </Provider>
     );
 
     await act(async () => {
-      await Promise.all(initialStubs)
+      await Promise.all(initialStubs);
       // This is kind of silly, hope we can unpack these a bit.
-      await new Promise((resolve) => setTimeout(resolve, 10))
-    })
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
 
     await act(async () => {
       console.log(browser.debug());
       // browser.find('.test-bar-button-edit').simulate('click');
-      await new Promise((resolve) => setTimeout(resolve, 10))
-    })
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    });
   });
 });
