@@ -14,21 +14,27 @@ class Magma
       reasons = []
       return reasons unless restrict?
 
-      if model.has_attribute?(:restricted)
-        restricted_identifiers = model.where(
-          model.identity => revisions.map(&:record_name).map(&:to_s),
-          restricted: true
-        ).select_map(model.identity)
+      record_names = revisions.map(&:record_name).map(&:to_s)
 
-        unless restricted_identifiers.empty?
-          restricted_identifiers.each do |restricted_identifier|
-            reasons << "Cannot revise restricted #{model.model_name} '#{restricted_identifier}'"
-          end
+      restricted_identifiers = record_names - Magma::Question.new(
+        @project_name,
+        [
+          model.model_name.to_s,
+          [ '::identifier', '::in', record_names ],
+          '::all',
+          '::identifier'
+        ],
+        restrict: true
+      ).answer.map(&:last)
+
+      unless restricted_identifiers.empty?
+        restricted_identifiers.each do |restricted_identifier|
+          reasons << "Cannot revise restricted #{model.model_name} '#{restricted_identifier}'"
         end
       end
 
       restricted_attributes = model.attributes.values
-        .select(&:restricted).map(&:name)
+        .select(&:restricted).map(&:name) + [:restricted]
 
       revisions.each do |revision|
         (restricted_attributes & revision.attribute_names).each do |attribute_name|

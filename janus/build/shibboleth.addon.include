@@ -1,0 +1,29 @@
+<If "env('JANUS_ENV') == 'production'">
+    # This line sets a special header available to Thin/Rack/Ruby.
+    # The variable 'EMAIL' is only set IF Shibboleth is working and has
+    # a valid user login. The variable 'EMAIL' is an environment variable
+    # that only shibd can set. Below you will see the 'ShibUseEnvironment On'
+    # directive. This allows the data from the Shibboleth authentication to be
+    # Set to the Apache environment variables.
+
+    # If shib is working and a user is authenticated, EMAIL == [the user's email]
+    # Else EMAIL == null
+    RequestHeader set X-Shib-Attribute "%{EMAIL}e"
+</If>
+
+# Shibboleth to function properly.
+<Location /Shibboleth.sso>
+AuthType None
+Require all granted
+</Location>
+
+# This is the protected endpoint which kicks of a shibboleth auth cycle.
+<Location /login>
+    <If "env('JANUS_ENV') == 'production'">
+        AuthType shibboleth
+        ShibRequestSetting requireSession 1
+        Require shib-session
+        Require valid-user
+        ShibUseEnvironment On
+    </If>
+</Location>

@@ -29,6 +29,14 @@ class Metis
       data_block.save
     end
 
+    def delete(data_block)
+      raise ArgumentError, "No vault defined!" unless @config
+      return unless data_block.archive_id
+
+      archive = vault.archives.get(data_block.archive_id)
+      archive.destroy
+    end
+
     private
 
     def vault

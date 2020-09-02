@@ -70,6 +70,7 @@ class RetrieveController < Magma::Controller
   private
 
   def validate
+    return error('`project_name` is required') if @project_name.nil?
     return error('`model_name` is required') if @model_name.nil?
     return error('`record_names` must be Array, or `all`') unless valid_record_names?
     return error('`attribute_names` must be Array, `all`, or `identifier`') unless @attribute_names.is_a?(Array) || @attribute_names == 'all' || @attribute_names == 'identifier'
@@ -135,7 +136,7 @@ class RetrieveController < Magma::Controller
       Magma::TSVWriter.new(model, retrieval, @payload).write_tsv{ |lines| stream << lines }
     end
 
-    return [ 200, { 'Content-Type' => 'text/tsv' }, tsv_stream ]
+    return [ 200, { 'Content-Type' => 'text/tsv', 'Content-Disposition' => 'inline; filename="results.tsv' }, tsv_stream ]
   end
 
   def retrieve_model(model, record_names, attribute_names, filters, use_pages, get_tables)
@@ -173,7 +174,7 @@ class RetrieveController < Magma::Controller
         [
           Magma::Retrieval::ParentFilter.new(
             att.link_model, model,
-            records.map{|r| r[model.identity]}
+            records.map{|r| r[model.identity.column_name.to_sym]}
           )
         ],
         false,

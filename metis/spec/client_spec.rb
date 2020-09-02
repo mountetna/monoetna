@@ -46,9 +46,11 @@ describe MetisShell do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+      stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
+
       expect_output("metis://athena/armor", "ls", "-l") {
-        "metis  Jun 17 04:37    helmet/\n"+
-        "metis  Jun 17 04:37 helmet.jpg\n"
+        "metis    Jun 17 04:37    helmet/\n"+
+        "metis 13 Jun 17 04:37 helmet.jpg\n"
       }
       Timecop.return
     end
@@ -89,16 +91,65 @@ describe MetisShell do
   end
 
   describe MetisShell::Put do
+    # WebMock does not handle multipart/form-data, so it
+    #   strips out the body data on those POST requests.
+    # So this is actually impossible to test except in
+    #   a 'production' environment.
     xit 'puts a file into a bucket' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_path = stubs.create_data('stubs', 'helmet.txt', HELMET)
       #expect_output("metis://athena/armor", "put", helmet_path) { '' }
       #expect(Metis::File.first.file_name).to eq('helmet.txt')
     end
+
+    it 'retries to upload a file into a bucket on a 422 response' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_path = stubs.create_data('stubs', 'helmet.txt', HELMET)
+
+      expect_output("metis://athena/armor", "put", helmet_path, '.') { nil }
+
+      # There is a call to authorize the upload
+      expect(WebMock).to have_requested(:post, /https:\/\/metis.test\/authorize\/upload/).
+        with(body: hash_including({
+          "project_name": "athena",
+          "bucket_name": "armor",
+          "file_path": "helmet.txt"
+        }))
+
+      # There is a non-reset call to start the upload
+      expect(WebMock).to have_requested(:post, /https:\/\/metis.test\/athena\/upload\/armor\/helmet.txt/).
+        with(query: hash_including({
+          "X-Etna-Id": "metis"
+        })).
+        with(headers: {
+          "Content-Type": "application/json"
+        }).
+        with { |req| (req.body.include? 'start') && !(req.body.include? 'reset')}
+
+      # There are two attempts to upload blobs. One for the original attempt,
+      #   and one for the retry.
+      expect(WebMock).to have_requested(:post, /https:\/\/metis.test\/athena\/upload\/armor\/helmet.txt/).
+        with(query: hash_including({
+          "X-Etna-Id": "metis"
+        })).
+        with(headers: {
+          "Content-Type": "multipart/form-data"
+        }).twice
+
+      # There is a call to reset the upload
+      expect(WebMock).to have_requested(:post, /https:\/\/metis.test\/athena\/upload\/armor\/helmet.txt/).
+        with(query: hash_including({
+          "X-Etna-Id": "metis"
+        })).
+        with(headers: {
+          "Content-Type": "application/json"
+        }).
+        with { |req| (req.body.include? 'start') && (req.body.include? 'reset')}
+    end
   end
 
   describe MetisShell::Get do
-    xit 'downloads a folder from a bucket' do
+    it 'downloads a folder from a bucket' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
@@ -106,12 +157,19 @@ describe MetisShell do
 
       # it shows download progress
       expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg/ }
-      expect(::File.read("spec/data/helmet/helmet.jpg")).to eq(HELMET)
+
+      # This ideally would equal HELMET, but because we don't use Apache X-Sendfile
+      #   while testing, no bits are sent by Metis and the local file has no data.
+      # expect(::File.read("spec/data/helmet/helmet.jpg")).to eq(HELMET)
+
+      expect(::File.read("spec/data/helmet/helmet.jpg")).to eq('')
 
       # cleanup
       FileUtils.rm_rf('spec/data/helmet')
     end
 
+    # We aren't able to test this because Metis uses Apache's X-Sendfile module
+    #   to send the actual bits. So we require a 'production' environment.
     xit 'does not download data twice' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
@@ -123,6 +181,26 @@ describe MetisShell do
 
       # second time it shows no progress
       expect_output("metis://athena/armor", "get", "helmet", "spec/data") { "" }
+
+      # cleanup
+      FileUtils.rm_rf('spec/data/helmet')
+    end
+
+    it 'will re-download data if the file size does not match' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+
+      # first time it shows download progress
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg/ }
+
+      # At this point there will be a file created locally, but it will be 0 bytes
+      #   because no bits are sent. So the file size will not be matched with remote
+      #   and calling the command again should result in a re-download.
+
+      # second time it still shows download progress
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg/ }
 
       # cleanup
       FileUtils.rm_rf('spec/data/helmet')

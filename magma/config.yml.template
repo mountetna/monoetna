@@ -10,11 +10,14 @@
   :host: https://magma.development.local
   :log_file: /dev/stdout
   :log_level: info
+  :hmac_keys:
+    :magma: haggis
   :storage:
     :provider: metis
     :host: metis.development.local
     :download_expiration: 1440
     :upload_expiration: 720
+  :server_pidfile: tmp/pids/puma.pid
   :token_algo: RS256
   :token_name: JANUS_DEV_TOKEN
   :rsa_public: |

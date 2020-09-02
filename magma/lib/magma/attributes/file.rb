@@ -64,13 +64,12 @@ class Magma
       end
     end
 
-    def query_to_tsv(value)
-      file = query_to_payload(value)
+    def query_to_tsv(file)
       file ? file[:url] : nil
     end
 
     def entry(value, loader)
-      [ name, value.to_json ]
+      [ column_name, value.to_json ]
     end
 
     private

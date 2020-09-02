@@ -1,0 +1,30 @@
+#! /usr/bin/env bash
+set -e
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+cd $DIR/..
+
+set -x
+docker-compose run janus_app ./bin/janus add_project 'test-project' 'Test Project'
+docker-compose run janus_app ./bin/janus add_project 'administration' 'Admin'
+docker-compose run janus_app ./bin/janus add_project ipi 'Immuno Profiler Project'
+docker-compose run janus_app ./bin/janus add_user developer@ucsf.edu Developer Person password
+docker-compose run janus_app ./bin/janus permit developer@ucsf.edu test-project administrator
+docker-compose run janus_app ./bin/janus permit developer@ucsf.edu administration administrator
+docker-compose run janus_app ./bin/janus permit developer@ucsf.edu ipi administrator
+

@@ -88,4 +88,22 @@ describe Metis::Archive do
     wisdom_data.refresh
     expect(wisdom_data.archive_id).to eq('archive_id')
   end
+
+  it "does not try to checksum or archive removed data blocks" do
+    wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+    stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+    expect(wisdom_file.data_block.archive_id).to eq(nil)
+    temp_md5_hash = "temp-#{wisdom_file.data_block.md5_hash}"
+    wisdom_file.data_block.update(md5_hash: temp_md5_hash, removed: true)
+
+    expected = "Found 0 data blocks to be checksummed.\nFound 0 files to be archived.\n"
+
+    expect {
+      @cmd.execute
+    }.to output(expected).to_stdout
+
+    expect(wisdom_file.data_block.archive_id).to eq(nil)
+    expect(wisdom_file.data_block.md5_hash).to eq(temp_md5_hash)
+  end
 end

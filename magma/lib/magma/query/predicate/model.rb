@@ -31,11 +31,19 @@ class Magma
       @model = model
       @filters = []
 
-      if question.restrict? && @model.has_attribute?(:restricted)
-        # the model can be restricted, and we should withhold restricted data
-        query_args.unshift(
-          [ 'restricted', '::false' ]
-        )
+      if question.restrict?
+      # the model can be restricted, and we should withhold restricted data
+        restriction_model = model
+        ancestral_path = []
+        while restriction_model do
+          if restriction_model.has_attribute?(:restricted)
+            query_args.unshift(
+              ancestral_path + [ 'restricted', '::untrue' ]
+            )
+          end
+          ancestral_path << restriction_model.parent_model_name&.to_s
+          restriction_model = restriction_model.parent_model
+        end
       end
 
       # Since we are shifting off the the first elements on the query_args array
@@ -122,7 +130,7 @@ class Magma
     end
 
     def column_name
-      Sequel[alias_name][@model.identity]
+      Sequel[alias_name][@model.identity.column_name]
     end
 
     def constraint
@@ -143,7 +151,7 @@ class Magma
     end
 
     def identity
-      :"#{alias_name}_#{@model.identity}"
+      :"#{alias_name}_#{@model.identity.column_name}"
     end
   end
 end

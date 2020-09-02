@@ -7,14 +7,21 @@ class Magma
     verb '::true' do
       child TrueClass
       constraint do
-        basic_constraint(@attribute_name, true)
+        basic_constraint(@column_name, true)
       end
     end
 
     verb '::false' do
       child TrueClass
       constraint do
-        not_constraint(@attribute_name, true)
+        basic_constraint(@column_name, false)
+      end
+    end
+
+    verb '::untrue' do
+      child TrueClass
+      constraint do
+        not_constraint(@column_name, true)
       end
     end
   end

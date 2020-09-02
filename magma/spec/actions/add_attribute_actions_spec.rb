@@ -19,20 +19,20 @@ describe Magma::AddAttributeAction do
   end
 
   let(:action) { Magma::AddAttributeAction.new(project_name, action_params) }
-  let(:model_name) { "monster" }
+  let(:model_name) { "labor" }
   let(:attribute_name) { "number_of_claws" }
 
   describe '#perform' do
     context "when it succeeds" do
       after do
         # Clear out new test attributes that are cached in memory
-        action.rollback
+        Labors::Labor.attributes.delete(attribute_name.to_sym)
       end
 
       it 'adds a new attribute and returns no errors' do
         expect(action.perform).to eq(true)
         expect(action.errors).to be_empty
-        expect(Labors::Monster.attributes[attribute_name.to_sym].display_name).to eq("name")
+        expect(Labors::Labor.attributes[attribute_name.to_sym].display_name).to eq("name")
       end
     end
 
@@ -42,7 +42,7 @@ describe Magma::AddAttributeAction do
       it "captures the error and doesn't add the attribute" do
         expect(action.perform).to eq(false)
         expect(action.errors).not_to be_empty
-        expect(Labors::Monster.attributes[attribute_name.to_sym]).to be_nil
+        expect(Labors::Labor.attributes[attribute_name.to_sym]).to be_nil
       end
     end
   end
@@ -64,12 +64,29 @@ describe Magma::AddAttributeAction do
       end
     end
 
+    context "when setting the restricted property" do
+      before(:each) { action_params[:restricted] = true }
+
+      it 'succeeds' do
+        expect(action.validate).to eq(true)
+      end
+
+      context "on an attribute named restricted" do
+        let(:attribute_name) { 'restricted' }
+
+        it 'fails' do
+          expect(action.validate).to eq(false)
+          expect(action.errors.last[:message]).to eq("restricted column may not, itself, be restricted")
+        end
+      end
+    end
+
     context "when the attribute already exists" do
       let(:attribute_name) { 'name' }
 
       it 'captures an attribute error' do
         expect(action.validate).to eq(false)
-        expect(action.errors.first[:message]).to eq("attribute_name already exists on Labors::Monster")
+        expect(action.errors.first[:message]).to eq("attribute_name already exists on Labors::Labor")
       end
     end
 
@@ -130,17 +147,6 @@ describe Magma::AddAttributeAction do
         expect(action.validate).to eq(false)
         expect(action.errors.first[:message]).to eq("Attribute does not implement foo")
       end
-    end
-  end
-
-  describe "#rollback" do
-    before do
-      action.perform
-    end
-
-    it "rolls back in memory changes" do
-      action.rollback
-      expect(Labors::Monster.attributes.keys).not_to include(attribute_name.to_sym)
     end
   end
 end

@@ -22,6 +22,11 @@ class Magma
           @parent = attribute.name if attribute.is_a?(Magma::ParentAttribute)
           attribute.magma_model = self
           self.attributes[attribute.name] = attribute
+
+          if !attribute.is_a?(Magma::Link) && attribute.attribute_name != attribute.column_name
+            alias_method attribute.attribute_name, attribute.column_name
+            alias_method "#{attribute.attribute_name}=", "#{attribute.column_name}="
+          end
         end
       end
 
@@ -76,19 +81,23 @@ class Magma
       end
 
       def identity
-        @identity || primary_key
+        @identity ||= identifier(primary_key, hidden: true, primary_key: true)
       end
 
-      def identity=(identity)
-        @identity = (identity)
+      def identity=(identifier_attribute)
+        @identity = identifier_attribute
       end
 
       def has_identifier?
-        @identity
+        !identity.primary_key?
       end
 
       def parent_model_name
         @parent
+      end
+
+      def parent_model
+        @parent ? Magma.instance.get_model(project_name, parent_model_name) : nil
       end
 
       # suggests dictionary entries based on
@@ -107,7 +116,7 @@ class Magma
               [ name, attributes[name].json_template ]
             end
           ],
-          identifier: identity,
+          identifier: identity.attribute_name.to_sym,
           dictionary: @dictionary && @dictionary.to_hash,
           parent: parent_model_name
         }.delete_if {|k,v| v.nil? }
@@ -167,7 +176,7 @@ class Magma
     end
 
     def identifier
-      send model.identity
+      send model.identity.column_name
     end
 
     # Run a loader on a hook from carrier_wave.

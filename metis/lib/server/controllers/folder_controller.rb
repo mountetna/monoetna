@@ -1,3 +1,5 @@
+require_relative '../../folder_rename_revision'
+
 class FolderController < Metis::Controller
   def list
     bucket = require_bucket
@@ -19,6 +21,28 @@ class FolderController < Metis::Controller
     end
 
     success_json(files: files, folders: folders)
+  end
+
+  def list_all_folders
+    bucket = require_bucket
+
+    limit = @params.has_key?(:limit) ? @params[:limit].to_i : nil
+    offset = @params.has_key?(:offset) ? @params[:offset].to_i : nil
+
+    raise Etna::BadRequest, "Invalid offset" if offset&.negative?
+    raise Etna::BadRequest, "Invalid limit" if limit&.negative?
+
+    folders = Metis::Folder.where(
+      bucket: bucket
+    ).all
+
+    limit = limit ? limit : folders.length
+    offset = offset ? offset : 0
+
+    folder_hashes = folder_hashes_with_calculated_paths(folders, offset, limit)
+
+    success_json(
+      folders: folder_hashes)
   end
 
   def create
@@ -73,28 +97,47 @@ class FolderController < Metis::Controller
 
   def rename
     require_param(:new_folder_path)
-    bucket = require_bucket
-    folder = Metis::Folder.from_path(bucket, @params[:folder_path]).last
 
-    raise Etna::Error.new('Folder not found', 404) unless folder
+    source_bucket = require_bucket
 
-    raise Etna::Forbidden, 'Folder is read-only' if folder.read_only?
+    dest_bucket = source_bucket
+    if @params[:new_bucket_name]
+      dest_bucket = require_bucket(@params[:new_bucket_name])
+    end
 
-    raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:new_folder_path])
+    revision = Metis::FolderRenameRevision.new({
+      source: Metis::Path.path_from_parts(
+        @params[:project_name],
+        source_bucket.name,
+        @params[:folder_path]
+      ),
+      dest: Metis::Path.path_from_parts(
+        @params[:project_name],
+        dest_bucket.name,
+        @params[:new_folder_path]
+      ),
+      user: @user
+    })
 
-    new_parent_folder_path, new_folder_name = Metis::File.path_parts(@params[:new_folder_path])
+    revision.set_bucket(revision.source, [source_bucket, dest_bucket])
+    revision.set_bucket(revision.dest, [source_bucket, dest_bucket])
 
-    new_parent_folder = require_folder(bucket, new_parent_folder_path)
+    # we need the dest parent folder here, so we call File#path_parts
+    source_folder_path, _ = Metis::File.path_parts(@params[:folder_path])
+    dest_folder_path, _ = Metis::File.path_parts(@params[:new_folder_path])
 
-    raise Etna::Forbidden, 'Folder is read-only' if new_parent_folder && new_parent_folder.read_only?
+    revision.set_folder(
+      revision.source,
+      [require_folder(source_bucket, source_folder_path)].compact)
+    revision.set_folder(
+      revision.dest,
+      [require_folder(dest_bucket, dest_folder_path)].compact) if dest_folder_path
 
-    raise Etna::BadRequest, 'Cannot overwrite existing folder' if Metis::Folder.exists?(new_folder_name, bucket, new_parent_folder)
+    revision.validate
 
-    raise Etna::BadRequest, 'Cannot overwrite existing file' if Metis::File.exists?(new_folder_name, bucket, new_parent_folder)
+    return failure(422, errors: revision.errors) unless revision.valid?
 
-    folder.rename!(new_parent_folder, new_folder_name)
-
-    success_json(folders: [ folder.to_hash ])
+    return success_json(folders: [ revision.revise!.to_hash ])
   end
 
   protected
@@ -127,8 +170,71 @@ class FolderController < Metis::Controller
         ## Note: find_or_create does not fix this, it still does not handle the unique constraint and simply
         ## queries or creates, which is not good enough for READ COMMITTED isolation where a read might not see a yet
         ## committed create.
+        Metis.instance.logger.log_error(e)
         parents << Metis::Folder.find(bucket_id: bucket&.id, folder_id: parents.last&.id, folder_name: folder_name)
       end
     end
+  end
+
+  def folder_hashes_with_calculated_paths(all_folders, offset, limit)
+    # Calculate the folder_path, instead of
+    #   doing it in the database.
+    # Sorting folders by depth level makes some subsequent calculations simpler,
+    #   especially when not paging. Shallow -> deep
+    sorted_folders = []
+    parent_folder_ids = [nil]
+
+    folders_by_folder_id = all_folders.group_by { |fold| fold.folder_id }
+    folders_by_id = all_folders.group_by { |fold| fold.id }
+
+    loop do
+      child_folders = folders_by_folder_id.values_at(
+        *parent_folder_ids).flatten.compact
+
+      break if child_folders.length == 0
+
+      parent_folder_ids = child_folders.map { |fold| fold.id }
+
+      # Sort by folder_name within each depth level
+      #   ... trying to make pagination consistent.
+      sorted_folders += child_folders.sort { |f1, f2|
+        f1[:folder_name] <=> f2[:folder_name] }
+
+      break if sorted_folders.length >= limit + offset
+    end
+
+    paged_folders = sorted_folders.slice(offset, limit)
+    return [] unless paged_folders
+
+    # To prevent too much redundant calculation,
+    #   cache the path for discovered folders.
+    path_cache = {}
+
+    paged_folders.map { |fold|
+      folder_id_sym = fold.id.to_s.to_sym
+
+      path_cache[folder_id_sym] = fold.folder_id ?
+        get_folder_path(
+          fold,
+          folders_by_id,
+          path_cache) :
+        fold.folder_name
+      folder_hash = fold.to_hash(false)
+      folder_hash[:folder_path] = path_cache[folder_id_sym]
+      folder_hash
+    }
+  end
+
+  def get_folder_path(folder, folders_by_id, path_cache)
+    # No parent folder, so just return this (root) folder's folder_name
+    return folder.folder_name if !folder.folder_id
+
+    # Use the cached path value for the parent folder if it exists
+    return "#{path_cache[folder.folder_id.to_s.to_sym]}/#{folder.folder_name}" if
+      path_cache.has_key?(folder.folder_id.to_s.to_sym)
+
+    # Find the path for the parent folder, recursively
+    parent_folder = folders_by_id[folder.folder_id].first
+    "#{get_folder_path(parent_folder, folders_by_id, path_cache)}/#{folder.folder_name}"
   end
 end

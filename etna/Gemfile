@@ -7,6 +7,8 @@ gem 'jwt'
 gem 'rspec'
 gem 'simplecov'
 gem 'rack-test', require: "rack/test"
+gem 'rollbar'
+
 group :test do
   gem 'pry'
   gem 'pry-byebug'
@@ -14,4 +16,6 @@ group :test do
   gem 'webmock'
   gem 'net-http-persistent'
   gem 'multipart-post'
+  gem 'debase'
+  gem 'ruby-debug-ide'
 end

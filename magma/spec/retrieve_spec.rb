@@ -35,8 +35,8 @@ describe RetrieveController do
     json_template = json_body[:models][:aspect][:template]
 
     # all attributes are present
-    expect(json_template[:attributes].keys.sort).to eq(
-      [ :created_at, :monster, :name, :source, :updated_at, :value ]
+    expect(json_template[:attributes].keys).to eq(
+      Labors::Aspect.attributes.keys
     )
 
     # attributes are well-formed
@@ -219,7 +219,7 @@ describe RetrieveController do
       stables_prizes = create_list(:prize, 3, labor: stables)
 
       selected_prize_ids = (lion_prizes + hydra_prizes).map do |prize|
-        prize.send(Labors::Prize.identity).to_s
+        prize.send(Labors::Prize.identity.column_name).to_s
       end.sort
 
       retrieve(
@@ -252,7 +252,7 @@ describe RetrieveController do
       stables_prizes = create_list(:prize, 3, labor: stables)
 
       selected_prize_ids = (lion_prizes + hydra_prizes).map do |prize|
-        prize.send(Labors::Prize.identity).to_s
+        prize.send(Labors::Prize.identity.column_name).to_s
       end.sort
 
       retrieve(
@@ -289,11 +289,11 @@ describe RetrieveController do
       header, *table = CSV.parse(last_response.body, col_sep: "\t")
 
       expect(header).to eq(required_atts)
-      expect(table.length).to eq(12)
+      expect(table).to match_array(labor_list.map{|l| [ l.name, l.completed.to_s, l.number.to_s ] })
     end
 
     it 'can retrieve a TSV of data without an identifier' do
-      prize_list = create_list(:prize, 12)
+      prize_list = create_list(:prize, 12, worth: 5)
       retrieve(
         project_name: 'labors',
         model_name: 'prize',
@@ -303,7 +303,7 @@ describe RetrieveController do
       )
       header, *table = CSV.parse(last_response.body, col_sep: "\t")
 
-      expect(table.length).to eq(12)
+      expect(table).to match_array(prize_list.map{|l| header.map{|h| l.send(h)&.to_s} })
     end
 
     it 'can retrieve a TSV of collection attribute' do
@@ -319,8 +319,31 @@ describe RetrieveController do
       )
 
       header, *table = CSV.parse(last_response.body, col_sep: "\t")
+      expect(table).to eq([ [ "The Twelve Labors of Hercules", labors.map(&:identifier).join(', ') ] ])
+    end
 
-      expect(table.length).to eq(1)
+    it 'retrieves a TSV with file attributes as urls' do
+      Timecop.freeze(DateTime.new(500))
+      lion = create(:monster, :lion, stats: '{"filename": "lion.txt", "original_filename": ""}')
+      hydra = create(:monster, :hydra, stats: '{"filename": "hydra.txt", "original_filename": ""}')
+      hind = create(:monster, :hind, stats: '{"filename": "hind.txt", "original_filename": ""}')
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'monster',
+        record_names: 'all',
+        attribute_names: [ 'stats' ],
+        format: 'tsv'
+      )
+
+      expect(last_response.status).to eq(200)
+      header, *table = CSV.parse(last_response.body, col_sep: "\t")
+
+      uris = table.map{|l| URI.parse(l.last)}
+      expect(uris.map(&:host)).to all(eq(Magma.instance.config(:storage)[:host]))
+      expect(uris.map(&:path)).to all(match(%r!/labors/download/magma/\w+.txt!))
+
+      Timecop.return
     end
   end
 
@@ -508,9 +531,69 @@ describe RetrieveController do
       expect(json_body[:models][:victim][:documents].keys.sort).to eq(unrestricted_victim_list.map(&:identifier).map(&:to_sym))
     end
 
+    it 'hides the children of restricted records' do
+      lion = create(:monster, :lion, restricted: true)
+      hydra = create(:monster, :hydra, restricted: false)
+      restricted_victim_list = create_list(:victim, 9, monster: lion)
+      unrestricted_victim_list = create_list(:victim, 9, monster: hydra)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'victim',
+        record_names: 'all',
+        attribute_names: 'all'
+      )
+      expect(json_body[:models][:victim][:documents].keys.sort).to eq(unrestricted_victim_list.map(&:identifier).map(&:to_sym))
+    end
+
+    it 'conservatively hides if any ancestor is restricted' do
+      lion = create(:monster, :lion, restricted: true)
+      hydra = create(:monster, :hydra, restricted: false)
+
+      # some of the victims are not restricted
+      restricted_victim_list = create_list(:victim, 3, monster: lion, restricted: true)
+      unrestricted_victim_list = create_list(:victim, 3, monster: lion, restricted: false)
+      unrestricted_victim_list2 = create_list(:victim, 3, monster: lion, restricted: nil)
+
+      # some of the victims are not restricted
+      restricted_victim_list2 = create_list(:victim, 3, monster: hydra, restricted: true)
+      unrestricted_victim_list3 = create_list(:victim, 3, monster: hydra, restricted: false)
+      unrestricted_victim_list4 = create_list(:victim, 3, monster: hydra, restricted: nil)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'victim',
+        record_names: 'all',
+        attribute_names: 'all'
+      )
+      expect(json_body[:models][:victim][:documents].keys.sort).to match_array((unrestricted_victim_list3 + unrestricted_victim_list4).map(&:identifier).map(&:to_sym))
+    end
+
     it 'shows restricted records to users with restricted permission' do
       restricted_victim_list = create_list(:victim, 9, restricted: true)
       unrestricted_victim_list = create_list(:victim, 9)
+
+      retrieve(
+        {
+          project_name: 'labors',
+          model_name: 'victim',
+          record_names: 'all',
+          attribute_names: 'all'
+        },
+        :editor
+      )
+      expect(json_body[:models][:victim][:documents].keys.sort).to eq(
+        (
+          unrestricted_victim_list + restricted_victim_list
+        ).map(&:identifier).map(&:to_sym).sort
+      )
+    end
+
+    it 'shows the children of restricted records to users with restricted permission' do
+      lion = create(:monster, :lion, restricted: true)
+      hydra = create(:monster, :hydra, restricted: false)
+      restricted_victim_list = create_list(:victim, 9, monster: lion)
+      unrestricted_victim_list = create_list(:victim, 9, monster: hydra)
 
       retrieve(
         {
@@ -535,7 +618,7 @@ describe RetrieveController do
         project_name: 'labors',
         model_name: 'victim',
         record_names: 'all',
-        attribute_names: [ 'country' ]
+        attribute_names: 'all'
       )
       countries = json_body[:models][:victim][:documents].values.map{|victim| victim[:country]}
       expect(countries).to all(be_nil)

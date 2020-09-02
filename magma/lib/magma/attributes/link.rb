@@ -29,7 +29,7 @@ class Magma
     end
 
     def link_identity
-      link_model.attributes[link_model.identity]
+      link_model.attributes[link_model.identity.attribute_name.to_sym]
     end
 
     private
@@ -38,6 +38,7 @@ class Magma
       super
       link_model
     rescue => e
+      Magma.instance.logger.log_error(e)
       field = link_model_name ? :link_model_name : :attribute_name
       errors.add(field, "doesn't match an existing model")
     end

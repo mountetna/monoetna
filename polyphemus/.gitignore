@@ -16,3 +16,7 @@ trash.rb
 *.ttf
 *.woff
 *.woff2
+config.yml
+.bundle
+coverage
+spec/examples.txt

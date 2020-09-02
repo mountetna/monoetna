@@ -5,7 +5,7 @@ import * as React from 'react';
 import AttributeViewer from '../attributes/attribute_viewer';
 
 const PaneAttribute = ({attribute, mode, value, revised_value, model_name, record_name, template, record}) => (
-  (attribute.shown != false && (mode != 'edit' || attribute.editable)) ?
+  (attribute.hidden !== true && (mode != 'edit' || attribute.editable)) ?
     <div className='attribute_row'>
       <div className={ `attribute_name ${ (mode == 'edit' && value != revised_value) ? 'revised' : '' }` }
         title={attribute.desc}>
@@ -30,7 +30,7 @@ const PaneAttribute = ({attribute, mode, value, revised_value, model_name, recor
 const BrowserPane = ({ record, revision, pane, ...other_props}) =>
   Object.keys(pane.attributes).length == 0
   ? <div style={{'display': 'none'}} />
-  : <div className='pane'>
+  : console.log('rendering',  record) || <div className='pane'>
     {
       pane.title && <div className='title' title={pane.name}>{pane.title}</div>
     }

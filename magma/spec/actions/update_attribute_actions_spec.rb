@@ -18,7 +18,9 @@ describe Magma::UpdateAttributeAction do
 
     after do
       # Rollback in memory changes to the attribute
-      Labors::Monster.attributes[:name] = @original_attribute
+      attribute = Labors::Monster.attributes[:name]
+      attribute.description = @original_attribute.description
+      attribute.display_name = @original_attribute.display_name
     end
 
     it 'updates the attribute' do
@@ -60,6 +62,31 @@ describe Magma::UpdateAttributeAction do
       it 'captures an attribute option error' do
         expect(action.validate).to eq(false)
         expect(action.errors.first[:message]).to eq("Attribute does not implement age")
+      end
+    end
+
+    context "when updating the restricted value of an attribute" do
+      let(:attribute_name) { "name" }
+      let(:action_params) do
+        {
+            action_name: "update_attribute",
+            model_name: "victim",
+            attribute_name: attribute_name,
+            restricted: true
+        }
+      end
+
+      it "succeeds" do
+        expect(action.validate).to eq(true)
+      end
+
+      context "and the attribute_name is restricted" do
+        let(:attribute_name) { "restricted" }
+
+        it "false" do
+          expect(action.validate).to eq(false)
+          expect(action.errors.last[:message]).to eq("restricted column may not, itself, be restricted")
+        end
       end
     end
 

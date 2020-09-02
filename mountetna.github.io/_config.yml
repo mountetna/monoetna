@@ -26,11 +26,14 @@ markdown: kramdown
 theme: minima
 plugins:
   - jekyll-feed
+kramdown:
+  toc_levels:     1..4
 
 # Exclude from processing.
 # The following items will not be processed, by default. Create a custom list
 # to override the default setting.
-# exclude:
+exclude:
+  - snapshot/
 #   - Gemfile
 #   - Gemfile.lock
 #   - node_modules

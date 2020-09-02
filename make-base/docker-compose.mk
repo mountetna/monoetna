@@ -1,30 +1,53 @@
-export COMPOSE_PROJECT_NAME=monoetna
-app_service_name=${app_name}_app
+export COMPOSE_PROJECT_NAME:=monoetna
+COMPOSE_MIXINS:=docker-compose.shared.yml $(COMPOSE_MIXINS)
+app_service_name:=${app_name}_app
+baseTag:=$(shell basename "$$(pwd)")
+fullTag:=$(IMAGES_PREFIX)$(baseTag)$(IMAGES_POSTFIX)
 
-.docker-build-mark: $(wildcard docker/**/*) docker-compose.yml
-				@ $(MAKE) build
+docker-compose.yml:: $(wildcard ../docker/*.shared.yml) ../docker/default_compose
+	COMPOSE_MIXINS="$(COMPOSE_MIXINS)" ../docker/default_compose docker-compose.yml
 
-up:: .docker-build-mark
-				@ docker-compose up -d
+.PHONY: images
+images: docker-compose.yml
+	@ make -C ../docker build
 
-down::
-				@ docker-compose down --remove-orphans
+config-ready:: docker-compose.yml
+	@ true
+
+docker-ready:: images config-ready
+	@ true
+
+up:: docker-ready
+	@ docker-compose up -d
+
+down:: docker-compose.yml
+	@ docker-compose down
 
 ps::
-				@ docker-compose ps
+	@ docker-compose ps
 
-build::
-				@ docker-compose build
-				@ touch .docker-build-mark
+restart:: docker-ready
+	@ docker-compose restart
 
-restart::
-				@ docker-compose restart
-
-bash::
-				@ docker-compose run -e SKIP_RUBY_SETUP=1 --rm $(app_service_name) bash
-
-prepare::
-				@ docker-compose run -e RUN_NPM_INSTALL=1 --rm $(app_service_name) echo 1
+bash:: docker-ready
+	@ docker-compose run -e SKIP_RUBY_SETUP=1 --rm $(app_service_name) bash
 
 logs::
-				@ docker-compose logs -f
+	@ docker-compose logs -f
+
+test:: docker-ready
+	@ true
+
+.dockerignore:
+	cp ../docker/.dockerignore.template ./.dockerignore
+
+release-build:: .dockerignore
+	../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS)
+
+release::
+	make release-build
+	if ! [ -n "$$NO_TEST" ]; then make release-test; fi
+	if   [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi
+
+release-test::
+	true

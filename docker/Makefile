@@ -1,6 +1,7 @@
 export COMPOSE_PROJECT_NAME=monoetna
 projects := $(shell ls ../*/Makefile | grep -v docker | xargs -n 1 dirname | xargs -n 1 basename)
 compose_ymls     := $(shell ls ../*/docker-compose.yml | grep -v 'docker/docker-compose.yml')
+images := $(shell echo */)
 
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \
@@ -10,57 +11,44 @@ help: ## Display help text
 .PHONY: help
 .DEFAULT_GOAL := help
 
-docker-compose.yml: $(compose_ymls) ./compose ./empty-docker-compose.yml
-				@ echo 'Rebuilding docker-compose.yml from projects $(compose_ymls)'
-				@ ./compose $(compose_ymls) > .tmp
-				@ mv .tmp docker-compose.yml
+docker-compose.yml: $(compose_ymls) ./compose $(wildcard ./*.shared.yml) ./default_compose
+	@ for project in $(projects); do cd ../$$project && make docker-compose.yml; done
+	@ echo 'Rebuilding docker-compose.yml from projects $(compose_ymls)'
+	@ ./compose $(compose_ymls) > .tmp
+	@ mv .tmp docker-compose.yml
 
-.docker-build-mark: $(wildcard ../*/docker/**/*) docker-compose.yml
-				$(MAKE) build
-				@ touch .docker-build-mark
+.PHONY: config-ready
+config-ready: docker-compose.yml
+
+.PHONY: docker-ready
+docker-ready: config-ready build
 
 .PHONY: build
-build: docker-compose.yml ## Forces a rebuild of all projects' development dockerfiles
-				@ echo $(projects)
-				@ set -e; for project in $(projects); do cd ../$$project && make build; done
-				@ touch .docker-build-mark
+build: ## Builds all development related docker images
+	@ for image in $(images); do make -s -C $$image; done
 
 .PHONY: up
-up: docker-compose.yml .docker-build-mark ## Starts up all containers of this project in the background
-				@ for project in $(projects); do cd ../$$project && make config.yml || true; done
-				@ docker-compose up -d
-
-.PHONY: prepare
-prepare: docker-compose.yml .docker-build-mark ## Prepares all containers of this project by installing npm and bundle, but does not start servers.
-				@ for project in $(projects); do cd ../$$project && make config.yml || true; done
-				@ for project in $(projects); do cd ../$$project && make prepare || true; done
+up: docker-ready ## Starts up all containers of this project in the background
+	@ for project in $(projects); do cd ../$$project && make config.yml || true; done
+	@ docker-compose up -d
 
 .PHONY: down
 down: docker-compose.yml ## Ends all projects' processes
-				@ docker-compose down --remove-orphans
+	@ docker-compose down --remove-orphans
 
 .PHONY: ps
-ps: docker-compose.yml ## Shows ps of all projects' containers
-				@ docker-compose ps
+ps: ## Shows ps of all projects' containers
+	@ docker-compose ps
 
 .PHONY: logs
-logs: docker-compose.yml ## Shows logs of all running projects' containers
-				@ docker-compose logs -f
+logs: ## Shows logs of all running projects' containers
+	@ docker-compose logs -f
 
 .PHONY: logs-recent
-logs-recent: docker-compose.yml ## For CI
-				@ docker-compose logs
-
-.PHONY: tag
-tag: docker-compose.yml ## For CI
-				./tag-all-images $$REPOSITORY
-
-.PHONY: create
-create: docker-compose.yml ## For CI
-				@ docker-compose up --no-start
+logs-recent: ## For CI
+	@ docker-compose logs
 
 .PHONY: clean
-clean: docker-compose.yml
-				@ docker-compose down -v --remove-orphans
-				@ docker-compose build --no-cache
-				@ docker-compose create
+clean: docker-ready
+	@ docker-compose down -v --remove-orphans
+	@ docker-compose create

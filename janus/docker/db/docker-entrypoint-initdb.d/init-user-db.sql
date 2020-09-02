@@ -1,3 +1,0 @@
-CREATE DATABASE janus_test;
-GRANT ALL PRIVILEGES ON DATABASE janus_test TO developer;
-

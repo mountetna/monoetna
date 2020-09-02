@@ -21,6 +21,11 @@ class Magma
       end
     end
 
+    def setup(config)
+      super
+      Magma.instance.setup_db
+    end
+
     private
 
     def load_model(project_name, model_name, template)
@@ -45,6 +50,7 @@ class Magma
         merge(
           project_name: project_name,
           model_name: model_name,
+          column_name: attribute[:attribute_name],
           type: attribute[:attribute_type],
           validation: Sequel.pg_json_wrap(attribute[:validation]),
         )
@@ -53,6 +59,7 @@ class Magma
     end
 
     def options
+      require_relative './attribute'
       @options ||= Magma::Attribute.options - [:loader] + [:created_at, :updated_at, :attribute_name]
     end
   end
@@ -70,7 +77,7 @@ class Magma
 
   class Migrate < Etna::Command
     usage '[<version_number>] # Run migrations for the current environment.'
-    
+
     def execute(version=nil)
       Sequel.extension(:migration)
       db = Magma.instance.db
@@ -117,8 +124,8 @@ class Magma
 
   # When building migrations from scratch this command does not output
   # an order that respects foreign key constraints. i.e. The order in which the
-  # migration creates tries to create the tables is out of whack and causes 
-  # error messages that tables are required but do not exist. Most of the time 
+  # migration creates tries to create the tables is out of whack and causes
+  # error messages that tables are required but do not exist. Most of the time
   # this is not an issue (because we are only doing slight modifications), but
   # when we do a new migration of an established database errors do arise.
   # Presently we are manually reorgaizing the initial migration (putting the
@@ -245,7 +252,7 @@ EOT
     def create_schema
       puts "Creating namespace (schema) #{@project_name} in database #{@db_config[:database]}"
 
-      Magma.instance.db.run "CREATE SCHEMA #{@project_name}"
+      Magma.instance.db.run "CREATE SCHEMA IF NOT EXISTS #{@project_name}"
     end
 
     def create_db

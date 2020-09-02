@@ -1,0 +1,189 @@
+#! /usr/bin/env bash
+set -e
+
+prog=$0
+error() {
+   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Please try rerunning $prog again."
+   exit 1
+}
+trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
+
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+done
+DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+
+function usage() {
+  echo "$0 [-f] [-d] <Dockerfile> [<dep> [<dep2> ...]]" 1>&2
+	cat $SOURCE | grep -E '^#-.*$$' | sed -e 's@^#- @  @' 1>&2
+}
+
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+CYAN='\033[1;36m'
+NC='\033[0m'
+
+force=
+digestOnly=
+
+#- -f
+#-   Forces a rebuild of this image, even if the marker in /tmp/ is newer than changes made to its dependencies.
+#-   NOT recursive.  Base images are not force built as a result of this.
+if [[ "$1" == "-f" ]]; then
+    force=1
+    shift
+fi
+
+#- -d
+#-   Calculates and displays a digest based on the source files and dependencies used to build the image. Slow.
+if [[ "$1" == "-d" ]]; then
+    digestOnly=1
+    shift
+fi
+
+if [[ "$1" == "-h" ]]; then
+  usage
+  exit 0
+fi
+
+#- .
+#- Builds the given Dockerfile into an image, mounting the given dependency directories as siblings.
+Dockerfile=$1
+
+#- The parent directory of the Dockerfile is used as the name of the image to be produced by this process.
+baseTag=$(basename "$(dirname "$(realpath $Dockerfile)")")
+
+#- The final tag will also include env variables IMAGES_PREFIX and IMAGES_POSTFIX
+tag="${IMAGES_PREFIX}${baseTag}${IMAGES_POSTFIX}"
+
+#- Markers are used locally to detect when new builds should be kicked off by comparing the Dockerfile's parent
+#- directory and all dependency directories for changes newer than the marker.  Markers are kept in /tmp/etna-build-markers
+MARKERS_DIR=${MARKERS_DIR:-/tmp/etna-build-markers}
+mkdir -p $MARKERS_DIR
+marker=$MARKERS_DIR/$baseTag
+
+if [[ -z "$Dockerfile" ]]; then
+    usage
+    exit 1
+fi
+
+shift
+
+# Calculate digests when invoked with -d
+export digestFile=$(mktemp)
+function addToDigest() {
+     digest=$(cat $digestFile)
+     echo $(cat -) $digest | md5sum | cut -d ' ' -f1 > $digestFile
+}
+function recursiveDigest() {
+  if [[ -n "$digestOnly" ]]; then
+     find "$1" -type f -exec md5sum {} \;
+     echo
+  fi
+}
+
+# Searches recursively for latest updated file and keeps this variable tracking that file.
+newestFile=$0
+function findNewest() {
+    lastModifiedFile=$(find $1 -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
+    if [ "$lastModifiedFile" -nt "$newestFile" ]; then
+        newestFile="$lastModifiedFile"
+     fi
+}
+
+#- Any FROM clause in the given Dockerfile is processed as a potential dependency to be built before this image.
+while read depImage; do
+  baseDepImage=$depImage
+
+  depImage="$DIR/$baseDepImage"
+  if ! [[ -e "$depImage" ]]; then
+    continue;
+  fi
+
+  #- If that image exists a sub directory of the docker folder, that image is recursively built using make,
+  #- and its source files are tracked for the purposes of rebuild caching and digest of this build.
+  [[ -z "$digestOnly" ]] && make -C "$DIR/$baseDepImage"
+  recursiveDigest "$(realpath $depImage)" | addToDigest
+  findNewest "$depImage"
+  if [[ $newestFile -ot $MARKERS_DIR/$baseDepImage ]]; then
+    newestFile=$MARKERS_DIR/$baseDepImage
+  fi
+done < <(cat $Dockerfile | grep FROM | xargs -n2 echo | cut -d ' ' -f2)
+
+cat $0 | addToDigest
+
+mounts="-v /var/run/docker.sock:/var/run/docker.sock:ro"
+#- The dockerfile's parent directory is mount as 'src' into the build process.
+mounts="$mounts --mount type=bind,source=$(realpath $(dirname $Dockerfile)),target=/build/src"
+recursiveDigest "$(dirname $Dockerfile)" | addToDigest
+findNewest "$(dirname $Dockerfile)"
+
+foundMounts=
+
+while (( "$#" )); do
+    if [[ "$1" == "--" ]]; then
+      shift
+      break
+    fi
+
+    # Dedup mounts
+    if echo "$foundMounts" | grep "$(realpath "$1")" &>/dev/null; then
+      shift
+      continue
+    fi
+
+    foundMounts="$(realpath "$1")
+$foundMounts"
+
+    #- While other dependencies are mounted as siblings to the 'src' directory using their basename.
+    mounts="$mounts --mount type=bind,source=$(realpath $1),target=/build/$(basename $1)"
+    recursiveDigest "$(realpath $1)" | addToDigest
+    findNewest "$1"
+    shift
+done
+
+#- The build process also combines the docker/.dockerignore file with the Dockerfile project's own for a combined
+#- filtering.
+BUILD_CMD="
+cat src/.dockerignore /assist/.dockerignore | grep -v '#' | awk '{print \"src/\"\$0}' > .dockerignore ; \\
+docker build --rm --force-rm \\
+  --tag $baseTag --cache-from $tag $* -f src/$(basename $Dockerfile) ."
+
+if [[ "$baseTag" != "$tag" ]]; then
+  BUILD_CMD="$BUILD_CMD
+docker tag $baseTag $tag"
+fi
+
+echo "$BUILD_CMD" | addToDigest
+
+if [[ -n "$digestOnly" ]]; then
+  digest=$(cat $digestFile)
+  echo "$digest"
+  exit 0
+fi
+
+if [[ -z "$force" && "$newestFile" -ot "$marker" ]]; then
+  echo -e "${YELLOW}Image $tag already up to date, skipping build${NC}"
+  exit 0
+fi
+
+if [[ "$newestFile" -ot "$marker" ]]; then
+  echo -e "${RED}Being forced to build despite up to date marker.${NC}"
+fi
+
+if [ -e $marker ]; then
+  echo -e "${CYAN}Detected change in $newestFile ($(date -r $newestFile)) over $marker ($(date -r $marker)), issuing build${NC}"
+fi
+
+sleep 1
+
+set -x
+# Docker can 'leak' intermediate build images from different runs, unfortunately, even with --rm and --force-rm.
+# This will atleast prune between runs to keep it minimal
+docker image prune -f
+docker run --rm -w /build -v "${DIR}:/assist:ro" $mounts docker:19.03.12 sh -c "$BUILD_CMD"
+touch $marker

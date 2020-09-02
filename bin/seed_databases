@@ -13,7 +13,7 @@ SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
   DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
   SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
@@ -44,12 +44,15 @@ else
 
 function startSeedInDocker() {
     set -x
+    # Start database
+    docker-compose -p monoetna up $1_db -d
     docker-compose -p monoetna run -e TOKEN="$TOKEN" -v $DIR:/root/bin -v /tmp/local-seeds:/local-seeds $1_app /root/bin/seed_databases $1_db $1_development /local-seeds/$1_dev.bak
     set +x
 }
 
 function runSeeds() {
-    make -C docker create
+    # Ensure docker-compose.yml ready
+    make -C docker docker-ready
     startSeedInDocker timur
     startSeedInDocker magma
 }
