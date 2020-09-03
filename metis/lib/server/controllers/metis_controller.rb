@@ -60,17 +60,13 @@ class Metis
       #   doing it in the database.
       folder_path_calc = Metis::FolderPathCalculator.new(all_folders: all_folders, bucket: bucket)
 
-      if all_folders
-        # Sorting folders by depth level makes some subsequent calculations simpler,
-        #   especially when not paging. Shallow -> deep
-        sorted_folders = sort_folders_by_depth(
-          all_folders: all_folders,
-          limit: limit,
-          offset: offset
-        )
-      else
-        sorted_folders = target_folders
-      end
+      # Sorting folders by depth level makes some subsequent calculations simpler,
+      #   especially when not paging. Shallow -> deep
+      sorted_folders = all_folders ? sort_folders_by_depth(
+        all_folders: all_folders,
+        limit: limit,
+        offset: offset
+      ) : target_folders
 
       paged_folders = sorted_folders.slice(offset, limit)
       return [] unless paged_folders
@@ -84,27 +80,27 @@ class Metis
 
     def sort_folders_by_depth(all_folders:, limit:, offset:)
       # Sorting folders by depth level makes some subsequent calculations simpler,
-        #   especially when not paging. Shallow -> deep
-        sorted_folders = []
-        parent_folder_ids = [nil]
-        folders_by_folder_id = all_folders.group_by { |fold| fold.folder_id }
+      #   especially when not paging. Shallow -> deep
+      sorted_folders = []
+      parent_folder_ids = [nil]
+      folders_by_folder_id = all_folders.group_by { |fold| fold.folder_id }
 
-        loop do
-          child_folders = folders_by_folder_id.values_at(
-            *parent_folder_ids).flatten.compact
+      loop do
+        child_folders = folders_by_folder_id.values_at(
+          *parent_folder_ids).flatten.compact
 
-          break if child_folders.length == 0
+        break if child_folders.length == 0
 
-          parent_folder_ids = child_folders.map { |fold| fold.id }
+        parent_folder_ids = child_folders.map { |fold| fold.id }
 
-          # Sort by folder_name within each depth level
-          #   ... trying to make pagination consistent.
-          sorted_folders += child_folders.sort { |f1, f2|
-            f1[:folder_name] <=> f2[:folder_name] }
+        # Sort by folder_name within each depth level
+        #   ... trying to make pagination consistent.
+        sorted_folders += child_folders.sort { |f1, f2|
+          f1[:folder_name] <=> f2[:folder_name] }
 
-          break if sorted_folders.length >= limit + offset
-        end
-        sorted_folders
+        break if sorted_folders.length >= limit + offset
+      end
+      sorted_folders
     end
   end
 end
