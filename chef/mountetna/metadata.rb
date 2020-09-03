@@ -1,9 +1,9 @@
-name 'base_v2'
+name 'mountetna'
 maintainer 'The Authors'
 maintainer_email 'you@example.com'
 license 'All Rights Reserved'
-description 'Installs/Configures base_v2'
-long_description 'Installs/Configures base_v2'
+description 'Installs/Configures mountetna'
+long_description 'Installs/Configures mountetna'
 version '0.1.0'
 chef_version '>= 14.0'
 

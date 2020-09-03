@@ -8,5 +8,4 @@ version 'abc'
 source_url 'https://github.com/chef-cookbooks/docker'
 issues_url 'https://github.com/chef-cookbooks/docker/issues'
 
-depends_on 'base_v2'
-depends_on 'etna_docker'
+depends_on 'mountetna'

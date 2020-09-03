@@ -1,15 +1,10 @@
 DEPENDENCIES
-  base_v2
-    path: base_v2
+  mountetna
+    path: mountetna
   docker
     path: docker
-  etna_docker
-    path: etna_docker
 
 GRAPH
-  base_v2 (0.1.0)
+  mountetna (0.1.0)
     docker (>= 0.0.0)
   docker (6.0.3)
-  etna_docker (0.1.0)
-    base_v2 (>= 0.0.0)
-    docker (>= 0.0.0)

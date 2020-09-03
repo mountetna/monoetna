@@ -16,16 +16,19 @@ help: ## Display help text
 images:
 	make -C ../docker build
 
-.PHONY: test
-test: images ## Initializes a docker using centos and the chef recipes referenced in kitchen.yml, testing the deployment.
-	$(chefdk) kitchen test
+environments/local.json:
+	cp environments/local.json.template environments/local.json
 
 .PHONY: create
-create: images ## Creates a test centos deployment using docker
-	$(chefdk) kitchen create
+create: images environments/local.json ## Creates and converges a running centos image with the kitchen.yml settings
+	$(chefdk) kitchen converge
+
+.PHONY: ssh
+ssh: images ## Connects via ssh to the running centos image created last
+	$(chefdk) ssh -i .kitchen/docker_id_rsa kitchen@$$(docker inspect centos-7 | grep IPAddress | tail -n1 | cut -d'"' -f4) -p 22
 
 .PHONY: destroy
-destroy: images ## destroys the running test centos deployment
+destroy: images ## destroys the running test centos deployment.  Note, `docker container prune` may be necessary if there is a conflict.
 	$(chefdk) kitchen destroy
 
 .PHONY: bash

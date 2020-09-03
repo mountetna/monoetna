@@ -4,5 +4,5 @@
 # https://docs.chef.io/policyfile.html
 
 # Specify a custom source for a single cookbook:
-cookbook 'base_v2', path: '.'
+cookbook 'mountetna', path: '.'
 cookbook 'docker', path: '../docker'

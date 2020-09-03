@@ -1,7 +1,7 @@
 # Installs global system packages.
-# NOTE: We prefer keeping application related packages inside the related application containers.
+# NOTE: Prefer keeping application related packages inside the related application containers.
 # System level packages should be small and operationally useful.
-# These packages will be included in all instances that run the base_v2, so they should be valuable and necessary.
+# These packages will be included in all instances that run mountetna, so they should be valuable and necessary.
 [
     'git',
     'tmux',

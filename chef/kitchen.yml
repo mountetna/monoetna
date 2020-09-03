@@ -5,15 +5,19 @@ driver:
 provisioner:
   name: chef_zero
   always_update_cookbooks: true
+  environments_path: environments
+  client_rb:
+    environment: local
 
 platforms:
   - name: centos-7
     driver_config:
       image: test-centos
+      instance_name: centos-7
       platform: centos
       mount:
         - type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup,ro
-        - type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock
+        - type=bind,source=/var/run/docker.sock,target=/usr/var/run/docker.sock
       run_command: /usr/sbin/init
       privileged: true
 #      cap_add:
@@ -27,6 +31,7 @@ platforms:
         - systemctl enable sshd.service
         - mkdir -p /run/systemd
         - echo 'docker' > /run/systemd/container
+        - ln -s /usr/var/run/docker.sock /run/docker.sock
       use_internal_docker_network: true
 
 transport:
@@ -36,14 +41,13 @@ verifier:
   name: inspec
 
 suites:
-  - name: default
+  - name: master
     run_list:
       # Test idempotency by running all the things twice
-      - recipe[base_v2::default]
-      - recipe[etna_docker::default]
-      - recipe[base_v2::default]
-      - recipe[etna_docker::default]
+      - recipe[mountetna::default]
+      - recipe[mountetna::default]
     attributes:
+      is_kitchen: true
       psql_developer_password: password
       docker:
-        data_root: /usr/var/run/docker
+        host: unix:///usr/var/run/docker.host.sock
