@@ -29,6 +29,19 @@ class Metis
             end
           when '='
             @base_query = @base_query.where([[Sequel[model_name_attribute], param[:value]]])
+          when 'glob'
+            glob_parts = param[:value].split('/')
+
+            folder_path_ids = get_folder_path_ids(glob_parts)
+
+            if is_file_query
+              id_param = :folder_id
+            else
+              id_param = :id
+            end
+            @base_query = @base_query.where(
+              [[Sequel[id_param], folder_path_ids]]).where(
+              Sequel.like(model_name_attribute, likeify_glob(glob_parts[-1])))
           end
         end
       end
@@ -61,6 +74,37 @@ class Metis
 
     def model_name_attribute
       is_file_query ? :file_name : :folder_name
+    end
+
+    def likeify_glob(glob_string)
+      glob_string.gsub('*', '%')
+    end
+
+    def recursive_glob(glob_parts)
+      glob_parts.length == 3 && glob_parts[1] == '**'
+    end
+
+    def depth_one_glob(glob_parts)
+      glob_parts.length == 3 && glob_parts[1] == '*'
+    end
+
+    def get_folder_path_ids(glob_parts)
+      # Maybe we only support some subset of pseudo-glob syntax
+      folder_name = glob_parts[0]
+      if folder_name.include?('*')
+        folders = Metis::Folder.where(Sequel.like(:folder_name, likeify_glob(folder_name))).all
+        return folders.map { |f| f.child_folders.map { |f2| f2.id } }.flatten
+      else
+        folder = Metis::Folder.where(folder_name: folder_name).first
+
+        return folder.child_folders.map { |f| f.id } if recursive_glob(glob_parts)
+
+        # 1 level deep glob, like foo/*/*.txt?
+        return folder.child_folders.select { |f|
+          f.folder_id == folder.id }.map { |f| f.id } if depth_one_glob(glob_parts)
+
+        return [folder.id]
+      end
     end
   end
 end

@@ -219,4 +219,110 @@ describe Metis::QueryBuilder do
       }])
     expect(builder.build.count).to eq(1)
   end
+
+  it 'can query by globs for folders' do
+    child_folder = create_folder('athena', 'child', bucket: @bucket, folder: @wisdom_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child')
+
+    grandchild_folder = create_folder('athena', 'grandchild', bucket: @bucket, folder: child_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child/grandchild')
+
+    greatgrandchild_folder = create_folder('athena', 'greatgrandchild', bucket: @bucket, folder: grandchild_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child/grandchild/greatgrandchild')
+
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'child/*'
+      }])
+    expect(builder.build.count).to eq(2)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'greatgrandchild/*'
+      }])
+    expect(builder.build.count).to eq(0)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'wisdom/*'
+      }])
+    expect(builder.build.count).to eq(3)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: '*chil*/*'
+      }])
+    expect(builder.build.count).to eq(2) # Duplicates not returned
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'wisdom/**/*child*'
+      }])
+    expect(builder.build.count).to eq(3)
+  end
+
+  it 'can query by globs for files' do
+    child_folder = create_folder('athena', 'child', bucket: @bucket, folder: @wisdom_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child')
+
+    grandchild_folder = create_folder('athena', 'grandchild', bucket: @bucket, folder: child_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child/grandchild')
+
+    young_wisdom_file = create_file('athena', 'young_wisdom.txt', WISDOM*2, folder: grandchild_folder)
+    stubs.create_file('athena', 'files', 'wisdom/child/grandchild', 'young_wisdom.txt', WISDOM*2)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'wisdom/*.txt'
+      }])
+    expect(builder.build.count).to eq(1)
+    expect(builder.build.first[:file_name]).to eq(@wisdom_file.file_name)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'wisdom/**/*.txt'
+      }])
+    expect(builder.build.count).to eq(1)
+    expect(builder.build.first[:file_name]).to eq(young_wisdom_file.file_name)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'wisdom/*/*.txt'
+      }])
+    expect(builder.build.count).to eq(0)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'child/*.jpg'
+      }])
+    expect(builder.build.count).to eq(0)
+  end
 end
