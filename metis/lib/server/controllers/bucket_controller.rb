@@ -68,6 +68,12 @@ class BucketController < Metis::Controller
     require_params(:project_name, :params)
     params = @params[:params]
 
+    limit = @params.has_key?(:limit) ? @params[:limit].to_i : nil
+    offset = @params.has_key?(:offset) ? @params[:offset].to_i : nil
+
+    raise Etna::BadRequest, "Invalid offset" if offset&.negative?
+    raise Etna::BadRequest, "Invalid limit" if limit&.negative?
+
     query = Metis::Query.new(
       project_name: @params[:project_name],
       bucket: bucket,
@@ -79,15 +85,22 @@ class BucketController < Metis::Controller
     files = results[:files]
     folders = results[:folders]
 
-    # Should try to optimize this?
-    files = files.map do |file|
-      file.to_hash(@request)
-    end
+    limit = limit ? limit : [files.length, folders.length].max
+    offset = offset ? offset : 0
 
-    folders = folders.map do |fold|
-      fold.to_hash
-    end
+    file_hashes = file_hashes_with_calculated_paths(
+      offset: offset,
+      limit: limit,
+      files: files,
+      bucket: bucket
+    )
 
-    success_json(files: files, folders: folders)
+    folder_hashes = folder_hashes_with_calculated_paths(
+      offset: offset,
+      limit: limit,
+      target_folders: folders,
+      bucket: bucket)
+
+    success_json(files: file_hashes, folders: folder_hashes)
   end
 end

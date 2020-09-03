@@ -381,6 +381,51 @@ describe BucketController do
       expect(json_body[:files]).to eq([])
     end
 
+    it 'can paginate search results' do
+      private_folder = create_folder('athena', 'private', bucket: @bucket)
+      stubs.create_folder('athena', 'my_bucket', 'private')
+
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: @bucket, folder: private_folder)
+      stubs.create_file('athena', 'my_bucket', 'private', 'helmet.jpg', HELMET)
+
+      token_header(:viewer)
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '%pu%',
+        type: 'folder'
+      }], offset: 10, limit: 10)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders]).to eq([])
+      expect(json_body[:files]).to eq([])
+
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '%i%'
+      }], offset: 1, limit: 1)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].first[:folder_name]).to eq(@public_folder.folder_name)
+      expect(json_body[:folders].first[:folder_path]).to eq(@public_folder.to_hash[:folder_path])
+      expect(json_body[:files]).to eq([])
+
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '%i%'
+      }], offset: 0, limit: 1)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].first[:folder_name]).to eq(private_folder.folder_name)
+      expect(json_body[:files].length).to eq(1)
+      expect(json_body[:files].first[:file_name]).to eq(@wisdom_file.file_name)
+      expect(json_body[:files].first[:file_path]).to eq(@wisdom_file.to_hash[:file_path])
+    end
+
     it 'can specify type flag to search only for files' do
       token_header(:viewer)
       json_post("/athena/find/my_bucket", params: [{
