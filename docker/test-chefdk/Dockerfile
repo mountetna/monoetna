@@ -1,6 +1,6 @@
 FROM chef/chefdk
 RUN apt-get update -y
-RUN apt-get install docker.io curl -y
+RUN apt-get install docker.io curl jq -y
 ENV CHEF_LICENSE=accept
 RUN mkdir /tmp/kitchen-docker
 RUN cd /tmp/kitchen-docker

@@ -1,6 +1,9 @@
 uid=$(shell id -u ${USER})
-gid=$(shell id -g ${USER})
+gid=$(shell getent group docker | cut -d':' -f3)
+volumes:=-v $$PWD:/data -v /var/run/docker.sock:/var/run/docker.sock -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro
+chefdk:=docker run --rm -ti -u $(uid):$(gid) $(volumes) test-chefdk
 
+# ssh -v -i .kitchen/docker_id_rsa kitchen@172.17.0.3 -p 22
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \
 		sed 's/^[^:]*://' | sort | \
@@ -9,29 +12,22 @@ help: ## Display help text
 .PHONY: help
 .DEFAULT_GOAL := help
 
-markers:
-				@ mkdir markers
-
-markers/chef-dk: markers Dockerfile.chefdk
-				docker build --tag chefdk-docker . --file Dockerfile.chefdk
-				@ touch markers/chef-dk
-
-markers/centos: markers Dockerfile.centos
-				docker build --tag centos-docker . --file Dockerfile.centos
-				@ touch markers/centos
+.PHONY: images
+images:
+	make -C ../docker build
 
 .PHONY: test
-test: markers/chef-dk markers/centos ## Starts up all containers of this project in the background
-	@ docker run --rm -ti -v $$PWD:/data -v /var/run/docker.sock:/var/run/docker.sock chefdk-docker kitchen test
+test: images ## Initializes a docker using centos and the chef recipes referenced in kitchen.yml, testing the deployment.
+	$(chefdk) kitchen test
 
 .PHONY: create
-create: markers/chef-dk markers/centos ## Starts up all containers of this project in the background
-	docker run --rm -ti -v $$PWD:/data -v /var/run/docker.sock:/var/run/docker.sock chefdk-docker kitchen create
+create: images ## Creates a test centos deployment using docker
+	$(chefdk) kitchen create
 
 .PHONY: destroy
-destroy: markers/chef-dk markers/centos ## Starts up all containers of this project in the background
-	docker run --rm -ti -v $$PWD:/data -v /var/run/docker.sock:/var/run/docker.sock chefdk-docker kitchen destroy
+destroy: images ## destroys the running test centos deployment
+	$(chefdk) kitchen destroy
 
 .PHONY: bash
-bash: markers/chef-dk markers/centos ## Starts up all containers of this project in the background
-	docker run --rm -ti -u $(uid):$(gid) -v $$PWD:/data -v /var/run/docker.sock:/var/run/docker.sock chefdk-docker
+bash: images ## Opens a bash environment inside the chefdk tool
+	$(chefdk)

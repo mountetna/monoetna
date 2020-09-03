@@ -7,15 +7,26 @@ provisioner:
   always_update_cookbooks: true
 
 platforms:
-  - name: centos-8
+  - name: centos-7
     driver_config:
-      image: centos-docker
+      image: test-centos
       platform: centos
       mount:
         - type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup,ro
         - type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock
-      privileged: true
       run_command: /usr/sbin/init
+      privileged: true
+#      cap_add:
+#        - SYS_ADMIN
+#        - SYSLOG
+#        - NET_ADMIN
+      run_options:
+        env: container=docker
+      provision_command:
+        - sed -i 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config
+        - systemctl enable sshd.service
+        - mkdir -p /run/systemd
+        - echo 'docker' > /run/systemd/container
       use_internal_docker_network: true
 
 transport:
@@ -34,3 +45,5 @@ suites:
       - recipe[etna_docker::default]
     attributes:
       psql_developer_password: password
+      docker:
+        data_root: /usr/var/run/docker

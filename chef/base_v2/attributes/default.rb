@@ -5,3 +5,7 @@ default['users'] = [
         # ssh_public_key: '',
     }
 ]
+
+default['docker'] = {
+    'data_root' => '/var/run/docker'
+}

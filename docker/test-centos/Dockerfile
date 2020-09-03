@@ -18,6 +18,9 @@ RUN yum install e2fsprogs -y
 # To support kitchen hook
 RUN yum install openssh-server -y
 RUN systemctl enable sshd.service
+RUN mkdir -p /usr/var/run/docker
+
+STOPSIGNAL SIGRTMIN+3
 
 VOLUME ["/sys/fs/cgroup"]
 CMD ["/usr/sbin/init"]

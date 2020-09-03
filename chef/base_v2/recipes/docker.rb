@@ -9,4 +9,6 @@ end
 
 docker_service_manager 'default' do
   action :start
+  storage_driver 'overlay2'
+  data_root node['docker']['data_root']
 end

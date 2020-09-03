@@ -1,0 +1,4 @@
+#! /bin/bash
+export CONSOLE_FD
+exec {CONSOLE_FD}<> /dev/console
+exec /usr/sbin/init
