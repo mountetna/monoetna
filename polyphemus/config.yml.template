@@ -7,6 +7,13 @@
     :restrict_bucket: dont_show_anyone
   :polyphemus:
     :token: my-token # create a long lived token with janus
+  :db:
+    :adapter: postgres
+    :host: polyphemus_db
+    :database: polyphemus_development
+    :user: developer
+    :password: password
+    :search_path: [ public ]
 
 :test:
   :magma:
@@ -17,3 +24,10 @@
     :restrict_bucket: restrict
   :polyphemus:
     :token: mvir1-token
+  :db:
+    :adapter: postgres
+    :host: polyphemus_db
+    :database: polyphemus_test
+    :user: developer
+    :password: password
+    :search_path: [ public ]

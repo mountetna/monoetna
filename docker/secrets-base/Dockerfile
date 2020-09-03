@@ -1,0 +1,2 @@
+FROM etna-base
+

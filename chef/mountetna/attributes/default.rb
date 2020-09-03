@@ -7,6 +7,7 @@ default['users'] = [
 default['docker'] = {
     'data_root' => '/var/run/docker',
     'host' => 'unix:///var/run/docker.sock',
+    'default_tag' => 'staging',
     'swarm' => {
         'token' => nil,
         'leader_addr' => nil,
