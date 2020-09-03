@@ -37,7 +37,7 @@ class Metis
     def file_hashes_with_calculated_paths(bucket:, offset:, limit:, files:)
       # Calculate the folder_path, instead of
       #   doing it in the database.
-      folder_path_calc = FolderPathCalculator.new(bucket: bucket)
+      folder_path_calc = Metis::FolderPathCalculator.new(bucket: bucket)
 
       paged_files = files.slice(offset, limit)
       return [] unless paged_files
@@ -63,7 +63,7 @@ class Metis
       sorted_folders = []
       parent_folder_ids = [nil]
 
-      folder_path_calc = FolderPathCalculator.new(all_folders: all_folders, bucket: bucket)
+      folder_path_calc = Metis::FolderPathCalculator.new(all_folders: all_folders, bucket: bucket)
 
       folders_by_folder_id = (target_folders ? target_folders : all_folders).group_by { |fold| fold.folder_id }
 
