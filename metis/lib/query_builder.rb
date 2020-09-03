@@ -21,7 +21,12 @@ class Metis
         when 'name'
           case param[:predicate]
           when '=~'
-            @base_query = @base_query.where(Sequel.like(model_name_attribute, param[:value]))
+            value = param[:value]
+            if is_regex(value)
+              @base_query = @base_query.where([[Sequel[model_name_attribute], to_regex(value)]])
+            else
+              @base_query = @base_query.where(Sequel.like(model_name_attribute, value))
+            end
           end
         end
       end
@@ -29,6 +34,14 @@ class Metis
     end
 
     private
+
+    def to_regex(value)
+      Regexp.new value[1..-2]
+    end
+
+    def is_regex(value)
+      value[0] == '/' && value[-1] == '/'
+    end
 
     def is_file_query
       @base_query.model == Metis::File

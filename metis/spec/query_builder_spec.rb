@@ -32,7 +32,7 @@ describe Metis::QueryBuilder do
     builder.build
   end
 
-  it 'supports querying by string value' do
+  it 'supports querying by string value with sequel Like syntax' do
     builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),
       [{
@@ -49,6 +49,27 @@ describe Metis::QueryBuilder do
         attribute: 'name',
         predicate: '=~',
         value: '%xyz%'
+      }])
+    expect(builder.build.count).to eq(0)
+  end
+
+  it 'supports querying by string value with regexes' do
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '/.*dom.*/'
+      }])
+    expect(builder.build.count).to eq(1)
+
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '/.*xyz.*/'
       }])
     expect(builder.build.count).to eq(0)
   end
