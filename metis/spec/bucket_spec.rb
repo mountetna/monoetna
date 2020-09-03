@@ -415,7 +415,7 @@ describe BucketController do
       }])
 
       expect(last_response.status).to eq(200)
-      expect(json_body[:folders].length).to eq([])
+      expect(json_body[:folders]).to eq([])
       expect(json_body[:files]).to eq([])
     end
 

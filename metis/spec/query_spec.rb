@@ -5,10 +5,10 @@ describe Metis::Query do
   before(:each) do
     @bucket = default_bucket('athena')
 
-    @wisdom_folder = create_folder('athena', 'wisdom', bucket: @bucket)
-    stubs.create_folder('athena', 'files', 'wisdom')
+    @public_folder = create_folder('athena', 'public', bucket: @bucket)
+    stubs.create_folder('athena', 'files', 'public')
 
-    @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, folder: @wisdom_folder)
+    @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, folder: @public_folder)
     stubs.create_file('athena', 'files', 'wisdom', 'wisdom.txt', WISDOM)
   end
 
@@ -70,8 +70,8 @@ describe Metis::Query do
     )
 
     results = query.execute
-    expect(results[:files].count).to eq(1)
-    expect(results[:folders].count).to eq(0)
+    expect(results[:files].count).to eq(0)
+    expect(results[:folders].count).to eq(1)
 
     query = Metis::Query.new(
       project_name: 'athena',
@@ -89,7 +89,7 @@ describe Metis::Query do
     expect(results[:folders].count).to eq(0)
   end
 
-  it 'files and folders returned when no type specified' do
+  it 'both files and folders returned when no type specified' do
     query = Metis::Query.new(
       project_name: 'athena',
       bucket: @bucket,
@@ -101,8 +101,8 @@ describe Metis::Query do
     )
 
     results = query.execute
-    expect(results[:files].count).to eq(1)
-    expect(results[:folders].count).to eq(0)
+    expect(results[:files].count).to eq(0)
+    expect(results[:folders].count).to eq(1)
 
     query = Metis::Query.new(
       project_name: 'athena',
@@ -134,28 +134,36 @@ describe Metis::Query do
   end
 
   it 'supports querying by time value and range' do
-    builder = Metis::QueryBuilder.new(
-      Metis::File.where(project_name: 'athena', bucket: @bucket),
-      [{
+    query = Metis::Query.new(
+      project_name: 'athena',
+      bucket: @bucket,
+      params: [{
         attribute: 'updated_at',
         predicate: '>',
         value: (DateTime.now - 1).iso8601
-      }])
-    expect(builder.build.count).to eq(1)
+      }]
+    )
+    results = query.execute
+    expect(results[:files].count).to eq(1)
+    expect(results[:folders].count).to eq(1)
 
-
-    builder = Metis::QueryBuilder.new(
-      Metis::File.where(project_name: 'athena', bucket: @bucket),
-      [{
+    query = Metis::Query.new(
+      project_name: 'athena',
+      bucket: @bucket,
+      params: [{
         attribute: 'updated_at',
         predicate: '<',
         value: (DateTime.now - 1).iso8601
-      }])
-    expect(builder.build.count).to eq(0)
+      }]
+    )
+    results = query.execute
+    expect(results[:files].count).to eq(0)
+    expect(results[:folders].count).to eq(0)
 
-    builder = Metis::QueryBuilder.new(
-      Metis::File.where(project_name: 'athena', bucket: @bucket),
-      [{
+    query = Metis::Query.new(
+      project_name: 'athena',
+      bucket: @bucket,
+      params: [{
         attribute: 'updated_at',
         predicate: '<',
         value: (DateTime.now - 1).iso8601
@@ -163,27 +171,35 @@ describe Metis::Query do
         attribute: 'updated_at',
         predicate: '>',
         value: (DateTime.now + 1).iso8601
-      }])
-    expect(builder.build.count).to eq(0)
+      }]
+    )
+    results = query.execute
+    expect(results[:files].count).to eq(0)
+    expect(results[:folders].count).to eq(0)
 
-    builder = Metis::QueryBuilder.new(
-      Metis::File.where(project_name: 'athena', bucket: @bucket),
-      [{
-        attribute: 'updated_at',
-        predicate: '<',
-        value: (DateTime.now + 1).iso8601
-      }, {
+    query = Metis::Query.new(
+      project_name: 'athena',
+      bucket: @bucket,
+      params: [{
         attribute: 'updated_at',
         predicate: '>',
         value: (DateTime.now - 1).iso8601
-      }])
-    expect(builder.build.count).to eq(1)
+      }, {
+        attribute: 'updated_at',
+        predicate: '<',
+        value: (DateTime.now + 1).iso8601
+      }]
+    )
+    results = query.execute
+    expect(results[:files].count).to eq(1)
+    expect(results[:folders].count).to eq(1)
   end
 
   it 'can query both string and time attributes' do
-    builder = Metis::QueryBuilder.new(
-      Metis::File.where(project_name: 'athena', bucket: @bucket),
-      [{
+    query = Metis::Query.new(
+      project_name: 'athena',
+      bucket: @bucket,
+      params: [{
         attribute: 'updated_at',
         predicate: '<',
         value: (DateTime.now + 1).iso8601
@@ -195,12 +211,16 @@ describe Metis::Query do
         attribute: 'name',
         predicate: '=~',
         value: '%foo%'
-      }])
-    expect(builder.build.count).to eq(0)
+      }]
+    )
+    results = query.execute
+    expect(results[:files].count).to eq(0)
+    expect(results[:folders].count).to eq(0)
 
-    builder = Metis::QueryBuilder.new(
-      Metis::File.where(project_name: 'athena', bucket: @bucket),
-      [{
+    query = Metis::Query.new(
+      project_name: 'athena',
+      bucket: @bucket,
+      params: [{
         attribute: 'updated_at',
         predicate: '<',
         value: (DateTime.now + 1).iso8601
@@ -211,13 +231,17 @@ describe Metis::Query do
       }, {
         attribute: 'name',
         predicate: '=~',
-        value: 'wisd%'
-      }])
-    expect(builder.build.count).to eq(1)
+        value: '%wis%'
+      }]
+    )
+    results = query.execute
+    expect(results[:files].count).to eq(1)
+    expect(results[:folders].count).to eq(0)
 
-    builder = Metis::QueryBuilder.new(
-      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
-      [{
+    query = Metis::Query.new(
+      project_name: 'athena',
+      bucket: @bucket,
+      params: [{
         attribute: 'updated_at',
         predicate: '<',
         value: (DateTime.now + 1).iso8601
@@ -228,70 +252,12 @@ describe Metis::Query do
       }, {
         attribute: 'name',
         predicate: '=~',
-        value: '%foo%'
-      }])
-    expect(builder.build.count).to eq(0)
-
-    builder = Metis::QueryBuilder.new(
-      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
-      [{
-        attribute: 'updated_at',
-        predicate: '<',
-        value: (DateTime.now + 1).iso8601
-      }, {
-        attribute: 'updated_at',
-        predicate: '>',
-        value: (DateTime.now - 1).iso8601
-      }, {
-        attribute: 'name',
-        predicate: '=~',
-        value: 'wisd%'
-      }])
-    expect(builder.build.count).to eq(1)
-  end
-
-  it 'does not return results if different type specified' do
-    builder = Metis::QueryBuilder.new(
-      Metis::File.where(project_name: 'athena', bucket: @bucket),
-      [{
-        attribute: 'updated_at',
-        predicate: '<',
-        value: (DateTime.now - 1).iso8601,
+        value: '%wis%',
         type: 'folder'
-      }])
-
-    expect(builder.build.count).to eq(0)
-
-    builder = Metis::QueryBuilder.new(
-      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
-      [{
-        attribute: 'name',
-        predicate: '=~',
-        value: '%publi%',
-        type: 'file'
-      }])
-    expect(builder.build.count).to eq(0)
-  end
-
-  it 'does return results with the type flag' do
-    builder = Metis::QueryBuilder.new(
-      Metis::File.where(project_name: 'athena', bucket: @bucket),
-      [{
-        attribute: 'updated_at',
-        predicate: '<',
-        value: (DateTime.now + 1).iso8601,
-        type: 'file'
-      }])
-    expect(builder.build.count).to eq(1)
-
-    builder = Metis::QueryBuilder.new(
-      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
-      [{
-        attribute: 'name',
-        predicate: '=~',
-        value: '%publi%',
-        type: 'folder'
-      }])
-    expect(builder.build.count).to eq(1)
+      }]
+    )
+    results = query.execute
+    expect(results[:files].count).to eq(1)
+    expect(results[:folders].count).to eq(0)
   end
 end

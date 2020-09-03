@@ -68,16 +68,11 @@ class BucketController < Metis::Controller
     require_params(:project_name, :params)
     params = @params[:params]
 
-    file_query = Metis::QueryBuilder.new(
-      Metis::File.where(
-        project_name: @params[:project_name],
-        bucket: bucket),
-      params
-    )
     query = Metis::Query.new(
       project_name: @params[:project_name],
-      bucket_name: @params[:bucket_name],
-      params: params)
+      bucket: bucket,
+      params: params
+    )
 
     results = query.execute
 
@@ -85,11 +80,11 @@ class BucketController < Metis::Controller
     folders = results[:folders]
 
     # Should try to optimize this?
-    files = file_query.build.all.map do |file|
+    files = files.map do |file|
       file.to_hash(@request)
     end
 
-    folders = folder_query.build.all.map do |fold|
+    folders = folders.map do |fold|
       fold.to_hash
     end
 
