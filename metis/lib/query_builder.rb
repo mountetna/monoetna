@@ -27,6 +27,8 @@ class Metis
             else
               @base_query = @base_query.where(Sequel.like(model_name_attribute, value))
             end
+          when '='
+            @base_query = @base_query.where([[Sequel[model_name_attribute], param[:value]]])
           end
         end
       end

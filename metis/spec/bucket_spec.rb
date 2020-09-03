@@ -334,8 +334,14 @@ describe BucketController do
       @public_folder = create_folder('athena', 'public', bucket: @bucket)
       stubs.create_folder('athena', 'my_bucket', 'public')
 
+      @child_folder = create_folder('athena', 'child', bucket: @bucket, folder: @public_folder)
+      stubs.create_folder('athena', 'my_bucket', 'public/child')
+
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: @bucket, folder: @public_folder)
       stubs.create_file('athena', 'my_bucket', 'public', 'wisdom.txt', WISDOM)
+
+      @helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: @bucket, folder: @child_folder)
+      stubs.create_file('athena', 'my_bucket', 'public/child', 'helmet.jpg', HELMET)
     end
 
     after(:each) do
@@ -364,8 +370,10 @@ describe BucketController do
       }])
 
       expect(last_response.status).to eq(200)
-      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].length).to eq(2)
       expect(json_body[:folders].first[:folder_name]).to eq(@public_folder.folder_name)
+      expect(json_body[:folders].last[:folder_name]).to eq(@child_folder.folder_name)
+      expect(json_body[:folders].last[:folder_path]).to eq(@child_folder.to_hash[:folder_path])
       expect(json_body[:files].length).to eq(1)
       expect(json_body[:files].first[:file_name]).to eq(@wisdom_file.file_name)
 
@@ -385,8 +393,8 @@ describe BucketController do
       private_folder = create_folder('athena', 'private', bucket: @bucket)
       stubs.create_folder('athena', 'my_bucket', 'private')
 
-      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: @bucket, folder: private_folder)
-      stubs.create_file('athena', 'my_bucket', 'private', 'helmet.jpg', HELMET)
+      shiny_helmet_file = create_file('athena', 'shiny_helmet.jpg', SHINY_HELMET, bucket: @bucket, folder: private_folder)
+      stubs.create_file('athena', 'my_bucket', 'private', 'shiny_helmet.jpg', SHINY_HELMET)
 
       token_header(:viewer)
       json_post("/athena/find/my_bucket", params: [{
@@ -408,9 +416,11 @@ describe BucketController do
 
       expect(last_response.status).to eq(200)
       expect(json_body[:folders].length).to eq(1)
-      expect(json_body[:folders].first[:folder_name]).to eq(@public_folder.folder_name)
-      expect(json_body[:folders].first[:folder_path]).to eq(@public_folder.to_hash[:folder_path])
-      expect(json_body[:files]).to eq([])
+      expect(json_body[:folders].first[:folder_name]).to eq(@child_folder.folder_name)
+      expect(json_body[:folders].first[:folder_path]).to eq(@child_folder.to_hash[:folder_path])
+      expect(json_body[:files].length).to eq(1)
+      expect(json_body[:files].first[:file_name]).to eq(shiny_helmet_file.file_name)
+      expect(json_body[:files].first[:file_path]).to eq(shiny_helmet_file.to_hash[:file_path])
 
       json_post("/athena/find/my_bucket", params: [{
         attribute: 'name',
@@ -420,7 +430,7 @@ describe BucketController do
 
       expect(last_response.status).to eq(200)
       expect(json_body[:folders].length).to eq(1)
-      expect(json_body[:folders].first[:folder_name]).to eq(private_folder.folder_name)
+      expect(json_body[:folders].first[:folder_name]).to eq(@public_folder.folder_name)
       expect(json_body[:files].length).to eq(1)
       expect(json_body[:files].first[:file_name]).to eq(@wisdom_file.file_name)
       expect(json_body[:files].first[:file_path]).to eq(@wisdom_file.to_hash[:file_path])
@@ -485,7 +495,7 @@ describe BucketController do
       }])
 
       expect(last_response.status).to eq(200)
-      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].length).to eq(2)
       expect(json_body[:folders].first[:folder_name]).to eq(@public_folder.folder_name)
       expect(json_body[:files]).to eq([])
 
@@ -502,6 +512,45 @@ describe BucketController do
       expect(json_body[:files]).to eq([])
     end
 
+    it 'returns results for non-root folders and files' do
+      token_header(:viewer)
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '%child%',
+        type: 'folder'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].first[:folder_name]).to eq(@child_folder.folder_name)
+      expect(json_body[:files]).to eq([])
+
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=',
+        value: 'child',
+        type: 'folder'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].first[:folder_name]).to eq(@child_folder.folder_name)
+      expect(json_body[:files]).to eq([])
+
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: 'helmet.jpg',
+        type: 'file'
+      }])
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders]).to eq([])
+      expect(json_body[:files].length).to eq(1)
+      expect(json_body[:files].first[:file_name]).to eq(@helmet_file.file_name)
+    end
+
     it 'returns error if user does not have access to view bucket' do
       restricted_bucket = create( :bucket, project_name: 'athena', name: 'restricted_bucket', access: 'editor', owner: 'metis')
       stubs.create_bucket('athena', 'restricted_bucket')
@@ -509,8 +558,8 @@ describe BucketController do
       public_folder = create_folder('athena', 'public', bucket: restricted_bucket)
       stubs.create_folder('athena', 'restricted_bucket', 'public')
 
-      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: restricted_bucket, folder: public_folder)
-      stubs.create_file('athena', 'restricted_bucket', 'public', 'helmet.jpg', HELMET)
+      shiny_helmet_file = create_file('athena', 'shiny_helmet.jpg', SHINY_HELMET, bucket: restricted_bucket, folder: public_folder)
+      stubs.create_file('athena', 'restricted_bucket', 'public', 'shiny_helmet.jpg', SHINY_HELMET)
 
       token_header(:viewer)
       json_post("/athena/find/restricted_bucket", params: [{

@@ -83,6 +83,26 @@ describe Metis::QueryBuilder do
     expect(builder.build.count).to eq(1)
   end
 
+  it 'supports querying by string equality' do
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: '=',
+        value: 'dom'
+      }])
+    expect(builder.build.count).to eq(0)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: '=',
+        value: 'wisdom.txt'
+      }])
+    expect(builder.build.count).to eq(1)
+  end
+
   it 'supports querying by time value and range' do
     builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),
