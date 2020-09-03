@@ -72,6 +72,15 @@ describe Metis::QueryBuilder do
         value: '/.*xyz.*/'
       }])
     expect(builder.build.count).to eq(0)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '/.*dOm.*/ix'
+      }])
+    expect(builder.build.count).to eq(1)
   end
 
   it 'supports querying by time value and range' do

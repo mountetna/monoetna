@@ -36,11 +36,21 @@ class Metis
     private
 
     def to_regex(value)
-      Regexp.new value[1..-2]
+      return Regexp.new value[1..-2] if value[0] == '/' && value[-1] == '/'
+
+      # otherwise has options
+      split_value = value.split('/')
+      options = split_value[-1]
+
+      Regexp.new(
+        split_value[1],
+        (options.include?('i') ? Regexp::IGNORECASE : 0) | (options.include?('e') ? Regexp::MULTILINE : 0) | (options.include?('x') ? Regexp::EXTENDED : 0))
     end
 
     def is_regex(value)
-      value[0] == '/' && value[-1] == '/'
+      # '/foo/' OR '/foo/ix'
+      (value[0] == '/' && value[-1] == '/') ||
+      (value.split('/').length == 3 && value.split('/')[-1] =~ /[ixe]+/)
     end
 
     def is_file_query
