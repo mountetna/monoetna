@@ -81,11 +81,14 @@ class Metis
     end
 
     def recursive_glob(glob_parts)
-      glob_parts.length == 3 && glob_parts[1] == '**'
+      (glob_parts.length == 3 && glob_parts[1] == '**') ||
+      (glob_parts.length == 2 && glob_parts[1] == '*')
     end
 
     def depth_one_glob(glob_parts)
-      glob_parts.length == 3 && glob_parts[1] == '*'
+      return glob_parts.length == 3 && glob_parts[1] == '*' if is_file_query
+
+      return glob_parts.length == 2 && glob_parts[1].include?('*')
     end
 
     def get_folder_path_ids(glob_parts)
@@ -93,7 +96,8 @@ class Metis
       folder_name = glob_parts[0]
       if folder_name.include?('*')
         folders = Metis::Folder.where(Sequel.like(:folder_name, likeify_glob(folder_name))).all
-        return folders.map { |f| f.child_folders.map { |f2| f2.id } }.flatten
+        return folders.map { |f| f.child_folders.map { |f2| f2.id } }.flatten if recursive_glob(glob_parts)
+
       else
         folder = Metis::Folder.where(folder_name: folder_name).first
 

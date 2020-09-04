@@ -245,6 +245,15 @@ describe Metis::QueryBuilder do
       [{
         attribute: 'name',
         predicate: 'glob',
+        value: 'child/gr*'
+      }])
+    expect(builder.build.count).to eq(1)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
         value: 'greatgrandchild/*'
       }])
     expect(builder.build.count).to eq(0)
