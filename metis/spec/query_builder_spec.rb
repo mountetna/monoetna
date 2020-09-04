@@ -230,7 +230,6 @@ describe Metis::QueryBuilder do
     greatgrandchild_folder = create_folder('athena', 'greatgrandchild', bucket: @bucket, folder: grandchild_folder)
     stubs.create_folder('athena', 'files', 'wisdom/child/grandchild/greatgrandchild')
 
-
     builder = Metis::QueryBuilder.new(
       Metis::Folder.where(project_name: 'athena', bucket: @bucket),
       [{
@@ -284,6 +283,71 @@ describe Metis::QueryBuilder do
         value: 'wisdom/**/*child*'
       }])
     expect(builder.build.count).to eq(3)
+  end
+
+  it 'can find data in folders with the same name via globbing' do
+    child_folder = create_folder('athena', 'child', bucket: @bucket, folder: @wisdom_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child')
+
+    grandchild_folder = create_folder('athena', 'grandchild', bucket: @bucket, folder: child_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/child/grandchild')
+
+    sibling_folder = create_folder('athena', 'sibling', bucket: @bucket, folder: @wisdom_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/sibling')
+
+    grandchild2_folder = create_folder('athena', 'grandchild', bucket: @bucket, folder: sibling_folder)
+    stubs.create_folder('athena', 'files', 'wisdom/sibling/grandchild')
+
+    helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: grandchild_folder)
+    stubs.create_file('athena', 'files', 'wisdom/child/grandchild', 'helmet.jpg', HELMET)
+
+    shiney_helmet_file = create_file('athena', 'shiny_helmet.jpg', SHINY_HELMET, folder: grandchild2_folder)
+    stubs.create_file('athena', 'files', 'wisdom/sibling/grandchild', 'shiny_helmet.jpg', SHINY_HELMET)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'grandchild'
+      }])
+    expect(builder.build.count).to eq(2)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'grandchild/*'
+      }])
+    expect(builder.build.count).to eq(0)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'grandchild/*'
+      }])
+    expect(builder.build.count).to eq(2)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'grandchild/*.jpg'
+      }])
+    expect(builder.build.count).to eq(2)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'grandchild/*.txt'
+      }])
+    expect(builder.build.count).to eq(0)
   end
 
   it 'can query by globs for files' do

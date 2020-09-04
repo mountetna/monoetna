@@ -81,14 +81,16 @@ class Metis
     end
 
     def recursive_glob(glob_parts)
-      (glob_parts.length == 3 && glob_parts[1] == '**') ||
-      (glob_parts.length == 2 && glob_parts[1] == '*')
+      return glob_parts.length == 3 && glob_parts[1] == '**' if is_file_query
+
+      (glob_parts.length == 2 && glob_parts[1] == '*') ||
+      (glob_parts.length == 3 && glob_parts[1] == '**')
     end
 
     def depth_one_glob(glob_parts)
       return glob_parts.length == 3 && glob_parts[1] == '*' if is_file_query
 
-      return glob_parts.length == 2 && glob_parts[1].include?('*')
+      glob_parts.length == 2 && glob_parts[1].include?('*')
     end
 
     def get_folder_path_ids(glob_parts)
@@ -101,18 +103,18 @@ class Metis
 
         # Are there other glob-type folder queries here, like MVIR*/foo* that we should support?
       else
-        folder = Metis::Folder.where(folder_name: folder_name).first
+        folders = Metis::Folder.where(folder_name: folder_name).all
 
         # foo/**/*.txt
-        return folder.child_folders.map { |f| f.id } if recursive_glob(glob_parts)
+        return folders.map { |f| f.child_folders.map { |f2| f2.id } }.flatten if recursive_glob(glob_parts)
 
-        # 1 level deep glob, like foo/*/*.txt?
-        # or foo/bar*
-        return folder.child_folders.select { |f|
-          f.folder_id == folder.id }.map { |f| f.id } if depth_one_glob(glob_parts)
+        # 1 level deep glob. For files, like foo/*/*.txt
+        # or foo/bar* for directories
+        return folders.map { |f| f.child_folders.select { |f2|
+          f2.folder_id == f.id }.map { |f3| f3.id } }.flatten if depth_one_glob(glob_parts)
 
-        # *.txt in the root directory
-        return [folder.id]
+        # *.txt in the root directory for files, or foo/*
+        return folders.map { |f| f.id }
       end
     end
   end
