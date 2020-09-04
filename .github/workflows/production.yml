@@ -1,0 +1,31 @@
+name: Build and upload production artifacts
+on:
+  push:
+    branches:
+      - production
+
+jobs:
+  build-production:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: docker login
+        env:
+          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+        run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
+      - name: Download all images
+        env:
+          IMAGES_PREFIX: etnaagent/
+          IMAGES_POSTFIX: :production
+        run: |
+          ./bin/x-all-images docker pull %
+      - name: Test + Push Release
+        env:
+          PUSH_IMAGES: 1
+          IMAGES_PREFIX: etnaagent/
+          IMAGES_POSTFIX: :production
+          NO_TEST: 1
+        run: make release
+
