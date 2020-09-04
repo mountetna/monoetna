@@ -9,7 +9,7 @@ class Polyphemus
 
     def execute
       puts 'Commands:'
-      Polyphemus.instance.commands.each do |name,cmd|
+      Polyphemus.instance.commands.each do |name, cmd|
         puts cmd.usage
       end
     end
@@ -71,41 +71,49 @@ class Polyphemus
           restrict!(patient, delete_metis_files: true)
         elsif should_be_restricted
           restrict!(patient)
-        elsif ! should_be_restricted
+        elsif !should_be_restricted
           unrestrict!(patient)
         end
       end
 
       # Check all pools and verify status
-      cascade_to_pools
+      cascade_to_cytof_pools
+      cascade_to_sc_rna_pools
     end
 
-    def cascade_to_pools
+    def cascade_to_cytof_pools
+      cascade_to_pool('cytof')
+    end
 
+    def cascade_to_sc_rna_pools
+      cascade_to_pool('sc_rna_seq')
+    end
+
+    def cascade_to_pool(base_model)
       request = Etna::Clients::Magma::QueryRequest.new(project_name: project)
-      request.query = [ 'cytof',
-                        [ 'timepoint', 'patient', 'restricted', '::true' ],
-                        '::all', 'cytof_pool', '::identifier' ]
+      request.query = [base_model,
+          ['timepoint', 'patient', 'restricted', '::true'],
+          '::all', "#{base_model}_pool", '::identifier']
       all_restricted_pools = magma_client.query(request).answer.map { |r| r[1] }.sort.uniq
 
-      request.query = [ 'cytof_pool', '::all', '::identifier' ]
+      request.query = ["#{base_model}_pool", '::all', '::identifier']
       all_pools = magma_client.query(request).answer.map { |r| r[1] }.sort.uniq
       all_pools.each do |pool|
         if all_restricted_pools.include? pool
-          logger.info "Cytof pool #{pool} includes a restricted patient, restricting."
+          logger.info "#{base_model}_pool #{pool} includes a restricted patient, restricting."
 
           mvir1_waiver.restrict_pool_data(pool)
 
           update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
-          update_request.update_revision('cytof_pool', pool, restricted: true)
+          update_request.update_revision("#{base_model}_pool", pool, restricted: true)
           magma_client.update(update_request)
         else
-          logger.info "Cytof pool #{pool} does not include a restricted patient, relaxing."
+          logger.info "#{base_model}_pool #{pool} does not include a restricted patient, relaxing."
 
           mvir1_waiver.release_pool_data(pool)
 
           update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
-          update_request.update_revision('cytof_pool', pool, restricted: false)
+          update_request.update_revision("#{base_model}_pool", pool, restricted: false)
           magma_client.update(update_request)
         end
       end
@@ -168,7 +176,7 @@ class Polyphemus
 
     def execute
       folders = metis_client.list_all_folders(
-        Etna::Clients::Metis::ListFoldersRequest.new(project_name: project, bucket_name: 'data')).folders
+          Etna::Clients::Metis::ListFoldersRequest.new(project_name: project, bucket_name: 'data')).folders
       folders.all.each { |f| p f.folder_path }
     end
 

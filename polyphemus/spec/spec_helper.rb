@@ -71,21 +71,21 @@ def stub_rename_folder(params={})
   })
 end
 
-def stub_magma_restricted_pools(restricted_pools)
+def stub_magma_restricted_pools(base_model, restricted_pools)
   stub_request(:post, 'https://magma.test/query')
     .with(body: hash_including({ project_name: 'mvir1',
-                                query: [ 'cytof',
+                                query: [ base_model,
                                           [ 'timepoint', 'patient', 'restricted', '::true' ],
-                                          '::all', 'cytof_pool', '::identifier' ] }))
+                                          '::all', "#{base_model}_pool", '::identifier' ] }))
     .to_return({ body: {
         'answer': restricted_pools.map {|p| [nil, p] }
     }.to_json })
 end
 
-def stub_magma_all_pools(all_pools)
+def stub_magma_all_pools(base_model, all_pools)
   stub_request(:post, 'https://magma.test/query')
     .with(body: hash_including({ project_name: 'mvir1',
-                                query: [ 'cytof_pool', '::all', '::identifier' ] }))
+                                query: [ "#{base_model}_pool", '::all', '::identifier' ] }))
     .to_return({ body: {
         'answer': all_pools.map {|p| [nil, p] }
     }.to_json })
