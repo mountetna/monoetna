@@ -33,15 +33,10 @@ class Metis
           when 'glob'
             globber = Metis::Globber.new(param[:value], is_file_query)
 
-            folder_path_ids = globber.folder_path_ids
+            id_param = is_file_query ? :folder_id : :id
 
-            if is_file_query
-              id_param = :folder_id
-            else
-              id_param = :id
-            end
             @base_query = @base_query.where(
-              [[Sequel[id_param], folder_path_ids]]).where(
+              [[Sequel[id_param], globber.folder_path_ids]]).where(
               Sequel.like(model_name_attribute, globber.sql_search_string))
           end
         end
