@@ -25,8 +25,10 @@ class Metis
         break if !folder_to_check.folder_id
 
         # Use the cached path value for the parent folder if it exists
-        return path.unshift(@path_cache[folder_to_check.folder_id.to_s.to_sym]) if
-          @path_cache.has_key?(folder_to_check.folder_id.to_s.to_sym)
+        if @path_cache.has_key?(folder_to_check.folder_id.to_s.to_sym)
+          path.unshift(@path_cache[folder_to_check.folder_id.to_s.to_sym])
+          break
+        end
 
         # Add the parent folder to the list
         parent_folder = @folders_by_id[folder_to_check.folder_id].first
