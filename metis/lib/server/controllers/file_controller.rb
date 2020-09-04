@@ -28,7 +28,7 @@ class FileController < Metis::Controller
 
     file.protect!
 
-    success_json(files: [ file.to_hash(@request) ])
+    success_json(files: [ file.to_hash(request: @request) ])
   end
 
   def unprotect
@@ -41,7 +41,7 @@ class FileController < Metis::Controller
 
     file.unprotect!
 
-    success_json(files: [ file.to_hash(@request) ])
+    success_json(files: [ file.to_hash(request: @request) ])
   end
 
   def rename
@@ -69,7 +69,7 @@ class FileController < Metis::Controller
 
     file.rename!(new_folder, new_file_name)
 
-    success_json(files: [ file.to_hash(@request) ])
+    success_json(files: [ file.to_hash(request: @request) ])
   end
 
   def copy
@@ -113,7 +113,7 @@ class FileController < Metis::Controller
 
     return failure(422, errors: revision.errors) unless revision.valid?
 
-    return success_json(files: [ revision.revise!.to_hash(@request) ])
+    return success_json(files: [ revision.revise!.to_hash(request: @request) ])
   end
 
   def bulk_copy
@@ -180,7 +180,7 @@ class FileController < Metis::Controller
     # If we've gotten here, every revision looks good and we can execute them!
     return success_json(
       files: revisions.map(&:revise!).
-        map {|new_file| new_file.to_hash(@request)}
+        map {|new_file| new_file.to_hash(request: @request)}
     )
   end
 end
