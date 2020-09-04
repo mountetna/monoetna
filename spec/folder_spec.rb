@@ -919,4 +919,30 @@ describe FolderController do
       expect(@blueprints_folder.to_hash[:folder_path]).to eq('blueprints')
     end
   end
+
+  context '#child_folders' do
+    before(:each) do
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
+
+      @zoomed_folder = create_folder('athena', 'zoomed', folder: @blueprints_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/zoomed')
+
+      @blurry_folder = create_folder('athena', 'blurry', folder: @blueprints_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/blurry')
+
+      @favorites_folder = create_folder('athena', 'favorites', folder: @zoomed_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/zoomed/favorites')
+    end
+
+    it 'finds all child folders' do
+      blueprints_children = @blueprints_folder.child_folders
+      expect(blueprints_children.length).to eq(3)
+      expect(blueprints_children).to eq([@zoomed_folder, @blurry_folder, @favorites_folder])
+    end
+
+    it 'returns empty list when no children' do
+      expect(@favorites_folder.child_folders).to eq([])
+    end
+  end
 end
