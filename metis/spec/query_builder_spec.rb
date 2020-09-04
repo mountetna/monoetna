@@ -273,7 +273,7 @@ describe Metis::QueryBuilder do
         predicate: 'glob',
         value: '*chil*/*'
       }])
-    expect(builder.build.count).to eq(2) # Duplicates not returned
+    expect(builder.build.count).to eq(3)
 
     builder = Metis::QueryBuilder.new(
       Metis::Folder.where(project_name: 'athena', bucket: @bucket),
@@ -323,11 +323,29 @@ describe Metis::QueryBuilder do
     expect(builder.build.count).to eq(0)
 
     builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'chil*/*'
+      }])
+    expect(builder.build.count).to eq(2) # child/ + child/grandchild/
+
+    builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),
       [{
         attribute: 'name',
         predicate: 'glob',
         value: 'grandchild/*'
+      }])
+    expect(builder.build.count).to eq(2)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'grand*/*'
       }])
     expect(builder.build.count).to eq(2)
 

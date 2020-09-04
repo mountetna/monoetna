@@ -1,4 +1,5 @@
 require 'date'
+require_relative './globber'
 
 class Metis
   class QueryBuilder
@@ -30,9 +31,9 @@ class Metis
           when '='
             @base_query = @base_query.where([[Sequel[model_name_attribute], param[:value]]])
           when 'glob'
-            glob_parts = param[:value].split('/')
+            globber = Metis::Globber.new(param[:value], is_file_query)
 
-            folder_path_ids = get_folder_path_ids(glob_parts)
+            folder_path_ids = globber.folder_path_ids
 
             if is_file_query
               id_param = :folder_id
@@ -41,7 +42,7 @@ class Metis
             end
             @base_query = @base_query.where(
               [[Sequel[id_param], folder_path_ids]]).where(
-              Sequel.like(model_name_attribute, likeify_glob(glob_parts[-1])))
+              Sequel.like(model_name_attribute, globber.sql_search_string))
           end
         end
       end
@@ -74,48 +75,6 @@ class Metis
 
     def model_name_attribute
       is_file_query ? :file_name : :folder_name
-    end
-
-    def likeify_glob(glob_string)
-      glob_string.gsub('*', '%')
-    end
-
-    def recursive_glob(glob_parts)
-      return glob_parts.length == 3 && glob_parts[1] == '**' if is_file_query
-
-      (glob_parts.length == 2 && glob_parts[1] == '*') ||
-      (glob_parts.length == 3 && glob_parts[1] == '**')
-    end
-
-    def depth_one_glob(glob_parts)
-      return glob_parts.length == 3 && glob_parts[1] == '*' if is_file_query
-
-      glob_parts.length == 2 && glob_parts[1].include?('*')
-    end
-
-    def get_folder_path_ids(glob_parts)
-      # Maybe we only support some subset of pseudo-glob syntax
-      folder_name = glob_parts[0]
-      if folder_name.include?('*')
-        # MVIR1*/
-        folders = Metis::Folder.where(Sequel.like(:folder_name, likeify_glob(folder_name))).all
-        return folders.map { |f| f.child_folders.map { |f2| f2.id } }.flatten
-
-        # Are there other glob-type folder queries here, like MVIR*/foo* that we should support?
-      else
-        folders = Metis::Folder.where(folder_name: folder_name).all
-
-        # foo/**/*.txt
-        return folders.map { |f| f.child_folders.map { |f2| f2.id } }.flatten if recursive_glob(glob_parts)
-
-        # 1 level deep glob. For files, like foo/*/*.txt
-        # or foo/bar* for directories
-        return folders.map { |f| f.child_folders.select { |f2|
-          f2.folder_id == f.id }.map { |f3| f3.id } }.flatten if depth_one_glob(glob_parts)
-
-        # *.txt in the root directory for files, or foo/*
-        return folders.map { |f| f.id }
-      end
     end
   end
 end
