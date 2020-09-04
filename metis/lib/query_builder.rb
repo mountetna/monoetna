@@ -95,18 +95,23 @@ class Metis
       # Maybe we only support some subset of pseudo-glob syntax
       folder_name = glob_parts[0]
       if folder_name.include?('*')
+        # MVIR1*/
         folders = Metis::Folder.where(Sequel.like(:folder_name, likeify_glob(folder_name))).all
-        return folders.map { |f| f.child_folders.map { |f2| f2.id } }.flatten if recursive_glob(glob_parts)
+        return folders.map { |f| f.child_folders.map { |f2| f2.id } }.flatten
 
+        # Are there other glob-type folder queries here, like MVIR*/foo* that we should support?
       else
         folder = Metis::Folder.where(folder_name: folder_name).first
 
+        # foo/**/*.txt
         return folder.child_folders.map { |f| f.id } if recursive_glob(glob_parts)
 
         # 1 level deep glob, like foo/*/*.txt?
+        # or foo/bar*
         return folder.child_folders.select { |f|
           f.folder_id == folder.id }.map { |f| f.id } if depth_one_glob(glob_parts)
 
+        # *.txt in the root directory
         return [folder.id]
       end
     end
