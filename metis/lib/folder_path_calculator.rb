@@ -28,7 +28,7 @@ class Metis
         return path.unshift(@path_cache[folder_to_check.folder_id.to_s.to_sym]) if
           @path_cache.has_key?(folder_to_check.folder_id.to_s.to_sym)
 
-        # Find the path for the parent folder, recursively
+        # Add the parent folder to the list
         parent_folder = @folders_by_id[folder_to_check.folder_id].first
         path.unshift(parent_folder.folder_name)
         folder_to_check = parent_folder
