@@ -9,25 +9,6 @@ class Metis
       likeify_glob(@glob_parts[-1])
     end
 
-    private
-
-    def likeify_glob(glob_string)
-      glob_string.gsub('*', '%')
-    end
-
-    def recursive_glob
-      return @glob_parts.length == 3 && @glob_parts[1] == '**' if @is_file_glob
-
-      (@glob_parts.length == 2 && @glob_parts[1] == '*') ||
-      (@glob_parts.length == 3 && @glob_parts[1] == '**')
-    end
-
-    def depth_one_glob
-      return @glob_parts.length == 3 && @glob_parts[1] == '*' if @is_file_glob
-
-      @glob_parts.length == 2 && @glob_parts[1].include?('*')
-    end
-
     def folder_path_ids
       # Maybe we only support some subset of pseudo-glob syntax
       folder_name = @glob_parts[0]
@@ -49,6 +30,25 @@ class Metis
         # *.txt in the root directory for files, or foo/*
         return folders.map { |f| f.id }
       end
+    end
+
+    private
+
+    def likeify_glob(glob_string)
+      glob_string.gsub('*', '%')
+    end
+
+    def recursive_glob
+      return @glob_parts.length == 3 && @glob_parts[1] == '**' if @is_file_glob
+
+      (@glob_parts.length == 2 && @glob_parts[1] == '*') ||
+      (@glob_parts.length == 3 && @glob_parts[1] == '**')
+    end
+
+    def depth_one_glob
+      return @glob_parts.length == 3 && @glob_parts[1] == '*' if @is_file_glob
+
+      @glob_parts.length == 2 && @glob_parts[1].include?('*')
     end
   end
 end
