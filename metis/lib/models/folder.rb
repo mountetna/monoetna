@@ -76,6 +76,27 @@ class Metis
       ).all
     end
 
+    def child_folders
+      query =  %Q(
+          WITH RECURSIVE child_folders(id, folder_id, depth) AS (
+            SELECT f.id, f.folder_id, 1
+              FROM folders f
+              WHERE f.bucket_id = #{bucket.id} AND f.folder_id = #{db.literal(id)}
+            UNION ALL
+              SELECT f.id, f.folder_id, cf.depth+1
+              FROM folders f, child_folders cf
+              WHERE f.bucket_id = #{bucket.id} AND f.folder_id = cf.id AND depth < 256
+          )
+          SELECT f.*
+          FROM child_folders AS cf JOIN folders AS f
+          ON f.id=cf.id ORDER BY cf.depth ASC;
+        )
+
+      Metis::Folder.with_sql(
+        query
+      ).all
+    end
+
     def read_only?
       read_only
     end
