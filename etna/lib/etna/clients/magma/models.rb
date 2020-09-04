@@ -53,6 +53,13 @@ module Etna
         end
       end
 
+      class AddProjectAction < Struct.new(:action_name, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'add_project'}.update(args))
+        end
+      end
+
       class AttributeValidation < Struct.new(:type, :value, :begin, :end, keyword_init: true)
         include JsonSerializableStruct
       end
