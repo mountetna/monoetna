@@ -25,7 +25,7 @@ default['users'] = [
 default['docker'] = {
     'data_root' => '/var/run/docker',
     'host' => 'unix:///var/run/docker.sock',
-    'default_tag' => 'staging',
+    'default_tag' => 'master',
     'swarm' => {
         'token' => nil,
         'leader_addr' => nil,
@@ -45,4 +45,6 @@ default['slack_notifications'] = {
     }
 }
 
-default['polyphemus']['janus_token']
+default['polyphemus']['janus_token'] = nil
+
+default['rollbar'] = {}

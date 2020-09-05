@@ -13,9 +13,11 @@ cookbook_file '/var/mountetna/httpd.conf.d/main.conf' do
   mode '640'
 end
 
+
 # TODO: Need to mount /app/data directory to serve metis assets from.  When we get there.
 mountetna_systemd_wrapped_container 'edge-apache' do
-  image 'mountetna/edge-apache'
+  image 'etnaagent/edge-apache'
+  tag node['docker']['default_tag']
   options [
       "-v /var/mountetna/edge-apache/httpd.conf.d/:/usr/opt/httpd.conf.d/:ro"
   ]

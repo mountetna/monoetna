@@ -17,7 +17,7 @@ action :create do
   file "/var/mountetna/#{name}/config.yml" do
     owner 'root'
     group 'docker'
-    content(EtnaConfigBuilder.new.merge(new_resource.extra_yml_config).build.to_yaml)
+    content(EtnaConfigBuilder.new(name, node).merge(new_resource.extra_yml_config).build.to_yaml)
     # Can contain secrets; ensure only true administrative users can read this file.
     mode '640'
   end
@@ -34,7 +34,7 @@ action :create do
   end
 
   mountetna_systemd_wrapped_container "#{name}_app" do
-    image "mountetna/#{name}"
+    image "etnaagent/#{name}"
     tag new_resource.tag
     cmd "./bin/puma.sh"
 
@@ -67,7 +67,7 @@ action :create do
 end
 
 class EtnaConfigBuilder
-  def initialize
+  def initialize(name, node)
     config = @config = {}
     production_config = config[:production] = {}
     production_config[:auth_redirect] = node['hosts']['janus']
@@ -89,7 +89,7 @@ class EtnaConfigBuilder
     db_config[:timeout] = 5000
     db_config[:database] = name
 
-    rollbar_config = (db_config[:rollbar] ||= {})
+    rollbar_config = (production_config[:rollbar] ||= {})
     rollbar_config[:access_token] = node['rollbar']['access_token']
   end
 
@@ -105,7 +105,7 @@ class EtnaConfigBuilder
       end
     end
 
-    @config
+    self
   end
 
   def ensure_no_nils(yml, path=[])
@@ -114,7 +114,7 @@ class EtnaConfigBuilder
         ensure_no_nils(v, path + [k])
       end
 
-      raise "Unexpected nil in etna_app config found: #{path.join('.')}" if v.nil?
+      raise "Unexpected nil in etna_app config found: #{path.join('.')}.#{k}" if v.nil?
     end
 
     yml

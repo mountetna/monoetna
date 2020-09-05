@@ -44,10 +44,25 @@ suites:
   - name: master
     run_list:
       # Test idempotency by running all the things twice
-      - recipe[mountetna::default]
-      - recipe[mountetna::default]
+      - recipe[mountetna::polyphemus]
+      - recipe[mountetna::polyphemus]
     attributes:
       is_kitchen: true
       psql_developer_password: password
       docker:
         host: unix:///usr/var/run/docker.host.sock
+      janus_token:
+        rsa_public: |
+          -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6pLkfi2RXd3jHWKh9W37
+          k7Nw5aZxIQRCf9b5b0uUIqyk4ODH1Pd4s/hhYq/9c+HT2304NkiqRw4cVOHMgk8N
+          O+a+7F+HgspJZopyEBCJvBloBoPKrpkZv0FeVHYwiDM2kf3GFDzTPBdUSpYJimtn
+          HF29DdEoj6O5xL9uGW97QZ34JYacIeG7GmVGjYnCvA87S0miDUxvGlu40g+VJhND
+          mLXMzWa5vTxyGb4cEQSL6rryVxmBlonG4J41K7A04/7tftKvWrqsCWAfSCusNs8w
+          CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
+          NQIDAQAB
+          -----END PUBLIC KEY-----
+      rollbar:
+        access_token: ''
+      polyphemus:
+        janus_token: ''

@@ -35,6 +35,7 @@ if node['is_kitchen']
   execute 'is_kitchen hack to link docker.sock' do
     user("root")
     command("ln -s /usr/var/run/docker.sock /run/docker.sock")
+    not_if { ::File.exists?('/run/docker.sock')}
   end
 end
 
