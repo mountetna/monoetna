@@ -53,6 +53,6 @@ RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
 RUN mkdir -p /opt
 COPY src/npmrc /opt/npmrc
 COPY src/entrypoints /entrypoints
-COPY src/fe-httpd.conf.erb /opt/fe.conf.erb
+COPY src/fe.conf.erb /opt/fe.conf.erb
 COPY etna /etna
 
