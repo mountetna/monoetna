@@ -1,4 +1,5 @@
 action :create do
+  name = new_resource.name
   execute("Create postgres database '#{name}'") do
     user('postgres')
     exists = <<-EOH

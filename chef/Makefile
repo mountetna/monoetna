@@ -1,6 +1,6 @@
 uid=$(shell id -u ${USER})
 gid=$(shell getent group docker | cut -d':' -f3)
-volumes:=-v $$PWD:/data -v /var/run/docker.sock:/var/run/docker.sock -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro
+volumes:=-v $$PWD:/data -v /var/run/docker.sock:/var/run/docker.sock -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v /var/mountetna:/var/mountetna
 chefdk:=docker run --rm -ti -u $(uid):$(gid) $(volumes) test-chefdk
 
 # ssh -v -i .kitchen/docker_id_rsa kitchen@172.17.0.3 -p 22
@@ -30,6 +30,7 @@ ssh: images ## Connects via ssh to the running centos image created last
 .PHONY: destroy
 destroy: images ## destroys the running test centos deployment.  Note, `docker container prune` may be necessary if there is a conflict.
 	$(chefdk) kitchen destroy
+	sudo rm -rf /var/mountetna/*
 
 .PHONY: bash
 bash: images ## Opens a bash environment inside the chefdk tool

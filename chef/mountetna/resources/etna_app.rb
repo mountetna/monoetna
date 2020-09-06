@@ -26,7 +26,8 @@ action :create do
     owner 'root'
     group 'docker'
     source 'etna_app.include.erb'
-    template(
+
+    variables(
         app_name: name,
         host_prefix: URI.parse(node['hosts'][name]).host.gsub('.', '_')
     )
@@ -40,30 +41,25 @@ action :create do
 
     options [
         "-e 'APP_NAME=#{name}'",
-        "-e '#{name.upcase}_ENV=production",
-        "-v '/var/mountetna/#{name}/config.yml:/app/config.yml:ro'"
+        "-e '#{name.upcase}_ENV=production'",
+        "--mount 'source=/var/mountetna/#{name}/config.yml,target=/app/config.yml,readonly'"
     ] + new_resource.extra_docker_options
   end
 
   mountetna_systemd_wrapped_container "#{name}_app_fe" do
-    image "mountetna/etna-apache"
+    image "etnaagent/etna-apache"
     tag new_resource.tag
     cmd "./bin/puma.sh"
 
     options [
         "-e 'APP_NAME=#{name}'",
-        "-e '#{name.upcase}_ENV=production",
+        "-e '#{name.upcase}_ENV=production'",
         "--link #{name}_app:#{name}_app", # The link tells watchtower to bring this service down and restart it after pulling updates to the original
         "--volumes-from #{name}_app"
     ]
   end
 
-  # Add in all the hosts.
-  node['hosts'].each do |k, v|
-    (production_config[k.to_sym] ||= {})[:host] = v
-  end
-
-  mountetna_app_db name if new_resource.has_db
+  mountetna_app_db(name) if new_resource.has_db
 end
 
 class EtnaConfigBuilder
@@ -77,6 +73,11 @@ class EtnaConfigBuilder
     production_config[:log_file] = '/dev/stdout'
     production_config[:log_level] = 'info'
     production_config[:rsa_public] = node['janus_token']['rsa_public']
+
+    # Add in all the hosts.
+    node['hosts'].each do |k, v|
+      (production_config[k.to_sym] ||= {})[:host] = v
+    end
 
     db_config = production_config[:db] = {}
     db_config[:host] = '192.168.0.1'
@@ -108,7 +109,7 @@ class EtnaConfigBuilder
     self
   end
 
-  def ensure_no_nils(yml, path=[])
+  def ensure_no_nils(yml, path = [])
     yml.each do |k, v|
       if v.is_a? Hash
         ensure_no_nils(v, path + [k])

@@ -19,7 +19,7 @@ mountetna_systemd_wrapped_container 'edge-apache' do
   image 'etnaagent/edge-apache'
   tag node['docker']['default_tag']
   options [
-      "-v /var/mountetna/edge-apache/httpd.conf.d/:/usr/opt/httpd.conf.d/:ro"
+      "-v /var/mountetna/httpd.conf.d/:/usr/opt/httpd.conf.d/:ro"
   ]
 end
 
