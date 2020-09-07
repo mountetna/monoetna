@@ -14,6 +14,11 @@ action :create do
     action :pull
     tag container_resource.tag
   end
+  #
+  # systemd_unit "#{container_resource.name}.service" do
+  #   action :delete
+  #   triggers_reload false
+  # end
 
   systemd_unit "#{container_resource.name}.service" do
     content({
@@ -32,6 +37,6 @@ action :create do
         }.update(container_resource.Service),
     })
 
-    action([:create, :enable] + (container_resource.start ? [:start] : []))
+    action([:create, :enable] + (container_resource.start ? [:restart] : []))
   end
 end

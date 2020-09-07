@@ -2,6 +2,11 @@ property :unit, String, required: true
 property :time_seconds, Integer, required: true
 
 action :create do
+  # systemd_unit "#{new_resource.name}.timer" do
+  #   action :delete
+  #   triggers_reload false
+  # end
+  #
   systemd_unit "#{new_resource.name}.timer" do
     content({
         Unit: { Description: "Starts the #{new_resource.unit} job every #{new_resource.time_seconds} seconds" },
@@ -9,6 +14,6 @@ action :create do
         Install: { WantedBy: "multi-user.target" },
     })
 
-    action [:create, :enable]
+    action [:create, :enable, :restart]
   end
 end

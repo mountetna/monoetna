@@ -48,3 +48,5 @@ default['slack_notifications'] = {
 default['polyphemus']['janus_token'] = nil
 
 default['rollbar'] = {}
+
+default['psql_default_port'] = 5432

@@ -21,6 +21,7 @@ environments/local.json:
 
 .PHONY: create
 create: images environments/local.json ## Creates and converges a running centos image with the kitchen.yml settings
+	sudo mkdir -p /var/mountetna/
 	$(chefdk) kitchen converge
 
 .PHONY: ssh

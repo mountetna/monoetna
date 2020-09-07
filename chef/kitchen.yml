@@ -50,6 +50,7 @@ suites:
     attributes:
       is_kitchen: true
       psql_developer_password: password
+      psql_default_port: 5444
       docker:
         host: unix:///usr/var/run/docker.host.sock
       janus_token:

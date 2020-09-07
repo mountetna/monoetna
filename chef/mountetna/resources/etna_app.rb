@@ -31,25 +31,34 @@ action :create do
         app_name: name,
         host_prefix: URI.parse(node['hosts'][name]).host.gsub('.', '_')
     )
+
     mode '644'
+  end
+
+  mountetna_app_db(name) if new_resource.has_db
+
+  docker_network 'host_bridge' do
+    driver 'bridge'
+    subnet '192.168.0.0/24'
+    gateway '192.168.0.1'
   end
 
   mountetna_systemd_wrapped_container "#{name}_app" do
     image "etnaagent/#{name}"
     tag new_resource.tag
-    cmd "./bin/puma.sh"
+    cmd "/app/bin/puma.sh"
 
     options [
         "-e 'APP_NAME=#{name}'",
         "-e '#{name.upcase}_ENV=production'",
-        "--mount 'source=/var/mountetna/#{name}/config.yml,target=/app/config.yml,readonly'"
+        "--mount 'type=bind,source=/var/mountetna/#{name}/config.yml,target=/app/config.yml,readonly'",
+        "--net host_bridge",
     ] + new_resource.extra_docker_options
   end
 
   mountetna_systemd_wrapped_container "#{name}_app_fe" do
     image "etnaagent/etna-apache"
     tag new_resource.tag
-    cmd "./bin/puma.sh"
 
     options [
         "-e 'APP_NAME=#{name}'",
@@ -58,13 +67,11 @@ action :create do
         "--volumes-from #{name}_app"
     ]
   end
-
-  mountetna_app_db(name) if new_resource.has_db
 end
 
 class EtnaConfigBuilder
   def initialize(name, node)
-    config = @config = {}
+    @config = config = {}
     production_config = config[:production] = {}
     production_config[:auth_redirect] = node['hosts']['janus']
     production_config[:token_algo] = node['janus_token']['algo']
@@ -81,14 +88,14 @@ class EtnaConfigBuilder
 
     db_config = production_config[:db] = {}
     db_config[:host] = '192.168.0.1'
-
-    db_config[:adapter] = 'postgesql'
+    db_config[:adapter] = 'postgresql'
     db_config[:encoding] = 'unicode'
     db_config[:user] = 'developer'
     db_config[:password] = node['psql_developer_password']
     db_config[:pool] = 5
     db_config[:timeout] = 5000
     db_config[:database] = name
+    db_config[:port] = node['psql_default_port']
 
     rollbar_config = (production_config[:rollbar] ||= {})
     rollbar_config[:access_token] = node['rollbar']['access_token']
@@ -97,12 +104,12 @@ class EtnaConfigBuilder
   def merge(extra)
     extra.each do |k, v|
       if v.is_a? Hash
-        if @config.include?(k) && !@config[k].is_a?(Hash)
+        if @config[:production].include?(k) && !@config[:production][k].is_a?(Hash)
           raise "Key #{k} in extra_yml_config conflicts with etna_app's base config."
         end
-        (@config[k] ||= {}).update(v)
+        (@config[:production][k] ||= {}).update(v)
       else
-        @config[k] = v
+        @config[:production][k] = v
       end
     end
 
