@@ -52,9 +52,18 @@ action :create do
         "-e 'APP_NAME=#{name}'",
         "-e '#{name.upcase}_ENV=production'",
         "--mount 'type=bind,source=/var/mountetna/#{name}/config.yml,target=/app/config.yml,readonly'",
+        "-v /usr/opt",
         "--net host_bridge",
     ] + new_resource.extra_docker_options
+
+    # extra_setup [
+    #     "docker network connect docker_default #{name}_app",
+    # ]
   end
+
+  # execute "attach #{name} to default network" do
+  #   command "docker network connect docker_default #{name}_app"
+  # end
 
   mountetna_systemd_wrapped_container "#{name}_app_fe" do
     image "etnaagent/etna-apache"
@@ -63,6 +72,7 @@ action :create do
     options [
         "-e 'APP_NAME=#{name}'",
         "-e '#{name.upcase}_ENV=production'",
+        "--net host_bridge",
         "--link #{name}_app:#{name}_app", # The link tells watchtower to bring this service down and restart it after pulling updates to the original
         "--volumes-from #{name}_app"
     ]

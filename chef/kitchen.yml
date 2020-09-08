@@ -19,6 +19,8 @@ platforms:
         - type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup,ro
         - type=bind,source=/var/run/docker.sock,target=/usr/var/run/docker.sock
         - type=bind,source=/var/mountetna,target=/var/mountetna
+      forward:
+        - 5432:5444
       run_command: /usr/sbin/init
       privileged: true
 #      cap_add:
