@@ -1,0 +1,5 @@
+---
+
+:token: # redcap API token
+:dateshift_salt: # dateshift salt from magma
+:redcap_host: # redcap host name
