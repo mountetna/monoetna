@@ -37,12 +37,6 @@ action :create do
 
   mountetna_app_db(name) if new_resource.has_db
 
-  docker_network 'host_bridge' do
-    driver 'bridge'
-    subnet '192.168.0.0/24'
-    gateway '192.168.0.1'
-  end
-
   mountetna_systemd_wrapped_container "#{name}_app" do
     image "etnaagent/#{name}"
     tag new_resource.tag
@@ -53,17 +47,10 @@ action :create do
         "-e '#{name.upcase}_ENV=production'",
         "--mount 'type=bind,source=/var/mountetna/#{name}/config.yml,target=/app/config.yml,readonly'",
         "-v /usr/opt",
+        "-v /app/public",
         "--net host_bridge",
     ] + new_resource.extra_docker_options
-
-    # extra_setup [
-    #     "docker network connect docker_default #{name}_app",
-    # ]
   end
-
-  # execute "attach #{name} to default network" do
-  #   command "docker network connect docker_default #{name}_app"
-  # end
 
   mountetna_systemd_wrapped_container "#{name}_app_fe" do
     image "etnaagent/etna-apache"
