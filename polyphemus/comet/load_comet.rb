@@ -180,7 +180,7 @@ models = comet.map{|l| l[:model_name]}.compact.uniq
 revisions = {}
 
 models.each do |model_name|
-  next unless model_name == "cytof_pool"
+  next unless model_name == "patient"
 
   model = CometModel.create(model_name, comet.select { |a| a[:model_name] == model_name }, config[:dateshift_salt])
 
@@ -211,8 +211,10 @@ models.each do |model_name|
         )
 
         if att_name == 'consent'
-          if val == "0" or val == "50"
+          if val == "0" || val == "50"
             records[id]['restricted'] = 'true'
+          else
+            records[id]['restricted'] = 'false'
           end
         end
       end
