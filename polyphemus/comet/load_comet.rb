@@ -161,6 +161,7 @@ end
 
 config = YAML.load(File.read "config.yml")
 
+p config
 r = RedcapClient.new(config[:token], config[:redcap_host], config[:dateshift_salt])
 
 comet = CSV.read("comet.tsv", col_sep:"\t").yield_self do |t|
@@ -179,9 +180,9 @@ models = comet.map{|l| l[:model_name]}.compact.uniq
 revisions = {}
 
 models.each do |model_name|
-  next unless model_name == "timepoint"
+  next unless model_name == "cytof_pool"
 
-  model = CometModel.create(model_name, comet.select {|a| a[:model_name] == model_name }, config[:dateshift_salt])
+  model = CometModel.create(model_name, comet.select { |a| a[:model_name] == model_name }, config[:dateshift_salt])
 
   puts "Attempting to load model #{model.name}"
 
@@ -205,9 +206,15 @@ models.each do |model_name|
       records[id] ||= {}
 
       model.each_attribute(form) do |att_name, att_type, crf_variable|
-        records[id][ att_name ] = model.guess(att_name, att_type, crf_variable, id, redcap_record) || model.cast_type(
+        val = records[id][ att_name ] = model.guess(att_name, att_type, crf_variable, id, redcap_record) || model.cast_type(
           redcap_record[ crf_variable ], att_type, id
         )
+
+        if att_name == 'consent'
+          if val == "0" or val == "50"
+            records[id]['restricted'] = 'true'
+          end
+        end
       end
     end
   end
