@@ -20,12 +20,10 @@ module Etna
 
     def error(msg, &block)
       super
-      Rollbar.error(msg)
     end
 
     def fatal(msg, &block)
       super
-      Rollbar.error(msg)
     end
 
     def log_error(e)

@@ -82,6 +82,9 @@ module Etna::Application
     else
       commands[:help].execute
     end
+  rescue => e
+    Rollbar.error(e)
+    raise
   end
 
   def commands

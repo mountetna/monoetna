@@ -142,16 +142,18 @@ class Polyphemus
     def unrestrict!(patient)
       name = patient['name']
       logger.warn("Attempting to unrestrict access to #{name}")
-      Rollbar.info("Attempting to unrestrict access to #{name}")
 
       # This code path should be --eventually consistent--  That is to say, we should ensure each operation
       # is idempotent (may need to be repeated), and that the patient is not marked restricted until all other
       # related tasks are complete and the state is consistent.
       mvir1_waiver.release_patient_data(name)
 
-      update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
-      update_request.update_revision('patient', name, restricted: false)
-      magma_client.update(update_request)
+      if patient['restricted']
+        Rollbar.info("Attempting to unrestrict access to #{name}")
+        update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project)
+        update_request.update_revision('patient', name, restricted: false)
+        magma_client.update(update_request)
+      end
     end
 
     def mvir1_waiver

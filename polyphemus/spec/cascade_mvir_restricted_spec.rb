@@ -51,7 +51,6 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
         "patient" => {
             "Mike" => {"restricted" => "true"},
             "Dan" => {"restricted" => "true"},
-            "Sally" => {"restricted" => "false"}
         }
       })
     end
@@ -117,7 +116,6 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
         },
         "patient" => {
             "Danielle" => {"restricted" => "false"},
-            "Dan" => {"restricted" => "false"}
         }
       })
     end
