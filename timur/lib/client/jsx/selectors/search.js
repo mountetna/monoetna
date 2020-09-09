@@ -1,5 +1,6 @@
 import {createSelector} from 'reselect';
-import {displayAttributes, selectTemplate} from "./magma";
+import {displayAttributes, selectTemplate} from './magma';
+import {sortAttributes} from '../utils/attributes';
 
 class SearchCache {
   constructor(search) {
@@ -33,59 +34,52 @@ export const selectSearchAttributeNames = createSelector(
 
 export const selectSelectedModel = createSelector(
   selectSearchData,
-  ({ selected_model }) => selected_model,
-)
+  ({selected_model}) => selected_model
+);
 
 export const selectExpandedDisplayAttributeNames = createSelector(
   selectSelectedModel,
-  ({ magma }) => magma,
+  ({magma}) => magma,
   (selectedModel, magma) => {
     if (!selectedModel) return [];
 
     // Have to use the selector here instead of in connect()
     //   because the selectedModel is in component state instead
     //   of global state.
-    const template = selectTemplate({ magma }, selectedModel);
+    const template = selectTemplate({magma}, selectedModel);
     return displayAttributes(template);
   }
-)
+);
 
 export const selectDisplayAttributeNamesAndTypes = createSelector(
   selectExpandedDisplayAttributeNames,
   selectSelectedModel,
-  ({ magma }) => magma,
+  ({magma}) => magma,
   (displayAttributes, selectedModel, magma) => {
     if (!selectedModel) return [];
-    const template = selectTemplate({ magma }, selectedModel);
-    return displayAttributes
-      .map(name => [name, template.attributes[name].attribute_type]);
+    const template = selectTemplate({magma}, selectedModel);
+    return displayAttributes.map((name) => [
+      name,
+      template.attributes[name].attribute_type
+    ]);
   }
-)
-
-const columnTypePriority = {
-  'identifier': 1,
-  'parent': 2,
-}
+);
 
 export const selectSortedDisplayAttributeNames = createSelector(
-  selectDisplayAttributeNamesAndTypes,
-  (attributeNamesAndTypes) => {
-    // Shallow copy because the sort will mutate.  We don't want to mutate the shared instance
-    attributeNamesAndTypes = [ ...attributeNamesAndTypes ];
-    attributeNamesAndTypes = attributeNamesAndTypes
-      .map(([name, type]) => [name, columnTypePriority[type] || 100]);
+  selectExpandedDisplayAttributeNames,
+  selectSelectedModel,
+  ({magma}) => magma,
+  (displayAttributes, selectedModel, magma) => {
+    if (!selectedModel) return [];
+    const template = selectTemplate({magma}, selectedModel);
 
-    attributeNamesAndTypes.sort(
-      ([aname, atype], [bname, btype]) => {
-        if (atype === btype) {
-          if (aname < bname) return -1;
-          return 1;
-        }
+    let attributes = {};
+    displayAttributes.forEach((name) => {
+      attributes[name] = template.attributes[name];
+    });
+    attributes = Object.values(sortAttributes({...attributes}, true));
 
-        return atype - btype;
-      })
-
-    return attributeNamesAndTypes.map(([name]) => name);
+    return attributes.map((attribute) => attribute.attribute_name);
   }
 );
 
