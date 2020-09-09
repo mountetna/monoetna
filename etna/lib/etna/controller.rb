@@ -25,9 +25,11 @@ module Etna
 
       [501, {}, ['This controller is not implemented.']]
     rescue Etna::Error => e
+      Rollbar.error(e)
       @logger.error(request_msg("Exiting with #{e.status}, #{e.message}"))
       return failure(e.status, error: e.message)
     rescue Exception => e
+      Rollbar.error(e)
       @logger.error(request_msg('Caught unspecified error'))
       @logger.error(request_msg(e.message))
       e.backtrace.each do |trace|
