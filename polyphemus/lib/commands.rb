@@ -39,6 +39,65 @@ class Polyphemus
     end
   end
 
+  class ApiCopyModelShallow < Etna::Command
+    usage 'SOURCE_TOKEN=<source_token> TARGET_TOKEN=<target_token> api_copy_model_shallow <source_api> <target_api> <source_project> <target_project> <model_name>'
+
+
+    def execute(source_host, target_host, source_project, target_project, model_name)
+      workflow = Etna::Clients::Magma::ShallowCopyModelWorkflow.from_api_source(
+          model_name: model_name,
+          source_project: source_project,
+          source_client: Etna::Clients::Magma.new(host: source_host, token: ENV['SOURCE_TOKEN']),
+          target_project: target_project,
+          target_client: Etna::Clients::Magma.new(host: target_host, token: ENV['TARGET_TOKEN']),
+      )
+
+      workflow.ensure_model_tree(model_name)
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+    end
+  end
+
+  class ApiCopyModelDeep < Etna::Command
+    usage 'SOURCE_TOKEN=<source_token> TARGET_TOKEN=<target_token> api_copy_model_deep <source_api> <target_api> <source_project> <target_project> <model_name'
+
+
+    def execute(source_host, target_host, source_project, target_project, model_name)
+      workflow = Etna::Clients::Magma::ModelSynchronizationWorkflow.from_api_source(
+        source_project: source_project,
+        source_client: Etna::Clients::Magma.new(host: source_host, token: ENV['SOURCE_TOKEN']),
+        target_project: target_project,
+        target_client: Etna::Clients::Magma.new(host: target_host, token: ENV['TARGET_TOKEN']),
+      )
+
+      workflow.ensure_model_tree(model_name)
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+    end
+  end
+
+  class ApiAddProject < Etna::Command
+    usage 'TOKEN=<token> api_add_project <api_host> <project_name>'
+
+    def execute(host, project_name)
+      client = Etna::Clients::Magma.new(token: ENV['TOKEN'], host: host)
+      client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
+          project_name: project_name,
+          actions:[ Etna::Clients::Magma::AddProjectAction.new ]))
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+    end
+  end
+
   class CascadeMvirPatientWaiverToRestricted < Etna::Command
     include WithEtnaClients
     include WithLogger

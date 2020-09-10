@@ -1,3 +1,4 @@
+require 'ostruct'
 require_relative '../../json_serializable_struct'
 require_relative '../../multipart_serializable_nested_hash'
 require_relative '../../directed_graph'
@@ -43,6 +44,13 @@ module Etna
 
         def add_action(action)
             actions << action
+        end
+      end
+
+      class AddModelAction < Struct.new(:action_name, :model_name, :parent_model_name, :parent_link_type, :identifier, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'add_model'}.update(args))
         end
       end
 
@@ -248,6 +256,46 @@ module Etna
         def link_model_name
           raw['link_model_name']
         end
+
+        def unique
+          raw['unique']
+        end
+
+        def desc
+          raw['desc']
+        end
+
+        def display_name
+          raw['display_name']
+        end
+
+        def options
+          raw['options']
+        end
+
+        def match
+          raw['match']
+        end
+
+        def restricted
+          raw['restricted']
+        end
+
+        def format_hint
+          raw['format_hint']
+        end
+
+        def read_only
+          raw['read_only']
+        end
+
+        def hidden
+          raw['hidden']
+        end
+
+        def validation
+          raw['validation']
+        end
       end
 
       class AttributeType < String
@@ -266,6 +314,12 @@ module Etna
         MATRIX = AttributeType.new("matrix")
         PARENT = AttributeType.new("parent")
         TABLE = AttributeType.new("table")
+      end
+
+      class ParentLinkType < String
+        CHILD = ParentLinkType.new("child")
+        COLLECTION = ParentLinkType.new("collection")
+        TABLE = ParentLinkType.new("table")
       end
     end
   end
