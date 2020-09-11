@@ -39,9 +39,60 @@ class Polyphemus
     end
   end
 
+  class ApplyMvir1RnaSeqAttributes < Etna::Command
+    usage 'TOKEN=<target_token> apply_mvir1rna_seq_attributes host'
+    def execute(host)
+      models = Etna::Clients::Magma::Models.new
+      rna_seq = models.build_model('rna_seq')
+      attributes = rna_seq.build_template.build_attributes
+      add_file_attribute(attributes, 'gene_expression')
+      add_file_attribute(attributes, 'isoform_expression')
+      add_file_attribute(attributes, 'genome_alignment')
+      add_file_attribute(attributes, 'genome_alignment_idx')
+      add_file_attribute(attributes, 'transcriptome_alignment')
+      add_file_attribute(attributes, 'fusion_gene_junctions')
+      add_file_attribute(attributes, 'non_host_reads')
+      add_file_attribute(attributes, 'rrna_alignment')
+      add_file_attribute(attributes, 'rrna_alignment_idx')
+      add_file_attribute(attributes, 'genome_alignment_qc_pdf')
+      add_file_attribute(attributes, 'genome_alignment_flagstat')
+      add_file_attribute(attributes, 'rrna_alignment_qc_pdf')
+      add_file_attribute(attributes, 'rrna_alignment_flagstat')
+      add_file_attribute(attributes, 'adapter_trimming_metrics')
+      add_file_attribute(attributes, 'rrna_alignment_idx')
+      add_file_attribute(attributes, 'rrna_alignment_idx')
+      add_file_attribute(attributes, 'rrna_alignment_idx')
+      add_string_attribute(attributes, 'raw_fastqs')
+
+      Etna::Clients::Magma::ShallowCopyModelWorkflow.new(
+          model_name: 'rna_seq',
+          target_project: 'mvir1',
+          target_client: Etna::Clients::Magma.new(host: host, token: ENV['TOKEN']),
+          source_models: models
+      ).ensure_model_tree('rna_seq')
+    end
+
+    def add_file_attribute(attributes, name)
+      attributes.build_attribute(name).tap do |attribute|
+        attribute.attribute_name = name
+        attribute.name = attribute.attribute_name
+        attribute.display_name = name.split('_').map(&:capitalize).join(' ')
+        attribute.attribute_type = Etna::Clients::Magma::AttributeType::FILE
+      end
+    end
+
+    def add_string_attribute(attributes, name)
+      attributes.build_attribute(name).tap do |attribute|
+        attribute.attribute_name = name
+        attribute.name = attribute.attribute_name
+        attribute.display_name = name.split('_').map(&:capitalize).join(' ')
+        attribute.attribute_type = Etna::Clients::Magma::AttributeType::STRING
+      end
+    end
+  end
+
   class ApiCopyModelShallow < Etna::Command
     usage 'SOURCE_TOKEN=<source_token> TARGET_TOKEN=<target_token> api_copy_model_shallow <source_api> <target_api> <source_project> <target_project> <model_name>'
-
 
     def execute(source_host, target_host, source_project, target_project, model_name)
       workflow = Etna::Clients::Magma::ShallowCopyModelWorkflow.from_api_source(
@@ -67,10 +118,10 @@ class Polyphemus
 
     def execute(source_host, target_host, source_project, target_project, model_name)
       workflow = Etna::Clients::Magma::ModelSynchronizationWorkflow.from_api_source(
-        source_project: source_project,
-        source_client: Etna::Clients::Magma.new(host: source_host, token: ENV['SOURCE_TOKEN']),
-        target_project: target_project,
-        target_client: Etna::Clients::Magma.new(host: target_host, token: ENV['TARGET_TOKEN']),
+          source_project: source_project,
+          source_client: Etna::Clients::Magma.new(host: source_host, token: ENV['SOURCE_TOKEN']),
+          target_project: target_project,
+          target_client: Etna::Clients::Magma.new(host: target_host, token: ENV['TARGET_TOKEN']),
       )
 
       workflow.ensure_model_tree(model_name)
@@ -89,7 +140,7 @@ class Polyphemus
       client = Etna::Clients::Magma.new(token: ENV['TOKEN'], host: host)
       client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
           project_name: project_name,
-          actions:[ Etna::Clients::Magma::AddProjectAction.new ]))
+          actions: [Etna::Clients::Magma::AddProjectAction.new]))
     end
 
     def setup(config)

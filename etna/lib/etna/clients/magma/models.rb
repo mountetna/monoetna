@@ -127,7 +127,12 @@ module Etna
           raw.keys
         end
 
+        def build_model(model_key)
+          Model.new(raw[model_key] ||= {})
+        end
+
         def model(model_key)
+          return nil unless raw.include?(model_key)
           Model.new(raw[model_key])
         end
 
@@ -169,6 +174,10 @@ module Etna
           @raw = raw
         end
 
+        def build_template
+          Template.new(raw['template'] ||= {})
+        end
+
         def documents
           Documents.new(raw['documents'])
         end
@@ -190,6 +199,7 @@ module Etna
         end
 
         def document(document_key)
+          return nil unless raw.include?(document_key)
           raw[document_key]
         end
       end
@@ -205,16 +215,32 @@ module Etna
           raw['name'] || ""
         end
 
+        def name=(val)
+          raw['name'] = val.to_s
+        end
+
         def identifier
           raw['identifier'] || ""
+        end
+
+        def identifier=(val)
+          raw['identifier'] = val.to_s
         end
 
         def parent
           raw['parent']
         end
 
+        def parent=(val)
+          raw['parent'] = val.to_s
+        end
+
         def attributes
           Attributes.new(raw['attributes'])
+        end
+
+        def build_attributes
+          Attributes.new(raw['attributes'] ||= {})
         end
       end
 
@@ -230,7 +256,12 @@ module Etna
         end
 
         def attribute(attribute_key)
+          return nil unless raw.include?(attribute_key)
           Attribute.new(raw[attribute_key])
+        end
+
+        def build_attribute(key)
+          Attribute.new(raw[key] ||= {})
         end
 
         def all
@@ -249,16 +280,33 @@ module Etna
           @raw['name'] || ""
         end
 
+        def name=(val)
+          @raw['name'] = val
+        end
+
         def attribute_name
           @raw['attribute_name'] || ""
+        end
+
+        def attribute_name=(val)
+          @raw['attribute_name'] = val
         end
 
         def attribute_type
           @raw['attribute_type'] && AttributeType.new(@raw['attribute_type'])
         end
 
+        def attribute_type=(val)
+          val = val.to_s if val
+          @raw['attribute_type'] = val
+        end
+
         def link_model_name
-          raw['link_model_name']
+          @raw['link_model_name']
+        end
+
+        def link_model_name=(val)
+          @raw['link_model_name'] = val
         end
 
         def unique
@@ -269,8 +317,16 @@ module Etna
           raw['desc']
         end
 
+        def desc=(val)
+          @raw['desc'] = val
+        end
+
         def display_name
           raw['display_name']
+        end
+
+        def display_name=(val)
+          raw['display_name'] = val
         end
 
         def match

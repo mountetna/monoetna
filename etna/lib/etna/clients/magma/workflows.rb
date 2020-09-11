@@ -124,6 +124,7 @@ module Etna
           update = UpdateModelRequest.new(project_name: self.target_project)
           actions.each { |a| update.add_action(a) }
           @target_models = nil
+          pp update.as_json
           target_client.update_model(update)
         end
 
@@ -153,22 +154,31 @@ module Etna
           ensure_model(model_name)
 
           attributes = source_model.template.attributes
+
           attributes.all.each do |attribute|
             actions = []
 
-            unless attribute.link_model_name.nil?
-              ensure_model(attribute.link_model_name)
-              next unless (link_model = source_models.model(attribute.link_model_name))
-              link_model_attributes = link_model.template.attributes
-              reciprocal = link_model_attributes.all.find do |attr|
-                attr.link_model_name == model_name
+            # Don't copy or update parent links.  Once a model has been setup with a parent someway.
+            unless attribute.attribute_type == AttributeType::PARENT
+              unless attribute.link_model_name.nil?
+                ensure_model(attribute.link_model_name)
+                next unless (link_model = source_models.model(attribute.link_model_name))
+                link_model_attributes = link_model.template.attributes
+                reciprocal = link_model_attributes.all.find do |attr|
+                  attr.link_model_name == model_name
+                end
+
+                actions.push(*add_model_attribute_actions(attribute.link_model_name, reciprocal.attribute_name))
               end
 
-              actions.push(*add_model_attribute_actions(attribute.link_model_name, reciprocal.attribute_name))
+              actions.push(*add_model_attribute_actions(model_name, attribute.attribute_name))
             end
-
-            actions.push(*add_model_attribute_actions(attribute.link_model_name, seen))
             execute_updates(*actions)
+
+            # Even if it's a parent node, however, we still want to cascade the tree expansion to all links.
+            unless attribute.link_model_name.nil?
+              ensure_model_tree(attribute.link_model_name, seen)
+            end
           end
         end
 
@@ -180,7 +190,7 @@ module Etna
           target_attribute_name = target_attribute_of_source(model_name, attribute_name)
 
           target_attributes = target_models.model(target_model_name).template.attributes
-          return if target_attributes.attribute_keys.include?(attribute_name)
+          return [] if target_attributes.attribute_keys.include?(attribute_name)
 
           add_attribute = AddAttributeAction.new(
             model_name: target_model_name,
@@ -198,7 +208,7 @@ module Etna
           add_attribute.validation = source_attribute.validation
           add_attribute.restricted = source_attribute.restricted
 
-          add_attribute
+          [add_attribute]
         end
 
         # Non cyclical, non re-entrant due to the requirement that parents cannot form a cycle.
@@ -206,11 +216,12 @@ module Etna
         # cyclical method, like ensure_model_tree.
         def ensure_model(model_name)
           return unless (source_model = source_models.model(model_name))
-          return if target_models.model_keys.include?(model_name)
+
+          target_model_name = target_of_source(model_name)
+          return if target_models.model_keys.include?(target_model_name)
 
           template = source_model.template
 
-          target_model_name = target_of_source(model_name)
           add_model_action = AddModelAction.new(
               {
                   model_name: target_model_name,
@@ -251,12 +262,11 @@ module Etna
           @model_name = model_name
         end
 
-        # Do not cascade attribute / link copying for anything other than the target model.
+        # Aside from just creating models for links, do not cascade the expansion.
         def ensure_model_tree(model_name, *args)
+          puts "Checking #{model_name} #{@model_name}"
           if model_name == @model_name
             super(model_name, *args)
-          else
-            ensure_model(model_name)
           end
         end
       end
