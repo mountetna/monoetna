@@ -13,12 +13,12 @@ module Etna
         @etna_client = ::Etna::Client.new(host, token)
       end
 
-      def list_all_folders(list_all_folders_request)
+      def list_all_folders(list_all_folders_request = ListFoldersRequest.new)
         FoldersResponse.new(
           @etna_client.folder_list_all_folders(list_all_folders_request.to_h))
       end
 
-      def list_folder(list_folder_request)
+      def list_folder(list_folder_request = ListFolderRequest.new)
         FoldersAndFilesResponse.new(
           @etna_client.folder_list(list_folder_request.to_h))
       end

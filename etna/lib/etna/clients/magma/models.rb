@@ -232,6 +232,10 @@ module Etna
         def attribute(attribute_key)
           Attribute.new(raw[attribute_key])
         end
+
+        def all
+          raw.values.map { |r| Attribute.new(r) }
+        end
       end
 
       class Attribute
@@ -269,10 +273,6 @@ module Etna
           raw['display_name']
         end
 
-        def options
-          raw['options']
-        end
-
         def match
           raw['match']
         end
@@ -295,6 +295,10 @@ module Etna
 
         def validation
           raw['validation']
+        end
+
+        def options
+          raw['options']
         end
       end
 
