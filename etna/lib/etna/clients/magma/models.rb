@@ -8,7 +8,7 @@ require_relative '../../directed_graph'
 module Etna
   module Clients
     class Magma
-      class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, keyword_init: true)
+      class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, :page, :page_size, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)
@@ -28,7 +28,7 @@ module Etna
           super({revisions: {}}.update(params))
         end
 
-        def update_revision(model_name, record_name, **attrs)
+        def update_revision(model_name, record_name, attrs)
           revision = revisions[model_name] ||= {}
           record = revision[record_name] ||= {}
           record.update(attrs)
@@ -184,6 +184,10 @@ module Etna
 
         def template
           Template.new(raw['template'])
+        end
+
+        def count
+          raw['count'] || 0
         end
       end
 

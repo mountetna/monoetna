@@ -1,6 +1,8 @@
 require 'date'
 require 'logger'
 require 'rollbar'
+require 'etna/clients/magma.rb'
+require 'etna/clients/metis.rb'
 
 
 class Polyphemus
@@ -36,6 +38,85 @@ class Polyphemus
   module WithLogger
     def logger
       Polyphemus.instance.logger
+    end
+  end
+
+  class LinkCometBulkRna < Etna::Command
+    include WithLogger
+    include WithEtnaClients
+
+    usage 'link_comet_bulk_rna'
+
+    def execute
+      linker = CometBulkRnaLinker.new(magma_client: magma_client, metis_client: metis_client)
+      linker.link_files
+      pp linker.magma_crud.recorded_updates
+    end
+
+    # class BulkRnaLinker < Etna::Clients::Magma::FileLinkingWorkflow
+    #   def matching_expressions
+    #     [
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>\.rsem.genes.results$/, 'gene_expression'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>\.rsem.isoforms.results$/, 'isoform_expression'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>\.trimmed.non_rrna.star.Aligned.sortedByCoout.deduplicated.cram$/, 'genome_alignment'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>.trimmed.non_rrna.star.Aligned.sortedByCoout.deduplicated.cram.crai$/, 'genome_alignment_idx'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>.trimmed.non_rrna.star.Aligned.toTranscriptout.cram$/, 'transcriptome_alignment'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>.trimmed.non_rrna.star.Chimeout.junction$/, 'fusion_gene_junctions'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>.trimmed.non_rrna.star.Unmapout.mate1.fastqoutput\/\k<sample>\/\k<sample>.trimmed.non_rrna.star.Unmapout.mate2.fastq.gz$/, 'non_host_reads'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>.trimmed.rrna.sorted.cram$/, 'rrna_alignment'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>.trimmed.rrna.sorted.cram.crai$/, 'rrna_alignment_idx'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>.trimmed.non_rrna.star.Aligned.sortedByCoout.deduplicated_bamqc.pdf$/, 'genome_alignment_qc_pdf'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>.trimmed.non_rrna.star.Aligned.sortedByCoout.deduplicated.flagstat$/, 'genome_alignment_flagstat'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>.trimmed.rrna.sorted_bamqc.pdf$/, 'rrna_alignment_qc_pdf'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>.trimmed.rrna.sorted.flagstat$/, 'rrna_alignment_flagstat'],
+    #         [/\/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/fastp.html$/, 'adapter_trimming_metrics'],
+    #     ]
+    #   end
+    # end
+
+    class CometBulkRnaLinker < Etna::Clients::Magma::FileLinkingWorkflow
+      def initialize(**opts)
+        super(**{project_name: 'mvir1', bucket_name: 'data', model_name: 'rna_seq'}.update(opts))
+      end
+
+      def matching_expressions
+        [
+            [/bulk_RNASeq\/raw\/(?<sample>[^\/]*)\/.*$/, 'raw_fastqs'],
+            [/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>_gene_tpms.tsv$/, 'gene_expression'],
+            [/bulk_RNASeq\/processed\/(?<sample>[^\/]*)\/\k<sample>_transcript_tpms.tsv$/, 'isoform_expression'],
+        ]
+      end
+
+      def attribute_options
+        { 'raw_fastqs' => { file_collection: true }}
+      end
+
+      # Subclasses should override this to implement custom logic for how regex matches should match to linking.
+      def matches_to_record_identifiers(match_data)
+        super(match_data).tap do |identifiers|
+          identifiers.update(patient_timepoint_from(match_data['sample']))
+          identifiers['rna_seq'] = match_data['sample']
+        end
+      end
+
+      def revision_for(id, attribute_name, file_path, match_map, record_identifiers)
+        super(id, attribute_name, file_path, match_map, record_identifiers).tap do |revision|
+          revision['tissue_type'] = 'ETA'
+          revision['sequencer'] = 'NovaSeq'
+          revision['NovaSeq'] = 'GRCh38_U13369.1_ERCC'
+          revision['pipeline_description'] = 'langelier_group'
+        end
+      end
+    end
+  end
+
+  class TestQuery < Etna::Command
+    usage 'hi'
+
+    def execute
+      client = Etna::Clients::Magma.new(host: "https://magma.ucsf.edu", token: ENV['TOKEN'])
+      response = client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(project_name: "mvir1", page: 1, page_size: 2, model_name: 'patient', record_names: 'all', attribute_names: ['identifier']))
+      pp response.raw
     end
   end
 
