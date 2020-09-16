@@ -4,6 +4,8 @@ require 'singleton'
 require_relative '../../client'
 require_relative './models'
 
+require 'pry'
+
 module Etna
   module Clients
     class Metis
@@ -40,6 +42,12 @@ module Etna
       def create_folder(create_folder_request)
         FoldersResponse.new(
           @etna_client.folder_create(create_folder_request.to_h))
+      end
+
+      def find(find_request)
+        binding.pry
+        FoldersAndFilesResponse.new(
+          @etna_client.bucket_find(find_request.to_h))
       end
 
       def folder_exists?(create_folder_request)

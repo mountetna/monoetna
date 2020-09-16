@@ -158,4 +158,19 @@ describe 'Metis Client class' do
     expect(WebMock).to have_requested(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RELEASE_BUCKET}/)
     expect(WebMock).to have_requested(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RESTRICT_BUCKET}/)
   end
+
+  it 'can find folders and files' do
+    stub_find({bucket: RELEASE_BUCKET})
+
+    test_class.find(Etna::Clients::Metis::FindRequest.new(
+      bucket_name: RELEASE_BUCKET,
+      project_name: 'test',
+      params: [Etna::Clients::Metis::FindParam.new(
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'folder/fo*'
+      )]))
+
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/find\/#{RELEASE_BUCKET}/)
+  end
 end

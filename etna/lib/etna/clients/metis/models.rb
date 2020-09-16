@@ -64,6 +64,30 @@ module Etna
         end
       end
 
+      class FindRequest < Struct.new(:project_name, :bucket_name, :params, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**args)
+          super({params: []}.update(args))
+        end
+
+        def add_param(param)
+          params << param
+        end
+
+        def to_h
+          binding.pry
+          super().map { |val| val.is_a?(Hash) ? val.to_h : val }
+        end
+      end
+
+      class FindParam < Struct.new(:attribute, :predicate, :value, :type, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({}.update(args))
+        end
+      end
+
       class FoldersResponse
         attr_reader :raw
 
