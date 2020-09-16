@@ -4,14 +4,15 @@ require_relative './crud_workflow'
 module Etna
   module Clients
     class Magma
-      class FileLinkingWorkflow < Struct.new(:magma_client, :model_name, :preview_only, :metis_client, :project_name, :bucket_name, :matching_expressions, :attribute_options, keyword_init: true)
-        attr_accessor :magma_crud
-
+      class FileLinkingWorkflow < Struct.new(:magma_crud, :model_name, :metis_client, :project_name, :bucket_name, :matching_expressions, :attribute_options, keyword_init: true)
         PATIENT_TIMEPOINT_REGEX = /([^-]+-[^-]+)-(DN?[0-9]+).*/
 
         def initialize(opts)
           super(**{attribute_options: {}, matching_expressions: []}.update(opts))
-          @magma_crud = MagmaCrudWorkflow.new(magma_client: magma_client, **opts.slice(:preview_only, :project_name))
+        end
+
+        def magma_client
+          magma_crud.magma_client
         end
 
         def find_matches
@@ -106,8 +107,8 @@ module Etna
         end
 
         def link_files
-          each_revision do |id, revision|
-            magma_crud.update_records do |update_request|
+          magma_crud.update_records do |update_request|
+            each_revision do |id, revision|
               update_request.update_revision(model_name, id, revision)
             end
           end

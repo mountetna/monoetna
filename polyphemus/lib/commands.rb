@@ -47,10 +47,17 @@ class Polyphemus
 
     usage 'link_comet_bulk_rna'
 
+    def project_name
+      mvir1
+    end
+
+    def magma_crud
+      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: project_name)
+    end
+
     def execute
-      linker = CometBulkRnaLinker.new(magma_client: magma_client, metis_client: metis_client)
+      linker = CometBulkRnaLinker.new(magma_crud: magma_crud, metis_client: metis_client, project_name: project_name)
       linker.link_files
-      pp linker.magma_crud.recorded_updates
     end
 
     # class BulkRnaLinker < Etna::Clients::Magma::FileLinkingWorkflow
@@ -76,7 +83,7 @@ class Polyphemus
 
     class CometBulkRnaLinker < Etna::Clients::Magma::FileLinkingWorkflow
       def initialize(**opts)
-        super(**{project_name: 'mvir1', bucket_name: 'data', model_name: 'rna_seq'}.update(opts))
+        super(**{bucket_name: 'data', model_name: 'rna_seq'}.update(opts))
       end
 
       def matching_expressions

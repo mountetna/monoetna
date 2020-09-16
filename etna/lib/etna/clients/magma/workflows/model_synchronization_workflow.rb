@@ -17,7 +17,6 @@ module Etna
           update = UpdateModelRequest.new(project_name: self.target_project)
           actions.each { |a| update.add_action(a) }
           @target_models = nil
-          pp update.as_json
           target_client.update_model(update)
         end
 
@@ -49,11 +48,9 @@ module Etna
           attributes = source_model.template.attributes
 
           attributes.all.each do |attribute|
-            actions = []
-
             # Don't copy or update parent links.  Once a model has been setup with a parent someway.
             unless attribute.attribute_type == AttributeType::PARENT
-              unless attribute.link_model_name.nil?
+              if attribute.link_model_name
                 ensure_model(attribute.link_model_name)
                 next unless (link_model = source_models.model(attribute.link_model_name))
                 link_model_attributes = link_model.template.attributes
@@ -61,12 +58,14 @@ module Etna
                   attr.link_model_name == model_name
                 end
 
-                actions.push(*add_model_attribute_actions(attribute.link_model_name, reciprocal.attribute_name))
+                # actions.push(*add_model_attribute_actions(attribute.link_model_name, reciprocal.attribute_name))
+                execute_updates(*add_model_attribute_actions(model_name, attribute.attribute_name))
+                # execute_updates(AddLinkAction)
+              else
+                execute_updates(*add_model_attribute_actions(model_name, attribute.attribute_name))
               end
-
-              actions.push(*add_model_attribute_actions(model_name, attribute.attribute_name))
             end
-            execute_updates(*actions)
+
 
             # Even if it's a parent node, however, we still want to cascade the tree expansion to all links.
             unless attribute.link_model_name.nil?
@@ -76,8 +75,8 @@ module Etna
         end
 
         def add_model_attribute_actions(model_name, attribute_name)
-          return unless (model = source_models.model(model_name))
-          return unless (source_attribute = model.template.attributes.attribute(attribute_name))
+          return [] unless (model = source_models.model(model_name))
+          return [] unless (source_attribute = model.template.attributes.attribute(attribute_name))
 
           target_model_name = target_of_source(model_name)
           target_attribute_name = target_attribute_of_source(model_name, attribute_name)

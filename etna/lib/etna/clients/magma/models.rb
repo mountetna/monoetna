@@ -61,6 +61,17 @@ module Etna
         end
       end
 
+      class AddLinkAction < Struct.new(:action_name, :links, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'add_link', links: []}.update(args))
+        end
+      end
+
+      class AddLinkDefinition < Struct(:type, :model_name, :attribute_name)
+        include JsonSerializableStruct
+      end
+
       class AddProjectAction < Struct.new(:action_name, keyword_init: true)
         include JsonSerializableStruct
         def initialize(**args)
