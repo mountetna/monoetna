@@ -76,8 +76,9 @@ module Etna
         end
 
         def to_h
-          binding.pry
-          super().map { |val| val.is_a?(Hash) ? val.to_h : val }
+          # The nested :params values don't get converted correctly with transform_values, so it's
+          #   easier to do from a JSON string
+          JSON.parse(to_json, :symbolize_names => true)
         end
       end
 

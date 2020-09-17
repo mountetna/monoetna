@@ -45,7 +45,6 @@ module Etna
       end
 
       def find(find_request)
-        binding.pry
         FoldersAndFilesResponse.new(
           @etna_client.bucket_find(find_request.to_h))
       end

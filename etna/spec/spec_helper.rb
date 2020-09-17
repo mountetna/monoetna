@@ -122,7 +122,7 @@ def stub_rename_folder(params={})
 end
 
 def stub_find(params={})
-  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/find\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/find\/#{params[:bucket] || RESTRICT_BUCKET}/)
   .to_return({
     status: params[:status] || 200
   })
