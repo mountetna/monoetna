@@ -54,7 +54,7 @@ class FolderController < Metis::Controller
     raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:folder_path])
 
     folders = mkdir_p(bucket, @params[:folder_path], @params[:project_name], Metis::File.author(@user))
-    success_json(folders: [ folders.first.to_hash ])
+    success_json(folders: [ folders.last.to_hash ])
   end
 
   def remove
