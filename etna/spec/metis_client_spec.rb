@@ -194,7 +194,6 @@ describe 'Metis Client class' do
       value: 'folder/fo*'
     ))
 
-
     test_class.find(find_request)
 
     expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/find\/#{RELEASE_BUCKET}/).
