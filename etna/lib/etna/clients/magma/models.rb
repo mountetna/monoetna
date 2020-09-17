@@ -68,7 +68,7 @@ module Etna
         end
       end
 
-      class AddLinkDefinition < Struct(:type, :model_name, :attribute_name)
+      class AddLinkDefinition < Struct.new(:type, :model_name, :attribute_name, keyword_init: true)
         include JsonSerializableStruct
       end
 

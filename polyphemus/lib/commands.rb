@@ -22,16 +22,39 @@ class Polyphemus
       raise "project must be implemented in subclasses!"
     end
 
+    def environment
+      Polyphemus.instance.environment
+    end
+
     def token
-      Polyphemus.instance.config(:polyphemus)[:token]
+      Polyphemus.instance.config(:polyphemus, environment)[:token]
     end
 
     def magma_client
-      @magma_client ||= Etna::Clients::Magma.new(token: token, host: Polyphemus.instance.config(:magma)[:host])
+      @magma_client ||= Etna::Clients::Magma.new(token: token, host: Polyphemus.instance.config(:magma, environment)[:host])
     end
 
     def metis_client
-      @metis_client ||= Etna::Clients::Metis.new(token: token, host: Polyphemus.instance.config(:metis)[:host])
+      @metis_client ||= Etna::Clients::Metis.new(token: token, host: Polyphemus.instance.config(:metis, environment)[:host])
+    end
+  end
+
+  class EnvironmentScoped < Module
+    def initialize(&block)
+      environment_class = Class.new do
+        instance_eval(&block)
+
+        attr_reader :environment
+        def initialize(environment)
+          @environment = environment
+        end
+      end
+
+      super() do
+        define_method :environment do |env|
+          (@envs ||= {})[env] ||= environment_class.new(env)
+        end
+      end
     end
   end
 
@@ -60,6 +83,7 @@ class Polyphemus
       linker.link_files
     end
 
+    # Use this once we build out the other attributes / ipi bulk loader.
     # class BulkRnaLinker < Etna::Clients::Magma::FileLinkingWorkflow
     #   def matching_expressions
     #     [
@@ -117,18 +141,8 @@ class Polyphemus
     end
   end
 
-  class TestQuery < Etna::Command
-    usage 'hi'
-
-    def execute
-      client = Etna::Clients::Magma.new(host: "https://magma.ucsf.edu", token: ENV['TOKEN'])
-      response = client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(project_name: "mvir1", page: 1, page_size: 2, model_name: 'patient', record_names: 'all', attribute_names: ['identifier']))
-      pp response.raw
-    end
-  end
-
   class ApplyMvir1RnaSeqAttributes < Etna::Command
-    usage 'TOKEN=<target_token> apply_mvir1rna_seq_attributes host'
+    usage 'apply_mvir1rna_seq_attributes <environment>'
     def execute(host)
       models = Etna::Clients::Magma::Models.new
       rna_seq = models.build_model('rna_seq')

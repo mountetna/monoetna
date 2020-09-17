@@ -1,13 +1,21 @@
 require 'net/http/persistent'
 require 'net/http/post/multipart'
 require 'singleton'
+require 'rack/utils'
+require 'vcr'
 
 module Etna
   class Client
     def initialize(host, token, routes_available: true)
-      @host = host.sub(%r!/$!,'')
-      @token = token
+      host = host.sub(%r!/$!,'')
 
+      @host, @cassette_name = parse_cassette_from_host(host)
+
+      if @cassette_name
+        configure_vcr
+      end
+
+      @token = token
 
       if routes_available
         set_routes
@@ -16,6 +24,37 @@ module Etna
     end
 
     attr_reader :routes
+
+    def configure_vcr
+      @@configured_vcr ||= begin
+        VCR.configure do |c|
+          c.hook_into :webmock
+          c.cassette_library_dir = ::File.join(__dir__, '..', '..', 'spec', 'fixtures', 'cassettes')
+          c.default_cassette_options = { record: ENV['IS_CI'] ? :none : :once }
+
+          # Filter the authorization headers of any request by replacing any occurrence of that request's
+          # Authorization value with <AUTHORIZATION>
+          c.filter_sensitive_data('<AUTHORIZATION>') do |interaction|
+            interaction.request.headers['Authorization']
+          end
+        end
+      end
+    end
+
+    # Returns a canonical http URI for the host, and also returns the file in which a recording should be made / read from.
+    def self.parse_cassette_from_host(host_string)
+      uri = URI.parse(host_string)
+      if uri.scheme == 'vcr'
+        uri.scheme = 'https'
+        cassette_name = '--unnamed--'
+        if uri.query
+          cassette_name = Rack::Utils.parse_nested_query(uri.query)['cassette'] || cassette_name
+        end
+        [uri.to_s, cassette_name]
+      end
+
+      [host_string, nil]
+    end
 
     def route_path(route, params)
       Etna::Route.path(route[:route], params)
@@ -131,7 +170,13 @@ module Etna
       end
     end
 
-    def request(uri, data)
+    def request(uri, data, in_recording: false, &block)
+      if !in_recording && @cassette_name
+        VCR.use_cassette(@cassette_name) do
+          return request(uri, data, in_recording: true, &block)
+        end
+      end
+
       if block_given?
         persistent_connection.request(uri, data) do |response|
           status_check!(response)

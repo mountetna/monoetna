@@ -1,2 +1,2 @@
-require_relative 'clients/magma.rb'
-require_relative 'clients/metis.rb'
+require_relative 'clients/magma'
+require_relative 'clients/metis'
