@@ -171,6 +171,38 @@ describe 'Metis Client class' do
         value: 'folder/fo*'
       )]))
 
-    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/find\/#{RELEASE_BUCKET}/)
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/find\/#{RELEASE_BUCKET}/).
+      with(body: hash_including({
+      params: [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'folder/fo*'
+    }]}))
+  end
+
+  it 'can add multiple find params' do
+    stub_find({bucket: RELEASE_BUCKET})
+
+    find_request = Etna::Clients::Metis::FindRequest.new(
+      bucket_name: RELEASE_BUCKET,
+      project_name: 'test',
+      params: [])
+
+    find_request.add_param(Etna::Clients::Metis::FindParam.new(
+      attribute: 'name',
+      predicate: 'glob',
+      value: 'folder/fo*'
+    ))
+
+
+    test_class.find(find_request)
+
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/find\/#{RELEASE_BUCKET}/).
+      with(body: hash_including({
+      params: [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: 'folder/fo*'
+    }]}))
   end
 end
