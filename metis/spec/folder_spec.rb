@@ -378,7 +378,7 @@ describe FolderController do
       post_create_folder('blueprints/Helmet Blueprints')
 
       expect(last_response.status).to eq(200)
-      expect(json_body[:folders][0][:folder_name]).to eq('Helmet Blueprints')
+      expect(json_body[:folders].first[:folder_name]).to eq('Helmet Blueprints')
       folder = Metis::Folder.last
       expect(folder.folder_path).to eq([ 'blueprints', 'Helmet Blueprints'])
       expect(Metis::Folder.count).to eq(2)
