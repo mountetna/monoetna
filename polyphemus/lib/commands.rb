@@ -1,8 +1,7 @@
 require 'date'
 require 'logger'
 require 'rollbar'
-require 'etna/clients/magma.rb'
-require 'etna/clients/metis.rb'
+require_relative 'helpers'
 
 
 class Polyphemus
@@ -17,58 +16,12 @@ class Polyphemus
     end
   end
 
-  module WithEtnaClients
-    def project
-      raise "project must be implemented in subclasses!"
-    end
-
-    def environment
-      Polyphemus.instance.environment
-    end
-
-    def token
-      Polyphemus.instance.config(:polyphemus, environment)[:token]
-    end
-
-    def magma_client
-      @magma_client ||= Etna::Clients::Magma.new(token: token, host: Polyphemus.instance.config(:magma, environment)[:host])
-    end
-
-    def metis_client
-      @metis_client ||= Etna::Clients::Metis.new(token: token, host: Polyphemus.instance.config(:metis, environment)[:host])
-    end
-  end
-
-  class EnvironmentScoped < Module
-    def initialize(&block)
-      environment_class = Class.new do
-        instance_eval(&block)
-
-        attr_reader :environment
-        def initialize(environment)
-          @environment = environment
-        end
-      end
-
-      super() do
-        define_method :environment do |env|
-          (@envs ||= {})[env] ||= environment_class.new(env)
-        end
-      end
-    end
-  end
-
-  module WithLogger
-    def logger
-      Polyphemus.instance.logger
-    end
-  end
-
   class LinkCometBulkRna < Etna::Command
     include WithLogger
     include WithEtnaClients
+    usage 'link_comet_bulk_rna [environment]'
 
-    usage 'link_comet_bulk_rna'
+    attr_reader :environment
 
     def project_name
       mvir1
@@ -78,7 +31,9 @@ class Polyphemus
       @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: project_name)
     end
 
-    def execute
+    def execute(env = Polyphemus.instance.environment)
+      @environment = env
+
       linker = CometBulkRnaLinker.new(magma_crud: magma_crud, metis_client: metis_client, project_name: project_name)
       linker.link_files
     end
@@ -142,8 +97,14 @@ class Polyphemus
   end
 
   class ApplyMvir1RnaSeqAttributes < Etna::Command
-    usage 'apply_mvir1rna_seq_attributes <environment>'
-    def execute(host)
+    include WithEtnaClients
+    include WithLogger
+
+    attr_reader :environment
+    usage 'apply_mvir1rna_seq_attributes [environment]'
+
+    def execute(env = Polyphemus.instance.environment)
+      @environment = env
       models = Etna::Clients::Magma::Models.new
       rna_seq = models.build_model('rna_seq')
       attributes = rna_seq.build_template.build_attributes
@@ -169,7 +130,7 @@ class Polyphemus
       Etna::Clients::Magma::ShallowCopyModelWorkflow.new(
           model_name: 'rna_seq',
           target_project: 'mvir1',
-          target_client: Etna::Clients::Magma.new(host: host, token: ENV['TOKEN']),
+          target_client: magma_client,
           source_models: models
       ).ensure_model_tree('rna_seq')
     end
@@ -193,53 +154,51 @@ class Polyphemus
     end
   end
 
+  module CopyCommand
+    def self.included(mod)
+      mod.instance_eval do
+        include WithEtnaClientsByEnvironment
+        include WithLogger
+
+        usage "#{name.snake_case.split(/::/).last} <source_env> <target_env> <source_project> <target_project> <model_name>"
+
+        def execute(source_env, target_env, source_project, target_project, model_name)
+          workflow = WORKFLOW.from_api_source(
+              model_name: model_name,
+              source_project: source_project,
+              source_client: environment(source_env).magma_client,
+              target_project: target_project,
+              target_client: environment(target_env).magma_client,
+          )
+
+          workflow.ensure_model_tree(model_name)
+        end
+
+        def setup(config)
+          super
+          Polyphemus.instance.setup_logger
+        end
+      end
+    end
+  end
+
   class ApiCopyModelShallow < Etna::Command
-    usage 'SOURCE_TOKEN=<source_token> TARGET_TOKEN=<target_token> api_copy_model_shallow <source_api> <target_api> <source_project> <target_project> <model_name>'
-
-    def execute(source_host, target_host, source_project, target_project, model_name)
-      workflow = Etna::Clients::Magma::ShallowCopyModelWorkflow.from_api_source(
-          model_name: model_name,
-          source_project: source_project,
-          source_client: Etna::Clients::Magma.new(host: source_host, token: ENV['SOURCE_TOKEN']),
-          target_project: target_project,
-          target_client: Etna::Clients::Magma.new(host: target_host, token: ENV['TARGET_TOKEN']),
-      )
-
-      workflow.ensure_model_tree(model_name)
-    end
-
-    def setup(config)
-      super
-      Polyphemus.instance.setup_logger
-    end
+    WORKFLOW = Etna::Clients::Magma::ShallowCopyModelWorkflow
+    include CopyCommand
   end
 
   class ApiCopyModelDeep < Etna::Command
-    usage 'SOURCE_TOKEN=<source_token> TARGET_TOKEN=<target_token> api_copy_model_deep <source_api> <target_api> <source_project> <target_project> <model_name'
-
-
-    def execute(source_host, target_host, source_project, target_project, model_name)
-      workflow = Etna::Clients::Magma::ModelSynchronizationWorkflow.from_api_source(
-          source_project: source_project,
-          source_client: Etna::Clients::Magma.new(host: source_host, token: ENV['SOURCE_TOKEN']),
-          target_project: target_project,
-          target_client: Etna::Clients::Magma.new(host: target_host, token: ENV['TARGET_TOKEN']),
-      )
-
-      workflow.ensure_model_tree(model_name)
-    end
-
-    def setup(config)
-      super
-      Polyphemus.instance.setup_logger
-    end
+    WORKFLOW = Etna::Clients::Magma::ModelSynchronizationWorkflow
+    include CopyCommand
   end
 
   class ApiAddProject < Etna::Command
-    usage 'TOKEN=<token> api_add_project <api_host> <project_name>'
+    include WithEtnaClientsByEnvironment
 
-    def execute(host, project_name)
-      client = Etna::Clients::Magma.new(token: ENV['TOKEN'], host: host)
+    usage 'api_add_project <environment> <project_name>'
+
+    def execute(env, project_name)
+      client = environment(env).magma_client
       client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
           project_name: project_name,
           actions: [Etna::Clients::Magma::AddProjectAction.new]))

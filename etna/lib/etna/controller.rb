@@ -23,6 +23,7 @@ module Etna
 
       return send(@action) if @action
 
+
       [501, {}, ['This controller is not implemented.']]
     rescue Etna::Error => e
       Rollbar.error(e)

@@ -8,10 +8,10 @@ require_relative './workflows'
 module Etna
   module Clients
     class Magma
-      def initialize(host:, token:)
+      def initialize(host:, token:, persistent: true)
         raise 'Magma client configuration is missing host.' unless host
         raise 'Magma client configuration is missing token.' unless token
-        @etna_client = ::Etna::Client.new(host, token, routes_available: false)
+        @etna_client = ::Etna::Client.new(host, token, routes_available: false, persistent: persistent)
       end
 
       # This endpoint returns models and records by name:

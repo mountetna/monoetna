@@ -83,8 +83,8 @@ module Etna
           return if target_attributes.attribute_keys.include?(attribute_name)
 
           add_link = AddLinkAction.new
-          add_link.links << AddLinkDefinition.new(model_name: target_model_name, attribute_name: attribute_name, type: source_attribute.type)
-          add_link.links << AddLinkDefinition.new(model_name: target_link_model_name, attribute_name: reciprocal.attribute_name, type: reciprocal.type)
+          add_link.links << AddLinkDefinition.new(model_name: target_model_name, attribute_name: attribute_name, type: source_attribute.attribute_type)
+          add_link.links << AddLinkDefinition.new(model_name: target_link_model_name, attribute_name: reciprocal.attribute_name, type: reciprocal.attribute_type)
 
           execute_updates(add_link)
         end
