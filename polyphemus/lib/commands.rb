@@ -358,6 +358,34 @@ class Polyphemus
     end
   end
 
+  class FindIpiBulkRnaSeqFolders < Etna::Command
+    include WithEtnaClients
+
+    usage "Fetch a list of Metis BulkRNASeq folders for IPI, from integral_data"
+
+    def project
+      :mvir1
+    end
+
+    def execute
+      folders = metis_client.find(
+          Etna::Clients::Metis::FindRequest.new(
+            project_name: 'ipi',
+            bucket_name: 'integral_data',
+            params: [Etna::Clients::Metis::FindParam.new(
+              attribute: 'name',
+              predicate: 'glob',
+              value: 'BulkRNASeq/IPI*',
+              type: 'folder'
+            )])).folders.all
+      puts "Found a total of #{folders.length} BulkRNASeq folders in the IPI integral_data bucket"
+    end
+
+    def setup(config)
+      super
+    end
+  end
+
   class Console < Etna::Command
     usage 'Open a console with a connected Polyphemus instance.'
 

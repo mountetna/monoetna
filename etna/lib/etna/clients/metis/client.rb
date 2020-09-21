@@ -42,6 +42,11 @@ module Etna
           @etna_client.folder_create(create_folder_request.to_h))
       end
 
+      def find(find_request)
+        FoldersAndFilesResponse.new(
+          @etna_client.bucket_find(find_request.to_h))
+      end
+
       def folder_exists?(create_folder_request)
         # NOTE: this doesn't test if the folder_path itself exists
         #   This can be confusing for root folders, because
