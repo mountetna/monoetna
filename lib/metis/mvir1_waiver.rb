@@ -7,7 +7,7 @@ class Mvir1Waiver
 
   def initialize(metis_client:, project_name: 'mvir1')
     @metis_client = metis_client
-    @project_name = project_name
+    @project_name = project_name.to_s
     @release_bucket_name = bucket_name(:release_bucket)
     @restrict_bucket_name = bucket_name(:restrict_bucket)
     @release_folders = @metis_client.folders(
