@@ -2,8 +2,8 @@ require 'etna'
 require_relative '../commands'
 
 class Mvir1Waiver
-  include Polyphemus::WithEtnaClients
-  include Polyphemus::WithLogger
+  include WithEtnaClients
+  include WithLogger
 
   def initialize(metis_client:, project_name: 'mvir1')
     @metis_client = metis_client

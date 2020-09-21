@@ -1,3 +1,4 @@
+require 'ostruct'
 require_relative '../../json_serializable_struct'
 require_relative '../../multipart_serializable_nested_hash'
 require_relative '../../directed_graph'
@@ -7,7 +8,7 @@ require_relative '../../directed_graph'
 module Etna
   module Clients
     class Magma
-      class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, keyword_init: true)
+      class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, :page, :page_size, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)
@@ -27,7 +28,7 @@ module Etna
           super({revisions: {}}.update(params))
         end
 
-        def update_revision(model_name, record_name, **attrs)
+        def update_revision(model_name, record_name, attrs)
           revision = revisions[model_name] ||= {}
           record = revision[record_name] ||= {}
           record.update(attrs)
@@ -46,11 +47,29 @@ module Etna
         end
       end
 
+      class AddModelAction < Struct.new(:action_name, :model_name, :parent_model_name, :parent_link_type, :identifier, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'add_model'}.update(args))
+        end
+      end
+
       class AddAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
         def initialize(**args)
           super({action_name: 'add_attribute'}.update(args))
         end
+      end
+
+      class AddLinkAction < Struct.new(:action_name, :links, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'add_link', links: []}.update(args))
+        end
+      end
+
+      class AddLinkDefinition < Struct.new(:type, :model_name, :attribute_name, keyword_init: true)
+        include JsonSerializableStruct
       end
 
       class AddProjectAction < Struct.new(:action_name, keyword_init: true)
@@ -119,7 +138,12 @@ module Etna
           raw.keys
         end
 
+        def build_model(model_key)
+          Model.new(raw[model_key] ||= {})
+        end
+
         def model(model_key)
+          return nil unless raw.include?(model_key)
           Model.new(raw[model_key])
         end
 
@@ -161,12 +185,20 @@ module Etna
           @raw = raw
         end
 
+        def build_template
+          Template.new(raw['template'] ||= {})
+        end
+
         def documents
           Documents.new(raw['documents'])
         end
 
         def template
           Template.new(raw['template'])
+        end
+
+        def count
+          raw['count'] || 0
         end
       end
 
@@ -182,6 +214,7 @@ module Etna
         end
 
         def document(document_key)
+          return nil unless raw.include?(document_key)
           raw[document_key]
         end
       end
@@ -197,16 +230,32 @@ module Etna
           raw['name'] || ""
         end
 
+        def name=(val)
+          raw['name'] = val.to_s
+        end
+
         def identifier
           raw['identifier'] || ""
+        end
+
+        def identifier=(val)
+          raw['identifier'] = val.to_s
         end
 
         def parent
           raw['parent']
         end
 
+        def parent=(val)
+          raw['parent'] = val.to_s
+        end
+
         def attributes
           Attributes.new(raw['attributes'])
+        end
+
+        def build_attributes
+          Attributes.new(raw['attributes'] ||= {})
         end
       end
 
@@ -222,7 +271,16 @@ module Etna
         end
 
         def attribute(attribute_key)
+          return nil unless raw.include?(attribute_key)
           Attribute.new(raw[attribute_key])
+        end
+
+        def build_attribute(key)
+          Attribute.new(raw[key] ||= {})
+        end
+
+        def all
+          raw.values.map { |r| Attribute.new(r) }
         end
       end
 
@@ -237,16 +295,81 @@ module Etna
           @raw['name'] || ""
         end
 
+        def name=(val)
+          @raw['name'] = val
+        end
+
         def attribute_name
           @raw['attribute_name'] || ""
+        end
+
+        def attribute_name=(val)
+          @raw['attribute_name'] = val
         end
 
         def attribute_type
           @raw['attribute_type'] && AttributeType.new(@raw['attribute_type'])
         end
 
+        def attribute_type=(val)
+          val = val.to_s if val
+          @raw['attribute_type'] = val
+        end
+
         def link_model_name
-          raw['link_model_name']
+          @raw['link_model_name']
+        end
+
+        def link_model_name=(val)
+          @raw['link_model_name'] = val
+        end
+
+        def unique
+          raw['unique']
+        end
+
+        def desc
+          raw['desc']
+        end
+
+        def desc=(val)
+          @raw['desc'] = val
+        end
+
+        def display_name
+          raw['display_name']
+        end
+
+        def display_name=(val)
+          raw['display_name'] = val
+        end
+
+        def match
+          raw['match']
+        end
+
+        def restricted
+          raw['restricted']
+        end
+
+        def format_hint
+          raw['format_hint']
+        end
+
+        def read_only
+          raw['read_only']
+        end
+
+        def hidden
+          raw['hidden']
+        end
+
+        def validation
+          raw['validation']
+        end
+
+        def options
+          raw['options']
         end
       end
 
@@ -266,6 +389,12 @@ module Etna
         MATRIX = AttributeType.new("matrix")
         PARENT = AttributeType.new("parent")
         TABLE = AttributeType.new("table")
+      end
+
+      class ParentLinkType < String
+        CHILD = ParentLinkType.new("child")
+        COLLECTION = ParentLinkType.new("collection")
+        TABLE = ParentLinkType.new("table")
       end
     end
   end
