@@ -64,6 +64,31 @@ module Etna
         end
       end
 
+      class FindRequest < Struct.new(:project_name, :bucket_name, :params, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**args)
+          super({params: []}.update(args))
+        end
+
+        def add_param(param)
+          params << param
+        end
+
+        def to_h
+          # The nested :params values don't get converted correctly with transform_values, so it's
+          #   easier to do from a JSON string
+          JSON.parse(to_json, :symbolize_names => true)
+        end
+      end
+
+      class FindParam < Struct.new(:attribute, :predicate, :value, :type, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({}.update(args))
+        end
+      end
+
       class FoldersResponse
         attr_reader :raw
 
