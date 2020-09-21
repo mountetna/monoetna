@@ -6,7 +6,7 @@ gem 'rack'
 gem 'pg'
 gem 'sequel'
 gem 'fog-aws'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/ce37dc4c1f84036e7451761a93c064a06b8b31e1'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/2817e17d64b4c5c96dedde8e748c760ea3cc99c8'
 
 group :test do
   gem 'rspec'
