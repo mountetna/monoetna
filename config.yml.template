@@ -6,7 +6,17 @@
     :release_bucket: this_is_releasable
     :restrict_bucket: dont_show_anyone
   :polyphemus:
-    :token: my-token # create a long lived token with janus
+    :token: my-token
+
+:production:
+  :magma:
+    :host: https://magma.ucsf.edu
+  :metis:
+    :host: https://metis.ucsf.edu
+    :release_bucket: this_is_releasable
+    :restrict_bucket: dont_show_anyone
+  :polyphemus:
+    :token: production-token
 
 :test:
   :magma:
