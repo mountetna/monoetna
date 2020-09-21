@@ -1,5 +1,5 @@
 require_relative '../../json_serializable_struct'
-
+require 'ostruct'
 
 module Etna
   module Clients
