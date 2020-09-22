@@ -96,30 +96,6 @@ class Polyphemus
     end
   end
 
-  class LinkIpiFlowWsp < Etna::Command
-    include WithEtnaClients
-    include WithLogger
-    usage 'link_ipi_flow_wsp [environment]'
-
-    attr_reader :environment
-
-    def project_name
-      :ipi
-    end
-
-    def magma_crud
-      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: project_name)
-    end
-
-    def execute(env = Polyphemus.instance.environment)
-      require_relative './ipi/flow_wsp_file_linker'
-      @environment = env
-
-      linker = IpiFlowWspLinker.new(magma_crud: magma_crud, metis_client: metis_client, project_name: project_name)
-      linker.link_files
-    end
-  end
-
   class ApplyMvir1RnaSeqAttributes < Etna::Command
     include WithEtnaClients
     include WithLogger
@@ -158,6 +134,11 @@ class Polyphemus
           source_models: models
       ).ensure_model_tree('rna_seq')
     end
+  end
+
+  class ApplyMvir1RnaSeqAttributes < Etna::Command
+    include WithEtnaClients
+    include WithLogger
 
     def add_file_attribute(attributes, name)
       attributes.build_attribute(name).tap do |attribute|
@@ -407,6 +388,30 @@ class Polyphemus
 
     def setup(config)
       super
+    end
+  end
+
+  class LinkIpiFlowWsp < Etna::Command
+    include WithEtnaClients
+    include WithLogger
+    usage 'link_ipi_flow_wsp [environment]'
+
+    attr_reader :environment
+
+    def project_name
+      :ipi
+    end
+
+    def magma_crud
+      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: project_name)
+    end
+
+    def execute(env = Polyphemus.instance.environment)
+      require_relative './ipi/flow_wsp_file_linker'
+      @environment = env
+
+      linker = IpiFlowWspLinker.new(magma_crud: magma_crud, metis_client: metis_client, project_name: project_name)
+      linker.link_files
     end
   end
 

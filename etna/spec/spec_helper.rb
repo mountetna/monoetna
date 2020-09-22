@@ -28,6 +28,7 @@ end
 
 VCR.configure do |c|
   c.hook_into :webmock
+  c.cassette_serializers
   c.cassette_library_dir = ::File.join(__dir__,  'fixtures', 'cassettes')
   c.allow_http_connections_when_no_cassette = true
   c.register_request_matcher :try_body do |request_1, request_2|
@@ -43,6 +44,7 @@ VCR.configure do |c|
   end
 
   c.default_cassette_options = {
+      serialize_with: :compressed,
       record: if ENV['IS_CI']
         :none
       else
@@ -55,6 +57,29 @@ VCR.configure do |c|
   # Authorization value with <AUTHORIZATION>
   c.filter_sensitive_data('<AUTHORIZATION>') do |interaction|
     interaction.request.headers['Authorization'].first
+  end
+
+  # The model synchronization workflow benefits from testing against production models, but produces a massive
+  # recording file that doesn't fit into git easily.  To assist in that, we prune some large chunks of data
+  # that are generally not useful to recording tests.  But this is fragile and assumes that no tests using vcr depend
+  # on certain response contents.  Ideal solution would be to greatly reduce the size of default magma retrieve and
+  # update_model responses to not be as noisy for large models.
+  c.filter_sensitive_data('{}') do |interaction|
+    if interaction.request.uri =~ /\/update_model/
+      interaction.response.body
+    else
+      "{}"
+    end
+  end
+
+  c.filter_sensitive_data('"options":["one-option"]') do |interaction|
+    match = interaction.response.body.match(/"options":\["ENSG0[^\]]+\]/)
+    match ? match[0] : '"options":["one-option"]'
+  end
+
+  c.filter_sensitive_data('"value":["one-option"]') do |interaction|
+    match = interaction.response.body.match(/"value":\["ENSG0[^\]]+\]/)
+    match ? match[0] : '"value":["one-option"]'
   end
 end
 
