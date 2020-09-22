@@ -56,8 +56,10 @@ module Etna::Application
   # the application logger is available globally
   attr_reader :logger
 
-  def config(type)
-    @config[environment][type]
+  # In some cases, such as utility scripts that span across environments, it may be necessary to override
+  # the environment source.
+  def config(type, env = environment)
+    @config[env][type]
   end
 
   def sign
@@ -82,6 +84,9 @@ module Etna::Application
     else
       commands[:help].execute
     end
+  rescue => e
+    Rollbar.error(e)
+    raise
   end
 
   def commands

@@ -15,6 +15,17 @@
     :password: password
     :search_path: [ public ]
 
+
+:production:
+  :magma:
+    :host: https://magma.ucsf.edu
+  :metis:
+    :host: https://metis.ucsf.edu
+    :release_bucket: this_is_releasable
+    :restrict_bucket: dont_show_anyone
+  :polyphemus:
+    :token: production-token
+
 :test:
   :magma:
     :host: https://magma.test

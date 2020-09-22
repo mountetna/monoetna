@@ -13,12 +13,12 @@ module Etna
         @etna_client = ::Etna::Client.new(host, token)
       end
 
-      def list_all_folders(list_all_folders_request)
+      def list_all_folders(list_all_folders_request = ListFoldersRequest.new)
         FoldersResponse.new(
           @etna_client.folder_list_all_folders(list_all_folders_request.to_h))
       end
 
-      def list_folder(list_folder_request)
+      def list_folder(list_folder_request = ListFolderRequest.new)
         FoldersAndFilesResponse.new(
           @etna_client.folder_list(list_folder_request.to_h))
       end
@@ -40,6 +40,11 @@ module Etna
       def create_folder(create_folder_request)
         FoldersResponse.new(
           @etna_client.folder_create(create_folder_request.to_h))
+      end
+
+      def find(find_request)
+        FoldersAndFilesResponse.new(
+          @etna_client.bucket_find(find_request.to_h))
       end
 
       def folder_exists?(create_folder_request)

@@ -27,6 +27,8 @@ class Metis
     get '/:project_name/list_all_folders/:bucket_name', action: 'folder#list_all_folders', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/', action: 'bucket#list', auth: { user: { can_view?: :project_name } }
 
+    post '/:project_name/find/:bucket_name', action: 'bucket#find', auth: { user: { can_view?: :project_name } }
+
     # bucket operations
     post '/:project_name/bucket/create/:bucket_name', action: 'bucket#create', auth: { user: { is_admin?: :project_name } }
     post '/:project_name/bucket/update/:bucket_name', action: 'bucket#update', auth: { user: { is_admin?: :project_name } }
