@@ -1,6 +1,5 @@
 require 'etna'
 require 'json'
-require 'pry'
 
 class IpiFlowWspLinker < Etna::Clients::Magma::FileLinkingWorkflow
   def initialize(**opts)
