@@ -134,11 +134,6 @@ class Polyphemus
           source_models: models
       ).ensure_model_tree('rna_seq')
     end
-  end
-
-  class ApplyMvir1RnaSeqAttributes < Etna::Command
-    include WithEtnaClients
-    include WithLogger
 
     def add_file_attribute(attributes, name)
       attributes.build_attribute(name).tap do |attribute|
