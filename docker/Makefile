@@ -18,7 +18,7 @@ docker-compose.yml: $(compose_ymls) ./compose $(wildcard ./*.shared.yml) ./defau
 	@ mv .tmp docker-compose.yml
 
 .PHONY: config-ready
-config-ready: docker-compose.yml
+config-ready: docker-compose.yml ## Prepares the top level docker-compose.yml config.  Run this if you recently changed docker-compose.yml files.
 
 .PHONY: docker-ready
 docker-ready: config-ready build

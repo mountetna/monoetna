@@ -1,5 +1,5 @@
 require_relative '../../json_serializable_struct'
-
+require 'ostruct'
 
 module Etna
   module Clients
@@ -61,6 +61,31 @@ module Etna
           #   we need to make sure it's a string because it's going
           #   in the URL.
           super().compact.transform_values(&:to_s)
+        end
+      end
+
+      class FindRequest < Struct.new(:project_name, :bucket_name, :params, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**args)
+          super({params: []}.update(args))
+        end
+
+        def add_param(param)
+          params << param
+        end
+
+        def to_h
+          # The nested :params values don't get converted correctly with transform_values, so it's
+          #   easier to do from a JSON string
+          JSON.parse(to_json, :symbolize_names => true)
+        end
+      end
+
+      class FindParam < Struct.new(:attribute, :predicate, :value, :type, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({}.update(args))
         end
       end
 

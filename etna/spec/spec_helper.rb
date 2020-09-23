@@ -6,6 +6,7 @@ require 'bundler'
 require 'securerandom'
 require 'timecop'
 require 'webmock/rspec'
+require 'vcr'
 
 Bundler.setup(:default, :test)
 
@@ -22,6 +23,63 @@ def setup_app(server, layer=nil, config={ test: {} })
     use Etna::SymbolizeParams
     use *layer if layer
     run server.new
+  end
+end
+
+VCR.configure do |c|
+  c.hook_into :webmock
+  c.cassette_serializers
+  c.cassette_library_dir = ::File.join(__dir__,  'fixtures', 'cassettes')
+  c.allow_http_connections_when_no_cassette = true
+  c.register_request_matcher :try_body do |request_1, request_2|
+    if request_1.headers['Content-Type'].first =~ /application\/json/
+      if request_2.headers['Content-Type'].first =~ /application\/json/
+        JSON.parse(request_1.body) == JSON.parse(request_2.body)
+      else
+        false
+      end
+    else
+      request_1.body == request_2.body
+    end
+  end
+
+  c.default_cassette_options = {
+      serialize_with: :compressed,
+      record: if ENV['IS_CI']
+        :none
+      else
+        ENV['RERECORD'] ? :all : :once
+      end,
+      match_requests_on: [:method, :uri, :try_body]
+  }
+
+  # Filter the authorization headers of any request by replacing any occurrence of that request's
+  # Authorization value with <AUTHORIZATION>
+  c.filter_sensitive_data('<AUTHORIZATION>') do |interaction|
+    interaction.request.headers['Authorization'].first
+  end
+
+  # The model synchronization workflow benefits from testing against production models, but produces a massive
+  # recording file that doesn't fit into git easily.  To assist in that, we prune some large chunks of data
+  # that are generally not useful to recording tests.  But this is fragile and assumes that no tests using vcr depend
+  # on certain response contents.  Ideal solution would be to greatly reduce the size of default magma retrieve and
+  # update_model responses to not be as noisy for large models.
+  c.filter_sensitive_data('{}') do |interaction|
+    if interaction.request.uri =~ /\/update_model/
+      interaction.response.body
+    else
+      "{}"
+    end
+  end
+
+  c.filter_sensitive_data('"options":["one-option"]') do |interaction|
+    match = interaction.response.body.match(/"options":\["ENSG0[^\]]+\]/)
+    match ? match[0] : '"options":["one-option"]'
+  end
+
+  c.filter_sensitive_data('"value":["one-option"]') do |interaction|
+    match = interaction.response.body.match(/"value":\["ENSG0[^\]]+\]/)
+    match ? match[0] : '"value":["one-option"]'
   end
 end
 
@@ -69,7 +127,8 @@ def stub_metis_setup
     {:method=>"GET", :route=>"/:project_name/list_all_folders/:bucket_name", :name=>"folder_list_all_folders", :params=>["project_name", "bucket_name"]},
     {:method=>"GET", :route=>"/:project_name/list/:bucket_name/*folder_path", :name=>"folder_list", :params=>["project_name", "bucket_name", "folder_path"]},
     {:method=>"POST", :route=>"/:project_name/folder/rename/:bucket_name/*folder_path", :name=>"folder_rename", :params=>["project_name", "bucket_name", "folder_path"]},
-    {:method=>"POST", :route=>"/:project_name/folder/create/:bucket_name/*folder_path", :name=>"folder_create", :params=>["project_name", "bucket_name", "folder_path"]}
+    {:method=>"POST", :route=>"/:project_name/folder/create/:bucket_name/*folder_path", :name=>"folder_create", :params=>["project_name", "bucket_name", "folder_path"]},
+    {:method=>"POST", :route=>"/:project_name/find/:bucket_name", :name=>"bucket_find", :params=>["project_name", "bucket_name"]}
   ])
 
   stub_request(:options, METIS_HOST).
@@ -115,6 +174,13 @@ end
 
 def stub_rename_folder(params={})
   stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_find(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/find\/#{params[:bucket] || RESTRICT_BUCKET}/)
   .to_return({
     status: params[:status] || 200
   })

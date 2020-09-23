@@ -24,4 +24,8 @@ services:
     entrypoint: /entrypoints/development.sh
     environment:
       SKIP_DB_WAIT: 1
-
+    networks:
+      default:
+      edge_net:
+    extra_hosts:
+      - 'magma.development.local:172.16.238.10'

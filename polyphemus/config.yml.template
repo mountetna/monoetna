@@ -7,6 +7,24 @@
     :restrict_bucket: dont_show_anyone
   :polyphemus:
     :token: my-token # create a long lived token with janus
+  :db:
+    :adapter: postgres
+    :host: polyphemus_db
+    :database: polyphemus_development
+    :user: developer
+    :password: password
+    :search_path: [ public ]
+
+
+:production:
+  :magma:
+    :host: https://magma.ucsf.edu
+  :metis:
+    :host: https://metis.ucsf.edu
+    :release_bucket: this_is_releasable
+    :restrict_bucket: dont_show_anyone
+  :polyphemus:
+    :token: production-token
 
 :test:
   :magma:
@@ -17,3 +35,10 @@
     :restrict_bucket: restrict
   :polyphemus:
     :token: mvir1-token
+  :db:
+    :adapter: postgres
+    :host: polyphemus_db
+    :database: polyphemus_test
+    :user: developer
+    :password: password
+    :search_path: [ public ]

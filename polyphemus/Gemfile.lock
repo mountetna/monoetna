@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/mountetna/monoetna.git
-  revision: 08d604d6043100123201cb96cdd65b68559df241
-  branch: refs/artifacts/gem-etna/ce37dc4c1f84036e7451761a93c064a06b8b31e1
+  revision: 2ab4d75716bcdc793f6c209eae948b3332dc4f31
+  branch: refs/artifacts/gem-etna/854c702f081f975d0a1619ed929b850fb6b6d599
   specs:
     etna (0.1.16)
       jwt
@@ -31,6 +31,7 @@ GEM
     multipart-post (2.1.1)
     net-http-persistent (4.0.0)
       connection_pool (~> 2.2)
+    pg (1.2.3)
     pry (0.13.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -57,6 +58,7 @@ GEM
     ruby-debug-ide (0.7.2)
       rake (>= 0.8.1)
     safe_yaml (1.0.5)
+    sequel (5.36.0)
     simplecov (0.19.0)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
@@ -72,10 +74,12 @@ PLATFORMS
 DEPENDENCIES
   debase
   etna!
+  pg
   pry
   pry-byebug
   rspec
   ruby-debug-ide
+  sequel
   simplecov
   webmock
 

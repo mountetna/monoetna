@@ -1,0 +1,26 @@
+{
+  "name": "myenvironment",
+  "description": "My Chef environment",
+  "cookbook_versions": {},
+  "json_class": "Chef::Environment",
+  "chef_type": "environment",
+  "override_attributes": {},
+  "default_attributes": {
+    "docker": {
+      "swarm": {
+        "token": "",
+        "leader_addr": ""
+      },
+      "registry": {
+        "username": "",
+        "password": "",
+        "email": ""
+      }
+    },
+    "slack_notifications": {
+      "watchtower": {
+        "hook_url": ""
+      }
+    }
+  }
+}
