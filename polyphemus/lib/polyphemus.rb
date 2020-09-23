@@ -4,12 +4,11 @@ require 'etna/clients/metis'
 
 class Polyphemus
   include Etna::Application
+  attr_reader :db
 
-  def magma_client(token = ENV['TOKEN'])
-    Etna::Clients::Magma.new(token: token, host: config(:magma)[:host])
-  end
-
-  def metis_client(token = ENV['TOKEN'])
-    Etna::Clients::Metis.new(token: token, host: config(:metis)[:host])
+  def setup_db
+    @db = Sequel.connect(config(:db))
+    @db.extension :connection_validator
+    @db.pool.connection_validation_timeout = -1
   end
 end

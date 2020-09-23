@@ -1,0 +1,47 @@
+set number
+set colorcolumn=80
+set tabstop=2
+set expandtab
+set noruler
+set laststatus=2
+set showcmd
+set directory^=$HOME/.vim/tmp
+
+set nocompatible
+filetype off
+
+" Set the runtime path to include Vundle and initialize.
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+
+" Let Vundle manage Vundle, required.
+Plugin 'VundleVim/Vundle.vim'
+Plugin 'ctrlpvim/ctrlp.vim'
+
+" All of the plugins must be added before this line.
+call vundle#end()
+filetype plugin indent on
+
+set statusline=%f    " Path to the file.
+set statusline+=\ -\ " Separator
+set statusline+=%c   " Column number
+set statusline+=\    " Separator
+set statusline+=%l   " Current Line
+set statusline+=\    " Separator
+set statusline+=%L   " Total Lines.
+
+" Shows trailing spaces.
+set list          " Display unprintable characters f12 - switches
+set listchars=tab:•\ ,trail:•,extends:»,precedes:« " Unprintable chars mapping
+
+if has("autocmd")
+  filetype plugin indent on
+  autocmd FileType ruby setlocal et sw=2 sts=2
+  autocmd FileType yaml setlocal et sw=2 sts=2
+  autocmd FileType eruby setlocal et sw=2 sts=2
+  autocmd FileType python setlocal et sw=2 sts=2
+  autocmd FileType text setlocal textwidth=78
+  autocmd FileType coffee setlocal et sw=2 sts=2
+  autocmd FileType javascript setlocal et sw=2 sts=2
+endif
+

@@ -11,7 +11,7 @@ module Etna
         end
 
         def lookup_record(model_name, record_id)
-          if (cached = @cache.dig(model_name, record_id))
+          if (cached = (@cache ||= {}).dig(model_name, record_id))
             return cached
           end
 
