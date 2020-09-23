@@ -1,10 +1,13 @@
+require 'date'
+
 class Polyphemus
   # An EtlCursor represents a named "Cursor", generally encoding things such as an updated_at, limit, and offset,
   # which can correctly capture the entire state of query for batched etl jobs.
   class EtlCursor
-    attr_reader :value, :updated_at
+    attr_reader :value, :name
+    attr_accessor :updated_at
 
-    def initialize(name, updated_at = Time.now, value = {})
+    def initialize(name, updated_at = nil, value = {})
       @name = name
       @value = value
       @updated_at = updated_at
@@ -16,6 +19,30 @@ class Polyphemus
 
     def []=(k, v)
       value[k.to_s] = v
+    end
+
+    def load_from_db
+      existing = Polyphemus.instance.db[:cursors].where(name: name).first
+      if existing
+        @value = existing[:value]
+        @updated_at = existing[:updated_at]
+      else
+        @value = {}
+        @updated_at = nil
+      end
+
+      self
+    end
+
+    def save_to_db
+      value = Sequel.pg_json_wrap(self.value)
+      Polyphemus.instance.db[:cursors].insert(
+          name: name,
+          updated_at: updated_at,
+          value: value,
+      )
+    rescue  Sequel::UniqueConstraintViolation => e
+      Polyphemus.instance.db[:cursors].where(name: name).update(updated_at: updated_at, value: value)
     end
   end
 
