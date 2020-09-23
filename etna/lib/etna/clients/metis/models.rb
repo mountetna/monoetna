@@ -64,7 +64,7 @@ module Etna
         end
       end
 
-      class FindRequest < Struct.new(:project_name, :bucket_name, :params, keyword_init: true)
+      class FindRequest < Struct.new(:project_name, :bucket_name, :limit, :offset, :params, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**args)
@@ -144,6 +144,14 @@ module Etna
 
         def file_name
           raw[:file_name]
+        end
+
+        def updated_at
+          raw[:updated_at]
+        end
+
+        def id
+          raw[:id]
         end
       end
 

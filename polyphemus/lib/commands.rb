@@ -19,7 +19,6 @@ class Polyphemus
   class LinkCometBulkRna < Etna::Command
     include WithLogger
     include WithEtnaClients
-    usage 'link_comet_bulk_rna [environment]'
 
     attr_reader :environment
 

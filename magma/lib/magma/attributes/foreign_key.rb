@@ -22,6 +22,7 @@ class Magma
         link_validate(value,&block) if @attribute.link_identity
       end
     end
+
     class Entry < Magma::BaseAttributeEntry
       def entry value
         return nil if value.nil?

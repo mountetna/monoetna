@@ -4,19 +4,22 @@ require_relative './globber'
 class Metis
   class QueryBuilder
 
-    def initialize(base_query, params)
+    def initialize(base_query, params, limit = nil, offset = 0)
       @base_query = base_query
       @params = params
+      @limit = limit
+      @offset = offset
     end
 
     def build
+      result = @base_query
       @params.each do |param|
         next unless param.key?(:attribute) && param.key?(:predicate) && param.key?(:value)
 
         # Modify query behavior based on "type" of attribute
         case param[:attribute]
         when 'created_at', 'updated_at'
-          @base_query = @base_query.where{|o|
+          result = result.where{|o|
             Sequel[param[:attribute].to_sym].method(param[:predicate]).(Time.iso8601(param[:value]))
           }
         when 'name'
@@ -24,24 +27,28 @@ class Metis
           when '=~'
             value = param[:value]
             if is_regex(value)
-              @base_query = @base_query.where([[Sequel[model_name_attribute], to_regex(value)]])
+              result = result.where([[Sequel[model_name_attribute], to_regex(value)]])
             else
-              @base_query = @base_query.where(Sequel.like(model_name_attribute, value))
+              result = result.where(Sequel.like(model_name_attribute, value))
             end
           when '='
-            @base_query = @base_query.where([[Sequel[model_name_attribute], param[:value]]])
+            result = result.where([[Sequel[model_name_attribute], param[:value]]])
           when 'glob'
             globber = Metis::Globber.new(param[:value], is_file_query)
 
             id_param = is_file_query ? :folder_id : :id
 
-            @base_query = @base_query.where(
+            result = result.where(
               [[Sequel[id_param], globber.folder_path_ids]]).where(
               Sequel.like(model_name_attribute, globber.sql_search_string))
           end
         end
       end
-      @base_query
+
+      result = result.order(:updated_at, :id)
+      result = result.offset(@offset)
+      result = result.limit(@limit) unless @limit.nil?
+      result
     end
 
     private

@@ -77,7 +77,9 @@ class BucketController < Metis::Controller
     query = Metis::Query.new(
       project_name: @params[:project_name],
       bucket: bucket,
-      params: params
+      params: params,
+      limit: limit,
+      offset: offset,
     )
 
     results = query.execute

@@ -166,6 +166,7 @@ class Metis
 
     def to_hash(request: nil, with_path: true)
       {
+        id: self.id,
         file_name: file_name,
         project_name: project_name,
         bucket_name: bucket.name,

@@ -68,10 +68,10 @@ class Metis
         offset: offset
       ) : target_folders
 
-      paged_folders = sorted_folders.slice(offset, limit)
-      return [] unless paged_folders
+      # paged_folders = sorted_folders.slice(offset, limit)
+      return [] unless sorted_folders
 
-      paged_folders.map { |fold|
+      sorted_folders.map { |fold|
         folder_hash = fold.to_hash(false)
         folder_hash[:folder_path] = folder_path_calc.get_folder_path(fold)
         folder_hash

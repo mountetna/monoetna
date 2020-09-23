@@ -13,9 +13,16 @@ module Etna::Application
   end
 
   def self.find(klass)
-    Kernel.const_get(
-      klass.name.split('::').first
-    ).instance
+    namespace = klass.name.split('::').first
+    if (namespace_klass = Kernel.const_get(namespace)) && (namespace_klass.respond_to? :instance)
+      return namespace_klass.instance
+    end
+
+    if (app_name = ENV['APP_NAME']) && (app_klass = Kernel.const_get(app_name.capitalize)) && (app_klass.respond_to? :instance)
+      return app_klass.instance
+    end
+
+    raise "Could not find application instance from #{namespace}, maybe set APP_NAME environment variable?"
   end
 
   def self.register(app)
