@@ -1,0 +1,22 @@
+{
+  "ADR": "Adrenal",
+  "BLAD": "Bladder",
+  "BRC": "Breast",
+  "CRC": "Colorectal",
+  "GALL": "Gall Bladder",
+  "GBM": "Glioblastoma",
+  "GSTR": "Gastric",
+  "GYN": "Gynecologic",
+  "HEP": "Hepatobiliary",
+  "HNSC": "Head and Neck",
+  "KID": "Kidney",
+  "LUNG": "Lung",
+  "MEL": "Melanoma",
+  "MELB": "Melanoma (BIOS)",
+  "PDAC": "Pancreatic",
+  "PNET": "Neuroendocrine",
+  "PROS": "Prostate",
+  "PSC": "Primary Sclerosing Cholangitis",
+  "SI": "Small Intestine",
+  "SRC": "Sarcoma"
+}
