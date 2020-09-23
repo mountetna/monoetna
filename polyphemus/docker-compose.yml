@@ -103,4 +103,6 @@ services:
     <<: *base-etna-app
   "polyphemus_db":
     <<: *base-etna-db
+  "polyphemus_app_fe":
+    <<: *base-etna-fe
 

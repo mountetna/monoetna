@@ -6,7 +6,7 @@ gem 'rack'
 gem 'rack-throttle'
 gem 'pg'
 gem 'sequel'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/bf7bcd6c066dc5d9ed8faf8d01b4870895aba51f'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/854c702f081f975d0a1619ed929b850fb6b6d599'
 gem 'jwt'
 
 group :test do
