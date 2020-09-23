@@ -42,10 +42,10 @@ environment runs an apache server that terminates SSL with self signed certs cur
 each service like the following:
 
 ```
-janus.development.local 127.0.0.1
-metis.development.local 127.0.0.1
-magma.development.local 127.0.0.1
-timur.development.local 127.0.0.1
+127.0.0.1 janus.development.local
+127.0.0.1 metis.development.local
+127.0.0.1 magma.development.local
+127.0.0.1 timur.development.local
 ```
 
 ### Seeding janus and metis
