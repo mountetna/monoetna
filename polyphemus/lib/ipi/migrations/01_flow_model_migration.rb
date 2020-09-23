@@ -111,22 +111,18 @@ class IpiAddFlowModelMigration
   end
 
   def hide_sample_columns
-    @flow_stains.each { |stain|
-      @flow_attribute_suffixes.each { |suffix|
-        old_attribute_name = "#{stain}_#{suffix}"
+    sample_flow_attributes.each { |attribute_name|
+      hide_columns_request = Etna::Clients::Magma::UpdateModelRequest.new(project_name: @project_name)
 
-        hide_columns_request = Etna::Clients::Magma::UpdateModelRequest.new(project_name: @project_name)
-
-        hide_columns_request.add_action(
-          Etna::Clients::Magma::UpdateAttributeAction.new(
-            model_name: 'sample',
-            attribute_name: old_attribute_name,
-            hidden: true
-          )
+      hide_columns_request.add_action(
+        Etna::Clients::Magma::UpdateAttributeAction.new(
+          model_name: 'sample',
+          attribute_name: attribute_name,
+          hidden: true
         )
+      )
 
-        @magma_client.update_model(hide_columns_request)
-      }
+      @magma_client.update_model(hide_columns_request)
     }
   end
 
