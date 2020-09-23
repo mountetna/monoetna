@@ -390,9 +390,7 @@ class Polyphemus
     include WithEtnaClients
     include WithLogger
 
-    usage "Add the Flow model to IPI, and migrate data from Sample model"
-
-    attr_reader :environment
+    usage "Add the Flow model to IPI, and migrate data from Sample model to Flow"
 
     def project_name
       :ipi
