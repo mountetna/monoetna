@@ -1,5 +1,4 @@
 require 'ostruct'
-require 'pry'
 require_relative './crud_workflow'
 
 module Etna
