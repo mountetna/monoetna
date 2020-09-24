@@ -23,15 +23,21 @@ module Etna
           @etna_client.folder_list(list_folder_request.to_h))
       end
 
+      def ensure_parent_folder_exists(project_name:, bucket_name:, path:)
+        create_folder_request = CreateFolderRequest.new(
+          project_name: project_name,
+          bucket_name: bucket_name,
+          folder_path: parent_folder_path(path)
+        )
+        create_folder(create_folder_request) if !folder_exists?(create_folder_request)
+      end
+
       def rename_folder(rename_folder_request)
-        if rename_folder_request.create_parent
-          create_parent_request = CreateFolderRequest.new(
-            project_name: rename_folder_request.project_name,
-            bucket_name: rename_folder_request.new_bucket_name,
-            folder_path: parent_folder_path(rename_folder_request.new_folder_path)
-          )
-          create_folder(create_parent_request) if !folder_exists?(create_parent_request)
-        end
+        ensure_parent_folder_exists(
+          project_name: rename_folder_request.project_name,
+          bucket_name: rename_folder_request.new_bucket_name,
+          path: rename_folder_request.new_folder_path
+        ) if rename_folder_request.create_parent
 
         FoldersResponse.new(
           @etna_client.folder_rename(rename_folder_request.to_h))
