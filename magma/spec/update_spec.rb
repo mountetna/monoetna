@@ -87,7 +87,7 @@ describe UpdateController do
     skin.refresh
     expect(last_response.status).to eq(200)
     expect(skin.worth).to eq(8)
-    expect(json_document(:prize,skin.id.to_s)).to eq(worth: 8)
+    #expect(json_document(:prize,skin.id.to_s)).to eq(worth: 8)
   end
 
   it 'updates a date-time attribute' do
@@ -106,6 +106,22 @@ describe UpdateController do
     expect(json_document(:labor,'Nemean Lion')).to eq(name: 'Nemean Lion', year: '0003-01-01T00:00:00+00:00')
   end
 
+  it 'empties a date-time attribute' do
+    lion = create(:labor, name: 'Nemean Lion', year: '0002-01-01')
+    update(
+      labor: {
+        'Nemean Lion': {
+          year: nil
+        }
+      }
+    )
+
+    lion.refresh
+    expect(last_response.status).to eq(200)
+    expect(lion.year).to eq(nil)
+    expect(json_document(:labor,'Nemean Lion')).to eq(name: 'Nemean Lion', year: nil)
+  end
+
   it 'updates a foreign-key attribute' do
     lion = create(:labor, name: 'The Nemean Lion', year: '0002-01-01')
     hydra = create(:labor, name: 'The Lernean Hydra', year: '0003-01-01')
@@ -118,12 +134,13 @@ describe UpdateController do
         }
       }
     )
-    monster.refresh
-    hydra.refresh
-    expect(monster.labor).to eq(hydra)
 
     expect(last_response.status).to eq(200)
     expect(json_document(:monster,'Lernean Hydra')).to include(labor: 'The Lernean Hydra')
+
+    monster.refresh
+    hydra.refresh
+    expect(monster.labor).to eq(hydra)
   end
 
   it 'updates a link attribute' do
@@ -354,14 +371,14 @@ describe UpdateController do
         }
       )
 
+      expect(last_response.status).to eq(200)
+
       lion.refresh
       expect(lion.stats.to_json).to eq({
         location: "metis://labors/files/lion-stats.txt",
         filename: "monster-Nemean Lion-stats.txt",
         original_filename: "original-file.txt"
       }.to_json)
-
-      expect(last_response.status).to eq(200)
 
       # but we do get an download url for Metis
       uri = URI.parse(json_document(:monster, 'Nemean Lion')[:stats][:url])
@@ -376,6 +393,41 @@ describe UpdateController do
 
       # Make sure the Metis copy endpoint was called
       expect(WebMock).to have_requested(:post, "https://metis.test/labors/files/copy").
+        with(query: hash_including({
+          "X-Etna-Headers": "revisions"
+        }), body: hash_including({
+          "revisions": [{
+            "source": "metis://labors/files/lion-stats.txt",
+            "dest": "metis://labors/magma/monster-Nemean Lion-stats.txt"
+          }]
+        }))
+
+      Timecop.return
+    end
+
+    it 'does not link a file from metis for an invalid update' do
+      Timecop.freeze(DateTime.new(500))
+      lion = create(:monster, name: 'Nemean Lion', species: 'lion')
+      update(
+        monster: {
+          'Nemean Lion' => {
+            species: 'Lion',
+            stats: {
+              path: 'metis://labors/files/lion-stats.txt',
+              original_filename: 'original-file.txt'
+            }
+          }
+        }
+      )
+
+      # the record is unchanged
+      lion.refresh
+      expect(lion.stats).to be_nil
+      expect(lion.species).to eq('lion')
+      expect(last_response.status).to eq(422)
+
+      # The metis endpoint was NOT called
+      expect(WebMock).not_to have_requested(:post, "https://metis.test/labors/files/copy").
         with(query: hash_including({
           "X-Etna-Headers": "revisions"
         }))
@@ -584,6 +636,11 @@ describe UpdateController do
       expect(WebMock).to have_requested(:post, "https://metis.test/labors/files/copy").
         with(query: hash_including({
           "X-Etna-Headers": "revisions"
+        }), body: hash_including({
+          "revisions": [{
+            "source": "metis://labors/files/lion.jpg",
+            "dest": "metis://labors/magma/monster-Nemean Lion-selfie.jpg"
+          }]
         }))
 
       Timecop.return
@@ -641,6 +698,7 @@ describe UpdateController do
           '::temp2' => @apple_of_joy
         }
       )
+      expect(last_response.status).to eq(200)
 
       # we have created some new records
       expect(Labors::Prize.count).to eq(2)
@@ -650,12 +708,10 @@ describe UpdateController do
       expect(labor.prize.count).to eq(2)
 
       # the updated record is returned
-      expect(last_response.status).to eq(200)
-      #expect(json_document(:labor, 'The Golden Apples of the Hesperides')[:prize]).to match_array(Labors::Prize.select_map(:id))
+      expect(json_document(:labor, 'The Golden Apples of the Hesperides')[:prize]).to match_array(Labors::Prize.select_map(:id))
     end
 
-    xit 'updates a table and returns the correct id' do
-      labor = create(:labor, name: 'The Golden Apples of the Hesperides')
+    it 'updates a table for a new record' do
       update(
         'labor' => {
           'The Golden Apples of the Hesperides' => {
@@ -670,16 +726,16 @@ describe UpdateController do
           '::temp2' => @apple_of_joy
         }
       )
+      expect(last_response.status).to eq(200)
 
       # we have created some new records
       expect(Labors::Prize.count).to eq(2)
 
       # the prizes are linked to the labor
-      labor.refresh
+      labor = Labors::Labor.first
       expect(labor.prize.count).to eq(2)
 
       # the updated record is returned
-      expect(last_response.status).to eq(200)
       expect(json_document(:labor, 'The Golden Apples of the Hesperides')[:prize]).to match_array(Labors::Prize.select_map(:id))
     end
 
@@ -705,9 +761,13 @@ describe UpdateController do
       expect(json_body[:models][:prize][:documents].values.map{|p|p[:name]}).to eq(['apple of joy']*2)
     end
 
-    xit 'replaces an existing table' do
-      labor = create(:labor, name: 'The Golden Apples of the Hesperides')
-      apples = create_list(:prize, 3, @apple_of_discord.merge(labor: labor))
+    it 'replaces an existing table' do
+      lion_labor = create(:labor, name: 'The Nemean Lion')
+      hide = create(:prize, name: 'hide', labor: lion_labor)
+
+      apple_labor = create(:labor, name: 'The Golden Apples of the Hesperides')
+      apples = create_list(:prize, 3, @apple_of_discord.merge(labor: apple_labor))
+
       update(
         'labor' => {
           'The Golden Apples of the Hesperides' => {
@@ -723,16 +783,22 @@ describe UpdateController do
         }
       )
 
-      # we have created some new records
-      expect(Labors::Prize.count).to eq(2)
+      # we have created some new records replacing the old
+      expect(Labors::Prize.count).to eq(3)
 
-      # the prizes are linked to the labor
-      labor.refresh
-      expect(labor.prize.count).to eq(2)
+      # the new prizes are linked to the labor
+      apple_labor.refresh
+      expect(apple_labor.prize.count).to eq(2)
+      expect(apple_labor.prize.map(&:name)).to all( eq('apple of joy') )
+
+      # tables we did not update are intact
+      lion_labor.refresh
+      expect(lion_labor.prize.count).to eq(1)
+      expect(lion_labor.prize.map(&:name)).to all( eq('hide') )
 
       # the updated record is returned
       expect(last_response.status).to eq(200)
-      expect(json_document(:labor, 'The Golden Apples of the Hesperides')[:prize]).to match_array(Labors::Prize.select_map(:id))
+      expect(json_document(:labor, 'The Golden Apples of the Hesperides')[:prize]).to match_array(apple_labor.prize.map(&:id))
     end
   end
 
