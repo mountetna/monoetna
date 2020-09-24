@@ -49,12 +49,11 @@ module Etna
 
       def download_file(file_or_url = File.new, &block)
         if file_or_url.instance_of?(File)
-          download_url =  file_or_url.download_url
+          download_path =  file_or_url.download_path
         else
-          download_url = file_or_url
+          download_path = file_or_url.sub(%r!^https://[^/]*?/!, '/')
         end
 
-        download_path = download_url.sub(%r!^https://[^/]*?/!, '/')
         @etna_client.get(download_path) do |response|
           response.read_body(&block)
         end

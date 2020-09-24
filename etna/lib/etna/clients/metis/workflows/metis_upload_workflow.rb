@@ -12,12 +12,12 @@ module Etna
           super({max_attempts: 3}.update(args))
         end
 
-        def do_upload(source_file, dest_project, dest_bucket, dest_path, &block)
+        def do_upload(source_file, dest_path, &block)
           upload = Upload.new(source_file: source_file)
 
           authorize_response = metis_client.authorize_upload(AuthorizeUploadRequest.new(
-              project_name: dest_project,
-              bucket_name: dest_bucket,
+              project_name: project_name,
+              bucket_name: bucket_name,
               file_path: dest_path,
           ))
 

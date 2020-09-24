@@ -2,6 +2,7 @@ require 'date'
 require 'logger'
 require 'rollbar'
 require 'sequel'
+require 'tempfile'
 require_relative 'helpers'
 
 
@@ -176,12 +177,56 @@ class Polyphemus
     end
   end
 
-  # MAKE A COMMAND TO COPY FILES BETWEEN METI
-  class CopyMetisFilesCommand
+  class CopyMetisFilesCommand < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
-    def execute(source_env, target_env, source_project, target_project, source_bucket, target_bucket, file_glob_match)
 
+    def execute(source_env, target_env, source_project, target_project, source_bucket, target_bucket, file_glob_match)
+      download_workflow = Etna::Clients::Metis::MetisDownloadWorkflow.new(
+          metis_client: environment(source_env).metis_client,
+          project_name: source_project,
+          bucket_name: source_bucket,
+      )
+
+      upload_workflow = Etna::Clients::Metis::MetisUploadWorkflow.new(
+          metis_client: environment(target_env).metis_client,
+          project_name: target_project,
+          bucket_name: target_bucket,
+      )
+
+      files = download_workflow.metis_client.find(Etna::Clients::Metis::FindRequest.new(
+          project_name: source_project,
+          bucket_name: source_bucket,
+          params: [
+              Etna::Clients::Metis::FindParam.new(
+                  attribute: 'name',
+                  predicate: 'glob',
+                  value: file_glob_match,
+              )
+          ]
+      )).files.all
+
+      logger.info("Found #{files.length} matches for match '#{file_glob_match}'")
+      tmpfile = Tempfile.new("download-buffer")
+      files.each do |file|
+        logger.info("Beginning download of #{file.download_path}")
+        download_workflow.do_download(tmpfile.path, file) do |progress|
+          # TODO: Maybe add a progress bar?
+        end
+
+        upload_workflow.do_upload(tmpfile.path, file.file_path) do |progress|
+          case progress[0]
+          when :error
+            logger.warn("Error while uploading: #{progress[1].to_s}")
+          else
+          end
+        end
+      end
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
     end
   end
 

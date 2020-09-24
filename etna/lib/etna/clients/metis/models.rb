@@ -142,16 +142,22 @@ module Etna
           raw[:file_path]
         end
 
-        def file_name
-          raw[:file_name]
+        def project_name
+          raw[:project_name]
         end
 
-        def download_url
-          raw[:download_url] || ''
+        def bucket_name
+          raw[:bucket_name]
         end
 
         def download_path
-          download_url.sub(%r!^https://[^/]*?/!, '/')
+          raw[:download_path].nil? ?
+              "/#{project_name}/download/#{bucket_name}/#{file_path}" :
+              raw[:download_path]
+        end
+
+        def file_name
+          raw[:file_name]
         end
 
         def updated_at
