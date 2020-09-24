@@ -39,7 +39,7 @@ module Etna
     end
 
     def completions_for(parameter)
-      if parameter == 'env' || parameter == 'environment'
+      if parameter == 'env' || parameter == 'environment' || parameter =~ /_env/
         ['production', 'staging', 'development']
       else
         []

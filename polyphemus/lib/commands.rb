@@ -176,13 +176,20 @@ class Polyphemus
     end
   end
 
+  # MAKE A COMMAND TO COPY FILES BETWEEN METI
+  class CopyMetisFilesCommand
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+    def execute(source_env, target_env, source_project, target_project, source_bucket, target_bucket, file_glob_match)
+
+    end
+  end
+
   module CopyCommand
     def self.included(mod)
       mod.instance_eval do
         include WithEtnaClientsByEnvironment
         include WithLogger
-
-        usage "#{name.snake_case.split(/::/).last} <source_env> <target_env> <source_project> <target_project> <model_name>"
 
         def execute(source_env, target_env, source_project, target_project, model_name)
           workflow = WORKFLOW.from_api_source(

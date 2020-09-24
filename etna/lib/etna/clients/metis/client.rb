@@ -47,6 +47,33 @@ module Etna
           @etna_client.bucket_find(find_request.to_h))
       end
 
+      def upload_start(upload_start_request = UploadStartRequest.new)
+        json = nil
+        @etna_client.multipart_post(upload_start_request.upload_path, upload_start_request.encode_multipart_content) do |res|
+          json = JSON.parse(res.body)
+        end
+
+        UploadResponse.new(json)
+      end
+
+      def authorize_upload(authorize_upload_request = AuthorizeUploadRequest.new)
+        json = nil
+        @etna_client.post("/authorize/upload", authorize_upload_request) do |res|
+          json = JSON.parse(res.body)
+        end
+
+        UploadResponse.new(json)
+      end
+
+      def upload_blob(upload_blob_request = UploadBlobRequest.new)
+        json = nil
+        @etna_client.multipart_post(upload_blob_request.upload_path, upload_blob_request.encode_multipart_content) do |res|
+          json = JSON.parse(res.body)
+        end
+
+        UploadResponse.new(json)
+      end
+
       def folder_exists?(create_folder_request)
         # NOTE: this doesn't test if the folder_path itself exists
         #   This can be confusing for root folders, because
