@@ -147,7 +147,8 @@ module Etna
         end
 
         def updated_at
-          raw[:updated_at]
+          time = raw[:updated_at]
+          time.nil? ? nil : Time.parse(time)
         end
 
         def id

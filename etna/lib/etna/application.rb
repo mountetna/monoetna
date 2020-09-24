@@ -98,7 +98,7 @@ module Etna::Application
 
   def commands
     @commands ||= Hash[
-      find_descendents(Etna::Command).map do |c|
+      Etna::Command.descendants.select { |c| c.descendants.empty? }.map do |c|
         cmd = c.new
         [ cmd.name, cmd ]
       end

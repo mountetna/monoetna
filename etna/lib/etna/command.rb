@@ -14,6 +14,15 @@ module Etna
       end
     end
 
+    def self.inherited(subclass)
+      @descendants ||= []
+      @descendants << subclass
+    end
+
+    def self.descendants
+      @descendants ||= []
+    end
+
     def usage
       "  #{"%-45s" % name}#{desc}"
     end

@@ -21,10 +21,6 @@ class EnvironmentScoped < Module
 end
 
 module WithEtnaClients
-  def project
-    raise "project must be implemented in subclasses!"
-  end
-
   def environment
     Polyphemus.instance.environment
   end

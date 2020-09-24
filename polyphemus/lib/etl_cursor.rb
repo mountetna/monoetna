@@ -21,6 +21,18 @@ class Polyphemus
       value[k.to_s] = v
     end
 
+    def reset!
+      @value = {}
+      @updated_at = nil
+      save_to_db
+      self
+    end
+
+    def include?(time)
+      return false if updated_at.nil?
+      updated_at + 1 > time
+    end
+
     def load_from_db
       existing = Polyphemus.instance.db[:cursors].where(name: name).first
       if existing
@@ -36,18 +48,22 @@ class Polyphemus
 
     def save_to_db
       value = Sequel.pg_json_wrap(self.value)
-      Polyphemus.instance.db[:cursors].insert(
-          name: name,
-          updated_at: updated_at,
-          value: value,
-      )
-    rescue  Sequel::UniqueConstraintViolation => e
+      Polyphemus.instance.db.transaction do
+        Polyphemus.instance.db[:cursors].insert(
+            name: name,
+            updated_at: updated_at,
+            value: value,
+        )
+      end
+    rescue Sequel::UniqueConstraintViolation => e
       Polyphemus.instance.db[:cursors].where(name: name).update(updated_at: updated_at, value: value)
     end
   end
 
   # A group of etl cursors that can sorted and worked upon in 'oldest first' fashion.
   class EtlCursorGroup
+    attr_reader :cursors
+
     def initialize(cursors = [])
       @cursors = cursors
     end
@@ -64,6 +80,10 @@ class Polyphemus
       end
 
       yield n unless n.nil?
+    end
+
+    def reset_all!
+      @cursors.each(&:reset!)
     end
   end
 end
