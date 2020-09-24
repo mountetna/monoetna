@@ -125,12 +125,21 @@ class Magma
     def revision_to_links(record_name, value)
     end
 
-    def revision_to_payload(record_name, value, user)
+    def revision_to_payload(record_name, value, loader)
       revision_to_loader(record_name, value)
     end
 
     def entry(value, loader)
-      [ column_name, value ]
+      [ column_name.to_sym, value ]
+    end
+
+    def load_hook(loader, record_name, value, bulk_load)
+    end
+
+    def bulk_load_hook(loader, bulk_load)
+    end
+
+    def self.type_bulk_load_hook(loader, project_name, bulk_type_attributes)
     end
 
     private

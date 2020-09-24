@@ -1,6 +1,7 @@
 require 'date'
 require 'logger'
 require 'rollbar'
+require 'sequel'
 require_relative 'helpers'
 
 
@@ -13,6 +14,28 @@ class Polyphemus
       Polyphemus.instance.commands.each do |name, cmd|
         puts cmd.usage
       end
+    end
+  end
+
+  class Migrate < Etna::Command
+    usage 'Run migrations for the current environment.'
+
+    def execute(version=nil)
+      Sequel.extension(:migration)
+      db = Polyphemus.instance.db
+
+      if version
+        puts "Migrating to version #{version}"
+        Sequel::Migrator.run(db, 'db/migrations', target: version.to_i)
+      else
+        puts 'Migrating to latest'
+        Sequel::Migrator.run(db, 'db/migrations')
+      end
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_db
     end
   end
 

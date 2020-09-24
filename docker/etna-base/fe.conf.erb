@@ -12,7 +12,7 @@
   # Max 5 minutes waiting on the proxy.  Maybe it should be lower?
   ProxyTimeout 300
   ProxyPreserveHost on
-  ProxyPassReverse / http://<%= @app_name %>_app %>:3000/
+  ProxyPassReverse / http://<%= @app_name %>_app:3000/
 
   # Add the Service-Worker-Allowed header to make service workers simple to use.
   Header add Service-Worker-Allowed "/"
