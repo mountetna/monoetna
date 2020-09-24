@@ -1,6 +1,6 @@
 export COMPOSE_PROJECT_NAME=monoetna
 export NODE_ENV=development
-projects := $(shell ls ./*/Makefile | grep -v docker | xargs -n 1 dirname | xargs -n 1 basename)
+projects := $(shell ls ./*/Makefile | grep -v docker | grep -v chef | xargs -n 1 dirname | xargs -n 1 basename)
 
 help: ## Display help text
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) /dev/null | \
