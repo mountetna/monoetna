@@ -16,6 +16,20 @@ class IpiHelper
     )).files.all
   end
 
+  def find_files_in_folder_by_extension(metis_client:, project_name:, bucket_name:, extension:, folder_name:)
+    metis_client.find(
+      Etna::Clients::Metis::FindRequest.new(
+        project_name: project_name,
+        bucket_name: bucket_name,
+        params: [Etna::Clients::Metis::FindParam.new(
+          attribute: 'name',
+          predicate: 'glob',
+          value: "#{folder_name}/**/*.#{extension}",
+          type: 'file'
+        )]
+    )).files.all
+  end
+
   def experiment_from_patient_number(patient_number)
     experiments = JSON.parse(File.read('./lib/ipi/ipi_experiment_map.json'))
     exp_codes = experiments.keys
