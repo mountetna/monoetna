@@ -47,6 +47,19 @@ module Etna
           @etna_client.bucket_find(find_request.to_h))
       end
 
+      def download_file(file_or_url = File.new, &block)
+        if file_or_url.instance_of?(File)
+          download_url =  file_or_url.download_url
+        else
+          download_url = file_or_url
+        end
+
+        download_path = download_url.sub(%r!^https://[^/]*?/!, '/')
+        @etna_client.get(download_path) do |response|
+          response.read_body(&block)
+        end
+      end
+
       def upload_start(upload_start_request = UploadStartRequest.new)
         json = nil
         @etna_client.multipart_post(upload_start_request.upload_path, upload_start_request.encode_multipart_content) do |res|

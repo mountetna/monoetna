@@ -6,14 +6,29 @@ require 'tempfile'
 module Etna
   module Clients
     class Metis
-      class MetisUploadWorkflow < Struct.new(:metis_client, :project_name, :bucket_name, :max_attempts, keyword_init: true)
+      class MetisDownloadWorkflow < Struct.new(:metis_client, :project_name, :bucket_name, :max_attempts, keyword_init: true)
 
         def initialize(args)
           super({max_attempts: 3}.update(args))
         end
 
-        def do_upload(source_file, dest_project, dest_bucket, dest_path, &block)
-          upload = Upload.new(source_file: source_file)
+        def do_download(dest_file, metis_file, &block)
+          size = metis_file.size
+          completed = 0.0
+          start = Time.now
+
+          File::open(dest_file, "w") do |io|
+            metis_client.download_file(metis_file) do |chunk|
+              io.write chunk
+              completed += chunk.size
+
+              block.call([
+                  :progress,
+                  size == 0 ? 1 : completed / size,
+                  (completed / (Time.now - start)).round(2),
+              ]) unless block.nil?
+            end
+          end
 
           authorize_response = metis_client.authorize_upload(AuthorizeUploadRequest.new(
               project_name: dest_project,
@@ -44,17 +59,17 @@ module Etna
           until upload.complete? && !unsent_zero_byte_file
             begin
               metis_client.upload_blob(UploadBlobRequest.new(
-                  upload_path: upload.upload_path,
+                  upload_path: authorize_response.upload_path,
                   next_blob_size: upload.next_blob_size,
                   next_blob_hash: upload.next_blob_hash,
                   blob_data: upload.current_bytes,
-                  current_byte_position: upload.current_byte_position,
+                  current_byte_position: upload.current_byte_position
               ))
 
               unsent_zero_byte_file = false
               upload.advance_position!
             rescue Etna::Error => e
-              m = yield :error, e if block_given?
+              m = yield :error, e
               if m == false
                 raise e
               end
@@ -70,9 +85,9 @@ module Etna
 
             yield [
                 :progress,
-                upload.file_size == 0 ? 1.0 : upload.current_byte_position.to_f / upload.file_size,
+                upload.current_byte_position.to_f / upload.file_size,
                 (upload.current_byte_position / (Time.now - start).to_f).round(2),
-            ] if block_given?
+            ]
           end
         end
 

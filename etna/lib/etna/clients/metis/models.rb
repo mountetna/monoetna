@@ -146,6 +146,14 @@ module Etna
           raw[:file_name]
         end
 
+        def download_url
+          raw[:download_url] || ''
+        end
+
+        def download_path
+          download_url.sub(%r!^https://[^/]*?/!, '/')
+        end
+
         def updated_at
           time = raw[:updated_at]
           time.nil? ? nil : Time.parse(time)
@@ -153,6 +161,10 @@ module Etna
 
         def id
           raw[:id]
+        end
+
+        def size
+          raw[:size]
         end
       end
 
