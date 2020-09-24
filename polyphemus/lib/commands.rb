@@ -458,6 +458,30 @@ class Polyphemus
     end
   end
 
+  class LinkIpiFlowFcs < Etna::Command
+    include WithEtnaClients
+    include WithLogger
+    usage 'link_ipi_flow_fcs [environment]'
+
+    attr_reader :environment
+
+    def project_name
+      :ipi
+    end
+
+    def magma_crud
+      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: project_name)
+    end
+
+    def execute(env = Polyphemus.instance.environment)
+      require_relative './ipi/flow_fcs_file_linker'
+      @environment = env
+
+      linker = IpiFlowFcsLinker.new(magma_crud: magma_crud, metis_client: metis_client, project_name: project_name)
+      linker.link_files
+    end
+  end
+
   class Console < Etna::Command
     usage 'Open a console with a connected Polyphemus instance.'
 
