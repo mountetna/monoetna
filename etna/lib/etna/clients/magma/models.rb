@@ -79,6 +79,13 @@ module Etna
         end
       end
 
+      class UpdateAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :restricted, :unique, :validation, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'update_attribute'}.update(args))
+        end
+      end
+
       class AttributeValidation < Struct.new(:type, :value, :begin, :end, keyword_init: true)
         include JsonSerializableStruct
       end

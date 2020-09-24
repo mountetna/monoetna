@@ -409,6 +409,31 @@ class Polyphemus
     end
   end
 
+  class IpiAddFlowModel < Etna::Command
+    include WithEtnaClients
+    include WithLogger
+
+    usage "Add the Flow model to IPI, and migrate data from Sample model to Flow"
+
+    def project_name
+      :ipi
+    end
+
+    def magma_crud
+      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: project_name)
+    end
+
+    def execute
+      require_relative './ipi/migrations/01_flow_model_migration'
+      migration = IpiAddFlowModelMigration.new(magma_client: magma_client, magma_crud: magma_crud)
+      migration.execute
+    end
+
+    def setup(config)
+      super
+    end
+  end
+
   class LinkIpiFlowWsp < Etna::Command
     include WithEtnaClients
     include WithLogger
