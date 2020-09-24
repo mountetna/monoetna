@@ -3,6 +3,7 @@ require 'net/http/post/multipart'
 require 'singleton'
 require_relative '../../client'
 require_relative './models'
+require_relative './workflows'
 
 module Etna
   module Clients
@@ -45,6 +46,11 @@ module Etna
       def find(find_request)
         FoldersAndFilesResponse.new(
           @etna_client.bucket_find(find_request.to_h))
+      end
+
+      def copy_files(copy_files_request)
+        FilesResponse.new(
+          @etna_client.file_bulk_copy(copy_files_request.to_h))
       end
 
       def folder_exists?(create_folder_request)
