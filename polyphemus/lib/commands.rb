@@ -534,6 +534,29 @@ class Polyphemus
     end
   end
 
+  class SetFileAttributesToBlank < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+    usage 'set_file_attributes_to_blank <environment> <project_name> <model_names>'
+
+    def magma_crud
+      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(
+        magma_client: @environ.magma_client,
+        project_name: @project_name)
+    end
+
+    def execute(env, project_name, *model_names)
+      @environ = environment(env)
+      @project_name = project_name
+
+      blanker = Etna::Clients::Magma::FileAttributesBlankWorkflow.new(
+        magma_crud: magma_crud,
+        model_names: model_names,
+        project_name: project_name)
+      blanker.set_file_attrs_blank
+    end
+  end
+
   class Console < Etna::Command
     usage 'Open a console with a connected Polyphemus instance.'
 
