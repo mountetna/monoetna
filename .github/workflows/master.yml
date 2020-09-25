@@ -81,7 +81,7 @@ jobs:
           bin/push-subtrees master
           bin/pull-subtrees master
           git push
-          git push origin staging --force
+          git push origin HEAD:staging --force
   empty-job:
       # if no jobs run, github action considers it a test failure.  But we want it to be a success if the other
       # jobs just happen to be filtered, so we create a 'dummy' job that just succeeds.
