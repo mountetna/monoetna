@@ -482,7 +482,6 @@ class Polyphemus
     end
   end
 
-<<<<<<< HEAD
   class IpiCopyFlowToIntegralDataset < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
@@ -498,7 +497,9 @@ class Polyphemus
         source_folder_name: source_folder
         )
       integral_flow.copy_files
-=======
+    end
+  end
+
   class SetFileAttributesToBlank < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
@@ -519,7 +520,6 @@ class Polyphemus
         model_names: model_names,
         project_name: project_name)
       blanker.set_file_attrs_blank
->>>>>>> master
     end
   end
 
