@@ -482,6 +482,7 @@ class Polyphemus
     end
   end
 
+<<<<<<< HEAD
   class IpiCopyFlowToIntegralDataset < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
@@ -497,6 +498,28 @@ class Polyphemus
         source_folder_name: source_folder
         )
       integral_flow.copy_files
+=======
+  class SetFileAttributesToBlank < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+    usage 'set_file_attributes_to_blank <environment> <project_name> <model_names>'
+
+    def magma_crud
+      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(
+        magma_client: @environ.magma_client,
+        project_name: @project_name)
+    end
+
+    def execute(env, project_name, *model_names)
+      @environ = environment(env)
+      @project_name = project_name
+
+      blanker = Etna::Clients::Magma::FileAttributesBlankWorkflow.new(
+        magma_crud: magma_crud,
+        model_names: model_names,
+        project_name: project_name)
+      blanker.set_file_attrs_blank
+>>>>>>> master
     end
   end
 

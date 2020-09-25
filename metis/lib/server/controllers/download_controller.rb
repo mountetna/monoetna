@@ -13,7 +13,7 @@ class DownloadController < Metis::Controller
 
     return [
       200,
-      { 'X-Sendfile' => file.data_block.location },
+      { 'X-Sendfile' => file.data_block.location, 'Accept-Ranges' => 'bytes' },
       [ '' ]
     ]
   end

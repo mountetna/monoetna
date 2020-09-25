@@ -164,12 +164,14 @@ class Metis
       read_only
     end
 
-    def to_hash(request: nil, with_path: true)
+    def to_hash(request: nil, file_path: nil)
+      file_path ||= self.file_path
+
       {
         file_name: file_name,
         project_name: project_name,
         bucket_name: bucket.name,
-        file_path: with_path ? file_path : nil,
+        file_path: file_path,
         updated_at: updated_at.iso8601,
         created_at: created_at.iso8601,
         author: author,
