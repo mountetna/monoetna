@@ -421,6 +421,7 @@ describe BucketController do
       expect(json_body[:files].length).to eq(1)
       expect(json_body[:files].first[:file_name]).to eq(shiny_helmet_file.file_name)
       expect(json_body[:files].first[:file_path]).to eq(shiny_helmet_file.to_hash[:file_path])
+      expect(json_body[:files].first[:download_url]).to match(/X-Etna-Signature=/)
 
       json_post("/athena/find/my_bucket", params: [{
         attribute: 'name',
