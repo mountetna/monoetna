@@ -16,7 +16,7 @@ class Magma
     def download_url project_name, path
     end
 
-    def upload_url project_name, path
+    def upload_url(project_name, path, params={})
     end
 
     class Metis < Magma::Storage
@@ -33,17 +33,13 @@ class Magma
         )
       end
 
-      def upload_url project_name, path, user
+      def upload_url(project_name, path, params = {})
         hmac_url(
           'POST',
           @config[:host],
           "/#{project_name}/upload/magma/#{path}",
           @config[:upload_expiration],
-          {
-            email: user.email,
-            first: user.first,
-            last: user.last
-          }
+          params
         )
       end
 

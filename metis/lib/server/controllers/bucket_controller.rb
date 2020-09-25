@@ -89,7 +89,7 @@ class BucketController < Metis::Controller
 
     file_hashes = file_hashes_with_calculated_paths(
       files: files,
-      bucket: bucket
+      bucket: bucket,
     )
 
     folder_hashes = folder_hashes_with_calculated_paths(
