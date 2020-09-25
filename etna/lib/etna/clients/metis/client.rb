@@ -1,6 +1,7 @@
 require 'net/http/persistent'
 require 'net/http/post/multipart'
 require 'singleton'
+require 'cgi'
 require_relative '../../client'
 require_relative './models'
 
@@ -61,7 +62,7 @@ module Etna
 
       def upload_start(upload_start_request = UploadStartRequest.new)
         json = nil
-        @etna_client.multipart_post(upload_start_request.upload_path, upload_start_request.encode_multipart_content) do |res|
+        @etna_client.post(upload_start_request.upload_path, upload_start_request) do |res|
           json = JSON.parse(res.body)
         end
 

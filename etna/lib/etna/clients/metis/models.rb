@@ -151,9 +151,13 @@ module Etna
         end
 
         def download_path
-          raw[:download_path].nil? ?
+          raw[:download_url].nil? ?
               "/#{project_name}/download/#{bucket_name}/#{file_path}" :
-              raw[:download_path]
+              raw[:download_url].sub(%r!^https://[^/]*?/!, '/')
+        end
+
+        def download_url
+          raw[:download_url] || ''
         end
 
         def file_name
@@ -194,7 +198,7 @@ module Etna
         include JsonSerializableStruct
       end
 
-      class UploadStartRequest < Struct.new(:file_size, :action, :next_blob_size, :upload_path, :next_blob_hash, :reset, keyword_init: true)
+      class UploadStartRequest < Struct.new(:file_size, :action, :metis_uid, :next_blob_size, :upload_path, :next_blob_hash, :reset, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(args)
@@ -202,7 +206,7 @@ module Etna
         end
       end
 
-      class UploadBlobRequest < Struct.new(:file_size, :action, :blob_data, :upload_path, :next_blob_size, :next_blob_hash, :current_byte_position, keyword_init: true)
+      class UploadBlobRequest < Struct.new(:file_size, :action, :metis_uid, :blob_data, :upload_path, :next_blob_size, :next_blob_hash, :current_byte_position, keyword_init: true)
         include MultipartSerializableNestedHash
 
         def initialize(args)

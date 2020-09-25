@@ -209,11 +209,12 @@ class Polyphemus
       logger.info("Found #{files.length} matches for match '#{file_glob_match}'")
       tmpfile = Tempfile.new("download-buffer")
       files.each do |file|
-        logger.info("Beginning download of #{file.download_path}")
+        logger.info("Beginning download of #{file.file_path}")
         download_workflow.do_download(tmpfile.path, file) do |progress|
           # TODO: Maybe add a progress bar?
         end
 
+        logger.info("Beginning upload of #{file.file_path}")
         upload_workflow.do_upload(tmpfile.path, file.file_path) do |progress|
           case progress[0]
           when :error

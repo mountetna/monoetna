@@ -27,6 +27,14 @@ module Etna
       "  #{"%-45s" % name}#{desc}"
     end
 
+    def fill_in_missing_params(args)
+      req_params = method(:execute).parameters.select { |type, name| type == :req }
+      args + req_params[(args.length)..(req_params.length)].map do |type, name|
+        puts "#{name}?"
+        STDIN.gets.chomp
+      end
+    end
+
     def completions
       method(:execute).parameters.map do |type, name|
         name = "..." if name.nil?

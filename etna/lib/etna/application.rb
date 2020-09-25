@@ -87,7 +87,7 @@ module Etna::Application
     cmd = cmd.to_sym
     if commands.key?(cmd)
       commands[cmd].setup(config)
-      commands[cmd].execute(*args)
+      commands[cmd].execute(*commands[cmd].fill_in_missing_params(args))
     else
       commands[:help].execute
     end
