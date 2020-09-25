@@ -7,10 +7,11 @@ class Polyphemus
     attr_reader :value, :name
     attr_accessor :updated_at
 
-    def initialize(name, updated_at = nil, value = {})
+    def initialize(name, updated_at = Time.at(0), value = {}, version = 0)
       @name = name
       @value = value
       @updated_at = updated_at
+      @version = version
     end
 
     def [](k)
@@ -22,25 +23,17 @@ class Polyphemus
     end
 
     def reset!
-      @value = {}
-      @updated_at = nil
+      @updated_at = Time.at(0)
       save_to_db
       self
-    end
-
-    def include?(time)
-      return false if updated_at.nil?
-      updated_at + 1 > time
     end
 
     def load_from_db
       existing = Polyphemus.instance.db[:cursors].where(name: name).first
       if existing
-        @value = existing[:value]
+        @value = existing[:value].to_h
         @updated_at = existing[:updated_at]
-      else
-        @value = {}
-        @updated_at = nil
+        @version = existing[:version]
       end
 
       self
@@ -53,10 +46,21 @@ class Polyphemus
             name: name,
             updated_at: updated_at,
             value: value,
+            version: @version,
         )
       end
+
+      return true
     rescue Sequel::UniqueConstraintViolation => e
-      Polyphemus.instance.db[:cursors].where(name: name).update(updated_at: updated_at, value: value)
+      rows_updated = Polyphemus.instance.db[:cursors].where(name: name, version: @version).update(updated_at: updated_at, value: value, version: @version + 1)
+      @version += 1
+      # If we could not update, it may mean a concurrent modification occurred, so we should load ourselves from the db.
+      if rows_updated == 0
+        self.load_from_db
+        return false
+      end
+
+      return true
     end
   end
 

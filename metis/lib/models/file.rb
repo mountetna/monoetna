@@ -168,7 +168,6 @@ class Metis
       file_path ||= self.file_path
 
       {
-        id: self.id,
         file_name: file_name,
         project_name: project_name,
         bucket_name: bucket.name,

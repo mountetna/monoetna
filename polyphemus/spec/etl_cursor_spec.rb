@@ -6,7 +6,7 @@ describe Polyphemus::EtlCursor do
     let(:cursor) { Polyphemus::EtlCursor.new(name) }
 
     context 'when no existing value by its name exists' do
-      it 'resets any local data' do
+      it 'retains any local data' do
         time = Time.now
         cursor.updated_at = time
         cursor['abc'] = 1
@@ -15,8 +15,8 @@ describe Polyphemus::EtlCursor do
 
         cursor.load_from_db
 
-        expect(cursor.value).to eql({})
-        expect(cursor.updated_at).to be_nil
+        expect(cursor.value).to eql({ 'abc' => 1})
+        expect(cursor.updated_at).to eql(time)
       end
     end
 
@@ -28,12 +28,11 @@ describe Polyphemus::EtlCursor do
         existing[:some_key] = 123
 
         existing.save_to_db
+        cursor.load_from_db
       end
 
       it 'replaces with values from the existing cursor' do
-        cursor.load_from_db
         expect(cursor.value).to eql({'some_key' => 123})
-
         # Unfortunately, the psql serialization reduces fidelity here by dropping sec_fractions.
         expect(cursor.updated_at).to be_between(@time - 1, @time)
       end
@@ -72,6 +71,17 @@ describe Polyphemus::EtlCursor do
         expect(Polyphemus::EtlCursor.new('name_a').load_from_db.value['d']).to eql(4)
         expect(Polyphemus::EtlCursor.new('name_a').load_from_db.updated_at).to be_between(@time - 1, @time)
         expect(Polyphemus::EtlCursor.new('name_b').load_from_db.value['c']).to eql(2)
+      end
+
+      it 'uses optimistic locking' do
+        expect(Polyphemus::EtlCursor.new('name_a').load_from_db.value['d']).to eql(4)
+        c = Polyphemus::EtlCursor.new('name_a').load_from_db
+        c[:d] = 10
+        c.save_to_db
+        @cursor_a[:d] = 9
+        expect(@cursor_a.save_to_db).to be_falsey
+        expect(@cursor_a[:d]).to eq(10)
+        expect(Polyphemus::EtlCursor.new('name_a').load_from_db.value['d']).to eql(10)
       end
     end
   end

@@ -5,6 +5,7 @@ Sequel.migration do
       String :name, unique: true, null: false
       column :value, :json, null: false
       DateTime :updated_at, null: false
+      Integer :version, null: false, default: 0
     end
   end
 

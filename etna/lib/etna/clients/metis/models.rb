@@ -169,10 +169,6 @@ module Etna
           time.nil? ? nil : Time.parse(time)
         end
 
-        def id
-          raw[:id]
-        end
-
         def size
           raw[:size]
         end

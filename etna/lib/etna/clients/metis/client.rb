@@ -8,10 +8,10 @@ require_relative './models'
 module Etna
   module Clients
     class Metis
-      def initialize(host:, token:)
+      def initialize(host:, token:, persistent: true)
         raise 'Metis client configuration is missing host.' unless host
         raise 'Metis client configuration is missing token.' unless token
-        @etna_client = ::Etna::Client.new(host, token)
+        @etna_client = ::Etna::Client.new(host, token, persistent: persistent)
       end
 
       def list_all_folders(list_all_folders_request = ListFoldersRequest.new)
