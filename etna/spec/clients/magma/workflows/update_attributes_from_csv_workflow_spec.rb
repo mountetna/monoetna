@@ -9,9 +9,19 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
       magma_client: magma_client, project_name: PROJECT)}
 
   before(:each) do
+    @all_updates = []
     stub_magma_models(
       JSON.parse(File.read('./spec/fixtures/magma/magma_test_model.json')))
     stub_magma_update
+  end
+
+  def updates
+    @all_updates.inject({}) do |acc, n|
+      n.keys.each do |k|
+        (acc[k] ||= {}).update(n[k])
+      end
+      acc
+    end
   end
 
   it 'raises exception for rows that are too short' do
@@ -69,22 +79,16 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
 
     workflow.update_attributes
 
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).
-      with(body: hash_including({
-        "revisions": {"model_two": {"234": {"height": 64.2,"invisible": true}}}
-      }))
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).
-      with(body: hash_including({
-        "revisions": {"model_two": {"123": {"name": "Record #123","strength": 2,"invisible": true}}}
-      }))
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).
-      with(body: hash_including({
-        "revisions": {"model_one": {"xyz": {"name": "First model of the day"}}}
-      }))
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).
-      with(body: hash_including({
-        "revisions": {"model_one": {"098": {"name": nil}}}
-      }))
+    expect(updates).to eq({
+      "model_two" => {
+        "234" => {"height" => "64.2","invisible" => "true"},
+        "123" => {"name" => "Record #123","strength" => "2","invisible" => "1"}
+      },
+      "model_one" => {
+        "xyz" => {"name" => "First model of the day"},
+        "098" => {"name" => ""},
+      }
+    })
   end
 
   it 'raises exception for invalid attribute name' do
@@ -101,50 +105,6 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end
 
-  it 'treats malformed boolean values as false' do
-    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
-      magma_crud: magma_crud,
-      project_name: PROJECT,
-      filepath: './spec/fixtures/magma/magma_update_attributes_invalid_boolean.csv'
-    )
-
-    workflow.update_attributes
-
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).
-      with(body: hash_including({
-        "revisions": {"model_two": {"234": {"invisible": false}}}
-      }))
-  end
-
-  it 'casts values for integer attributes' do
-    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
-      magma_crud: magma_crud,
-      project_name: PROJECT,
-      filepath: './spec/fixtures/magma/magma_update_attributes_invalid_integer.csv'
-    )
-
-    workflow.update_attributes
-
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).
-      with(body: hash_including({
-        "revisions": {"model_two": {"234": {"strength": 3}}}
-      }))
-  end
-
-  it 'casts values for float values' do
-    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
-      magma_crud: magma_crud,
-      project_name: PROJECT,
-      filepath: './spec/fixtures/magma/magma_update_attributes_invalid_float.csv'
-    )
-
-    workflow.update_attributes
-
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).
-      with(body: hash_including({
-        "revisions": {"model_two": {"234": {"strength": 0.0}}}
-      }))
-  end
 
   it 'raises exception for invalid filename' do
     workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(

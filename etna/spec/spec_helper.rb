@@ -207,11 +207,20 @@ end
 
 def stub_magma_update
   stub_request(:post, /#{MAGMA_HOST}\/update/)
-  .to_return({
-    status: 200,
-    body: {}.to_json,
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  })
+  .to_return do |request|
+
+    body = StringIO.new(request.body)
+    content_length = body.read.length
+    body.rewind
+
+    tempfile = Rack::Multipart::Parser::TEMPFILE_FACTORY
+    bufsize = Rack::Multipart::Parser::BUFSIZE
+    params = Rack::Utils.default_query_parser
+
+    info = Rack::Multipart::Parser.parse body, content_length, request.headers['Content-Type'], tempfile, bufsize, params
+
+    expect(info.params["project_name"]).to eq(PROJECT)
+    @all_updates << info.params["revisions"]
+    { body: '{}' }
+    end
 end

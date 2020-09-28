@@ -48,9 +48,7 @@ module Etna
                 next if attribute_name.empty?
                 raise "Invalid attribute #{attribute_name} for model #{row[0]}." unless attribute = find_attribute(row[0], attribute_name)
 
-                attribute_value = format_value(attribute, row[index + 1])
-
-                attributes[attribute_name] = attribute_value
+                attributes[attribute_name] = row[index + 1]
               end
             end
           end
@@ -60,23 +58,6 @@ module Etna
           models.model(model_name).template.attributes.attribute(attribute_name)
         end
 
-        def format_value(attribute, attribute_value)
-          return nil unless attribute_value
-
-          # Make sure to cast the value from the CSV
-          # More complex types not currently supported
-          case attribute.attribute_type
-          when Etna::Clients::Magma::AttributeType::BOOLEAN
-            attribute_value.to_s.downcase == 'true' || attribute_value.to_s == '1'
-          when Etna::Clients::Magma::AttributeType::INTEGER
-            attribute_value.to_i
-          when Etna::Clients::Magma::AttributeType::FLOAT
-            attribute_value.to_f
-          else
-            attribute_value
-          end
-        end
-
         def each_revision
           parse_input_file do |model_name, record_name, revision|
             yield [model_name, record_name, revision]
@@ -84,12 +65,10 @@ module Etna
         end
 
         def update_attributes
-          # Want to send JSON to the /update route, so
-          #   use magma_client directly.
-          each_revision do |model_name, id, revision|
-            update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project_name)
-            update_request.update_revision(model_name, id, revision)
-            magma_client.update(update_request, true)
+          magma_crud.update_records do |update_request|
+            each_revision do |model_name, record_name, revision|
+              update_request.update_revision(model_name, record_name, revision)
+            end
           end
         end
 
