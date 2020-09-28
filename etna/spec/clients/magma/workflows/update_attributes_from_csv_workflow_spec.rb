@@ -14,7 +14,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
     stub_magma_update
   end
 
-  it 'raises exception for rows that are missing data' do
+  it 'raises exception for rows that are too short' do
     workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
@@ -26,6 +26,22 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
     }.to raise_error(
       RuntimeError,
       'Invalid revision row ["model_two", "234", "weight"]. Must include at least 4 column values (model,record_name,attribute_name,attribute_value).')
+
+    expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
+  end
+
+  it 'raises exception for rows that are missing data' do
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
+      magma_crud: magma_crud,
+      project_name: PROJECT,
+      filepath: './spec/fixtures/magma/magma_update_attributes_missing_data.csv'
+    )
+
+    expect {
+      workflow.update_attributes
+    }.to raise_error(
+      RuntimeError,
+      'Invalid revision row ["model_two", "123", "name", "Record #123", "strength", "2", "invisible"]. Must have an even number of columns.')
 
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end
