@@ -89,6 +89,31 @@ module Etna
         end
       end
 
+      class CopyFilesRequest < Struct.new(:project_name, :revisions, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**args)
+          super({revisions: []}.update(args))
+        end
+
+        def add_revision(revision)
+          revisions << revision
+        end
+
+        def to_h
+          # The nested :revisions values don't get converted correctly with transform_values, so it's
+          #   easier to do from a JSON string
+          JSON.parse(to_json, :symbolize_names => true)
+        end
+      end
+
+      class CopyRevision < Struct.new(:source, :dest, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({}.update(args))
+        end
+      end
+
       class FoldersResponse
         attr_reader :raw
 
@@ -98,6 +123,18 @@ module Etna
 
         def folders
           Folders.new(raw[:folders])
+        end
+      end
+
+      class FilesResponse
+        attr_reader :raw
+
+        def initialize(raw = {})
+          @raw = raw
+        end
+
+        def files
+          Files.new(raw[:files])
         end
       end
 

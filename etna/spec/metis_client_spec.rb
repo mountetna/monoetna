@@ -204,4 +204,26 @@ describe 'Metis Client class' do
         value: 'folder/fo*'
     }]}))
   end
+
+  it 'can copy files' do
+    stub_copy
+
+    copy_request = Etna::Clients::Metis::CopyFilesRequest.new(
+      project_name: 'test',
+      revisions: [])
+
+    copy_request.add_revision(Etna::Clients::Metis::CopyRevision.new(
+      source: 'metis://foo',
+      dest: 'metis://bar'
+    ))
+
+    test_class.copy_files(copy_request)
+
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/files\/copy/).
+      with(body: hash_including({
+      revisions: [{
+        source: 'metis://foo',
+        dest: 'metis://bar'
+    }]}))
+  end
 end
