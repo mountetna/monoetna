@@ -128,7 +128,8 @@ def stub_metis_setup
     {:method=>"GET", :route=>"/:project_name/list/:bucket_name/*folder_path", :name=>"folder_list", :params=>["project_name", "bucket_name", "folder_path"]},
     {:method=>"POST", :route=>"/:project_name/folder/rename/:bucket_name/*folder_path", :name=>"folder_rename", :params=>["project_name", "bucket_name", "folder_path"]},
     {:method=>"POST", :route=>"/:project_name/folder/create/:bucket_name/*folder_path", :name=>"folder_create", :params=>["project_name", "bucket_name", "folder_path"]},
-    {:method=>"POST", :route=>"/:project_name/find/:bucket_name", :name=>"bucket_find", :params=>["project_name", "bucket_name"]}
+    {:method=>"POST", :route=>"/:project_name/find/:bucket_name", :name=>"bucket_find", :params=>["project_name", "bucket_name"]},
+    {:method=>"POST", :route=>"/:project_name/files/copy", :name=>"file_bulk_copy", :params=>["project_name"]}
   ])
 
   stub_request(:options, METIS_HOST).
@@ -181,6 +182,13 @@ end
 
 def stub_find(params={})
   stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/find\/#{params[:bucket] || RESTRICT_BUCKET}/)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_copy(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/files\/copy/)
   .to_return({
     status: params[:status] || 200
   })

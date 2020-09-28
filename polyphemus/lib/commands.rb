@@ -534,6 +534,24 @@ class Polyphemus
     end
   end
 
+  class IpiCopyFlowToIntegralDataset < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+    usage 'ipi_copy_flow_to_integral_dataset <environment> <source_bucket> <source_folder>'
+
+    def execute(env, source_bucket, source_folder)
+      require_relative './ipi/flow_populate_integral_data'
+      metis_client = environment(env).metis_client
+
+      integral_flow = IpiFlowPopulateIntegralData.new(
+        metis_client: metis_client,
+        source_bucket_name: source_bucket,
+        source_folder_name: source_folder
+        )
+      integral_flow.copy_files
+    end
+  end
+
   class SetFileAttributesToBlank < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
