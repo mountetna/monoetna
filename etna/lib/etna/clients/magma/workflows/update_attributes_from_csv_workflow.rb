@@ -5,7 +5,7 @@ require_relative './crud_workflow'
 module Etna
   module Clients
     class Magma
-      class UpdateAttributesByCsvWorkflow < Struct.new(:magma_crud, :project_name, :input_filename, keyword_init: true)
+      class UpdateAttributesFromCsvWorkflow < Struct.new(:magma_crud, :project_name, :input_filename, keyword_init: true)
         def initialize(opts)
           super(**{}.update(opts))
         end

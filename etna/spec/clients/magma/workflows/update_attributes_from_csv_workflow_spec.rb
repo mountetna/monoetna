@@ -2,7 +2,7 @@ require 'webmock/rspec'
 require 'json'
 require 'pry'
 
-describe Etna::Clients::Magma::UpdateAttributesByCsvWorkflow do
+describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
   let(:magma_client) {Etna::Clients::Magma.new(
       token: '123',
       host: MAGMA_HOST)}
@@ -16,7 +16,7 @@ describe Etna::Clients::Magma::UpdateAttributesByCsvWorkflow do
   end
 
   it 'raises exception for invalid models' do
-    workflow = Etna::Clients::Magma::UpdateAttributesByCsvWorkflow.new(
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
       input_filename: './spec/fixtures/magma/magma_update_attributes_invalid_model.csv'
@@ -30,7 +30,7 @@ describe Etna::Clients::Magma::UpdateAttributesByCsvWorkflow do
   end
 
   it 'sends valid revisions to magma' do
-    workflow = Etna::Clients::Magma::UpdateAttributesByCsvWorkflow.new(
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
       input_filename: './spec/fixtures/magma/magma_update_attributes_valid.csv'
@@ -57,7 +57,7 @@ describe Etna::Clients::Magma::UpdateAttributesByCsvWorkflow do
   end
 
   it 'raises exception for invalid attribute name' do
-    workflow = Etna::Clients::Magma::UpdateAttributesByCsvWorkflow.new(
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
       input_filename: './spec/fixtures/magma/magma_update_attributes_invalid_attribute.csv'
@@ -71,7 +71,7 @@ describe Etna::Clients::Magma::UpdateAttributesByCsvWorkflow do
   end
 
   it 'treats malformed boolean values as false' do
-    workflow = Etna::Clients::Magma::UpdateAttributesByCsvWorkflow.new(
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
       input_filename: './spec/fixtures/magma/magma_update_attributes_invalid_boolean.csv'
@@ -86,7 +86,7 @@ describe Etna::Clients::Magma::UpdateAttributesByCsvWorkflow do
   end
 
   it 'casts values for integer attributes' do
-    workflow = Etna::Clients::Magma::UpdateAttributesByCsvWorkflow.new(
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
       input_filename: './spec/fixtures/magma/magma_update_attributes_invalid_integer.csv'
@@ -101,7 +101,7 @@ describe Etna::Clients::Magma::UpdateAttributesByCsvWorkflow do
   end
 
   it 'casts values for float values' do
-    workflow = Etna::Clients::Magma::UpdateAttributesByCsvWorkflow.new(
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
       input_filename: './spec/fixtures/magma/magma_update_attributes_invalid_float.csv'
@@ -116,7 +116,7 @@ describe Etna::Clients::Magma::UpdateAttributesByCsvWorkflow do
   end
 
   it 'raises exception for invalid filename' do
-    workflow = Etna::Clients::Magma::UpdateAttributesByCsvWorkflow.new(
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
       input_filename: './spec/fixtures/magma/nonexistent_input.csv'
