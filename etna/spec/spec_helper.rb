@@ -118,6 +118,7 @@ RSpec.configure do |config|
 end
 
 METIS_HOST = 'https://metis.test'
+MAGMA_HOST = 'https://magma.test'
 PROJECT = 'test'
 RESTRICT_BUCKET = 'restrict'
 RELEASE_BUCKET = 'release'
@@ -191,5 +192,26 @@ def stub_copy(params={})
   stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/files\/copy/)
   .to_return({
     status: params[:status] || 200
+  })
+end
+
+def stub_magma_models(models)
+  stub_request(:post, /#{MAGMA_HOST}\/retrieve/)
+  .to_return({
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: models.to_json
+  })
+end
+
+def stub_magma_update
+  stub_request(:post, /#{MAGMA_HOST}\/update/)
+  .to_return({
+    status: 200,
+    body: {}.to_json,
+    headers: {
+      'Content-Type': 'application/json'
+    }
   })
 end

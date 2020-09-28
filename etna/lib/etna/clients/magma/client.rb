@@ -44,10 +44,22 @@ module Etna
       # Post revisions to Magma records
       # { model_name: { record_name: { attribute1: 1, attribute2: 2 } } } }
       # data can also be a File or IO stream
-      def update(update_request = UpdateRequest.new)
+      def update(update_request = UpdateRequest.new, use_json = false)
         json = nil
-        @etna_client.multipart_post('/update', update_request.encode_multipart_content) do |res|
-          json = JSON.parse(res.body)
+
+        if use_json
+          # Use JSON if you want to send nil / boolean values
+          #   to the update API? Otherwise they are cast as strings
+          #   and won't get passed on to the API correctly.
+          # NOTE: The Magma API casts floats / integers internally, so those
+          #   are safe to pass as string values.
+          @etna_client.post('/update', update_request) do |res|
+            json = JSON.parse(res.body)
+          end
+        else
+          @etna_client.multipart_post('/update', update_request.encode_multipart_content) do |res|
+            json = JSON.parse(res.body)
+          end
         end
 
         UpdateResponse.new(json)
