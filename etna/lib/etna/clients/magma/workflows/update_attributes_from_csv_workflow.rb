@@ -23,7 +23,7 @@ module Etna
             #   [3], [5], etc. = attribute value
             # So not every row needs the same number of columns
             raise "Invalid revision row #{row}. Must include at least 4 column values (model,record_name,attribute_name,attribute_value)." if row.length < 4
-            raise "Invalid revision row #{row}. Must have an even number of columns." if row.length % 2 == 1
+            raise "Invalid revision row #{row}. Must have an even number of columns." if row.length.odd?
 
             model_name = row[0]
 
@@ -43,11 +43,12 @@ module Etna
           # {attribute_name: attribute_value}
           {}.tap do |attributes|
             (2..(row.length - 1)).to_a.each do |index|
-              if index % 2 == 0
+              if index.even?
                 attribute_name = row[index]
 
                 next if attribute_name.empty?
-                raise "Invalid attribute #{attribute_name} for model #{row[0]}." unless attribute = find_attribute(row[0], attribute_name)
+                model_name = row[0]
+                raise "Invalid attribute #{attribute_name} for model #{model_name}." unless attribute = find_attribute(model_name, attribute_name)
 
                 attributes[attribute_name] = row[index + 1]
               end
