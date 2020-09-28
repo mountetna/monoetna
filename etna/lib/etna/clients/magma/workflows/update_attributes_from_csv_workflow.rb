@@ -22,6 +22,8 @@ module Etna
             #   [2], [4], etc. = attribute_name
             #   [3], [5], etc. = attribute value
             # So not every row needs the same number of columns
+            raise "Invalid revision row #{row}. Must include at least 4 column values (model,record_name,attribute_name,attribute_value)." if row.length < 4
+
             raise "Invalid model #{row[0]} for project #{project_name}." unless model_exists?(row[0])
 
             yield [row[0], row[1], consolidate_attributes_to_hash(row)]
