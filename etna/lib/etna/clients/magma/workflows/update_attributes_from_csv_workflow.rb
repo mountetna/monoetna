@@ -39,9 +39,7 @@ module Etna
 
         def consolidate_attributes_to_hash(row)
           # Take attribute index values (even) and put them into a hash.
-          # The assigned value will be the subsequent odd index. Make sure
-          #   to cast it to the right format, since CSV may treat everything
-          #   as a string.
+          # The assigned value will be the subsequent odd index.
           # {attribute_name: attribute_value}
           {}.tap do |attributes|
             (2..(row.length - 1)).to_a.each do |index|
