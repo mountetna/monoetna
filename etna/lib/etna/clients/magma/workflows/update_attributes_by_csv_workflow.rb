@@ -67,7 +67,7 @@ module Etna
           # More complex types not currently supported
           case attribute.attribute_type
           when Etna::Clients::Magma::AttributeType::BOOLEAN
-            attribute_value.to_s.downcase == 'true'
+            attribute_value.to_s.downcase == 'true' || attribute_value.to_s == '1'
           when Etna::Clients::Magma::AttributeType::INTEGER
             attribute_value.to_i
           when Etna::Clients::Magma::AttributeType::FLOAT

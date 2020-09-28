@@ -1,4 +1,4 @@
-"model_two","123","name","Record #123","strength","2"
+"model_two","123","name","Record #123","strength","2","invisible","1"
 "model_two","234","height","64.2","invisible","true"
 "model_one","xyz","name","First model of the day"
 "model_one","098","name",

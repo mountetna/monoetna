@@ -44,7 +44,7 @@ describe Etna::Clients::Magma::UpdateAttributesByCsvWorkflow do
       }))
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).
       with(body: hash_including({
-        "revisions": {"model_two": {"123": {"name": "Record #123","strength": 2}}}
+        "revisions": {"model_two": {"123": {"name": "Record #123","strength": 2,"invisible": true}}}
       }))
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).
       with(body: hash_including({
