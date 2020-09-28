@@ -19,7 +19,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
     workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
-      input_filename: './spec/fixtures/magma/magma_update_attributes_invalid_model.csv'
+      filepath: './spec/fixtures/magma/magma_update_attributes_invalid_model.csv'
     )
 
     expect {
@@ -33,7 +33,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
     workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
-      input_filename: './spec/fixtures/magma/magma_update_attributes_valid.csv'
+      filepath: './spec/fixtures/magma/magma_update_attributes_valid.csv'
     )
 
     workflow.update_attributes
@@ -60,7 +60,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
     workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
-      input_filename: './spec/fixtures/magma/magma_update_attributes_invalid_attribute.csv'
+      filepath: './spec/fixtures/magma/magma_update_attributes_invalid_attribute.csv'
     )
 
     expect {
@@ -74,7 +74,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
     workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
-      input_filename: './spec/fixtures/magma/magma_update_attributes_invalid_boolean.csv'
+      filepath: './spec/fixtures/magma/magma_update_attributes_invalid_boolean.csv'
     )
 
     workflow.update_attributes
@@ -89,7 +89,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
     workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
-      input_filename: './spec/fixtures/magma/magma_update_attributes_invalid_integer.csv'
+      filepath: './spec/fixtures/magma/magma_update_attributes_invalid_integer.csv'
     )
 
     workflow.update_attributes
@@ -104,7 +104,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
     workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
-      input_filename: './spec/fixtures/magma/magma_update_attributes_invalid_float.csv'
+      filepath: './spec/fixtures/magma/magma_update_attributes_invalid_float.csv'
     )
 
     workflow.update_attributes
@@ -119,7 +119,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
     workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
-      input_filename: './spec/fixtures/magma/nonexistent_input.csv'
+      filepath: './spec/fixtures/magma/nonexistent_input.csv'
     )
 
     expect {

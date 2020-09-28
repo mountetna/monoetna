@@ -5,7 +5,7 @@ require_relative './crud_workflow'
 module Etna
   module Clients
     class Magma
-      class UpdateAttributesFromCsvWorkflow < Struct.new(:magma_crud, :project_name, :input_filename, keyword_init: true)
+      class UpdateAttributesFromCsvWorkflow < Struct.new(:magma_crud, :project_name, :filepath, keyword_init: true)
         def initialize(opts)
           super(**{}.update(opts))
         end
@@ -15,7 +15,7 @@ module Etna
         end
 
         def parse_input_file
-          CSV.parse(File.read(input_filename)).map do |row|
+          CSV.parse(File.read(filepath)).map do |row|
             # Assumes rows are in pairs, where
             #   [0] = model_name
             #   [1] = record_name / identifier
