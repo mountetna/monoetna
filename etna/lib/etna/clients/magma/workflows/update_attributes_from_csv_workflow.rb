@@ -40,7 +40,6 @@ module Etna
           # {attribute_name: attribute_value}
           {}.tap do |attributes|
             (2..(row.length - 1)).to_a.each do |index|
-              # make sure the attribute_name exists in this model
               if index % 2 == 0
                 attribute_name = row[index]
 
@@ -56,7 +55,6 @@ module Etna
         end
 
         def find_attribute(model_name, attribute_name)
-          # get the format from the model template
           models.model(model_name).template.attributes.attribute(attribute_name)
         end
 
