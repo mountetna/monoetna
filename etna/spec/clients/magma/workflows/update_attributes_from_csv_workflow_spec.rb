@@ -89,6 +89,8 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
         "098" => {"name" => ""},
       }
     })
+
+    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end
 
   it 'raises exception for invalid attribute name' do
@@ -104,7 +106,6 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow do
 
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end
-
 
   it 'raises exception for invalid filename' do
     workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
