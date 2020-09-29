@@ -526,7 +526,7 @@ class Polyphemus
   class UpdateAttributesFromCsv < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
-    usage 'update_attributes_from_csv <environment> <project_name> <filepath>'
+    usage 'update_attributes_from_csv <environment> <project_name> <model_name> <filepath>'
 
     def magma_crud
       @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(
@@ -534,13 +534,14 @@ class Polyphemus
         project_name: @project_name)
     end
 
-    def execute(env, project_name, filepath)
+    def execute(env, project_name, model_name, filepath)
       @environ = environment(env)
       @project_name = project_name
 
-      update_attributes_workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflow.new(
+      update_attributes_workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel.new(
         magma_crud: magma_crud,
         project_name: project_name,
+        model_name: model_name,
         filepath: filepath)
       update_attributes_workflow.update_attributes
     end
