@@ -1,5 +1,3 @@
-require 'pry'
-
 describe User do
   it 'returns a JWT' do
     user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
