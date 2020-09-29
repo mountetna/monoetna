@@ -190,7 +190,7 @@ describe UserController do
 
   context '#token' do
     it 'generates a new user token' do
-      user = create(:user, first_name: 'Zeus', last_name: 'Almight', email: 'zeus@olympus.org')
+      user = create(:user, first_name: 'Zeus', last_name: 'Almighty', email: 'zeus@olympus.org')
 
       auth_header(:zeus)
       get('/refresh_token')
