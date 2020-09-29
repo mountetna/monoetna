@@ -18,10 +18,10 @@ module Etna
         end
       end
 
-      def add_user(add_user_request = AddUserRequest.new)
+      def update_permission(update_permission_request = UpdatePermissionRequest.new)
         @etna_client.post(
-          "/add_user/#{add_user_request.project_name}",
-          add_user_request) do |res|
+          "/update_permission/#{update_permission_request.project_name}",
+          update_permission_request) do |res|
           # Redirect, no response data
         end
       end

@@ -14,30 +14,17 @@ module Etna
         end
       end
 
-      class UpdatePermissionRequest < Struct.new(:project_name, :permissions, keyword_init: true)
+      class UpdatePermissionRequest < Struct.new(:project_name, :email, :role, :privileged, :affiliation, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)
-          super({}.update(params))
-        end
-
-        def add_permission(permission)
-          permissions << permission
+          super({privileged: false, affiliation: ''}.update(params))
         end
       end
 
-      class Permission < Struct.new(:email, :role, :privileged, :affiliation, keyword_init: true)
-        include JsonSerializableStruct
-        def initialize(**args)
-          super({}.update(args))
-        end
-      end
-
-      class RefreshTokenRequest < Struct.new(keyword_init: true)
-        include JsonSerializableStruct
-
-        def initialize(**params)
-          super({}.update(params))
+      class RefreshTokenRequest
+        def map
+          []
         end
       end
 
@@ -49,7 +36,7 @@ module Etna
         end
 
         def token
-          raw
+          @raw
         end
       end
     end
