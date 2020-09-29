@@ -131,7 +131,15 @@ class Magma
     def base_query
       query = @model.from(
         Sequel.as(@model.table_name, @start_predicate.alias_name)
-      ).order(@start_predicate.identity)
+      )
+
+      order_columns = []
+      if @options[:order]
+        order_columns << @start_predicate.selectable_by_attribute_name(@options[:order])
+      end
+      order_columns << @start_predicate.identity
+
+      query = query.order(*order_columns)
 
       joins = predicate_collect(:join).uniq
       constraints = predicate_collect(:constraint).uniq

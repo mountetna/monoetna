@@ -43,29 +43,38 @@ class Polyphemus
     end
 
     def find_batch(cursor)
-      offset = 0
+      expansion_number = 1
       cursor[:seen_ids] ||= []
       state = self.start_batch_state(cursor)
-      non_discrete_batch = []
+      last_batch_ids = []
       last_updated_at = Time.at(0)
 
       while true
-        results = self.execute_batch_find(state, offset)
-        last_updated_at_results = results.map { |r| self.result_updated_at(r) }.max
-        last_updated_at = [last_updated_at_results, last_updated_at].max unless last_updated_at_results.nil?
-        non_discrete_batch.push(*results.select { |r| !cursor[:seen_ids].include?(self.result_id(r)) })
+        results = self.execute_batch_find(state, expansion_number)
 
-        if results.empty?
-          return non_discrete_batch
+        results = results
+            .select { |r| !cursor[:seen_ids].include?(self.result_id(r)) }
+
+        ids = results
+            .map { |r| self.result_id(r) }
+            .sort
+
+        # No progress made
+        if ids == last_batch_ids
+          cursor[:seen_ids] += ids
+          cursor[:seen_ids].uniq!
+          return results
         end
 
-        discrete_time_results = non_discrete_batch.select do |result|
+        last_batch_ids = ids
+
+        last_updated_at = results.map { |r| self.result_updated_at(r) }.max unless results.empty?
+        discrete_time_results = results.select do |result|
           !time_precision_overlaps?(self.result_updated_at(result), last_updated_at)
         end
 
         if discrete_time_results.empty?
-          offset += results.length
-          cursor[:seen_ids] += results.map { |r| self.result_id(r) }
+          expansion_number += 1
         else
           cursor[:seen_ids] = discrete_time_results.map { |r| self.result_id(r) }
           cursor.updated_at = discrete_time_results.map { |r| self.result_updated_at(r) }.max

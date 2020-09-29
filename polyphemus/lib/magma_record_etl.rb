@@ -2,13 +2,13 @@ require_relative 'etl'
 require_relative 'time_scan_based_etl_scanner'
 
 class Polyphemus
-  class MetisFileEtlCursor < EtlCursor
-    def initialize(job_name:, project_name:, bucket_name:)
+  class MagmaRecordEtlCursor < EtlCursor
+    def initialize(job_name:, project_name:, model_name:)
       raise "project_name cannot be nil" if project_name.nil?
-      raise "bucket_name cannot be nil" if bucket_name.nil?
-      super("#{job_name}_metis_files_#{project_name}_#{bucket_name}")
+      raise "model_name cannot be nil" if model_name.nil?
+      super("#{job_name}_magma_records__#{project_name}_#{model_name}")
       self[:project_name] = project_name
-      self[:bucket_name] = bucket_name
+      self[:model_name] = model_name
     end
 
     def reset!
@@ -18,18 +18,18 @@ class Polyphemus
   end
 
   # Abstract base class for an ETL that scans metis for files using the find api.
-  class MetisFileEtl < Etl
+  class MagmaFileEtl < Etl
     # Subclasses should provide default values here, since commands are constructed
-    def initialize(project_bucket_pairs:, metis_client: nil, limit: 20)
-      file_cursors = project_bucket_pairs.map do |project_name, bucket_name|
-        MetisFileEtlCursor.new(job_name: self.class.name, project_name: project_name, bucket_name: bucket_name).load_from_db
+    def initialize(project_model_pairs:, magma_client: nil, limit: 20)
+      cursors = project_model_pairs.map do |project_name, model_name|
+        MagmaRecordEtlCursor.new(job_name: self.class.name, project_name: project_name, model_name: model_name).load_from_db
       end
 
-      @metis_client = metis_client
+      @magma_client = magma_client
       @limit = limit
 
       super(
-          cursor_group: EtlCursorGroup.new(file_cursors),
+          cursor_group: EtlCursorGroup.new(cursors),
           scanner: TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
             find_request = Etna::Clients::Metis::FindRequest.new(
                 project_name: cursor[:project_name],
@@ -41,8 +41,8 @@ class Polyphemus
             file.updated_at
           end.result_id do |file|
             file.file_path
-          end.execute_batch_find do |find_request, i|
-            find_request.limit = @limit * i
+          end.execute_batch_find do |find_request, offset|
+            find_request.offset = offset
             metis_client.find(find_request).files.all
           end
       )
@@ -57,6 +57,7 @@ class Polyphemus
               value: (cursor.updated_at + 1).iso8601,
           )
       ) unless cursor.updated_at.nil?
+      find_request.limit = @limit
     end
   end
 end

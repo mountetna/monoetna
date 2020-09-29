@@ -151,7 +151,20 @@ class Magma
     end
 
     def identity
-      :"#{alias_name}_#{@model.identity.column_name}"
+      selectable_by_column_name(@model.identity.column_name)
+    end
+
+    def selectable_by_column_name(column_name)
+      :"#{alias_name}_#{column_name}"
+    end
+
+    def selectable_by_attribute_name(attribute_name)
+      attr = @model.attributes[attribute_name.to_sym]
+      if attr.nil?
+        return identity
+      end
+
+      selectable_by_column_name(attr.column_name)
     end
   end
 end

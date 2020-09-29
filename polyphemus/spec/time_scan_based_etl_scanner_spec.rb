@@ -2,8 +2,20 @@ describe Polyphemus::TimeScanBasedEtlScanner do
   let(:scanner) do
     Polyphemus::TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
       { data: data, updated_at: cursor.updated_at }
-    end.execute_batch_find do |state, offset|
-      state[:data].select {|r| r[:updated_at] >= Time.at(state[:updated_at].to_i) + 1}.slice(offset, limit)
+    end.execute_batch_find do |state, expansion_number|
+      data = state[:data]
+      # Simulate changes to the underlying data
+      if concurrent_updates
+        Random.rand(0..3).times do
+          next if data.empty?
+          idx = Random.rand(0...(data.length))
+          update = data[idx].dup
+          update[:updated_at] = (data.map { |r| r[:updated_at] }.max + 1)
+          concurrent_updates << update
+        end
+      end
+      data.sort { |a, b| a[:updated_at] <=> b[:updated_at] }
+      data.select {|r| r[:updated_at] >= Time.at(state[:updated_at].to_i) + 1}.slice(0, limit * expansion_number)
     end.result_updated_at do |result|
       result[:updated_at]
     end.result_id do |result|
@@ -11,6 +23,7 @@ describe Polyphemus::TimeScanBasedEtlScanner do
     end
   end
 
+  let(:concurrent_updates) { nil }
   let(:limit) { 3 }
   let(:data) { [] }
 
@@ -24,7 +37,7 @@ describe Polyphemus::TimeScanBasedEtlScanner do
 
   def generate_random_dataset
     data.clear
-    Random.rand(1..15).times do
+    Random.rand(0..15).times do
       generate_one(Random.rand < 0.5)
     end
   end
@@ -54,6 +67,20 @@ describe Polyphemus::TimeScanBasedEtlScanner do
         generate_random_dataset
         results = run_scan(Polyphemus::EtlCursor.new('test-cursor'))
         expect(results).to eq(data)
+      end
+    end
+
+    context 'with concurrent updates' do
+      let(:concurrent_updates) { [] }
+
+      it 'eventually yields all values' do
+        40.times do
+          generate_random_dataset
+          results = run_scan(Polyphemus::EtlCursor.new('test-cursor'))
+
+          result_ids = results.map { |r| r[:id] }
+          data.each { |r| result_ids.include?(r[:id]) }
+        end
       end
     end
 
