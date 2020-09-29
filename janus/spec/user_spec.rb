@@ -1,3 +1,5 @@
+require 'pry'
+
 describe User do
   it 'returns a JWT' do
     user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
@@ -185,6 +187,28 @@ describe UserController do
       # The user's key is unset
       user.refresh
       expect(user.public_key).to be_nil
+    end
+  end
+
+  context '#token' do
+    it 'generates a new user token' do
+      user = create(:user, first_name: 'Zeus', last_name: 'Almight', email: 'zeus@olympus.org')
+
+      auth_header(:zeus)
+      get('/refresh_token')
+
+      expect(last_response.status).to eq(200)
+      expect(last_response.body).not_to eq('')
+    end
+
+    it 'non-superusers cannot generate a token' do
+      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+
+      auth_header(:janus)
+      get('/refresh_token')
+
+      # Janus complains
+      expect(last_response.status).to eq(403)
     end
   end
 end

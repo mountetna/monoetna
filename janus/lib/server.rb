@@ -23,6 +23,8 @@ class Janus
 
     get '/project/:project_name', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
 
+    get '/refresh_token', action: 'user#refresh_token', auth: { user: { is_superuser?: true } }
+
     post '/update_permission/:project_name', action: 'admin#update_permission', auth: { user: { is_admin?: :project_name } }
 
     post '/add_user/:project_name', action: 'admin#add_user', auth: { user: { is_admin?: :project_name } }
