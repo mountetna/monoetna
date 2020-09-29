@@ -34,14 +34,15 @@ class FolderController < Metis::Controller
 
     folders = Metis::Folder.where(
       bucket: bucket
-    )
+    ).all
 
-    folders =  folders.limit(limit) if limit
-    folders = folders.offset(offset) if offset
-    folders = folders.all
+    limit = limit ? limit : folders.length
+    offset = offset ? offset : 0
 
     folder_hashes = folder_hashes_with_calculated_paths(
       all_folders: folders,
+      offset: offset,
+      limit: limit,
       bucket: bucket)
 
     success_json(

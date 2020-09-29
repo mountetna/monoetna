@@ -31,12 +31,15 @@ class Polyphemus
       super(
           cursor_group: EtlCursorGroup.new(cursors),
           scanner: TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
-            find_request = Etna::Clients::Metis::FindRequest.new(
+            retrieve_request = Etna::Clients::Magma::RetrievalRequest.new(
                 project_name: cursor[:project_name],
-                bucket_name: cursor[:bucket_name],
+                model_name: cursor[:model_name],
+                order: 'updated_at',
+                record_names: 'all',
+                filter: [],
             )
-            prepare_find_request(cursor, find_request)
-            find_request
+            prepare_find_request(cursor, retrieve_request)
+            retrieve_request
           end.result_updated_at do |file|
             file.updated_at
           end.result_id do |file|
