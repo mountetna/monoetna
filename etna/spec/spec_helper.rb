@@ -118,6 +118,7 @@ RSpec.configure do |config|
 end
 
 METIS_HOST = 'https://metis.test'
+JANUS_HOST = 'https://janus.test'
 PROJECT = 'test'
 RESTRICT_BUCKET = 'restrict'
 RELEASE_BUCKET = 'release'
@@ -192,4 +193,22 @@ def stub_copy(params={})
   .to_return({
     status: params[:status] || 200
   })
+end
+
+def stub_janus_setup
+  stub_request(:get, /#{JANUS_HOST}\/refresh_token/)
+    .to_return({
+      status: 200,
+      body: 'a token for you!'
+    })
+
+  stub_request(:post, /#{JANUS_HOST}\/add_project/)
+    .to_return({
+      status: 302
+    })
+
+  stub_request(:post, /#{JANUS_HOST}\/update_permissions/)
+    .to_return({
+      status: 302
+    })
 end
