@@ -199,14 +199,14 @@ describe UserController do
       expect(last_response.body).not_to eq('')
     end
 
-    it 'non-superusers cannot generate a token' do
+    it 'non-superusers can also generate a token' do
       user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
 
       auth_header(:janus)
       get('/refresh_token')
 
-      # Janus complains
-      expect(last_response.status).to eq(403)
+      expect(last_response.status).to eq(200)
+      expect(last_response.body).not_to eq('')
     end
   end
 end
