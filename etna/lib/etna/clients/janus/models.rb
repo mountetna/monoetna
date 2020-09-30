@@ -28,6 +28,12 @@ module Etna
         end
       end
 
+      class ViewerTokenRequest
+        def map
+          []
+        end
+      end
+
       class TokenResponse
         attr_reader :raw
 

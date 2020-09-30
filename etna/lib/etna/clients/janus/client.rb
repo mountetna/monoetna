@@ -34,6 +34,15 @@ module Etna
 
         TokenResponse.new(token)
       end
+
+      def viewer_token(viewer_token_request = ViewerTokenRequest.new)
+        token = nil
+        @etna_client.get('/viewer_token', viewer_token_request) do |res|
+          token = res.body
+        end
+
+        TokenResponse.new(token)
+      end
     end
   end
 end
