@@ -36,7 +36,7 @@ describe 'Janus Client class' do
 
   it 'can fetch a viewer-only version of a user\'s token' do
     response = test_class.viewer_token(Etna::Clients::Janus::ViewerTokenRequest.new)
-    expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/refresh_token/)
-    expect(response.token).to eq('a token for you!')
+    expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/viewer_token/)
+    expect(response.token).to eq('a view-only token for you!')
   end
 end

@@ -211,4 +211,10 @@ def stub_janus_setup
     .to_return({
       status: 302
     })
+
+  stub_request(:get, /#{JANUS_HOST}\/viewer_token/)
+    .to_return({
+      status: 200,
+      body: 'a view-only token for you!'
+    })
 end
