@@ -10,6 +10,7 @@ require 'rollbar'
 module Etna::Application
   def self.included(other)
     other.include Singleton
+    @@application = other
   end
 
   def self.find(klass)
@@ -18,8 +19,8 @@ module Etna::Application
       return namespace_klass.instance
     end
 
-    if (app_name = ENV['APP_NAME']) && (app_klass = Kernel.const_get(app_name.capitalize)) && (app_klass.respond_to? :instance)
-      return app_klass.instance
+    if @@application
+      return @@application.instance
     end
 
     raise "Could not find application instance from #{namespace}, maybe set APP_NAME environment variable?"

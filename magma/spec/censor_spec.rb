@@ -51,6 +51,23 @@ describe Magma::Censor do
     )
   end
 
+  it 'new record revisions not censored for users with restricted permissions' do
+    model = Magma.instance.magma_projects[:labors].models[:victim]
+    user = Etna::User.new(
+        email: 'zeus@mountolympus.org',
+        first: 'Zeus',
+        perm: 'a:labors'
+    )
+    censor = Magma::Censor.new(
+        user,
+        'labors'
+    )
+    revisions = to_record_set(Labors::Victim, { 'Apollodorus' => { country: 'Rome' } })
+    expect(censor.censored_reasons(model, revisions)).to eq(
+        ["Cannot revise restricted attribute :country on victim 'Apollodorus'"]
+    )
+  end
+
   it 'revisions censored for users with restricted model' do
     victim = create(:victim, name: 'Apollodorus', country: 'Greece', restricted: true)
     model = Magma.instance.magma_projects[:labors].models[:victim]

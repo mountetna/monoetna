@@ -1,6 +1,7 @@
 require_relative 'commands'
 require_relative 'etl_cursor'
 require_relative 'metis_file_etl'
+require_relative 'magma_record_etl'
 require_relative 'etls'
 require 'etna/clients/magma'
 require 'etna/clients/metis'

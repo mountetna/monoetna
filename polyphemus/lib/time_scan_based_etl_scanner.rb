@@ -51,6 +51,9 @@ class Polyphemus
 
       while true
         results = self.execute_batch_find(state, expansion_number)
+        prefilter_ids = results
+              .map { |r| self.result_id(r) }
+              .sort
 
         results = results
             .select { |r| !cursor[:seen_ids].include?(self.result_id(r)) }
@@ -60,13 +63,13 @@ class Polyphemus
             .sort
 
         # No progress made
-        if ids == last_batch_ids
+        if prefilter_ids == last_batch_ids
           cursor[:seen_ids] += ids
           cursor[:seen_ids].uniq!
+          puts "Oh no! #{last_batch_ids.length} #{results.length}"
           return results
         end
-
-        last_batch_ids = ids
+        last_batch_ids = prefilter_ids
 
         last_updated_at = results.map { |r| self.result_updated_at(r) }.max unless results.empty?
         discrete_time_results = results.select do |result|
@@ -78,6 +81,7 @@ class Polyphemus
         else
           cursor[:seen_ids] = discrete_time_results.map { |r| self.result_id(r) }
           cursor.updated_at = discrete_time_results.map { |r| self.result_updated_at(r) }.max
+          puts "awww yeaaa #{cursor.updated_at}"
           return discrete_time_results
         end
       end

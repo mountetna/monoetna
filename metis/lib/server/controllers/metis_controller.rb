@@ -53,20 +53,24 @@ class Metis
       }
     end
 
-    def folder_hashes_with_calculated_paths(bucket:, limit:, offset:, all_folders: nil, target_folders: nil)
+    def folder_hashes_with_calculated_paths(bucket:, limit: nil, offset: 0, all_folders: nil, target_folders: nil)
       # Calculate the folder_path, instead of
       #   doing it in the database.
       folder_path_calc = Metis::FolderPathCalculator.new(all_folders: all_folders, bucket: bucket)
 
       # Sorting folders by depth level makes some subsequent calculations simpler,
       #   especially when not paging. Shallow -> deep
-      sorted_folders = all_folders ? sort_folders_by_depth(
-        limit: limit,
-        offset: offset,
-        all_folders: all_folders,
-      ) : target_folders
+      if all_folders
+        sorted_folders = sort_folders_by_depth(
+            limit: limit,
+            offset: offset,
+            all_folders: all_folders,
+        )
+        paged_folders = sorted_folders.slice(offset, limit)
+      else
+        paged_folders = target_folders
+      end
 
-      paged_folders = sorted_folders.slice(offset, limit)
       return [] unless paged_folders
 
       paged_folders.map { |fold|

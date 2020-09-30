@@ -231,7 +231,30 @@ class Polyphemus
     end
   end
 
-  module CopyCommand
+  class CopyMagmaRecords < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+
+    def execute(source_env, target_env, project_name, *models)
+      workflow = Etna::Clients::Magma::RecordSynchronizationWorkflow.new(
+          target_client: environment(target_env).magma_client,
+          source_client: environment(source_env).magma_client,
+          project_name: project_name,
+      )
+
+      models.each do |model|
+        logger.info("Copying records from #{source_env} #{project_name} #{model} to #{target_env} #{project_name} #{model}")
+        workflow.copy_model(model)
+      end
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+    end
+  end
+
+  module SyncModelsCommand
     def self.included(mod)
       mod.instance_eval do
         include WithEtnaClientsByEnvironment
@@ -259,12 +282,12 @@ class Polyphemus
 
   class ApiCopyModelShallow < Etna::Command
     WORKFLOW = Etna::Clients::Magma::ShallowCopyModelWorkflow
-    include CopyCommand
+    include SyncModelsCommand
   end
 
   class ApiCopyModelDeep < Etna::Command
     WORKFLOW = Etna::Clients::Magma::ModelSynchronizationWorkflow
-    include CopyCommand
+    include SyncModelsCommand
   end
 
   class ApiAddProject < Etna::Command

@@ -22,7 +22,7 @@ describe Polyphemus::MetisFileEtl do
     end
   end
 
-  # To re-record this test, add RERECORD=1 and METIS_TOKEN=xxxxx to your environment before running.
+  # To re-record this test, delete the metis_file_etl2.e2e.yml cassette and TOKEN=xxxxx to your environment before running.
   it 'should process metis files, and support reset' do
     VCR.use_cassette('metis_file_etl.e2e') do
       metis_client = Etna::Clients::Metis.new(host: 'https://metis.development.local', token: ENV['TOKEN'] || 'test-token', persistent: false)

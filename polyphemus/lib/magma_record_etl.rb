@@ -18,7 +18,7 @@ class Polyphemus
   end
 
   # Abstract base class for an ETL that scans metis for files using the find api.
-  class MagmaFileEtl < Etl
+  class MagmaRecordEtl < Etl
     # Subclasses should provide default values here, since commands are constructed
     def initialize(project_model_pairs:, magma_client: nil, limit: 20)
       cursors = project_model_pairs.map do |project_name, model_name|
@@ -36,31 +36,30 @@ class Polyphemus
                 model_name: cursor[:model_name],
                 order: 'updated_at',
                 record_names: 'all',
-                filter: [],
+                page: 1,
             )
-            prepare_find_request(cursor, retrieve_request)
+            prepare_retrieve_request(cursor, retrieve_request)
             retrieve_request
-          end.result_updated_at do |file|
-            file.updated_at
-          end.result_id do |file|
-            file.file_path
-          end.execute_batch_find do |find_request, offset|
-            find_request.offset = offset
-            metis_client.find(find_request).files.all
+          end.result_updated_at do |record|
+            updated_at = record.values.first['updated_at']
+            updated_at ? Time.parse(updated_at) : Time.at(0)
+          end.result_id do |record|
+            record.keys.first
+          end.execute_batch_find do |retrieve_request, i|
+            retrieve_request.page_size = @limit * i
+            documents = self.magma_client.retrieve(retrieve_request).models.model(retrieve_request.model_name).documents
+            documents.document_keys.map { |i| { i => documents.document(i) } }
           end
       )
     end
 
-    # Subclasses should override if they wish to adjust or add to the params of the find request.
-    def prepare_find_request(cursor, find_request)
-      find_request.add_param(Etna::Clients::Metis::FindParam.new(
-              type: 'file',
-              attribute: 'updated_at',
-              predicate: '>=',
-              value: (cursor.updated_at + 1).iso8601,
-          )
-      ) unless cursor.updated_at.nil?
-      find_request.limit = @limit
+    # Subclasses should override if they wish to adjust or add to the params of the retrieve request.
+    def prepare_retrieve_request(cursor, retrieve_request)
+      retrieve_request.filter = "updated_at>=#{(cursor.updated_at + 1).iso8601}" unless cursor.updated_at.nil?
+    end
+
+    def find_batch
+      super.map { |r| r.values.first }
     end
   end
 end

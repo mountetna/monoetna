@@ -29,7 +29,7 @@ module Etna
 
     def fill_in_missing_params(args)
       req_params = method(:execute).parameters.select { |type, name| type == :req }
-      args + req_params[(args.length)..(req_params.length)].map do |type, name|
+      args + (req_params[(args.length)..(req_params.length)] || []).map do |type, name|
         puts "#{name}?"
         STDIN.gets.chomp
       end
