@@ -119,6 +119,7 @@ end
 
 METIS_HOST = 'https://metis.test'
 JANUS_HOST = 'https://janus.test'
+MAGMA_HOST = 'https://magma.test'
 PROJECT = 'test'
 RESTRICT_BUCKET = 'restrict'
 RELEASE_BUCKET = 'release'
@@ -217,4 +218,34 @@ def stub_janus_setup
       status: 200,
       body: 'a view-only token for you!'
     })
+end
+
+def stub_magma_models(models)
+  stub_request(:post, /#{MAGMA_HOST}\/retrieve/)
+  .to_return({
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: models.to_json
+  })
+end
+
+def stub_magma_update
+  stub_request(:post, /#{MAGMA_HOST}\/update/)
+  .to_return do |request|
+
+    body = StringIO.new(request.body)
+    content_length = body.read.length
+    body.rewind
+
+    tempfile = Rack::Multipart::Parser::TEMPFILE_FACTORY
+    bufsize = Rack::Multipart::Parser::BUFSIZE
+    params = Rack::Utils.default_query_parser
+
+    info = Rack::Multipart::Parser.parse body, content_length, request.headers['Content-Type'], tempfile, bufsize, params
+
+    expect(info.params["project_name"]).to eq(PROJECT)
+    @all_updates << info.params["revisions"]
+    { body: '{}' }
+    end
 end
