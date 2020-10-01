@@ -10,20 +10,25 @@ class User < Sequel::Model
     [ first_name, last_name ].compact.join(' ')
   end
 
-  def jwt_payload
+  def jwt_payload(viewer_only: false)
     {
       email: email,
       first: first_name,
       last: last_name,
-
-      # Encode permissions as a string e.g. "a:p1,p2;e:p3;v:p4"
-      perm:  permissions.map(&:project_role).group_by(&:first)
-        .sort_by(&:first).map do |role_key, project_roles|
-        [ role_key, project_roles.map(&:last).sort.join(',') ].join(':')
-      end.join(';'),
-
+      perm:  serialize_permissions(viewer_only: viewer_only),
       flags: flags&.join(';')
     }.compact
+  end
+
+  def serialize_permissions(viewer_only: false)
+    # Encode permissions as a string e.g. "a:p1,p2;e:p3;v:p4"
+    filtered_perms = viewer_only ?
+      permissions.select { |p| p.role == 'viewer' } :
+      permissions
+    filtered_perms.map(&:project_role).group_by(&:first)
+      .sort_by(&:first).map do |role_key, project_roles|
+      [ role_key, project_roles.map(&:last).sort.join(',') ].join(':')
+    end.join(';')
   end
 
   def key_fingerprint
@@ -34,12 +39,12 @@ class User < Sequel::Model
     OpenSSL::Digest::MD5.hexdigest(data_string).scan(/../).join(':')
   end
 
-  def create_token!
+  def create_token!(viewer_only: false)
     # Time is in seconds, nil = no expiration
     expires = Time.now.utc + Janus.instance.config(:token_life)
 
     Janus.instance.sign.jwt_token(
-      jwt_payload.merge(exp: expires.to_i)
+      jwt_payload(viewer_only: viewer_only).merge(exp: expires.to_i)
     )
   end
 

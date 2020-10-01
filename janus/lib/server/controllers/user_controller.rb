@@ -19,4 +19,20 @@ class UserController < Janus::Controller
 
     success('User Public Key updated')
   end
+
+  def refresh_token
+    @janus_user = User[email: @user.email]
+
+    raise Etna::Forbidden, 'User not found' unless @janus_user
+
+    success(@janus_user.create_token!)
+  end
+
+  def viewer_token
+    @janus_user = User[email: @user.email]
+
+    raise Etna::Forbidden, 'User not found' unless @janus_user
+
+    success(@janus_user.create_token!(viewer_only: true))
+  end
 end
