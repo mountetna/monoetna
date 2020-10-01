@@ -81,5 +81,9 @@ module Etna
     def is_admin? project
       is_superuser? || has_roles(project, :admin)
     end
+
+    def active? project=nil
+      permissions.keys.length > 0
+    end
   end
 end
