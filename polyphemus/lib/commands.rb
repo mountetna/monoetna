@@ -256,12 +256,12 @@ class Polyphemus
 
   module SyncModelsCommand
     def self.included(mod)
-      mod.instance_eval do
+      mod.class_eval do
         include WithEtnaClientsByEnvironment
         include WithLogger
 
         def execute(source_env, target_env, source_project, target_project, model_name)
-          workflow = WORKFLOW.from_api_source(
+          workflow = self.class::WORKFLOW.from_api_source(
               model_name: model_name,
               source_project: source_project,
               source_client: environment(source_env).magma_client,

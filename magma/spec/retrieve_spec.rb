@@ -1,6 +1,3 @@
-Magma.instance.db.loggers << Logger.new($stdout)
-Magma.instance.db.sql_log_level = :debug
-
 describe RetrieveController do
   include Rack::Test::Methods
 
