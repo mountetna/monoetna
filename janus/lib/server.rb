@@ -23,6 +23,13 @@ class Janus
 
     get '/project/:project_name', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
 
+    get '/refresh_token', action: 'user#refresh_token', auth: { user: { active?: true } }
+
+    # Once we figure out a long-term token strategy, this should probably get
+    #   consolidated with /refresh_token so we don't just keep creating
+    #   small token-related views.
+    get '/viewer_token', action: 'user#viewer_token', auth: { user: { is_superuser?: true } }
+
     post '/update_permission/:project_name', action: 'admin#update_permission', auth: { user: { is_admin?: :project_name } }
 
     post '/add_user/:project_name', action: 'admin#add_user', auth: { user: { is_admin?: :project_name } }

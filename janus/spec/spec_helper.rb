@@ -18,6 +18,9 @@ ENV['JANUS_ENV'] = 'test'
 include Etna::Spec::Auth
 
 AUTH_USERS.update(
+  zeus: {
+    email: 'zeus@olympus.org', first: 'Zeus', last: 'Almighty', perm: 'A:administration'
+  },
   janus: {
     email: 'janus@two-faces.org', first: 'Janus', last: 'Bifrons', perm: 'V:tunnel;e:gateway,mirror;a:door'
   },
