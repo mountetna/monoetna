@@ -63,6 +63,9 @@ describe Magma::Censor do
         'labors'
     )
     revisions = to_record_set(Labors::Victim, { 'Apollodorus' => { country: 'Rome' } })
+
+    # This verifies that the code didn't just break from `restrict?`, a test precondition.
+    # The censorship comes from attribute restriction, but there should be no record level restriction.
     expect(censor.censored_reasons(model, revisions)).to eq(
         ["Cannot revise restricted attribute :country on victim 'Apollodorus'"]
     )

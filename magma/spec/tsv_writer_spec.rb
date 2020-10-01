@@ -23,7 +23,7 @@ describe 'TSVWriter' do
     lines = file.string.split("\n")
     header = lines[0]
     expect(header).to eq(payload.tsv_header.sub("\n", ''))
-    expect(lines.size).to eq(5)
+    expect(lines.size).to eq(3)
 
     name_index = header.split("\t").find_index("name")
     tsv_labors_names = lines.drop(1).map { |l| l.split("\t")[name_index] }.sort
