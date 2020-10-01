@@ -12,4 +12,6 @@ group :development, :test do
   gem 'webmock'
   gem 'debase'
   gem 'ruby-debug-ide'
+  gem 'database_cleaner'
+  gem 'vcr'
 end

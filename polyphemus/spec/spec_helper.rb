@@ -5,7 +5,8 @@ Bundler.require(:default, :test)
 ENV['POLYPHEMUS_ENV'] = 'test'
 
 require 'webmock/rspec'
-
+require 'vcr'
+require 'database_cleaner'
 require 'simplecov'
 SimpleCov.start
 
@@ -32,6 +33,41 @@ def auth_header(user_type)
   header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
 end
 
+VCR.configure do |c|
+  c.hook_into :webmock
+  c.cassette_serializers
+  c.cassette_library_dir = ::File.join(__dir__,  'fixtures', 'cassettes')
+  c.allow_http_connections_when_no_cassette = true
+  c.register_request_matcher :try_body do |request_1, request_2|
+    if request_1.headers['Content-Type'].first =~ /application\/json/
+      if request_2.headers['Content-Type'].first =~ /application\/json/
+        request_1_json = begin JSON.parse(request_1.body) rescue 'not-json' end
+        request_2_json = begin JSON.parse(request_2.body) rescue 'not-json' end
+        request_1_json == request_2_json
+      else
+        false
+      end
+    else
+      request_1.body == request_2.body
+    end
+  end
+
+  c.default_cassette_options = {
+      record: if ENV['IS_CI']
+        :none
+      else
+        ENV['RERECORD'] ? :all : :once
+      end,
+      match_requests_on: [:method, :uri, :try_body]
+  }
+
+  # Filter the authorization headers of any request by replacing any occurrence of that request's
+  # Authorization value with <AUTHORIZATION>
+  c.filter_sensitive_data('<AUTHORIZATION>') do |interaction|
+    interaction.request.headers['Authorization'].first
+  end
+end
+
 RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
     mocks.verify_partial_doubles = true
@@ -40,6 +76,20 @@ RSpec.configure do |config|
   config.shared_context_metadata_behavior = :apply_to_host_groups
   config.example_status_persistence_file_path = 'spec/examples.txt'
   #config.warnings = true
+
+  config.before(:suite) do
+    # DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.clean_with(:truncation)
+  end
+
+  config.around(:each) do |example|
+    # Unfortunately, DatabaseCleaner + Sequel does not properly handle the auto_savepointing, which means that
+    # exceptions handled in rescue blocks do not behave correctly in tests (where as they would be fine outside of
+    # tests).  Thus, we are forced to manually handle the transaction wrapping of examples manually to set this option.
+    # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
+    #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
+    Polyphemus.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
+  end
 end
 
 def json_body

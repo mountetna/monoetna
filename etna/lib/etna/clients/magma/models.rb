@@ -8,7 +8,7 @@ require_relative '../../directed_graph'
 module Etna
   module Clients
     class Magma
-      class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, :page, :page_size, keyword_init: true)
+      class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, :page, :page_size, :order, :filter, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)

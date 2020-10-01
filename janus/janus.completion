@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+_janus_completions() {
+local all_completion_names=''
+if [ "${COMP_CWORD}" == "1" ]; then
+all_completion_names='generate_key_pair migrate permit add_project add_user_key add_user console help generate_completion_script'
+COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
+else
+if [ "${COMP_WORDS[1]}" == 'generate_key_pair' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'migrate' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'permit' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'add_project' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'add_user_key' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'add_user' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'console' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'help' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'generate_completion_script' ]; then
+true
+fi
+fi
+}
+complete -F _janus_completions janus
