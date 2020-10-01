@@ -598,6 +598,30 @@ class Polyphemus
     end
   end
 
+  class UpdateAttributesFromCsv < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+    usage 'update_attributes_from_csv <environment> <project_name> <model_name> <filepath>'
+
+    def magma_crud
+      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(
+        magma_client: @environ.magma_client,
+        project_name: @project_name)
+    end
+
+    def execute(env, project_name, model_name, filepath)
+      @environ = environment(env)
+      @project_name = project_name
+
+      update_attributes_workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel.new(
+        magma_crud: magma_crud,
+        project_name: project_name,
+        model_name: model_name,
+        filepath: filepath)
+      update_attributes_workflow.update_attributes
+    end
+  end
+
   class Console < Etna::Command
     usage 'Open a console with a connected Polyphemus instance.'
 
