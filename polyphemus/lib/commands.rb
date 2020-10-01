@@ -2,6 +2,7 @@ require 'date'
 require 'logger'
 require 'rollbar'
 require 'sequel'
+require 'tempfile'
 require_relative 'helpers'
 
 
@@ -42,7 +43,6 @@ class Polyphemus
   class LinkCometBulkRna < Etna::Command
     include WithLogger
     include WithEtnaClients
-    usage 'link_comet_bulk_rna [environment]'
 
     attr_reader :environment
 
@@ -177,16 +177,91 @@ class Polyphemus
     end
   end
 
-  module CopyCommand
+  class CopyMetisFilesCommand < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+
+    def execute(source_env, target_env, source_project, target_project, source_bucket, target_bucket, file_glob_match)
+      download_workflow = Etna::Clients::Metis::MetisDownloadWorkflow.new(
+          metis_client: environment(source_env).metis_client,
+          project_name: source_project,
+          bucket_name: source_bucket,
+      )
+
+      upload_workflow = Etna::Clients::Metis::MetisUploadWorkflow.new(
+          metis_client: environment(target_env).metis_client,
+          project_name: target_project,
+          bucket_name: target_bucket,
+      )
+
+      files = download_workflow.metis_client.find(Etna::Clients::Metis::FindRequest.new(
+          project_name: source_project,
+          bucket_name: source_bucket,
+          params: [
+              Etna::Clients::Metis::FindParam.new(
+                  attribute: 'name',
+                  predicate: 'glob',
+                  value: file_glob_match,
+              )
+          ]
+      )).files.all
+
+      logger.info("Found #{files.length} matches for match '#{file_glob_match}'")
+      tmpfile = Tempfile.new("download-buffer")
+      files.each do |file|
+        logger.info("Beginning download of #{file.file_path}")
+        download_workflow.do_download(tmpfile.path, file) do |progress|
+          # TODO: Maybe add a progress bar?
+        end
+
+        logger.info("Beginning upload of #{file.file_path}")
+        upload_workflow.do_upload(tmpfile.path, file.file_path) do |progress|
+          case progress[0]
+          when :error
+            logger.warn("Error while uploading: #{progress[1].to_s}")
+          else
+          end
+        end
+      end
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+    end
+  end
+
+  class CopyMagmaRecords < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+
+    def execute(source_env, target_env, project_name, *models)
+      workflow = Etna::Clients::Magma::RecordSynchronizationWorkflow.new(
+          target_client: environment(target_env).magma_client,
+          source_client: environment(source_env).magma_client,
+          project_name: project_name,
+      )
+
+      models.each do |model|
+        logger.info("Copying records from #{source_env} #{project_name} #{model} to #{target_env} #{project_name} #{model}")
+        workflow.copy_model(model)
+      end
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+    end
+  end
+
+  module SyncModelsCommand
     def self.included(mod)
-      mod.instance_eval do
+      mod.class_eval do
         include WithEtnaClientsByEnvironment
         include WithLogger
 
-        usage "#{name.snake_case.split(/::/).last} <source_env> <target_env> <source_project> <target_project> <model_name>"
-
         def execute(source_env, target_env, source_project, target_project, model_name)
-          workflow = WORKFLOW.from_api_source(
+          workflow = self.class::WORKFLOW.from_api_source(
               model_name: model_name,
               source_project: source_project,
               source_client: environment(source_env).magma_client,
@@ -207,12 +282,12 @@ class Polyphemus
 
   class ApiCopyModelShallow < Etna::Command
     WORKFLOW = Etna::Clients::Magma::ShallowCopyModelWorkflow
-    include CopyCommand
+    include SyncModelsCommand
   end
 
   class ApiCopyModelDeep < Etna::Command
     WORKFLOW = Etna::Clients::Magma::ModelSynchronizationWorkflow
-    include CopyCommand
+    include SyncModelsCommand
   end
 
   class ApiAddProject < Etna::Command

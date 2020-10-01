@@ -24,7 +24,7 @@ module Etna
 
     def multipart_post(endpoint, content, &block)
       uri = request_uri(endpoint)
-      multipart = Net::HTTP::Post::Multipart.new uri.path, content
+      multipart = Net::HTTP::Post::Multipart.new uri.request_uri, content
       multipart.add_field('Authorization', "Etna #{@token}")
       request(uri, multipart, &block)
     end
@@ -96,7 +96,12 @@ module Etna
 
     def query_request(type, endpoint, params = {}, &block)
       uri = request_uri(endpoint)
-      uri.query = URI.encode_www_form(params)
+
+      if uri.query
+        uri.query += "&" + URI.encode_www_form(params)
+      else
+        uri.query = URI.encode_www_form(params)
+      end
       req = type.new(uri.request_uri, request_params)
       request(uri, req, &block)
     end

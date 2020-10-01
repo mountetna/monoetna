@@ -1,16 +1,17 @@
 require 'net/http/persistent'
 require 'net/http/post/multipart'
 require 'singleton'
+require 'cgi'
 require_relative '../../client'
 require_relative './models'
 
 module Etna
   module Clients
     class Metis
-      def initialize(host:, token:)
+      def initialize(host:, token:, persistent: true)
         raise 'Metis client configuration is missing host.' unless host
         raise 'Metis client configuration is missing token.' unless token
-        @etna_client = ::Etna::Client.new(host, token)
+        @etna_client = ::Etna::Client.new(host, token, persistent: persistent)
       end
 
       def list_all_folders(list_all_folders_request = ListFoldersRequest.new)
@@ -53,6 +54,45 @@ module Etna
           @etna_client.bucket_find(find_request.to_h))
       end
 
+      def download_file(file_or_url = File.new, &block)
+        if file_or_url.instance_of?(File)
+          download_path =  file_or_url.download_path
+        else
+          download_path = file_or_url.sub(%r!^https://[^/]*?/!, '/')
+        end
+
+        @etna_client.get(download_path) do |response|
+          response.read_body(&block)
+        end
+      end
+
+      def upload_start(upload_start_request = UploadStartRequest.new)
+        json = nil
+        @etna_client.post(upload_start_request.upload_path, upload_start_request) do |res|
+          json = JSON.parse(res.body)
+        end
+
+        UploadResponse.new(json)
+      end
+
+      def authorize_upload(authorize_upload_request = AuthorizeUploadRequest.new)
+        json = nil
+        @etna_client.post("/authorize/upload", authorize_upload_request) do |res|
+          json = JSON.parse(res.body)
+        end
+
+        UploadResponse.new(json)
+      end
+
+      def upload_blob(upload_blob_request = UploadBlobRequest.new)
+        json = nil
+        @etna_client.multipart_post(upload_blob_request.upload_path, upload_blob_request.encode_multipart_content) do |res|
+          json = JSON.parse(res.body)
+        end
+
+        UploadResponse.new(json)
+      end
+      
       def copy_files(copy_files_request)
         FilesResponse.new(
           @etna_client.file_bulk_copy(copy_files_request.to_h))
