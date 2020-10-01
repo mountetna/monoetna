@@ -2,7 +2,7 @@
 _polyphemus_completions() {
 local all_completion_names=''
 if [ "${COMP_CWORD}" == "1" ]; then
-all_completion_names='generate_completion_script help migrate link_comet_bulk_rna apply_mvir1rna_seq_attributes copy_metis_files_command api_copy_model_shallow api_copy_model_deep api_add_project cascade_mvir_patient_waiver_to_restricted get_metis_folders find_ipi_bulk_rna_seq_folders link_ipi_flow_wsp console'
+all_completion_names='generate_completion_script help migrate link_comet_bulk_rna apply_mvir1rna_seq_attributes copy_metis_files_command copy_magma_records api_copy_model_shallow api_copy_model_deep api_add_project cascade_mvir_patient_waiver_to_restricted get_metis_folders find_ipi_bulk_rna_seq_folders ipi_add_flow_model link_ipi_flow_wsp link_ipi_flow_fcs ipi_copy_flow_to_integral_dataset set_file_attributes_to_blank update_attributes_from_csv console'
 COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
 else
 if [ "${COMP_WORDS[1]}" == 'generate_completion_script' ]; then
@@ -55,10 +55,69 @@ return
 fi
 true
 fi
+if [ "${COMP_WORDS[1]}" == 'copy_magma_records' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+all_completion_names='production staging development'
+COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
+fi
+if [ "${COMP_CWORD}" == "3" ]; then
+all_completion_names='production staging development'
+COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
+fi
+if [ "${COMP_CWORD}" == "4" ]; then
+COMPREPLY=($(compgen -f "${COMP_WORDS[COMP_CWORD]}"))
+return
+fi
+if [ "${COMP_CWORD}" == "5" ]; then
+COMPREPLY=($(compgen -f "${COMP_WORDS[COMP_CWORD]}"))
+return
+fi
+true
+fi
 if [ "${COMP_WORDS[1]}" == 'api_copy_model_shallow' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+all_completion_names='production staging development'
+COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
+fi
+if [ "${COMP_CWORD}" == "3" ]; then
+all_completion_names='production staging development'
+COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
+fi
+if [ "${COMP_CWORD}" == "4" ]; then
+COMPREPLY=($(compgen -f "${COMP_WORDS[COMP_CWORD]}"))
+return
+fi
+if [ "${COMP_CWORD}" == "5" ]; then
+COMPREPLY=($(compgen -f "${COMP_WORDS[COMP_CWORD]}"))
+return
+fi
+if [ "${COMP_CWORD}" == "6" ]; then
+COMPREPLY=($(compgen -f "${COMP_WORDS[COMP_CWORD]}"))
+return
+fi
 true
 fi
 if [ "${COMP_WORDS[1]}" == 'api_copy_model_deep' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+all_completion_names='production staging development'
+COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
+fi
+if [ "${COMP_CWORD}" == "3" ]; then
+all_completion_names='production staging development'
+COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
+fi
+if [ "${COMP_CWORD}" == "4" ]; then
+COMPREPLY=($(compgen -f "${COMP_WORDS[COMP_CWORD]}"))
+return
+fi
+if [ "${COMP_CWORD}" == "5" ]; then
+COMPREPLY=($(compgen -f "${COMP_WORDS[COMP_CWORD]}"))
+return
+fi
+if [ "${COMP_CWORD}" == "6" ]; then
+COMPREPLY=($(compgen -f "${COMP_WORDS[COMP_CWORD]}"))
+return
+fi
 true
 fi
 if [ "${COMP_WORDS[1]}" == 'api_add_project' ]; then
@@ -73,7 +132,22 @@ fi
 if [ "${COMP_WORDS[1]}" == 'find_ipi_bulk_rna_seq_folders' ]; then
 true
 fi
+if [ "${COMP_WORDS[1]}" == 'ipi_add_flow_model' ]; then
+true
+fi
 if [ "${COMP_WORDS[1]}" == 'link_ipi_flow_wsp' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'link_ipi_flow_fcs' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'ipi_copy_flow_to_integral_dataset' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'set_file_attributes_to_blank' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'update_attributes_from_csv' ]; then
 true
 fi
 if [ "${COMP_WORDS[1]}" == 'console' ]; then
