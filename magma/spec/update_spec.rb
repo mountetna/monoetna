@@ -66,6 +66,7 @@ describe UpdateController do
 
     # we updated updated_at
     expect(project.updated_at).to be_within(0.001).of(later)
+    Timecop.return
   end
 
   it 'updates the identifier' do
