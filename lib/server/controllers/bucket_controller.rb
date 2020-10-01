@@ -77,7 +77,9 @@ class BucketController < Metis::Controller
     query = Metis::Query.new(
       project_name: @params[:project_name],
       bucket: bucket,
-      params: params
+      params: params,
+      limit: limit,
+      offset: offset,
     )
 
     results = query.execute
@@ -85,21 +87,15 @@ class BucketController < Metis::Controller
     files = results[:files]
     folders = results[:folders]
 
-    limit = limit ? limit : [files.length, folders.length].max
-    offset = offset ? offset : 0
-
     file_hashes = file_hashes_with_calculated_paths(
-      offset: offset,
-      limit: limit,
       files: files,
       bucket: bucket,
     )
 
     folder_hashes = folder_hashes_with_calculated_paths(
-      offset: offset,
-      limit: limit,
       target_folders: folders,
-      bucket: bucket)
+      bucket: bucket
+    )
 
     success_json(files: file_hashes, folders: folder_hashes)
   end
