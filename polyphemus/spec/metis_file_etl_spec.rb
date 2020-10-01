@@ -1,5 +1,5 @@
 describe Polyphemus::MetisFileEtl do
-  class TestEtl < Polyphemus::MetisFileEtl
+  class TestMetisEtl < Polyphemus::MetisFileEtl
     def initialize(**args)
       super(project_bucket_pairs: [['ipi', 'data']], limit: 2, **args)
     end
@@ -26,7 +26,7 @@ describe Polyphemus::MetisFileEtl do
   it 'should process metis files, and support reset' do
     VCR.use_cassette('metis_file_etl.e2e') do
       metis_client = Etna::Clients::Metis.new(host: 'https://metis.development.local', token: ENV['TOKEN'] || 'test-token', persistent: false)
-      etl = TestEtl.new(metis_client: metis_client)
+      etl = TestMetisEtl.new(metis_client: metis_client)
       etl.execute('run')
       expect(etl.process_calls.length).to_not eq(0)
       expect(etl.process_calls.length).to_not eq(1)

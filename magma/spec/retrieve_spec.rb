@@ -1,3 +1,6 @@
+Magma.instance.db.loggers << Logger.new($stdout)
+Magma.instance.db.sql_log_level = :debug
+
 describe RetrieveController do
   include Rack::Test::Methods
 
@@ -426,7 +429,27 @@ describe RetrieveController do
   end
 
   context 'pagination' do
-    it 'can order results in terms of pages' do
+    it 'can order by an additional parameter across pages' do
+      labor_list = []
+      labor_list << create(:labor, name: "d")
+      labor_list << create(:labor, name: "a")
+      labor_list << create(:labor, name: "c")
+      labor_list << create(:labor, name: "b")
+
+      retrieve(
+          project_name: 'labors',
+          model_name: 'labor',
+          record_names: 'all',
+          attribute_names: 'all',
+          order: 'updated_at',
+          page: 1,
+          page_size: 2,
+      )
+
+      expect(json_body[:models][:labor][:documents].keys).to eq([:d, :a])
+    end
+
+    it 'can order results for a total query' do
       labor_list = []
       labor_list << create(:labor, name: "a", updated_at: Time.now + 5)
       labor_list << create(:labor, name: "c", updated_at: Time.now - 3)
@@ -451,7 +474,7 @@ describe RetrieveController do
           model_name: 'labor',
           record_names: 'all',
           attribute_names: 'all',
-          order: 'updated_at',
+          order: 'updated_at'
       )
 
       names_by_updated_at = labor_list_by_updated_at.map(&:name).map(&:to_sym)
@@ -511,6 +534,7 @@ describe RetrieveController do
         model_name: 'monster',
         record_names: 'all',
         attribute_names: 'all',
+        order: 'reference_monster',
         page: 3,
         page_size: 3
       )

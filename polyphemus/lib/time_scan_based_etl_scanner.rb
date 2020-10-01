@@ -62,11 +62,9 @@ class Polyphemus
             .map { |r| self.result_id(r) }
             .sort
 
-        # No progress made
         if prefilter_ids == last_batch_ids
           cursor[:seen_ids] += ids
           cursor[:seen_ids].uniq!
-          puts "Oh no! #{last_batch_ids.length} #{results.length}"
           return results
         end
         last_batch_ids = prefilter_ids
@@ -81,7 +79,6 @@ class Polyphemus
         else
           cursor[:seen_ids] = discrete_time_results.map { |r| self.result_id(r) }
           cursor.updated_at = discrete_time_results.map { |r| self.result_updated_at(r) }.max
-          puts "awww yeaaa #{cursor.updated_at}"
           return discrete_time_results
         end
       end

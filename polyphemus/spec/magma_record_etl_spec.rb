@@ -1,5 +1,5 @@
 describe Polyphemus::MagmaRecordEtl do
-  class TestEtl < Polyphemus::MagmaRecordEtl
+  class TestMagmaEtl < Polyphemus::MagmaRecordEtl
     def initialize(**args)
       super(project_model_pairs: [['mvir1', 'timepoint']], limit: 2, **args)
     end
@@ -21,7 +21,7 @@ describe Polyphemus::MagmaRecordEtl do
   it 'should process magma records, and support reset' do
     VCR.use_cassette('magma_record_etl.e2e') do
       magma_client = Etna::Clients::Magma.new(host: 'https://magma.development.local', token: ENV['TOKEN'] || 'test-token', persistent: false)
-      etl = TestEtl.new(magma_client: magma_client)
+      etl = TestMagmaEtl.new(magma_client: magma_client)
       etl.execute('run')
       expect(etl.process_calls.length).to_not eq(0)
       expect(etl.process_calls.length).to_not eq(1)
