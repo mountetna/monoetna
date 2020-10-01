@@ -10,12 +10,20 @@ require 'rollbar'
 module Etna::Application
   def self.included(other)
     other.include Singleton
+    @@application = other
   end
 
   def self.find(klass)
-    Kernel.const_get(
-      klass.name.split('::').first
-    ).instance
+    namespace = klass.name.split('::').first
+    if (namespace_klass = Kernel.const_get(namespace)) && (namespace_klass.respond_to? :instance)
+      return namespace_klass.instance
+    end
+
+    if @@application
+      return @@application.instance
+    end
+
+    raise "Could not find application instance from #{namespace}, maybe set APP_NAME environment variable?"
   end
 
   def self.register(app)
@@ -80,7 +88,7 @@ module Etna::Application
     cmd = cmd.to_sym
     if commands.key?(cmd)
       commands[cmd].setup(config)
-      commands[cmd].execute(*args)
+      commands[cmd].execute(*commands[cmd].fill_in_missing_params(args))
     else
       commands[:help].execute
     end
@@ -91,7 +99,7 @@ module Etna::Application
 
   def commands
     @commands ||= Hash[
-      find_descendents(Etna::Command).map do |c|
+      Etna::Command.descendants.select { |c| c.descendants.empty? }.map do |c|
         cmd = c.new
         [ cmd.name, cmd ]
       end

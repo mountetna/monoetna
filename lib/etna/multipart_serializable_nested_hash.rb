@@ -20,7 +20,12 @@ module Etna
             end
           else
             raise "base_key cannot be empty for a scalar value!" if base_key.length == 0
-            yield [base_key, value.respond_to?(:read) ? UploadIO.new(value, 'application/octet-stream') : value.to_s]
+
+            if value.respond_to?(:read)
+              yield [base_key, UploadIO.new(value, 'application/octet-stream'), {filename: 'blob'}]
+            else
+              yield [base_key, value.to_s]
+            end
           end
         end
 

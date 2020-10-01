@@ -3,7 +3,6 @@ require 'net/http/post/multipart'
 require 'singleton'
 require_relative '../../client'
 require_relative './models'
-require_relative './workflows'
 
 module Etna
   module Clients
