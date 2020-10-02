@@ -64,7 +64,7 @@ module Etna
         end
       end
 
-      class FindRequest < Struct.new(:project_name, :bucket_name, :params, keyword_init: true)
+      class FindRequest < Struct.new(:project_name, :bucket_name, :limit, :offset, :params, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**args)
@@ -179,8 +179,35 @@ module Etna
           raw[:file_path]
         end
 
+        def project_name
+          raw[:project_name]
+        end
+
+        def bucket_name
+          raw[:bucket_name]
+        end
+
+        def download_path
+          raw[:download_url].nil? ?
+              "/#{project_name}/download/#{bucket_name}/#{file_path}" :
+              raw[:download_url].sub(%r!^https://[^/]*?/!, '/')
+        end
+
+        def download_url
+          raw[:download_url] || ''
+        end
+
         def file_name
           raw[:file_name]
+        end
+
+        def updated_at
+          time = raw[:updated_at]
+          time.nil? ? nil : Time.parse(time)
+        end
+
+        def size
+          raw[:size]
         end
       end
 
@@ -198,6 +225,58 @@ module Etna
         def bucket_name
           raw[:bucket_name]
         end
+      end
+
+      class AuthorizeUploadRequest < Struct.new(:project_name, :bucket_name, :file_path, keyword_init: true)
+        include JsonSerializableStruct
+      end
+
+      class UploadStartRequest < Struct.new(:file_size, :action, :metis_uid, :next_blob_size, :upload_path, :next_blob_hash, :reset, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(args)
+          super({ action: UploadAction::START }.update(args))
+        end
+      end
+
+      class UploadBlobRequest < Struct.new(:file_size, :action, :metis_uid, :blob_data, :upload_path, :next_blob_size, :next_blob_hash, :current_byte_position, keyword_init: true)
+        include MultipartSerializableNestedHash
+
+        def initialize(args)
+          super({ action: UploadAction::BLOB }.update(args))
+        end
+
+        def encode_multipart_content(base_key = '')
+          self.class.encode_multipart_content(to_h, base_key)
+        end
+      end
+
+      class UploadResponse
+        attr_reader :raw
+        def initialize(raw = {})
+          @raw = raw
+        end
+
+        def current_byte_position
+          raw['current_byte_position'].to_i
+        end
+
+        def url
+          raw['url'] || ''
+        end
+
+        def next_blob_size
+          raw['next_blob_size'].to_i
+        end
+
+        def upload_path
+          url.sub(%r!^https://[^/]*?/!, '/')
+        end
+      end
+
+      class UploadAction < String
+        START = UploadAction.new("start")
+        BLOB = UploadAction.new("blob")
       end
     end
   end

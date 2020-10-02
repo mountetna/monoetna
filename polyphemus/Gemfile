@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gem 'sequel'
 gem 'pg'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/59e954a6668c7931a77fb8c13d5c33209e7808ea'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/21a4c8e56c94bbc5a58e7ee96354fc77d9e90b48'
 
 group :development, :test do
   gem 'rspec'
@@ -12,4 +12,6 @@ group :development, :test do
   gem 'webmock'
   gem 'debase'
   gem 'ruby-debug-ide'
+  gem 'database_cleaner'
+  gem 'vcr'
 end

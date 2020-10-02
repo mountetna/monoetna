@@ -81,7 +81,7 @@ function addToDigest() {
 }
 function recursiveDigest() {
   if [[ -n "$digestOnly" ]]; then
-     find "$1" -type f -exec md5sum {} \;
+     find "$1" -type f ! -path '*/node_modules/*' -exec md5sum {} \;
      echo
   fi
 }
@@ -89,7 +89,7 @@ function recursiveDigest() {
 # Searches recursively for latest updated file and keeps this variable tracking that file.
 newestFile=$0
 function findNewest() {
-    lastModifiedFile=$(find $1 -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
+    lastModifiedFile=$(find $1 -f ! -path '*/node_modules/*' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
     if [ "$lastModifiedFile" -nt "$newestFile" ]; then
         newestFile="$lastModifiedFile"
      fi

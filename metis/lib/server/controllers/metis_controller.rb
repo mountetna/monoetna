@@ -34,15 +34,14 @@ class Metis
 
     private
 
-    def file_hashes_with_calculated_paths(bucket:, offset:, limit:, files:)
+    def file_hashes_with_calculated_paths(bucket:, files:)
       # Calculate the folder_path, instead of
       #   doing it in the database.
       folder_path_calc = Metis::FolderPathCalculator.new(bucket: bucket)
 
-      paged_files = files.slice(offset, limit)
-      return [] unless paged_files
+      return [] unless files
 
-      paged_files.map { |file|
+      files.map { |file|
         if file.folder
           path = "#{folder_path_calc.get_folder_path(file.folder)}/#{file.file_name}"
         else
@@ -54,20 +53,24 @@ class Metis
       }
     end
 
-    def folder_hashes_with_calculated_paths(bucket:, offset:, limit:, all_folders: nil, target_folders: nil)
+    def folder_hashes_with_calculated_paths(bucket:, limit: nil, offset: 0, all_folders: nil, target_folders: nil)
       # Calculate the folder_path, instead of
       #   doing it in the database.
       folder_path_calc = Metis::FolderPathCalculator.new(all_folders: all_folders, bucket: bucket)
 
       # Sorting folders by depth level makes some subsequent calculations simpler,
       #   especially when not paging. Shallow -> deep
-      sorted_folders = all_folders ? sort_folders_by_depth(
-        all_folders: all_folders,
-        limit: limit,
-        offset: offset
-      ) : target_folders
+      if all_folders
+        sorted_folders = sort_folders_by_depth(
+            limit: limit,
+            offset: offset,
+            all_folders: all_folders,
+        )
+        paged_folders = sorted_folders.slice(offset, limit)
+      else
+        paged_folders = target_folders
+      end
 
-      paged_folders = sorted_folders.slice(offset, limit)
       return [] unless paged_folders
 
       paged_folders.map { |fold|
@@ -85,8 +88,7 @@ class Metis
       folders_by_folder_id = all_folders.group_by { |fold| fold.folder_id }
 
       loop do
-        child_folders = folders_by_folder_id.values_at(
-          *parent_folder_ids).flatten.compact
+        child_folders = folders_by_folder_id.values_at(*parent_folder_ids).flatten.compact
 
         break if child_folders.length == 0
 

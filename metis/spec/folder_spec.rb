@@ -147,7 +147,7 @@ describe FolderController do
         author: 'metis|Metis',
         project_name: 'athena',
         bucket_name: 'files',
-        folder_path: 'blueprints/helmet'
+        folder_path: 'blueprints/helmet',
       )
 
       get('/athena/list_all_folders/files/?offset=1')

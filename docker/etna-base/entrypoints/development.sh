@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 set -e
-set -x
+
+#if [ -n "$VERBOSE" ]; then
+  set -x
+#fi
 
 if [ -z "$SKIP_BUILD" ]; then
   if [ -z "$RELEASE_TEST" ]; then

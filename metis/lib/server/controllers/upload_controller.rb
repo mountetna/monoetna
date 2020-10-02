@@ -183,6 +183,6 @@ class UploadController < Metis::Controller
   private
 
   def metis_uid
-    @request.cookies[Metis.instance.config(:metis_uid_name)]
+    @request.cookies[Metis.instance.config(:metis_uid_name)] || @params[:metis_uid]
   end
 end

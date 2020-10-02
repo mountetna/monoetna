@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+_metis_completions() {
+local all_completion_names=''
+if [ "${COMP_CWORD}" == "1" ]; then
+all_completion_names='generate_completion_script remove_orphan_data_blocks create_db assimilate archive migrate schema console help'
+COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
+else
+if [ "${COMP_WORDS[1]}" == 'generate_completion_script' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'remove_orphan_data_blocks' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'create_db' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'assimilate' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'archive' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'migrate' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'schema' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'console' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'help' ]; then
+true
+fi
+fi
+}
+complete -F _metis_completions metis

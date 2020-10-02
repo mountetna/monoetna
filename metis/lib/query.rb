@@ -5,10 +5,12 @@ require_relative './query_builder'
 
 class Metis
   class Query
-    def initialize(project_name:, bucket:, params:)
+    def initialize(project_name:, bucket:, params:, limit: nil, offset: 0)
       @project_name = project_name
       @bucket = bucket
       @params = params
+      @limit = limit
+      @offset = offset
 
       @files_query = get_query('file')
       @folders_query = get_query('folder')
@@ -37,7 +39,9 @@ class Metis
 
       query_params.length > 0 ? Metis::QueryBuilder.new(
         base_query,
-        query_params
+        query_params,
+        @limit,
+        @offset,
       ) : nil
     end
 
