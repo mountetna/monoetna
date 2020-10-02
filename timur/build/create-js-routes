@@ -10,5 +10,6 @@ if [ -n "$RUN_NPM_INSTALL" ]; then
     echo "Waiting for ruby process to finish bundle install before create_routes can be invoked..."
     wait 1
   done
+  ls -la
   ./bin/timur create_routes
 fi
