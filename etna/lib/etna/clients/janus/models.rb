@@ -79,6 +79,16 @@ module Etna
           @raw = raw
         end
 
+        def user
+          User.new(@raw)
+        end
+      end
+
+      class User
+        def initialize(raw = '')
+          @raw = raw
+        end
+
         def email
           @raw['email']
         end

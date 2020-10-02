@@ -26,23 +26,33 @@ module Etna
         end
 
         def create_janus_project
-          janus_client.add_project(Etna::Clients::Janus::AddProjectRequest(
-            project_name: project_name,
-
+          janus_client.add_project(Etna::Clients::Janus::AddProjectRequest.new(
+            project_name: project.name,
+            project_name_full: project.full_name
           ))
         end
 
         def create!
+        end
+
+        def user
+          janus_client.whoami(Etna::Clients::Janus::WhoAmIRequest.new).user
         end
       end
 
       class Project
         def initialize(project_file)
           @raw = JSON.parse(File.read(project_file), symbolize_names: true)
-          raise "Missing required key, \"project_name\"" if !@raw.has_key
+          raise "Missing required key, \"project_name\"" if !@raw.key?(:project_name)
+          raise "Missing required key, \"project_name_full\"" if !@raw.key?(:project_name_full)
         end
 
-        def project_name
+        def name
+          @raw['project_name']
+        end
+
+        def full_name
+          @raw['project_name_full']
         end
       end
     end
