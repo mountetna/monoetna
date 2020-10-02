@@ -12,10 +12,30 @@ module Etna
         @etna_client = ::Etna::Client.new(host, token, routes_available: false, persistent: persistent)
       end
 
+      def get_project(get_project_request = GetProjectRequest.new)
+        html = nil
+        @etna_client.get(
+          "/project/#{get_project_request.project_name}",
+          get_project_request) do |res|
+          html = res.body
+        end
+
+        HtmlResponse.new(html)
+      end
+
       def add_project(add_project_request = AddProjectRequest.new)
         @etna_client.post('/add_project', add_project_request) do |res|
           # Redirect, no response data
         end
+      end
+
+      def whoami(whoami_request = WhoAmIRequest.new)
+        json = nil
+        @etna_client.get('/whoami', whoami_request) do |res|
+          json = JSON.parse(res.body)
+        end
+
+        UserResponse.new(json)
       end
 
       def update_permission(update_permission_request = UpdatePermissionRequest.new)

@@ -9,12 +9,24 @@ describe 'Janus Client class' do
     stub_janus_setup
   end
 
+  it 'can fetch a project page' do
+    test_class.get_project(Etna::Clients::Janus::GetProjectRequest.new(
+      project_name: 'test'
+    ))
+    expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/project\/test/)
+  end
+
   it 'can add a new project' do
     test_class.add_project(Etna::Clients::Janus::AddProjectRequest.new(
       project_name: 'test',
       project_name_full: 'TestProject1'
     ))
     expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_project/)
+  end
+
+  it 'can fetch a user\'s whoami page' do
+    test_class.whoami(Etna::Clients::Janus::WhoAmIRequest.new)
+    expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/whoami/)
   end
 
   it 'can update permission for a project' do

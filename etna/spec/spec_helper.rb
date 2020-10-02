@@ -203,6 +203,18 @@ def stub_janus_setup
       body: 'a token for you!'
     })
 
+  stub_request(:get, /#{JANUS_HOST}\/project\/#{PROJECT}/)
+    .to_return({
+      status: 200,
+      body: '<html><body>A project</body></html>'
+    })
+
+  stub_request(:get, /#{JANUS_HOST}\/whoami/)
+    .to_return({
+      status: 200,
+      body: '{"email": "janus@twofaces.org"}'
+    })
+
   stub_request(:post, /#{JANUS_HOST}\/add_project/)
     .to_return({
       status: 302
