@@ -17,5 +17,5 @@ if [ -n "$RUN_NPM_INSTALL" ]; then
     rm config.yml
   else
     ./bin/timur create_routes
-  end
+  fi
 fi
