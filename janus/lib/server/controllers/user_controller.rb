@@ -20,6 +20,17 @@ class UserController < Janus::Controller
     success('User Public Key updated')
   end
 
+  def whoami
+    # At some point, it might be useful to also include permissions / tokens.
+    # For now, I'm just sending back the email and first / last name for
+    #   project creation.
+    success({
+      email: @user.email,
+      first: @user.first,
+      last: @user.last
+    }.to_json)
+  end
+
   def refresh_token
     @janus_user = User[email: @user.email]
 

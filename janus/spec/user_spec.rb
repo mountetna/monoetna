@@ -269,4 +269,20 @@ describe UserController do
       expect(last_response.status).to eq(403)
     end
   end
+
+  context '#who_am_i' do
+    it 'returns a user\'s account information' do
+      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+
+      auth_header(:janus)
+      get('/whoami')
+
+      expect(last_response.status).to eq(200)
+      expect(json_body).to eq({
+        email: user.email,
+        first: user.first_name,
+        last: user.last_name
+      })
+    end
+  end
 end
