@@ -8,13 +8,13 @@ docker-compose.yml:: $(wildcard ../docker/*.shared.yml) ../docker/default_compos
 	COMPOSE_MIXINS="$(COMPOSE_MIXINS)" ../docker/default_compose docker-compose.yml
 
 .PHONY: images
-images: docker-compose.yml
+images: config-ready docker-compose.yml
 	@ make -C ../docker build
 
 config-ready:: docker-compose.yml
 	@ true
 
-docker-ready:: images config-ready
+docker-ready:: images
 	@ true
 
 up:: docker-ready

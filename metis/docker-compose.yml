@@ -5,14 +5,14 @@ x-base-etna-service: &base-etna-service
   # Base configuration used by most etna services.
   image: etna-base
   volumes: &base-etna-service-volumes
-    - .:/app:cached
+    - .:/app:delegated
     - app-gems:/app/vendor/bundle:rw
     - log-dir:/app/log:rw
     - tmp-dir:/app/tmp:rw
     - public-dir:/app/public:rw
     - data-dir:/app/data:rw
     - opt-dir:/usr/opt:rw
-    - ../etna:/etna:cached
+    - ../etna:/etna:delegated
   environment: &base-etna-env
     "METIS_ENV": "development"
     APP_NAME: "metis"
