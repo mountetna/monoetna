@@ -65,7 +65,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel do
 
     expect {
       workflow.update_attributes
-    }.to raise_error(RuntimeError, 'Invalid model name: ""')
+    }.to raise_error(RuntimeError, 'Invalid model name: "".')
 
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end
@@ -192,14 +192,16 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel do
   end
 
   it 'raises exception for nil record names' do
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel.new(
+      magma_crud: magma_crud,
+      project_name: PROJECT,
+      model_name: 'model_two',
+      filepath: './spec/fixtures/magma/magma_update_attributes_single_model_no_record_name.csv'
+    )
+
     expect {
-      Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel.new(
-        magma_crud: magma_crud,
-        project_name: PROJECT,
-        model_name: 'fake_model',
-        filepath: './spec/fixtures/magma/magma_update_attributes_single_model_no_record_name.csv'
-      )
-    }.to raise_error(RuntimeError, 'Invalid model fake_model for project test.')
+      workflow.update_attributes
+    }.to raise_error(RuntimeError, 'Invalid record name: "".')
 
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end

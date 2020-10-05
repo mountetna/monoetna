@@ -69,7 +69,7 @@ module Etna
 
             model_name = row[0]
 
-            raise "Invalid model name: \"#{model_name}\"" unless model_name
+            raise "Invalid model name: \"#{model_name}\"." unless model_name
 
             model_name.strip!
 
@@ -110,7 +110,7 @@ module Etna
           CSV.parse(File.read(filepath), headers: true).map do |row|
             # Assumes CSV includes a column header to identify the attribute_name
             # Assumes index 0 is the record_name
-            raise "Invalid record name: \"#{row[0]}\"" unless row[0]
+            raise "Invalid record name: \"#{row[0]}\"." unless row[0]
 
             yield [model_name, row[0].strip, consolidate_attributes_to_hash(row)]
           end
