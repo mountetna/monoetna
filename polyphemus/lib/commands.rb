@@ -4,7 +4,9 @@ require 'rollbar'
 require 'sequel'
 require 'tempfile'
 require_relative 'helpers'
-
+require_relative 'data_processing/xml_dsl'
+require_relative 'data_processing/magma_dsl'
+require_relative 'data_processing/flow_jo_dsl'
 
 class Polyphemus
   class Help < Etna::Command
@@ -456,6 +458,32 @@ class Polyphemus
     end
   end
 
+  class RunEtlScript < Etna::Command
+    include WithEtnaClients
+
+    def execute(project_name, file_path)
+      EtlDsl.new(project_name: project_name, magma_client: magma_client).run(file_path)
+    end
+
+    class EtlDsl
+      include XMLDsl
+      include MagmaDsl
+      include FlowJoDsl
+
+      def initialize(magma_client:, project_name:)
+        @magma_client = magma_client
+        @project_name = project_name
+      end
+
+      def run(file_path)
+        File.open(file_path, 'r') do |f|
+          script = f.read
+          eval(script, nil, file_path)
+        end
+      end
+    end
+  end
+
   class FindIpiBulkRnaSeqFolders < Etna::Command
     include WithEtnaClients
 
@@ -469,14 +497,15 @@ class Polyphemus
       folders = metis_client.find(
           Etna::Clients::Metis::FindRequest.new(
             project_name: 'ipi',
-            bucket_name: 'integral_data',
+            bucket_name: 'data_integrity',
             params: [Etna::Clients::Metis::FindParam.new(
               attribute: 'name',
               predicate: 'glob',
-              value: 'BulkRNASeq/IPI*',
-              type: 'folder'
+              value: '*.wsp',
+              type: 'file'
             )])).folders.all
-      puts "Found a total of #{folders.length} BulkRNASeq folders in the IPI integral_data bucket"
+      p folders
+      # puts "Found a total of #{folders.length} BulkRNASeq folders in the IPI integral_data bucket"
     end
 
     def setup(config)
