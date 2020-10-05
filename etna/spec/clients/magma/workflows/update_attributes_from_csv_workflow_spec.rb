@@ -1,6 +1,6 @@
 require 'webmock/rspec'
 require 'json'
-require 'pry'
+
 describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel do
   let(:magma_client) {Etna::Clients::Magma.new(
       token: '123',

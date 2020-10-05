@@ -153,7 +153,9 @@ module Etna
           end
 
           def to_h
-            # Row can be converted to a hash, where keys are attribute_names and
+            # Row can be converted to a hash, where keys are attribute_names and the
+            #   values come from the CSV
+            # {attribute_name: attribute_value}
             {}.tap do |attributes|
               row_hash = @raw.to_h
               row_keys = row_hash.keys
