@@ -56,6 +56,20 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel do
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end
 
+  it 'raises exception for no model name' do
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel.new(
+      magma_crud: magma_crud,
+      project_name: PROJECT,
+      filepath: './spec/fixtures/magma/magma_update_attributes_no_model_name.csv'
+    )
+
+    expect {
+      workflow.update_attributes
+    }.to raise_error(RuntimeError, 'No model name provided: [nil, "234", "height", "100.9"]')
+
+    expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
+  end
+
   it 'raises exception for invalid models' do
     workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel.new(
       magma_crud: magma_crud,
@@ -65,7 +79,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel do
 
     expect {
       workflow.update_attributes
-    }.to raise_error(RuntimeError, 'Invalid model fake_model for project test.')
+    }.to raise_error(RuntimeError, 'Invalid model "fake_model" for project test.')
 
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end
@@ -88,6 +102,24 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel do
         "xyz" => {"name" => "First model of the day"},
         "098" => {"name" => ""},
       }
+    })
+
+    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+  end
+
+  it 'trims whitespace from entries' do
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel.new(
+      magma_crud: magma_crud,
+      project_name: PROJECT,
+      filepath: './spec/fixtures/magma/magma_update_attributes_extra_whitespace.csv'
+    )
+
+    workflow.update_attributes
+
+    expect(updates).to eq({
+      "model_two" => {
+        "234" => {"height" => "64.2"}
+      },
     })
 
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -159,12 +191,45 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel do
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end
 
+  it 'raises exception for nil record names' do
+    expect {
+      Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel.new(
+        magma_crud: magma_crud,
+        project_name: PROJECT,
+        model_name: 'fake_model',
+        filepath: './spec/fixtures/magma/magma_update_attributes_single_model_no_record_name.csv'
+      )
+    }.to raise_error(RuntimeError, 'Invalid model fake_model for project test.')
+
+    expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
+  end
+
   it 'sends valid revisions to magma' do
     workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel.new(
       magma_crud: magma_crud,
       project_name: PROJECT,
       model_name: 'model_two',
       filepath: './spec/fixtures/magma/magma_update_attributes_single_model_valid.csv'
+    )
+
+    workflow.update_attributes
+
+    expect(updates).to eq({
+      "model_two" => {
+        "234" => {"name" => "Record #234","strength" => "5", "invisible" => "false"},
+        "123" => {"name" => "Record #123","strength" => "2","invisible" => "true"}
+      }
+    })
+
+    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+  end
+
+  it 'trims whitespace from entries' do
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel.new(
+      magma_crud: magma_crud,
+      project_name: PROJECT,
+      model_name: 'model_two',
+      filepath: './spec/fixtures/magma/magma_update_attributes_single_model_extra_whitespace.csv'
     )
 
     workflow.update_attributes
@@ -189,7 +254,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel do
 
     expect {
       workflow.update_attributes
-    }.to raise_error(RuntimeError, 'Invalid attribute weight for model model_two.')
+    }.to raise_error(RuntimeError, 'Invalid attribute "weight" for model model_two.')
 
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end
