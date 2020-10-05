@@ -1,6 +1,15 @@
 # monoetna
 mono-repository version of etna projects
 
+## Setup for Mac
+
+You'll need `homebrew` and to install a few extra items.  Most tools are developed for linux, and thus
+there are some minor discrepancies that need to be addressed for mac.
+
+First off, you'll nee to install `homebrew install coreutils` to get the base set of gnu tools.
+Secondly, you may need `homebrew install findutils` as well.  Try running `type -p gfind || echo need findutils!` to determine
+if you need to install findutils as well.
+
 ## Directory Structure
 
 Top Level directories fall into one of three types:
