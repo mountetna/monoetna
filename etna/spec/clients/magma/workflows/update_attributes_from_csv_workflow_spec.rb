@@ -1,6 +1,6 @@
 require 'webmock/rspec'
 require 'json'
-
+require 'pry'
 describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel do
   let(:magma_client) {Etna::Clients::Magma.new(
       token: '123',
@@ -52,6 +52,38 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel do
     }.to raise_error(
       RuntimeError,
       'Invalid revision row ["model_two", "123", "name", "Record #123", "strength", "2", "invisible"]. Must have an even number of columns.')
+
+    expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
+  end
+
+  it 'raises exception for no attribute name' do
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel.new(
+      magma_crud: magma_crud,
+      project_name: PROJECT,
+      filepath: './spec/fixtures/magma/magma_update_attributes_no_attribute_name.csv'
+    )
+
+    expect {
+      workflow.update_attributes
+    }.to raise_error(
+      RuntimeError,
+      'Invalid attribute name: "".')
+
+    expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
+  end
+
+  it 'raises exception for no record name' do
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel.new(
+      magma_crud: magma_crud,
+      project_name: PROJECT,
+      filepath: './spec/fixtures/magma/magma_update_attributes_no_record_name.csv'
+    )
+
+    expect {
+      workflow.update_attributes
+    }.to raise_error(
+      RuntimeError,
+      'Invalid record name: "".')
 
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end
@@ -202,6 +234,21 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel do
     expect {
       workflow.update_attributes
     }.to raise_error(RuntimeError, 'Invalid record name: "".')
+
+    expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
+  end
+
+  it 'raises exception for no attribute names' do
+    workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel.new(
+      magma_crud: magma_crud,
+      project_name: PROJECT,
+      model_name: 'model_two',
+      filepath: './spec/fixtures/magma/magma_update_attributes_single_model_no_attribute_name.csv'
+    )
+
+    expect {
+      workflow.update_attributes
+    }.to raise_error(RuntimeError, 'Invalid attribute name: "".')
 
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end

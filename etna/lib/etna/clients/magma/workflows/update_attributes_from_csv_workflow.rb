@@ -50,8 +50,14 @@ module Etna
           end
         end
 
+        # These could get moved into a Row class. But probably need one for
+        #   multiple model and one per single model.
         def stripped_value(attribute_value)
           attribute_value ? attribute_value.strip : attribute_value
+        end
+
+        def nil_or_empty?(value)
+          value.nil? || value.empty?
         end
       end
 
@@ -69,13 +75,17 @@ module Etna
 
             model_name = row[0]
 
-            raise "Invalid model name: \"#{model_name}\"." unless model_name
+            raise "Invalid model name: \"#{model_name}\"." if nil_or_empty?(model_name)
 
             model_name.strip!
 
             raise "Invalid model \"#{model_name}\" for project #{project_name}." unless model_exists?(model_name)
 
-            yield [model_name, row[1].strip, consolidate_attributes_to_hash(row)]
+            record_name = row[1]
+
+            raise "Invalid record name: \"#{record_name}\"." if nil_or_empty?(record_name)
+
+            yield [model_name, record_name.strip, consolidate_attributes_to_hash(row)]
           end
         end
 
@@ -86,9 +96,10 @@ module Etna
           {}.tap do |attributes|
             (2..(row.length - 1)).to_a.each do |index|
               if index.even?
-                attribute_name = row[index].strip
+                attribute_name = row[index]
 
-                next if attribute_name.empty?
+                raise "Invalid attribute name: \"#{attribute_name}\"." if nil_or_empty?(attribute_name)
+                attribute_name.strip!
                 model_name = row[0].strip
                 raise "Invalid attribute #{attribute_name} for model #{model_name}." unless attribute = find_attribute(model_name, attribute_name)
 
@@ -110,7 +121,7 @@ module Etna
           CSV.parse(File.read(filepath), headers: true).map do |row|
             # Assumes CSV includes a column header to identify the attribute_name
             # Assumes index 0 is the record_name
-            raise "Invalid record name: \"#{row[0]}\"." unless row[0]
+            raise "Invalid record name: \"#{row[0]}\"." if nil_or_empty?(row[0])
 
             yield [model_name, row[0].strip, consolidate_attributes_to_hash(row)]
           end
@@ -122,6 +133,9 @@ module Etna
             row_hash = row.to_h
             row_keys = row_hash.keys
             row_keys[1..row_keys.length - 1].each do |attribute_name|
+
+              raise "Invalid attribute name: \"#{attribute_name}\"." if nil_or_empty?(attribute_name)
+
               attribute_name_clean = attribute_name.strip
               raise "Invalid attribute \"#{attribute_name_clean}\" for model #{model_name}." unless attribute = find_attribute(model_name, attribute_name_clean)
 
