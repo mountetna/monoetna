@@ -65,7 +65,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel do
 
     expect {
       workflow.update_attributes
-    }.to raise_error(RuntimeError, 'No model name provided: [nil, "234", "height", "100.9"]')
+    }.to raise_error(RuntimeError, 'Invalid model name: ""')
 
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end

@@ -69,7 +69,7 @@ module Etna
 
             model_name = row[0]
 
-            raise "No model name provided: #{row}" unless model_name
+            raise "Invalid model name: \"#{model_name}\"" unless model_name
 
             model_name.strip!
 
