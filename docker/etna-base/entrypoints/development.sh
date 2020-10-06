@@ -14,6 +14,14 @@ if [ -z "$SKIP_BUILD" ]; then
 
   rm -f tmp/pids/*.pid
 
+  if [ -z "$SKIP_RUBY_SETUP" ]; then
+    if [ -z "$SKIP_DB_WAIT" ]; then
+      #Sometimes during startup the cpu can be slammed for all the servies, so we need to wait
+      # a decent amount of time for all pieces to come up.
+      dockerize -wait tcp://${APP_NAME}_db:5432 -timeout 500s
+    fi
+  fi
+
   if [ -e /app/development ]; then
     for hook in /app/development/*; do
       [ -x "$hook" ] && $hook
@@ -22,9 +30,6 @@ if [ -z "$SKIP_BUILD" ]; then
 
   if [ -z "$SKIP_RUBY_SETUP" ]; then
     if [ -z "$SKIP_DB_WAIT" ]; then
-      #Sometimes during startup the cpu can be slammed for all the servies, so we need to wait
-      # a decent amount of time for all pieces to come up.
-      dockerize -wait tcp://${APP_NAME}_db:5432 -timeout 300s
       ./bin/${APP_NAME} migrate
     fi
   fi

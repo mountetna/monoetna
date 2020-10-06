@@ -51,7 +51,7 @@ release:: ## Builds static docker images staged for release, runs tests against 
 	@ true
 
 .PHONY: release-build
-release-build::
+release-build:: config-ready
 	@ true
 
 .PHONY: release-test
