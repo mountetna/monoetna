@@ -16,7 +16,7 @@
         },
         "restricted": {
           "attribute_name": "restricted",
-          "description": "Controls access to the data.",
+          "desc": "Controls access to the data.",
           "display_name": "Restricted",
           "attribute_type": "boolean"
         },
@@ -42,27 +42,27 @@
       "parent_link_type": "collection",
       "identifier": "name",
       "attributes": {
-        "document_description": {
-          "attribute_name": "document_description",
-          "description": "Description",
-          "display_name": "Document description",
+        "document_desc": {
+          "attribute_name": "document_desc",
+          "desc": "Description",
+          "display_name": "Document desc",
           "attribute_type": "string"
         },
         "version": {
           "attribute_name": "version",
-          "description": "Version",
+          "desc": "Version",
           "display_name": "Version",
           "attribute_type": "float"
         },
         "file": {
           "attribute_name": "file",
-          "description": "File",
+          "desc": "File",
           "display_name": "File",
           "attribute_type": "file"
         },
         "version_date": {
           "attribute_name": "version_date",
-          "description": "Version date",
+          "desc": "Version date",
           "display_name": "Version date",
           "attribute_type": "date_time"
         }
@@ -78,15 +78,9 @@
           "display_name": "Biospecimen",
           "attribute_type": "string"
         },
-        "assay": {
-          "attribute_name": "assay",
-          "link_model_name": "assay",
-          "display_name": "Assay",
-          "attribute_type": "collection"
-        },
         "cells_loaded": {
           "attribute_name": "cells_loaded",
-          "description": "Number of cells loaded into the whatchamacallit.",
+          "desc": "Number of cells loaded into the whatchamacallit.",
           "display_name": "Cells Loaded",
           "attribute_type": "integer"
         }
@@ -97,23 +91,17 @@
       "parent_link_type": "collection",
       "identifier": "name",
       "attributes": {
-        "timepoint": {
-          "attribute_name": "timepoint",
-          "link_model_name": "timepoint",
-          "display_name": "Timepoint",
-          "attribute_type": "collection"
-        },
         "status": {
           "attribute_name": "status",
           "link_model_name": "status",
-          "description": "Status at admission",
+          "desc": "Status at admission",
           "display_name": "Status",
           "attribute_type": "table"
         },
         "symptom": {
           "attribute_name": "symptom",
           "link_model_name": "symptom",
-          "description": "Related symptoms",
+          "desc": "Related symptoms",
           "display_name": "Symptom",
           "attribute_type": "table"
         }
@@ -121,37 +109,17 @@
     },
     "project": {
       "identifier": "name",
-      "attributes": {
-        "patient": {
-          "attribute_name": "patient",
-          "link_model_name": "patient",
-          "display_name": "Patient",
-          "attribute_type": "collection"
-        },
-        "document": {
-          "attribute_name": "document",
-          "link_model_name": "document",
-          "display_name": "Document",
-          "attribute_type": "collection"
-        },
-        "assay_pool": {
-          "attribute_name": "assay_pool",
-          "link_model_name": "assay_pool",
-          "display_name": "Assay Pool",
-          "attribute_type": "collection"
-        }
-      }
+      "attributes": {}
     },
     "timepoint": {
       "parent_model_name": "patient",
       "parent_link_type": "collection",
       "identifier": "name",
       "attributes": {
-        "assay": {
-          "attribute_name": "assay",
-          "link_model_name": "assay",
-          "display_name": "Assay",
-          "attribute_type": "collection"
+        "day": {
+          "attribute_name": "day",
+          "display_name": "Day",
+          "attribute_type": "integer"
         }
       }
     }
