@@ -1,0 +1,159 @@
+{
+  "project_name": "test1",
+  "project_name_full": "Testing your immune system",
+  "models": {
+    "assay_name": {
+      "parent_model_name": "timepoint",
+      "parent_link_type": "collection",
+      "identifier": "tube_name",
+      "attributes": {
+        "tube_name": {
+          "attribute_name": "tube_name",
+          "validation": {
+            "type": "Regexp",
+            "value": "^[a-zA-Z]$"
+          }
+        },
+        "restricted": {
+          "attribute_name": "restricted",
+          "description": "Controls access to the data.",
+          "display_name": "Restricted",
+          "attribute_type": "boolean"
+        },
+        "assay_pool": {
+          "attribute_name": "assay_pool",
+          "link_model_name": "assay_pool",
+          "display_name": "Assay Pool",
+          "attribute_type": "link"
+        },
+        "vendor": {
+          "attribute_name": "vendor",
+          "display_name": "Vendor",
+          "validation": {
+            "type": "Array",
+            "value": ["Acme"]
+          },
+          "attribute_type": "string"
+        }
+      }
+    },
+    "document": {
+      "parent_model_name": "project",
+      "parent_link_type": "collection",
+      "identifier": "name",
+      "attributes": {
+        "document_description": {
+          "attribute_name": "document_description",
+          "description": "Description",
+          "display_name": "Document description",
+          "attribute_type": "string"
+        },
+        "version": {
+          "attribute_name": "version",
+          "description": "Version",
+          "display_name": "Version",
+          "attribute_type": "float"
+        },
+        "file": {
+          "attribute_name": "file",
+          "description": "File",
+          "display_name": "File",
+          "attribute_type": "file"
+        },
+        "version_date": {
+          "attribute_name": "version_date",
+          "description": "Version date",
+          "display_name": "Version date",
+          "attribute_type": "date_time"
+        }
+      }
+    },
+    "assay_pool": {
+      "parent_model_name": "project",
+      "parent_link_type": "collection",
+      "identifier": "assay_pool",
+      "attributes": {
+        "biospecimen": {
+          "attribute_name": "biospecimen",
+          "display_name": "Biospecimen",
+          "attribute_type": "string"
+        },
+        "assay": {
+          "attribute_name": "assay",
+          "link_model_name": "assay",
+          "display_name": "Assay",
+          "attribute_type": "collection"
+        },
+        "cells_loaded": {
+          "attribute_name": "cells_loaded",
+          "description": "Number of cells loaded into the whatchamacallit.",
+          "display_name": "Cells Loaded",
+          "attribute_type": "integer"
+        }
+      }
+    },
+    "patient": {
+      "parent_model_name": "project",
+      "parent_link_type": "collection",
+      "identifier": "name",
+      "attributes": {
+        "timepoint": {
+          "attribute_name": "timepoint",
+          "link_model_name": "timepoint",
+          "display_name": "Timepoint",
+          "attribute_type": "collection"
+        },
+        "status": {
+          "attribute_name": "status",
+          "link_model_name": "status",
+          "description": "Status at admission",
+          "display_name": "Status",
+          "attribute_type": "table"
+        },
+        "symptom": {
+          "attribute_name": "symptom",
+          "link_model_name": "symptom",
+          "description": "Related symptoms",
+          "display_name": "Symptom",
+          "attribute_type": "table"
+        }
+      }
+    },
+    "project": {
+      "identifier": "name",
+      "attributes": {
+        "patient": {
+          "attribute_name": "patient",
+          "link_model_name": "patient",
+          "display_name": "Patient",
+          "attribute_type": "collection"
+        },
+        "document": {
+          "attribute_name": "document",
+          "link_model_name": "document",
+          "display_name": "Document",
+          "attribute_type": "collection"
+        },
+        "assay_pool": {
+          "attribute_name": "assay_pool",
+          "link_model_name": "assay_pool",
+          "display_name": "Assay Pool",
+          "attribute_type": "collection"
+        }
+      }
+    },
+    "timepoint": {
+      "parent_model_name": "patient",
+      "parent_link_type": "collection",
+      "identifier": "name",
+      "attributes": {
+        "assay": {
+          "attribute_name": "assay",
+          "link_model_name": "assay",
+          "display_name": "Assay",
+          "attribute_type": "collection"
+        }
+      }
+    }
+  }
+}

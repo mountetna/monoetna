@@ -1,5 +1,4 @@
 {
-  "project_name": "test1",
   "project_name_full": "Testing your immune system",
   "models": {
     "assay_name": {
@@ -120,6 +119,7 @@
       }
     },
     "project": {
+      "identifier": "name",
       "attributes": {
         "patient": {
           "attribute_name": "patient",

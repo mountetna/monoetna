@@ -28,11 +28,13 @@ module Etna
         def create_janus_project
           janus_client.add_project(Etna::Clients::Janus::AddProjectRequest.new(
             project_name: project.name,
-            project_name_full: project.full_name
+            project_name_full: project.name_full
           ))
         end
 
         def create!
+          create_project_models
+          update_model_attributes
         end
 
         def user
@@ -40,19 +42,66 @@ module Etna
         end
       end
 
-      class Project
-        def initialize(project_file)
-          @raw = JSON.parse(File.read(project_file), symbolize_names: true)
-          raise "Missing required key, \"project_name\"" if !@raw.key?(:project_name)
-          raise "Missing required key, \"project_name_full\"" if !@raw.key?(:project_name_full)
+      class JsonProject
+        def initialize(filepath:)
+          @raw = JSON.parse(File.read(filepath), symbolize_names: true)
+          validate
         end
 
         def name
-          @raw['project_name']
+          @raw[:project_name]
         end
 
-        def full_name
-          @raw['project_name_full']
+        def name_full
+          @raw[:project_name_full]
+        end
+
+        def models
+          @models ||= @raw[:models].map { |model_name, model_def|
+            JsonModel.new(model_name, model_def) }
+        end
+
+        def validate
+          validate_project_names
+          validate_models
+        end
+
+        def validate_project_names
+          raise "Missing required key for root project, \"project_name\"." if !@raw.key?(:project_name)
+          raise "Missing required key for root project, \"project_name_full\"." if !@raw.key?(:project_name_full)
+        end
+
+        def validate_models
+          models
+        end
+      end
+
+      class JsonModel
+        attr_reader :name
+        def initialize(model_name, raw)
+          @name = model_name
+          @raw = raw
+          validate
+        end
+
+        def validate
+          validate_add_model_data
+          validate_attributes
+        end
+
+        def validate_add_model_data
+          raise "Missing required key for model #{name}, \"identifier\"." if !@raw.key?(:identifier)
+          if name != 'project'
+            raise "Missing required key for model #{name}, \"parent_model_name\"." if !@raw.key?(:parent_model_name)
+            raise "Missing required key for model #{name}, \"parent_link_type\"." if !@raw.key?(:parent_link_type)
+          end
+        end
+
+        def validate_attributes
+          # Check that attribute types are supported
+          # Check that any validations are supported
+          # Check that parent_link_type and link_types are supported
+          # Make sure that all parent models are defined
         end
       end
     end
