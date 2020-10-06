@@ -23,12 +23,14 @@
         "assay_pool": {
           "attribute_name": "assay_pool",
           "link_model_name": "assay_pool",
+          "desc": "Assay pool",
           "display_name": "Assay Pool",
           "attribute_type": "link"
         },
         "vendor": {
           "attribute_name": "vendor",
           "display_name": "Vendor",
+          "desc": "Vendor of the equipment",
           "validation": {
             "type": "Array",
             "value": ["Acme"]
@@ -75,6 +77,7 @@
       "attributes": {
         "biospecimen": {
           "attribute_name": "biospecimen",
+          "desc": "Type of biospecimen collected",
           "display_name": "Biospecimen",
           "attribute_type": "string"
         },
@@ -119,6 +122,7 @@
         "day": {
           "attribute_name": "day",
           "display_name": "Day",
+          "desc": "Study day",
           "attribute_type": "integer"
         }
       }

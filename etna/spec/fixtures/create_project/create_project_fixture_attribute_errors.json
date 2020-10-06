@@ -10,8 +10,7 @@
         "tube_name": {
           "attribute_name": "tube_name",
           "validation": {
-            "type": "Regexp",
-            "value": "^[a-zA-Z]$"
+            "type": "Regexp"
           }
         },
         "restricted": {
@@ -22,17 +21,15 @@
         },
         "assay_pool": {
           "attribute_name": "assay_pool",
-          "link_model_name": "assay_pool",
-          "desc": "Assay pool",
+          "link_model_name": "pool_deep_end",
           "display_name": "Assay Pool",
           "attribute_type": "link"
         },
         "vendor": {
           "attribute_name": "vendor",
           "display_name": "Vendor",
-          "desc": "Vendor of the equipment",
           "validation": {
-            "type": "Array",
+            "type": "Lo que sea",
             "value": ["Acme"]
           },
           "attribute_type": "string"
@@ -48,13 +45,13 @@
           "attribute_name": "document_desc",
           "desc": "Description",
           "display_name": "Document desc",
-          "attribute_type": "string"
+          "attribute_type": ""
         },
         "version": {
           "attribute_name": "version",
           "desc": "Version",
           "display_name": "Version",
-          "attribute_type": "float"
+          "attribute_type": "copacetic"
         },
         "file": {
           "attribute_name": "file",
@@ -66,7 +63,7 @@
           "attribute_name": "version_date",
           "desc": "Version date",
           "display_name": "Version date",
-          "attribute_type": "date_time"
+          "attribute_type": "date"
         }
       }
     },
@@ -77,15 +74,22 @@
       "attributes": {
         "biospecimen": {
           "attribute_name": "biospecimen",
-          "desc": "Type of biospecimen collected",
           "display_name": "Biospecimen",
-          "attribute_type": "string"
+          "validation": {
+            "type": "Regexp",
+            "value": ""
+          }
         },
         "cells_loaded": {
           "attribute_name": "cells_loaded",
           "desc": "Number of cells loaded into the whatchamacallit.",
-          "display_name": "Cells Loaded",
           "attribute_type": "integer"
+        },
+        "project": {
+          "attribute_name": "project",
+          "link_model_name": "project",
+          "display_name": "Project",
+          "attribute_type": "link"
         }
       }
     },
@@ -122,7 +126,6 @@
         "day": {
           "attribute_name": "day",
           "display_name": "Day",
-          "desc": "Study day",
           "attribute_type": "integer"
         }
       }
