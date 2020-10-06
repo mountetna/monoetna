@@ -1,9 +1,9 @@
 {
+  "project_name": "test1",
   "project_name_full": "Testing your immune system",
   "models": {
     "assay_name": {
       "parent_model_name": "timepoint",
-      "parent_link_type": "collection",
       "identifier": "tube_name",
       "attributes": {
         "tube_name": {
@@ -37,8 +37,6 @@
       }
     },
     "document": {
-      "parent_model_name": "project",
-      "parent_link_type": "collection",
       "identifier": "name",
       "attributes": {
         "document_desc": {
@@ -70,7 +68,6 @@
     "assay_pool": {
       "parent_model_name": "project",
       "parent_link_type": "collection",
-      "identifier": "assay_pool",
       "attributes": {
         "biospecimen": {
           "attribute_name": "biospecimen",
@@ -86,7 +83,6 @@
       }
     },
     "patient": {
-      "parent_model_name": "project",
       "parent_link_type": "collection",
       "identifier": "name",
       "attributes": {
@@ -107,20 +103,12 @@
       }
     },
     "project": {
-      "identifier": "name",
       "attributes": {}
     },
     "timepoint": {
       "parent_model_name": "patient",
       "parent_link_type": "collection",
-      "identifier": "name",
-      "attributes": {
-        "day": {
-          "attribute_name": "day",
-          "display_name": "Day",
-          "attribute_type": "integer"
-        }
-      }
+      "identifier": "name"
     }
   }
 }

@@ -1,5 +1,4 @@
 {
-  "project_name": "test1",
   "models": {
     "assay_name": {
       "parent_model_name": "timepoint",

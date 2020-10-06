@@ -23,6 +23,7 @@ module Etna
         def initialize(**params)
           super({}.update(params))
           @project = Project.new(project_file)
+          raise "Project JSON has errors", project.errors unless project.valid?
         end
 
         def create_janus_project
@@ -43,8 +44,10 @@ module Etna
       end
 
       class JsonProject
+        attr_reader :errors
         def initialize(filepath:)
           @raw = JSON.parse(File.read(filepath), symbolize_names: true)
+          @errors = []
           validate
         end
 
@@ -66,9 +69,13 @@ module Etna
           validate_models
         end
 
+        def valid?
+          errors.length == 0
+        end
+
         def validate_project_names
-          raise "Missing required key for root project, \"project_name\"." if !@raw.key?(:project_name)
-          raise "Missing required key for root project, \"project_name_full\"." if !@raw.key?(:project_name_full)
+          errors << "Missing required key for root project, \"project_name\"." if !@raw.key?(:project_name)
+          errors << "Missing required key for root project, \"project_name_full\"." if !@raw.key?(:project_name_full)
         end
 
         def validate_models
@@ -91,7 +98,7 @@ module Etna
 
         def validate_add_model_data
           raise "Missing required key for model #{name}, \"identifier\"." if !@raw.key?(:identifier)
-          if name != 'project'
+          if name != :project
             raise "Missing required key for model #{name}, \"parent_model_name\"." if !@raw.key?(:parent_model_name)
             raise "Missing required key for model #{name}, \"parent_link_type\"." if !@raw.key?(:parent_link_type)
           end
