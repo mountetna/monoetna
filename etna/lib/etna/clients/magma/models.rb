@@ -359,6 +359,10 @@ module Etna
           raw['restricted']
         end
 
+        def restricted=(val)
+          raw['restricted'] = val
+        end
+
         def format_hint
           raw['format_hint']
         end
@@ -367,12 +371,24 @@ module Etna
           raw['read_only']
         end
 
+        def read_only=(val)
+          raw['read_only'] = val
+        end
+
         def hidden
           raw['hidden']
         end
 
+        def hidden=(val)
+          raw['hidden'] = val
+        end
+
         def validation
           raw['validation']
+        end
+
+        def validation=(val)
+          raw['validation'] = val
         end
 
         def options

@@ -59,21 +59,12 @@ module Etna
             actions: [Etna::Clients::Magma::AddProjectAction.new]))
         end
 
-        def add_magma_models
-          # Have to add models in a specific order, to ensure that
-          #   the parent model exists. So we go from project on down...
-          # This assumes that any "link" models exist at a higher level.
-          project.models_by_depth.each { |model|
-            magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
-              project_name: project_name,
-              actions: [Etna::Clients::Magma::AddModelAction.new(
-                model_name: model.name,
-                parent_model_name: model.parent_model_name,
-                parent_link_type: model.parent_link_type,
-                identifier: model.identifier
-              )])
-            )
-          }
+        def ensure_magma_tree
+          # Convert each of our JSON models into an instance of
+          #   Magma Model + Attributes, and then can call
+          #   the model_synchronization_workflow.ensure_model_tree
+          #   on each one to update them in the target Magma.
+
         end
 
         def add_magma_attributes

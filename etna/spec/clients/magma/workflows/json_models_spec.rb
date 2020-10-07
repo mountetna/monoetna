@@ -33,18 +33,6 @@ describe Etna::Clients::Magma::JsonProject do
     expect(project.valid?).to eq(true)
     expect(project.name).to eq('test1')
     expect(project.name_full).to eq('Testing your immune system')
-
-    model_names_by_depth = project.models_by_depth.map { |m| m.name }
-    expect(model_names_by_depth).to eq([
-      'project',
-      'assay_pool',
-      'document',
-      'patient',
-      'status',
-      'symptom',
-      'timepoint',
-      'assay_name'
-    ])
   end
 
   it 'reports errors for missing model information' do
@@ -104,5 +92,31 @@ describe Etna::Clients::Magma::JsonProject do
       "Linked model, \"pool_deep_end\", on attribute assay_pool of model assay_name does not exist!",
       "Model \"assay_pool\" already belongs to parent model \"project\". Remove attribute \"project\"."
     ])
+  end
+
+  it 'can get models as Magma::Models' do
+    project = Etna::Clients::Magma::JsonProject.new(
+      filepath: './spec/fixtures/create_project/create_project_fixture_valid.json'
+    )
+
+    source_models = project.get_magma_models
+
+    # Make sure the parent and linking stuff was translated correctly!
+    project = source_models.model('project')
+    expect(project.template.attributes.attribute('document').attribute_type).to eq(Etna::Clients::Magma::AttributeType::COLLECTION)
+    expect(project.template.attributes.attribute('patient').attribute_type).to eq(Etna::Clients::Magma::AttributeType::COLLECTION)
+    expect(project.template.attributes.attribute('assay_pool').attribute_type).to eq(Etna::Clients::Magma::AttributeType::COLLECTION)
+
+    assay_pool = source_models.model('assay_pool')
+    expect(assay_pool.template.attributes.attribute('assay_name').attribute_type).to eq(Etna::Clients::Magma::AttributeType::COLLECTION)
+    expect(assay_pool.template.attributes.attribute('project').attribute_type).to eq(Etna::Clients::Magma::AttributeType::PARENT)
+
+    assay_name = source_models.model('assay_name')
+    expect(assay_name.template.attributes.attribute('assay_pool').attribute_type).to eq(Etna::Clients::Magma::AttributeType::LINK)
+    expect(assay_name.template.attributes.attribute('timepoint').attribute_type).to eq(Etna::Clients::Magma::AttributeType::PARENT)
+
+    status = source_models.model('status')
+    expect(status.template.attributes.attribute('patient').attribute_type).to eq(Etna::Clients::Magma::AttributeType::PARENT)
+    expect(status.template.attributes.attribute('patient').link_model_name).to eq('patient')
   end
 end
