@@ -36,6 +36,15 @@ module Etna
           ))
         end
 
+        def add_janus_permissions
+          janus_client.add_user(Etna::Clients::Janus::AddUserRequest.new(
+            project_name: project_name,
+            email: user.email,
+            name: "#{user.first} #{user.last}",
+            role: 'editor'
+          ))
+        end
+
         def update_janus_permissions
           janus_client.update_permission(Etna::Clients::Janus::UpdatePermissionRequest.new(
             project_name: project_name,
@@ -63,21 +72,25 @@ module Etna
           # Convert each of our JSON models into an instance of
           #   Magma Model + Attributes, and then can call
           #   the model_synchronization_workflow.ensure_model_tree
-          #   on each one to update them in the target Magma.
-
-        end
-
-        def add_magma_attributes
-
+          #   on each one to set their attributes in the target Magma.
+          magma_models = project.get_magma_models
+          workflow = Etna::Clients::Magma::ModelSynchronizationWorkflow.new(
+            target_project: project.name,
+            target_client: magma_client,
+            source_models: magma_models
+          )
+          magma_models.model_keys.each do |model_name|
+            workflow.ensure_model_tree(model_name)
+          end
         end
 
         def create!
           create_janus_project
+          add_janus_permissions
           update_janus_permissions
           update_magma_client_token
           create_magma_project
-          add_magma_models
-          # add_magma_attributes
+          ensure_magma_tree
         end
 
         def user

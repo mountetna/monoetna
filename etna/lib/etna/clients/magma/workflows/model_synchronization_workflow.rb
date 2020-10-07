@@ -105,7 +105,7 @@ module Etna
           )
 
           add_attribute.type = source_attribute.attribute_type
-          add_attribute.desc = source_attribute.desc
+          add_attribute.description = source_attribute.desc
           add_attribute.display_name = source_attribute.display_name
           add_attribute.format_hint = source_attribute.format_hint
           add_attribute.hidden = source_attribute.hidden

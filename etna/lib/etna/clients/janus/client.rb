@@ -39,6 +39,14 @@ module Etna
         UserResponse.new(json)
       end
 
+      def add_user(add_user_request = AddUserRequest.new)
+        @etna_client.post(
+          "/add_user/#{add_user_request.project_name}",
+          add_user_request) do |res|
+          # Redirect, no response data
+        end
+      end
+
       def update_permission(update_permission_request = UpdatePermissionRequest.new)
         @etna_client.post(
           "/update_permission/#{update_permission_request.project_name}",

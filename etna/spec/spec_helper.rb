@@ -220,6 +220,11 @@ def stub_janus_setup
       status: 302
     })
 
+  stub_request(:post, /#{JANUS_HOST}\/add_user/)
+    .to_return({
+      status: 302
+    })
+
   stub_request(:post, /#{JANUS_HOST}\/update_permission/)
     .to_return({
       status: 302

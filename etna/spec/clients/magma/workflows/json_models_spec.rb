@@ -1,5 +1,6 @@
 require 'webmock/rspec'
 require 'json'
+require 'pry'
 
 describe Etna::Clients::Magma::JsonProject do
   before(:each) do
@@ -101,7 +102,7 @@ describe Etna::Clients::Magma::JsonProject do
 
     source_models = project.get_magma_models
 
-    # Make sure the parent and linking stuff was translated correctly!
+    # Make sure the identifier, parent, and linking attributes were translated correctly!
     project = source_models.model('project')
     expect(project.template.attributes.attribute('document').attribute_type).to eq(Etna::Clients::Magma::AttributeType::COLLECTION)
     expect(project.template.attributes.attribute('patient').attribute_type).to eq(Etna::Clients::Magma::AttributeType::COLLECTION)
@@ -109,11 +110,13 @@ describe Etna::Clients::Magma::JsonProject do
 
     assay_pool = source_models.model('assay_pool')
     expect(assay_pool.template.attributes.attribute('assay_name').attribute_type).to eq(Etna::Clients::Magma::AttributeType::COLLECTION)
+    expect(assay_pool.template.attributes.attribute('assay_name').link_model_name).to eq('assay_name')
     expect(assay_pool.template.attributes.attribute('project').attribute_type).to eq(Etna::Clients::Magma::AttributeType::PARENT)
 
     assay_name = source_models.model('assay_name')
     expect(assay_name.template.attributes.attribute('assay_pool').attribute_type).to eq(Etna::Clients::Magma::AttributeType::LINK)
     expect(assay_name.template.attributes.attribute('timepoint').attribute_type).to eq(Etna::Clients::Magma::AttributeType::PARENT)
+    expect(assay_name.template.attributes.attribute('tube_name').attribute_type).to eq(Etna::Clients::Magma::AttributeType::IDENTIFIER)
 
     status = source_models.model('status')
     expect(status.template.attributes.attribute('patient').attribute_type).to eq(Etna::Clients::Magma::AttributeType::PARENT)

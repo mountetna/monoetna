@@ -108,6 +108,7 @@ module Etna
             attribute.attribute_type = Etna::Clients::Magma::AttributeType::COLLECTION
             attribute.display_name = model.prettified_name
             attribute.desc = model.prettified_name
+            attribute.link_model_name = model.name
           end
         end
 
