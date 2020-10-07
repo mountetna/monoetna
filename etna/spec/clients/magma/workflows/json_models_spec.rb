@@ -1,6 +1,5 @@
 require 'webmock/rspec'
 require 'json'
-require 'pry'
 
 describe Etna::Clients::Magma::JsonProject do
   before(:each) do
@@ -34,6 +33,18 @@ describe Etna::Clients::Magma::JsonProject do
     expect(project.valid?).to eq(true)
     expect(project.name).to eq('test1')
     expect(project.name_full).to eq('Testing your immune system')
+
+    model_names_by_depth = project.models_by_depth.map { |m| m.name }
+    expect(model_names_by_depth).to eq([
+      'project',
+      'assay_pool',
+      'document',
+      'patient',
+      'status',
+      'symptom',
+      'timepoint',
+      'assay_name'
+    ])
   end
 
   it 'reports errors for missing model information' do

@@ -261,3 +261,11 @@ def stub_magma_update
     { body: '{}' }
     end
 end
+
+def stub_magma_update_model
+  stub_request(:post, /#{MAGMA_HOST}\/update_model/)
+  .to_return({
+    status: 200,
+    body: {}.to_json
+  })
+end

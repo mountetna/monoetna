@@ -1,48 +1,8 @@
-# Creates a project from a JSON file.
-# This workflow:
-# 1) Creates the project in Janus.
-# 2) Adds the user as a project administrator to Janus.
-# 3) Refreshes the user's token with the new privileges.
-# 4) Creates the project in Magma.
-# 5) Iterates through the models and attributes and creates those in Magma.
-
 require 'json'
-require 'ostruct'
-require_relative './model_synchronization_workflow'
-require_relative '../../janus/models'
 
 module Etna
   module Clients
     class Magma
-      # Note!  These workflows are not perfectly atomic, nor perfectly synchronized due to nature of the backend.
-      # These primitives are best effort locally synchronized, but cannot defend the backend or simultaneous
-      # system updates.
-      class CreateProjectWorkflow < Struct.new(:magma_client, :janus_client, :project_file, keyword_init: true)
-        attr_reader :project
-
-        def initialize(**params)
-          super({}.update(params))
-          @project = Project.new(project_file)
-          raise "Project JSON has errors: ", project.errors unless project.valid?
-        end
-
-        def create_janus_project
-          janus_client.add_project(Etna::Clients::Janus::AddProjectRequest.new(
-            project_name: project.name,
-            project_name_full: project.name_full
-          ))
-        end
-
-        def create!
-          create_project_models
-          update_model_attributes
-        end
-
-        def user
-          janus_client.whoami(Etna::Clients::Janus::WhoAmIRequest.new).user
-        end
-      end
-
       class JsonBase
         attr_reader :errors
         def initialize
@@ -58,32 +18,32 @@ module Etna
         end
 
         def check_key(label, raw, key)
-          errors << "Missing required key for #{label}: \"#{key}\"." if !raw.key?(key.to_sym)
-          errors << "Invalid #{key} for #{label}: \"#{raw[key.to_sym]}\"." if raw.key?(key.to_sym) && nil_or_empty?(raw[key.to_sym])
+          errors << "Missing required key for #{label}: \"#{key}\"." if !raw.key?(key)
+          errors << "Invalid #{key} for #{label}: \"#{raw[key]}\"." if raw.key?(key) && nil_or_empty?(raw[key])
         end
 
         def check_type(label, raw, key, valid_types)
-          errors << "Invalid #{key} for #{label}: \"#{raw[key.to_sym]}\"." if raw.key?(key.to_sym) && !valid_types.include?(raw[key.to_sym])
+          errors << "Invalid #{key} for #{label}: \"#{raw[key]}\"." if raw.key?(key) && !valid_types.include?(raw[key])
         end
       end
 
       class JsonProject < JsonBase
         def initialize(filepath:)
           super()
-          @raw = JSON.parse(File.read(filepath), symbolize_names: true)
+          @raw = JSON.parse(File.read(filepath))
           validate
         end
 
         def name
-          @raw[:project_name]
+          @raw['project_name']
         end
 
         def name_full
-          @raw[:project_name_full]
+          @raw['project_name_full']
         end
 
         def models
-          @models ||= @raw[:models].map { |model_name, model_def|
+          @models ||= @raw['models'].map { |model_name, model_def|
             JsonModel.new(model_name, model_def) }
         end
 
@@ -94,8 +54,8 @@ module Etna
         end
 
         def validate_project_names
-          check_key('root project', @raw, :project_name)
-          check_key('root project', @raw, :project_name_full)
+          check_key('root project', @raw, 'project_name')
+          check_key('root project', @raw, 'project_name_full')
         end
 
         def validate_models
@@ -112,7 +72,7 @@ module Etna
           models.each { |model|
             model.attributes.each { |attribute|
               if attribute.type == Etna::Clients::Magma::AttributeType::LINK
-                check_key("model #{model.name}, attribute #{name}", attribute.raw, :link_model_name)
+                check_key("model #{model.name}, attribute #{name}", attribute.raw, 'link_model_name')
 
                 # Check that the linked model exists.
                 errors << "Model \"#{model.name}\" already belongs to parent model \"#{model.parent_model_name}\". Remove attribute \"#{attribute.name}\"." if attribute.link_model_name == model.parent_model_name
@@ -140,15 +100,19 @@ module Etna
         end
 
         def parent_model_name
-          @raw[:parent_model_name]&.to_sym
+          @raw['parent_model_name']
+        end
+
+        def parent_link_type
+          @raw['parent_link_type']
         end
 
         def identifier
-          @raw[:identifier]&.to_sym
+          @raw['identifier']
         end
 
         def attributes
-          @attributes ||= @raw.key?(:attributes) ? @raw[:attributes].map { |attribute_name, attribute_def|
+          @attributes ||= @raw.key?('attributes') ? @raw['attributes'].map { |attribute_name, attribute_def|
             JsonAttribute.new(self, attribute_name, attribute_def) } : []
         end
 
@@ -158,11 +122,13 @@ module Etna
         end
 
         def validate_add_model_data
-          check_key("model #{name}", @raw, :identifier)
-          if name != :project
-            check_key("model #{name}", @raw, :parent_model_name)
-            check_key("model #{name}", @raw, :parent_link_type)
-            check_type("model #{name}", @raw, :parent_link_type, @valid_parent_link_types)
+          if name != 'project'
+            check_key("model #{name}", @raw, 'parent_model_name')
+            check_key("model #{name}", @raw, 'parent_link_type')
+            check_type("model #{name}", @raw, 'parent_link_type', @valid_parent_link_types)
+          end
+          if parent_link_type != Etna::Clients::Magma::ParentLinkType::TABLE
+            check_key("model #{name}", @raw, 'identifier')
           end
         end
 
@@ -204,21 +170,15 @@ module Etna
             Etna::Clients::Magma::AttributeValidationType::RANGE
           ]
 
-          # We will calculate this?
-          # @valid_link_types = [
-          #   Etna::Clients::Magma::AttributeType::COLLECTION,
-          #   Etna::Clients::Magma::AttributeType::LINK
-          # ]
-
           validate
         end
 
         def type
-          @raw[:attribute_type]
+          @raw['attribute_type']
         end
 
         def link_model_name
-          @raw[:link_model_name]&.to_sym
+          @raw['link_model_name']
         end
 
         def validate
@@ -226,24 +186,24 @@ module Etna
         end
 
         def validate_add_attribute_data
-          check_key("model #{model.name}, attribute #{name}", @raw, :attribute_name)
+          check_key("model #{model.name}, attribute #{name}", @raw, 'attribute_name')
 
           if model.identifier != name
-            check_key("model #{model.name}, attribute #{name}", @raw, :attribute_type)
+            check_key("model #{model.name}, attribute #{name}", @raw, 'attribute_type')
 
             # The following two could be calculated or left blank?
             # But it would be nice in the final UI to have them be more informative, so
             #   we'll enforce here.
-            check_key("model #{model.name}, attribute #{name}", @raw, :display_name)
-            check_key("model #{model.name}, attribute #{name}", @raw, :desc)
+            check_key("model #{model.name}, attribute #{name}", @raw, 'display_name')
+            check_key("model #{model.name}, attribute #{name}", @raw, 'desc')
 
-            check_type("model #{model.name}, attribute #{name}", @raw, :attribute_type, @valid_attribute_types)
+            check_type("model #{model.name}, attribute #{name}", @raw, 'attribute_type', @valid_attribute_types)
           end
 
-          if @raw.key?(:validation)
-            check_key("model #{model.name}, attribute #{name}, validation", @raw[:validation], :type)
-            check_key("model #{model.name}, attribute #{name}, validation", @raw[:validation], :value)
-            check_type("model #{model.name}, attribute #{name}, validation", @raw[:validation], :type, @valid_validation_types)
+          if @raw.key?('validation')
+            check_key("model #{model.name}, attribute #{name}, validation", @raw['validation'], 'type')
+            check_key("model #{model.name}, attribute #{name}, validation", @raw['validation'], 'value')
+            check_type("model #{model.name}, attribute #{name}, validation", @raw['validation'], 'type', @valid_validation_types)
           end
         end
       end

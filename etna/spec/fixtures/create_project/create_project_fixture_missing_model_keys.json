@@ -91,14 +91,12 @@
       "attributes": {
         "status": {
           "attribute_name": "status",
-          "link_model_name": "status",
           "desc": "Status at admission",
           "display_name": "Status",
           "attribute_type": "table"
         },
         "symptom": {
           "attribute_name": "symptom",
-          "link_model_name": "symptom",
           "desc": "Related symptoms",
           "display_name": "Symptom",
           "attribute_type": "table"
@@ -107,6 +105,14 @@
     },
     "project": {
       "attributes": {}
+    },
+    "status": {
+      "parent_model_name": "patient",
+      "parent_link_type": "table"
+    },
+    "symptom": {
+      "parent_model_name": "patient",
+      "parent_link_type": "table"
     },
     "timepoint": {
       "parent_model_name": "patient",
