@@ -168,7 +168,7 @@ module FlowJoDsl
   end
 
   def create_stain_document(patient_record, flow_jo, stain)
-    tube = flow_jo.group(stain).sample_refs.map{|sr| flow_jo.sample(sr)}.first
+    tube = tube_of_stain(flow_jo, stain)
     name = @stain_to_names[stain]
 
     if !tube
@@ -192,4 +192,51 @@ module FlowJoDsl
 
     new_stain_panel(patient_record['ipi_number'], name, channels)
   end
+
+  def tube_of_stain(flow_jo, stain)
+    flow_jo.group(stain).sample_refs.map{|sr| flow_jo.sample(sr)}.first
+  end
+  
+  def process_all_populations(patient_record, flow_jo)
+    @stain_to_names.keys.each do |stain|
+      create_population_document_per_stain(patient_record, flow_jo, stain)
+    end
+  end
+
+  def create_population_document_per_stain patient_record, flow_jo, stain
+    tube = tube_of_stain(flow_jo, stain)
+    puts "Creating population #{tube} #{stain}"
+    time = DateTime.now
+    sample_name = sample_name_from(tube)
+    populations = []
+    mfis = []
+    tube.populations.each do |pop|
+      populations << {
+        stain: @stain_to_names[stain].to_s,
+        sample: sample_name,
+        ancestry: pop.ancestry.map{|name| clean_name(name)}.join("\t"),
+        name: clean_name(pop.name),
+        count: pop.count}
+
+      pop.statistics.each do |stat|
+        mfis << {
+          population: pop,
+          name: clean_name(tube.stain_for_fluor(stat.fluor)),
+          fluor: stat.fluor,
+          value: stat.value}
+      end
+    end
+
+    new_population_set(patient_record['ipi_number'], sample_name, populations, mfis)
+  end
+
+  def new_population_set(patient_ipi_number, name, channels)
+    @population_set ||= []
+    @population_set << {
+      patient_ipi_number: patient_ipi_number,
+      sample_name: sample_name,
+      populations: populations,
+      mfis: mfis }
+  end
+
 end
