@@ -68,6 +68,22 @@ module Etna
             actions: [Etna::Clients::Magma::AddProjectAction.new]))
         end
 
+        def create_magma_models
+          # Technically ensure_magma_tree should create models as needed,
+          #   but things seem to go more smoothly if we manually
+          #   create the models before we try to ensure the tree.
+          project.model_tree.each { |model|
+            magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
+              project_name: project_name,
+              actions: [Etna::Clients::Magma::AddModelAction.new(
+                model_name: model.name,
+                parent_model_name: model.parent_model_name,
+                parent_link_type: model.parent_link_type,
+                identifier: model.identifier
+              )]))
+          }
+        end
+
         def ensure_magma_tree
           # Convert each of our JSON models into an instance of
           #   Magma Model + Attributes, and then can call
@@ -84,13 +100,27 @@ module Etna
           end
         end
 
+        def create_magma_project_record
+          revision = {}
+          revision[project_name] = {
+            name: project_name
+          }
+          magma_client.update(Etna::Clients::Magma::UpdateRequest.new(
+            project_name: project_name,
+            revisions: {
+              project: revision
+            }))
+        end
+
         def create!
           create_janus_project
           add_janus_permissions
           update_janus_permissions
           update_magma_client_token
           create_magma_project
+          create_magma_models
           ensure_magma_tree
+          create_magma_project_record
         end
 
         def user

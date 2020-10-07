@@ -248,7 +248,7 @@ def stub_magma_models(models)
 end
 
 def stub_magma_update
-  stub_request(:post, /#{MAGMA_HOST}\/update/)
+  stub_request(:post, /#{MAGMA_HOST}\/update$/)
   .to_return do |request|
 
     body = StringIO.new(request.body)

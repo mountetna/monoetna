@@ -55,6 +55,26 @@ module Etna
           @models_by_parent ||= models.group_by { |model| model.parent_model_name }
         end
 
+        def model_tree
+          # Shallow -> deep
+          sorted_models = []
+          parent_model_names = [nil]
+
+          loop do
+            child_models = models_by_parent.values_at(*parent_model_names).flatten.compact
+
+            break if child_models.length == 0
+
+            parent_model_names = child_models.map { |model| model.name }
+
+            # Sort by name within each depth level
+            #   ... trying to make pagination consistent.
+            sorted_models += child_models.sort { |m1, m2|
+              m1.name <=> m2.name }
+          end
+          sorted_models
+        end
+
         def get_magma_models
           # Convert models to a Magma Model + set of Magma Attributes in a
           #   template.
@@ -220,7 +240,10 @@ module Etna
         end
 
         def to_magma_model(builder)
-          attribute_builder = builder.build_template.build_attributes
+          template_builder = builder.build_template
+          template_builder.identifier = identifier
+          template_builder.parent = parent_model_name
+          attribute_builder = template_builder.build_attributes
           attributes.each { |attribute|
             attribute.to_magma_model(attribute_builder)
           }

@@ -20,64 +20,30 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
     host: JANUS_HOST)}
 
   before(:each) do
+    @all_updates = []
     stub_janus_setup
-    # Magma retrieve needs to update the @target_models as we create them
-    stub_request(:post, /#{MAGMA_HOST}\/retrieve/).
-      to_return({body: {models: {}}.to_json}).then.
-      to_return({body: {models: {
-          assay_name: model_stamp
-        }}.to_json}).times(3).then.
-      to_return({body: {models: {
-          assay_name: model_stamp,
-          assay_pool: model_stamp
-        }}.to_json}).times(3).then.
-      to_return({body: {models: {
-          assay_name: model_stamp,
-          assay_pool: model_stamp,
-          project: model_stamp
-        }}.to_json}).times(3).then.
-      to_return({body: {models: {
-          assay_name: model_stamp,
-          assay_pool: model_stamp,
-          project: model_stamp,
-          timepoint: model_stamp
-        }}.to_json}).times(3).then.
-      to_return({body: {models: {
-          assay_name: model_stamp,
-          assay_pool: model_stamp,
-          project: model_stamp,
-          timepoint: model_stamp,
-          patient: model_stamp
-        }}.to_json}).times(3).then.
-      to_return({body: {models: {
-          assay_name: model_stamp,
-          assay_pool: model_stamp,
-          project: model_stamp,
-          timepoint: model_stamp,
-          patient: model_stamp,
-          document: model_stamp
-        }}.to_json}).times(3).then.
-      to_return({body: {models: {
-          assay_name: model_stamp,
-          assay_pool: model_stamp,
-          project: model_stamp,
-          timepoint: model_stamp,
-          patient: model_stamp,
-          document: model_stamp,
-          status: model_stamp
-        }}.to_json}).times(3).then.
-      to_return({body: {models: {
-          assay_name: model_stamp,
-          assay_pool: model_stamp,
-          project: model_stamp,
-          timepoint: model_stamp,
-          patient: model_stamp,
-          document: model_stamp,
-          status: model_stamp,
-          symptom: model_stamp
-        }}.to_json})
-
+    stub_magma_models({
+      models: {
+      assay_name: model_stamp,
+      assay_pool: model_stamp,
+      project: model_stamp,
+      timepoint: model_stamp,
+      patient: model_stamp,
+      document: model_stamp,
+      status: model_stamp,
+      symptom: model_stamp
+    }})
     stub_magma_update_model
+    stub_magma_update
+  end
+
+  def updates
+    @all_updates.inject({}) do |acc, n|
+      n.keys.each do |k|
+        (acc[k] ||= {}).update(n[k])
+      end
+      acc
+    end
   end
 
   it 'creates the project in janus and magma' do
@@ -98,7 +64,20 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
       with { |req| req.body.include?('add_model') }.times(8)
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna a token for you!'}).
-      with { |req| req.body.include?('add_attribute') }.times(60)
+      with { |req| req.body.include?('add_attribute') }.times(62)
+    # The 62 doesn't match the actual number of attributes, because there
+    #   seem to be redundant update_model/ requests
+    #   made for each attribute in model_synch_workflow.ensure_model_tree.
+
+    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
+      with(headers: {Authorization: 'Etna a token for you!'}).
+      with { |req| req.body.include?('update_attribute') }.times(8)
+
+    expect(updates).to eq({
+      "project" => {
+        "test" => {"name" => "test"}
+      }
+    })
   end
 
   it 'raises exception for an invalid project JSON' do
