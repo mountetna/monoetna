@@ -1,5 +1,6 @@
 require 'date'
 require 'logger'
+require 'pp'
 require 'rollbar'
 require 'tempfile'
 require_relative 'helpers'
@@ -30,6 +31,22 @@ class EtnaCommands
         janus_client: @environ.janus_client,
         filepath: filepath)
       create_project_workflow.create!
+    end
+  end
+
+  class ValidateProject < Etna::Command
+    include WithLogger
+    usage 'validate_project <filepath>'
+
+    def execute(filepath)
+      project = Etna::Clients::Magma::JsonProject.new(
+        filepath: filepath)
+      return puts "Project JSON is well-formatted!" if project.valid?
+
+      puts "Project JSON has #{project.errors.length} errors:"
+      project.errors.each do |error|
+        puts "  * " + error.gsub("\n", "\n\t")
+      end
     end
   end
 

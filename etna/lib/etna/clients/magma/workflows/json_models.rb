@@ -19,11 +19,11 @@ module Etna
 
         def check_key(label, raw, key)
           errors << "Missing required key for #{label}: \"#{key}\"." if !raw.key?(key)
-          errors << "Invalid #{key} for #{label}: \"#{raw[key]}\"." if raw.key?(key) && nil_or_empty?(raw[key])
+          errors << "Invalid empty #{key} for #{label}: \"#{raw[key]}\"." if raw.key?(key) && nil_or_empty?(raw[key])
         end
 
         def check_type(label, raw, key, valid_types)
-          errors << "Invalid #{key} for #{label}: \"#{raw[key]}\"." if raw.key?(key) && !valid_types.include?(raw[key].strip)
+          errors << "Invalid #{key} for #{label}: \"#{raw[key]}\".\nShould be one of #{valid_types}." if raw.key?(key) && !valid_types.include?(raw[key].strip)
         end
       end
 

@@ -22,8 +22,8 @@ describe Etna::Clients::Magma::JsonProject do
     )
     expect(project.valid?).to eq(false)
     expect(project.errors.length).to eq(2)
-    expect(project.errors.first).to eq('Invalid project_name for root project: "".')
-    expect(project.errors.last).to eq('Invalid project_name_full for root project: "".')
+    expect(project.errors.first).to eq('Invalid empty project_name for root project: "".')
+    expect(project.errors.last).to eq('Invalid empty project_name_full for root project: "".')
   end
 
   it 'loads a project JSON definition' do
@@ -70,12 +70,12 @@ describe Etna::Clients::Magma::JsonProject do
     expect(project.valid?).to eq(false)
     expect(project.errors.length).to eq(6)
     expect(project.errors).to eq([
-      "Invalid parent_model_name for model assay_name: \"\".",
-      "Invalid identifier for model document: \"\".",
-      "Invalid parent_link_type for model assay_pool: \"\".",
-      "Invalid parent_link_type for model assay_pool: \"\".",
-      "Invalid parent_link_type for model patient: \"thingamajig\".",
-      "Invalid identifier for model project: \"\"."
+      "Invalid empty parent_model_name for model assay_name: \"\".",
+      "Invalid empty identifier for model document: \"\".",
+      "Invalid empty parent_link_type for model assay_pool: \"\".",
+      "Invalid parent_link_type for model assay_pool: \"\".\nShould be one of [\"child\", \"collection\", \"table\"].",
+      "Invalid parent_link_type for model patient: \"thingamajig\".\nShould be one of [\"child\", \"collection\", \"table\"].",
+      "Invalid empty identifier for model project: \"\"."
     ])
   end
 
@@ -90,14 +90,14 @@ describe Etna::Clients::Magma::JsonProject do
       "Missing required key for model assay_name, attribute tube_name, validation: \"value\".",
       "Missing required key for model assay_name, attribute assay_pool: \"desc\".",
       "Missing required key for model assay_name, attribute vendor: \"desc\".",
-      "Invalid type for model assay_name, attribute vendor, validation: \"Lo que sea\".",
-      "Invalid attribute_type for model document, attribute document_desc: \"\".",
-      "Invalid attribute_type for model document, attribute document_desc: \"\".",
-      "Invalid attribute_type for model document, attribute version: \"copacetic\".",
-      "Invalid attribute_type for model document, attribute version_date: \"date\".",
+      "Invalid type for model assay_name, attribute vendor, validation: \"Lo que sea\".\nShould be one of [\"Regexp\", \"Array\", \"Range\"].",
+      "Invalid empty attribute_type for model document, attribute document_desc: \"\".",
+      "Invalid attribute_type for model document, attribute document_desc: \"\".\nShould be one of [\"string\", \"date_time\", \"boolean\", \"file\", \"float\", \"image\", \"integer\", \"link\", \"match\", \"matrix\", \"table\"].",
+      "Invalid attribute_type for model document, attribute version: \"copacetic\".\nShould be one of [\"string\", \"date_time\", \"boolean\", \"file\", \"float\", \"image\", \"integer\", \"link\", \"match\", \"matrix\", \"table\"].",
+      "Invalid attribute_type for model document, attribute version_date: \"date\".\nShould be one of [\"string\", \"date_time\", \"boolean\", \"file\", \"float\", \"image\", \"integer\", \"link\", \"match\", \"matrix\", \"table\"].",
       "Missing required key for model assay_pool, attribute biospecimen: \"attribute_type\".",
       "Missing required key for model assay_pool, attribute biospecimen: \"desc\".",
-      "Invalid value for model assay_pool, attribute biospecimen, validation: \"\".",
+      "Invalid empty value for model assay_pool, attribute biospecimen, validation: \"\".",
       "Missing required key for model assay_pool, attribute cells_loaded: \"display_name\".",
       "Missing required key for model assay_pool, attribute project: \"desc\".",
       "Missing required key for model timepoint, attribute day: \"desc\".",
