@@ -167,8 +167,8 @@ module Etna
 
         def all_link_attributes
           models.map do |model|
-            model.attributes.map do |attribute|
-              yield [model, attribute] if attribute.type == Etna::Clients::Magma::AttributeType::LINK
+            model.link_attributes do |attribute|
+              yield [model, attribute]
             end
           end
         end
@@ -216,6 +216,12 @@ module Etna
         def attributes
           @attributes ||= @raw.key?('attributes') ? @raw['attributes'].map { |attribute_name, attribute_def|
             JsonAttribute.new(self, attribute_name, attribute_def) } : []
+        end
+
+        def link_attributes
+          attributes.map do |attribute|
+            yield attribute if attribute.type == Etna::Clients::Magma::AttributeType::LINK
+          end
         end
 
         def validate

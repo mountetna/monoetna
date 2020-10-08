@@ -24,7 +24,7 @@ module Etna
         def initialize(**params)
           super({}.update(params))
           @project = Etna::Clients::Magma::JsonProject.new(filepath: filepath)
-          raise "Project JSON has errors: ", project.errors unless project.valid?
+          raise "Project JSON has errors: #{project.errors}" unless project.valid?
 
           @project_name = project.name
         end

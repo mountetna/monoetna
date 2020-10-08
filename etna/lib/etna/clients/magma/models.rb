@@ -154,6 +154,10 @@ module Etna
           Model.new(raw[model_key])
         end
 
+        def all
+          raw.values.map { |r| Model.new(r) }
+        end
+
         def to_directed_graph(include_casual_links=false)
           graph = ::DirectedGraph.new
 
