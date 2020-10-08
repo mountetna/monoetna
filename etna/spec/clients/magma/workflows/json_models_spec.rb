@@ -64,13 +64,14 @@ describe Etna::Clients::Magma::JsonProject do
 
   it 'reports errors for blank model information' do
     project = Etna::Clients::Magma::JsonProject.new(
-      filepath: './spec/fixtures/create_project/create_project_fixture_blank_model_keys.json'
+      filepath: './spec/fixtures/create_project/create_project_fixture_invalid_models.json'
     )
     expect(project.valid?).to eq(false)
-    expect(project.errors.length).to eq(6)
+    expect(project.errors.length).to eq(7)
     expect(project.errors).to eq([
       "Invalid empty parent_model_name for model assay_name: \"\".",
-      "Invalid empty identifier for model document: \"\".",
+      "Model name documents_2_keep cannot have numeric values in it.",
+      "Invalid empty identifier for model documents_2_keep: \"\".",
       "Invalid empty parent_link_type for model assay_pool: \"\".",
       "Invalid parent_link_type for model assay_pool: \"\".\nShould be one of [\"child\", \"collection\", \"table\"].",
       "Invalid parent_link_type for model patient: \"thingamajig\".\nShould be one of [\"child\", \"collection\", \"table\"].",
