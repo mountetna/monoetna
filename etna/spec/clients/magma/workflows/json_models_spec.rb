@@ -62,20 +62,23 @@ describe Etna::Clients::Magma::JsonProject do
     ])
   end
 
-  it 'reports errors for blank model information' do
+  it 'reports errors for invalid model information' do
     project = Etna::Clients::Magma::JsonProject.new(
       filepath: './spec/fixtures/create_project/create_project_fixture_invalid_models.json'
     )
     expect(project.valid?).to eq(false)
-    expect(project.errors.length).to eq(7)
+    expect(project.errors.length).to eq(10)
     expect(project.errors).to eq([
-      "Invalid empty parent_model_name for model assay_name: \"\".",
-      "Model name documents_2_keep cannot have numeric values in it.",
+      "Model name assay_name!@ can only consist of letters and \"_\".",
+      "Invalid empty parent_model_name for model assay_name!@: \"\".",
+      "Model name documents_2_keep can only consist of letters and \"_\".",
       "Invalid empty identifier for model documents_2_keep: \"\".",
-      "Invalid empty parent_link_type for model assay_pool: \"\".",
-      "Invalid parent_link_type for model assay_pool: \"\".\nShould be one of [\"collection\", \"child\", \"table\"].",
+      "Model name assay_pool# can only consist of letters and \"_\".",
+      "Invalid empty parent_link_type for model assay_pool#: \"\".",
+      "Invalid parent_link_type for model assay_pool#: \"\".\nShould be one of [\"collection\", \"child\", \"table\"].",
       "Invalid parent_link_type for model patient: \"thingamajig\".\nShould be one of [\"collection\", \"child\", \"table\"].",
-      "Invalid empty identifier for model project: \"\"."
+      "Invalid empty identifier for model project: \"\".",
+      "Linked model, \"assay_pool\", on attribute assay_pool of model assay_name!@ does not exist!"
     ])
   end
 

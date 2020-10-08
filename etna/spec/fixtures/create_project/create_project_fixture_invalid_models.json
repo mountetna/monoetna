@@ -2,7 +2,7 @@
   "project_name": "test1",
   "project_name_full": "Testing your immune system",
   "models": {
-    "assay_name": {
+    "assay_name!@": {
       "parent_model_name": "",
       "parent_link_type": "collection",
       "identifier": "tube_name",
@@ -70,7 +70,7 @@
         }
       }
     },
-    "assay_pool": {
+    "assay_pool#": {
       "parent_model_name": "project",
       "parent_link_type": "",
       "identifier": "assay_pool",

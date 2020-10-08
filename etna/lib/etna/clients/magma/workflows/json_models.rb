@@ -221,7 +221,7 @@ module Etna
         end
 
         def validate_add_model_data
-          @errors << "Model name #{name} cannot have numeric values in it." if name =~ /\d/
+          @errors << "Model name #{name} can only consist of letters and \"_\"." unless name =~ /^[a-z_]*$/i
           if !is_project?
             check_key("model #{name}", @raw, 'parent_model_name')
             check_key("model #{name}", @raw, 'parent_link_type')
