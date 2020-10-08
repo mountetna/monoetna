@@ -72,7 +72,7 @@ module Etna
           # Technically ensure_magma_tree should create models as needed,
           #   but things seem to go more smoothly if we manually
           #   create the models before we try to ensure the tree.
-          project.model_tree.each { |model|
+          project.model_tree.each do |model|
             magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
               project_name: project_name,
               actions: [Etna::Clients::Magma::AddModelAction.new(
@@ -81,18 +81,18 @@ module Etna
                 parent_link_type: model.parent_link_type,
                 identifier: model.identifier
               )]))
-          }
+          end
         end
 
         def magma_models
+          # Convert each of our JSON models into an instance of
+          #   Magma Model + Attributes
           @magma_models ||= project.get_magma_models
         end
 
         def ensure_magma_tree
-          # Convert each of our JSON models into an instance of
-          #   Magma Model + Attributes, and then can call
-          #   the model_synchronization_workflow.ensure_model_tree
-          #   on each one to set their attributes in the target Magma.
+          # Call the model_synchronization_workflow.ensure_model_tree
+          #   on each model to set their attributes in the target Magma.
           workflow = Etna::Clients::Magma::ModelSynchronizationWorkflow.new(
             target_project: project.name,
             target_client: magma_client,

@@ -43,8 +43,9 @@ module Etna
         end
 
         def models
-          @models ||= @raw['models'].map { |model_name, model_def|
-            JsonModel.new(model_name, model_def) }
+          @models ||= @raw['models'].map do |model_name, model_def|
+            JsonModel.new(model_name, model_def)
+          end
         end
 
         def fetch_model(name)
@@ -68,8 +69,9 @@ module Etna
             parent_model_names = child_models.map { |model| model.name }
 
             # Sort by name within each depth level
-            sorted_models += child_models.sort { |m1, m2|
-              m1.name <=> m2.name }
+            sorted_models += child_models.sort do |m1, m2|
+              m1.name <=> m2.name
+            end
           end
           sorted_models
         end
@@ -78,7 +80,7 @@ module Etna
           # Convert models to a Magma Model + set of Magma Attributes in a
           #   template.
           magma_models = Etna::Clients::Magma::Models.new
-          models.each { |model|
+          models.each do |model|
             model_builder = magma_models.build_model(model.name)
             model.to_magma_model(model_builder)
 
@@ -86,7 +88,7 @@ module Etna
             #   or reciprocal link attributes, we'll need to add those
             #   in manually.
             add_child_attributes(model_builder, model)
-          }
+          end
 
           add_reciprocal_link_attributes(magma_models)
           magma_models
@@ -95,10 +97,10 @@ module Etna
         def add_child_attributes(builder, model)
           return unless models_by_parent[model.name]
 
-          models_by_parent[model.name].each { |child_model|
+          models_by_parent[model.name].each do |child_model|
             attribute_builder = builder.build_template.build_attributes
             add_child_attribute(attribute_builder, child_model)
-          }
+          end
         end
 
         def add_child_attribute(builder, child_model)
@@ -112,12 +114,12 @@ module Etna
         end
 
         def add_reciprocal_link_attributes(magma_models)
-          all_link_attributes { |model, attribute|
+          all_link_attributes do |model, attribute|
             reciprocal_model = fetch_model(attribute.link_model_name)
             model_builder = magma_models.build_model(reciprocal_model.name)
             attribute_builder = model_builder.build_template.build_attributes
             add_reciprocal_link_attribute(attribute_builder, model)
-          }
+          end
         end
 
         def add_reciprocal_link_attribute(builder, model)
@@ -143,9 +145,9 @@ module Etna
         end
 
         def validate_models
-          models.each { |model|
+          models.each do |model|
             @errors += model.errors unless model.valid?
-          }
+          end
         end
 
         def validate_model_links
@@ -153,22 +155,22 @@ module Etna
           #   that the link_model_name exists in the project definition.
           model_names = models.map { |m| m.name }
 
-          all_link_attributes { |model, attribute|
+          all_link_attributes do |model, attribute|
             check_key("model #{model.name}, attribute #{attribute.name}", attribute.raw, 'link_model_name')
 
             # Check that the linked model exists.
             errors << "Model \"#{model.name}\" already belongs to parent model \"#{model.parent_model_name}\". Remove attribute \"#{attribute.name}\"." if attribute.link_model_name == model.parent_model_name
 
             errors << "Linked model, \"#{attribute.link_model_name}\", on attribute #{attribute.name} of model #{model.name} does not exist!" if !model_names.include?(attribute.link_model_name)
-          }
+          end
         end
 
         def all_link_attributes
-          models.map { |model|
-            model.attributes.map { |attribute|
+          models.map do |model|
+            model.attributes.map do |attribute|
               yield [model, attribute] if attribute.type == Etna::Clients::Magma::AttributeType::LINK
-            }
-          }
+            end
+          end
         end
       end
 
@@ -233,9 +235,9 @@ module Etna
         end
 
         def validate_attributes
-          attributes.each { |attribute|
+          attributes.each do |attribute|
             @errors += attribute.errors unless attribute.valid?
-          }
+          end
         end
 
         def to_magma_model(builder)
@@ -243,14 +245,14 @@ module Etna
           template_builder.identifier = identifier
           template_builder.parent = parent_model_name
           attribute_builder = template_builder.build_attributes
-          attributes.each { |attribute|
+          attributes.each do |attribute|
             attribute.to_magma_model(attribute_builder)
-          }
+          end
 
           # Because the input JSON format doesn't specify the parent
           #   attribute, we'll need to add those
           #   in manually.
-          add_parent_attribute(attribute_builder) if !is_project?
+          add_parent_attribute(attribute_builder) unless is_project?
         end
 
         def add_parent_attribute(builder)

@@ -1,6 +1,5 @@
 require 'date'
 require 'logger'
-require 'pp'
 require 'rollbar'
 require 'tempfile'
 require_relative 'helpers'
