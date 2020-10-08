@@ -9,18 +9,19 @@ require_relative 'data_processing/magma_dsl'
 require_relative 'data_processing/flow_jo_dsl'
 
 class Polyphemus
-  class Help < Etna::Command
-    usage 'List this help'
-
-    def execute
-      puts 'Commands:'
-      Polyphemus.instance.commands.each do |name, cmd|
-        puts cmd.usage
-      end
-    end
-  end
-
-  class Migrate < Etna::Command
+  class Command < Polyphemus::Command; end
+  # class Help < Polyphemus::Command
+  #   usage 'List this help'
+  #
+  #   def execute
+  #     puts 'Commands:'
+  #     Polyphemus.instance.commands.each do |name, cmd|
+  #       puts cmd.usage
+  #     end
+  #   end
+  # end
+  #
+  class Migrate < Polyphemus::Command
     usage 'Run migrations for the current environment.'
 
     def execute(version=nil)
@@ -42,7 +43,7 @@ class Polyphemus
     end
   end
 
-  class LinkCometBulkRna < Etna::Command
+  class LinkCometBulkRna < Polyphemus::Command
     include WithLogger
     include WithEtnaClients
 
@@ -121,7 +122,7 @@ class Polyphemus
     end
   end
 
-  class ApplyMvir1RnaSeqAttributes < Etna::Command
+  class ApplyMvir1RnaSeqAttributes < Polyphemus::Command
     include WithEtnaClients
     include WithLogger
 
@@ -179,7 +180,7 @@ class Polyphemus
     end
   end
 
-  class CopyMetisFilesCommand < Etna::Command
+  class CopyMetisFilesCommand < Polyphemus::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
 
@@ -233,7 +234,7 @@ class Polyphemus
     end
   end
 
-  class CopyMagmaRecords < Etna::Command
+  class CopyMagmaRecords < Polyphemus::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
 
@@ -282,17 +283,17 @@ class Polyphemus
     end
   end
 
-  class ApiCopyModelShallow < Etna::Command
+  class ApiCopyModelShallow < Polyphemus::Command
     WORKFLOW = Etna::Clients::Magma::ShallowCopyModelWorkflow
     include SyncModelsCommand
   end
 
-  class ApiCopyModelDeep < Etna::Command
+  class ApiCopyModelDeep < Polyphemus::Command
     WORKFLOW = Etna::Clients::Magma::ModelSynchronizationWorkflow
     include SyncModelsCommand
   end
 
-  class ApiAddProject < Etna::Command
+  class ApiAddProject < Polyphemus::Command
     include WithEtnaClientsByEnvironment
 
     usage 'api_add_project <environment> <project_name>'
@@ -310,7 +311,7 @@ class Polyphemus
     end
   end
 
-  class CascadeMvirPatientWaiverToRestricted < Etna::Command
+  class CascadeMvirPatientWaiverToRestricted < Polyphemus::Command
     include WithEtnaClients
     include WithLogger
 
@@ -438,7 +439,7 @@ class Polyphemus
     end
   end
 
-  class GetMetisFolders < Etna::Command
+  class GetMetisFolders < Polyphemus::Command
     include WithEtnaClients
 
     usage "Fetch a list of Metis folders from a bucket"
@@ -458,62 +459,22 @@ class Polyphemus
     end
   end
 
-  class RunEtlScript < Etna::Command
+  class MagmaEtlScripter
     include WithEtnaClients
-
-    def execute(project_name, file_path)
-      EtlDsl.new(project_name: project_name, magma_client: magma_client).run(file_path)
+    def environment
+      :production
     end
 
-    class EtlDsl
-      include XMLDsl
-      include MagmaDsl
-      include FlowJoDsl
-
-      def initialize(magma_client:, project_name:)
-        @magma_client = magma_client
-        @project_name = project_name
-      end
-
-      def run(file_path)
-        File.open(file_path, 'r') do |f|
-          script = f.read
-          eval(script, nil, file_path)
-        end
+    def execute(command, *subcommands)
+      case command
+      when 'test'
+        'your mo'
       end
     end
   end
 
-  class FindIpiBulkRnaSeqFolders < Etna::Command
-    include WithEtnaClients
 
-    usage "Fetch a list of Metis BulkRNASeq folders for IPI, from integral_data"
-
-    def project
-      :mvir1
-    end
-
-    def execute
-      folders = metis_client.find(
-          Etna::Clients::Metis::FindRequest.new(
-            project_name: 'ipi',
-            bucket_name: 'data_integrity',
-            params: [Etna::Clients::Metis::FindParam.new(
-              attribute: 'name',
-              predicate: 'glob',
-              value: '*.wsp',
-              type: 'file'
-            )])).folders.all
-      p folders
-      # puts "Found a total of #{folders.length} BulkRNASeq folders in the IPI integral_data bucket"
-    end
-
-    def setup(config)
-      super
-    end
-  end
-
-  class IpiAddFlowModel < Etna::Command
+  class IpiAddFlowModel < Polyphemus::Command
     include WithEtnaClients
     include WithLogger
 
@@ -538,7 +499,7 @@ class Polyphemus
     end
   end
 
-  class LinkIpiFlowWsp < Etna::Command
+  class LinkIpiFlowWsp < Polyphemus::Command
     include WithEtnaClients
     include WithLogger
     usage 'link_ipi_flow_wsp [environment]'
@@ -562,7 +523,7 @@ class Polyphemus
     end
   end
 
-  class LinkIpiFlowFcs < Etna::Command
+  class LinkIpiFlowFcs < Polyphemus::Command
     include WithEtnaClients
     include WithLogger
     usage 'link_ipi_flow_fcs [environment]'
@@ -586,7 +547,7 @@ class Polyphemus
     end
   end
 
-  class IpiCopyFlowToIntegralDataset < Etna::Command
+  class IpiCopyFlowToIntegralDataset < Polyphemus::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
     usage 'ipi_copy_flow_to_integral_dataset <environment> <source_bucket> <source_folder>'
@@ -604,7 +565,7 @@ class Polyphemus
     end
   end
 
-  class SetFileAttributesToBlank < Etna::Command
+  class SetFileAttributesToBlank < Polyphemus::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
     usage 'set_file_attributes_to_blank <environment> <project_name> <model_names>'
@@ -627,7 +588,7 @@ class Polyphemus
     end
   end
 
-  class UpdateAttributesFromCsv < Etna::Command
+  class UpdateAttributesFromCsv < Polyphemus::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
     usage 'update_attributes_from_csv <environment> <project_name> <model_name> <filepath>'
@@ -651,7 +612,7 @@ class Polyphemus
     end
   end
 
-  class Console < Etna::Command
+  class Console < Polyphemus::Command
     usage 'Open a console with a connected Polyphemus instance.'
 
     def execute

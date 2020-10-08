@@ -23,7 +23,7 @@ module Etna::Application
       return @@application.instance
     end
 
-    raise "Could not find application instance from #{namespace}, maybe set APP_NAME environment variable?"
+    raise "Could not find application instance from #{namespace}, and not subclass of Application found."
   end
 
   def self.register(app)
@@ -84,22 +84,26 @@ module Etna::Application
     end
   end
 
-  def run_command(config, cmd = :help, *args)
+  def run_command(config, commands_root, cmd = :help, *args)
     cmd = cmd.to_sym
-    if commands.key?(cmd)
-      commands[cmd].setup(config)
-      commands[cmd].execute(*commands[cmd].fill_in_missing_params(args))
-    else
-      commands[:help].execute
+    cmds = commands(commands_root)
+
+    if !cmds.key?(cmd) || cmd == :help
+      commands_root.help
+      return
     end
+
+    cmd = cmds[cmd]
+    cmd.setup(config)
+    cmd.execute(*cmd.fill_in_missing_params(args))
   rescue => e
     Rollbar.error(e)
     raise
   end
 
-  def commands
-    @commands ||= Hash[
-      Etna::Command.descendants.select { |c| c.descendants.empty? }.map do |c|
+  def commands(root = Etna::Command)
+    Hash[
+      root.descendants.select { |c| c.descendants.empty? }.map do |c|
         cmd = c.new
         [ cmd.name, cmd ]
       end

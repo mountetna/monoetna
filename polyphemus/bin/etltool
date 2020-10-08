@@ -8,4 +8,15 @@ require 'yaml'
 
 config = YAML.load(File.read(File.expand_path("../../config.yml",__FILE__)))
 
+class EtlToolCommand < Etna::Command
+end
+
+class EtlMagmaCommand < EtlToolCommand
+  usage
+
+  def execute(*subcommands)
+  end
+end
+
+Polyphemus.instance.commands(EtlToolCommand)
 Polyphemus.instance.run_command(config, Etna::Command, *ARGV)

@@ -1,6 +1,47 @@
 require 'rollbar'
 
 module Etna
+  module CommandExecutor
+    def find_command(*args)
+      if args.length < 1 || !subcommands.args[0]
+        help
+        return
+      end
+    end
+
+    def subcommands
+      @subcommands ||= self.constants.reduce({}) do |acc, n|
+        acc.tap do
+          v = self.const_get(n)
+          acc[v.name] = v if v.kind_of?(Etna::Command)
+        end
+      end
+    end
+  end
+
+  module DelegateCommand
+    def desc
+      subcommands.keys.map(&:to_s).join(' | ') + " help | <args>..."
+    end
+
+    def execute(*args)
+      if args.length < 1 || args[0] == 'help'
+        if (subcommand = subcommands[args[1]])
+          subcommand.help
+          return
+        end
+      end
+    end
+
+    def fill_in_missing_params(args)
+      req_params = method(:execute).parameters.select { |type, name| type == :req }
+      args + (req_params[(args.length)..(req_params.length)] || []).map do |type, name|
+        puts "#{name}?"
+        STDIN.gets.chomp
+      end
+    end
+  end
+
   class Command
     class << self
       def usage(desc)
@@ -11,6 +52,31 @@ module Etna
         define_method :completions do
           []
         end
+      end
+    end
+
+    def self.program_name
+      if parent_command.nil?
+        $PROGRAM_NAME
+      else
+        parent_command.program_name + " " + name
+      end
+    end
+
+    def parent_command
+      parts = self.class.name.split('::')
+      parts.pop
+
+      v = Kernel.const_get(parts.join('::'))
+      return v if v.kind_of?(Etna::Command)
+      nil
+    end
+
+    def self.help
+      puts "usage: #{program_name} <command> <args>..."
+      puts 'Commands:'
+      Etna::Application.find(self).commands(self.class).each do |name, cmd|
+        puts cmd.usage
       end
     end
 
@@ -71,8 +137,12 @@ module Etna
       end.join(' ')
     end
 
+    def self.name
+      name.snake_case.split(/::/).last.to_sym
+    end
+
     def name
-      self.class.name.snake_case.split(/::/).last.to_sym
+      self.class.name
     end
 
     # To be overridden during inheritance.
@@ -96,7 +166,7 @@ module Etna
   class GenerateCompletionScript < Etna::Command
     def execute
       name = Etna::Application.instance.class.name.downcase
-      commands = Etna::Application.instance.commands
+      commands = Etna::Application.instance.commands(Etna::Command)
 
       lines = []
       lines << "#!/usr/bin/env bash"

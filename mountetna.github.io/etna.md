@@ -130,7 +130,7 @@ A basic command-line interface can be built with Etna::Command. The Etna::Applic
 
 and can be setup to run a command from a shell script:
 
-    Arachne.instance.run_command(config, *ARGV)
+    Arachne.instance.run_command(config, Etna::Command, *ARGV)
 
 Commands are subclassed from Etna::Command
 
