@@ -23,8 +23,6 @@ class Janus
 
     get '/project/:project_name', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
 
-    get '/whoami', action: 'user#whoami', auth: { user: { active?: true } }
-
     get '/refresh_token', action: 'user#refresh_token', auth: { user: { active?: true } }
 
     # Once we figure out a long-term token strategy, this should probably get

@@ -22,12 +22,6 @@ module Etna
         end
       end
 
-      class WhoAmIRequest
-        def map
-          []
-        end
-      end
-
       class AddUserRequest < Struct.new(:project_name, :email, :name, :role, :privileged, :affiliation, keyword_init: true)
         include JsonSerializableStruct
 
@@ -77,36 +71,6 @@ module Etna
 
         def token
           @raw
-        end
-      end
-
-      class UserResponse
-        attr_reader :raw
-
-        def initialize(raw = '')
-          @raw = raw
-        end
-
-        def user
-          User.new(@raw)
-        end
-      end
-
-      class User
-        def initialize(raw = '')
-          @raw = raw
-        end
-
-        def email
-          @raw['email']
-        end
-
-        def first
-          @raw['first']
-        end
-
-        def last
-          @raw['last']
         end
       end
     end
