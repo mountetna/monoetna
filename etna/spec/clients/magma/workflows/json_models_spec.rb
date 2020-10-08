@@ -73,8 +73,8 @@ describe Etna::Clients::Magma::JsonProject do
       "Model name documents_2_keep cannot have numeric values in it.",
       "Invalid empty identifier for model documents_2_keep: \"\".",
       "Invalid empty parent_link_type for model assay_pool: \"\".",
-      "Invalid parent_link_type for model assay_pool: \"\".\nShould be one of [\"child\", \"collection\", \"table\"].",
-      "Invalid parent_link_type for model patient: \"thingamajig\".\nShould be one of [\"child\", \"collection\", \"table\"].",
+      "Invalid parent_link_type for model assay_pool: \"\".\nShould be one of [\"collection\", \"child\", \"table\"].",
+      "Invalid parent_link_type for model patient: \"thingamajig\".\nShould be one of [\"collection\", \"child\", \"table\"].",
       "Invalid empty identifier for model project: \"\"."
     ])
   end
@@ -90,11 +90,11 @@ describe Etna::Clients::Magma::JsonProject do
       "Missing required key for model assay_name, attribute tube_name, validation: \"value\".",
       "Missing required key for model assay_name, attribute assay_pool: \"desc\".",
       "Missing required key for model assay_name, attribute vendor: \"desc\".",
-      "Invalid type for model assay_name, attribute vendor, validation: \"Lo que sea\".\nShould be one of [\"Regexp\", \"Array\", \"Range\"].",
+      "Invalid type for model assay_name, attribute vendor, validation: \"Lo que sea\".\nShould be one of [\"Range\", \"Regexp\", \"Array\"].",
       "Invalid empty attribute_type for model document, attribute document_desc: \"\".",
-      "Invalid attribute_type for model document, attribute document_desc: \"\".\nShould be one of [\"string\", \"date_time\", \"boolean\", \"file\", \"float\", \"image\", \"integer\", \"link\", \"match\", \"matrix\", \"table\"].",
-      "Invalid attribute_type for model document, attribute version: \"copacetic\".\nShould be one of [\"string\", \"date_time\", \"boolean\", \"file\", \"float\", \"image\", \"integer\", \"link\", \"match\", \"matrix\", \"table\"].",
-      "Invalid attribute_type for model document, attribute version_date: \"date\".\nShould be one of [\"string\", \"date_time\", \"boolean\", \"file\", \"float\", \"image\", \"integer\", \"link\", \"match\", \"matrix\", \"table\"].",
+      "Invalid attribute_type for model document, attribute document_desc: \"\".\nShould be one of [\"string\", \"boolean\", \"file\", \"image\", \"match\", \"matrix\", \"float\", \"integer\", \"table\", \"date_time\", \"link\"].",
+      "Invalid attribute_type for model document, attribute version: \"copacetic\".\nShould be one of [\"string\", \"boolean\", \"file\", \"image\", \"match\", \"matrix\", \"float\", \"integer\", \"table\", \"date_time\", \"link\"].",
+      "Invalid attribute_type for model document, attribute version_date: \"date\".\nShould be one of [\"string\", \"boolean\", \"file\", \"image\", \"match\", \"matrix\", \"float\", \"integer\", \"table\", \"date_time\", \"link\"].",
       "Missing required key for model assay_pool, attribute biospecimen: \"attribute_type\".",
       "Missing required key for model assay_pool, attribute biospecimen: \"desc\".",
       "Invalid empty value for model assay_pool, attribute biospecimen, validation: \"\".",

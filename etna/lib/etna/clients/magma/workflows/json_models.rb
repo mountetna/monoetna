@@ -181,11 +181,8 @@ module Etna
           @name = model_name.strip
           @raw = raw
 
-          @valid_parent_link_types = [
-            Etna::Clients::Magma::ParentLinkType::CHILD,
-            Etna::Clients::Magma::ParentLinkType::COLLECTION,
-            Etna::Clients::Magma::ParentLinkType::TABLE
-          ]
+          @valid_parent_link_types = Etna::Clients::Magma::ParentLinkType.entries
+
           validate
         end
 
@@ -279,25 +276,14 @@ module Etna
           # NOTE: for input simplicity, I've removed some of the
           #   link-related types, since we'll try to calculate
           #   those while parsing the JSON structure.
-          @valid_attribute_types = [
-            Etna::Clients::Magma::AttributeType::STRING,
-            Etna::Clients::Magma::AttributeType::DATE_TIME,
-            Etna::Clients::Magma::AttributeType::BOOLEAN,
-            Etna::Clients::Magma::AttributeType::FILE,
-            Etna::Clients::Magma::AttributeType::FLOAT,
-            Etna::Clients::Magma::AttributeType::IMAGE,
-            Etna::Clients::Magma::AttributeType::INTEGER,
-            Etna::Clients::Magma::AttributeType::LINK,
-            Etna::Clients::Magma::AttributeType::MATCH,
-            Etna::Clients::Magma::AttributeType::MATRIX,
-            Etna::Clients::Magma::AttributeType::TABLE,
-          ]
+          @valid_attribute_types = Etna::Clients::Magma::AttributeType.entries.reject { |a|
+            a == Etna::Clients::Magma::AttributeType::CHILD ||
+            a == Etna::Clients::Magma::AttributeType::COLLECTION ||
+            a == Etna::Clients::Magma::AttributeType::IDENTIFIER ||
+            a == Etna::Clients::Magma::AttributeType::PARENT
+          }
 
-          @valid_validation_types = [
-            Etna::Clients::Magma::AttributeValidationType::REGEXP,
-            Etna::Clients::Magma::AttributeValidationType::ARRAY,
-            Etna::Clients::Magma::AttributeValidationType::RANGE
-          ]
+          @valid_validation_types = Etna::Clients::Magma::AttributeValidationType.entries
 
           validate
         end
