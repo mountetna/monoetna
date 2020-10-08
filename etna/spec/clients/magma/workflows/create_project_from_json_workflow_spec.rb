@@ -65,13 +65,16 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna a token for you!'}).
       with { |req| req.body.include?('add_attribute') }.times(62)
-    # The 62 doesn't match the actual number of attributes, because there
-    #   seem to be redundant update_model/ requests
-    #   made for each attribute in model_synch_workflow.ensure_model_tree.
+    # The call above gets executed a lot of times, because our Mock of the
+    #   /retrieve endpoint is static. So it doesn't reflect newly created
+    #   attributes. For the models higher in the tree (closer to the root),
+    #   this means that ensure_model_tree attempts to add their
+    #   attributes multiple times. This does not happen in a non-test
+    #   environment.
 
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna a token for you!'}).
-      with { |req| req.body.include?('update_attribute') }.times(8)
+      with { |req| req.body.include?('update_attribute') }.times(7)
 
     expect(updates).to eq({
       "project" => {

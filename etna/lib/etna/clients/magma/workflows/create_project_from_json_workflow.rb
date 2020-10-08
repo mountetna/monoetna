@@ -84,12 +84,15 @@ module Etna
           }
         end
 
+        def magma_models
+          @magma_models ||= project.get_magma_models
+        end
+
         def ensure_magma_tree
           # Convert each of our JSON models into an instance of
           #   Magma Model + Attributes, and then can call
           #   the model_synchronization_workflow.ensure_model_tree
           #   on each one to set their attributes in the target Magma.
-          magma_models = project.get_magma_models
           workflow = Etna::Clients::Magma::ModelSynchronizationWorkflow.new(
             target_project: project.name,
             target_client: magma_client,
@@ -112,6 +115,29 @@ module Etna
             }))
         end
 
+        def update_magma_attributes
+          # Sometimes an identifier attribute might have
+          #   validations or other settings included in the
+          #   model definition. So we have to "update" those
+          #   instead of adding those (which occurs in
+          #   ensure_magma_tree).
+          magma_models.model_keys.each do |model_name|
+            magma_models.model(model_name).template.attributes.all.select do |attribute|
+              attribute.attribute_type == Etna::Clients::Magma::AttributeType::IDENTIFIER
+            end.each do |attribute|
+              magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
+                project_name: project_name,
+                actions: [Etna::Clients::Magma::UpdateAttributeAction.new(
+                  model_name: model_name,
+                  attribute_name: attribute.name,
+                  display_name: attribute.display_name,
+                  description: attribute.desc,
+                  validation: attribute.validation
+                )]))
+            end
+          end
+        end
+
         def create!
           create_janus_project
           add_janus_permissions
@@ -121,6 +147,7 @@ module Etna
           create_magma_models
           ensure_magma_tree
           create_magma_project_record
+          update_magma_attributes
         end
 
         def user
