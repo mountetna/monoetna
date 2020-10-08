@@ -72,9 +72,10 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
     #   attributes multiple times. This does not happen in a non-test
     #   environment.
 
+    # Make sure the assay_name identifier validation is submitted.
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna a token for you!'}).
-      with { |req| req.body.include?('update_attribute') }.times(7)
+      with { |req| req.body.include?('update_attribute') }
 
     expect(updates).to eq({
       "project" => {

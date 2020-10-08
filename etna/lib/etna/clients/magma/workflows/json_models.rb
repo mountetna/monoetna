@@ -68,7 +68,6 @@ module Etna
             parent_model_names = child_models.map { |model| model.name }
 
             # Sort by name within each depth level
-            #   ... trying to make pagination consistent.
             sorted_models += child_models.sort { |m1, m2|
               m1.name <=> m2.name }
           end
@@ -313,8 +312,6 @@ module Etna
         end
 
         def validate_add_attribute_data
-          check_key("model #{model.name}, attribute #{name}", @raw, 'attribute_name')
-
           if model.identifier != name
             check_key("model #{model.name}, attribute #{name}", @raw, 'attribute_type')
 
