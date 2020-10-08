@@ -39,7 +39,7 @@
         }
       }
     },
-    "document": {
+    "documents_2_keep": {
       "parent_model_name": "project",
       "parent_link_type": "collection",
       "identifier": "",
