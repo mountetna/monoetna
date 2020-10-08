@@ -36,7 +36,7 @@ module Etna
           ))
         end
 
-        def add_janus_permissions
+        def add_janus_user
           janus_client.add_user(Etna::Clients::Janus::AddUserRequest.new(
             project_name: project_name,
             email: user.email,
@@ -140,7 +140,7 @@ module Etna
 
         def create!
           create_janus_project
-          add_janus_permissions
+          add_janus_user
           update_janus_permissions
           update_magma_client_token
           create_magma_project
