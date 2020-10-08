@@ -1,96 +1,129 @@
 require 'rollbar'
 
+# Commands resolution works by starting from a class that includes CommandExecutor, and searches for
+# INNER (belong to their scope) classes that include :find_command (generally subclasses of Etna::Command or
+# classes that include CommandExecutor).
+#
+# A command completes the find_command chain by returning itself, while CommandExecutors consume one of the arguments
+# to dispatch to a subcommand.
 module Etna
-  module CommandExecutor
-    def find_command(*args)
-      if args.length < 1 || !subcommands.args[0]
-        help
-        return
+  # Provides the usage DSL and method that includes information about a CommandExecutor or a Command.
+  # Commands or CommandExecutors can call 'usage' in their definition to provide a specific description
+  # to be given about that command.  By default, the command name + desc method will be shown.
+  module HasUsage
+    module Dsl
+      def usage(desc)
+        define_method :usage do
+          "  #{"%-45s" % command_name}#{desc}"
+        end
       end
     end
 
-    def subcommands
-      @subcommands ||= self.constants.reduce({}) do |acc, n|
-        acc.tap do
-          v = self.const_get(n)
-          acc[v.name] = v if v.kind_of?(Etna::Command)
-        end
+    def command_name
+      self.class.name.snake_case.split(/::/).last
+    end
+
+    def usage
+      "  #{"%-45s" % command_name}#{desc}"
+    end
+
+    # By default, the description of a command maps the execute parameters into CLI descriptions,
+    # where as CommandExecutors will display their subcommands.
+    def desc
+      if respond_to?(:execute)
+        method(:execute).parameters.map do |type, name|
+          name = "..." if name.nil?
+
+          case type
+          when :req
+            "<#{name}>"
+          when :opt
+            "[<#{name}>]"
+          when :rest
+            "<#{name}>..."
+          else
+            raise "Invalid command execute argument specification, unsure how to format description."
+          end
+        end.join(' ')
+      elsif respond_to?(:subcommands)
+        '<' + subcommands.keys.join('|') + '>'
       end
+    end
+
+    def self.included(cls)
+      cls.extend(Dsl)
     end
   end
 
-  module DelegateCommand
-    def desc
-      subcommands.keys.map(&:to_s).join(' | ') + " help | <args>..."
-    end
-
-    def execute(*args)
-      if args.length < 1 || args[0] == 'help'
-        if (subcommand = subcommands[args[1]])
-          subcommand.help
-          return
-        end
+  # Include this module into class that dispatches to child CommandExecutors | Commands that must exist as
+  # inner classes.  Note that non-root CommandExecutors must accept and set their @parent just like commands.
+  module CommandExecutor
+    # Program name is used to compose the usage display.  The top level executor will just assume the running
+    # process's bin name, while other executors will use the 'command name' of the Command / Exectuor
+    # (class name derived) and whatever program_name exists for its parent scope.
+    def program_name
+      if parent.nil? || !parent.respond_to?(:program_name)
+        $PROGRAM_NAME
+      else
+        parent.program_name + " " + command_name
       end
     end
 
-    def fill_in_missing_params(args)
-      req_params = method(:execute).parameters.select { |type, name| type == :req }
-      args + (req_params[(args.length)..(req_params.length)] || []).map do |type, name|
-        puts "#{name}?"
-        STDIN.gets.chomp
+    attr_reader :parent
+    def initialize(parent = nil)
+      @parent = parent
+    end
+
+    def self.included(cls)
+      cls.include(HasUsage)
+      cls.const_set(:Help, Class.new(Etna::Command) do
+        usage 'List this help'
+
+        def execute
+          self.parent.help
+        end
+      end) unless cls.const_defined?(:Help)
+    end
+
+    def help
+      puts "usage: #{program_name} #{desc}"
+      subcommands.each do |name, cmd|
+        puts cmd.usage
+      end
+    end
+
+    def find_command(cmd = 'help', *args)
+      cmd = 'help' unless subcommands.include?(cmd)
+      subcommands[cmd].find_command(*args)
+    end
+
+    def subcommands
+      @subcommands ||= self.class.constants.reduce({}) do |acc, n|
+        acc.tap do
+          p n
+          v = self.class.const_get(n).new(self)
+          acc[v.command_name] = v if v.methods.include?(:find_command)
+        end
       end
     end
   end
 
   class Command
-    class << self
-      def usage(desc)
-        define_method :usage do
-          "  #{"%-45s" % name}#{desc}"
-        end
+    include HasUsage
 
-        define_method :completions do
-          []
-        end
-      end
+    attr_reader :parent
+    def initialize(parent)
+      @parent = parent
     end
 
-    def self.program_name
-      if parent_command.nil?
-        $PROGRAM_NAME
-      else
-        parent_command.program_name + " " + name
-      end
-    end
-
-    def parent_command
-      parts = self.class.name.split('::')
+    def self.parent_scope
+      parts = self.name.split('::')
       parts.pop
-
-      v = Kernel.const_get(parts.join('::'))
-      return v if v.kind_of?(Etna::Command)
-      nil
+      Kernel.const_get(parts.join('::'))
     end
 
-    def self.help
-      puts "usage: #{program_name} <command> <args>..."
-      puts 'Commands:'
-      Etna::Application.find(self).commands(self.class).each do |name, cmd|
-        puts cmd.usage
-      end
-    end
-
-    def self.inherited(subclass)
-      @descendants ||= []
-      @descendants << subclass
-    end
-
-    def self.descendants
-      @descendants ||= []
-    end
-
-    def usage
-      "  #{"%-45s" % name}#{desc}"
+    def find_command(*args)
+      [self, args]
     end
 
     def fill_in_missing_params(args)
@@ -120,30 +153,6 @@ module Etna
       end
     end
 
-    def desc
-      method(:execute).parameters.map do |type, name|
-        name = "..." if name.nil?
-
-        case type
-        when :req
-          "<#{name}>"
-        when :opt
-          "[<#{name}>]"
-        when :rest
-          "<#{name}>..."
-        else
-          raise "Invalid command execute argument specification, unsure how to format description."
-        end
-      end.join(' ')
-    end
-
-    def self.name
-      name.snake_case.split(/::/).last.to_sym
-    end
-
-    def name
-      self.class.name
-    end
 
     # To be overridden during inheritance.
     def execute
@@ -163,47 +172,49 @@ module Etna
     end
   end
 
+  # application.rb instantiates this for the project scoping.
   class GenerateCompletionScript < Etna::Command
+    def generate_for_scope(scope, lines, depth = 1)
+      lines << "if [ \"${COMP_CWORD}\" == \"#{depth}\" ]; then"
+      lines << "all_completion_names='#{scope.subcommands.keys.join(' ')}'"
+      lines << 'COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))'
+      lines << "else"
+      scope.subcommands.each do |name, command|
+        lines << "if [ \"${COMP_WORDS[#{depth}]}\" == '#{name}' ]; then"
+        if command.class.included_modules.include?(CommandExecutor)
+          generate_for_scope(command, lines, depth + 1)
+        else
+          completions = command.completions
+          completions.each_with_index do |c, i|
+            lines << "if [ \"${COMP_CWORD}\" == \"#{i + depth + 1}\" ]; then"
+            if c.instance_of?(Array) && !c.empty?
+              lines << "all_completion_names='#{c.join(' ')}'"
+              lines << 'COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))'
+            else
+              lines << 'COMPREPLY=($(compgen -f "${COMP_WORDS[COMP_CWORD]}"))'
+              lines << "return"
+            end
+            lines << "fi"
+          end
+        end
+        lines << "true"
+        lines << "fi"
+      end
+      lines << "fi"
+    end
+
     def execute
       name = Etna::Application.instance.class.name.downcase
-      commands = Etna::Application.instance.commands(Etna::Command)
 
       lines = []
       lines << "#!/usr/bin/env bash"
       lines << "_#{name}_completions() {"
       lines << "local all_completion_names=''"
-      lines << 'if [ "${COMP_CWORD}" == "1" ]; then'
-      lines << "all_completion_names='#{commands.map { |name, _| name }.join(' ')}'"
-      lines << 'COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))'
-      lines << "else"
-      commands.each do |name, command|
-        lines << "if [ \"${COMP_WORDS[1]}\" == '#{name}' ]; then"
-        completions = command.completions
-        completions.each_with_index do |c, i|
-          lines << "if [ \"${COMP_CWORD}\" == \"#{i + 2}\" ]; then"
-          if c.instance_of?(Array) && !c.empty?
-            lines << "all_completion_names='#{c.join(' ')}'"
-            lines << 'COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))'
-          else
-            lines << 'COMPREPLY=($(compgen -f "${COMP_WORDS[COMP_CWORD]}"))'
-            lines << "return"
-          end
-          lines << "fi"
-        end
-        lines << "true"
-        lines << "fi"
-      end
-      lines << 'fi'
+      generate_for_scope(Etna::Application.instance, lines)
       lines << "}"
       lines << "complete -F _#{name}_completions #{name}"
 
       File.open("#{name}.completion", 'w') { |f| f.write(lines.join("\n") + "\n") }
-    end
-  end
-
-  def completions_for(parameter)
-    case parameter
-    when "output_file"
     end
   end
 end

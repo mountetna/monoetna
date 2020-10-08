@@ -19,4 +19,4 @@ class EtlMagmaCommand < EtlToolCommand
 end
 
 Polyphemus.instance.commands(EtlToolCommand)
-Polyphemus.instance.run_command(config, Etna::Command, *ARGV)
+Polyphemus.instance.run_command(config, *ARGV)

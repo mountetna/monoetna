@@ -9,19 +9,7 @@ require_relative 'data_processing/magma_dsl'
 require_relative 'data_processing/flow_jo_dsl'
 
 class Polyphemus
-  class Command < Polyphemus::Command; end
-  # class Help < Polyphemus::Command
-  #   usage 'List this help'
-  #
-  #   def execute
-  #     puts 'Commands:'
-  #     Polyphemus.instance.commands.each do |name, cmd|
-  #       puts cmd.usage
-  #     end
-  #   end
-  # end
-  #
-  class Migrate < Polyphemus::Command
+  class Migrate < Etna::Command
     usage 'Run migrations for the current environment.'
 
     def execute(version=nil)
@@ -43,7 +31,7 @@ class Polyphemus
     end
   end
 
-  class LinkCometBulkRna < Polyphemus::Command
+  class LinkCometBulkRna < Etna::Command
     include WithLogger
     include WithEtnaClients
 
@@ -122,7 +110,7 @@ class Polyphemus
     end
   end
 
-  class ApplyMvir1RnaSeqAttributes < Polyphemus::Command
+  class ApplyMvir1RnaSeqAttributes < Etna::Command
     include WithEtnaClients
     include WithLogger
 
@@ -180,7 +168,7 @@ class Polyphemus
     end
   end
 
-  class CopyMetisFilesCommand < Polyphemus::Command
+  class CopyMetisFilesCommand < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
 
@@ -234,7 +222,7 @@ class Polyphemus
     end
   end
 
-  class CopyMagmaRecords < Polyphemus::Command
+  class CopyMagmaRecords < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
 
@@ -283,17 +271,17 @@ class Polyphemus
     end
   end
 
-  class ApiCopyModelShallow < Polyphemus::Command
+  class ApiCopyModelShallow < Etna::Command
     WORKFLOW = Etna::Clients::Magma::ShallowCopyModelWorkflow
     include SyncModelsCommand
   end
 
-  class ApiCopyModelDeep < Polyphemus::Command
+  class ApiCopyModelDeep < Etna::Command
     WORKFLOW = Etna::Clients::Magma::ModelSynchronizationWorkflow
     include SyncModelsCommand
   end
 
-  class ApiAddProject < Polyphemus::Command
+  class ApiAddProject < Etna::Command
     include WithEtnaClientsByEnvironment
 
     usage 'api_add_project <environment> <project_name>'
@@ -311,7 +299,7 @@ class Polyphemus
     end
   end
 
-  class CascadeMvirPatientWaiverToRestricted < Polyphemus::Command
+  class CascadeMvirPatientWaiverToRestricted < Etna::Command
     include WithEtnaClients
     include WithLogger
 
@@ -439,7 +427,7 @@ class Polyphemus
     end
   end
 
-  class GetMetisFolders < Polyphemus::Command
+  class GetMetisFolders < Etna::Command
     include WithEtnaClients
 
     usage "Fetch a list of Metis folders from a bucket"
@@ -474,7 +462,7 @@ class Polyphemus
   end
 
 
-  class IpiAddFlowModel < Polyphemus::Command
+  class IpiAddFlowModel < Etna::Command
     include WithEtnaClients
     include WithLogger
 
@@ -499,7 +487,7 @@ class Polyphemus
     end
   end
 
-  class LinkIpiFlowWsp < Polyphemus::Command
+  class LinkIpiFlowWsp < Etna::Command
     include WithEtnaClients
     include WithLogger
     usage 'link_ipi_flow_wsp [environment]'
@@ -523,7 +511,7 @@ class Polyphemus
     end
   end
 
-  class LinkIpiFlowFcs < Polyphemus::Command
+  class LinkIpiFlowFcs < Etna::Command
     include WithEtnaClients
     include WithLogger
     usage 'link_ipi_flow_fcs [environment]'
@@ -547,7 +535,7 @@ class Polyphemus
     end
   end
 
-  class IpiCopyFlowToIntegralDataset < Polyphemus::Command
+  class IpiCopyFlowToIntegralDataset < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
     usage 'ipi_copy_flow_to_integral_dataset <environment> <source_bucket> <source_folder>'
@@ -565,7 +553,7 @@ class Polyphemus
     end
   end
 
-  class SetFileAttributesToBlank < Polyphemus::Command
+  class SetFileAttributesToBlank < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
     usage 'set_file_attributes_to_blank <environment> <project_name> <model_names>'
@@ -588,7 +576,7 @@ class Polyphemus
     end
   end
 
-  class UpdateAttributesFromCsv < Polyphemus::Command
+  class UpdateAttributesFromCsv < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
     usage 'update_attributes_from_csv <environment> <project_name> <model_name> <filepath>'
@@ -612,7 +600,7 @@ class Polyphemus
     end
   end
 
-  class Console < Polyphemus::Command
+  class Console < Etna::Command
     usage 'Open a console with a connected Polyphemus instance.'
 
     def execute

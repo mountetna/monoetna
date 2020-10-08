@@ -4,13 +4,17 @@
 # whenever we want to use it as a container
 
 require_relative './sign_service'
+require_relative './command'
 require 'singleton'
 require 'rollbar'
 
 module Etna::Application
   def self.included(other)
     other.include Singleton
+    other.include Etna::CommandExecutor
     @@application = other
+
+    other.const_set(:GenerateCompletionScript, Class.new(Etna::GenerateCompletionScript))
   end
 
   def self.find(klass)
@@ -84,30 +88,13 @@ module Etna::Application
     end
   end
 
-  def run_command(config, commands_root, cmd = :help, *args)
-    cmd = cmd.to_sym
-    cmds = commands(commands_root)
-
-    if !cmds.key?(cmd) || cmd == :help
-      commands_root.help
-      return
-    end
-
-    cmd = cmds[cmd]
+  def run_command(config, *args)
+    cmd, cmd_args = find_command(*args)
     cmd.setup(config)
-    cmd.execute(*cmd.fill_in_missing_params(args))
+    cmd.execute(*cmd.fill_in_missing_params(cmd_args))
   rescue => e
     Rollbar.error(e)
     raise
-  end
-
-  def commands(root = Etna::Command)
-    Hash[
-      root.descendants.select { |c| c.descendants.empty? }.map do |c|
-        cmd = c.new
-        [ cmd.name, cmd ]
-      end
-    ]
   end
 end
 
