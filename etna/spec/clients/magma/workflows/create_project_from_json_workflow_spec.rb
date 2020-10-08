@@ -1,7 +1,6 @@
 require 'webmock/rspec'
 require 'json'
 require_relative '../../../../lib/etna/clients/janus'
-require 'pry'
 
 def model_stamp
   {
