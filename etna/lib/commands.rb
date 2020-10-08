@@ -4,8 +4,6 @@ require 'rollbar'
 require 'tempfile'
 require_relative 'helpers'
 
-require 'pry'
-
 class EtnaCommands
   class Help < Etna::Command
     usage 'List this help'
