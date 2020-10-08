@@ -90,7 +90,7 @@ function recursiveDigest() {
 newestFile=$0
 function findNewest() {
   local find=find
-  if type -p gfind; then
+  if type -p gfind > /dev/null; then
     find=gfind
   fi
 

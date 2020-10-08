@@ -80,14 +80,19 @@ $replacement
 $tail" > $1
 }
 
+sed=sed
+if type -p gsed > /dev/null; then
+  sed=gsed
+fi
+
 set -f
 idx=0
 for mergeTarget in $COMPOSE_MIXINS; do
   echo "Applying $mergeTarget to $1"
   cp $DIR/$mergeTarget /tmp/
-  sed 's@${APP_NAME}@'"$APP_NAME"'@g' -i /tmp/$mergeTarget
-  sed 's@${APP_DASH_PREFIX}@'"$APP_DASH_PREFIX"'@g' -i /tmp/$mergeTarget
-  sed 's@${APP_ENV_PREFIX}@'"$APP_ENV_PREFIX"'@g' -i /tmp/$mergeTarget
+  $sed 's@${APP_NAME}@'"$APP_NAME"'@g' -i /tmp/$mergeTarget
+  $sed 's@${APP_DASH_PREFIX}@'"$APP_DASH_PREFIX"'@g' -i /tmp/$mergeTarget
+  $sed 's@${APP_ENV_PREFIX}@'"$APP_ENV_PREFIX"'@g' -i /tmp/$mergeTarget
 
   IFS=$'\n'
   for key in $(yq r -p p $mergeTarget "*" | tac); do

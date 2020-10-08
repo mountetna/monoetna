@@ -24,7 +24,7 @@ metisPath=$1
 if [[ -e /dest ]]; then
     destPath=/dest
 else
-  if type -p greadlink; then
+  if type -p greadlink > /dev/null; then
     destPath=$(greadlink -m $2)
   else
     destPath=$(readlink -m $2)
