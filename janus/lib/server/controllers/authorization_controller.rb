@@ -107,10 +107,7 @@ class AuthorizationController < Janus::Controller
 
     # Get and check user. No password required.
     user = User[email: email]
-    unless user
-      Janus.instance.logger.warn("Unauthorized request for #{email}")
-      raise Etna::Unauthorized
-    end
+    raise Etna::Unauthorized, "Unauthorized request for #{email}" unless user
 
     # Create a new token for the user.
     token = user.create_token!
