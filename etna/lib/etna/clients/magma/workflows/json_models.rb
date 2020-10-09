@@ -25,6 +25,14 @@ module Etna
         def check_type(label, raw, key, valid_types)
           errors << "Invalid #{key} for #{label}: \"#{raw[key]}\".\nShould be one of #{valid_types}." if raw.key?(key) && !valid_types.include?(raw[key].strip)
         end
+
+        def name_regex_with_numbers
+          /\A[a-z][a-z0-9]*(_[a-z0-9]+)*\Z/
+        end
+
+        def name_regex_no_numbers
+          /\A[a-z]*(_[a-z]+)*\Z/
+        end
       end
 
       class JsonProject < JsonBase
@@ -142,8 +150,7 @@ module Etna
         def validate_project_names
           check_key('root project', @raw, 'project_name')
           check_key('root project', @raw, 'project_name_full')
-          @errors << "Project name #{name} can only consist of letters and numbers." unless name =~ /^[a-z0-9]*$/i
-          @errors << "Project name #{name} cannot start with a number." if name =~ /^[0-9][a-z0-9]*$/i
+          @errors << "Project name #{name} must be snake_case and cannot start with a number or \"pg_\"." unless name =~ name_regex_with_numbers && !name.start_with?('pg_')
         end
 
         def validate_models
@@ -223,7 +230,7 @@ module Etna
         end
 
         def validate_add_model_data
-          @errors << "Model name #{name} can only consist of letters and \"_\"." unless name =~ /^[a-z_]*$/i
+          @errors << "Model name #{name} must be snake_case and can only consist of letters and \"_\"." unless name =~ name_regex_no_numbers
 
           if !is_project?
             check_key("model #{name}", @raw, 'parent_model_name')
@@ -304,8 +311,7 @@ module Etna
         end
 
         def validate_add_attribute_data
-          @errors << "Attribute name #{name} in model #{model.name} can only consist of letters, numbers, and \"_\"." unless name =~ /^[a-z0-9_]*$/i
-          @errors << "Attribute name #{name} in model #{model.name} cannot start with a number." if name =~ /^[0-9][a-z0-9_]*$/i
+          @errors << "Attribute name #{name} in model #{model.name} must be snake_case and can only consist of letters, numbers, and \"_\"." unless name =~ name_regex_with_numbers
 
           if model.identifier != name
             check_key("model #{model.name}, attribute #{name}", @raw, 'attribute_type')

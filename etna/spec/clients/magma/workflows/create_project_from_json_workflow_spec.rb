@@ -49,7 +49,7 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
     workflow = Etna::Clients::Magma::CreateProjectFromJsonWorkflow.new(
       magma_client: magma_client,
       janus_client: janus_client,
-      filepath: './spec/fixtures/create_project/create_project_fixture_valid.json'
+      filepath: './spec/fixtures/create_project/valid_project.json'
     )
     workflow.create!
 
@@ -88,7 +88,7 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
       Etna::Clients::Magma::CreateProjectFromJsonWorkflow.new(
         magma_client: magma_client,
         janus_client: janus_client,
-        filepath: './spec/fixtures/create_project/create_project_fixture_missing_project_keys.json'
+        filepath: './spec/fixtures/create_project/missing_project_keys.json'
       )
     }.to raise_error(Exception)
   end

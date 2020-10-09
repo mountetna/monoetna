@@ -15,7 +15,7 @@ describe Etna::Clients::Magma::JsonProject do
     expect(project.errors).to eq([
       'Missing required key for root project: "project_name".',
       'Missing required key for root project: "project_name_full".',
-      'Project name  can only consist of letters and numbers.'
+      'Project name  must be snake_case and cannot start with a number or "pg_".'
     ])
   end
 
@@ -24,9 +24,12 @@ describe Etna::Clients::Magma::JsonProject do
       filepath: './spec/fixtures/create_project/blank_project_keys.json'
     )
     expect(project.valid?).to eq(false)
-    expect(project.errors.length).to eq(2)
-    expect(project.errors.first).to eq('Invalid empty project_name for root project: "".')
-    expect(project.errors.last).to eq('Invalid empty project_name_full for root project: "".')
+    expect(project.errors.length).to eq(3)
+    expect(project.errors).to eq([
+      'Invalid empty project_name for root project: "".',
+      'Invalid empty project_name_full for root project: "".',
+      'Project name  must be snake_case and cannot start with a number or "pg_".'
+    ])
   end
 
   it 'reports errors for invalid project name' do
@@ -35,7 +38,7 @@ describe Etna::Clients::Magma::JsonProject do
     )
     expect(project.valid?).to eq(false)
     expect(project.errors.length).to eq(1)
-    expect(project.errors.first).to eq('Project name 10xTest cannot start with a number.')
+    expect(project.errors.first).to eq('Project name 10xTest must be snake_case and cannot start with a number or "pg_".')
   end
 
 
@@ -83,11 +86,11 @@ describe Etna::Clients::Magma::JsonProject do
     expect(project.valid?).to eq(false)
     expect(project.errors.length).to eq(10)
     expect(project.errors).to eq([
-      "Model name assay_name!@ can only consist of letters and \"_\".",
+      "Model name assay_name!@ must be snake_case and can only consist of letters and \"_\".",
       "Invalid empty parent_model_name for model assay_name!@: \"\".",
-      "Model name documents_2_keep can only consist of letters and \"_\".",
+      "Model name documents_2_keep must be snake_case and can only consist of letters and \"_\".",
       "Invalid empty identifier for model documents_2_keep: \"\".",
-      "Model name assay_pool# can only consist of letters and \"_\".",
+      "Model name assay_pool# must be snake_case and can only consist of letters and \"_\".",
       "Invalid empty parent_link_type for model assay_pool#: \"\".",
       "Invalid parent_link_type for model assay_pool#: \"\".\nShould be one of [\"collection\", \"child\", \"table\"].",
       "Invalid parent_link_type for model patient: \"thingamajig\".\nShould be one of [\"collection\", \"child\", \"table\"].",
@@ -102,16 +105,17 @@ describe Etna::Clients::Magma::JsonProject do
     )
 
     expect(project.valid?).to eq(false)
-    expect(project.errors.length).to eq(19)
+    expect(project.errors.length).to eq(18)
     expect(project.errors).to eq([
       "Missing required key for model assay_name, attribute tube_name, validation: \"value\".",
-      "Attribute name 123restricted can only consist of letters and \"_\".",
-      "Missing required key for model assay_name, attribute assay_pool: \"desc\".",
+      "Attribute name 123restricted in model assay_name must be snake_case and can only consist of letters, numbers, and \"_\".",
+      "Missing required key for model assay_name, attribute assay_2_pool: \"desc\".",
       "Missing required key for model assay_name, attribute vendor: \"desc\".",
       "Invalid type for model assay_name, attribute vendor, validation: \"Lo que sea\".\nShould be one of [\"Range\", \"Regexp\", \"Array\"].",
       "Invalid empty attribute_type for model document, attribute document_desc: \"\".",
       "Invalid attribute_type for model document, attribute document_desc: \"\".\nShould be one of [\"string\", \"boolean\", \"file\", \"image\", \"match\", \"matrix\", \"float\", \"integer\", \"table\", \"date_time\", \"link\"].",
-      "Invalid attribute_type for model document, attribute version: \"copacetic\".\nShould be one of [\"string\", \"boolean\", \"file\", \"image\", \"match\", \"matrix\", \"float\", \"integer\", \"table\", \"date_time\", \"link\"].",
+      "Attribute name version!@ in model document must be snake_case and can only consist of letters, numbers, and \"_\".",
+      "Invalid attribute_type for model document, attribute version!@: \"copacetic\".\nShould be one of [\"string\", \"boolean\", \"file\", \"image\", \"match\", \"matrix\", \"float\", \"integer\", \"table\", \"date_time\", \"link\"].",
       "Invalid attribute_type for model document, attribute version_date: \"date\".\nShould be one of [\"string\", \"boolean\", \"file\", \"image\", \"match\", \"matrix\", \"float\", \"integer\", \"table\", \"date_time\", \"link\"].",
       "Missing required key for model assay_pool, attribute biospecimen: \"attribute_type\".",
       "Missing required key for model assay_pool, attribute biospecimen: \"desc\".",
@@ -119,7 +123,7 @@ describe Etna::Clients::Magma::JsonProject do
       "Missing required key for model assay_pool, attribute cells_loaded: \"display_name\".",
       "Missing required key for model assay_pool, attribute project: \"desc\".",
       "Missing required key for model timepoint, attribute day: \"desc\".",
-      "Linked model, \"pool_deep_end\", on attribute assay_pool of model assay_name does not exist!",
+      "Linked model, \"pool_deep_end\", on attribute assay_2_pool of model assay_name does not exist!",
       "Model \"assay_pool\" already belongs to parent model \"project\". Remove attribute \"project\"."
     ])
   end
