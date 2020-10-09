@@ -447,21 +447,6 @@ class Polyphemus
     end
   end
 
-  class MagmaEtlScripter
-    include WithEtnaClients
-    def environment
-      :production
-    end
-
-    def execute(command, *subcommands)
-      case command
-      when 'test'
-        'your mo'
-      end
-    end
-  end
-
-
   class IpiAddFlowModel < Etna::Command
     include WithEtnaClients
     include WithLogger

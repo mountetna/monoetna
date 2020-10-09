@@ -1,4 +1,5 @@
 require 'nokogiri'
+require 'net/http'
 
 module XMLCensorInspect
   def inspect
@@ -145,6 +146,36 @@ class FlowJoXml
 end
 
 module FlowJoDsl
+  def add_stain_name(stain, name)
+    @stain_to_names ||= {}
+    @stain_to_names[stain] = name
+  end
+
+  def load_record_flow_jo(attribute_name)
+    unless record.include?(attribute_name)
+      raise "load_record_flow_jo cannot find #{attribute_name} on #{model_name}"
+    end
+
+    unless (value = record[attribute_name]).is_a?(Hash) && value.include?('url')
+      logger.info("Record #{attribute_name} does not have a #{attribute_name} set, skipping flowjo processing.")
+      return false
+    end
+
+    tmp = Tempfile.new
+    begin
+      uri = URI(value['url'])
+      metis_client = Etna::Clients::Metis.new(host: uri.scheme + '://' + uri.host, token: magma_client.token)
+      metis_client.download_file(value['url']) do |chunk|
+        tmp.write chunk
+      end
+      load_flowjo(tmp.path)
+    ensure
+      tmp.close!
+    end
+
+    true
+  end
+
   def load_flowjo(file_name)
     File.open(file_name) do |file|
       FlowJoXml.new(file)
@@ -156,10 +187,6 @@ module FlowJoDsl
     @stain_panels <<  { patient_ipi_number: patient_ipi_number, name: name, channels: channels }
   end
 
-  def add_stain_name(stain, name)
-    @stain_to_names ||= {}
-    @stain_to_names[stain] = name
-  end
 
   def process_all_stains(patient_record, flow_jo)
     @stain_to_names.keys.each do |stain|

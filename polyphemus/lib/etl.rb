@@ -10,7 +10,7 @@ class Polyphemus
 
         def execute
           while true
-            return unless self.parent_scope::EtlClass.new.run_once
+            break unless self.parent.class::EtlClass.new.run_once
             logger.info("Continuing to process...")
           end
 
@@ -23,7 +23,7 @@ class Polyphemus
 
         def execute
           logger.warn("Resetting etl cursors!")
-          self.parent_scope::EtlClass.new.cursor_group.reset_all!
+          self.parent.class::EtlClass.new.cursor_group.reset_all!
         end
       end) unless self.const_defined?(:Reset)
     end
@@ -32,21 +32,21 @@ class Polyphemus
   class EtlCommand
     include Etna::CommandExecutor
 
-    def self.command_name
+    def command_name
       'etl'
     end
 
     def subcommands
-      @subcommands ||= Etl.descendants.inject({}) do |acc, etl|
-        acc.tap do
-          acc[etl]
-        end
-
-        self.const_set(:"#{etl.name}", Class.new(EtlExecutor) do
-          usage "manages the #{etl.name}"
+      Etl.descendants.each do |etl|
+        next unless etl.descendants.empty? # Ignore base classes.
+        name = etl.name.split('::').last
+        self.class.const_set(:"#{name}", Class.new(EtlExecutor) do
+          usage "manages the #{name}"
           const_set(:EtlClass, etl)
-        end)
+        end) unless self.class.const_defined?(:"#{name}")
       end
+
+      super
     end
   end
 
@@ -57,11 +57,13 @@ class Polyphemus
     include WithLogger
 
     def self.inherited(subclass)
-      descendants << subclass
+      @descendants ||= []
+      @descendants << subclass
     end
 
     def self.descendants
       @descendants ||= []
+      @descendants + @descendants.map(&:descendants).inject([], &:+)
     end
 
     attr_reader :cursor_group

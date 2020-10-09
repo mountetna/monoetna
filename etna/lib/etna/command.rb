@@ -3,9 +3,23 @@ require 'rollbar'
 # Commands resolution works by starting from a class that includes CommandExecutor, and searches for
 # INNER (belong to their scope) classes that include :find_command (generally subclasses of Etna::Command or
 # classes that include CommandExecutor).
-#
 # A command completes the find_command chain by returning itself, while CommandExecutors consume one of the arguments
 # to dispatch to a subcommand.
+# eg of subcommands
+#
+# ./bin/my_app my_command help
+# ./bin/my_app my_command subcommand
+# class MyApp < Etna::Application
+#   class MyCommand
+#     include Etna::CommandExecutor
+#
+#     class Subcommand < Etna::Command
+#       def execute
+#       end
+#     end
+#   end
+# end
+#
 module Etna
   # Provides the usage DSL and method that includes information about a CommandExecutor or a Command.
   # Commands or CommandExecutors can call 'usage' in their definition to provide a specific description
@@ -46,7 +60,7 @@ module Etna
           end
         end.join(' ')
       elsif respond_to?(:subcommands)
-        '<' + subcommands.keys.join('|') + '>'
+        '<command> <args>...'
       end
     end
 
@@ -93,16 +107,21 @@ module Etna
     end
 
     def find_command(cmd = 'help', *args)
-      cmd = 'help' unless subcommands.include?(cmd)
+      unless subcommands.include?(cmd)
+        cmd = 'help'
+        args = []
+      end
+
       subcommands[cmd].find_command(*args)
     end
 
     def subcommands
       @subcommands ||= self.class.constants.reduce({}) do |acc, n|
         acc.tap do
-          p n
-          v = self.class.const_get(n).new(self)
-          acc[v.command_name] = v if v.methods.include?(:find_command)
+          c = self.class.const_get(n)
+          next unless c.instance_methods.include?(:find_command)
+          v = c.new(self)
+          acc[v.command_name] = v
         end
       end
     end
@@ -173,6 +192,8 @@ module Etna
   end
 
   # application.rb instantiates this for the project scoping.
+  # This generates a file, project-name.completion, which is sourced
+  # in build.sh to provide autocompletion in that environment.
   class GenerateCompletionScript < Etna::Command
     def generate_for_scope(scope, lines, depth = 1)
       lines << "if [ \"${COMP_CWORD}\" == \"#{depth}\" ]; then"
@@ -204,13 +225,13 @@ module Etna
     end
 
     def execute
-      name = Etna::Application.instance.class.name.downcase
+      name = parent.class.name.split('::').last.snake_case
 
       lines = []
       lines << "#!/usr/bin/env bash"
       lines << "_#{name}_completions() {"
       lines << "local all_completion_names=''"
-      generate_for_scope(Etna::Application.instance, lines)
+      generate_for_scope(parent, lines)
       lines << "}"
       lines << "complete -F _#{name}_completions #{name}"
 

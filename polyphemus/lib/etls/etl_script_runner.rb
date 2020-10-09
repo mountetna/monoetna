@@ -5,13 +5,11 @@ require_relative '../data_processing/magma_dsl'
 class EtlScriptRunner
   include XMLDsl
   include MagmaDsl
-  include WithEtnaClients
 
   def initialize(file_path)
     @file_path = file_path
     @script_name = File.basename(file_path)
-    @project_name = File.basename(File.dirname(file_path))
-    @script_name_parts = @script_name.split('_')
+    @script_name_parts = @script_name.split('+')
   end
 
   def project_name
