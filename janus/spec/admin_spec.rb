@@ -508,12 +508,14 @@ describe AdminController do
 
     it 'requires a well-formed project_name' do
       auth_header(:superuser)
-      json_post('add_project', project_name: 'Door', project_name_full: "Doors")
+      [ "Doors", ' doors', 'doors	' , '1x_door', 'pg_door'].each do |name|
+        json_post('add_project', project_name: name, project_name_full: name)
 
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to match(/project_name should be like/)
+        expect(last_response.status).to eq(422)
+        expect(json_body[:error]).to match(/project_name should be like/)
 
-      expect(Project.count).to eq(0)
+        expect(Project.count).to eq(0)
+      end
     end
 
     it 'requires some project_name_full' do
