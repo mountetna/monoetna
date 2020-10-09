@@ -142,6 +142,8 @@ module Etna
         def validate_project_names
           check_key('root project', @raw, 'project_name')
           check_key('root project', @raw, 'project_name_full')
+          @errors << "Project name #{name} can only consist of letters and numbers." unless name =~ /^[a-z0-9]*$/i
+          @errors << "Project name #{name} cannot start with a number." if name =~ /^[0-9][a-z0-9]*$/i
         end
 
         def validate_models
@@ -222,6 +224,7 @@ module Etna
 
         def validate_add_model_data
           @errors << "Model name #{name} can only consist of letters and \"_\"." unless name =~ /^[a-z_]*$/i
+
           if !is_project?
             check_key("model #{name}", @raw, 'parent_model_name')
             check_key("model #{name}", @raw, 'parent_link_type')
@@ -301,6 +304,9 @@ module Etna
         end
 
         def validate_add_attribute_data
+          @errors << "Attribute name #{name} in model #{model.name} can only consist of letters, numbers, and \"_\"." unless name =~ /^[a-z0-9_]*$/i
+          @errors << "Attribute name #{name} in model #{model.name} cannot start with a number." if name =~ /^[0-9][a-z0-9_]*$/i
+
           if model.identifier != name
             check_key("model #{model.name}, attribute #{name}", @raw, 'attribute_type')
 

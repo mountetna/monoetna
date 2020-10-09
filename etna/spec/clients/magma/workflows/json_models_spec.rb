@@ -1,5 +1,6 @@
 require 'webmock/rspec'
 require 'json'
+require 'pry'
 
 describe Etna::Clients::Magma::JsonProject do
   before(:each) do
@@ -7,17 +8,20 @@ describe Etna::Clients::Magma::JsonProject do
 
   it 'reports errors for missing project keys' do
     project = Etna::Clients::Magma::JsonProject.new(
-      filepath: './spec/fixtures/create_project/create_project_fixture_missing_project_keys.json'
+      filepath: './spec/fixtures/create_project/missing_project_keys.json'
     )
     expect(project.valid?).to eq(false)
-    expect(project.errors.length).to eq(2)
-    expect(project.errors.first).to eq('Missing required key for root project: "project_name".')
-    expect(project.errors.last).to eq('Missing required key for root project: "project_name_full".')
+    expect(project.errors.length).to eq(3)
+    expect(project.errors).to eq([
+      'Missing required key for root project: "project_name".',
+      'Missing required key for root project: "project_name_full".',
+      'Project name  can only consist of letters and numbers.'
+    ])
   end
 
   it 'reports errors for blank project keys' do
     project = Etna::Clients::Magma::JsonProject.new(
-      filepath: './spec/fixtures/create_project/create_project_fixture_blank_project_keys.json'
+      filepath: './spec/fixtures/create_project/blank_project_keys.json'
     )
     expect(project.valid?).to eq(false)
     expect(project.errors.length).to eq(2)
@@ -25,9 +29,19 @@ describe Etna::Clients::Magma::JsonProject do
     expect(project.errors.last).to eq('Invalid empty project_name_full for root project: "".')
   end
 
+  it 'reports errors for invalid project name' do
+    project = Etna::Clients::Magma::JsonProject.new(
+      filepath: './spec/fixtures/create_project/invalid_project_name.json'
+    )
+    expect(project.valid?).to eq(false)
+    expect(project.errors.length).to eq(1)
+    expect(project.errors.first).to eq('Project name 10xTest cannot start with a number.')
+  end
+
+
   it 'loads a project JSON definition' do
     project = Etna::Clients::Magma::JsonProject.new(
-      filepath: './spec/fixtures/create_project/create_project_fixture_valid.json'
+      filepath: './spec/fixtures/create_project/valid_project.json'
     )
 
     expect(project.valid?).to eq(true)
@@ -48,7 +62,7 @@ describe Etna::Clients::Magma::JsonProject do
 
   it 'reports errors for missing model information' do
     project = Etna::Clients::Magma::JsonProject.new(
-      filepath: './spec/fixtures/create_project/create_project_fixture_missing_model_keys.json'
+      filepath: './spec/fixtures/create_project/missing_model_keys.json'
     )
     expect(project.valid?).to eq(false)
     expect(project.errors.length).to eq(6)
@@ -64,7 +78,7 @@ describe Etna::Clients::Magma::JsonProject do
 
   it 'reports errors for invalid model information' do
     project = Etna::Clients::Magma::JsonProject.new(
-      filepath: './spec/fixtures/create_project/create_project_fixture_invalid_models.json'
+      filepath: './spec/fixtures/create_project/invalid_models.json'
     )
     expect(project.valid?).to eq(false)
     expect(project.errors.length).to eq(10)
@@ -84,13 +98,14 @@ describe Etna::Clients::Magma::JsonProject do
 
   it 'reports errors for invalid attribute information' do
     project = Etna::Clients::Magma::JsonProject.new(
-      filepath: './spec/fixtures/create_project/create_project_fixture_attribute_errors.json'
+      filepath: './spec/fixtures/create_project/attribute_errors.json'
     )
 
     expect(project.valid?).to eq(false)
-    expect(project.errors.length).to eq(16)
+    expect(project.errors.length).to eq(19)
     expect(project.errors).to eq([
       "Missing required key for model assay_name, attribute tube_name, validation: \"value\".",
+      "Attribute name 123restricted can only consist of letters and \"_\".",
       "Missing required key for model assay_name, attribute assay_pool: \"desc\".",
       "Missing required key for model assay_name, attribute vendor: \"desc\".",
       "Invalid type for model assay_name, attribute vendor, validation: \"Lo que sea\".\nShould be one of [\"Range\", \"Regexp\", \"Array\"].",
@@ -111,7 +126,7 @@ describe Etna::Clients::Magma::JsonProject do
 
   it 'can get models as Magma::Models' do
     project = Etna::Clients::Magma::JsonProject.new(
-      filepath: './spec/fixtures/create_project/create_project_fixture_valid.json'
+      filepath: './spec/fixtures/create_project/valid_project.json'
     )
 
     source_models = project.get_magma_models
