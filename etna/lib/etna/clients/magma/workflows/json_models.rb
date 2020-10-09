@@ -190,7 +190,7 @@ module Etna
           @name = model_name.strip
           @raw = raw
 
-          @valid_parent_link_types = Etna::Clients::Magma::ParentLinkType.entries
+          @valid_parent_link_types = Etna::Clients::Magma::ParentLinkType.entries.sort # sort for prettier presentation
 
           validate
         end
@@ -291,9 +291,9 @@ module Etna
             a == Etna::Clients::Magma::AttributeType::COLLECTION ||
             a == Etna::Clients::Magma::AttributeType::IDENTIFIER ||
             a == Etna::Clients::Magma::AttributeType::PARENT
-          }
+          }.sort # sort for prettier presentation
 
-          @valid_validation_types = Etna::Clients::Magma::AttributeValidationType.entries
+          @valid_validation_types = Etna::Clients::Magma::AttributeValidationType.entries.sort  # sort for prettier presentation
 
           validate
         end
