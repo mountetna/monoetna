@@ -25,6 +25,14 @@ module Etna
         def check_type(label, raw, key, valid_types)
           errors << "Invalid #{key} for #{label}: \"#{raw[key]}\".\nShould be one of #{valid_types}." if raw.key?(key) && !valid_types.include?(raw[key].strip)
         end
+
+        def name_regex_with_numbers
+          /\A[a-z][a-z0-9]*(_[a-z0-9]+)*\Z/
+        end
+
+        def name_regex_no_numbers
+          /\A[a-z]*(_[a-z]+)*\Z/
+        end
       end
 
       class JsonProject < JsonBase
@@ -142,6 +150,7 @@ module Etna
         def validate_project_names
           check_key('root project', @raw, 'project_name')
           check_key('root project', @raw, 'project_name_full')
+          @errors << "Project name #{name} must be snake_case and cannot start with a number or \"pg_\"." unless name =~ name_regex_with_numbers && !name.start_with?('pg_')
         end
 
         def validate_models
@@ -181,11 +190,8 @@ module Etna
           @name = model_name.strip
           @raw = raw
 
-          @valid_parent_link_types = [
-            Etna::Clients::Magma::ParentLinkType::CHILD,
-            Etna::Clients::Magma::ParentLinkType::COLLECTION,
-            Etna::Clients::Magma::ParentLinkType::TABLE
-          ]
+          @valid_parent_link_types = Etna::Clients::Magma::ParentLinkType.entries.sort # sort for prettier presentation
+
           validate
         end
 
@@ -230,7 +236,8 @@ module Etna
         end
 
         def validate_add_model_data
-          @errors << "Model name #{name} cannot have numeric values in it." if name =~ /\d/
+          @errors << "Model name #{name} must be snake_case and can only consist of letters and \"_\"." unless name =~ name_regex_no_numbers
+
           if !is_project?
             check_key("model #{name}", @raw, 'parent_model_name')
             check_key("model #{name}", @raw, 'parent_link_type')
@@ -285,25 +292,14 @@ module Etna
           # NOTE: for input simplicity, I've removed some of the
           #   link-related types, since we'll try to calculate
           #   those while parsing the JSON structure.
-          @valid_attribute_types = [
-            Etna::Clients::Magma::AttributeType::STRING,
-            Etna::Clients::Magma::AttributeType::DATE_TIME,
-            Etna::Clients::Magma::AttributeType::BOOLEAN,
-            Etna::Clients::Magma::AttributeType::FILE,
-            Etna::Clients::Magma::AttributeType::FLOAT,
-            Etna::Clients::Magma::AttributeType::IMAGE,
-            Etna::Clients::Magma::AttributeType::INTEGER,
-            Etna::Clients::Magma::AttributeType::LINK,
-            Etna::Clients::Magma::AttributeType::MATCH,
-            Etna::Clients::Magma::AttributeType::MATRIX,
-            Etna::Clients::Magma::AttributeType::TABLE,
-          ]
+          @valid_attribute_types = Etna::Clients::Magma::AttributeType.entries.reject { |a|
+            a == Etna::Clients::Magma::AttributeType::CHILD ||
+            a == Etna::Clients::Magma::AttributeType::COLLECTION ||
+            a == Etna::Clients::Magma::AttributeType::IDENTIFIER ||
+            a == Etna::Clients::Magma::AttributeType::PARENT
+          }.sort # sort for prettier presentation
 
-          @valid_validation_types = [
-            Etna::Clients::Magma::AttributeValidationType::REGEXP,
-            Etna::Clients::Magma::AttributeValidationType::ARRAY,
-            Etna::Clients::Magma::AttributeValidationType::RANGE
-          ]
+          @valid_validation_types = Etna::Clients::Magma::AttributeValidationType.entries.sort  # sort for prettier presentation
 
           validate
         end
@@ -321,6 +317,8 @@ module Etna
         end
 
         def validate_add_attribute_data
+          @errors << "Attribute name #{name} in model #{model.name} must be snake_case and can only consist of letters, numbers, and \"_\"." unless name =~ name_regex_with_numbers
+
           if model.identifier != name
             check_key("model #{model.name}, attribute #{name}", @raw, 'attribute_type')
 

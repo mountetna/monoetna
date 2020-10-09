@@ -13,13 +13,13 @@
             "type": "Regexp"
           }
         },
-        "restricted": {
+        "123restricted": {
           "attribute_name": "restricted",
           "desc": "Controls access to the data.",
           "display_name": "Restricted",
           "attribute_type": "boolean"
         },
-        "assay_pool": {
+        "assay_2_pool": {
           "attribute_name": "assay_pool",
           "link_model_name": "pool_deep_end",
           "display_name": "Assay Pool",
@@ -47,7 +47,7 @@
           "display_name": "Document desc",
           "attribute_type": ""
         },
-        "version": {
+        "version!@": {
           "attribute_name": "version",
           "desc": "Version",
           "display_name": "Version",

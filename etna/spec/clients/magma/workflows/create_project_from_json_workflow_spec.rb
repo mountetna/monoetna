@@ -12,10 +12,10 @@ end
 
 describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
   let(:magma_client) {Etna::Clients::Magma.new(
-    token: '123',
+    token: '123.eyJlbWFpbCI6ImZvb0BiYXIuY29tIiwiZmlyc3QiOiJmb28iLCJsYXN0IjoiYmFyIn0=.bar',
     host: MAGMA_HOST)}
   let(:janus_client) {Etna::Clients::Janus.new(
-    token: '123',
+    token: '123.eyJlbWFpbCI6ImZvb0BiYXIuY29tIiwiZmlyc3QiOiJmb28iLCJsYXN0IjoiYmFyIn0=.bar',
     host: JANUS_HOST)}
 
   before(:each) do
@@ -49,12 +49,12 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
     workflow = Etna::Clients::Magma::CreateProjectFromJsonWorkflow.new(
       magma_client: magma_client,
       janus_client: janus_client,
-      filepath: './spec/fixtures/create_project/create_project_fixture_valid.json'
+      filepath: './spec/fixtures/create_project/valid_project.json'
     )
     workflow.create!
 
     expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_project/).
-      with(headers: {Authorization: 'Etna 123'})
+      with(headers: {Authorization: 'Etna 123.eyJlbWFpbCI6ImZvb0BiYXIuY29tIiwiZmlyc3QiOiJmb28iLCJsYXN0IjoiYmFyIn0=.bar'})
       expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_user\/#{PROJECT}/)
       expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/update_permission\/#{PROJECT}/)
     expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/refresh_token/)
@@ -88,7 +88,7 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
       Etna::Clients::Magma::CreateProjectFromJsonWorkflow.new(
         magma_client: magma_client,
         janus_client: janus_client,
-        filepath: './spec/fixtures/create_project/create_project_fixture_missing_project_keys.json'
+        filepath: './spec/fixtures/create_project/missing_project_keys.json'
       )
     }.to raise_error(Exception)
   end

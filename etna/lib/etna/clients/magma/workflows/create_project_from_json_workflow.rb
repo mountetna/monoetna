@@ -6,6 +6,7 @@
 # 4) Creates the project in Magma.
 # 5) Iterates through the models and attributes and creates those in Magma.
 
+require 'base64'
 require 'json'
 require 'ostruct'
 require_relative './model_synchronization_workflow'
@@ -39,8 +40,8 @@ module Etna
         def add_janus_user
           janus_client.add_user(Etna::Clients::Janus::AddUserRequest.new(
             project_name: project_name,
-            email: user.email,
-            name: "#{user.first} #{user.last}",
+            email: user['email'],
+            name: "#{user['first']} #{user['last']}",
             role: 'editor'
           ))
         end
@@ -48,7 +49,7 @@ module Etna
         def update_janus_permissions
           janus_client.update_permission(Etna::Clients::Janus::UpdatePermissionRequest.new(
             project_name: project_name,
-            email: user.email,
+            email: user['email'],
             role: 'administrator'
           ))
         end
@@ -151,7 +152,7 @@ module Etna
         end
 
         def user
-          @user ||= janus_client.whoami(Etna::Clients::Janus::WhoAmIRequest.new).user
+          @user ||= JSON.parse(Base64.urlsafe_decode64(magma_client.token.split('.')[1]))
         end
       end
     end

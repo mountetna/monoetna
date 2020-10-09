@@ -30,15 +30,6 @@ module Etna
         end
       end
 
-      def whoami(whoami_request = WhoAmIRequest.new)
-        json = nil
-        @etna_client.get('/whoami', whoami_request) do |res|
-          json = JSON.parse(res.body)
-        end
-
-        UserResponse.new(json)
-      end
-
       def add_user(add_user_request = AddUserRequest.new)
         @etna_client.post(
           "/add_user/#{add_user_request.project_name}",
