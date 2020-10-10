@@ -6,7 +6,7 @@ module FileNameRegexDsl
   end
 
   def sample_name_regex(project_name = self.project_name)
-    regex_chain(patient_name_regex(project_name), /\w+\d/)
+    regex_chain(patient_name_regex(project_name), /\w+\d+/)
   end
 
   def stain_name_regex(stain_names = @stain_to_names.values)

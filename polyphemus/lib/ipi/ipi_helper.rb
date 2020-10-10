@@ -84,7 +84,7 @@ class IpiHelper
   def fcs_regex(file_name)
     regex = regex_chain(
         regex_named_match('sample_name', sample_name_regex('IPI')),
-        /(?:flow_)?#{regex_named_match('stain', stain_name_regex(STAIN_NAMES)).source}/,
+        /(?:flow_)?#{regex_named_match('stain', regex_options(STAIN_NAMES)).source}/,
         Regexp::IGNORECASE
     )
     raise "FCS filename #{file_name} does not match expected regex" unless regex.match(file_name)

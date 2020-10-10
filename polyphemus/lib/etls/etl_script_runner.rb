@@ -1,10 +1,16 @@
 require_relative '../helpers'
 require_relative '../data_processing/xml_dsl'
 require_relative '../data_processing/magma_dsl'
+require_relative '../data_processing/file_name_regex_dsl'
+require_relative '../data_processing/regex_dsl'
+require_relative '../data_processing/project_metadata_dsl'
 
 class EtlScriptRunner
   include XMLDsl
   include MagmaDsl
+  include RegexDsl
+  include FileNameRegexDsl
+  include ProjectMetadataDsl
 
   def initialize(file_path)
     @file_path = file_path

@@ -13,7 +13,7 @@ module RegexDsl
       else
         raise "Got value #{reg}, expected regex"
       end
-    end.inject([], &:+).join('\.')
+    end.inject([], &:+).join('_')
 
     Regexp.new(src, flags)
   end
