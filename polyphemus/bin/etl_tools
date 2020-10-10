@@ -35,7 +35,8 @@ class Polyphemus
             raise "Could not find #{runner.model_name} by id #{record_id} in project #{runner.project_name}"
           end
 
-          runner.run(record, magma_client: magma_client, mode: :debug)
+          runner.run(record, magma_client: magma_client, commit: false)
+          pp runner.update_request
         end
       end
     end

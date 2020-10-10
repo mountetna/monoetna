@@ -5,7 +5,7 @@ require_relative '../../data_processing/flow_jo_dsl'
 class MagmaEtlScriptRunner < EtlScriptRunner
   include FlowJoDsl
 
-  attr_reader :record, :magma_client
+  attr_reader :record, :magma_client, :update_request
   def model_name
     if @script_name_parts.length < 3
       raise "Improperly formatted script name #{@file_path}.  Script name should start with '<project name>+<model name>+'."
@@ -14,26 +14,17 @@ class MagmaEtlScriptRunner < EtlScriptRunner
     @script_name_parts[1]
   end
 
-  def process_outputs
-    # TODO
-  end
-
-  def debug_outputs
-    pp({ flow_jo_outputs: flow_jo_outputs })
-  end
-
-  def run(record, magma_client:, mode: :process)
+  def run(record, magma_client:, commit: true)
     # Make the record available as an instance variable named based on the model_name.
     instance_variable_set(:"@#{model_name}", record)
     @record = record
     @magma_client = magma_client
+    @update_request = Etna::Clients::Magma::UpdateRequest.new
 
     run_script
 
-    if mode == :process
-      process_outputs
-    elsif mode == :debug
-      debug_outputs
+    if commit
+      magma_client.update(update_request)
     end
   end
 end

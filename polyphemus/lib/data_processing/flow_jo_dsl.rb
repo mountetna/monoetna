@@ -186,17 +186,11 @@ module FlowJoDsl
     end
   end
 
-  def flow_jo_outputs
-    {
-        stain_pannels: @stain_panels,
-        stain_populations: @stain_populations,
-        samples: @samples,
-    }
-  end
-
   def new_stain_panel(patient, name, channels)
-    @stain_panels ||= []
-    @stain_panels << {patient: patient, name: name, channels: channels}
+    stain_panel_id = update_request.append_table("patient", patient, "stain_panel", { name: name })
+    channels.each do |channel|
+      update_request.append_table("stain_panel", stain_panel_id, "channel", channel)
+    end
   end
 
 
@@ -208,16 +202,12 @@ module FlowJoDsl
     end.select.uniq
 
     names.each do |name|
-      new_sample(name, patient_record)
+      new_sample(name, record_identifier(patient_record, "patient"))
     end
   end
 
-  def new_sample(name, patient = @patient)
-    @samples ||= []
-    @samples << {
-        sample_name: name,
-        patient: record_identifier(patient, 'patient')
-    }
+  def new_sample(name, patient)
+    update_request.update_revision("sample", name, { patient: patient })
   end
 
   def process_all_stains(patient_record = @patient, flow_jo = @flow_jo)
@@ -257,8 +247,9 @@ module FlowJoDsl
   end
 
   def process_all_populations(patient_record = @patient, flow_jo = @flow_jo)
+    process_all_samples(patient_record, flow_jo)
     @stain_to_names.keys.each do |stain|
-      create_population_documents_for_stain(patient_record, flow_jo, stain)
+      create_population_documents_for_stain(flow_jo, stain)
     end
   end
 
@@ -275,7 +266,7 @@ module FlowJoDsl
     name
   end
 
-  def create_population_documents_for_stain(patient_record, flow_jo, stain)
+  def create_population_documents_for_stain(flow_jo, stain)
     tube = tube_of_stain(flow_jo, stain)
 
     if !tube
@@ -283,7 +274,6 @@ module FlowJoDsl
     end
 
     sample_name = sample_name_from_tubename(tube.tube_name)
-    populations = []
 
     tube.populations.each do |pop|
       mfis = pop.statistics.map do |stat|
@@ -298,14 +288,16 @@ module FlowJoDsl
   end
 
   def new_population(sample_name, stain, pop, mfis)
-    @stain_populations ||= []
-    @stain_populations << {
+    population_id = update_request.append_table("sample", sample_name, "population", {
         stain: @stain_to_names[stain],
         sample: sample_name,
         ancestry: pop.ancestry.map { |name| clean_name(name) }.join("\t"),
         name: clean_name(pop.name),
         count: pop.count,
-        mfis: mfis,
-    }
+    })
+
+    mfis.each do |mfi|
+      update_request.append_table("population", population_id, "mfi", mfi)
+    end
   end
 end
