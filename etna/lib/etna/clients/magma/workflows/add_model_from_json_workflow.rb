@@ -24,7 +24,7 @@ module Etna
             model_name,
             JSON.parse(File.read(filepath)))
 
-          @errors = model.errors.dup
+          @errors = []
           validate
 
           raise "Model JSON has errors:\n  * #{format_errors}" unless valid?
@@ -40,6 +40,7 @@ module Etna
 
         def validate
           validate_model_against_project
+          @errors += model.errors
         end
 
         def project_models
@@ -57,11 +58,7 @@ module Etna
           # Make sure any linked models exist.
           @errors << "Model #{model.name} already exists in project #{project_name}!" if project_model_names.include?(model.name)
 
-          @errors << "Parent model #{model.parent_model_name} does not exist in project #{project_name}.\nCurrent models are #{project_model_names}." unless project_model_names.include?(model.parent_model_name)
-
-          model.link_attributes do |attribute|
-            @errors << "Linked model #{attribute.link_model_name} does not exist in project #{project_name}.\nCurrent models are #{project_model_names}." unless project_model_names.include?(attribute.link_model_name)
-          end
+          model.validate_link_models(project_model_names)
         end
 
         def create_magma_model

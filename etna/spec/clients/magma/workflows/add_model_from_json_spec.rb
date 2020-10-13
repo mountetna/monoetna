@@ -1,15 +1,6 @@
 require 'webmock/rspec'
 require 'json'
 
-def model_stamp(model_name)
-  {
-    template: {
-      name: model_name,
-      attributes: {}
-    }
-  }
-end
-
 describe Etna::Clients::Magma::AddModelFromJsonWorkflow do
   let(:magma_client) {Etna::Clients::Magma.new(
     token: '123',
@@ -118,9 +109,9 @@ describe Etna::Clients::Magma::AddModelFromJsonWorkflow do
 \tShould be one of [\"child\", \"collection\", \"table\"].
   * Invalid type for model assay2, attribute vendor, validation: \"array\".
 \tShould be one of [\"Array\", \"Range\", \"Regexp\"].
-  * Parent model paper_airplanes does not exist in project test.
+  * Parent model paper_airplanes for assay2 does not exist in project.
 \tCurrent models are [\"assay_name\", \"assay_pool\", \"project\", \"timepoint\", \"patient\", \"document\", \"status\", \"symptom\"].
-  * Linked model assay2_pool does not exist in project test.
+  * Linked model, "assay2_pool", on attribute assay2_pool of model assay2 does not exist!
 \tCurrent models are [\"assay_name\", \"assay_pool\", \"project\", \"timepoint\", \"patient\", \"document\", \"status\", \"symptom\"].}
 
     expect {
