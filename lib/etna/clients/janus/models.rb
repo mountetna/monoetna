@@ -6,11 +6,27 @@ require_relative '../../json_serializable_struct'
 module Etna
   module Clients
     class Janus
+      class GetProjectRequest < Struct.new(:project_name, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+      end
+
       class AddProjectRequest < Struct.new(:project_name, :project_name_full, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)
           super({}.update(params))
+        end
+      end
+
+      class AddUserRequest < Struct.new(:project_name, :email, :name, :role, :privileged, :affiliation, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({privileged: false, affiliation: ''}.update(params))
         end
       end
 
@@ -31,6 +47,18 @@ module Etna
       class ViewerTokenRequest
         def map
           []
+        end
+      end
+
+      class HtmlResponse
+        attr_reader :raw
+
+        def initialize(raw = '')
+          @raw = raw
+        end
+
+        def html
+          @raw
         end
       end
 
