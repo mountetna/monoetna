@@ -19,6 +19,7 @@ jobs:
       - name: Download all images
         env:
           IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
           IMAGES_POSTFIX: :master
         run: |
           ./bin/x-all-images docker pull %
@@ -26,6 +27,7 @@ jobs:
         id: metis_first_test_run
         env:
           IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
           IMAGES_POSTFIX: :master
         run: |
           make -C metis release
@@ -33,6 +35,7 @@ jobs:
         id: janus_first_test_run
         env:
           IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
           IMAGES_POSTFIX: :master
         run: |
           make -C janus release
@@ -40,6 +43,7 @@ jobs:
         id: timur_first_test_run
         env:
           IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
           IMAGES_POSTFIX: :master
         run: |
           make -C timur release
@@ -47,6 +51,7 @@ jobs:
         id: magma_first_test_run
         env:
           IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
           IMAGES_POSTFIX: :master
         run: |
           make -C magma release
@@ -54,6 +59,7 @@ jobs:
         id: polyphemus_first_test_run
         env:
           IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
           IMAGES_POSTFIX: :master
         run: |
           make -C polyphemus release
@@ -63,6 +69,7 @@ jobs:
         id: etna_first_test_run
         env:
           IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
           IMAGES_POSTFIX: :master
         run: |
           make -C etna release
