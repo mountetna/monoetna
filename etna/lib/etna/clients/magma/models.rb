@@ -95,6 +95,13 @@ module Etna
         end
       end
 
+      class RenameAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :new_attribute_name, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'rename_attribute'}.update(args))
+        end
+      end
+
       class AttributeValidation < Struct.new(:type, :value, :begin, :end, keyword_init: true)
         include JsonSerializableStruct
       end
