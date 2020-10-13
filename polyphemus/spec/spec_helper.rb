@@ -11,8 +11,12 @@ require 'simplecov'
 SimpleCov.start
 
 require 'yaml'
+require 'etna/spec/vcr'
+
 require_relative '../lib/server'
 require_relative '../lib/polyphemus'
+
+setup_base_vcr(__dir__)
 
 Polyphemus.instance.configure(YAML.load(File.read('config.yml')))
 
@@ -31,41 +35,6 @@ end
 
 def auth_header(user_type)
   header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
-end
-
-VCR.configure do |c|
-  c.hook_into :webmock
-  c.cassette_serializers
-  c.cassette_library_dir = ::File.join(__dir__,  'fixtures', 'cassettes')
-  c.allow_http_connections_when_no_cassette = true
-  c.register_request_matcher :try_body do |request_1, request_2|
-    if request_1.headers['Content-Type'].first =~ /application\/json/
-      if request_2.headers['Content-Type'].first =~ /application\/json/
-        request_1_json = begin JSON.parse(request_1.body) rescue 'not-json' end
-        request_2_json = begin JSON.parse(request_2.body) rescue 'not-json' end
-        request_1_json == request_2_json
-      else
-        false
-      end
-    else
-      request_1.body == request_2.body
-    end
-  end
-
-  c.default_cassette_options = {
-      record: if ENV['IS_CI']
-        :none
-      else
-        ENV['RERECORD'] ? :all : :once
-      end,
-      match_requests_on: [:method, :uri, :try_body]
-  }
-
-  # Filter the authorization headers of any request by replacing any occurrence of that request's
-  # Authorization value with <AUTHORIZATION>
-  c.filter_sensitive_data('<AUTHORIZATION>') do |interaction|
-    interaction.request.headers['Authorization'].first
-  end
 end
 
 RSpec.configure do |config|
