@@ -1,0 +1,7 @@
+require_relative './workflows/crud_workflow'
+require_relative './workflows/file_linking_workflow'
+require_relative './workflows/model_synchronization_workflow'
+require_relative './workflows/file_attributes_blank_workflow'
+require_relative './workflows/record_synchronization_workflow'
+require_relative './workflows/update_attributes_from_csv_workflow'
+require_relative './workflows/create_project_from_json_workflow'
