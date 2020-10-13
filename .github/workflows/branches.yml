@@ -28,6 +28,7 @@ jobs:
         env:
           IMAGES_PREFIX: etnaagent/
           IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
           make -C metis release
@@ -36,6 +37,7 @@ jobs:
         env:
           IMAGES_PREFIX: etnaagent/
           IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
           make -C janus release
@@ -44,6 +46,7 @@ jobs:
         env:
           IMAGES_PREFIX: etnaagent/
           IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
           make -C timur release
@@ -52,6 +55,7 @@ jobs:
         env:
           IMAGES_PREFIX: etnaagent/
           IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
           make -C magma release
@@ -60,16 +64,16 @@ jobs:
         env:
           IMAGES_PREFIX: etnaagent/
           IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
           make -C polyphemus release
-
-
       - name: Run etna test suite
         id: etna_first_test_run
         env:
           IMAGES_PREFIX: etnaagent/
           IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
           make -C etna release
