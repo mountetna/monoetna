@@ -177,8 +177,8 @@ module Etna
           validate
         end
 
-        def self.from_name(model_name)
-          # Used for linking only. Fills out required fields with
+        def self.linking_stub_from_name(model_name)
+          # Used for linking to a link_model_name only! Fills out required fields with
           #   dummy information to pass validation.
           Etna::Clients::Magma::JsonModel.new(
             model_name,

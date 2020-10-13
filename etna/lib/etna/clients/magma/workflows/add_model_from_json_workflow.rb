@@ -86,7 +86,7 @@ module Etna
           #   the reciprocal link attributes.
           model.link_attributes do |attribute|
             model_builder = models.build_model(attribute.link_model_name)
-            linked_model = Etna::Clients::Magma::JsonModel.from_name(attribute.link_model_name)
+            linked_model = Etna::Clients::Magma::JsonModel.linking_stub_from_name(attribute.link_model_name)
             linked_model.add_reciprocal_link_attribute(model_builder, model)
             linked_model.to_magma_model(model_builder)
           end
