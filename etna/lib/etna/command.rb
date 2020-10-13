@@ -117,7 +117,7 @@ module Etna
     end
 
     def subcommands
-      @subcommands ||= self.class.constants.reduce({}) do |acc, n|
+      @subcommands ||= self.class.constants.sort.reduce({}) do |acc, n|
         acc.tap do
           c = self.class.const_get(n)
           next unless c.instance_methods.include?(:find_command)
