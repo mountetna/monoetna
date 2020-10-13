@@ -60,6 +60,14 @@ module Etna
         def initialize(**args)
           super({action_name: 'add_attribute'}.update(args))
         end
+
+        def attribute_type=(val)
+          self.type = val
+        end
+
+        def desc=(val)
+          self.description = val
+        end
       end
 
       class AddLinkAction < Struct.new(:action_name, :links, keyword_init: true)
@@ -341,6 +349,10 @@ module Etna
           raw['unique']
         end
 
+        def unique=(val)
+          raw['unique'] = val
+        end
+
         def desc
           raw['desc']
         end
@@ -373,6 +385,10 @@ module Etna
           raw['format_hint']
         end
 
+        def format_hint=(val)
+          raw['format_hint'] = val
+        end
+
         def read_only
           raw['read_only']
         end
@@ -399,6 +415,20 @@ module Etna
 
         def options
           raw['options']
+        end
+
+        def self.copy(source, dest)
+          dest.attribute_name = source.attribute_name
+          dest.attribute_type = source.attribute_type
+          dest.desc = source.desc
+          dest.display_name = source.display_name
+          dest.format_hint = source.format_hint
+          dest.hidden = source.hidden
+          dest.link_model_name = source.link_model_name
+          dest.read_only = source.read_only
+          dest.unique = source.unique
+          dest.validation = source.validation
+          dest.restricted = source.restricted
         end
       end
 

@@ -104,16 +104,7 @@ module Etna
               attribute_name: target_attribute_name,
           )
 
-          add_attribute.type = source_attribute.attribute_type
-          add_attribute.description = source_attribute.desc
-          add_attribute.display_name = source_attribute.display_name
-          add_attribute.format_hint = source_attribute.format_hint
-          add_attribute.hidden = source_attribute.hidden
-          add_attribute.link_model_name = source_attribute.link_model_name
-          add_attribute.read_only = source_attribute.read_only
-          add_attribute.unique = source_attribute.unique
-          add_attribute.validation = source_attribute.validation
-          add_attribute.restricted = source_attribute.restricted
+          Attribute.copy(source_attribute, add_attribute)
 
           execute_updates(add_attribute)
         end

@@ -333,8 +333,49 @@ module Etna
           @raw['link_model_name']&.strip
         end
 
+        def attribute_name
+          name
+        end
+
+        def display_name
+          @raw['display_name']&.strip
+        end
+
+        def desc
+          @raw['desc']&.strip
+        end
+
         def validate
           validate_add_attribute_data
+        end
+
+        def attribute_type
+          return Etna::Clients::Magma::AttributeType::IDENTIFIER if model.identifier == name
+          type
+        end
+
+        def hidden
+          @raw['hidden']
+        end
+
+        def read_only
+          @raw['read_only']
+        end
+
+        def validation
+          @raw['validation']
+        end
+
+        def restricted
+          @raw['restricted']
+        end
+
+        def format_hint
+          @raw['format_hint']
+        end
+
+        def unique
+          @raw['unique']
         end
 
         def validate_add_attribute_data
@@ -365,22 +406,7 @@ module Etna
 
         def to_magma_model(builder)
           builder.build_attribute(name).tap do |attribute|
-            attribute.attribute_name = name
-            attribute.name = name
-
-            if model.identifier != name
-              attribute.display_name = @raw['display_name'].strip
-              attribute.desc = @raw['desc'].strip
-              attribute.attribute_type = type
-            else
-              attribute.attribute_type = Etna::Clients::Magma::AttributeType::IDENTIFIER
-            end
-
-            attribute.hidden = @raw['hidden'] if @raw.key?('hidden')
-            attribute.read_only = @raw['read_only'] if @raw.key?('read_only')
-            attribute.validation = @raw['validation'] if @raw.key?('validation')
-            attribute.restricted = @raw['restricted'] if @raw.key?('restricted')
-            attribute.link_model_name = link_model_name if link_model_name
+            Etna::Clients::Magma::Attribute.copy(self, attribute)
           end
         end
       end
