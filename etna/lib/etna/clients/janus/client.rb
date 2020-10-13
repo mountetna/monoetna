@@ -1,6 +1,7 @@
 require 'net/http/persistent'
 require 'net/http/post/multipart'
 require 'singleton'
+require_relative '../../client'
 require_relative './models'
 
 module Etna
@@ -12,8 +13,27 @@ module Etna
         @etna_client = ::Etna::Client.new(host, token, routes_available: false, persistent: persistent)
       end
 
+      def get_project(get_project_request = GetProjectRequest.new)
+        html = nil
+        @etna_client.get(
+          "/project/#{get_project_request.project_name}",
+          get_project_request) do |res|
+          html = res.body
+        end
+
+        HtmlResponse.new(html)
+      end
+
       def add_project(add_project_request = AddProjectRequest.new)
         @etna_client.post('/add_project', add_project_request) do |res|
+          # Redirect, no response data
+        end
+      end
+
+      def add_user(add_user_request = AddUserRequest.new)
+        @etna_client.post(
+          "/add_user/#{add_user_request.project_name}",
+          add_user_request) do |res|
           # Redirect, no response data
         end
       end

@@ -2,6 +2,7 @@ require 'ostruct'
 require_relative '../../json_serializable_struct'
 require_relative '../../multipart_serializable_nested_hash'
 require_relative '../../directed_graph'
+require_relative '../enum'
 
 # TODO:  In the near future, I'd like to transition to specifying apis via SWAGGER and generating model stubs from the
 # common definitions.  For nowe I've written them out by hand here.
@@ -100,6 +101,7 @@ module Etna
       end
 
       class AttributeValidationType < String
+        include Enum
         REGEXP = AttributeValidationType.new("Regexp")
         ARRAY = AttributeValidationType.new("Array")
         RANGE = AttributeValidationType.new("Range")
@@ -368,6 +370,10 @@ module Etna
           raw['restricted']
         end
 
+        def restricted=(val)
+          raw['restricted'] = val
+        end
+
         def format_hint
           raw['format_hint']
         end
@@ -376,12 +382,24 @@ module Etna
           raw['read_only']
         end
 
+        def read_only=(val)
+          raw['read_only'] = val
+        end
+
         def hidden
           raw['hidden']
         end
 
+        def hidden=(val)
+          raw['hidden'] = val
+        end
+
         def validation
           raw['validation']
+        end
+
+        def validation=(val)
+          raw['validation'] = val
         end
 
         def options
@@ -390,6 +408,7 @@ module Etna
       end
 
       class AttributeType < String
+        include Enum
         STRING = AttributeType.new("string")
         DATE_TIME = AttributeType.new("date_time")
         BOOLEAN = AttributeType.new("boolean")
@@ -408,6 +427,7 @@ module Etna
       end
 
       class ParentLinkType < String
+        include Enum
         CHILD = ParentLinkType.new("child")
         COLLECTION = ParentLinkType.new("collection")
         TABLE = ParentLinkType.new("table")
