@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gem 'sequel'
 gem 'pg'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/d02870b9326019006090f3e681cd1c686e7ca6fe'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/53a7dba472ae405ae536c0161030599498701dfa'
 
 group :development, :test do
   gem 'rspec'
