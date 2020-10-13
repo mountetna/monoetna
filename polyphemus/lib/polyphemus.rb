@@ -5,6 +5,7 @@ require_relative 'magma_record_etl'
 require_relative 'etls'
 require 'etna/clients/magma'
 require 'etna/clients/metis'
+require 'etna/clients/janus'
 
 class Polyphemus
   include Etna::Application

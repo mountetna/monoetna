@@ -16,3 +16,7 @@ require_relative './etna/client'
 require_relative './etna/symbolize_params'
 require_relative './etna/spec'
 require_relative './etna/clients'
+
+class EtnaApp
+  include Etna::Application
+end

@@ -1,0 +1,131 @@
+{
+  "project_name": "test1",
+  "project_name_full": "Testing your immune system",
+  "models": {
+    "assay_name": {
+      "parent_model_name": "timepoint",
+      "identifier": "tube_name",
+      "attributes": {
+        "tube_name": {
+          "attribute_name": "tube_name",
+          "validation": {
+            "type": "Regexp",
+            "value": "^[a-zA-Z]$"
+          }
+        },
+        "restricted": {
+          "attribute_name": "restricted",
+          "desc": "Controls access to the data.",
+          "display_name": "Restricted",
+          "attribute_type": "boolean"
+        },
+        "assay_pool": {
+          "attribute_name": "assay_pool",
+          "link_model_name": "assay_pool",
+          "desc": "Assay pool",
+          "display_name": "Assay Pool",
+          "attribute_type": "link"
+        },
+        "vendor": {
+          "attribute_name": "vendor",
+          "display_name": "Vendor",
+          "desc": "Vendor of the equipment",
+          "validation": {
+            "type": "Array",
+            "value": ["Acme"]
+          },
+          "attribute_type": "string"
+        }
+      }
+    },
+    "document": {
+      "identifier": "name",
+      "attributes": {
+        "document_desc": {
+          "attribute_name": "document_desc",
+          "desc": "Description",
+          "display_name": "Document desc",
+          "attribute_type": "string"
+        },
+        "version": {
+          "attribute_name": "version",
+          "desc": "Version",
+          "display_name": "Version",
+          "attribute_type": "float"
+        },
+        "file": {
+          "attribute_name": "file",
+          "desc": "File",
+          "display_name": "File",
+          "attribute_type": "file"
+        },
+        "version_date": {
+          "attribute_name": "version_date",
+          "desc": "Version date",
+          "display_name": "Version date",
+          "attribute_type": "date_time"
+        }
+      }
+    },
+    "assay_pool": {
+      "parent_model_name": "project",
+      "parent_link_type": "collection",
+      "attributes": {
+        "biospecimen": {
+          "attribute_name": "biospecimen",
+          "desc": "Type of biospecimen collected",
+          "display_name": "Biospecimen",
+          "attribute_type": "string"
+        },
+        "cells_loaded": {
+          "attribute_name": "cells_loaded",
+          "desc": "Number of cells loaded into the whatchamacallit.",
+          "display_name": "Cells Loaded",
+          "attribute_type": "integer"
+        }
+      }
+    },
+    "patient": {
+      "parent_link_type": "collection",
+      "identifier": "name",
+      "attributes": {
+        "status": {
+          "attribute_name": "status",
+          "desc": "Status at admission",
+          "display_name": "Status",
+          "attribute_type": "table"
+        },
+        "symptom": {
+          "attribute_name": "symptom",
+          "desc": "Related symptoms",
+          "display_name": "Symptom",
+          "attribute_type": "table"
+        }
+      }
+    },
+    "project": {
+      "attributes": {}
+    },
+    "status": {
+      "parent_model_name": "patient",
+      "parent_link_type": "table"
+    },
+    "symptom": {
+      "parent_model_name": "patient",
+      "parent_link_type": "table"
+    },
+    "timepoint": {
+      "parent_model_name": "patient",
+      "parent_link_type": "collection",
+      "identifier": "name",
+      "attributes": {
+        "day": {
+          "attribute_name": "day",
+          "display_name": "Day",
+          "desc": "Study day",
+          "attribute_type": "integer"
+        }
+      }
+    }
+  }
+}

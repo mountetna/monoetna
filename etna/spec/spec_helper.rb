@@ -148,7 +148,24 @@ def stub_janus_setup
       body: 'a token for you!'
     })
 
+  stub_request(:get, /#{JANUS_HOST}\/project\/#{PROJECT}/)
+    .to_return({
+      status: 200,
+      body: '<html><body>A project</body></html>'
+    })
+
+  stub_request(:get, /#{JANUS_HOST}\/whoami/)
+    .to_return({
+      status: 200,
+      body: '{"email": "janus@twofaces.org"}'
+    })
+
   stub_request(:post, /#{JANUS_HOST}\/add_project/)
+    .to_return({
+      status: 302
+    })
+
+  stub_request(:post, /#{JANUS_HOST}\/add_user/)
     .to_return({
       status: 302
     })
@@ -176,7 +193,7 @@ def stub_magma_models(models)
 end
 
 def stub_magma_update
-  stub_request(:post, /#{MAGMA_HOST}\/update/)
+  stub_request(:post, /#{MAGMA_HOST}\/update$/)
   .to_return do |request|
 
     body = StringIO.new(request.body)
@@ -193,4 +210,12 @@ def stub_magma_update
     @all_updates << info.params["revisions"]
     { body: '{}' }
     end
+end
+
+def stub_magma_update_model
+  stub_request(:post, /#{MAGMA_HOST}\/update_model/)
+  .to_return({
+    status: 200,
+    body: {}.to_json
+  })
 end
