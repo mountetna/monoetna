@@ -14,7 +14,9 @@ def setup_base_vcr(spec_helper_dir)
     c.register_request_matcher :try_body do |request_1, request_2|
       if request_1.headers['Content-Type'].first =~ /application\/json/
         if request_2.headers['Content-Type'].first =~ /application\/json/
-          JSON.parse(request_1.body) == JSON.parse(request_2.body)
+          request_1_json = begin JSON.parse(request_1.body) rescue 'not-json' end
+          request_2_json = begin JSON.parse(request_2.body) rescue 'not-json' end
+          request_1_json == request_2_json
         else
           false
         end
@@ -25,7 +27,7 @@ def setup_base_vcr(spec_helper_dir)
 
     c.default_cassette_options = {
         serialize_with: :compressed,
-        record: if ENV['IS_CI']
+        record: if ENV['IS_CI'] == '1'
           :none
         else
           ENV['RERECORD'] ? :all : :once
@@ -76,7 +78,7 @@ end
 def prepare_vcr_secret
   secret = ENV["CI_SECRET"]
 
-  if (secret.nil? || secret.empty?) && !ENV['IS_CI']
+  if (secret.nil? || secret.empty?) && ENV['IS_CI'] != '1'
     current_example = RSpec.current_example
     RSpec::Core::Pending.mark_pending! current_example, 'CI_SECRET must be set to run this test'
     raise "CI_SECRET must be set to run this test"
