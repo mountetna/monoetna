@@ -85,6 +85,7 @@ module Etna
 
     attr_reader :parent
     def initialize(parent = nil)
+      super()
       @parent = parent
     end
 

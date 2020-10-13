@@ -13,4 +13,5 @@ use Etna::SymbolizeParams
 use Etna::Auth
 use Etna::DescribeRoutes
 
+p Polyphemus.instance
 run Polyphemus::Server.new
