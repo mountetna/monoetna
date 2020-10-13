@@ -71,7 +71,7 @@ jobs:
           path: tmp/subtrees
       - name:  sync-subtrees
         env:
-          IS_CI: true
+          IS_CI: 1
         run: |
           cd tmp/subtrees
           git config --global user.name 'GithubAction'
