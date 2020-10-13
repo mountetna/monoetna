@@ -104,11 +104,12 @@ describe Etna::Clients::Magma::JsonProject do
     )
 
     expect(project.valid?).to eq(false)
-    expect(project.errors.length).to eq(18)
+    expect(project.errors.length).to eq(19)
     expect(project.errors).to eq([
       "Missing required key for model assay_name, attribute tube_name, validation: \"value\".",
       "Attribute name 123restricted in model assay_name must be snake_case and can only consist of letters, numbers, and \"_\".",
       "Missing required key for model assay_name, attribute assay_2_pool: \"desc\".",
+      "Attribute name assay_2_pool in model assay_name should match the link_model_name, \"pool_deep_end\".",
       "Missing required key for model assay_name, attribute vendor: \"desc\".",
       "Invalid type for model assay_name, attribute vendor, validation: \"Lo que sea\".\nShould be one of [\"Array\", \"Range\", \"Regexp\"].",
       "Invalid empty attribute_type for model document, attribute document_desc: \"\".",

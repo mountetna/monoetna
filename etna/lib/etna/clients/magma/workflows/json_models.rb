@@ -125,19 +125,7 @@ module Etna
           all_link_attributes do |model, attribute|
             reciprocal_model = fetch_model(attribute.link_model_name)
             model_builder = magma_models.build_model(reciprocal_model.name)
-            attribute_builder = model_builder.build_template.build_attributes
-            add_reciprocal_link_attribute(attribute_builder, model)
-          end
-        end
-
-        def add_reciprocal_link_attribute(builder, model)
-          builder.build_attribute(model.name).tap do |attribute|
-            attribute.attribute_name = model.name
-            attribute.name = model.name
-            attribute.attribute_type = Etna::Clients::Magma::AttributeType::COLLECTION
-            attribute.display_name = model.prettified_name
-            attribute.desc = model.prettified_name
-            attribute.link_model_name = model.name
+            reciprocal_model.add_reciprocal_link_attribute(model_builder, model)
           end
         end
 
@@ -195,6 +183,20 @@ module Etna
           validate
         end
 
+        def self.from_name(model_name)
+          # Used for linking only. Fills out required fields with
+          #   dummy information to pass validation.
+          Etna::Clients::Magma::JsonModel.new(
+            model_name,
+            {
+              "parent_model_name" => "stub",
+              "parent_link_type" => "child",
+              "identifier" => "none",
+              "attributes" => {}
+            }
+          )
+        end
+
         def parent_model_name
           @raw['parent_model_name']&.strip
         end
@@ -227,6 +229,18 @@ module Etna
         def link_attributes
           attributes.map do |attribute|
             yield attribute if attribute.type == Etna::Clients::Magma::AttributeType::LINK
+          end
+        end
+
+        def add_reciprocal_link_attribute(builder, model)
+          attribute_builder = builder.build_template.build_attributes
+          attribute_builder.build_attribute(model.name).tap do |attribute|
+            attribute.attribute_name = model.name
+            attribute.name = model.name
+            attribute.attribute_type = Etna::Clients::Magma::AttributeType::COLLECTION
+            attribute.display_name = model.prettified_name
+            attribute.desc = model.prettified_name
+            attribute.link_model_name = model.name
           end
         end
 
@@ -335,6 +349,10 @@ module Etna
             check_key("model #{model.name}, attribute #{name}, validation", @raw['validation'], 'type')
             check_key("model #{model.name}, attribute #{name}, validation", @raw['validation'], 'value')
             check_type("model #{model.name}, attribute #{name}, validation", @raw['validation'], 'type', @valid_validation_types)
+          end
+
+          if link_model_name
+            @errors << "Attribute name #{name} in model #{model.name} should match the link_model_name, \"#{link_model_name}\"." unless link_model_name == name
           end
         end
 

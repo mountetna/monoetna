@@ -65,13 +65,13 @@ describe Etna::Clients::Magma::AddModelFromJsonWorkflow do
         document: model_stamp('document'),
         status: model_stamp('status'),
         symptom: model_stamp('symptom'),
-        assay2: model_stamp('assay2')
+        assay_two: model_stamp('assay_two')
       }}.to_json})
 
     workflow = Etna::Clients::Magma::AddModelFromJsonWorkflow.new(
       magma_client: magma_client,
       project_name: PROJECT,
-      model_name: 'assay2',
+      model_name: 'assay_two',
       filepath: './spec/fixtures/add_model/add_model_fixture_valid.json'
     )
     workflow.add!
@@ -82,8 +82,15 @@ describe Etna::Clients::Magma::AddModelFromJsonWorkflow do
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna 123'}).
       with { |req| req.body.include?('add_attribute') }.times(3)  # 3 attributes in the fixture
+    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
+      with(headers: {Authorization: 'Etna 123'}).
+      with { |req| req.body.include?('add_link') }.times(2)
+    # This is for the link ... this gets called twice because our Webmock
+    #   does not get updated after the first call. Should not happen in a
+    #   real-world environment.
 
-    # Make sure the assay2 identifier validation is submitted.
+
+    # Make sure the assay_two identifier validation is submitted.
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna 123'}).
       with { |req| req.body.include?('update_attribute') }
@@ -106,10 +113,11 @@ describe Etna::Clients::Magma::AddModelFromJsonWorkflow do
   it 'raises exception for an invalid model JSON' do
 
     expected_msg = %{Model JSON has errors:
+  * Model name assay2 must be snake_case and can only consist of letters and "_".
   * Invalid parent_link_type for model assay2: \"magma\".
 \tShould be one of [\"child\", \"collection\", \"table\"].
   * Invalid type for model assay2, attribute vendor, validation: \"array\".
-\tShould be one of [\"Regexp\", \"Array\", \"Range\"].
+\tShould be one of [\"Array\", \"Range\", \"Regexp\"].
   * Parent model paper_airplanes does not exist in project test.
 \tCurrent models are [\"assay_name\", \"assay_pool\", \"project\", \"timepoint\", \"patient\", \"document\", \"status\", \"symptom\"].
   * Linked model assay2_pool does not exist in project test.

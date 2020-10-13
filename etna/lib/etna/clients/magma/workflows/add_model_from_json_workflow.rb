@@ -84,6 +84,16 @@ module Etna
           models = Etna::Clients::Magma::Models.new
           model_builder = models.build_model(model.name)
           model.to_magma_model(model_builder)
+
+          # We also have to include "models" for all linked models, and add in
+          #   the reciprocal link attributes.
+          model.link_attributes do |attribute|
+            model_builder = models.build_model(attribute.link_model_name)
+            linked_model = Etna::Clients::Magma::JsonModel.from_name(attribute.link_model_name)
+            linked_model.add_reciprocal_link_attribute(model_builder, model)
+            linked_model.to_magma_model(model_builder)
+          end
+
           models
         end
 
