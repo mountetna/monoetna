@@ -5,7 +5,6 @@ Bundler.require(:default, :test)
 ENV['POLYPHEMUS_ENV'] = 'test'
 
 require 'webmock/rspec'
-require 'vcr'
 require 'database_cleaner'
 require 'simplecov'
 SimpleCov.start

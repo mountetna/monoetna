@@ -23,6 +23,7 @@ class Polyphemus
     end
 
     def reset!
+      load_from_db
       @updated_at = Time.at(0)
       save_to_db
       self

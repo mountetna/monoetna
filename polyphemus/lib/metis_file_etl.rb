@@ -43,7 +43,7 @@ class Polyphemus
             file.file_path
           end.execute_batch_find do |find_request, i|
             find_request.limit = @limit * i
-            metis_client.find(find_request).files.all
+            self.metis_client.find(find_request).files.all
           end
       )
     end

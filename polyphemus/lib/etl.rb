@@ -2,15 +2,29 @@ require_relative 'helpers'
 
 class Polyphemus
   class EtlExecutor
+    def self.ensure_for_etl(etl)
+      return nil unless etl.descendants.empty? # Ignore base classes.
+      name = etl.name.split('::').last
+      EtlCommand.const_set(:"#{name}", Class.new(EtlExecutor) do
+        usage "manages the #{name}"
+        const_set(:EtlClass, etl)
+      end) unless EtlCommand.constants.include?(:"#{name}")
+    end
+
     def self.inherited(subclass)
       subclass.include(Etna::CommandExecutor)
 
       self.const_set(:Run, Class.new(Etna::Command) do
         usage 'runs the etl process until no more active processing is currently available.'
+        include WithLogger
+
+        def etl
+          @etl ||= self.parent.class::EtlClass.new
+        end
 
         def execute
           while true
-            break unless self.parent.class::EtlClass.new.run_once
+            break unless etl.run_once
             logger.info("Continuing to process...")
           end
 
@@ -20,10 +34,15 @@ class Polyphemus
 
       self.const_set(:Reset, Class.new(Etna::Command) do
         usage 'resets the cursor for this etl, so that next processing starts from the beginning of time.'
+        include WithLogger
+
+        def etl
+          @etl ||= self.parent.class::EtlClass.new
+        end
 
         def execute
           logger.warn("Resetting etl cursors!")
-          self.parent.class::EtlClass.new.cursor_group.reset_all!
+          etl.cursor_group.reset_all!
         end
       end) unless self.const_defined?(:Reset)
     end
@@ -38,12 +57,7 @@ class Polyphemus
 
     def subcommands
       Etl.descendants.each do |etl|
-        next unless etl.descendants.empty? # Ignore base classes.
-        name = etl.name.split('::').last
-        self.class.const_set(:"#{name}", Class.new(EtlExecutor) do
-          usage "manages the #{name}"
-          const_set(:EtlClass, etl)
-        end) unless self.class.const_defined?(:"#{name}")
+        EtlExecutor.ensure_for_etl(etl)
       end
 
       super
@@ -76,14 +90,15 @@ class Polyphemus
     # Returns true iff a batch was processed as part of this iteration.
     def run_once
       @cursor_group.with_next do |cursor|
+        cursor.load_from_db
         batch = @scanner.find_batch(cursor)
 
         if batch.empty? || process(cursor, batch) == :stop
-          cursor.load_from_db
           return false
         end
 
-        return cursor.save_to_db
+        cursor.save_to_db
+        return true
       end
 
       false
