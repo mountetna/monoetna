@@ -132,7 +132,7 @@ module Etna
     include HasUsage
 
     attr_reader :parent
-    def initialize(parent)
+    def initialize(parent = nil)
       @parent = parent
     end
 
