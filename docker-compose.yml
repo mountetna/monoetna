@@ -1,0 +1,33 @@
+networks:
+  edge_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: '172.16.238.0/24'
+        - subnet: '2001:3984:3989::/64'
+
+version: '3.4'
+
+volumes:
+  etna-app-gems:
+    driver: local
+
+services:
+  etna_app:
+    command: echo initialized
+    image: etna-base
+    volumes:
+      - .:/app:cached
+      - etna-app-gems:/app/vendor/bundle:rw
+      - ../docker/etna-base/entrypoints:/entrypoints:ro
+    entrypoint: /entrypoints/development.sh
+    environment:
+      SKIP_DB_WAIT: 1
+    networks:
+      default:
+      edge_net:
+    extra_hosts:
+      - 'metis.development.local:172.16.238.10'
+      - 'magma.development.local:172.16.238.10'
+      - 'janus.development.local:172.16.238.10'
+      - 'timur.development.local:172.16.238.10'
