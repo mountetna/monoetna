@@ -2,36 +2,92 @@
 _janus_completions() {
 local all_completion_names=''
 if [ "${COMP_CWORD}" == "1" ]; then
-all_completion_names='generate_key_pair migrate permit add_project add_user_key add_user console help generate_completion_script'
+all_completion_names='add_project add_user add_user_key console generate_completion_script generate_key_pair help migrate permit'
 COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
 else
-if [ "${COMP_WORDS[1]}" == 'generate_key_pair' ]; then
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'migrate' ]; then
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'permit' ]; then
-true
-fi
 if [ "${COMP_WORDS[1]}" == 'add_project' ]; then
-true
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
 fi
-if [ "${COMP_WORDS[1]}" == 'add_user_key' ]; then
+if [ "${COMP_CWORD}" == "3" ]; then
+COMPREPLY=()
+return
+fi
 true
 fi
 if [ "${COMP_WORDS[1]}" == 'add_user' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "3" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "4" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "5" ]; then
+COMPREPLY=()
+return
+fi
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'add_user_key' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "3" ]; then
+COMPREPLY=()
+return
+fi
 true
 fi
 if [ "${COMP_WORDS[1]}" == 'console' ]; then
 true
 fi
+if [ "${COMP_WORDS[1]}" == 'generate_completion_script' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'generate_key_pair' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+true
+fi
 if [ "${COMP_WORDS[1]}" == 'help' ]; then
 true
 fi
-if [ "${COMP_WORDS[1]}" == 'generate_completion_script' ]; then
+if [ "${COMP_WORDS[1]}" == 'migrate' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'permit' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "3" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "4" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "5" ]; then
+COMPREPLY=()
+return
+fi
 true
 fi
 fi
 }
-complete -F _janus_completions janus
+complete -o default -F _janus_completions janus
