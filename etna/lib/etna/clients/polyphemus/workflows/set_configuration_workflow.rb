@@ -25,7 +25,10 @@ module Etna
         def initialize(**params)
           super({config_file: '~/etna.yml'}.update(params))
           @token = prompt_for_token unless ENV['TOKEN']
-          @polyphemus_client = Etna::Clients::Polyphemus.new(host: host, token: @token)
+          @polyphemus_client = Etna::Clients::Polyphemus.new(
+            host: host,
+            token: @token,
+            ignore_ssl: self.environment != 'production')
         end
 
         def prompt_for_token

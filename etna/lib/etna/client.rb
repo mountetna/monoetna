@@ -5,10 +5,11 @@ require 'rack/utils'
 
 module Etna
   class Client
-    def initialize(host, token, routes_available: true, persistent: true)
+    def initialize(host, token, routes_available: true, persistent: true, ignore_ssl: false)
       @host = host.sub(%r!/$!, '')
       @token = token
       @persistent = persistent
+      @ignore_ssl = ignore_ssl
 
       if routes_available
         set_routes
@@ -82,6 +83,7 @@ module Etna
       @http ||= begin
         http = Net::HTTP::Persistent.new
         http.read_timeout = 3600
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE if @ignore_ssl
         http
       end
     end
