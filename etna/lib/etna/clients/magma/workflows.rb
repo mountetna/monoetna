@@ -1,5 +1,6 @@
 require_relative './workflows/crud_workflow'
 require_relative './workflows/file_linking_workflow'
+require_relative './workflows/ensure_containing_record_workflow'
 require_relative './workflows/model_synchronization_workflow'
 require_relative './workflows/file_attributes_blank_workflow'
 require_relative './workflows/record_synchronization_workflow'

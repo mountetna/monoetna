@@ -213,7 +213,7 @@ module Etna
               lines << "all_completion_names='#{c.join(' ')}'"
               lines << 'COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))'
             else
-              lines << 'COMPREPLY=($(compgen -f "${COMP_WORDS[COMP_CWORD]}"))'
+              lines << 'COMPREPLY=()'
               lines << "return"
             end
             lines << "fi"
@@ -234,7 +234,7 @@ module Etna
       lines << "local all_completion_names=''"
       generate_for_scope(parent, lines)
       lines << "}"
-      lines << "complete -F _#{name}_completions #{name}"
+      lines << "complete -o default -F _#{name}_completions #{name}"
 
       File.open("#{name}.completion", 'w') { |f| f.write(lines.join("\n") + "\n") }
     end

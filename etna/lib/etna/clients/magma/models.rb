@@ -231,6 +231,10 @@ module Etna
           raw.keys
         end
 
+        def +(other)
+          Documents.new({}.update(raw).update(other.raw))
+        end
+
         def document(document_key)
           return nil unless raw.include?(document_key)
           raw[document_key]

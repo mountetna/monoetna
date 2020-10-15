@@ -12,10 +12,11 @@ class EtlScriptRunner
   include FileNameRegexDsl
   include ProjectMetadataDsl
 
+  attr_reader :script_name_parts
   def initialize(file_path)
-    @file_path = file_path
+    @file_path = File.expand_path(file_path)
     @script_name = File.basename(file_path)
-    @script_name_parts = @script_name.split('+')
+    @script_name_parts = File.basename(@script_name, '.rb').split('+')
   end
 
   def project_name
