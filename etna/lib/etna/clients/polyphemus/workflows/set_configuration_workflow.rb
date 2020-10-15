@@ -24,8 +24,12 @@ module Etna
 
         def initialize(**params)
           super({config_file: '~/etna.yml'}.update(params))
-          prompt_for_token unless ENV['TOKEN']
-          @polyphemus_client =
+          @token = prompt_for_token unless ENV['TOKEN']
+          @polyphemus_client = Etna::Clients::Polyphemus.new(host: host, token: @token)
+        end
+
+        def prompt_for_token
+          # prompt user for token, give instructions to go to Janus
         end
 
         def fetch_configuration
