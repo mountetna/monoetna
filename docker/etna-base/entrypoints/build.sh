@@ -71,4 +71,5 @@ if [ -n "$RUN_NPM_INSTALL" ]; then
   if [ -e ../etna ]; then npm link ../etna/packages/etna-js; fi
 fi
 
-echo "source /app/*.completion || true" >> /root/.bashrc
+echo 'for file in /app/*.completion; do source $file || true; done' >> /root/.bashrc
+echo 'export PATH="/app/bin:$PATH"' >> /root/.bashrc

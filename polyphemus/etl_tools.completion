@@ -13,10 +13,21 @@ true
 fi
 if [ "${COMP_WORDS[1]}" == 'magma' ]; then
 if [ "${COMP_CWORD}" == "2" ]; then
-all_completion_names='help test'
+all_completion_names='help run test'
 COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
 else
 if [ "${COMP_WORDS[2]}" == 'help' ]; then
+true
+fi
+if [ "${COMP_WORDS[2]}" == 'run' ]; then
+if [ "${COMP_CWORD}" == "3" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "4" ]; then
+COMPREPLY=()
+return
+fi
 true
 fi
 if [ "${COMP_WORDS[2]}" == 'test' ]; then

@@ -7,7 +7,6 @@ add_stain_name('stain 4', 'dc')
 add_stain_name('stain 5', 'innate')
 
 def clean_name(name)
-  raise "oh nooooo"
   name.gsub(/\s?,\s?/,',')
       .gsub(/ki67/i,'Ki67')
       .gsub(/foxp3/i,'FoxP3')

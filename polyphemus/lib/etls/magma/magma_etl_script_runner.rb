@@ -23,7 +23,7 @@ class Polyphemus
       @magma_client = magma_client
       @update_request = Etna::Clients::Magma::UpdateRequest.new
 
-      run_script
+      run_script(self.__binding__)
 
       if commit
         magma_client.update(update_request)

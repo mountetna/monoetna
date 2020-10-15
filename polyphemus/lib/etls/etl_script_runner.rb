@@ -29,10 +29,10 @@ class EtlScriptRunner
 
   protected
 
-  def run_script
+  def run_script(binding = nil)
     File.open(@file_path, 'r') do |f|
       script = f.read
-      eval(script, nil, @file_path)
+      eval(script, binding, @file_path)
     end
   end
 end
