@@ -2,7 +2,6 @@ require_relative 'controller'
 
 class ConfigurationController < Polyphemus::Controller
   def action
-    puts "HERE I AM"
     return_data = {
       magma: Polyphemus.instance.config(:magma)&.dig(:host),
       metis: Polyphemus.instance.config(:metis)&.dig(:host),

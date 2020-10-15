@@ -8,8 +8,6 @@ class Polyphemus
   class Server < Etna::Server
     def initialize
       super
-
-      puts "HERE I AM2"
       # application.load_models
       application.setup_db
     end
