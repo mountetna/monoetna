@@ -2,8 +2,8 @@ require 'yaml'
 require 'bundler'
 Bundler.require(:default)
 
-require './lib/polyphemus'
-require './lib/server'
+require_relative './lib/polyphemus'
+require_relative './lib/server'
 
 Polyphemus.instance.configure(YAML.load(File.read("config.yml")))
 
