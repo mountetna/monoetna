@@ -71,35 +71,11 @@ module Etna
           }
         end
 
-        def ensure_containing_record(model_name, record_identifiers)
-          raise "Could not find containing model #{model_name} defined." unless (model = models.model(model_name))
-
-          raise "File matching identifiers #{record_identifiers} do not contain #{model_name}'s identifier" unless (id = record_identifiers[model_name])
-          record = magma_crud.lookup_record(model_name, id)
-
-          if record.nil?
-            attrs = { model.template.identifier => id }
-
-            parent_attr = model.template.attributes.all.select { |a| a.attribute_type == AttributeType::PARENT }.first
-            unless parent_attr.nil?
-              parent_attribute_name = parent_attr.attribute_name
-              parent_identifier = ensure_containing_record(model.template.parent, record_identifiers)
-              attrs.update({parent_attribute_name => parent_identifier})
-            end
-
-            magma_crud.update_records do |update_request|
-              update_request.update_revision(model_name, id, attrs)
-            end
-          end
-
-          id
-        end
-
         def each_revision
           find_matches.each do |key, file_paths|
             match_map, attribute_name = key
             record_identifiers = matches_to_record_identifiers(match_map)
-            id = ensure_containing_record(model_name, record_identifiers)
+            id = containing_record_workflow.ensure_record(model_name, record_identifiers)
             file_paths.each do |file_path|
               yield [id, revision_for(id, attribute_name, file_path, match_map, record_identifiers)]
             end
@@ -121,6 +97,10 @@ module Etna
           else
             {attribute_name => {path: "metis://#{project_name}/#{bucket_name}/#{file_path}"}}
           end
+        end
+
+        def containing_record_workflow
+          @containing_record_workflow ||= EnsureContainingRecordWorkflow.new(magma_crud: magma_crud, models: models)
         end
 
         def models

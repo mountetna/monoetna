@@ -1,5 +1,5 @@
 describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
-  let(:command) { Polyphemus.instance.commands[:cascade_mvir_patient_waiver_to_restricted] }
+  let(:command) { Polyphemus.instance.subcommands['cascade_mvir_patient_waiver_to_restricted'] }
 
   context 'for restricting patients and pools' do
     let(:patients_to_restrict) {

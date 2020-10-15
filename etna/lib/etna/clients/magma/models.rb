@@ -34,6 +34,15 @@ module Etna
           record = revision[record_name] ||= {}
           record.update(attrs)
         end
+
+        def append_table(parent_model_name, parent_record_name, model_name, attrs, attribute_name = model_name)
+          parent_revision = update_revision(parent_model_name, parent_record_name, {})
+          table = parent_revision[attribute_name] ||= []
+          id = "::#{model_name}#{(revisions[model_name] || {}).length + 1}"
+          table << id
+          update_revision(model_name, id, attrs)
+          id
+        end
       end
 
       class UpdateModelRequest < Struct.new(:project_name, :actions, keyword_init: true)
@@ -232,6 +241,10 @@ module Etna
 
         def document_keys
           raw.keys
+        end
+
+        def +(other)
+          Documents.new({}.update(raw).update(other.raw))
         end
 
         def document(document_key)

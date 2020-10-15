@@ -43,12 +43,18 @@ module Etna
         QueryResponse.new(json)
       end
 
-      # Post revisions to Magma records
-      # { model_name: { record_name: { attribute1: 1, attribute2: 2 } } } }
-      # data can also be a File or IO stream
       def update(update_request = UpdateRequest.new)
         json = nil
         @etna_client.multipart_post('/update', update_request.encode_multipart_content) do |res|
+          json = JSON.parse(res.body)
+        end
+
+        UpdateResponse.new(json)
+      end
+
+      def update_json(update_request = UpdateRequest.new)
+        json = nil
+        @etna_client.post('/update', update_request) do |res|
           json = JSON.parse(res.body)
         end
 

@@ -1,4 +1,26 @@
 describe Polyphemus::MagmaRecordEtl do
+  before(:each) do
+    Polyphemus::EtlExecutor.ensure_for_etl(TestMagmaEtl)
+  end
+
+  let(:etl_command) do
+    Polyphemus::EtlCommand.new
+  end
+
+  let(:etl_executor) do
+    etl_command.subcommands['test_magma_etl']
+  end
+
+  def run_etl_command(*args)
+    cmd, args = etl_command.find_command(*args)
+    cmd.execute(*args)
+  end
+
+  def setup_client(magma_client)
+    allow(etl_executor.subcommands['run'].etl).to receive(:magma_client).and_return(magma_client)
+    allow(etl_executor.subcommands['reset'].etl).to receive(:magma_client).and_return(magma_client)
+  end
+
   class TestMagmaEtl < Polyphemus::MagmaRecordEtl
     def initialize(**args)
       super(project_model_pairs: [['mvir1', 'timepoint']], limit: 2, **args)
@@ -21,20 +43,24 @@ describe Polyphemus::MagmaRecordEtl do
   it 'should process magma records, and support reset' do
     VCR.use_cassette('magma_record_etl.e2e') do
       magma_client = Etna::Clients::Magma.new(host: 'https://magma.development.local', token: ENV['TOKEN'] || 'test-token', persistent: false)
-      etl = TestMagmaEtl.new(magma_client: magma_client)
-      etl.execute('run')
+      setup_client(magma_client)
+
+      etl = etl_executor.subcommands['run'].etl
+
+      run_etl_command('test_magma_etl', 'run')
+
       expect(etl.process_calls.length).to_not eq(0)
       expect(etl.process_calls.length).to_not eq(1)
       check_process_calls(etl)
 
       etl.process_calls.clear
-      etl.execute('run')
+      run_etl_command('test_magma_etl', 'run')
       expect(etl.process_calls.length).to eq(0)
 
-      etl.execute('reset')
+      run_etl_command('test_magma_etl', 'reset')
 
       etl.process_calls.clear
-      etl.execute('run')
+      run_etl_command('test_magma_etl', 'run')
       expect(etl.process_calls.length).to_not eq(0)
       check_process_calls(etl)
     end
