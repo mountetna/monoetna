@@ -48,6 +48,34 @@ class EtnaCommands
     end
   end
 
+  class ProjectTemplate < Etna::Command
+    include WithLogger
+    usage 'project_template'
+
+    def execute()
+      spec = Gem::Specification.find_by_name("etna")
+      gem_root = spec.gem_dir
+      FileUtils.cp(
+        "#{gem_root}/lib/etna/templates/create_project_template.json",
+        'project_template.json')
+      puts "A sample project JSON template has been provided at `project_template.json`."
+    end
+  end
+
+  class ModelTemplate < Etna::Command
+    include WithLogger
+    usage 'model_template'
+
+    def execute()
+      spec = Gem::Specification.find_by_name("etna")
+      gem_root = spec.gem_dir
+      FileUtils.cp(
+        "#{gem_root}/lib/etna/templates/add_model_template.json",
+        'model_template.json')
+      puts "A sample model JSON template has been provided at `model_template.json`."
+    end
+  end
+
   class ValidateModel < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
