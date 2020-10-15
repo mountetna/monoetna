@@ -10,7 +10,7 @@ config = YAML.load(File.read(File.expand_path("../../config.yml", __FILE__)))
 
 class RunOrTest < Etna::Command
   def execute(script_file, record_id)
-    runner = MagmaEtlScriptRunner.new(script_file)
+    runner = Polyphemus::MagmaEtlScriptRunner.new(script_file)
     magma_client = Etna::Clients::Magma.new(token: ENV['TOKEN'], host: ENV['MAGMA_HOST'])
 
     crud = Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: runner.project_name)

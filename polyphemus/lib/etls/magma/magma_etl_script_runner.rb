@@ -21,22 +21,19 @@ class Polyphemus
       instance_variable_set(:"@#{model_name}", record)
       @record = record
       @magma_client = magma_client
-      @update_request = Etna::Clients::Magma::UpdateRequest.new
+      @update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project_name)
 
       run_script(self.__binding__)
 
       if commit
-        magma_client.update(update_request)
+        magma_client.update_json(update_request)
       end
     end
   end
 
   class MagmaRecordScriptEtl < Polyphemus::MagmaRecordEtl
-    attr_reader :commit
-
-    def initialize(commit: true, **args)
+    def initialize(**args)
       super(**{project_model_pairs: [[script_runner.project_name, script_runner.model_name]]}.update(args))
-      @commit = commit
     end
 
     def script_runner
@@ -45,17 +42,19 @@ class Polyphemus
 
     def process(cursor, batch)
       batch.each do |record|
-        script_runner.run(record, magma_client: magma_client, commit: commit)
+        script_runner.run(record, magma_client: magma_client)
       end
     end
-  end
 
-# For each script file, do the thing.
-  Dir[::File.join(__dir__, "scripts/*.rb")].each do |file|
-    script_runner = MagmaEtlScriptRunner.new(file)
-    name = script_runner.script_name_parts.map(&:capitalize).join('')
-    const_set(:"#{name}", Class.new(MagmaRecordScriptEtl) do
-      instance_variable_set(:@script_runner, script_runner)
-    end)
+    module Scripts
+      # For each script file, do the thing.
+      Dir[::File.join(__dir__, "scripts/*.rb")].each do |file|
+        script_runner = MagmaEtlScriptRunner.new(file)
+        name = script_runner.script_name_parts.map(&:capitalize).join('')
+        const_set(:"#{name}", Class.new(MagmaRecordScriptEtl) do
+          instance_variable_set(:@script_runner, script_runner)
+        end)
+      end
+    end
   end
 end
