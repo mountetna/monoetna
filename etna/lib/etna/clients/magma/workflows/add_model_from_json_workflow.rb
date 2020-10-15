@@ -126,9 +126,11 @@ module Etna
         end
 
         def add!
+          puts "Adding the new model to Magma."
           create_magma_model
           ensure_magma_tree
           update_magma_attributes
+          puts "All complete!"
         end
       end
     end

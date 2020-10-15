@@ -65,6 +65,7 @@ end
 METIS_HOST = 'https://metis.test'
 JANUS_HOST = 'https://janus.test'
 MAGMA_HOST = 'https://magma.test'
+POLYPHEMUS_HOST = 'https://polyphemus.test'
 PROJECT = 'test'
 RESTRICT_BUCKET = 'restrict'
 RELEASE_BUCKET = 'release'
@@ -227,4 +228,20 @@ def model_stamp(model_name = nil)
       attributes: {}
     }
   }
+end
+
+def stub_polyphemus_setup
+  stub_request(:get, /#{POLYPHEMUS_HOST}\/configuration/)
+    .to_return({
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: {
+        magma: 'foo',
+        metis: 'bar',
+        janus: 'bim',
+        timur: 'zap',
+        polyphemus: 'zop'}.to_json
+    })
 end
