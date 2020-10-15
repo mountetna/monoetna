@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/mountetna/monoetna.git
-  revision: 3bbd64742d40c8e3b2bc98c0e336286bf6a22ea8
-  branch: refs/artifacts/gem-etna/b7a723395f967113fcab2dd8908023397578f0c0
+  revision: ca451c243bdbe70e812b75497f8619bc5bd26ae6
+  branch: refs/artifacts/gem-etna/3ae54ec6fd506a9238f183151845ba63d83ad136
   specs:
     etna (0.1.16)
       jwt
@@ -29,9 +29,12 @@ GEM
     hashdiff (1.0.1)
     jwt (2.2.2)
     method_source (1.0.0)
+    mini_portile2 (2.4.0)
     multipart-post (2.1.1)
     net-http-persistent (4.0.0)
       connection_pool (~> 2.2)
+    nokogiri (1.10.10)
+      mini_portile2 (~> 2.4.0)
     pg (1.2.3)
     pry (0.13.1)
       coderay (~> 1.1)
@@ -79,6 +82,7 @@ DEPENDENCIES
   database_cleaner
   debase
   etna!
+  nokogiri
   pg
   pry
   pry-byebug

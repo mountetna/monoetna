@@ -4,24 +4,15 @@ require 'rollbar'
 require 'sequel'
 require 'tempfile'
 require_relative 'helpers'
-
+require_relative 'data_processing/xml_dsl'
+require_relative 'data_processing/magma_dsl'
+require_relative 'data_processing/flow_jo_dsl'
 
 class Polyphemus
-  class Help < Etna::Command
-    usage 'List this help'
-
-    def execute
-      puts 'Commands:'
-      Polyphemus.instance.commands.each do |name, cmd|
-        puts cmd.usage
-      end
-    end
-  end
-
   class Migrate < Etna::Command
     usage 'Run migrations for the current environment.'
 
-    def execute(version=nil)
+    def execute(version = nil)
       Sequel.extension(:migration)
       db = Polyphemus.instance.db
 
@@ -97,7 +88,7 @@ class Polyphemus
       end
 
       def attribute_options
-        { 'raw_fastqs' => { file_collection: true }}
+        {'raw_fastqs' => {file_collection: true}}
       end
 
       # Subclasses should override this to implement custom logic for how regex matches should match to linking.
@@ -240,11 +231,19 @@ class Polyphemus
           target_client: environment(target_env).magma_client,
           source_client: environment(source_env).magma_client,
           project_name: project_name,
+          ignore_update_errors: true,
       )
 
+      if models.empty?
+        models = workflow.target_models.model_keys
+      end
+
+      logger.info("Copying records from #{source_env} #{project_name} -> #{target_env} #{project_name}")
+
       models.each do |model|
-        logger.info("Copying records from #{source_env} #{project_name} #{model} to #{target_env} #{project_name} #{model}")
-        workflow.copy_model(model)
+        workflow.copy_model(model) do |model_name, documents|
+          logger.info("Copying #{documents.document_keys.length} #{model_name} records")
+        end
       end
     end
 
@@ -456,34 +455,6 @@ class Polyphemus
     end
   end
 
-  class FindIpiBulkRnaSeqFolders < Etna::Command
-    include WithEtnaClients
-
-    usage "Fetch a list of Metis BulkRNASeq folders for IPI, from integral_data"
-
-    def project
-      :mvir1
-    end
-
-    def execute
-      folders = metis_client.find(
-          Etna::Clients::Metis::FindRequest.new(
-            project_name: 'ipi',
-            bucket_name: 'integral_data',
-            params: [Etna::Clients::Metis::FindParam.new(
-              attribute: 'name',
-              predicate: 'glob',
-              value: 'BulkRNASeq/IPI*',
-              type: 'folder'
-            )])).folders.all
-      puts "Found a total of #{folders.length} BulkRNASeq folders in the IPI integral_data bucket"
-    end
-
-    def setup(config)
-      super
-    end
-  end
-
   class IpiAddFlowModel < Etna::Command
     include WithEtnaClients
     include WithLogger
@@ -567,10 +538,10 @@ class Polyphemus
       metis_client = environment(env).metis_client
 
       integral_flow = IpiFlowPopulateIntegralData.new(
-        metis_client: metis_client,
-        source_bucket_name: source_bucket,
-        source_folder_name: source_folder
-        )
+          metis_client: metis_client,
+          source_bucket_name: source_bucket,
+          source_folder_name: source_folder
+      )
       integral_flow.copy_files
     end
   end
@@ -582,8 +553,8 @@ class Polyphemus
 
     def magma_crud
       @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(
-        magma_client: @environ.magma_client,
-        project_name: @project_name)
+          magma_client: @environ.magma_client,
+          project_name: @project_name)
     end
 
     def execute(env, project_name, *model_names)
@@ -591,9 +562,9 @@ class Polyphemus
       @project_name = project_name
 
       blanker = Etna::Clients::Magma::FileAttributesBlankWorkflow.new(
-        magma_crud: magma_crud,
-        model_names: model_names,
-        project_name: project_name)
+          magma_crud: magma_crud,
+          model_names: model_names,
+          project_name: project_name)
       blanker.set_file_attrs_blank
     end
   end
@@ -605,8 +576,8 @@ class Polyphemus
 
     def magma_crud
       @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(
-        magma_client: @environ.magma_client,
-        project_name: @project_name)
+          magma_client: @environ.magma_client,
+          project_name: @project_name)
     end
 
     def execute(env, project_name, model_name, filepath)
@@ -614,10 +585,10 @@ class Polyphemus
       @project_name = project_name
 
       update_attributes_workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel.new(
-        magma_crud: magma_crud,
-        project_name: project_name,
-        model_name: model_name,
-        filepath: filepath)
+          magma_crud: magma_crud,
+          project_name: project_name,
+          model_name: model_name,
+          filepath: filepath)
       update_attributes_workflow.update_attributes
     end
   end
