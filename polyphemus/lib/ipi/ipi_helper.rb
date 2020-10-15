@@ -1,4 +1,8 @@
+require_relative '../data_processing/file_name_regex_dsl'
+
 class IpiHelper
+  include FileNameRegexDsl
+
   def initialize
   end
 
@@ -75,8 +79,14 @@ class IpiHelper
     sample_name.split('.').first
   end
 
+  STAIN_NAMES = ['dc', 'innate', 'nktb', 'sort', 'treg']
+
   def fcs_regex(file_name)
-    regex = Regexp.new('(?<sample_name>IPI\w+\d+_\w+\d)_(?:flow_)?(?<stain>dc|innate|nktb|sort|treg)', Regexp::IGNORECASE)
+    regex = regex_chain(
+        regex_named_match('sample_name', sample_name_regex('IPI')),
+        /(?:flow_)?#{regex_named_match('stain', regex_options(STAIN_NAMES)).source}/,
+        Regexp::IGNORECASE
+    )
     raise "FCS filename #{file_name} does not match expected regex" unless regex.match(file_name)
     regex.match(file_name)
   end

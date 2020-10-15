@@ -25,7 +25,7 @@ module Etna
         def initialize(**params)
           super({}.update(params))
           @project = Etna::Clients::Magma::JsonProject.new(filepath: filepath)
-          raise "Project JSON has errors: ", project.errors unless project.valid?
+          raise "Project JSON has errors: #{project.errors}" unless project.valid?
 
           @project_name = project.name
         end
@@ -140,15 +140,19 @@ module Etna
         end
 
         def create!
+          puts "Creating Janus project."
           create_janus_project
+          puts "Done! Adding you as an administrator on the project."
           add_janus_user
           update_janus_permissions
           update_magma_client_token
+          puts "Done! Creating the project in Magma."
           create_magma_project
           create_magma_models
           ensure_magma_tree
           create_magma_project_record
           update_magma_attributes
+          puts "All complete! You can visit Janus to refresh your token, then log into any app to manage your data."
         end
 
         def user

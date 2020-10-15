@@ -1,11 +1,11 @@
 require 'bundler'
 require 'rack'
+require 'rack/test'
 Bundler.require(:default, :test)
 
 ENV['POLYPHEMUS_ENV'] = 'test'
 
 require 'webmock/rspec'
-require 'vcr'
 require 'database_cleaner'
 require 'simplecov'
 SimpleCov.start
@@ -32,6 +32,24 @@ OUTER_APP = Rack::Builder.new do
   use Etna::DescribeRoutes
   run Polyphemus::Server.new
 end
+
+AUTH_USERS = {
+  superuser: {
+    email: 'zeus@twelve-labors.org', first: 'Zeus', perm: 'a:administration'
+  },
+  editor: {
+    email: 'eurystheus@twelve-labors.org', first: 'Eurystheus', perm: 'e:labors'
+  },
+  privileged_editor: {
+    email: 'copreus@twelve-labors.org', first: 'Copreus', perm: 'E:labors'
+  },
+  viewer: {
+    email: 'hercules@twelve-labors.org', first: 'Hercules', perm: 'v:labors'
+  },
+  non_user: {
+    email: 'nessus@centaurs.org', first: 'Nessus', perm: ''
+  }
+}
 
 def auth_header(user_type)
   header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))

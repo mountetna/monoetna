@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/mountetna/monoetna.git
-  revision: 2847c0f922ab9f81149eba3fa2a370dac52191d6
-  branch: refs/artifacts/gem-etna/a8dea76f7fc7aed2a613d534e779a8e73133f2e7
+  revision: ca451c243bdbe70e812b75497f8619bc5bd26ae6
+  branch: refs/artifacts/gem-etna/3ae54ec6fd506a9238f183151845ba63d83ad136
   specs:
     etna (0.1.16)
       jwt
@@ -29,9 +29,12 @@ GEM
     hashdiff (1.0.1)
     jwt (2.2.2)
     method_source (1.0.0)
+    mini_portile2 (2.4.0)
     multipart-post (2.1.1)
     net-http-persistent (4.0.0)
       connection_pool (~> 2.2)
+    nokogiri (1.10.10)
+      mini_portile2 (~> 2.4.0)
     pg (1.2.3)
     pry (0.13.1)
       coderay (~> 1.1)
@@ -41,8 +44,10 @@ GEM
       pry (~> 0.13.0)
     public_suffix (4.0.5)
     rack (2.2.3)
+    rack-test (1.1.0)
+      rack (>= 1.0, < 3)
     rake (13.0.1)
-    rollbar (3.0.0)
+    rollbar (3.0.1)
     rspec (3.9.0)
       rspec-core (~> 3.9.0)
       rspec-expectations (~> 3.9.0)
@@ -77,9 +82,12 @@ DEPENDENCIES
   database_cleaner
   debase
   etna!
+  nokogiri
   pg
   pry
   pry-byebug
+  rack
+  rack-test
   rspec
   ruby-debug-ide
   sequel
