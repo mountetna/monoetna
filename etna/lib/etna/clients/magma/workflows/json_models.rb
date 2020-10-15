@@ -10,7 +10,7 @@ module Etna
         end
 
         def valid?
-          errors.length == 0
+          @errors.length == 0
         end
 
         def nil_or_empty?(value)
@@ -18,12 +18,12 @@ module Etna
         end
 
         def check_key(label, raw, key)
-          errors << "Missing required key for #{label}: \"#{key}\"." if !raw.key?(key)
-          errors << "Invalid empty #{key} for #{label}: \"#{raw[key]}\"." if raw.key?(key) && nil_or_empty?(raw[key])
+          @errors << "Missing required key for #{label}: \"#{key}\"." if !raw.key?(key)
+          @errors << "Invalid empty #{key} for #{label}: \"#{raw[key]}\"." if raw.key?(key) && nil_or_empty?(raw[key])
         end
 
         def check_type(label, raw, key, valid_types)
-          errors << "Invalid #{key} for #{label}: \"#{raw[key]}\".\nShould be one of #{valid_types}." if raw.key?(key) && !valid_types.include?(raw[key].strip)
+          @errors << "Invalid #{key} for #{label}: \"#{raw[key]}\".\nShould be one of #{valid_types}." if raw.key?(key) && !valid_types.include?(raw[key].strip)
         end
 
         def name_regex_with_numbers
@@ -125,26 +125,14 @@ module Etna
           all_link_attributes do |model, attribute|
             reciprocal_model = fetch_model(attribute.link_model_name)
             model_builder = magma_models.build_model(reciprocal_model.name)
-            attribute_builder = model_builder.build_template.build_attributes
-            add_reciprocal_link_attribute(attribute_builder, model)
-          end
-        end
-
-        def add_reciprocal_link_attribute(builder, model)
-          builder.build_attribute(model.name).tap do |attribute|
-            attribute.attribute_name = model.name
-            attribute.name = model.name
-            attribute.attribute_type = Etna::Clients::Magma::AttributeType::COLLECTION
-            attribute.display_name = model.prettified_name
-            attribute.desc = model.prettified_name
-            attribute.link_model_name = model.name
+            reciprocal_model.add_reciprocal_link_attribute(model_builder, model)
           end
         end
 
         def validate
           validate_project_names
-          validate_models
           validate_model_links
+          validate_models
         end
 
         def validate_project_names
@@ -163,21 +151,15 @@ module Etna
           # Check all the attributes of type 'link', and make sure
           #   that the link_model_name exists in the project definition.
           model_names = models.map { |m| m.name }
-
-          all_link_attributes do |model, attribute|
-            check_key("model #{model.name}, attribute #{attribute.name}", attribute.raw, 'link_model_name')
-
-            # Check that the linked model exists.
-            errors << "Model \"#{model.name}\" already belongs to parent model \"#{model.parent_model_name}\". Remove attribute \"#{attribute.name}\"." if attribute.link_model_name == model.parent_model_name
-
-            errors << "Linked model, \"#{attribute.link_model_name}\", on attribute #{attribute.name} of model #{model.name} does not exist!" if !model_names.include?(attribute.link_model_name)
+          models.map do |model|
+            model.validate_link_models(model_names)
           end
         end
 
         def all_link_attributes
           models.map do |model|
-            model.attributes.map do |attribute|
-              yield [model, attribute] if attribute.type == Etna::Clients::Magma::AttributeType::LINK
+            model.link_attributes do |attribute|
+              yield [model, attribute]
             end
           end
         end
@@ -193,6 +175,20 @@ module Etna
           @valid_parent_link_types = Etna::Clients::Magma::ParentLinkType.entries.sort # sort for prettier presentation
 
           validate
+        end
+
+        def self.linking_stub_from_name(model_name)
+          # Used for linking to a link_model_name only! Fills out required fields with
+          #   dummy information to pass validation.
+          Etna::Clients::Magma::JsonModel.new(
+            model_name,
+            {
+              "parent_model_name" => "stub",
+              "parent_link_type" => "child",
+              "identifier" => "none",
+              "attributes" => {}
+            }
+          )
         end
 
         def parent_model_name
@@ -224,6 +220,24 @@ module Etna
             JsonAttribute.new(self, attribute_name, attribute_def) } : []
         end
 
+        def link_attributes
+          attributes.map do |attribute|
+            yield attribute if attribute.type == Etna::Clients::Magma::AttributeType::LINK
+          end
+        end
+
+        def add_reciprocal_link_attribute(builder, model)
+          attribute_builder = builder.build_template.build_attributes
+          attribute_builder.build_attribute(model.name).tap do |attribute|
+            attribute.attribute_name = model.name
+            attribute.name = model.name
+            attribute.attribute_type = Etna::Clients::Magma::AttributeType::COLLECTION
+            attribute.display_name = model.prettified_name
+            attribute.desc = model.prettified_name
+            attribute.link_model_name = model.name
+          end
+        end
+
         def validate
           validate_add_model_data
           validate_attributes
@@ -245,6 +259,19 @@ module Etna
         def validate_attributes
           attributes.each do |attribute|
             @errors += attribute.errors unless attribute.valid?
+          end
+        end
+
+        def validate_link_models(model_names)
+          @errors << "Parent model #{parent_model_name} for #{name} does not exist in project.\nCurrent models are #{model_names}." if name != 'project' && !model_names.include?(parent_model_name)
+
+          link_attributes do |attribute|
+            check_key("model #{name}, attribute #{attribute.name}", attribute.raw, 'link_model_name')
+
+            # Check that the linked model exists.
+            @errors << "Model \"#{name}\" already belongs to parent model \"#{parent_model_name}\". Remove attribute \"#{attribute.name}\"." if attribute.link_model_name == parent_model_name
+
+            @errors << "Linked model, \"#{attribute.link_model_name}\", on attribute #{attribute.name} of model #{name} does not exist!\nCurrent models are #{model_names}." unless model_names.include?(attribute.link_model_name)
           end
         end
 
@@ -306,8 +333,49 @@ module Etna
           @raw['link_model_name']&.strip
         end
 
+        def attribute_name
+          name
+        end
+
+        def display_name
+          @raw['display_name']&.strip
+        end
+
+        def desc
+          @raw['desc']&.strip
+        end
+
         def validate
           validate_add_attribute_data
+        end
+
+        def attribute_type
+          return Etna::Clients::Magma::AttributeType::IDENTIFIER if model.identifier == name
+          type
+        end
+
+        def hidden
+          @raw['hidden']
+        end
+
+        def read_only
+          @raw['read_only']
+        end
+
+        def validation
+          @raw['validation']
+        end
+
+        def restricted
+          @raw['restricted']
+        end
+
+        def format_hint
+          @raw['format_hint']
+        end
+
+        def unique
+          @raw['unique']
         end
 
         def validate_add_attribute_data
@@ -330,26 +398,15 @@ module Etna
             check_key("model #{model.name}, attribute #{name}, validation", @raw['validation'], 'value')
             check_type("model #{model.name}, attribute #{name}, validation", @raw['validation'], 'type', @valid_validation_types)
           end
+
+          if link_model_name
+            @errors << "Attribute name #{name} in model #{model.name} should match the link_model_name, \"#{link_model_name}\"." unless link_model_name == name
+          end
         end
 
         def to_magma_model(builder)
           builder.build_attribute(name).tap do |attribute|
-            attribute.attribute_name = name
-            attribute.name = name
-
-            if model.identifier != name
-              attribute.display_name = @raw['display_name'].strip
-              attribute.desc = @raw['desc'].strip
-              attribute.attribute_type = type
-            else
-              attribute.attribute_type = Etna::Clients::Magma::AttributeType::IDENTIFIER
-            end
-
-            attribute.hidden = @raw['hidden'] if @raw.key?('hidden')
-            attribute.read_only = @raw['read_only'] if @raw.key?('read_only')
-            attribute.validation = @raw['validation'] if @raw.key?('validation')
-            attribute.restricted = @raw['restricted'] if @raw.key?('restricted')
-            attribute.link_model_name = link_model_name if link_model_name
+            Etna::Clients::Magma::Attribute.copy(self, attribute)
           end
         end
       end
