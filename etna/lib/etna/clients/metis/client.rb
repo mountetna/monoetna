@@ -8,10 +8,14 @@ require_relative './models'
 module Etna
   module Clients
     class Metis
-      def initialize(host:, token:, persistent: true)
+      def initialize(host:, token:, persistent: true, ignore_ssl: false)
         raise 'Metis client configuration is missing host.' unless host
         raise 'Metis client configuration is missing token.' unless token
-        @etna_client = ::Etna::Client.new(host, token, persistent: persistent)
+        @etna_client = ::Etna::Client.new(
+          host,
+          token,
+          persistent: persistent,
+          ignore_ssl: ignore_ssl)
       end
 
       def list_all_folders(list_all_folders_request = ListFoldersRequest.new)
@@ -92,7 +96,7 @@ module Etna
 
         UploadResponse.new(json)
       end
-      
+
       def copy_files(copy_files_request)
         FilesResponse.new(
           @etna_client.file_bulk_copy(copy_files_request.to_h))
