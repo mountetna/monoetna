@@ -33,24 +33,23 @@ module Etna
         end
 
         def fetch_configuration
-          polyphemus_client.configuration(Etna::Clients::Polyphemus::ConfigurationRequest.new)
+          polyphemus_client.configuration(Etna::Clients::Polyphemus::ConfigurationRequest.new).raw
         end
 
-        def update_configuration_file(json_config)
+        def update_configuration_file
           if !File.exist?(config_file)
             File.open(config_file, 'a+')
           end
 
           etna_config = YAML.load_file(config_file) || {}
 
-          etna_config[environment] = json_config
+          etna_config[environment] = fetch_configuration
 
           File.open(config_file, 'w') { |f| YAML.dump(etna_config, f) }
         end
 
         def set_configuration
-          json_config = fetch_configuration
-          update_configuration_file(json_config)
+          update_configuration_file
           puts "Updated ~/etna.yml with your #{environment} configuration."
         end
       end
