@@ -2,14 +2,6 @@ require 'webmock/rspec'
 require 'json'
 require_relative '../../../../lib/etna/clients/janus'
 
-def model_stamp
-  {
-    template: {
-      attributes: {}
-    }
-  }
-end
-
 describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
   let(:magma_client) {Etna::Clients::Magma.new(
     token: '123.eyJlbWFpbCI6ImZvb0BiYXIuY29tIiwiZmlyc3QiOiJmb28iLCJsYXN0IjoiYmFyIn0=.bar',

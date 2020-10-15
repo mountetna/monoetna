@@ -219,3 +219,12 @@ def stub_magma_update_model
     body: {}.to_json
   })
 end
+
+def model_stamp(model_name = nil)
+  {
+    template: {
+      name: model_name,
+      attributes: {}
+    }
+  }
+end
