@@ -1,7 +1,5 @@
-GIT
-  remote: https://github.com/mountetna/monoetna.git
-  revision: 6f7c04889f55ef2d38e147a4abbb2d0d2a44dfc2
-  branch: refs/artifacts/gem-etna/c8091f573c914e6db2f4c3d09eed812782a5670e
+PATH
+  remote: ../etna
   specs:
     etna (0.1.16)
       jwt
@@ -41,6 +39,8 @@ GEM
       pry (~> 0.13.0)
     public_suffix (4.0.5)
     rack (2.2.3)
+    rack-test (1.1.0)
+      rack (>= 1.0, < 3)
     rake (13.0.1)
     rollbar (3.0.1)
     rspec (3.9.0)
@@ -80,6 +80,8 @@ DEPENDENCIES
   pg
   pry
   pry-byebug
+  rack
+  rack-test
   rspec
   ruby-debug-ide
   sequel

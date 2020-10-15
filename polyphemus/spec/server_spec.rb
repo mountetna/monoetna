@@ -6,18 +6,18 @@ describe Polyphemus::Server do
   end
 
   it 'configuration fails for non-superusers' do
-    auth_header(:viewer)
+    auth_header(:editor)
     get('/configuration')
 
-    expect(last_response.status).to eq(401)
+    expect(last_response.status).to eq(403)
   end
 
   it 'superusers can fetch app configuration' do
-    auth_header(:viewer)
+    auth_header(:superuser)
     get('/configuration')
 
     expect(last_response.status).to eq(200)
-    expect(json_body.keys).to eq('magma', 'metis', 'janus', 'timur', 'polyphemus')
+    expect(json_body.keys).to eq([:magma, :metis, :janus, :timur, :polyphemus])
   end
 
   it 'shows polyphemus is available for users' do
