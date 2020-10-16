@@ -445,6 +445,7 @@ module Etna
           dest.format_hint = source.format_hint
           dest.hidden = source.hidden
           dest.link_model_name = source.link_model_name
+          dest.read_only = source.read_only
           dest.attribute_group = source.attribute_group
           dest.unique = source.unique
           dest.validation = source.validation
