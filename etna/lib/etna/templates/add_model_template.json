@@ -35,7 +35,7 @@
         "type": "Array",
         "value": ["1x"]
       },
-      "attribute_type": "string"
+      "attribute_type": "string" // Acceptable attribute_types are ["boolean", "date_time", "file", "float", "image", "integer", "link", "match", "matrix", "string", "table"]
     }
   }
 }

@@ -41,7 +41,7 @@
             "type": "Array",
             "value": ["Acme"]
           },
-          "attribute_type": "string"
+          "attribute_type": "string" // Acceptable attribute_types are ["boolean", "date_time", "file", "float", "image", "integer", "link", "match", "matrix", "string", "table"]
         }
       }
     },
