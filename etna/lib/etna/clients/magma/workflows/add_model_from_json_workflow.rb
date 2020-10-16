@@ -56,8 +56,7 @@ module Etna
         def validate_model_against_project
           # Make sure that the parent model exists.
           # Make sure any linked models exist.
-          @errors << "Model #{model.name} already exists in project #{project_name}!" if project_model_names.include?(model.name)
-
+          model.validate_existing_models(project_models)
           model.validate_link_models(project_model_names)
         end
 

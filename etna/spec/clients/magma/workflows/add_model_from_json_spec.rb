@@ -89,7 +89,7 @@ describe Etna::Clients::Magma::AddModelFromJsonWorkflow do
 
   it 'raises an exception if the model already exists' do
     expected_msg = %{Model JSON has errors:
-  * Model assay_name already exists in project #{PROJECT}!}
+  * Model assay_name already exists in project!}
 
     expect {
       Etna::Clients::Magma::AddModelFromJsonWorkflow.new(

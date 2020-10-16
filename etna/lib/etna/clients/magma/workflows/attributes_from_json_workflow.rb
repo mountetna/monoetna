@@ -21,6 +21,7 @@ module Etna
         def initialize(**params)
           super({}.update(params))
 
+          @raw = JSON.parse(File.read(filepath))
           @errors = []
           validate
 
@@ -36,7 +37,8 @@ module Etna
         end
 
         def validate
-          validate_attributes_against_models
+          validate_models_exist
+          validate_attribute_names_unique
         end
 
         def project_models
@@ -49,11 +51,23 @@ module Etna
           project_models.all.map(&:template).map(&:name)
         end
 
-        def validate_attributes_against_models
+        def validate_attribute_names_unique
 
+        end
+
+        def check_required_key(action, key, options)
+          @errors << "Action requires \"#{key}\". Options are: #{options}." unless action.key?(key)
+        end
+
+        def validate_models_exist
           # Make sure that the parent model exists.
           # Make sure any linked models exist.
-          @errors << "Model #{model.name} already exists in project #{project_name}!" if project_model_names.include?(model.name)
+          available_actions = ['add_attribute', 'rename_attribute', 'update_attribute']
+          require_keys = ['action_name', 'model_name', 'attribute_name']
+          @raw.each do |attribute_action|
+
+          end
+          @errors << "Model does not #{model.name} already exists in project #{project_name}!" if project_model_names.include?(model.name)
 
           model.validate_link_models(project_model_names)
         end

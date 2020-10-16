@@ -110,7 +110,7 @@ describe Etna::Clients::Magma::JsonProject do
     expect(project.errors.length).to eq(19)
     expect(project.errors).to eq([
       "Missing required key for model assay_name, attribute tube_name, validation: \"value\".",
-      "Attribute name 123restricted in model assay_name must be snake_case and can only consist of letters, numbers, and \"_\".",
+      "Attribute name 123restricted must be snake_case and can only consist of letters, numbers, and \"_\".",
       "Missing required key for model assay_name, attribute assay_2_pool: \"desc\".",
       "Attribute name assay_2_pool in model assay_name should match the link_model_name, \"pool_deep_end\".",
       "Missing required key for model assay_name, attribute vendor: \"desc\".",
@@ -118,7 +118,7 @@ describe Etna::Clients::Magma::JsonProject do
       "Linked model, \"pool_deep_end\", on attribute assay_2_pool of model assay_name does not exist!\nCurrent models are [\"assay_name\", \"document\", \"assay_pool\", \"patient\", \"project\", \"status\", \"symptom\", \"timepoint\"].",
       "Invalid empty attribute_type for model document, attribute document_desc: \"\".",
       "Invalid attribute_type for model document, attribute document_desc: \"\".\nShould be one of [\"boolean\", \"date_time\", \"file\", \"float\", \"image\", \"integer\", \"link\", \"match\", \"matrix\", \"string\", \"table\"].",
-      "Attribute name version!@ in model document must be snake_case and can only consist of letters, numbers, and \"_\".",
+      "Attribute name version!@ must be snake_case and can only consist of letters, numbers, and \"_\".",
       "Invalid attribute_type for model document, attribute version!@: \"copacetic\".\nShould be one of [\"boolean\", \"date_time\", \"file\", \"float\", \"image\", \"integer\", \"link\", \"match\", \"matrix\", \"string\", \"table\"].",
       "Invalid attribute_type for model document, attribute version_date: \"date\".\nShould be one of [\"boolean\", \"date_time\", \"file\", \"float\", \"image\", \"integer\", \"link\", \"match\", \"matrix\", \"string\", \"table\"].",
       "Missing required key for model assay_pool, attribute biospecimen: \"attribute_type\".",
