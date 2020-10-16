@@ -1,24 +1,28 @@
 {
-  "parent_model_name": "timepoint",
-  "parent_link_type": "collection",
+  // Make sure to remove all comments before using -- JSON doesn't allow comments!
+  // Note: this file does not define the project or model name. Those are provided on the command line as an argument, instead.
+  "parent_model_name": "timepoint", // Make sure this model already exists!
+  "parent_link_type": "collection", // Options are child, collection, and table.
   "identifier": "tube_name",
   "attributes": {
+    // A set of attributes for the model.
     "tube_name": {
-      "attribute_name": "tube_name",
+      "attribute_name": "tube_name", // You only need to include the "identifier" attribute again if you want to modify it, i.e. set a validation, set a description, etc.
       "validation": {
-        "type": "Regexp",
+        "type": "Regexp", // Can be Array, Range, or Regexp.
         "value": "^[a-zA-Z]$"
       }
     },
     "restricted": {
       "attribute_name": "restricted",
-      "desc": "Controls access to the data.",
+      "desc": "Controls access to the data.", // Every non-identifier attribute must include at least desc, display_name, and attribute_type.
       "display_name": "Restricted",
       "attribute_type": "boolean"
     },
     "assay_pool_model_two": {
+      // Make sure this model already exists in the project!
       "attribute_name": "assay_pool_model_two",
-      "link_model_name": "assay_pool_model_two",
+      "link_model_name": "assay_pool_model_two", // Link attributes also require this link_model_name value that matches the attribute name.
       "desc": "Assay pool model 2",
       "display_name": "Assay Pool model 2",
       "attribute_type": "link"
