@@ -64,7 +64,7 @@ module Etna
         end
       end
 
-      class AddAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :restricted, :unique, :validation, keyword_init: true)
+      class AddAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
         def initialize(**args)
           super({action_name: 'add_attribute'}.update(args))
@@ -97,7 +97,7 @@ module Etna
         end
       end
 
-      class UpdateAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :restricted, :unique, :validation, keyword_init: true)
+      class UpdateAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
         def initialize(**args)
           super({action_name: 'update_attribute'}.update(args))
@@ -410,6 +410,13 @@ module Etna
           raw['read_only'] = val
         end
 
+        def attribute_group
+          raw['attribute_group']
+        end
+
+        def attribute_group=(val)
+          raw['attribute_group'] = val
+        end
         def hidden
           raw['hidden']
         end
@@ -438,7 +445,7 @@ module Etna
           dest.format_hint = source.format_hint
           dest.hidden = source.hidden
           dest.link_model_name = source.link_model_name
-          dest.read_only = source.read_only
+          dest.attribute_group = source.attribute_group
           dest.unique = source.unique
           dest.validation = source.validation
           dest.restricted = source.restricted
