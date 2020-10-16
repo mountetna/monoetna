@@ -362,6 +362,10 @@ module Etna
           @raw['read_only']
         end
 
+        def attribute_group
+          @raw['attribute_group']
+        end
+
         def validation
           @raw['validation']
         end
