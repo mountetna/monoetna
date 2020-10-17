@@ -225,6 +225,10 @@ module Etna
           Template.new(raw['template'])
         end
 
+        def name
+          @raw['name']
+        end
+
         def count
           raw['count'] || 0
         end

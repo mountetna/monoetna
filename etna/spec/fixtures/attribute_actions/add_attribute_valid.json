@@ -1,0 +1,10 @@
+[
+  {
+    "action_name": "add_attribute",
+    "type": "integer",
+    "model_name": "assay_name",
+    "display_name": "New attribute!",
+    "desc": "for testing purposes",
+    "attribute_name": "new_attr"
+  }
+]

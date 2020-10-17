@@ -4,22 +4,10 @@ require 'set'
 module Etna
   module Clients
     class Magma
-      class JsonBase
+      class ValidatorBase
         attr_reader :errors
         def initialize
           @errors = []
-
-          # NOTE: for input simplicity, I've removed some of the
-          #   link-related types, since we'll try to calculate
-          #   those while parsing the JSON structure.
-          @valid_attribute_types = Etna::Clients::Magma::AttributeType.entries.reject { |a|
-            a == Etna::Clients::Magma::AttributeType::CHILD ||
-            a == Etna::Clients::Magma::AttributeType::COLLECTION ||
-            a == Etna::Clients::Magma::AttributeType::IDENTIFIER ||
-            a == Etna::Clients::Magma::AttributeType::PARENT
-          }.sort # sort for prettier presentation
-
-          @valid_validation_types = Etna::Clients::Magma::AttributeValidationType.entries.sort  # sort for prettier presentation
         end
 
         def valid?
@@ -47,61 +35,42 @@ module Etna
           /\A[a-z]*(_[a-z]+)*\Z/
         end
 
-        def check_valid_name_with_numbers(label, proposed_name)
-          @errors << "#{label} name #{proposed_name} must be snake_case and can only consist of letters, numbers, and \"_\"." unless proposed_name =~ name_regex_with_numbers
-        end
-
-        def validate_basic_attribute_data(model_name, attribute_name, raw)
-          check_key("model #{model_name}, attribute #{attribute_name}", raw, 'attribute_type')
-
-          # The following two could be calculated or left blank?
-          # But it would be nice in the final UI to have them be more informative, so
-          #   we'll enforce here.
-          check_key("model #{model_name}, attribute #{attribute_name}", raw, 'display_name')
-          check_key("model #{model_name}, attribute #{attribute_name}", raw, 'desc')
-
-          check_type("model #{model_name}, attribute #{attribute_name}", raw, 'attribute_type', @valid_attribute_types)
-        end
-
-        def validate_attribute_validation(model_name, attribute_name, raw)
-          return unless raw.key?('validation')
-          check_key("model #{model_name}, attribute #{attribute_name}, validation", raw['validation'], 'type')
-          check_key("model #{model_name}, attribute #{attribute_name}, validation", raw['validation'], 'value')
-          check_type("model #{model_name}, attribute #{attribute_name}, validation", raw['validation'], 'type', @valid_validation_types)
-        end
-
         def model_exists_in_project?(project_magma_models, model_name)
           !!project_magma_models.model(model_name)
         end
+
+        def convert_model_user_json_to_magma_json(model_name, user_json)
+          json_model = user_json.dup
+          json_model['template'] = {
+            'name' => model_name,
+            'attributes' => json_model['attributes'].dup
+          }
+          json_model.delete('attributes')
+          Etna::Clients::Magma::Model.new(json_model)
+        end
+
+        def convert_project_user_json_to_magma_json(user_json)
+          magma_models_json = {}
+          user_json['models'].keys.each do |model_name|
+            magma_models_json[model_name] = convert_model_user_json_to_magma_json(
+              model_name,
+              user_json['models'][model_name])
+          end
+          user_json['models'] = magma_models_json
+          user_json
+        end
       end
 
-      class JsonProject < JsonBase
-        def initialize(filepath:)
-          super()
-          @raw = JSON.parse(File.read(filepath))
+      class ProjectValidator < ValidatorBase
+        attr_reader :project
+        def initialize(project)
+          super
+          @project = project
           validate
         end
 
-        def name
-          @raw['project_name']&.strip
-        end
-
-        def name_full
-          @raw['project_name_full']&.strip
-        end
-
-        def models
-          @models ||= @raw['models'].map do |model_name, model_def|
-            JsonModel.new(model_name, model_def)
-          end
-        end
-
-        def fetch_model(name)
-          models.select { |model| model.name == name }.first
-        end
-
         def models_by_parent
-          @models_by_parent ||= models.group_by { |model| model.parent_model_name }
+          @models_by_parent ||= models.all.group_by { |model| model.raw['parent_model_name'] }
         end
 
         def model_tree
@@ -124,14 +93,8 @@ module Etna
           sorted_models
         end
 
-        def get_magma_models
-          # Convert models to a Magma Model + set of Magma Attributes in a
-          #   template.
-          magma_models = Etna::Clients::Magma::Models.new
+        def update_magma_models
           models.each do |model|
-            model_builder = magma_models.build_model(model.name)
-            model.to_magma_model(model_builder)
-
             # Because the input JSON format doesn't specify the child
             #   or reciprocal link attributes, we'll need to add those
             #   in manually.
@@ -139,14 +102,13 @@ module Etna
           end
 
           add_reciprocal_link_attributes(magma_models)
-          magma_models
         end
 
-        def add_child_attributes(builder, model)
+        def add_child_attributes(model)
           return unless models_by_parent[model.name]
 
           models_by_parent[model.name].each do |child_model|
-            attribute_builder = builder.build_template.build_attributes
+            attribute_builder = model.build_template.build_attributes
             add_child_attribute(attribute_builder, child_model)
           end
         end
@@ -163,7 +125,7 @@ module Etna
 
         def add_reciprocal_link_attributes(magma_models)
           all_link_attributes do |model, attribute|
-            reciprocal_model = fetch_model(attribute.link_model_name)
+            reciprocal_model = project.models.model(attribute.link_model_name)
             model_builder = magma_models.build_model(reciprocal_model.name)
             reciprocal_model.add_reciprocal_link_attribute(model_builder, model)
           end
@@ -176,23 +138,28 @@ module Etna
         end
 
         def validate_project_names
-          check_key('root project', @raw, 'project_name')
-          check_key('root project', @raw, 'project_name_full')
+          check_key('root project', project.raw, 'project_name')
+          check_key('root project', project.raw, 'project_name_full')
+          name = project.raw['name']
           @errors << "Project name #{name} must be snake_case and cannot start with a number or \"pg_\"." unless name =~ name_regex_with_numbers && !name.start_with?('pg_')
         end
 
         def validate_models
-          models.each do |model|
-            @errors += model.errors unless model.valid?
+          project.models.all.each do |model|
+            validator = ModelValidator.new
+            validator.validate_model(model)
+            @errors += validator.errors unless validator.valid?
           end
         end
 
         def validate_model_links
           # Check all the attributes of type 'link', and make sure
           #   that the link_model_name exists in the project definition.
-          model_names = models.map { |m| m.name }
-          models.map do |model|
-            model.validate_link_models(model_names)
+          model_names = project.models.all.map { |m| m.name }
+          project.models.all.map do |model|
+            validator = ModelValidator.new
+            validator.validate_link_models(model_names)
+            @errors += validator.errors unless validator.valid?
           end
         end
 
@@ -205,7 +172,7 @@ module Etna
         end
       end
 
-      class JsonModel < JsonBase
+      class ModelValidator < ValidatorBase
         attr_reader :name
         def initialize(model_name, raw)
           super()
@@ -256,8 +223,11 @@ module Etna
         end
 
         def attributes
-          @attributes ||= @raw.key?('attributes') ? @raw['attributes'].map { |attribute_name, attribute_def|
-            JsonAttribute.new(self, attribute_name, attribute_def) } : []
+          @attributes ||= @raw.key?('attributes') ? @raw['attributes'].map do |attribute_name, attribute_def|
+            attribute = Etna::Clients::Magma::Attribute.new(attribute_def)
+            attribute.attribute_type = Etna::Clients::Magma::AttributeType::IDENTIFIER if identifier == attribute.attribute_name
+            attribute
+          end: []
         end
 
         def link_attributes
@@ -298,7 +268,9 @@ module Etna
 
         def validate_attributes
           attributes.each do |attribute|
-            @errors += attribute.errors unless attribute.valid?
+            attribute_validator = AttributeValidator.new
+            attribute_validator.validate_add_attribute_data(attribute)
+            @errors += attribute_validator.errors unless attribute_validator.valid?
           end
         end
 
@@ -344,102 +316,168 @@ module Etna
         end
       end
 
-      class JsonAttribute < JsonBase
-        attr_reader :name, :model, :raw
-        def initialize(model, attribute_name, raw)
-          super()
-          @model = model
-          @name = attribute_name.strip
-          @raw = raw
+      class AttributeValidator < ValidatorBase
+        def initialize
+          super
+          # NOTE: for input simplicity, I've removed some of the
+          #   link-related types, since we'll try to calculate
+          #   those while parsing the JSON structure.
+          @valid_attribute_types = Etna::Clients::Magma::AttributeType.entries.reject { |a|
+            a == Etna::Clients::Magma::AttributeType::CHILD ||
+            a == Etna::Clients::Magma::AttributeType::COLLECTION ||
+            a == Etna::Clients::Magma::AttributeType::IDENTIFIER ||
+            a == Etna::Clients::Magma::AttributeType::PARENT
+          }.sort # sort for prettier presentation
 
-          validate
+          @valid_validation_types = Etna::Clients::Magma::AttributeValidationType.entries.sort  # sort for prettier presentation
         end
 
-        def type
-          @raw['attribute_type']&.strip
+        def check_valid_name_with_numbers(label, proposed_name)
+          @errors << "#{label} name #{proposed_name} must be snake_case and can only consist of letters, numbers, and \"_\"." unless proposed_name =~ name_regex_with_numbers
         end
 
-        def is_link_attribute?
-          type == Etna::Clients::Magma::AttributeType::LINK
+        def validate_basic_attribute_data(attribute)
+          check_key("attribute #{attribute.attribute_name}", attribute.raw, 'attribute_type')
+
+          # The following two could be calculated or left blank?
+          # But it would be nice in the final UI to have them be more informative, so
+          #   we'll enforce here.
+          check_key("attribute #{attribute.attribute_name}", attribute.raw, 'display_name')
+          check_key("attribute #{attribute.attribute_name}", attribute.raw, 'desc')
+
+          check_type("attribute #{attribute.attribute_name}", attribute.raw, 'attribute_type', @valid_attribute_types)
         end
 
-        def link_model_name
-          @raw['link_model_name']&.strip
+        def validate_attribute_validation(attribute)
+          return unless raw.key?('validation')
+          check_key("attribute #{attribute.attribute_name}, validation", attribute.validation, 'type')
+          check_key("attribute #{attribute.attribute_name}, validation", attribute.validation, 'value')
+          check_type("attribute #{attribute.attribute_name}, validation", attribute.validation, 'type', @valid_validation_types)
         end
 
-        def attribute_name
-          name
+        def is_link_attribute?(attribute)
+          attribute.attribute_type == Etna::Clients::Magma::AttributeType::LINK
         end
 
-        def display_name
-          @raw['display_name']&.strip
+        def is_identifier_attribute?(attribute)
+          attribute.attribute_type == Etna::Clients::Magma::AttributeType::IDENTIFIER
         end
 
-        def desc
-          @raw['desc']&.strip
-        end
+        def validate_link_models(attribute, model_names)
+          return unless is_link_attribute?(attribute)
 
-        def validate
-          validate_add_attribute_data
-        end
-
-        def attribute_type
-          return Etna::Clients::Magma::AttributeType::IDENTIFIER if model.identifier == name
-          type
-        end
-
-        def hidden
-          @raw['hidden']
-        end
-
-        def read_only
-          @raw['read_only']
-        end
-
-        def validation
-          @raw['validation']
-        end
-
-        def restricted
-          @raw['restricted']
-        end
-
-        def format_hint
-          @raw['format_hint']
-        end
-
-        def unique
-          @raw['unique']
-        end
-
-        def validate_link_models(model_names)
-          return unless is_link_attribute?
-
-          check_key("model #{model.name}, attribute #{name}", raw, 'link_model_name')
+          check_key("attribute #{attribute.attribute_name}", attribute.raw, 'link_model_name')
 
           # Check that the linked model exists.
-          @errors << "Linked model, \"#{link_model_name}\", on attribute #{name} of model #{model.name} does not exist!\nCurrent models are #{model_names}." unless model_names.include?(link_model_name)
+          @errors << "Linked model, \"#{attribute.link_model_name}\", on attribute #{attribute.attribute_name} does not exist!\nCurrent models are #{model_names}." unless model_names.include?(attribute.link_model_name)
         end
 
-        def validate_add_attribute_data
-          check_valid_name_with_numbers('Attribute', name)
+        def validate_add_attribute_data(attribute)
+          check_valid_name_with_numbers('Attribute', attribute.attribute_name)
 
-          validate_basic_attribute_data(model.name, name, @raw) if model.identifier != name
-          validate_attribute_validation(model.name, name, @raw)
+          validate_basic_attribute_data(attribute) unless is_identifier_attribute?(attribute)
+          validate_attribute_validation(attribute)
 
-          if link_model_name
-            @errors << "Attribute name #{name} in model #{model.name} should match the link_model_name, \"#{link_model_name}\"." unless link_model_name == name
-          end
-        end
-
-        def to_magma_model(builder)
-          builder.build_attribute(name).tap do |attribute|
-            Etna::Clients::Magma::Attribute.copy(self, attribute)
-          end
+          @errors << "Attribute name #{attribute.attribute_name} should match the link_model_name, \"#{attribute.link_model_name}\"." unless attribute.link_model_name && attribute.link_model_name == attribute.attribute_name
         end
       end
 
-      class JsonAttributeAction < JsonBase
+      # class JsonAttribute < ValidatorBase
+      #   attr_reader :name, :model, :raw
+      #   def initialize(model, attribute_name, raw)
+      #     super()
+      #     @model = model
+      #     @name = attribute_name.strip
+      #     @raw = raw
+
+      #     validate
+      #   end
+
+      #   def type
+      #     @raw['attribute_type']&.strip
+      #   end
+
+      #   def is_link_attribute?
+      #     type == Etna::Clients::Magma::AttributeType::LINK
+      #   end
+
+      #   def link_model_name
+      #     @raw['link_model_name']&.strip
+      #   end
+
+      #   def attribute_name
+      #     name
+      #   end
+
+      #   def display_name
+      #     @raw['display_name']&.strip
+      #   end
+
+      #   def desc
+      #     @raw['desc']&.strip
+      #   end
+
+      #   def validate
+      #     validate_add_attribute_data
+      #   end
+
+      #   def attribute_type
+      #     return Etna::Clients::Magma::AttributeType::IDENTIFIER if model.identifier == name
+      #     type
+      #   end
+
+      #   def hidden
+      #     @raw['hidden']
+      #   end
+
+      #   def read_only
+      #     @raw['read_only']
+      #   end
+
+      #   def validation
+      #     @raw['validation']
+      #   end
+
+      #   def restricted
+      #     @raw['restricted']
+      #   end
+
+      #   def format_hint
+      #     @raw['format_hint']
+      #   end
+
+      #   def unique
+      #     @raw['unique']
+      #   end
+
+      #   def validate_link_models(model_names)
+      #     return unless is_link_attribute?
+
+      #     check_key("model #{model.name}, attribute #{name}", raw, 'link_model_name')
+
+      #     # Check that the linked model exists.
+      #     @errors << "Linked model, \"#{link_model_name}\", on attribute #{name} of model #{model.name} does not exist!\nCurrent models are #{model_names}." unless model_names.include?(link_model_name)
+      #   end
+
+      #   def validate_add_attribute_data
+      #     check_valid_name_with_numbers('Attribute', name)
+
+      #     validate_basic_attribute_data(model.name, name, @raw) if model.identifier != name
+      #     validate_attribute_validation(model.name, name, @raw)
+
+      #     if link_model_name
+      #       @errors << "Attribute name #{name} in model #{model.name} should match the link_model_name, \"#{link_model_name}\"." unless link_model_name == name
+      #     end
+      #   end
+
+      #   def to_magma_model(builder)
+      #     builder.build_attribute(name).tap do |attribute|
+      #       Etna::Clients::Magma::Attribute.copy(self, attribute)
+      #     end
+      #   end
+      # end
+
+      class JsonAttributeAction < ValidatorBase
         def initialize(raw, project_models)
           @raw = raw
           @project_models = project_models
@@ -472,14 +510,21 @@ module Etna
       end
 
       class JsonAddAttributeAction < JsonAttributeAction
+        def initialize
+          super
+          @attribute = Etna::Clients::Magma::Attribute.new(@raw)
+        end
+
         def validate
           validate_model_exists(model_name)
           validate_attribute_data
         end
 
         def validate_attribute_data
-          validate_basic_attribute_data(model_name, name, @raw)
-          validate_attribute_validation(model_name, name, @raw)
+          validator = AttributeValidator.new
+          validator.validate_basic_attribute_data(@attribute)
+          validator.validate_attribute_validation(@attribute)
+          @errors += validator.errors unless validator.valid?
         end
       end
 
@@ -557,13 +602,20 @@ module Etna
       end
 
       class JsonUpdateAttributeAction < JsonAttributeAction
+        def initialize
+          super
+          @attribute = Etna::Clients::Magma::Attribute.new(@raw)
+        end
+
         def validate
           validate_model_exists(model_name)
           validate_attribute_data
         end
 
         def validate_attribute_data
-          validate_attribute_validation(model_name, name, @raw)
+          validator = AttributeValidator.new
+          validator.validate_attribute_validation(@attribute)
+          @errors += validator.errors unless validator.valid?
         end
       end
 
