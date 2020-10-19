@@ -4,14 +4,24 @@ module Etna
   module Clients
     class Magma
       class ConverterBase
+        def self.convert_attribute_user_json_to_magma_json(user_model_json)
+          json_attribute = user_model_json['attributes'].dup
+          return unless json_attribute
+
+          json_attribute.keys.each do |attribute_name|
+            json_attribute[attribute_name]['attribute_type'] = Etna::Clients::Magma::AttributeType::IDENTIFIER if user_model_json['identifier'] == attribute_name
+          end
+          json_attribute
+        end
+
         def self.convert_model_user_json_to_magma_json(model_name, user_json)
           json_model = user_json.dup
           json_model['template'] = {
             'name' => model_name,
-            'attributes' => json_model['attributes'].dup
+            'attributes' => convert_attribute_user_json_to_magma_json(json_model)
           }
           json_model.delete('attributes')
-          Etna::Clients::Magma::Model.new(json_model)
+          json_model
         end
 
         def self.convert_project_user_json_to_magma_json(user_json)

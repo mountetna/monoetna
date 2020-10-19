@@ -11,7 +11,8 @@ require 'json'
 require 'ostruct'
 require_relative './model_synchronization_workflow'
 require_relative '../../janus/models'
-require_relative './json_models'
+require_relative './json_validators'
+require_relative './json_converters'
 
 module Etna
   module Clients

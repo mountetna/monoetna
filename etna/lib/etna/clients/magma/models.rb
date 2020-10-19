@@ -151,6 +151,18 @@ module Etna
       class UpdateResponse < RetrievalResponse
       end
 
+      class Project
+        attr_reader :raw
+
+        def initialize(raw = {})
+          @raw = raw
+        end
+
+        def models
+          Models.new(raw['models'])
+        end
+      end
+
       class Models
         attr_reader :raw
 
@@ -226,7 +238,7 @@ module Etna
         end
 
         def name
-          @raw['name']
+          @raw.dig('template', 'name')
         end
 
         def count
@@ -283,7 +295,7 @@ module Etna
         end
 
         def attributes
-          Attributes.new(raw['attributes'])
+          Attributes.new(raw['attributes'] ||= {})
         end
 
         def build_attributes

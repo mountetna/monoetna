@@ -43,7 +43,7 @@ module Etna
       class ProjectValidator < ValidatorBase
         attr_reader :project
         def initialize(project)
-          super
+          super()
           @project = project
         end
 
@@ -63,7 +63,7 @@ module Etna
         def validate_models
           project.models.all.each do |model|
             validator = ModelValidator.new(model)
-            validator.validate_model
+            validator.validate
             @errors += validator.errors unless validator.valid?
           end
         end
@@ -123,7 +123,7 @@ module Etna
         end
 
         def validate_attributes
-          attributes.all.each do |attribute|
+          model.template.attributes.all.each do |attribute|
             attribute_validator = AttributeValidator.new(attribute)
             attribute_validator.validate_add_attribute_data
             @errors += attribute_validator.errors unless attribute_validator.valid?
@@ -145,12 +145,18 @@ module Etna
         def validate_existing_models(project_magma_models)
           @errors << "Model #{name} already exists in project!" if model_exists_in_project?(project_magma_models, name)
         end
+
+        def link_attributes
+          model.template.attributes.all.map do |attribute|
+            attribute.attribute_type == Etna::Clients::Magma::AttributeType::LINK
+          end
+        end
       end
 
       class AttributeValidator < ValidatorBase
         attr_reader :attribute
         def initialize(attribute)
-          super
+          super()
           @attribute = attribute
           # NOTE: for input simplicity, I've removed some of the
           #   link-related types, since we'll try to calculate
@@ -181,22 +187,22 @@ module Etna
           check_type("attribute #{attribute.attribute_name}", attribute.raw, 'attribute_type', @valid_attribute_types)
         end
 
-        def validate_attribute_validation(attribute)
-          return unless raw.key?('validation')
+        def validate_attribute_validation
+          return unless attribute.validation
           check_key("attribute #{attribute.attribute_name}, validation", attribute.validation, 'type')
           check_key("attribute #{attribute.attribute_name}, validation", attribute.validation, 'value')
           check_type("attribute #{attribute.attribute_name}, validation", attribute.validation, 'type', @valid_validation_types)
         end
 
-        def is_link_attribute?(attribute)
+        def is_link_attribute?
           attribute.attribute_type == Etna::Clients::Magma::AttributeType::LINK
         end
 
-        def is_identifier_attribute?(attribute)
+        def is_identifier_attribute?
           attribute.attribute_type == Etna::Clients::Magma::AttributeType::IDENTIFIER
         end
 
-        def validate_link_models(attribute, model_names)
+        def validate_link_models(model_names)
           return unless is_link_attribute?(attribute)
 
           check_key("attribute #{attribute.attribute_name}", attribute.raw, 'link_model_name')
@@ -205,11 +211,10 @@ module Etna
           @errors << "Linked model, \"#{attribute.link_model_name}\", on attribute #{attribute.attribute_name} does not exist!\nCurrent models are #{model_names}." unless model_names.include?(attribute.link_model_name)
         end
 
-        def validate_add_attribute_data(attribute)
+        def validate_add_attribute_data
           check_valid_name_with_numbers('Attribute', attribute.attribute_name)
-
-          validate_basic_attribute_data(attribute) unless is_identifier_attribute?(attribute)
-          validate_attribute_validation(attribute)
+          validate_basic_attribute_data unless is_identifier_attribute?
+          validate_attribute_validation
 
           @errors << "Attribute name #{attribute.attribute_name} should match the link_model_name, \"#{attribute.link_model_name}\"." unless attribute.link_model_name && attribute.link_model_name == attribute.attribute_name
         end
@@ -311,18 +316,11 @@ module Etna
       # end
 
       class JsonAttributeActionValidator < ValidatorBase
-        def initialize(raw, project_models)
-          @raw = raw
+        attr_reader :action
+        def initialize(action, project_models)
+          @action = action
           @project_models = project_models
           validate
-        end
-
-        def name
-          @raw['attribute_name']&.strip
-        end
-
-        def model_name
-          @raw['model_name']&.strip
         end
 
         def validate
@@ -345,7 +343,7 @@ module Etna
       class JsonAddAttributeActionValidator < JsonAttributeActionValidator
         def initialize
           super
-          @attribute = Etna::Clients::Magma::Attribute.new(@raw)
+          @attribute = Etna::Clients::Magma::Attribute.new(action)
         end
 
         def validate
@@ -354,24 +352,20 @@ module Etna
         end
 
         def validate_attribute_data
-          validator = AttributeValidator.new
-          validator.validate_basic_attribute_data(@attribute)
-          validator.validate_attribute_validation(@attribute)
+          validator = AttributeValidator.new(@attribute)
+          validator.validate_basic_attribute_data
+          validator.validate_attribute_validation
           @errors += validator.errors unless validator.valid?
         end
       end
 
       class JsonAddLinkActionValidator < JsonAttributeActionValidator
-        def links
-          @raw['links']
-        end
-
         def source
-          links.first
+          action.links.first
         end
 
         def dest
-          links.last
+          action.links.last
         end
 
         def validate
@@ -382,7 +376,7 @@ module Etna
 
         def validate_links
           check_key("action #{@raw}", @raw, "links")
-          @errors << "Must include two link entries, each with \"model_name\", \"attribute_name\", and \"type\"." unless links.length == 2
+          @errors << "Must include two link entries, each with \"model_name\", \"attribute_name\", and \"type\"." unless action.links.length == 2
           check_key("link #{source}", source, "model_name")
           check_key("link #{source}", source, "attribute_name")
           check_key("link #{source}", source, "type")
@@ -412,10 +406,6 @@ module Etna
       end
 
       class JsonRenameAttributeActionValidator < JsonAttributeActionValidator
-        def new_attribute_name
-          @raw['new_attribute_name']&.strip
-        end
-
         def validate
           validate_action
           validate_model_exists(model_name)
@@ -423,9 +413,9 @@ module Etna
         end
 
         def validate_action
-          check_key("action #{@raw}", @raw, "model_name")
-          check_key("action #{@raw}", @raw, "attribute_name")
-          check_key("action #{@raw}", @raw, "new_attribute_name")
+          check_key("action #{action}", action, "model_name")
+          check_key("action #{action}", action, "attribute_name")
+          check_key("action #{action}", action, "new_attribute_name")
         end
 
         def validate_proposed_name
@@ -437,7 +427,7 @@ module Etna
       class JsonUpdateAttributeActionValidator < JsonAttributeActionValidator
         def initialize
           super
-          @attribute = Etna::Clients::Magma::Attribute.new(@raw)
+          @attribute = Etna::Clients::Magma::Attribute.new(action)
         end
 
         def validate
@@ -446,8 +436,8 @@ module Etna
         end
 
         def validate_attribute_data
-          validator = AttributeValidator.new
-          validator.validate_attribute_validation(@attribute)
+          validator = AttributeValidator.new(@attribute)
+          validator.validate_attribute_validation
           @errors += validator.errors unless validator.valid?
         end
       end
@@ -461,9 +451,9 @@ module Etna
           "Json#{camelize(action_name)}ActionValidator"
         end
 
-        def self.from_json(raw, project_models)
-          clazz = Object.const_get(clazz_name(raw['action_name']))
-          clazz.new(raw, project_models)
+        def self.from_json(action, project_models)
+          clazz = Object.const_get(clazz_name(action.action_name))
+          clazz.new(action, project_models)
         end
       end
     end
