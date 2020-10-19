@@ -1,6 +1,6 @@
 require_relative '../magma_record_etl'
 
-class Polyphemus::StubMagmaRecordEtla < Polyphemus::MagmaRecordEtl
+class Polyphemus::StubMagmaRecordEtl < Polyphemus::MagmaRecordEtl
   def initialize
     super(project_model_pairs: [])
   end

@@ -4,13 +4,17 @@
 # whenever we want to use it as a container
 
 require_relative './sign_service'
+require_relative './command'
 require 'singleton'
 require 'rollbar'
 
 module Etna::Application
   def self.included(other)
     other.include Singleton
+    other.include Etna::CommandExecutor
     @@application = other
+
+    other.const_set(:GenerateCompletionScript, Class.new(Etna::GenerateCompletionScript))
   end
 
   def self.find(klass)
@@ -23,7 +27,7 @@ module Etna::Application
       return @@application.instance
     end
 
-    raise "Could not find application instance from #{namespace}, maybe set APP_NAME environment variable?"
+    raise "Could not find application instance from #{namespace}, and not subclass of Application found."
   end
 
   def self.register(app)
@@ -84,26 +88,13 @@ module Etna::Application
     end
   end
 
-  def run_command(config, cmd = :help, *args)
-    cmd = cmd.to_sym
-    if commands.key?(cmd)
-      commands[cmd].setup(config)
-      commands[cmd].execute(*commands[cmd].fill_in_missing_params(args))
-    else
-      commands[:help].execute
-    end
+  def run_command(config, *args)
+    cmd, cmd_args = find_command(*args)
+    cmd.setup(config)
+    cmd.execute(*cmd.fill_in_missing_params(cmd_args))
   rescue => e
     Rollbar.error(e)
     raise
-  end
-
-  def commands
-    @commands ||= Hash[
-      Etna::Command.descendants.select { |c| c.descendants.empty? }.map do |c|
-        cmd = c.new
-        [ cmd.name, cmd ]
-      end
-    ]
   end
 end
 

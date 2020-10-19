@@ -34,6 +34,15 @@ module Etna
           record = revision[record_name] ||= {}
           record.update(attrs)
         end
+
+        def append_table(parent_model_name, parent_record_name, model_name, attrs, attribute_name = model_name)
+          parent_revision = update_revision(parent_model_name, parent_record_name, {})
+          table = parent_revision[attribute_name] ||= []
+          id = "::#{model_name}#{(revisions[model_name] || {}).length + 1}"
+          table << id
+          update_revision(model_name, id, attrs)
+          id
+        end
       end
 
       class UpdateModelRequest < Struct.new(:project_name, :actions, keyword_init: true)
@@ -55,7 +64,7 @@ module Etna
         end
       end
 
-      class AddAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :restricted, :unique, :validation, keyword_init: true)
+      class AddAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
         def initialize(**args)
           super({action_name: 'add_attribute'}.update(args))
@@ -88,7 +97,7 @@ module Etna
         end
       end
 
-      class UpdateAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :restricted, :unique, :validation, keyword_init: true)
+      class UpdateAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
         def initialize(**args)
           super({action_name: 'update_attribute'}.update(args))
@@ -257,6 +266,10 @@ module Etna
           raw.keys
         end
 
+        def +(other)
+          Documents.new({}.update(raw).update(other.raw))
+        end
+
         def document(document_key)
           return nil unless raw.include?(document_key)
           raw[document_key]
@@ -420,6 +433,13 @@ module Etna
           raw['read_only'] = val
         end
 
+        def attribute_group
+          raw['attribute_group']
+        end
+
+        def attribute_group=(val)
+          raw['attribute_group'] = val
+        end
         def hidden
           raw['hidden']
         end
@@ -449,6 +469,7 @@ module Etna
           dest.hidden = source.hidden
           dest.link_model_name = source.link_model_name
           dest.read_only = source.read_only
+          dest.attribute_group = source.attribute_group
           dest.unique = source.unique
           dest.validation = source.validation
           dest.restricted = source.restricted

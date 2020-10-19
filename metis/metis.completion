@@ -2,36 +2,56 @@
 _metis_completions() {
 local all_completion_names=''
 if [ "${COMP_CWORD}" == "1" ]; then
-all_completion_names='generate_completion_script remove_orphan_data_blocks create_db assimilate archive migrate schema console help'
+all_completion_names='archive assimilate console create_db generate_completion_script help migrate remove_orphan_data_blocks schema'
 COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
 else
-if [ "${COMP_WORDS[1]}" == 'generate_completion_script' ]; then
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'remove_orphan_data_blocks' ]; then
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'create_db' ]; then
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'assimilate' ]; then
-true
-fi
 if [ "${COMP_WORDS[1]}" == 'archive' ]; then
 true
 fi
-if [ "${COMP_WORDS[1]}" == 'migrate' ]; then
-true
+if [ "${COMP_WORDS[1]}" == 'assimilate' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
 fi
-if [ "${COMP_WORDS[1]}" == 'schema' ]; then
+if [ "${COMP_CWORD}" == "3" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "4" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "5" ]; then
+COMPREPLY=()
+return
+fi
 true
 fi
 if [ "${COMP_WORDS[1]}" == 'console' ]; then
 true
 fi
+if [ "${COMP_WORDS[1]}" == 'create_db' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'generate_completion_script' ]; then
+true
+fi
 if [ "${COMP_WORDS[1]}" == 'help' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'migrate' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'remove_orphan_data_blocks' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'schema' ]; then
 true
 fi
 fi
 }
-complete -F _metis_completions metis
+complete -o default -F _metis_completions metis
