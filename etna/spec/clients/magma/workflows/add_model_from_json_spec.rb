@@ -1,5 +1,6 @@
 require 'webmock/rspec'
 require 'json'
+require 'pry'
 
 describe Etna::Clients::Magma::AddModelFromJsonWorkflow do
   let(:magma_client) {Etna::Clients::Magma.new(
@@ -69,7 +70,7 @@ describe Etna::Clients::Magma::AddModelFromJsonWorkflow do
 
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna 123'}).
-      with { |req| req.body.include?('add_model') }.times(1)
+      with { |req| req.body.include?('add_model') && req.body.include?('"identifier":"tube_name"') }.times(1)
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna 123'}).
       with { |req| req.body.include?('add_attribute') }.times(3)  # 3 attributes in the fixture

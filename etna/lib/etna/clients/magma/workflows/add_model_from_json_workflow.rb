@@ -22,8 +22,10 @@ module Etna
         def initialize(**params)
           super({}.update(params))
           user_json = JSON.parse(File.read(filepath))
+
           magma_json = Etna::Clients::Magma::ModelConverter.convert_model_user_json_to_magma_json(
             model_name, user_json)
+
           @model = Etna::Clients::Magma::Model.new(magma_json)
 
           @validator = Etna::Clients::Magma::ModelValidator.new(model)
@@ -109,7 +111,7 @@ module Etna
               project_name: project_name,
               actions: [Etna::Clients::Magma::UpdateAttributeAction.new(
                 model_name: model.name,
-                attribute_name: attribute.name,
+                attribute_name: attribute.attribute_name,
                 display_name: attribute.display_name,
                 description: attribute.desc,
                 validation: attribute.validation

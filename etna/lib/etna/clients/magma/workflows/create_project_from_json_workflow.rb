@@ -90,6 +90,8 @@ module Etna
           #   but things seem to go more smoothly if we manually
           #   create the models before we try to ensure the tree.
           converter.model_tree.each do |model|
+            next if model.name == 'project'
+
             magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
               project_name: project_name,
               actions: [Etna::Clients::Magma::AddModelAction.new(
@@ -140,7 +142,7 @@ module Etna
                 project_name: project_name,
                 actions: [Etna::Clients::Magma::UpdateAttributeAction.new(
                   model_name: model_name,
-                  attribute_name: attribute.name,
+                  attribute_name: attribute.attribute_name,
                   display_name: attribute.display_name,
                   description: attribute.desc,
                   validation: attribute.validation
@@ -158,8 +160,10 @@ module Etna
           update_magma_client_token
           puts "Done! Creating the project in Magma."
           create_magma_project
+          puts "Done! Creating all the models and attributes in Magma."
           create_magma_models
           ensure_magma_tree
+          puts "Done! Adding your new project record."
           create_magma_project_record
           update_magma_attributes
           puts "All complete! You can visit Janus to refresh your token, then log into any app to manage your data."

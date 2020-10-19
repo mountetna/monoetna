@@ -40,7 +40,28 @@ describe Etna::Clients::Magma::ConverterBase do
     magma_json = Etna::Clients::Magma::ConverterBase.convert_project_user_json_to_magma_json(project_json)
 
     expect(
-      magma_json.dig('models', 'assay_name', 'template', 'name')).to eq('assay_name')
+      magma_json.dig('models', 'assay_name', 'template', 'name')
+    ).to eq('assay_name')
+  end
+
+  it 'correctly copies the model identifier to the template' do
+    project_json = JSON.parse(File.read('./spec/fixtures/create_project/valid_project.json'))
+
+    magma_json = Etna::Clients::Magma::ConverterBase.convert_project_user_json_to_magma_json(project_json)
+
+    expect(
+      magma_json.dig('models', 'assay_name', 'template', 'identifier')
+    ).to eq('tube_name')
+  end
+
+  it 'correctly copies the model parent to the template' do
+    project_json = JSON.parse(File.read('./spec/fixtures/create_project/valid_project.json'))
+
+    magma_json = Etna::Clients::Magma::ConverterBase.convert_project_user_json_to_magma_json(project_json)
+
+    expect(
+      magma_json.dig('models', 'assay_name', 'template', 'parent')
+    ).to eq('timepoint')
   end
 
   it 'correctly assigns the identifier type' do
@@ -49,7 +70,8 @@ describe Etna::Clients::Magma::ConverterBase do
     magma_json = Etna::Clients::Magma::ConverterBase.convert_project_user_json_to_magma_json(project_json)
 
     expect(
-      magma_json.dig('models', 'assay_name', 'template', 'attributes', 'tube_name', 'type')).to eq('identifier')
+      magma_json.dig('models', 'assay_name', 'template', 'attributes', 'tube_name', 'attribute_type')
+    ).to eq(Etna::Clients::Magma::AttributeType::IDENTIFIER)
   end
 end
 

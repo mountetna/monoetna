@@ -4,18 +4,7 @@ require 'rollbar'
 require 'tempfile'
 require_relative 'helpers'
 
-class EtnaCommands
-  class Help < Etna::Command
-    usage 'List this help'
-
-    def execute
-      puts 'Commands:'
-      EtnaApp.instance.commands.each do |name, cmd|
-        puts cmd.usage
-      end
-    end
-  end
-
+class EtnaApp
   class CreateProject < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
@@ -37,12 +26,17 @@ class EtnaCommands
     usage 'validate_project <filepath>'
 
     def execute(filepath)
-      project = Etna::Clients::Magma::JsonProject.new(
-        filepath: filepath)
-      return puts "Project JSON is well-formatted!" if project.valid?
+      user_json = JSON.parse(File.read(filepath))
+      magma_json = Etna::Clients::Magma::ProjectConverter.convert_project_user_json_to_magma_json(user_json)
+      @project = Etna::Clients::Magma::Project.new(magma_json)
 
-      puts "Project JSON has #{project.errors.length} errors:"
-      project.errors.each do |error|
+      @validator = Etna::Clients::Magma::ProjectValidator.new(@project)
+      @validator.validate
+
+      return puts "Project JSON is well-formatted!" if @validator.valid?
+
+      puts "Project JSON has #{@validator.errors.length} errors:"
+      @validator.errors.each do |error|
         puts "  * " + error.gsub("\n", "\n\t")
       end
     end

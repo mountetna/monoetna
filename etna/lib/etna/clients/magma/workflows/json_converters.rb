@@ -18,6 +18,8 @@ module Etna
           json_model = user_json.dup
           json_model['template'] = {
             'name' => model_name,
+            'identifier' => user_json['identifier'],
+            'parent' => user_json['parent_model_name'],
             'attributes' => convert_attribute_user_json_to_magma_json(json_model)
           }
           json_model.delete('attributes')
@@ -138,13 +140,7 @@ module Etna
         end
 
         def identifier
-          return unless model.template.raw['attributes']
-
-          identifier_attribute = model.template.raw['attributes'].values.select do |attribute|
-            attribute['attribute_type'] == Etna::Clients::Magma::AttributeType::IDENTIFIER
-          end.first
-
-          return identifier_attribute['attribute_name'] if identifier_attribute
+          model.raw['identifier']
         end
 
         def add_reciprocal_link_attribute(reciprocal_model)
