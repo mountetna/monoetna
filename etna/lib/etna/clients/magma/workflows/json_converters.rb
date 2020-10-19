@@ -178,6 +178,39 @@ module Etna
           end
         end
       end
+
+      class AttributeActionsConverter < ConverterBase
+        attr_reader :actions
+        def initialize(actions)
+          @actions = JSON.parse(actions.to_json, symbolize_names: true)
+        end
+
+        def camelize(action_name)
+          action_name.split('_').map(&:capitalize).join('')
+        end
+
+        def clazz_name(action_name)
+          "Etna::Clients::Magma::#{camelize(action_name)}Action"
+        end
+
+        def convert
+          actions.map do |action_json|
+            # We use desc and attribute_type to be consistent
+            #   with the other JSON actions...but the
+            #   Magma Model takes type and description.
+            if action_json[:action_name] == 'add_attribute'
+              action_json[:type] = action_json.delete(:attribute_type)
+              action_json[:description] = action_json.delete(:desc)
+            end
+
+            clazz = Object.const_get(clazz_name(action_json[:action_name]))
+            clazz.new(**action_json)
+          rescue ArgumentError => e
+            modified_message = "Exception while parsing #{action_json}.\n" + e.message
+            raise ArgumentError.new(modified_message)
+          end
+        end
+      end
     end
   end
 end

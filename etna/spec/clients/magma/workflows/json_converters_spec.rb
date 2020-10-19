@@ -1,5 +1,6 @@
 require 'webmock/rspec'
 require 'json'
+require 'pry'
 
 describe Etna::Clients::Magma::ConverterBase do
   before(:each) do
@@ -132,5 +133,23 @@ describe Etna::Clients::Magma::ProjectConverter do
     status = source_models.model('status')
     expect(status.template.attributes.attribute('patient').attribute_type).to eq(Etna::Clients::Magma::AttributeType::PARENT)
     expect(status.template.attributes.attribute('patient').link_model_name).to eq('patient')
+  end
+end
+
+describe Etna::Clients::Magma::AttributeActionsConverter do
+  before(:each) do
+  end
+
+  it 'converts JSON attribute actions to Magma models' do
+    actions_json = JSON.parse(File.read('./spec/fixtures/attribute_actions/multiple_actions_valid.json'))
+    converter = Etna::Clients::Magma::AttributeActionsConverter.new(actions_json)
+    actions = converter.convert
+    expect(actions.map(&:class)).to eq([
+      Etna::Clients::Magma::AddAttributeAction,
+      Etna::Clients::Magma::UpdateAttributeAction,
+      Etna::Clients::Magma::RenameAttributeAction,
+      Etna::Clients::Magma::AddLinkAction
+    ])
+    expect(actions.first.type).to eq(actions_json.first['attribute_type'])
   end
 end
