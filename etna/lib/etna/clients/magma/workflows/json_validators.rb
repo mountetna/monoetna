@@ -24,7 +24,7 @@ module Etna
         end
 
         def check_type(label, raw, key, valid_types)
-          @errors << "Invalid #{key} for #{label}: \"#{raw[key]}\".\nShould be one of #{valid_types}." if raw.key?(key) && !valid_types.include?(raw[key].strip)
+          @errors << "Invalid #{key} for #{label}: \"#{raw[key]}\".\nShould be one of #{valid_types}." if raw.key?(key) && !valid_types.include?(raw[key])
         end
 
         def name_regex_with_numbers
@@ -56,7 +56,7 @@ module Etna
         def validate_project_names
           check_key('root project', project.raw, 'project_name')
           check_key('root project', project.raw, 'project_name_full')
-          name = project.raw['name']
+          name = project.raw['project_name']
           @errors << "Project name #{name} must be snake_case and cannot start with a number or \"pg_\"." unless name =~ name_regex_with_numbers && !name.start_with?('pg_')
         end
 
@@ -115,6 +115,7 @@ module Etna
           if !is_project?
             check_key("model #{name}", raw, 'parent_model_name')
             check_key("model #{name}", raw, 'parent_link_type')
+
             check_type("model #{name}", raw, 'parent_link_type', @valid_parent_link_types)
           end
           if model.raw['parent_link_type'] != Etna::Clients::Magma::ParentLinkType::TABLE
@@ -131,14 +132,14 @@ module Etna
         end
 
         def validate_link_models(model_names)
-          @errors << "Parent model #{parent_model_name} for #{name} does not exist in project.\nCurrent models are #{model_names}." if !is_project? && !model_names.include?(parent_model_name)
+          @errors << "Parent model \"#{parent_model_name}\" for #{name} does not exist in project.\nCurrent models are #{model_names}." if !is_project? && !model_names.include?(parent_model_name)
 
-          link_attributes do |attribute|
+          link_attributes.each do |attribute|
             attribute_validator = AttributeValidator.new(attribute)
             attribute_validator.validate_link_models(model_names)
             @errors += attribute_validator.errors unless attribute_validator.valid?
 
-            @errors << "Model \"#{name}\" already belongs to parent model \"#{parent_model_name}\". Remove attribute \"#{attribute.name}\"." if attribute.link_model_name == parent_model_name
+            @errors << "Model \"#{name}\" already belongs to parent model \"#{parent_model_name}\". Remove attribute \"#{attribute.attribute_name}\"." if attribute.link_model_name == parent_model_name
           end
         end
 
@@ -147,7 +148,7 @@ module Etna
         end
 
         def link_attributes
-          model.template.attributes.all.map do |attribute|
+          model.template.attributes.all.select do |attribute|
             attribute.attribute_type == Etna::Clients::Magma::AttributeType::LINK
           end
         end
@@ -203,7 +204,7 @@ module Etna
         end
 
         def validate_link_models(model_names)
-          return unless is_link_attribute?(attribute)
+          return unless is_link_attribute?
 
           check_key("attribute #{attribute.attribute_name}", attribute.raw, 'link_model_name')
 
@@ -216,7 +217,7 @@ module Etna
           validate_basic_attribute_data unless is_identifier_attribute?
           validate_attribute_validation
 
-          @errors << "Attribute name #{attribute.attribute_name} should match the link_model_name, \"#{attribute.link_model_name}\"." unless attribute.link_model_name && attribute.link_model_name == attribute.attribute_name
+          @errors << "Attribute name #{attribute.attribute_name} should match the link_model_name, \"#{attribute.link_model_name}\"." if is_link_attribute? && attribute.link_model_name != attribute.attribute_name
         end
       end
 

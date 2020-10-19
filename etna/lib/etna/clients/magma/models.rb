@@ -196,6 +196,12 @@ module Etna
           raw.values.map { |r| Model.new(r) }
         end
 
+        def +(other)
+          raw_update = {}
+          raw_update[other.name] = other.raw
+          Models.new({}.update(raw).update(raw_update))
+        end
+
         def to_directed_graph(include_casual_links=false)
           graph = ::DirectedGraph.new
 

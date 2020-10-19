@@ -48,7 +48,7 @@ module Etna
         end
 
         def models_by_parent
-          @models_by_parent ||= models.all.group_by { |model| model.raw['parent_model_name'] }
+          @models_by_parent ||= project.models.all.group_by { |model| model.raw['parent_model_name'] }
         end
 
         def model_tree
@@ -71,12 +71,15 @@ module Etna
           sorted_models
         end
 
-        def update_magma_models
+        def convert!
           project.models.all.each do |model|
             # Because the input JSON format doesn't specify the child
             #   or reciprocal link attributes, we'll need to add those
             #   in manually.
             add_child_attributes(model)
+
+            model_converter = ModelConverter.new(model)
+            model_converter.convert!
           end
 
           add_reciprocal_link_attributes
@@ -126,37 +129,37 @@ module Etna
           @model = model
         end
 
+        def is_project?
+          model.name == 'project'
+        end
+
         def parent_model_name
           model.raw['parent_model_name']
         end
 
-        def self.linking_stub_from_name(model_name)
-          # Used for linking to a link_model_name only! Fills out required fields with
-          #   dummy information to pass validation.
-          Etna::Clients::Magma::JsonModel.new(
-            model_name,
-            {
-              "parent_model_name" => "stub",
-              "parent_link_type" => "child",
-              "identifier" => "none",
-              "attributes" => {}
-            }
-          )
+        def identifier
+          return unless model.template.raw['attributes']
+
+          identifier_attribute = model.template.raw['attributes'].values.select do |attribute|
+            attribute['attribute_type'] == Etna::Clients::Magma::AttributeType::IDENTIFIER
+          end.first
+
+          return identifier_attribute['attribute_name'] if identifier_attribute
         end
 
-        def add_reciprocal_link_attribute(builder, model)
-          attribute_builder = builder.build_template.build_attributes
-          attribute_builder.build_attribute(model.name).tap do |attribute|
-            attribute.attribute_name = model.name
-            attribute.name = model.name
+        def add_reciprocal_link_attribute(reciprocal_model)
+          attribute_builder = model.build_template.build_attributes
+          attribute_builder.build_attribute(reciprocal_model.name).tap do |attribute|
+            attribute.attribute_name = reciprocal_model.name
+            attribute.name = reciprocal_model.name
             attribute.attribute_type = Etna::Clients::Magma::AttributeType::COLLECTION
-            attribute.display_name = prettify(model.name)
-            attribute.desc = prettify(model.name)
-            attribute.link_model_name = model.name
+            attribute.display_name = prettify(reciprocal_model.name)
+            attribute.desc = prettify(reciprocal_model.name)
+            attribute.link_model_name = reciprocal_model.name
           end
         end
 
-        def update_magma_model
+        def convert!
           template_builder = model.build_template
           template_builder.identifier = identifier
           template_builder.parent = parent_model_name

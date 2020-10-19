@@ -1,6 +1,5 @@
 require 'webmock/rspec'
 require 'json'
-require 'pry'
 
 describe Etna::Clients::Magma::ConverterBase do
   before(:each) do
@@ -51,5 +50,65 @@ describe Etna::Clients::Magma::ConverterBase do
 
     expect(
       magma_json.dig('models', 'assay_name', 'template', 'attributes', 'tube_name', 'type')).to eq('identifier')
+  end
+end
+
+describe Etna::Clients::Magma::ProjectConverter do
+  before(:each) do
+  end
+
+  def get_project(filepath)
+    project_json = JSON.parse(File.read(filepath))
+    magma_json = Etna::Clients::Magma::ConverterBase.convert_project_user_json_to_magma_json(project_json)
+    Etna::Clients::Magma::Project.new(magma_json)
+  end
+
+  it 'loads a project JSON definition' do
+    project = get_project(
+      './spec/fixtures/create_project/valid_project.json')
+    converter = Etna::Clients::Magma::ProjectConverter.new(project)
+
+    expect(converter.model_tree.map(&:name)).to eq([
+      'project',
+      'assay_pool',
+      'document',
+      'patient',
+      'status',
+      'symptom',
+      'timepoint',
+      'assay_name'
+    ])
+  end
+
+  it 'can get models as Magma::Models' do
+    proj = get_project(
+      './spec/fixtures/create_project/valid_project.json')
+
+    converter = Etna::Clients::Magma::ProjectConverter.new(proj)
+    converter.convert!
+
+    source_models = proj.models
+
+    # Make sure the identifier, parent, and linking attributes were translated correctly!
+    project = source_models.model('project')
+    expect(project.template.attributes.attribute('document').attribute_type).to eq(Etna::Clients::Magma::AttributeType::COLLECTION)
+    expect(project.template.attributes.attribute('patient').attribute_type).to eq(Etna::Clients::Magma::AttributeType::COLLECTION)
+    expect(project.template.attributes.attribute('assay_pool').attribute_type).to eq(Etna::Clients::Magma::AttributeType::COLLECTION)
+
+    assay_pool = source_models.model('assay_pool')
+    expect(assay_pool.template.attributes.attribute('assay_name').attribute_type).to eq(Etna::Clients::Magma::AttributeType::COLLECTION)
+    expect(assay_pool.template.attributes.attribute('assay_name').link_model_name).to eq('assay_name')
+    expect(assay_pool.template.attributes.attribute('project').attribute_type).to eq(Etna::Clients::Magma::AttributeType::PARENT)
+
+    assay_name = source_models.model('assay_name')
+    expect(assay_name.template.attributes.attribute('assay_pool').attribute_type).to eq(Etna::Clients::Magma::AttributeType::LINK)
+    expect(assay_name.template.attributes.attribute('timepoint').attribute_type).to eq(Etna::Clients::Magma::AttributeType::PARENT)
+    expect(assay_name.template.attributes.attribute('tube_name').attribute_type).to eq(Etna::Clients::Magma::AttributeType::IDENTIFIER)
+    expect(assay_name.template.identifier).to eq('tube_name')
+    expect(assay_name.template.parent).to eq('timepoint')
+
+    status = source_models.model('status')
+    expect(status.template.attributes.attribute('patient').attribute_type).to eq(Etna::Clients::Magma::AttributeType::PARENT)
+    expect(status.template.attributes.attribute('patient').link_model_name).to eq('patient')
   end
 end

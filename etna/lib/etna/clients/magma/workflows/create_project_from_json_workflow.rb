@@ -21,20 +21,35 @@ module Etna
       # These primitives are best effort locally synchronized, but cannot defend the backend or simultaneous
       # system updates.
       class CreateProjectFromJsonWorkflow < Struct.new(:magma_client, :janus_client, :filepath, keyword_init: true)
-        attr_reader :project, :project_name
+        attr_reader :project, :converter
 
         def initialize(**params)
           super({}.update(params))
-          @project = Etna::Clients::Magma::ProjectValidator.new(JSON.parse(File.read(filepath)))
-          raise "Project JSON has errors: #{project.errors}" unless project.valid?
+          user_json = JSON.parse(File.read(filepath))
+          magma_json = Etna::Clients::Magma::ProjectConverter.convert_project_user_json_to_magma_json(user_json)
+          @project = Etna::Clients::Magma::Project.new(magma_json)
 
-          @project_name = project.name
+          @validator = Etna::Clients::Magma::ProjectValidator.new(project)
+          @validator.validate
+
+          raise "Project JSON has errors: #{@validator.errors}" unless @validator.valid?
+
+          @converter = ProjectConverter.new(project)
+          @converter.convert!
+        end
+
+        def project_name
+          project.raw['project_name']
+        end
+
+        def project_name_full
+          project.raw['project_name_full']
         end
 
         def create_janus_project
           janus_client.add_project(Etna::Clients::Janus::AddProjectRequest.new(
             project_name: project_name,
-            project_name_full: project.name_full
+            project_name_full: project_name_full
           ))
         end
 
@@ -74,33 +89,27 @@ module Etna
           # Technically ensure_magma_tree should create models as needed,
           #   but things seem to go more smoothly if we manually
           #   create the models before we try to ensure the tree.
-          project.model_tree.each do |model|
+          converter.model_tree.each do |model|
             magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
               project_name: project_name,
               actions: [Etna::Clients::Magma::AddModelAction.new(
                 model_name: model.name,
-                parent_model_name: model.parent_model_name,
-                parent_link_type: model.parent_link_type,
-                identifier: model.identifier
+                parent_model_name: model.raw['parent_model_name'],
+                parent_link_type: model.raw['parent_link_type'],
+                identifier: model.template.identifier
               )]))
           end
-        end
-
-        def magma_models
-          # Convert each of our JSON models into an instance of
-          #   Magma Model + Attributes
-          @magma_models ||= project.get_magma_models
         end
 
         def ensure_magma_tree
           # Call the model_synchronization_workflow.ensure_model_tree
           #   on each model to set their attributes in the target Magma.
           workflow = Etna::Clients::Magma::ModelSynchronizationWorkflow.new(
-            target_project: project.name,
+            target_project: project_name,
             target_client: magma_client,
-            source_models: magma_models
+            source_models: project.models
           )
-          magma_models.model_keys.each do |model_name|
+          project.models.model_keys.each do |model_name|
             workflow.ensure_model_tree(model_name)
           end
         end
@@ -123,8 +132,8 @@ module Etna
           #   model definition. So we have to "update" those
           #   instead of adding those (which occurs in
           #   ensure_magma_tree).
-          magma_models.model_keys.each do |model_name|
-            magma_models.model(model_name).template.attributes.all.select do |attribute|
+          project.models.model_keys.each do |model_name|
+            project.models.model(model_name).template.attributes.all.select do |attribute|
               attribute.attribute_type == Etna::Clients::Magma::AttributeType::IDENTIFIER
             end.each do |attribute|
               magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(

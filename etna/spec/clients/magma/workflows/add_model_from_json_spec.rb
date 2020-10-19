@@ -107,11 +107,11 @@ describe Etna::Clients::Magma::AddModelFromJsonWorkflow do
   * Model name assay2 must be snake_case and can only consist of letters and "_".
   * Invalid parent_link_type for model assay2: \"magma\".
 \tShould be one of [\"child\", \"collection\", \"table\"].
-  * Invalid type for model assay2, attribute vendor, validation: \"array\".
+  * Invalid type for attribute vendor, validation: \"array\".
 \tShould be one of [\"Array\", \"Range\", \"Regexp\"].
-  * Parent model paper_airplanes for assay2 does not exist in project.
+  * Parent model \"paper_airplanes\" for assay2 does not exist in project.
 \tCurrent models are [\"assay_name\", \"assay_pool\", \"project\", \"timepoint\", \"patient\", \"document\", \"status\", \"symptom\"].
-  * Linked model, "assay2_pool", on attribute assay2_pool of model assay2 does not exist!
+  * Linked model, "assay2_pool", on attribute assay2_pool does not exist!
 \tCurrent models are [\"assay_name\", \"assay_pool\", \"project\", \"timepoint\", \"patient\", \"document\", \"status\", \"symptom\"].}
 
     expect {

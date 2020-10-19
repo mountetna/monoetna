@@ -55,7 +55,7 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
       with { |req| req.body.include?('add_model') }.times(8)
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna a token for you!'}).
-      with { |req| req.body.include?('add_attribute') }.times(62)
+      with { |req| req.body.include?('add_attribute') }.times(58) #62?
     # The call above gets executed a lot of times, because our Mock of the
     #   /retrieve endpoint is static. So it doesn't reflect newly created
     #   attributes. For the models higher in the tree (closer to the root),
