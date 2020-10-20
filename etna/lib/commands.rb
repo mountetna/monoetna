@@ -70,6 +70,20 @@ class EtnaApp
     end
   end
 
+  class AttributeActionsTemplate < Etna::Command
+    include WithLogger
+    usage 'attribute_actions_template'
+
+    def execute()
+      spec = Gem::Specification.find_by_name("etna")
+      gem_root = spec.gem_dir
+      FileUtils.cp(
+        "#{gem_root}/lib/etna/templates/attribute_actions_template.json",
+        'attribute_actions_template.json')
+      puts "A sample model JSON template has been provided at `attribute_actions_template.json`."
+    end
+  end
+
   class ValidateModel < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
@@ -78,6 +92,9 @@ class EtnaApp
     def execute(env, project_name, model_name, filepath)
       @environ = environment(env)
 
+      # Use the workflow to validate instead of the ModelValidator directly,
+      #   because we also need to do the simple project-level validations, i.e.
+      #   does the model exist in the project already?
       add_model_workflow = Etna::Clients::Magma::AddModelFromJsonWorkflow.new(
         magma_client: @environ.magma_client,
         project_name: project_name,
@@ -102,6 +119,45 @@ class EtnaApp
         model_name: model_name,
         filepath: filepath)
       add_model_workflow.add!
+    end
+  end
+
+  class ValidateAttributeActions < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+    usage 'validate_attribute_actions <environment> <project_name> <filepath>'
+
+    def execute(env, project_name, filepath)
+      @environ = environment(env)
+
+      # Use the workflow to validate instead of the AttributeActionsValidator directly,
+      #   because we also need to check the actions against the project, i.e.
+      #   do the right models exist, do the attributes already exist, etc.
+      attribute_actions_workflow = Etna::Clients::Magma::AttributeActionsFromJsonWorkflow.new(
+        magma_client: @environ.magma_client,
+        project_name: project_name,
+        filepath: filepath)
+      # If the workflow initialized, then no errors!
+      puts "Attribute Actions JSON is well-formatted and is valid for project #{project_name}."
+    end
+  end
+
+  class AttributeActions < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+    usage 'attribute_actions <environment> <project_name> <filepath>'
+
+    def execute(env, project_name, filepath)
+      @environ = environment(env)
+
+      # Use the workflow to validate instead of the AttributeActionsValidator directly,
+      #   because we also need to check the actions against the project, i.e.
+      #   do the right models exist, do the attributes already exist, etc.
+      attribute_actions_workflow = Etna::Clients::Magma::AttributeActionsFromJsonWorkflow.new(
+        magma_client: @environ.magma_client,
+        project_name: project_name,
+        filepath: filepath)
+      attribute_actions_workflow.run!
     end
   end
 
