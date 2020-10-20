@@ -7,6 +7,8 @@ require 'yaml'
 require_relative '../lib/etna'
 require_relative '../lib/commands'
 
-config = YAML.load(File.read(File.expand_path("~/etna.yml",__FILE__)))
+config = YAML.load(File.read(File.expand_path("../../config.yml",__FILE__)))
+
+# config = YAML.load(File.read(File.expand_path("~/etna.yml",__FILE__)))
 
 EtnaApp.instance.run_command(config, *ARGV)
