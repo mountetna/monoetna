@@ -71,7 +71,7 @@ module Etna::Application
   # In some cases, such as utility scripts that span across environments, it may be necessary to override
   # the environment source.
   def config(type, env = environment)
-    @config[env][type]
+    (@config[env] || {})[type]
   end
 
   def sign
@@ -88,10 +88,15 @@ module Etna::Application
     end
   end
 
-  def run_command(config, *args)
-    cmd, cmd_args = find_command(*args)
+  def run_command(config, *args, &block)
+    cmd, cmd_args, cmd_kwds = find_command(*args)
     cmd.setup(config)
-    cmd.execute(*cmd.fill_in_missing_params(cmd_args))
+
+    if block_given?
+      return unless yield [cmd, cmd_args]
+    end
+
+    cmd.execute(*cmd.fill_in_missing_params(cmd_args), **cmd_kwds)
   rescue => e
     Rollbar.error(e)
     raise

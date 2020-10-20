@@ -1,0 +1,226 @@
+#!/usr/bin/env bash
+
+function _etna_completions() {
+  _etna_inner_completions "${COMP_WORDS[@]:1:COMP_CWORD}"
+}
+
+function _etna_inner_completions() {
+  local all_completion_names=''
+
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='administrate config console generate_completion_script help --environment'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ "$1" == "--environment" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names='production staging development'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+elif [[ "$1" == "administrate" ]]; then
+shift
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='add_model create_project help validate_model validate_project'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ "$1" == "add_model" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names='-project_name- _'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names='-model_name- _'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names='-filepath- _'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='_'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+else
+return
+fi
+done
+return
+elif [[ "$1" == "create_project" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names='-filepath- _'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='_'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+else
+return
+fi
+done
+return
+elif [[ "$1" == "help" ]]; then
+shift
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='_'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+else
+return
+fi
+done
+return
+elif [[ "$1" == "validate_model" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names='-project_name- _'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names='-model_name- _'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names='-filepath- _'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='_'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+else
+return
+fi
+done
+return
+elif [[ "$1" == "validate_project" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names='-filepath- _'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='_'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+else
+return
+fi
+done
+return
+else
+return
+fi
+done
+elif [[ "$1" == "config" ]]; then
+shift
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='help set'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ "$1" == "help" ]]; then
+shift
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='_'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+else
+return
+fi
+done
+return
+elif [[ "$1" == "set" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names='-host- _'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='_ --ignore-ssl'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ "$1" == "--ignore-ssl" ]]; then
+shift
+else
+return
+fi
+done
+return
+else
+return
+fi
+done
+elif [[ "$1" == "console" ]]; then
+shift
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='_'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+else
+return
+fi
+done
+return
+elif [[ "$1" == "generate_completion_script" ]]; then
+shift
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='_'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+else
+return
+fi
+done
+return
+elif [[ "$1" == "help" ]]; then
+shift
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names='_'
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+else
+return
+fi
+done
+return
+else
+return
+fi
+done
+}
+complete -o default -F _etna_completions etna

@@ -17,43 +17,26 @@ require 'ostruct'
 module Etna
   module Clients
     class Polyphemus
-      # Note!  These workflows are not perfectly atomic, nor perfectly synchronized due to nature of the backend.
-      # These primitives are best effort locally synchronized, but cannot defend the backend or simultaneous
-      # system updates.
-      class SetConfigurationWorkflow < Struct.new(:host, :environment, :config_file, keyword_init: true)
-
-        def initialize(**params)
-          super({config_file: '~/etna.yml'}.update(params))
-          @token = prompt_for_token unless ENV['TOKEN']
-          @polyphemus_client = Etna::Clients::Polyphemus.new(
-            host: host,
-            token: @token,
-            ignore_ssl: self.environment != 'production')
-        end
-
-        def prompt_for_token
-          # prompt user for token, give instructions to go to Janus
-        end
-
+      class SetConfigurationWorkflow < Struct.new(:polyphemus_client, :config_file, keyword_init: true)
         def fetch_configuration
-          polyphemus_client.configuration(Etna::Clients::Polyphemus::ConfigurationRequest.new).raw
+          polyphemus_client.configuration
         end
 
-        def update_configuration_file
+        def update_configuration_file(**additional_config)
           if !File.exist?(config_file)
             File.open(config_file, 'a+')
           end
 
           etna_config = YAML.load_file(config_file) || {}
+          config = polyphemus_client.configuration
+          env = config.environment.to_sym
 
-          etna_config[environment] = fetch_configuration
+          etna_config.delete(env)
+          etna_config.update({ env => config.raw.map { |k, v| [k.to_sym, v] }.to_h })
+          etna_config.update(additional_config)
 
           File.open(config_file, 'w') { |f| YAML.dump(etna_config, f) }
-        end
-
-        def set_configuration
-          update_configuration_file
-          puts "Updated ~/etna.yml with your #{environment} configuration."
+          config
         end
       end
     end

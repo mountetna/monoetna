@@ -3,88 +3,125 @@ require 'logger'
 require 'rollbar'
 require 'tempfile'
 require_relative 'helpers'
+require 'yaml'
 
-class EtnaCommands
-  class Help < Etna::Command
-    usage 'List this help'
+# /bin/etna will confirm execution before running any command that includes this module.
+module RequireConfirmation
+end
 
-    def execute
-      puts 'Commands:'
-      EtnaApp.instance.commands.each do |name, cmd|
-        puts cmd.usage
+class EtnaApp
+  def self.config_file_path
+    File.join(Dir.home, 'config.yml')
+  end
+
+  string_flags << '--environment'
+
+  def dispatch_to_subcommand(cmd = 'help', *args, environment: nil, **kwds)
+    set_environment(environment)
+    super(cmd, *args, **kwds)
+  end
+
+  def environment
+    if @environment
+      @environment
+    elsif @config.keys.length == 1
+      @config.keys.first.to_sym
+    else
+      :production
+    end
+  end
+
+  def set_environment(env)
+    @environment = env.nil? ? nil : env.to_sym
+  end
+
+  class Config
+    include Etna::CommandExecutor
+
+    class Set < Etna::Command
+      include WithEtnaClients
+      include WithLogger
+
+      boolean_flags << '--ignore-ssl'
+
+      def execute(host, ignore_ssl: false)
+        polyphemus_client ||= Etna::Clients::Polyphemus.new(
+            host: host,
+            token: token,
+            ignore_ssl: ignore_ssl)
+        workflow = Etna::Clients::Polyphemus::SetConfigurationWorkflow.new(
+            polyphemus_client: polyphemus_client,
+            config_file: EtnaApp.config_file_path)
+        config = workflow.update_configuration_file(ignore_ssl: ignore_ssl)
+        logger.info("Updated #{config.environment} configuration from #{host}.")
       end
     end
   end
 
-  class CreateProject < Etna::Command
-    include WithEtnaClientsByEnvironment
-    include WithLogger
-    usage 'create_project <environment> <filepath>'
+  class Administrate
+    include Etna::CommandExecutor
 
-    def execute(env, filepath)
-      @environ = environment(env)
+    class CreateProject < Etna::Command
+      include WithEtnaClients
+      include WithLogger
 
-      create_project_workflow = Etna::Clients::Magma::CreateProjectFromJsonWorkflow.new(
-        magma_client: @environ.magma_client,
-        janus_client: @environ.janus_client,
-        filepath: filepath)
-      create_project_workflow.create!
-    end
-  end
-
-  class ValidateProject < Etna::Command
-    include WithLogger
-    usage 'validate_project <filepath>'
-
-    def execute(filepath)
-      project = Etna::Clients::Magma::JsonProject.new(
-        filepath: filepath)
-      return puts "Project JSON is well-formatted!" if project.valid?
-
-      puts "Project JSON has #{project.errors.length} errors:"
-      project.errors.each do |error|
-        puts "  * " + error.gsub("\n", "\n\t")
+      def execute(filepath)
+        create_project_workflow = Etna::Clients::Magma::CreateProjectFromJsonWorkflow.new(
+            magma_client: magma_client,
+            janus_client: janus_client,
+            filepath: filepath
+        )
+        create_project_workflow.create!
       end
     end
-  end
 
-  class ValidateModel < Etna::Command
-    include WithEtnaClientsByEnvironment
-    include WithLogger
-    usage 'validate_model <environment> <project_name> <model_name> <filepath>'
+    class ValidateProject < Etna::Command
+      include WithLogger
+      usage 'validate_project <filepath>'
 
-    def execute(env, project_name, model_name, filepath)
-      @environ = environment(env)
+      def execute(filepath)
+        project = Etna::Clients::Magma::JsonProject.new(filepath: filepath)
+        return puts "Project JSON is well-formatted!" if project.valid?
 
-      add_model_workflow = Etna::Clients::Magma::AddModelFromJsonWorkflow.new(
-        magma_client: @environ.magma_client,
-        project_name: project_name,
-        model_name: model_name,
-        filepath: filepath)
-      # If the workflow initialized, then no errors!
-      puts "Model JSON for #{model_name} is well-formatted and is valid for project #{project_name}."
+        puts "Project JSON has #{project.errors.length} errors:"
+        project.errors.each do |error|
+          puts "  * " + error.gsub("\n", "\n\t")
+        end
+      end
     end
-  end
 
-  class AddModel < Etna::Command
-    include WithEtnaClientsByEnvironment
-    include WithLogger
-    usage 'add_model <environment> <project_name> <model_name> <filepath>'
+    class ValidateModel < Etna::Command
+      include WithEtnaClients
+      include WithLogger
 
-    def execute(env, project_name, model_name, filepath)
-      @environ = environment(env)
+      def execute(project_name, model_name, filepath)
+        Etna::Clients::Magma::AddModelFromJsonWorkflow.new(
+            magma_client: magma_client,
+            project_name: project_name,
+            model_name: model_name,
+            filepath: filepath)
+        # If the workflow initialized, then no errors!
+        puts "Model JSON for #{model_name} is well-formatted and is valid for project #{project_name}."
+      end
+    end
 
-      add_model_workflow = Etna::Clients::Magma::AddModelFromJsonWorkflow.new(
-        magma_client: @environ.magma_client,
-        project_name: project_name,
-        model_name: model_name,
-        filepath: filepath)
-      add_model_workflow.add!
+    class AddModel < Etna::Command
+      include WithEtnaClients
+      include WithLogger
+
+      def execute(project_name, model_name, filepath)
+        add_model_workflow = Etna::Clients::Magma::AddModelFromJsonWorkflow.new(
+            magma_client: magma_client,
+            project_name: project_name,
+            model_name: model_name,
+            filepath: filepath)
+        add_model_workflow.add!
+      end
     end
   end
 
   class Console < Etna::Command
-    usage 'Open a console with a connected Etna instance.'
+    usage 'Open a console with the local etna gem environment'
 
     def execute
       require 'irb'

@@ -10,6 +10,7 @@ Gem::Specification.new do |spec|
   spec.platform          = Gem::Platform::RUBY # This is the default
   spec.require_paths     = [ 'lib' ]
   spec.extensions        = Dir['ext/**/extconf.rb']
+  spec.executables       << 'etna'
   spec.add_dependency 'rack'
   spec.add_dependency 'jwt'
   spec.add_dependency 'net-http-persistent'

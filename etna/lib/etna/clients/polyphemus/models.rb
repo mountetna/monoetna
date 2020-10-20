@@ -19,6 +19,26 @@ module Etna
           @raw = raw
         end
 
+        def environment
+          @raw.keys.first
+        end
+
+        def environments
+          @raw.keys
+        end
+
+        def environment_configuration(env = environment)
+          EnvironmentConfiguration.new(@raw[env])
+        end
+      end
+
+      class EnvironmentConfiguration
+        attr_reader :raw
+
+        def initialize(raw = {})
+          @raw = raw
+        end
+
         def magma
           @raw['magma']
         end
@@ -37,6 +57,10 @@ module Etna
 
         def polyphemus
           @raw['magma']
+        end
+
+        def auth_redirect
+          @raw['auth_redirect']
         end
       end
     end

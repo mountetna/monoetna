@@ -24,12 +24,62 @@ module Etna
   # Provides the usage DSL and method that includes information about a CommandExecutor or a Command.
   # Commands or CommandExecutors can call 'usage' in their definition to provide a specific description
   # to be given about that command.  By default, the command name + desc method will be shown.
-  module HasUsage
+  module CommandOrExecutor
     module Dsl
       def usage(desc)
         define_method :usage do
           "  #{"%-45s" % command_name}#{desc}"
         end
+      end
+
+      def boolean_flags
+        @boolean_flags ||= []
+      end
+
+      def string_flags
+        @string_flags ||= []
+      end
+    end
+
+    def parse_flags(*args)
+      new_args = []
+      flags = {}
+      found_non_flag = false
+
+      until args.empty?
+        next_arg = args.shift
+
+        unless next_arg.start_with? '--'
+          new_args << next_arg
+          found_non_flag = true
+          next
+        end
+
+        arg_name = next_arg.gsub('--', '').gsub('-', '_').to_sym
+
+        if self.class.boolean_flags.include?(next_arg)
+          flags[arg_name] = true
+        elsif self.class.string_flags.include?(next_arg)
+          if args.empty?
+            raise "flag #{next_arg} requires an argument"
+          else
+            flags[arg_name] = args.shift
+          end
+        elsif !found_non_flag
+          raise "#{program_name} does not recognize flag #{next_arg}"
+        else
+          new_args << next_arg
+        end
+      end
+
+      [flags, new_args]
+    end
+
+    def completions_for(parameter)
+      if parameter == 'env' || parameter == 'environment' || parameter =~ /_env/
+        ['production', 'staging', 'development']
+      else
+        ["-#{parameter}-", '_']
       end
     end
 
@@ -39,6 +89,21 @@ module Etna
 
     def usage
       "  #{"%-45s" % command_name}#{desc}"
+    end
+
+    def flag_argspec
+      @argspec ||= []
+    end
+
+    # Program name is used to compose the usage display.  The top level executor will just assume the running
+    # process's bin name, while other executors will use the 'command name' of the Command / Exectuor
+    # (class name derived) and whatever program_name exists for its parent scope.
+    def program_name
+      if parent.nil? || !parent.respond_to?(:program_name)
+        $PROGRAM_NAME
+      else
+        parent.program_name + " " + command_name
+      end
     end
 
     # By default, the description of a command maps the execute parameters into CLI descriptions,
@@ -55,8 +120,17 @@ module Etna
             "[<#{name}>]"
           when :rest
             "<#{name}>..."
+          when :keyrest
+            "[flags...]"
+          when :key
+            flag = "--#{name.to_s.gsub('_', '-')}"
+            if self.class.boolean_flags.include?(flag)
+              "[#{flag}]"
+            else
+              "[#{flag} <#{name}>]"
+            end
           else
-            raise "Invalid command execute argument specification, unsure how to format description."
+            raise "Invalid command execute argument specification #{type}, unsure how to format description."
           end
         end.join(' ')
       elsif respond_to?(:subcommands)
@@ -72,25 +146,15 @@ module Etna
   # Include this module into class that dispatches to child CommandExecutors | Commands that must exist as
   # inner classes.  Note that non-root CommandExecutors must accept and set their @parent just like commands.
   module CommandExecutor
-    # Program name is used to compose the usage display.  The top level executor will just assume the running
-    # process's bin name, while other executors will use the 'command name' of the Command / Exectuor
-    # (class name derived) and whatever program_name exists for its parent scope.
-    def program_name
-      if parent.nil? || !parent.respond_to?(:program_name)
-        $PROGRAM_NAME
-      else
-        parent.program_name + " " + command_name
-      end
-    end
-
     attr_reader :parent
+
     def initialize(parent = nil)
       super()
       @parent = parent
     end
 
     def self.included(cls)
-      cls.include(HasUsage)
+      cls.include(CommandOrExecutor)
       cls.const_set(:Help, Class.new(Etna::Command) do
         usage 'List this help'
 
@@ -107,13 +171,18 @@ module Etna
       end
     end
 
-    def find_command(cmd = 'help', *args)
+    def find_command(*args, **kwds)
+      flags, args = parse_flags(*args)
+      dispatch_to_subcommand(*args, **(kwds.update(flags)))
+    end
+
+    def dispatch_to_subcommand(cmd = 'help', *args, **kwds)
       unless subcommands.include?(cmd)
         cmd = 'help'
         args = []
       end
 
-      subcommands[cmd].find_command(*args)
+      subcommands[cmd].find_command(*args, **kwds)
     end
 
     def subcommands
@@ -126,12 +195,17 @@ module Etna
         end
       end
     end
+
+    def all_subcommands
+      subcommands.values + (subcommands.values.map { |s| s.respond_to?(:all_subcommands) ? s.all_subcommands : [] }.flatten)
+    end
   end
 
   class Command
-    include HasUsage
+    include CommandOrExecutor
 
     attr_reader :parent
+
     def initialize(parent = nil)
       @parent = parent
     end
@@ -142,8 +216,9 @@ module Etna
       Kernel.const_get(parts.join('::'))
     end
 
-    def find_command(*args)
-      [self, args]
+    def find_command(*args, **kwds)
+      flags, args = parse_flags(*args)
+      [self, args, kwds.update(flags)]
     end
 
     def fill_in_missing_params(args)
@@ -157,22 +232,13 @@ module Etna
     def completions
       method(:execute).parameters.map do |type, name|
         name = "..." if name.nil?
-        if type == :req
+        if type == :req || type == :opt
           [completions_for(name)]
         else
-          [[]]
+          []
         end
       end.inject([], &:+)
     end
-
-    def completions_for(parameter)
-      if parameter == 'env' || parameter == 'environment' || parameter =~ /_env/
-        ['production', 'staging', 'development']
-      else
-        []
-      end
-    end
-
 
     # To be overridden during inheritance.
     def execute
@@ -196,42 +262,85 @@ module Etna
   # This generates a file, project-name.completion, which is sourced
   # in build.sh to provide autocompletion in that environment.
   class GenerateCompletionScript < Etna::Command
-    def generate_for_scope(scope, lines, depth = 1)
-      lines << "if [ \"${COMP_CWORD}\" == \"#{depth}\" ]; then"
-      lines << "all_completion_names='#{scope.subcommands.keys.join(' ')}'"
-      lines << 'COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))'
-      lines << "else"
-      scope.subcommands.each do |name, command|
-        lines << "if [ \"${COMP_WORDS[#{depth}]}\" == '#{name}' ]; then"
-        if command.class.included_modules.include?(CommandExecutor)
-          generate_for_scope(command, lines, depth + 1)
-        else
-          completions = command.completions
-          completions.each_with_index do |c, i|
-            lines << "if [ \"${COMP_CWORD}\" == \"#{i + depth + 1}\" ]; then"
-            if c.instance_of?(Array) && !c.empty?
-              lines << "all_completion_names='#{c.join(' ')}'"
-              lines << 'COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))'
-            else
-              lines << 'COMPREPLY=()'
-              lines << "return"
-            end
-            lines << "fi"
-          end
-        end
-        lines << "true"
+    def generate_for_command(command, lines)
+      completions = command.completions
+      completions.each do |c|
+        generate_start_match(lines, *c)
         lines << "fi"
+        lines << "shift"
       end
+
+      lines << 'while [[ "$#" != "0" ]]; do'
+      generate_start_match(lines, '_', *command.class.boolean_flags, *command.class.string_flags)
+      generate_flag_handling(command, lines)
+
+      lines << "else"
+      lines << "return"
+      lines << 'fi'
+      lines << 'done'
+      lines << "return"
+    end
+
+    def generate_flag_handling(command, lines)
+      command.class.boolean_flags.each do |flag|
+        lines << %Q(elif [[ "$1" == "#{flag}" ]]; then)
+        lines << 'shift'
+      end
+
+      command.class.string_flags.each do |flag|
+        lines << %Q(elif [[ "$1" == "#{flag}" ]]; then)
+        lines << 'shift'
+        completions = command.completions_for(flag.gsub('--', '').gsub('-', '_'))
+        generate_start_match(lines, *completions)
+        lines << 'fi'
+        lines << 'shift'
+      end
+    end
+
+    def generate_start_match(lines, *completions)
+      lines << 'if [[ "$#" == "1" ]];  then'
+      if !completions.empty?
+        lines << "all_completion_names='#{completions.join(' ')}'"
+        lines << 'COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))'
+      end
+      lines << 'return'
+    end
+
+    def generate_for_scope(scope, lines)
+      lines << 'while [[ "$#" != "0" ]]; do'
+      generate_start_match(lines, *scope.subcommands.keys, *scope.class.boolean_flags, *scope.class.string_flags)
+      generate_flag_handling(scope, lines)
+
+      scope.subcommands.each do |name, command|
+        lines << %Q(elif [[ "$1" == "#{name}" ]]; then)
+        lines << 'shift'
+        if command.class.included_modules.include?(CommandExecutor)
+          generate_for_scope(command, lines)
+        else
+          generate_for_command(command, lines)
+        end
+      end
+
+      lines << "else"
+      lines << "return"
       lines << "fi"
+      lines << 'done'
     end
 
     def execute
-      name = parent.class.name.split('::').last.snake_case
+      name = File.basename($PROGRAM_NAME)
 
       lines = []
-      lines << "#!/usr/bin/env bash"
-      lines << "_#{name}_completions() {"
-      lines << "local all_completion_names=''"
+      lines << <<-EOF
+#!/usr/bin/env bash
+
+function _#{name}_completions() {
+  _#{name}_inner_completions "${COMP_WORDS[@]:1:COMP_CWORD}"
+}
+
+function _#{name}_inner_completions() {
+  local all_completion_names=''
+EOF
       generate_for_scope(parent, lines)
       lines << "}"
       lines << "complete -o default -F _#{name}_completions #{name}"
