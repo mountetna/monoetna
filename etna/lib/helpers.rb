@@ -3,7 +3,7 @@ require_relative './etna/environment_scoped'
 
 module WithEtnaClients
   def environment
-    EtnaApp.instance.environment
+    Etna::EtnaApp.instance.environment
   end
 
   def token
@@ -17,25 +17,25 @@ module WithEtnaClients
   def magma_client
     @magma_client ||= Etna::Clients::Magma.new(
       token: token,
-      host: EtnaApp.instance.config(:magma, environment)[:host])
+      host: Etna::EtnaApp.instance.config(:magma, environment)[:host])
   end
 
   def metis_client
     @metis_client ||= Etna::Clients::Metis.new(
       token: token,
-      host: EtnaApp.instance.config(:metis, environment)[:host])
+      host: Etna::EtnaApp.instance.config(:metis, environment)[:host])
   end
 
   def janus_client
     @janus_client ||= Etna::Clients::Janus.new(
       token: token,
-      host: EtnaApp.instance.config(:janus, environment)[:host])
+      host: Etna::EtnaApp.instance.config(:janus, environment)[:host])
   end
 end
 
 module WithLogger
   def logger
-    EtnaApp.instance.logger
+    Etna::EtnaApp.instance.logger
   end
 end
 
