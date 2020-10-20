@@ -1,8 +1,5 @@
 #!/usr/bin/env ruby
 
-require 'bundler'
-Bundler.require :default
-
 require 'yaml'
 require_relative '../lib/etna'
 require_relative '../lib/commands'
