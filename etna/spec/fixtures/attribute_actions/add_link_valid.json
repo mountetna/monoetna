@@ -5,12 +5,12 @@
       {
         "model_name": "assay_name",
         "attribute_name": "document",
-        "type": "link"
+        "attribute_type": "link"
       },
       {
         "model_name": "document",
         "attribute_name": "assay_name",
-        "type": "collection"
+        "attribute_type": "collection"
       }
     ]
   }

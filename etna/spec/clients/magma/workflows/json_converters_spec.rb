@@ -150,5 +150,6 @@ describe Etna::Clients::Magma::AttributeActionsConverter do
       Etna::Clients::Magma::AddLinkAction
     ])
     expect(actions.first.type).to eq(actions_json.first['attribute_type'])
+    expect(actions.last.links.first[:type]).to eq(actions_json.last['links'].first['attribute_type'])
   end
 end

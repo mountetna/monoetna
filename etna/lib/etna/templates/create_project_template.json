@@ -19,9 +19,8 @@
           }
         },
         "restricted": {
-          // This will be the name of the attribute. It must be unique for the model!
-          "attribute_name": "restricted",
-          "desc": "Controls access to the data.", // Every non-identifier attribute must include at least desc, display_name, and attribute_type.
+          "attribute_name": "restricted", // This will be the name of the attribute. It must be unique for the model and match the hash key one level above!
+          "desc": "Controls access to the data.", // Every non-identifier attribute must include at least attribute_name, desc, display_name, and attribute_type.
           "display_name": "Restricted",
           "attribute_type": "boolean"
         },
@@ -79,17 +78,18 @@
       }
     },
     "assay_pool_model": {
-      "parent_model_name": " project",
-      "parent_link_type": "collection ",
+      "parent_model_name": "project",
+      "parent_link_type": "collection",
       "identifier": "assay_pool_name",
       "attributes": {
         "biospecimen ": {
+          // Make sure you don't have extraneous spaces like the above -- this is BAD and will fail validation.
           "attribute_name": "biospecimen",
           "desc": "Type of biospecimen collected",
           "display_name": "Biospecimen",
           "attribute_type": "string"
         },
-        "cells_loaded ": {
+        "cells_loaded": {
           "attribute_name": "cells_loaded",
           "desc": "Number of cells loaded into the whatchamacallit.",
           "display_name": "Cells Loaded",

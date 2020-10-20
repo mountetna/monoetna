@@ -23,12 +23,12 @@
       {
         "model_name": "assay_name",
         "attribute_name": "assay_pool",
-        "type": "link"
+        "attribute_type": "link"
       },
       {
         "model_name": "assay_pool",
         "attribute_name": "assay_name",
-        "type": "collection"
+        "attribute_type": "collection"
       }
     ]
   }

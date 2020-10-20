@@ -200,6 +200,9 @@ module Etna
             if action_json[:action_name] == 'add_attribute'
               action_json[:type] = action_json.delete(:attribute_type)
               action_json[:description] = action_json.delete(:desc)
+            elsif action_json[:action_name] == 'add_link'
+              action_json[:links].first[:type] = action_json[:links].first.delete(:attribute_type)
+              action_json[:links].last[:type] = action_json[:links].last.delete(:attribute_type)
             end
 
             clazz = Object.const_get(clazz_name(action_json[:action_name]))
