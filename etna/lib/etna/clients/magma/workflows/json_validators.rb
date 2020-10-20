@@ -131,7 +131,7 @@ module Etna
           model.template.attributes.attribute_keys.each do |attribute_name|
             attribute = model.template.attributes.attribute(attribute_name)
             attribute_validator = AttributeValidator.new(attribute)
-            attribute_validator.validate_key_format(attribute_name)
+            attribute_validator.validate_key(attribute_name)
             attribute_validator.validate_add_attribute_data
             @errors += attribute_validator.errors unless attribute_validator.valid?
           end
@@ -197,8 +197,8 @@ module Etna
           check_in_set("attribute #{attribute.attribute_name}, validation", attribute.validation, 'type', @valid_validation_types)
         end
 
-        def validate_key_format(attribute_name)
-          check_valid_name_with_numbers('Attribute', attribute_name)
+        def validate_key(attribute_key)
+          @errors << "Attribute key \"#{attribute_key}\" must match attribute_name \"#{attribute.attribute_name}\"." unless attribute_key == attribute.attribute_name
         end
 
         def is_link_attribute?
