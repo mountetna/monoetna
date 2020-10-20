@@ -5,7 +5,7 @@ module Etna
     class Magma
       class ConverterBase
         def self.convert_attribute_user_json_to_magma_json(user_model_json)
-          json_attribute = user_model_json['attributes'].dup
+          json_attribute = Marshal.load(Marshal.dump(user_model_json['attributes']))
           return unless json_attribute
 
           json_attribute.keys.each do |attribute_name|
@@ -15,14 +15,13 @@ module Etna
         end
 
         def self.convert_model_user_json_to_magma_json(model_name, user_json)
-          json_model = user_json.dup
+          json_model = Marshal.load(Marshal.dump(user_json))
           json_model['template'] = {
             'name' => model_name,
             'identifier' => user_json['identifier'],
             'parent' => user_json['parent_model_name'],
             'attributes' => convert_attribute_user_json_to_magma_json(json_model)
           }
-          json_model.delete('attributes')
           json_model
         end
 

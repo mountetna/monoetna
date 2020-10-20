@@ -32,7 +32,7 @@ module Etna
         end
 
         def check_valid_name_with_numbers(label, proposed_name)
-          @errors << "#{label} name #{proposed_name} must be snake_case and can only consist of letters, numbers, and \"_\"." unless proposed_name =~ name_regex_with_numbers
+          @errors << "#{label} name \"#{proposed_name}\" must be snake_case and can only consist of letters, numbers, and \"_\"." unless proposed_name =~ name_regex_with_numbers
         end
 
         def name_regex_no_numbers
@@ -128,8 +128,10 @@ module Etna
         end
 
         def validate_attributes
-          model.template.attributes.all.each do |attribute|
+          model.template.attributes.attribute_keys.each do |attribute_name|
+            attribute = model.template.attributes.attribute(attribute_name)
             attribute_validator = AttributeValidator.new(attribute)
+            attribute_validator.validate_key_format(attribute_name)
             attribute_validator.validate_add_attribute_data
             @errors += attribute_validator.errors unless attribute_validator.valid?
           end
@@ -193,6 +195,10 @@ module Etna
           check_key("attribute #{attribute.attribute_name}, validation", attribute.validation, 'type')
           check_key("attribute #{attribute.attribute_name}, validation", attribute.validation, 'value')
           check_in_set("attribute #{attribute.attribute_name}, validation", attribute.validation, 'type', @valid_validation_types)
+        end
+
+        def validate_key_format(attribute_name)
+          check_valid_name_with_numbers('Attribute', attribute_name)
         end
 
         def is_link_attribute?

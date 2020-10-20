@@ -1,6 +1,5 @@
 require 'webmock/rspec'
 require 'json'
-require 'pry'
 
 describe Etna::Clients::Magma::ProjectValidator do
   before(:each) do
@@ -47,7 +46,8 @@ describe Etna::Clients::Magma::ProjectValidator do
       './spec/fixtures/create_project/invalid_project_name.json')
     expect(project.valid?).to eq(false)
     expect(project.errors.length).to eq(1)
-    expect(project.errors.first).to eq('Project name 10xTest must be snake_case and cannot start with a number or "pg_".')
+    expect(project.errors).to eq([
+      'Project name 10xTest must be snake_case and cannot start with a number or "pg_".'])
   end
 
   it 'reports errors for missing model information' do
@@ -96,24 +96,29 @@ describe Etna::Clients::Magma::ProjectValidator do
       './spec/fixtures/create_project/attribute_errors.json')
 
     expect(project.valid?).to eq(false)
-    expect(project.errors.length).to eq(19)
+    expect(project.errors.length).to eq(23)
+
     expect(project.errors).to eq([
       "Linked model, \"pool_deep_end\", on attribute assay_2_pool does not exist!\nCurrent models are [\"assay_name\", \"document\", \"assay_pool\", \"patient\", \"project\", \"status\", \"symptom\", \"timepoint\"].",
       "Model \"assay_pool\" already belongs to parent model \"project\". Remove attribute \"project\".",
       "Missing required key for attribute tube_name, validation: \"value\".",
-      "Attribute name 123restricted must be snake_case and can only consist of letters, numbers, and \"_\".",
+      "Attribute name \"123restricted\" must be snake_case and can only consist of letters, numbers, and \"_\".",
+      "Attribute name \"123restricted\" must be snake_case and can only consist of letters, numbers, and \"_\".",
       "Missing required key for attribute assay_2_pool: \"desc\".",
       "Attribute name assay_2_pool should match the link_model_name, \"pool_deep_end\".",
       "Missing required key for attribute vendor: \"desc\".",
       "Invalid type for attribute vendor, validation: \"Lo que sea\".\nShould be one of [\"Array\", \"Range\", \"Regexp\"].",
       "Invalid empty attribute_type for attribute document_desc: \"\".",
       "Invalid attribute_type for attribute document_desc: \"\".\nShould be one of [\"boolean\", \"date_time\", \"file\", \"float\", \"image\", \"integer\", \"link\", \"match\", \"matrix\", \"string\", \"table\"].",
-      "Attribute name version!@ must be snake_case and can only consist of letters, numbers, and \"_\".",
+      "Attribute name \"version!@\" must be snake_case and can only consist of letters, numbers, and \"_\".",
+      "Attribute name \"version!@\" must be snake_case and can only consist of letters, numbers, and \"_\".",
       "Invalid attribute_type for attribute version!@: \"copacetic\".\nShould be one of [\"boolean\", \"date_time\", \"file\", \"float\", \"image\", \"integer\", \"link\", \"match\", \"matrix\", \"string\", \"table\"].",
       "Invalid attribute_type for attribute version_date: \"date\".\nShould be one of [\"boolean\", \"date_time\", \"file\", \"float\", \"image\", \"integer\", \"link\", \"match\", \"matrix\", \"string\", \"table\"].",
+      "Attribute name \"biospecimen \" must be snake_case and can only consist of letters, numbers, and \"_\".",
       "Missing required key for attribute biospecimen: \"attribute_type\".",
       "Missing required key for attribute biospecimen: \"desc\".",
       "Invalid empty value for attribute biospecimen, validation: \"\".",
+      "Attribute name \"cells_loaded \" must be snake_case and can only consist of letters, numbers, and \"_\".",
       "Missing required key for attribute cells_loaded: \"display_name\".",
       "Missing required key for attribute project: \"desc\".",
       "Missing required key for attribute day: \"desc\"."

@@ -72,7 +72,7 @@
       "parent_link_type": "collection",
       "identifier": "assay_pool",
       "attributes": {
-        "biospecimen": {
+        "biospecimen ": {
           "attribute_name": "biospecimen",
           "display_name": "Biospecimen",
           "validation": {
@@ -80,7 +80,7 @@
             "value": ""
           }
         },
-        "cells_loaded": {
+        "cells_loaded ": {
           "attribute_name": "cells_loaded",
           "desc": "Number of cells loaded into the whatchamacallit.",
           "attribute_type": "integer"

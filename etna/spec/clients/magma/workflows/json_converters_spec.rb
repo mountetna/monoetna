@@ -1,6 +1,5 @@
 require 'webmock/rspec'
 require 'json'
-require 'pry'
 
 describe Etna::Clients::Magma::ConverterBase do
   before(:each) do
