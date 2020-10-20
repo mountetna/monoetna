@@ -18,7 +18,6 @@ module Etna
       # These primitives are best effort locally synchronized, but cannot defend the backend or simultaneous
       # system updates.
       class AttributeActionsFromJsonWorkflow < Struct.new(:magma_client, :project_name, :filepath, keyword_init: true)
-
         attr_reader :actions
         def initialize(**params)
           super({}.update(params))
@@ -44,10 +43,6 @@ module Etna
           @project_models ||= magma_client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(
             project_name: project_name,
             model_name: 'all')).models
-        end
-
-        def project_model_names
-          project_models.all.map(&:template).map(&:name)
         end
 
         def execute_actions

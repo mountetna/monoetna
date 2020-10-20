@@ -102,7 +102,7 @@ describe Etna::Clients::Magma::ProjectConverter do
     ])
   end
 
-  it 'can get models as Magma::Models' do
+  it 'correctly adds missing attributes for Magma format' do
     proj = get_project(
       './spec/fixtures/create_project/valid_project.json')
 

@@ -1,6 +1,5 @@
 require 'webmock/rspec'
 require 'json'
-require 'pry'
 
 describe Etna::Clients::Magma::AttributeActionsFromJsonWorkflow do
   let(:magma_client) {Etna::Clients::Magma.new(
