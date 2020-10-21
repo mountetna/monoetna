@@ -20,11 +20,11 @@ module Etna
       # Note!  These workflows are not perfectly atomic, nor perfectly synchronized due to nature of the backend.
       # These primitives are best effort locally synchronized, but cannot defend the backend or simultaneous
       # system updates.
-      class CreateProjectFromJsonWorkflow < Struct.new(:magma_client, :janus_client, :filepath, keyword_init: true)
+      class CreateProjectFromJsonWorkflow < Struct.new(:magma_client, :janus_client, :filepath, :skip_janus, keyword_init: true)
         attr_reader :project, :converter
 
         def initialize(**params)
-          super({}.update(params))
+          super({skip_janus: false}.update(params))
           user_json = JSON.parse(File.read(filepath))
           magma_json = Etna::Clients::Magma::ProjectConverter.convert_project_user_json_to_magma_json(user_json)
           @project = Etna::Clients::Magma::Project.new(magma_json)
@@ -152,13 +152,16 @@ module Etna
         end
 
         def create!
-          puts "Creating Janus project."
-          create_janus_project
-          puts "Done! Adding you as an administrator on the project."
-          add_janus_user
-          update_janus_permissions
-          update_magma_client_token
-          puts "Done! Creating the project in Magma."
+          begin
+            puts "Creating Janus project."
+            create_janus_project
+            puts "Done! Adding you as an administrator on the project."
+            add_janus_user
+            update_janus_permissions
+            update_magma_client_token
+            puts "Done with setting up the project in Janus!"
+          end unless skip_janus
+          puts "Creating the project in Magma."
           create_magma_project
           puts "Done! Creating all the models and attributes in Magma."
           create_magma_models
@@ -166,7 +169,9 @@ module Etna
           puts "Done! Adding your new project record."
           create_magma_project_record
           update_magma_attributes
-          puts "All complete! You can visit Janus to refresh your token, then log into any app to manage your data."
+          puts "All complete!"
+          puts "Please visit Janus to refresh your token." unless skip_janus
+          puts "You can now log into any app to manage your data."
         end
 
         def user

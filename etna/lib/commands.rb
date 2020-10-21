@@ -9,15 +9,17 @@ module Etna
     class CreateProject < Etna::Command
       include WithEtnaClientsByEnvironment
       include WithLogger
-      usage 'create_project <environment> <filepath>'
+      # skip_janus should become a flag, once this rebases on #118.
+      usage 'create_project <environment> <filepath> <skip_janus>'
 
-      def execute(env, filepath)
+      def execute(env, filepath, skip_janus=false)
         @environ = environment(env)
 
         create_project_workflow = Etna::Clients::Magma::CreateProjectFromJsonWorkflow.new(
           magma_client: @environ.magma_client,
           janus_client: @environ.janus_client,
-          filepath: filepath)
+          filepath: filepath,
+          skip_janus: skip_janus)
         create_project_workflow.create!
       end
     end
