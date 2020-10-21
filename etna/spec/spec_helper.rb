@@ -6,7 +6,6 @@ require 'bundler'
 require 'securerandom'
 require 'timecop'
 require 'webmock/rspec'
-require 'vcr'
 
 Bundler.setup(:default, :test)
 
@@ -15,6 +14,9 @@ SimpleCov.start
 ENV['ARACHNE_ENV'] = 'test'
 
 require_relative '../lib/etna'
+require_relative '../lib/etna/spec/vcr'
+
+setup_base_vcr(__dir__)
 
 def setup_app(server, layer=nil, config={ test: {} })
   Etna::Application.find(server).configure(config)
@@ -23,63 +25,6 @@ def setup_app(server, layer=nil, config={ test: {} })
     use Etna::SymbolizeParams
     use *layer if layer
     run server.new
-  end
-end
-
-VCR.configure do |c|
-  c.hook_into :webmock
-  c.cassette_serializers
-  c.cassette_library_dir = ::File.join(__dir__,  'fixtures', 'cassettes')
-  c.allow_http_connections_when_no_cassette = true
-  c.register_request_matcher :try_body do |request_1, request_2|
-    if request_1.headers['Content-Type'].first =~ /application\/json/
-      if request_2.headers['Content-Type'].first =~ /application\/json/
-        JSON.parse(request_1.body) == JSON.parse(request_2.body)
-      else
-        false
-      end
-    else
-      request_1.body == request_2.body
-    end
-  end
-
-  c.default_cassette_options = {
-      serialize_with: :compressed,
-      record: if ENV['IS_CI']
-        :none
-      else
-        ENV['RERECORD'] ? :all : :once
-      end,
-      match_requests_on: [:method, :uri, :try_body]
-  }
-
-  # Filter the authorization headers of any request by replacing any occurrence of that request's
-  # Authorization value with <AUTHORIZATION>
-  c.filter_sensitive_data('<AUTHORIZATION>') do |interaction|
-    interaction.request.headers['Authorization'].first
-  end
-
-  # The model synchronization workflow benefits from testing against production models, but produces a massive
-  # recording file that doesn't fit into git easily.  To assist in that, we prune some large chunks of data
-  # that are generally not useful to recording tests.  But this is fragile and assumes that no tests using vcr depend
-  # on certain response contents.  Ideal solution would be to greatly reduce the size of default magma retrieve and
-  # update_model responses to not be as noisy for large models.
-  c.filter_sensitive_data('{}') do |interaction|
-    if interaction.request.uri =~ /\/update_model/
-      interaction.response.body
-    else
-      "{}"
-    end
-  end
-
-  c.filter_sensitive_data('"options":["one-option"]') do |interaction|
-    match = interaction.response.body.match(/"options":\["ENSG0[^\]]+\]/)
-    match ? match[0] : '"options":["one-option"]'
-  end
-
-  c.filter_sensitive_data('"value":["one-option"]') do |interaction|
-    match = interaction.response.body.match(/"value":\["ENSG0[^\]]+\]/)
-    match ? match[0] : '"value":["one-option"]'
   end
 end
 
@@ -120,6 +65,7 @@ end
 METIS_HOST = 'https://metis.test'
 JANUS_HOST = 'https://janus.test'
 MAGMA_HOST = 'https://magma.test'
+POLYPHEMUS_HOST = 'https://polyphemus.test'
 PROJECT = 'test'
 RESTRICT_BUCKET = 'restrict'
 RELEASE_BUCKET = 'release'
@@ -203,7 +149,24 @@ def stub_janus_setup
       body: 'a token for you!'
     })
 
+  stub_request(:get, /#{JANUS_HOST}\/project\/#{PROJECT}/)
+    .to_return({
+      status: 200,
+      body: '<html><body>A project</body></html>'
+    })
+
+  stub_request(:get, /#{JANUS_HOST}\/whoami/)
+    .to_return({
+      status: 200,
+      body: '{"email": "janus@twofaces.org"}'
+    })
+
   stub_request(:post, /#{JANUS_HOST}\/add_project/)
+    .to_return({
+      status: 302
+    })
+
+  stub_request(:post, /#{JANUS_HOST}\/add_user/)
     .to_return({
       status: 302
     })
@@ -231,7 +194,7 @@ def stub_magma_models(models)
 end
 
 def stub_magma_update
-  stub_request(:post, /#{MAGMA_HOST}\/update/)
+  stub_request(:post, /#{MAGMA_HOST}\/update$/)
   .to_return do |request|
 
     body = StringIO.new(request.body)
@@ -248,4 +211,37 @@ def stub_magma_update
     @all_updates << info.params["revisions"]
     { body: '{}' }
     end
+end
+
+def stub_magma_update_model
+  stub_request(:post, /#{MAGMA_HOST}\/update_model/)
+  .to_return({
+    status: 200,
+    body: {}.to_json
+  })
+end
+
+def model_stamp(model_name = nil)
+  {
+    template: {
+      name: model_name,
+      attributes: {}
+    }
+  }
+end
+
+def stub_polyphemus_setup
+  stub_request(:get, /#{POLYPHEMUS_HOST}\/configuration/)
+    .to_return({
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: {
+        magma: 'foo',
+        metis: 'bar',
+        janus: 'bim',
+        timur: 'zap',
+        polyphemus: 'zop'}.to_json
+    })
 end

@@ -1,3 +1,5 @@
+require_relative '../lib/commands'
+
 describe 'Metis Commands' do
   describe Metis::RemoveOrphanDataBlocks do
     subject(:remove_orphan_data_blocks) { described_class.new.execute }
@@ -150,24 +152,6 @@ describe 'Metis Commands' do
   end
 
   let(:metis_instance) { double('Metis') }
-
-  describe Metis::Help do
-    subject(:help) { described_class.new.execute }
-
-    let(:command_double) { double('command', usage: 'Usage') }
-    let(:expected) { "Commands:\nUsage\n" }
-
-    before do
-      allow(Metis).to receive(:instance).and_return(metis_instance)
-      allow(metis_instance).to receive(:commands).and_return({"test" => command_double})
-    end
-
-    it "calls puts once for each command present" do
-      expect {
-        help
-      }.to output(expected).to_stdout
-    end
-  end
 
   describe Metis::Migrate do
     subject(:migrate) { described_class.new.execute(version) }

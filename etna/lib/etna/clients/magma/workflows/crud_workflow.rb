@@ -25,6 +25,26 @@ module Etna
           result
         end
 
+        def page_records(model_name, request = Etna::Clients::Magma::RetrievalRequest.new(
+                project_name: project_name,
+                model_name: model_name,
+                record_names: 'all',
+                page_size: 20,
+                page: 1,
+            ))
+
+          documents = Documents.new({})
+          last_page = nil
+          while last_page.nil? || last_page.raw.length >= 20
+            last_page = magma_client.retrieve(request).models.model(model_name).documents
+            documents += last_page unless block_given?
+            yield last_page if block_given?
+            request.page += 1
+          end
+
+          documents
+        end
+
         # Todo: Introduce associative concatenation operations for response objects and return
         # one response that munges the batched responses together.
         def update_records
