@@ -60,3 +60,4 @@ build-iPhoneSimulator/
 .docker-build-mark
 downzip-sw.js
 .npmrc
+/gvaihir.csv
