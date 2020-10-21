@@ -81,7 +81,7 @@ module Etna
         FileUtils.cp(
           "#{gem_root}/lib/etna/templates/attribute_actions_template.json",
           'attribute_actions_template.json')
-        puts "A sample model JSON template has been provided at `attribute_actions_template.json`."
+        puts "A sample attribute actions JSON template has been provided at `attribute_actions_template.json`."
       end
     end
 
