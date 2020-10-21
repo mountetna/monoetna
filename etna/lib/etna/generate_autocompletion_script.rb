@@ -13,6 +13,7 @@ module Etna
         write "shift"
       end
 
+      enable_flags(command.class)
       write 'while [[ "$#" != "0" ]]; do'
       generate_start_match([])
       generate_flag_handling
@@ -25,6 +26,8 @@ module Etna
     end
 
     def generate_flag_handling
+      write %Q(elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then)
+      write "return"
       write %Q(elif [[ "$all_flag_completion_names" =~ $1\\  ]]; then)
       write %Q(all_flag_completion_names="${all_flag_completion_names//$1\\ /}")
       write 'a=$1'
@@ -46,6 +49,9 @@ module Etna
       write 'if [[ "$#" == "1" ]];  then'
       write %Q(all_completion_names="#{completions.join(' ')}")
       write %Q(all_completion_names="$all_completion_names $all_flag_completion_names") if include_flags
+      write %Q(if [[ -z "$(echo $all_completion_names | xargs)" ]]; then)
+      write 'return'
+      write 'fi'
       write 'COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))'
       write 'return'
     end
@@ -55,7 +61,7 @@ module Etna
       string_flags = flags_container.string_flags
       flags = boolean_flags + string_flags
       write %Q(all_flag_completion_names="$all_flag_completion_names #{flags.join(' ')} ")
-      write %Q(string_flag_completion_names="$string_flag_completion_names #{string_flags.join(' ')}")
+      write %Q(string_flag_completion_names="$string_flag_completion_names #{string_flags.join(' ')} ")
 
       string_flags.each do |flag|
         write %Q(declare _completions_for_#{flag_as_parameter(flag)}="#{completions_for(flag_as_parameter(flag)).join(' ')}")
@@ -63,8 +69,8 @@ module Etna
     end
 
     def generate_for_scope(scope)
-      write 'while [[ "$#" != "0" ]]; do'
       enable_flags(scope.class)
+      write 'while [[ "$#" != "0" ]]; do'
       generate_start_match(scope.subcommands.keys)
       generate_flag_handling
 
@@ -84,8 +90,12 @@ module Etna
       write 'done'
     end
 
+    def program_name
+      $PROGRAM_NAME
+    end
+
     def execute
-      name = File.basename($PROGRAM_NAME)
+      name = File.basename(program_name)
 
       write <<-EOF
 #!/usr/bin/env bash

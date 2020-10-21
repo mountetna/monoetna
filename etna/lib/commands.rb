@@ -108,6 +108,7 @@ class EtnaApp
     class AddModel < Etna::Command
       include WithEtnaClients
       include WithLogger
+      include RequireConfirmation
 
       def execute(project_name, model_name, filepath)
         add_model_workflow = Etna::Clients::Magma::AddModelFromJsonWorkflow.new(
