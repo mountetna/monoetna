@@ -1,8 +1,14 @@
 #!/usr/bin/env ruby
 
+if ENV['ETNA_GEM_DEVELOPMENT']
+  require 'bundler'
+  Bundler.require :default
+end
+
 require 'yaml'
 require_relative '../lib/etna'
 require_relative '../lib/commands'
+
 
 config = YAML.load(File.read(File.expand_path("../../config.yml",__FILE__)))
 
