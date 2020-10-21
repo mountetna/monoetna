@@ -41,6 +41,10 @@ module Etna
       end
     end
 
+    def flag_as_parameter(flag)
+      flag.gsub('--', '').gsub('-', '_')
+    end
+
     def parse_flags(*args)
       new_args = []
       flags = {}
@@ -55,7 +59,7 @@ module Etna
           next
         end
 
-        arg_name = next_arg.gsub('--', '').gsub('-', '_').to_sym
+        arg_name = flag_as_parameter(next_arg).to_sym
 
         if self.class.boolean_flags.include?(next_arg)
           flags[arg_name] = true
@@ -79,7 +83,7 @@ module Etna
       if parameter == 'env' || parameter == 'environment' || parameter =~ /_env/
         ['production', 'staging', 'development']
       else
-        ["-#{parameter}-", '_']
+        ["__#{parameter}__"]
       end
     end
 
@@ -255,97 +259,6 @@ module Etna
     rescue => e
       Rollbar.error(e)
       raise
-    end
-  end
-
-  # application.rb instantiates this for the project scoping.
-  # This generates a file, project-name.completion, which is sourced
-  # in build.sh to provide autocompletion in that environment.
-  class GenerateCompletionScript < Etna::Command
-    def generate_for_command(command, lines)
-      completions = command.completions
-      completions.each do |c|
-        generate_start_match(lines, *c)
-        lines << "fi"
-        lines << "shift"
-      end
-
-      lines << 'while [[ "$#" != "0" ]]; do'
-      generate_start_match(lines, '_', *command.class.boolean_flags, *command.class.string_flags)
-      generate_flag_handling(command, lines)
-
-      lines << "else"
-      lines << "return"
-      lines << 'fi'
-      lines << 'done'
-      lines << "return"
-    end
-
-    def generate_flag_handling(command, lines)
-      command.class.boolean_flags.each do |flag|
-        lines << %Q(elif [[ "$1" == "#{flag}" ]]; then)
-        lines << 'shift'
-      end
-
-      command.class.string_flags.each do |flag|
-        lines << %Q(elif [[ "$1" == "#{flag}" ]]; then)
-        lines << 'shift'
-        completions = command.completions_for(flag.gsub('--', '').gsub('-', '_'))
-        generate_start_match(lines, *completions)
-        lines << 'fi'
-        lines << 'shift'
-      end
-    end
-
-    def generate_start_match(lines, *completions)
-      lines << 'if [[ "$#" == "1" ]];  then'
-      if !completions.empty?
-        lines << "all_completion_names='#{completions.join(' ')}'"
-        lines << 'COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))'
-      end
-      lines << 'return'
-    end
-
-    def generate_for_scope(scope, lines)
-      lines << 'while [[ "$#" != "0" ]]; do'
-      generate_start_match(lines, *scope.subcommands.keys, *scope.class.boolean_flags, *scope.class.string_flags)
-      generate_flag_handling(scope, lines)
-
-      scope.subcommands.each do |name, command|
-        lines << %Q(elif [[ "$1" == "#{name}" ]]; then)
-        lines << 'shift'
-        if command.class.included_modules.include?(CommandExecutor)
-          generate_for_scope(command, lines)
-        else
-          generate_for_command(command, lines)
-        end
-      end
-
-      lines << "else"
-      lines << "return"
-      lines << "fi"
-      lines << 'done'
-    end
-
-    def execute
-      name = File.basename($PROGRAM_NAME)
-
-      lines = []
-      lines << <<-EOF
-#!/usr/bin/env bash
-
-function _#{name}_completions() {
-  _#{name}_inner_completions "${COMP_WORDS[@]:1:COMP_CWORD}"
-}
-
-function _#{name}_inner_completions() {
-  local all_completion_names=''
-EOF
-      generate_for_scope(parent, lines)
-      lines << "}"
-      lines << "complete -o default -F _#{name}_completions #{name}"
-
-      File.open("#{name}.completion", 'w') { |f| f.write(lines.join("\n") + "\n") }
     end
   end
 end

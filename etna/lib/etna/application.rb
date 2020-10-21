@@ -5,6 +5,7 @@
 
 require_relative './sign_service'
 require_relative './command'
+require_relative './generate_autocompletion_script'
 require 'singleton'
 require 'rollbar'
 

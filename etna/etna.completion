@@ -5,53 +5,102 @@ function _etna_completions() {
 }
 
 function _etna_inner_completions() {
+  local all_flag_completion_names=''
+  local string_flag_completion_names=''
   local all_completion_names=''
+  local i=''
+  local a=''
 
 while [[ "$#" != "0" ]]; do
+all_flag_completion_names="$all_flag_completion_names --environment "
+string_flag_completion_names="$string_flag_completion_names --environment"
+declare _completions_for_environment="production staging development"
 if [[ "$#" == "1" ]];  then
-all_completion_names='administrate config console generate_completion_script help --environment'
+all_completion_names="administrate config console generate_completion_script help"
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
-elif [[ "$1" == "--environment" ]]; then
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
 shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
 if [[ "$#" == "1" ]];  then
-all_completion_names='production staging development'
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
+fi
 elif [[ "$1" == "administrate" ]]; then
 shift
 while [[ "$#" != "0" ]]; do
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names "
 if [[ "$#" == "1" ]];  then
-all_completion_names='add_model create_project help validate_model validate_project'
+all_completion_names="add_model create_project help validate_model validate_project"
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
 elif [[ "$1" == "add_model" ]]; then
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names='-project_name- _'
+all_completion_names="__project_name__"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names='-model_name- _'
+all_completion_names="__model_name__"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names='-filepath- _'
+all_completion_names="__filepath__"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names='_'
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
 else
 return
 fi
@@ -60,16 +109,32 @@ return
 elif [[ "$1" == "create_project" ]]; then
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names='-filepath- _'
+all_completion_names="__filepath__"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names='_'
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
 else
 return
 fi
@@ -79,9 +144,25 @@ elif [[ "$1" == "help" ]]; then
 shift
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names='_'
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
 else
 return
 fi
@@ -90,28 +171,44 @@ return
 elif [[ "$1" == "validate_model" ]]; then
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names='-project_name- _'
+all_completion_names="__project_name__"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names='-model_name- _'
+all_completion_names="__model_name__"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names='-filepath- _'
+all_completion_names="__filepath__"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names='_'
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
 else
 return
 fi
@@ -120,16 +217,32 @@ return
 elif [[ "$1" == "validate_project" ]]; then
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names='-filepath- _'
+all_completion_names="__filepath__"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names='_'
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
 else
 return
 fi
@@ -142,17 +255,51 @@ done
 elif [[ "$1" == "config" ]]; then
 shift
 while [[ "$#" != "0" ]]; do
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names "
 if [[ "$#" == "1" ]];  then
-all_completion_names='help set'
+all_completion_names="help set"
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
 elif [[ "$1" == "help" ]]; then
 shift
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names='_'
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
 else
 return
 fi
@@ -161,18 +308,32 @@ return
 elif [[ "$1" == "set" ]]; then
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names='-host- _'
+all_completion_names="__host__"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names='_ --ignore-ssl'
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
-elif [[ "$1" == "--ignore-ssl" ]]; then
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
 shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
 else
 return
 fi
@@ -186,9 +347,25 @@ elif [[ "$1" == "console" ]]; then
 shift
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names='_'
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
 else
 return
 fi
@@ -198,9 +375,25 @@ elif [[ "$1" == "generate_completion_script" ]]; then
 shift
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names='_'
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
 else
 return
 fi
@@ -210,9 +403,25 @@ elif [[ "$1" == "help" ]]; then
 shift
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names='_'
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
 else
 return
 fi
@@ -223,4 +432,6 @@ return
 fi
 done
 }
+
 complete -o default -F _etna_completions etna
+
