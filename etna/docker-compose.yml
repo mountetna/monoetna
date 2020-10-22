@@ -21,7 +21,6 @@ services:
       - .:/app:cached
       - etna-app-gems:/app/vendor/bundle:rw
       - ../docker/etna-base/entrypoints:/entrypoints:ro
-      - /var/run/docker.sock:/var/run/docker.sock
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
     entrypoint: /entrypoints/development.sh
