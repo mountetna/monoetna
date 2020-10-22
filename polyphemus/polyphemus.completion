@@ -1119,6 +1119,15 @@ done
 return
 elif [[ "$1" == "ipi_add_flow_model" ]]; then
 shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__env__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
 all_flag_completion_names="$all_flag_completion_names  "
 string_flag_completion_names="$string_flag_completion_names  "
 while [[ "$#" != "0" ]]; do
@@ -1348,8 +1357,9 @@ done
 return
 elif [[ "$1" == "migrate" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
+all_flag_completion_names="$all_flag_completion_names --version "
+string_flag_completion_names="$string_flag_completion_names --version "
+declare _completions_for_version="__version__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""

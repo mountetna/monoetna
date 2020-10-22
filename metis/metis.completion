@@ -278,8 +278,9 @@ done
 return
 elif [[ "$1" == "migrate" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
+all_flag_completion_names="$all_flag_completion_names --version "
+string_flag_completion_names="$string_flag_completion_names --version "
+declare _completions_for_version="__version__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
