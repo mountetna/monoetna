@@ -1,281 +1,1515 @@
 #!/usr/bin/env bash
-_polyphemus_completions() {
-local all_completion_names=''
-if [ "${COMP_CWORD}" == "1" ]; then
-all_completion_names='api_add_project api_copy_model_deep api_copy_model_shallow apply_mvir1rna_seq_attributes cascade_mvir_patient_waiver_to_restricted console copy_magma_records copy_metis_files_command etl generate_completion_script get_metis_folders help ipi_add_flow_model ipi_copy_flow_to_integral_dataset link_comet_bulk_rna link_ipi_flow_fcs link_ipi_flow_wsp migrate set_file_attributes_to_blank update_attributes_from_csv'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-else
-if [ "${COMP_WORDS[1]}" == 'api_add_project' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "3" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'api_copy_model_deep' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-all_completion_names='production staging development'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-fi
-if [ "${COMP_CWORD}" == "3" ]; then
-all_completion_names='production staging development'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-fi
-if [ "${COMP_CWORD}" == "4" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "5" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "6" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'api_copy_model_shallow' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-all_completion_names='production staging development'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-fi
-if [ "${COMP_CWORD}" == "3" ]; then
-all_completion_names='production staging development'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-fi
-if [ "${COMP_CWORD}" == "4" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "5" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "6" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'apply_mvir1rna_seq_attributes' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'cascade_mvir_patient_waiver_to_restricted' ]; then
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'console' ]; then
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'copy_magma_records' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-all_completion_names='production staging development'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-fi
-if [ "${COMP_CWORD}" == "3" ]; then
-all_completion_names='production staging development'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-fi
-if [ "${COMP_CWORD}" == "4" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "5" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'copy_metis_files_command' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-all_completion_names='production staging development'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-fi
-if [ "${COMP_CWORD}" == "3" ]; then
-all_completion_names='production staging development'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-fi
-if [ "${COMP_CWORD}" == "4" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "5" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "6" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "7" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "8" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'etl' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-all_completion_names='help ipi_patient_flowjo stub_magma_record_etl stub_metis_file_etl'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-else
-if [ "${COMP_WORDS[2]}" == 'help' ]; then
-true
-fi
-if [ "${COMP_WORDS[2]}" == 'ipi_patient_flowjo' ]; then
-if [ "${COMP_CWORD}" == "3" ]; then
-all_completion_names='help reset run'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-else
-if [ "${COMP_WORDS[3]}" == 'help' ]; then
-true
-fi
-if [ "${COMP_WORDS[3]}" == 'reset' ]; then
-true
-fi
-if [ "${COMP_WORDS[3]}" == 'run' ]; then
-true
-fi
-fi
-true
-fi
-if [ "${COMP_WORDS[2]}" == 'stub_magma_record_etl' ]; then
-if [ "${COMP_CWORD}" == "3" ]; then
-all_completion_names='help reset run'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-else
-if [ "${COMP_WORDS[3]}" == 'help' ]; then
-true
-fi
-if [ "${COMP_WORDS[3]}" == 'reset' ]; then
-true
-fi
-if [ "${COMP_WORDS[3]}" == 'run' ]; then
-true
-fi
-fi
-true
-fi
-if [ "${COMP_WORDS[2]}" == 'stub_metis_file_etl' ]; then
-if [ "${COMP_CWORD}" == "3" ]; then
-all_completion_names='help reset run'
-COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
-else
-if [ "${COMP_WORDS[3]}" == 'help' ]; then
-true
-fi
-if [ "${COMP_WORDS[3]}" == 'reset' ]; then
-true
-fi
-if [ "${COMP_WORDS[3]}" == 'run' ]; then
-true
-fi
-fi
-true
-fi
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'generate_completion_script' ]; then
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'get_metis_folders' ]; then
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'help' ]; then
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'ipi_add_flow_model' ]; then
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'ipi_copy_flow_to_integral_dataset' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "3" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "4" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'link_comet_bulk_rna' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'link_ipi_flow_fcs' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'link_ipi_flow_wsp' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'migrate' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'set_file_attributes_to_blank' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "3" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "4" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-if [ "${COMP_WORDS[1]}" == 'update_attributes_from_csv' ]; then
-if [ "${COMP_CWORD}" == "2" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "3" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "4" ]; then
-COMPREPLY=()
-return
-fi
-if [ "${COMP_CWORD}" == "5" ]; then
-COMPREPLY=()
-return
-fi
-true
-fi
-fi
+
+function _polyphemus_completions() {
+  _polyphemus_inner_completions "${COMP_WORDS[@]:1:COMP_CWORD}"
 }
+
+function _polyphemus_inner_completions() {
+  local all_flag_completion_names=''
+  local string_flag_completion_names=''
+  local all_completion_names=''
+  local i=''
+  local a=''
+
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names="api_add_project api_copy_model_deep api_copy_model_shallow apply_mvir1rna_seq_attributes cascade_mvir_patient_waiver_to_restricted console copy_magma_records copy_metis_files_command etl generate_completion_script get_metis_folders help ipi_add_flow_model ipi_copy_flow_to_integral_dataset link_comet_bulk_rna link_ipi_flow_fcs link_ipi_flow_wsp migrate set_file_attributes_to_blank update_attributes_from_csv"
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+elif [[ "$1" == "api_add_project" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__env__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__project_name__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "api_copy_model_deep" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="production staging development"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="production staging development"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__source_project__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__target_project__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__model_name__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "api_copy_model_shallow" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="production staging development"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="production staging development"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__source_project__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__target_project__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__model_name__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "apply_mvir1rna_seq_attributes" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__env__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "cascade_mvir_patient_waiver_to_restricted" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "console" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "copy_magma_records" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="production staging development"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="production staging development"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__project_name__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "copy_metis_files_command" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="production staging development"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="production staging development"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__source_project__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__target_project__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__source_bucket__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__target_bucket__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__file_glob_match__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "etl" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names="help ipi_patient_flowjo stub_magma_record_etl stub_metis_file_etl"
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+elif [[ "$1" == "help" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "ipi_patient_flowjo" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names="help reset run"
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+elif [[ "$1" == "help" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "reset" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "run" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+else
+return
+fi
+done
+elif [[ "$1" == "stub_magma_record_etl" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names="help reset run"
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+elif [[ "$1" == "help" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "reset" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "run" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+else
+return
+fi
+done
+elif [[ "$1" == "stub_metis_file_etl" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names="help reset run"
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+elif [[ "$1" == "help" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "reset" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "run" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+else
+return
+fi
+done
+else
+return
+fi
+done
+elif [[ "$1" == "generate_completion_script" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "get_metis_folders" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "help" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "ipi_add_flow_model" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "ipi_copy_flow_to_integral_dataset" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__env__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__source_bucket__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__source_folder__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "link_comet_bulk_rna" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__env__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "link_ipi_flow_fcs" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__env__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "link_ipi_flow_wsp" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__env__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "migrate" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "set_file_attributes_to_blank" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__env__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__project_name__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "update_attributes_from_csv" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__env__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__project_name__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__model_name__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__filepath__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names  "
+string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+else
+return
+fi
+done
+}
+
 complete -o default -F _polyphemus_completions polyphemus
+

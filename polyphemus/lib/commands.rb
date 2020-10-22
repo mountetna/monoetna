@@ -11,6 +11,7 @@ require_relative 'data_processing/flow_jo_dsl'
 class Polyphemus
   class Migrate < Etna::Command
     usage 'Run migrations for the current environment.'
+    string_flags << '--version'
 
     def execute(version: nil)
       Sequel.extension(:migration)

@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
 
-require 'bundler'
-Bundler.require :default
+if ENV['ETNA_GEM_DEVELOPMENT']
+  require 'bundler'
+  Bundler.require :default
+end
 
 require 'yaml'
 require_relative '../lib/etna'

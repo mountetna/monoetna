@@ -66,6 +66,7 @@ class Magma
 
   class Migrate < Etna::Command
     usage '[<version_number>] # Run migrations for the current environment.'
+    string_flags << '--version'
 
     def execute(version: nil)
       Sequel.extension(:migration)
@@ -91,8 +92,9 @@ class Magma
 
   class GlobalMigrate < Etna::Command
     usage "Run database wide migrations"
+    string_flags << '--version'
 
-    def execute(version = nil)
+    def execute(version: nil)
       Sequel.extension(:migration)
       db = Magma.instance.db
 

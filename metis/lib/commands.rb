@@ -32,6 +32,7 @@ class Metis
 
   class Migrate < Etna::Command
     usage 'Run migrations for the current environment.'
+    string_flags << '--version'
 
     def execute(version: nil)
       Sequel.extension(:migration)

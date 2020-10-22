@@ -5,6 +5,7 @@ class ConfigurationController < Polyphemus::Controller
     app = Polyphemus.instance
     return_data = {
         app.environment => {
+          docker: app.config(:docker)&.slice(:default_tag),
           magma: app.config(:magma)&.slice(:host),
           metis: app.config(:metis)&.slice(:host),
           janus: app.config(:janus)&.slice(:host),
