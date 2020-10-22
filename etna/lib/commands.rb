@@ -11,7 +11,7 @@ end
 
 class EtnaApp
   def self.config_file_path
-    File.join(Dir.home, 'config.yml')
+    File.join(Dir.home, 'etna.yml')
   end
 
   string_flags << '--environment'
@@ -24,8 +24,8 @@ class EtnaApp
   def environment
     if @environment
       @environment
-    elsif @config.keys.length == 1
-      @config.keys.first.to_sym
+    elsif @config && @config.keys.length == 1
+      @config.keys.last.to_sym
     else
       :production
     end
@@ -54,6 +54,11 @@ class EtnaApp
             config_file: EtnaApp.config_file_path)
         config = workflow.update_configuration_file(ignore_ssl: ignore_ssl)
         logger.info("Updated #{config.environment} configuration from #{host}.")
+      end
+
+      def setup(config)
+        super
+        EtnaApp.instance.setup_logger
       end
     end
   end

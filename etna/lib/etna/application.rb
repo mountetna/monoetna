@@ -72,7 +72,9 @@ module Etna::Application
   # In some cases, such as utility scripts that span across environments, it may be necessary to override
   # the environment source.
   def config(type, env = environment)
-    (@config[env] || {})[type]
+    return nil if @config.nil?
+    return nil if @config[env].nil?
+    @config[env][type]
   end
 
   def sign

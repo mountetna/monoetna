@@ -27,27 +27,27 @@ module WithEtnaClients
   end
 
   def magma_client
-    @magma_client ||= Etna::Clients::Polyphemus.new(
+    @magma_client ||= Etna::Clients::Magma.new(
         token: token,
-        **EtnaApp.instance.config(:magma, environment))
+        **EtnaApp.instance.config(:magma, environment) || {})
   end
 
   def metis_client
-    @metis_client ||= Etna::Clients::Polyphemus.new(
+    @metis_client ||= Etna::Clients::Metis.new(
         token: token,
-        **EtnaApp.instance.config(:metis, environment))
+        **EtnaApp.instance.config(:metis, environment) || {})
   end
 
   def janus_client
-    @janus_client ||= Etna::Clients::Polyphemus.new(
+    @janus_client ||= Etna::Clients::Janus.new(
         token: token,
-        **EtnaApp.instance.config(:janus, environment))
+        **EtnaApp.instance.config(:janus, environment) || {})
   end
 
   def polyphemus_client
     @polyphemus_client ||= Etna::Clients::Polyphemus.new(
         token: token,
-        **EtnaApp.instance.config(:polyphemus, environment))
+        **EtnaApp.instance.config(:polyphemus, environment) || {})
   end
 end
 

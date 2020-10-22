@@ -5,11 +5,11 @@ class ConfigurationController < Polyphemus::Controller
     app = Polyphemus.instance
     return_data = {
         app.environment => {
-          magma: app.config(:magma)&.dig(:host),
-          metis: app.config(:metis)&.dig(:host),
-          janus: app.config(:janus)&.dig(:host),
-          timur: app.config(:timur)&.dig(:host),
-          polyphemus: app.config(:polyphemus)&.dig(:host),
+          magma: app.config(:magma)&.slice(:host),
+          metis: app.config(:metis)&.slice(:host),
+          janus: app.config(:janus)&.slice(:host),
+          timur: app.config(:timur)&.slice(:host),
+          polyphemus: app.config(:polyphemus)&.slice(:host),
           auth_redirect: app.config(:auth_redirect),
         }
     }

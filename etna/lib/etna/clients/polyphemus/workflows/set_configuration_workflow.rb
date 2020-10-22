@@ -32,8 +32,9 @@ module Etna
           env = config.environment.to_sym
 
           etna_config.delete(env)
-          etna_config.update({ env => config.raw.map { |k, v| [k.to_sym, v] }.to_h })
-          etna_config.update(additional_config)
+          env_config = config.environment_configuration.raw.dup
+          env_config.update(additional_config)
+          etna_config.update({ env => env_config })
 
           File.open(config_file, 'w') { |f| YAML.dump(etna_config, f) }
           config

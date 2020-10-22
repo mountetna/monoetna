@@ -14,6 +14,7 @@ SimpleCov.start
 ENV['ARACHNE_ENV'] = 'test'
 
 require_relative '../lib/etna'
+require_relative '../lib/commands'
 require_relative '../lib/etna/spec/vcr'
 
 setup_base_vcr(__dir__)

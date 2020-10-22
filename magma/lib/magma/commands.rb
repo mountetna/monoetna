@@ -67,7 +67,7 @@ class Magma
   class Migrate < Etna::Command
     usage '[<version_number>] # Run migrations for the current environment.'
 
-    def execute(version=nil)
+    def execute(version: nil)
       Sequel.extension(:migration)
       db = Magma.instance.db
 
