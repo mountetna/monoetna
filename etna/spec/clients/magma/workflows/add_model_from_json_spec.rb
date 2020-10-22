@@ -69,7 +69,7 @@ describe Etna::Clients::Magma::AddModelFromJsonWorkflow do
 
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna 123'}).
-      with { |req| req.body.include?('add_model') }.times(1)
+      with { |req| req.body.include?('add_model') && req.body.include?('"identifier":"tube_name"') }.times(1)
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna 123'}).
       with { |req| req.body.include?('add_attribute') }.times(3)  # 3 attributes in the fixture
@@ -89,7 +89,7 @@ describe Etna::Clients::Magma::AddModelFromJsonWorkflow do
 
   it 'raises an exception if the model already exists' do
     expected_msg = %{Model JSON has errors:
-  * Model assay_name already exists in project #{PROJECT}!}
+  * Model assay_name already exists in project!}
 
     expect {
       Etna::Clients::Magma::AddModelFromJsonWorkflow.new(
@@ -107,11 +107,11 @@ describe Etna::Clients::Magma::AddModelFromJsonWorkflow do
   * Model name assay2 must be snake_case and can only consist of letters and "_".
   * Invalid parent_link_type for model assay2: \"magma\".
 \tShould be one of [\"child\", \"collection\", \"table\"].
-  * Invalid type for model assay2, attribute vendor, validation: \"array\".
+  * Invalid type for attribute vendor, validation: \"array\".
 \tShould be one of [\"Array\", \"Range\", \"Regexp\"].
-  * Parent model paper_airplanes for assay2 does not exist in project.
+  * Parent model \"paper_airplanes\" for assay2 does not exist in project.
 \tCurrent models are [\"assay_name\", \"assay_pool\", \"project\", \"timepoint\", \"patient\", \"document\", \"status\", \"symptom\"].
-  * Linked model, "assay2_pool", on attribute assay2_pool of model assay2 does not exist!
+  * Linked model, "assay2_pool", on attribute assay2_pool does not exist!
 \tCurrent models are [\"assay_name\", \"assay_pool\", \"project\", \"timepoint\", \"patient\", \"document\", \"status\", \"symptom\"].}
 
     expect {

@@ -3,7 +3,7 @@ require_relative './etna/environment_scoped'
 
 module WithEtnaClients
   def environment
-    EtnaApp.instance.environment
+    Etna::EtnaApp.instance.environment
   end
 
   def token
@@ -53,7 +53,7 @@ end
 
 module WithLogger
   def logger
-    EtnaApp.instance.logger
+    Etna::EtnaApp.instance.logger
   end
 end
 

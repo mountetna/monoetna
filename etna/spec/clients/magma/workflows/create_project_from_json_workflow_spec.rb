@@ -47,12 +47,56 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
 
     expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_project/).
       with(headers: {Authorization: 'Etna 123.eyJlbWFpbCI6ImZvb0BiYXIuY29tIiwiZmlyc3QiOiJmb28iLCJsYXN0IjoiYmFyIn0=.bar'})
-      expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_user\/#{PROJECT}/)
-      expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/update_permission\/#{PROJECT}/)
+    expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_user\/#{PROJECT}/)
+    expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/update_permission\/#{PROJECT}/)
     expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/refresh_token/)
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna a token for you!'}).
-      with { |req| req.body.include?('add_model') }.times(8)
+      with { |req| req.body.include?('add_model') }.times(7) # 7 non-project models
+    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
+      with(headers: {Authorization: 'Etna a token for you!'}).
+      with { |req| req.body.include?('add_attribute') }.times(62)
+    # The call above gets executed a lot of times, because our Mock of the
+    #   /retrieve endpoint is static. So it doesn't reflect newly created
+    #   attributes. For the models higher in the tree (closer to the root),
+    #   this means that ensure_model_tree attempts to add their
+    #   attributes multiple times. This does not happen in a non-test
+    #   environment.
+
+    # Make sure the assay_name identifier validation is submitted.
+    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
+      with(headers: {Authorization: 'Etna a token for you!'}).
+      with { |req| req.body.include?('update_attribute') }
+
+    expect(updates).to eq({
+      "project" => {
+        "test" => {"name" => "test"}
+      }
+    })
+  end
+
+  it 'can skip janus creationg and just create project in magma' do
+    # have to update the TOKEN here with the "new" Janus value
+    local_magma_client = Etna::Clients::Magma.new(
+      token: 'a token for you!',
+      host: MAGMA_HOST)
+
+    workflow = Etna::Clients::Magma::CreateProjectFromJsonWorkflow.new(
+      magma_client: local_magma_client,
+      janus_client: janus_client,
+      filepath: './spec/fixtures/create_project/valid_project.json',
+      skip_janus: true
+    )
+    workflow.create!
+
+    expect(WebMock).not_to have_requested(:post, /#{JANUS_HOST}\/add_project/).
+      with(headers: {Authorization: 'Etna 123.eyJlbWFpbCI6ImZvb0BiYXIuY29tIiwiZmlyc3QiOiJmb28iLCJsYXN0IjoiYmFyIn0=.bar'})
+    expect(WebMock).not_to have_requested(:post, /#{JANUS_HOST}\/add_user\/#{PROJECT}/)
+    expect(WebMock).not_to have_requested(:post, /#{JANUS_HOST}\/update_permission\/#{PROJECT}/)
+    expect(WebMock).not_to have_requested(:get, /#{JANUS_HOST}\/refresh_token/)
+    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
+      with(headers: {Authorization: 'Etna a token for you!'}).
+      with { |req| req.body.include?('add_model') }.times(7) # 7 non-project models
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna a token for you!'}).
       with { |req| req.body.include?('add_attribute') }.times(62)

@@ -246,3 +246,4 @@ def stub_polyphemus_setup
         polyphemus: 'zop'}.to_json
     })
 end
+
