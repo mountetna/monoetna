@@ -61,7 +61,9 @@ class AdminController < Janus::Controller
     raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless [ 'viewer', 'editor' ].include?(@params[:role])
 
     if @project.permissions.any? { |p| p.user.email == @email }
-      raise Etna::BadRequest, "Duplicate permission on project #{@params[:project_name]}!"
+      @response.redirect("/project/#{@params[:project_name]}")
+      @response.finish
+      return
     end
 
     user = User[email: @email]
