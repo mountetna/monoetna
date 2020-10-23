@@ -105,6 +105,8 @@ class EtnaApp
   end
 
   class Administrate
+    include Etna::CommandExecutor
+
     class Project
       include Etna::CommandExecutor
 
@@ -236,95 +238,95 @@ class EtnaApp
         end
       end
     end
+  end
 
-    class Polyphemus < Etna::Command
-      include WithEtnaClients
-      string_flags << '--tag'
-      boolean_flags << '--local'
+  class Polyphemus < Etna::Command
+    include WithEtnaClients
+    string_flags << '--tag'
+    boolean_flags << '--local'
 
-      def execute(tag: nil, local: false)
-        @tag = tag || default_tag
-        @local = local
-        create_config_yml
+    def execute(tag: nil, local: false)
+      @tag = tag || default_tag
+      @local = local
+      create_config_yml
 
-        unless @local
-          puts `docker pull #{image}`
-        end
-
-        puts run_cmd
-        exec(run_cmd)
+      unless @local
+        puts `docker pull #{image}`
       end
 
-      def run_cmd
-        parts = ['docker run --rm -it']
-
-        unless Gem.win_platform?
-          uid = Etc.getpwnam(ENV['USER']).uid
-          gid = Etc.getgrnam('docker').gid
-          parts << "-u #{uid}:#{gid}"
-          parts << "-v /etc/passwd:/etc/passwd:ro"
-          parts << "-v /etc/group:/etc/group:ro"
-        end
-
-        parts << "-v #{temp_config_file.path}:/app/config.yml:ro"
-        parts << "-v #{Dir.pwd}:/app/workspace"
-        parts << "-e HOME=/root"
-
-        parts << image
-        parts << "bash -c 'cd /app/workspace && exec bash --rcfile /root/.bashrc'"
-
-        parts.join(' ')
-      end
-
-      def temp_config_file
-        @temp_config_file ||= Tempfile.new
-      end
-
-      def create_config_yml
-        host_config = [:metis, :magma, :janus, :timur].map do |host|
-          [host, (EtnaApp.instance.config(host) || {}).update(token: token)]
-        end.to_h
-
-        config = {
-            EtnaApp.instance.environment => {
-                                                log_file: '/dev/stdout',
-                                                log_level: 'info',
-                                            }.update(host_config)
-        }
-
-        File.open(temp_config_file.path, 'w') { |f| YAML.dump(config, f) }
-      end
-
-      def default_tag
-        docker = EtnaApp.instance.config(:docker)
-        if docker.nil?
-          nil
-        else
-          docker[:default_tag]
-        end || 'master'
-      end
-
-      def image
-        if @local
-          "polyphemus:#{@tag}"
-        else
-          "etnaagent/polyphemus:#{@tag}"
-        end
-      end
+      puts run_cmd
+      exec(run_cmd)
     end
 
-    class Console < Etna::Command
-      usage 'Open a console with a connected Etna instance.'
+    def run_cmd
+      parts = ['docker run --rm -it']
 
-      def execute
-        require 'irb'
-        ARGV.clear
-        IRB.start
+      unless Gem.win_platform?
+        uid = Etc.getpwnam(ENV['USER']).uid
+        gid = Etc.getgrnam('docker').gid
+        parts << "-u #{uid}:#{gid}"
+        parts << "-v /etc/passwd:/etc/passwd:ro"
+        parts << "-v /etc/group:/etc/group:ro"
       end
 
-      def setup(config)
-        super
+      parts << "-v #{temp_config_file.path}:/app/config.yml:ro"
+      parts << "-v #{Dir.pwd}:/app/workspace"
+      parts << "-e HOME=/root"
+
+      parts << image
+      parts << "bash -c 'cd /app/workspace && exec bash --rcfile /root/.bashrc'"
+
+      parts.join(' ')
+    end
+
+    def temp_config_file
+      @temp_config_file ||= Tempfile.new
+    end
+
+    def create_config_yml
+      host_config = [:metis, :magma, :janus, :timur].map do |host|
+        [host, (EtnaApp.instance.config(host) || {}).update(token: token)]
+      end.to_h
+
+      config = {
+          EtnaApp.instance.environment => {
+                                              log_file: '/dev/stdout',
+                                              log_level: 'info',
+                                          }.update(host_config)
+      }
+
+      File.open(temp_config_file.path, 'w') { |f| YAML.dump(config, f) }
+    end
+
+    def default_tag
+      docker = EtnaApp.instance.config(:docker)
+      if docker.nil?
+        nil
+      else
+        docker[:default_tag]
+      end || 'master'
+    end
+
+    def image
+      if @local
+        "polyphemus:#{@tag}"
+      else
+        "etnaagent/polyphemus:#{@tag}"
       end
+    end
+  end
+
+  class Console < Etna::Command
+    usage 'Open a console with a connected Etna instance.'
+
+    def execute
+      require 'irb'
+      ARGV.clear
+      IRB.start
+    end
+
+    def setup(config)
+      super
     end
   end
 end
