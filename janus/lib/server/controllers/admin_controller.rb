@@ -94,12 +94,12 @@ class AdminController < Janus::Controller
 
     project = Project[project_name: @params[:project_name]]
 
-    raise Etna::BadRequest, 'Duplicate project_name' if project
-
-    project = Project.create(
-      project_name: @params[:project_name],
-      project_name_full: @params[:project_name_full]
-    )
+    if project.nil?
+      project = Project.create(
+        project_name: @params[:project_name],
+        project_name_full: @params[:project_name_full]
+      )
+    end
 
     @response.redirect('/')
     @response.finish

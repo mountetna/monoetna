@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.email             = 'Saurabh.Asthana@ucsf.edu'
   spec.homepage          = 'http://github.com/mountetna/etna'
   spec.author            = 'Saurabh Asthana'
-  spec.files             = Dir['lib/**/*.rb', 'lib/etna/templates/*.json']
+  spec.files             = Dir['lib/**/*.rb', 'lib/etna/templates/*.json', '*.completion']
   spec.platform          = Gem::Platform::RUBY # This is the default
   spec.require_paths     = [ 'lib' ]
   spec.extensions        = Dir['ext/**/extconf.rb']

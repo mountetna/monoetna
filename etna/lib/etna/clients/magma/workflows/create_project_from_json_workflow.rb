@@ -157,10 +157,6 @@ module Etna
           update_janus_permissions
           update_magma_client_token
           puts "Done with setting up the project in Janus!"
-          true
-        rescue Etna::Error => e
-          puts "Janus project setup failed, #{e.status} #{e.message}"
-          false
         end
 
         def setup_magma_project!
@@ -172,17 +168,13 @@ module Etna
           puts "Done! Adding your new project record."
           create_magma_project_record
           update_magma_attributes
-          true
-        rescue Etna::Error => e
-          puts "Magma project setup failed, #{e.status} #{e.message}"
-          false
         end
 
         def create!
-          janus_success = setup_janus_project!
-          magma_success = setup_magma_project!
+          setup_janus_project!
+          setup_magma_project!
           puts "All complete!"
-          puts "You need to visit Janus to refresh your token." if janus_success
+          puts "You need to visit Janus to refresh your token."
           puts "You can now log into any app to manage your data."
         end
 
