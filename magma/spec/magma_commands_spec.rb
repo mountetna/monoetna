@@ -41,7 +41,7 @@ describe 'Magma Commands' do
   let(:magma_instance) { double('Magma') }
 
   describe Magma::Migrate do
-    subject(:migrate) { described_class.new.execute(version) }
+    subject(:migrate) { described_class.new.execute(version: version) }
     let(:directory) { "./spec/labors/migrations" }
     let(:table) {"schema_info_spec_labors" }
 
