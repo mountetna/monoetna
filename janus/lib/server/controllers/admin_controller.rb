@@ -8,9 +8,9 @@ class AdminController < Janus::Controller
     @project = Project[project_name: @params[:project_name]]
     @static = nil
     if @user.is_superuser?
-      @roles = [ 'administrator', 'viewer', 'editor', 'disabled' ]
+      @roles = ['administrator', 'viewer', 'editor', 'disabled']
     elsif @user.is_admin?(@params[:project_name])
-      @roles = [ 'viewer', 'editor', 'disabled' ]
+      @roles = ['viewer', 'editor', 'disabled']
     else
       @roles = []
       @static = true
@@ -24,10 +24,12 @@ class AdminController < Janus::Controller
     require_param(:email)
     @project = Project[project_name: @params[:project_name]]
 
-    permission = @project.permissions.find do |p| p.user.email == @params[:email] end
+    permission = @project.permissions.find do |p|
+      p.user.email == @params[:email]
+    end
 
     # fix strings from HTML POST
-    @params[:privileged] = @params[:privileged] == 'true' if [ 'true', 'false' ].include?(@params[:privileged])
+    @params[:privileged] = @params[:privileged] == 'true' if ['true', 'false'].include?(@params[:privileged])
 
     raise Etna::BadRequest, "No such user on project #{@params[:project_name]}!" unless permission
 
@@ -35,13 +37,13 @@ class AdminController < Janus::Controller
 
     raise Etna::Forbidden, 'Cannot grant admin role!' if @params[:role] == 'administrator' && !@user.is_superuser?
 
-    raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless !@params[:role] || [ 'administrator', 'viewer', 'editor', 'disabled' ].include?(@params[:role])
+    raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless !@params[:role] || ['administrator', 'viewer', 'editor', 'disabled'].include?(@params[:role])
 
     if @params[:role] == 'disabled'
       permission.delete
     else
       permission.role = @params[:role] if @params[:role]
-      permission.privileged = @params[:privileged] if [true,false].include?(@params[:privileged])
+      permission.privileged = @params[:privileged] if [true, false].include?(@params[:privileged])
       permission.affiliation = @params[:affiliation] if @params[:affiliation]
       permission.save
     end
@@ -58,30 +60,26 @@ class AdminController < Janus::Controller
 
     raise Etna::Forbidden, 'Cannot set admin role!' if @params[:role] == 'administrator'
 
-    raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless [ 'viewer', 'editor' ].include?(@params[:role])
+    raise Etna::BadRequest, "Unknown role #{@params[:role]}" unless ['viewer', 'editor'].include?(@params[:role])
 
-    if @project.permissions.any? { |p| p.user.email == @email }
-      @response.redirect("/project/#{@params[:project_name]}")
-      @response.finish
-      return
+    unless @project.permissions.any? { |p| p.user.email == @email }
+      user = User[email: @email]
+      unless user
+        raise Etna::BadRequest, 'Badly formed email address' unless @email =~ URI::MailTo::EMAIL_REGEXP
+
+        names = @params[:name].split
+        raise Etna::BadRequest, 'Missing name' if names.empty?
+        first, last = names.length > 1 ? [names[0..-2].join(' '), names.last] : names
+
+        user = User.create(email: @email, first_name: first, last_name: last)
+      end
+
+      permission = Permission.create(project: @project, user: user, role: @params[:role])
+      permission.role = @params[:role] if ['viewer', 'editor'].include?(@params[:role])
+      permission.privileged = false
+      permission.affiliation = @params[:affiliation]
+      permission.save
     end
-
-    user = User[email: @email]
-    unless user
-      raise Etna::BadRequest, 'Badly formed email address' unless @email =~ URI::MailTo::EMAIL_REGEXP
-
-      names = @params[:name].split
-      raise Etna::BadRequest, 'Missing name' if names.empty?
-      first, last = names.length > 1 ? [ names[0..-2].join(' '), names.last ] : names
-
-      user = User.create(email: @email, first_name: first, last_name: last)
-    end
-
-    permission = Permission.create(project: @project, user: user, role: @params[:role])
-    permission.role = @params[:role] if [ 'viewer', 'editor' ].include?(@params[:role])
-    permission.privileged = false
-    permission.affiliation = @params[:affiliation]
-    permission.save
 
     @response.redirect("/project/#{@params[:project_name]}")
     @response.finish
@@ -98,8 +96,8 @@ class AdminController < Janus::Controller
 
     if project.nil?
       project = Project.create(
-        project_name: @params[:project_name],
-        project_name_full: @params[:project_name_full]
+          project_name: @params[:project_name],
+          project_name_full: @params[:project_name_full]
       )
     end
 
@@ -114,7 +112,7 @@ class AdminController < Janus::Controller
 
     if @params[:flags] &&
         !(@params[:flags].is_a?(Array) &&
-          @params[:flags].all?{|f| f.is_a?(String) && f =~ /^\w+$/})
+            @params[:flags].all? { |f| f.is_a?(String) && f =~ /^\w+$/ })
       raise Etna::BadRequest, "Flags should be an array of words"
     end
 
