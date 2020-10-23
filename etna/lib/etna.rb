@@ -18,8 +18,6 @@ require_relative './etna/spec'
 require_relative './etna/clients'
 require_relative './etna/environment_scoped'
 
-require 'singleton'
-
 class EtnaApp
   include Etna::Application
 end
