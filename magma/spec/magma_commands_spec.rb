@@ -86,7 +86,7 @@ describe 'Magma Commands' do
   end
 
   describe Magma::GlobalMigrate do
-    subject(:global_migrate) { described_class.new.execute(version) }
+    subject(:global_migrate) { described_class.new.execute(version: version) }
     let(:directory) { "db/migrations" }
     let(:table) {"schema_info_spec_labors" }
 
