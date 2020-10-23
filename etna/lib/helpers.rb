@@ -3,7 +3,7 @@ require_relative './etna/environment_scoped'
 
 module WithEtnaClients
   def environment
-    Etna::EtnaApp.instance.environment
+    EtnaApp.instance.environment
   end
 
   def token
@@ -29,31 +29,35 @@ module WithEtnaClients
   def magma_client
     @magma_client ||= Etna::Clients::Magma.new(
         token: token,
+        ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
         **EtnaApp.instance.config(:magma, environment) || {})
   end
 
   def metis_client
     @metis_client ||= Etna::Clients::Metis.new(
         token: token,
+        ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
         **EtnaApp.instance.config(:metis, environment) || {})
   end
 
   def janus_client
     @janus_client ||= Etna::Clients::Janus.new(
         token: token,
+        ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
         **EtnaApp.instance.config(:janus, environment) || {})
   end
 
   def polyphemus_client
     @polyphemus_client ||= Etna::Clients::Polyphemus.new(
         token: token,
+        ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
         **EtnaApp.instance.config(:polyphemus, environment) || {})
   end
 end
 
 module WithLogger
   def logger
-    Etna::EtnaApp.instance.logger
+    EtnaApp.instance.logger
   end
 end
 

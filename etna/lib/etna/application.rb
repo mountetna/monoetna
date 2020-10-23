@@ -69,11 +69,10 @@ module Etna::Application
   # the application logger is available globally
   attr_reader :logger
 
-  # In some cases, such as utility scripts that span across environments, it may be necessary to override
-  # the environment source.
   def config(type, env = environment)
     return nil if @config.nil?
     return nil if @config[env].nil?
+    return nil unless @config[env].is_a?(Hash)
     @config[env][type]
   end
 
