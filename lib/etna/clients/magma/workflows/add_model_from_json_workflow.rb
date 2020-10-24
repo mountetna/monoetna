@@ -8,7 +8,8 @@
 require 'json'
 require 'ostruct'
 require_relative './model_synchronization_workflow'
-require_relative './json_models'
+require_relative './json_validators'
+require_relative './json_converters'
 
 module Etna
   module Clients
@@ -20,27 +21,26 @@ module Etna
         attr_reader :model
         def initialize(**params)
           super({}.update(params))
-          @model = Etna::Clients::Magma::JsonModel.new(
-            model_name,
-            JSON.parse(File.read(filepath)))
+          user_json = JSON.parse(File.read(filepath))
 
-          @errors = []
-          validate
+          magma_json = Etna::Clients::Magma::ModelConverter.convert_model_user_json_to_magma_json(
+            model_name, user_json)
 
-          raise "Model JSON has errors:\n  * #{format_errors}" unless valid?
-        end
+          @model = Etna::Clients::Magma::Model.new(magma_json)
 
-        def format_errors
-          @errors.map { |e| e.gsub("\n", "\n\t") }.join("\n  * ")
-        end
+          @validator = Etna::Clients::Magma::ModelValidator.new(model)
+          @validator.validate
 
-        def valid?
-          @errors.length == 0
-        end
-
-        def validate
           validate_model_against_project
-          @errors += model.errors
+
+          raise "Model JSON has errors:\n  * #{format_errors(@validator.errors)}" unless @validator.valid?
+
+          @converter = ModelConverter.new(model)
+          @converter.convert!
+        end
+
+        def format_errors(errors)
+          errors.map { |e| e.gsub("\n", "\n\t") }.join("\n  * ")
         end
 
         def project_models
@@ -56,9 +56,8 @@ module Etna
         def validate_model_against_project
           # Make sure that the parent model exists.
           # Make sure any linked models exist.
-          @errors << "Model #{model.name} already exists in project #{project_name}!" if project_model_names.include?(model.name)
-
-          model.validate_link_models(project_model_names)
+          @validator.validate_existing_models(project_models)
+          @validator.validate_link_models(project_model_names)
         end
 
         def create_magma_model
@@ -69,29 +68,24 @@ module Etna
             project_name: project_name,
             actions: [Etna::Clients::Magma::AddModelAction.new(
               model_name: model.name,
-              parent_model_name: model.parent_model_name,
-              parent_link_type: model.parent_link_type,
-              identifier: model.identifier
+              parent_model_name: model.raw['parent_model_name'],
+              parent_link_type: model.raw['parent_link_type'],
+              identifier: model.template.identifier
             )]))
         end
 
         def magma_models
-          # Convert our JSON model into an instance of
-          #   Magma Model + Attributes
-          models = Etna::Clients::Magma::Models.new
-          model_builder = models.build_model(model.name)
-          model.to_magma_model(model_builder)
+          all_models = project_models + model
 
-          # We also have to include "models" for all linked models, and add in
-          #   the reciprocal link attributes.
-          model.link_attributes do |attribute|
-            model_builder = models.build_model(attribute.link_model_name)
-            linked_model = Etna::Clients::Magma::JsonModel.linking_stub_from_name(attribute.link_model_name)
-            linked_model.add_reciprocal_link_attribute(model_builder, model)
-            linked_model.to_magma_model(model_builder)
+          model.template.attributes.all.select do |attribute|
+            attribute.attribute_type == Etna::Clients::Magma::AttributeType::LINK
+          end.each do |attribute|
+            linked_model = all_models.model(attribute.link_model_name)
+            link_converter = Etna::Clients::Magma::ModelConverter.new(linked_model)
+            link_converter.add_reciprocal_link_attribute(model)
           end
 
-          models
+          all_models
         end
 
         def ensure_magma_tree
@@ -110,14 +104,14 @@ module Etna
           #   model definition. So we have to "update" those
           #   instead of adding those (which occurs in
           #   ensure_magma_tree).
-          magma_models.model(model.name).template.attributes.all.select do |attribute|
+          model.template.attributes.all.select do |attribute|
             attribute.attribute_type == Etna::Clients::Magma::AttributeType::IDENTIFIER
           end.each do |attribute|
             magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
               project_name: project_name,
               actions: [Etna::Clients::Magma::UpdateAttributeAction.new(
                 model_name: model.name,
-                attribute_name: attribute.name,
+                attribute_name: attribute.attribute_name,
                 display_name: attribute.display_name,
                 description: attribute.desc,
                 validation: attribute.validation

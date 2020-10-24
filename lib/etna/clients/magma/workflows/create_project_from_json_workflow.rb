@@ -11,29 +11,43 @@ require 'json'
 require 'ostruct'
 require_relative './model_synchronization_workflow'
 require_relative '../../janus/models'
-require_relative './json_models'
+require_relative './json_validators'
+require_relative './json_converters'
 
 module Etna
   module Clients
     class Magma
-      # Note!  These workflows are not perfectly atomic, nor perfectly synchronized due to nature of the backend.
-      # These primitives are best effort locally synchronized, but cannot defend the backend or simultaneous
-      # system updates.
       class CreateProjectFromJsonWorkflow < Struct.new(:magma_client, :janus_client, :filepath, keyword_init: true)
-        attr_reader :project, :project_name
+        attr_reader :project, :converter
 
         def initialize(**params)
-          super({}.update(params))
-          @project = Etna::Clients::Magma::JsonProject.new(filepath: filepath)
-          raise "Project JSON has errors: #{project.errors}" unless project.valid?
+          super
 
-          @project_name = project.name
+          user_json = JSON.parse(File.read(filepath))
+          magma_json = Etna::Clients::Magma::ProjectConverter.convert_project_user_json_to_magma_json(user_json)
+          @project = Etna::Clients::Magma::Project.new(magma_json)
+
+          @validator = Etna::Clients::Magma::ProjectValidator.new(project)
+          @validator.validate
+
+          raise "Project JSON has errors: #{@validator.errors}" unless @validator.valid?
+
+          @converter = ProjectConverter.new(project)
+          @converter.convert!
+        end
+
+        def project_name
+          project.raw['project_name']
+        end
+
+        def project_name_full
+          project.raw['project_name_full']
         end
 
         def create_janus_project
           janus_client.add_project(Etna::Clients::Janus::AddProjectRequest.new(
             project_name: project_name,
-            project_name_full: project.name_full
+            project_name_full: project_name_full
           ))
         end
 
@@ -73,33 +87,29 @@ module Etna
           # Technically ensure_magma_tree should create models as needed,
           #   but things seem to go more smoothly if we manually
           #   create the models before we try to ensure the tree.
-          project.model_tree.each do |model|
+          converter.model_tree.each do |model|
+            next if model.name == 'project'
+
             magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
               project_name: project_name,
               actions: [Etna::Clients::Magma::AddModelAction.new(
                 model_name: model.name,
-                parent_model_name: model.parent_model_name,
-                parent_link_type: model.parent_link_type,
-                identifier: model.identifier
+                parent_model_name: model.raw['parent_model_name'],
+                parent_link_type: model.raw['parent_link_type'],
+                identifier: model.template.identifier
               )]))
           end
-        end
-
-        def magma_models
-          # Convert each of our JSON models into an instance of
-          #   Magma Model + Attributes
-          @magma_models ||= project.get_magma_models
         end
 
         def ensure_magma_tree
           # Call the model_synchronization_workflow.ensure_model_tree
           #   on each model to set their attributes in the target Magma.
           workflow = Etna::Clients::Magma::ModelSynchronizationWorkflow.new(
-            target_project: project.name,
+            target_project: project_name,
             target_client: magma_client,
-            source_models: magma_models
+            source_models: project.models
           )
-          magma_models.model_keys.each do |model_name|
+          project.models.model_keys.each do |model_name|
             workflow.ensure_model_tree(model_name)
           end
         end
@@ -122,15 +132,15 @@ module Etna
           #   model definition. So we have to "update" those
           #   instead of adding those (which occurs in
           #   ensure_magma_tree).
-          magma_models.model_keys.each do |model_name|
-            magma_models.model(model_name).template.attributes.all.select do |attribute|
+          project.models.model_keys.each do |model_name|
+            project.models.model(model_name).template.attributes.all.select do |attribute|
               attribute.attribute_type == Etna::Clients::Magma::AttributeType::IDENTIFIER
             end.each do |attribute|
               magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
                 project_name: project_name,
                 actions: [Etna::Clients::Magma::UpdateAttributeAction.new(
                   model_name: model_name,
-                  attribute_name: attribute.name,
+                  attribute_name: attribute.attribute_name,
                   display_name: attribute.display_name,
                   description: attribute.desc,
                   validation: attribute.validation
@@ -139,20 +149,33 @@ module Etna
           end
         end
 
-        def create!
+        def setup_janus_project!
           puts "Creating Janus project."
           create_janus_project
           puts "Done! Adding you as an administrator on the project."
           add_janus_user
           update_janus_permissions
           update_magma_client_token
-          puts "Done! Creating the project in Magma."
+          puts "Done with setting up the project in Janus!"
+        end
+
+        def setup_magma_project!
+          puts "Creating the project in Magma."
           create_magma_project
+          puts "Done! Creating all the models and attributes in Magma."
           create_magma_models
           ensure_magma_tree
+          puts "Done! Adding your new project record."
           create_magma_project_record
           update_magma_attributes
-          puts "All complete! You can visit Janus to refresh your token, then log into any app to manage your data."
+        end
+
+        def create!
+          setup_janus_project!
+          setup_magma_project!
+          puts "All complete!"
+          puts "You need to visit Janus to refresh your token."
+          puts "You can now log into any app to manage your data."
         end
 
         def user
