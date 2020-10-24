@@ -12,8 +12,8 @@ describe Polyphemus::MetisFileEtl do
   end
 
   def run_etl_command(*args)
-    cmd, args = etl_command.find_command(*args)
-    cmd.execute(*args)
+    cmd, args, kwds = etl_command.find_command(*args)
+    cmd.execute(*args, **kwds)
   end
 
   def setup_client(metis_client)

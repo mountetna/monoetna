@@ -17,7 +17,7 @@ describe Polyphemus::Server do
     get('/configuration')
 
     expect(last_response.status).to eq(200)
-    expect(json_body.keys).to eq([:magma, :metis, :janus, :timur, :polyphemus])
+    expect(json_body[:test].keys.sort).to eq([:magma, :metis, :janus, :timur, :polyphemus, :auth_redirect, :docker].sort)
   end
 
   it 'shows polyphemus is available for users' do
