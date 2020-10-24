@@ -113,8 +113,9 @@ class Janus
 
   class Migrate < Etna::Command
     usage '[<version number>] # blank to migrate to the latest'
+    string_flags << '--version'
     
-    def execute(version=nil)
+    def execute(version: nil)
       Sequel.extension(:migration)
       db = Janus.instance.db
 

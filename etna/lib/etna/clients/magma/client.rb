@@ -8,10 +8,15 @@ module Etna
   module Clients
     class Magma
       attr_reader :host, :token
-      def initialize(host:, token:, persistent: true)
+      def initialize(host:, token:, persistent: true, ignore_ssl: false)
         raise 'Magma client configuration is missing host.' unless host
         raise 'Magma client configuration is missing token.' unless token
-        @etna_client = ::Etna::Client.new(host, token, routes_available: false, persistent: persistent)
+        @etna_client = ::Etna::Client.new(
+          host,
+          token,
+          routes_available: false,
+          persistent: persistent,
+          ignore_ssl: ignore_ssl)
         @host = host
         @token = token
       end

@@ -5,6 +5,7 @@
 
 require_relative './sign_service'
 require_relative './command'
+require_relative './generate_autocompletion_script'
 require 'singleton'
 require 'rollbar'
 
@@ -68,9 +69,10 @@ module Etna::Application
   # the application logger is available globally
   attr_reader :logger
 
-  # In some cases, such as utility scripts that span across environments, it may be necessary to override
-  # the environment source.
   def config(type, env = environment)
+    return nil if @config.nil?
+    return nil if @config[env].nil?
+    return nil unless @config[env].is_a?(Hash)
     @config[env][type]
   end
 
@@ -88,10 +90,15 @@ module Etna::Application
     end
   end
 
-  def run_command(config, *args)
-    cmd, cmd_args = find_command(*args)
+  def run_command(config, *args, &block)
+    cmd, cmd_args, cmd_kwds = find_command(*args)
     cmd.setup(config)
-    cmd.execute(*cmd.fill_in_missing_params(cmd_args))
+
+    if block_given?
+      return unless yield [cmd, cmd_args]
+    end
+
+    cmd.execute(*cmd.fill_in_missing_params(cmd_args), **cmd_kwds)
   rescue => e
     Rollbar.error(e)
     raise

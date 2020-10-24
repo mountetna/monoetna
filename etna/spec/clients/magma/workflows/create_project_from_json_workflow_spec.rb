@@ -47,12 +47,12 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
 
     expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_project/).
       with(headers: {Authorization: 'Etna 123.eyJlbWFpbCI6ImZvb0BiYXIuY29tIiwiZmlyc3QiOiJmb28iLCJsYXN0IjoiYmFyIn0=.bar'})
-      expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_user\/#{PROJECT}/)
-      expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/update_permission\/#{PROJECT}/)
+    expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_user\/#{PROJECT}/)
+    expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/update_permission\/#{PROJECT}/)
     expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/refresh_token/)
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna a token for you!'}).
-      with { |req| req.body.include?('add_model') }.times(8)
+      with { |req| req.body.include?('add_model') }.times(7) # 7 non-project models
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
       with(headers: {Authorization: 'Etna a token for you!'}).
       with { |req| req.body.include?('add_attribute') }.times(62)

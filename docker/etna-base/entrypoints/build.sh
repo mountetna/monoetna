@@ -6,7 +6,6 @@ set -e
   set -x
 #fi
 
-export PATH="/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH"
 # Default directories
 mkdir -p /app/tmp/pids
 mkdir -p /app/public/js
@@ -40,6 +39,7 @@ if [ -z "$SKIP_RUBY_SETUP" ]; then
     mv /tmp/.git /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/
     cd /app
     bundle install
+    rm /app/vendor/bundle/*/bin/etna
   fi
 fi
 
@@ -73,3 +73,5 @@ fi
 
 echo 'for file in /app/*.completion; do source $file || true; done' >> /root/.bashrc
 echo 'export PATH="/app/bin:$PATH"' >> /root/.bashrc
+# Allow other users to use the root bash setup
+chmod -R 777 /root/

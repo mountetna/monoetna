@@ -90,7 +90,7 @@
       }
     },
     "patient": {
-      "parent_model_name": "project",
+      "parent_model_name": " project",
       "parent_link_type": "thingamajig",
       "identifier": "name",
       "attributes": {
@@ -114,7 +114,7 @@
     },
     "status": {
       "parent_model_name": "patient",
-      "parent_link_type": "table"
+      "parent_link_type": "table "
     },
     "symptom": {
       "parent_model_name": "patient",

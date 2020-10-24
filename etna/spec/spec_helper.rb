@@ -14,6 +14,7 @@ SimpleCov.start
 ENV['ARACHNE_ENV'] = 'test'
 
 require_relative '../lib/etna'
+require_relative '../lib/commands'
 require_relative '../lib/etna/spec/vcr'
 
 setup_base_vcr(__dir__)
@@ -245,3 +246,4 @@ def stub_polyphemus_setup
         polyphemus: 'zop'}.to_json
     })
 end
+
