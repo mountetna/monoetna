@@ -122,6 +122,7 @@
       "attributes": {}
     },
     "status": {
+      // Table relationships do not need the "identifier" attribute defined.
       "parent_model_name": "patient",
       "parent_link_type": "table"
     },
