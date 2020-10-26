@@ -17,7 +17,7 @@ action :create do
   file "/var/mountetna/#{name}/config.yml" do
     owner 'root'
     group 'docker'
-    content(EtnaConfigBuilder.new(name, node).merge(new_resource.extra_yml_config).build.to_yaml)
+    content(EtnaConfigBuilder.new(name, node, new_resource.tag).merge(new_resource.extra_yml_config).build.to_yaml)
     # Can contain secrets; ensure only true administrative users can read this file.
     mode '640'
   end
@@ -67,7 +67,7 @@ action :create do
 end
 
 class EtnaConfigBuilder
-  def initialize(name, node)
+  def initialize(name, node, tag)
     @config = config = {}
     production_config = config[:production] = {}
     production_config[:auth_redirect] = node['hosts']['janus']
@@ -77,6 +77,8 @@ class EtnaConfigBuilder
     production_config[:log_file] = '/dev/stdout'
     production_config[:log_level] = 'info'
     production_config[:rsa_public] = node['janus_token']['rsa_public']
+
+    production_config[:docker] = { default_tag: tag }
 
     # Add in all the hosts.
     node['hosts'].each do |k, v|

@@ -31,4 +31,5 @@ gen_for "janus_app"  "./bin/janus"
 gen_for "magma_app"  "./bin/magma"
 gen_for "polyphemus_app"  "./bin/polyphemus"
 gen_for "polyphemus_app"  "./bin/etl_tools"
+gen_for "etna_app"  "./bin/etna"
 

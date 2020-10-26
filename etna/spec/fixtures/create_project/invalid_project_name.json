@@ -73,21 +73,21 @@
       }
     },
     "assay_pool": {
-      "parent_model_name": " project",
-      "parent_link_type": "collection ",
+      "parent_model_name": "project",
+      "parent_link_type": "collection",
       "identifier": "assay_pool",
       "attributes": {
-        "biospecimen ": {
+        "biospecimen": {
           "attribute_name": "biospecimen",
           "desc": "Type of biospecimen collected",
           "display_name": "Biospecimen",
           "attribute_type": "string"
         },
-        "cells_loaded ": {
+        "cells_loaded": {
           "attribute_name": "cells_loaded",
           "desc": "Number of cells loaded into the whatchamacallit.",
           "display_name": "Cells Loaded",
-          "attribute_type": "  integer "
+          "attribute_type": "integer"
         }
       }
     },
@@ -104,8 +104,8 @@
         },
         "symptom": {
           "attribute_name": "symptom",
-          "desc": "  Related symptoms",
-          "display_name": " Symptom ",
+          "desc": "Related symptoms",
+          "display_name": "Symptom",
           "attribute_type": "table"
         }
       }
@@ -115,17 +115,17 @@
       "attributes": {}
     },
     "status": {
-      "parent_model_name": " patient ",
+      "parent_model_name": "patient",
       "parent_link_type": "table"
     },
     "symptom": {
-      "parent_model_name": "patient ",
+      "parent_model_name": "patient",
       "parent_link_type": "table"
     },
     "timepoint": {
       "parent_model_name": "patient",
       "parent_link_type": "collection",
-      "identifier": " name",
+      "identifier": "name",
       "attributes": {
         "day": {
           "attribute_name": "day",

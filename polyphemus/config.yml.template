@@ -1,4 +1,10 @@
 :development:
+  :docker:
+    :default_tag: latest
+  :janus:
+    :host: https://janus.development.local
+  :timur:
+    :host: https://timur.development.local
   :magma:
     :host: https://magma.development.local
   :metis:
@@ -6,6 +12,7 @@
     :release_bucket: this_is_releasable
     :restrict_bucket: dont_show_anyone
   :polyphemus:
+    :host: https://polyphemus.development.local
     :token: my-token # create a long lived token with janus
   :db:
     :adapter: postgres

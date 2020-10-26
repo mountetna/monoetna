@@ -1,0 +1,8 @@
+[
+  {
+    "action_name": "update_attribute",
+    "model_name": "assay_name",
+    "attribute_name": "vendor",
+    "read_only": true
+  }
+]
