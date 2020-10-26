@@ -109,40 +109,6 @@ class IpiAddFlowModelMigration
     @magma_client.update_model(add_attributes_request)
   end
 
-  def create_mfi_model
-    create_mfi_request = Etna::Clients::Magma::UpdateModelRequest.new(
-      project_name: @project_name,
-      actions: [Etna::Clients::Magma::AddModelAction.new(
-        model_name: 'mfi',
-        parent_model_name: 'population',
-        parent_link_type: 'table'
-      )]
-    )
-    @magma_client.update_model(create_mfi_request)
-
-    add_attributes_request = Etna::Clients::Magma::UpdateModelRequest.new(
-      project_name: @project_name,
-      actions: [Etna::Clients::Magma::AddAttributeAction.new(
-        model_name: 'mfi',
-        type: 'string',
-        attribute_name: 'name',
-        description: 'Name of antibody.'
-      ), Etna::Clients::Magma::AddAttributeAction.new(
-        model_name: 'mfi',
-        type: 'string',
-        attribute_name: 'fluor',
-        description: 'Color of this channel.'
-      ), Etna::Clients::Magma::AddAttributeAction.new(
-        model_name: 'mfi',
-        type: 'float',
-        attribute_name: 'value',
-        description: 'Mean fluorescence intensity.'
-      )]
-    )
-
-    @magma_client.update_model(add_attributes_request)
-  end
-
   def copy_flow_data
     # Copy the existing file, quality_flag, and notes for each stain
     #   from the Sample model to the new Flow model
@@ -226,6 +192,5 @@ class IpiAddFlowModelMigration
     copy_flow_data
     hide_sample_columns
     create_population_model
-    create_mfi_model
   end
 end
