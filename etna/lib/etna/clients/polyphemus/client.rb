@@ -23,7 +23,7 @@ module Etna
         @etna_client.get(
           "/configuration",
           configuration_request) do |res|
-          json = JSON.parse(res.body)
+          json = JSON.parse(res.body, symbolize_names: true)
         end
 
         ConfigurationResponse.new(json)

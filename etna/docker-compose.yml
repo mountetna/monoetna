@@ -1,3 +1,4 @@
+
 networks:
   edge_net:
     ipam:
@@ -20,6 +21,8 @@ services:
       - .:/app:cached
       - etna-app-gems:/app/vendor/bundle:rw
       - ../docker/etna-base/entrypoints:/entrypoints:ro
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
     entrypoint: /entrypoints/development.sh
     environment:
       SKIP_DB_WAIT: 1
@@ -32,3 +35,4 @@ services:
       - 'janus.development.local:172.16.238.10'
       - 'timur.development.local:172.16.238.10'
       - 'polyphemus.development.local:172.16.238.10'
+

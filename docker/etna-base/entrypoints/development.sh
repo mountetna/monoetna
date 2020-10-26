@@ -10,8 +10,6 @@ if [ -z "$SKIP_BUILD" ]; then
     /entrypoints/build.sh
   fi
 
-  export PATH="/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH"
-
   rm -f tmp/pids/*.pid
 
   if [ -z "$SKIP_RUBY_SETUP" ]; then
