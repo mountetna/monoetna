@@ -1,12 +1,26 @@
 #!/usr/bin/env ruby
 
-require 'bundler'
-Bundler.require :default
+if ENV['ETNA_GEM_DEVELOPMENT']
+  require 'bundler'
+  Bundler.require :default
+end
 
 require 'yaml'
 require_relative '../lib/etna'
 require_relative '../lib/commands'
 
-config = YAML.load(File.read(File.expand_path("../../config.yml",__FILE__)))
+config = if File.exists?(EtnaApp.config_file_path)
+  YAML.load(File.read(EtnaApp.config_file_path))
+else
+  { production: {} }
+end
 
-EtnaApp.instance.run_command(config, *ARGV)
+EtnaApp.instance.run_command(config, *ARGV) do |cmd, args|
+  if cmd.class.included_modules.include?(RequireConfirmation)
+    puts "Attempting to run #{cmd.program_name} in environment #{EtnaApp.instance.environment} with args #{args}"
+    puts "Confirm? y/n"
+    STDIN.gets.chomp == 'y'
+  else
+    true
+  end
+end

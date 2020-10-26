@@ -14,13 +14,13 @@
           }
         },
         "123restricted": {
-          "attribute_name": "restricted",
+          "attribute_name": "123restricted",
           "desc": "Controls access to the data.",
           "display_name": "Restricted",
           "attribute_type": "boolean"
         },
         "assay_2_pool": {
-          "attribute_name": "assay_pool",
+          "attribute_name": "assay_2_pool",
           "link_model_name": "pool_deep_end",
           "display_name": "Assay Pool",
           "attribute_type": "link"
@@ -48,7 +48,7 @@
           "attribute_type": ""
         },
         "version!@": {
-          "attribute_name": "version",
+          "attribute_name": "version!@",
           "desc": "Version",
           "display_name": "Version",
           "attribute_type": "copacetic"
@@ -72,7 +72,7 @@
       "parent_link_type": "collection",
       "identifier": "assay_pool",
       "attributes": {
-        "biospecimen": {
+        "biospecimen ": {
           "attribute_name": "biospecimen",
           "display_name": "Biospecimen",
           "validation": {
@@ -80,7 +80,7 @@
             "value": ""
           }
         },
-        "cells_loaded": {
+        "cells_loaded ": {
           "attribute_name": "cells_loaded",
           "desc": "Number of cells loaded into the whatchamacallit.",
           "attribute_type": "integer"

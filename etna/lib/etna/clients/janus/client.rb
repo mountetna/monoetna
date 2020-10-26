@@ -7,10 +7,15 @@ require_relative './models'
 module Etna
   module Clients
     class Janus
-      def initialize(host:, token:, persistent: true)
+      def initialize(host:, token:, persistent: true, ignore_ssl: false)
         raise 'Janus client configuration is missing host.' unless host
         raise 'Janus client configuration is missing token.' unless token
-        @etna_client = ::Etna::Client.new(host, token, routes_available: false, persistent: persistent)
+        @etna_client = ::Etna::Client.new(
+          host,
+          token,
+          routes_available: false,
+          persistent: persistent,
+          ignore_ssl: ignore_ssl)
       end
 
       def get_project(get_project_request = GetProjectRequest.new)

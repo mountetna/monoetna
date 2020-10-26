@@ -7,23 +7,51 @@ module WithEtnaClients
   end
 
   def token
-    if !ENV['TOKEN']
-      puts "No environment variable TOKEN is set. Set your token with `export TOKEN=<your.janus.token>` before running Etna commands."
+    env_token = ENV['TOKEN']
+    if !env_token
+      puts "No environment variable TOKEN is set.  You should set your token with `export TOKEN=<your.janus.token>` before running."
+      redirect = EtnaApp.instance.config(:auth_redirect)
+
+      if redirect.nil? && EtnaApp.instance.environment == :production
+        redirect = 'https://janus.ucsf.edu/'
+      end
+
+      unless redirect.nil?
+        puts "Open your browser to #{redirect} to complete login and copy your token."
+      end
+
       exit
     end
-    ENV['TOKEN']
+
+    env_token
   end
 
   def magma_client
-    @magma_client ||= Etna::Clients::Magma.new(token: token, host: EtnaApp.instance.config(:magma, environment)[:host])
+    @magma_client ||= Etna::Clients::Magma.new(
+        token: token,
+        ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
+        **EtnaApp.instance.config(:magma, environment) || {})
   end
 
   def metis_client
-    @metis_client ||= Etna::Clients::Metis.new(token: token, host: EtnaApp.instance.config(:metis, environment)[:host])
+    @metis_client ||= Etna::Clients::Metis.new(
+        token: token,
+        ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
+        **EtnaApp.instance.config(:metis, environment) || {})
   end
 
   def janus_client
-    @janus_client ||= Etna::Clients::Janus.new(token: token, host: EtnaApp.instance.config(:janus, environment)[:host])
+    @janus_client ||= Etna::Clients::Janus.new(
+        token: token,
+        ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
+        **EtnaApp.instance.config(:janus, environment) || {})
+  end
+
+  def polyphemus_client
+    @polyphemus_client ||= Etna::Clients::Polyphemus.new(
+        token: token,
+        ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
+        **EtnaApp.instance.config(:polyphemus, environment) || {})
   end
 end
 
