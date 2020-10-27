@@ -1,15 +1,19 @@
 ---
 layout: default
 ---
+
 # Etna
+
 {:.no_toc}
+
 ## Application Framework
+
 {:.no_toc}
 
 The `etna` gem + npm module define a common framework for Etna applications.
 
-* TOC
-{:toc}
+- TOC
+  {:toc}
 
 ## Etna::Application
 
@@ -77,12 +81,13 @@ The controller provides @request and @response rack objects, @params (built by E
 The action is usually invoked by the #response method. Both the action and ultimately the #response method must return a valid Rack response (e.g. [ 200, {}, 'OK' ])
 
 The controller also gives several helper methods:
-* `view(name)` - returns an HTML view from a file found in the VIEW_PATH
-* `erb_view(name)` - returns an HTML view from an ERB template using the controller context.
-* `success(content_type, msg)` - a successful rack response
-* `failure(status,msg)` - an unsuccessful rack response
-* `require_params(*params)` - raise Etna::BadRequest unless @params has params
-* `route_path(name, params)` - The URL corresponding to a named route with the given parameters
+
+- `view(name)` - returns an HTML view from a file found in the VIEW_PATH
+- `erb_view(name)` - returns an HTML view from an ERB template using the controller context.
+- `success(content_type, msg)` - a successful rack response
+- `failure(status,msg)` - an unsuccessful rack response
+- `require_params(*params)` - raise Etna::BadRequest unless @params has params
+- `route_path(name, params)` - The URL corresponding to a named route with the given parameters
 
 ### Etna::Error
 
