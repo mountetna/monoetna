@@ -9,7 +9,7 @@ require_relative './models'
 module Etna
   module Clients
     class Metis
-      attr_reader :token, :host
+      attr_reader :token
       def initialize(host:, token:, persistent: true, ignore_ssl: false)
         raise 'Metis client configuration is missing host.' unless host
         raise 'Metis client configuration is missing token.' unless token
@@ -20,7 +20,6 @@ module Etna
           ignore_ssl: ignore_ssl)
 
         @token = token
-        @host = host
       end
 
       def list_all_folders(list_all_folders_request = ListFoldersRequest.new)
