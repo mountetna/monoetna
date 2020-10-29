@@ -113,8 +113,32 @@ module Etna
         # This method, and it's partner prepare_parent, should never call into any re-entrant or potentially
         # cyclical method, like ensure_model_tree.
         def ensure_model(model_name)
-          return unless (source_model = source_models.model(model_name))
+          ensure_model_create(model_name)
+          ensure_model_identifier_configured(model_name)
+        end
 
+        def ensure_model_identifier_configured(model_name)
+          return unless (source_model = source_models.model(model_name))
+          target_model_name = target_of_source(model_name)
+
+          template = source_model.template
+          return unless (identifier_attribute = template.attributes.attribute(template.identifier))
+
+          update_identifier_action = UpdateAttributeAction.new(
+              {
+                  model_name: target_model_name,
+                  attribute_name: template.identifier,
+                  display_name: identifier_attribute.display_name,
+                  description: identifier_attribute.desc,
+                  validation: identifier_attribute.validation,
+              }
+          )
+
+          execute_updates(update_identifier_action)
+        end
+
+        def ensure_model_create(model_name)
+          return unless (source_model = source_models.model(model_name))
           target_model_name = target_of_source(model_name)
           return if target_models.model_keys.include?(target_model_name)
 

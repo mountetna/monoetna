@@ -2,7 +2,7 @@ require 'webmock/rspec'
 require 'json'
 require_relative '../../../../lib/etna/clients/janus'
 
-describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
+describe Etna::Clients::Magma::CreateProjectWorkflow do
   let(:magma_client) {Etna::Clients::Magma.new(
     token: '123.eyJlbWFpbCI6ImZvb0BiYXIuY29tIiwiZmlyc3QiOiJmb28iLCJsYXN0IjoiYmFyIn0=.bar',
     host: MAGMA_HOST)}
@@ -38,7 +38,7 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
   end
 
   it 'creates the project in janus and magma' do
-    workflow = Etna::Clients::Magma::CreateProjectFromJsonWorkflow.new(
+    workflow = Etna::Clients::Magma::CreateProjectWorkflow.new(
       magma_client: magma_client,
       janus_client: janus_client,
       filepath: './spec/fixtures/create_project/valid_project.json'
@@ -73,15 +73,5 @@ describe Etna::Clients::Magma::CreateProjectFromJsonWorkflow do
         "test" => {"name" => "test"}
       }
     })
-  end
-
-  it 'raises exception for an invalid project JSON' do
-    expect {
-      Etna::Clients::Magma::CreateProjectFromJsonWorkflow.new(
-        magma_client: magma_client,
-        janus_client: janus_client,
-        filepath: './spec/fixtures/create_project/missing_project_keys.json'
-      )
-    }.to raise_error(Exception)
   end
 end

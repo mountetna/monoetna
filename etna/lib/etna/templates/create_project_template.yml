@@ -1,9 +1,9 @@
 assay_model:
-"parent_model_name": "timepoint", // Make sure parent models are also defined in this file!
-"parent_link_type": "collection", // Options are child, collection, and table.
-
-
-// Define your initial models in this block.
+  # Make sure parent models are also defined in this file!
+  parent_model_name: timepoint
+  # Options are child, collection, and table
+  parent_link_type: collection
+  // Define your initial models in this block.
     "assay_model": {
       // Each model should have a parent_model_name and parent_link_type.
       "identifier": "tube_name",

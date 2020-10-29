@@ -114,38 +114,54 @@ class EtnaApp
         include WithEtnaClients
         include WithLogger
 
-        def execute(filepath)
-          create_project_workflow = Etna::Clients::Magma::CreateProjectFromJsonWorkflow.new(
+        def execute(project_name, project_name_full)
+          create_args = {project_name: project_name, project_name_full: project_name_full}
+          Etna::Clients::Magma::ProjectValidator.new(**create_args).validate!("#{program_name} #{command_name} args invalid!")
+
+          create_project_workflow = Etna::Clients::Magma::CreateProjectWorkflow.new(
               magma_client: magma_client,
               janus_client: janus_client,
-              filepath: filepath)
+              **create_args
+          )
           create_project_workflow.create!
-        end
-      end
-
-      class Validate < Etna::Command
-        include WithLogger
-
-        def execute(filepath)
-          user_json = JSON.parse(File.read(filepath))
-          magma_json = Etna::Clients::Magma::ProjectConverter.convert_project_user_json_to_magma_json(user_json)
-          project = Etna::Clients::Magma::Project.new(magma_json)
-
-          validator = Etna::Clients::Magma::ProjectValidator.new(project)
-          validator.validate
-
-          return puts "Project JSON is well-formatted!" if validator.valid?
-
-          puts "Project JSON has #{validator.errors.length} errors:"
-          validator.errors.each do |error|
-            puts "  * " + error.gsub("\n", "\n\t")
-          end
         end
       end
     end
 
     class Model
       include Etna::CommandExecutor
+
+      class Add < Etna::Command
+        include WithEtnaClients
+        include WithLogger
+
+        boolean_flags << '--watch'
+        string_flags << '--input-tsv'
+        string_flags << '--target-model'
+
+        def execute(project_name, input_tsv: nil, watch: false, target_model: 'project')
+          workflow = Etna::Clients::Magma::CreateProjectModelsWorkflow.new(magma_client: magma_client)
+
+          if input_tsv.nil?
+            prepare_template(workflow, project_name, target_model)
+          end
+        end
+
+        def prepare_template(workflow, project_name, target_model)
+          tf = Tempfile.new
+          begin
+            CSV.open(tf.path, 'wb', col_sep: "\t") do |tsv|
+              workflow.each_tsv_row_for_template(project_name, target_model) do |row|
+                tsv << row
+              end
+            end
+
+            FileUtils.cp(tf.path, "#{project_name}_models_#{target_model}.tsv")
+          ensure
+            tf.close!
+          end
+        end
+      end
 
       class Attributes
         include Etna::CommandExecutor

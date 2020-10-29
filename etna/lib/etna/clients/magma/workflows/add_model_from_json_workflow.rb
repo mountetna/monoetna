@@ -14,9 +14,6 @@ require_relative './json_converters'
 module Etna
   module Clients
     class Magma
-      # Note!  These workflows are not perfectly atomic, nor perfectly synchronized due to nature of the backend.
-      # These primitives are best effort locally synchronized, but cannot defend the backend or simultaneous
-      # system updates.
       class AddModelFromJsonWorkflow < Struct.new(:magma_client, :project_name, :model_name, :filepath, keyword_init: true)
         attr_reader :model
         def initialize(**params)

@@ -42,8 +42,9 @@ shift
 fi
 elif [[ "$1" == "administrate" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
+all_flag_completion_names="$all_flag_completion_names --project-name "
+string_flag_completion_names="$string_flag_completion_names --project-name "
+declare _completions_for_project_name="__project_name__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names="help model project"
@@ -111,7 +112,7 @@ all_flag_completion_names="$all_flag_completion_names  "
 string_flag_completion_names="$string_flag_completion_names  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names="add_model attributes help validate"
+all_completion_names="add_model attributes create help validate"
 all_completion_names="$all_completion_names $all_flag_completion_names"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
@@ -136,15 +137,6 @@ fi
 shift
 fi
 elif [[ "$1" == "add_model" ]]; then
-shift
-if [[ "$#" == "1" ]];  then
-all_completion_names="__project_name__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
 shift
 if [[ "$#" == "1" ]];  then
 all_completion_names="__model_name__"
@@ -230,15 +222,6 @@ fi
 elif [[ "$1" == "execute_actions" ]]; then
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names="__project_name__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-if [[ "$#" == "1" ]];  then
 all_completion_names="__filepath__"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
@@ -318,15 +301,6 @@ return
 elif [[ "$1" == "update_from_csv" ]]; then
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names="__project_name__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-if [[ "$#" == "1" ]];  then
 all_completion_names="__model_name__"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
@@ -380,15 +354,6 @@ return
 elif [[ "$1" == "validate_actions" ]]; then
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names="__project_name__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-if [[ "$#" == "1" ]];  then
 all_completion_names="__filepath__"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
@@ -434,6 +399,43 @@ else
 return
 fi
 done
+elif [[ "$1" == "create" ]]; then
+shift
+all_flag_completion_names="$all_flag_completion_names --watch --input-tsv --target-model "
+string_flag_completion_names="$string_flag_completion_names --input-tsv --target-model "
+declare _completions_for_input_tsv="__input_tsv__"
+declare _completions_for_target_model="__target_model__"
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
 elif [[ "$1" == "help" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
@@ -470,15 +472,6 @@ fi
 done
 return
 elif [[ "$1" == "validate" ]]; then
-shift
-if [[ "$#" == "1" ]];  then
-all_completion_names="__project_name__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
 shift
 if [[ "$#" == "1" ]];  then
 all_completion_names="__model_name__"
@@ -541,7 +534,7 @@ all_flag_completion_names="$all_flag_completion_names  "
 string_flag_completion_names="$string_flag_completion_names  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names="create help validate"
+all_completion_names="create help"
 all_completion_names="$all_completion_names $all_flag_completion_names"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
@@ -568,7 +561,7 @@ fi
 elif [[ "$1" == "create" ]]; then
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names="__filepath__"
+all_completion_names="__project_name_full__"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
 fi
@@ -610,50 +603,6 @@ fi
 done
 return
 elif [[ "$1" == "help" ]]; then
-shift
-all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
-while [[ "$#" != "0" ]]; do
-if [[ "$#" == "1" ]];  then
-all_completion_names=""
-all_completion_names="$all_completion_names $all_flag_completion_names"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
-return
-elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
-all_flag_completion_names="${all_flag_completion_names//$1\ /}"
-a=$1
-shift
-if [[ "$string_flag_completion_names" =~ $a\  ]]; then
-if [[ "$#" == "1" ]];  then
-a="${a//--/}"
-a="${a//-/_}"
-i="_completions_for_$a"
-all_completion_names="${!i}"
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-fi
-else
-return
-fi
-done
-return
-elif [[ "$1" == "validate" ]]; then
-shift
-if [[ "$#" == "1" ]];  then
-all_completion_names="__filepath__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
 shift
 all_flag_completion_names="$all_flag_completion_names  "
 string_flag_completion_names="$string_flag_completion_names  "

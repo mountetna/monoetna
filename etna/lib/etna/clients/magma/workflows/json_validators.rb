@@ -42,45 +42,34 @@ module Etna
         def model_exists_in_project?(project_magma_models, model_name)
           !!project_magma_models.model(model_name)
         end
+
+        def validate!(err_message)
+          @errors = []
+          self.validate
+          raise "#{err_message}\n#{format_errors}" unless valid?
+        end
+
+        def format_errors
+          errors.map { |e| e.gsub("\n", "\n\t") }.join("\n  * ")
+        end
       end
 
       class ProjectValidator < ValidatorBase
-        attr_reader :project
-        def initialize(project)
+        attr_reader :create_args
+        def initialize(**create_args)
           super()
-          @project = project
+          @create_args = project
         end
 
         def validate
           validate_project_names
-          validate_model_links
-          validate_models
         end
 
         def validate_project_names
-          check_key('root project', project.raw, 'project_name')
-          check_key('root project', project.raw, 'project_name_full')
-          name = project.raw['project_name']
+          check_key('root project', create_args, :project_name)
+          check_key('root project', create_args, :project_name_full)
+          name = create_args[:project_name]
           @errors << "Project name #{name} must be snake_case and cannot start with a number or \"pg_\"." unless name =~ name_regex_with_numbers && !name.start_with?('pg_')
-        end
-
-        def validate_models
-          project.models.all.each do |model|
-            validator = ModelValidator.new(model)
-            validator.validate
-            @errors += validator.errors unless validator.valid?
-          end
-        end
-
-        def validate_model_links
-          # Check all the attributes of type 'link', and make sure
-          #   that the link_model_name exists in the project definition.
-          model_names = project.models.all.map { |m| m.name }
-          project.models.all.map do |model|
-            validator = ModelValidator.new(model)
-            validator.validate_link_models(model_names)
-            @errors += validator.errors unless validator.valid?
-          end
         end
       end
 
@@ -165,17 +154,23 @@ module Etna
         def initialize(attribute)
           super()
           @attribute = attribute
-          # NOTE: for input simplicity, I've removed some of the
-          #   link-related types, since we'll try to calculate
-          #   those while parsing the JSON structure.
-          @valid_attribute_types = Etna::Clients::Magma::AttributeType.entries.reject { |a|
-            a == Etna::Clients::Magma::AttributeType::CHILD ||
-            a == Etna::Clients::Magma::AttributeType::COLLECTION ||
-            a == Etna::Clients::Magma::AttributeType::IDENTIFIER ||
-            a == Etna::Clients::Magma::AttributeType::PARENT
-          }.sort # sort for prettier presentation
+          @valid_attribute_types = self.class.valid_attribute_types
+          @valid_validation_types = self.class.valid_validation_types
+        end
 
-          @valid_validation_types = Etna::Clients::Magma::AttributeValidationType.entries.sort  # sort for prettier presentation
+        def self.valid_attribute_types
+          # NOTE: for input simplicity, certain link types are removed
+          # and calculated by other means.
+          Etna::Clients::Magma::AttributeType.entries.reject { |a|
+            a == Etna::Clients::Magma::AttributeType::CHILD ||
+                a == Etna::Clients::Magma::AttributeType::COLLECTION ||
+                a == Etna::Clients::Magma::AttributeType::IDENTIFIER ||
+                a == Etna::Clients::Magma::AttributeType::PARENT
+          }.sort
+        end
+
+        def self.valid_validation_types
+          Etna::Clients::Magma::AttributeValidationType.entries.sort
         end
 
         def validate_basic_attribute_data
