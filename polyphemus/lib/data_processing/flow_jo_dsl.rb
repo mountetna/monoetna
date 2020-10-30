@@ -1,6 +1,5 @@
 require 'nokogiri'
 require 'net/http'
-require 'pry'
 
 module XMLCensorInspect
   def inspect
