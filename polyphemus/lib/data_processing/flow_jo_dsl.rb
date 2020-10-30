@@ -186,8 +186,8 @@ module FlowJoDsl
     end
   end
 
-  def tube_of_stain(flow_jo, stain)
-    flow_jo.group(stain).sample_refs.map { |sr| flow_jo.sample(sr) }.first
+  def tubes_of_stain(flow_jo, stain)
+    flow_jo.group(stain).sample_refs.map { |sr| flow_jo.sample(sr) }
   end
 
   def patient_flow_record_names(patient_record)
@@ -224,18 +224,22 @@ module FlowJoDsl
   end
 
   def create_population_documents_for_stain(flow_jo, stain, existing_flow_record_names)
-    tube = tube_of_stain(flow_jo, stain)
+    tubes = tubes_of_stain(flow_jo, stain)
 
-    if !tube
+    if tubes.empty?
       return
     end
 
-    flow_stain_name = flow_stain_name_from_tubename(tube.tube_name)
+    tubes.each do |tube|
+      flow_stain_name = flow_stain_name_from_tubename(tube.tube_name)
 
-    raise "WSP contains data for #{flow_stain_name}, but that flow record does not exist." unless existing_flow_record_names.include?(flow_stain_name)
+      puts "Processing flow #{flow_stain_name}."
 
-    tube.populations.each do |pop|
-      new_population(flow_stain_name, stain, pop)
+      raise "WSP contains data for #{flow_stain_name}, but that flow record does not exist." unless existing_flow_record_names.include?(flow_stain_name)
+
+      tube.populations.each do |pop|
+        new_population(flow_stain_name, stain, pop)
+      end
     end
   end
 
