@@ -66,23 +66,25 @@ class IpiFlowPopulateIntegralData < Struct.new(:metis_client, :project_name, :so
   end
 
   def copy_files_to_dest(ext)
-    copy_files_request = Etna::Clients::Metis::CopyFilesRequest.new(project_name: project_name)
-
     find_files(ext).each do |file|
+      copy_files_request = Etna::Clients::Metis::CopyFilesRequest.new(project_name: project_name)
+
+      puts "Ensuring parent folder exists for #{file.file_name}."
       metis_client.ensure_parent_folder_exists(
         project_name: project_name,
         bucket_name: dest_bucket_name,
         path: dest_path(file))
 
+      puts "Creating copy request."
       copy_files_request.add_revision(
         Etna::Clients::Metis::CopyRevision.new(
           source: source_metis_path(file),
           dest: dest_metis_path(file)
         )
       )
+
+      metis_client.signed_copy_files(copy_files_request, Polyphemus.instance, 'metis')
     end
-    puts copy_files_request
-    # metis_client.copy_files(copy_files_request)
   end
 
   def copy_files
