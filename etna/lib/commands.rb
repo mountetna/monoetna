@@ -24,10 +24,12 @@ class EtnaApp
   def environment
     if @environment
       @environment
-    elsif @config && @config.keys.length == 1
+    elsif @config && @config.is_a?(Hash) && @config.keys.length == 1
       @config.keys.last.to_sym
+    elsif @config && @config.is_a?(Hash) && @config.keys.length > 1
+      raise "You have multiple environments configured, please specify your environment by adding --environment #{@config.keys.join("|")}"
     else
-      :production
+      raise "You do not have a successfully configured environment, please run #{program_name} config set https://polyphemus.ucsf.edu"
     end
   end
 
@@ -37,6 +39,20 @@ class EtnaApp
 
   class Config
     include Etna::CommandExecutor
+
+    class Show < Etna::Command
+
+      boolean_flags << '--all'
+
+      def execute(all: false)
+        if all
+          File.open(EtnaApp.config_file_path, 'r') { |f| puts f.read }
+        else
+          puts "Current environment: #{EtnaApp.instance.environment}"
+          pp EtnaApp.instance.env_config
+        end
+      end
+    end
 
     class Set < Etna::Command
       include WithEtnaClients
@@ -76,32 +92,6 @@ class EtnaApp
         puts "A sample attribute actions JSON template has been provided in the current directory as `attribute_actions_template.json`."
       end
     end
-
-    class AddModel < Etna::Command
-      include WithLogger
-
-      def execute
-        spec = Gem::Specification.find_by_name("etna")
-        gem_root = spec.gem_dir
-        FileUtils.cp(
-            "#{gem_root}/lib/etna/templates/add_model_template.json",
-            'model_template.json')
-        puts "A sample model JSON template has been provided at `model_template.json`."
-      end
-    end
-
-    class CreateProject < Etna::Command
-      include WithLogger
-
-      def execute
-        spec = Gem::Specification.find_by_name("etna")
-        gem_root = spec.gem_dir
-        FileUtils.cp(
-            "#{gem_root}/lib/etna/templates/create_project_template.json",
-            'project_template.json')
-        puts "A sample project JSON template has been provided at `project_template.json`."
-      end
-    end
   end
 
   class Administrate
@@ -116,7 +106,7 @@ class EtnaApp
 
         def execute(project_name, project_name_full)
           create_args = {project_name: project_name, project_name_full: project_name_full}
-          Etna::Clients::Magma::ProjectValidator.new(**create_args).validate!("#{program_name} #{command_name} args invalid!")
+          Etna::Clients::Magma::ProjectValidator.new(**create_args).validate!("#{program_name} args invalid!")
 
           create_project_workflow = Etna::Clients::Magma::CreateProjectWorkflow.new(
               magma_client: magma_client,
@@ -135,28 +125,85 @@ class EtnaApp
         include WithEtnaClients
         include WithLogger
 
-        boolean_flags << '--watch'
-        string_flags << '--input-tsv'
+        boolean_flags << '--execute'
+        string_flags << '--file'
         string_flags << '--target-model'
 
-        def execute(project_name, input_tsv: nil, watch: false, target_model: 'project')
-          workflow = Etna::Clients::Magma::CreateProjectModelsWorkflow.new(magma_client: magma_client)
+        def execute(project_name, execute: false, target_model: 'project', file: "#{project_name}_models_#{target_model}_tree.csv")
+          reset
 
-          if input_tsv.nil?
-            prepare_template(workflow, project_name, target_model)
+          unless File.exists?(file)
+            puts "File #{file} is being prepared from the #{project_name} project."
+            puts "Copying models descending from #{target_model}..."
+            prepare_template(file, project_name, target_model)
+            puts
+            puts "Done!  You can start editing the file #{file} now, and I will report validation errors here."
           end
-        end
 
-        def prepare_template(workflow, project_name, target_model)
-          tf = Tempfile.new
-          begin
-            CSV.open(tf.path, 'wb', col_sep: "\t") do |tsv|
-              workflow.each_tsv_row_for_template(project_name, target_model) do |row|
-                tsv << row
+          load_models_from_csv(file)
+
+          while true
+            if @models && @errors.empty?
+              puts "File #{file} is well formatted and contains #{@models.model_keys.length} models to synchronize to #{environment} #{project_name}."
+
+              if execute
+                puts "Would you like to execute?"
+                if StrongConfirmation.confirm
+                  workflow.synchronize_to_server(@models, project_name, target_model) do |update_action|
+                    puts "Executing #{update_action.raw}..."
+                  end
+                  puts "Success!"
+                end
+
+                return
+              else
+                puts "To commit, run \033[1;31m#{program_name} #{command_name} --file #{file} --target-model #{target_model} --execute\033[0m"
               end
             end
 
-            FileUtils.cp(tf.path, "#{project_name}_models_#{target_model}.tsv")
+            # Poll for updates
+            puts "Watching for changes to #{file}..."
+            while File.stat(file).mtime == @last_load
+              sleep(1)
+            end
+
+            load_models_from_csv(file)
+          end
+        end
+
+        def workflow
+          @workflow ||= Etna::Clients::Magma::AddProjectModelsWorkflow.new(magma_client: magma_client)
+        end
+
+        def reset
+          @errors = []
+          @models = nil
+          @last_load = Time.at(0)
+        end
+
+        def load_models_from_csv(file)
+          reset
+
+          @last_load = File.stat(file).mtime
+          @models = File.open(file, 'r') do |f|
+            workflow.prepare_models_from_csv(f) do |err|
+              @errors << err
+            end
+          end
+
+          return if @errors.empty?
+
+          puts "Input file #{file} is invalid:"
+          @errors.each do |err|
+            puts  "  * " + err.gsub("\n", "\n\t")
+          end
+        end
+
+        def prepare_template(file, project_name, target_model)
+          tf = Tempfile.new
+          begin
+            File.open(tf.path, 'wb') { |f| workflow.write_models_templats_csv(f, project_name, target_model) }
+            FileUtils.cp(tf.path, file)
           ensure
             tf.close!
           end
@@ -218,39 +265,6 @@ class EtnaApp
                 filepath: filepath)
             update_attributes_workflow.update_attributes
           end
-        end
-      end
-
-      class Validate < Etna::Command
-        include WithEtnaClients
-        include WithLogger
-
-        def execute(project_name, model_name, filepath)
-          # Use the workflow to validate instead of the ModelValidator directly,
-          #   because we also need to do the simple project-level validations, i.e.
-          #   does the model exist in the project already?
-          add_model_workflow = Etna::Clients::Magma::AddModelFromJsonWorkflow.new(
-              magma_client: magma_client,
-              project_name: project_name,
-              model_name: model_name,
-              filepath: filepath)
-          # If the workflow initialized, then no errors!
-          puts "Model JSON for #{model_name} is well-formatted and is valid for project #{project_name}."
-        end
-      end
-
-      class AddModel < Etna::Command
-        include WithEtnaClients
-        include WithLogger
-        include RequireConfirmation
-
-        def execute(project_name, model_name, filepath)
-          add_model_workflow = Etna::Clients::Magma::AddModelFromJsonWorkflow.new(
-              magma_client: magma_client,
-              project_name: project_name,
-              model_name: model_name,
-              filepath: filepath)
-          add_model_workflow.add!
         end
       end
     end

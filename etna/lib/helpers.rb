@@ -61,6 +61,20 @@ module WithLogger
   end
 end
 
+module StrongConfirmation
+  def confirm
+    random = SecureRandom.base36(5)
+    puts "To confirm, please type #{random}:"
+    input = STDIN.gets.chomp
+    if input == random
+      puts "Failed confirmation, got #{input}"
+      return false
+    end
+
+    true
+  end
+end
+
 WithEtnaClientsByEnvironment = EnvironmentScoped.new do
   include WithEtnaClients
 end

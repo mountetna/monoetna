@@ -1,7 +1,7 @@
 module Etna
   module Clients
     class Magma
-      class ModelsTsv
+      class ModelsCsv
         COLUMNS = [
             :comments,
             :model_name, :identifier, :parent_model_name, :parent_link_type,
@@ -34,16 +34,16 @@ module Etna
             unique: [:unique, COLUMN_AS_BOOLEAN],
         }
 
-        def self.apply_tsv_row(models = Models.new, row = {}, &err_block)
+        def self.apply_csv_row(models = Models.new, row = {}, &err_block)
           models.tap do
             template = if (model_name = self.get_col_or_nil(row, :model_name))
-              models.build_model(model_name).template.tap { |t| t.name = model_name }
+              models.build_model(model_name).build_template.tap { |t| t.name = model_name }
             else
               last_model = models.raw.keys.last
               if last_model.nil?
                 nil
               else
-                models.build_model(models.raw.keys.last).template
+                models.build_model(models.raw.keys.last).build_template
               end
             end
 
@@ -118,8 +118,8 @@ module Etna
               attr.attribute_name = attr.name = template.name
               attr.attribute_type = parent_link_type
               attr.link_model_name = template.name
-              attr.desc = self.prettify(template.model)
-              attr.display_name = self.prettify(template.model)
+              attr.desc = self.prettify(template.name)
+              attr.display_name = self.prettify(template.name)
             end
           end
         end
@@ -147,11 +147,11 @@ module Etna
                 value = f.call(value)
               end
 
-              if !att.send(processor).nil? || !att.send(processor).empty?
+              if !att.send(processor).nil? && !att.send(processor).empty?
                 yield "Value for #{processor} on attribute #{attribute_name} has duplicate definitions!" if block_given?
               end
 
-              att.send(processor, value)
+              att.send(:"#{processor}=", value)
             end
           end
         end
@@ -185,6 +185,10 @@ module Etna
                 identifier: model.template.identifier,
                 parent_model_name: model.template.parent,
                 parent_link_type: reciprocal.attribute_type.to_s
+            )
+          else
+            yield row_from_columns(
+                identifier: model.template.identifier,
             )
           end
 

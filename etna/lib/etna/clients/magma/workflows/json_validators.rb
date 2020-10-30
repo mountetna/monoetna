@@ -6,6 +6,7 @@ module Etna
     class Magma
       class ValidatorBase
         attr_reader :errors
+
         def initialize
           @errors = []
         end
@@ -56,6 +57,7 @@ module Etna
 
       class ProjectValidator < ValidatorBase
         attr_reader :create_args
+
         def initialize(**create_args)
           super()
           @create_args = project
@@ -75,43 +77,46 @@ module Etna
 
       class ModelValidator < ValidatorBase
         attr_reader :model
-        def initialize(model)
+
+        def initialize(models = Models.new, model_name = 'project')
           super()
-          @model = model
+          @model = models.build_model(model_name)
+          @models = models
           @valid_parent_link_types = Etna::Clients::Magma::ParentLinkType.entries.sort # sort for prettier presentation
         end
 
+        def parent_reciprocal_attribute
+          @models.find_reciprocal(model: @model, link_attribute_name: @model.template.parent)
+        end
+
         def name
-          model.name
+          model&.name
         end
 
         def raw
-          model.raw
-        end
-
-        def parent_model_name
-          model.raw['parent_model_name']
+          model&.template&.raw
         end
 
         def is_project?
-          model.name == 'project'
+          name == 'project'
         end
 
         def validate
           validate_add_model_data
+          validate_links
           validate_attributes
         end
 
         def validate_add_model_data
-          @errors << "Model name #{name} must be snake_case and can only consist of letters and \"_\"." unless model.name =~ name_regex_no_numbers
+          @errors << "Model name #{name} must be snake_case and can only consist of letters and \"_\"." unless name =~ name_regex_no_numbers
 
-          if !is_project?
+          unless is_project?
             check_key("model #{name}", raw, 'parent_model_name')
             check_key("model #{name}", raw, 'parent_link_type')
-
             check_in_set("model #{name}", raw, 'parent_link_type', @valid_parent_link_types)
           end
-          if model.raw['parent_link_type'] != Etna::Clients::Magma::ParentLinkType::TABLE
+
+          if parent_reciprocal_attribute&.attribute_type != Etna::Clients::Magma::ParentLinkType::TABLE
             check_key("model #{name}", raw, 'identifier')
           end
         end
@@ -120,30 +125,40 @@ module Etna
           model.template.attributes.attribute_keys.each do |attribute_name|
             attribute = model.template.attributes.attribute(attribute_name)
             attribute_validator = AttributeValidator.new(attribute)
-            attribute_validator.validate_key(attribute_name)
-            attribute_validator.validate_add_attribute_data
-            @errors += attribute_validator.errors unless attribute_validator.valid?
+            attribute_validator.validate
+            @errors += attribute_validator.errors
           end
         end
 
-        def validate_link_models(model_names)
-          @errors << "Parent model \"#{parent_model_name}\" for #{name} does not exist in project.\nCurrent models are #{model_names}." if !is_project? && !model_names.include?(parent_model_name)
+        def validate_links
+          if !is_project? && !@models.model_keys.include?(@model.template.parent)
+            @errors << "Parent model \"#{@model.template.parent}\" for #{name} does not exist in project."
+          end
+
+          if !is_project? && parent_reciprocal_attribute.nil?
+            @errors << "Parent link attributes not defined for model #{name}."
+          end
 
           link_attributes.each do |attribute|
-            attribute_validator = AttributeValidator.new(attribute)
-            attribute_validator.validate_link_models(model_names)
-            @errors += attribute_validator.errors unless attribute_validator.valid?
+            check_key("attribute #{attribute.attribute_name}", attribute.raw, 'link_model_name')
 
-            @errors << "Model \"#{name}\" already belongs to parent model \"#{parent_model_name}\". Remove attribute \"#{attribute.attribute_name}\"." if attribute.link_model_name == parent_model_name
+            if attribute.attribute_name != attribute.link_model_name
+              @errors << "Linked model, \"#{attribute.link_model_name}\", does not match attribute #{attribute.attribute_name}, link attribute names must match the model name."
+            end
+
+            unless @models.model_keys.include?(attribute.link_model_name)
+              @errors << "Linked model, \"#{attribute.link_model_name}\", on attribute #{attribute.attribute_name} does not exist!"
+            end
+
+            reciprocal = @models.find_reciprocal(model: @model, attribute: attribute)
+            if reciprocal.nil?
+              @errors << "Linked model, \"#{attribute.link_model_name}\", on attribute #{attribute.attribute_name} does not have a reciprocal link defined."
+            end
           end
-        end
-
-        def validate_existing_models(project_magma_models)
-          @errors << "Model #{name} already exists in project!" if model_exists_in_project?(project_magma_models, name)
         end
 
         def link_attributes
-          model.template.attributes.all.select do |attribute|
+          @model.template.attributes.all.select do |attribute|
             attribute.attribute_type == Etna::Clients::Magma::AttributeType::LINK
           end
         end
@@ -151,6 +166,7 @@ module Etna
 
       class AttributeValidator < ValidatorBase
         attr_reader :attribute
+
         def initialize(attribute)
           super()
           @attribute = attribute
@@ -173,7 +189,13 @@ module Etna
           Etna::Clients::Magma::AttributeValidationType.entries.sort
         end
 
+        def validate
+          validate_basic_attribute_data
+          validate_attribute_validation
+        end
+
         def validate_basic_attribute_data
+          check_valid_name_with_numbers('Attribute', attribute.attribute_name)
           check_key("attribute #{attribute.attribute_name}", attribute.raw, 'attribute_type')
 
           # The following two could be calculated or left blank?
@@ -192,10 +214,6 @@ module Etna
           check_in_set("attribute #{attribute.attribute_name}, validation", attribute.validation, 'type', @valid_validation_types)
         end
 
-        def validate_key(attribute_key)
-          @errors << "Attribute key \"#{attribute_key}\" must match attribute_name \"#{attribute.attribute_name}\"." unless attribute_key == attribute.attribute_name
-        end
-
         def is_link_attribute?
           attribute.attribute_type == Etna::Clients::Magma::AttributeType::LINK
         end
@@ -203,27 +221,11 @@ module Etna
         def is_identifier_attribute?
           attribute.attribute_type == Etna::Clients::Magma::AttributeType::IDENTIFIER
         end
-
-        def validate_link_models(model_names)
-          return unless is_link_attribute?
-
-          check_key("attribute #{attribute.attribute_name}", attribute.raw, 'link_model_name')
-
-          # Check that the linked model exists.
-          @errors << "Linked model, \"#{attribute.link_model_name}\", on attribute #{attribute.attribute_name} does not exist!\nCurrent models are #{model_names}." unless model_names.include?(attribute.link_model_name)
-        end
-
-        def validate_add_attribute_data
-          check_valid_name_with_numbers('Attribute', attribute.attribute_name)
-          validate_basic_attribute_data unless is_identifier_attribute?
-          validate_attribute_validation
-
-          @errors << "Attribute name #{attribute.attribute_name} should match the link_model_name, \"#{attribute.link_model_name}\"." if is_link_attribute? && attribute.link_model_name != attribute.attribute_name
-        end
       end
 
       class AttributeActionValidatorBase < ValidatorBase
         attr_reader :action, :project_models
+
         def initialize(action, project_models)
           super()
           @action = action
@@ -275,8 +277,7 @@ module Etna
 
         def validate_attribute_data
           validator = AttributeValidator.new(@attribute)
-          validator.validate_basic_attribute_data
-          validator.validate_attribute_validation
+          validator.validate
           @errors += validator.errors unless validator.valid?
 
           check_already_exists_in_model(action.model_name, action.attribute_name)
@@ -319,8 +320,8 @@ module Etna
           #   and that the types are valid.
           link_types = Set.new([source[:type], dest[:type]])
           expected_link_types = Set.new([
-            Etna::Clients::Magma::AttributeType::LINK,
-            Etna::Clients::Magma::AttributeType::COLLECTION
+              Etna::Clients::Magma::AttributeType::LINK,
+              Etna::Clients::Magma::AttributeType::COLLECTION
           ])
           if link_types != expected_link_types
             @errors << "You must have one \"link\" and one \"collection\" type in the links."
@@ -368,13 +369,14 @@ module Etna
           check_does_not_exist_in_model(action.model_name, action.attribute_name)
 
           validator = AttributeValidator.new(@attribute)
-          validator.validate_attribute_validation
+          validator.validate
           @errors += validator.errors unless validator.valid?
         end
       end
 
       class AttributeActionsValidator < ValidatorBase
         attr_reader :actions, :project_models
+
         def initialize(actions, project_models)
           super()
           @actions = actions

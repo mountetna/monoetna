@@ -211,7 +211,8 @@ module Etna
             attribute: model&.template&.attributes&.attribute(link_attribute_name),
             link_model: self.model(attribute&.link_model_name)
         )
-          link_model&.template&.attributes&.all&.find { |a| a.link_model_name == model_name }
+          return nil if model.nil? || model.name.nil?
+          link_model&.template&.attributes&.all&.find { |a| a.link_model_name == model.name }
         end
 
         def to_directed_graph(include_casual_links=false)
