@@ -63,7 +63,7 @@ module Etna
 
       hmac = Etna::TestHmac.new(application, hmac_params)
 
-      request.env['etna.hmac'] = hmac
+      request.env['etna.hmac'] = hmac if hmac.valid?
 
       return nil unless hmac.valid?
 
