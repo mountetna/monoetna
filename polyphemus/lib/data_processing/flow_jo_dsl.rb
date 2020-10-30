@@ -253,12 +253,12 @@ module FlowJoDsl
     end
   end
 
-  def sample_name_from_tubename(tube_name)
+  def flow_stain_name_from_tubename(tube_name)
     case tube_name
-    when sample_name_regex
-      return Regexp.last_match[0]
+    when flow_stain_name_regex
+      return tube_name.gsub('_', '.')
     else
-      raise "Could not guess sample name from tube name '#{tube_name}', does not match #{sample_name_regex.source}"
+      raise "Could not guess flow stain name from tube name '#{tube_name}', does not match #{flow_stain_name_regex.source}"
     end
   end
 
@@ -273,31 +273,31 @@ module FlowJoDsl
       return
     end
 
-    sample_name = sample_name_from_tubename(tube.tube_name)
+    flow_stain_name = flow_stain_name_from_tubename(tube.tube_name)
 
     tube.populations.each do |pop|
-      mfis = pop.statistics.map do |stat|
-        {
-            name: clean_name(tube.stain_for_fluor(stat.fluor)),
-            fluor: stat.fluor,
-            value: stat.value
-        }
-      end
-      new_population(sample_name, stain, pop, mfis)
+      # mfis = pop.statistics.map do |stat|
+      #   {
+      #       name: clean_name(tube.stain_for_fluor(stat.fluor)),
+      #       fluor: stat.fluor,
+      #       value: stat.value
+      #   }
+      # end
+      new_population(flow_stain_name, stain, pop)
     end
   end
 
-  def new_population(sample_name, stain, pop, mfis)
-    population_id = update_request.append_table("sample", sample_name, "population", {
-        stain: @stain_to_names[stain],
-        sample: sample_name,
+  def new_population(flow_stain_name, stain, pop)
+    population_id = update_request.append_table("flow", flow_stain_name, "population", {
         ancestry: pop.ancestry.map { |name| clean_name(name) }.join("\t"),
         name: clean_name(pop.name),
         count: pop.count,
     })
 
-    mfis.each do |mfi|
-      update_request.append_table("population", population_id, "mfi", mfi)
-    end
+    # We've decided to leave the MFI model out for now, since nested tables
+    #   may not be a great idea.
+    # mfis.each do |mfi|
+    #   update_request.append_table("population", population_id, "mfi", mfi)
+    # end
   end
 end
