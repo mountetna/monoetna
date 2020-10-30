@@ -1,5 +1,6 @@
 require 'nokogiri'
 require 'net/http'
+require 'pry'
 
 module XMLCensorInspect
   def inspect
@@ -186,70 +187,27 @@ module FlowJoDsl
     end
   end
 
-  def new_stain_panel(patient, name, channels)
-    stain_panel_id = update_request.append_table("patient", patient, "stain_panel", { name: name })
-    channels.each do |channel|
-      update_request.append_table("stain_panel", stain_panel_id, "channel", channel)
-    end
-  end
-
-
-  def process_all_samples(patient_record = @patient, flow_jo = @flow_jo)
-    names = @stain_to_names.keys.map do |stain|
-      tube = tube_of_stain(flow_jo, stain)
-      next unless tube
-      sample_name_from_tubename(tube.tube_name)
-    end.select.uniq
-
-    names.each do |name|
-      new_sample(name, record_identifier(patient_record, "patient"))
-    end
-  end
-
-  def new_sample(name, patient)
-    update_request.update_revision("sample", name, { patient: patient })
-  end
-
-  def process_all_stains(patient_record = @patient, flow_jo = @flow_jo)
-    @stain_to_names.keys.each do |stain|
-      create_stain_panel(patient_record, flow_jo, stain)
-    end
-  end
-
-  def create_stain_panel(patient_record, flow_jo, stain)
-    tube = tube_of_stain(flow_jo, stain)
-    name = @stain_to_names[stain]
-
-    if !tube
-      return
-    end
-
-    if !name
-      raise "Name for stain #{stain} not configured, call add_stain_name('#{stain}', 'some-name')"
-    end
-
-    channels = []
-    tube.keyword_value("$PAR").to_i.times do |n|
-      # Each tube matches one stain. put a list together for each one.
-      n = n + 1
-      channels << {
-          fluor: tube.keyword_value("$P#{n}N"),
-          antibody: tube.keyword_value("$P#{n}S"),
-          number: n,
-      }
-    end
-
-    new_stain_panel(record_identifier(patient_record, 'patient'), name, channels)
-  end
-
   def tube_of_stain(flow_jo, stain)
     flow_jo.group(stain).sample_refs.map { |sr| flow_jo.sample(sr) }.first
   end
 
+  def patient_flow_record_names(patient_record)
+    query = [ "patient", ["::identifier", "::equals", patient_record['ipi_number']],
+              "::first", "sample", "::all", "flow", "::all", "::identifier"]
+    request = Etna::Clients::Magma::QueryRequest.new(project_name: project_name, query: query)
+    magma_client.query(request).answer.map { |sample| sample.last.map { |flow| flow.last }}.flatten
+  end
+
   def process_all_populations(patient_record = @patient, flow_jo = @flow_jo)
-    process_all_samples(patient_record, flow_jo)
+    # Fetch all flow records for this patient, and pass that along to
+    #   create_population_documents_for_stain.
+    # If the flow record doesn't exist, throw an exception because the WSP
+    #   is not well formed.
+
+    existing_flow_record_names = patient_flow_record_names(patient_record)
+
     @stain_to_names.keys.each do |stain|
-      create_population_documents_for_stain(flow_jo, stain)
+      create_population_documents_for_stain(flow_jo, stain, existing_flow_record_names)
     end
   end
 
@@ -266,7 +224,7 @@ module FlowJoDsl
     name
   end
 
-  def create_population_documents_for_stain(flow_jo, stain)
+  def create_population_documents_for_stain(flow_jo, stain, existing_flow_record_names)
     tube = tube_of_stain(flow_jo, stain)
 
     if !tube
@@ -275,14 +233,9 @@ module FlowJoDsl
 
     flow_stain_name = flow_stain_name_from_tubename(tube.tube_name)
 
+    raise "WSP contains data for #{flow_stain_name}, but that flow record does not exist." unless existing_flow_record_names.include?(flow_stain_name)
+
     tube.populations.each do |pop|
-      # mfis = pop.statistics.map do |stat|
-      #   {
-      #       name: clean_name(tube.stain_for_fluor(stat.fluor)),
-      #       fluor: stat.fluor,
-      #       value: stat.value
-      #   }
-      # end
       new_population(flow_stain_name, stain, pop)
     end
   end
@@ -293,11 +246,5 @@ module FlowJoDsl
         name: clean_name(pop.name),
         count: pop.count,
     })
-
-    # We've decided to leave the MFI model out for now, since nested tables
-    #   may not be a great idea.
-    # mfis.each do |mfi|
-    #   update_request.append_table("population", population_id, "mfi", mfi)
-    # end
   end
 end

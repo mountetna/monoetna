@@ -10,7 +10,7 @@ module FileNameRegexDsl
   end
 
   def flow_stain_name_regex(project_name = self.project_name)
-    regex_chain(sample_name_regex(project_name), /_flow_\w+/)
+    regex_chain(sample_name_regex(project_name), /flow_\w+/)
   end
 
   def stain_name_regex(stain_names = @stain_to_names.values)
