@@ -43,7 +43,9 @@ module Etna
     end
 
     def approve_hmac(request)
-      hmac_signature = etna_param(request, :signature) || 'invalid'
+      hmac_signature = etna_param(request, :signature)
+
+      return false unless hmac_signature
 
       headers = (etna_param(request, :headers)&.split(/,/) || []).map do |header|
         [ header.to_sym, etna_param(request, header) ]
@@ -63,7 +65,7 @@ module Etna
 
       hmac = Etna::TestHmac.new(application, hmac_params)
 
-      request.env['etna.hmac'] = hmac if hmac.valid?
+      request.env['etna.hmac'] = hmac
 
       return nil unless hmac.valid?
 
