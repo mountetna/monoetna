@@ -60,9 +60,13 @@ class IpiAddFlowModelMigration
       ), Etna::Clients::Magma::AddAttributeAction.new(
         model_name: 'flow',
         type: 'string',
-        attribute_name: 'quality_flag',
-        description: 'Quality flag for the stain.',
-        display_name: 'Qualify flag'
+        attribute_name: 'flag',
+        description: 'Quality flag for this Flow stain.',
+        display_name: 'Flag',
+        validation: {
+          type: 'Array',
+          value: ['good', 'bad', 'critical']
+        }
       ), Etna::Clients::Magma::AddAttributeAction.new(
         model_name: 'flow',
         type: 'string',

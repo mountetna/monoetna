@@ -2,6 +2,7 @@ require 'net/http/persistent'
 require 'net/http/post/multipart'
 require 'singleton'
 require 'cgi'
+require 'json'
 require_relative '../../client'
 require_relative './models'
 
@@ -103,6 +104,52 @@ module Etna
       def copy_files(copy_files_request)
         FilesResponse.new(
           @etna_client.file_bulk_copy(copy_files_request.to_h))
+      end
+
+      def signed_copy_files(copy_files_request, application, hmac_id)
+        bulk_copy_route = @etna_client.routes.find { |r| r[:name] == 'file_bulk_copy' }
+
+        return nil unless bulk_copy_route
+
+        # At some point, when Metis supports changing project names,
+        # this parameter should be the old file project name (metis_file_location_parts[2]))
+        # and the new project name in the HMAC headers should
+        # be project_name
+
+        path = @etna_client.route_path(
+          bulk_copy_route,
+          project_name: copy_files_request.project_name
+        )
+
+        bulk_copy_params = {
+          revisions: copy_files_request.revisions.map { |rev|
+            JSON.parse(rev.to_json, symbolize_names: true) }
+        }
+
+        # Now populate the standard headers
+        hmac_params = {
+          method: 'POST',
+          host: host,
+          path: path,
+
+          expiration: (DateTime.now + 10).iso8601,
+          id: hmac_id,
+          nonce: SecureRandom.hex,
+          headers: bulk_copy_params,
+        }
+
+        hmac = Etna::Hmac.new(application, hmac_params)
+
+        cgi_hash = CGI.parse(hmac.url_params[:query])
+        cgi_hash.delete('X-Etna-Revisions') # this could be too long for URI
+
+        hmac_params_hash = Hash[cgi_hash.map {|key,values| [key.to_sym, values[0]||true]}]
+
+        FilesResponse.new(@etna_client.send(
+          'body_request',
+          Net::HTTP::Post,
+          hmac.url_params[:path] + '?' + URI.encode_www_form(cgi_hash),
+          bulk_copy_params))
       end
 
       def folder_exists?(create_folder_request)
