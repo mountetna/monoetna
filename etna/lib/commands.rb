@@ -82,6 +82,7 @@ class EtnaApp
   class CreateTemplate
     include Etna::CommandExecutor
 
+    # TODO: Refactor and replace with a command workflow similar to AddProjectModels
     class AttributeActions < Etna::Command
       def execute
         spec = Gem::Specification.find_by_name("etna")
@@ -118,7 +119,7 @@ class EtnaApp
       end
     end
 
-    class Model
+    class Models
       include Etna::CommandExecutor
 
       class Add < Etna::Command

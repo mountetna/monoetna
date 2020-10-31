@@ -46,7 +46,7 @@ all_flag_completion_names="$all_flag_completion_names  "
 string_flag_completion_names="$string_flag_completion_names  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names="help model project"
+all_completion_names="help models project"
 all_completion_names="$all_completion_names $all_flag_completion_names"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
@@ -105,7 +105,7 @@ return
 fi
 done
 return
-elif [[ "$1" == "model" ]]; then
+elif [[ "$1" == "models" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
 string_flag_completion_names="$string_flag_completion_names  "

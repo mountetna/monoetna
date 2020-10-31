@@ -184,21 +184,6 @@ module Etna
           ]
         end
       end
-
-      class ShallowCopyModelWorkflow < ModelSynchronizationWorkflow
-        def initialize(model_name:, **kwds)
-          super(**kwds)
-          @model_name = model_name
-        end
-
-        # Aside from just creating models for links, do not cascade the expansion.
-        def ensure_model_tree(model_name, *args)
-          puts "Checking #{model_name} #{@model_name}"
-          if model_name == @model_name
-            super(model_name, *args)
-          end
-        end
-      end
     end
   end
 end
