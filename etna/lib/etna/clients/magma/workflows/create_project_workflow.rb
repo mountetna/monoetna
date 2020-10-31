@@ -60,7 +60,7 @@ module Etna
           magma_client.update(Etna::Clients::Magma::UpdateRequest.new(
             project_name: project_name,
             revisions: {
-              project_name => { name: project_name }
+                'project' => { project_name => { name: project_name } },
             }))
         end
 

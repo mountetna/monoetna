@@ -60,7 +60,7 @@ module Etna
 
         def initialize(**create_args)
           super()
-          @create_args = project
+          @create_args = create_args
         end
 
         def validate
@@ -75,7 +75,7 @@ module Etna
         end
       end
 
-      class ModelValidator < ValidatorBase
+      class AddModelValidator < ValidatorBase
         attr_reader :model
 
         def initialize(models = Models.new, model_name = 'project')
@@ -102,29 +102,31 @@ module Etna
         end
 
         def validate
-          validate_add_model_data
-          validate_links
-          validate_attributes
-        end
-
-        def validate_add_model_data
           @errors << "Model name #{name} must be snake_case and can only consist of letters and \"_\"." unless name =~ name_regex_no_numbers
-
-          unless is_project?
-            check_key("model #{name}", raw, 'parent_model_name')
-            check_key("model #{name}", raw, 'parent_link_type')
-            check_in_set("model #{name}", raw, 'parent_link_type', @valid_parent_link_types)
-          end
 
           if parent_reciprocal_attribute&.attribute_type != Etna::Clients::Magma::ParentLinkType::TABLE
             check_key("model #{name}", raw, 'identifier')
           end
+
+          validate_links
+          validate_attributes
         end
 
         def validate_attributes
           model.template.attributes.attribute_keys.each do |attribute_name|
             attribute = model.template.attributes.attribute(attribute_name)
-            attribute_validator = AttributeValidator.new(attribute)
+
+            if attribute_name == model.template.identifier
+              attribute_types = [AttributeType::IDENTIFIER]
+            elsif attribute_name == model.template.parent
+              attribute_types = [AttributeType::PARENT]
+            elsif @models.find_reciprocal(model: model, attribute: attribute)&.attribute_type == AttributeType::PARENT
+              attribute_types = AttributeValidator.valid_parent_link_attribute_types
+            else
+              attribute_types = AttributeValidator.valid_add_row_attribute_types
+            end
+
+            attribute_validator = AttributeValidator.new(attribute, attribute_types)
             attribute_validator.validate
             @errors += attribute_validator.errors
           end
@@ -167,22 +169,31 @@ module Etna
       class AttributeValidator < ValidatorBase
         attr_reader :attribute
 
-        def initialize(attribute)
+        def initialize(attribute, valid_attribute_types)
           super()
           @attribute = attribute
-          @valid_attribute_types = self.class.valid_attribute_types
+          @valid_attribute_types = valid_attribute_types
           @valid_validation_types = self.class.valid_validation_types
         end
 
-        def self.valid_attribute_types
-          # NOTE: for input simplicity, certain link types are removed
-          # and calculated by other means.
+        def self.valid_add_row_attribute_types
           Etna::Clients::Magma::AttributeType.entries.reject { |a|
             a == Etna::Clients::Magma::AttributeType::CHILD ||
-                a == Etna::Clients::Magma::AttributeType::COLLECTION ||
                 a == Etna::Clients::Magma::AttributeType::IDENTIFIER ||
                 a == Etna::Clients::Magma::AttributeType::PARENT
           }.sort
+        end
+
+        def self.valid_parent_link_attribute_types
+          [
+              AttributeType::COLLECTION,
+              AttributeType::TABLE,
+              AttributeType::CHILD,
+          ]
+        end
+
+        def self.valid_update_attribute_types
+          Etna::Clients::Magma::AttributeType.entries.sort
         end
 
         def self.valid_validation_types
@@ -202,7 +213,10 @@ module Etna
           # But it would be nice in the final UI to have them be more informative, so
           #   we'll enforce here.
           check_key("attribute #{attribute.attribute_name}", attribute.raw, 'display_name')
-          check_key("attribute #{attribute.attribute_name}", attribute.raw, 'desc')
+
+          if attribute.link_model_name && ![AttributeType::TABLE, AttributeType::LINK, AttributeType::COLLECTION, AttributeType::PARENT, AttributeType::CHILD].include?(attribute.attribute_type)
+            @errors << "attribute #{attribute.attribute_name} has link_model_name set, but has attribute_type #{attribute.attribute_type}"
+          end
 
           check_in_set("attribute #{attribute.attribute_name}", attribute.raw, 'attribute_type', @valid_attribute_types)
         end
@@ -276,7 +290,7 @@ module Etna
         end
 
         def validate_attribute_data
-          validator = AttributeValidator.new(@attribute)
+          validator = AttributeValidator.new(@attribute, AttributeValidator.valid_add_row_attribute_types)
           validator.validate
           @errors += validator.errors unless validator.valid?
 
@@ -368,7 +382,7 @@ module Etna
         def validate_attribute_data
           check_does_not_exist_in_model(action.model_name, action.attribute_name)
 
-          validator = AttributeValidator.new(@attribute)
+          validator = AttributeValidator.new(@attribute, AttributeValidator.valid_update_attribute_types)
           validator.validate
           @errors += validator.errors unless validator.valid?
         end

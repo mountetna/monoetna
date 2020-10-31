@@ -5,8 +5,9 @@ module Etna
         COLUMNS = [
             :comments,
             :model_name, :identifier, :parent_model_name, :parent_link_type,
-            :attribute_name, :attribute_type,
-            :link_model_name, :reciprocal_link_type,
+            :attribute_name,
+            :attribute_type,
+            :link_model_name,
             :description,
             :display_name,
             :format_hint,
@@ -22,28 +23,35 @@ module Etna
         COLUMN_AS_BOOLEAN = -> (s) { ['true', 't', 'y', 'yes'].include?(s.downcase) }
 
         COLUMNS_TO_ATTRIBUTES = {
+            attribute_name: :attribute_name,
+            attribute_type: [:attribute_type, -> (s) { AttributeType.new(s) }],
+            link_model_name: :link_model_name,
             description: :desc,
             display_name: :display_name,
             format_hint: :format_hint,
             restricted: [:restricted, COLUMN_AS_BOOLEAN],
             read_only: [:read_only, COLUMN_AS_BOOLEAN],
-            options: [:validation, -> (s) { { "type" => "Array", "value" => s.split(',').map(&:chomp) } }],
-            match: [:validation, -> (s) { { "type" => "Regex", "value" => Regexp.new(s).source } }],
+            options: [:validation, -> (s) { {"type" => "Array", "value" => s.split(',').map(&:chomp)} }],
+            match: [:validation, -> (s) { {"type" => "Regexp", "value" => Regexp.new(s).source} }],
             attribute_group: :attribute_group,
             hidden: [:hidden, COLUMN_AS_BOOLEAN],
             unique: [:unique, COLUMN_AS_BOOLEAN],
         }
 
         def self.apply_csv_row(models = Models.new, row = {}, &err_block)
+
           models.tap do
             template = if (model_name = self.get_col_or_nil(row, :model_name))
+              # Force the model to be most recently inserted key, since the state
+              # of the current model is kept by key ordering.
+              models.raw[model_name] = models.raw.delete(model_name)
               models.build_model(model_name).build_template.tap { |t| t.name = model_name }
             else
               last_model = models.raw.keys.last
               if last_model.nil?
                 nil
               else
-                models.build_model(models.raw.keys.last).build_template
+                models.model(last_model).build_template
               end
             end
 
@@ -101,17 +109,19 @@ module Etna
             return
           end
 
-          if (reciprocal = models.find_reciprocal(model_name: template.name, link_attribute_name: template.parent)) && reciprocal.attribute_type.to_s != parent_link_type
+          reciprocal = models.find_reciprocal(model_name: template.name, link_attribute_name: template.parent)
+          if reciprocal && reciprocal.attribute_type.to_s != parent_link_type
             yield "Model #{template.name} was provided multiple parent_link_types: #{reciprocal.attribute_type} and #{parent_link_type}" if block_given?
           end
 
-          if reciprocal && reciprocal.name != template.name
-            yield "Model #{template.name} is linked to #{template.parent}, but the reciprocal link is misnamed #{reciprocal.name}." if block_given?
+          if reciprocal && reciprocal.attribute_name != template.name
+            yield "Model #{template.name} is linked to #{template.parent}, but the reciprocal link is misnamed as '#{reciprocal.attribute_name}'." if block_given?
           end
 
           models.build_model(template.parent).tap do |parent_model|
-            if parent_model.template.build_attributes.attribute_keys.include?(template.name) && !reciprocal
-              yield "Model #{template.parent} is linked as a parent to #{template.name}, but it already has an attribute named #{template.name}." if block_given?
+            parent_model_attribute_by_model_name = parent_model.template.build_attributes.attribute(template.name)
+            if parent_model_attribute_by_model_name && !reciprocal
+              yield "Model #{template.parent} is linked as a parent to #{template.name}, but it already has an attribute named #{template.name} #{parent_model_attribute_by_model_name.raw}." if block_given?
             end
 
             parent_model.template.build_attributes.build_attribute(template.name).tap do |attr|
@@ -130,16 +140,17 @@ module Etna
             return
           end
 
-          template = Template.new
-
           attributes = template.build_attributes
-          if attributes.attribute_keys.include?(attribute_name)
-            yield "Attribute #{attribute_name} of model #{template.name} has duplicate definitions!" if block_given?
+          existing_attribute = attributes.attribute(attribute_name)
+          if existing_attribute
+            if existing_attribute.attribute_type != AttributeType::COLLECTION
+              yield "Attribute #{attribute_name} of model #{template.name} has duplicate definitions!" if block_given?
+            end
+
+            attributes.raw.delete(attribute_name)
           end
 
           attributes.build_attribute(attribute_name).tap do |att|
-            att.attribute_name = att.name = attribute_name
-
             COLUMNS_TO_ATTRIBUTES.each do |column, processor|
               next unless (value = self.get_col_or_nil(row, column))
               if processor.is_a?(Array)
@@ -152,6 +163,16 @@ module Etna
               end
 
               att.send(:"#{processor}=", value)
+            end
+
+            if att.attribute_type == AttributeType::LINK && !models.find_reciprocal(model_name: template.name, attribute: att)
+              models.build_model(att.link_model_name).build_template.build_attributes.build_attribute(template.name).tap do |rec_att|
+                rec_att.attribute_name = template.name
+                rec_att.display_name = self.prettify(template.name)
+                rec_att.desc = self.prettify(template.name)
+                rec_att.attribute_type = AttributeType::COLLECTION
+                rec_att.link_model_name = template.name
+              end
             end
           end
         end
@@ -198,7 +219,9 @@ module Etna
         end
 
         def self.each_attribute_row(models = Models.new, model = Model.new, attribute = Attribute.new, &block)
-          return unless AttributeValidator.valid_attribute_types.include?(attribute.attribute_type)
+          unless AttributeValidator.valid_add_row_attribute_types.include?(attribute.attribute_type) || attribute.attribute_type == AttributeType::IDENTIFIER
+            return
+          end
 
           yield row_from_columns(
               attribute_name: attribute.name,

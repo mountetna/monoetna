@@ -21,13 +21,13 @@ module Etna
           models = csv_lines.inject(Models.new) do |acc, n|
             line_no += 1
             ModelsCsv.apply_csv_row(acc, n) do |err|
-              err_block.call("Err on line #{line_no}: #{err}")
+              err_block.call("Error detected on line #{line_no}: #{err}")
               return
             end
           end
 
           models.model_keys.each do |model_name|
-            validator = ModelValidator.new(models, model_name)
+            validator = AddModelValidator.new(models, model_name)
             validator.validate
             validator.errors.each(&err_block)
           end

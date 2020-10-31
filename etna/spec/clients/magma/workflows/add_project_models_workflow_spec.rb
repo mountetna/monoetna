@@ -3,7 +3,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
     it 'can sync a full project from point A to point B' do
       VCR.use_cassette('add_project_models_workflow-full-project.e2e') do
         # Change this name when re-recording the cassette file to ensure a new project is synced
-        test_project = "test_add_project_models_workflow_full_aaa"
+        test_project = "test_add_project_models_workflow_full_aad"
 
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
@@ -22,8 +22,8 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         io = StringIO.new
         workflow.write_models_templats_csv(io, 'mvir1')
 
-        io.rewind
-        puts io.read
+        # io.rewind
+        # puts io.read
 
         io.rewind
         models = workflow.prepare_models_from_csv(io) do |err|

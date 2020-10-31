@@ -6,7 +6,7 @@ module Etna
       # Note!  These workflows are not perfectly atomic, nor perfectly synchronized due to nature of the backend.
       # These primitives are best effort locally synchronized, but cannot defend the backend or simultaneous
       # system updates.
-      class ModelSynchronizationWorkflow < Struct.new(:target_client, :source_models, :target_project, :update_block, keyword_init: true)
+      class ModelSynchronizationWorkflow < Struct.new(:target_client, :source_models, :target_project, :update_block, :model_name, keyword_init: true)
         def target_models
           @target_models ||= begin
             target_client.retrieve(RetrievalRequest.new(project_name: self.target_project, model_name: 'all')).models
@@ -121,6 +121,11 @@ module Etna
 
         def ensure_model_identifier_configured(model_name)
           return unless (source_model = source_models.model(model_name))
+          # Identifiers are not configurable for tables.
+          if source_models.find_reciprocal(model: source_model, link_attribute_name: source_model.template.parent)&.attribute_type == AttributeType::TABLE
+            return
+          end
+
           target_model_name = target_of_source(model_name)
 
           template = source_model.template
