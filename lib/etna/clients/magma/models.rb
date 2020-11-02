@@ -202,10 +202,23 @@ module Etna
           Models.new({}.update(raw).update(raw_update))
         end
 
+        # Can look up reciprocal links by many means.  At minimum, a source model or model name must be provided,
+        # and either a link_attribute_name, attribute, or link_model.
+        def find_reciprocal(
+            model_name: nil,
+            model: self.model(model_name),
+            link_attribute_name: nil,
+            attribute: model&.template&.attributes&.attribute(link_attribute_name),
+            link_model: self.model(attribute&.link_model_name)
+        )
+          return nil if model.nil? || model.name.nil?
+          link_model&.template&.attributes&.all&.find { |a| a.link_model_name == model.name }
+        end
+
         def to_directed_graph(include_casual_links=false)
           graph = ::DirectedGraph.new
 
-          model_keys.each do |model_name|
+          model_keys.sort.each do |model_name|
             graph.add_connection(model(model_name).template.parent, model_name)
 
             if include_casual_links

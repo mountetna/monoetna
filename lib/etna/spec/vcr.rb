@@ -14,8 +14,12 @@ def setup_base_vcr(spec_helper_dir)
     c.register_request_matcher :try_body do |request_1, request_2|
       if request_1.headers['Content-Type'].first =~ /application\/json/
         if request_2.headers['Content-Type'].first =~ /application\/json/
-          request_1_json = begin JSON.parse(request_1.body) rescue 'not-json' end
-          request_2_json = begin JSON.parse(request_2.body) rescue 'not-json' end
+          request_1_json = begin
+            JSON.parse(request_1.body) rescue 'not-json'
+          end
+          request_2_json = begin
+            JSON.parse(request_2.body) rescue 'not-json'
+          end
           request_1_json == request_2_json
         else
           false
@@ -44,33 +48,37 @@ def setup_base_vcr(spec_helper_dir)
     c.before_record do |interaction|
       key = prepare_vcr_secret
 
-      cipher = OpenSSL::Cipher.new("AES-256-CBC")
-      iv = cipher.random_iv
+      if interaction.response.body && !interaction.response.body.empty?
+        cipher = OpenSSL::Cipher.new("AES-256-CBC")
+        iv = cipher.random_iv
 
-      cipher.encrypt
-      cipher.key = key
-      cipher.iv = iv
+        cipher.encrypt
+        cipher.key = key
+        cipher.iv = iv
 
-      encrypted = cipher.update(interaction.response.body)
-      encrypted << cipher.final
+        encrypted = cipher.update(interaction.response.body)
+        encrypted << cipher.final
 
-      interaction.response.body = [iv, encrypted].pack('mm')
+        interaction.response.body = [iv, encrypted].pack('mm')
+      end
     end
 
     c.before_playback do |interaction|
       key = prepare_vcr_secret
 
-      iv, encrypted = interaction.response.body.unpack('mm')
+      if interaction.response.body && !interaction.response.body.empty?
+        iv, encrypted = interaction.response.body.unpack('mm')
 
-      cipher = OpenSSL::Cipher.new("AES-256-CBC")
-      cipher.decrypt
-      cipher.key = key
-      cipher.iv = iv
+        cipher = OpenSSL::Cipher.new("AES-256-CBC")
+        cipher.decrypt
+        cipher.key = key
+        cipher.iv = iv
 
-      plain = cipher.update(encrypted)
-      plain << cipher.final
+        plain = cipher.update(encrypted)
+        plain << cipher.final
 
-      interaction.response.body = plain
+        interaction.response.body = plain
+      end
     end
   end
 end
