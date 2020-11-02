@@ -38,7 +38,7 @@ ENV BUNDLE_BIN="$BUNDLE_PATH/bin"
 ENV BUNDLE_SILENCE_ROOT_WARNING=0
 ENV BUNDLE_APP_CONFIG="/app/.bundle"
 
-RUN gem install puma
+RUN gem install puma -v 5.0.2
 RUN gem install bundler --default -v "=$BUNDLER_VERSION"
 RUN gem update --system
 
