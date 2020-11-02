@@ -187,7 +187,7 @@ module Etna
           c
         end
 
-        def self.each_tsv_row(models = Models.new, model_keys = models.model_keys.sort, &block)
+        def self.each_csv_row(models = Models.new, model_keys = models.model_keys.sort, &block)
           yield COLUMNS.map(&:to_s)
           model_keys.each { |model_name| self.each_model_row(models, model_name, &block) }
         end

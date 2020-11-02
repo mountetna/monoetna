@@ -39,7 +39,7 @@ module Etna
           models = magma_client.retrieve(RetrievalRequest.new(project_name: project_name, model_name: 'all')).models
           descendants = models.to_directed_graph.descendants(target_model)
           csv = CSV.new(csv)
-          ModelsCsv.each_tsv_row(models, [target_model] + descendants.keys) do |row|
+          ModelsCsv.each_csv_row(models, [target_model] + descendants.keys) do |row|
             csv << row
           end
         end
