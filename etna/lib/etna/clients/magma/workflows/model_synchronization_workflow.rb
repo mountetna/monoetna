@@ -6,7 +6,7 @@ module Etna
       # Note!  These workflows are not perfectly atomic, nor perfectly synchronized due to nature of the backend.
       # These primitives are best effort locally synchronized, but cannot defend the backend or simultaneous
       # system updates.
-      class ModelSynchronizationWorkflow < Struct.new(:target_client, :source_models, :target_project, keyword_init: true)
+      class ModelSynchronizationWorkflow < Struct.new(:target_client, :source_models, :target_project, :update_block, :model_name, keyword_init: true)
         def target_models
           @target_models ||= begin
             target_client.retrieve(RetrievalRequest.new(project_name: self.target_project, model_name: 'all')).models
@@ -15,7 +15,10 @@ module Etna
 
         def execute_updates(*actions)
           update = UpdateModelRequest.new(project_name: self.target_project)
-          actions.each { |a| update.add_action(a) }
+          actions.each do |a|
+            update_block.call(a) if update_block
+            update.add_action(a)
+          end
           @target_models = nil
           target_client.update_model(update)
         end
@@ -57,7 +60,6 @@ module Etna
                 ensure_model_attribute(model_name, attribute.attribute_name)
               end
             end
-
 
             # Even if it's a parent node, however, we still want to cascade the tree expansion to all links.
             unless attribute.link_model_name.nil?
@@ -113,8 +115,37 @@ module Etna
         # This method, and it's partner prepare_parent, should never call into any re-entrant or potentially
         # cyclical method, like ensure_model_tree.
         def ensure_model(model_name)
-          return unless (source_model = source_models.model(model_name))
+          ensure_model_create(model_name)
+          ensure_model_identifier_configured(model_name)
+        end
 
+        def ensure_model_identifier_configured(model_name)
+          return unless (source_model = source_models.model(model_name))
+          # Identifiers are not configurable for tables.
+          if source_models.find_reciprocal(model: source_model, link_attribute_name: source_model.template.parent)&.attribute_type == AttributeType::TABLE
+            return
+          end
+
+          target_model_name = target_of_source(model_name)
+
+          template = source_model.template
+          return unless (identifier_attribute = template.attributes.attribute(template.identifier))
+
+          update_identifier_action = UpdateAttributeAction.new(
+              {
+                  model_name: target_model_name,
+                  attribute_name: template.identifier,
+                  display_name: identifier_attribute.display_name,
+                  description: identifier_attribute.desc,
+                  validation: identifier_attribute.validation,
+              }
+          )
+
+          execute_updates(update_identifier_action)
+        end
+
+        def ensure_model_create(model_name)
+          return unless (source_model = source_models.model(model_name))
           target_model_name = target_of_source(model_name)
           return if target_models.model_keys.include?(target_model_name)
 
@@ -151,21 +182,6 @@ module Etna
               target_of_source(template.parent),
               child_attribute.attribute_type
           ]
-        end
-      end
-
-      class ShallowCopyModelWorkflow < ModelSynchronizationWorkflow
-        def initialize(model_name:, **kwds)
-          super(**kwds)
-          @model_name = model_name
-        end
-
-        # Aside from just creating models for links, do not cascade the expansion.
-        def ensure_model_tree(model_name, *args)
-          puts "Checking #{model_name} #{@model_name}"
-          if model_name == @model_name
-            super(model_name, *args)
-          end
         end
       end
     end

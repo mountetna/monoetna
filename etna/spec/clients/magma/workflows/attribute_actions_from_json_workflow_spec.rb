@@ -43,23 +43,4 @@ describe Etna::Clients::Magma::AttributeActionsFromJsonWorkflow do
       with(headers: {Authorization: 'Etna 123'}).
       with { |req| req.body.include?('add_link') }.times(1)
   end
-
-  it 'raises an exception for invalid actions' do
-    expected_msg = %{Attributes JSON has errors:
-  * Missing required key for attribute notes: "attribute_type".
-  * Missing required key for attribute notes: "display_name".
-  * Missing required key for attribute notes: "desc".
-  * Attribute "notes" does not exist in model assay_name.
-  * Attribute "notes" does not exist in model assay_name.
-  * Attribute "assay_pool" already exists in model assay_name.
-  * Attribute "assay_name" already exists in model assay_pool.}
-
-    expect {
-      Etna::Clients::Magma::AttributeActionsFromJsonWorkflow.new(
-        magma_client: magma_client,
-        project_name: PROJECT,
-        filepath: './spec/fixtures/attribute_actions/multiple_actions_invalid.json'
-      )
-    }.to raise_error(Exception, expected_msg)
-  end
 end
