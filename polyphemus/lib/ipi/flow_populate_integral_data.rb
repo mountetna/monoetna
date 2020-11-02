@@ -83,7 +83,7 @@ class IpiFlowPopulateIntegralData < Struct.new(:metis_client, :project_name, :so
         )
       )
 
-      metis_client.signed_copy_files(copy_files_request, Polyphemus.instance, 'metis')
+      metis_client.copy_files(copy_files_request)
     end
   end
 
