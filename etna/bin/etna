@@ -18,8 +18,7 @@ end
 EtnaApp.instance.run_command(config, *ARGV) do |cmd, args|
   if cmd.class.included_modules.include?(RequireConfirmation)
     puts "Attempting to run #{cmd.program_name} in environment #{EtnaApp.instance.environment} with args #{args}"
-    puts "Confirm? y/n"
-    STDIN.gets.chomp == 'y'
+    StrongConfirmation.confirm
   else
     true
   end

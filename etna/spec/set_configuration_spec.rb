@@ -16,7 +16,6 @@ describe EtnaApp::Config::Set do
   it 'collects server configuration into a local config file' do
     VCR.use_cassette('set_configuration_spec.e2e') do
       cmd, args, kwds = EtnaApp.instance.find_command('config', 'set', 'https://polyphemus.development.local', '--ignore-ssl')
-      cmd.setup({})
       cmd.execute(*args, **kwds)
     end
 
