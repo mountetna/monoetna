@@ -58,6 +58,7 @@ class IpiFlowFcsLinker < Etna::Clients::Magma::FileLinkingWorkflow
       # Have to inject project_name into the update request.
       update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: 'ipi')
       update_request.update_revision(model_name, id, revision)
+      puts "Updating #{model_name}, record #{id}."
       magma_crud.magma_client.update(update_request)
     end
   end
