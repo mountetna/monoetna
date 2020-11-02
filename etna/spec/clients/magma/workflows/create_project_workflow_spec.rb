@@ -3,75 +3,37 @@ require 'json'
 require_relative '../../../../lib/etna/clients/janus'
 
 describe Etna::Clients::Magma::CreateProjectWorkflow do
-  let(:magma_client) {Etna::Clients::Magma.new(
-    token: '123.eyJlbWFpbCI6ImZvb0BiYXIuY29tIiwiZmlyc3QiOiJmb28iLCJsYXN0IjoiYmFyIn0=.bar',
-    host: MAGMA_HOST)}
-  let(:janus_client) {Etna::Clients::Janus.new(
-    token: '123.eyJlbWFpbCI6ImZvb0BiYXIuY29tIiwiZmlyc3QiOiJmb28iLCJsYXN0IjoiYmFyIn0=.bar',
-    host: JANUS_HOST)}
+  describe "e2e" do
+    it 'can create a new project in janus and magma' do
+      configure_etna_yml
 
-  before(:each) do
-    @all_updates = []
-    stub_janus_setup
-    stub_magma_models({
-      models: {
-      assay_name: model_stamp,
-      assay_pool: model_stamp,
-      project: model_stamp,
-      timepoint: model_stamp,
-      patient: model_stamp,
-      document: model_stamp,
-      status: model_stamp,
-      symptom: model_stamp
-    }})
-    stub_magma_update_model
-    stub_magma_update
-  end
+      allow(STDIN).to receive(:gets).and_return('n')
 
-  def updates
-    @all_updates.inject({}) do |acc, n|
-      n.keys.each do |k|
-        (acc[k] ||= {}).update(n[k])
+      VCR.use_cassette('create_project_workflow.e2e') do
+        test_project = "test_create_project_aac"
+
+        magma_client = Etna::Clients::Magma.new(
+            host: 'https://magma.development.local',
+            token: ENV['TOKEN'] || 'token',
+            persistent: false,
+            ignore_ssl: true,
+        )
+
+        janus_client = Etna::Clients::Janus.new(
+            host: 'https://janus.development.local',
+            token: ENV['TOKEN'] || 'token',
+            ignore_ssl: true,
+        )
+
+        workflow = Etna::Clients::Magma::CreateProjectWorkflow.new(
+            magma_client: magma_client,
+            janus_client: janus_client,
+            project_name: test_project,
+            project_name_full: 'This is a test ' + test_project
+        )
+
+        workflow.create!
       end
-      acc
     end
-  end
-
-  it 'creates the project in janus and magma' do
-    workflow = Etna::Clients::Magma::CreateProjectWorkflow.new(
-      magma_client: magma_client,
-      janus_client: janus_client,
-      filepath: './spec/fixtures/create_project/valid_project.json'
-    )
-    workflow.create!
-
-    expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_project/).
-      with(headers: {Authorization: 'Etna 123.eyJlbWFpbCI6ImZvb0BiYXIuY29tIiwiZmlyc3QiOiJmb28iLCJsYXN0IjoiYmFyIn0=.bar'})
-    expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/add_user\/#{PROJECT}/)
-    expect(WebMock).to have_requested(:post, /#{JANUS_HOST}\/update_permission\/#{PROJECT}/)
-    expect(WebMock).to have_requested(:get, /#{JANUS_HOST}\/refresh_token/)
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
-      with(headers: {Authorization: 'Etna a token for you!'}).
-      with { |req| req.body.include?('add_model') }.times(7) # 7 non-project models
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
-      with(headers: {Authorization: 'Etna a token for you!'}).
-      with { |req| req.body.include?('add_attribute') }.times(62)
-    # The call above gets executed a lot of times, because our Mock of the
-    #   /retrieve endpoint is static. So it doesn't reflect newly created
-    #   attributes. For the models higher in the tree (closer to the root),
-    #   this means that ensure_model_tree attempts to add their
-    #   attributes multiple times. This does not happen in a non-test
-    #   environment.
-
-    # Make sure the assay_name identifier validation is submitted.
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
-      with(headers: {Authorization: 'Etna a token for you!'}).
-      with { |req| req.body.include?('update_attribute') }
-
-    expect(updates).to eq({
-      "project" => {
-        "test" => {"name" => "test"}
-      }
-    })
   end
 end

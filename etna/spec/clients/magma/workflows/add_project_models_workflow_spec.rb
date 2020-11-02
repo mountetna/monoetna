@@ -1,13 +1,15 @@
 describe Etna::Clients::Magma::AddProjectModelsWorkflow do
   describe "e2e" do
     it 'can sync a full project from point A to point B' do
+      configure_etna_yml
+
       VCR.use_cassette('add_project_models_workflow-full-project.e2e') do
         # Change this name when re-recording the cassette file to ensure a new project is synced
         test_project = "test_add_project_models_workflow_full_aad"
 
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
-            token: ENV['TOKEN'], persistent: false, ignore_ssl: true,
+            token: ENV['TOKEN'] || 'token', persistent: false, ignore_ssl: true,
         )
 
         magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(

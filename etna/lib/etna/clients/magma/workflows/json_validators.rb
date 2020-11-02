@@ -208,10 +208,6 @@ module Etna
         def validate_basic_attribute_data
           check_valid_name_with_numbers('Attribute', attribute.attribute_name)
           check_key("attribute #{attribute.attribute_name}", attribute.raw, 'attribute_type')
-
-          # The following two could be calculated or left blank?
-          # But it would be nice in the final UI to have them be more informative, so
-          #   we'll enforce here.
           check_key("attribute #{attribute.attribute_name}", attribute.raw, 'display_name')
 
           if attribute.link_model_name && ![AttributeType::TABLE, AttributeType::LINK, AttributeType::COLLECTION, AttributeType::PARENT, AttributeType::CHILD].include?(attribute.attribute_type)
@@ -381,10 +377,9 @@ module Etna
 
         def validate_attribute_data
           check_does_not_exist_in_model(action.model_name, action.attribute_name)
-
-          validator = AttributeValidator.new(@attribute, AttributeValidator.valid_update_attribute_types)
-          validator.validate
-          @errors += validator.errors unless validator.valid?
+          # validator = AttributeValidator.new(@attribute, AttributeValidator.valid_update_attribute_types)
+          # validator.validate
+          # @errors += validator.errors unless validator.valid?
         end
       end
 
