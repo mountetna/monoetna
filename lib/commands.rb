@@ -481,49 +481,51 @@ class Polyphemus
   end
 
   class LinkIpiFlowWsp < Etna::Command
-    include WithEtnaClients
+    include WithEtnaClientsByEnvironment
     include WithLogger
-    usage 'link_ipi_flow_wsp [environment]'
-
-    attr_reader :environment
+    usage 'link_ipi_flow_wsp <environment>'
 
     def project_name
       :ipi
     end
 
     def magma_crud
-      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: project_name)
+      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: @environ.magma_client, project_name: project_name)
     end
 
-    def execute(env = Polyphemus.instance.environment)
+    def execute(env)
       require_relative './ipi/flow_wsp_file_linker'
-      @environment = env
+      @environ = environment(env)
 
-      linker = IpiFlowWspLinker.new(magma_crud: magma_crud, metis_client: metis_client, project_name: project_name)
+      linker = IpiFlowWspLinker.new(
+        magma_crud: magma_crud,
+        metis_client: @environ.metis_client,
+        project_name: project_name)
       linker.link_files
     end
   end
 
   class LinkIpiFlowFcs < Etna::Command
-    include WithEtnaClients
+    include WithEtnaClientsByEnvironment
     include WithLogger
-    usage 'link_ipi_flow_fcs [environment]'
-
-    attr_reader :environment
+    usage 'link_ipi_flow_fcs <environment>'
 
     def project_name
       :ipi
     end
 
     def magma_crud
-      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: project_name)
+      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: @environ.magma_client, project_name: project_name)
     end
 
-    def execute(env = Polyphemus.instance.environment)
+    def execute(env)
       require_relative './ipi/flow_fcs_file_linker'
-      @environment = env
+      @environ = environment(env)
 
-      linker = IpiFlowFcsLinker.new(magma_crud: magma_crud, metis_client: metis_client, project_name: project_name)
+      linker = IpiFlowFcsLinker.new(
+        magma_crud: magma_crud,
+        metis_client: @environ.metis_client,
+        project_name: project_name)
       linker.link_files
     end
   end
