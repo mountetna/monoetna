@@ -40,6 +40,7 @@ class IpiFlowWspLinker < Etna::Clients::Magma::FileLinkingWorkflow
     magma_crud.update_records do |update_request|
       each_revision do |id, revision|
         update_request.update_revision(model_name, id, revision)
+        puts "Updating #{model_name}, record #{id}."
       end
     end
   end
