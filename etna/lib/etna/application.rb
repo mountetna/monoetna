@@ -76,6 +76,13 @@ module Etna::Application
     @config[env][type]
   end
 
+  def env_config(env = environment)
+    return nil if @config.nil?
+    return nil if @config[env].nil?
+    return nil unless @config[env].is_a?(Hash)
+    @config[env]
+  end
+
   def sign
     @sign ||= Etna::SignService.new(self)
   end

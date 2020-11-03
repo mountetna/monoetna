@@ -247,3 +247,17 @@ def stub_polyphemus_setup
     })
 end
 
+def configure_etna_yml
+  EtnaApp.instance.configure({
+      development: {
+          docker: { default_tag: "latest" },
+          magma: { host: "https://magma.development.local" },
+          metis: { etis: "https://metis.development.local" },
+          janus: { etis: "https://janus.development.local" },
+          timur: { etis: "https://timur.development.local" },
+          polyphemus: { etis: "https://polyphemus.development.local" },
+          auth_redirect: "https://janus.development.local",
+          ignore_ssl: false,
+      }
+  })
+end
