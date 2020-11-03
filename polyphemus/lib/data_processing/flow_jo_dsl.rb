@@ -191,10 +191,12 @@ module FlowJoDsl
   end
 
   def patient_flow_record_names(patient_record)
-    query = [ "patient", ["::identifier", "::equals", patient_record['ipi_number']],
-              "::first", "sample", "::all", "flow", "::all", "::identifier"]
+    query = [ 'flow',
+              [ 'sample', 'patient', '::identifier', '::equals', patient_record['ipi_number'] ],
+            '::all', '::identifier' ]
+
     request = Etna::Clients::Magma::QueryRequest.new(project_name: project_name, query: query)
-    magma_client.query(request).answer.map { |sample| sample.last.map { |flow| flow.last }}.flatten
+    magma_client.query(request).answer.map { |flow| flow.last }.flatten
   end
 
   def process_all_populations(patient_record = @patient, flow_jo = @flow_jo)
