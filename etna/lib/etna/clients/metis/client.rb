@@ -52,9 +52,25 @@ module Etna
           @etna_client.folder_rename(rename_folder_request.to_h))
       end
 
+      def rename_file(rename_file_request)
+        ensure_parent_folder_exists(
+          project_name: rename_file_request.project_name,
+          bucket_name: rename_file_request.new_bucket_name,
+          path: parent_folder_path(rename_file_request.new_file_path)
+        ) if rename_file_request.create_parent
+
+        FilesResponse.new(
+          @etna_client.file_rename(rename_file_request.to_h))
+      end
+
       def create_folder(create_folder_request)
         FoldersResponse.new(
           @etna_client.folder_create(create_folder_request.to_h))
+      end
+
+      def delete_folder(delete_folder_request)
+        FoldersResponse.new(
+          @etna_client.folder_delete(delete_folder_request.to_h))
       end
 
       def find(find_request)
@@ -148,6 +164,22 @@ module Etna
         return if found_folders.length == 0
 
         found_folders.each { |folder|
+          # If the destination folder already exists, we need to copy the files
+          #   over to it and delete the source folder.
+          create_folder_request = CreateFolderRequest.new(
+            project_name: project_name,
+            bucket_name: dest_bucket,
+            folder_path: folder.folder_path
+          )
+
+          if folder_exists?(create_folder_request)
+            recursively_rename_folder(
+              project_name: project_name,
+              source_bucket: source_bucket,
+              dest_bucket: dest_bucket,
+              folder: folder
+            )
+          else
             rename_folder(Etna::Clients::Metis::RenameFolderRequest.new(
               bucket_name: source_bucket,
               project_name: project_name,
@@ -156,7 +188,45 @@ module Etna
               new_folder_path: folder.folder_path,
               create_parent: true)
             )
+          end
         }
+      end
+
+      def recursively_rename_folder(project_name:, source_bucket:, dest_bucket:, folder:)
+        folder_contents = list_folder(
+          Etna::Clients::Metis::ListFolderRequest.new(
+            project_name: project_name,
+            bucket_name: source_bucket,
+            folder_path: folder.folder_path
+        ))
+
+        folder_contents.folders.all.each do |sub_folder|
+          recursively_rename_folder(
+            project_name: project_name,
+            source_bucket: source_bucket,
+            dest_bucket: dest_bucket,
+            folder: sub_folder
+          )
+        end
+
+        folder_contents.files.all.each do |file|
+          rename_file(Etna::Clients::Metis::RenameFileRequest.new(
+            bucket_name: source_bucket,
+            project_name: project_name,
+            file_path: file.file_path,
+            new_bucket_name: dest_bucket,
+            new_file_path: file.file_path,
+            create_parent: true)
+          )
+        end
+
+        # Now delete the source folder
+        delete_folder(
+          Etna::Clients::Metis::DeleteFolderRequest.new(
+            project_name: project_name,
+            bucket_name: source_bucket,
+            folder_path: folder.folder_path
+        ))
       end
 
       private
