@@ -8,7 +8,7 @@ gem 'pg'
 gem 'sequel'
 gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/85c0a54efc9d6a4d353d457d09771ed8d26ff5a7'
 gem 'jwt'
-
+gem 'puma', '5.0.2'
 group :test do
   gem 'rspec'
   gem 'timecop'
