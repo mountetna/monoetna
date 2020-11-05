@@ -60,9 +60,13 @@ class IpiAddFlowModelMigration
       ), Etna::Clients::Magma::AddAttributeAction.new(
         model_name: 'flow',
         type: 'string',
-        attribute_name: 'quality_flag',
-        description: 'Quality flag for the stain.',
-        display_name: 'Qualify flag'
+        attribute_name: 'flag',
+        description: 'Quality flag for this Flow stain.',
+        display_name: 'Flag',
+        validation: {
+          type: 'Array',
+          value: ['good', 'bad', 'critical']
+        }
       ), Etna::Clients::Magma::AddAttributeAction.new(
         model_name: 'flow',
         type: 'string',
@@ -171,6 +175,10 @@ class IpiAddFlowModelMigration
     #   path or file name, we can still create a copy of the
     #   Magma copy of the file.
     return {
+      path: "::blank"
+    } if value&.dig('path') && value['path'] == '::blank'
+
+    return {
       path: "metis://#{@project_name}/magma/#{value['path']}"
     } if value&.dig('path')
 
@@ -189,7 +197,8 @@ class IpiAddFlowModelMigration
 
   def execute
     create_flow_model
-    copy_flow_data
+    # copy_flow_data # Don't copy old, bad data. Let's start from a clean slate
+    #                   so that all data in the new model is good!
     hide_sample_columns
     create_population_model
   end

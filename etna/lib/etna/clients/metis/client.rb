@@ -2,6 +2,7 @@ require 'net/http/persistent'
 require 'net/http/post/multipart'
 require 'singleton'
 require 'cgi'
+require 'json'
 require_relative '../../client'
 require_relative './models'
 

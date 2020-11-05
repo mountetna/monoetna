@@ -138,7 +138,7 @@ class FileController < Metis::Controller
 
     user_authorized_buckets = Metis::Bucket.where(
       project_name: @params[:project_name],
-      owner: ['metis', hmac.id.to_s],
+      owner: ['metis', hmac&.id.to_s].reject {|o| o.empty?},
       name: revisions.map(&:bucket_names).flatten.uniq
     ).all.select{|b| b.allowed?(@user, hmac)}
 
