@@ -43,7 +43,7 @@ When you tab, environment variables appear with double-hyphens in front (i.e. `-
 A full command prompt may look like:
 
 ```bash
-$ etna administrate project validate __filepath__ --environment
+$ etna administrate models add __project_name__ --environment
 ```
 
 #### Gem Services Configuration
@@ -68,42 +68,74 @@ This will make the `staging` environment your default environment to run command
 
 ## Project Definition and Modeling
 
-Three workflows are available for defining your project models and structure, under the `administrate` command in the etna gem. These workflows are:
+Two main workflows are available for defining your project models and structure, under the `administrate` command in the etna gem. These workflows are:
 
-- Create Project: The initial command you run that lets you define multiple models and attributes.
-- Add Model: Allows you to add a single model and its attributes to an existing project.
+- Add Models: Allows you to add models and defines attributes to an existing project. Contact the engineering team to have your project created in Janus and Magma, before using this command!
 - Attribute Actions: A set of four different commands that let you add, rename, or update attributes on existing models.
 
-Each workflow requires a JSON file input, and also offers a command to validate the structure of your JSON.
+### Add Models
 
-The general workflow for defining your project should look like:
-
-1. Sketch out your project's model and attribute definitions in a spreadsheet or document.
-2. Convert the models and attributes to the "create project" JSON format. You can follow the template if that would be helpful.
-3. (optional) Iterate on the above and get feedback from the engineering team. Use the `validate` subcommands to check your JSON format.
-4. Request that a project be created for you on Janus **and** Janus stage, with the same project names.
-5. Run the "create project" command against our staging environment. You must be on the VPN for this step.
-6. Visit Timur staging and verify the project structure appears correct (the Map tab may be particularly helpful for this). You must be on the VPN for this step.
-7. Edit the project JSON as necessary.
-8. Run the "create project" command against our production environment.
-9. Visit Timur to verify the project structure appears correct.
-
-### JSON Templates
-
-Several JSON templates are available for your reference. They are in the GitHub repository at the URLs below, and you can also copy them out of the gem via a command like:
+This command can be invoked with the following command:
 
 ```bash
-$ etna create_template create_project
-A sample project JSON template has been provided at `project_template.json`.
+$ etna administrate models add __project_name__
+```
+
+This will create a local CSV file that is a clone of the desired project, including models and attributes. You can use this command to download a CSV version of an existing project, and use it as a template for your project.
+
+Running this command with a local CSV file that exists will launch a watcher that detects changes to this file and reports any validation errors in the terminal, like:
+
+```bash
+Watching for changes to mvir1_models_project_tree.csv...
+Input file mvir1_models_project_tree.csv is invalid:
+  * Error detected on line 314: Attribute restricted of model cytof_pool has duplicate definitions!
+```
+
+You can edit the CSV using whatever editor you like, and when you save the file the status will be updated in the terminal. Once the file passes all the validations, you will see a message like the following in the terminal:
+
+```bash
+File mvir1_models_project_tree.csv is well formatted and contains 18 models to synchronize to development mvir1.
+To commit, run etna administrate models add mvir1 --file mvir1_models_project_tree.csv --target-model project --execute
+```
+
+Once you stop the validation watcher (`ctrl-c`), you can run the execute command. 
+
+**NOTE:** Make sure your project exists in Magma and Janus before executing this command.
+
+It will ask for you to type in a random string to verify that you want to sync your CSV to the server:
+
+```bash
+$ etna administrate models add mvir1 --file mvir1_models_project_tree.csv --target-model project --execute
+File mvir1_models_project_tree.csv is well formatted and contains 18 models to synchronize to development mvir1.
+Would you like to execute?
+To confirm, please type LmK2hqc=:
+LmK2hqc=
+Executing {:action_name=>"update_attribute", :model_name=>"project", :attribute_name=>"name", :type=>nil, :description=>nil, :display_name=>"Name", :format_hint=>nil, :hidden=>nil, :index=>nil, :link_model_name=>nil, :read_only=>nil, :attribute_group=>nil, :restricted=>nil, :unique=>nil, :validation=>nil}...
+...
+
+...
+
+Success!
+```
+
+You should now check Timur's `map` view to verify that your changes were correctly applied.
+
+### Attribute Actions
+
+For now, these require a JSON file input, and have a separate a command to validate the structure of your actions.
+
+A JSON template is available for your reference. It is in the GitHub repository at the URL below, and you can also copy it out of the gem via a command like:
+
+```bash
+$ etna create_template attribute_actions
+A sample attribute actions JSON template has been provided in the current directory as `attribute_actions_template.json`.
 ```
 
 When using the templates, make sure to remove all the comments, which are on lines starting with `//`. JSON format does not allow comments, and they are provided for initial explanation only.
 
-| Action                | Template                                                                                                                                     | Etna Command                           |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| Create Project Models | [create_project_template.json](https://github.com/mountetna/monoetna/blob/master/etna/lib/etna/templates/create_project_template.json)       | `$ etna create_template create_project`    |
-| Add Single Model      | [add_model_template.json](https://github.com/mountetna/monoetna/blob/master/etna/lib/etna/templates/add_model_template.json)                 | `$ etna create_template add_model`         |
-| Attribute Actions     | [attribute_actions_template.json](https://github.com/mountetna/monoetna/blob/master/etna/lib/etna/templates/attribute_actions_template.json) | `$ etna create_template attribute_actions` |
+| Action            | Template                                                                                                                                     | Etna Command                               |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Attribute Actions | [attribute_actions_template.json](https://github.com/mountetna/monoetna/blob/master/etna/lib/etna/templates/attribute_actions_template.json) | `$ etna create_template attribute_actions` |
 {: rules="table"}
 
 ### Allowable Names
@@ -120,12 +152,11 @@ The following attribute keys are required for each attribute in the models:
 
 - attribute_name
 - attribute_type
-- desc
-- display_name
 
-The following values for `attribute_type` are supported in the JSON:
+The following values for `attribute_type` are supported in the CSV:
 
 - boolean
+- collection
 - date_time
 - file
 - float
@@ -136,12 +167,6 @@ The following values for `attribute_type` are supported in the JSON:
 - matrix
 - string
 - table
-
-The following validation `type` values are supported for each attribute that you want to define validation for:
-
-- Array
-- Range
-- Regexp
 
 #### Models
 
@@ -162,45 +187,31 @@ The following `parent_link_type` values are supported for model definitions:
 - For the `project` model, **only** `identifier` is required.
 - When `parent_link_type` equals `table`, **no** `identifier` key is required.
 
-#### Project
-
-The following keys are required for the project definition:
-
-- project_name
-- project_name_full
-
 ### JSON Validation
 
-The etna gem provides commands to validate the JSON structure for the three project definition workflows. They are:
+The etna gem provides commands to validate the JSON structure for the attribute actions. They are:
 
 ```bash
-$ etna administrate project validate __filepath__ --environment
-$ etna administrate model validate __project_name__ __model_name__ __filepath__ --environment
 $ etna administrate model attributes validate_actions __project_name__ __filepath__ --environment
 ```
 
-These commands will output the results to the command line. Valid JSON files have a message like:
+This command will output the results to the command line. Valid JSON files have a message like:
 
 ```bash
-$ etna administrate project validate test_project.json
-Project JSON is well-formatted!
+$ etna administrate models attributes validate_actions mvir1 test_attribute_actions.json
+Attribute Actions JSON is well-formatted and is valid for project mvir1.
 ```
 
 Whereas invalid JSON files will report a list of errors, like:
 
 ```bash
-$ etna administrate project validate missing_model_keys.json
-Project JSON has 8 errors:
-  * Parent model "" for document does not exist in project.
-	Current models are ["assay_name", "document", "assay_pool", "patient", "project", "status", "symptom", "timepoint"].
-  * Parent model "" for patient does not exist in project.
-	Current models are ["assay_name", "document", "assay_pool", "patient", "project", "status", "symptom", "timepoint"].
-  * Missing required key for model assay_name: "parent_link_type".
-  * Missing required key for model document: "parent_model_name".
-  * Missing required key for model document: "parent_link_type".
-  * Missing required key for model assay_pool: "identifier".
-  * Missing required key for model patient: "parent_model_name".
-  * Missing required key for model project: "identifier".
+$ etna administrate models attributes validate_actions mvir1 test_attribute_actions.json
+Traceback (most recent call last):
+	...
+
+  attribute_actions_from_json_workflow.rb:35:in `initialize': Attributes JSON has errors: (RuntimeError)
+  * Model "assay_name" does not exist in project.
+  * Model "assay_name" does not exist in project.
 ```
 
 ## Data Management
