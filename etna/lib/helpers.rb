@@ -66,10 +66,10 @@ end
 
 module StrongConfirmation
   def confirm
-    random = SecureRandom.base36(5)
+    random = SecureRandom.base64(5)
     puts "To confirm, please type #{random}:"
     input = STDIN.gets.chomp
-    if input == random
+    if input != random
       puts "Failed confirmation, got #{input}"
       return false
     end
