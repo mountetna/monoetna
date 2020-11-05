@@ -1,33 +1,33 @@
 import * as React from 'react';
 
-import UploadControl from 'etna-js/upload/components/upload-control';
+import UploadControl from './upload-control';
 
-export default class ListUploadFailed extends React.Component{
-  constructor(props){
+export default class ListUploadFailed extends React.Component {
+  constructor(props) {
     super(props);
   }
 
-  removeFile(){
+  removeFile() {
     this.props.callbacks.removeFailed(this.props.failedFile);
   }
 
-  selectUpload(){
+  selectUpload() {
     /*
      * We are using a button to surragate the file input so we may have
      * a custom browse button.
      */
     let failedFile = this.props.failedFile;
-    document.getElementById('file-selector-'+ failedFile.reactKey).click();
+    document.getElementById('file-selector-' + failedFile.reactKey).click();
   }
 
-  fileSelected(event){
-    if(event === undefined) return;
+  fileSelected(event) {
+    if (event === undefined) return;
     let fileSelector = event.target;
     let file = fileSelector.files[0];
     this.props.callbacks.recoverUpload(file, this.props.failedFile);
   }
 
-  render(){
+  render() {
     let failedFile = this.props.failedFile;
     let currentFileSize = PARSE_BYTES(failedFile.current_byte_position, 1000);
 
@@ -40,50 +40,47 @@ export default class ListUploadFailed extends React.Component{
     };
 
     let fileSelector = {
-      id: 'file-selector-'+ failedFile.reactKey,
+      id: 'file-selector-' + failedFile.reactKey,
       className: 'file-selector',
       type: 'file',
-      name: 'upload-file-'+ failedFile.reactKey,
+      name: 'upload-file-' + failedFile.reactKey,
       onChange: this.fileSelected.bind(this)
     };
 
     return (
       <tr className='list-entry-group'>
-        <td className='list-entry-icon'>
-        </td>
+        <td className='list-entry-icon'></td>
         <td className='list-entry-title-group'>
           <div className='list-entry-file-name' title={failedFile.fileName}>
             {failedFile.fileName}
           </div>
           <div className='list-entry-status' title='The current file status.'>
             <span className='light-text'>
-              {'attempted at: '+ PARSE_TIMESTAMP(failedFile.startTimestamp)}
+              {'attempted at: ' + PARSE_TIMESTAMP(failedFile.startTimestamp)}
             </span>
           </div>
         </td>
         <td className='list-entry-project-group'>
           <div className='list-entry-project-name'>
-            { failedFile.project_name }
+            {failedFile.project_name}
           </div>
           <div className='list-entry-role'>
-            <span className='light-text'>
-              { failedFile.role }
-            </span>
+            <span className='light-text'>{failedFile.role}</span>
           </div>
         </td>
         <td className='list-entry-title-group'>
-          <div className='dark-text' style={{ fontWeight: 900 }} >
-            { 'current data uploaded: '+ currentFileSize }
+          <div className='dark-text' style={{fontWeight: 900}}>
+            {'current data uploaded: ' + currentFileSize}
           </div>
           <div className='list-entry-role'>
             <span className='light-text'>
-              { 'this file upload was interrupted.' }
+              {'this file upload was interrupted.'}
             </span>
           </div>
         </td>
-        <input { ...fileSelector } />
-        <UploadControl { ...uploadControl } />
+        <input {...fileSelector} />
+        <UploadControl {...uploadControl} />
       </tr>
-    )
+    );
   }
 }
