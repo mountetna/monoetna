@@ -56,7 +56,7 @@ module Etna
         ensure_parent_folder_exists(
           project_name: rename_file_request.project_name,
           bucket_name: rename_file_request.new_bucket_name,
-          path: parent_folder_path(rename_file_request.new_file_path)
+          path: rename_file_request.new_file_path # ensure_parent_folder_exists() parses this for the parent path
         ) if rename_file_request.create_parent
 
         FilesResponse.new(
@@ -70,7 +70,7 @@ module Etna
 
       def delete_folder(delete_folder_request)
         FoldersResponse.new(
-          @etna_client.folder_delete(delete_folder_request.to_h))
+          @etna_client.folder_remove(delete_folder_request.to_h))
       end
 
       def find(find_request)
