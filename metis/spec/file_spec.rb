@@ -406,6 +406,25 @@ describe FileController do
       expect(@wisdom_file.bucket).to eq(sundry_bucket)
       expect(@wisdom_file.folder).to eq(sundry_wisdom_folder)
     end
+
+    it 'renames a file into a new bucket and no folder' do
+      token_header(:editor)
+      sundry_bucket = create(:bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'metis' )
+
+      rename_file('wisdom.txt', 'updated-wisdom.txt', {
+        new_bucket_name: 'sundry'
+      })
+
+      expect(last_response.status).to eq(200)
+
+      # the old file is updated
+      expect(Metis::File.count).to eq(1)
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_name).to eq('updated-wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+      expect(@wisdom_file.bucket).to eq(sundry_bucket)
+      expect(@wisdom_file.folder).to eq(nil)
+    end
   end
 
   context '#copy' do
