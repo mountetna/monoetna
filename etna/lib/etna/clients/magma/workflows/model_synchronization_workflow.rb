@@ -34,7 +34,7 @@ module Etna
           when Etna::Clients::Magma::AddModelAction
             "add model #{action.model_name} as a #{action.parent_link_type} from #{action.parent_model_name}, identifier = #{action.identifier.inspect}"
           when Etna::Clients::Magma::AddLinkAction
-            "link #{action.links[0].model_name} to #{action.links[1].model_name} as a #{action.links[0].type} to #{action.links[1].type}"
+            "link #{action.links[1].model_name} to #{action.links[0].model_name} as a #{action.links[0].type} to #{action.links[1].type}"
           else
             action.to_h.to_s
           end
@@ -72,8 +72,8 @@ module Etna
           target_client.update_model(update)
         end
 
-        def copy_link_into_source(link, reciprocal)
-          attr = source_models.build_model(link.model_name).build_template.build_attributes.build_attribute(link.attribute_name)
+        def copy_link_into_target(link, reciprocal)
+          attr = target_models.build_model(link.model_name).build_template.build_attributes.build_attribute(link.attribute_name)
           attr.attribute_type = link.type
           attr.name = attr.attribute_name = link.attribute_name
           attr.link_model_name = reciprocal.model_name
@@ -91,19 +91,19 @@ module Etna
           when AddLinkAction
             first_link = action.links[0]
             second_link = action.links[1]
-            copy_link_into_source(first_link, second_link)
-            copy_link_into_source(second_link, first_link)
+            copy_link_into_target(first_link, second_link)
+            copy_link_into_target(second_link, first_link)
           when AddModelAction
             template = target_models.build_model(action.model_name).build_template
             template.name = action.model_name
             template.identifier = action.identifier
             template.parent = action.parent_model_name
 
-            child_link = AddLinkDefinition.new(type: AttributeType::PARENT, model_name: template.parent, attribute_name: template.parent)
-            parent_link = AddLinkDefinition.new(type: action.parent_link_type, model_name: template.name, attribute_name: template.name)
+            child_link = AddLinkDefinition.new(type: AttributeType::PARENT, model_name: template.name, attribute_name: template.parent)
+            parent_link = AddLinkDefinition.new(type: action.parent_link_type, model_name: template.parent, attribute_name: template.name)
 
-            copy_link_into_source(child_link, parent_link)
-            copy_link_into_source(parent_link, child_link)
+            copy_link_into_target(child_link, parent_link)
+            copy_link_into_target(parent_link, child_link)
           when RenameAttributeAction
             attributes = target_models.model(action.model_name).template.attributes
             attributes.raw[action.new_attribute_name] = attributes.raw.delete(action.attribute_name)
@@ -173,10 +173,10 @@ module Etna
           target_link_model_name = target_of_source(link_model_name)
 
           target_attributes = target_models.model(target_model_name).template.attributes
-          return if target_attributes.attribute_keys.include?(attribute_name)
+          return if target_attributes.attribute_keys.include?(target_link_model_name)
 
           add_link = AddLinkAction.new
-          add_link.links << AddLinkDefinition.new(model_name: target_model_name, attribute_name: attribute_name, type: source_attribute.attribute_type)
+          add_link.links << AddLinkDefinition.new(model_name: target_model_name, attribute_name: target_link_model_name, type: source_attribute.attribute_type)
           add_link.links << AddLinkDefinition.new(model_name: target_link_model_name, attribute_name: reciprocal.attribute_name, type: reciprocal.attribute_type)
 
           queue_update(add_link)
