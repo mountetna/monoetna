@@ -102,7 +102,11 @@ export function Upload({
     current_byte_position = 0,
     next_blob_hash = ZERO_HASH,
     file_size = file.size,
-    metis_uid
+    metis_uid,
+    attribute_name,
+    model_name,
+    record_name,
+    original_filename
   }) {
     assertIsSome({ file_name, project_name, url, file });
 
@@ -117,7 +121,11 @@ export function Upload({
     file: file,
     url: url,
     file_size: file_size,
-    metis_uid
+    metis_uid,
+    attribute_name,
+    model_name,
+    record_name,
+    original_filename
   }
 }
 
