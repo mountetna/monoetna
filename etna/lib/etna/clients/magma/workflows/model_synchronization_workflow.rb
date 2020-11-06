@@ -18,21 +18,23 @@ module Etna
           when Etna::Clients::Magma::UpdateAttributeAction
             changes = ""
             unless short
-              changes = action.to_h.to_a.select { |k, v| Etna::Clients::Magma::Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.include?(k) }
-              changes = "\n" + (changes.map { |k, v| "  * #{k} = #{v.inspect}" }.join("\n"))
+              changes = action.members.select { |k| Etna::Clients::Magma::Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.include?(k) }.map { |k| [k, action.send(k)]}
+              changes = "\n" + (changes.map { |k, v| "#{k} = #{v.inspect}" }.join(", "))
             end
-            "#{action.model_name} update #{action.attribute_name}#{changes}"
+            "update #{action.model_name} #{action.attribute_name}#{changes}"
           when Etna::Clients::Magma::AddAttributeAction
             changes = ""
             unless short
-              changes = action.to_h.to_a.select { |k, v| v.nil? && Etna::Clients::Magma::Attribute::COPYABLE_ATTRIBUTE_ATTRIBUTES.include?(k) }
-              changes = "\n" + (changes.map { |k, v| "  * #{k} = #{v.inspect}" }.join("\n"))
+              changes = action.members.select { |k| Etna::Clients::Magma::Attribute::COPYABLE_ATTRIBUTE_ATTRIBUTES.include?(k) }.map { |k| [k, action.send(k)]}
+              changes = "\n  * " + (changes.map { |k, v| "#{k} = #{v.inspect}" }.join(", "))
             end
-            "#{action.model_name} new #{action.attribute_name}#{changes}"
+            "add to #{action.model_name} new #{action.attribute_name}#{changes}"
           when Etna::Clients::Magma::AddProjectAction
             "add project #{action.project_name}"
           when Etna::Clients::Magma::AddModelAction
             "add model #{action.model_name} as a #{action.parent_link_type} from #{action.parent_model_name}, identifier = #{action.identifier.inspect}"
+          when Etna::Clients::Magma::AddLinkAction
+            "link #{action.links[0].model_name} to #{action.links[1].model_name} as a #{action.links[0].type} to #{action.links[1].type}"
           else
             action.to_h.to_s
           end
@@ -74,7 +76,7 @@ module Etna
           attr = source_models.build_model(link.model_name).build_template.build_attributes.build_attribute(link.attribute_name)
           attr.attribute_type = link.type
           attr.name = attr.attribute_name = link.attribute_name
-          attr.link_model_name = reciprocal.model_name ``
+          attr.link_model_name = reciprocal.model_name
         end
 
         # Applies the given action to the source models and 'plans' its execution.
