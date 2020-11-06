@@ -34,7 +34,7 @@ module Etna
             format_hint: :format_hint,
             restricted: [:restricted, COLUMN_AS_BOOLEAN],
             read_only: [:read_only, COLUMN_AS_BOOLEAN],
-            options: [:validation, -> (s) { {"type" => "Array", "value" => s.split(',').map(&:chomp)} }],
+            options: [:validation, -> (s) { {"type" => "Array", "value" => s.split(',').map(&:strip)} }],
             match: [:validation, -> (s) { {"type" => "Regexp", "value" => Regexp.new(s).source} }],
             attribute_group: :attribute_group,
             hidden: [:hidden, COLUMN_AS_BOOLEAN],
@@ -183,7 +183,7 @@ module Etna
               att.send(:"#{processor}=", value)
             end
 
-            if att.attribute_type == AttributeType::LINK && !models.find_reciprocal(model_name: template.name, attribute: att)
+            if att.attribute_type == AttributeType::LINK && models.find_reciprocal(model_name: template.name, attribute: att).nil?
               models.build_model(att.link_model_name).build_template.build_attributes.build_attribute(template.name).tap do |rec_att|
                 rec_att.attribute_name = template.name
                 rec_att.display_name = self.prettify(template.name)
@@ -191,7 +191,13 @@ module Etna
                 rec_att.attribute_type = AttributeType::COLLECTION
                 rec_att.link_model_name = template.name
               end
+
+              # Force the model to be most recently inserted key, since the state
+              # of the current model is kept by key ordering.
+              models.raw[template.name] = models.raw.delete(template.name)
             end
+
+            att.set_field_defaults!
           end
         end
 

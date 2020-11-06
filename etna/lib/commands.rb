@@ -122,7 +122,7 @@ class EtnaApp
     class Models
       include Etna::CommandExecutor
 
-      class Add < Etna::Command
+      class Update < Etna::Command
         include WithEtnaClients
         include WithLogger
 
@@ -148,14 +148,14 @@ class EtnaApp
               puts "File #{file} is well formatted.  Calculating expected changes..."
               sync_workflow = workflow.plan_synchronization(@changeset, project_name, target_model)
               sync_workflow.planned_actions.each do |action|
-                puts Etna::Clients::Magma::AddProjectModelsWorkflow.describe_action(action)
+                puts Etna::Clients::Magma::ModelSynchronizationWorkflow.describe_action(action)
               end
 
               if execute
                 puts "Would you like to execute?"
                 if StrongConfirmation.confirm
                   sync_workflow.update_block = Proc.new do |action|
-                    puts "Executing #{Etna::Clients::Magma::AddProjectModelsWorkflow.describe_action(action, true)}..."
+                    puts "Executing #{Etna::Clients::Magma::ModelSynchronizationWorkflow.describe_action(action, true)}..."
                   end
 
                   sync_workflow.execute_planned!
@@ -164,7 +164,7 @@ class EtnaApp
 
                 return
               else
-                puts "To commit, run \033[1;31m#{program_name} #{command_name} --file #{file} --target-model #{target_model} --execute\033[0m"
+                puts "To commit, run \033[1;31m#{program_name} --file #{file} --target-model #{target_model} --execute\033[0m"
               end
             end
 
@@ -219,37 +219,6 @@ class EtnaApp
 
       class Attributes
         include Etna::CommandExecutor
-
-        class ValidateActions < Etna::Command
-          include WithEtnaClients
-          include WithLogger
-
-          def execute(project_name, filepath)
-            # Use the workflow to validate instead of the AttributeActionsValidator directly,
-            #   because we also need to check the actions against the project, i.e.
-            #   do the right models exist, do the attributes already exist, etc.
-            attribute_actions_workflow = Etna::Clients::Magma::AttributeActionsFromJsonWorkflow.new(
-                magma_client: magma_client,
-                project_name: project_name,
-                filepath: filepath)
-            # If the workflow initialized, then no errors!
-            puts "Attribute Actions JSON is well-formatted and is valid for project #{project_name}."
-          end
-        end
-
-        class ExecuteActions < Etna::Command
-          include WithEtnaClientsByEnvironment
-          include WithLogger
-          include RequireConfirmation
-
-          def execute(project_name, filepath)
-            attribute_actions_workflow = Etna::Clients::Magma::AttributeActionsFromJsonWorkflow.new(
-                magma_client: magma_client,
-                project_name: project_name,
-                filepath: filepath)
-            attribute_actions_workflow.run!
-          end
-        end
 
         class UpdateFromCsv < Etna::Command
           include WithEtnaClients

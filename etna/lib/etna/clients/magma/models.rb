@@ -53,12 +53,13 @@ module Etna
         end
 
         def add_action(action)
-            actions << action
+          actions << action
         end
       end
 
       class AddModelAction < Struct.new(:action_name, :model_name, :parent_model_name, :parent_link_type, :identifier, keyword_init: true)
         include JsonSerializableStruct
+
         def initialize(**args)
           super({action_name: 'add_model'}.update(args))
         end
@@ -66,12 +67,17 @@ module Etna
 
       class AddAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
+
         def initialize(**args)
           super({action_name: 'add_attribute'}.update(args))
         end
 
         def attribute_type=(val)
           self.type = val
+        end
+
+        def attribute_type
+          self.type
         end
 
         def desc=(val)
@@ -85,6 +91,7 @@ module Etna
 
       class AddLinkAction < Struct.new(:action_name, :links, keyword_init: true)
         include JsonSerializableStruct
+
         def initialize(**args)
           super({action_name: 'add_link', links: []}.update(args))
         end
@@ -96,13 +103,15 @@ module Etna
 
       class AddProjectAction < Struct.new(:action_name, keyword_init: true)
         include JsonSerializableStruct
+
         def initialize(**args)
           super({action_name: 'add_project'}.update(args))
         end
       end
 
-      class UpdateAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
+      class UpdateAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
+
         def initialize(**args)
           super({action_name: 'update_attribute'}.update(args))
         end
@@ -114,10 +123,15 @@ module Etna
         def desc
           self.description
         end
+
+        def as_json
+          super(keep_nils: true)
+        end
       end
 
       class RenameAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :new_attribute_name, keyword_init: true)
         include JsonSerializableStruct
+
         def initialize(**args)
           super({action_name: 'rename_attribute'}.update(args))
         end
@@ -227,7 +241,7 @@ module Etna
           link_model&.template&.attributes&.all&.find { |a| a.link_model_name == model.name }
         end
 
-        def to_directed_graph(include_casual_links=false)
+        def to_directed_graph(include_casual_links = false)
           graph = ::DirectedGraph.new
 
           model_keys.sort.each do |model_name|
@@ -387,6 +401,16 @@ module Etna
           @raw = raw
         end
 
+        # Sets certain attribute fields which are implicit, even when not set, to match server behavior.
+        def set_field_defaults!
+          @raw.replace({
+              'hidden' => false,
+              'read_only' => false,
+              'restricted' => false,
+              'validation' => nil,
+          }.merge(@raw))
+        end
+
         def name
           @raw['name'] || ""
         end
@@ -479,6 +503,7 @@ module Etna
         def attribute_group=(val)
           raw['attribute_group'] = val
         end
+
         def hidden
           raw['hidden']
         end

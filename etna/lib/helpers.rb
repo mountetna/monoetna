@@ -65,11 +65,10 @@ module WithLogger
 end
 
 module StrongConfirmation
-  def confirm
-    random = SecureRandom.base36(5)
-    puts "To confirm, please type #{random}:"
+  def self.confirm
+    puts "Confirm Y/n:"
     input = STDIN.gets.chomp
-    if input == random
+    if input != "Y"
       puts "Failed confirmation, got #{input}"
       return false
     end

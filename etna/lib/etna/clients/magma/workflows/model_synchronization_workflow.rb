@@ -82,7 +82,7 @@ module Etna
           case action
           when UpdateAttributeAction
             attribute_update = target_models.build_model(action.model_name).build_template.build_attributes.build_attribute(action.attribute_name)
-            Attribute.copy(action, attribute_update)
+            Attribute.copy(action, attribute_update, attributes: Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES)
           when AddAttributeAction
             new_attribute = target_models.build_model(action.model_name).build_template.build_attributes.build_attribute(action.attribute_name)
             Attribute.copy(action, new_attribute)
@@ -193,9 +193,23 @@ module Etna
                 attribute_name: target_attribute_name,
             )
 
-            Attribute.copy(source_attribute, add_attribute, copy_nils: true)
+            Attribute.copy(source_attribute, add_attribute)
             queue_update(add_attribute)
           else
+            # If there are is no diff, don't produce an action.
+            target_attribute = Attribute.new(target_attribute.raw)
+            target_attribute.set_field_defaults!
+
+            source_attribute = Attribute.new(source_attribute.raw)
+            source_attribute.set_field_defaults!
+
+            source_editable = source_attribute.raw.slice(*Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.map(&:to_s))
+            target_editable = target_attribute.raw.slice(*Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.map(&:to_s))
+
+            if source_editable == target_editable
+              return
+            end
+
             update_attribute = UpdateAttributeAction.new(
                 model_name: target_model_name,
                 attribute_name: target_attribute_name,
@@ -243,36 +257,6 @@ module Etna
         # This method, and it's partner prepare_parent, should never call into any re-entrant or potentially
         # cyclical method, like ensure_model_tree.
         def ensure_model(model_name)
-          ensure_model_create(model_name)
-          ensure_model_identifier_configured(model_name)
-        end
-
-        def ensure_model_identifier_configured(model_name)
-          return unless (source_model = source_models.model(model_name))
-          # Identifiers are not configurable for tables.
-          if source_models.find_reciprocal(model: source_model, link_attribute_name: source_model.template.parent)&.attribute_type == AttributeType::TABLE
-            return
-          end
-
-          target_model_name = target_of_source(model_name)
-
-          template = source_model.template
-          return unless (identifier_attribute = template.attributes.attribute(template.identifier))
-
-          update_identifier_action = UpdateAttributeAction.new(
-              {
-                  model_name: target_model_name,
-                  attribute_name: template.identifier,
-                  display_name: identifier_attribute.display_name,
-                  description: identifier_attribute.desc,
-                  validation: identifier_attribute.validation,
-              }
-          )
-
-          queue_update(update_identifier_action)
-        end
-
-        def ensure_model_create(model_name)
           return unless (source_model = source_models.model(model_name))
           target_model_name = target_of_source(model_name)
           return if target_models.model_keys.include?(target_model_name)

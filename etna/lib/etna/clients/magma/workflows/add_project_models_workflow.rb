@@ -38,6 +38,8 @@ module Etna
           validator = RenamesValidator.new(changeset.models, changeset.renames)
           validator.validate
           validator.errors.each(&err_block)
+
+          changeset
         end
 
         def write_models_template_csv(csv, project_name, target_model = 'project')
