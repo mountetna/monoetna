@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'bundler'
-ENV['BUNDLE_GEMFILE'] = '/app/Gemfile'
+# ENV['BUNDLE_GEMFILE'] = '/app/Gemfile'
 Bundler.require :default, (ENV['POLYPHEMUS_ENV'] || :development).to_sym
 
 require_relative '../lib/polyphemus'
