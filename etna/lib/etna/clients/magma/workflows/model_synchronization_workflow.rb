@@ -18,14 +18,14 @@ module Etna
           when Etna::Clients::Magma::UpdateAttributeAction
             changes = ""
             unless short
-              changes = action.members.select { |k| Etna::Clients::Magma::Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.include?(k) }.map { |k| [k, action.send(k)]}
-              changes = "\n" + (changes.map { |k, v| "#{k} = #{v.inspect}" }.join(", "))
+              changes = Etna::Clients::Magma::Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.select { |k| action.respond_to?(k) }.map { |k| [k, action.send(k)] }
+              changes = "\n  * " + (changes.map { |k, v| "#{k} = #{v.inspect}" }.join(", "))
             end
             "update #{action.model_name} #{action.attribute_name}#{changes}"
           when Etna::Clients::Magma::AddAttributeAction
             changes = ""
             unless short
-              changes = action.members.select { |k| Etna::Clients::Magma::Attribute::COPYABLE_ATTRIBUTE_ATTRIBUTES.include?(k) }.map { |k| [k, action.send(k)]}
+              changes = Etna::Clients::Magma::Attribute::COPYABLE_ATTRIBUTE_ATTRIBUTES.select { |k| action.respond_to?(k) }.map { |k| [k, action.send(k)] }
               changes = "\n  * " + (changes.map { |k, v| "#{k} = #{v.inspect}" }.join(", "))
             end
             "add to #{action.model_name} new #{action.attribute_name}#{changes}"
@@ -104,6 +104,20 @@ module Etna
 
             copy_link_into_target(child_link, parent_link)
             copy_link_into_target(parent_link, child_link)
+
+            ['created_at', 'updated_at'].each do |time_attr_name|
+              template.build_attributes.build_attribute(time_attr_name).tap do |attr|
+                attr.attribute_type = Etna::Clients::Magma::AttributeType::DATE_TIME
+                attr.attribute_name = time_attr_name
+              end
+            end
+
+            if action.parent_link_type != Etna::Clients::Magma::AttributeType::TABLE
+              template.build_attributes.build_attribute(template.identifier).tap do |attr|
+                attr.attribute_name = template.identifier
+                attr.attribute_type = Etna::Clients::Magma::AttributeType::STRING
+              end
+            end
           when RenameAttributeAction
             attributes = target_models.model(action.model_name).template.attributes
             attributes.raw[action.new_attribute_name] = attributes.raw.delete(action.attribute_name)
@@ -113,6 +127,7 @@ module Etna
 
           planned_actions << action
         end
+
 
         def self.from_api_source(source_project:, source_client:, **kwds)
           self.new(
@@ -235,6 +250,7 @@ module Etna
           target_model_name = target_of_source(model_name)
           target_attribute_name = target_attribute_of_source(model_name, attribute_name)
           return nil unless (target_model = target_models.model(target_model_name))
+
           target_original_attribute = target_model.template.attributes.attribute(target_attribute_name)
 
           if renames && (attribute_renames = renames[model_name]) && (new_name = attribute_renames[attribute_name])

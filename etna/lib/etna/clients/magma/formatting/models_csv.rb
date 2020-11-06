@@ -243,9 +243,16 @@ module Etna
         end
 
         def self.each_attribute_row(models = Models.new, model = Model.new, attribute = Attribute.new, &block)
-          unless AttributeValidator.valid_add_row_attribute_types.include?(attribute.attribute_type) || attribute.attribute_type == AttributeType::IDENTIFIER
-            return
+          if attribute.attribute_type == AttributeType::IDENTIFIER
+            # Identifiers for models whose parent link type ends up being a table are non configurable, so we don't
+            # want to include them in the CSV.
+            if models.find_reciprocal(model: model, link_attribute_name: model.template.parent)&.attribute_type == AttributeType::TABLE
+              return
+            end
+          else
+            return unless AttributeValidator.valid_add_row_attribute_types.include?(attribute.attribute_type)
           end
+
 
           yield row_from_columns(
               attribute_name: attribute.name,
