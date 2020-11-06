@@ -22,19 +22,18 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         workflow = Etna::Clients::Magma::AddProjectModelsWorkflow.new(magma_client: magma_client)
 
         io = StringIO.new
-        workflow.write_models_templats_csv(io, 'mvir1')
+        workflow.write_models_template_csv(io, 'mvir1')
 
         # io.rewind
         # puts io.read
 
         io.rewind
-        models = workflow.prepare_models_from_csv(io) do |err|
+        models = workflow.prepare_changeset_from_csv(io) do |err|
           raise err
         end
 
-        workflow.synchronize_to_server(models, test_project) do |update|
-          pp update
-        end
+        sync_workflow = workflow.plan_synchronization(models, test_project)
+        sync_workflow.update_block = Proc.new { |a| pp a }
       end
     end
   end

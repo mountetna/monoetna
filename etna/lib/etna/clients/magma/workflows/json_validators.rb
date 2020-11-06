@@ -75,6 +75,30 @@ module Etna
         end
       end
 
+      class RenamesValidator < ValidatorBase
+        attr_reader :models, :renames
+        def initialize(models = Models.new, renames = {})
+          @models = models
+          @renames = renames
+          super()
+        end
+
+        def validate
+          renames.each do |model_name, attribute_renames|
+            attribute_renames.each do |old_name, new_name|
+              keys = @models.build_model(model_name).build_template.build_attributes.attribute_keys
+              if keys.include?(new_name)
+                @errors << "Model #{model_name} trying to rename #{old_name} to #{new_name}, but a different #{new_name} already exists."
+              end
+
+              if !keys.include?(old_name)
+                @errors << "Model #{model_name} trying to rename #{old_name} to #{new_name}, but #{old_name} does not exist."
+              end
+            end
+          end
+        end
+      end
+
       class AddModelValidator < ValidatorBase
         attr_reader :model
 

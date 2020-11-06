@@ -77,6 +77,10 @@ module Etna
         def desc=(val)
           self.description = val
         end
+
+        def desc
+          self.description
+        end
       end
 
       class AddLinkAction < Struct.new(:action_name, :links, keyword_init: true)
@@ -101,6 +105,14 @@ module Etna
         include JsonSerializableStruct
         def initialize(**args)
           super({action_name: 'update_attribute'}.update(args))
+        end
+
+        def desc=(val)
+          self.description = val
+        end
+
+        def desc
+          self.description
         end
       end
 
@@ -314,6 +326,14 @@ module Etna
           raw['identifier'] || ""
         end
 
+        def version
+          raw['version'] || 0
+        end
+
+        def version=(val)
+          raw['version'] = val
+        end
+
         def identifier=(val)
           raw['identifier'] = val.to_s
         end
@@ -479,19 +499,23 @@ module Etna
           raw['options']
         end
 
-        def self.copy(source, dest)
-          dest.attribute_name = source.attribute_name
-          dest.attribute_type = source.attribute_type
-          dest.desc = source.desc
-          dest.display_name = source.display_name
-          dest.format_hint = source.format_hint
-          dest.hidden = source.hidden
-          dest.link_model_name = source.link_model_name
-          dest.read_only = source.read_only
-          dest.attribute_group = source.attribute_group
-          dest.unique = source.unique
-          dest.validation = source.validation
-          dest.restricted = source.restricted
+        # NOTE!  The Attribute class returns description as desc, where as actions take it in as description.
+        # There are shortcut methods that try to handle this on the action class side of things.  Ideally we would
+        # make this more consistent in the near future.
+        COPYABLE_ATTRIBUTE_ATTRIBUTES = [
+            :attribute_name, :attribute_type, :desc, :display_name, :format_hint,
+            :hidden, :link_model_name, :read_only, :attribute_group, :unique, :validation,
+            :restricted
+        ]
+
+        EDITABLE_ATTRIBUTE_ATTRIBUTES = UpdateAttributeAction.members & COPYABLE_ATTRIBUTE_ATTRIBUTES
+
+        def self.copy(source, dest, attributes: COPYABLE_ATTRIBUTE_ATTRIBUTES)
+          attributes.each do |attr_name|
+            next unless dest.respond_to?(:"#{attr_name}=")
+            source_v = source.send(attr_name)
+            dest.send(:"#{attr_name}=", source_v)
+          end
         end
       end
 

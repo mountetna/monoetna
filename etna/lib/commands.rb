@@ -144,16 +144,22 @@ class EtnaApp
           load_models_from_csv(file)
 
           while true
-            if @models && @errors.empty?
-              puts "File #{file} is well formatted and contains #{@models.model_keys.length} models to synchronize to #{environment} #{project_name}."
+            if @changeset && @errors.empty?
+              puts "File #{file} is well formatted.  Calculating expected changes..."
+              sync_workflow = workflow.plan_synchronization(@changeset, project_name, target_model)
+              sync_workflow.planned_actions.each do |action|
+                puts Etna::Clients::Magma::AddProjectModelsWorkflow.describe_action(action)
+              end
 
               if execute
                 puts "Would you like to execute?"
                 if StrongConfirmation.confirm
-                  workflow.synchronize_to_server(@models, project_name, target_model) do |update_action|
-                    puts "Executing #{update_action.raw}..."
+                  sync_workflow.update_block = Proc.new do |action|
+                    puts "Executing #{Etna::Clients::Magma::AddProjectModelsWorkflow.describe_action(action, true)}..."
                   end
-                  puts "Success!"
+
+                  sync_workflow.execute_planned!
+                  File.unlink(file)
                 end
 
                 return
@@ -178,7 +184,7 @@ class EtnaApp
 
         def reset
           @errors = []
-          @models = nil
+          @changeset = nil
           @last_load = Time.at(0)
         end
 
@@ -186,8 +192,8 @@ class EtnaApp
           reset
 
           @last_load = File.stat(file).mtime
-          @models = File.open(file, 'r') do |f|
-            workflow.prepare_models_from_csv(f) do |err|
+          @changeset = File.open(file, 'r') do |f|
+            workflow.prepare_changeset_from_csv(f) do |err|
               @errors << err
             end
           end
@@ -203,7 +209,7 @@ class EtnaApp
         def prepare_template(file, project_name, target_model)
           tf = Tempfile.new
           begin
-            File.open(tf.path, 'wb') { |f| workflow.write_models_templats_csv(f, project_name, target_model) }
+            File.open(tf.path, 'wb') { |f| workflow.write_models_template_csv(f, project_name, target_model) }
             FileUtils.cp(tf.path, file)
           ensure
             tf.close!

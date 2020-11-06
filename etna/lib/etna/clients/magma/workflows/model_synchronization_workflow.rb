@@ -6,21 +6,110 @@ module Etna
       # Note!  These workflows are not perfectly atomic, nor perfectly synchronized due to nature of the backend.
       # These primitives are best effort locally synchronized, but cannot defend the backend or simultaneous
       # system updates.
-      class ModelSynchronizationWorkflow < Struct.new(:target_client, :source_models, :target_project, :update_block, :model_name, keyword_init: true)
+      class ModelSynchronizationWorkflow < Struct.new(
+          :target_client, :source_models, :target_project, :update_block,
+          :model_name, :plan_only, :validate, :use_versions, :renames,
+          keyword_init: true)
+
+        def self.describe_action(action, short = false)
+          case action
+          when Etna::Clients::Magma::RenameAttributeAction
+            "#{action.model_name} #{action.attribute_name} > #{action.new_attribute_name}"
+          when Etna::Clients::Magma::UpdateAttributeAction
+            changes = ""
+            unless short
+              changes = action.to_h.to_a.select { |k, v| Etna::Clients::Magma::Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.include?(k) }
+              changes = "\n" + (changes.map { |k, v| "  * #{k} = #{v.inspect}" }.join("\n"))
+            end
+            "#{action.model_name} update #{action.attribute_name}#{changes}"
+          when Etna::Clients::Magma::AddAttributeAction
+            changes = ""
+            unless short
+              changes = action.to_h.to_a.select { |k, v| v.nil? && Etna::Clients::Magma::Attribute::COPYABLE_ATTRIBUTE_ATTRIBUTES.include?(k) }
+              changes = "\n" + (changes.map { |k, v| "  * #{k} = #{v.inspect}" }.join("\n"))
+            end
+            "#{action.model_name} new #{action.attribute_name}#{changes}"
+          when Etna::Clients::Magma::AddProjectAction
+            "add project #{action.project_name}"
+          when Etna::Clients::Magma::AddModelAction
+            "add model #{action.model_name} as a #{action.parent_link_type} from #{action.parent_model_name}, identifier = #{action.identifier.inspect}"
+          else
+            action.to_h.to_s
+          end
+        end
+
         def target_models
           @target_models ||= begin
             target_client.retrieve(RetrievalRequest.new(project_name: self.target_project, model_name: 'all')).models
           end
         end
 
-        def execute_updates(*actions)
-          update = UpdateModelRequest.new(project_name: self.target_project)
-          actions.each do |a|
-            update_block.call(a) if update_block
-            update.add_action(a)
+        def planned_actions
+          @planned_actions ||= []
+        end
+
+        def queue_update(action)
+          if plan_only
+            plan_update(action)
+          else
+            execute_update(action)
           end
+        end
+
+        def execute_planned!
+          @planned_actions.each do |action|
+            execute_update(action)
+          end
+        end
+
+        def execute_update(action)
+          update = UpdateModelRequest.new(project_name: self.target_project)
+          update_block.call(action) if update_block
+          update.add_action(action)
           @target_models = nil
           target_client.update_model(update)
+        end
+
+        def copy_link_into_source(link, reciprocal)
+          attr = source_models.build_model(link.model_name).build_template.build_attributes.build_attribute(link.attribute_name)
+          attr.attribute_type = link.type
+          attr.name = attr.attribute_name = link.attribute_name
+          attr.link_model_name = reciprocal.model_name ``
+        end
+
+        # Applies the given action to the source models and 'plans' its execution.
+        def plan_update(action)
+          case action
+          when UpdateAttributeAction
+            attribute_update = target_models.build_model(action.model_name).build_template.build_attributes.build_attribute(action.attribute_name)
+            Attribute.copy(action, attribute_update)
+          when AddAttributeAction
+            new_attribute = target_models.build_model(action.model_name).build_template.build_attributes.build_attribute(action.attribute_name)
+            Attribute.copy(action, new_attribute)
+          when AddLinkAction
+            first_link = action.links[0]
+            second_link = action.links[1]
+            copy_link_into_source(first_link, second_link)
+            copy_link_into_source(second_link, first_link)
+          when AddModelAction
+            template = target_models.build_model(action.model_name).build_template
+            template.name = action.model_name
+            template.identifier = action.identifier
+            template.parent = action.parent_model_name
+
+            child_link = AddLinkDefinition.new(type: AttributeType::PARENT, model_name: template.parent, attribute_name: template.parent)
+            parent_link = AddLinkDefinition.new(type: action.parent_link_type, model_name: template.name, attribute_name: template.name)
+
+            copy_link_into_source(child_link, parent_link)
+            copy_link_into_source(parent_link, child_link)
+          when RenameAttributeAction
+            attributes = target_models.model(action.model_name).template.attributes
+            attributes.raw[action.new_attribute_name] = attributes.raw.delete(action.attribute_name)
+          else
+            raise "Unexpected plan_action #{action}"
+          end
+
+          planned_actions << action
         end
 
         def self.from_api_source(source_project:, source_client:, **kwds)
@@ -88,7 +177,7 @@ module Etna
           add_link.links << AddLinkDefinition.new(model_name: target_model_name, attribute_name: attribute_name, type: source_attribute.attribute_type)
           add_link.links << AddLinkDefinition.new(model_name: target_link_model_name, attribute_name: reciprocal.attribute_name, type: reciprocal.attribute_type)
 
-          execute_updates(add_link)
+          queue_update(add_link)
         end
 
         def ensure_model_attribute(model_name, attribute_name)
@@ -96,19 +185,58 @@ module Etna
           return unless (source_attribute = model.template.attributes.attribute(attribute_name))
 
           target_model_name = target_of_source(model_name)
+          target_attribute, target_attribute_name = ensure_model_attribute_target_rename(model_name, attribute_name)
+
+          if target_attribute.nil?
+            add_attribute = AddAttributeAction.new(
+                model_name: target_model_name,
+                attribute_name: target_attribute_name,
+            )
+
+            Attribute.copy(source_attribute, add_attribute, copy_nils: true)
+            queue_update(add_attribute)
+          else
+            update_attribute = UpdateAttributeAction.new(
+                model_name: target_model_name,
+                attribute_name: target_attribute_name,
+            )
+
+            Attribute.copy(source_attribute, update_attribute, attributes: Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES)
+            queue_update(update_attribute)
+          end
+        end
+
+        # Returns a tuple of the target's attribute, post rename if necessary, if it exists, and the name of the target attribute
+        # cases here:
+        # 1.  There is no rename for the attribute
+        #  a. There target attribute already exists -> [target_attribute, attribute_name]
+        #  b. The target attribute does not exist -> [nil, attribute_name]
+        # 2.  There is an expected rename from the source
+        #  a. The target has neither the renamed attribute or the original attribute -> [nil, new_attribute_name]
+        #  b. The target has the renamed attribute already -> [renamed_attribute, new_attribute_name]
+        #  c. The target has the source attribute, which is not yet renamed. -> [renamed_attribute, new_attribute_name]
+        def ensure_model_attribute_target_rename(model_name, attribute_name)
+          target_model_name = target_of_source(model_name)
           target_attribute_name = target_attribute_of_source(model_name, attribute_name)
+          return nil unless (target_model = target_models.model(target_model_name))
+          target_original_attribute = target_model.template.attributes.attribute(target_attribute_name)
 
-          target_attributes = target_models.model(target_model_name).template.attributes
-          return if target_attributes.attribute_keys.include?(attribute_name)
+          if renames && (attribute_renames = renames[model_name]) && (new_name = attribute_renames[attribute_name])
+            new_name = target_attribute_of_source(model_name, new_name)
 
-          add_attribute = AddAttributeAction.new(
-              model_name: target_model_name,
-              attribute_name: target_attribute_name,
-          )
+            unless target_model.template.attributes.include?(new_name)
+              if target_original_attribute
+                rename = RenameAttributeAction.new(model_name: target_model_name, attribute_name: target_attribute_name, new_attribute_name: new_name)
+                queue_update(rename)
+              else
+                return [nil, new_name]
+              end
+            end
 
-          Attribute.copy(source_attribute, add_attribute)
+            return [target_model.template.attributes.attribute(new_name), new_name]
+          end
 
-          execute_updates(add_attribute)
+          [target_original_attribute, target_attribute_name]
         end
 
         # Non cyclical, non re-entrant due to the requirement that parents cannot form a cycle.
@@ -141,7 +269,7 @@ module Etna
               }
           )
 
-          execute_updates(update_identifier_action)
+          queue_update(update_identifier_action)
         end
 
         def ensure_model_create(model_name)
@@ -165,7 +293,7 @@ module Etna
             add_model_action.parent_link_type = parent_link_type
           end
 
-          execute_updates(add_model_action)
+          queue_update(add_model_action)
         end
 
         # Non cyclical, non re-entrant due to the requirement that parents cannot form a cycle.

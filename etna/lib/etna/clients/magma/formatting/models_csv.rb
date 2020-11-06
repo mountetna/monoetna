@@ -1,11 +1,14 @@
+require 'ostruct'
+
 module Etna
   module Clients
     class Magma
       class ModelsCsv
         COLUMNS = [
             :comments,
-            :model_name, :identifier, :parent_model_name, :parent_link_type,
+            :model_name, :version, :identifier, :parent_model_name, :parent_link_type,
             :attribute_name,
+            :new_attribute_name,
             :attribute_type,
             :link_model_name,
             :description,
@@ -38,9 +41,10 @@ module Etna
             unique: [:unique, COLUMN_AS_BOOLEAN],
         }
 
-        def self.apply_csv_row(models = Models.new, row = {}, &err_block)
+        def self.apply_csv_row(changeset = ModelsChangeset.new, row = {}, &err_block)
+          changeset.tap do
+            models = changeset.models
 
-          models.tap do
             template = if (model_name = self.get_col_or_nil(row, :model_name))
               # Force the model to be most recently inserted key, since the state
               # of the current model is kept by key ordering.
@@ -73,8 +77,22 @@ module Etna
 
             if (attribute_name = self.get_col_or_nil(row, :attribute_name))
               self.process_attribute(template: template, attribute_name: attribute_name, models: models, row: row, &err_block)
+              if (new_attribute_name = self.get_col_or_nil(row, :new_attribute_name))
+                self.process_new_attribute_name(template: template, changeset: changeset, new_attribute_name: new_attribute_name, attribute_name: attribute_name, &err_block)
+              end
             end
           end
+        end
+
+        def self.process_new_attribute_name(template:, changeset:, new_attribute_name:, attribute_name:, &err_block)
+          renames = changeset.build_renames(template.name)
+          if renames.include?(attribute_name) && renames[attribute_name] != new_attribute_name
+            if block_given?
+              yield "Found multiple new_attribute_name values for #{template.name}'s #{attribute_name}': #{new_attribute_name} or #{renames[attribute_name]}?"
+            end
+          end
+
+          renames[attribute_name] = new_attribute_name
         end
 
         def self.process_parent_model_name(template:, parent_model_name:, models:, &err_block)
@@ -243,6 +261,19 @@ module Etna
 
         def self.row_from_columns(**columns)
           COLUMNS.map { |c| (columns[c] || '').to_s }
+        end
+
+        class ModelsChangeset < Struct.new(:models, :renames, keyword_init: true)
+          def initialize(*args)
+            super
+
+            self.models ||= Models.new
+            self.renames ||= {}
+          end
+
+          def build_renames(model_name)
+            renames[model_name] ||= {}
+          end
         end
       end
     end
