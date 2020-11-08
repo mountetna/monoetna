@@ -30,6 +30,9 @@ module WithEtnaClients
     @magma_client ||= Etna::Clients::Magma.new(
         token: token,
         ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
+        # Persistent connections cause problem with magma restarts, until we can fix that we should force them
+        # to close + reopen each request.
+        persistent: false,
         **EtnaApp.instance.config(:magma, environment) || {})
   end
 
@@ -58,6 +61,20 @@ end
 module WithLogger
   def logger
     EtnaApp.instance.logger
+  end
+end
+
+module StrongConfirmation
+  def confirm
+    random = SecureRandom.base64(5)
+    puts "To confirm, please type #{random}:"
+    input = STDIN.gets.chomp
+    if input != random
+      puts "Failed confirmation, got #{input}"
+      return false
+    end
+
+    true
   end
 end
 

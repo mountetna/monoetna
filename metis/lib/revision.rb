@@ -7,6 +7,8 @@ class Metis
       @source = Metis::PathWithObjects.new(params[:source])
       @dest = Metis::PathWithObjects.new(params[:dest])
 
+      @paths = [@source, @dest]
+
       @user = params[:user]
       @errors = nil
       # TODO: Will have to handle DELETE differently,
@@ -31,8 +33,18 @@ class Metis
       !!@errors&.empty?
     end
 
-    def validate (user_authorized_bucket_names)
-      raise 'not implemented'
+    def validate
+      @errors = []
+      validate_source(@source)
+      validate_dest(@dest)
+    end
+
+    def to_hash
+      {
+        dest: @dest.mpath.path,
+        source: @source.mpath.path,
+        errors: @errors
+      }
     end
 
     def bucket_names
@@ -40,15 +52,15 @@ class Metis
       #   all relevant bucket names, even before validation of
       #   the Revision.
       # So, if @source isn't valid, we return empty list.
-      if @source.mpath.valid?
-        return [@source.mpath.bucket_name]
-      end
-
-      return []
+      @paths.map do |path|
+        path.mpath.bucket_name if path.mpath.valid?
+      end.compact
     end
 
     def mpaths
-      @source.mpath.valid? ? [@source.mpath] : []
+      @paths.map do |path|
+        path.mpath if path.mpath.valid?
+      end.compact
     end
 
     private

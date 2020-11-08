@@ -111,64 +111,6 @@ class Polyphemus
     end
   end
 
-  class ApplyMvir1RnaSeqAttributes < Etna::Command
-    include WithEtnaClients
-    include WithLogger
-
-    attr_reader :environment
-    usage 'apply_mvir1rna_seq_attributes [environment]'
-
-    def execute(env = Polyphemus.instance.environment)
-      @environment = env
-      models = Etna::Clients::Magma::Models.new
-      rna_seq = models.build_model('rna_seq')
-      attributes = rna_seq.build_template.build_attributes
-      add_file_attribute(attributes, 'gene_expression')
-      add_file_attribute(attributes, 'isoform_expression')
-      add_file_attribute(attributes, 'genome_alignment')
-      add_file_attribute(attributes, 'genome_alignment_idx')
-      add_file_attribute(attributes, 'transcriptome_alignment')
-      add_file_attribute(attributes, 'fusion_gene_junctions')
-      add_file_attribute(attributes, 'non_host_reads')
-      add_file_attribute(attributes, 'rrna_alignment')
-      add_file_attribute(attributes, 'rrna_alignment_idx')
-      add_file_attribute(attributes, 'genome_alignment_qc_pdf')
-      add_file_attribute(attributes, 'genome_alignment_flagstat')
-      add_file_attribute(attributes, 'rrna_alignment_qc_pdf')
-      add_file_attribute(attributes, 'rrna_alignment_flagstat')
-      add_file_attribute(attributes, 'adapter_trimming_metrics')
-      add_file_attribute(attributes, 'rrna_alignment_idx')
-      add_file_attribute(attributes, 'rrna_alignment_idx')
-      add_file_attribute(attributes, 'rrna_alignment_idx')
-      add_string_attribute(attributes, 'raw_fastqs')
-
-      Etna::Clients::Magma::ShallowCopyModelWorkflow.new(
-          model_name: 'rna_seq',
-          target_project: 'mvir1',
-          target_client: magma_client,
-          source_models: models
-      ).ensure_model_tree('rna_seq')
-    end
-
-    def add_file_attribute(attributes, name)
-      attributes.build_attribute(name).tap do |attribute|
-        attribute.attribute_name = name
-        attribute.name = attribute.attribute_name
-        attribute.display_name = name.split('_').map(&:capitalize).join(' ')
-        attribute.attribute_type = Etna::Clients::Magma::AttributeType::FILE
-      end
-    end
-
-    def add_string_attribute(attributes, name)
-      attributes.build_attribute(name).tap do |attribute|
-        attribute.attribute_name = name
-        attribute.name = attribute.attribute_name
-        attribute.display_name = name.split('_').map(&:capitalize).join(' ')
-        attribute.attribute_type = Etna::Clients::Magma::AttributeType::STRING
-      end
-    end
-  end
-
   class CopyMetisFilesCommand < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
@@ -246,60 +188,6 @@ class Polyphemus
           logger.info("Copying #{documents.document_keys.length} #{model_name} records")
         end
       end
-    end
-
-    def setup(config)
-      super
-      Polyphemus.instance.setup_logger
-    end
-  end
-
-  module SyncModelsCommand
-    def self.included(mod)
-      mod.class_eval do
-        include WithEtnaClientsByEnvironment
-        include WithLogger
-
-        def execute(source_env, target_env, source_project, target_project, model_name)
-          workflow = self.class::WORKFLOW.from_api_source(
-              model_name: model_name,
-              source_project: source_project,
-              source_client: environment(source_env).magma_client,
-              target_project: target_project,
-              target_client: environment(target_env).magma_client,
-          )
-
-          workflow.ensure_model_tree(model_name)
-        end
-
-        def setup(config)
-          super
-          Polyphemus.instance.setup_logger
-        end
-      end
-    end
-  end
-
-  class ApiCopyModelShallow < Etna::Command
-    WORKFLOW = Etna::Clients::Magma::ShallowCopyModelWorkflow
-    include SyncModelsCommand
-  end
-
-  class ApiCopyModelDeep < Etna::Command
-    WORKFLOW = Etna::Clients::Magma::ModelSynchronizationWorkflow
-    include SyncModelsCommand
-  end
-
-  class ApiAddProject < Etna::Command
-    include WithEtnaClientsByEnvironment
-
-    usage 'api_add_project <environment> <project_name>'
-
-    def execute(env, project_name)
-      client = environment(env).magma_client
-      client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
-          project_name: project_name,
-          actions: [Etna::Clients::Magma::AddProjectAction.new]))
     end
 
     def setup(config)

@@ -77,8 +77,10 @@ def stub_metis_setup
     {:method=>"GET", :route=>"/:project_name/list/:bucket_name/*folder_path", :name=>"folder_list", :params=>["project_name", "bucket_name", "folder_path"]},
     {:method=>"POST", :route=>"/:project_name/folder/rename/:bucket_name/*folder_path", :name=>"folder_rename", :params=>["project_name", "bucket_name", "folder_path"]},
     {:method=>"POST", :route=>"/:project_name/folder/create/:bucket_name/*folder_path", :name=>"folder_create", :params=>["project_name", "bucket_name", "folder_path"]},
+    {:method=>"DELETE", :route=>"/:project_name/folder/remove/:bucket_name/*folder_path", :name=>"folder_remove", :params=>["project_name", "bucket_name", "folder_path"]},
     {:method=>"POST", :route=>"/:project_name/find/:bucket_name", :name=>"bucket_find", :params=>["project_name", "bucket_name"]},
-    {:method=>"POST", :route=>"/:project_name/files/copy", :name=>"file_bulk_copy", :params=>["project_name"]}
+    {:method=>"POST", :route=>"/:project_name/files/copy", :name=>"file_bulk_copy", :params=>["project_name"]},
+    {:method=>"POST", :route=>"/:project_name/file/rename/:bucket_name/*file_path", :name=>"file_rename", :params=>["project_name", "bucket_name", "file_path"]}
   ])
 
   stub_request(:options, METIS_HOST).
@@ -108,7 +110,7 @@ def stub_metis_setup
     })
 end
 
-def stub_parent_exists(params={})
+def stub_list_bucket(params={})
   stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list\/#{params[:bucket] || RESTRICT_BUCKET}\//)
   .to_return({
     status: params[:status] || 200
@@ -124,6 +126,20 @@ end
 
 def stub_rename_folder(params={})
   stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_rename_file(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/file\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_delete_folder(params={})
+  stub_request(:delete, /#{METIS_HOST}\/#{PROJECT}\/folder\/remove\/#{params[:bucket] || RESTRICT_BUCKET}\//)
   .to_return({
     status: params[:status] || 200
   })
@@ -247,3 +263,17 @@ def stub_polyphemus_setup
     })
 end
 
+def configure_etna_yml
+  EtnaApp.instance.configure({
+      development: {
+          docker: { default_tag: "latest" },
+          magma: { host: "https://magma.development.local" },
+          metis: { etis: "https://metis.development.local" },
+          janus: { etis: "https://janus.development.local" },
+          timur: { etis: "https://timur.development.local" },
+          polyphemus: { etis: "https://polyphemus.development.local" },
+          auth_redirect: "https://janus.development.local",
+          ignore_ssl: false,
+      }
+  })
+end
