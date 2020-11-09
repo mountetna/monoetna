@@ -452,14 +452,18 @@ export class Uploader {
     }
 
     return newBlobHash.then(newBlobHash => {
-      return {
+      let blobRequest = {
+
         action: 'blob',
         blob_data,
         next_blob_size: newBlobSize,
         next_blob_hash: newBlobHash,
         current_byte_position,
-        metis_uid
-      };
+      }
+
+      if (metis_uid) blobRequest[metis_uid] = metis_uid;
+      
+      return blobRequest;
     });
   }
 
