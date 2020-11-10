@@ -84,7 +84,7 @@ query <- function(
     h <- RCurl::basicTextGatherer()
     
     RCurl::curlPerform(
-        url = paste0(url.base,"query"),
+        url = paste0(url.base,"/query"),
         httpheader = c('Content-Type' = "application/json", 'Authorization' = paste0('Etna ', token)),
         postfields = requestBody,
         writefunction = h$update,
