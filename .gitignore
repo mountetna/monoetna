@@ -60,3 +60,10 @@ build-iPhoneSimulator/
 downzip-sw.js
 .npmrc
 polyphemus/.bundle/config
+.Rproj.user
+
+# For magmaR dev via RStudio.
+magmaR/.Rproj.user
+magmaR/.Rhistory
+magmaR/.RData
+magmaR/.Ruserdata
