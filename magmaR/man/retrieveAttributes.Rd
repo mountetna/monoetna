@@ -19,7 +19,8 @@ retrieveAttributeCounts(
   modelName = "patient",
   recordNames = "all",
   attributeNames = "all",
-  token = .get_TOKEN()
+  token = .get_TOKEN(),
+  ...
 )
 }
 \arguments{
@@ -32,7 +33,8 @@ retrieveAttributeCounts(
 \item{token}{your TOKEN from https://janus.ucsf.edu}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()` function.
-For troubleshooting purposes only.}
+For troubleshooting or privileged-user purposes only.
+Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).}
 }
 \value{
 a string vector

@@ -27,12 +27,14 @@ retrieveMatrix <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
-    token = .get_TOKEN()
+    token = .get_TOKEN(),
+    ...
 ) {
     
     # Break recordNames into chunks of 10 or fewer
     if (identical(recordNames, "all")) {
-        recordNames <- .retrieve(projectName, modelName, attributeNames = "identifier")
+        recordNames <- .retrieve(
+            projectName, modelName, attributeNames = "identifier", ...)
     }
     
     sets <- split(recordNames, ceiling(seq_along(recordNames)/10))
@@ -48,7 +50,8 @@ retrieveMatrix <- function(
                     filter = filter,
                     page = page,
                     pageSize = pageSize,
-                    token = token)
+                    token = token,
+                    ...)
            })
     data <- do.call(cbind, chunk_data)
     
@@ -70,7 +73,8 @@ retrieveMatrix <- function(
     page = NULL,
     pageSize = 10,
     request.only = FALSE,
-    token = .get_TOKEN()
+    token = .get_TOKEN(),
+    ...
 ) {
     
     if (!length(attributeNames) == 1 || attributeNames %in% c("all", "identifier")) {
@@ -86,7 +90,8 @@ retrieveMatrix <- function(
         page = page,
         pageSize = pageSize,
         request.only = request.only,
-        token = token)
+        token = token,
+        ...)
     
     data <- sapply(
         recordNames,

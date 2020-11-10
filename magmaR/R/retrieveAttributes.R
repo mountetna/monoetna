@@ -4,8 +4,7 @@
 #' @param projectName the name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu
 #' @param modelName the name of the piece of the magma model form which to download data
 #' @param recordNames,attributeNames particular record(s) or attribute(s) to grab names for
-#' @param ... Additional parameters passed along to the internal `.retrieve()` function.
-#' For troubleshooting purposes only.
+#' @inheritParams retrieve
 #' @return a string vector
 #' @examples
 #' 
@@ -42,13 +41,14 @@ retrieveAttributeCounts <- function(
     modelName = "patient",
     recordNames = "all",
     attributeNames = "all",
-    token = .get_TOKEN()
+    token = .get_TOKEN(),
+    ...
 ) {
     
     if (identical(attributeNames, "all")) {
         attributeNames <- retrieveAttributeNames(
             projectName = projectName, modelName = modelName,
-            recordNames = recordNames, token = token)
+            recordNames = recordNames, token = token, ...)
     }
     
     ### Logic for this function is not complete ###
@@ -58,7 +58,7 @@ retrieveAttributeCounts <- function(
             dat <- retrieve(
                 projectName = projectName, modelName = modelName,
                 recordNames = recordNames, attributeNames = x,
-                token = token)
+                token = token, ...)
             if (is.data.frame(dat)) {
                 stop("Function does not work for this data currently")
             } else if (length(attributeNames)==1) {

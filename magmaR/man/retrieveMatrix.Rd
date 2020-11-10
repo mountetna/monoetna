@@ -12,7 +12,8 @@ retrieveMatrix(
   filter = "",
   page = NULL,
   pageSize = 10,
-  token = .get_TOKEN()
+  token = .get_TOKEN(),
+  ...
 )
 }
 \arguments{
@@ -31,6 +32,10 @@ retrieveMatrix(
 \item{pageSize}{Integers. For retrieving just a portion of the data, sets slice/page size which is equivalent to a number of rows, and which slice to get.}
 
 \item{token}{your TOKEN from https://janus.ucsf.edu}
+
+\item{...}{Additional parameters passed along to the internal `.retrieve()` function.
+For troubleshooting or privileged-user purposes only.
+Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).}
 }
 \value{
 a matrix

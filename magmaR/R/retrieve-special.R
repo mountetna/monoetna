@@ -3,8 +3,7 @@
 #' @param token your TOKEN from https://janus.ucsf.edu
 #' @param projectName the name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu
 #' @param modelName the name of the piece of the magma model form which to download data
-#' @param ... Additional parameters passed along to the internal `.retrieve()` function.
-#' For troubleshooting purposes only.
+#' @inheritParams retrieve
 #' @return retrieveTemplate = a jsonlite::fromJSON conversion of template JSON.
 #' 
 #' retrieveIds = a string vector
