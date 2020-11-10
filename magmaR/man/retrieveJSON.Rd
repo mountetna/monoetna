@@ -34,8 +34,8 @@ retrieveJSON(
 \item{token}{your TOKEN from https://janus.ucsf.edu}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()` function.
-For troubleshooting purposes only.
-Options: request.only (Logical), json.params.only (Logical), verbose (Logical)}
+For troubleshooting or privileged-user purposes only.
+Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).}
 }
 \value{
 a json string or list of such strings

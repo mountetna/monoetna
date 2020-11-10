@@ -7,8 +7,8 @@
 #' @param pageSize,page Integers. For retrieving just a portion of the data, sets slice/page size which is equivalent to a number of rows, and which slice to get.
 #' @param connected.only Logical. Whether data without a parent should be retained. 
 #' @param ... Additional parameters passed along to the internal `.retrieve()` function.
-#' For troubleshooting purposes only.
-#' Options: request.only (Logical), json.params.only (Logical), verbose (Logical)
+#' For troubleshooting or privileged-user purposes only.
+#' Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).
 #' @return A dataframe representation of the requested data (or a list if the data was not rectangular).
 #' @export
 #' @examples
@@ -112,6 +112,7 @@ retrieveJSON <- function(
     names.only = FALSE,
     request.only = FALSE,
     json.params.only = FALSE,
+    url.base = "https://magma.ucsf.edu",
     token = .get_TOKEN(),
     verbose = FALSE
 ) {
@@ -148,7 +149,7 @@ retrieveJSON <- function(
     h <- RCurl::basicTextGatherer()
     
     RCurl::curlPerform(
-        url = "https://magma.ucsf.edu/retrieve",
+        url = paste0(url.base,"query"),
         httpheader = c('Content-Type' = "application/json", 'Authorization' = paste0('Etna ', token)),
         postfields = requestBody,
         writefunction = h$update,
