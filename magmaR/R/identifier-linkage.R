@@ -1,3 +1,5 @@
+#' @importFrom utils tail
+
 .trace_model_to_proj <- function(
     main_modelName,
     template) {
