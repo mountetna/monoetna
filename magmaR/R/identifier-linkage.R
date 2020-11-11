@@ -46,7 +46,7 @@
 #### Next Steps ####
 
 .map_identifiers_by_path <- function(
-    path, projectName) {
+    path, projectName, token = .get_TOKEN(), ...) {
     
     ids <- query(
             projectName = projectName,
@@ -55,7 +55,8 @@
                      '::all',
                      path[2],
                      '::identifier'),
-            format = "df")
+            format = "df",
+            ...)
     
     ind <- 2
     
@@ -68,7 +69,8 @@
                      '::all',
                      path[ind+1],
                      '::identifier'),
-            format = "df")
+            format = "df",
+            ...)
         
         if (any(duplicated(new_id_map[1,]))) {
             stop("Algorithm issue: mappings going upwards not unique")
@@ -91,7 +93,124 @@
     ids
 }
 
-# # Obtain data (retrieve or query...)
-# 
-# .reshape_data_for_multimap_ids <- function(){}
+
+#' (Not complete) Retrieve data from one model of a project that is linked to data from a different, target model of the same project
+#' @inheritParams retrieve
+#' @param main_modelName,main_recordNames Strings which indicate the target data for which meta-data is desired.
+#' @param meta_modelName,meta_attributeNames Strings which indicate the linked "meta"data to retrieve.
+#' @param meta_group.by String, an attribute within the meta_model that can be used to group data when there are expected to be more than 1 record of metadata per record of target data.
+#' @param ... Additional parameters passed along to the internal `.query()` and `.retrieve()` functions.
+#' For troubleshooting or privileged-user purposes only.
+#' Options: \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).
+#' @return A dataframe with rows = main_recordNames and columns = either meta_attributeNames or repeats of main_attributeNames to accommodate 1:many mappings.
+#' @export
+#' @examples
+#' 
+#' ##### FILLER
+#' 
+#' # Unless a working TOKEN is hard-coded, or it is in an interactive session,
+#' #   this code will not work.
+#' 
+#' if (interactive()) {
+#'     # Running like this will ask for input of your janus token.
+#'     retrieveJSON(
+#'         projectName = "ipi",
+#'         modelName = "patient",
+#'         recordNames = "all",
+#'         attributeNames = "all",
+#'         filter = "")
+#' }
+#'
+retrieveMetadata <- function(
+    projectName,
+    main_modelName,
+    main_recordNames = "all",
+    meta_modelName,
+    meta_attributeNames = "all",
+    meta_group.by = NULL,
+    token = .get_TOKEN(),
+    ...) {
+    
+    temp <- retrieveTemplate(projectName, token = token, ...)
+    
+    # Establish linkage
+    paths <- .obtain_linkage_paths(main_modelName, meta_modelName, temp)
+    
+    meta_id_map <- .map_identifiers_by_path(
+        path = paths$meta_path,
+        projectName = projectName,
+        token = token,
+        ...)
+    
+    main_id_map <- .map_identifiers_by_path(
+        path = paths$main_path,
+        projectName = projectName,
+        token = token,
+        ...)
+    
+    if (!identical(main_recordNames, "all")) {
+        main_id_map <- main_id_map[main_id_map[,1] %in% main_recordNames,]
+    }
+    
+    # Subset meta side to matching data
+    meta_id_map <- meta_id_map[
+        meta_id_map[,ncol(meta_id_map)] %in%
+            main_id_map[,ncol(main_id_map)],
+    ]
+    
+    ### Retrieve metadata
+    meta_raw <- retrieve(
+        projectName = projectName, modelName = meta_modelName,
+        recordNames = meta_id_map[,1],
+        attributeNames = meta_attributeNames,
+        token = token,
+        ...)
+    
+    # Retrieve grouping data if not already in 'meta'
+    # grouping <- if (meta_group.by %in% colnames(meta)) {
+    #     meta[,meta_group.by]
+    # } else {
+    #     retrieve(
+    #         projectName = projectName, modelName = meta_modelName,
+    #         recordNames = meta_id_map[,1],
+    #         attributeNames = meta_attributeNames,
+    #         ...
+    #         )[,meta_group.by]
+    # }
+    
+    ### Expand metadata (columns) per repeated linker ids on the metadata side
+    linker_ids <- meta_id_map[,ncol(meta_id_map)]
+    if (any(duplicated(linker_ids))) {
+        
+        inds <- match(unique(linker_ids), linker_ids)
+        
+        meta <- meta_raw[inds,]
+        
+        meta_left <- meta_raw[-inds,]
+        linker_ids_left <- linker_ids[-inds]
+        
+        for (i in 2:max(table(linker_ids))) {
+            
+            inds <- match(unique(linker_ids_left), linker_ids_left)
+            
+            # Extract next chunk
+            next_meta <- meta_left[inds,]
+            # Update column names with _i for all but the main identifier column
+            colnames(next_meta) <- paste(colnames(next_meta), i, sep="_")
+            colnames(next_meta)[1] <- colnames(meta)[1]
+            
+            # Add
+            meta <- merge(meta, next_meta, all.x = TRUE, by = colnames(meta)[1])
+            
+            # Update variables for next repeat
+            meta_left <- meta_left[-inds,]
+            linker_ids_left <- linker_ids_left[-inds]
+        }
+    }
+    
+    ### Expand metadata (rows) per repeated ids on the target data side
+    output <- merge(main_id_map, meta, all.x = TRUE, by = colnames(meta)[1])
+    
+    output
+}
 

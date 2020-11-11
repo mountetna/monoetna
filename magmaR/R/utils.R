@@ -30,30 +30,40 @@
         return(cols)
     }
     
+    ### Parse data
     dat <- sapply(rows[-1], .split_by_tab)
     
-    dat <- sapply(
-        dat,
-        function(x) {
-            # Add parent attribute = NA for disconnected data
-            if (length(x)+1 == length(cols)) {
-                if (connected.only){
-                    # Missing entry should be parent. Remove!
-                    NULL
+    ### Clean data
+    if (!is.matrix(dat)) {
+        ### When data is not clean, it won't be a matrix.
+        dat <- sapply(
+            dat,
+            function(x) {
+                # Add parent attribute = NA for disconnected data
+                if (length(x)+1 == length(cols)) {
+                    if (connected.only){
+                        # Missing entry should be parent. Remove!
+                        NULL
+                    } else {
+                        append(x, values = NA, after = 1)
+                    }
                 } else {
-                    append(x, values = NA, after = 1)
+                    x
                 }
-            } else {
-                x
-            }
-        })
-    
-    if (connected.only) {
-        # Remove fully empty records (no parent!)
-        dat[sapply(dat, is.null)] <- NULL
+            })
         
-        # Simplify to a matrix if data is now rectangular.
-        dat <- sapply(dat, function(x){x})
+        if (connected.only) {
+            # Remove fully empty records (no parent!)
+            dat[sapply(dat, is.null)] <- NULL
+            
+            # Simplify to a matrix if data is now rectangular.
+            dat <- sapply(dat, function(x){x})
+        }
+    } else {
+        if (connected.only) {
+            # Remove records with a NULL first column (=parent)
+            dat <- dat[!is.null(dat[,1]),]
+        }
     }
 
     ### Add names
