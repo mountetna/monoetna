@@ -125,6 +125,7 @@ class EtnaApp
       class Add < Etna::Command
         include WithEtnaClients
         include WithLogger
+        include StrongConfirmation
 
         boolean_flags << '--execute'
         string_flags << '--file'
@@ -149,16 +150,16 @@ class EtnaApp
 
               if execute
                 puts "Would you like to execute?"
-                if StrongConfirmation.confirm
+                if confirm
                   workflow.synchronize_to_server(@models, project_name, target_model) do |update_action|
-                    puts "Executing #{update_action.raw}..."
+                    puts "Executing #{update_action.to_h}..."
                   end
                   puts "Success!"
                 end
 
                 return
               else
-                puts "To commit, run \033[1;31m#{program_name} #{command_name} --file #{file} --target-model #{target_model} --execute\033[0m"
+                puts "To commit, run \033[1;31m#{program_name} #{project_name} --file #{file} --target-model #{target_model} --execute\033[0m"
               end
             end
 
