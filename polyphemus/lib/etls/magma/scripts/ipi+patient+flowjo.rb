@@ -13,6 +13,5 @@ def clean_name(name)
       .gsub(/PD-1/,'PD1') if name
 end
 
-process_all_stains
 process_all_populations
 
