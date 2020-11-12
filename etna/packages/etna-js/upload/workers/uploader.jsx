@@ -453,7 +453,6 @@ export class Uploader {
 
     return newBlobHash.then(newBlobHash => {
       let blobRequest = {
-
         action: 'blob',
         blob_data,
         next_blob_size: newBlobSize,
@@ -461,7 +460,7 @@ export class Uploader {
         current_byte_position,
       }
 
-      if (metis_uid) blobRequest[metis_uid] = metis_uid;
+      if (metis_uid) blobRequest['metis_uid'] = metis_uid;
       
       return blobRequest;
     });
