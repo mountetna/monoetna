@@ -229,6 +229,41 @@ describe('Uploader', () => {
     })
   });
 
+  describe('prepareNextBlobParams', () => {
+    it('passes through a metis_uid if provided', (done) => {
+      let worker = new TestUploadWorker(opts);
+      let upload = Upload({
+        file: aFile,
+        file_name: 'test/' + aFile.name,
+        project_name: 'test',
+        url: 'http://localhost/' + aFile.name,
+        metis_uid: '123'
+      });
+
+      worker.uploader.prepareNextBlobParams(upload)
+      .then((params) => {
+        expect(params['metis_uid']).toEqual('123');
+        done();
+      });
+    })
+
+    it('does not include metis_uid if not provided', (done) => {
+      let worker = new TestUploadWorker(opts);
+      let upload = Upload({
+        file: aFile,
+        file_name: 'test/' + aFile.name,
+        project_name: 'test',
+        url: 'http://localhost/' + aFile.name
+      });
+
+      worker.uploader.prepareNextBlobParams(upload)
+      .then((params) => {
+        expect(params.hasOwnProperty('metis_uid')).toEqual(false);
+        done();
+      });
+    })
+  });
+
   describe('queueing and uploading', () => {
     describe('in the face of removing an upload', () => {
       it('stops the cancelled upload, then allows others to proceed', async () => {
