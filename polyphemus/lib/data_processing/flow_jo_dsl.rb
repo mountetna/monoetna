@@ -1,5 +1,6 @@
 require 'nokogiri'
 require 'net/http'
+require_relative '../helpers'
 
 module XMLCensorInspect
   def inspect
@@ -150,6 +151,8 @@ class FlowJoXml
 end
 
 module FlowJoDsl
+  include WithLogger
+
   def add_stain_name(stain, name)
     @stain_to_names ||= {}
     @stain_to_names[stain] = name
@@ -161,23 +164,22 @@ module FlowJoDsl
     end
 
     unless (value = record[attribute_name]).is_a?(Hash) && value.include?('url')
-      logger.info("Record #{attribute_name} does not have a #{attribute_name} set, skipping flowjo processing.")
-      return false
-    end
-
-    tmp = Tempfile.new
-    begin
-      uri = URI(value['url'])
-      metis_client = Etna::Clients::Metis.new(host: uri.scheme + '://' + uri.host, token: magma_client.token)
-      metis_client.download_file(value['url']) do |chunk|
-        tmp.write chunk
+      msg = "Record #{record["ipi_number"]} does not have a #{attribute_name} set, skipping flowjo processing."
+      puts msg
+      logger.warn(msg)
+    else
+      tmp = Tempfile.new
+      begin
+        uri = URI(value['url'])
+        metis_client = Etna::Clients::Metis.new(host: uri.scheme + '://' + uri.host, token: magma_client.token)
+        metis_client.download_file(value['url']) do |chunk|
+          tmp.write chunk
+        end
+        load_flowjo(tmp.path)
+      ensure
+        tmp.close!
       end
-      load_flowjo(tmp.path)
-    ensure
-      tmp.close!
     end
-
-    true
   end
 
   def load_flowjo(file_name)
@@ -204,6 +206,7 @@ module FlowJoDsl
     #   create_population_documents_for_stain.
     # If the flow record doesn't exist, throw an exception because the WSP
     #   is not well formed.
+    return unless flow_jo
 
     existing_flow_record_names = patient_flow_record_names(patient_record)
 
@@ -237,7 +240,12 @@ module FlowJoDsl
 
       puts "Processing flow #{flow_stain_name}."
 
-      logger.warn("WSP contains data for #{flow_stain_name}, but that flow record does not exist.") unless existing_flow_record_names.include?(flow_stain_name)
+      begin
+        msg = "WSP contains data for #{flow_stain_name}, but that flow record does not exist."
+        puts msg
+        logger.warn(msg)
+        next
+      end unless existing_flow_record_names.include?(flow_stain_name)
 
       tube.populations.each do |pop|
         new_population(flow_stain_name, stain, pop)

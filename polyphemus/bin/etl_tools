@@ -27,6 +27,11 @@ class RunOrTest < Etna::Command
   def commit
     false
   end
+
+  def setup(config)
+    super
+    Polyphemus.instance.setup_logger
+  end
 end
 
 class Polyphemus
