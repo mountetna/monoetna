@@ -237,7 +237,7 @@ module FlowJoDsl
 
       puts "Processing flow #{flow_stain_name}."
 
-      raise "WSP contains data for #{flow_stain_name}, but that flow record does not exist." unless existing_flow_record_names.include?(flow_stain_name)
+      logger.warn("WSP contains data for #{flow_stain_name}, but that flow record does not exist.") unless existing_flow_record_names.include?(flow_stain_name)
 
       tube.populations.each do |pop|
         new_population(flow_stain_name, stain, pop)
