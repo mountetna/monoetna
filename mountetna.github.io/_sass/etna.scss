@@ -35,7 +35,7 @@ a {
 }
 
 .site-header {
-  background: url("/assets/images/etna.png");
+  background: url('/assets/images/etna.png');
   background-size: contain;
   background-repeat: no-repeat;
   min-height: 70px;
@@ -156,7 +156,7 @@ footer {
   display: inline-block;
 
   &::before {
-    content: "Contents";
+    content: 'Contents';
     font-weight: bold;
   }
 
@@ -175,7 +175,7 @@ footer {
       li {
         counter-increment: subitem;
         &:before {
-          content: counter(item) "." counter(subitem);
+          content: counter(item) '.' counter(subitem);
           padding-right: $gap;
         }
         ul {
@@ -183,7 +183,7 @@ footer {
           li {
             counter-increment: subsubitem;
             &:before {
-              content: counter(item) "." counter(subitem) "."
+              content: counter(item) '.' counter(subitem) '.'
                 counter(subsubitem);
               padding-right: $gap;
             }
@@ -205,6 +205,20 @@ footer {
 }
 .table-header {
   background: #e2e9ff;
+}
+
+table {
+  @extend .table;
+
+  tr {
+    border: 1px solid darkslategray;
+
+    td,
+    th {
+      border-right: 1px solid darkslategray;
+      padding: 10px;
+    }
+  }
 }
 
 .row {

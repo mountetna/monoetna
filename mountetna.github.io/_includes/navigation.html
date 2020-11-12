@@ -10,6 +10,11 @@
   {% else %}
   <li><a href="/etna.html">Framework</a></li>
   {% endif %}
+  {% if page.url == "/etna_gem.html" %}
+  <li class="active">Client Gem</li>
+  {% else %}
+  <li><a href="/etna_gem.html">Client Gem</a></li>
+  {% endif %}
 
   <li class="header">Etna Applications</li>
   {% for node in site.pages %}

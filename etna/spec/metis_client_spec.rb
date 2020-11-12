@@ -40,7 +40,7 @@ describe 'Metis Client class' do
   end
 
   it 'returns that root folders\' parent folder do exist' do
-    stub_parent_exists({status: 200, bucket: RELEASE_BUCKET})
+    stub_list_bucket({status: 200, bucket: RELEASE_BUCKET})
 
     expect(test_class.folder_exists?(Etna::Clients::Metis::CreateFolderRequest.new(
       bucket_name: RELEASE_BUCKET,
@@ -51,7 +51,7 @@ describe 'Metis Client class' do
   end
 
   it 'returns true if folder exists' do
-    stub_parent_exists({status: 200, bucket: RELEASE_BUCKET})
+    stub_list_bucket({status: 200, bucket: RELEASE_BUCKET})
 
     expect(test_class.folder_exists?(Etna::Clients::Metis::CreateFolderRequest.new(
       bucket_name: RELEASE_BUCKET,
@@ -62,7 +62,7 @@ describe 'Metis Client class' do
   end
 
   it 'returns false if folder does not exist' do
-    stub_parent_exists({status: 422, bucket: RELEASE_BUCKET})
+    stub_list_bucket({status: 422, bucket: RELEASE_BUCKET})
 
     expect(test_class.folder_exists?(Etna::Clients::Metis::CreateFolderRequest.new(
       bucket_name: RELEASE_BUCKET,
@@ -73,7 +73,7 @@ describe 'Metis Client class' do
   end
 
   it 'raises exception if folder exists check returns exception' do
-    stub_parent_exists({status: 403, bucket: RELEASE_BUCKET})
+    stub_list_bucket({status: 403, bucket: RELEASE_BUCKET})
 
     expect {
       test_class.folder_exists?(Etna::Clients::Metis::CreateFolderRequest.new(
@@ -86,7 +86,7 @@ describe 'Metis Client class' do
   end
 
   it 'renames a folder and creates parent if requested' do
-    stub_parent_exists({status: 422, bucket: RESTRICT_BUCKET})
+    stub_list_bucket({status: 422, bucket: RESTRICT_BUCKET})
     stub_create_folder({bucket: RESTRICT_BUCKET})
     stub_rename_folder({bucket: RELEASE_BUCKET})
 
@@ -103,7 +103,7 @@ describe 'Metis Client class' do
   end
 
   it 'renames a folder but does not create parent if not requested' do
-    stub_parent_exists({status: 422, bucket: RESTRICT_BUCKET})
+    stub_list_bucket({status: 422, bucket: RESTRICT_BUCKET})
     stub_create_folder({bucket: RESTRICT_BUCKET})
     stub_rename_folder({bucket: RELEASE_BUCKET})
 
@@ -136,7 +136,7 @@ describe 'Metis Client class' do
   end
 
   it 'renames a folder and does not create parent when not needed' do
-    stub_parent_exists({status: 200, bucket: RESTRICT_BUCKET})
+    stub_list_bucket({status: 200, bucket: RESTRICT_BUCKET})
     stub_create_folder({bucket: RESTRICT_BUCKET})
     stub_rename_folder({bucket: RELEASE_BUCKET})
 
@@ -150,6 +150,73 @@ describe 'Metis Client class' do
 
     expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/)
     expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
+  end
+
+  it 'renames a file and creates parent if requested' do
+    stub_list_bucket({status: 422, bucket: RESTRICT_BUCKET})
+    stub_create_folder({bucket: RESTRICT_BUCKET})
+    stub_rename_file({bucket: RELEASE_BUCKET})
+
+    test_class.rename_file(Etna::Clients::Metis::RenameFileRequest.new(
+      bucket_name: RELEASE_BUCKET,
+      project_name: 'test',
+      file_path: 'root_folder/subfolder/myfile.txt',
+      new_bucket_name: RESTRICT_BUCKET,
+      new_file_path: 'new_root_folder/new_subfolder/yourfile.txt',
+      create_parent: true))
+
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/)
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/file\/rename\/#{RELEASE_BUCKET}/)
+  end
+
+  it 'renames a file but does not create parent if not requested' do
+    stub_list_bucket({status: 422, bucket: RESTRICT_BUCKET})
+    stub_create_folder({bucket: RESTRICT_BUCKET})
+    stub_rename_file({bucket: RELEASE_BUCKET})
+
+    test_class.rename_file(Etna::Clients::Metis::RenameFileRequest.new(
+      bucket_name: RELEASE_BUCKET,
+      project_name: 'test',
+      file_path: 'root_folder/subfolder/myfile.txt',
+      new_bucket_name: RESTRICT_BUCKET,
+      new_file_path: 'new_root_folder/new_subfolder/yourfile.txt'))
+
+    expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/)
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/file\/rename\/#{RELEASE_BUCKET}/)
+  end
+
+  it 'renames a file and does not create parent for root folder' do
+    stub_create_folder({bucket: RESTRICT_BUCKET})
+    stub_rename_file({bucket: RELEASE_BUCKET})
+
+    test_class.rename_file(Etna::Clients::Metis::RenameFileRequest.new(
+      bucket_name: RELEASE_BUCKET,
+      project_name: 'test',
+      file_path: 'root_folder/myfile.txt',
+      new_bucket_name: RESTRICT_BUCKET,
+      new_file_path: 'yourfile.txt',
+      create_parent: true))
+
+    expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/list\/#{RESTRICT_BUCKET}/)
+    expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/)
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/file\/rename\/#{RELEASE_BUCKET}/)
+  end
+
+  it 'renames a file and does not create parent when not needed' do
+    stub_list_bucket({status: 200, bucket: RESTRICT_BUCKET})
+    stub_create_folder({bucket: RESTRICT_BUCKET})
+    stub_rename_file({bucket: RELEASE_BUCKET})
+
+    test_class.rename_file(Etna::Clients::Metis::RenameFileRequest.new(
+      bucket_name: RELEASE_BUCKET,
+      project_name: 'test',
+      file_path: 'root_folder/myfile.txt',
+      new_bucket_name: RESTRICT_BUCKET,
+      new_file_path: 'yourfile.txt',
+      create_parent: true))
+
+    expect(WebMock).not_to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/)
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/file\/rename\/#{RELEASE_BUCKET}/)
   end
 
   it 'fetches all data folders when called' do
@@ -225,5 +292,125 @@ describe 'Metis Client class' do
         source: 'metis://foo',
         dest: 'metis://bar'
     }]}))
+  end
+
+  it 'renames folders by regex when dest folder does not exist' do
+    stub_list_bucket({status: 422, bucket: RESTRICT_BUCKET})
+    stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list\/#{RELEASE_BUCKET}\//)
+      .to_return({
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: {
+          folders: [{
+            "folder_name": "premessa",
+            "bucket_name": RELEASE_BUCKET,
+            "project_name": PROJECT,
+            "folder_path": "assay/processed/sample-10/premessa"
+          }],
+          files: [{
+            "file_name": "data.txt",
+            "bucket_name": RELEASE_BUCKET,
+            "project_name": PROJECT,
+            "file_path": "assay/processed/sample-10/data.txt"
+          }]
+        }.to_json})
+    stub_create_folder({bucket: RESTRICT_BUCKET})
+    stub_rename_folder({bucket: RELEASE_BUCKET})
+    stub_delete_folder({bucket: RELEASE_BUCKET})
+
+    source_folders = Etna::Clients::Metis::Folders.new([{
+      "folder_name": "sample-42",
+      "bucket_name": RELEASE_BUCKET,
+      "project_name": PROJECT,
+      "folder_path": "assay/processed/sample-42"
+    }])
+
+    test_class.rename_folders_by_regex(
+      source_bucket: RELEASE_BUCKET,
+      project_name: PROJECT,
+      dest_bucket: RESTRICT_BUCKET,
+      source_folders: source_folders.all,
+      regex: /sample-42/)
+
+    # Should create the destination folder
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/)
+
+    # Renaming the entire directory tree doesn't require deleting the source ones
+    expect(WebMock).not_to have_requested(:delete, /#{METIS_HOST}\/#{PROJECT}\/folder\/remove\/#{RELEASE_BUCKET}/)
+
+    # Rename directory
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/)
+  end
+
+  it 'renames folders by regex when parent folder exists' do
+    stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list\/#{RESTRICT_BUCKET}\//)
+      .to_return({
+        status: 200  # so the recursive method is called
+      }).times(2).then
+      .to_return({
+        status: 422  # so the premessa directory is created
+      })
+    stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list\/#{RELEASE_BUCKET}\//)
+      .to_return({
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: {
+          folders: [{
+            "folder_name": "premessa",
+            "bucket_name": RELEASE_BUCKET,
+            "project_name": PROJECT,
+            "folder_path": "assay/processed/sample-10/premessa"
+          }],
+          files: [{
+            "file_name": "data.txt",
+            "bucket_name": RELEASE_BUCKET,
+            "project_name": PROJECT,
+            "file_path": "assay/processed/sample-10/data.txt"
+          }]
+        }.to_json}).then
+      .to_return({
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: {
+          folders: [],
+          files: [{
+            "file_name": "more-data.txt",
+            "bucket_name": RELEASE_BUCKET,
+            "project_name": PROJECT,
+            "file_path": "assay/processed/sample-10/premessa/more-data.txt"
+          }]
+        }.to_json})
+    stub_create_folder({bucket: RESTRICT_BUCKET})
+    stub_rename_file({bucket: RELEASE_BUCKET})
+    stub_delete_folder({bucket: RELEASE_BUCKET})
+
+    source_folders = Etna::Clients::Metis::Folders.new([{
+      "folder_name": "sample-10",
+      "bucket_name": RELEASE_BUCKET,
+      "project_name": PROJECT,
+      "folder_path": "assay/processed/sample-10"
+    }])
+
+    test_class.rename_folders_by_regex(
+      source_bucket: RELEASE_BUCKET,
+      project_name: PROJECT,
+      dest_bucket: RESTRICT_BUCKET,
+      source_folders: source_folders.all,
+      regex: /sample-10/)
+
+    # Should create the sample-10/premessa folder
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/)
+
+    # Remove the two source folders, sample-10 and premessa
+    expect(WebMock).to have_requested(:delete, /#{METIS_HOST}\/#{PROJECT}\/folder\/remove\/#{RELEASE_BUCKET}/).times(2)
+
+    # Rename both nested files
+    expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/file\/rename\/#{RELEASE_BUCKET}/).times(2)
   end
 end

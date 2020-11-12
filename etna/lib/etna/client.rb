@@ -147,7 +147,10 @@ module Etna
             yield response
           end
         else
-          Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+          verify_mode = @ignore_ssl ?
+            OpenSSL::SSL::VERIFY_NONE :
+            OpenSSL::SSL::VERIFY_PEER
+          Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode) do |http|
             http.request(data) do |response|
               status_check!(response)
               yield response
@@ -160,7 +163,10 @@ module Etna
           status_check!(response)
           return response
         else
-          Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+          verify_mode = @ignore_ssl ?
+            OpenSSL::SSL::VERIFY_NONE :
+            OpenSSL::SSL::VERIFY_PEER
+          Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode) do |http|
             response = http.request(data)
             status_check!(response)
             return response
