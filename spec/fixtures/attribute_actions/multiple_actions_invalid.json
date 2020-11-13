@@ -1,0 +1,35 @@
+[
+  {
+    "action_name": "add_attribute",
+    "model_name": "assay_name",
+    "type": "string",
+    "attribute_name": "notes"
+  },
+  {
+    "action_name": "update_attribute",
+    "model_name": "assay_name",
+    "attribute_name": "notes",
+    "read_only": true
+  },
+  {
+    "action_name": "rename_attribute",
+    "model_name": "assay_name",
+    "attribute_name": "notes",
+    "new_attribute_name": "important_notes"
+  },
+  {
+    "action_name": "add_link",
+    "links": [
+      {
+        "model_name": "assay_name",
+        "attribute_name": "assay_pool",
+        "attribute_type": "link"
+      },
+      {
+        "model_name": "assay_pool",
+        "attribute_name": "assay_name",
+        "attribute_type": "collection"
+      }
+    ]
+  }
+]
