@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { ListEntryColumn, ListEntryTypeColumn, ListEntryUpdatedColumn } from './list-entry';
+import { ListEntryColumn, ListEntryTypeColumn, ListEntryUpdatedColumn } from 'etna-js/components/ListEntry';
 import { FolderLink } from '../folder-link';
 import BucketControl from './bucket-control';
 import { selectUserRole } from '../../selectors/user-selector';
