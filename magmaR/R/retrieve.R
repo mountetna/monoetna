@@ -112,6 +112,7 @@ retrieveJSON <- function(
     names.only = FALSE,
     request.only = FALSE,
     json.params.only = FALSE,
+    raw.return = FALSE,
     url.base = "https://magma.ucsf.edu",
     token = .get_TOKEN(),
     verbose = FALSE
@@ -161,9 +162,13 @@ retrieveJSON <- function(
     }
     
     ### Output
-    if (format=="tsv") {
-        .parse_JSON_tsv(h$value(), names.only, connected.only)
+    if (raw.return) {
+        h$value()
     } else {
-        jsonlite::fromJSON(h$value())
+        if (format=="tsv") {
+            .parse_JSON_tsv(h$value(), names.only, connected.only)
+        } else {
+            jsonlite::fromJSON(h$value())
+        }
     }
 }
