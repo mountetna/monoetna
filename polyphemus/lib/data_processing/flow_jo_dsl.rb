@@ -1,5 +1,6 @@
 require 'nokogiri'
 require 'net/http'
+require_relative '../helpers'
 
 module XMLCensorInspect
   def inspect
@@ -150,6 +151,8 @@ class FlowJoXml
 end
 
 module FlowJoDsl
+  include WithLogger
+
   def add_stain_name(stain, name)
     @stain_to_names ||= {}
     @stain_to_names[stain] = name
@@ -161,23 +164,22 @@ module FlowJoDsl
     end
 
     unless (value = record[attribute_name]).is_a?(Hash) && value.include?('url')
-      logger.info("Record #{attribute_name} does not have a #{attribute_name} set, skipping flowjo processing.")
-      return false
-    end
-
-    tmp = Tempfile.new
-    begin
-      uri = URI(value['url'])
-      metis_client = Etna::Clients::Metis.new(host: uri.scheme + '://' + uri.host, token: magma_client.token)
-      metis_client.download_file(value['url']) do |chunk|
-        tmp.write chunk
+      msg = "Record #{record["ipi_number"]} does not have a #{attribute_name} set, skipping flowjo processing."
+      puts msg
+      logger.warn(msg)
+    else
+      tmp = Tempfile.new
+      begin
+        uri = URI(value['url'])
+        metis_client = Etna::Clients::Metis.new(host: uri.scheme + '://' + uri.host, token: magma_client.token)
+        metis_client.download_file(value['url']) do |chunk|
+          tmp.write chunk
+        end
+        load_flowjo(tmp.path)
+      ensure
+        tmp.close!
       end
-      load_flowjo(tmp.path)
-    ensure
-      tmp.close!
     end
-
-    true
   end
 
   def load_flowjo(file_name)
@@ -186,79 +188,39 @@ module FlowJoDsl
     end
   end
 
-  def new_stain_panel(patient, name, channels)
-    stain_panel_id = update_request.append_table("patient", patient, "stain_panel", { name: name })
-    channels.each do |channel|
-      update_request.append_table("stain_panel", stain_panel_id, "channel", channel)
-    end
+  def tubes_of_stain(flow_jo, stain)
+    flow_jo.group(stain).sample_refs.map { |sr| flow_jo.sample(sr) }
   end
 
+  def patient_flow_record_names(patient_record)
+    query = [ 'flow',
+              [ 'sample', 'patient', '::identifier', '::equals', patient_record['ipi_number'] ],
+            '::all', '::identifier' ]
 
-  def process_all_samples(patient_record = @patient, flow_jo = @flow_jo)
-    names = @stain_to_names.keys.map do |stain|
-      tube = tube_of_stain(flow_jo, stain)
-      next unless tube
-      sample_name_from_tubename(tube.tube_name)
-    end.select.uniq
-
-    names.each do |name|
-      new_sample(name, record_identifier(patient_record, "patient"))
-    end
-  end
-
-  def new_sample(name, patient)
-    update_request.update_revision("sample", name, { patient: patient })
-  end
-
-  def process_all_stains(patient_record = @patient, flow_jo = @flow_jo)
-    @stain_to_names.keys.each do |stain|
-      create_stain_panel(patient_record, flow_jo, stain)
-    end
-  end
-
-  def create_stain_panel(patient_record, flow_jo, stain)
-    tube = tube_of_stain(flow_jo, stain)
-    name = @stain_to_names[stain]
-
-    if !tube
-      return
-    end
-
-    if !name
-      raise "Name for stain #{stain} not configured, call add_stain_name('#{stain}', 'some-name')"
-    end
-
-    channels = []
-    tube.keyword_value("$PAR").to_i.times do |n|
-      # Each tube matches one stain. put a list together for each one.
-      n = n + 1
-      channels << {
-          fluor: tube.keyword_value("$P#{n}N"),
-          antibody: tube.keyword_value("$P#{n}S"),
-          number: n,
-      }
-    end
-
-    new_stain_panel(record_identifier(patient_record, 'patient'), name, channels)
-  end
-
-  def tube_of_stain(flow_jo, stain)
-    flow_jo.group(stain).sample_refs.map { |sr| flow_jo.sample(sr) }.first
+    request = Etna::Clients::Magma::QueryRequest.new(project_name: project_name, query: query)
+    magma_client.query(request).answer.map { |flow| flow.last }.flatten
   end
 
   def process_all_populations(patient_record = @patient, flow_jo = @flow_jo)
-    process_all_samples(patient_record, flow_jo)
+    # Fetch all flow records for this patient, and pass that along to
+    #   create_population_documents_for_stain.
+    # If the flow record doesn't exist, throw an exception because the WSP
+    #   is not well formed.
+    return unless flow_jo
+
+    existing_flow_record_names = patient_flow_record_names(patient_record)
+
     @stain_to_names.keys.each do |stain|
-      create_population_documents_for_stain(flow_jo, stain)
+      create_population_documents_for_stain(flow_jo, stain, existing_flow_record_names)
     end
   end
 
-  def sample_name_from_tubename(tube_name)
+  def flow_stain_name_from_tubename(tube_name)
     case tube_name
-    when sample_name_regex
-      return Regexp.last_match[0]
+    when flow_stain_name_regex
+      return tube_name.gsub('_', '.')
     else
-      raise "Could not guess sample name from tube name '#{tube_name}', does not match #{sample_name_regex.source}"
+      raise "Could not guess flow stain name from tube name '#{tube_name}', does not match #{flow_stain_name_regex.source}"
     end
   end
 
@@ -266,38 +228,36 @@ module FlowJoDsl
     name
   end
 
-  def create_population_documents_for_stain(flow_jo, stain)
-    tube = tube_of_stain(flow_jo, stain)
+  def create_population_documents_for_stain(flow_jo, stain, existing_flow_record_names)
+    tubes = tubes_of_stain(flow_jo, stain)
 
-    if !tube
+    if tubes.empty?
       return
     end
 
-    sample_name = sample_name_from_tubename(tube.tube_name)
+    tubes.each do |tube|
+      flow_stain_name = flow_stain_name_from_tubename(tube.tube_name)
 
-    tube.populations.each do |pop|
-      mfis = pop.statistics.map do |stat|
-        {
-            name: clean_name(tube.stain_for_fluor(stat.fluor)),
-            fluor: stat.fluor,
-            value: stat.value
-        }
+      puts "Processing flow #{flow_stain_name}."
+
+      begin
+        msg = "WSP contains data for #{flow_stain_name}, but that flow record does not exist."
+        puts msg
+        logger.warn(msg)
+        next
+      end unless existing_flow_record_names.include?(flow_stain_name)
+
+      tube.populations.each do |pop|
+        new_population(flow_stain_name, stain, pop)
       end
-      new_population(sample_name, stain, pop, mfis)
     end
   end
 
-  def new_population(sample_name, stain, pop, mfis)
-    population_id = update_request.append_table("sample", sample_name, "population", {
-        stain: @stain_to_names[stain],
-        sample: sample_name,
+  def new_population(flow_stain_name, stain, pop)
+    population_id = update_request.append_table("flow", flow_stain_name, "population", {
         ancestry: pop.ancestry.map { |name| clean_name(name) }.join("\t"),
         name: clean_name(pop.name),
         count: pop.count,
     })
-
-    mfis.each do |mfi|
-      update_request.append_table("population", population_id, "mfi", mfi)
-    end
   end
 end
