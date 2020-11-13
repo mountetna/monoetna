@@ -1,5 +1,5 @@
 import * as React from 'react';
-import Icon from '../icon';
+import Icon from 'etna-js/components/icon';
 
 const ICONS = {
   notice: 'bell',

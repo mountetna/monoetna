@@ -102,6 +102,11 @@ export function Upload({
     current_byte_position = 0,
     next_blob_hash = ZERO_HASH,
     file_size = file.size,
+    metis_uid,
+    attribute_name,
+    model_name,
+    record_name,
+    original_filename
   }) {
     assertIsSome({ file_name, project_name, url, file });
 
@@ -116,6 +121,11 @@ export function Upload({
     file: file,
     url: url,
     file_size: file_size,
+    metis_uid,
+    attribute_name,
+    model_name,
+    record_name,
+    original_filename
   }
 }
 
@@ -405,7 +415,7 @@ export class Uploader {
   }
 
   prepareNextBlobParams(upload) {
-    const {file, current_byte_position, next_blob_size, upload_speeds} = upload;
+    const {file, current_byte_position, next_blob_size, upload_speeds, metis_uid} = upload;
     let newBlobHash = Promise.resolve(ZERO_HASH);
     let newBlobSize = 0;
 
@@ -442,13 +452,17 @@ export class Uploader {
     }
 
     return newBlobHash.then(newBlobHash => {
-      return {
+      let blobRequest = {
         action: 'blob',
         blob_data,
         next_blob_size: newBlobSize,
         next_blob_hash: newBlobHash,
-        current_byte_position
-      };
+        current_byte_position,
+      }
+
+      if (metis_uid) blobRequest['metis_uid'] = metis_uid;
+      
+      return blobRequest;
     });
   }
 
