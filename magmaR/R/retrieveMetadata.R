@@ -133,15 +133,11 @@ retrieveMetadata <- function(
     
     temp <- retrieveTemplate(projectName, token = token, ...)
     
-    # Establish linkage
+    ### Establish linkage and retrieve identifier mappings
     paths <- .obtain_linkage_paths(main_modelName, meta_modelName, temp)
+    separate_branches <- length(paths) == 2
     
-    meta_id_map <- .map_identifiers_by_path(
-        path = paths$meta_path,
-        projectName = projectName,
-        token = token,
-        ...)
-    
+    # Main data
     main_id_map <- .map_identifiers_by_path(
         path = paths$main_path,
         projectName = projectName,
@@ -152,11 +148,24 @@ retrieveMetadata <- function(
         main_id_map <- main_id_map[main_id_map[,1] %in% main_recordNames,]
     }
     
-    # Subset meta side to matching data
-    meta_id_map <- meta_id_map[
-        meta_id_map[,ncol(meta_id_map)] %in%
-            main_id_map[,ncol(main_id_map)],
-    ]
+    # Metadata
+    if (separate_branches) {
+        meta_id_map <- .map_identifiers_by_path(
+        path = paths$meta_path,
+        projectName = projectName,
+        token = token,
+        ...)
+    
+        # Subset meta side to matching data
+        meta_id_map <- meta_id_map[
+            meta_id_map[,ncol(meta_id_map)] %in%
+                main_id_map[,ncol(main_id_map)],
+        ]
+    } else {
+        # The target meta_model is at the top of the main_id_map.
+        meta_id_map <- main_id_map[,ncol(main_id_map), drop = FALSE]
+        meta_id_map <- meta_id_map[!is.na(meta_id_map[,1]),, drop = FALSE]
+    }
     
     ### Retrieve metadata
     meta_raw <- retrieve(
@@ -166,6 +175,22 @@ retrieveMetadata <- function(
         token = token,
         ...)
     
+    ### Ensure metadata has 1 row per linked target data row
+    meta <- if (separate_branches) {
+        .expand_metadata_to_have_1row_per_id(meta_raw, meta_id_map)
+    } else {
+        meta
+    }
+    
+    output <- merge(main_id_map, meta, all.x = TRUE, by = colnames(meta)[1])
+    
+    output
+}
+
+.expand_metadata_to_have_1row_per_id <- function(meta_raw, meta_id_map){
+    ### Expand metadata (columns direction) until 1 row per id.
+    
+    ## Method: By a user-provided grouping 
     # Retrieve grouping data if not already in 'meta'
     # grouping <- if (meta_group.by %in% colnames(meta)) {
     #     meta[,meta_group.by]
@@ -178,7 +203,7 @@ retrieveMetadata <- function(
     #         )[,meta_group.by]
     # }
     
-    ### Expand metadata (columns) per repeated linker ids on the metadata side
+    ## Method: Simply expand rightward by shifting all data for repeated ids to new columns.
     linker_ids <- meta_id_map[,ncol(meta_id_map)]
     if (any(duplicated(linker_ids))) {
         
@@ -208,9 +233,5 @@ retrieveMetadata <- function(
         }
     }
     
-    ### Expand metadata (rows) per repeated ids on the target data side
-    output <- merge(main_id_map, meta, all.x = TRUE, by = colnames(meta)[1])
-    
-    output
+    meta
 }
-
