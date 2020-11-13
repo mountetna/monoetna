@@ -63,8 +63,10 @@ polyphemus/.bundle/config
 .Rproj.user
 
 # For magmaR dev via RStudio.
-magmaR/.Rproj.user
-magmaR/.Rhistory
-magmaR/.RData
-magmaR/.Ruserdata
-magmaR*.tar.gz
+etna/packages/magmaR/.Rproj.user
+etna/packages/magmaR/.Rhistory
+etna/packages/magmaR/.RData
+etna/packages/magmaR/.Ruserdata
+etna/packages/magmaR*.tar.gz
+
+*.DS_Store
