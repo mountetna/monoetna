@@ -14,7 +14,7 @@ export const WORK_FAILED = 'WORK_FAILED';
 export const UNPAUSE_UPLOAD = 'UNPAUSE_UPLOAD';
 export {PAUSE_UPLOAD, CANCEL_UPLOAD} from '../workers/uploader';
 
-const dispatchUploadWork = (dispatch, command) =>
+export const dispatchUploadWork = (dispatch, command) =>
   dispatch({
     type: WORK,
     work_type: 'upload',

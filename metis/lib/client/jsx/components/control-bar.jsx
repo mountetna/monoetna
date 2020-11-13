@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import Icon from './icon';
+import Icon from 'etna-js/components/icon';
 import { selectUserRole } from '../selectors/user-selector';
 
 // this is the Metis control bar, which contains basic operations

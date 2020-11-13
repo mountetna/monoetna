@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { selectUserName, selectUserRole } from '../selectors/user-selector';
-import Icon from './icon';
+import Icon from 'etna-js/components/icon';
 
 const ICONS = {
   administrator: 'user-astronaut',

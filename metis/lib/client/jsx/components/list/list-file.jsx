@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { ListEntryColumn, ListEntryTypeColumn, ListEntryUpdatedColumn } from './list-entry';
+import { ListEntryColumn, ListEntryTypeColumn, ListEntryUpdatedColumn } from 'etna-js/components/ListEntry';
 import FileControl from './file-control';
-import Icon from '../icon';
+import Icon from 'etna-js/components/icon';
 import { byteFormat } from '../../utils/format';
 
 const basename = (path) => path.split(/\//).pop();
