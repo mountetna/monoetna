@@ -137,7 +137,7 @@ retrieveMetadata <- function(
     paths <- .obtain_linkage_paths(main_modelName, meta_modelName, temp)
     separate_branches <- length(paths) == 2
     
-    # Main data
+    ### Main data
     main_id_map <- .map_identifiers_by_path(
         path = paths$main_path,
         projectName = projectName,
@@ -148,7 +148,8 @@ retrieveMetadata <- function(
         main_id_map <- main_id_map[main_id_map[,1] %in% main_recordNames,]
     }
     
-    # Metadata
+    ### Metadata
+    # Determine linked records
     if (separate_branches) {
         meta_id_map <- .map_identifiers_by_path(
         path = paths$meta_path,
@@ -161,33 +162,44 @@ retrieveMetadata <- function(
             meta_id_map[,ncol(meta_id_map)] %in%
                 main_id_map[,ncol(main_id_map)],
         ]
+        
+        meta_record_names <- meta_id_map[,1, drop = TRUE]
     } else {
+        
         # The target meta_model is at the top of the main_id_map.
-        meta_id_map <- main_id_map[,ncol(main_id_map), drop = FALSE]
-        meta_id_map <- meta_id_map[!is.na(meta_id_map[,1]),, drop = FALSE]
+        meta_record_names <- main_id_map[,ncol(main_id_map), drop = TRUE]
+        meta_record_names <- meta_record_names[!is.na(meta_record_names)]
     }
     
     ### Retrieve metadata
     meta_raw <- retrieve(
         projectName = projectName, modelName = meta_modelName,
-        recordNames = meta_id_map[,1],
+        recordNames = meta_record_names,
         attributeNames = meta_attributeNames,
         token = token,
         ...)
+    #### *WANT TO REMOVE* Find identifiers
+    id_column <- match(TRUE,
+                       vapply(seq_len(ncol(meta_raw)),
+                              function(x) all(meta_record_names %in% meta_raw[,x]),
+                              logical(1))
+    )
     
     ### Ensure metadata has 1 row per linked target data row
     meta <- if (separate_branches) {
-        .expand_metadata_to_have_1row_per_id(meta_raw, meta_id_map)
+        .expand_metadata_to_have_1row_per_id(meta_raw, meta_id_map, id_column)
     } else {
-        meta
+        meta_raw
     }
     
-    output <- merge(main_id_map, meta, all.x = TRUE, by = colnames(meta)[1])
+    # Ensure matching
+    colnames(main_id_map)[ncol(main_id_map)] <- colnames(meta)[id_column]
+    output <- merge(main_id_map, meta, all.x = TRUE, by = colnames(meta)[id_column])
     
     output
 }
 
-.expand_metadata_to_have_1row_per_id <- function(meta_raw, meta_id_map){
+.expand_metadata_to_have_1row_per_id <- function(meta_raw, meta_id_map, id_column){
     ### Expand metadata (columns direction) until 1 row per id.
     
     ## Method: By a user-provided grouping 
@@ -222,10 +234,10 @@ retrieveMetadata <- function(
             next_meta <- meta_left[inds,]
             # Update column names with _i for all but the main identifier column
             colnames(next_meta) <- paste(colnames(next_meta), i, sep="_")
-            colnames(next_meta)[1] <- colnames(meta)[1]
+            colnames(next_meta)[id_column] <- colnames(meta)[id_column]
             
             # Add
-            meta <- merge(meta, next_meta, all.x = TRUE, by = colnames(meta)[1])
+            meta <- merge(meta, next_meta, all.x = TRUE, by = colnames(meta)[id_column])
             
             # Update variables for next repeat
             meta_left <- meta_left[-inds,]
