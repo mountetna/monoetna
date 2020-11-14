@@ -166,7 +166,7 @@ retrieveJSON <- function(
         h$value()
     } else {
         if (format=="tsv") {
-            .parse_JSON_tsv(h$value(), names.only, connected.only)
+            .parse_tsv(h$value(), names.only, connected.only)
         } else {
             jsonlite::fromJSON(h$value())
         }

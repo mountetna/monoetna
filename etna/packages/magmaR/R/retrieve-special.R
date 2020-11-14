@@ -55,5 +55,5 @@ retrieveIds <- function(
         recordNames = "all",
         attributeNames = "identifier",
         format = "tsv",
-        ...)
+        ...)[,,drop = TRUE]
 }
