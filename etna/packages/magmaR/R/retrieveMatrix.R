@@ -33,8 +33,8 @@ retrieveMatrix <- function(
     
     # Break recordNames into chunks of 10 or fewer
     if (identical(recordNames, "all")) {
-        recordNames <- .retrieve(
-            projectName, modelName, attributeNames = "identifier", ...)
+        recordNames <- retrieveIds(
+            projectName, modelName, ...)
     }
     
     sets <- split(recordNames, ceiling(seq_along(recordNames)/10))
@@ -81,6 +81,7 @@ retrieveMatrix <- function(
         stop("This function only works for one attribute at a time.")
     }
     
+    # Retrieve as json to get the matrix itself
     json <- retrieveJSON(
         projectName = projectName,
         modelName = modelName,
@@ -93,11 +94,15 @@ retrieveMatrix <- function(
         token = token,
         ...)
     
-    data <- sapply(
+    # Turn into data frame
+    data_cols <- lapply(
         recordNames,
         function(x) {
             (json$models[[modelName]]$documents[[x]])[[attributeNames]]
         })
+    data <- do.call(data.frame, data_cols)
+    
+    # Add column names
     colnames(data) <- recordNames
     
     data
