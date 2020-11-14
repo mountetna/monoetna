@@ -94,13 +94,13 @@ retrieveMatrix <- function(
         token = token,
         ...)
     
-    # Turn into data frame
+    # Turn into matrix
     data_cols <- lapply(
         recordNames,
         function(x) {
             (json$models[[modelName]]$documents[[x]])[[attributeNames]]
         })
-    data <- do.call(data.frame, data_cols)
+    data <- as.matrix(do.call(data.frame, data_cols))
     
     # Add column names
     colnames(data) <- recordNames
