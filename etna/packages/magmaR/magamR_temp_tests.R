@@ -113,14 +113,14 @@ temp <- retrieveTemplate("ipi")
 
 (paths <- .obtain_linkage_paths("rna_seq", "treatment", temp))
 # Gives:
-# $main_path
+# $target_path
 # [1] "rna_seq" "sample"  "patient"
 # 
 # $meta_path
 # [1] "treatment" "patient"
 
-(main_id_map <- .map_identifiers_by_path(
-    path = paths$main_path,
+(target_id_map <- .map_identifiers_by_path(
+    path = paths$target_path,
     projectName = "ipi"))
 # df with 3507 rows and 3 cols
 (meta_id_map <- .map_identifiers_by_path(
@@ -128,13 +128,52 @@ temp <- retrieveTemplate("ipi")
     projectName = "ipi"))
 # df with 771 rows and 2 cols
 
-ids <- retrieve("ipi", "rna_seq", attributeNames = "identifier")
-retrieveMetadata(
+ids <- retrieveIds("ipi", "rna_seq")
+meta <- retrieveMetadata(
     projectName = "ipi",
-    main_modelName = "rna_seq",
-    main_recordNames = ids[grepl("live", ids)],
+    target_modelName = "rna_seq",
+    target_recordNames = ids[grepl("live", ids)],
     meta_modelName = "treatment",
     meta_attributeNames = "all")
+# GOOD
     
-    
-    
+meta <- retrieveMetadata(
+    projectName = "ipi",
+    target_modelName = "rna_seq",
+    target_recordNames = ids[grepl("live", ids)],
+    meta_modelName = "sample",
+    meta_attributeNames = "all")
+# GOOD
+
+meta <- retrieveMetadata(
+    projectName = "ipi",
+    target_modelName = "rna_seq",
+    target_recordNames = "all",
+    meta_modelName = "sample",
+    meta_attributeNames = "all")
+# GOOD
+
+should_be_df <- retrieve(
+    projectName = "ipi",
+    modelName = "sample",
+    recordNames = "all",
+    attributeNames = "all")
+
+should_be_df <- retrieve(
+    projectName = "ipi",
+    modelName = "rna_seq",
+    recordNames = ids[grepl("live3",ids)],
+    attributeNames = "all")
+
+should_be_matrix <- retrieveMatrix(
+    projectName = "ipi",
+    modelName = "rna_seq",
+    recordNames = ids[grepl("live2",ids)],
+    attributeNames = "gene_tpm")
+
+json <- toJSON(as.data.frame(should_be_matrix))
+df <- fromJSON(json)
+rownames(df)
+matrix <- as.matrix(df)
+
+

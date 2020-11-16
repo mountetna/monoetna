@@ -2,14 +2,14 @@
 % Please edit documentation in R/retrieveMetadata.R
 \name{retrieveMetadata}
 \alias{retrieveMetadata}
-\title{(Not complete) Retrieve data from one model of a project that is linked to data from a different, target model of the same project}
+\title{Retrieve data from one model of a project, metadata, for records linked to data from a different, target model of the same project}
 \usage{
 retrieveMetadata(
   projectName,
-  main_modelName,
-  main_recordNames = "all",
   meta_modelName,
   meta_attributeNames = "all",
+  target_modelName,
+  target_recordNames = "all",
   meta_group.by = NULL,
   token = .get_TOKEN(),
   ...
@@ -18,11 +18,11 @@ retrieveMetadata(
 \arguments{
 \item{projectName}{the name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
 
-\item{main_modelName, main_recordNames}{Strings which indicate the target data for which meta-data is desired.}
-
 \item{meta_modelName, meta_attributeNames}{Strings which indicate the linked "meta"data to retrieve.}
 
-\item{meta_group.by}{String, an attribute within the meta_model that can be used to group data when there are expected to be more than 1 record of metadata per record of target data.}
+\item{target_modelName, target_recordNames}{Strings which indicate the 'target' data that meta-data is desired to be linked to.}
+
+\item{meta_group.by}{\emph{Not implemented yet.} String, an attribute within the meta_model that can be used to group data when there are expected to be more than 1 record of metadata per record of target data.}
 
 \item{token}{your TOKEN from https://janus.ucsf.edu}
 
@@ -31,25 +31,20 @@ For troubleshooting or privileged-user purposes only.
 Options: \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).}
 }
 \value{
-A dataframe with rows = main_recordNames and columns = either meta_attributeNames or repeats of main_attributeNames to accommodate 1:many mappings.
+A dataframe with rows = target_recordNames and columns = either meta_attributeNames or repeats of meta_attributeNames to accommodate 1:many mappings of target data records to metadata records.
 }
 \description{
-(Not complete) Retrieve data from one model of a project that is linked to data from a different, target model of the same project
+Retrieve data from one model of a project, metadata, for records linked to data from a different, target model of the same project
 }
 \examples{
 
-##### FILLER
-
-# Unless a working TOKEN is hard-coded, or it is in an interactive session,
-#   this code will not work.
-
 if (interactive()) {
     # Running like this will ask for input of your janus token.
-    retrieveJSON(
+    retrieveMetadata(
         projectName = "ipi",
-        modelName = "patient",
-        recordNames = "all",
-        attributeNames = "all",
+        meta_modelName = "sample",
+        meta_attributeNames = "tissue_type",
+        target_modelName = "rna_seq",
         filter = "")
 }
 
