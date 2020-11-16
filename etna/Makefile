@@ -7,6 +7,7 @@ export BUILD_REQS:=../docker/etna-base $(BUILD_REQS)
 test::
 	@ docker-compose run --rm etna_app bundle exec rspec
 	@ docker-compose run -e RUN_NPM_INSTALL=1 -e SKIP_RUBY_SETUP=1 --rm etna_app npm test
+	# We will have to add in a command here to test the R stuff, too.
 
 bash::
 	@ docker-compose run -e SKIP_RUBY_SETUP=1 --rm etna_app bash
