@@ -1,4 +1,5 @@
 require_relative '../../copy_revision'
+require_relative '../../file_rename_revision'
 
 class FileController < Metis::Controller
   def remove
@@ -28,7 +29,7 @@ class FileController < Metis::Controller
 
     file.protect!
 
-    success_json(files: [ file.to_hash(@request) ])
+    success_json(files: [ file.to_hash(request: @request) ])
   end
 
   def unprotect
@@ -41,35 +42,52 @@ class FileController < Metis::Controller
 
     file.unprotect!
 
-    success_json(files: [ file.to_hash(@request) ])
+    success_json(files: [ file.to_hash(request: @request) ])
   end
 
   def rename
     require_param(:new_file_path)
-    bucket = require_bucket
-    file = Metis::File.from_path(bucket, @params[:file_path])
 
-    raise Etna::Error.new('File not found', 404) unless file&.has_data?
+    source_bucket = require_bucket
 
-    raise Etna::Forbidden, 'File is read-only' if file.read_only?
+    dest_bucket = source_bucket
+    if @params[:new_bucket_name]
+      dest_bucket = require_bucket(@params[:new_bucket_name])
+    end
 
-    raise Etna::Forbidden, 'File is read-only' if file.folder&.read_only?
+    revision = Metis::FileRenameRevision.new({
+      source: Metis::Path.path_from_parts(
+        @params[:project_name],
+        source_bucket.name,
+        @params[:file_path]
+      ),
+      dest: Metis::Path.path_from_parts(
+        @params[:project_name],
+        dest_bucket.name,
+        @params[:new_file_path]
+      ),
+      user: @user
+    })
 
-    raise Etna::BadRequest, 'Invalid path' unless Metis::File.valid_file_path?(@params[:new_file_path])
+    revision.set_bucket(revision.source, [source_bucket, dest_bucket])
+    revision.set_bucket(revision.dest, [source_bucket, dest_bucket])
 
-    new_folder_path, new_file_name = Metis::File.path_parts(@params[:new_file_path])
+    # we need the dest parent folder here, so we call File#path_parts
+    source_folder_path, _ = Metis::File.path_parts(@params[:file_path])
+    dest_folder_path, _ = Metis::File.path_parts(@params[:new_file_path])
 
-    new_folder = require_folder(bucket, new_folder_path)
+    revision.set_folder(
+      revision.source,
+      [require_folder(source_bucket, source_folder_path)].compact)
+    revision.set_folder(
+      revision.dest,
+      [require_folder(dest_bucket, dest_folder_path)].compact) if dest_folder_path
 
-    raise Etna::Forbidden, 'Folder is read-only' if new_folder&.read_only?
+    revision.validate
 
-    raise Etna::Forbidden, 'Cannot rename over existing file' if Metis::File.exists?(new_file_name, bucket, new_folder)
+    return failure(422, errors: revision.errors) unless revision.valid?
 
-    raise Etna::Forbidden, 'Cannot rename over existing folder' if  Metis::Folder.exists?(new_file_name, bucket, new_folder)
-
-    file.rename!(new_folder, new_file_name)
-
-    success_json(files: [ file.to_hash(@request) ])
+    return success_json(files: [ revision.revise!.to_hash ])
   end
 
   def copy
@@ -113,7 +131,7 @@ class FileController < Metis::Controller
 
     return failure(422, errors: revision.errors) unless revision.valid?
 
-    return success_json(files: [ revision.revise!.to_hash(@request) ])
+    return success_json(files: [ revision.revise!.to_hash(request: @request) ])
   end
 
   def bulk_copy
@@ -138,7 +156,7 @@ class FileController < Metis::Controller
 
     user_authorized_buckets = Metis::Bucket.where(
       project_name: @params[:project_name],
-      owner: ['metis', hmac.id.to_s],
+      owner: ['metis', hmac&.id.to_s].reject {|o| o.empty?},
       name: revisions.map(&:bucket_names).flatten.uniq
     ).all.select{|b| b.allowed?(@user, hmac)}
 
@@ -180,7 +198,7 @@ class FileController < Metis::Controller
     # If we've gotten here, every revision looks good and we can execute them!
     return success_json(
       files: revisions.map(&:revise!).
-        map {|new_file| new_file.to_hash(@request)}
+        map {|new_file| new_file.to_hash(request: @request)}
     )
   end
 end

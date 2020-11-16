@@ -16,62 +16,64 @@ jobs:
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
         run: docker login -p "${DOCKER_TOKEN}" -u etnaagent
-      - name: Cache release successes
-        uses: actions/cache@v2
-        with:
-          path: |
-            /tmp/releases
-          key: releases-branches-${{ runner.os }}
-          restore-keys: |
-            releases-master-${{ runner.os }}
-            releases-master-
-            releases-branches-
-            releases-
+      - name: Download all images
+        env:
+          IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          IMAGES_POSTFIX: :master
+        run: |
+          ./bin/x-all-images docker pull %
       - name: Run metis test suite
         id: metis_first_test_run
         env:
-          PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
           make -C metis release
       - name: Run janus test suite
         id: janus_first_test_run
         env:
-          PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
           make -C janus release
-      - name: Run etna test suite
-        id: etna_first_test_run
-        env:
-          PULL_IMAGES: 1
-          IMAGES_PREFIX: etnaagent/
-          IMAGES_POSTFIX: :master
-        run: |
-          make -C etna release
       - name: Run timur test suite
         id: timur_first_test_run
         env:
-          PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
           make -C timur release
       - name: Run magma test suite
         id: magma_first_test_run
         env:
-          PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
           make -C magma release
       - name: Run polyphemus tests
         id: polyphemus_first_test_run
         env:
-          PULL_IMAGES: 1
           IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
           make -C polyphemus release
+      - name: Run etna test suite
+        id: etna_first_test_run
+        env:
+          IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
+          IMAGES_POSTFIX: :master
+        run: |
+          make -C etna release

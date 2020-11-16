@@ -4,18 +4,31 @@
 # whenever we want to use it as a container
 
 require_relative './sign_service'
+require_relative './command'
+require_relative './generate_autocompletion_script'
 require 'singleton'
 require 'rollbar'
 
 module Etna::Application
   def self.included(other)
     other.include Singleton
+    other.include Etna::CommandExecutor
+    @@application = other
+
+    other.const_set(:GenerateCompletionScript, Class.new(Etna::GenerateCompletionScript))
   end
 
   def self.find(klass)
-    Kernel.const_get(
-      klass.name.split('::').first
-    ).instance
+    namespace = klass.name.split('::').first
+    if (namespace_klass = Kernel.const_get(namespace)) && (namespace_klass.respond_to? :instance)
+      return namespace_klass.instance
+    end
+
+    if @@application
+      return @@application.instance
+    end
+
+    raise "Could not find application instance from #{namespace}, and not subclass of Application found."
   end
 
   def self.register(app)
@@ -56,8 +69,18 @@ module Etna::Application
   # the application logger is available globally
   attr_reader :logger
 
-  def config(type)
-    @config[environment][type]
+  def config(type, env = environment)
+    return nil if @config.nil?
+    return nil if @config[env].nil?
+    return nil unless @config[env].is_a?(Hash)
+    @config[env][type]
+  end
+
+  def env_config(env = environment)
+    return nil if @config.nil?
+    return nil if @config[env].nil?
+    return nil unless @config[env].is_a?(Hash)
+    @config[env]
   end
 
   def sign
@@ -74,23 +97,18 @@ module Etna::Application
     end
   end
 
-  def run_command(config, cmd = :help, *args)
-    cmd = cmd.to_sym
-    if commands.key?(cmd)
-      commands[cmd].setup(config)
-      commands[cmd].execute(*args)
-    else
-      commands[:help].execute
-    end
-  end
+  def run_command(config, *args, &block)
+    cmd, cmd_args, cmd_kwds = find_command(*args)
+    cmd.setup(config)
 
-  def commands
-    @commands ||= Hash[
-      find_descendents(Etna::Command).map do |c|
-        cmd = c.new
-        [ cmd.name, cmd ]
-      end
-    ]
+    if block_given?
+      return unless yield [cmd, cmd_args]
+    end
+
+    cmd.execute(*cmd.fill_in_missing_params(cmd_args), **cmd_kwds)
+  rescue => e
+    Rollbar.error(e)
+    raise
   end
 end
 

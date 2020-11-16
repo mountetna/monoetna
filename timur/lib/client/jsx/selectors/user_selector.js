@@ -12,9 +12,7 @@ export const selectUserPermissions = Reselect.createSelector(
 export const selectUserProjectRole = Reselect.createSelector(
   selectUserPermissions,
   (permissions) => {
-    let perm = permissions.find(
-      ({project_name}) => project_name == TIMUR_CONFIG.project_name
-    );
+    let perm = permissions[CONFIG.project_name];
     return perm ? perm.role : null
   }
 );

@@ -1,0 +1,72 @@
+---
+driver:
+  name: docker
+
+provisioner:
+  name: chef_zero
+  always_update_cookbooks: true
+  environments_path: environments
+  client_rb:
+    environment: local
+
+platforms:
+  - name: centos-7
+    driver_config:
+      image: test-centos
+      instance_name: centos-7
+      platform: centos
+      mount:
+        - type=bind,source=/sys/fs/cgroup,target=/sys/fs/cgroup,ro
+        - type=bind,source=/var/run/docker.sock,target=/usr/var/run/docker.sock
+        - type=bind,source=/var/mountetna,target=/var/mountetna
+      forward:
+        - 5432:5444
+      run_command: /usr/sbin/init
+      privileged: true
+#      cap_add:
+#        - SYS_ADMIN
+#        - SYSLOG
+#        - NET_ADMIN
+      run_options:
+        env: container=docker
+      provision_command:
+        - sed -i 's/UsePAM yes/UsePAM no/g' /etc/ssh/sshd_config
+        - systemctl enable sshd.service
+        - mkdir -p /run/systemd
+        - echo 'docker' > /run/systemd/container
+        - ln -s /usr/var/run/docker.sock /run/docker.sock
+      use_internal_docker_network: true
+
+transport:
+  name: docker
+
+verifier:
+  name: inspec
+
+suites:
+  - name: master
+    run_list:
+      # Test idempotency by running all the things twice
+      - recipe[mountetna::polyphemus]
+      - recipe[mountetna::polyphemus]
+    attributes:
+      is_kitchen: true
+      psql_developer_password: password
+      psql_default_port: 5444
+      docker:
+        host: unix:///usr/var/run/docker.host.sock
+      janus_token:
+        rsa_public: |
+          -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6pLkfi2RXd3jHWKh9W37
+          k7Nw5aZxIQRCf9b5b0uUIqyk4ODH1Pd4s/hhYq/9c+HT2304NkiqRw4cVOHMgk8N
+          O+a+7F+HgspJZopyEBCJvBloBoPKrpkZv0FeVHYwiDM2kf3GFDzTPBdUSpYJimtn
+          HF29DdEoj6O5xL9uGW97QZ34JYacIeG7GmVGjYnCvA87S0miDUxvGlu40g+VJhND
+          mLXMzWa5vTxyGb4cEQSL6rryVxmBlonG4J41K7A04/7tftKvWrqsCWAfSCusNs8w
+          CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
+          NQIDAQAB
+          -----END PUBLIC KEY-----
+      rollbar:
+        access_token: ''
+      polyphemus:
+        janus_token: ''

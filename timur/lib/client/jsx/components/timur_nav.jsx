@@ -54,9 +54,7 @@ const ICONS = {
 const Login = ({user}) => {
   let {first, last, permissions} = user;
 
-  let project_perm = permissions.find(
-    ({project_name}) => project_name == TIMUR_CONFIG.project_name
-  );
+  let project_perm = permissions[CONFIG.project_name];
   let role = project_perm ? project_perm.role : '';
   if (!user) return null;
   return (
@@ -76,11 +74,11 @@ class TimurNav extends React.Component {
   renderTabs() {
     let {mode} = this.props;
     let tabs = {
-      browse: Routes.browse_path(TIMUR_CONFIG.project_name),
-      search: Routes.search_path(TIMUR_CONFIG.project_name),
-      map: Routes.map_path(TIMUR_CONFIG.project_name),
-      manifests: Routes.manifests_path(TIMUR_CONFIG.project_name),
-      plots: Routes.plots_path(TIMUR_CONFIG.project_name),
+      browse: Routes.browse_path(CONFIG.project_name),
+      search: Routes.search_path(CONFIG.project_name),
+      map: Routes.map_path(CONFIG.project_name),
+      manifests: Routes.manifests_path(CONFIG.project_name),
+      plots: Routes.plots_path(CONFIG.project_name),
       help: 'https://mountetna.github.io/timur.html'
     };
 

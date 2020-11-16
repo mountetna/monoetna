@@ -1,13 +1,15 @@
+require 'ostruct'
 require_relative '../../json_serializable_struct'
 require_relative '../../multipart_serializable_nested_hash'
 require_relative '../../directed_graph'
+require_relative '../enum'
 
 # TODO:  In the near future, I'd like to transition to specifying apis via SWAGGER and generating model stubs from the
 # common definitions.  For nowe I've written them out by hand here.
 module Etna
   module Clients
     class Magma
-      class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, keyword_init: true)
+      class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, :page, :page_size, :order, :filter, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)
@@ -27,10 +29,19 @@ module Etna
           super({revisions: {}}.update(params))
         end
 
-        def update_revision(model_name, record_name, **attrs)
+        def update_revision(model_name, record_name, attrs)
           revision = revisions[model_name] ||= {}
           record = revision[record_name] ||= {}
           record.update(attrs)
+        end
+
+        def append_table(parent_model_name, parent_record_name, model_name, attrs, attribute_name = model_name)
+          parent_revision = update_revision(parent_model_name, parent_record_name, {})
+          table = parent_revision[attribute_name] ||= []
+          id = "::#{model_name}#{(revisions[model_name] || {}).length + 1}"
+          table << id
+          update_revision(model_name, id, attrs)
+          id
         end
       end
 
@@ -46,10 +57,57 @@ module Etna
         end
       end
 
-      class AddAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :restricted, :unique, :validation, keyword_init: true)
+      class AddModelAction < Struct.new(:action_name, :model_name, :parent_model_name, :parent_link_type, :identifier, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'add_model'}.update(args))
+        end
+      end
+
+      class AddAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
         def initialize(**args)
           super({action_name: 'add_attribute'}.update(args))
+        end
+
+        def attribute_type=(val)
+          self.type = val
+        end
+
+        def desc=(val)
+          self.description = val
+        end
+      end
+
+      class AddLinkAction < Struct.new(:action_name, :links, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'add_link', links: []}.update(args))
+        end
+      end
+
+      class AddLinkDefinition < Struct.new(:type, :model_name, :attribute_name, keyword_init: true)
+        include JsonSerializableStruct
+      end
+
+      class AddProjectAction < Struct.new(:action_name, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'add_project'}.update(args))
+        end
+      end
+
+      class UpdateAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'update_attribute'}.update(args))
+        end
+      end
+
+      class RenameAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :new_attribute_name, keyword_init: true)
+        include JsonSerializableStruct
+        def initialize(**args)
+          super({action_name: 'rename_attribute'}.update(args))
         end
       end
 
@@ -58,6 +116,7 @@ module Etna
       end
 
       class AttributeValidationType < String
+        include Enum
         REGEXP = AttributeValidationType.new("Regexp")
         ARRAY = AttributeValidationType.new("Array")
         RANGE = AttributeValidationType.new("Range")
@@ -101,6 +160,18 @@ module Etna
       class UpdateResponse < RetrievalResponse
       end
 
+      class Project
+        attr_reader :raw
+
+        def initialize(raw = {})
+          @raw = raw
+        end
+
+        def models
+          Models.new(raw['models'])
+        end
+      end
+
       class Models
         attr_reader :raw
 
@@ -112,14 +183,42 @@ module Etna
           raw.keys
         end
 
+        def build_model(model_key)
+          Model.new(raw[model_key] ||= {})
+        end
+
         def model(model_key)
+          return nil unless raw.include?(model_key)
           Model.new(raw[model_key])
+        end
+
+        def all
+          raw.values.map { |r| Model.new(r) }
+        end
+
+        def +(other)
+          raw_update = {}
+          raw_update[other.name] = other.raw
+          Models.new({}.update(raw).update(raw_update))
+        end
+
+        # Can look up reciprocal links by many means.  At minimum, a source model or model name must be provided,
+        # and either a link_attribute_name, attribute, or link_model.
+        def find_reciprocal(
+            model_name: nil,
+            model: self.model(model_name),
+            link_attribute_name: nil,
+            attribute: model&.template&.attributes&.attribute(link_attribute_name),
+            link_model: self.model(attribute&.link_model_name)
+        )
+          return nil if model.nil? || model.name.nil?
+          link_model&.template&.attributes&.all&.find { |a| a.link_model_name == model.name }
         end
 
         def to_directed_graph(include_casual_links=false)
           graph = ::DirectedGraph.new
 
-          model_keys.each do |model_name|
+          model_keys.sort.each do |model_name|
             graph.add_connection(model(model_name).template.parent, model_name)
 
             if include_casual_links
@@ -154,12 +253,24 @@ module Etna
           @raw = raw
         end
 
+        def build_template
+          Template.new(raw['template'] ||= {})
+        end
+
         def documents
           Documents.new(raw['documents'])
         end
 
         def template
           Template.new(raw['template'])
+        end
+
+        def name
+          @raw.dig('template', 'name')
+        end
+
+        def count
+          raw['count'] || 0
         end
       end
 
@@ -174,7 +285,12 @@ module Etna
           raw.keys
         end
 
+        def +(other)
+          Documents.new({}.update(raw).update(other.raw))
+        end
+
         def document(document_key)
+          return nil unless raw.include?(document_key)
           raw[document_key]
         end
       end
@@ -190,16 +306,32 @@ module Etna
           raw['name'] || ""
         end
 
+        def name=(val)
+          raw['name'] = val.to_s
+        end
+
         def identifier
           raw['identifier'] || ""
+        end
+
+        def identifier=(val)
+          raw['identifier'] = val.to_s
         end
 
         def parent
           raw['parent']
         end
 
+        def parent=(val)
+          raw['parent'] = val.to_s
+        end
+
         def attributes
-          Attributes.new(raw['attributes'])
+          Attributes.new(raw['attributes'] ||= {})
+        end
+
+        def build_attributes
+          Attributes.new(raw['attributes'] ||= {})
         end
       end
 
@@ -215,7 +347,16 @@ module Etna
         end
 
         def attribute(attribute_key)
+          return nil unless raw.include?(attribute_key)
           Attribute.new(raw[attribute_key])
+        end
+
+        def build_attribute(key)
+          Attribute.new(raw[key] ||= {})
+        end
+
+        def all
+          raw.values.map { |r| Attribute.new(r) }
         end
       end
 
@@ -230,20 +371,132 @@ module Etna
           @raw['name'] || ""
         end
 
+        def name=(val)
+          @raw['name'] = val
+        end
+
         def attribute_name
           @raw['attribute_name'] || ""
+        end
+
+        def attribute_name=(val)
+          @raw['attribute_name'] = val
         end
 
         def attribute_type
           @raw['attribute_type'] && AttributeType.new(@raw['attribute_type'])
         end
 
+        def attribute_type=(val)
+          val = val.to_s if val
+          @raw['attribute_type'] = val
+        end
+
         def link_model_name
-          raw['link_model_name']
+          @raw['link_model_name']
+        end
+
+        def link_model_name=(val)
+          @raw['link_model_name'] = val
+        end
+
+        def unique
+          raw['unique']
+        end
+
+        def unique=(val)
+          raw['unique'] = val
+        end
+
+        def desc
+          raw['desc']
+        end
+
+        def desc=(val)
+          @raw['desc'] = val
+        end
+
+        def display_name
+          raw['display_name']
+        end
+
+        def display_name=(val)
+          raw['display_name'] = val
+        end
+
+        def match
+          raw['match']
+        end
+
+        def restricted
+          raw['restricted']
+        end
+
+        def restricted=(val)
+          raw['restricted'] = val
+        end
+
+        def format_hint
+          raw['format_hint']
+        end
+
+        def format_hint=(val)
+          raw['format_hint'] = val
+        end
+
+        def read_only
+          raw['read_only']
+        end
+
+        def read_only=(val)
+          raw['read_only'] = val
+        end
+
+        def attribute_group
+          raw['attribute_group']
+        end
+
+        def attribute_group=(val)
+          raw['attribute_group'] = val
+        end
+        def hidden
+          raw['hidden']
+        end
+
+        def hidden=(val)
+          raw['hidden'] = val
+        end
+
+        def validation
+          raw['validation']
+        end
+
+        def validation=(val)
+          raw['validation'] = val
+        end
+
+        def options
+          raw['options']
+        end
+
+        def self.copy(source, dest)
+          dest.attribute_name = source.attribute_name
+          dest.attribute_type = source.attribute_type
+          dest.desc = source.desc
+          dest.display_name = source.display_name
+          dest.format_hint = source.format_hint
+          dest.hidden = source.hidden
+          dest.link_model_name = source.link_model_name
+          dest.read_only = source.read_only
+          dest.attribute_group = source.attribute_group
+          dest.unique = source.unique
+          dest.validation = source.validation
+          dest.restricted = source.restricted
         end
       end
 
       class AttributeType < String
+        include Enum
         STRING = AttributeType.new("string")
         DATE_TIME = AttributeType.new("date_time")
         BOOLEAN = AttributeType.new("boolean")
@@ -259,6 +512,13 @@ module Etna
         MATRIX = AttributeType.new("matrix")
         PARENT = AttributeType.new("parent")
         TABLE = AttributeType.new("table")
+      end
+
+      class ParentLinkType < String
+        include Enum
+        CHILD = ParentLinkType.new("child")
+        COLLECTION = ParentLinkType.new("collection")
+        TABLE = ParentLinkType.new("table")
       end
     end
   end

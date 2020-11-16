@@ -1,7 +1,7 @@
 GIT
   remote: https://github.com/mountetna/monoetna.git
-  revision: 4fe6b547e81f606a81f438fed759d231d42caaf9
-  branch: refs/artifacts/gem-etna/cfccc4d2634037f50d6dd5aefadca94b215e238d
+  revision: 928b1ab7502c73453a0bd63f9bbead9cabc8c763
+  branch: refs/artifacts/gem-etna/f6fc27dd6ff5e1ccaed0d44374eba0725c52032a
   specs:
     etna (0.1.16)
       jwt
@@ -20,6 +20,7 @@ GEM
     connection_pool (2.2.3)
     crack (0.4.3)
       safe_yaml (~> 1.0.0)
+    database_cleaner (1.8.5)
     debase (0.2.4.1)
       debase-ruby_core_source (>= 0.10.2)
     debase-ruby_core_source (0.10.9)
@@ -28,9 +29,14 @@ GEM
     hashdiff (1.0.1)
     jwt (2.2.2)
     method_source (1.0.0)
+    mini_portile2 (2.4.0)
     multipart-post (2.1.1)
     net-http-persistent (4.0.0)
       connection_pool (~> 2.2)
+    nio4r (2.5.4)
+    nokogiri (1.10.10)
+      mini_portile2 (~> 2.4.0)
+    pg (1.2.3)
     pry (0.13.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -38,9 +44,13 @@ GEM
       byebug (~> 11.0)
       pry (~> 0.13.0)
     public_suffix (4.0.5)
+    puma (5.0.2)
+      nio4r (~> 2.0)
     rack (2.2.3)
+    rack-test (1.1.0)
+      rack (>= 1.0, < 3)
     rake (13.0.1)
-    rollbar (2.27.0)
+    rollbar (3.1.0)
     rspec (3.9.0)
       rspec-core (~> 3.9.0)
       rspec-expectations (~> 3.9.0)
@@ -57,10 +67,12 @@ GEM
     ruby-debug-ide (0.7.2)
       rake (>= 0.8.1)
     safe_yaml (1.0.5)
+    sequel (5.36.0)
     simplecov (0.19.0)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
     simplecov-html (0.12.2)
+    vcr (6.0.0)
     webmock (3.8.3)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
@@ -70,13 +82,21 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  database_cleaner
   debase
   etna!
+  nokogiri
+  pg
   pry
   pry-byebug
+  puma (= 5.0.2)
+  rack
+  rack-test
   rspec
   ruby-debug-ide
+  sequel
   simplecov
+  vcr
   webmock
 
 BUNDLED WITH

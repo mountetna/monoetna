@@ -164,7 +164,9 @@ class Metis
       read_only
     end
 
-    def to_hash(request=nil)
+    def to_hash(request: nil, file_path: nil)
+      file_path ||= self.file_path
+
       {
         file_name: file_name,
         project_name: project_name,
@@ -218,8 +220,17 @@ class Metis
     end
 
     def update_bucket!(new_bucket)
-      raise 'Bucket does not match folder bucket' if folder != nil and folder.bucket_id != new_bucket.id
+      raise 'Bucket does not match folder bucket' if folder != nil && folder.bucket_id != new_bucket.id
       update(bucket: new_bucket)
+      refresh
+    end
+
+    def update_bucket_and_rename!(folder, new_file_name, new_bucket)
+      raise 'Bucket does not match folder bucket' if folder != nil && folder.bucket_id != new_bucket.id
+      update(
+        folder_id: folder ? folder.id : nil,
+        file_name: new_file_name,
+        bucket: new_bucket)
       refresh
     end
   end

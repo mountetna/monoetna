@@ -48,10 +48,10 @@ describe Metis::Revision do
         }.to raise_error(StandardError)
     end
 
-    it 'returns the source bucket_name in an array' do
+    it 'returns the bucket_name in an array' do
         revision = Metis::Revision.new({
             source: 'metis://athena/files/helmet.jpg',
-            dest: 'metis://athena/magma/wisdom.txt'
+            dest: nil
         })
         expect(revision.bucket_names).
             to eq(['files'])
@@ -61,13 +61,30 @@ describe Metis::Revision do
             dest: 'metis://athena/magma/wisdom.txt'
         })
         expect(revision.bucket_names).
-            to eq([])
-    end
+            to eq(['magma'])
 
-    it 'returns the source path in an array' do
         revision = Metis::Revision.new({
             source: 'metis://athena/files/helmet.jpg',
             dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect(revision.bucket_names).
+            to eq(['files', 'magma'])
+    end
+
+    it 'returns the paths in an array' do
+        revision = Metis::Revision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: 'metis://athena/magma/wisdom.txt'
+        })
+        expect(revision.mpaths.length).to eq(2)
+        expect(revision.mpaths[0].path).
+            to eq('metis://athena/files/helmet.jpg')
+        expect(revision.mpaths[1].path).
+            to eq('metis://athena/magma/wisdom.txt')
+
+        revision = Metis::Revision.new({
+            source: 'metis://athena/files/helmet.jpg',
+            dest: nil
         })
         expect(revision.mpaths.length).to eq(1)
         expect(revision.mpaths[0].path).
@@ -77,8 +94,9 @@ describe Metis::Revision do
             source: nil,
             dest: 'metis://athena/magma/wisdom.txt'
         })
-        expect(revision.mpaths).
-            to eq([])
+        expect(revision.mpaths.length).to eq(1)
+        expect(revision.mpaths[0].path).
+            to eq('metis://athena/magma/wisdom.txt')
     end
 
     it 'sets the bucket on a Metis Path with Objects' do

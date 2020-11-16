@@ -1,8 +1,6 @@
 import monsters from '../fixtures/monsters';
 import * as actions from '../../../lib/client/jsx/actions/magma_actions';
-import { mockStore, mockDate, mockFetch, setConfig, stubUrl, cleanStubs } from '../helpers';
-
-const PROJECT_NAME = 'labors';
+import { mockStore, mockDate, mockFetch, stubUrl, cleanStubs } from '../helpers';
 
 describe('async actions', () => {
   afterEach(cleanStubs);
@@ -10,12 +8,7 @@ describe('async actions', () => {
   mockDate();
   mockFetch();
 
-  setConfig({
-    project_name: PROJECT_NAME,
-    magma_host: 'https://magma.test',
-  });
-
-  it('requests documents from the magma /retrieve endpoint', () => {
+  it('requests documents from the magma /retrieve endpoint', (done) => {
     let request = {
       model_name: 'monster',
       project_name: 'labors',
@@ -27,7 +20,7 @@ describe('async actions', () => {
       path: '/retrieve',
       request,
       response: monsters,
-      host: TIMUR_CONFIG.magma_host
+      host: CONFIG.magma_host
     });
 
     const expectedActions = [
@@ -65,10 +58,11 @@ describe('async actions', () => {
       }
     )).then(() => {
       expect(store.getActions()).toEqual(expectedActions);
+      done();
     });
   });
 
-  it('posts simple update revisions to the magma /update endpoint', () => {
+  it('posts simple update revisions to the magma /update endpoint', (done) => {
     let revisions = {
       monster: {
         stats: {
@@ -86,7 +80,8 @@ describe('async actions', () => {
             }
           }
         }
-      }
+      },
+      project_name: 'labors'
     }
 
     stubUrl({
@@ -94,7 +89,7 @@ describe('async actions', () => {
       path: '/update',
       request: expectedBody,
       response: monsters,
-      host: TIMUR_CONFIG.magma_host
+      host: CONFIG.magma_host
     });
 
     const store = mockStore({});
@@ -105,6 +100,7 @@ describe('async actions', () => {
       () => {
         // should call success function in this case
         expect(true).toEqual(true);
+        done();
       },
       () => {
         fail('should not have called the error function')

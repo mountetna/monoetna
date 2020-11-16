@@ -1,4 +1,10 @@
 :development:
+  :docker:
+    :default_tag: latest
+  :janus:
+    :host: https://janus.development.local
+  :timur:
+    :host: https://timur.development.local
   :magma:
     :host: https://magma.development.local
   :metis:
@@ -6,14 +12,59 @@
     :release_bucket: this_is_releasable
     :restrict_bucket: dont_show_anyone
   :polyphemus:
+    :host: https://polyphemus.development.local
     :token: my-token # create a long lived token with janus
+  :db:
+    :adapter: postgres
+    :host: polyphemus_db
+    :database: polyphemus_development
+    :user: developer
+    :password: password
+    :search_path: [ public ]
+  :auth_redirect: https://janus.development.local
+  :token_name: JANUS_DEV_TOKEN
+  :token_algo: RS256
+  :token_domain: development.local
+  :token_life: 31536000
+  :rsa_public: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6pLkfi2RXd3jHWKh9W37
+    k7Nw5aZxIQRCf9b5b0uUIqyk4ODH1Pd4s/hhYq/9c+HT2304NkiqRw4cVOHMgk8N
+    O+a+7F+HgspJZopyEBCJvBloBoPKrpkZv0FeVHYwiDM2kf3GFDzTPBdUSpYJimtn
+    HF29DdEoj6O5xL9uGW97QZ34JYacIeG7GmVGjYnCvA87S0miDUxvGlu40g+VJhND
+    mLXMzWa5vTxyGb4cEQSL6rryVxmBlonG4J41K7A04/7tftKvWrqsCWAfSCusNs8w
+    CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
+    NQIDAQAB
+    -----END PUBLIC KEY-----
+
+:production:
+  :magma:
+    :host: https://magma.ucsf.edu
+  :metis:
+    :host: https://metis.ucsf.edu
+    :release_bucket: this_is_releasable
+    :restrict_bucket: dont_show_anyone
+  :polyphemus:
+    :token: production-token
 
 :test:
   :magma:
     :host: https://magma.test
   :metis:
     :host: https://metis.test
-    :release_bucket: this_is_releasable
-    :restrict_bucket: dont_show_anyone
+    :release_bucket: release
+    :restrict_bucket: restrict
   :polyphemus:
+    :host: https://polyphemus.test
     :token: mvir1-token
+  :janus:
+    :host: https://janus.test
+  :timur:
+    :host: https://timur.test
+  :db:
+    :adapter: postgres
+    :host: polyphemus_db
+    :database: polyphemus_test
+    :user: developer
+    :password: password
+    :search_path: [ public ]

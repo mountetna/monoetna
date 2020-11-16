@@ -1,15 +1,24 @@
 #!/usr/bin/env sh
 set -e
-set -x
+
+#if [ -n "$VERBOSE" ]; then
+  set -x
+#fi
 
 if [ -z "$SKIP_BUILD" ]; then
   if [ -z "$RELEASE_TEST" ]; then
     /entrypoints/build.sh
   fi
 
-  export PATH="/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH"
-
   rm -f tmp/pids/*.pid
+
+  if [ -z "$SKIP_RUBY_SETUP" ]; then
+    if [ -z "$SKIP_DB_WAIT" ]; then
+      #Sometimes during startup the cpu can be slammed for all the servies, so we need to wait
+      # a decent amount of time for all pieces to come up.
+      dockerize -wait tcp://${APP_NAME}_db:5432 -timeout 500s
+    fi
+  fi
 
   if [ -e /app/development ]; then
     for hook in /app/development/*; do
@@ -19,7 +28,6 @@ if [ -z "$SKIP_BUILD" ]; then
 
   if [ -z "$SKIP_RUBY_SETUP" ]; then
     if [ -z "$SKIP_DB_WAIT" ]; then
-      dockerize -wait tcp://${APP_NAME}_db:5432 -timeout 60s
       ./bin/${APP_NAME} migrate
     fi
   fi
@@ -29,7 +37,9 @@ if [ -z "$SKIP_BUILD" ]; then
 fi
 
 if [ -n "$WAIT_FOR_APP" ]; then
-  dockerize -wait tcp://${APP_NAME}_app:3000 -timeout 60s
+  #Sometimes during startup the cpu can be slammed for all the servies, so we need to wait
+  # a decent amount of time for all pieces to come up.
+  dockerize -wait tcp://${APP_NAME}_app:3000 -timeout 300s
 fi
 
 exec $@

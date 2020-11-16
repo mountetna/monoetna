@@ -1,0 +1,69 @@
+#!/usr/bin/env ruby
+
+require 'bundler'
+ENV['BUNDLE_GEMFILE'] = '/app/Gemfile'
+Bundler.require :default, (ENV['POLYPHEMUS_ENV'] || :development).to_sym
+
+require_relative '../lib/polyphemus'
+require 'yaml'
+
+config = YAML.load(File.read(File.expand_path("../../config.yml", __FILE__)))
+
+class RunOrTest < Etna::Command
+  attr_reader :runner
+  def execute(script_file, record_id)
+    @runner = Polyphemus::MagmaEtlScriptRunner.new(script_file)
+    magma_client = Etna::Clients::Magma.new(token: ENV['TOKEN'], host: ENV['MAGMA_HOST'], persistent: false)
+
+    crud = Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: runner.project_name)
+    record = crud.lookup_record(runner.model_name, record_id)
+    if record.nil?
+      raise "Could not find #{runner.model_name} by id #{record_id} in project #{runner.project_name}"
+    end
+
+    runner.run(record, magma_client: magma_client, commit: self.commit)
+  end
+
+  def commit
+    false
+  end
+
+  def setup(config)
+    super
+    Polyphemus.instance.setup_logger
+  end
+end
+
+class Polyphemus
+  class EtlTools
+    include Etna::CommandExecutor
+
+    class GenerateCompletionScript < Etna::GenerateCompletionScript; end
+
+    # Hide the fact that this is a inner class of the Polyphemus CommandExecutor
+    def program_name
+      $PROGRAM_NAME
+    end
+
+    class Magma
+      include Etna::CommandExecutor
+
+      usage 'create or test etl scripts for magma records'
+
+      class Test < RunOrTest
+        def execute(script_file, record_id)
+          super
+          pp runner.update_request.as_json
+        end
+      end
+
+      class Run < RunOrTest
+        def commit
+          true
+        end
+      end
+    end
+  end
+end
+
+Polyphemus.instance.run_command(config, 'etl_tools', *ARGV)

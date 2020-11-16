@@ -20,14 +20,14 @@ x-base-etna-service: &base-etna-service
   # Base configuration used by most etna services.
   image: etna-base
   volumes: &base-etna-service-volumes
-    - .:/app:cached
+    - .:/app:delegated
     - ${APP_DASH_PREFIX}app-gems:/app/vendor/bundle:rw
     - ${APP_DASH_PREFIX}log-dir:/app/log:rw
     - ${APP_DASH_PREFIX}tmp-dir:/app/tmp:rw
     - ${APP_DASH_PREFIX}public-dir:/app/public:rw
     - ${APP_DASH_PREFIX}data-dir:/app/data:rw
     - ${APP_DASH_PREFIX}opt-dir:/usr/opt:rw
-    - ../etna:/etna:cached
+    - ../etna:/etna:delegated
   environment: &base-etna-env
     "${APP_ENV_PREFIX}ENV": "development"
     APP_NAME: "${APP_NAME}"
@@ -41,6 +41,8 @@ x-base-etna-service: &base-etna-service
     - 'magma.development.local:172.16.238.10'
     - 'janus.development.local:172.16.238.10'
     - 'timur.development.local:172.16.238.10'
+    - 'rtemis.development.local:172.16.238.10'
+    - 'polyphemus.development.local:172.16.238.10'
 
 x-base-etna-services: &base-etna-services
   # Default list of services an etna app may have.

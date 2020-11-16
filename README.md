@@ -1,6 +1,15 @@
 # monoetna
 mono-repository version of etna projects
 
+## Setup for Mac
+
+You'll need `homebrew` and to install a few extra items.  Most tools are developed for linux, and thus
+there are some minor discrepancies that need to be addressed for mac.
+
+First off, you'll nee to install `homebrew install coreutils` to get the base set of gnu tools.
+Secondly, you may need `homebrew install findutils` as well.  Try running `type -p gfind || echo need findutils!` to determine
+if you need to install findutils as well.
+
 ## Directory Structure
 
 Top Level directories fall into one of three types:
@@ -42,10 +51,11 @@ environment runs an apache server that terminates SSL with self signed certs cur
 each service like the following:
 
 ```
-janus.development.local 127.0.0.1
-metis.development.local 127.0.0.1
-magma.development.local 127.0.0.1
-timur.development.local 127.0.0.1
+127.0.0.1 janus.development.local
+127.0.0.1 metis.development.local
+127.0.0.1 magma.development.local
+127.0.0.1 timur.development.local
+127.0.0.1 polyphemus.development.local
 ```
 
 ### Seeding janus and metis

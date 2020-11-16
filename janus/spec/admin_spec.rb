@@ -353,7 +353,7 @@ describe AdminController do
       expect(user2.email).to eq('portunus@two-faces.org')
     end
 
-    it 'does not allow an admin to add a user to a project twice' do
+    it 'allows an admin to add a user to a project twice' do
       user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
       user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
 
@@ -364,8 +364,8 @@ describe AdminController do
       auth_header(:janus)
       json_post('add_user/door', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
 
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Duplicate permission on project door!')
+      expect(last_response.status).to eq(302)
+      expect(last_response.headers['Location']).to eq('/project/door')
 
       expect(Permission.count).to eq(2)
       expect(User.count).to eq(2)
@@ -508,12 +508,14 @@ describe AdminController do
 
     it 'requires a well-formed project_name' do
       auth_header(:superuser)
-      json_post('add_project', project_name: 'Door', project_name_full: "Doors")
+      [ 'Doors', "Doo\nrs", ' doors', 'doors	' , '1x_door', 'pg_door'].each do |name|
+        json_post('add_project', project_name: name, project_name_full: name)
 
-      expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to match(/project_name should be like/)
+        expect(last_response.status).to eq(422)
+        expect(json_body[:error]).to match(/project_name should be like/)
 
-      expect(Project.count).to eq(0)
+        expect(Project.count).to eq(0)
+      end
     end
 
     it 'requires some project_name_full' do

@@ -1,5 +1,5 @@
 describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
-  let(:command) { Polyphemus.instance.commands[:cascade_mvir_patient_waiver_to_restricted] }
+  let(:command) { Polyphemus.instance.subcommands['cascade_mvir_patient_waiver_to_restricted'] }
 
   context 'for restricting patients and pools' do
     let(:patients_to_restrict) {
@@ -15,8 +15,10 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
 
       WebMock.disable_net_connect!
       stub_magma_setup(patients_to_restrict)
-      stub_magma_restricted_pools(['pool-a', 'pool-c'])
-      stub_magma_all_pools(['pool-a', 'pool-c'])
+      stub_magma_restricted_pools('cytof', ['pool-a', 'pool-c'])
+      stub_magma_all_pools('cytof', ['pool-a', 'pool-c'])
+      stub_magma_restricted_pools('sc_rna_seq', ['pool-e', 'pool-f'])
+      stub_magma_all_pools('sc_rna_seq', ['pool-e', 'pool-f'])
       stub_metis_setup
     end
 
@@ -42,9 +44,13 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
           "pool-a" => {"restricted" => "true"},
           "pool-c" => {"restricted" => "true"}
         },
+          "sc_rna_seq_pool" => {
+              "pool-e" => {"restricted" => "true"},
+              "pool-f" => {"restricted" => "true"},
+          },
         "patient" => {
             "Mike" => {"restricted" => "true"},
-            "Dan" => {"restricted" => "true"}
+            "Dan" => {"restricted" => "true"},
         }
       })
     end
@@ -80,8 +86,10 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       WebMock.disable_net_connect!
 
       stub_magma_setup(patients_to_release)
-      stub_magma_restricted_pools([])
-      stub_magma_all_pools(['pool-b', 'pool-d'])
+      stub_magma_restricted_pools('cytof', [])
+      stub_magma_restricted_pools('sc_rna_seq', [])
+      stub_magma_all_pools('cytof', ['pool-b', 'pool-d'])
+      stub_magma_all_pools('sc_rna_seq', ['pool-g', 'pool-j'])
       stub_metis_setup
     end
 
@@ -102,8 +110,12 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
           "pool-b" => {"restricted" => "false"},
           "pool-d" => {"restricted" => "false"},
         },
+        "sc_rna_seq_pool" => {
+            "pool-g" => {"restricted" => "false"},
+            "pool-j" => {"restricted" => "false"},
+        },
         "patient" => {
-            "Danielle" => {"restricted" => "false"}
+            "Danielle" => {"restricted" => "false"},
         }
       })
     end

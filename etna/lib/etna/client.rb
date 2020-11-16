@@ -1,13 +1,15 @@
 require 'net/http/persistent'
 require 'net/http/post/multipart'
 require 'singleton'
+require 'rack/utils'
 
 module Etna
   class Client
-    def initialize(host, token, routes_available: true)
-      @host = host.sub(%r!/$!,'')
+    def initialize(host, token, routes_available: true, persistent: true, ignore_ssl: false)
+      @host = host.sub(%r!/$!, '')
       @token = token
-
+      @persistent = persistent
+      @ignore_ssl = ignore_ssl
 
       if routes_available
         set_routes
@@ -23,24 +25,24 @@ module Etna
 
     def multipart_post(endpoint, content, &block)
       uri = request_uri(endpoint)
-      multipart = Net::HTTP::Post::Multipart.new uri.path, content
+      multipart = Net::HTTP::Post::Multipart.new uri.request_uri, content
       multipart.add_field('Authorization', "Etna #{@token}")
       request(uri, multipart, &block)
     end
 
-    def post(endpoint, params={}, &block)
+    def post(endpoint, params = {}, &block)
       body_request(Net::HTTP::Post, endpoint, params, &block)
     end
 
-    def get(endpoint, params={}, &block)
+    def get(endpoint, params = {}, &block)
       query_request(Net::HTTP::Get, endpoint, params, &block)
     end
 
-    def options(endpoint, params={}, &block)
+    def options(endpoint, params = {}, &block)
       query_request(Net::HTTP::Options, endpoint, params, &block)
     end
 
-    def delete(endpoint, params={}, &block)
+    def delete(endpoint, params = {}, &block)
       body_request(Net::HTTP::Delete, endpoint, params, &block)
     end
 
@@ -55,12 +57,12 @@ module Etna
     def define_route_helpers
       @routes.each do |route|
         next unless route[:name]
-        self.define_singleton_method(route[:name]) do |params={}|
+        self.define_singleton_method(route[:name]) do |params = {}|
 
           missing_params = (route[:params] - params.keys.map(&:to_s))
           unless missing_params.empty?
             raise ArgumentError, "Missing required #{missing_params.size > 1 ?
-              'params' : 'param'} #{missing_params.join(', ')}"
+                'params' : 'param'} #{missing_params.join(', ')}"
           end
 
           response = send(route[:method].downcase, route_path(route, params), params)
@@ -79,23 +81,29 @@ module Etna
 
     def persistent_connection
       @http ||= begin
-                  http = Net::HTTP::Persistent.new
-                  http.read_timeout = 3600
-                  http
-                end
+        http = Net::HTTP::Persistent.new
+        http.read_timeout = 3600
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE if @ignore_ssl
+        http
+      end
     end
 
 
-    def body_request(type, endpoint, params={}, &block)
+    def body_request(type, endpoint, params = {}, &block)
       uri = request_uri(endpoint)
-      req = type.new(uri.request_uri,request_params)
+      req = type.new(uri.request_uri, request_params)
       req.body = params.to_json
       request(uri, req, &block)
     end
 
-    def query_request(type, endpoint, params={}, &block)
+    def query_request(type, endpoint, params = {}, &block)
       uri = request_uri(endpoint)
-      uri.query = URI.encode_www_form(params)
+
+      if uri.query
+        uri.query += "&" + URI.encode_www_form(params)
+      else
+        uri.query = URI.encode_www_form(params)
+      end
       req = type.new(uri.request_uri, request_params)
       request(uri, req, &block)
     end
@@ -106,9 +114,9 @@ module Etna
 
     def request_params
       {
-        'Content-Type' => 'application/json',
-        'Accept'=> 'application/json, text/*',
-        'Authorization'=>"Etna #{@token}"
+          'Content-Type' => 'application/json',
+          'Accept' => 'application/json, text/*',
+          'Authorization' => "Etna #{@token}"
       }
     end
 
@@ -116,8 +124,8 @@ module Etna
       status = response.code.to_i
       if status >= 400
         msg = response.content_type == 'application/json' ?
-          json_error(response.body) :
-          response.body
+            json_error(response.body) :
+            response.body
         raise Etna::Error.new(msg, status)
       end
     end
@@ -133,14 +141,37 @@ module Etna
 
     def request(uri, data)
       if block_given?
-        persistent_connection.request(uri, data) do |response|
-          status_check!(response)
-          yield response
+        if @persistent
+          persistent_connection.request(uri, data) do |response|
+            status_check!(response)
+            yield response
+          end
+        else
+          verify_mode = @ignore_ssl ?
+            OpenSSL::SSL::VERIFY_NONE :
+            OpenSSL::SSL::VERIFY_PEER
+          Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode) do |http|
+            http.request(data) do |response|
+              status_check!(response)
+              yield response
+            end
+          end
         end
       else
-        response = persistent_connection.request(uri, data)
-        status_check!(response)
-        return response
+        if @persistent
+          response = persistent_connection.request(uri, data)
+          status_check!(response)
+          return response
+        else
+          verify_mode = @ignore_ssl ?
+            OpenSSL::SSL::VERIFY_NONE :
+            OpenSSL::SSL::VERIFY_PEER
+          Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode) do |http|
+            response = http.request(data)
+            status_check!(response)
+            return response
+          end
+        end
       end
     end
   end

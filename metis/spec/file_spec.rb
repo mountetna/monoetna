@@ -225,8 +225,10 @@ describe FileController do
       stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
     end
 
-    def rename_file(path, new_path)
-      json_post("/athena/file/rename/files/#{path}", new_file_path: new_path)
+    def rename_file(path, new_path, params={})
+      json_post("/athena/file/rename/files/#{path}", {
+        new_file_path: new_path
+      }.merge(params))
     end
 
     it 'renames a file' do
@@ -246,7 +248,7 @@ describe FileController do
 
       @wisdom_file.refresh
       expect(last_response.status).to eq(422)
-      expect(json_body[:error]).to eq('Invalid path')
+      expect(json_body[:errors]).to eq(["Invalid path: \"metis://athena/files/learn\nwisdom.txt\""])
       expect(@wisdom_file.file_name).to eq('wisdom.txt')
       expect(@wisdom_file).to be_has_data
     end
@@ -267,8 +269,8 @@ describe FileController do
       token_header(:editor)
       rename_file('folly.txt', 'learn-folly.txt')
 
-      expect(last_response.status).to eq(404)
-      expect(json_body[:error]).to eq('File not found')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(["File \"metis://athena/files/folly.txt\" not found"])
 
       # the actual file is untouched
       @wisdom_file.refresh
@@ -283,8 +285,9 @@ describe FileController do
       token_header(:editor)
       rename_file('wisdom.txt', 'learn-wisdom.txt')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot rename over existing file')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(
+        ["File \"metis://athena/files/learn-wisdom.txt\" already exists"])
 
       # the file we tried to rename is untouched
       @wisdom_file.refresh
@@ -309,8 +312,9 @@ describe FileController do
       token_header(:editor)
       rename_file('wisdom.txt', 'learn-wisdom.txt')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Cannot rename over existing folder')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(
+        ["Cannot copy over existing folder: \"metis://athena/files/learn-wisdom.txt\""])
 
       # the file we tried to rename is untouched
       @wisdom_file.refresh
@@ -333,8 +337,9 @@ describe FileController do
       token_header(:editor)
       rename_file('wisdom.txt', 'learn-wisdom.txt')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('File is read-only')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(
+        ["File \"metis://athena/files/wisdom.txt\" is read-only"])
       @wisdom_file.refresh
       expect(@wisdom_file.file_path).to eq('wisdom.txt')
       expect(@wisdom_file).to be_has_data
@@ -361,8 +366,8 @@ describe FileController do
       token_header(:editor)
       rename_file('wisdom.txt', 'contents/wisdom.txt')
 
-      expect(last_response.status).to eq(403)
-      expect(json_body[:error]).to eq('Folder is read-only')
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(["Folder \"contents\" is read-only"])
       @wisdom_file.refresh
       expect(@wisdom_file.file_path).to eq('wisdom.txt')
       expect(@wisdom_file.folder).to be_nil
@@ -379,6 +384,46 @@ describe FileController do
       expect(@wisdom_file.file_path).to eq('wisdom.txt')
       expect(@wisdom_file.folder).to be_nil
       expect(@wisdom_file).to be_has_data
+    end
+
+    it 'renames a file into a new bucket and folder' do
+      token_header(:editor)
+      sundry_bucket = create(:bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'metis' )
+      sundry_wisdom_folder = create_folder('athena', 'sundry-wisdom', bucket: sundry_bucket)
+      stubs.create_folder('athena', 'sundry', 'sundry-wisdom')
+
+      rename_file('wisdom.txt', 'sundry-wisdom/updated-wisdom.txt', {
+        new_bucket_name: 'sundry'
+      })
+
+      expect(last_response.status).to eq(200)
+
+      # the old file is updated
+      expect(Metis::File.count).to eq(1)
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_name).to eq('updated-wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+      expect(@wisdom_file.bucket).to eq(sundry_bucket)
+      expect(@wisdom_file.folder).to eq(sundry_wisdom_folder)
+    end
+
+    it 'renames a file into a new bucket and no folder' do
+      token_header(:editor)
+      sundry_bucket = create(:bucket, project_name: 'athena', name: 'sundry', access: 'viewer', owner: 'metis' )
+
+      rename_file('wisdom.txt', 'updated-wisdom.txt', {
+        new_bucket_name: 'sundry'
+      })
+
+      expect(last_response.status).to eq(200)
+
+      # the old file is updated
+      expect(Metis::File.count).to eq(1)
+      @wisdom_file.refresh
+      expect(@wisdom_file.file_name).to eq('updated-wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+      expect(@wisdom_file.bucket).to eq(sundry_bucket)
+      expect(@wisdom_file.folder).to eq(nil)
     end
   end
 
@@ -1328,6 +1373,59 @@ describe FileController do
       }.to raise_error(StandardError)
 
       expect(@helmet_file.bucket).not_to eq(@backup_files_bucket)
+    end
+  end
+
+  context '#update_bucket_and_rename!' do
+    before(:each) do
+      @backup_files_bucket = create( :bucket, project_name: 'athena', name: 'backup_files', owner: 'metis', access: 'viewer')
+      stubs.create_bucket('athena', 'backup_files')
+
+      @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      @blueprints_folder = create_folder('athena', 'blueprints')
+      stubs.create_folder('athena', 'files', 'blueprints')
+
+      @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      stubs.create_folder('athena', 'files', 'blueprints/helmet')
+
+      @helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @helmet_folder)
+      stubs.create_file('athena', 'files', 'blueprints/helmet/helmet.jpg', HELMET)
+    end
+
+    it 'moves a file to the new bucket when does not have a parent folder' do
+      expect(@wisdom_file.bucket).not_to eq(@backup_files_bucket)
+
+      @wisdom_file.update_bucket_and_rename!(nil, 'additional_wisdom.txt', @backup_files_bucket)
+
+      expect(@wisdom_file.bucket).to eq(@backup_files_bucket)
+      expect(@wisdom_file.file_name).to eq('additional_wisdom.txt')
+    end
+
+    it 'moves a file to the new bucket when does have a parent folder' do
+      backup_blueprints_folder = create_folder('athena', 'blueprints', bucket: @backup_files_bucket)
+      stubs.create_folder('athena', 'backup_files', 'blueprints')
+
+      expect(@helmet_file.bucket).not_to eq(@backup_files_bucket)
+
+      @helmet_file.update_bucket_and_rename!(backup_blueprints_folder, 'backup_helmet.jpg', @backup_files_bucket)
+
+      expect(@helmet_file.bucket).to eq(@backup_files_bucket)
+      expect(@helmet_file.folder).to eq(backup_blueprints_folder)
+      expect(@helmet_file.file_name).to eq('backup_helmet.jpg')
+    end
+
+    it 'cannot move a file to a different bucket than its folder\'s bucket' do
+      expect(@helmet_file.bucket).not_to eq(@backup_files_bucket)
+
+      expect {
+        @helmet_file.update_bucket_and_rename!(@blueprints_folder, 'backup_helmet.jpg', @backup_files_bucket)
+      }.to raise_error(StandardError)
+
+      expect(@helmet_file.bucket).not_to eq(@backup_files_bucket)
+      expect(@helmet_file.folder).not_to eq(@blueprints_folder)
+      expect(@helmet_file.file_name).not_to eq('backup_helmet.jpg')
     end
   end
 end

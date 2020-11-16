@@ -14,6 +14,10 @@ SimpleCov.start
 ENV['ARACHNE_ENV'] = 'test'
 
 require_relative '../lib/etna'
+require_relative '../lib/commands'
+require_relative '../lib/etna/spec/vcr'
+
+setup_base_vcr(__dir__)
 
 def setup_app(server, layer=nil, config={ test: {} })
   Etna::Application.find(server).configure(config)
@@ -57,4 +61,219 @@ RSpec.configure do |config|
   # the `--only-failures` and `--next-failure` CLI options. We recommend
   # you configure your source control system to ignore this file.
   config.example_status_persistence_file_path = "spec/examples.txt"
+end
+
+METIS_HOST = 'https://metis.test'
+JANUS_HOST = 'https://janus.test'
+MAGMA_HOST = 'https://magma.test'
+POLYPHEMUS_HOST = 'https://polyphemus.test'
+PROJECT = 'test'
+RESTRICT_BUCKET = 'restrict'
+RELEASE_BUCKET = 'release'
+
+def stub_metis_setup
+  route_payload = JSON.generate([
+    {:method=>"GET", :route=>"/:project_name/list_all_folders/:bucket_name", :name=>"folder_list_all_folders", :params=>["project_name", "bucket_name"]},
+    {:method=>"GET", :route=>"/:project_name/list/:bucket_name/*folder_path", :name=>"folder_list", :params=>["project_name", "bucket_name", "folder_path"]},
+    {:method=>"POST", :route=>"/:project_name/folder/rename/:bucket_name/*folder_path", :name=>"folder_rename", :params=>["project_name", "bucket_name", "folder_path"]},
+    {:method=>"POST", :route=>"/:project_name/folder/create/:bucket_name/*folder_path", :name=>"folder_create", :params=>["project_name", "bucket_name", "folder_path"]},
+    {:method=>"DELETE", :route=>"/:project_name/folder/remove/:bucket_name/*folder_path", :name=>"folder_remove", :params=>["project_name", "bucket_name", "folder_path"]},
+    {:method=>"POST", :route=>"/:project_name/find/:bucket_name", :name=>"bucket_find", :params=>["project_name", "bucket_name"]},
+    {:method=>"POST", :route=>"/:project_name/files/copy", :name=>"file_bulk_copy", :params=>["project_name"]},
+    {:method=>"POST", :route=>"/:project_name/file/rename/:bucket_name/*file_path", :name=>"file_rename", :params=>["project_name", "bucket_name", "file_path"]}
+  ])
+
+  stub_request(:options, METIS_HOST).
+    to_return({
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: route_payload
+    })
+  stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RELEASE_BUCKET}/)
+    .to_return({
+      status: 200,
+      headers: {
+      'Content-Type' => 'application/json'
+      },
+      body: JSON.parse(File.read('spec/fixtures/metis_release_folder_fixture.json')).to_json
+    })
+
+  stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list_all_folders\/#{RESTRICT_BUCKET}/)
+    .to_return({
+      status: 200,
+      headers: {
+      'Content-Type' => 'application/json'
+      },
+      body: JSON.parse(File.read('spec/fixtures/metis_restrict_folder_fixture.json')).to_json
+    })
+end
+
+def stub_list_bucket(params={})
+  stub_request(:get, /#{METIS_HOST}\/#{PROJECT}\/list\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_create_folder(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_rename_folder(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_rename_file(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/file\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_delete_folder(params={})
+  stub_request(:delete, /#{METIS_HOST}\/#{PROJECT}\/folder\/remove\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_find(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/find\/#{params[:bucket] || RESTRICT_BUCKET}/)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_copy(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/files\/copy/)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_janus_setup
+  stub_request(:get, /#{JANUS_HOST}\/refresh_token/)
+    .to_return({
+      status: 200,
+      body: 'a token for you!'
+    })
+
+  stub_request(:get, /#{JANUS_HOST}\/project\/#{PROJECT}/)
+    .to_return({
+      status: 200,
+      body: '<html><body>A project</body></html>'
+    })
+
+  stub_request(:get, /#{JANUS_HOST}\/whoami/)
+    .to_return({
+      status: 200,
+      body: '{"email": "janus@twofaces.org"}'
+    })
+
+  stub_request(:post, /#{JANUS_HOST}\/add_project/)
+    .to_return({
+      status: 302
+    })
+
+  stub_request(:post, /#{JANUS_HOST}\/add_user/)
+    .to_return({
+      status: 302
+    })
+
+  stub_request(:post, /#{JANUS_HOST}\/update_permission/)
+    .to_return({
+      status: 302
+    })
+
+  stub_request(:get, /#{JANUS_HOST}\/viewer_token/)
+    .to_return({
+      status: 200,
+      body: 'a view-only token for you!'
+    })
+end
+
+def stub_magma_models(models)
+  stub_request(:post, /#{MAGMA_HOST}\/retrieve/)
+  .to_return({
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: models.to_json
+  })
+end
+
+def stub_magma_update
+  stub_request(:post, /#{MAGMA_HOST}\/update$/)
+  .to_return do |request|
+
+    body = StringIO.new(request.body)
+    content_length = body.read.length
+    body.rewind
+
+    tempfile = Rack::Multipart::Parser::TEMPFILE_FACTORY
+    bufsize = Rack::Multipart::Parser::BUFSIZE
+    params = Rack::Utils.default_query_parser
+
+    info = Rack::Multipart::Parser.parse body, content_length, request.headers['Content-Type'], tempfile, bufsize, params
+
+    expect(info.params["project_name"]).to eq(PROJECT)
+    @all_updates << info.params["revisions"]
+    { body: '{}' }
+    end
+end
+
+def stub_magma_update_model
+  stub_request(:post, /#{MAGMA_HOST}\/update_model/)
+  .to_return({
+    status: 200,
+    body: {}.to_json
+  })
+end
+
+def model_stamp(model_name = nil)
+  {
+    template: {
+      name: model_name,
+      attributes: {}
+    }
+  }
+end
+
+def stub_polyphemus_setup
+  stub_request(:get, /#{POLYPHEMUS_HOST}\/configuration/)
+    .to_return({
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: {
+        magma: 'foo',
+        metis: 'bar',
+        janus: 'bim',
+        timur: 'zap',
+        polyphemus: 'zop'}.to_json
+    })
+end
+
+def configure_etna_yml
+  EtnaApp.instance.configure({
+      development: {
+          docker: { default_tag: "latest" },
+          magma: { host: "https://magma.development.local" },
+          metis: { etis: "https://metis.development.local" },
+          janus: { etis: "https://janus.development.local" },
+          timur: { etis: "https://timur.development.local" },
+          polyphemus: { etis: "https://polyphemus.development.local" },
+          auth_redirect: "https://janus.development.local",
+          ignore_ssl: false,
+      }
+  })
 end

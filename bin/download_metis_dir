@@ -13,7 +13,7 @@ SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
   DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
   SOURCE="$(readlink "$SOURCE")"
-  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" 
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
@@ -24,7 +24,11 @@ metisPath=$1
 if [[ -e /dest ]]; then
     destPath=/dest
 else
+  if type -p greadlink; then
+    destPath=$(greadlink -m $2)
+  else
     destPath=$(readlink -m $2)
+  fi
 fi
 
 if [[ -z "$TOKEN" ]] || [[ -z "$metisPath" ]] || [[ -z "$destPath" ]]; then
@@ -38,7 +42,7 @@ if [[ -e /dest ]]; then
     /app/bin/metis_client $metisPath get ./ /dest/
 else
   # Ensure images are created
-  make -C docker create
+  make -C docker build
   docker-compose -p monoetna run -e TOKEN="$TOKEN" -v $destPath:/dest -v $DIR:/root/bin metis_app /root/bin/download_metis_dir "$metisPath"
 fi
 

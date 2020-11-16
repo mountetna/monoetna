@@ -6,6 +6,8 @@ ENV BUNDLER_VERSION 2.1.4
 ENV DOCKERIZE_VERSION 0.5.0
 ENV NODE_VERSION 12.18.1
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
+ENV RACK_ENV development
+ENV PATH "/app/bin:/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH"
 
 ADD certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
 RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
@@ -52,6 +54,6 @@ RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
 RUN mkdir -p /opt
 COPY src/npmrc /opt/npmrc
 COPY src/entrypoints /entrypoints
-COPY src/fe-httpd.conf.erb /opt/fe.conf.erb
+COPY src/fe.conf.erb /opt/fe.conf.erb
 COPY etna /etna
 

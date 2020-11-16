@@ -1,19 +1,4 @@
 class Metis
-  class Help < Etna::Command
-    usage 'List this help'
-
-    def execute
-      puts 'Commands:'
-      Metis.instance.commands.each do |name,cmd|
-        puts cmd.usage
-      end
-    end
-
-    def setup(config)
-      Metis.instance.configure(config)
-    end
-  end
-
   class Console < Etna::Command
     usage 'Open a console with a connected magma instance.'
 
@@ -47,8 +32,9 @@ class Metis
 
   class Migrate < Etna::Command
     usage 'Run migrations for the current environment.'
+    string_flags << '--version'
 
-    def execute(version=nil)
+    def execute(version: nil)
       Sequel.extension(:migration)
       db = Metis.instance.db
 

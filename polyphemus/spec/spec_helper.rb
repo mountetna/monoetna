@@ -1,17 +1,22 @@
 require 'bundler'
 require 'rack'
+require 'rack/test'
 Bundler.require(:default, :test)
 
 ENV['POLYPHEMUS_ENV'] = 'test'
 
 require 'webmock/rspec'
-
+require 'database_cleaner'
 require 'simplecov'
 SimpleCov.start
 
 require 'yaml'
+require 'etna/spec/vcr'
+
 require_relative '../lib/server'
 require_relative '../lib/polyphemus'
+
+setup_base_vcr(__dir__)
 
 Polyphemus.instance.configure(YAML.load(File.read('config.yml')))
 
@@ -28,6 +33,24 @@ OUTER_APP = Rack::Builder.new do
   run Polyphemus::Server.new
 end
 
+AUTH_USERS = {
+  superuser: {
+    email: 'zeus@twelve-labors.org', first: 'Zeus', perm: 'a:administration'
+  },
+  editor: {
+    email: 'eurystheus@twelve-labors.org', first: 'Eurystheus', perm: 'e:labors'
+  },
+  privileged_editor: {
+    email: 'copreus@twelve-labors.org', first: 'Copreus', perm: 'E:labors'
+  },
+  viewer: {
+    email: 'hercules@twelve-labors.org', first: 'Hercules', perm: 'v:labors'
+  },
+  non_user: {
+    email: 'nessus@centaurs.org', first: 'Nessus', perm: ''
+  }
+}
+
 def auth_header(user_type)
   header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
 end
@@ -40,6 +63,20 @@ RSpec.configure do |config|
   config.shared_context_metadata_behavior = :apply_to_host_groups
   config.example_status_persistence_file_path = 'spec/examples.txt'
   #config.warnings = true
+
+  config.before(:suite) do
+    # DatabaseCleaner.strategy = :transaction
+    DatabaseCleaner.clean_with(:truncation)
+  end
+
+  config.around(:each) do |example|
+    # Unfortunately, DatabaseCleaner + Sequel does not properly handle the auto_savepointing, which means that
+    # exceptions handled in rescue blocks do not behave correctly in tests (where as they would be fine outside of
+    # tests).  Thus, we are forced to manually handle the transaction wrapping of examples manually to set this option.
+    # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
+    #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
+    Polyphemus.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
+  end
 end
 
 def json_body
@@ -71,21 +108,21 @@ def stub_rename_folder(params={})
   })
 end
 
-def stub_magma_restricted_pools(restricted_pools)
+def stub_magma_restricted_pools(base_model, restricted_pools)
   stub_request(:post, 'https://magma.test/query')
     .with(body: hash_including({ project_name: 'mvir1',
-                                query: [ 'cytof',
+                                query: [ base_model,
                                           [ 'timepoint', 'patient', 'restricted', '::true' ],
-                                          '::all', 'cytof_pool', '::identifier' ] }))
+                                          '::all', "#{base_model}_pool", '::identifier' ] }))
     .to_return({ body: {
         'answer': restricted_pools.map {|p| [nil, p] }
     }.to_json })
 end
 
-def stub_magma_all_pools(all_pools)
+def stub_magma_all_pools(base_model, all_pools)
   stub_request(:post, 'https://magma.test/query')
     .with(body: hash_including({ project_name: 'mvir1',
-                                query: [ 'cytof_pool', '::all', '::identifier' ] }))
+                                query: [ "#{base_model}_pool", '::all', '::identifier' ] }))
     .to_return({ body: {
         'answer': all_pools.map {|p| [nil, p] }
     }.to_json })

@@ -1,19 +1,4 @@
 class Janus
-  class Help < Etna::Command
-    usage 'List this help'
-
-    def execute
-      puts 'Commands:'
-      Janus.instance.commands.each do |name,cmd|
-        puts cmd.usage
-      end
-    end
-
-    def setup(config)
-      Janus.instance.configure(config)
-    end
-  end
-
   class Console < Etna::Command
     usage 'Open a console with a connected magma instance.'
 
@@ -128,8 +113,9 @@ class Janus
 
   class Migrate < Etna::Command
     usage '[<version number>] # blank to migrate to the latest'
+    string_flags << '--version'
     
-    def execute(version=nil)
+    def execute(version: nil)
       Sequel.extension(:migration)
       db = Janus.instance.db
 

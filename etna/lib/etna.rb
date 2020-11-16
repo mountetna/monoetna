@@ -15,3 +15,9 @@ require_relative './etna/describe_routes'
 require_relative './etna/client'
 require_relative './etna/symbolize_params'
 require_relative './etna/spec'
+require_relative './etna/clients'
+require_relative './etna/environment_scoped'
+
+class EtnaApp
+  include Etna::Application
+end

@@ -1,3 +1,5 @@
+require_relative '../../query'
+
 class BucketController < Metis::Controller
   def list
     buckets = Metis::Bucket.where(
@@ -59,5 +61,42 @@ class BucketController < Metis::Controller
     bucket.remove!
 
     return success_json(response)
+  end
+
+  def find
+    bucket = require_bucket
+    require_params(:project_name, :params)
+    params = @params[:params]
+
+    limit = @params.has_key?(:limit) ? @params[:limit].to_i : nil
+    offset = @params.has_key?(:offset) ? @params[:offset].to_i : nil
+
+    raise Etna::BadRequest, "Invalid offset" if offset&.negative?
+    raise Etna::BadRequest, "Invalid limit" if limit&.negative?
+
+    query = Metis::Query.new(
+      project_name: @params[:project_name],
+      bucket: bucket,
+      params: params,
+      limit: limit,
+      offset: offset,
+    )
+
+    results = query.execute
+
+    files = results[:files]
+    folders = results[:folders]
+
+    file_hashes = file_hashes_with_calculated_paths(
+      files: files,
+      bucket: bucket,
+    )
+
+    folder_hashes = folder_hashes_with_calculated_paths(
+      target_folders: folders,
+      bucket: bucket
+    )
+
+    success_json(files: file_hashes, folders: folder_hashes)
   end
 end

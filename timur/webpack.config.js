@@ -10,7 +10,8 @@ module.exports = (env) => ({
       'code-mirror': path.join(__dirname, 'node_modules/codemirror/lib'),
       'react-table': path.join(__dirname, 'node_modules/react-table'),
       react: path.join(__dirname, 'node_modules/react'),
-      'react-dom': path.join(__dirname, 'node_modules/react-dom')
+      'react-dom': path.join(__dirname, 'node_modules/react-dom'),
+      'react-redux': path.join(__dirname, 'node_modules/react-redux'),
     },
     symlinks: false
   },
@@ -29,7 +30,7 @@ module.exports = (env) => ({
         include: [
           path.resolve(__dirname, 'lib/client/jsx'),
           path.resolve(__dirname, 'node_modules/etna-js/'),
-          '/etna/packages/etna-js'
+          '/etna/packages/etna-js',
         ],
 
         // Only run `.js` and `.jsx` files through Babel
@@ -39,6 +40,8 @@ module.exports = (env) => ({
         loader: ['style-loader', 'css-loader'],
         include: [
           path.resolve(__dirname, 'node_modules/etna-js/'),
+          path.resolve(__dirname, 'node_modules/animate.css/'),
+          path.resolve(__dirname, 'node_modules/react-notifications-component'),
           '/etna/packages/etna-js'
         ],
         test: /\.css$/
@@ -60,7 +63,7 @@ module.exports = (env) => ({
 
       {
         // sass / scss loader for webpack
-        test: /\.(sass|scss|css)$/,
+        test: /\.(sass|scss)$/,
         include: [
           path.resolve(
             __dirname,

@@ -6,6 +6,11 @@ import {
   getTSVForm,
   postRevisions
 } from '../api/magma_api';
+import {setMetisCookie} from './metis_actions';
+import {filePathComponents} from '../selectors/magma';
+import {TEMP} from '../components/attributes/file_attribute';
+import {dispatchUploadWork} from 'etna-js/upload/actions/upload_actions';
+import {AddUploadCommand, Upload} from 'etna-js/upload/workers/uploader';
 
 export const ADD_TEMPLATE = 'ADD_TEMPLATE';
 export const ADD_DOCUMENTS = 'ADD_DOCUMENTS';
@@ -103,9 +108,7 @@ export const requestDocuments = (args) => {
       }
 
       consumePayload(dispatch, response);
-      return new Promise((resolve, reject) => {
-        resolve(response);
-      });
+      return Promise.resolve(response);
     };
 
     let handleRequestError = (e) => {
@@ -167,35 +170,117 @@ export const requestIdentifiers = () => {
   return requestDocuments(reqOpts);
 };
 
-export const getRevisionTempUrl = (
-  document,
-  template,
-  attribute,
-  revised_value
-) => {
-  return (dispatch) => {
-    const recordName = document[template.identifier];
-    const revisions = {
-      [recordName]: {
-        [attribute.name]: revised_value
-      }
-    };
+const uploadFileRevisions = (model_name, revisions, response, dispatch) => {
+  // Handle any file upload revisions by sending the file to Metis.
+  // Here Magma's response should be a temporary upload URL.
+  // 1. Find the file attributes from the response.models.model_name.template.attributes.
+  // 2. Grab the file(s) from the original revisions list for each record.
+  // 3. Upload the file(s) to Metis.
+  // 4. Send another update to Magma with the file location(s) and
+  //      original filenames.
+  // 5. Update the response with final Magma URLs for each file attribute.
+  // 6. Return the response via a Promise.
+  uploadTemporaryFiles(model_name, revisions, response, dispatch);
 
-    let exchng = new Exchange(dispatch, `temp-url-revisions-${template.name}`);
-    return postRevisions(formatRevisions(revisions, template.name), exchng);
-  };
+  return new Promise((resolve, reject) => {
+    resolve(response);
+  });
+};
+
+const fileAttributeNamesForModel = (modelAttributes) => {
+  const fileAttributeNames = [];
+  Object.keys(modelAttributes).forEach((attribute_name) => {
+    let attribute = modelAttributes[attribute_name];
+    if (
+      attribute.attribute_type === 'file' ||
+      attribute.attribute_type === 'image'
+    ) {
+      fileAttributeNames.push(attribute.attribute_name);
+    }
+  });
+  return fileAttributeNames;
+};
+
+const getCookie = (cookieName) => {
+  const cookies = decodeURIComponent(document.cookie).split(';');
+  for (var i = 0; i < cookies.length; i++) {
+    let cookie = cookies[i].split('=');
+    if (cookie[0].trim() === cookieName) {
+      return cookie[1];
+    }
+  }
+  return null;
+};
+
+const uploadTemporaryFiles = (model_name, revisions, response, dispatch) => {
+  const model = response.models[model_name];
+  if (!model) return;
+
+  const modelAttributes = model.template.attributes;
+  const fileAttributeNames = fileAttributeNamesForModel(modelAttributes);
+
+  Object.keys(revisions).forEach((record_name) => {
+    const revision = revisions[record_name];
+    Object.keys(revision).forEach((attribute_name) => {
+      if (fileAttributeNames.indexOf(attribute_name) === -1) {
+        return;
+      }
+
+      const fileRevision = revision[attribute_name];
+
+      if (fileRevision.path !== TEMP) {
+        return;
+      }
+
+      const tempRevision =
+        response.models[model_name].documents[record_name][attribute_name];
+
+      let {hostname, file_name} = filePathComponents(tempRevision.path);
+
+      // To avoid collisions, we need to create a new file with name
+      //   matching the random name that Magma returns.
+      const originalFile = fileRevision.original_files[0];
+      const tempFile = new File([originalFile], file_name, {
+        type: originalFile.type
+      });
+
+      setMetisCookie(dispatch, `https://${hostname}`).then(() => {
+        dispatchUploadWork(
+          dispatch,
+          AddUploadCommand(
+            Upload({
+              file_name,
+              url: tempRevision.path,
+              file: tempFile,
+              project_name: CONFIG.project_name,
+              metis_uid: getCookie(CONFIG.metis_uid_name),
+              attribute_name,
+              model_name,
+              record_name,
+              original_filename: originalFile.name
+            })
+          )
+        );
+      });
+    });
+  });
+
+  return;
 };
 
 export const sendRevisions = (model_name, revisions, success, error) => {
   return (dispatch) => {
     let localSuccess = (response) => {
-      consumePayload(dispatch, response);
+      uploadFileRevisions(model_name, revisions, response, dispatch).then(
+        (updatedResponse) => {
+          consumePayload(dispatch, updatedResponse);
+          for (var record_name in revisions) {
+            dispatch(discardRevision(record_name, model_name));
+          }
 
-      for (var record_name in revisions) {
-        dispatch(discardRevision(record_name, model_name));
-      }
-
-      if (success != undefined) success();
+          if (success != undefined) success();
+        }
+      );
     };
 
     let localError = (e) => {

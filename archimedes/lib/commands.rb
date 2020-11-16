@@ -2,17 +2,6 @@ require 'date'
 require 'logger'
 
 class Archimedes
-  class Help < Etna::Command
-    usage 'List this help'
-
-    def execute
-      puts 'Commands:'
-      Archimedes.instance.commands.each do |name,cmd|
-        puts cmd.usage
-      end
-    end
-  end
-
   class Console < Etna::Command
     usage 'Open a console with a connected Archimedes instance.'
 

@@ -5,14 +5,14 @@ x-base-etna-service: &base-etna-service
   # Base configuration used by most etna services.
   image: etna-base
   volumes: &base-etna-service-volumes
-    - .:/app:cached
+    - .:/app:delegated
     - timur-app-gems:/app/vendor/bundle:rw
     - timur-log-dir:/app/log:rw
     - timur-tmp-dir:/app/tmp:rw
     - timur-public-dir:/app/public:rw
     - timur-data-dir:/app/data:rw
     - timur-opt-dir:/usr/opt:rw
-    - ../etna:/etna:cached
+    - ../etna:/etna:delegated
   environment: &base-etna-env
     "TIMUR_ENV": "development"
     APP_NAME: "timur"
@@ -26,6 +26,8 @@ x-base-etna-service: &base-etna-service
     - 'magma.development.local:172.16.238.10'
     - 'janus.development.local:172.16.238.10'
     - 'timur.development.local:172.16.238.10'
+    - 'rtemis.development.local:172.16.238.10'
+    - 'polyphemus.development.local:172.16.238.10'
 
 x-base-etna-services: &base-etna-services
   # Default list of services an etna app may have.
@@ -104,3 +106,4 @@ networks:
 
 services:
   <<: *base-etna-services
+
