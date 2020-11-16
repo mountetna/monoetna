@@ -2,7 +2,6 @@
 
 export(query)
 export(retrieve)
-export(retrieveAttributeCounts)
 export(retrieveAttributeNames)
 export(retrieveIds)
 export(retrieveJSON)
