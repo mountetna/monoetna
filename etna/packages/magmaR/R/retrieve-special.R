@@ -1,22 +1,19 @@
-#' Special cases for the magma retrieve function as laid out in https://mountetna.github.io/magma.html#retrieve
+#' Special cases for the magma retrieve function, as laid out in https://mountetna.github.io/magma.html#retrieve
 #' @name retrieve_SpecialCases
-#' @param token your TOKEN from https://janus.ucsf.edu
-#' @param projectName the name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu
-#' @param modelName the name of the piece of the magma model form which to download data
 #' @inheritParams retrieve
-#' @return retrieveTemplate = a jsonlite::fromJSON conversion of template JSON.
+#' @return retrieveTemplate = a list conversion of the project's template json.
 #' 
-#' retrieveIds = a string vector
+#' retrieveIds = a string vector of record names.
 #' @examples
 #' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token.
+#'     # Running like this will ask for input of your janus token one time.
 #'     
 #'     retrieveTemplate(
 #'         projectName = "ipi")
 #'         
 #'     retrieveIds(
-#'         prjectName = "ipi",
+#'         projectName = "ipi",
 #'         modelName = "rna_seq")
 #' }
 NULL

@@ -1,23 +1,35 @@
-#' Download data from magma as a tsv and convert to a data.frame
-#' @param token your TOKEN from https://janus.ucsf.edu
-#' @param projectName the name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu
-#' @param modelName the name of the piece of the magma model form which to download data
-#' @param recordNames,attributeNames which records and attributes to grab
-#' @param filter potential filter of the data
-#' @param pageSize,page Integers. For retrieving just a portion of the data, sets slice/page size which is equivalent to a number of rows, and which slice to get.
-#' @param connected.only Logical. Whether data without a parent should be retained. 
+#' Download data from magma as a tsv, and convert to a data.frame
+#' @param token your personal TOKEN from \url{https://janus.ucsf.edu}. 
+#' 
+#' When not explicitly given in a function call: you will be prompted to input token, one time.
+#' This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
+#' and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.
+#' @param projectName Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu
+#' @param modelName Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
+#' For options, see https://timur.ucsf.edu/<projectName>/map.
+#' @param recordNames Single string or string vector. Which particular sample/tube/etc. records to grab data for.
+#' Options are "all" or any combination of individual record names. To retrieve individual options, see \code{\link{retrieveIds}}.
+#' @param attributeNames Single string or string vector. Which features of the data to obtain.
+#' Options are "all" or any combination of individual attribute names. To retrieve individual options, see \code{\link{retrieveAttributeNames}}.
+#' @param filter String. Potential filter of the data. Refer to \url{https://mountetna.github.io/magma.html#retrieve} for structure details.
+#' @param pageSize,page Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.
+#' @param connected.only \emph{Not implemented yet.} Logical. Whether data without a parent should be retained. 
 #' @param ... Additional parameters passed along to the internal `.retrieve()` function.
 #' For troubleshooting or privileged-user purposes only.
-#' Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).
-#' @return A dataframe representation of the requested data (or a list if the data was not rectangular).
+#' Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).
+#' @return A dataframe
+#' @details This function makes a call to magma/retrieve with \code{format = "tsv"}.
+#' Then, it converts the tsv-string output into a dataframe.
+#' @seealso
+#' \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
+#' 
+#' \code{\link{retrieveIds}} and \code{\link{retrieveAttributeNames}} for exploring options for the \code{recordNames} and \code{attributeNames} inputs, respectively.
+#' 
 #' @export
 #' @examples
 #' 
-#' # Unless a working TOKEN is hard-coded, or it is in an interactive session,
-#' #   this code will not work.
-#' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token.
+#'     # Running like this will ask for input of your janus token one time.
 #'     retrieve(
 #'         projectName = "ipi",
 #'         modelName = "patient",
@@ -54,18 +66,17 @@ retrieve <- function(
         ...)
 }
 
-#' Download data from magma as a json, output as a json string (list)
+#' Download data from magma as a json, and view it as a list
 #' @inheritParams retrieve
 #' @param filter potential filter of the data
-#' @return a json string or list of such strings
+#' @return A list
+#' @details This function makes a call to magma/retrieve with \code{format = "json"}.
+#' Then, it converts the json output into a list which is more compatible with R.
 #' @export
 #' @examples
 #' 
-#' # Unless a working TOKEN is hard-coded, or it is in an interactive session,
-#' #   this code will not work.
-#' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token.
+#'     # Running like this will ask for input of your janus token one time.
 #'     retrieveJSON(
 #'         projectName = "ipi",
 #'         modelName = "patient",

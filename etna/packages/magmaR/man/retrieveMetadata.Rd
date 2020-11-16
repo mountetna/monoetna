@@ -16,7 +16,7 @@ retrieveMetadata(
 )
 }
 \arguments{
-\item{projectName}{the name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
+\item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
 
 \item{meta_modelName, meta_attributeNames}{Strings which indicate the linked "meta"data to retrieve.}
 
@@ -24,7 +24,11 @@ retrieveMetadata(
 
 \item{meta_group.by}{\emph{Not implemented yet.} String, an attribute within the meta_model that can be used to group data when there are expected to be more than 1 record of metadata per record of target data.}
 
-\item{token}{your TOKEN from https://janus.ucsf.edu}
+\item{token}{your personal TOKEN from \url{https://janus.ucsf.edu}. 
+
+When not explicitly given in a function call: you will be prompted to input token, one time.
+This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
+and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.}
 
 \item{...}{Additional parameters passed along to the internal `.query()` and `.retrieve()` functions.
 For troubleshooting or privileged-user purposes only.
@@ -39,7 +43,7 @@ Retrieve data from one model of a project, metadata, for records linked to data 
 \examples{
 
 if (interactive()) {
-    # Running like this will ask for input of your janus token.
+    # Running like this will ask for input of your janus token one time.
     retrieveMetadata(
         projectName = "ipi",
         meta_modelName = "sample",

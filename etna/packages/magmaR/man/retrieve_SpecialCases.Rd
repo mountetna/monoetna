@@ -4,30 +4,35 @@
 \alias{retrieve_SpecialCases}
 \alias{retrieveTemplate}
 \alias{retrieveIds}
-\title{Special cases for the magma retrieve function as laid out in https://mountetna.github.io/magma.html#retrieve}
+\title{Special cases for the magma retrieve function, as laid out in https://mountetna.github.io/magma.html#retrieve}
 \usage{
 retrieveTemplate(projectName, token = .get_TOKEN(), ...)
 
 retrieveIds(projectName, modelName, token = .get_TOKEN(), ...)
 }
 \arguments{
-\item{projectName}{the name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
+\item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
 
-\item{token}{your TOKEN from https://janus.ucsf.edu}
+\item{token}{your personal TOKEN from \url{https://janus.ucsf.edu}. 
+
+When not explicitly given in a function call: you will be prompted to input token, one time.
+This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
+and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()` function.
 For troubleshooting or privileged-user purposes only.
-Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).}
+Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).}
 
-\item{modelName}{the name of the piece of the magma model form which to download data}
+\item{modelName}{Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
+For options, see https://timur.ucsf.edu/<projectName>/map.}
 }
 \value{
-retrieveTemplate = a jsonlite::fromJSON conversion of template JSON.
+retrieveTemplate = a list conversion of the project's template json.
 
-retrieveIds = a string vector
+retrieveIds = a string vector of record names.
 }
 \description{
-Special cases for the magma retrieve function as laid out in https://mountetna.github.io/magma.html#retrieve
+Special cases for the magma retrieve function, as laid out in https://mountetna.github.io/magma.html#retrieve
 }
 \section{Functions}{
 \itemize{
@@ -39,13 +44,13 @@ Special cases for the magma retrieve function as laid out in https://mountetna.g
 \examples{
 
 if (interactive()) {
-    # Running like this will ask for input of your janus token.
+    # Running like this will ask for input of your janus token one time.
     
     retrieveTemplate(
         projectName = "ipi")
         
     retrieveIds(
-        prjectName = "ipi",
+        projectName = "ipi",
         modelName = "rna_seq")
 }
 }

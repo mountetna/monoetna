@@ -1,29 +1,50 @@
 #' Analagous to the '/query' fucntion of magma
 #' @inheritParams retrieve
-#' @param queryTerms An array of query predicates, see \url{https://mountetna.github.io/magma.html#query}
-#' @param format Either "list" or "df" (=dataframe), this sets the desired output format
+#' @param queryTerms A string vector where elements are query predicates. See \url{https://mountetna.github.io/magma.html#query} for details.
+#' @param format Either "list" or "df" (=dataframe). This sets the desired output format.
 #' @param ... Additional parameters passed along to the internal `.query()` function.
 #' For troubleshooting or privileged-user purposes only.
-#' Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).
-#' @return Either list conversion of the raw '/query' JSON output if \code{format == "list"}, default,
+#' Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).
+#' @return A list, default, if \code{format == "list"},
 #' 
-#' OR a dataframe conversion if \code{format = "df"}
+#' OR A dataframe conversion if \code{format = "df"}
+#' @details This function initially mimics the activity of the magma/query which is documented here \url{https://mountetna.github.io/magma.html#query}.
+#' 
+#' Afterwards, the json list output of magma/query is converted into an R list, and then the \code{format} input determines whether it should be wrangled further:
+#' \itemize{
+#' \item \code{format = "list"}, default: R list output directly.
+#' \item \code{format = "df"}: R list converted into a dataframe where data comes from the list$answer and column names come from the list$format
+#' }
+#' @seealso
+#' \url{https://mountetna.github.io/magma.html#query} for documentation of the underlying magma/query function.
 #' @export
 #' @examples
 #' 
-#' ##### FILLER
-#' 
-#' # Unless a working TOKEN is hard-coded, or it is in an interactive session,
-#' #   this code will not work.
-#' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token.
-#'     retrieveJSON(
-#'         projectName = "ipi",
-#'         modelName = "patient",
-#'         recordNames = "all",
-#'         attributeNames = "all",
-#'         filter = "")
+#'     # Running like this will ask for input of your janus token one time.
+#'     
+#'     ### To obtain the sample-model record-identifiers that are linked to
+#'     #   records of the rna_seq-model:
+#' 
+#'     # "Raw" output of query:
+#'     query(
+#'         projectName = projectName,
+#'         queryTerms = 
+#'             list('rna_seq',
+#'                  '::all',
+#'                  'sample',
+#'                  '::identifier'))
+#'                  
+#'     # Or instead re-formatted to a dataframe, which may be easier for
+#'     #   downstream applications in R:
+#'     query(
+#'         projectName = projectName,
+#'         queryTerms = 
+#'             list('rna_seq',
+#'                  '::all',
+#'                  'sample',
+#'                  '::identifier'),
+#'         format = 'df')
 #' }
 #'
 

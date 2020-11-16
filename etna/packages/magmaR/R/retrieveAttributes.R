@@ -4,7 +4,7 @@
 #' @examples
 #' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token.
+#'     # Running like this will ask for input of your janus token one time.
 #'     retrieveAttributeNames(
 #'         projectName = "ipi",
 #'         modelName = "patient")

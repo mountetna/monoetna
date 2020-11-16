@@ -1,16 +1,13 @@
-#' Download data stored as a matrix
+#' Download data from magma that is stored as a matrix
 #' @inheritParams retrieve
 #' @return a matrix
 #' @export
 #' @examples
 #' 
-#' # Unless a working TOKEN is hard-coded, or it is in an interactive session,
-#' #   this code will not work.
-#' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token on first.
+#'     # Running like this will ask for input of your janus token one time.
 #'     
-#'     ids <- retrieve("ipi", "rna_seq", attributeNames = "identifier")
+#'     ids <- retrieveIds("ipi", "rna_seq")
 #'     
 #'     retrieveMatrix(
 #'         projectName = "ipi",

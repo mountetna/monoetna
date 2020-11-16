@@ -13,41 +13,69 @@ query(
 )
 }
 \arguments{
-\item{projectName}{the name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
+\item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
 
-\item{queryTerms}{An array of query predicates, see \url{https://mountetna.github.io/magma.html#query}}
+\item{queryTerms}{A string vector where elements are query predicates. See \url{https://mountetna.github.io/magma.html#query} for details.}
 
-\item{format}{Either "list" or "df" (=dataframe), this sets the desired output format}
+\item{format}{Either "list" or "df" (=dataframe). This sets the desired output format.}
 
-\item{token}{your TOKEN from https://janus.ucsf.edu}
+\item{token}{your personal TOKEN from \url{https://janus.ucsf.edu}. 
+
+When not explicitly given in a function call: you will be prompted to input token, one time.
+This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
+and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.}
 
 \item{...}{Additional parameters passed along to the internal `.query()` function.
 For troubleshooting or privileged-user purposes only.
-Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).}
+Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).}
 }
 \value{
-Either list conversion of the raw '/query' JSON output if \code{format == "list"}, default,
+A list, default, if \code{format == "list"},
 
-OR a dataframe conversion if \code{format = "df"}
+OR A dataframe conversion if \code{format = "df"}
 }
 \description{
 Analagous to the '/query' fucntion of magma
 }
+\details{
+This function initially mimics the activity of the magma/query which is documented here \url{https://mountetna.github.io/magma.html#query}.
+
+Afterwards, the json list output of magma/query is converted into an R list, and then the \code{format} input determines whether it should be wrangled further:
+\itemize{
+\item \code{format = "list"}, default: R list output directly.
+\item \code{format = "df"}: R list converted into a dataframe where data comes from the list$answer and column names come from the list$format
+}
+}
 \examples{
 
-##### FILLER
-
-# Unless a working TOKEN is hard-coded, or it is in an interactive session,
-#   this code will not work.
-
 if (interactive()) {
-    # Running like this will ask for input of your janus token.
-    retrieveJSON(
-        projectName = "ipi",
-        modelName = "patient",
-        recordNames = "all",
-        attributeNames = "all",
-        filter = "")
+    # Running like this will ask for input of your janus token one time.
+    
+    ### To obtain the sample-model record-identifiers that are linked to
+    #   records of the rna_seq-model:
+
+    # "Raw" output of query:
+    query(
+        projectName = projectName,
+        queryTerms = 
+            list('rna_seq',
+                 '::all',
+                 'sample',
+                 '::identifier'))
+                 
+    # Or instead re-formatted to a dataframe, which may be easier for
+    #   downstream applications in R:
+    query(
+        projectName = projectName,
+        queryTerms = 
+            list('rna_seq',
+                 '::all',
+                 'sample',
+                 '::identifier'),
+        format = 'df')
 }
 
+}
+\seealso{
+\url{https://mountetna.github.io/magma.html#query} for documentation of the underlying magma/query function.
 }

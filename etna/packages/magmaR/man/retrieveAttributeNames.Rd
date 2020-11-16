@@ -13,17 +13,23 @@ retrieveAttributeNames(
 )
 }
 \arguments{
-\item{projectName}{the name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
+\item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
 
-\item{modelName}{the name of the piece of the magma model form which to download data}
+\item{modelName}{Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
+For options, see https://timur.ucsf.edu/<projectName>/map.}
 
-\item{recordNames}{which records and attributes to grab}
+\item{recordNames}{Single string or string vector. Which particular sample/tube/etc. records to grab data for.
+Options are "all" or any combination of individual record names. To retrieve individual options, see \code{\link{retrieveIds}}.}
 
-\item{token}{your TOKEN from https://janus.ucsf.edu}
+\item{token}{your personal TOKEN from \url{https://janus.ucsf.edu}. 
+
+When not explicitly given in a function call: you will be prompted to input token, one time.
+This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
+and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()` function.
 For troubleshooting or privileged-user purposes only.
-Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).}
+Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).}
 }
 \value{
 a string vector
@@ -34,7 +40,7 @@ Determine the attribute options associated with a given project-model pair.
 \examples{
 
 if (interactive()) {
-    # Running like this will ask for input of your janus token.
+    # Running like this will ask for input of your janus token one time.
     retrieveAttributeNames(
         projectName = "ipi",
         modelName = "patient")

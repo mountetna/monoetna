@@ -2,7 +2,7 @@
 % Please edit documentation in R/retrieve.R
 \name{retrieve}
 \alias{retrieve}
-\title{Download data from magma as a tsv and convert to a data.frame}
+\title{Download data from magma as a tsv, and convert to a data.frame}
 \usage{
 retrieve(
   projectName,
@@ -18,37 +18,47 @@ retrieve(
 )
 }
 \arguments{
-\item{projectName}{the name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
+\item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
 
-\item{modelName}{the name of the piece of the magma model form which to download data}
+\item{modelName}{Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
+For options, see https://timur.ucsf.edu/<projectName>/map.}
 
-\item{recordNames, attributeNames}{which records and attributes to grab}
+\item{recordNames}{Single string or string vector. Which particular sample/tube/etc. records to grab data for.
+Options are "all" or any combination of individual record names. To retrieve individual options, see \code{\link{retrieveIds}}.}
 
-\item{filter}{potential filter of the data}
+\item{attributeNames}{Single string or string vector. Which features of the data to obtain.
+Options are "all" or any combination of individual attribute names. To retrieve individual options, see \code{\link{retrieveAttributeNames}}.}
 
-\item{pageSize, page}{Integers. For retrieving just a portion of the data, sets slice/page size which is equivalent to a number of rows, and which slice to get.}
+\item{filter}{String. Potential filter of the data. Refer to \url{https://mountetna.github.io/magma.html#retrieve} for structure details.}
 
-\item{connected.only}{Logical. Whether data without a parent should be retained.}
+\item{pageSize, page}{Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.}
 
-\item{token}{your TOKEN from https://janus.ucsf.edu}
+\item{connected.only}{\emph{Not implemented yet.} Logical. Whether data without a parent should be retained.}
+
+\item{token}{your personal TOKEN from \url{https://janus.ucsf.edu}. 
+
+When not explicitly given in a function call: you will be prompted to input token, one time.
+This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
+and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.}
 
 \item{...}{Additional parameters passed along to the internal `.retrieve()` function.
 For troubleshooting or privileged-user purposes only.
-Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).}
+Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).}
 }
 \value{
-A dataframe representation of the requested data (or a list if the data was not rectangular).
+A dataframe
 }
 \description{
-Download data from magma as a tsv and convert to a data.frame
+Download data from magma as a tsv, and convert to a data.frame
+}
+\details{
+This function makes a call to magma/retrieve with \code{format = "tsv"}.
+Then, it converts the tsv-string output into a dataframe.
 }
 \examples{
 
-# Unless a working TOKEN is hard-coded, or it is in an interactive session,
-#   this code will not work.
-
 if (interactive()) {
-    # Running like this will ask for input of your janus token.
+    # Running like this will ask for input of your janus token one time.
     retrieve(
         projectName = "ipi",
         modelName = "patient",
@@ -57,4 +67,9 @@ if (interactive()) {
         filter = "")
 }
 
+}
+\seealso{
+\url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
+
+\code{\link{retrieveIds}} and \code{\link{retrieveAttributeNames}} for exploring options for the \code{recordNames} and \code{attributeNames} inputs, respectively.
 }
