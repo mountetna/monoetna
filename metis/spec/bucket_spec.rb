@@ -338,10 +338,10 @@ describe BucketController do
       stubs.create_folder('athena', 'my_bucket', 'public/child')
 
       @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, bucket: @bucket, folder: @public_folder)
-      stubs.create_file('athena', 'my_bucket', 'public', 'wisdom.txt', WISDOM)
+      stubs.create_file('athena', 'my_bucket', 'public/wisdom.txt', WISDOM)
 
       @helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: @bucket, folder: @child_folder)
-      stubs.create_file('athena', 'my_bucket', 'public/child', 'helmet.jpg', HELMET)
+      stubs.create_file('athena', 'my_bucket', 'public/child/helmet.jpg', HELMET)
     end
 
     after(:each) do
@@ -394,7 +394,7 @@ describe BucketController do
       stubs.create_folder('athena', 'my_bucket', 'private')
 
       shiny_helmet_file = create_file('athena', 'shiny_helmet.jpg', SHINY_HELMET, bucket: @bucket, folder: private_folder)
-      stubs.create_file('athena', 'my_bucket', 'private', 'shiny_helmet.jpg', SHINY_HELMET)
+      stubs.create_file('athena', 'my_bucket', 'private/shiny_helmet.jpg', SHINY_HELMET)
 
       token_header(:viewer)
       json_post("/athena/find/my_bucket", params: [{
@@ -560,7 +560,7 @@ describe BucketController do
       stubs.create_folder('athena', 'restricted_bucket', 'public')
 
       shiny_helmet_file = create_file('athena', 'shiny_helmet.jpg', SHINY_HELMET, bucket: restricted_bucket, folder: public_folder)
-      stubs.create_file('athena', 'restricted_bucket', 'public', 'shiny_helmet.jpg', SHINY_HELMET)
+      stubs.create_file('athena', 'restricted_bucket', 'public/shiny_helmet.jpg', SHINY_HELMET)
 
       token_header(:viewer)
       json_post("/athena/find/restricted_bucket", params: [{
