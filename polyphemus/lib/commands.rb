@@ -7,6 +7,7 @@ require_relative 'helpers'
 require_relative 'data_processing/xml_dsl'
 require_relative 'data_processing/magma_dsl'
 require_relative 'data_processing/flow_jo_dsl'
+require_relative 'ipi/process_rna_seq_output'
 
 class Polyphemus
   class Migrate < Etna::Command
@@ -480,6 +481,26 @@ class Polyphemus
           model_name: model_name,
           filepath: filepath)
       update_attributes_workflow.update_attributes
+    end
+  end
+
+  class LoadRnaSeqProcessedData < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+    usage 'load_rna_seq_processed_data <env> <project_name> <file_path> [--execute]'
+    boolean_flags << '--execute'
+
+    def execute(env, project_name, file_path, execute: false)
+      @environ = environment(env)
+      @project_name = project_name
+
+      process_rna_seq_output = ProcessRnaSeqOutput.new(
+          magma_client: @environ.magma_client,
+          project_name: project_name,
+          file_path: file_path,
+          execute: execute)
+
+      process_rna_seq_output.process_rna_seq
     end
   end
 
