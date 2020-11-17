@@ -1,0 +1,3 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+magamR_temp_tests.R
