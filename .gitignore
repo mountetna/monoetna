@@ -60,3 +60,13 @@ build-iPhoneSimulator/
 downzip-sw.js
 .npmrc
 polyphemus/.bundle/config
+
+*.DS_Store
+
+# For magmaR dev via RStudio.
+etna/packages/magmaR/.Rproj.user
+etna/packages/magmaR/.Rhistory
+etna/packages/magmaR/.RData
+etna/packages/magmaR/.Ruserdata
+etna/packages/magmaR*.tar.gz
+.Rproj.user

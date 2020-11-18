@@ -47,7 +47,9 @@ module Etna
 
         def update_magma_client_token!
           self.magma_client = Etna::Clients::Magma.new(
-            host: self.magma_client.host, token: refreshed_token)
+            host: self.magma_client.host,
+            token: refreshed_token,
+            ignore_ssl: self.magma_client.ignore_ssl)
         end
 
         def create_magma_project!

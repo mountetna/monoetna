@@ -12,6 +12,7 @@ module Etna
       @logger = @request.env['etna.logger']
       @user = @request.env['etna.user']
       @request_id = @request.env['etna.request_id']
+      @hmac = @request.env['etna.hmac']
     end
 
     def log(line)

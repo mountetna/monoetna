@@ -162,6 +162,52 @@ describe BucketController do
       expect(last_response.status).to eq(422)
       expect(json_body[:error]).to eq('Invalid access')
     end
+
+    it 'cannot create a reserved bucket name without hmac signed request' do
+      token_header(:admin)
+      json_post("/athena/bucket/create/metis", owner: 'metis', access: 'viewer')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Cannot create a reserved bucket')
+    end
+
+    it 'cannot create a reserved bucket name with hmac of different owner' do
+      token_header(:admin)
+      json_post("/athena/bucket/create/metis", {
+        owner: 'metis',
+        access: 'viewer'}.merge(
+        hmac_params(id: 'magma', signature: 'valid')))
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Cannot create a reserved bucket')
+    end
+
+    it 'cannot create a reserved bucket name with invalid hmac' do
+      token_header(:admin)
+      json_post("/athena/bucket/create/metis", {
+        owner: 'metis',
+        access: 'viewer'}.merge(
+        hmac_params(id: 'metis', signature: 'invalid')))
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:error]).to eq('Cannot create a reserved bucket')
+    end
+
+    it 'can create a reserved bucket name with valid hmac' do
+      token_header(:admin)
+      json_post("/athena/bucket/create/metis", {
+        owner: 'metis',
+        access: 'viewer'}.merge(
+        hmac_params(id: 'metis', signature: 'valid')))
+
+      expect(Metis::Bucket.count).to eq(1)
+      bucket = Metis::Bucket.first
+      expect(bucket.name).to eq('metis')
+      expect(bucket.owner).to eq('metis')
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:bucket]).to eq(bucket.to_hash)
+    end
   end
 
   context '#update' do
