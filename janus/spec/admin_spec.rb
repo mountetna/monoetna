@@ -508,7 +508,7 @@ describe AdminController do
 
     it 'requires a well-formed project_name' do
       auth_header(:superuser)
-      [ 'Doors', "Doo\nrs", ' doors', 'doors	' , '1x_door', 'pg_door', 'door_project'].each do |name|
+      [ 'Doors', "Doo\nrs", ' doors', 'doors	' , '1x_door', 'pg_door', 'door_2_project'].each do |name|
         json_post('add_project', project_name: name, project_name_full: name)
 
         expect(last_response.status).to eq(422)
