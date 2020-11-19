@@ -3,19 +3,60 @@
     # the token as a hidden variable in the workspace.
     # Perhaps a DANGEROUS method, so not necessarily what to do in the end.
     
-    if (!exists(".TOKEN")) {
+    if (!exists(".MAGMAR_TOKEN")) {
         
         if (interactive()) {
             assign(
-                ".TOKEN",
+                ".MAGMAR_TOKEN",
                 readline(prompt = "Enter your Janus TOKEN (without quotes):"),
                 envir = .GlobalEnv)
         } else {
-            stop("Please provide your janus token to the 'token' input or assign it to '.TOKEN'.")
+            stop("Please provide your janus token to the 'token' input or assign it to '.MAGMAR_TOKEN'.")
         }
     }
     
-    .TOKEN
+    .MAGMAR_TOKEN
+}
+
+.get_URL <- function() {
+    # This function asks the user to provide their janus token, and then stores
+    # the token as a hidden variable in the workspace.
+    # Perhaps a DANGEROUS method, so not necessarily what to do in the end.
+    
+    if (!exists(".MAGMAR_URL")) {
+        assign(
+            ".MAGMAR_URL",
+            "https://magma.ucsf.edu",
+            envir = .GlobalEnv)
+    }
+    
+    .MAGMAR_URL
+}
+
+.perform_curl <- function(
+    fxn = c("/retrieve", "/query"),
+    requestBody,
+    token,
+    url.base,
+    verbose) {
+    
+    fxn <- match.arg(fxn)
+    
+    curl <- RCurl::basicTextGatherer()
+    
+    RCurl::curlPerform(
+        url = paste0(url.base, fxn),
+        httpheader = c('Content-Type' = "application/json", 'Authorization' = paste0('Etna ', token)),
+        postfields = requestBody,
+        writefunction = curl$update,
+        verbose = verbose
+        )
+    
+    if (curl$value() == "You are unauthorized") {
+        stop("You are unauthorized. If you think this is a mistake, run `rm(.MAGMAR_TOKEN)` or update yout 'token' input, then retry.")
+    }
+    
+    curl
 }
 
 .parse_tsv <- function(

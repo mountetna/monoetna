@@ -79,7 +79,7 @@ query <- function(
     queryTerms = list(),
     request.only = FALSE,
     json.params.only = FALSE,
-    url.base = "https://magma.ucsf.edu",
+    url.base = .get_URL(),
     token = .get_TOKEN(),
     verbose = FALSE
 ) {
@@ -101,21 +101,9 @@ query <- function(
     }
     
     ### Perform '\query'
-    
-    h <- RCurl::basicTextGatherer()
-    
-    RCurl::curlPerform(
-        url = paste0(url.base,"/query"),
-        httpheader = c('Content-Type' = "application/json", 'Authorization' = paste0('Etna ', token)),
-        postfields = requestBody,
-        writefunction = h$update,
-        verbose = verbose
-        )
-    
-    if (h$value() == "You are unauthorized") {
-        stop("Unauthorized. Are you signed into vpn? If yes, run `rm(.TOKEN)` then retry.")
-    }
+    curl <- .perform_curl(
+        fxn = "/query", requestBody, token, url.base, verbose)
     
     ### Output
-    jsonlite::fromJSON(h$value())
+    jsonlite::fromJSON(curl$value())
 }
