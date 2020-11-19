@@ -53,7 +53,7 @@
         )
     
     if (curl$value() == "You are unauthorized") {
-        stop("You are unauthorized. If you think this is a mistake, run `rm(.MAGMAR_TOKEN)` or update yout 'token' input, then retry.")
+        stop("You are unauthorized. If you think this is a mistake, run `rm(.MAGMAR_TOKEN)` or update your 'token' input, then retry.")
     }
     
     curl
