@@ -6,11 +6,11 @@
 #' and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.
 #' @param projectName Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu
 #' @param modelName Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
-#' For options, see https://timur.ucsf.edu/<projectName>/map.
+#' For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.
 #' @param recordNames Single string or string vector. Which particular sample/tube/etc. records to grab data for.
 #' Options are "all" or any combination of individual record names. To retrieve individual options, see \code{\link{retrieveIds}}.
 #' @param attributeNames Single string or string vector. Which features of the data to obtain.
-#' Options are "all" or any combination of individual attribute names. To retrieve individual options, see \code{\link{retrieveAttributeNames}}.
+#' Options are "all" or any combination of individual attribute names. To retrieve individual options, see \code{\link{retrieveAttributes}}.
 #' @param filter String. Potential filter of the data.
 #' Example: "<targetAttributeName>~GYN" to filter to records where <targetAttributeName> contains "GYN".
 #' 
@@ -26,7 +26,7 @@
 #' @seealso
 #' \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
 #' 
-#' \code{\link{retrieveIds}} and \code{\link{retrieveAttributeNames}} for exploring options for the \code{recordNames} and \code{attributeNames} inputs, respectively.
+#' \code{\link{retrieveModels}}, \code{\link{retrieveIds}}, and \code{\link{retrieveAttributes}} for exploring options for the \code{modelName}, \code{recordNames}, and \code{attributeNames} inputs, respectively.
 #' 
 #' @export
 #' @examples

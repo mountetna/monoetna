@@ -35,7 +35,7 @@ For troubleshooting or privileged-user purposes only.
 Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).}
 
 \item{modelName}{Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
-For options, see https://timur.ucsf.edu/<projectName>/map.}
+For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.}
 }
 \value{
 retrieveTemplate = a list conversion of the project's template json.
