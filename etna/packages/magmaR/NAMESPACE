@@ -2,7 +2,7 @@
 
 export(query)
 export(retrieve)
-export(retrieveAttributeNames)
+export(retrieveAttributes)
 export(retrieveIds)
 export(retrieveJSON)
 export(retrieveMatrix)

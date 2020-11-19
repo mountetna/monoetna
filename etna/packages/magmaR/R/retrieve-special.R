@@ -7,6 +7,8 @@
 #' retrieveModels = a string vector of model names
 #' 
 #' retrieveIds = a string vector of record names/identifiers.
+#' 
+#' retrieveAttributes = a string vector of attribute names.
 #' @examples
 #' 
 #' if (interactive()) {
@@ -21,6 +23,10 @@
 #'     retrieveIds(
 #'         projectName = "ipi",
 #'         modelName = "rna_seq")
+#'         
+#'     retrieveAttributes(
+#'         projectName = "ipi",
+#'         modelName = "patient")
 #' }
 NULL
 
@@ -71,4 +77,21 @@ retrieveIds <- function(
         format = "tsv",
         token = token,
         ...)[,,drop = TRUE]
+}
+
+#' @describeIn retrieve_SpecialCases Retrieve all the attribute options for a given project-model pair.
+#' @export
+retrieveAttributes <- function(
+    projectName = "ipi",
+    modelName = "patient",
+    token = .get_TOKEN(),
+    ...
+) {
+
+    rec <- retrieveIds(projectName, modelName, token, ...)[1]
+    
+    .retrieve(
+        projectName, modelName, recordNames = rec,
+        attributeNames = "all", format = "tsv",
+        names.only = TRUE, token = token, ...)
 }

@@ -3,12 +3,23 @@
 \name{retrieve_SpecialCases}
 \alias{retrieve_SpecialCases}
 \alias{retrieveTemplate}
+\alias{retrieveModels}
 \alias{retrieveIds}
+\alias{retrieveAttributes}
 \title{Special cases for the magma retrieve function, as laid out in https://mountetna.github.io/magma.html#retrieve}
 \usage{
 retrieveTemplate(projectName, token = .get_TOKEN(), ...)
 
+retrieveModels(projectName, token = .get_TOKEN(), ...)
+
 retrieveIds(projectName, modelName, token = .get_TOKEN(), ...)
+
+retrieveAttributes(
+  projectName = "ipi",
+  modelName = "patient",
+  token = .get_TOKEN(),
+  ...
+)
 }
 \arguments{
 \item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
@@ -29,7 +40,11 @@ For options, see https://timur.ucsf.edu/<projectName>/map.}
 \value{
 retrieveTemplate = a list conversion of the project's template json.
 
-retrieveIds = a string vector of record names.
+retrieveModels = a string vector of model names
+
+retrieveIds = a string vector of record names/identifiers.
+
+retrieveAttributes = a string vector of attribute names.
 }
 \description{
 Special cases for the magma retrieve function, as laid out in https://mountetna.github.io/magma.html#retrieve
@@ -38,7 +53,11 @@ Special cases for the magma retrieve function, as laid out in https://mountetna.
 \itemize{
 \item \code{retrieveTemplate}: Retrieve the template for a given project
 
-\item \code{retrieveIds}: Retrieve all the identifiers for a given project-model pair.
+\item \code{retrieveModels}: Retrieve the modelNames for a given project
+
+\item \code{retrieveIds}: Retrieve all the identifiers/recordNames for a given project-model pair.
+
+\item \code{retrieveAttributes}: Retrieve all the attribute options for a given project-model pair.
 }}
 
 \examples{
@@ -49,8 +68,15 @@ if (interactive()) {
     retrieveTemplate(
         projectName = "ipi")
         
+    retrieveModels(
+        projectName = "ipi")
+        
     retrieveIds(
         projectName = "ipi",
         modelName = "rna_seq")
+        
+    retrieveAttributes(
+        projectName = "ipi",
+        modelName = "patient")
 }
 }
