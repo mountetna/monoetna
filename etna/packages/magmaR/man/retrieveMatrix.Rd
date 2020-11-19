@@ -28,7 +28,10 @@ Options are "all" or any combination of individual record names. To retrieve ind
 \item{attributeNames}{Single string or string vector. Which features of the data to obtain.
 Options are "all" or any combination of individual attribute names. To retrieve individual options, see \code{\link{retrieveAttributeNames}}.}
 
-\item{filter}{String. Potential filter of the data. Refer to \url{https://mountetna.github.io/magma.html#retrieve} for structure details.}
+\item{filter}{String. Potential filter of the data.
+Example: "<targetAttributeName>~GYN" to filter to records where <targetAttributeName> contains "GYN".
+
+Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details.}
 
 \item{page}{Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.}
 
