@@ -105,7 +105,7 @@ retrieveIds(
     projectName = "ipi",
     modelName = "patient")
 
-retrieveAttributeNames(
+retrieveAttributes(
     projectName = "ipi",
     modelName = "patient")
 
@@ -120,6 +120,6 @@ temp <- retrieveTemplate(
 #
 # 4) Release to DS team?
 #
-# 5) Better dev / staging integration to remove need for `url.base` explicitness?
+# DONE 5) Better dev / staging integration to remove need for `url.base` explicitness?
 # 6) Add a 'group.by' option to 'retrieveMetadata()'.
 # 7) Implement 'connected.only' in `retrieve()`/`query()` once ready.
