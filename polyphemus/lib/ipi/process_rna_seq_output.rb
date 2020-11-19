@@ -11,17 +11,20 @@ require 'net/http'
 require 'ostruct'
 require_relative '../helpers'
 
-class RnaSeqTsv
-  attr_reader :tsv_params, :data
-  def initialize(project_name, tsv_path)
+class RnaSeqMetrics
+  attr_reader :data, :magma_client, :rna_seq_model, :execute
+  def initialize(project_name, tsv_path, magma_client, rna_seq_model, execute=false)
     @tsv_path = tsv_path
     @project_name = project_name
+    @magma_client = magma_client
+    @rna_seq_model = rna_seq_model
+    @execute = execute
 
     @data = {}
     process_tsv
   end
 
-  def [](key)
+  def value(key)
     case key
     when :raw_mean_length
       data[key].split(',').first
@@ -67,26 +70,147 @@ class RnaSeqTsv
     end
   end
 
+  def filename
+    @tsv_path.split('/').last
+  end
+
   def is_control?
-    data[:sample].downcase.start_with?('control')
+    filename =~ /control/i
   end
 
   def is_jurkat?
-    data[:sample].downcase.include?('jurkat')
+    is_control? && filename =~ /jurkat/i
   end
 
   def is_uhr?
-    data[:sample].downcase.include?('uhr')
+    is_control? && filename =~ /uhr/i
   end
 
   def tube_name
     # Have to account for the validation, mostly for control?
 
-    return "Control_Jurkat.Plate#{data[:rna_seq_plate]}" if is_control? && is_jurkat?
+    return "Control_Jurkat.Plate#{data[:rna_seq_plate]}" if is_jurkat?
 
-    return "Control_UHR.Plate#{data[:rna_seq_plate]}" if is_control? && is_uhr?
+    return "Control_UHR.Plate#{data[:rna_seq_plate]}" if is_uhr?
 
     "#{data[:sample].upcase}.rna.#{data[:compartment].downcase}"
+  end
+
+  def upload_rna_seq
+    puts "Updating rna seq metrics: #{tube_name}"
+    doc = create_update_doc
+    puts doc
+    if execute
+      update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project_name)
+      update_request.update_revision(
+        'rna_seq',
+        tube_name,
+        doc)
+      magma_client.update(update_request)
+    end
+  end
+
+  def create_update_doc
+    doc = {}
+    uneditable_attributes = [
+      'created_at', 'updated_at', 'tube_name',
+      'gene_tpm', 'gene_counts', 'flag', 'unmapped_read_count',
+      # These values are too large for Postgres integer field
+      'aligned_bases', 'filter_passing_bases', 'filtered_base_count',
+      'raw_base_count']
+    uneditable_control_attributes = ['sample', 'compartment']
+    rna_seq_model.template.attributes.attribute_keys.each do |attribute_name|
+      next if uneditable_attributes.include?(attribute_name)
+      next if is_control? && uneditable_control_attributes.include?(attribute_name)
+
+      doc[attribute_name] = value(attribute_name.to_sym)
+    end
+
+    doc
+  end
+end
+
+class RnaSeqGenes
+  attr_reader :data, :magma_client, :rna_seq_model, :execute
+  def initialize(project_name, tsv_path, magma_client, rna_seq_model, execute=false)
+    @tsv_path = tsv_path
+    @project_name = project_name
+
+    @data = []
+    process_tsv
+  end
+
+  def filename
+    @tsv_path.split('/').last
+  end
+
+  def is_control?
+    filename =~ /control/i
+  end
+
+  def is_jurkat?
+    is_control? && filename =~ /jurkat/i
+  end
+
+  def is_uhr?
+    is_control? && filename =~ /uhr/i
+  end
+
+  def tube_name
+    # Have to account for the validation, mostly for control?
+
+    from_filename = filename.sub('.rsem.genes.results', '')
+
+    return from_filename unless is_jurkat? || is_uhr?
+
+    plate_number = /.*plate(?<plate_number>\d+)/i.match(from_filename).named_captures['plate_number']
+
+    return "Control_Jurkat.Plate#{plate_number}" if is_jurkat?
+
+    return "Control_UHR.Plate#{plate_number}" if is_uhr?
+
+    from_filename
+  end
+
+  def process_tsv
+    CSV.foreach(@tsv_path, col_sep: "\t", headers: true) do |tsv_line|
+      data << {
+        gene_id: tsv_line["gene_id"],
+        gene_counts: tsv_line["expected_count"],
+        gene_tpm: tsv_line["TPM"]
+      }
+    end
+
+    # Make sure these are ordered according to the gene names, alphabetically.
+    # They should be in order in the `results` file, but we'll
+    #    enforce that here.
+    data.sort_by! { |d| d[:gene_id] }
+  end
+
+  def tpms
+    data.map { |d| d[:gene_tpm] }
+  end
+
+  def counts
+    data.map { |d| d[:gene_counts] }
+  end
+
+  def upload_rna_seq
+    puts "Updating rna seq genes: #{tube_name}"
+    doc = {
+      gene_counts: counts,
+      gene_tpm: tpms
+    }
+
+    # puts doc
+    if execute
+      update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project_name)
+      update_request.update_revision(
+        'rna_seq',
+        tube_name,
+        doc)
+      magma_client.update(update_request)
+    end
   end
 end
 
@@ -111,48 +235,34 @@ class ProcessRnaSeqOutput < Struct.new(:magma_client, :project_name, :file_path,
     end
   end
 
-  def load_rna_seq_output(filepath)
-    puts "Processing file #{filepath}."
-    rna_seq_tsv = RnaSeqTsv.new(project_name, filepath)
-    upload_rna_seq(rna_seq_tsv)
+  def load_rna_seq_metrics(filepath)
+    puts "Processing metrics file #{filepath}."
+    rna_seq_metrics = RnaSeqMetrics.new(
+      project_name, filepath, magma_client, rna_seq_model, execute)
+    rna_seq_metrics.upload_rna_seq()
+  end
+
+  def load_rna_seq_genes(filepath)
+    puts "Processing genes file #{filepath}."
+    rna_seq_genes = RnaSeqGenes.new(
+      project_name, filepath, magma_client, rna_seq_model, execute)
+    rna_seq_genes.upload_rna_seq()
+  end
+
+  def process_rna_seq_metrics
+    Find.find(file_path) do |path|
+      load_rna_seq_metrics(path) if path =~ /.*_rnaseq_table\.tsv$/
+    end
+  end
+
+  def process_rna_seq_genes
+    Find.find(file_path) do |path|
+      load_rna_seq_genes(path) if path =~ /.*\.rsem\.genes\.results$/
+    end
   end
 
   def process_rna_seq
-    Find.find(file_path) do |path|
-      load_rna_seq_output(path) if path =~ /.*_rnaseq_table.tsv$/
-    end
-  end
-
-  def upload_rna_seq(rna_seq_tsv)
-    puts "Updating rna seq: #{rna_seq_tsv.tube_name}"
-    doc = create_update_doc(rna_seq_tsv)
-    puts doc
-    if execute
-      update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project_name)
-      update_request.update_revision(
-        'rna_seq',
-        rna_seq_tsv.tube_name,
-        doc)
-      magma_client.update(update_request)
-    end
-  end
-
-  def create_update_doc(rna_seq_tsv)
-    doc = {}
-    uneditable_attributes = [
-      'created_at', 'updated_at', 'tube_name',
-      'gene_tpm', 'gene_counts', 'flag', 'unmapped_read_count',
-      # These values are too large for Postgres integer field
-      'aligned_bases', 'filter_passing_bases', 'filtered_base_count',
-      'raw_base_count']
-    uneditable_control_attributes = ['sample', 'compartment']
-    rna_seq_model.template.attributes.attribute_keys.each do |attribute_name|
-      next if uneditable_attributes.include?(attribute_name)
-      next if rna_seq_tsv.is_control? && uneditable_control_attributes.include?(attribute_name)
-
-      doc[attribute_name] = rna_seq_tsv[attribute_name.to_sym]
-    end
-
-    doc
+    process_rna_seq_metrics
+    process_rna_seq_genes
   end
 end
