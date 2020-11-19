@@ -18,6 +18,8 @@ class BucketController < Metis::Controller
 
     raise Etna::BadRequest, 'Invalid access' unless Metis::Bucket.valid_access?(@params[:access])
 
+    raise Etna::BadRequest, 'Cannot create a reserved bucket' unless request_is_hmac_signed_by_owner?
+
     existing_bucket = Metis::Bucket.where(
       project_name: @params[:project_name],
       name: @params[:bucket_name]
@@ -98,5 +100,13 @@ class BucketController < Metis::Controller
     )
 
     success_json(files: file_hashes, folders: folder_hashes)
+  end
+
+  private
+
+  def request_is_hmac_signed_by_owner?
+    return true unless @params[:owner].downcase == @params[:bucket_name].downcase
+
+    return @hmac&.valid? && @hmac.id.to_s == @params[:owner]
   end
 end
