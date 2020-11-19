@@ -1,7 +1,7 @@
 require 'securerandom'
 
 describe Magma::AddProjectAction do
-  let(:project_name) { "test_project_#{SecureRandom.uuid.gsub('-', '_')}" }
+  let(:project_name) { "test_project_#{SecureRandom.uuid.gsub('-', '_').gsub(/\d/, 'x')}" }
   let(:action_params) { {
     project_name: project_name,
     user: Etna::User.new({
@@ -55,7 +55,7 @@ describe Magma::AddProjectAction do
     end
 
     it 'captures an error on invalid project names' do
-      [ "my\nmproject", ' my_project', 'my_project	' , '1x_project', 'pg_project'].each do |name|
+      [ "my\nmproject", ' my_project', 'my_project	' , '1x_project', 'pg_project', 'project_1x', 'my_project_2'].each do |name|
         action = Magma::AddProjectAction.new(name, action_params)
         action.validate
         expect(action.errors.first[:message]).to eql("project_name must be snake_case with no spaces")
