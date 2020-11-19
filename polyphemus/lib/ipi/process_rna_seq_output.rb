@@ -23,6 +23,10 @@ class RnaSeqTsv
 
   def [](key)
     case key
+    when :raw_mean_length
+      data[key].split(',').first
+    when :filtered_mean_length
+      data[key].split(',').first
     when :rna_seq_plate
       "Plate#{data[key]}"
     when :cell_number
@@ -135,7 +139,12 @@ class ProcessRnaSeqOutput < Struct.new(:magma_client, :project_name, :file_path,
 
   def create_update_doc(rna_seq_tsv)
     doc = {}
-    uneditable_attributes = ['created_at', 'updated_at', 'tube_name']
+    uneditable_attributes = [
+      'created_at', 'updated_at', 'tube_name',
+      'gene_tpm', 'gene_counts', 'flag', 'unmapped_read_count',
+      # These values are too large for Postgres integer field
+      'aligned_bases', 'filter_passing_bases', 'filtered_base_count',
+      'raw_base_count']
     uneditable_control_attributes = ['sample', 'compartment']
     rna_seq_model.template.attributes.attribute_keys.each do |attribute_name|
       next if uneditable_attributes.include?(attribute_name)
