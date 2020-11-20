@@ -79,7 +79,7 @@ mat <- retrieveMatrix(
     projectName = "ipi",
     modelName = "rna_seq",
     recordNames = ids[grepl("live2",ids)],
-    attributeNames = "all")
+    attributeNames = "gene_tpm")
 # ^^^: Under the hood, .matrix_retrieval_chunk() grabs data as a json for 10 records at a time.
 # These are then converted to df columns & cbind'd, and rownames are grabbed from the template.
 
