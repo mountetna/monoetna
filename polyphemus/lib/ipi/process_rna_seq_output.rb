@@ -200,9 +200,9 @@ class RnaSeqGenes
     array = []
     matrix_columns.each do |gene_id|
       if data.key?(gene_id)
-        array << data[gene_id][attribute]
+        array << data[gene_id][attribute].to_f
       else
-        array << '0'
+        array << 0
       end
     end
 
