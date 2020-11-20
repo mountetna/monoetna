@@ -6,12 +6,15 @@
 #' and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.
 #' @param projectName Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu
 #' @param modelName Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
-#' For options, see https://timur.ucsf.edu/<projectName>/map.
+#' For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.
 #' @param recordNames Single string or string vector. Which particular sample/tube/etc. records to grab data for.
 #' Options are "all" or any combination of individual record names. To retrieve individual options, see \code{\link{retrieveIds}}.
 #' @param attributeNames Single string or string vector. Which features of the data to obtain.
-#' Options are "all" or any combination of individual attribute names. To retrieve individual options, see \code{\link{retrieveAttributeNames}}.
-#' @param filter String. Potential filter of the data. Refer to \url{https://mountetna.github.io/magma.html#retrieve} for structure details.
+#' Options are "all" or any combination of individual attribute names. To retrieve individual options, see \code{\link{retrieveAttributes}}.
+#' @param filter String. Potential filter of the data.
+#' Example: "<targetAttributeName>~GYN" to filter to records where <targetAttributeName> contains "GYN".
+#' 
+#' Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details.
 #' @param pageSize,page Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.
 #' @param connected.only \emph{Not implemented yet.} Logical. Whether data without a parent should be retained. 
 #' @param ... Additional parameters passed along to the internal `.retrieve()` function.
@@ -23,7 +26,7 @@
 #' @seealso
 #' \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
 #' 
-#' \code{\link{retrieveIds}} and \code{\link{retrieveAttributeNames}} for exploring options for the \code{recordNames} and \code{attributeNames} inputs, respectively.
+#' \code{\link{retrieveModels}}, \code{\link{retrieveIds}}, and \code{\link{retrieveAttributes}} for exploring options for the \code{modelName}, \code{recordNames}, and \code{attributeNames} inputs, respectively.
 #' 
 #' @export
 #' @examples
@@ -124,7 +127,7 @@ retrieveJSON <- function(
     request.only = FALSE,
     json.params.only = FALSE,
     raw.return = FALSE,
-    url.base = "https://magma.ucsf.edu",
+    url.base = .get_URL(),
     token = .get_TOKEN(),
     verbose = FALSE
 ) {
@@ -132,7 +135,6 @@ retrieveJSON <- function(
     format <- match.arg(format)
     
     ### Put together the request 
-    
     jsonParams <- list(
         project_name = projectName,
         model_name = modelName,
@@ -157,29 +159,17 @@ retrieveJSON <- function(
     }
     
     ### Perform '\retrieve'-al
-    
-    h <- RCurl::basicTextGatherer()
-    
-    RCurl::curlPerform(
-        url = paste0(url.base,"/retrieve"),
-        httpheader = c('Content-Type' = "application/json", 'Authorization' = paste0('Etna ', token)),
-        postfields = requestBody,
-        writefunction = h$update,
-        verbose = verbose
-        )
-    
-    if (h$value() == "You are unauthorized") {
-        stop("Unauthorized. Are you signed into vpn? If yes, run `rm(.TOKEN)` then retry.")
-    }
+    curl <- .perform_curl(
+        fxn = "/retrieve", requestBody, token, url.base, verbose)
     
     ### Output
     if (raw.return) {
-        h$value()
+        curl$value()
     } else {
         if (format=="tsv") {
-            .parse_tsv(h$value(), names.only, connected.only)
+            .parse_tsv(curl$value(), names.only, connected.only)
         } else {
-            jsonlite::fromJSON(h$value())
+            jsonlite::fromJSON(curl$value())
         }
     }
 }

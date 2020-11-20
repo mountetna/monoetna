@@ -20,13 +20,13 @@ retrieveJSON(
 \item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
 
 \item{modelName}{Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
-For options, see https://timur.ucsf.edu/<projectName>/map.}
+For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.}
 
 \item{recordNames}{Single string or string vector. Which particular sample/tube/etc. records to grab data for.
 Options are "all" or any combination of individual record names. To retrieve individual options, see \code{\link{retrieveIds}}.}
 
 \item{attributeNames}{Single string or string vector. Which features of the data to obtain.
-Options are "all" or any combination of individual attribute names. To retrieve individual options, see \code{\link{retrieveAttributeNames}}.}
+Options are "all" or any combination of individual attribute names. To retrieve individual options, see \code{\link{retrieveAttributes}}.}
 
 \item{filter}{potential filter of the data}
 
