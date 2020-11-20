@@ -2,11 +2,12 @@
 
 export(query)
 export(retrieve)
-export(retrieveAttributeNames)
+export(retrieveAttributes)
 export(retrieveIds)
 export(retrieveJSON)
 export(retrieveMatrix)
 export(retrieveMetadata)
+export(retrieveModels)
 export(retrieveTemplate)
 importFrom(utils,URLencode)
 importFrom(utils,tail)
