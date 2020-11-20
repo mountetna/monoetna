@@ -12,7 +12,7 @@ require 'ostruct'
 require_relative '../helpers'
 
 class RnaSeqMetrics
-  attr_reader :data, :magma_client, :rna_seq_model, :execute
+  attr_reader :data, :magma_client, :rna_seq_model, :execute, :project_name
   def initialize(project_name, tsv_path, magma_client, rna_seq_model, execute=false)
     @tsv_path = tsv_path
     @project_name = project_name
@@ -101,6 +101,7 @@ class RnaSeqMetrics
     doc = create_update_doc
     puts doc
     if execute
+      puts "Sending the update request."
       update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project_name)
       update_request.update_revision(
         'rna_seq',
@@ -131,12 +132,15 @@ class RnaSeqMetrics
 end
 
 class RnaSeqGenes
-  attr_reader :data, :magma_client, :rna_seq_model, :execute
+  attr_reader :data, :magma_client, :rna_seq_model, :execute, :project_name
   def initialize(project_name, tsv_path, magma_client, rna_seq_model, execute=false)
     @tsv_path = tsv_path
     @project_name = project_name
+    @magma_client = magma_client
+    @rna_seq_model = rna_seq_model
+    @execute = execute
 
-    @data = []
+    @data = {}
     process_tsv
   end
 
@@ -172,31 +176,50 @@ class RnaSeqGenes
     from_filename
   end
 
+  def matrix_columns
+    # assume same columns for each gene attribute
+    @matrix_columns ||= rna_seq_model.template.attributes.attribute('gene_tpm').options
+  end
+
   def process_tsv
     CSV.foreach(@tsv_path, col_sep: "\t", headers: true) do |tsv_line|
-      data << {
-        gene_id: tsv_line["gene_id"],
+      data[tsv_line["gene_id"]] = {
         gene_counts: tsv_line["expected_count"],
         gene_tpm: tsv_line["TPM"]
       }
     end
+  end
 
-    # Make sure these are ordered according to the gene names, alphabetically.
-    # They should be in order in the `results` file, but we'll
-    #    enforce that here.
-    data.sort_by! { |d| d[:gene_id] }
+  def get_data_as_array(attribute)
+    # The IPI gene_tpm and gene_counts validation options have
+    #   an outdated Ensembl gene set, which includes 280551
+    #   genes. However our dataset only includes 27992 genes.
+    # Here we insert `0` for those extra 59 genes.
+    # NOTE: We can't take them out of the validation without
+    #   risk of ruining the existing data.
+    array = []
+    matrix_columns.each do |gene_id|
+      if data.key?(gene_id)
+        array << data[gene_id][attribute]
+      else
+        array << '0'
+      end
+    end
+
+    array
   end
 
   def tpms
-    data.map { |d| d[:gene_tpm] }
+    get_data_as_array(:gene_tpm)
   end
 
   def counts
-    data.map { |d| d[:gene_counts] }
+    get_data_as_array(:gene_counts)
   end
 
   def upload_rna_seq
     puts "Updating rna seq genes: #{tube_name}"
+
     doc = {
       gene_counts: counts,
       gene_tpm: tpms
@@ -204,12 +227,13 @@ class RnaSeqGenes
 
     # puts doc
     if execute
+      puts "Sending the update request."
       update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project_name)
       update_request.update_revision(
         'rna_seq',
         tube_name,
         doc)
-      magma_client.update(update_request)
+      magma_client.update_json(update_request)
     end
   end
 end
