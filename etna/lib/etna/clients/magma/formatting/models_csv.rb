@@ -4,9 +4,10 @@ module Etna
   module Clients
     class Magma
       class ModelsCsv
+        COPY_OPTIONS_SENTINEL = '$copy_from_original$'
         COLUMNS = [
             :comments,
-            :model_name, :version, :identifier, :parent_model_name, :parent_link_type,
+            :model_name, :identifier, :parent_model_name, :parent_link_type,
             :attribute_name,
             :new_attribute_name,
             :attribute_type,
@@ -21,6 +22,7 @@ module Etna
             :attribute_group,
             :hidden,
             :unique,
+            :matrix_constant,
         ]
 
         COLUMN_AS_BOOLEAN = -> (s) { ['true', 't', 'y', 'yes'].include?(s.downcase) }
@@ -45,13 +47,20 @@ module Etna
           changeset.tap do
             models = changeset.models
 
+            if (matrix_constant = self.get_col_or_nil(row, :matrix_constant))
+              if matrix_constant.start_with?(COPY_OPTIONS_SENTINEL)
+                matrix_constant = matrix_constant.slice((COPY_OPTIONS_SENTINEL.length)..-1)
+                changeset.last_matrix_constant = matrix_constant
+              else
+                (changeset.matrix_constants[changeset.last_matrix_constant] ||= []) << matrix_constant
+              end
+            end
+
             template = if (model_name = self.get_col_or_nil(row, :model_name))
-              # Force the model to be most recently inserted key, since the state
-              # of the current model is kept by key ordering.
-              models.raw[model_name] = models.raw.delete(model_name)
+              changeset.last_model_key = model_name
               models.build_model(model_name).build_template.tap { |t| t.name = model_name }
             else
-              last_model = models.raw.keys.last
+              last_model = changeset.last_model_key
               if last_model.nil?
                 nil
               else
@@ -137,12 +146,12 @@ module Etna
           end
 
           models.build_model(template.parent).tap do |parent_model|
-            parent_model_attribute_by_model_name = parent_model.template.build_attributes.attribute(template.name)
+            parent_model_attribute_by_model_name = parent_model.build_template.build_attributes.attribute(template.name)
             if parent_model_attribute_by_model_name && !reciprocal
               yield "Model #{template.parent} is linked as a parent to #{template.name}, but it already has an attribute named #{template.name} #{parent_model_attribute_by_model_name.raw}." if block_given?
             end
 
-            parent_model.template.build_attributes.build_attribute(template.name).tap do |attr|
+            parent_model.build_template.build_attributes.build_attribute(template.name).tap do |attr|
               attr.attribute_name = attr.name = template.name
               attr.attribute_type = parent_link_type
               attr.link_model_name = template.name
@@ -191,10 +200,6 @@ module Etna
                 rec_att.attribute_type = AttributeType::COLLECTION
                 rec_att.link_model_name = template.name
               end
-
-              # Force the model to be most recently inserted key, since the state
-              # of the current model is kept by key ordering.
-              models.raw[template.name] = models.raw.delete(template.name)
             end
 
             att.set_field_defaults!
@@ -213,17 +218,50 @@ module Etna
 
         def self.each_csv_row(models = Models.new, model_keys = models.model_keys.sort, &block)
           yield COLUMNS.map(&:to_s)
-          model_keys.each { |model_name| self.each_model_row(models, model_name, &block) }
+
+          self.ensure_parents(models, model_keys, &block)
+          matrix_constants = {}
+          model_keys.each { |model_name| self.each_model_row(models, model_name, matrix_constants, &block) }
+
+          matrix_constants.each do |digest, options|
+            yield row_from_columns
+            yield row_from_columns(matrix_constant: COPY_OPTIONS_SENTINEL + digest)
+            options.each do |option|
+              yield row_from_columns(matrix_constant: option)
+            end
+          end
         end
 
-        def self.each_model_row(models, model_name, &block)
+        def self.ensure_parents(models, model_keys, &block)
+          q = model_keys.dup
+          seen = Set.new
+
+          until q.empty?
+            model_key = q.shift
+            next if model_key.nil?
+            next if seen.include?(model_key)
+            seen.add(model_key)
+
+            # For models that are only part of the trunk, but not of the tree of model_keys,
+            # we still need their basic information (identifier / parent) for validation and for
+            # potentially creating the required tree dependencies to connect it to a remote tree.
+            unless model_keys.include?(model_key)
+              self.each_model_trunk_row(models, model_key, &block)
+            end
+
+            q.push(*models.model(model_key).template.all_linked_model_names)
+          end
+        end
+
+        def self.each_model_trunk_row(models, model_name, &block)
           return unless (model = models.model(model_name))
+
           # Empty link for better visual separation
           yield row_from_columns
           yield row_from_columns(model_name: model_name)
 
           unless model.template.parent.nil?
-            return unless (parent_model = models.model(model.template.parent))
+            parent_model = models.model(model.template.parent)
             reciprocal = models.find_reciprocal(model: model, link_model: parent_model)
 
             yield row_from_columns(
@@ -236,13 +274,18 @@ module Etna
                 identifier: model.template.identifier,
             )
           end
+        end
 
+        def self.each_model_row(models, model_name, matrix_constants, &block)
+          return unless (model = models.model(model_name))
+
+          self.each_model_trunk_row(models, model_name, &block)
           model.template.attributes.all.each do |attribute|
-            self.each_attribute_row(models, model, attribute, &block)
+            self.each_attribute_row(models, model, attribute, matrix_constants, &block)
           end
         end
 
-        def self.each_attribute_row(models = Models.new, model = Model.new, attribute = Attribute.new, &block)
+        def self.each_attribute_row(models = Models.new, model = Model.new, attribute = Attribute.new, matrix_constants = {}, &block)
           if attribute.attribute_type == AttributeType::IDENTIFIER
             # Identifiers for models whose parent link type ends up being a table are non configurable, so we don't
             # want to include them in the CSV.
@@ -253,6 +296,17 @@ module Etna
             return unless AttributeValidator.valid_add_row_attribute_types.include?(attribute.attribute_type)
           end
 
+          options = attribute.options&.join(', ')
+          if attribute.attribute_type == AttributeType::MATRIX
+            # Matrix attribute validations are massive, and functional.  For now, we don't support showing and editing
+            # them inline with this spreadsheet.  In the future, I think we should possibly introduce the concept of
+            # CONSTANTS or Matrix Types that are managed separately.
+            options = options || ''
+            digest = Digest::MD5.hexdigest(options)
+            matrix_constants[digest] ||= COLUMNS_TO_ATTRIBUTES[:options][1].call(options)["value"]
+
+            options = COPY_OPTIONS_SENTINEL + digest
+          end
 
           yield row_from_columns(
               attribute_name: attribute.name,
@@ -265,7 +319,7 @@ module Etna
               format_hint: attribute.format_hint,
               restricted: attribute.restricted,
               read_only: attribute.read_only,
-              options: attribute.options&.join(', '),
+              options: options,
               attribute_group: attribute.attribute_group,
               hidden: attribute.hidden,
               unique: attribute.unique,
@@ -276,16 +330,13 @@ module Etna
           COLUMNS.map { |c| (columns[c] || '').to_s }
         end
 
-        class ModelsChangeset < Struct.new(:models, :renames, keyword_init: true)
+        class ModelsChangeset < Struct.new(:models, :renames, :matrix_constants, :last_matrix_constant, :last_model_key, keyword_init: true)
           def initialize(*args)
             super
 
             self.models ||= Models.new
             self.renames ||= {}
-          end
-
-          def build_renames(model_name)
-            renames[model_name] ||= {}
+            self.matrix_constants ||= {}
           end
         end
       end

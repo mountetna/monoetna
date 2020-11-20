@@ -349,7 +349,7 @@ module Etna
         end
 
         def identifier=(val)
-          raw['identifier'] = val.to_s
+          raw['identifier'] = val
         end
 
         def parent
@@ -357,7 +357,7 @@ module Etna
         end
 
         def parent=(val)
-          raw['parent'] = val.to_s
+          raw['parent'] = val
         end
 
         def attributes
@@ -366,6 +366,11 @@ module Etna
 
         def build_attributes
           Attributes.new(raw['attributes'] ||= {})
+        end
+
+        def all_linked_model_names
+          models = [ self.parent, ] + build_attributes.all.map { |v| v.link_model_name }
+          models.select { |m| !m.nil? }.uniq
         end
       end
 
