@@ -11,8 +11,8 @@ class Magma
   class ModelUpdateActions
     class FailedActionError < StandardError; end
 
-    def self.build(project_name, actions_list, model_versions = nil)
-      new(project_name, actions_list, model_versions)
+    def self.build(project_name, actions_list, user, model_versions = nil)
+      new(project_name, actions_list, user, model_versions)
     end
 
     def perform
@@ -139,10 +139,11 @@ class Magma
       )
     end
 
-    def initialize(project_name, actions_list, model_versions = nil)
+    def initialize(project_name, actions_list, user, model_versions = nil)
       @project = Magma.instance.get_or_load_project(project_name)
       @project_name = project_name
       @model_versions = model_versions
+      @user = user
       @errors = []
       @actions = []
 
@@ -150,7 +151,11 @@ class Magma
         action_class = "Magma::#{action_params[:action_name].classify}Action".safe_constantize
 
         if action_class
-          @actions << action_class.new(project_name, action_params)
+          action_params.update({user: @user}) if action_params[:action_name] == 'add_project'
+
+          @actions << action_class.new(
+            project_name,
+            action_params)
         else
           @errors << Magma::ActionError.new(
               message: "Invalid action type",

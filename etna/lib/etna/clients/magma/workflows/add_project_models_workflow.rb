@@ -42,7 +42,7 @@ module Etna
           changeset = csv_lines.inject(ModelsCsv::ModelsChangeset.new) do |acc, n|
             line_no += 1
             ModelsCsv.apply_csv_row(acc, n) do |err|
-              err_block.call("Error detected on line #{line_no}: #{err}")
+              err_block.call("Error detected on line #{line_no + 1}: #{err}")
               return
             end
           end

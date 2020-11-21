@@ -1,15 +1,21 @@
 describe Magma::ModelUpdateActions do
+  let(:user) {Etna::User.new({
+    email: "outis@mountolympus.org",
+    token: "fake"
+  })}
+
   describe '#perform' do
     context 'with invalid action_name' do
       let(:actions) do
         Magma::ModelUpdateActions.build(
-            "labors",
-            [{
-                action_name: "delete_everything",
-                model_name: "monster",
-                attribute_name: "name",
-                description: "The monster's name"
-            }],
+          "labors",
+          [{
+            action_name: "delete_everything",
+            model_name: "monster",
+            attribute_name: "name",
+            description: "The monster's name"
+          }],
+          user
         )
       end
 
@@ -38,6 +44,7 @@ describe Magma::ModelUpdateActions do
                     type: "integer"
                 }
             ],
+            user,
             model_versions
         )
       end
@@ -139,21 +146,22 @@ describe Magma::ModelUpdateActions do
     context "when an action fails" do
       let(:actions) do
         Magma::ModelUpdateActions.build(
-            "labors",
-            [
-                {
-                    action_name: "add_attribute",
-                    model_name: "monster",
-                    attribute_name: "new_attribute",
-                    type: "string"
-                },
-                {
-                    action_name: "update_attribute",
-                    model_name: "monster",
-                    attribute_name: "species",
-                    validation: "invalid"
-                }
-            ],
+          "labors",
+          [
+            {
+              action_name: "add_attribute",
+              model_name: "monster",
+              attribute_name: "new_attribute",
+              type: "string"
+            },
+            {
+              action_name: "update_attribute",
+              model_name: "monster",
+              attribute_name: "species",
+              validation: "invalid"
+            }
+          ],
+          user
         )
       end
 

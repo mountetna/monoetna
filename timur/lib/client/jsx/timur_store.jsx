@@ -16,6 +16,12 @@ import consignments from './reducers/consignments_reducer';
 import exchanges from './reducers/exchanges_reducer';
 import predicates from './reducers/predicates_reducer';
 import location from './reducers/location_reducer';
+import directory from './reducers/directory_reducer';
+
+import * as uploadActions from 'etna-js/upload/actions/upload_actions';
+
+import asyncDispatcher from 'etna-js/dispatchers/async-dispatcher';
+import workDispatcher from 'etna-js/dispatchers/work-dispatcher';
 
 export const timurStore = () => {
   let reducers = combineReducers({
@@ -30,10 +36,17 @@ export const timurStore = () => {
     consignments,
     exchanges,
     predicates,
-    location
+    location,
+    directory
   });
 
-  let middlewares = [thunk];
+  let middlewares = [
+    thunk,
+    asyncDispatcher({
+      ...uploadActions
+    }),
+    workDispatcher()
+  ];
 
   if (process.env.NODE_ENV != 'production')
     middlewares.push(createLogger({collapsed: true}));

@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-import ListUpload from './list-upload';
+import ListUpload from 'etna-js/upload/components/list-upload';
 import ListFolder from './list-folder';
 import ListFile from './list-file';
-import ListUploadFailed from './list-upload-failed';
+import ListUploadFailed from 'etna-js/upload/components/list-upload-failed';
 
 import { selectFiles, selectFolders, selectUploads } from 'etna-js/selectors/directory-selector';
 

@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 # etna application/server gem
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/85c0a54efc9d6a4d353d457d09771ed8d26ff5a7'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/1abb3b6c4d4fab5f8a0216c94351e0173751cafe'
 
 # provides lexer/parser
 gem 'rltk'
@@ -12,6 +12,8 @@ gem 'pg', '~> 0.21'
 
 # provides database models
 gem 'sequel', '4.49.0'
+
+gem 'puma', '5.0.2'
 
 group :development, :test do
   gem 'rspec'

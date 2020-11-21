@@ -65,7 +65,7 @@ module WithLogger
 end
 
 module StrongConfirmation
-  def self.confirm
+  def confirm
     puts "Confirm Y/n:"
     input = STDIN.gets.chomp
     if input != "Y"

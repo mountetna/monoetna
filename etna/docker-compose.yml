@@ -16,7 +16,10 @@ volumes:
 services:
   etna_app:
     command: echo initialized
-    image: etna-base
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: etna-app-base
     volumes:
       - .:/app:cached
       - etna-app-gems:/app/vendor/bundle:rw

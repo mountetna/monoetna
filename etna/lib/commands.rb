@@ -125,6 +125,7 @@ class EtnaApp
       class CopyTemplate < Etna::Command
         include WithEtnaClients
         include WithLogger
+        include StrongConfirmation
 
         string_flags << '--file'
         string_flags << '--target-model'
@@ -194,7 +195,7 @@ class EtnaApp
 
               puts
               puts "Would you like to execute?"
-              if StrongConfirmation.confirm
+              if confirm
                 sync_workflow.update_block = Proc.new do |action|
                   puts "Executing #{action.action_name} on #{Etna::Clients::Magma::ModelSynchronizationWorkflow.models_affected_by(action)}..."
                 end

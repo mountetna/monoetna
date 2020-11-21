@@ -34,6 +34,21 @@ module Etna
         end
       end
 
+      class RenameFileRequest < Struct.new(:project_name, :bucket_name, :file_path, :new_bucket_name, :new_file_path, :create_parent, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({create_parent: false}.update(params))
+        end
+
+        def to_h
+          # The :project_name comes in from Polyphemus as a symbol value,
+          #   we need to make sure it's a string because it's going
+          #   in the URL.
+          super().compact.transform_values(&:to_s)
+        end
+      end
+
       class ListFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
         include JsonSerializableStruct
 
@@ -50,6 +65,21 @@ module Etna
       end
 
       class CreateFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+
+        def to_h
+          # The :project_name comes in from Polyphemus as a symbol value,
+          #   we need to make sure it's a string because it's going
+          #   in the URL.
+          super().compact.transform_values(&:to_s)
+        end
+      end
+
+      class DeleteFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)
