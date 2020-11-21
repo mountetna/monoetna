@@ -10,36 +10,6 @@ module Etna
           :target_client, :source_models, :target_project, :update_block,
           :model_name, :plan_only, :validate, :use_versions, :renames,
           keyword_init: true)
-
-        def self.describe_action(action, short = false)
-          case action
-          when Etna::Clients::Magma::RenameAttributeAction
-            "#{action.model_name} #{action.attribute_name} > #{action.new_attribute_name}"
-          when Etna::Clients::Magma::UpdateAttributeAction
-            changes = ""
-            unless short
-              changes = Etna::Clients::Magma::Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.select { |k| action.respond_to?(k) }.map { |k| [k, action.send(k)] }
-              changes = "\n  * " + (changes.map { |k, v| "#{k} = #{v.inspect}" }.join(", "))
-            end
-            "update #{action.model_name} #{action.attribute_name}#{changes}"
-          when Etna::Clients::Magma::AddAttributeAction
-            changes = ""
-            unless short
-              changes = Etna::Clients::Magma::Attribute::COPYABLE_ATTRIBUTE_ATTRIBUTES.select { |k| action.respond_to?(k) }.map { |k| [k, action.send(k)] }
-              changes = "\n  * " + (changes.map { |k, v| "#{k} = #{v.inspect}" }.join(", "))
-            end
-            "add to #{action.model_name} new #{action.attribute_name}#{changes}"
-          when Etna::Clients::Magma::AddProjectAction
-            "add project #{action.project_name}"
-          when Etna::Clients::Magma::AddModelAction
-            "add model #{action.model_name} as a #{action.parent_link_type} from #{action.parent_model_name}, identifier = #{action.identifier.inspect}"
-          when Etna::Clients::Magma::AddLinkAction
-            "link #{action.links[1].model_name} to #{action.links[0].model_name} as a #{action.links[0].type} to #{action.links[1].type}"
-          else
-            action.to_h.to_s
-          end
-        end
-
         def target_models
           @target_models ||= begin
             target_client.retrieve(RetrievalRequest.new(project_name: self.target_project, model_name: 'all')).models
@@ -312,6 +282,23 @@ module Etna
               target_of_source(template.parent),
               child_attribute.attribute_type
           ]
+        end
+
+        def self.models_affected_by(action)
+          case action
+          when Etna::Clients::Magma::RenameAttributeAction
+            [action.model_name]
+          when Etna::Clients::Magma::UpdateAttributeAction
+            [action.model_name]
+          when Etna::Clients::Magma::AddAttributeAction
+            [action.model_name]
+          when Etna::Clients::Magma::AddModelAction
+            [action.model_name]
+          when Etna::Clients::Magma::AddLinkAction
+            action.links.map(&:model_name)
+          else
+            []
+          end
         end
       end
     end

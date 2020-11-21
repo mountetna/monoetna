@@ -69,7 +69,6 @@ module StrongConfirmation
     puts "Confirm Y/n:"
     input = STDIN.gets.chomp
     if input != "Y"
-      puts "Failed confirmation, got #{input}"
       return false
     end
 
