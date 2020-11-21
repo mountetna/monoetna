@@ -160,6 +160,7 @@ class EtnaApp
 
       class ApplyTemplate < Etna::Command
         include WithEtnaClients
+        include StrongConfirmation
         include WithLogger
 
         string_flags << '--file'
