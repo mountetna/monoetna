@@ -53,12 +53,13 @@ module Etna
         end
 
         def add_action(action)
-            actions << action
+          actions << action
         end
       end
 
       class AddModelAction < Struct.new(:action_name, :model_name, :parent_model_name, :parent_link_type, :identifier, keyword_init: true)
         include JsonSerializableStruct
+
         def initialize(**args)
           super({action_name: 'add_model'}.update(args))
         end
@@ -66,6 +67,7 @@ module Etna
 
       class AddAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
+
         def initialize(**args)
           super({action_name: 'add_attribute'}.update(args))
         end
@@ -74,13 +76,22 @@ module Etna
           self.type = val
         end
 
+        def attribute_type
+          self.type
+        end
+
         def desc=(val)
           self.description = val
+        end
+
+        def desc
+          self.description
         end
       end
 
       class AddLinkAction < Struct.new(:action_name, :links, keyword_init: true)
         include JsonSerializableStruct
+
         def initialize(**args)
           super({action_name: 'add_link', links: []}.update(args))
         end
@@ -92,20 +103,35 @@ module Etna
 
       class AddProjectAction < Struct.new(:action_name, keyword_init: true)
         include JsonSerializableStruct
+
         def initialize(**args)
           super({action_name: 'add_project'}.update(args))
         end
       end
 
-      class UpdateAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :type, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
+      class UpdateAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :description, :display_name, :format_hint, :hidden, :index, :link_model_name, :read_only, :attribute_group, :restricted, :unique, :validation, keyword_init: true)
         include JsonSerializableStruct
+
         def initialize(**args)
           super({action_name: 'update_attribute'}.update(args))
+        end
+
+        def desc=(val)
+          self.description = val
+        end
+
+        def desc
+          self.description
+        end
+
+        def as_json
+          super(keep_nils: true)
         end
       end
 
       class RenameAttributeAction < Struct.new(:action_name, :model_name, :attribute_name, :new_attribute_name, keyword_init: true)
         include JsonSerializableStruct
+
         def initialize(**args)
           super({action_name: 'rename_attribute'}.update(args))
         end
@@ -215,7 +241,7 @@ module Etna
           link_model&.template&.attributes&.all&.find { |a| a.link_model_name == model.name }
         end
 
-        def to_directed_graph(include_casual_links=false)
+        def to_directed_graph(include_casual_links = false)
           graph = ::DirectedGraph.new
 
           model_keys.sort.each do |model_name|
@@ -314,8 +340,16 @@ module Etna
           raw['identifier'] || ""
         end
 
+        def version
+          raw['version'] || 0
+        end
+
+        def version=(val)
+          raw['version'] = val
+        end
+
         def identifier=(val)
-          raw['identifier'] = val.to_s
+          raw['identifier'] = val
         end
 
         def parent
@@ -323,7 +357,7 @@ module Etna
         end
 
         def parent=(val)
-          raw['parent'] = val.to_s
+          raw['parent'] = val
         end
 
         def attributes
@@ -332,6 +366,11 @@ module Etna
 
         def build_attributes
           Attributes.new(raw['attributes'] ||= {})
+        end
+
+        def all_linked_model_names
+          models = [ self.parent, ] + build_attributes.all.map { |v| v.link_model_name }
+          models.select { |m| !m.nil? }.uniq
         end
       end
 
@@ -365,6 +404,16 @@ module Etna
 
         def initialize(raw = {})
           @raw = raw
+        end
+
+        # Sets certain attribute fields which are implicit, even when not set, to match server behavior.
+        def set_field_defaults!
+          @raw.replace({
+              'hidden' => false,
+              'read_only' => false,
+              'restricted' => false,
+              'validation' => nil,
+          }.merge(@raw))
         end
 
         def name
@@ -459,6 +508,7 @@ module Etna
         def attribute_group=(val)
           raw['attribute_group'] = val
         end
+
         def hidden
           raw['hidden']
         end
@@ -479,19 +529,23 @@ module Etna
           raw['options']
         end
 
-        def self.copy(source, dest)
-          dest.attribute_name = source.attribute_name
-          dest.attribute_type = source.attribute_type
-          dest.desc = source.desc
-          dest.display_name = source.display_name
-          dest.format_hint = source.format_hint
-          dest.hidden = source.hidden
-          dest.link_model_name = source.link_model_name
-          dest.read_only = source.read_only
-          dest.attribute_group = source.attribute_group
-          dest.unique = source.unique
-          dest.validation = source.validation
-          dest.restricted = source.restricted
+        # NOTE!  The Attribute class returns description as desc, where as actions take it in as description.
+        # There are shortcut methods that try to handle this on the action class side of things.  Ideally we would
+        # make this more consistent in the near future.
+        COPYABLE_ATTRIBUTE_ATTRIBUTES = [
+            :attribute_name, :attribute_type, :desc, :display_name, :format_hint,
+            :hidden, :link_model_name, :read_only, :attribute_group, :unique, :validation,
+            :restricted
+        ]
+
+        EDITABLE_ATTRIBUTE_ATTRIBUTES = UpdateAttributeAction.members & COPYABLE_ATTRIBUTE_ATTRIBUTES
+
+        def self.copy(source, dest, attributes: COPYABLE_ATTRIBUTE_ATTRIBUTES)
+          attributes.each do |attr_name|
+            next unless dest.respond_to?(:"#{attr_name}=")
+            source_v = source.send(attr_name)
+            dest.send(:"#{attr_name}=", source_v)
+          end
         end
       end
 

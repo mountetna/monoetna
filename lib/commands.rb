@@ -122,45 +122,90 @@ class EtnaApp
     class Models
       include Etna::CommandExecutor
 
-      class Add < Etna::Command
+      class CopyTemplate < Etna::Command
         include WithEtnaClients
         include WithLogger
         include StrongConfirmation
 
-        boolean_flags << '--execute'
         string_flags << '--file'
         string_flags << '--target-model'
 
-        def execute(project_name, execute: false, target_model: 'project', file: "#{project_name}_models_#{target_model}_tree.csv")
-          reset
-
+        def execute(project_name, target_model: 'project', file: "#{project_name}_models_#{target_model}_tree.csv")
           unless File.exists?(file)
             puts "File #{file} is being prepared from the #{project_name} project."
             puts "Copying models descending from #{target_model}..."
             prepare_template(file, project_name, target_model)
             puts
-            puts "Done!  You can start editing the file #{file} now, and I will report validation errors here."
+            puts "Done!  You can start editing the file #{file} now"
+          else
+            puts "File #{file} already exists!  Please remove or specify a different file name before running again."
+          end
+        end
+
+        def workflow
+          @workflow ||= Etna::Clients::Magma::AddProjectModelsWorkflow.new(magma_client: magma_client)
+        end
+
+        def prepare_template(file, project_name, target_model)
+          tf = Tempfile.new
+
+          begin
+            File.open(tf.path, 'wb') { |f| workflow.write_models_template_csv(f, project_name, target_model) }
+            FileUtils.cp(tf.path, file)
+          ensure
+            tf.close!
+          end
+        end
+      end
+
+      class ApplyTemplate < Etna::Command
+        include WithEtnaClients
+        include StrongConfirmation
+        include WithLogger
+
+        string_flags << '--file'
+        string_flags << '--target-model'
+
+        def execute(project_name, target_model: 'project', file: "#{project_name}_models_#{target_model}_tree.csv")
+          reset
+
+          unless File.exists?(file)
+            puts "Could not find file #{file}"
+            return
           end
 
           load_models_from_csv(file)
 
           while true
-            if @models && @errors.empty?
-              puts "File #{file} is well formatted and contains #{@models.model_keys.length} models to synchronize to #{environment} #{project_name}."
+            if @changeset && @errors.empty?
+              puts "File #{file} is well formatted.  Calculating expected changes..."
+              sync_workflow = workflow.plan_synchronization(@changeset, project_name, target_model)
+              models_and_action_types = sync_workflow.planned_actions.map { |a| Etna::Clients::Magma::ModelSynchronizationWorkflow.models_affected_by(a).map { |m| [m, a.action_name] }.flatten }
+              models_and_action_types.sort!
+              models_and_action_types = models_and_action_types.group_by(&:first)
 
-              if execute
-                puts "Would you like to execute?"
-                if confirm
-                  workflow.synchronize_to_server(@models, project_name, target_model) do |update_action|
-                    puts "Executing #{update_action.to_h}..."
-                  end
-                  puts "Success!"
+              models_and_action_types.each do |model, actions|
+                actions = actions.map { |a| a[1] }.sort
+                actions = actions.group_by { |v| v }
+                puts
+                puts "#{model} changes:"
+                actions.each do |type, actions|
+                  puts " * #{type}: #{actions.length}"
+                end
+              end
+
+              puts
+              puts "Would you like to execute?"
+              if confirm
+                sync_workflow.update_block = Proc.new do |action|
+                  puts "Executing #{action.action_name} on #{Etna::Clients::Magma::ModelSynchronizationWorkflow.models_affected_by(action)}..."
                 end
 
-                return
-              else
-                puts "To commit, run \033[1;31m#{program_name} #{project_name} --file #{file} --target-model #{target_model} --execute\033[0m"
+                sync_workflow.execute_planned!
+                File.unlink(file)
               end
+
+              return
             end
 
             # Poll for updates
@@ -179,7 +224,7 @@ class EtnaApp
 
         def reset
           @errors = []
-          @models = nil
+          @changeset = nil
           @last_load = Time.at(0)
         end
 
@@ -187,8 +232,8 @@ class EtnaApp
           reset
 
           @last_load = File.stat(file).mtime
-          @models = File.open(file, 'r') do |f|
-            workflow.prepare_models_from_csv(f) do |err|
+          @changeset = File.open(file, 'r') do |f|
+            workflow.prepare_changeset_from_csv(f) do |err|
               @errors << err
             end
           end
@@ -197,54 +242,13 @@ class EtnaApp
 
           puts "Input file #{file} is invalid:"
           @errors.each do |err|
-            puts  "  * " + err.gsub("\n", "\n\t")
-          end
-        end
-
-        def prepare_template(file, project_name, target_model)
-          tf = Tempfile.new
-          begin
-            File.open(tf.path, 'wb') { |f| workflow.write_models_templats_csv(f, project_name, target_model) }
-            FileUtils.cp(tf.path, file)
-          ensure
-            tf.close!
+            puts "  * " + err.gsub("\n", "\n\t")
           end
         end
       end
 
       class Attributes
         include Etna::CommandExecutor
-
-        class ValidateActions < Etna::Command
-          include WithEtnaClients
-          include WithLogger
-
-          def execute(project_name, filepath)
-            # Use the workflow to validate instead of the AttributeActionsValidator directly,
-            #   because we also need to check the actions against the project, i.e.
-            #   do the right models exist, do the attributes already exist, etc.
-            attribute_actions_workflow = Etna::Clients::Magma::AttributeActionsFromJsonWorkflow.new(
-                magma_client: magma_client,
-                project_name: project_name,
-                filepath: filepath)
-            # If the workflow initialized, then no errors!
-            puts "Attribute Actions JSON is well-formatted and is valid for project #{project_name}."
-          end
-        end
-
-        class ExecuteActions < Etna::Command
-          include WithEtnaClientsByEnvironment
-          include WithLogger
-          include RequireConfirmation
-
-          def execute(project_name, filepath)
-            attribute_actions_workflow = Etna::Clients::Magma::AttributeActionsFromJsonWorkflow.new(
-                magma_client: magma_client,
-                project_name: project_name,
-                filepath: filepath)
-            attribute_actions_workflow.run!
-          end
-        end
 
         class UpdateFromCsv < Etna::Command
           include WithEtnaClients
