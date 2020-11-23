@@ -9,3 +9,13 @@
 spec/examples.txt
 node_modules/*
 !node_modules/.gitkeep
+
+*DS_Store
+
+# For magmaR dev via RStudio.
+packages/magmaR/.Rproj.user
+packages/magmaR/.Rhistory
+packages/magmaR/.RData
+packages/magmaR/.Ruserdata
+packages/magmaR*.tar.gz
+.Rproj.user
