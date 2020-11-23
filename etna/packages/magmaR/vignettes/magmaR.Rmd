@@ -37,15 +37,11 @@ In general, magmaR functions will:
 
 Often, the structure returned by magma will be a JSON. 
 
-R does not have great built in support for the JSON structure. In these cases, the data will be converted to a **nested list** structure by the `jsonlite::fromJSON()` function.
+R does not have great built in support for the JSON structure. In these cases, the data will be converted to a nested list structure by the `jsonlite::fromJSON()` function.
 
 Other times, the structure returned by magma will be a tsv, or more specifically, a long string conforming to tsv structure standards.
 
 In these cases, the tsv-string will be transformed to a dataframe using the `readr::read_tsv()` function followed by `as.data.frame()`.
-
-### Helper Functions' extra manipulation 
-
-Helper functions perform manipulations exactly as mentioned above, folled by selection of just one piece of requested information. See below for more details.
 
 ### Additional adjustments by certain functions with targetted return goals
 
@@ -64,13 +60,31 @@ if (!requireNamespace("remotes", quietly = TRUE))
 remotes::install_github("mountetna/etna", subdir = "packages/magmaR")
 ```
 
+```{r}
+library(magmaR)
+```
+
 # Authorization process, a.k.a. janus token utilization:
 
-In order to access data in magma, a user needs to be authorized to do so. How this is achieved is via provision of a user-specific, temporary string which we call a token.  This token can be obtained from https://https://janus.ucsf.edu/.
+In order to access data in magma, a user needs to be authorized to do so. How this is achieved is via provision of a user-specific, temporary, string which we call a token.  This token can be obtained from https://janus.ucsf.edu/.
 
 ## Providing the token
 
 Within magmaR, the token can be provided in either of 2 ways:
+
+### Via prompt to the user upon first magmaR function call:
+
+Recommended: If not given explicitly by the user as above, then the user will be prompted, one time, to provide their token.  The given value will then be stored within the user's global R environment as `.MAGMAR_TOKEN` and any future calls to magmaR functions will automatically fill in their `token` input with this value.
+
+```{r, hide = TRUE, echo=FALSE}
+.MAGMAR_TOKEN <- "NEVER_COMMIT_WITH_AN_ACTUAL_TOKEN"
+```
+
+```{r}
+ids <- retrieveIds(
+    projectName = "ipi",
+    modelName = "rna_seq")
+```
 
 ### Given explicity
 
@@ -83,32 +97,20 @@ ids_patient <- retrieveIds(
     token = "<give_token_here>")
 ```
 
-### Via prompt to the user upon first magmaR function call:
+## When magma thinks you are unauthorized
 
-Recommended: If not given explicitly by the user as above, then the user will be prompted, one time, to provide their token.  The given value will then be stored within the user's global R environment as `.MAGMAR_TOKEN` and any future calls to magmaR functions will automatically fill in their `token` input with this value.
-
-```{r, eval = interactive()}
-ids <- retrieveIds(
-    projectName = "ipi",
-    modelName = "rna_seq")
-
-.MAGMAR_TOKEN
-```
-
-## When magma think you are unauthorized
-
-If the curl request to magma returns that "You are unauthorized", magmaR will provide extra info and so that users can fix this issue:
+If the curl request to magma returns that "You are unauthorized", magmaR will provide extra info so that users can fix this issue:
 
 ```
 # Error message when magma sends back that user is unauthorized:
 You are unauthorized. If you think this is a mistake, run `rm(.MAGMAR_TOKEN)` or update your 'token' input, then retry. 
 ```
 
-# Controling of which version of magma to target (privileged users only)
+# Controlling which version of magma to target (privileged users only)
 
-For privileged users with access to the staging or development versions of magma, switching between which version is targetted is controlled either by giving `url.base = "production/staging/development-url"` in a function call, or by runnning `.MAGMAR_URL <- "production/staging/development-url`
+For privileged users with access to the staging or development versions of magma, switching between which version is targeted is controlled either by giving `url.base = "production/staging/development-url"` in a function call, or by running `.MAGMAR_URL <- "production/staging/development-url`
 
-```{r}
+```{r, eval = FALSE}
 # Option 1: Given explicity in every function call:
 ids_patient <- retrieveIds(
     projectName = "ipi",
@@ -136,7 +138,7 @@ retrieveModels(
 # recordNames options:
 retrieveIds(
     projectName = "ipi",
-    modelName = "patient")
+    modelName = "patient")[1:10]
 
 # attributeNames options:
 retrieveAttributes(
@@ -154,7 +156,7 @@ temp <- retrieveTemplate(
 
 # Main data download functions:
 
-## `retreive()` & `retrieveJSON()`, analagous to magma/retrieve
+## `retreive()` & `retrieveJSON()`, analagous to `magma/retrieve`
 
 This is probably the main workhorse function of `magmaR`. If your goal is to download demographic data for a specific patient of a project, or for all patients of the project, this is thee fucntion to use.
 
@@ -174,8 +176,10 @@ Optionally, a set of `recordNames` or `attributeNames` can be given as well to g
 df <- retrieve(
     projectName = "ipi",
     modelName = "patient",
-    recordNames = c("IPIADR002.T1.rna.live", "IPIADR002.T1.rna.stroma"),
+    recordNames = c("IPIADR001", "IPIADR002"),
     attributeNames = "stain_version")
+
+head(df)
 ```
 
 The output format for the `retrieve()` function is a dataframe conversion of the tsv output given by a call to magma/retrieve with the json equivalent of `format = "tsv"`.
@@ -186,7 +190,7 @@ For these data types, the `retrieveJSON()` function can be used to retrieve such
 
 Or, specifically, when the desired data is a matrix, `retrieveMatrix()` can be used instead. More details on that function are further below.
 
-```{r}
+```{r restJSON}
 json <- retrieveJSON(
     projectName = "ipi",
     modelName = "patient",
@@ -196,21 +200,21 @@ json <- retrieveJSON(
 
 ### Additional inputs
 
-`filter`, `page`, and `page_size` inputs of magma/retrieve can also be used.
+`filter`, `page`, and `page_size` inputs of `magma/retrieve` can also be used.
 
 ```{r}
 json <- retrieveJSON(
     projectName = "ipi",
     modelName = "patient",
     recordNames = c("IPIADR002.T1.rna.live", "IPIADR002.T1.rna.stroma"),
-    attributeNames = "stain_version"
+    attributeNames = "stain_version",
     filter = "ipi_number~GYN",
     pageSize = 25,
     page = 1
     )
 ```
 
-## `query()`, analagous to magma/query
+## `query()`, analagous to `magma/query`
 
 The Magma Query API lets you pull data out of Magma through an expressive query interface. Often, if you want a specific set of data, but only for samples where attributeX has a certain property, this is the endpoint you want.
 
@@ -218,7 +222,7 @@ But note: the format of such calls can be a bit complicated, so it is recommende
 
 For guidance on how to format such calls, see `?query` and https://mountetna.github.io/magma.html#query.
 
-```{r}
+```{r query}
 query_out <- query(
     projectName = "ipi",
     queryTerms = 
@@ -239,7 +243,7 @@ answer, type (optional), and format.
 
 Alternatively, the output can be given as a dataframe if `format = "df"` is given.
 
-```{r}
+```{r query2}
 sample_ids_of_rnaseq_records <- query(
     projectName = "ipi",
     queryTerms = 
@@ -250,21 +254,21 @@ sample_ids_of_rnaseq_records <- query(
     format = "df"
     )
 
-head(sample_ids_with_linked_rnaseq_records)
+head(sample_ids_of_rnaseq_records)
 ```
 
 ## `retrieveMatrix()`
 
 Because matrices are a very common data structure that is not returned by /retrieve with the easier to use for a user "tsv" format, we provide a simple function, which wraps `retrieveJSON()` internally, to retrieve such data.
 
-```{r}
+```{r matrix}
 mat <- retrieveMatrix(
     projectName = "ipi",
     modelName = "rna_seq",
     recordNames = ids[grepl("live2",ids)],
     attributeNames = "gene_tpm")
 
-head(mat)
+head(mat, n = c(6,2))
 ```
 
 Details:
@@ -275,20 +279,37 @@ Under the hood, an internal `.matrix_retrieval_chunk()` function grabs data with
 
 This function attempts to simplify the process of obtaining "metadata" from model X for "target data" from model Y. For example, this function could be used to extract demographic data for the "ipi" project that is linked to samples with rna_seq data.
 
-```{r}
-
-
+```{r meta}
 meta <- retrieveMetadata(
     projectName = "ipi",
-    meta_modelName = "demographic",
+    meta_modelName = "sample",
     meta_attributeNames = "all",
     target_modelName = "rna_seq",
     target_recordNames = ids[grepl("live2",ids)])
+
+head(meta, n = c(6,10))
 ```
 
 Details:
 
 Internally, the function first determines the model -> model path for navigating between the meta and target models. At the moment, ONLY parent links are used for this purpose, but utilization of link attributes is planned. Then, `query()`s based on these paths are utilized to obtain how target-model and meta-model recordNames are linked. Next, requested metadata (`meta_attributeNames`, and `target_modelNames`) is `retrieve()`d. Next, if there is more than 1:1 mapping between meta model records to target model records, the metadata is expanded in order to have one output row per `target_recordNames`. Finally, this data is output as a dataframe with rows = `target_recordNames` and columns of linkage record identifiers and of each requested meta-model attribute.
+
+Now we could use these metadata to explore the rnaseq data thatwe had downloaded right beforehand:
+
+```{r}
+library(dittoSeq)
+
+# Clean metadata
+meta <- meta[!is.na(meta$rna_seq.x),]
+rownames(meta) <- meta$rna_seq.x
+
+# Make plot with dittoSeq
+sce <- importDittoBulk(
+  list(counts = mat),
+  metadata = meta
+)
+dittoBoxPlot(sce, getGenes(sce)[3], group.by = "tissue_type")
+```
 
 # Session information
 
