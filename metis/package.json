@@ -19,7 +19,7 @@
     "@fortawesome/fontawesome-free": "^5.12.0",
     "copy-webpack-plugin": "^4.6.0",
     "downzip": "git+https://git@github.com/mountetna/downzip.git",
-    "etna-js": "git+https://git@github.com/mountetna/monoetna.git#d979cd18c135ef5bbe25c08c8b415b88f99ba40c",
+    "etna-js": "git+https://git@github.com/mountetna/monoetna.git#e6f858a661ae2624b141a6cce027cf5814e9a970",
     "event-hooks-webpack-plugin": "^1.0.0",
     "fs-extra": "^9.0.1",
     "js-cookie": "^2.2.1",
