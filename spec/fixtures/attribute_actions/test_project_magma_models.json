@@ -1,0 +1,668 @@
+{
+  "models": {
+    "assay_pool": {
+      "documents": {},
+      "template": {
+        "name": "assay_pool",
+        "attributes": {
+          "created_at": {
+            "name": "created_at",
+            "attribute_name": "created_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Created At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "updated_at": {
+            "name": "updated_at",
+            "attribute_name": "updated_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Updated At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "assay_name": {
+            "name": "assay_name",
+            "attribute_name": "assay_name",
+            "model_name": "assay_name",
+            "link_model_name": "assay_name",
+            "attribute_class": "Magma::CollectionAttribute",
+            "display_name": "Assay Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
+          },
+          "assay_pool": {
+            "name": "assay_pool",
+            "attribute_name": "assay_pool",
+            "type": "String",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Assay Pool",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "biospecimen": {
+            "name": "biospecimen",
+            "attribute_name": "biospecimen",
+            "type": "String",
+            "attribute_class": "Magma::Attribute",
+            "desc": "Type of biospecimen collected",
+            "display_name": "Biospecimen",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "string"
+          },
+          "cells_loaded": {
+            "name": "cells_loaded",
+            "attribute_name": "cells_loaded",
+            "type": "Integer",
+            "attribute_class": "Magma::Attribute",
+            "desc": "Number of cells loaded into the whatchamacallit.",
+            "display_name": "Cells Loaded",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "integer"
+          },
+          "project": {
+            "name": "project",
+            "attribute_name": "project",
+            "model_name": "project",
+            "link_model_name": "project",
+            "attribute_class": "Magma::ForeignKeyAttribute",
+            "display_name": "Project",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          }
+        },
+        "identifier": "assay_pool",
+        "parent": "project"
+      }
+    },
+    "patient": {
+      "documents": {},
+      "template": {
+        "name": "patient",
+        "attributes": {
+          "created_at": {
+            "name": "created_at",
+            "attribute_name": "created_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Created At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "updated_at": {
+            "name": "updated_at",
+            "attribute_name": "updated_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Updated At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "type": "String",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "project": {
+            "name": "project",
+            "attribute_name": "project",
+            "model_name": "project",
+            "link_model_name": "project",
+            "attribute_class": "Magma::ForeignKeyAttribute",
+            "display_name": "Project",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "status": {
+            "name": "status",
+            "attribute_name": "status",
+            "model_name": "status",
+            "link_model_name": "status",
+            "attribute_class": "Magma::TableAttribute",
+            "display_name": "Status",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "table"
+          },
+          "symptom": {
+            "name": "symptom",
+            "attribute_name": "symptom",
+            "model_name": "symptom",
+            "link_model_name": "symptom",
+            "attribute_class": "Magma::TableAttribute",
+            "display_name": "Symptom",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "table"
+          },
+          "timepoint": {
+            "name": "timepoint",
+            "attribute_name": "timepoint",
+            "model_name": "timepoint",
+            "link_model_name": "timepoint",
+            "attribute_class": "Magma::CollectionAttribute",
+            "display_name": "Timepoint",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
+          }
+        },
+        "identifier": "name",
+        "parent": "project"
+      }
+    },
+    "document": {
+      "documents": {},
+      "template": {
+        "name": "document",
+        "attributes": {
+          "created_at": {
+            "name": "created_at",
+            "attribute_name": "created_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Created At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "updated_at": {
+            "name": "updated_at",
+            "attribute_name": "updated_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Updated At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "document_desc": {
+            "name": "document_desc",
+            "attribute_name": "document_desc",
+            "type": "String",
+            "attribute_class": "Magma::Attribute",
+            "desc": "Description",
+            "display_name": "Document desc",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "string"
+          },
+          "file": {
+            "name": "file",
+            "attribute_name": "file",
+            "type": "json",
+            "attribute_class": "Magma::FileAttribute",
+            "desc": "File",
+            "display_name": "File",
+            "restricted": false,
+            "read_only": true,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "file"
+          },
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "type": "String",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "project": {
+            "name": "project",
+            "attribute_name": "project",
+            "model_name": "project",
+            "link_model_name": "project",
+            "attribute_class": "Magma::ForeignKeyAttribute",
+            "display_name": "Project",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "version": {
+            "name": "version",
+            "attribute_name": "version",
+            "type": "Float",
+            "attribute_class": "Magma::Attribute",
+            "desc": "Version",
+            "display_name": "Version",
+            "restricted": false,
+            "read_only": false,
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "float"
+          },
+          "version_date": {
+            "name": "version_date",
+            "attribute_name": "version_date",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "desc": "Version date",
+            "display_name": "Version date",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "date_time"
+          }
+        },
+        "identifier": "name",
+        "parent": "project"
+      }
+    },
+    "timepoint": {
+      "documents": {},
+      "template": {
+        "name": "timepoint",
+        "attributes": {
+          "created_at": {
+            "name": "created_at",
+            "attribute_name": "created_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Created At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "updated_at": {
+            "name": "updated_at",
+            "attribute_name": "updated_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Updated At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "assay_name": {
+            "name": "assay_name",
+            "attribute_name": "assay_name",
+            "model_name": "assay_name",
+            "link_model_name": "assay_name",
+            "attribute_class": "Magma::CollectionAttribute",
+            "display_name": "Assay Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
+          },
+          "day": {
+            "name": "day",
+            "attribute_name": "day",
+            "type": "Integer",
+            "attribute_class": "Magma::Attribute",
+            "desc": "Study day",
+            "display_name": "Day",
+            "restricted": true,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "integer"
+          },
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "type": "String",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "patient": {
+            "name": "patient",
+            "attribute_name": "patient",
+            "model_name": "patient",
+            "link_model_name": "patient",
+            "attribute_class": "Magma::ForeignKeyAttribute",
+            "display_name": "Patient",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          }
+        },
+        "identifier": "name",
+        "parent": "patient"
+      }
+    },
+    "assay_name": {
+      "documents": {},
+      "template": {
+        "name": "assay_name",
+        "attributes": {
+          "created_at": {
+            "name": "created_at",
+            "attribute_name": "created_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Created At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "updated_at": {
+            "name": "updated_at",
+            "attribute_name": "updated_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Updated At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "assay_pool": {
+            "name": "assay_pool",
+            "attribute_name": "assay_pool",
+            "model_name": "assay_pool",
+            "link_model_name": "assay_pool",
+            "attribute_class": "Magma::ForeignKeyAttribute",
+            "display_name": "Assay Pool",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "link"
+          },
+          "restricted": {
+            "name": "restricted",
+            "attribute_name": "restricted",
+            "type": "TrueClass",
+            "attribute_class": "Magma::Attribute",
+            "desc": "Controls access to the data.",
+            "display_name": "Restricted",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "boolean"
+          },
+          "timepoint": {
+            "name": "timepoint",
+            "attribute_name": "timepoint",
+            "model_name": "timepoint",
+            "link_model_name": "timepoint",
+            "attribute_class": "Magma::ForeignKeyAttribute",
+            "display_name": "Timepoint",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "tube_name": {
+            "name": "tube_name",
+            "attribute_name": "tube_name",
+            "type": "String",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Tube Name",
+            "match": "^[a-zA-Z]$",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": {
+              "type": "Regexp",
+              "value": "^[a-zA-Z]$"
+            },
+            "attribute_type": "identifier"
+          },
+          "vendor": {
+            "name": "vendor",
+            "attribute_name": "vendor",
+            "type": "String",
+            "attribute_class": "Magma::Attribute",
+            "desc": "Vendor of the equipment",
+            "display_name": "Vendor",
+            "options": ["Acme"],
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": {
+              "type": "Array",
+              "value": ["Acme"]
+            },
+            "attribute_type": "string"
+          }
+        },
+        "identifier": "tube_name",
+        "parent": "timepoint"
+      }
+    },
+    "project": {
+      "documents": {},
+      "template": {
+        "name": "project",
+        "attributes": {
+          "created_at": {
+            "name": "created_at",
+            "attribute_name": "created_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Created At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "updated_at": {
+            "name": "updated_at",
+            "attribute_name": "updated_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Updated At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "assay_pool": {
+            "name": "assay_pool",
+            "attribute_name": "assay_pool",
+            "model_name": "assay_pool",
+            "link_model_name": "assay_pool",
+            "attribute_class": "Magma::CollectionAttribute",
+            "display_name": "Assay Pool",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
+          },
+          "document": {
+            "name": "document",
+            "attribute_name": "document",
+            "model_name": "document",
+            "link_model_name": "document",
+            "attribute_class": "Magma::CollectionAttribute",
+            "display_name": "Document",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
+          },
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "type": "String",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "patient": {
+            "name": "patient",
+            "attribute_name": "patient",
+            "model_name": "patient",
+            "link_model_name": "patient",
+            "attribute_class": "Magma::CollectionAttribute",
+            "display_name": "Patient",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
+          }
+        },
+        "identifier": "name"
+      }
+    },
+    "status": {
+      "documents": {},
+      "template": {
+        "name": "status",
+        "attributes": {
+          "created_at": {
+            "name": "created_at",
+            "attribute_name": "created_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Created At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "updated_at": {
+            "name": "updated_at",
+            "attribute_name": "updated_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Updated At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "patient": {
+            "name": "patient",
+            "attribute_name": "patient",
+            "model_name": "patient",
+            "link_model_name": "patient",
+            "attribute_class": "Magma::ForeignKeyAttribute",
+            "display_name": "Patient",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "id": {
+            "name": "id",
+            "attribute_name": "id",
+            "type": "String",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Id",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "identifier"
+          }
+        },
+        "identifier": "id",
+        "parent": "patient"
+      }
+    },
+    "symptom": {
+      "documents": {},
+      "template": {
+        "name": "symptom",
+        "attributes": {
+          "created_at": {
+            "name": "created_at",
+            "attribute_name": "created_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Created At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "updated_at": {
+            "name": "updated_at",
+            "attribute_name": "updated_at",
+            "type": "DateTime",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Updated At",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "patient": {
+            "name": "patient",
+            "attribute_name": "patient",
+            "model_name": "patient",
+            "link_model_name": "patient",
+            "attribute_class": "Magma::ForeignKeyAttribute",
+            "display_name": "Patient",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "id": {
+            "name": "id",
+            "attribute_name": "id",
+            "type": "String",
+            "attribute_class": "Magma::Attribute",
+            "display_name": "Id",
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "identifier"
+          }
+        },
+        "identifier": "id",
+        "parent": "patient"
+      }
+    }
+  }
+}
