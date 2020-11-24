@@ -1,0 +1,118 @@
+{
+  "folders": [
+    {
+      "folder_name": "assay",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay"
+    },
+    {
+      "folder_name": "processed",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed"
+    },
+    {
+      "folder_name": "raw",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw"
+    },
+    {
+      "folder_name": "sample-9",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/sample-9"
+    },
+    {
+      "folder_name": "sample-10",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/sample-10"
+    },
+    {
+      "folder_name": "sample-11",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/sample-11"
+    },
+    {
+      "folder_name": "summary",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/sample-11/summary"
+    },
+    {
+      "folder_name": "sample-12",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/sample-12"
+    },
+    {
+      "folder_name": "sample-13",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/sample-13"
+    },
+    {
+      "folder_name": "sample-14",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/sample-14"
+    },
+    {
+      "folder_name": "summary",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/sample-14/summary"
+    },
+    {
+      "folder_name": "sample-11",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/sample-11"
+    },
+    {
+      "folder_name": "summmary",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/sample-11/summary"
+    },
+    {
+      "folder_name": "sample-12",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/sample-12"
+    },
+    {
+      "folder_name": "pool-b",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/pool-b"
+    },
+    {
+      "folder_name": "pool-c",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/processed/pool-c"
+    },
+    {
+      "folder_name": "pool-b",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/pool-b"
+    },
+    {
+      "folder_name": "summary",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/pool-b/summary"
+    },
+    {
+      "folder_name": "pool-c",
+      "bucket_name": "restrict",
+      "project_name": "test",
+      "folder_path": "assay/raw/pool-c"
+    }
+  ]
+}
