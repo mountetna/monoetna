@@ -600,7 +600,7 @@ done
 return
 elif [[ "$1" == "show" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names  "
+all_flag_completion_names="$all_flag_completion_names --all "
 string_flag_completion_names="$string_flag_completion_names  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then

@@ -7,7 +7,7 @@ gem 'pg'
 gem 'sequel'
 gem 'fog-aws'
 gem 'puma', '5.0.2'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/cd3f4203efb74bc1d91c0d8afa2dceea0f9eed6f'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/55d13513a1f353fe4d97d254adf9043bf84c32e3'
 
 gem 'puma', '5.0.2'
 

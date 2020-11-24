@@ -9,55 +9,10 @@ require 'yaml'
 require_relative '../lib/etna'
 require_relative '../lib/commands'
 
-config = (
-         if File.exists?(EtnaApp.config_file_path)
-           YAML.load(File.read(EtnaApp.config_file_path))
-         else
-           {}
-         end).update({
-    production: {
-        docker: {
-            default_tag: 'latest',
-        },
-        magma: {
-            host: 'https://magma.ucsf.edu'
-        },
-        metis: {
-            host: 'https://metis.ucsf.edu',
-        },
-        janus: {
-            host: 'https://janus.ucsf.edu',
-        },
-        timur: {},
-        polyphemus: {},
-        auth_redirect: 'https://janus.ucsf.edu',
-        ignore_ssl: false,
-    },
-    stage: {
-        docker: {
-            default_tag: 'latest',
-        },
-        magma: {
-            host: 'https://magma-stage.ucsf.edu'
-        },
-        metis: {
-            host: 'https://metis-stage.ucsf.edu',
-        },
-        janus: {
-            host: 'https://janus-stage.ucsf.edu',
-        },
-        timur: {},
-        polyphemus: {},
-        auth_redirect: 'https://janus-stage.ucsf.edu',
-        ignore_ssl: true,
-    },
-})
-
-EtnaApp.instance.run_command(config, *ARGV) do |cmd, args|
-  if cmd.class.included_modules.include?(RequireConfirmation)
-    puts "Attempting to run #{cmd.program_name} in environment #{EtnaApp.instance.environment} with args #{args}"
-    StrongConfirmation.confirm
-  else
-    true
-  end
+config = if File.exists?(EtnaApp.config_file_path)
+  YAML.load(File.read(EtnaApp.config_file_path))
+else
+  {}
 end
+
+EtnaApp.instance.run_command(config, *ARGV)
