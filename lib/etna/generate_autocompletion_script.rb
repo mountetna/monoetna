@@ -72,7 +72,6 @@ module Etna
       enable_flags(scope.class)
       write 'while [[ "$#" != "0" ]]; do'
       generate_start_match(scope.subcommands.keys)
-      generate_flag_handling
 
       scope.subcommands.each do |name, command|
         write %Q(elif [[ "$1" == "#{name}" ]]; then)
@@ -83,6 +82,8 @@ module Etna
           generate_for_command(command)
         end
       end
+
+      generate_flag_handling
 
       write "else"
       write "return"

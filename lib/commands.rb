@@ -5,10 +5,6 @@ require 'tempfile'
 require_relative 'helpers'
 require 'yaml'
 
-# /bin/etna will confirm execution before running any command that includes this module.
-module RequireConfirmation
-end
-
 class EtnaApp
   def self.config_file_path
     File.join(Dir.home, 'etna.yml')
@@ -27,9 +23,9 @@ class EtnaApp
     elsif @config && @config.is_a?(Hash) && @config.keys.length == 1
       @config.keys.last.to_sym
     elsif @config && @config.is_a?(Hash) && @config.keys.length > 1
-      raise "You have multiple environments configured, please specify your environment by adding --environment #{@config.keys.join("|")}"
+      :many
     else
-      raise "You do not have a successfully configured environment, please run #{program_name} config set https://polyphemus.ucsf.edu"
+      :none
     end
   end
 
@@ -41,11 +37,8 @@ class EtnaApp
     include Etna::CommandExecutor
 
     class Show < Etna::Command
-
-      boolean_flags << '--all'
-
-      def execute(all: false)
-        if all
+      def execute
+        if EtnaApp.instance.environment == :many
           File.open(EtnaApp.config_file_path, 'r') { |f| puts f.read }
         else
           puts "Current environment: #{EtnaApp.instance.environment}"
@@ -253,7 +246,6 @@ class EtnaApp
         class UpdateFromCsv < Etna::Command
           include WithEtnaClients
           include WithLogger
-          include RequireConfirmation
 
           def magma_crud
             @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(
