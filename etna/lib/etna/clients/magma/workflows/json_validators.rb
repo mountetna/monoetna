@@ -75,6 +75,30 @@ module Etna
         end
       end
 
+      class RenamesValidator < ValidatorBase
+        attr_reader :models, :renames
+        def initialize(models = Models.new, renames = {})
+          @models = models
+          @renames = renames
+          super()
+        end
+
+        def validate
+          renames.each do |model_name, attribute_renames|
+            attribute_renames.each do |old_name, new_name|
+              keys = @models.build_model(model_name).build_template.build_attributes.attribute_keys
+              if keys.include?(new_name)
+                @errors << "Model #{model_name} trying to rename #{old_name} to #{new_name}, but a different #{new_name} already exists."
+              end
+
+              if !keys.include?(old_name)
+                @errors << "Model #{model_name} trying to rename #{old_name} to #{new_name}, but #{old_name} does not exist."
+              end
+            end
+          end
+        end
+      end
+
       class AddModelValidator < ValidatorBase
         attr_reader :model
 
@@ -82,7 +106,6 @@ module Etna
           super()
           @model = models.build_model(model_name)
           @models = models
-          @valid_parent_link_types = Etna::Clients::Magma::ParentLinkType.entries.sort # sort for prettier presentation
         end
 
         def parent_reciprocal_attribute
@@ -126,7 +149,7 @@ module Etna
               attribute_types = AttributeValidator.valid_add_row_attribute_types
             end
 
-            attribute_validator = AttributeValidator.new(attribute, attribute_types)
+            attribute_validator = AttributeValidator.new(attribute, attribute_types, @models)
             attribute_validator.validate
             @errors += attribute_validator.errors
           end
@@ -169,11 +192,12 @@ module Etna
       class AttributeValidator < ValidatorBase
         attr_reader :attribute
 
-        def initialize(attribute, valid_attribute_types)
+        def initialize(attribute, valid_attribute_types, project_models)
           super()
           @attribute = attribute
           @valid_attribute_types = valid_attribute_types
           @valid_validation_types = self.class.valid_validation_types
+          @project_models = project_models
         end
 
         def self.valid_add_row_attribute_types
@@ -208,10 +232,13 @@ module Etna
         def validate_basic_attribute_data
           check_valid_name_with_numbers('Attribute', attribute.attribute_name)
           check_key("attribute #{attribute.attribute_name}", attribute.raw, 'attribute_type')
-          check_key("attribute #{attribute.attribute_name}", attribute.raw, 'display_name')
 
           if attribute.link_model_name && ![AttributeType::TABLE, AttributeType::LINK, AttributeType::COLLECTION, AttributeType::PARENT, AttributeType::CHILD].include?(attribute.attribute_type)
             @errors << "attribute #{attribute.attribute_name} has link_model_name set, but has attribute_type #{attribute.attribute_type}"
+          end
+
+          if attribute.link_model_name && !@project_models.model_keys.include?(attribute.link_model_name)
+            @errors << "attribute #{attribute.attribute_name} has link_model_name value of #{attribute.link_model_name}, but a model by that name does not exist."
           end
 
           check_in_set("attribute #{attribute.attribute_name}", attribute.raw, 'attribute_type', @valid_attribute_types)
@@ -286,7 +313,7 @@ module Etna
         end
 
         def validate_attribute_data
-          validator = AttributeValidator.new(@attribute, AttributeValidator.valid_add_row_attribute_types)
+          validator = AttributeValidator.new(@attribute, AttributeValidator.valid_add_row_attribute_types, project_models)
           validator.validate
           @errors += validator.errors unless validator.valid?
 
@@ -377,9 +404,6 @@ module Etna
 
         def validate_attribute_data
           check_does_not_exist_in_model(action.model_name, action.attribute_name)
-          # validator = AttributeValidator.new(@attribute, AttributeValidator.valid_update_attribute_types)
-          # validator.validate
-          # @errors += validator.errors unless validator.valid?
         end
       end
 

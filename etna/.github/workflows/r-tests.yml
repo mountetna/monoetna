@@ -1,0 +1,11 @@
+name: Run R tests
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    image: r-base
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run test suite
+        run: |
+          echo "R command to run tests"
