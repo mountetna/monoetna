@@ -28,27 +28,22 @@ magmaR is an R-client for interfacing with, and downloading data from, magma the
 In general, magmaR functions will:
 
 1. Take in inputs from the user.
-2. Reformat those inputs into the structure magma understands.
-3. Make a curl request to magma to obtain desired data.
-4. Performs some level of, typically minimal, restructuring of the data.
+2. Make a curl request to magma to obtain desired data.
+3. Perform some level of, typically minimal, restructuring of the data.
 5. Return the output.
 
 ### Data Restructuring Details
 
-Often, the structure returned by magma will be a JSON. 
+Often, a **tsv** will be obtained from magma, which magmaR will read in as a **dataframe**.
 
-R does not have great built in support for the JSON structure. In these cases, the data will be converted to a nested list structure by the `jsonlite::fromJSON()` function.
-
-Other times, the structure returned by magma will be a tsv, or more specifically, a long string conforming to tsv structure standards.
-
-In these cases, the tsv-string will be transformed to a dataframe using the `readr::read_tsv()` function followed by `as.data.frame()`.
+Othere times, magma will return data as a **JSON**. Unfortunately, JSON object don't play well in R so in these cases, the data will be converted to a **nested list**.
 
 ### Additional adjustments by certain functions with targetted return goals
 
 A couple of functions, `retrieveMatrix()` and `retrieveMetadata()` perform some significant restructuring of data after initial return from magma. Exact details can be found below and within their respective documentation, but the overall idea is that:
 
-- `retrieveMatrix()`: downloading an entire matrix in JSON format is very inefficient, so this function obtains chunks first, then appends those chunnks together.
-- `retrieveMetadata()`: the exact method for constructing a magma/query call that would obtain data from one model (the `meta_modelName` input) which is linked to records of another model (the `target_modelName` input) is hard to predict. So, the function performs intermediate steps which determine how such data would be linked, then it pulls the desired, linked, data from the meta model, then it restructures that data into a dataframe that has one row per record of the target model.
+- `retrieveMatrix()`: downloading an entire matrix in the necessary JSON format ends up being very inefficient, so this function obtains data for chunks of records at a time, then converts to a matrix and appends those chunks together `recordNames` as column names, and row names pulled from the project template.
+- `retrieveMetadata()`: this function starts by performing successive query calls in order to determine how records of one model (the `meta_modelName` input) are linked to records of another model (the `target_modelName` input). So, the function performs intermediate steps which determine how such data would be linked, then it pulls the desired, linked, data from the meta model, then it restructures that data into a dataframe that has one row per record of the target model.
 
 # Installation
 
@@ -190,7 +185,7 @@ For these data types, the `retrieveJSON()` function can be used to retrieve such
 
 Or, specifically, when the desired data is a matrix, `retrieveMatrix()` can be used instead. More details on that function are further below.
 
-```{r restJSON}
+```{r retJSON}
 json <- retrieveJSON(
     projectName = "ipi",
     modelName = "patient",
@@ -206,7 +201,7 @@ json <- retrieveJSON(
 json <- retrieveJSON(
     projectName = "ipi",
     modelName = "patient",
-    recordNames = c("IPIADR002.T1.rna.live", "IPIADR002.T1.rna.stroma"),
+    recordNames = "all",
     attributeNames = "stain_version",
     filter = "ipi_number~GYN",
     pageSize = 25,
