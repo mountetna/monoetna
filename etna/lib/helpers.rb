@@ -6,11 +6,13 @@ module WithEtnaClients
     EtnaApp.instance.environment
   end
 
-  def token
-    if environment == :many
-      raise "You have multiple environments configured, please specify your environment by adding --environment #{@config.keys.join("|")}"
-    elsif environment == :none
-      raise "You do not have a successfully configured environment, please run #{program_name} config set https://polyphemus.ucsf.edu"
+  def token(require_environment: true)
+    if require_environment
+      if environment == :many
+        raise "You have multiple environments configured, please specify your environment by running adding --environment <target-env>"
+      elsif environment == :none
+        raise "You do not have a successfully configured environment, please run #{program_name} config set https://polyphemus.ucsf.edu"
+      end
     end
 
     env_token = ENV['TOKEN']

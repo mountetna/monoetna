@@ -9,10 +9,59 @@ require 'yaml'
 require_relative '../lib/etna'
 require_relative '../lib/commands'
 
-config = if File.exists?(EtnaApp.config_file_path)
-  YAML.load(File.read(EtnaApp.config_file_path))
-else
-  {}
+# Base config enabled
+config = {
+    production: {
+        docker: {
+            default_tag: 'latest',
+        },
+        magma: {
+            host: 'https://magma.ucsf.edu',
+        },
+        metis: {
+            host: 'https://metis.ucsf.edu',
+        },
+        janus: {
+            host: 'https://janus.ucsf.edu',
+        },
+        timur: {
+            host: 'https://timur.ucsf.edu',
+        },
+        polyphemus: {
+            host: 'https://polyphemus.ucsf.edu',
+        },
+        auth_redirect: 'https://janus.ucsf.edu',
+        ignore_ssl: false,
+    },
+    staging: {
+        docker: {
+            default_tag: 'latest',
+        },
+        magma: {
+            host: 'https://magma-stage.ucsf.edu',
+        },
+        metis: {
+            host: 'https://metis-stage.ucsf.edu',
+        },
+        janus: {
+            host: 'https://janus-stage.ucsf.edu',
+        },
+        timur: {
+            host: 'https://timur-stage.ucsf.edu',
+        },
+        polyphemus: {
+            host: 'https://polyphemus-stage.ucsf.edu',
+        },
+        auth_redirect: 'https://janus-stage.ucsf.edu',
+        ignore_ssl: true,
+    },
+    local: {
+        enabled_environments: [ :production ],
+    }
+}
+
+if File.exists?(EtnaApp.config_file_path)
+  config.update(YAML.load(File.read(EtnaApp.config_file_path)))
 end
 
 EtnaApp.instance.run_command(config, *ARGV)

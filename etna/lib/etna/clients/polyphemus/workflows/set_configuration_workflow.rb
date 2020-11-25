@@ -18,27 +18,13 @@ module Etna
   module Clients
     class Polyphemus
       class SetConfigurationWorkflow < Struct.new(:polyphemus_client, :config_file, keyword_init: true)
-        def fetch_configuration
-          polyphemus_client.configuration
-        end
-
-        def update_configuration_file(**additional_config)
-          if File.exist?(config_file)
-            etna_config = YAML.load_file(config_file) || {}
-          else
-            etna_config = {}
-          end
-
+        def update_configuration_file(**additional_config, &updater)
           config = polyphemus_client.configuration
           env = config.environment.to_sym
 
-          # Ensure that env is the last key in the result, which becomes the new 'default' config.
-          etna_config.delete(env) if etna_config.include?(env)
           env_config = config.environment_configuration.raw.dup
           env_config.update(additional_config)
-          etna_config.update({ env => env_config })
-
-          File.open(config_file, 'w') { |f| YAML.dump(etna_config, f) }
+          updater.call(env_config, env)
           config
         end
       end

@@ -20,13 +20,33 @@ class EtnaApp
   def environment
     if @environment
       @environment
-    elsif @config && @config.is_a?(Hash) && @config.keys.length == 1
-      @config.keys.last.to_sym
-    elsif @config && @config.is_a?(Hash) && @config.keys.length > 1
+    elsif enabled_environments.length == 1
+      enabled_environments.first.to_sym
+    elsif enabled_environments.length > 1
       :many
     else
       :none
     end
+  end
+
+  def update_etna_config(new_values, env=environment)
+    if File.exist?(self.class.config_file_path)
+      etna_config = YAML.load_file(self.class.config_file_path) || {}
+    else
+      etna_config = {}
+    end
+
+    c = env_config(env) || {}
+    c.update(new_values)
+
+    etna_config.update({ env => c })
+
+    File.open(self.class.config_file_path, 'w') { |f| YAML.dump(etna_config, f) }
+    c
+  end
+
+  def enabled_environments
+    (config(:enabled_environments, :local) || []).map(&:to_sym)
   end
 
   def set_environment(env)
@@ -39,11 +59,40 @@ class EtnaApp
     class Show < Etna::Command
       def execute
         if EtnaApp.instance.environment == :many
-          File.open(EtnaApp.config_file_path, 'r') { |f| puts f.read }
+          EtnaApp.instance.enabled_environments.each do |env|
+            puts "Environment: #{env}"
+            pp EtnaApp.instance.env_config(env)
+          end
         else
           puts "Current environment: #{EtnaApp.instance.environment}"
           pp EtnaApp.instance.env_config
         end
+      end
+    end
+
+    class Enable < Etna::Command
+      def execute(environment)
+        environment = environment.to_sym
+        if EtnaApp.instance.env_config(environment).nil?
+          raise "Environment #{environment} has not been set, perhaps you should run `etna config set https://<your-config-endpoint>`"
+        end
+
+        EtnaApp.instance.update_etna_config({
+            enabled_environments: EtnaApp.instance.enabled_environments + [environment]
+        }, :local)
+
+        puts "Updated enabled environments: #{EtnaApp.instance.enabled_environments}"
+      end
+    end
+
+    class Disable < Etna::Command
+      def execute(environment)
+        environment = environment.to_sym
+        EtnaApp.instance.update_etna_config({
+            enabled_environments: EtnaApp.instance.enabled_environments.select { |env| env != environment }
+        }, :local)
+
+        puts "Updated enabled environments: #{EtnaApp.instance.enabled_environments}"
       end
     end
 
@@ -56,12 +105,18 @@ class EtnaApp
       def execute(host, ignore_ssl: false)
         polyphemus_client ||= Etna::Clients::Polyphemus.new(
             host: host,
-            token: token,
+            token: token(require_environment: false),
             ignore_ssl: ignore_ssl)
         workflow = Etna::Clients::Polyphemus::SetConfigurationWorkflow.new(
             polyphemus_client: polyphemus_client,
             config_file: EtnaApp.config_file_path)
-        config = workflow.update_configuration_file(ignore_ssl: ignore_ssl)
+        config = workflow.update_configuration_file(ignore_ssl: ignore_ssl) do |config, env|
+          EtnaApp.instance.update_etna_config(config, env)
+          EtnaApp.instance.update_etna_config({
+              enabled_environments: EtnaApp.instance.enabled_environments + [env]
+          }, :local)
+        end
+
         logger.info("Updated #{config.environment} configuration from #{host}.")
       end
 
@@ -188,7 +243,7 @@ class EtnaApp
               end
 
               puts
-              puts "Would you like to execute?"
+              puts "Would you like to execute this \033[1;31min #{EtnaApp.environment}\033[0m?"
               if confirm
                 sync_workflow.update_block = Proc.new do |action|
                   puts "Executing #{action.action_name} on #{Etna::Clients::Magma::ModelSynchronizationWorkflow.models_affected_by(action)}..."
