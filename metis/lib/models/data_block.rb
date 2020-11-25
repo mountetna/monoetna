@@ -1,3 +1,5 @@
+require 'fileutils'
+
 class Metis
   class DataBlock < Sequel::Model
     plugin :timestamps, update_on_create: true
@@ -89,10 +91,18 @@ class Metis
     end
 
     def location
+      directory = ::File.join(
+        Metis.instance.config(:data_path),
+        'data_blocks',
+        md5_hash[0],
+        md5_hash[1]
+      )
+
+      FileUtils.mkdir_p(directory) unless ::File.directory?(directory)
+
       ::File.expand_path(
         ::File.join(
-          Metis.instance.config(:data_path),
-          'data_blocks',
+          directory,
           md5_hash
         )
       )
