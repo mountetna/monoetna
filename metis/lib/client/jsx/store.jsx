@@ -1,8 +1,10 @@
 import * as Redux from 'redux';
+import thunk from 'redux-thunk';
 import * as ReduxLogger from 'redux-logger';
 import directory from './reducers/directory-reducer';
 import user from './reducers/user-reducer';
 import dialog from './reducers/dialog-reducer';
+import janus from 'etna-js/reducers/janus-reducer';
 
 import * as fileActions from './actions/file_actions';
 import * as folderActions from './actions/folder_actions';
@@ -16,7 +18,8 @@ const createStore = () => {
   let reducers = {
     directory,
     dialog,
-    user
+    user,
+    janus
   };
 
   // action handlers to import
@@ -31,22 +34,16 @@ const createStore = () => {
     // returnFile: fileActions.retrieveFile
   };
 
+  let middleWares = [thunk, asyncDispatcher(actions), workDispatcher()];
 
-  let middleWares = [
-    asyncDispatcher(actions),
-    workDispatcher()
-  ];
+  if (process.env.NODE_ENV != 'production')
+    middleWares.unshift(ReduxLogger.createLogger({collapsed: true}));
 
-  if(process.env.NODE_ENV != 'production') middleWares.unshift(ReduxLogger.createLogger({collapsed: true}));
-
-  let store = Redux.applyMiddleware(...middleWares)(
-    Redux.createStore
-  )(
-    Redux.combineReducers(reducers)
+  return Redux.createStore(
+    Redux.combineReducers(reducers),
+    {},
+    Redux.applyMiddleware(...middleWares)
   );
-
-  return store;
-}
-
+};
 
 export default createStore;

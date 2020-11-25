@@ -9,6 +9,8 @@ import ModalDialog from './modal-dialog';
 
 import { findRoute, setRoutes } from '../router';
 
+import {fetchProjectsAction} from 'etna-js/actions/janus-actions';
+
 const ROUTES = [
   {
     name: 'root',
@@ -37,6 +39,13 @@ setRoutes(ROUTES);
 const Invalid = () => <div>Path invalid</div>;
 
 class MetisUI extends React.Component {
+  constructor(props) {
+    super(props);
+
+    // Fetch the projects from Janus
+    props.fetchProjectsAction();
+  }
+
   render() {
     let { route, params }  = findRoute({ path: window.location.pathname } ,ROUTES);
     let Component = route ? route.component : Invalid;
@@ -51,4 +60,9 @@ class MetisUI extends React.Component {
   }
 }
 
-export default MetisUI;
+// export default MetisUI;
+
+export default connect(
+  null,
+  { fetchProjectsAction }
+)(MetisUI);
