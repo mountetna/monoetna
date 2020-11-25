@@ -60,8 +60,6 @@ class MetisUI extends React.Component {
   }
 }
 
-// export default MetisUI;
-
 export default connect(
   null,
   { fetchProjectsAction }

@@ -32,4 +32,10 @@ describe('Janus Utils', () => {
 
     expect(result).toEqual('xyz2');
   });
+
+  it('returns the shortname if no projects', () => {
+    const result = projectNameFull(null, 'xyz2');
+
+    expect(result).toEqual('xyz2');
+  });
 });
