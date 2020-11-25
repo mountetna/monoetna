@@ -8,6 +8,11 @@ Description: Provides functions for querying data from magma, then working with
 Imports: RCurl,
     jsonlite,
     readr
+Suggests: dittoSeq,
+    BiocStyle,
+    vcr,
+    webmockr,
+    testthat
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
