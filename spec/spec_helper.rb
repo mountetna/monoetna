@@ -221,7 +221,8 @@ class Stubs
   end
 
   def create_file(project_name, bucket_name, name, contents, md5_hash=nil)
-    file_path = ::File.expand_path("#{Metis.instance.config(:data_path)}/data_blocks/#{md5_hash || Digest::MD5.hexdigest(contents)}")
+    hash = md5_hash || Digest::MD5.hexdigest(contents)
+    file_path = ::File.expand_path("#{Metis.instance.config(:data_path)}/data_blocks/#{hash[0]}/#{hash[1]}/#{hash}")
     stub_file(file_path, contents)
     add_stub(file_path)
   end
