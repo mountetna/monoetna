@@ -19,3 +19,6 @@ packages/magmaR/.RData
 packages/magmaR/.Ruserdata
 packages/magmaR*.tar.gz
 .Rproj.user
+packages/magmaR/.Renviron
+packages/magmaR/tests/fixtures/*
+packages/magmaR.Rcheck*

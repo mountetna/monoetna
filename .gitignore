@@ -70,3 +70,6 @@ etna/packages/magmaR/.RData
 etna/packages/magmaR/.Ruserdata
 etna/packages/magmaR*.tar.gz
 .Rproj.user
+etna/packages/magmaR/.Renviron
+etna/packages/magmaR/tests/fixtures/*
+etna/packages/magmaR.Rcheck*
