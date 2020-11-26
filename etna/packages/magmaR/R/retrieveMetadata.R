@@ -5,7 +5,7 @@
 #' @param meta_group.by \emph{Not implemented yet.} String, an attribute within the meta_model that can be used to group data when there are expected to be more than 1 record of metadata per record of target data.
 #' @param ... Additional parameters passed along to the internal `.query()` and `.retrieve()` functions.
 #' For troubleshooting or privileged-user purposes only.
-#' Options: \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).
+#' Options: \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of magma).
 #' @return A dataframe with rows = target_recordNames and columns = either meta_attributeNames or repeats of meta_attributeNames to accommodate 1:many mappings of target data records to metadata records.
 #' @export
 #' @importFrom utils tail
@@ -64,6 +64,11 @@ retrieveMetadata <- function(
         ]
         
         meta_record_names <- meta_id_map[,1, drop = TRUE]
+        
+        # Create combined id_map with the meta columns at end, in reverse order.
+        target_id_map <- merge(
+            target_id_map, meta_id_map[,rev(paths$meta_path)],
+            by = colnames(target_id_map)[ncol(target_id_map)])
     } else {
         
         # The target meta_model is at the top of the target_id_map.
@@ -78,23 +83,28 @@ retrieveMetadata <- function(
         attributeNames = meta_attributeNames,
         token = token,
         ...)
-    #### *WANT TO REMOVE* Find identifiers
-    id_column <- match(TRUE,
-                       vapply(seq_len(ncol(meta_raw)),
-                              function(x) all(meta_record_names %in% meta_raw[,x]),
-                              logical(1))
-    )
+    # Find identifier column
+    meta_id_col_name <- temp$models[[meta_modelName]]$template$identifier
+    id_col_index <- match(meta_id_col_name, colnames(meta_raw))
     
     ### Ensure metadata has 1 row per linked target data row
     meta <- if (separate_branches) {
-        .expand_metadata_to_have_1row_per_id(meta_raw, meta_id_map, id_column)
+        .expand_metadata_to_have_1row_per_id(meta_raw, meta_id_map, id_col_index)
     } else {
         meta_raw
     }
     
-    # Ensure matching
-    colnames(target_id_map)[ncol(target_id_map)] <- colnames(meta)[id_column]
-    output <- merge(target_id_map, meta, all.x = TRUE, by = colnames(meta)[id_column])
+    ### Output in order that matches target_recordNames order
+    
+    # Ensure no duplicated column names, except for the matching id column.
+    meta <- .trim_duplicated_columns(meta, target_id_map, meta_id_col_name)
+    
+    # merge with order coming from the the target_id_map
+    output <- merge(
+        target_id_map, meta,
+        all.x = TRUE,
+        by.x = colnames(target_id_map)[ncol(target_id_map)],
+        by.y = meta_id_col_name)
     
     output
 }
@@ -190,7 +200,7 @@ retrieveMetadata <- function(
     ids
 }
 
-.expand_metadata_to_have_1row_per_id <- function(meta_raw, meta_id_map, id_column){
+.expand_metadata_to_have_1row_per_id <- function(meta_raw, meta_id_map, id_col_index){
     ### Expand metadata (columns direction) until 1 row per id.
     
     ## Method: By a user-provided grouping 
@@ -225,14 +235,35 @@ retrieveMetadata <- function(
             next_meta <- meta_left[inds,]
             # Update column names with _i for all but the column containing Ids
             colnames(next_meta) <- paste(colnames(next_meta), i, sep="_")
-            colnames(next_meta)[id_column] <- colnames(meta)[id_column]
+            colnames(next_meta)[id_col_index] <- colnames(meta)[id_col_index]
             
             # Add
-            meta <- merge(meta, next_meta, all.x = TRUE, by = colnames(meta)[id_column])
+            meta <- merge(meta, next_meta, all.x = TRUE, by = colnames(meta)[id_col_index])
             
             # Update variables for next repeat
             meta_left <- meta_left[-inds,]
             linker_ids_left <- linker_ids_left[-inds]
+        }
+    } else {
+        meta <- meta_raw
+    }
+    
+    meta
+}
+
+.trim_duplicated_columns <- function(meta, target_id_map, meta_id_col_name) {
+    
+    potential_columns <- c(colnames(meta), colnames(target_id_map))
+    
+    if (any(duplicated(potential_columns))) {
+        
+        ind <- which(duplicated(potential_columns, fromLast = TRUE))
+        # Remove the id column index, from this set.
+        ind <- setdiff(ind, grep(meta_id_col_name, colnames(meta)))
+        
+        # Exclude the ind columns from the meta df, if needed
+        if (length(ind)>0) {
+            meta <- meta[,-ind]
         }
     }
     
