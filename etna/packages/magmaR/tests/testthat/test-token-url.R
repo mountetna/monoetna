@@ -21,6 +21,8 @@ test_that("automated token setting retrieves .MAGMAR_TOKEN", {
 })
 
 test_that("automated token setting creates & retrieves .MAGMAR_TOKEN", {
+    rm(.MAGMAR_URL, envir = .GlobalEnv)
+    
     expect_identical(
         magmaR:::.get_URL(),
         "https://magma.ucsf.edu")

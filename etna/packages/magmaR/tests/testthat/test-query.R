@@ -1,8 +1,6 @@
 # This code tests the query function
 # library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-query.R")
 
-.GlobalEnv$.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
-
 test_that("query_list", {
     vcr::use_cassette("query_list", {
         # query obtains sample ids for records with rna_seq data

@@ -20,4 +20,5 @@ invisible(vcr::vcr_configure(
 vcr::check_cassette_names()
 
 ### General magmaR Setup
-token <- Sys.getenv("TOKEN")
+.GlobalEnv$.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
+.GlobalEnv$.MAGMAR_URL <- Sys.getenv("URL")

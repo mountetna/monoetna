@@ -1,8 +1,6 @@
 # This code tests the retrieveMetadata function
 # library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-meta.R")
 
-.GlobalEnv$.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
-
 test_that("retrieveMetadata, same branch", {
     vcr::use_cassette("metadata_same_branch", {
         ids <- retrieveIds("ipi", "rna_seq")

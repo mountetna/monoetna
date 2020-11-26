@@ -1,8 +1,6 @@
 # This code tests the retrieveModels, retrieveIds, retrieveAttributes, and retrieveTemplate functions
 # library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-special.R")
 
-.GlobalEnv$.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
-
 test_that("retrieveTemplate", {
   vcr::use_cassette("Temp", {
       ret <- retrieveTemplate("ipi")
