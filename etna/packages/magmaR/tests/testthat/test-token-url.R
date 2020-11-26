@@ -1,5 +1,5 @@
 # This code tests the .get_TOKEN & .get_URL functions
-# library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-retrieve.R")
+# library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-token-url.R")
 
 test_that("automated token setting gives error in non-interactive mode", {
     
