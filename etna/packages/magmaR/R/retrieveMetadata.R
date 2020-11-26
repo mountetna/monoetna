@@ -64,11 +64,6 @@ retrieveMetadata <- function(
         ]
         
         meta_record_names <- meta_id_map[,1, drop = TRUE]
-        
-        # Create combined id_map with the meta columns at end, in reverse order.
-        target_id_map <- merge(
-            target_id_map, meta_id_map[,rev(paths$meta_path)],
-            by = colnames(target_id_map)[ncol(target_id_map)])
     } else {
         
         # The target meta_model is at the top of the target_id_map.
@@ -83,11 +78,12 @@ retrieveMetadata <- function(
         attributeNames = meta_attributeNames,
         token = token,
         ...)
+    
+    ### Ensure metadata has 1 row per linked target data row
     # Find identifier column
     meta_id_col_name <- temp$models[[meta_modelName]]$template$identifier
     id_col_index <- match(meta_id_col_name, colnames(meta_raw))
-    
-    ### Ensure metadata has 1 row per linked target data row
+    # Expand
     meta <- if (separate_branches) {
         .expand_metadata_to_have_1row_per_id(meta_raw, meta_id_map, id_col_index)
     } else {
@@ -96,10 +92,21 @@ retrieveMetadata <- function(
     
     ### Output in order that matches target_recordNames order
     
-    # Ensure no duplicated column names, except for the matching id column.
-    meta <- .trim_duplicated_columns(meta, target_id_map, meta_id_col_name)
+    if (separate_branches) {
+        # merge meta df with meta_id_map
+        # after ensuring no duplicated column names, except for the id column.
+        meta <- .trim_duplicated_columns(meta, meta_id_map, meta_id_col_name)
+        meta <-merge(
+            meta_id_map, meta,
+            all.x = TRUE,
+            by.x = colnames(meta_id_map)[1],
+            by.y = meta_id_col_name)
+        meta_id_col_name <- colnames(meta_id_map)[ncol(meta_id_map)]
+    }
     
     # merge with order coming from the the target_id_map
+    # after ensuring no duplicated column names, except for the id column.
+    meta <- .trim_duplicated_columns(meta, target_id_map, meta_id_col_name)
     output <- merge(
         target_id_map, meta,
         all.x = TRUE,
