@@ -98,8 +98,8 @@ retrieveMetadata <- function(
         meta <- .trim_duplicated_columns(meta, meta_id_map, meta_id_col_name)
         meta <-merge(
             meta_id_map, meta,
-            all.x = TRUE,
             by.x = colnames(meta_id_map)[1],
+            all.y = TRUE,
             by.y = meta_id_col_name)
         meta_id_col_name <- colnames(meta_id_map)[ncol(meta_id_map)]
     }
