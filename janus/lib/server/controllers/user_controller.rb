@@ -35,4 +35,24 @@ class UserController < Janus::Controller
 
     success(@janus_user.create_token!(viewer_only: true))
   end
+
+  def projects
+    @janus_user = User[email: @user.email]
+
+    raise Etna::Forbidden, 'User not found' unless @janus_user
+
+    projects = @janus_user.permissions.map do |perm|
+      perm.project
+    end.uniq.map do |proj|
+      # Don't use proj.to_hash because we don't necessarily want to send back
+      #   all the information.
+      {
+        project_name: proj.project_name,
+        project_name_full: proj.project_name_full,
+        project_description: proj.project_description
+      }
+    end
+
+    success_json({projects: projects})
+  end
 end

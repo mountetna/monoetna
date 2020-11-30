@@ -9,7 +9,7 @@ describe Metis::Query do
     stubs.create_folder('athena', 'files', 'public')
 
     @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, folder: @public_folder)
-    stubs.create_file('athena', 'files', 'wisdom', 'wisdom.txt', WISDOM)
+    stubs.create_file('athena', 'files', 'public/wisdom.txt', WISDOM)
   end
 
   after(:each) do

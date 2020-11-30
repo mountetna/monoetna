@@ -23,6 +23,7 @@ set -x
 gem uninstall etna
 gem build etna.gemspec
 gem install etna-*.gem
+rm etna-*.gem
 
 set +x
 echo

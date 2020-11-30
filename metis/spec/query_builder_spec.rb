@@ -9,7 +9,7 @@ describe Metis::QueryBuilder do
     stubs.create_folder('athena', 'files', 'wisdom')
 
     @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM, folder: @wisdom_folder)
-    stubs.create_file('athena', 'files', 'wisdom', 'wisdom.txt', WISDOM)
+    stubs.create_file('athena', 'files', 'wisdom/wisdom.txt', WISDOM)
   end
 
   after(:each) do
@@ -299,10 +299,10 @@ describe Metis::QueryBuilder do
     stubs.create_folder('athena', 'files', 'wisdom/sibling/grandchild')
 
     helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: grandchild_folder)
-    stubs.create_file('athena', 'files', 'wisdom/child/grandchild', 'helmet.jpg', HELMET)
+    stubs.create_file('athena', 'files', 'wisdom/child/grandchild/helmet.jpg', HELMET)
 
     shiney_helmet_file = create_file('athena', 'shiny_helmet.jpg', SHINY_HELMET, folder: grandchild2_folder)
-    stubs.create_file('athena', 'files', 'wisdom/sibling/grandchild', 'shiny_helmet.jpg', SHINY_HELMET)
+    stubs.create_file('athena', 'files', 'wisdom/sibling/grandchild/shiny_helmet.jpg', SHINY_HELMET)
 
     builder = Metis::QueryBuilder.new(
       Metis::Folder.where(project_name: 'athena', bucket: @bucket),
@@ -376,7 +376,7 @@ describe Metis::QueryBuilder do
     stubs.create_folder('athena', 'files', 'wisdom/child/grandchild')
 
     young_wisdom_file = create_file('athena', 'young_wisdom.txt', WISDOM*2, folder: grandchild_folder)
-    stubs.create_file('athena', 'files', 'wisdom/child/grandchild', 'young_wisdom.txt', WISDOM*2)
+    stubs.create_file('athena', 'files', 'wisdom/child/grandchild/young_wisdom.txt', WISDOM*2)
 
     builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),
