@@ -1,0 +1,97 @@
+[
+  {
+    "project_name": "ipi",
+    "project_name_full": "immunoprofiler initiative",
+    "project_description": "The Immunoprofiler Initiative"
+  },
+  {
+    "project_name": "bap",
+    "project_name_full": "biospeciment acquisition protocol",
+    "project_description": "Biospecimen Acquisition Protocol For Analysis Of Biomarkers In Cancers"
+  },
+  {
+    "project_name": "all_samples",
+    "project_name_full": "All Samples for CIP/Fong Lab",
+    "project_description": null
+  },
+  {
+    "project_name": "imx_cv",
+    "project_name_full": "ImmunoX Chronic Viral",
+    "project_description": null
+  },
+  {
+    "project_name": "administration",
+    "project_name_full": "administration",
+    "project_description": "The main project for Mount Etna."
+  },
+  {
+    "project_name": "imx_humu",
+    "project_name_full": "ImmunoX Human-Mouse Translation",
+    "project_description": null
+  },
+  {
+    "project_name": "dscolab",
+    "project_name_full": "Data Science CoLab",
+    "project_description": null
+  },
+  {
+    "project_name": "test_project",
+    "project_name_full": "The Test Project",
+    "project_description": null
+  },
+  {
+    "project_name": "xvir1",
+    "project_name_full": "Chronic Viral Infection",
+    "project_description": null
+  },
+  {
+    "project_name": "xcrs1",
+    "project_name_full": "Human-Mouse Cancer Translator",
+    "project_description": null
+  },
+  {
+    "project_name": "mvir1",
+    "project_name_full": "COMET",
+    "project_description": null
+  },
+  {
+    "project_name": "xcan1",
+    "project_name_full": "Early-stage lung adenocarcinoma",
+    "project_description": null
+  },
+  {
+    "project_name": "xhlt1",
+    "project_name_full": "Immune Cell Census",
+    "project_description": null
+  },
+  {
+    "project_name": "xhlt2",
+    "project_name_full": "Immunomicrobiome",
+    "project_description": null
+  },
+  {
+    "project_name": "xneu1",
+    "project_name_full": "Frontotemporal lobar degeneration",
+    "project_description": null
+  },
+  {
+    "project_name": "xaut1",
+    "project_name_full": "Checkpoint Induced Colitis 1",
+    "project_description": null
+  },
+  {
+    "project_name": "xaut2",
+    "project_name_full": "Checkpoint Induced Colitis 2",
+    "project_description": null
+  },
+  {
+    "project_name": "coprojects_template",
+    "project_name_full": "Coprojects Template",
+    "project_description": null
+  },
+  {
+    "project_name": "xorg1",
+    "project_name_full": "Organoids",
+    "project_description": null
+  }
+]
