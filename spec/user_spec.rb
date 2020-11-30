@@ -269,4 +269,37 @@ describe UserController do
       expect(last_response.status).to eq(403)
     end
   end
+
+  context '#projects' do
+    it 'returns the user\'s projects' do
+      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+
+      gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
+      tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
+      mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
+
+      # the JWT will include a string encoding these permissions
+      perm = create(:permission, project: tunnel, user: user, role: 'viewer', privileged: true)
+      perm = create(:permission, project: mirror, user: user, role: 'editor')
+      perm = create(:permission, project: gateway, user: user, role: 'editor')
+
+      auth_header(:janus)
+      get('/projects')
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:projects]).to eq([{
+        project_description: nil,
+        project_name: "tunnel",
+        project_name_full: "Tunnel"
+      }, {
+        project_description: nil,
+        project_name: "mirror",
+        project_name_full: "Mirror"
+      }, {
+        project_description: nil,
+        project_name: "gateway",
+        project_name_full: "Gateway"
+      }])
+    end
+  end
 end
