@@ -160,8 +160,18 @@ class MetisClient
   end
 
   def retry_blob(upload_path, upload, blob, retries)
-    sleep 60
-    blob_upload(upload_path, upload, blob, retries+1) if retries < 5
+    retries += 1
+
+    print "\rWaiting for server restart"+"."*retries+"\x1b[0K"
+
+    sleep 15
+
+    if retries < 60
+      blob_upload(upload_path, upload, blob, retries)
+      return
+    end
+
+    raise MetisClient::Error, "Could not contact server, giving up"
   end
 
   def blob_upload(upload_path, upload, blob, retries=0)
@@ -177,13 +187,14 @@ class MetisClient
       )
     rescue OpenSSL::SSL::SSLError => e
       if e.message =~ /write client hello/
-        retry_blob(upload_path, upload, blob, retries)
-        return
+        return retry_blob(upload_path, upload, blob, retries)
       end
       raise e
+    rescue Errno::ECONNREFUSED => e
+      return retry_blob(upload_path, upload, blob, retries)
     end
 
-    if response.code == '503'
+    if response.code == '503' || response.code == '502'
       retry_blob(upload_path, upload, blob, retries)
       return
     end
