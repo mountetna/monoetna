@@ -159,7 +159,7 @@ class MetisClient
     json_body(response)
   end
 
-  def blob_upload(upload_path, upload, blob)
+  def blob_upload(upload_path, upload, blob, retries=0)
     response = multipart_post(
       upload_path, [
         [ 'action', 'blob', ],
@@ -169,6 +169,14 @@ class MetisClient
         [ 'current_byte_position', blob[:current_byte_position].to_s ]
       ]
     )
+
+    if response.code == '503'
+      sleep 60
+      if retries < 5
+        blob_upload(upload_path, upload, blob, retries+1)
+        return
+      end
+    end
 
     raise MetisClient::UploadError, "Problem with uploading the blob: #{error(response)}" if response.code == '422'
     raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
