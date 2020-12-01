@@ -159,23 +159,33 @@ class MetisClient
     json_body(response)
   end
 
-  def blob_upload(upload_path, upload, blob, retries=0)
-    response = multipart_post(
-      upload_path, [
-        [ 'action', 'blob', ],
-        [ 'blob_data', blob[:blob_data], {filename: 'blob'} ],
-        [ 'next_blob_size', blob[:next_blob_size].to_s ],
-        [ 'next_blob_hash', blob[:next_blob_hash].to_s ],
-        [ 'current_byte_position', blob[:current_byte_position].to_s ]
-      ]
-    )
+  def retry_blob(upload_path, upload, blob, retries)
+    sleep 60
+    blob_upload(upload_path, upload, blob, retries+1) if retries < 5
+  end
 
-    if response.code == '503'
-      sleep 60
-      if retries < 5
-        blob_upload(upload_path, upload, blob, retries+1)
+  def blob_upload(upload_path, upload, blob, retries=0)
+    begin
+      response = multipart_post(
+        upload_path, [
+          [ 'action', 'blob', ],
+          [ 'blob_data', blob[:blob_data], {filename: 'blob'} ],
+          [ 'next_blob_size', blob[:next_blob_size].to_s ],
+          [ 'next_blob_hash', blob[:next_blob_hash].to_s ],
+          [ 'current_byte_position', blob[:current_byte_position].to_s ]
+        ]
+      )
+    rescue OpenSSL::SSL::SSLError => e
+      if e.message =~ /write client hello/
+        retry_blob(upload_path, upload, blob, retries)
         return
       end
+      raise e
+    end
+
+    if response.code == '503'
+      retry_blob(upload_path, upload, blob, retries)
+      return
     end
 
     raise MetisClient::UploadError, "Problem with uploading the blob: #{error(response)}" if response.code == '422'
