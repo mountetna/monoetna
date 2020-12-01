@@ -1,7 +1,9 @@
-export const getProjects = () => {
-  let projects = require('./projects.json');
+import {json_get} from '../utils/fetch';
 
-  return new Promise((resolve, reject) => {
-    resolve(projects);
+export const getProjects = () => {
+  return json_get(`${CONFIG.janus_host}/projects`).then((projects) => {
+    return new Promise((resolve, reject) => {
+      resolve(projects.projects);
+    });
   });
 };
