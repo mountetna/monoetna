@@ -9,7 +9,7 @@ const janusReducer = (janus, action) => {
   switch (action.type) {
     case FETCH_PROJECTS:
       return {
-        projects: [...action.projects]
+        projects: action.projects ? [...action.projects] : []
       };
     default:
       return janus;
