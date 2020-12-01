@@ -110,6 +110,42 @@ class EtnaApp
           create_project_workflow.create!
         end
       end
+
+      class CopyUsersTemplate < Etna::Command
+        include WithEtnaClients
+        include WithLogger
+
+        string_flags << '--file'
+
+        def execute(project_name, file: "#{project_name}_users.csv")
+          workflow = Etna::Clients::Janus::CopyProjectUsersWorkflow.new(
+              janus_client: janus_client,
+              project_name: project_name,
+          )
+
+          workflow.write_user_templates_csv(File.open(file, 'w'))
+          puts "Done.  Edit #{file} and run apply_users_template to execute!"
+        end
+      end
+
+      class ApplyUsersTemplate < Etna::Command
+        include WithEtnaClients
+        include WithLogger
+
+        string_flags << '--file'
+
+        def execute(project_name, file: "#{project_name}_users.csv")
+          workflow = Etna::Clients::Janus::CopyProjectUsersWorkflow.new(
+              janus_client: janus_client,
+              project_name: project_name,
+          )
+
+          workflow.apply_user_templates_csv(File.open(file, 'r')) do |row|
+            puts "Copying #{row[:email]}..."
+          end
+          puts "Done!"
+        end
+      end
     end
 
     class Models

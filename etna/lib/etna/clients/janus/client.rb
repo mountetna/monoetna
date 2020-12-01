@@ -20,9 +20,7 @@ module Etna
 
       def get_project(get_project_request = GetProjectRequest.new)
         html = nil
-        @etna_client.get(
-          "/project/#{get_project_request.project_name}",
-          get_project_request) do |res|
+        @etna_client.get("/project/#{get_project_request.project_name}") do |res|
           html = res.body
         end
 

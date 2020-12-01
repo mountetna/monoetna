@@ -35,7 +35,6 @@ module Etna
         def promote_to_administrator(email)
           janus_client.update_permission(Etna::Clients::Janus::UpdatePermissionRequest.new(
             project_name: project_name,
-            # email: user['email'],
             email: email,
             role: 'administrator',
           ))
@@ -87,7 +86,12 @@ module Etna
             puts "Confirm? Y/n"
             break unless STDIN.gets.chomp == 'Y'
 
-            add_janus_user(email, name, role)
+            if role == 'administrator'
+              add_janus_user(email, name, 'editor')
+              promote_to_administrator(email)
+            else
+              add_janus_user(email, name, role)
+            end
           end
 
           puts "Done with setting up the project in Janus!"
