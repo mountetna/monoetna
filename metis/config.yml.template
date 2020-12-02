@@ -35,7 +35,7 @@
   :metis_uid_name: METIS_DEV_UID
   :token_domain: development.local
   :token_life: 31536000
-  :upload_expiration: 60
+  :upload_expiration: 86400
   :download_expiration: 86400
   :hmac_keys:
     :metis: 35e7c8775406612c431b654663fed668
