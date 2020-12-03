@@ -1182,6 +1182,47 @@ describe FileController do
       expect(third_link_file.bucket.name).to eq('sundry')
     end
 
+    it 'can swap data blocks during copy (i.e. caches pre-copy data blocks)' do
+      # @wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+      # stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+      # @blueprints_folder = create_folder('athena', 'blueprints')
+      # stubs.create_folder('athena', 'files', 'blueprints')
+
+      # @helmet_folder = create_folder('athena', 'helmet', folder: @blueprints_folder)
+      # stubs.create_folder('athena', 'files', 'blueprints/helmet')
+
+      # @helmet_file = create_file('athena', 'helmet.jpg', HELMET, folder: @helmet_folder)
+      # stubs.create_file('athena', 'files', 'blueprints/helmet/helmet.jpg', HELMET)
+      token_header(:editor)
+
+      expect(Metis::File.count).to eq(2)
+
+      original_wisdom_block = @wisdom_file.data_block
+      original_helmet_block = @helmet_file.data_block
+      bulk_copy([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://athena/files/blueprints/helmet/helmet.jpg'
+      }, {
+        source: 'metis://athena/files/blueprints/helmet/helmet.jpg',
+        dest: 'metis://athena/files/wisdom.txt'
+      }])
+
+      expect(last_response.status).to eq(200)
+
+      # the data is not destroyed
+      expect(::File.exists?(original_wisdom_block.location)).to be_truthy
+      expect(::File.exists?(original_helmet_block.location)).to be_truthy
+
+      # There are some new files
+      expect(Metis::File.count).to eq(2)
+      @wisdom_file.refresh
+      @helmet_file.refresh
+
+      expect(@wisdom_file.data_block).to eq(original_helmet_block)
+      expect(@helmet_file.data_block).to eq(original_wisdom_block)
+    end
+
     it 'receives all errors back for multiple invalid revisions' do
       contents_folder = create_folder('athena', 'contents', read_only: true)
       stubs.create_folder('athena', 'files', 'contents')
