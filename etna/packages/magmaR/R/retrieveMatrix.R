@@ -91,16 +91,26 @@ retrieveMatrix <- function(
         token = token,
         ...)
     
-    # Turn into matrix
+    # Extract matrix data as a list of columns
     data_cols <- lapply(
         recordNames,
         function(x) {
             (json$models[[modelName]]$documents[[x]])[[attributeNames]]
         })
-    data <- as.matrix(do.call(data.frame, data_cols))
+    
+    # Identify any empty records
+    empty <- vapply(data_cols, FUN = length, FUN.VALUE = integer(1)) == 0
+    if (any(empty)) {
+        for (record in recordNames[empty]){
+            warning("Empty record, ", record,", was ignored.")
+        }
+    }
+    
+    # Convert from list to matrix
+    data <- as.matrix(do.call(data.frame, data_cols[!empty]))
     
     # Add column names
-    colnames(data) <- recordNames
+    colnames(data) <- recordNames[!empty]
     
     data
 }
