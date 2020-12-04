@@ -557,6 +557,7 @@ module Etna
         CHILD = AttributeType.new("child")
         COLLECTION = AttributeType.new("collection")
         FILE = AttributeType.new("file")
+        FILE_COLLECTION = AttributeType.new("file_collection")
         FLOAT = AttributeType.new("float")
         IDENTIFIER = AttributeType.new("identifier")
         IMAGE = AttributeType.new("image")

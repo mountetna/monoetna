@@ -5,11 +5,11 @@ describe Polyphemus::Server do
     OUTER_APP
   end
 
-  it 'configuration fails for non-superusers' do
-    auth_header(:editor)
+  it 'configuration open to anyone' do
     get('/configuration')
 
-    expect(last_response.status).to eq(403)
+    expect(last_response.status).to eq(200)
+    expect(json_body[:test].keys.sort).to eq([:magma, :metis, :janus, :timur, :polyphemus, :auth_redirect, :docker].sort)
   end
 
   it 'superusers can fetch app configuration' do
