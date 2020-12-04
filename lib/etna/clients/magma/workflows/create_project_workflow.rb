@@ -74,22 +74,6 @@ module Etna
           promote_to_administrator(user['email'])
           update_magma_client_token!
 
-          while true
-            puts "Add more users? Y/n"
-            break unless STDIN.gets.chomp == 'Y'
-            puts "User name?"
-            name = STDIN.gets.chomp
-            puts "Email?"
-            email = STDIN.gets.chomp
-            puts "Role? (editor/viewer/administrator)"
-            role = STDIN.gets.chomp
-            puts "Adding #{name} (#{email}) as a #{role}."
-            puts "Confirm? Y/n"
-            break unless STDIN.gets.chomp == 'Y'
-
-            add_janus_user(email, name, role)
-          end
-
           puts "Done with setting up the project in Janus!"
         end
 
@@ -103,6 +87,28 @@ module Etna
         def create!
           setup_janus_project!
           setup_magma_project!
+
+          while true
+            puts "Add more users? Y/n"
+            break unless STDIN.gets.chomp == 'Y'
+            puts "User name?"
+            name = STDIN.gets.chomp
+            puts "Email?"
+            email = STDIN.gets.chomp
+            puts "Role? (editor/viewer/administrator)"
+            role = STDIN.gets.chomp
+            puts "Adding #{name} (#{email}) as a #{role}."
+            puts "Confirm? Y/n"
+            break unless STDIN.gets.chomp == 'Y'
+
+            if role == 'administrator'
+              add_janus_user(email, name, 'editor')
+              promote_to_administrator(email)
+            else
+              add_janus_user(email, name, role)
+            end
+          end
+
           puts "All complete!"
           puts "You need to visit Janus to refresh your token."
           puts "You can now log into any app to manage your data."

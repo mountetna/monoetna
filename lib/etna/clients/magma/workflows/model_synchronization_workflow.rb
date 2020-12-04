@@ -85,7 +85,7 @@ module Etna
             if action.parent_link_type != Etna::Clients::Magma::AttributeType::TABLE
               template.build_attributes.build_attribute(template.identifier).tap do |attr|
                 attr.attribute_name = template.identifier
-                attr.attribute_type = Etna::Clients::Magma::AttributeType::STRING
+                attr.attribute_type = Etna::Clients::Magma::AttributeType::IDENTIFIER
               end
             end
           when RenameAttributeAction

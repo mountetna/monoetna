@@ -28,27 +28,18 @@ module Etna
               next unless (validation = attribute&.validation)
               next unless (value = validation['value'])
 
-              if validation['type'] == 'Array' && value&.first.start_with?(ModelsCsv::COPY_OPTIONS_SENTINEL)
-                digest = value&.first.slice((ModelsCsv::COPY_OPTIONS_SENTINEL.length)..-1)
+              if validation['type'] == 'Array' && value&.first.start_with?(Etna::Clients::Magma::ModelsCsv::COPY_OPTIONS_SENTINEL)
+                digest = value&.first.slice((Etna::Clients::Magma::ModelsCsv::COPY_OPTIONS_SENTINEL.length)..-1)
                 attribute.validation = { 'type' => 'Array', 'value' => changeset.matrix_constants[digest] }
               end
             end
           end
         end
 
-        def prepare_changeset_from_csv(csv_io, &err_block)
-          line_no = 0
-          csv_lines = CSV.parse(csv_io, headers: true, header_converters: :symbol)
-          changeset = csv_lines.inject(ModelsCsv::ModelsChangeset.new) do |acc, n|
-            line_no += 1
-            ModelsCsv.apply_csv_row(acc, n) do |err|
-              err_block.call("Error detected on line #{line_no + 1}: #{err}")
-              return
-            end
-          end
-
+        def prepare_changeset_from_csv(filename: nil, io: nil, &err_block)
+          importer = ModelsCsv::Importer.new
+          changeset = importer.prepare_changeset(filename: filename, input_io: io, &err_block)
           self.class.validate_changeset(changeset, &err_block)
-
           changeset
         end
 
@@ -64,13 +55,11 @@ module Etna
           validator.errors.each(&err_block)
         end
 
-        def write_models_template_csv(io, project_name, target_model = 'project')
+        def write_models_template_csv(project_name, target_model = 'project', filename: nil, io: nil)
           models = magma_client.retrieve(RetrievalRequest.new(project_name: project_name, model_name: 'all')).models
           descendants = models.to_directed_graph.descendants(target_model)
-          csv = CSV.new(io)
-          ModelsCsv.each_csv_row(models, [target_model] + descendants.keys) do |row|
-            csv << row
-          end
+          exporter = ModelsCsv::Exporter.new
+          exporter.write_models(models, [target_model] + descendants.keys, filename: filename, output_io: io)
         end
       end
     end
