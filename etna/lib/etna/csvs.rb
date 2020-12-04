@@ -44,7 +44,11 @@ module Etna
 
       def initialize(msg, lineno = nil)
         @lineno = lineno
-        super("line #{lineno}: #{msg}")
+        super(msg)
+      end
+
+      def message
+        "line #{lineno}: #{super}"
       end
     end
 
