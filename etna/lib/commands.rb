@@ -56,7 +56,7 @@ class EtnaApp
       def execute(host, ignore_ssl: false)
         polyphemus_client ||= Etna::Clients::Polyphemus.new(
             host: host,
-            token: token,
+            token: token(ignore_environment: true),
             ignore_ssl: ignore_ssl)
         workflow = Etna::Clients::Polyphemus::SetConfigurationWorkflow.new(
             polyphemus_client: polyphemus_client,
@@ -143,7 +143,7 @@ class EtnaApp
           tf = Tempfile.new
 
           begin
-            File.open(tf.path, 'wb') { |f| workflow.write_models_template_csv(f, project_name, target_model) }
+            File.open(tf.path, 'wb') { |f| workflow.write_models_template_csv(project_name, target_model, io: f) }
             FileUtils.cp(tf.path, file)
           ensure
             tf.close!

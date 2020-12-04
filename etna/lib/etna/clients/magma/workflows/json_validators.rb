@@ -24,6 +24,10 @@ module Etna
           @errors << "Invalid empty #{key} for #{label}: \"#{raw[key]}\"." if raw.dig(key) && nil_or_empty?(raw[key])
         end
 
+        def check_key_empty(label, raw, key)
+          @errors << "Invalid key for #{label}: \"#{key}\"." if raw.dig(key)
+        end
+
         def check_in_set(label, raw, key, valid_values)
           @errors << "Invalid #{key} for #{label}: \"#{raw[key]}\".\nShould be one of #{valid_values}." if raw.dig(key) && !valid_values.include?(raw[key])
         end
@@ -139,11 +143,12 @@ module Etna
           model.template.attributes.attribute_keys.each do |attribute_name|
             attribute = model.template.attributes.attribute(attribute_name)
 
-            if attribute_name == model.template.identifier
+            reciprocal = @models.find_reciprocal(model: model, attribute: attribute)
+            if attribute_name == model.template.identifier && reciprocal&.attribute_type != AttributeType::TABLE
               attribute_types = [AttributeType::IDENTIFIER]
             elsif attribute_name == model.template.parent
               attribute_types = [AttributeType::PARENT]
-            elsif @models.find_reciprocal(model: model, attribute: attribute)&.attribute_type == AttributeType::PARENT
+            elsif reciprocal&.attribute_type == AttributeType::PARENT
               attribute_types = AttributeValidator.valid_parent_link_attribute_types
             else
               attribute_types = AttributeValidator.valid_add_row_attribute_types
@@ -184,7 +189,7 @@ module Etna
 
         def link_attributes
           @model.template.attributes.all.select do |attribute|
-            attribute.attribute_type == Etna::Clients::Magma::AttributeType::LINK
+            attribute.link_model_name
           end
         end
       end

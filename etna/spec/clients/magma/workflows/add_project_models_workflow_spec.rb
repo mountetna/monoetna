@@ -67,17 +67,12 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         end
       end
 
-      let(:rows) do
-        [].tap do |rows|
-          Etna::Clients::Magma::ModelsCsv.each_csv_row(models) { |row| rows << row }
-        end
-      end
-
       let(:rows_as_hashes) do
-        headers = rows.first
-        rows.slice(1..-1).map do |row|
-          headers.zip(row).to_h
-        end
+        result = []
+        exporter = Etna::Clients::Magma::ModelsCsv::Exporter.new
+        writeable = Etna::CsvExporter::RowWriteable.new(exporter, result)
+        exporter.write_model_rows(models, models.model_keys.sort, writeable)
+        result.map { |r| exporter.column_headers.zip(r).to_h }
       end
 
       describe '#validate_changeset' do
@@ -158,7 +153,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
           end
 
           it 'adds identifier rows for models, except those that are tables of parent models' do
-            attribute_names = rows_as_hashes.map { |hash| hash['attribute_name'] }
+            attribute_names = rows_as_hashes.map { |hash| hash[:attribute_name] }
             expect(attribute_names).to_not include(table_child_template.identifier)
             expect(attribute_names).to include(non_table_child_template.identifier)
           end
@@ -171,7 +166,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         end
 
         it 'is not included in the spreadsheet, as they are not configurable and are implicit' do
-          attribute_names = rows_as_hashes.map { |hash| hash['attribute_type'] }
+          attribute_names = rows_as_hashes.map { |hash| hash[:attribute_type] }
           expect(attribute_names).to_not include('parent')
           expect(attribute_names).to include('integer')
         end
@@ -184,7 +179,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         end
 
         it 'includes a sentinel value instead of the actual options' do
-          options = rows_as_hashes.map { |hash| hash['options'] }
+          options = rows_as_hashes.map { |hash| hash[:options] }
           expect(options).to include('d, e, f')
           expect(options).to include(Etna::Clients::Magma::ModelsCsv::COPY_OPTIONS_SENTINEL + "64f47382e7ddc46583bf6d2abedf4140")
           expect(options).to_not include('a, b, c')
@@ -215,11 +210,11 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         workflow = Etna::Clients::Magma::AddProjectModelsWorkflow.new(magma_client: magma_client)
 
         io = StringIO.new
-        workflow.write_models_template_csv(io, 'mvir1', 'timepoint')
+        workflow.write_models_template_csv('mvir1', 'timepoint', io: io)
 
         io.rewind
 
-        changeset = workflow.prepare_changeset_from_csv(io) do |err|
+        changeset = workflow.prepare_changeset_from_csv(io: io) do |err|
           raise err
         end
 
@@ -275,10 +270,10 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         workflow = Etna::Clients::Magma::AddProjectModelsWorkflow.new(magma_client: magma_client)
 
         io = StringIO.new
-        workflow.write_models_template_csv(io, 'mvir1')
+        workflow.write_models_template_csv('mvir1', io: io)
         io.rewind
 
-        changeset = workflow.prepare_changeset_from_csv(io) do |err|
+        changeset = workflow.prepare_changeset_from_csv(io: io) do |err|
           raise err
         end
 
