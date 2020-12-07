@@ -23,7 +23,7 @@ class Metis
     @logger = Etna::Logger.new(
       # The name of the log_file, required.
       config(:log_file),
-      'daily'  # Logger doesn't rotate out old daily logs, though, so we'll manage that via logrotate
+      config(:log_age) || 'daily'  # Logger doesn't rotate out old daily logs, though, so we'll manage that via logrotate
     )
     log_level = (config(:log_level) || 'warn').upcase.to_sym
     @logger.level = Logger.const_defined?(log_level) ? Logger.const_get(log_level) : Logger::WARN
