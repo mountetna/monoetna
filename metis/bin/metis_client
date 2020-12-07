@@ -743,13 +743,11 @@ EOT
 
           if current_attempt_number <= max_number_attempts
             puts "UploadError -- retrying the upload"
-            MetisShell.log_error(e)
             upload = Upload.new(actual_path)
             upload_json = @shell.client.reset_upload(upload_path, upload)
             upload.current_byte_position = 0
           else
             puts "UploadError -- max retries reached. Giving up."
-            MetisShell.log_error(e)
           end
         end
       end
@@ -919,12 +917,6 @@ EOT
 
   private
 
-  def self.log_error(e)
-    puts e.message
-    STDERR.puts(e.message)
-    STDERR.puts(e.backtrace)
-  end
-
   def run_command(command=nil, *args)
     return if !command
     command = Command.list.find { |c| c.command_name == command.to_s }
@@ -939,14 +931,13 @@ EOT
       args = cmd.parse(args)
       cmd.run(*args) unless cmd.done?
     rescue ShellError => e
-      MetisShell.log_error(e)
+      puts e.message
     rescue MetisClient::Error => e
-      MetisShell.log_error(e)
+      puts e.message
     rescue ArgumentError => e
       puts(command.usage ? "Usage:\n#{command.usage}" : e.message)
-      MetisShell.log_error(e)
     rescue Net::ReadTimeout => e
-      MetisShell.log_error(e)
+      puts e.message
     end
   end
 
