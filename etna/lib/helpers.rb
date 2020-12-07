@@ -6,11 +6,13 @@ module WithEtnaClients
     EtnaApp.instance.environment
   end
 
-  def token
-    if environment == :many
-      raise "You have multiple environments configured, please specify your environment by adding --environment #{@config.keys.join("|")}"
-    elsif environment == :none
-      raise "You do not have a successfully configured environment, please run #{program_name} config set https://polyphemus.ucsf.edu"
+  def token(ignore_environment: false)
+    unless ignore_environment
+      if environment == :many
+        raise "You have multiple environments configured, please specify your environment by adding --environment #{@config.keys.join("|")}"
+      elsif environment == :none
+        raise "You do not have a successfully configured environment, please run #{program_name} config set https://polyphemus.ucsf.edu"
+      end
     end
 
     env_token = ENV['TOKEN']
@@ -74,7 +76,8 @@ module StrongConfirmation
   def confirm
     puts "Confirm Y/n:"
     input = STDIN.gets.chomp
-    if input != "Y"
+    if input.downcase != "y"
+      puts "Bailing..."
       return false
     end
 

@@ -26,3 +26,13 @@ export function parseToken(token) {
     permissions: parsePermissions(perm)
   };
 }
+
+export const projectNameFull = (projects, project_name) => {
+  if (!projects) return project_name;
+
+  let matching_project = projects.find((project) => {
+    return project.project_name === project_name;
+  });
+
+  return matching_project ? matching_project.project_name_full : project_name;
+};

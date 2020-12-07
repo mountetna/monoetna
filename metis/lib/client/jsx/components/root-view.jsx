@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { selectUserPermissions } from '../selectors/user-selector';
+import { selectProjects } from 'etna-js/selectors/janus-selector';
+import { projectNameFull } from 'etna-js/utils/janus';
 
 export class RootView extends React.Component{
   render(){
-    let { permissions } = this.props;
-
+    let { permissions, projects } = this.props;
+    
     if (Object.keys(permissions).length <= 0)
       return <div className='projects'>{'No available projects.'}</div>;
 
@@ -23,7 +25,7 @@ export class RootView extends React.Component{
                 <a className='project_name'
                   key={project_name}
                   href={`/${project_name}`}>
-                  {project_name}
+                  {projectNameFull(projects, project_name)}
                 </a>
                 - <span className='role'>{role}{ privileged ? ', privileged access' : '' }</span>
               </div>
@@ -37,6 +39,7 @@ export class RootView extends React.Component{
 
 export default connect(
   (state)=>({
-    permissions: selectUserPermissions(state)
+    permissions: selectUserPermissions(state),
+    projects: selectProjects(state)
   })
 )(RootView);

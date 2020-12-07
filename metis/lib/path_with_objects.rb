@@ -7,7 +7,7 @@ class Metis
       #     objects, so in the bulk operations we
       #     can minimize database calls.
       attr_reader :mpath
-      attr_accessor :bucket, :folder, :file
+      attr_accessor :bucket, :folder, :file, :data_block
       def initialize(mpath)
         @mpath = Metis::Path.new(mpath)
       end

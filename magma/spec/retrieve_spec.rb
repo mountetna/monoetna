@@ -121,6 +121,47 @@ describe RetrieveController do
     end
   end
 
+  context 'file collection' do
+    it 'retrieves file attributes with storage links' do
+      Timecop.freeze(DateTime.new(500))
+
+      lion_certs = [{
+        filename: 'monster-Nemean Lion-certificates-0.txt',
+        original_filename: 'sb_diploma_lion.txt'
+      }, {
+        filename: 'monster-Nemean Lion-certificates-1.txt',
+        original_filename: 'sm_diploma_lion.txt'
+      }]
+
+      monster = create(
+        :monster,
+        :lion,
+        certificates: lion_certs.to_json)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'monster',
+        record_names: [ 'Nemean Lion' ],
+        attribute_names: [ 'certificates' ]
+      )
+
+      expect(last_response.status).to eq(200)
+      uris = []
+      uris << URI.parse(json_document(:monster, 'Nemean Lion')[:certificates].first[:url])
+      uris << URI.parse(json_document(:monster, 'Nemean Lion')[:certificates].last[:url])
+      params = uris.map { |u| Rack::Utils.parse_nested_query(u.query) }
+
+      expect(uris.all? { |u| u.host == Magma.instance.config(:storage)[:host] }).to eq(true)
+      expect(uris.first.path).to eq('/labors/download/magma/monster-Nemean%20Lion-certificates-0.txt')
+      expect(uris.last.path).to eq('/labors/download/magma/monster-Nemean%20Lion-certificates-1.txt')
+      expect(params.all? { |p| p['X-Etna-Id'] == 'magma' }).to eq(true)
+      expect(params.all? { |p|
+        p['X-Etna-Expiration'] == (Time.now + Magma.instance.config(:storage)[:download_expiration]).iso8601 }).to eq(true)
+
+      Timecop.return
+    end
+  end
+
   context 'identifiers' do
     it 'allows grabbing the entire set of identifiers' do
       labors = create_list(:labor,3)
@@ -333,7 +374,7 @@ describe RetrieveController do
       )
 
       header, *table = CSV.parse(last_response.body, col_sep: "\t")
-      expect(table).to eq([ [ "The Twelve Labors of Hercules", labors.map(&:identifier).join(', ') ] ])
+      expect(table).to match_array([ [ "The Twelve Labors of Hercules", labors.map(&:identifier).join(', ') ] ])
     end
 
     it 'retrieves a TSV with file attributes as urls' do
@@ -356,6 +397,46 @@ describe RetrieveController do
       uris = table.map{|l| URI.parse(l.last)}
       expect(uris.map(&:host)).to all(eq(Magma.instance.config(:storage)[:host]))
       expect(uris.map(&:path)).to all(match(%r!/labors/download/magma/\w+.txt!))
+
+      Timecop.return
+    end
+
+    it 'retrieves a TSV with file collection attributes as urls' do
+      Timecop.freeze(DateTime.new(500))
+      lion_certs = [{
+        filename: 'monster-Nemean Lion-certificates-0.txt',
+        original_filename: 'sb_diploma_lion.txt'
+      }, {
+        filename: 'monster-Nemean Lion-certificates-1.txt',
+        original_filename: 'sm_diploma_lion.txt'
+      }]
+      hydra_certs = [{
+        filename: 'monster-Lernean Hydra-certificates-0.txt',
+        original_filename: 'ba_diploma_hydra.txt'
+      }, {
+        filename: 'monster-Lernean Hydra-certificates-1.txt',
+        original_filename: 'phd_diploma_hydra.txt'
+      }]
+
+      lion = create(:monster, :lion, certificates: lion_certs.to_json)
+      hydra = create(:monster, :hydra, certificates: hydra_certs.to_json)
+      hind = create(:monster, :hind)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'monster',
+        record_names: 'all',
+        attribute_names: [ 'certificates' ],
+        format: 'tsv'
+      )
+
+      expect(last_response.status).to eq(200)
+      header, *table = CSV.parse(last_response.body, col_sep: "\t")
+
+      expect(table.first.last).to eq(nil)
+      uris = table.slice(1, 2).map{|l| JSON.parse(l.last).map{|u| URI.parse(u)}}.flatten
+      expect(uris.map(&:host)).to all(eq(Magma.instance.config(:storage)[:host]))
+      expect(uris.map(&:path)).to all(match(%r!/labors/download/magma/.+.txt!))
 
       Timecop.return
     end

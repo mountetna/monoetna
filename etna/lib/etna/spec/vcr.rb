@@ -20,6 +20,7 @@ def setup_base_vcr(spec_helper_dir)
           request_2_json = begin
             JSON.parse(request_2.body) rescue 'not-json'
           end
+
           request_1_json == request_2_json
         else
           false
