@@ -10,6 +10,13 @@ module Etna
       end
     end
 
+    def initialize(log_dev, age)
+      super
+      self.formatter = proc do |severity, datetime, progname, msg|
+        format(severity, datetime, progname, msg)
+      end
+    end
+
     def format(severity, datetime, progname, msg)
       "#{severity}:#{datetime.iso8601} #{msg}\n"
     end
