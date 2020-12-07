@@ -3,45 +3,52 @@
 
 test_that("retrieve & retrieveJSON work with minimal input", {
     vcr::use_cassette("retrieve_ALLs", {
+        json <- retrieveJSON(
+            "example", "subject")
+        
         df <- retrieve(
-            "ipi", "experiment")
+            "example", "subject")
     })
     
     expect_s3_class(df, "data.frame")
-    expect_true(nrow(df) >= 20 && ncol(df) > 4)
-    
-    vcr::use_cassette("retrieveJSON_ALLs", {
-        json <- retrieveJSON(
-            "ipi", "experiment")
-    })
-    
     expect_type(json, "list")
-    expect_equal(nrow(df), length(json$models$experiment$documents))
-    expect_gt(length(json$models$experiment$documents[[1]]), 4)
+    
+    # No. records same for both
+    expect_equal(nrow(df), length(json$models$subject$documents))
+    
+    # exact No. of records & No. Attributes is many per record for the df method
+    expect_true(nrow(df) == 12 && ncol(df) >= 3)
+    
+    # Attributes per record is many per record for the json method
+    expect_gt(length(json$models$subject$documents[[1]]), 3)
 })
 
-test_that("retrieve works with targetted input", {
+test_that("retrieve works with targetted input, 1att", {
     vcr::use_cassette("retrieve_rec3_att1", {
         ret <- retrieve(
-            "ipi", "experiment",
-            recordNames = c("Adrenal", "Bladder", "Breast"),
-            attributeNames = c("description"))
+            "example", "subject",
+            recordNames = c("EXAMPLE-HS1", "EXAMPLE-HS2"),
+            attributeNames = c("group"))
     })
     
     expect_s3_class(ret, "data.frame")
-    # Id attribute is NOT targetted, +1
-    expect_equal(dim(ret), c(3,2))
+    
+    # Proper numbers retrieved?
+    # Id attribute is NOT targeted, +1 column
+    expect_equal(dim(ret), c(2,2))
 })
 
-test_that("retrieve works with targetted input", {
+test_that("retrieve works with targetted input, 1rec", {
     vcr::use_cassette("retrieve_rec1_att3", {
         ret <- retrieve(
-            "ipi", "experiment",
-            recordNames = c("Adrenal"),
-            attributeNames = c("description", "name", "project"))
+            "example", "subject",
+            recordNames = c("EXAMPLE-HS1"),
+            attributeNames = c("biospecimen", "name", "group"))
     })
     
     expect_s3_class(ret, "data.frame")
-    # Id attribute is targetted
+    
+    # Proper numbers retrieved?
+    # Id attribute is targeted, no +1 to columns
     expect_equal(dim(ret), c(1,3))
 })

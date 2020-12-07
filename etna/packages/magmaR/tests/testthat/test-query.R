@@ -5,12 +5,12 @@ test_that("query_list", {
     vcr::use_cassette("query_list", {
         # query obtains sample ids for records with rna_seq data
         qry <- query(
-            "ipi",
+            "example",
             queryTerms = 
                 list('rna_seq',
                      list('::has', 'gene_tpm'),
                      '::all',
-                     'sample',
+                     'subject',
                      '::identifier'
                 ))
     })
@@ -20,22 +20,20 @@ test_that("query_list", {
 
 test_that("query_df", {
     vcr::use_cassette("query_df", {
+        
+        ids <- retrieveIds("example", "subject")
+        
         # query obtains sample ids for records with rna_seq data
         qry <- query(
-            "ipi",
+            "example",
             queryTerms = 
                 list('rna_seq',
                      list('::has', 'gene_tpm'),
                      '::all',
-                     'sample',
+                     'subject',
                      '::identifier'
                 ),
             format = "df")
-    })
-    
-    vcr::use_cassette("sample_ids", {
-        # query obtains sample ids for records with rna_seq data
-        ids <- retrieveIds("ipi", "sample")
     })
     
     expect_s3_class(qry, "data.frame")

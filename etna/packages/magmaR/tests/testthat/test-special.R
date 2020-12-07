@@ -3,28 +3,28 @@
 
 test_that("retrieveTemplate", {
   vcr::use_cassette("Temp", {
-      ret <- retrieveTemplate("ipi")
+      ret <- retrieveTemplate("example")
   })
   expect_type(ret, "list")
 })
 
 test_that("retrieveModels", {
   vcr::use_cassette("models", {
-      ret <- retrieveModels("ipi")
+      ret <- retrieveModels("example")
   })
   expect_type(ret, "character")
 })
 
 test_that("retrieveIds", {
   vcr::use_cassette("ids", {
-      ret <- retrieveIds("ipi", "experiment")
+      ret <- retrieveIds("example", "subject")
   })
   expect_type(ret, "character")
 })
 
 test_that("retrieveAttributes", {
   vcr::use_cassette("Atts", {
-      ret <- retrieveAttributes("ipi", "experiment")
+      ret <- retrieveAttributes("example", "subject")
   })
   expect_type(ret, "character")
 })
