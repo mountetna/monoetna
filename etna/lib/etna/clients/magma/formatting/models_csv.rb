@@ -5,15 +5,6 @@ module Etna
   module Clients
     class Magma
       module ModelsCsv
-      end
-    end
-  end
-end
-
-module Etna
-  module Clients
-    class Magma
-      module ModelsCsv
         module Prettify
           def prettify(name)
             name.split('_').map(&:capitalize).join(' ')
@@ -191,7 +182,7 @@ module Etna
               :hidden, :unique,
           ]
 
-          def initialize(&validation_block)
+          def initialize
             super(&method(:format_row))
           end
 

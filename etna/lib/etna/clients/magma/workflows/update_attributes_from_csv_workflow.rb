@@ -5,6 +5,21 @@ require_relative './crud_workflow'
 module Etna
   module Clients
     class Magma
+      class UpdateAttributesFromCsvWorkflow < Struct.new(:magma_crud, :project_name, keyword_init: true)
+        attr_reader :importer
+        def initialize(*args)
+          super
+          @importer = Etna::CsvImporter.new(&method(:format_input_row))
+        end
+
+        def create_exporter(max_columns_count)
+          Etna::CsvExporter.new([:model_name, :identifier] + max_columns_count.times { |i| :"attribute_#{i + 1}" })
+        end
+
+        def format_input_row(row)
+        end
+      end
+
       class UpdateAttributesFromCsvWorkflowBase < Struct.new(:magma_crud, :project_name, :filepath, :model_name, keyword_init: true)
         def initialize(opts)
           super(**{}.update(opts))

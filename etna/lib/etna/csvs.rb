@@ -63,12 +63,23 @@ module Etna
 
         # If a parent context changes, all child contexts are invalidated.  But since parent contexts are changed
         # before the relationship of child contexts are declared, we have to track that so that when a child context
-        # dependency is declared we can clear it based on wether parents have changed.
+        # dependency is declared we can clear it based on wether dependencies have changed.
         @changed = {}
       end
 
-      def process(column, *parents, &block)
-        if parents.any? { |p| @changed.include?(p) }
+      def retain(column, *parents, &block)
+        @context[[column, :retained]]
+      end
+
+      def watch(column, *dependencies, &block)
+        prev = @context[column]
+        process(column, *dependencies) do |*args|
+          block.call(prev, *args)
+        end
+      end
+
+      def process(column, *dependencies, &block)
+        if dependencies.any? { |p| @changed.include?(p) }
           @changed[column] = true
           @context[column] = nil
         end
@@ -76,7 +87,7 @@ module Etna
         return self if (next_val = row[column]).nil?
         @changed[column] = true
 
-        parent_values = parents.map do |p|
+        context_values = dependencies.map do |p|
           if @context[p].nil?
             raise ImportError.new("Found a #{column} value, but no previous #{p} had been given!", @lineno)
           end
@@ -85,7 +96,9 @@ module Etna
         end
 
         begin
-          next_val = yield next_val, *parent_values, self if block_given?
+          if block_given?
+            next_val = yield next_val, *context_values
+          end
         rescue ImportError => e
           e.lineno = @lineno
           raise e
