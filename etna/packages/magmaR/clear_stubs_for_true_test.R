@@ -1,6 +1,6 @@
 ### This script is for running a live check of the package based on real calls to magma
 
-# Update the token in '.Renviron' file, *manually*.  And url too if targeting staging or dev.
+# Update the token in '.Renviron' file, *manually*.  Adjust url too wanting to test in production / dev.
 # This code just opens the file.
 # It should be `TOKEN="<your_token>"`.
 usethis::edit_r_environ(scope = "project")

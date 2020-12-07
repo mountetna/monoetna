@@ -20,9 +20,7 @@ test_that("retrieveMetadata, same branch", {
     expect_lte(sum(!atts %in% colnames(meta)), 1)
 })
 
-# # Currently broken because of incomplete function logic:
-# #   The biospecimen modl is the first shared model here, but the subject model is the first where
-# #   Ids are actually shared between flow and rna_seq.
+# # Currently broken because there is no flow data loaded.
 # test_that("retrieveMetadata, different branch", {
 #     vcr::use_cassette("metadata_diff_branch", {
 #         
