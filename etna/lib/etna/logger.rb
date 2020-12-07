@@ -3,14 +3,7 @@ require 'rollbar'
 
 module Etna
   class Logger < ::Logger
-    def initialize(log_dev, age, size)
-      super
-      self.formatter = proc do |severity, datetime, progname, msg|
-        format(severity, datetime, progname, msg)
-      end
-    end
-
-    def initialize(log_dev, age)
+    def initialize(log_dev, age, size=1048576)
       super
       self.formatter = proc do |severity, datetime, progname, msg|
         format(severity, datetime, progname, msg)
