@@ -101,9 +101,9 @@ query <- function(
     }
     
     ### Perform '\query'
-    curl <- .perform_curl(
+    curl_out <- .perform_curl(
         fxn = "/query", requestBody, token, url.base, verbose)
     
     ### Output
-    jsonlite::fromJSON(curl$value())
+    jsonlite::fromJSON(curl_out)
 }
