@@ -1,0 +1,54 @@
+# This code tests the retrieve and retrieveJSON functions
+# library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-retrieve.R")
+
+test_that("retrieve & retrieveJSON work with minimal input", {
+    vcr::use_cassette("retrieve_ALLs", {
+        json <- retrieveJSON(
+            "example", "subject")
+        
+        df <- retrieve(
+            "example", "subject")
+    })
+    
+    expect_s3_class(df, "data.frame")
+    expect_type(json, "list")
+    
+    # No. records same for both
+    expect_equal(nrow(df), length(json$models$subject$documents))
+    
+    # exact No. of records & No. Attributes is many per record for the df method
+    expect_true(nrow(df) == 12 && ncol(df) >= 3)
+    
+    # Attributes per record is many per record for the json method
+    expect_gt(length(json$models$subject$documents[[1]]), 3)
+})
+
+test_that("retrieve works with targetted input, 1att", {
+    vcr::use_cassette("retrieve_rec3_att1", {
+        ret <- retrieve(
+            "example", "subject",
+            recordNames = c("EXAMPLE-HS1", "EXAMPLE-HS2"),
+            attributeNames = c("group"))
+    })
+    
+    expect_s3_class(ret, "data.frame")
+    
+    # Proper numbers retrieved?
+    # Id attribute is NOT targeted, +1 column
+    expect_equal(dim(ret), c(2,2))
+})
+
+test_that("retrieve works with targetted input, 1rec", {
+    vcr::use_cassette("retrieve_rec1_att3", {
+        ret <- retrieve(
+            "example", "subject",
+            recordNames = c("EXAMPLE-HS1"),
+            attributeNames = c("biospecimen", "name", "group"))
+    })
+    
+    expect_s3_class(ret, "data.frame")
+    
+    # Proper numbers retrieved?
+    # Id attribute is targeted, no +1 to columns
+    expect_equal(dim(ret), c(1,3))
+})
