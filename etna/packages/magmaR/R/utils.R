@@ -33,12 +33,13 @@
     .MAGMAR_URL
 }
 
-.perform_curl <- function(
-    fxn = c("/retrieve", "/query"),
+.perform_curl_get <- function(
+    fxn = c("/retrieve", "/query", "/update"),
     requestBody,
     token,
     url.base,
-    verbose) {
+    parse = TRUE,
+    verbose = FALSE) {
     
     fxn <- match.arg(fxn)
     
@@ -49,10 +50,24 @@
         )
     
     curl <- curl$get(path = fxn)
-    output <- curl$parse(encoding = "UTF-8")
     
-    if (output == "You are unauthorized") {
+    if (verbose) {
+        if (curl$success()) {
+            cat(paste0(fxn, ": successful."))
+        } else {
+            cat(fxn, ":\n")
+            print(curl$status_http())
+        }
+    }
+    
+    if (curl$status_code==401) {
         stop("You are unauthorized. If you think this is a mistake, run `rm(.MAGMAR_TOKEN)` or update your 'token' input, then retry.")
+    }
+    
+    if (!parse) {
+        output <- curl
+    } else {
+        output <- curl$parse(encoding = "UTF-8")
     }
     
     output
