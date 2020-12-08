@@ -10,7 +10,7 @@ describe('Janus Utils', () => {
     ];
     const result = projectNameFull(projects, 'xyz1');
 
-    expect(result).toEqual('ACME corporation');
+    expect(result).toEqual('ACME corporation (xyz1)');
   });
 
   it('returns the shortname if no matching project', () => {
