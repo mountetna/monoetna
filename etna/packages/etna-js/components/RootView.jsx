@@ -1,12 +1,12 @@
 import React, {useEffect} from 'react';
-import {useReduxState} from 'etna-js/hooks/useReduxState';
+import {useReduxState} from '../hooks/useReduxState';
 
 // Module imports.
-import { selectUserPermissions } from 'etna-js/selectors/user-selector';
-import { selectProjects } from 'etna-js/selectors/janus-selector';
-import { projectNameFull } from 'etna-js/utils/janus';
-import {fetchProjectsAction} from 'etna-js/actions/janus-actions';
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import { selectUserPermissions } from '../selectors/user-selector';
+import { selectProjects } from '../selectors/janus-selector';
+import { projectNameFull } from '../utils/janus';
+import {fetchProjectsAction} from '../actions/janus-actions';
+import {useActionInvoker} from '../hooks/useActionInvoker';
 
 const Project = ({project_name, full_name, role, privileged}) =>
   <div className='project'>
