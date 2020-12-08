@@ -1,6 +1,6 @@
 .root-view {
   padding: 10px 0px;
-  font-family: $body_font;
+  font-family: $base-font;
 
   .title {
     margin-left: 0px;
@@ -19,7 +19,7 @@
       padding: 4px;
 
       &.header {
-        font-family: $value_font;
+        font-family: $base-font;
         background: #eee;
         color: #333;
         border-bottom: 1px solid #888;
@@ -27,7 +27,7 @@
       }
 
       .project_name {
-        font-family: $value_font;
+        font-family: $base-font;
         padding: 0px 10px;
         flex: 0 0 200px;
       }

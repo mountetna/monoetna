@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import MetisNav from './metis-nav';
-import RootView from './root-view';
+import RootView from 'etna-js/components/RootView';
 import FolderView from './folder-view';
 import BucketView from './bucket-view';
 import ModalDialog from './modal-dialog';

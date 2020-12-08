@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 // Module imports.
-import { selectUserPermissions } from '../selectors/user_selector';
+import { selectUserPermissions } from 'etna-js/selectors/user-selector';
 import { selectProjects } from 'etna-js/selectors/janus-selector';
 import { projectNameFull } from 'etna-js/utils/janus';
 import {fetchProjectsAction} from 'etna-js/actions/janus-actions';
@@ -11,7 +11,7 @@ import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 const Project = ({project_name, full_name, role, privileged}) =>
   <div className='project'>
     <div className='project_name'>
-        <a className='home-page-project-link' href={`/${project_name}`}>
+      <a href={`/${project_name}`}>
         { project_name }
       </a>
     </div>
@@ -23,7 +23,7 @@ const Project = ({project_name, full_name, role, privileged}) =>
     </div>
   </div>;
 
-const HomePage = () => {
+const RootView = () => {
   const invoke = useActionInvoker();
   const { my_projects } = useReduxState(
     state => {
@@ -45,7 +45,7 @@ const HomePage = () => {
     invoke(fetchProjectsAction());
   }, []);
 
-  return <div className='home_page'>
+  return <div className='root-view'>
     <div className='title'>Available Projects</div>
     <div className='projects'>
       <div className='project header'>
@@ -62,4 +62,4 @@ const HomePage = () => {
   </div>;
 }
 
-export default HomePage;
+export default RootView;
