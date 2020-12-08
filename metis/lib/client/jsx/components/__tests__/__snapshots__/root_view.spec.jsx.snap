@@ -19,7 +19,7 @@ exports[`RootView renders 1`] = `
         className="project_name"
         href="/labors"
       >
-        The Twelve Labors of Hercules (labors)
+        The Twelve Labors of Hercules - labors
       </a>
       - 
       <span
@@ -36,7 +36,7 @@ exports[`RootView renders 1`] = `
         className="project_name"
         href="/wisdom"
       >
-        Athena's Wisdom (wisdom)
+        Athena's Wisdom - wisdom
       </a>
       - 
       <span

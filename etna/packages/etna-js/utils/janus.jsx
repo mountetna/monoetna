@@ -38,6 +38,6 @@ export const projectNameFull = (projects, project_name) => {
   });
 
   return matching_project
-    ? `${matching_project.project_name_full} (${project_name})`
+    ? `${matching_project.project_name_full} - ${project_name}`
     : project_name;
 };
