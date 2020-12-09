@@ -18,7 +18,7 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Mon, 07 Dec 2020 23:26:27 GMT
+      date: Wed, 09 Dec 2020 23:23:24 GMT
       server: Apache
       content-type: application/json
       content-length: '3313'
@@ -29,7 +29,7 @@ http_interactions:
       string: '{"models":{"subject":{"documents":{"EXAMPLE-HS1":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS1","project":"EXAMPLE","biospecimen":["EXAMPLE-HS1-WB1"],"group":"1"},"EXAMPLE-HS10":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS10","project":"EXAMPLE","biospecimen":["EXAMPLE-HS10-WB1"],"group":"3"},"EXAMPLE-HS11":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS11","project":"EXAMPLE","biospecimen":["EXAMPLE-HS11-WB1"],"group":"3"},"EXAMPLE-HS12":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS12","project":"EXAMPLE","biospecimen":["EXAMPLE-HS12-WB1"],"group":"3"},"EXAMPLE-HS2":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS2","project":"EXAMPLE","biospecimen":["EXAMPLE-HS2-WB1"],"group":"1"},"EXAMPLE-HS3":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS3","project":"EXAMPLE","biospecimen":["EXAMPLE-HS3-WB1"],"group":"1"},"EXAMPLE-HS4":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS4","project":"EXAMPLE","biospecimen":["EXAMPLE-HS4-WB1"],"group":"1"},"EXAMPLE-HS5":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS5","project":"EXAMPLE","biospecimen":["EXAMPLE-HS5-WB1"],"group":"2"},"EXAMPLE-HS6":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS6","project":"EXAMPLE","biospecimen":["EXAMPLE-HS6-WB1"],"group":"2"},"EXAMPLE-HS7":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS7","project":"EXAMPLE","biospecimen":["EXAMPLE-HS7-WB1"],"group":"2"},"EXAMPLE-HS8":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS8","project":"EXAMPLE","biospecimen":["EXAMPLE-HS8-WB1"],"group":"2"},"EXAMPLE-HS9":{"created_at":null,"updated_at":null,"name":"EXAMPLE-HS9","project":"EXAMPLE","biospecimen":["EXAMPLE-HS9-WB1"],"group":"3"}},"template":{"name":"subject","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Created
         At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Updated
         At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"name":{"name":"name","attribute_name":"name","type":"String","attribute_class":"Magma::Attribute","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"project":{"name":"project","attribute_name":"project","model_name":"project","link_model_name":"project","attribute_class":"Magma::ForeignKeyAttribute","display_name":"Project","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","attribute_class":"Magma::CollectionAttribute","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"},"group":{"name":"group","attribute_name":"group","type":"String","attribute_class":"Magma::Attribute","display_name":"Group","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"}},"identifier":"name","parent":"project"}}}}'
-  recorded_at: 2020-12-07 23:26:27 GMT
+  recorded_at: 2020-12-09 23:23:24 GMT
   recorded_with: vcr/0.5.4, webmockr/0.7.0
 - request:
     method: get
@@ -50,7 +50,7 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Mon, 07 Dec 2020 23:26:27 GMT
+      date: Wed, 09 Dec 2020 23:23:24 GMT
       server: Apache
       content-type: text/tsv
       content-disposition: inline; filename="results.tsv
@@ -60,5 +60,5 @@ http_interactions:
       encoding: UTF-8
       file: no
       string: "name\tproject\tbiospecimen\tgroup\nEXAMPLE-HS1\tEXAMPLE\tEXAMPLE-HS1-WB1\t1\nEXAMPLE-HS10\tEXAMPLE\tEXAMPLE-HS10-WB1\t3\nEXAMPLE-HS11\tEXAMPLE\tEXAMPLE-HS11-WB1\t3\nEXAMPLE-HS12\tEXAMPLE\tEXAMPLE-HS12-WB1\t3\nEXAMPLE-HS2\tEXAMPLE\tEXAMPLE-HS2-WB1\t1\nEXAMPLE-HS3\tEXAMPLE\tEXAMPLE-HS3-WB1\t1\nEXAMPLE-HS4\tEXAMPLE\tEXAMPLE-HS4-WB1\t1\nEXAMPLE-HS5\tEXAMPLE\tEXAMPLE-HS5-WB1\t2\nEXAMPLE-HS6\tEXAMPLE\tEXAMPLE-HS6-WB1\t2\nEXAMPLE-HS7\tEXAMPLE\tEXAMPLE-HS7-WB1\t2\nEXAMPLE-HS8\tEXAMPLE\tEXAMPLE-HS8-WB1\t2\nEXAMPLE-HS9\tEXAMPLE\tEXAMPLE-HS9-WB1\t3\n"
-  recorded_at: 2020-12-07 23:26:27 GMT
+  recorded_at: 2020-12-09 23:23:25 GMT
   recorded_with: vcr/0.5.4, webmockr/0.7.0

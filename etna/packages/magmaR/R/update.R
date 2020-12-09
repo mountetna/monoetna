@@ -185,7 +185,10 @@ updateMatrix <- function(
     cat("This update() will update data for", num_updates, "records.\n")
     
     ### Check if should move forward
-    .ask_before_proceeding(auto.proceed)
+    go <- .ask_before_proceeding(auto.proceed)
+    if (! go %in% c("Y", "y", "Yes", "yes", "YES")) {
+        return("No /update performed.")
+    }
     
     ### Transform data into a nested list
     # Note: Do not supply recordNames directly to vapply as any "-" will be
@@ -201,7 +204,7 @@ updateMatrix <- function(
     names(revs) <- modelName
     
     ### Upload
-    .update(
+    updateValues(
         projectName = projectName,
         revisions = revs,
         token = token,
@@ -213,13 +216,12 @@ updateMatrix <- function(
     if (!auto.proceed) {
         
         if (!interactive()) {
-            stop("To run in non-interactive mode, set 'auto.proceed = TRUE'.")
+            warning("To run in non-interactive mode, set 'auto.proceed = TRUE'.")
         }
         
-        go <- readline("Proceed, Y/n? ")
-        if (! go %in% c("Y", "y", "Yes", "yes", "YES")) {
-            stop("User-requested exit.", call. = FALSE)
-        }
+        return(readline("Proceed, Y/n? "))
+    } else {
+        return("Y")
     }
 }
 

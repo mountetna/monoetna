@@ -18,7 +18,7 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Mon, 07 Dec 2020 23:26:28 GMT
+      date: Wed, 09 Dec 2020 23:23:25 GMT
       server: Apache
       content-type: text/tsv
       content-disposition: inline; filename="results.tsv
@@ -41,7 +41,7 @@ http_interactions:
         EXAMPLE-HS7
         EXAMPLE-HS8
         EXAMPLE-HS9
-  recorded_at: 2020-12-07 23:26:28 GMT
+  recorded_at: 2020-12-09 23:23:25 GMT
   recorded_with: vcr/0.5.4, webmockr/0.7.0
 - request:
     method: get
@@ -62,7 +62,7 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Mon, 07 Dec 2020 23:26:28 GMT
+      date: Wed, 09 Dec 2020 23:23:25 GMT
       server: Apache
       content-type: text/tsv
       content-disposition: inline; filename="results.tsv
@@ -72,5 +72,5 @@ http_interactions:
       encoding: UTF-8
       file: no
       string: "name\tproject\tbiospecimen\tgroup\nEXAMPLE-HS1\tEXAMPLE\tEXAMPLE-HS1-WB1\t1\n"
-  recorded_at: 2020-12-07 23:26:28 GMT
+  recorded_at: 2020-12-09 23:23:25 GMT
   recorded_with: vcr/0.5.4, webmockr/0.7.0
