@@ -119,6 +119,7 @@ updateValues <- function(
 #'         matrix = mat)
 #' }
 #'
+#' @importFrom utils read.csv
 updateMatrix <- function(
     projectName,
     modelName,
@@ -169,7 +170,7 @@ updateMatrix <- function(
         new <- colnames(matrix)[!colnames(matrix) %in% ids]
         num_new <- length(new)
         
-        cat("This update() will create", num_new, "records:",
+        cat("This update() will create", num_new, "new records:",
             paste0(head(new,3), collapse = ", "),"...\n")
         
         num_updates <- num_updates - num_new
