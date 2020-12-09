@@ -13,6 +13,27 @@ module Etna
 
     COLUMN_AS_BOOLEAN = -> (s) { ['true', 't', 'y', 'yes'].include?(s&.downcase) }
 
+    def feed_rows_into(enumerator, filename: nil, input_io: nil, &block)
+      begin
+        enumerator.next
+      rescue StopIteration
+        return
+      end
+
+      context = {}
+      each_csv_row(filename: filename, input_io: input_io) do |row, lineno|
+        p row
+        block.call(row, lineno) if block_given?
+        enumerator.feed(NestedRowProcessor.new(row, lineno, context))
+
+        begin
+          enumerator.next
+        rescue StopIteration
+          return
+        end
+      end
+    end
+
     def each_csv_row(filename: nil, input_io: nil, &block)
       if input_io.nil?
         unless filename.nil?
@@ -23,9 +44,26 @@ module Etna
       end
 
       lineno = 1
-      CSV.parse(input_io, headers: true, header_converters: :symbol) do |row|
+      header_mappings = nil
+      CSV.parse(input_io) do |row|
+        if header_mappings.nil?
+          header_mappings = row.each_with_index.map { |heading, index| [index, heading&.to_sym] }.to_h
+          next
+        end
+
         lineno += 1
-        row = row.to_hash
+
+        row_as_hash = {}
+        row.each_with_index do |value, index|
+          if header_mappings.include?(index) && !(header = header_mappings[index]).nil?
+            row_as_hash[header] = value
+          else
+            row_as_hash[index] = value
+          end
+        end
+
+        row = row_as_hash
+
         row.keys.each { |k| row[k].strip! if row[k] =~ /^\s+$/ } if @strip
         row.select! { |k, v| !v.empty? } if @filter_empties
         @row_formatter.call(row) unless @row_formatter.nil?
@@ -67,10 +105,6 @@ module Etna
         @changed = {}
       end
 
-      def retain(column, *parents, &block)
-        @context[[column, :retained]]
-      end
-
       def watch(column, *dependencies, &block)
         prev = @context[column]
         process(column, *dependencies) do |*args|
@@ -84,7 +118,7 @@ module Etna
           @context[column] = nil
         end
 
-        return self if (next_val = row[column]).nil?
+        return false if !row.include?(column) || (next_val = row[column]).nil?
         @changed[column] = true
 
         context_values = dependencies.map do |p|
@@ -105,7 +139,7 @@ module Etna
         end
 
         @context[column] = next_val
-        self
+        true
       end
     end
   end
