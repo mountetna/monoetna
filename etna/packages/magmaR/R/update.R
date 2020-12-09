@@ -132,8 +132,13 @@ updateMatrix <- function(
     
     ### Read in matrix if passed as a string (file-location)
     if (is.character(matrix)) {
-        matrix <- read.csv(matrix, sep = separator)
+        matrix <- read.csv(
+            matrix, sep = separator, row.names = 1, check.names = FALSE)
+        if (ncol(matrix)<1){
+            stop("Parsing error. Is 'separator' correct?")
+        }
     }
+    # Validate that there are column names
     if (is.null(colnames(matrix))) {
         stop("Colnames of matrix should be record names.")
     }
@@ -145,7 +150,7 @@ updateMatrix <- function(
         temp$models[[modelName]]$template$attributes[[attributeName]]$options
     
     if (length(row_options)<1) {
-        warning("Attribute does not have 'options' info: no validation can be performed.")
+        cat("WARNING: Target attribute does not have 'options' info: no validation can be performed.\n\n")
     } else {
         # Check rownames against options
         if (! all(rownames(matrix) %in% row_options)) {
@@ -171,7 +176,8 @@ updateMatrix <- function(
         num_new <- length(new)
         
         cat("This update() will create", num_new, "new records:",
-            paste0(head(new,3), collapse = ", "),"...\n")
+            paste0(new, collapse = ", "),
+            "\nWARNING: Check the above carefully. Once created, there is currently no way to remove records form magma.\n\n")
         
         num_updates <- num_updates - num_new
     }
@@ -202,7 +208,6 @@ updateMatrix <- function(
         ...)
 }
 
-#' @importFrom utils head
 .ask_before_proceeding <- function(auto.proceed = FALSE) {
     
     if (!auto.proceed) {
