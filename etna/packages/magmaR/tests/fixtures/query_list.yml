@@ -19,7 +19,7 @@ http_interactions:
         semantic errors (WebDAV; RFC 4918)
     headers:
       status: HTTP/1.1 422 Unprocessable Entity
-      date: Wed, 09 Dec 2020 23:23:24 GMT
+      date: Wed, 09 Dec 2020 23:54:32 GMT
       server: Apache
       content-type: application/json
       content-length: '72'
@@ -28,5 +28,5 @@ http_interactions:
       encoding: UTF-8
       file: no
       string: '{"errors":["subject is not a valid argument to Magma::RecordPredicate"]}'
-  recorded_at: 2020-12-09 23:23:24 GMT
+  recorded_at: 2020-12-09 23:54:32 GMT
   recorded_with: vcr/0.5.4, webmockr/0.7.0

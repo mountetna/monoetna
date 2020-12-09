@@ -130,8 +130,16 @@ This update() will update data for 6 records.", fixed = TRUE
             "No /update performed."
         )
         
-        ###### Add test for message when attribute has no 'options'
-        # skip_if(!identical(mat, mat_after), "before/after updateMatrix() are not equal")
+        # When the attribute does not have 'options'
+        expect_output(
+            suppressWarnings(
+                updateMatrix(projectName = "example", modelName = "rna_seq",
+                    attributeName = "fraction",
+                    matrix = mat)),
+"WARNING: Target attribute does not have 'options' info: no validation can be performed.
+
+This update() will update data for 12 records.", fixed = TRUE
+        )
     })
 })
 
