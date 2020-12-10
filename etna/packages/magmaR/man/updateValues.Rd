@@ -41,8 +41,9 @@ None directly.  The function sends data to magma, and the only output is whether
 Analogous to the '/update' function of magma
 }
 \details{
-This function mimics the activity of the magma/query function, documented here \url{https://mountetna.github.io/magma.html#update},
+This function mimics the activity of the magma/update function, documented here \url{https://mountetna.github.io/magma.html#update},
 with the main difference being that the \code{revisions} input should be in nested-list format.
+Internally, this function does little more than directly pass its inputs along to magma/update via a curl request.
 }
 \examples{
 

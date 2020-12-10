@@ -23,7 +23,7 @@ updateMatrix(
 \item{attributeName}{String naming the matrix attribute for which to upload data.}
 
 \item{matrix}{A matrix or dataframe containing the data to upload to magma.
-colnames must be record identifiers, and rownames should match the 'options' associated with the target 'attribute'.
+colnames must be record identifiers, and rownames should match the values of 'validation' associated with the target 'attribute'.
 
 Alternatively, the location of a file containing such a data.}
 
@@ -59,13 +59,17 @@ to upload data to a matrix attribute (named \code{attributeName}) of the \code{m
 \code{Matrix} data are provided either as a matrix, dataframe, or file path which points toward such data.
 If given as a file path, the \code{separator} can be used to adjust for whether the file is a csv, \code{separator = ","}, or tsv, \code{separator = "\t"}.
 
-Data is then validated by ensuring that all row names are among the attribute's 'options', and rows are reordered to be in thee same order as these 'options'.
+Data is then validated by ensuring that all row names are among the options in the attribute's 'validation', and rows are reordered to be in the same order as these options.
+
+For any missing 'validation' options, NAs are added.
+
 Column names are then checked against record identifiers of the target model.
 The numbers of new and old record names which will be targeted with the requested update are reported in ordeer to give the user a chance to double-check that the update should proceed.
 
-NOTE: Always check carefully before proceeding. Data can be overwritten with NAs or zeros, but improperly named records cannot be easily removed.
+NOTE: Always check carefully before proceeding. Data can be overwritten with NAs or zeros or the like, but improperly named records cannot be easily removed.
 
-Finally, the data is transformed into the structure required for /update to be called via a curl request.
+Finally, the data is transformed into the structure required for /update to be called via a curl request,
+and that request is performed via a call to \code{\link{updateValues()}}
 }
 \examples{
 

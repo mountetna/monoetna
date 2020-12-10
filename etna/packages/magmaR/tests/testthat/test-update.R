@@ -72,13 +72,13 @@ vcr::use_cassette("update_4", {
             "Colnames of matrix should be record names.", fixed = TRUE
         )
         
-        # Error when matrix rownames (features / magma "colnames") do not match attribute 'options'
+        # Error when matrix rownames (features / magma "colnames") do not match attribute 'validation'
         mat_notGENEs <- mat
         rownames(mat_notGENEs) <- paste0("NOPE", seq_len(nrow(mat)))
         expect_error(
             updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                 matrix = mat_notGENEs),
-            "Validation error: rownames of 'matrix' are not valid 'options' for", fixed = TRUE
+            "Validation error: rownames of 'matrix' are not valid options for", fixed = TRUE
         )
         
         # Error when run non-interactively without 'auto.proceed = TRUE' or when user says "no" to proceeding.
@@ -136,7 +136,7 @@ This update() will update data for 6 records.", fixed = TRUE
                 updateMatrix(projectName = "example", modelName = "rna_seq",
                     attributeName = "fraction",
                     matrix = mat)),
-"WARNING: Target attribute does not have 'options' info: no validation can be performed.
+"WARNING: Target attribute does not have 'validation' info: no feature-names validation can be performed.
 
 This update() will update data for 12 records.", fixed = TRUE
         )

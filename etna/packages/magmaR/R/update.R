@@ -12,8 +12,9 @@
 #' See \url{https://mountetna.github.io/magma.html#update} for additional formatting details.
 #' 
 #' @return None directly.  The function sends data to magma, and the only output is whether that send was successful when \code{verbose} is set to \code{TRUE}.
-#' @details This function mimics the activity of the magma/query function, documented here \url{https://mountetna.github.io/magma.html#update},
+#' @details This function mimics the activity of the magma/update function, documented here \url{https://mountetna.github.io/magma.html#update},
 #' with the main difference being that the \code{revisions} input should be in nested-list format.
+#' Internally, this function does little more than directly pass its inputs along to magma/update via a curl request.
 #' 
 #' @seealso
 #' \url{https://mountetna.github.io/magma.html#update} for documentation of the underlying magma/update function.
@@ -66,7 +67,7 @@ updateValues <- function(
 #' @param modelName Single string. The name of the model to upload data to.
 #' @param attributeName String naming the matrix attribute for which to upload data.
 #' @param matrix A matrix or dataframe containing the data to upload to magma.
-#' colnames must be record identifiers, and rownames should match the 'options' associated with the target 'attribute'.
+#' colnames must be record identifiers, and rownames should match the values of 'validation' associated with the target 'attribute'.
 #' 
 #' Alternatively, the location of a file containing such a data.
 #' @param separator String indicating the field separator to use if providing \code{matrix} as a file location.
@@ -88,13 +89,17 @@ updateValues <- function(
 #' \code{Matrix} data are provided either as a matrix, dataframe, or file path which points toward such data.
 #' If given as a file path, the \code{separator} can be used to adjust for whether the file is a csv, \code{separator = ","}, or tsv, \code{separator = "\t"}.
 #' 
-#' Data is then validated by ensuring that all row names are among the attribute's 'options', and rows are reordered to be in thee same order as these 'options'.
+#' Data is then validated by ensuring that all row names are among the options in the attribute's 'validation', and rows are reordered to be in the same order as these options.
+#' 
+#' For any missing 'validation' options, NAs are added.
+#' 
 #' Column names are then checked against record identifiers of the target model.
 #' The numbers of new and old record names which will be targeted with the requested update are reported in ordeer to give the user a chance to double-check that the update should proceed.
 #' 
-#' NOTE: Always check carefully before proceeding. Data can be overwritten with NAs or zeros, but improperly named records cannot be easily removed.
+#' NOTE: Always check carefully before proceeding. Data can be overwritten with NAs or zeros or the like, but improperly named records cannot be easily removed.
 #' 
-#' Finally, the data is transformed into the structure required for /update to be called via a curl request.
+#' Finally, the data is transformed into the structure required for /update to be called via a curl request,
+#' and that request is performed via a call to \code{\link{updateValues()}}
 #' 
 #' @seealso
 #' \url{https://mountetna.github.io/magma.html#update} for documentation of the underlying magma/update function.
@@ -144,19 +149,19 @@ updateMatrix <- function(
     }
     
     ### Validate rownames (genes / value names)
-    # Obtain rownames
+    # Obtain 'validation' / rowname options
     temp <- retrieveTemplate(projectName, token = token, ...)
     row_options <- 
-        temp$models[[modelName]]$template$attributes[[attributeName]]$options
+        temp$models[[modelName]]$template$attributes[[attributeName]]$validation$value
     
     if (length(row_options)<1) {
-        cat("WARNING: Target attribute does not have 'options' info: no validation can be performed.\n\n")
+        cat("WARNING: Target attribute does not have 'validation' info: no feature-names validation can be performed.\n\n")
     } else {
         # Check rownames against options
         if (! all(rownames(matrix) %in% row_options)) {
-            stop("Validation error: rownames of 'matrix' are not valid 'options' for ", attributeName,".")
+            stop("Validation error: rownames of 'matrix' are not valid options for ", attributeName,".")
         } else {
-            # Add NAs for any 'options' not in the current matrix
+            # Add NAs for any options not in the current matrix
             for (not_there in setdiff(row_options, rownames(matrix))) {
                 matrix <- rbind(matrix, NA)
                 rownames(matrix)[nrow(matrix)] <- not_there
