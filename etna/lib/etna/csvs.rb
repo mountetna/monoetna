@@ -189,12 +189,18 @@ module Etna
       end
 
       def <<(columns)
-        self.ensure_headers
-        @csv << @exporter.row_from_columns(columns)
+        self.write_row(columns, nil)
       end
 
       def write(**columns)
-        self.<<(columns)
+        self.write_row(columns, nil)
+      end
+
+      def write_row(columns, row = nil)
+        columns_row = @exporter.row_from_columns(columns)
+        columns_row += row if row
+        self.ensure_headers
+        @csv <<  columns_row
       end
 
       def ensure_headers
