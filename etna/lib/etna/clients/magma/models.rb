@@ -374,6 +374,30 @@ module Etna
         end
       end
 
+      class Dictionary
+        attr_reader :raw
+
+        def initialize(raw = {})
+          @raw = raw
+        end
+
+        def dictionary_keys
+          raw.keys
+        end
+
+        def dictionary_model
+          raw['dictionary_mode']
+        end
+
+        def model_name
+          raw['model_name']
+        end
+
+        def attributes
+          raw['attributes']
+        end
+      end
+
       class Attributes
         attr_reader :raw
 
