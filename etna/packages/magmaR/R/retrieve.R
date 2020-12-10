@@ -41,8 +41,6 @@
 #'         filter = "")
 #' }
 #' 
-#' @importFrom utils URLencode
-
 retrieve <- function(
     projectName,
     modelName,

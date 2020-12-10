@@ -77,7 +77,7 @@
     string, names.only = FALSE, connected.only = TRUE) {
     
     ### Parse
-    table <- as.data.frame(readr::read_tsv(string))
+    table <- read.csv(text = string, sep = "\t")
 
     if(names.only) {
         return(names(table))

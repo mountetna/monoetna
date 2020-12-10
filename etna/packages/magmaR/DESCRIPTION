@@ -6,8 +6,7 @@ Authors@R: c(person("Daniel", "Bunis", email = "daniel.bunis@ucsf.edu", role=c("
 Description: Provides functions for querying data from magma, then working with
     said data within R.
 Imports: crul,
-    jsonlite,
-    readr
+    jsonlite
 Suggests: dittoSeq,
     BiocStyle,
     vcr,
