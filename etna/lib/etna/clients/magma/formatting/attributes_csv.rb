@@ -84,29 +84,31 @@ module Etna
               raise TypeError.new(format_attr_err_message(attr, "cannot be set in a single row column", recip: recip))
             when AttributeType::MATRIX
               # TODO: Make this an external file loading?
-              JSON.stringify(val)
+              val ? JSON.stringify(val) : ''
             when AttributeType::FILE_COLLECTION
-              if val.empty?
+              if val.nil? || val.empty?
                 ""
               else
                 JSON.stringify(val.map { |rev| serialize_file(rev) })
               end
             when AttributeType::INTEGER, AttributeType::FLOAT
-              val.to_s
+              val ? val.to_s : ''
             when AttributeType::BOOLEAN
               val ? 'true' : 'false'
             when AttributeType::DATE_TIME
-              DateTime.parse(val).iso8601
+              val ? DateTime.parse(val).iso8601 : ''
             when AttributeType::MATCH
-              JSON.stringify(val)
-            when AttributeType::FILE
-              serialize_file(val)
+              val ? JSON.stringify(val) : ''
+            when AttributeType::FILE, AttributeType::IMAGE
+              val ? serialize_file(val) : ''
             else
               raise TypeError.new("#{attr.attribute_type} is not supported in this version.")
             end
           end
 
           def self.serialize_file(rev)
+            return '' if rev['path'] == '::blank'
+
             result = rev['path']
             if (original_filename = rev['original_filename'])
               result += ",#{original_filename}"
@@ -203,7 +205,9 @@ module Etna
 
           def self.deserialize(attr, string_value, recip)
             case attr.attribute_type
-            when AttributeType::LINK, AttributeType::IDENTIFIER, AttributeType::PARENT, AttributeType::STRING
+            when AttributeType::LINK, AttributeType::IDENTIFIER, AttributeType::PARENT
+              string_value.empty? ? nil : string_value
+            when AttributeType::STRING
               string_value
             when AttributeType::TABLE
               raise ImportError.new(format_attr_err_message(attr, "cannot be set in a single row column, use the table_attribute column instead."))
@@ -212,13 +216,13 @@ module Etna
             when AttributeType::MATRIX
               begin
                 # TODO: Make this an external file loading?
-                JSON.parse(string_value)
-              rescue
+                string_value.empty? ? nil : JSON.parse(string_value)
+              rescue JSONError
                 raise ImportError.new(format_attr_err_message(attr, "must be a json encoded array of numbers"))
               end
             when AttributeType::FILE_COLLECTION
               if string_value.empty?
-                []
+                nil
               else
                 begin
                   JSON.parse(update_hash).map { |s| self.prepare_file_value(s) }
@@ -227,72 +231,72 @@ module Etna
                 end
               end
             when AttributeType::INTEGER
-              update_hash[attr_name] = to_numeric_or_error(string_value, [Integer])
+              string_value.empty? ? nil : to_numeric_or_error(string_value, [Integer])
             when AttributeType::BOOLEAN
-              if ['true', 'y', 't', 'yes', 'false', 'n', 'f', 'no'].include?(string_value.downcase)
+              if ['true', 'y', 't', 'yes', 'false', 'n', 'f', 'no', ''].include?(string_value.downcase)
                 Etna::CsvImporter::COLUMN_AS_BOOLEAN.call(string_value)
               else
                 raise ImportError.new(format_attr_err_message(attr, "must be one of true, false, yes, no"))
               end
             when AttributeType::DATE_TIME
               begin
-                DateTime.parse(string_value).iso8601
+                string_value.empty? ? nil : DateTime.parse(string_value).iso8601
               rescue Date::Error
                 raise ImportError.new(format_attr_err_message(attr, "is not supported"))
               end
             when AttributeType::MATCH
-              JSON.parse(string_value)
+              string_value.empty? ? nil : JSON.parse(string_value)
             when AttributeType::FLOAT
-              to_numeric_or_error(string_value, Float)
-            when AttributeType::FILE
+              string_value.empty? ? nil : to_numeric_or_error(string_value, Float)
+            when AttributeType::FILE, AttributeType::IMAGE
               self.prepare_file_value(string_value)
             else
               raise ImportError.new(format_attr_err_message(attr, "is not supported"))
             end
           end
-        end
 
-        def self.prepare_file_value(string_value)
-          if string_value.empty?
-            {path: '::blank'}
-          else
-            original_filename = nil
-            comma_idx = string_value.index(',')
-            if comma_idx
-              original_filename = string_value.slice((comma_idx + 1)..-1)
-              string_value = string_value.slice(0..comma_idx)
-            end
-
-            if string_value =~ METIS_PATH_REGEX
-              if original_filename.nil?
-                original_filename = File.basename(string_value)
-              end
-              {path: string_value, original_filename: original_filename}
+          def self.prepare_file_value(string_value)
+            if string_value.empty?
+              { 'path' => '::blank' }
             else
-              raise ArgumentError.new("must be a valid metis path (metis://project/bucket/path)")
-            end
-          end
-        end
+              original_filename = nil
+              comma_idx = string_value.index(',')
+              if comma_idx
+                original_filename = string_value.slice((comma_idx + 1)..-1)
+                string_value = string_value.slice(0..comma_idx)
+              end
 
-        def self.format_attr_err_message(attr, msg, recip: nil)
-          msg = "#{attr.attribute_type} attribute #{attr.name} #{msg}"
-          if recip
-            msg += ", try using the reciprocal attribute #{recip.name} on #{attr.link_model_name}"
-          end
-
-          msg
-        end
-
-        def self.to_numeric_or_error(string_value, numeric_types = [Integer, Float])
-          numeric_types.each do |type|
-            begin
-              return type.call(string_value)
-            rescue ArgumentError => e
-              next
+              if string_value =~ METIS_PATH_REGEX
+                if original_filename.nil?
+                  original_filename = File.basename(string_value)
+                end
+                { 'path' => string_value, 'original_filename' => original_filename }
+              else
+                raise ArgumentError.new("must be a valid metis path (metis://project/bucket/path)")
+              end
             end
           end
 
-          raise ArgumentError.new("must be a valid #{numeric_types.map(&:name).join(' or ')}")
+          def self.format_attr_err_message(attr, msg, recip: nil)
+            msg = "#{attr.attribute_type} attribute #{attr.name} #{msg}"
+            if recip
+              msg += ", try using the reciprocal attribute #{recip.name} on #{attr.link_model_name}"
+            end
+
+            msg
+          end
+
+          def self.to_numeric_or_error(string_value, numeric_types = [Integer, Float])
+            numeric_types.each do |type|
+              begin
+                return type.call(string_value)
+              rescue ArgumentError => e
+                next
+              end
+            end
+
+            raise ArgumentError.new("must be a valid #{numeric_types.map(&:name).join(' or ')}")
+          end
         end
       end
     end

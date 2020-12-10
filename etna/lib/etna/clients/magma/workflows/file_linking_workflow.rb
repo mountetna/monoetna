@@ -4,6 +4,7 @@ require_relative './crud_workflow'
 module Etna
   module Clients
     class Magma
+      # This should be deprecated in favor of the DownloadFileLinkingCsvWorkflow.
       class FileLinkingWorkflow < Struct.new(:magma_crud, :model_name, :metis_client, :project_name, :bucket_name, :matching_expressions, :attribute_options, keyword_init: true)
         PATIENT_TIMEPOINT_REGEX = /([^-]+-[^-]+)-(DN?[0-9]+).*/
 

@@ -5,18 +5,52 @@ require_relative './crud_workflow'
 module Etna
   module Clients
     class Magma
-      class UpdateAttributesFromCsvWorkflow < Struct.new(:magma_crud, :project_name, keyword_init: true)
-        attr_reader :importer
-        def initialize(*args)
-          super
-          @importer = Etna::CsvImporter.new(&method(:format_input_row))
+      class DownloadFileLinkingCsvWorkflow < Struct.new(:magma_client, :metis_client, :model_name, :attribute_name, :project_name, keyword_init: true)
+        def find_matches(bucket_name:, base_folder:, extension:, expression:)
+          {}.tap do |all_matches|
+            # TODO: This ought to page in case of a massive payload.
+            metis_client.find(
+                Etna::Clients::Metis::FindRequest.new(
+                    project_name: project_name,
+                    bucket_name: bucket_name,
+                    params: [Etna::Clients::Metis::FindParam.new(
+                        attribute: 'name',
+                        predicate: 'glob',
+                        value: "#{base_folder}/**/*.#{extension}",
+                        type: 'file'
+                    )]
+                )).files.all.each do |file|
+
+              match = expression.match(file.file_path)
+              unless match.nil?
+                match_map = match.names.zip(match.captures).to_h
+                if (sample = match_map.include?('sample'))
+                  all_matches[sample] ||= []
+                  all_matches[sample] << {'path' => file.file_path, 'original_filename' => file.original_filename}
+                else
+                  raise ArgumentError.new("Expected match expression to provide a capture named 'sample', did not find one for #{file.file_path} with regex #{expression.source}")
+                end
+              end
+            end
+          end
         end
 
-        def create_exporter(max_columns_count)
-          Etna::CsvExporter.new([:model_name, :identifier] + max_columns_count.times { |i| :"attribute_#{i + 1}" })
+        def plan_revisions(sample, file, attribute, update_request: UpdateRequest.new)
+
+
+          update_request
         end
 
-        def format_input_row(row)
+        def models
+          @models ||= begin
+            magma_client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(project_name: self.project_name, model_name: 'all')).models
+          end
+        end
+
+        SAMPLE_REGEX=/(?<S>[a-zA-Z])/
+        def self.parse_sample_name(sample)
+          formatting_parts = {}
+          formatting_parts['S'] = sample.first
         end
       end
 
@@ -89,6 +123,7 @@ module Etna
 
         class Row < RowBase
           attr_reader :model_name, :record_name
+
           def initialize(raw, workflow)
             # Assumes rows are in pairs, where
             #   [0] = model_name
@@ -154,6 +189,7 @@ module Etna
 
         class Row < RowBase
           attr_reader :record_name
+
           def initialize(raw, model_name, workflow)
             # Assumes CSV includes a column header to identify the attribute_name
             # Assumes index 0 is the record_name
