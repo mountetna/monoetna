@@ -41,8 +41,6 @@
 #'         filter = "")
 #' }
 #' 
-#' @importFrom utils URLencode
-
 retrieve <- function(
     projectName,
     modelName,
@@ -159,8 +157,10 @@ retrieveJSON <- function(
     }
     
     ### Perform '\retrieve'-al
-    curl_out <- .perform_curl(
-        fxn = "/retrieve", requestBody, token, url.base, verbose)
+    curl_out <- .perform_curl_get(
+        fxn = "/retrieve",
+        requestBody, token, url.base,
+        parse = TRUE, verbose = verbose)
     
     ### Output
     if (raw.return) {

@@ -1,4 +1,4 @@
-#' Analagous to the '/query' fucntion of magma
+#' Analogous to the '/query' function of magma
 #' @inheritParams retrieve
 #' @param queryTerms A string vector where elements are query predicates. See \url{https://mountetna.github.io/magma.html#query} for details.
 #' @param format Either "list" or "df" (=dataframe). This sets the desired output format.
@@ -101,8 +101,10 @@ query <- function(
     }
     
     ### Perform '\query'
-    curl_out <- .perform_curl(
-        fxn = "/query", requestBody, token, url.base, verbose)
+    curl_out <- .perform_curl_get(
+        fxn = "/query",
+        requestBody, token, url.base,
+        parse = TRUE, verbose = verbose)
     
     ### Output
     jsonlite::fromJSON(curl_out)
