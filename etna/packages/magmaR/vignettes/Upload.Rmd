@@ -1,0 +1,156 @@
+---
+title: "Uploading data to magma with the R-client magmaR"
+author:
+- name: Daniel Bunis
+  affiliation: Data Science CoLab, University of California San Francisco, San Francisco, CA
+date: "Created: December 12, 2020"
+output:
+  BiocStyle::html_document:
+    toc_float: true
+package: magmaR
+vignette: >
+  %\VignetteIndexEntry{Uploading data from magma}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}    
+---
+
+```{r, echo=FALSE, results="hide", message=FALSE}
+knitr::opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
+library(BiocStyle)
+library(magmaR)
+.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
+.MAGMAR_URL <- Sys.getenv("URL")
+```
+
+# Introduction
+
+## Mini overview of magmaR, magma, and the Mount Etna data library system
+
+This vignette focuses on how to upload data to *magma* via its R-client, *magmaR*.
+
+Magma is the *data warehouse* of the **Mount Etna data library system**.
+
+For a deeper overview of the structure of magma and the Mount Etna data library system, please see the download-focused vignette, `vignette("Downloading data from magma")`, or Mount Etna's own documentation, here https://mountetna.github.io/magma.html.
+
+## Scope of this vignette
+
+This vignette assumes that you already 1) have magmaR installed, 2) understand the `token` authentication process, and 3) understand how to switch, if you need to, between the production / staging / development magma environments. If you do not, see the relevant sections of `vignette("Downloading data from magma")`.
+
+This vignette focuses on use-cases where a user wishes to push data, from their own system, to magma.
+
+Not all Mount Etna users have write privileges, so not all magmaR users will have need for this vignette.
+
+For those that do, please note: Sending data to magma is an **advanced use-case which needs to be treated with due care.** The functions involved have the ability to overwrite data, so it is imperative, for data integrity purposes, that inputs to these functions are double-checked in order to make sure that they target only the intended records & attributes.
+
+Also note that a users' write-privileges are project-specific, so it is unlikely that you will be able to run any code, exactly as it exists in this vignette, without getting an authorization error. (That also means you don't run the risk of breaking our download/exploration vignette by testing out any fun alterations of the code in here... trade-offs =] .)
+
+## How magmaR functions work
+
+In general, magmaR functions will:
+
+1. Take in inputs from the user.
+2. Make a curl request that calls on a magma function to either send or receive desired data.
+3. Restructure any received data, typically minimally, to be more accessible for downstream analyses.
+4. Return the output.
+
+Steps 3&4 are very simple for upload functions because the only return from magma will be curl request attributes that indicate whether the call to `magma/update` worked.
+
+So in this vignette, our singular focus will be on how to input your data so that magmaR can send it to magma properly.
+
+# magmaR's data upload functions:
+
+magma has just one data input function, `/update`.
+
+magmaR provides methods for sending data into magma via this `/update` function.
+
+In truth, there are many other pathways for sending data to magma. We have plans to expand magmaR's data upload functionality. We will update this vignette when we do. In the meantime, feel free to reach out to me (Dan) or anyone else on the Mount Etna engineering team with questions about the best method for uploading your particular data. 
+
+## `updateValues()`, analagous to `magma/update`
+
+`update()` is the main workhorse function of `magmaR`'s data upload capabilities. It largely mimics `magma/update` except in that `hash` structures that are used by `magma/update` do not exist within R. Thus the format for the `revisions` input is a nested `list`, rather than a nested `hash`.
+
+The function has 2 unique inputs, `project` and `revisions`:
+
+- `project` is simply the String name of the project that you wish to upload data to; e.g. `updateValues(project = "example", ...)`.
+- `revisions` includes information about which model(s), which record(s), and which attribute(s) to update, and with what value(s). Each of these levels is encoded as a nested list where the format looks something like:
+
+```
+revisions = list(
+    modelName = list(
+        recordName = list(
+            attributeName = value(s)
+        )
+    )
+)
+```
+
+To make more than one update within a single call, you can simply add an additional index at any of these levels.
+
+So for example, the below would update...
+
+```
+# 2 attributes for the same record
+revisions = list(
+    modelName = list(
+        recordName = list(
+            attributeName1 = value(s),
+            attributeName2 = value(s)
+        )
+    )
+)
+
+# The same attribute for 2 different records
+revisions = list(
+    modelName = list(
+        recordName1 = list(
+            attributeName1 = value(s)
+        ),
+        recordName2 = list(
+            attributeName1 = value(s)
+        )
+    )
+)
+
+# Some attribute for 2 different records of two different models
+revisions = list(
+    modelName1 = list(
+        recordName = list(
+            attributeName = value(s)
+        )
+    ),
+    modelName2 = list(
+        recordName = list(
+            attributeName = value(s)
+        )
+    )
+)
+```
+
+Let's try with some real examples which target the same "example" used in the download vignette. To refresh, the model map for this project is below, and the "biospecimen" and "rna_seq" models that we will target have attributes...
+
+`retrieveAttributes("example", "biospecimen")`: `r retrieveAttributes("example", "biospecimen")`
+
+`retrieveAttributes("example", "rna_seq")`: `r retrieveAttributes("example", "rna_seq")`.
+
+![example_project_map](example_map.jpg)
+
+We could update
+
+```{r, eval = FALSE}
+library(magmaR)
+revs <- list("biospecimen" = list(
+    "EXAMPLE-HS1-WB1" = list(biospecimen_type = "Whole Blood"),
+    "EXAMPLE-HS2-WB1" = list(biospecimen_type = "Whole Blood"),
+    "EXAMPLE-HS3-WB1" = list(biospecimen_type = "Whole Blood"),
+    "EXAMPLE-HS4-WB1" = list(biospecimen_type = "Whole Blood"),
+    "EXAMPLE-HS5-WB1" = list(biospecimen_type = "Whole Blood"),
+    "EXAMPLE-HS6-WB1" = list(biospecimen_type = "Whole Blood"),
+    "EXAMPLE-HS7-WB1" = list(biospecimen_type = "Whole Blood"),
+    "EXAMPLE-HS8-WB1" = list(biospecimen_type = "Whole Blood"),
+    "EXAMPLE-HS9-WB1" = list(biospecimen_type = "Whole Blood"),
+    "EXAMPLE-HS10-WB1" = list(biospecimen_type = "Whole Blood"),
+    "EXAMPLE-HS11-WB1" = list(biospecimen_type = "Whole Blood"),
+    "EXAMPLE-HS12-WB1" = list(biospecimen_type = "Whole Blood")
+))
+updateValues("example", revs)
+```
