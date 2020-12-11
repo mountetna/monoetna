@@ -39,6 +39,7 @@
     "redux-mock-store": "^1.5.4",
     "redux-thunk": "^2.3.0",
     "regenerator-runtime": "^0.13.5",
+    "reselect": "^3.0.1",
     "spark-md5": "^3.0.1",
     "webworkify-webpack": "^2.1.5"
   },

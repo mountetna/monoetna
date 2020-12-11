@@ -102,6 +102,7 @@ class Metis
 
       # Set this to use in revise!
       mpath_w_objs.file = file unless errors_found
+      mpath_w_objs.data_block = file.data_block unless errors_found || !file
 
       return errors_found
     end

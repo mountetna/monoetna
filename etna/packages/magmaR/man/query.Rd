@@ -2,7 +2,7 @@
 % Please edit documentation in R/query.R
 \name{query}
 \alias{query}
-\title{Analagous to the '/query' fucntion of magma}
+\title{Analogous to the '/query' function of magma}
 \usage{
 query(
   projectName,
@@ -35,7 +35,7 @@ A list, default, if \code{format == "list"},
 OR A dataframe conversion if \code{format = "df"}
 }
 \description{
-Analagous to the '/query' fucntion of magma
+Analogous to the '/query' function of magma
 }
 \details{
 This function initially mimics the activity of the magma/query which is documented here \url{https://mountetna.github.io/magma.html#query}.

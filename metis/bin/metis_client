@@ -159,16 +159,45 @@ class MetisClient
     json_body(response)
   end
 
-  def blob_upload(upload_path, upload, blob)
-    response = multipart_post(
-      upload_path, [
-        [ 'action', 'blob', ],
-        [ 'blob_data', blob[:blob_data], {filename: 'blob'} ],
-        [ 'next_blob_size', blob[:next_blob_size].to_s ],
-        [ 'next_blob_hash', blob[:next_blob_hash].to_s ],
-        [ 'current_byte_position', blob[:current_byte_position].to_s ]
-      ]
-    )
+  def retry_blob(upload_path, upload, blob, retries)
+    retries += 1
+
+    print "\rWaiting for server restart"+"."*retries+"\x1b[0K"
+
+    sleep 15
+
+    if retries < 60
+      blob_upload(upload_path, upload, blob, retries)
+      return
+    end
+
+    raise MetisClient::Error, "Could not contact server, giving up"
+  end
+
+  def blob_upload(upload_path, upload, blob, retries=0)
+    begin
+      response = multipart_post(
+        upload_path, [
+          [ 'action', 'blob', ],
+          [ 'blob_data', blob[:blob_data], {filename: 'blob'} ],
+          [ 'next_blob_size', blob[:next_blob_size].to_s ],
+          [ 'next_blob_hash', blob[:next_blob_hash].to_s ],
+          [ 'current_byte_position', blob[:current_byte_position].to_s ]
+        ]
+      )
+    rescue OpenSSL::SSL::SSLError => e
+      if e.message =~ /write client hello/
+        return retry_blob(upload_path, upload, blob, retries)
+      end
+      raise e
+    rescue Errno::ECONNREFUSED => e
+      return retry_blob(upload_path, upload, blob, retries)
+    end
+
+    if response.code == '503' || response.code == '502'
+      retry_blob(upload_path, upload, blob, retries)
+      return
+    end
 
     raise MetisClient::UploadError, "Problem with uploading the blob: #{error(response)}" if response.code == '422'
     raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
@@ -714,11 +743,13 @@ EOT
 
           if current_attempt_number <= max_number_attempts
             puts "UploadError -- retrying the upload"
+            MetisShell.log_error(e)
             upload = Upload.new(actual_path)
             upload_json = @shell.client.reset_upload(upload_path, upload)
             upload.current_byte_position = 0
           else
             puts "UploadError -- max retries reached. Giving up."
+            MetisShell.log_error(e)
           end
         end
       end
@@ -888,6 +919,12 @@ EOT
 
   private
 
+  def self.log_error(e)
+    puts e.message
+    STDERR.puts(e.message)
+    STDERR.puts(e.backtrace)
+  end
+
   def run_command(command=nil, *args)
     return if !command
     command = Command.list.find { |c| c.command_name == command.to_s }
@@ -902,13 +939,14 @@ EOT
       args = cmd.parse(args)
       cmd.run(*args) unless cmd.done?
     rescue ShellError => e
-      puts e.message
+      MetisShell.log_error(e)
     rescue MetisClient::Error => e
-      puts e.message
+      MetisShell.log_error(e)
     rescue ArgumentError => e
       puts(command.usage ? "Usage:\n#{command.usage}" : e.message)
+      MetisShell.log_error(e)
     rescue Net::ReadTimeout => e
-      puts e.message
+      MetisShell.log_error(e)
     end
   end
 
