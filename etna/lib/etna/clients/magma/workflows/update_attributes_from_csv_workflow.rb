@@ -5,7 +5,7 @@ require_relative './crud_workflow'
 module Etna
   module Clients
     class Magma
-      class UpdateAttributesFromCsvWorkflowBase < Struct.new(:magma_crud, :project_name, :filepath, :model_name, keyword_init: true)
+      class UpdateAttributesFromCsvWorkflowBase < Struct.new(:magma_crud, :project_name, :filepath, :model_name, :json_values, keyword_init: true)
         def initialize(opts)
           super(**{}.update(opts))
         end
@@ -53,7 +53,11 @@ module Etna
 
       class RowBase
         def stripped_value(attribute_value)
-          attribute_value ? attribute_value.strip : attribute_value
+          attribute_value = attribute_value&.strip
+          if attribute_value && @workflow.json_values
+            attribute_value = JSON.parse(attribute_value)
+          end
+          attribute_value
         end
 
         def nil_or_empty?(value)
@@ -74,6 +78,7 @@ module Etna
 
         class Row < RowBase
           attr_reader :model_name, :record_name
+
           def initialize(raw, workflow)
             # Assumes rows are in pairs, where
             #   [0] = model_name
@@ -122,10 +127,57 @@ module Etna
         end
       end
 
+      class SimpleFileLinkingWorkflow < Struct.new(:metis_client, :project_name, :bucket_name, :folder, :extension, :attribute_name, :regex, :file_collection, keyboard_init: true)
+        def write_csv_io(filename: nil, output_io: nil)
+          exporter = Etna::CsvExporter.new([:identifier, attribute_name.to_sym])
+          exporter.with_row_writeable(filename: filename, output_io: output_io) do |row_writeable|
+            find_matching_revisions.each do |identifier, value|
+              row_writeable << { identifier: identifier, attribute_name.to_sym => JSON.stringify(value) }
+            end
+          end
+        end
+
+        def find_matching_revisions
+          {}.tap do |revisions|
+            metis_client.find(
+                Etna::Clients::Metis::FindRequest.new(
+                    project_name: project_name,
+                    bucket_name: bucket_name,
+                    params: [Etna::Clients::Metis::FindParam.new(
+                        attribute: 'name',
+                        predicate: 'glob',
+                        value: "#{folder}/**/*.#{extension}",
+                        type: 'file'
+                    )]
+                )).files.all.each do |file|
+              match = regex.match(file.file_path)
+              if match
+                match_map = match.names.zip(match.captures).to_h
+                if !match_map.include?('identifier')
+                  raise "Regex #{regex.source} does not include a ?<identifier> named matcher, please add one to regulate how identifiers are created."
+                end
+
+                revision = { 'path' => "metis://#{project_name}/#{bucket_name}/#{file.file_path}", 'original_filename' => "#{File.basename(file.file_path)}" }
+                if file_collection
+                  collection = revisions[match_map['identifier']] ||= []
+                  collection << revision
+                else
+                  record = revisions[match_map['identifier']] ||= {}
+                  unless record.empty?
+                    raise "Multiple files match #{match_map['identifier']}, found #{record['path']} and #{revision['path']}"
+                  end
+                  record.update(revision)
+                end
+              end
+            end
+          end
+        end
+      end
+
       class UpdateAttributesFromCsvWorkflowSingleModel < UpdateAttributesFromCsvWorkflowBase
         def initialize(opts)
           super(**{}.update(opts))
-          raise "Single Model invokation must include keyword :model_name." if !opts[:model_name]
+          raise "Single Model invocation must include keyword :model_name." if !opts[:model_name]
           raise "Invalid model #{model_name} for project #{project_name}." unless model_exists?(model_name)
         end
 
@@ -139,6 +191,7 @@ module Etna
 
         class Row < RowBase
           attr_reader :record_name
+
           def initialize(raw, model_name, workflow)
             # Assumes CSV includes a column header to identify the attribute_name
             # Assumes index 0 is the record_name
@@ -160,7 +213,6 @@ module Etna
               row_hash = @raw.to_h
               row_keys = row_hash.keys
               row_keys[1..row_keys.length - 1].each do |attribute_name|
-
                 raise "Invalid attribute name: \"#{attribute_name}\"." if nil_or_empty?(attribute_name)
 
                 attribute_name_clean = attribute_name.strip
