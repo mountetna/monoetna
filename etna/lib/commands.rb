@@ -284,6 +284,7 @@ class EtnaApp
             regex = Regexp.new(regex)
 
             workflow = Etna::Clients::Magma::SimpleFileLinkingWorkflow.new(
+                metis_client: metis_client,
                 project_name: project_name,
                 bucket_name: bucket_name,
                 folder: folder,

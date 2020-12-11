@@ -132,7 +132,7 @@ module Etna
           exporter = Etna::CsvExporter.new([:identifier, attribute_name.to_sym])
           exporter.with_row_writeable(filename: filename, output_io: output_io) do |row_writeable|
             find_matching_revisions.each do |identifier, value|
-              row_writeable << { identifier: identifier, attribute_name.to_sym => JSON.stringify(value) }
+              row_writeable << { identifier: identifier, attribute_name.to_sym => value.to_json }
             end
           end
         end
@@ -150,12 +150,15 @@ module Etna
                         type: 'file'
                     )]
                 )).files.all.each do |file|
+              puts "Trying #{regex} to #{file.file_path}"
               match = regex.match(file.file_path)
               if match
                 match_map = match.names.zip(match.captures).to_h
                 if !match_map.include?('identifier')
                   raise "Regex #{regex.source} does not include a ?<identifier> named matcher, please add one to regulate how identifiers are created."
                 end
+
+                puts "Found match"
 
                 revision = { 'path' => "metis://#{project_name}/#{bucket_name}/#{file.file_path}", 'original_filename' => "#{File.basename(file.file_path)}" }
                 if file_collection
