@@ -1,0 +1,26 @@
+[
+  {
+    "action_name": "add_attribute",
+    "model_name": "assay_name",
+    "type": "string",
+    "attribute_name": "notes",
+    "display_name": "Notes",
+    "description": "for notes that you have."
+  },
+  {
+    "action_name": "add_attribute",
+    "model_name": "asay_name",
+    "attribute_type": "string",
+    "attribute_name": "notes",
+    "display_name": "Notes",
+    "desc": "Model is mis-spelled."
+  },
+  {
+    "action_name": "add_attribute",
+    "model_name": "assay_name",
+    "attribute_type": "string",
+    "attribute_name": "vendor",
+    "display_name": "Vendor",
+    "desc": "Should have a conflict."
+  }
+]
