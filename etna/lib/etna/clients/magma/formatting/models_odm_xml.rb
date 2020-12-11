@@ -192,7 +192,7 @@ module Etna
                 #   CodeListItem children).
                 write_form_def(xml, dictionary)
                 write_item_group_def(xml, dictionary)
-                write_item_def(xml, dictionary)
+                write_item_def(xml, models, dictionary)
                 write_code_list(xml, models, dictionary)
               end
             end
@@ -226,6 +226,24 @@ module Etna
                   'redcap:Variable': attribute_name # Does this need to be unique?
                 )
               end
+            end
+          end
+
+          def write_item_def(xml, models, dictionary)
+            model_attributes = models.model(dictionary.model_name).template.attributes
+            dictionary.attributes.keys.map do |attribute_name|
+              attribute = model_attributes.attribute(attribute_name)
+              attribute_type = attribute.attribute_type
+              params = {
+                OID: "#{dictionary.model_name}.#{attribute_name}", # Does this need to be unique across all items?
+                Name: attribute_name,
+                DataType: data_type_map[attribute_type],
+                'redcap:Variable': attribute_name,
+                'redcap:FieldType': redcap_field_type_map[attribute_type]
+              }
+
+              params['redcap:TextValidationType'] = redcap_text_validation_map[attribute_type] if redcap_text_validation_map[attribute_type]
+              xml.ItemDef(params)
             end
           end
         end
