@@ -13,7 +13,7 @@ describe('Janus Utils', () => {
     expect(result).toEqual('ACME corporation');
   });
 
-  it('returns the shortname if no matching project', () => {
+  it('returns null if no matching project', () => {
     const projects = [
       {
         project_name: 'xyz1',
@@ -22,12 +22,12 @@ describe('Janus Utils', () => {
     ];
     const result = projectNameFull(projects, 'xyz2');
 
-    expect(result).toEqual('xyz2');
+    expect(result).toEqual(null);
   });
 
-  it('returns the shortname if no projects', () => {
+  it('returns null if no projects', () => {
     const result = projectNameFull(null, 'xyz2');
 
-    expect(result).toEqual('xyz2');
+    expect(result).toEqual(null);
   });
 });

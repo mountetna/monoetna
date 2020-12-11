@@ -32,7 +32,7 @@ and all future magmaR calls without an explicitly provided token will turn to th
 
 \item{...}{Additional parameters passed along to the internal `.query()` and `.retrieve()` functions.
 For troubleshooting or privileged-user purposes only.
-Options: \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of maagma).}
+Options: \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of magma).}
 }
 \value{
 A dataframe with rows = target_recordNames and columns = either meta_attributeNames or repeats of meta_attributeNames to accommodate 1:many mappings of target data records to metadata records.

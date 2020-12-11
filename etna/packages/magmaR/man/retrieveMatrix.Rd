@@ -7,8 +7,8 @@
 retrieveMatrix(
   projectName,
   modelName,
-  recordNames,
-  attributeNames = "all",
+  recordNames = "all",
+  attributeNames,
   filter = "",
   page = NULL,
   pageSize = 10,
