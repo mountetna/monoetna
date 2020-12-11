@@ -1,0 +1,385 @@
+---
+title: "Downloading data from magma with the R-client magmaR"
+author:
+- name: Daniel Bunis
+  affiliation: Data Science CoLab, University of California San Francisco, San Francisco, CA
+date: "Updated: December 11, 2020"
+output:
+  BiocStyle::html_document:
+    toc_float: true
+package: magmaR
+vignette: >
+  %\VignetteIndexEntry{Downloading data from magma}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}    
+---
+
+```{r, echo=FALSE, results="hide", message=FALSE}
+knitr::opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
+library(BiocStyle)
+```
+
+# Introduction
+
+## magmaR, magma, and the Mount Etna data library system
+
+This vignette focuses on how to explore, query, and retrieve data from *magma* via its an R-client, *magmaR*.
+
+Magma is the *data warehouse* of the **Mount Etna data library system**.
+
+The Mount Etna data library system holds various research data sets, broadly broken up into “projects”, and provides tools for adding to, organizing, viewing and analyzing these data sets.
+
+Mount Etna, internally, is a set of applications that each provides a different piece of the Mount Etna pie. Through the Magma application, one can query and retrieve data from "projects" that exist within Mount Etna.
+
+## Organization of data within magma
+
+Data types within magma *projects* are organized into *models*, and individual data then make up the *records* of those models.
+
+For example, information & data for 3 tubes/run on a flow cytometer might make up 3 individual records of a "flow" (cytometry) model
+
+Each *record* might have multiple *attributes*, such as the "gene_counts" matrix, the "cell_number", or sorted cell "fraction" *attributes* of *records* that are part of an "rna_seq" *model*.
+
+The set of attributes which a record might possess, are defined separately for each model. Thus, records of a "flow" model might have an "fcs_file" attribute, but records of the "rna_seq" model likely would not.
+
+Hierarchically, the root of a project is always the "project" model, and every other model must have a single `parent` model. Thus, the data graph is like a tree.
+
+(Technically, link-type attributes may be used to indicate additional one-to-one or one-to-many relationships between models other than the tree-like *parent <- model <- "children"* relationships, which allows the graph to be more like a directed acyclic graph (DAG) than a tree... but imagining projects as trees is certainly easier than as an abstract blob.)
+
+Here is a sketch of what an example project might look like. Quite literally though, it is in fact the layout of the "example" project which we will be playing with later on in this vignette:
+
+![example_project_map](example_map.jpg)
+
+At this point, you should know enough about the structure
+
+## How magmaR functions work
+
+In general, magmaR functions will:
+
+1. Take in inputs from the user.
+2. Make a curl request that calls on a magma function to either send or receive desired data.
+3. Restructure the received data, typically minimally, to be more accessible for downstream analyses.
+4. Return the output.
+
+### Data Restructuring Details
+
+The goal of magmaR is to allow users as direct as possible, yet also as ready-to-analyze as possible, access to the data that exists within magma. Thus, some minor restructuring is performed by magmaR functions which not change the underlying data but does reorganize that data into more efficient formats for downstream analysis within R.
+
+#### The two main output structures of magma returns 
+
+There are two main output structures for returns from magma:
+
+- Tab Separated Value (**tsv**) tables
+- JavaScript Object Notation (**json**) objects
+
+Both formats are received as character strings.
+
+#### magmaR's minor adjustments to these structures
+
+Unless a user provides `raw.return = TRUE` (not recommended, especially for json returns as these seem particularly taxing for R/RStudio):
+
+- **tsv** format returns are converted to **data.frames**.
+- **json** format returns are converted to a **nested lists**.
+
+The data.frame format tends to be easier to work with, but both of these can be fit quite readily into downstream applications.
+
+#### Additional adjustments by certain, targeted, functions
+
+A couple of functions, `retrieveMatrix()` and `retrieveMetadata()`, perform some extra level(s) of restructuring of the raw return from magma: 
+
+- `retrieveMatrix()`: downloading an entire matrix in the necessary JSON format ends up being very inefficient, so this function obtains data for chunks of records at a time, then it converts the necessary pieces of each chunk's JSON return into a matrix, and finally it appends those chunks together with `recordNames` as column names, and row names pulled from the model's template.
+- `retrieveMetadata()`: this function starts by performing successive query calls in order to determine how records of one model (the `meta_modelName` input) are linked to records of another model (the `target_modelName` input). So, the function performs intermediate steps which determine how such data would be linked, then it pulls the desired, linked, data from the meta model, then it restructures that data into a dataframe that has one row per record of the target model.
+
+# Installation
+
+Currently, magmaR is only available through GitHub, and it will likely remain that way for the foreseeable future.
+
+```{r, eval = FALSE}
+if (!requireNamespace("remotes", quietly = TRUE))
+    install.packages("remotes")
+remotes::install_github("mountetna/etna", subdir = "packages/magmaR")
+```
+
+```{r}
+library(magmaR)
+```
+
+# Authorization process, a.k.a. janus token utilization:
+
+In order to access data in magma, a user needs to be authorized to do so. How this is achieved is via provision of a user-specific, temporary, string which we call a token.  This token can be obtained from https://janus.ucsf.edu/.
+
+## Providing the token
+
+Within magmaR, the token can be provided in either of 2 ways:
+
+**1) Via prompt to the user upon first magmaR function call:**
+
+Recommended when coding interactively: When not provided explicitly, as is the other method, the user will be prompted to provide their token one single time, upon the first call to a magmaR function. The given value will then be stored within the user's global R environment as `.MAGMAR_TOKEN` and any future calls to magmaR functions will automatically fill in their `token` input with this value.
+
+```{r, hide = TRUE, echo=FALSE}
+.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
+.MAGMAR_URL <- Sys.getenv("URL")
+```
+
+```{r}
+ids_subject <- retrieveIds(
+    projectName = "example",
+    modelName = "subject")
+```
+
+If you run the above code, you should be prompted to 
+```
+Enter your Janus TOKEN (without quotes):
+```
+
+To fill this in, navigate to https://janus.ucsf.edu (or https://janus-stage.ucsf.edu), click the `Copy Token` button, then paste the value into your console.
+
+**2) Given explicitly**
+
+All functions have a `token` input to which a token can be given directly. This is not the generally recommended method because it is not ideal to have authorization values saved within potentially share-able locations, however it can be required when writing scripts or knitting an .Rmd.
+
+```{r, eval = FALSE}
+ids_subject <- retrieveIds(
+    projectName = "example",
+    modelName = "subject",
+    token = "<give_token_here>")
+```
+
+**NOTE: Instead of adding your token directly to any file which you might save, it is recommended that you utilize your `.Renviron` file to store your token.** To do so, you can:
+
+1. Utilize the convenient `usethis::edit_r_environ()` function to open your `.Renviron` file. (Install `usethis` with `install.packages("usethis")`.)
+2. Then add a line: `TOKEN="<your_token>"`.
+3. Save the file & restart your R session.
+3. Read in your token with `my_token <- Sys.getenv("TOKEN")`
+4. Now you can provide `magmaR_function(..., token = my_token)`, but when you save your script or .Rmd, the token itself will not be included.
+
+## When magma thinks you are unauthorized
+
+If the curl request to magma returns that "You are unauthorized", magmaR will provide extra info so that users can fix this issue:
+
+```
+# Error message when magma sends back that user is unauthorized:
+You are unauthorized. If you think this is a mistake, run `rm(.MAGMAR_TOKEN)` or update your 'token' input, then retry. 
+```
+
+# Controlling which version of magma to target
+
+For privileged users with access to the staging or development versions of magma, switching can be achieved by:
+
+1. Adding `url.base = "production/staging/development-url"` to your function calls, OR
+2. Running `.MAGMAR_URL <- "production/staging/development-url` one time to update the default url utilized in all subsequent magmaR calls.
+
+```{r, eval = FALSE}
+# Option 1: Given explicitly in every function call:
+ids_subject <- retrieveIds(
+    projectName = "example",
+    modelName = "subject",
+    url.base = "http://magma.development.local")
+
+# Option 2: Run this once
+.MAGMAR_URL <- "http://magma.development.local"
+# Afterwards, all future calls will target this version
+#   (unless they contain an explicit `url.base` input).
+ids_subject <- retrieveIds(
+    projectName = "example",
+    modelName = "subject")
+```
+
+# Helper functions
+
+These functions allow exploration of what data exists within a given project.
+
+Although it is possible to rely on timur.ucsf.edu/<project_name>/map, or on Timur's search functionality, in order to determine options for `modelName`, `recordNames` or `attributeName(s)` inputs, magmaR provides these helper functions to allow users to achieve these goals without leaving R.
+
+```{r}
+# modelName options:
+retrieveModels(
+    projectName = "example")
+
+# recordNames options:
+retrieveIds(
+    projectName = "example",
+    modelName = "subject")
+
+# attributeName(s) options:
+retrieveAttributes(
+    projectName = "example",
+    modelName = "subject")
+```
+
+For more complex needs like a complicated `query()` request, you might require accessing the project's template itself.  That can be achieved via the `retrieveTemplate()` function:
+
+```{r}
+# To retrieve the project template:
+temp <- retrieveTemplate(
+    projectName = "example")
+```
+
+# Main data download functions:
+
+Finally, the meet of why we're here.
+
+magma has two main data output functions, `/retrieve` and `/query`.
+
+magmaR provides methods for both.
+
+## `retrieve()` & `retrieveJSON()`, analagous to `magma/retrieve`
+
+`retrieve()` is probably the main workhorse function of `magmaR`. If your goal is to download "subject" data for a specific patient of a project, or for all patients of the project, this is the function to use.
+
+The basic structure is to provide which project, `projectName` and which model, `modelName`, that you want data for.
+
+```{r}
+df <- retrieve(
+    projectName = "example",
+    modelName = "subject")
+
+head(df)
+```
+
+Optionally, a set of `recordNames` or `attributeNames` can be given as well to grab a more specific subset of data from the given project-model pair.
+
+```{r}
+df <- retrieve(
+    projectName = "example",
+    modelName = "subject",
+    recordNames = c("EXAMPLE-HS1", "EXAMPLE-HS2"),
+    attributeNames = "group")
+
+head(df)
+```
+
+The output format for the `retrieve()` function is a dataframe conversion of the tsv output given by a call to magma/retrieve with the json equivalent of `format = "tsv"`.
+
+However, certain attribute types, such as `matrix` and `table` types, are not actually obtained via magma/retrieve when `format = "tsv"`.
+
+For such attributes, the `retrieveJSON()` function is required and retrieves such data via a magma/retrieve call with `format = "json"`.
+
+Users should not typically need to make use of this function, as when the desired data is a matrix, `retrieveMatrix()` is recommended instead. More details on that function are further below. Similarly, a `retrieveTable()` function is planned as well. If this text is here, it's not made yet. But if you need that function, let me (Dan) know!
+
+```{r retJSON}
+json <- retrieveJSON(
+    projectName = "example",
+    modelName = "rna_seq",
+    recordNames = c("EXAMPLE-HS1-WB1-RSQ1", "EXAMPLE-HS2-WB1-RSQ1"),
+    attributeNames = "gene_counts")
+```
+
+### Additional inputs
+
+`filter`, `page`, and `page_size` inputs of `magma/retrieve` can also be used.
+
+```{r}
+json <- retrieveJSON(
+    projectName = "example",
+    modelName = "subject",
+    recordNames = "all",
+    attributeNames = "group",
+    filter = "name~HS1",
+    pageSize = 25,
+    page = 1
+    )
+```
+
+For additional details such as how to format filter inputs, refer to https://mountetna.github.io/magma.html#retrieve
+
+## `query()`, analagous to `magma/query`
+
+The Magma Query API lets you pull data out of Magma through an expressive query interface. Often, if you want a specific set of data from modelX, but only for records where linked records of modelY have data for attributeZ, then this is the endpoint you want.
+
+But note: the format of `query()` calls can be a bit complicated, so it is recommended to check if `retreiveMetadata()` might better serve your purposes first. We'll describe that function a bit later.
+
+For guidance on how to format `query()` calls, see `?query` and https://mountetna.github.io/magma.html#query.
+
+```{r query}
+query_out <- query(
+    projectName = "example",
+    queryTerms = 
+        list('rna_seq',
+             '::all',
+             'biospecimen',
+             '::identifier')
+    )
+```
+
+The default output of this function is a list conversion of the direct json output returned by /query. This list will contains 2 or 3 parts:
+
+```{r}
+names(query_out)
+```
+
+answer, type (optional), and format.
+
+Alternatively, the output can be reformatted as a dataframe if `format = "df"` is given.
+
+```{r query2}
+subject_ids_of_rnaseq_records <- query(
+    projectName = "example",
+    queryTerms = 
+        list('rna_seq',
+             '::all',
+             'biospecimen',
+             '::identifier'),
+    format = "df"
+    )
+
+head(subject_ids_of_rnaseq_records)
+```
+
+## `retrieveMatrix()`
+
+Because matrices are a very common data structure that are not returned by /retrieve via the easier to work with (in R) "tsv" format, we provide a simple function, which wraps `retrieveJSON()` internally, to retrieve such data.
+
+```{r matrix}
+mat <- retrieveMatrix(
+    projectName = "example",
+    modelName = "rna_seq",
+    recordNames = "all",
+    attributeNames = "gene_tpm")
+
+head(mat, n = c(6,3))
+```
+
+(Details which you don't necessarily need to know:
+
+Under the hood, an internal `.matrix_retrieval_chunk()` function grabs data with `retrieveJSON()` for 10 records at a time. These data are then converted to matrix columns.  After all chunks are obtained, they are combined into one single matrix which will have column names = `recordNames` and rownames grabbed from the model's template. For rna_seq data like in the example here, those rownames would be the Ensembl gene ids that each row of the matrix represents.)
+
+## `retrieveMetadata()`
+
+This function attempts to simplify the process of obtaining "metadata" from model X for "target data" from model Y. For example, this function could be used to extract "subject"-model data from the "example" project that is linked to "rna_seq"-model records.
+
+```{r meta}
+meta <- retrieveMetadata(
+    projectName = "example",
+    meta_modelName = "subject",
+    meta_attributeNames = "all",
+    target_modelName = "rna_seq",
+    target_recordNames = "all")
+
+head(meta, n = c(6,10))
+```
+
+(Details that you don't necessarily need to know:
+
+Internally, the function first determines the model -> model path for navigating between the meta and target models. At the moment, ONLY parent links are used for this purpose, but utilization of link attributes is planned. Then, `query()`s based on these paths are utilized to obtain how target-model and meta-model recordNames are linked. Next, requested metadata (`meta_attributeNames`, and `target_modelNames`) is `retrieve()`d. Next, if there is more than 1:1 mapping between meta model records to target model records, the metadata is expanded in order to have one output row per `target_recordNames`. Finally, this data is output as a dataframe with rows = `target_recordNames` and columns of linkage record identifiers and of each requested meta-model attribute.)
+
+Now that we have these metadata for our rna_seq records, we could use them to start exploring our rna_seq data:
+
+```{r}
+library(dittoSeq)
+# Make plot with dittoSeq
+sce <- importDittoBulk(
+  list(counts = mat),
+  metadata = meta
+)
+
+###### Remember to remove after bug fix!
+sce$group <- paste0("g",sce$group)
+
+dittoBoxPlot(sce, "gene1", group.by = "group")
+```
+
+# Session information
+
+```{r}
+sessionInfo()
+```

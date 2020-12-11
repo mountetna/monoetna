@@ -69,7 +69,7 @@ The numbers of new and old record names which will be targeted with the requeste
 NOTE: Always check carefully before proceeding. Data can be overwritten with NAs or zeros or the like, but improperly named records cannot be easily removed.
 
 Finally, the data is transformed into the structure required for /update to be called via a curl request,
-and that request is performed via a call to \code{\link{updateValues()}}
+and that request is performed via a call to \code{\link{updateValues}}
 }
 \examples{
 
