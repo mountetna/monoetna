@@ -368,6 +368,14 @@ module Etna
           Attributes.new(raw['attributes'] ||= {})
         end
 
+        def dictionary
+          Dictionary.new(raw['dictionary'] ||= {})
+        end
+
+        def build_dictionary
+          Dictionary.new(raw['dictionary'] ||= {})
+        end
+
         def all_linked_model_names
           models = [ self.parent, ] + build_attributes.all.map { |v| v.link_model_name }
           models.select { |m| !m.nil? }.uniq
