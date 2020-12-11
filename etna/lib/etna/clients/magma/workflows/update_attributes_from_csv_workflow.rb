@@ -127,7 +127,7 @@ module Etna
         end
       end
 
-      class SimpleFileLinkingWorkflow < Struct.new(:metis_client, :project_name, :bucket_name, :folder, :extension, :attribute_name, :regex, :file_collection, keyboard_init: true)
+      class SimpleFileLinkingWorkflow < Struct.new(:metis_client, :project_name, :bucket_name, :folder, :extension, :attribute_name, :regex, :file_collection, keyword_init: true)
         def write_csv_io(filename: nil, output_io: nil)
           exporter = Etna::CsvExporter.new([:identifier, attribute_name.to_sym])
           exporter.with_row_writeable(filename: filename, output_io: output_io) do |row_writeable|

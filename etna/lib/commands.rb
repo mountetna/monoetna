@@ -272,9 +272,11 @@ class EtnaApp
           include WithEtnaClients
 
           string_flags << '--file'
+          string_flags << '--regex'
+          string_flags << '--folder'
           boolean_flags << '--collection'
 
-          def execute(project_name, bucket_name, attribute_name, extension, collection: false, regex: "", folder: "", file: "#{project_name}_#{attribute_name}.csv")
+          def execute(project_name, bucket_name, attribute_name, extension, collection: false, regex: "\\/(?<identifier>.*).#{extension}$", folder: "", file: "#{project_name}_#{attribute_name}.csv")
             if folder.start_with?("/")
               folder = folder.slice(1..-1)
             end
