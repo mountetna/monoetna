@@ -386,15 +386,27 @@ module Etna
         end
 
         def dictionary_model
-          raw['dictionary_mode']
+          raw['dictionary_model']
+        end
+
+        def dictionary_model=(val)
+          @raw['dictionary_model'] = val
         end
 
         def model_name
           raw['model_name']
         end
 
+        def model_name=(val)
+          @raw['model_name'] = val
+        end
+
         def attributes
           raw['attributes']
+        end
+
+        def attributes=(val)
+          @raw['attributes'] = val
         end
       end
 
