@@ -37,7 +37,8 @@ module Etna
         end
 
         def update_attributes
-          magma_crud.update_records do |update_request|
+          method = json_values ? :update_json : :update
+          magma_crud.update_records(method: method) do |update_request|
             each_revision do |model_name, record_name, revision|
               update_request.update_revision(model_name, record_name, revision)
             end
@@ -150,7 +151,7 @@ module Etna
                         type: 'file'
                     )]
                 )).files.all.each do |file|
-              puts "Trying #{regex} to #{file.file_path}"
+              puts "Checking #{file.file_path}"
               match = regex.match(file.file_path)
               if match
                 match_map = match.names.zip(match.captures).to_h
