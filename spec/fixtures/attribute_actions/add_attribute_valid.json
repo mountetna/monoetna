@@ -1,0 +1,26 @@
+[
+  {
+    "action_name": "add_attribute",
+    "model_name": "assay_name",
+    "attribute_type": "string",
+    "attribute_name": "notes",
+    "display_name": "Notes",
+    "desc": "for notes that you have."
+  },
+  {
+    "action_name": "add_attribute",
+    "model_name": "assay_name",
+    "attribute_type": "string",
+    "attribute_name": "notes",
+    "display_name": "Notes",
+    "desc": "Model is present."
+  },
+  {
+    "action_name": "add_attribute",
+    "model_name": "assay_name",
+    "attribute_type": "string",
+    "attribute_name": "vendor2",
+    "display_name": "Vendor2",
+    "desc": "Shouldn't have a conflict."
+  }
+]
