@@ -15,7 +15,6 @@ group :development, :test do
   gem 'pry-byebug'
   gem 'webmock'
   gem 'debase'
-  gem 'ruby-debug-ide'
   gem 'database_cleaner'
   gem 'vcr'
 end

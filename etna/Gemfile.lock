@@ -44,8 +44,6 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.9.0)
     rspec-support (3.9.2)
-    ruby-debug-ide (0.7.2)
-      rake (>= 0.8.1)
     safe_yaml (1.0.5)
     simplecov (0.18.5)
       docile (~> 1.1)
@@ -72,7 +70,6 @@ DEPENDENCIES
   rack-test
   rollbar
   rspec
-  ruby-debug-ide
   simplecov
   timecop
   vcr

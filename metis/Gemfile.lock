@@ -100,8 +100,6 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.9.0)
     rspec-support (3.9.3)
-    ruby-debug-ide (0.7.2)
-      rake (>= 0.8.1)
     safe_yaml (1.0.5)
     sequel (5.32.0)
     simplecov (0.18.5)
@@ -135,7 +133,6 @@ DEPENDENCIES
   rack
   rack-test
   rspec
-  ruby-debug-ide
   sequel
   simplecov
   timecop

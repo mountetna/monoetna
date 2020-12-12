@@ -18,5 +18,4 @@ group :test do
   gem 'timecop'
   gem 'webmock'
   gem 'debase'
-  gem 'ruby-debug-ide'
 end
