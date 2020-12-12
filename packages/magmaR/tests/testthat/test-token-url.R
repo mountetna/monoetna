@@ -30,3 +30,7 @@ test_that("automated token setting creates & retrieves .MAGMAR_TOKEN", {
         .MAGMAR_URL,
         "https://magma.ucsf.edu")
 })
+
+# Ensure these are put back...
+.GlobalEnv$.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
+.GlobalEnv$.MAGMAR_URL <- Sys.getenv("URL")
