@@ -108,6 +108,7 @@ function updateBundleReferences() {
       echo "Applying update to $gemfile"
       sed -i -e "s@gem[ \t]\+[\"']etna[\"'].*@gem '${package_name}', git: '${git}', branch: 'refs/artifacts/$artifactName/$SHA'@" "$gemfile"
       cd $DIR/..
+      docker-compose run -e SKIP_RUBY_SETUP=1 --rm "$(basename "$(dirname "$gemfile")")_app" gem update --system
       docker-compose run -e SKIP_RUBY_SETUP=1 --rm "$(basename "$(dirname "$gemfile")")_app" bundle update $package_name
     fi
   done

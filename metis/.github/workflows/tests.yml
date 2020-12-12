@@ -35,7 +35,7 @@ jobs:
         node-version: '12'
     - name: Bundle install
       run: |
-        gem install bundler -v 2.1.4
+        gem install bundler -v 2.2.0
         bundle config path vendor/bundle
         bundle install --jobs 4 --retry 3
     - name: NPM install
