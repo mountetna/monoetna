@@ -55,7 +55,8 @@ module Etna
       class RowBase
         def stripped_value(attribute_value)
           attribute_value = attribute_value&.strip
-          if attribute_value && @workflow.json_values
+
+          if attribute_value && @workflow.json_values && attribute_value != @workflow.hole_value
             attribute_value = JSON.parse(attribute_value)
           end
           attribute_value
@@ -118,12 +119,19 @@ module Etna
                   raise "Invalid attribute name: \"#{attribute_name}\"." if nil_or_empty?(attribute_name)
                   attribute_name.strip!
 
-                  raise "Invalid attribute #{attribute_name} for model #{model_name}." unless attribute = @workflow.find_attribute(model_name, attribute_name)
+                  unless (attribute = @workflow.find_attribute(model_name, attribute_name))
+                    raise "Invalid attribute #{attribute_name} for model #{model_name}."
+                  end
 
                   stripped = stripped_value(@raw[index + 1])
                   unless @workflow.hole_value.nil?
                     next if stripped == @workflow.hole_value
                   end
+
+                  if attribute.is_project_name_reference?(model_name)
+                    stripped&.downcase!
+                  end
+
                   attributes[attribute_name] = stripped
                 end
               end
