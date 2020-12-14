@@ -226,7 +226,7 @@ class EtnaApp
 
           @last_load = File.stat(file).mtime
           @changeset = File.open(file, 'r') do |f|
-            workflow.prepare_changeset_from_csv(f) do |err|
+            workflow.prepare_changeset_from_csv(io: f) do |err|
               @errors << err
             end
           end
