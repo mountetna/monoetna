@@ -1,0 +1,133 @@
+#!/usr/bin/env bash
+_etna_app_completions() {
+local all_completion_names=''
+if [ "${COMP_CWORD}" == "1" ]; then
+all_completion_names='add_model attribute_actions attribute_actions_template console create_project generate_completion_script help model_template project_template update_attributes_from_csv validate_attribute_actions validate_model validate_project'
+COMPREPLY=($(compgen -W "$all_completion_names" "${COMP_WORDS[COMP_CWORD]}"))
+else
+if [ "${COMP_WORDS[1]}" == 'add_model' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "3" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "4" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "5" ]; then
+COMPREPLY=()
+return
+fi
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'attribute_actions' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "3" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "4" ]; then
+COMPREPLY=()
+return
+fi
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'attribute_actions_template' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'console' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'create_project' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "3" ]; then
+COMPREPLY=()
+return
+fi
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'generate_completion_script' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'help' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'model_template' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'project_template' ]; then
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'update_attributes_from_csv' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "3" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "4" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "5" ]; then
+COMPREPLY=()
+return
+fi
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'validate_attribute_actions' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "3" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "4" ]; then
+COMPREPLY=()
+return
+fi
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'validate_model' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "3" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "4" ]; then
+COMPREPLY=()
+return
+fi
+if [ "${COMP_CWORD}" == "5" ]; then
+COMPREPLY=()
+return
+fi
+true
+fi
+if [ "${COMP_WORDS[1]}" == 'validate_project' ]; then
+if [ "${COMP_CWORD}" == "2" ]; then
+COMPREPLY=()
+return
+fi
+true
+fi
+fi
+}
+complete -o default -F _etna_app_completions etna_app
