@@ -95,62 +95,162 @@ revisions = list(
         recordName = list(
             attributeName1 = value(s),
             attributeName2 = value(s)
+            )
         )
     )
-)
 
 # The same attribute for 2 different records
 revisions = list(
     modelName = list(
         recordName1 = list(
             attributeName1 = value(s)
-        ),
+            ),
         recordName2 = list(
             attributeName1 = value(s)
+            )
         )
     )
-)
 
 # Some attribute for 2 different records of two different models
 revisions = list(
     modelName1 = list(
         recordName = list(
             attributeName = value(s)
-        )
-    ),
+            )
+        ),
     modelName2 = list(
         recordName = list(
             attributeName = value(s)
+            )
         )
     )
-)
 ```
 
-Let's try with some real examples which target the same "example" used in the download vignette. To refresh, the model map for this project is below, and the "biospecimen" and "rna_seq" models that we will target have attributes...
+**Let's try it out with some real examples which target the same "example" project that we used in the download vignette.**
 
-`retrieveAttributes("example", "biospecimen")`: `r retrieveAttributes("example", "biospecimen")`
+```{r}
+library(magmaR)
+```
 
-`retrieveAttributes("example", "rna_seq")`: `r retrieveAttributes("example", "rna_seq")`.
+To refresh, the model map for this project is below.
 
 ![example_project_map](example_map.jpg)
 
-We could update
+The "biospecimen" and "rna_seq" models that we will target have attributes...
+
+```{r}
+retrieveAttributes("example", "biospecimen")
+retrieveAttributes("example", "rna_seq")
+```
+
+Say we wanted to update the "biospecimen_type" attribute of 2 records from the "biospecimen" model, and the "fraction" attribute for 1 record from the "rna_seq" model. The code for this could be:
 
 ```{r, eval = FALSE}
-library(magmaR)
-revs <- list("biospecimen" = list(
-    "EXAMPLE-HS1-WB1" = list(biospecimen_type = "Whole Blood"),
-    "EXAMPLE-HS2-WB1" = list(biospecimen_type = "Whole Blood"),
-    "EXAMPLE-HS3-WB1" = list(biospecimen_type = "Whole Blood"),
-    "EXAMPLE-HS4-WB1" = list(biospecimen_type = "Whole Blood"),
-    "EXAMPLE-HS5-WB1" = list(biospecimen_type = "Whole Blood"),
-    "EXAMPLE-HS6-WB1" = list(biospecimen_type = "Whole Blood"),
-    "EXAMPLE-HS7-WB1" = list(biospecimen_type = "Whole Blood"),
-    "EXAMPLE-HS8-WB1" = list(biospecimen_type = "Whole Blood"),
-    "EXAMPLE-HS9-WB1" = list(biospecimen_type = "Whole Blood"),
-    "EXAMPLE-HS10-WB1" = list(biospecimen_type = "Whole Blood"),
-    "EXAMPLE-HS11-WB1" = list(biospecimen_type = "Whole Blood"),
-    "EXAMPLE-HS12-WB1" = list(biospecimen_type = "Whole Blood")
-))
-updateValues("example", revs)
+# Create 'revisions'
+revs <- list(
+    "biospecimen" = list(
+        "EXAMPLE-HS1-WB1" = list(biospecimen_type = "Whole Blood"),
+        "EXAMPLE-HS2-WB1" = list(biospecimen_type = "Whole Blood")
+        ),
+    "rna_seq" = list(
+        "EXAMPLE-HS1-WB1-RSQ1" = list(fraction = "Tcells")
+    )
+)
+
+# Run update()
+updateValues(
+    project = "example",
+    revisions = revs)
+```
+
+A user would then see a summary of models/records to be updated, followed by a prompt to proceed or not:
+
+```
+For model "biospecimen", this update() will update 2 records:
+    EXAMPLE-HS1-WB1
+    EXAMPLE-HS2-WB1
+For model "rna_seq", this update() will update 1 records:
+    EXAMPLE-HS1-WB1-RSQ1
+
+Proceed, Y/n?
+```
+
+It is highly recommended that these outputs be checked carefully for accuracy before proceeding.
+
+After a successful `update()` a user should see this messsage unless `verbose` has been set to `TRUE`:
+
+```
+/update: successful.
+```
+
+## Important Considerations
+
+1. Please note that it is not easy, currently, to remove data from records with an incorrect ID, so if you get a message like the one below, please heed the warning!
+
+```
+For model "rna_seq", this update() will create 3 NEW records:
+    ID1
+    ID2
+    ID3
+WARNING: Check the above carefully. Once created, there is currently no way to remove records from magma.
+```
+
+2. Attributes of types `matrix` and `table` are special cases where data may be especially hard to manually coax into this type of format. They either currently have (matrix) or will eventually have (table) their own dedicated wraapper `update()` functions. See below.
+
+## Type-dedicated update function(s)
+
+### `updateMatrix()`
+
+As the name suggests, `updateMatrix()` is a wrapper function of `updateValues()` that is meant specifically for matrix data. It allows a user to point magmaR to either a file containing matrix data, or to a readily constructed matrix, then the matrix will be automatically adjusted into the proper `revisions`-input format, after some necessary validations ar performed, for feeding into `updateValues()`.
+
+With this function, all summarization of changes and the double-check before proceeding is still performed.
+
+Here, all of `projectName`, `modelName`, and `attributeName` must be given as their own separate inputs in addition to the `matrix` input.
+
+To update the raw counts of our "rna_seeq" model from either a csv, a tsv, or directly from a matrix, we could use the code below:
+
+```{r, eval = FALSE}
+### From a csv
+updateMatrix(
+    projectName = "example",
+    modelName = "rna_seq",
+    attributeName = "gene_counts",
+    matrix = "../tests/testthat/rna_seq_counts.csv")
+
+### From a tsv, set the 'separator' input to "\t"
+updateMatrix(
+    projectName = "example",
+    modelName = "rna_seq",
+    attributeName = "gene_counts",
+    matrix = "../tests/testthat/rna_seq_counts.tsv",
+    separator = "\t")
+
+### From an already loaded matrix:
+# The matrix should have column names = recordNames &
+#   row names that are valid 'options' for the target attribute.
+matrix <- retrieveMatrix("example", "rna_seq", "all", "gene_counts")
+updateMatrix(
+    projectName = "example",
+    modelName = "rna_seq",
+    attributeName = "gene_counts",
+    matrix = matrix)
+```
+
+Let's explore the structure of `matrix` a little bit noting a couple things:
+
+```{r, include = FALSE}
+matrix <- retrieveMatrix("example", "rna_seq", "all", "gene_counts")
+```
+
+```{r}
+head(matrix, n = c(6,2))
+```
+
+1. Column names for the matrix are record identifiers for the target "rna_seq" model.
+2. Row names for the matrix are the feature-names for the matrix. So for rna_seq data, for example, these will be gene names of some typt, typically from Ensembl.
+
+# Session information
+
+```{r}
+sessionInfo()
 ```
