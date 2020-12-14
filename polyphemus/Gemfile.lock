@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/mountetna/monoetna.git
-  revision: 86117b10cceabb993ab166d37cce0e664a235436
-  branch: refs/artifacts/gem-etna/a73fe1c69e9c8c49c1e134d548ea3bda90aabea6
+  revision: bab0dfdeaf2bc1fba4f8c6c70ea50534a5d7e834
+  branch: refs/artifacts/gem-etna/aaeca0b706f49daed3ca4a468266f68686dcf215
   specs:
-    etna (0.1.19)
+    etna (0.1.20)
       jwt
       multipart-post
       net-http-persistent
@@ -49,7 +49,6 @@ GEM
     rack (2.2.3)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
-    rake (13.0.1)
     rollbar (3.1.1)
     rspec (3.9.0)
       rspec-core (~> 3.9.0)
@@ -64,8 +63,6 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.9.0)
     rspec-support (3.9.3)
-    ruby-debug-ide (0.7.2)
-      rake (>= 0.8.1)
     safe_yaml (1.0.5)
     sequel (5.36.0)
     simplecov (0.19.0)
@@ -80,6 +77,7 @@ GEM
 
 PLATFORMS
   ruby
+  x86_64-linux
 
 DEPENDENCIES
   database_cleaner
@@ -93,11 +91,10 @@ DEPENDENCIES
   rack
   rack-test
   rspec
-  ruby-debug-ide
   sequel
   simplecov
   vcr
   webmock
 
 BUNDLED WITH
-   2.1.4
+   2.2.1

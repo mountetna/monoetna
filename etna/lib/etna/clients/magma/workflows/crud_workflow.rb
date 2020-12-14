@@ -47,7 +47,7 @@ module Etna
 
         # Todo: Introduce associative concatenation operations for response objects and return
         # one response that munges the batched responses together.
-        def update_records
+        def update_records(method: :update)
           @recorded_updates ||= UpdateRequest.new(project_name: project_name)
 
           request = UpdateRequest.new(project_name: project_name)
@@ -72,7 +72,7 @@ module Etna
           responses = []
           revisions.to_a.each_slice(batch_size) do |batch|
             request.revisions = batch.to_h
-            magma_client.update(request) unless read_only
+            magma_client.send(method, request) unless read_only
             responses << @recorded_updates.revisions.update(request.revisions)
           end
 

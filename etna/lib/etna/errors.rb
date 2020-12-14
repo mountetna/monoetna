@@ -22,6 +22,12 @@ module Etna
     end
   end
 
+  class NotFound < Etna::Error
+    def initialize(msg = 'Resource not found', status = 404)
+      super
+    end
+  end
+
   class BadRequest < Etna::Error
     def initialize(msg = 'Client error', status = 422)
       super

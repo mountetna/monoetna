@@ -7,7 +7,7 @@ gem 'pg'
 gem 'sequel'
 gem 'fog-aws'
 gem 'puma', '5.0.2'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/a73fe1c69e9c8c49c1e134d548ea3bda90aabea6'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/aaeca0b706f49daed3ca4a468266f68686dcf215'
 
 gem 'puma', '5.0.2'
 
@@ -21,7 +21,6 @@ group :test do
   gem 'database_cleaner'
   gem 'pry'
   gem 'pry-byebug'
-  gem 'ruby-debug-ide'
   gem 'debase'
 end
 

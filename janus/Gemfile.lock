@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/mountetna/monoetna.git
-  revision: 86117b10cceabb993ab166d37cce0e664a235436
-  branch: refs/artifacts/gem-etna/a73fe1c69e9c8c49c1e134d548ea3bda90aabea6
+  revision: bab0dfdeaf2bc1fba4f8c6c70ea50534a5d7e834
+  branch: refs/artifacts/gem-etna/aaeca0b706f49daed3ca4a468266f68686dcf215
   specs:
-    etna (0.1.19)
+    etna (0.1.20)
       jwt
       multipart-post
       net-http-persistent
@@ -78,6 +78,7 @@ GEM
 
 PLATFORMS
   ruby
+  x86_64-linux
 
 DEPENDENCIES
   database_cleaner
@@ -100,4 +101,4 @@ RUBY VERSION
    ruby 2.5.7p206
 
 BUNDLED WITH
-   2.1.4
+   2.2.1

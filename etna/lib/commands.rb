@@ -247,21 +247,56 @@ class EtnaApp
           include WithEtnaClients
           include WithLogger
 
+          boolean_flags << '--json-values'
+          string_flags << '--hole-value'
+
           def magma_crud
             @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(
                 magma_client: magma_client,
                 project_name: @project_name)
           end
 
-          def execute(project_name, model_name, filepath)
+          def execute(project_name, model_name, filepath, hole_value: '_', json_values: false)
             @project_name = project_name
 
             update_attributes_workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel.new(
                 magma_crud: magma_crud,
                 project_name: project_name,
                 model_name: model_name,
-                filepath: filepath)
+                filepath: filepath,
+                hole_value: hole_value,
+                json_values: json_values)
             update_attributes_workflow.update_attributes
+          end
+        end
+
+        class CreateFileLinkingCsv < Etna::Command
+          include WithEtnaClients
+
+          string_flags << '--file'
+          string_flags << '--regex'
+          string_flags << '--folder'
+          boolean_flags << '--collection'
+
+          def execute(project_name, bucket_name, attribute_name, extension, collection: false, regex: "**/*/(?<identifier>.+)\\.#{extension}$", folder: "", file: "#{project_name}_#{attribute_name}.csv")
+            if folder.start_with?("/")
+              folder = folder.slice(1..-1)
+            end
+
+            regex = Regexp.new(regex)
+
+            workflow = Etna::Clients::Magma::SimpleFileLinkingWorkflow.new(
+                metis_client: metis_client,
+                project_name: project_name,
+                bucket_name: bucket_name,
+                folder: folder,
+                extension: extension,
+                attribute_name: attribute_name,
+                regex: regex,
+                file_collection: collection,
+            )
+
+            workflow.write_csv_io(filename: file)
           end
         end
       end

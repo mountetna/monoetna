@@ -2,7 +2,7 @@
 import {getView} from '../api/view_api';
 import {Exchange} from './exchange_actions';
 import * as ManifestActions from './manifest_actions';
-import * as TabSelector from '../selectors/tab_selector';
+import { defaultView } from '../selectors/tab_selector';
 
 const addView = (view_name, view) => ({ type: 'ADD_VIEW', view_name, view })
 
@@ -14,9 +14,13 @@ export const requestView = (model_name, success, error) => (dispatch) => {
   let exchange = new Exchange(dispatch,`view for ${model_name}`);
   getView(model_name, exchange)
     .then(
-      ({view})=>{
-        dispatch(addView(model_name, view));
-        if (success) success(view);
+      ({document})=>{
+        dispatch(addView(model_name, document));
+        if (success) success(document);
       }
-    ).catch(e=> error && error(e));
+    ).catch(e => {
+      let { response } = e;
+      if (response && response.status == 404) dispatch(addView(model_name, {}));
+      if (error) error(e);
+    });
 };
