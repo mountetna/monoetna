@@ -9,10 +9,10 @@ vcr::use_cassette("update_1", {
         mat <<- retrieveMatrix("example", "rna_seq", "all", "gene_counts")
         
         expect_output(
-            x <- updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
+            updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                 matrix = mat,
                 auto.proceed = TRUE),
-"For model \"rna_seq\", this update() will update 12 records.",
+"For model \"rna_seq\", this update() will update 12 records",
             fixed = TRUE
         )
         mat_after <<- retrieveMatrix("example", "rna_seq", "all", "gene_counts")
@@ -25,10 +25,10 @@ vcr::use_cassette("update_2", {
     test_that("updateMatrix can take in data as csv", {
         
         expect_output(
-            x <- updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
+            updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                 matrix = "rna_seq_counts.csv",
                 auto.proceed = TRUE),
-"For model \"rna_seq\", this update() will update 12 records.",
+"For model \"rna_seq\", this update() will update 12 records",
             fixed = TRUE
         )
         mat_after <- retrieveMatrix("example", "rna_seq", "all", "gene_counts")
@@ -41,11 +41,11 @@ vcr::use_cassette("update_3", {
     test_that("updateMatrix can take in data as tsv", {
         
         expect_output(
-            x <- updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
+            updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                 matrix = "rna_seq_counts.tsv",
                 separator = "\t",
                 auto.proceed = TRUE),
-"For model \"rna_seq\", this update() will update 12 records.",
+"For model \"rna_seq\", this update() will update 12 records",
             fixed = TRUE
         )
         mat_after <- retrieveMatrix("example", "rna_seq", "all", "gene_counts")
@@ -54,7 +54,7 @@ vcr::use_cassette("update_3", {
         
         # Error if 'separator' is not changed:
         expect_error(
-            x <- updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
+            updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                 matrix = "rna_seq_counts.tsv",
                 auto.proceed = TRUE),
             "Parsing error.", fixed = TRUE
@@ -187,9 +187,7 @@ For model \"rna_seq\", this update() will update 0 records.", fixed = TRUE
                 updateMatrix(projectName = "example", modelName = "rna_seq",
                     attributeName = "fraction",
                     matrix = mat)),
-"WARNING: Target attribute does not have 'validation' info: no feature-names validation can be performed.
-
-This update() will update data for 12 records.", fixed = TRUE
+"WARNING: Target attribute does not have 'validation' info: no feature-names validation can be performed.\n\n", fixed = TRUE
         )
     })
 })

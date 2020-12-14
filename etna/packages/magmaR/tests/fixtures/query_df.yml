@@ -18,7 +18,7 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 10 Dec 2020 20:14:12 GMT
+      date: Mon, 14 Dec 2020 08:52:50 GMT
       server: Apache
       content-type: text/tsv
       content-disposition: inline; filename="results.tsv
@@ -41,8 +41,8 @@ http_interactions:
         EXAMPLE-HS7
         EXAMPLE-HS8
         EXAMPLE-HS9
-  recorded_at: 2020-12-10 20:14:12 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.7.0
+  recorded_at: 2020-12-14 08:52:50 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.7.4
 - request:
     method: get
     uri: https://magma-stage.ucsf.edu/query
@@ -63,7 +63,7 @@ http_interactions:
         semantic errors (WebDAV; RFC 4918)
     headers:
       status: HTTP/1.1 422 Unprocessable Entity
-      date: Thu, 10 Dec 2020 20:14:12 GMT
+      date: Mon, 14 Dec 2020 08:52:50 GMT
       server: Apache
       content-type: application/json
       content-length: '72'
@@ -72,5 +72,5 @@ http_interactions:
       encoding: UTF-8
       file: no
       string: '{"errors":["subject is not a valid argument to Magma::RecordPredicate"]}'
-  recorded_at: 2020-12-10 20:14:12 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.7.0
+  recorded_at: 2020-12-14 08:52:50 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.7.4
