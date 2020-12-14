@@ -4,7 +4,13 @@
 \alias{updateValues}
 \title{Analogous to the '/update' function of magma}
 \usage{
-updateValues(projectName, revisions = list(), token = .get_TOKEN(), ...)
+updateValues(
+  projectName,
+  revisions = list(),
+  token = .get_TOKEN(),
+  auto.proceed = FALSE,
+  ...
+)
 }
 \arguments{
 \item{projectName}{Single string. The name of the project to upload data to.}
@@ -25,6 +31,8 @@ See \url{https://mountetna.github.io/magma.html#update} for additional formattin
 When not explicitly given in a function call: you will be prompted to input token, one time.
 This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
 and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.}
+
+\item{auto.proceed}{Logical. When set to TRUE, the function does not ask beforee proceeding forwards to run '/update'.}
 
 \item{...}{Additional parameters passed along to the internal `.update()` function.
 For troubleshooting or privileged-user purposes only.
@@ -54,7 +62,7 @@ if (interactive()) {
     #   project, so this code can be expected to give and authorization error.
 
     updateValues(
-        projectName = projectName,
+        projectName = "example",
         revisions = list(
             # model
             'rna_seq' = list(

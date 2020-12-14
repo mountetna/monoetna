@@ -30,7 +30,7 @@
 #'     #   project, so this code can be expected to give and authorization error.
 #' 
 #'     updateValues(
-#'         projectName = projectName,
+#'         projectName = "example",
 #'         revisions = list(
 #'             # model
 #'             'rna_seq' = list(
@@ -51,8 +51,24 @@ updateValues <- function(
     projectName,
     revisions = list(),
     token = .get_TOKEN(),
+    auto.proceed = FALSE,
     ...
 ) {
+    
+    ### Summarize per model
+    lapply(names(revisions), function(model) {
+        
+        current_ids <- retrieveIds(
+            projectName, model, token, ...)
+        
+        .summarize_model_values(revisions[[model]], model, current_ids)
+    })
+    
+    ### Check if should move forward
+    go <- .ask_before_proceeding(auto.proceed)
+    if (! go %in% c("Y", "y", "Yes", "yes", "YES")) {
+        return("No /update performed.")
+    }
     
     .update(
         projectName = projectName,
@@ -60,6 +76,43 @@ updateValues <- function(
         token = token,
         ...)
 }
+
+.summarize_model_values <- function(model_revs, modelName, model_ids) {
+    
+    ### Report how many records will be updated
+    num_recs <- num_current_recs <- length(model_revs)
+    rec_names <- rec_names_current <- names(model_revs)
+    
+    # Check if any would be be new
+    if (! all(rec_names %in% model_ids)) {
+        
+        rec_names_current <- rec_names[rec_names %in% model_ids]
+        
+        rec_names_new <- rec_names[!rec_names %in% model_ids]
+        num_new <- length(rec_names_new)
+        
+        ### Summarize for NEW records
+        cat("For model \"", modelName, "\", this update() will create ", num_new, " NEW records:\n    ",
+            paste0(rec_names_new, collapse = "\n    "),
+            "\nWARNING: Check the above carefully. Once created, there is currently no way to remove records from magma.\n",
+            sep="")
+        
+        num_current_recs <- num_recs - num_new
+    }
+    
+    ### Summarize for current records.
+    cat("For model \"", modelName, "\", this update() will update ", num_current_recs, " records",
+        if (num_current_recs==0) {
+                ".\n"
+            } else {
+                paste0(":\n    ", paste0(rec_names_current, collapse = "\n    "))
+            },
+        "\n",
+        sep="")
+    
+    model_revs
+}
+
 
 #' Analogous to the '/update' function of magma
 #' @inheritParams retrieve
@@ -171,31 +224,12 @@ updateMatrix <- function(
         }
     }
     
-    ### Report what will happen
-    num_updates <- ncol(matrix)
+    ### Convert & Pass to updateValues() to:
+    # Summarize
+    # Check
+    # Upload
     
-    # Check if colnames (record identifiers) would be new
-    ids <- retrieveIds(projectName, modelName, token, ...)
-    if (! all(colnames(matrix) %in% ids)) {
-        new <- colnames(matrix)[!colnames(matrix) %in% ids]
-        num_new <- length(new)
-        
-        cat("This update() will create", num_new, "new records:",
-            paste0(new, collapse = ", "),
-            "\nWARNING: Check the above carefully. Once created, there is currently no way to remove records form magma.\n\n")
-        
-        num_updates <- num_updates - num_new
-    }
-    
-    cat("This update() will update data for", num_updates, "records.\n")
-    
-    ### Check if should move forward
-    go <- .ask_before_proceeding(auto.proceed)
-    if (! go %in% c("Y", "y", "Yes", "yes", "YES")) {
-        return("No /update performed.")
-    }
-    
-    ### Transform data into a nested list
+    # Transform data into a nested list
     # Note: Do not supply recordNames directly to vapply as any "-" will be
     #   converted to "."
     rec_att_vals <- vapply(seq_len(ncol(matrix)), function(x) {
@@ -213,6 +247,7 @@ updateMatrix <- function(
         projectName = projectName,
         revisions = revs,
         token = token,
+        auto.proceed = auto.proceed,
         ...)
 }
 
