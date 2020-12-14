@@ -368,9 +368,53 @@ module Etna
           Attributes.new(raw['attributes'] ||= {})
         end
 
+        def dictionary
+          Dictionary.new(raw['dictionary'] ||= {})
+        end
+
+        def build_dictionary
+          Dictionary.new(raw['dictionary'] ||= {})
+        end
+
         def all_linked_model_names
           models = [ self.parent, ] + build_attributes.all.map { |v| v.link_model_name }
           models.select { |m| !m.nil? }.uniq
+        end
+      end
+
+      class Dictionary
+        attr_reader :raw
+
+        def initialize(raw = {})
+          @raw = raw
+        end
+
+        def dictionary_keys
+          raw.keys
+        end
+
+        def dictionary_model
+          raw['dictionary_model']
+        end
+
+        def dictionary_model=(val)
+          @raw['dictionary_model'] = val
+        end
+
+        def model_name
+          raw['model_name']
+        end
+
+        def model_name=(val)
+          @raw['model_name'] = val
+        end
+
+        def attributes
+          raw['attributes']
+        end
+
+        def attributes=(val)
+          @raw['attributes'] = val
         end
       end
 
