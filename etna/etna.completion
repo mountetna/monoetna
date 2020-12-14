@@ -281,8 +281,9 @@ COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
-all_flag_completion_names="$all_flag_completion_names --json-values "
-string_flag_completion_names="$string_flag_completion_names  "
+all_flag_completion_names="$all_flag_completion_names --json-values --hole-value "
+string_flag_completion_names="$string_flag_completion_names --hole-value "
+declare _completions_for_hole_value="__hole_value__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""

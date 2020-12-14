@@ -5,7 +5,7 @@ require_relative './crud_workflow'
 module Etna
   module Clients
     class Magma
-      class UpdateAttributesFromCsvWorkflowBase < Struct.new(:magma_crud, :project_name, :filepath, :model_name, :json_values, keyword_init: true)
+      class UpdateAttributesFromCsvWorkflowBase < Struct.new(:magma_crud, :project_name, :filepath, :model_name, :json_values, :hole_value, keyword_init: true)
         def initialize(opts)
           super(**{}.update(opts))
         end
@@ -120,7 +120,11 @@ module Etna
 
                   raise "Invalid attribute #{attribute_name} for model #{model_name}." unless attribute = @workflow.find_attribute(model_name, attribute_name)
 
-                  attributes[attribute_name] = stripped_value(@raw[index + 1])
+                  stripped = stripped_value(@raw[index + 1])
+                  unless @workflow.hole_value.nil?
+                    next if stripped == @workflow.hole_value
+                  end
+                  attributes[attribute_name] = stripped
                 end
               end
             end
