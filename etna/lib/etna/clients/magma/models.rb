@@ -480,6 +480,12 @@ module Etna
           @raw['attribute_type'] && AttributeType.new(@raw['attribute_type'])
         end
 
+        def is_project_name_reference?(model_name)
+          return true if model_name == 'project' && attribute_type == AttributeType::IDENTIFIER
+          return true if link_model_name == 'project'
+          false
+        end
+
         def attribute_type=(val)
           val = val.to_s if val
           @raw['attribute_type'] = val
