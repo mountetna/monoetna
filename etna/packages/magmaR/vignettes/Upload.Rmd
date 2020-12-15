@@ -177,7 +177,28 @@ Proceed, Y/n?
 
 It is highly recommended that these outputs be checked carefully for accuracy before proceeding.
 
-After a successful `update()` a user should see this messsage unless `verbose` has been set to `TRUE`:
+However, for running `update()` code in non-interactive modes, like scripts or .Rmd, knits this user-prompt step can also be turned off by adding the input `auto.proceed = TRUE`.  Example:
+
+```{r, include = FALSE}
+revs <- list(
+    "biospecimen" = list(
+        "EXAMPLE-HS1-WB1" = list(biospecimen_type = "Whole Blood"),
+        "EXAMPLE-HS2-WB1" = list(biospecimen_type = "Whole Blood")
+        ),
+    "rna_seq" = list(
+        "EXAMPLE-HS1-WB1-RSQ1" = list(fraction = "Tcells")
+    )
+)
+```
+
+```{r}
+updateValues(
+    project = "example",
+    revisions = revs,
+    auto.proceed = TRUE)
+```
+
+After a successful `update()` a user should see this message unless `verbose` has been set to `FALSE`:
 
 ```
 /update: successful.
@@ -195,19 +216,20 @@ For model "rna_seq", this update() will create 3 NEW records:
 WARNING: Check the above carefully. Once created, there is currently no way to remove records from magma.
 ```
 
-2. Attributes of types `matrix` and `table` are special cases where data may be especially hard to manually coax into this type of format. They either currently have (matrix) or will eventually have (table) their own dedicated wraapper `update()` functions. See below.
+2. Attributes of types `matrix` and `table` are special cases where data may be especially hard to manually coax into this type of format. They either currently have (matrix) or will eventually have (table) their own dedicated wrapper `update()` functions. See below.
 
 ## Type-dedicated update function(s)
 
 ### `updateMatrix()`
 
-As the name suggests, `updateMatrix()` is a wrapper function of `updateValues()` that is meant specifically for matrix data. It allows a user to point magmaR to either a file containing matrix data, or to a readily constructed matrix, then the matrix will be automatically adjusted into the proper `revisions`-input format, after some necessary validations ar performed, for feeding into `updateValues()`.
+As the name suggests, `updateMatrix()` is a convenient wrapper function of `updateValues()` that is meant specifically for matrix data. It allows a user to point magmaR to either a file containing matrix data, or to a readily constructed matrix, without needing to perform the manual conversion of such data to the `revisions`-input format. 
 
-With this function, all summarization of changes and the double-check before proceeding is still performed.
+Internally, the function performs some necessary validations, adjusts the matrix into the proper `revisions`-input format, then passes it along to `updateValues()`. After this point, functionality is similar to what has already been described above: the targeted models/records will be summarized and the user will be prompted before the actual magma/update will be performed (unless that prompt is turned off with the `auto.proceed` input).
 
-Here, all of `projectName`, `modelName`, and `attributeName` must be given as their own separate inputs in addition to the `matrix` input.
+**Usage differences** compared to `updateValues()`:
+Here, all of `projectName`, `modelName`, and `attributeName` must be given as their own separate inputs in addition to the `matrix` input. The matrix must be formatted to have column names equal to the `recordNames` that should be updated, and row names that are among the 'validation' options set for the target attribute.
 
-To update the raw counts of our "rna_seeq" model from either a csv, a tsv, or directly from a matrix, we could use the code below:
+To update the raw counts of our "rna_seq" model from either a csv, a tsv, or directly from a matrix, we could use the code below:
 
 ```{r, eval = FALSE}
 ### From a csv
@@ -226,8 +248,6 @@ updateMatrix(
     separator = "\t")
 
 ### From an already loaded matrix:
-# The matrix should have column names = recordNames &
-#   row names that are valid 'options' for the target attribute.
 matrix <- retrieveMatrix("example", "rna_seq", "all", "gene_counts")
 updateMatrix(
     projectName = "example",
@@ -236,7 +256,7 @@ updateMatrix(
     matrix = matrix)
 ```
 
-Let's explore the structure of `matrix` a little bit noting a couple things:
+Let's explore the structure of `matrix` a little bit, noting a couple things:
 
 ```{r, include = FALSE}
 matrix <- retrieveMatrix("example", "rna_seq", "all", "gene_counts")
@@ -247,7 +267,13 @@ head(matrix, n = c(6,2))
 ```
 
 1. Column names for the matrix are record identifiers for the target "rna_seq" model.
-2. Row names for the matrix are the feature-names for the matrix. So for rna_seq data, for example, these will be gene names of some typt, typically from Ensembl.
+2. Row names for the matrix are the feature-names for the matrix. So for rna_seq data, for example, these will be gene names of some type, typically Ensembl IDs.
+
+As with `updateValues()`, a successful update vis `updateMatrix()` should produce this final output line, unless one sets `verbose = FALSE`:
+
+```
+/update: successful.
+```
 
 # Session information
 

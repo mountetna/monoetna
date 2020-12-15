@@ -2,7 +2,7 @@
 % Please edit documentation in R/update-special.R
 \name{updateMatrix}
 \alias{updateMatrix}
-\title{Analogous to the '/update' function of magma}
+\title{A matrix-specific wrapper of updateValues()}
 \usage{
 updateMatrix(
   projectName,
@@ -30,7 +30,7 @@ Alternatively, the location of a file containing such a data.}
 \item{separator}{String indicating the field separator to use if providing \code{matrix} as a file location.
 Default = ","}
 
-\item{auto.proceed}{Logical. When set to TRUE, the function does not ask beforee proceeding forwards to run '/update'.}
+\item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward to run '/update'.}
 
 \item{token}{your personal TOKEN from \url{https://janus.ucsf.edu}. 
 
@@ -47,29 +47,31 @@ Options: \itemize{
 }}
 }
 \value{
-None directly. The function sends data to magma and the only outputs are diagnostic messages.
+None directly.
+The function sends data to magma, and the only output is whether that send was successful, when \code{verbose = TRUE},
+or the string "No /update performed." if the user chooses not to proceed with performing the update.
 }
 \description{
-Analogous to the '/update' function of magma
+A matrix-specific wrapper of updateValues()
 }
 \details{
 This function utilizes the magma/query function, documented here \url{https://mountetna.github.io/magma.html#update},
 to upload data to a matrix attribute (named \code{attributeName}) of the \code{modelName} model of \code{projectName} project.
 
-\code{Matrix} data are provided either as a matrix, dataframe, or file path which points toward such data.
-If given as a file path, the \code{separator} can be used to adjust for whether the file is a csv, \code{separator = ","}, or tsv, \code{separator = "\t"}.
+\code{matrix} data are provided either as a matrix, dataframe, or file path which points toward such data.
+If given as a file path, the \code{separator} can be used to adjust for whether the file is a csv, \code{default, separator = ","}, or tsv, \code{separator = "\t"}.
 
 Data is then validated by ensuring that all row names are among the options in the attribute's 'validation', and rows are reordered to be in the same order as these options.
 
 For any missing 'validation' options, NAs are added.
 
-Column names are then checked against record identifiers of the target model.
-The numbers of new and old record names which will be targeted with the requested update are reported in ordeer to give the user a chance to double-check that the update should proceed.
+The data is then transformed and passed along to \code{\link{updateValues}}.
 
-NOTE: Always check carefully before proceeding. Data can be overwritten with NAs or zeros or the like, but improperly named records cannot be easily removed.
+The \code{updateValues()} function will summarized records to be updated and allow the user to double-check this information before proceeding.
 
-Finally, the data is transformed into the structure required for /update to be called via a curl request,
-and that request is performed via a call to \code{\link{updateValues}}
+This user-prompt step can be bypassed (useful when running in a non-interactive way) by setting \code{auto.proceed = TRUE}, but NOTE:
+It is a good idea to always check carefully before proceeding, if possible.
+Data can be overwritten with NAs or zeros or the like, but improperly named records cannot be easily removed.
 }
 \examples{
 

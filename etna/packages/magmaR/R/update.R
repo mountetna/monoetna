@@ -11,10 +11,19 @@
 #' 
 #' See \url{https://mountetna.github.io/magma.html#update} for additional formatting details.
 #' 
-#' @return None directly.  The function sends data to magma, and the only output is whether that send was successful when \code{verbose} is set to \code{TRUE}.
+#' @return None directly.
+#' The function sends data to magma, and the only output is whether that send was successful, when \code{verbose = TRUE},
+#' or the string "No /update performed." if the user chooses not to proceed with performing the update.
 #' @details This function mimics the activity of the magma/update function, documented here \url{https://mountetna.github.io/magma.html#update},
-#' with the main difference being that the \code{revisions} input should be in nested-list format.
-#' Internally, this function does little more than directly pass its inputs along to magma/update via a curl request.
+#' with the main difference being that the \code{revisions} input should be in nested list format rather than nested hash.
+#' 
+#' Internally, the function:
+#' 
+#' 1. Summarizes records of each model that will be targeted for updating.
+#' 
+#' 2. Prompts the user before proceeding (unless \code{auto.proceed} is set to \code{TRUE})
+#' 
+#' 3. Directly passes its inputs along to magma/update via a curl request.
 #' 
 #' @seealso
 #' \url{https://mountetna.github.io/magma.html#update} for documentation of the underlying magma/update function.
