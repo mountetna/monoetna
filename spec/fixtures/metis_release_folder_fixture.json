@@ -1,0 +1,112 @@
+{
+  "folders": [
+    {
+      "folder_name": "assay",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay"
+    },
+    {
+      "folder_name": "processed",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/processed"
+    },
+    {
+      "folder_name": "raw",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw"
+    },
+    {
+      "folder_name": "sample-1",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/processed/sample-1"
+    },
+    {
+      "folder_name": "sample-2",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/processed/sample-2"
+    },
+    {
+      "folder_name": "summary",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/processed/sample-2/summary"
+    },
+    {
+      "folder_name": "sample-3",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/processed/sample-3"
+    },
+    {
+      "folder_name": "sample-4",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/processed/sample-4"
+    },
+    {
+      "folder_name": "sample-5",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/sample-5"
+    },
+    {
+      "folder_name": "sample-6",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/sample-6"
+    },
+    {
+      "folder_name": "summary",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/sample-6/summary"
+    },
+    {
+      "folder_name": "sample-7",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/sample-7"
+    },
+    {
+      "folder_name": "sample-8",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/sample-8"
+    },
+    {
+      "folder_name": "pool-a",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/processed/pool-a"
+    },
+    {
+      "folder_name": "pool-d",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/processed/pool-d"
+    },
+    {
+      "folder_name": "pool-a",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/pool-a"
+    },
+    {
+      "folder_name": "summary",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/pool-a/summary"
+    },
+    {
+      "folder_name": "pool-d",
+      "bucket_name": "release",
+      "project_name": "test",
+      "folder_path": "assay/raw/pool-d"
+    }
+  ]
+}
