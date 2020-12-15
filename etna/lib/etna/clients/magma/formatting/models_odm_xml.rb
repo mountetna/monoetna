@@ -239,9 +239,9 @@ module Etna
               params = {
                 OID: "#{dictionary.model_name}.#{attribute_name}", # Does this need to be unique across all items?
                 Name: attribute_name,
-                DataType: data_type_map[attribute_type],
+                DataType: data_type_map[attribute_type] || 'text',
                 'redcap:Variable': attribute_name,
-                'redcap:FieldType': redcap_field_type_map[attribute_type],
+                'redcap:FieldType': redcap_field_type_map[attribute_type] || 'text',
                 Length: '999' # How could we infer shorter values?
               }
 
@@ -249,9 +249,7 @@ module Etna
               params['redcap:FieldNote'] = attribute.desc if attribute.desc
               xml.ItemDef(params) do
                 xml.Question do
-                  xml.TranslatedText do
-                    attribute_name.capitalize
-                  end
+                  xml.send('TranslatedText', attribute_name.capitalize)
                 end
 
                 if attribute.validation && Etna::Clients::Magma::AttributeValidationType::ARRAY == attribute.validation['type']
