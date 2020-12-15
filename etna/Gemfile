@@ -11,6 +11,7 @@ gem 'rollbar'
 gem 'vcr' # For Etna::Client in recording mode.
 gem 'net-http-persistent'
 gem 'multipart-post'
+gem 'nokogiri'
 
 group :test do
   gem 'pry'
