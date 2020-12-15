@@ -42,6 +42,10 @@ def progress(completion, rate, path)
   "\r#{progress} #{path} - #{rate}B/s"
 end
 
+def metis_path(path)
+  /^metis:\/\/(?<project>[^\/]+)\/(?<bucket>[^\/]+)\/(?<file_path>.+)$/.match(path)
+end
+
 class MetisConfig
   include Singleton
 
@@ -238,6 +242,41 @@ class MetisClient
         yield chunk
       end
     end
+  end
+
+  def remove_folder(project_name, folder_path)
+    response = json_post("/#{project_name}/folder/remove/#{URI.encode(folder_path)}")
+    raise MetisClient::Error, "Could not remove folder #{folder_path}\n#{error(response)}" unless response.code == "200"
+  end
+
+  def remove_file(project_name, file_path)
+    response = json_post("/#{project_name}/file/remove/#{URI.encode(file_path)}")
+    raise MetisClient::Error, "Could not remove file #{file_path}\n#{error(response)}" unless response.code == "200"
+  end
+
+  def copy_file(project_name, file_path, proposed_file_path)
+    if proposed_file_path.start_with?('metis://')
+      match = metis_path(proposed_file_path)
+      new_bucket_name = match[:bucket]
+      new_file_path = match[:file_path]
+    else
+      split_parts = proposed_file_path.split('/')
+      new_bucket_name = split_parts.first
+      new_file_path = split_parts.slice(1, split_parts.length - 1).join('/')
+    end
+
+    if file_path.start_with?('metis://')
+      match = metis_path(file_path)
+      old_file_path = "#{match[:bucket]}/#{match[:file_path]}"
+    else
+      old_file_path = file_path
+    end
+
+    response = json_post("/#{project_name}/file/copy/#{URI.encode(old_file_path)}",
+      new_file_path: new_file_path,
+      new_bucket_name: new_bucket_name)
+
+    raise MetisClient::Error, "Could not copy file #{file_path} to #{proposed_file_path}\n#{error(response)}" unless response.code == "200"
   end
 
   private
@@ -545,6 +584,39 @@ EOT
       raise ShellError, "No such folder #{dirname}" unless folder
 
       @shell.cwd = path
+    end
+  end
+
+  class Cp < Command
+    usage "cp <source_file_path> <destination_file_path>"
+    def run(source_file_path, destination_file_path)
+      raise ShellError, 'No source file selected!' unless source_file_path
+
+      raise ShellError, 'No destination file defined!' unless destination_file_path
+
+      if !source_file_path.start_with?('metis://')
+        source_file_path.sub!(%r!(?<=.)/$!,'')
+        source_file_path = @shell.relative_path(source_file_path)
+      end
+
+      if !destination_file_path.start_with?('metis://')
+        destination_file_path.sub!(%r!(?<=.)/$!,'')
+        destination_file_path = @shell.relative_path(destination_file_path)
+
+        # Need to account for user providing a directory without a filename...
+        begin
+          folder = @shell.client.list_folder(@shell.project_name, destination_file_path)
+          source_file_name = source_file_path.split('/').last
+          destination_file_path = "#{destination_file_path}/#{source_file_name}" if folder
+        rescue MetisClient::Error
+          # Not a folder, so we'll keep the path
+        end
+      end
+
+      @shell.client.copy_file(
+        @shell.project_name,
+        source_file_path,
+        destination_file_path)
     end
   end
 
