@@ -672,6 +672,27 @@ EOT
     end
   end
 
+  class Mkdir < Command
+    usage "mkdir <remote_path>"
+    def run(path)
+      raise ShellError, 'No project is selected' if !@shell.project_name
+
+      path = @shell.relative_path(path)
+
+      begin
+        folder = @shell.client.list_folder(@shell.project_name, path)
+
+        raise ShellError, "Folder already exists #{path}" if folder
+      rescue MetisClient::Error
+        # parent folder may not exist, but that's okay. This command
+        #   replicates `mkdir -p` so parent folders do not have to
+        #   exist a priori.
+      end
+
+      @shell.client.create_folder(@shell.project_name, path)
+    end
+  end
+
   class Pwd < Command
     usage "pwd"
     def run
