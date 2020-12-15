@@ -245,12 +245,12 @@ class MetisClient
   end
 
   def remove_folder(project_name, folder_path)
-    response = json_post("/#{project_name}/folder/remove/#{URI.encode(folder_path)}")
+    response = delete_request("/#{project_name}/folder/remove/#{URI.encode(folder_path)}")
     raise MetisClient::Error, "Could not remove folder #{folder_path}\n#{error(response)}" unless response.code == "200"
   end
 
   def remove_file(project_name, file_path)
-    response = json_post("/#{project_name}/file/remove/#{URI.encode(file_path)}")
+    response = delete_request("/#{project_name}/file/remove/#{URI.encode(file_path)}")
     raise MetisClient::Error, "Could not remove file #{file_path}\n#{error(response)}" unless response.code == "200"
   end
 
@@ -288,6 +288,11 @@ class MetisClient
     https.request(req)
   end
 
+  def delete_request(path)
+    req = delete(path)
+    https.request(req)
+  end
+
   def multipart_post(path, body)
     req = post(path)
     req.set_form(body, 'multipart/form-data')
@@ -300,6 +305,10 @@ class MetisClient
 
   def post(path)
     request(path, Net::HTTP::Post)
+  end
+
+  def delete(path)
+    request(path, Net::HTTP::Delete)
   end
 
   def https
@@ -592,7 +601,7 @@ EOT
     def run(source_file_path, destination_file_path)
       raise ShellError, 'No source file selected!' unless source_file_path
 
-      raise ShellError, 'No destination file defined!' unless destination_file_path
+      raise ShellError, 'No destination file selected!' unless destination_file_path
 
       if !source_file_path.start_with?('metis://')
         source_file_path.sub!(%r!(?<=.)/$!,'')
@@ -627,6 +636,39 @@ EOT
         @shell.project_name,
         source_file_path,
         destination_file_path)
+    end
+  end
+
+  class Rm < Command
+    usage "rm <remote_path>"
+    def run(path)
+      raise ShellError, 'No project is selected' if !@shell.project_name
+
+      path = @shell.relative_path(path)
+
+      name = ::File.basename(path)
+
+      folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(path))
+
+      raise ShellError, "Invalid path #{path}" unless folder
+
+      file = folder[:files].find do |f|
+        f[:file_name] == name
+      end
+
+      if file
+        @shell.client.remove_file(@shell.project_name, path)
+        return
+      end
+
+      folder = folder[:folders].find do |f|
+        f[:folder_name] == name
+      end
+
+      if folder
+        @shell.client.remove_folder(@shell.project_name, path)
+        return
+      end
     end
   end
 
