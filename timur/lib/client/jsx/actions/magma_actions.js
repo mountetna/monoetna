@@ -93,6 +93,7 @@ export const requestDocuments = (args) => {
     record_names,
     attribute_names,
     filter,
+    show_disconnected,
     page,
     page_size,
     collapse_tables,
@@ -135,6 +136,7 @@ export const requestDocuments = (args) => {
         record_names,
         attribute_names,
         filter,
+        show_disconnected,
         page,
         page_size,
         collapse_tables
@@ -393,11 +395,7 @@ const cleanFileCollectionRevisions = (revisions, model_template) => {
 };
 
 // Download a TSV from magma via Timur.
-export const requestTSV = (model_name, filter, attribute_names) => {
-  return (dispatch) => {
-    getTSVForm(model_name, filter, attribute_names);
-  };
-};
+export const requestTSV = (params) => (dispatch) => getTSVForm(params)
 
 export const requestAnswer = (question, callback) => {
   return (dispatch) => {
