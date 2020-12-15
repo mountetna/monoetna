@@ -597,6 +597,16 @@ EOT
       if !source_file_path.start_with?('metis://')
         source_file_path.sub!(%r!(?<=.)/$!,'')
         source_file_path = @shell.relative_path(source_file_path)
+
+        source_folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(source_file_path))
+
+        raise ShellError, "Invalid source path #{source_file_path}" unless source_folder
+
+        file = source_folder[:files].find do |f|
+          f[:file_name] == ::File.basename(source_file_path)
+        end
+
+        raise ShellError, "That source file does not exist #{source_file_path}" unless file
       end
 
       if !destination_file_path.start_with?('metis://')
