@@ -27,7 +27,8 @@ module Etna
         lineno += 1
         row = row.to_hash
         row.keys.each { |k| row[k].strip! if row[k] =~ /^\s+$/ } if @strip
-        row.select! { |k, v| !v.empty? } if @filter_empties
+        row.keys.each { |k| row[k] = "" if row[k].nil? } unless @filter_empties
+        row.select! { |k, v| !v.nil? && !v.empty? } if @filter_empties
         @row_formatter.call(row) unless @row_formatter.nil?
         yield row, lineno if block_given?
       end
