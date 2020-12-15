@@ -46,15 +46,80 @@ describe Etna::Clients::Magma::ModelsOdmXml::Exporter do
     create_model('non_table_child', 'some_id', root_model_template.name, Etna::Clients::Magma::AttributeType::CHILD)
   end
 
-  it 'writes an XML file' do
+  it 'generates an XML doc with ODM metadata' do
     subject = create_model('subject', 'name', root_model_template.name, Etna::Clients::Magma::AttributeType::COLLECTION)
     timepoint = create_model('timepoint', 'name', subject.name, Etna::Clients::Magma::AttributeType::COLLECTION)
 
-    project = Etna::Clients::Magma::ModelsOdmXml::Exporter.new(project_name: PROJECT)
+    project = Etna::Clients::Magma::ModelsOdmXml::Exporter.new(
+      project_name: PROJECT,
+      models: models)
 
-    xml = project.write_models(models)
-    puts xml
+    xml = project.write_models
+
     expect(xml.include?("SourceSystem=\"Magma\"")).to eq(true)
     expect(xml.include?("Study OID=\"Project.Test\"")).to eq(true)
+  end
+
+  it 'writes input fields for attributes' do
+    subject = create_model('subject', 'name', root_model_template.name, Etna::Clients::Magma::AttributeType::COLLECTION)
+    codex = create_model('codex', 'name', root_model_template.name, Etna::Clients::Magma::AttributeType::TABLE)
+
+    subject = models.model('subject')
+    attr_builder = subject.template.build_attributes
+    date_field = attr_builder.build_attribute('favorite_date')
+    date_field.attribute_type = Etna::Clients::Magma::AttributeType::DATE_TIME
+
+    float_field = attr_builder.build_attribute('favorite_float')
+    float_field.attribute_type = Etna::Clients::Magma::AttributeType::FLOAT
+
+    integer_field = attr_builder.build_attribute('favorite_int')
+    integer_field.attribute_type = Etna::Clients::Magma::AttributeType::INTEGER
+
+    dictionary = root_model_template.build_dictionary
+    dictionary.dictionary_model = "#{PROJECT}::Codex"
+    dictionary.model_name = 'subject'
+    dictionary.attributes = {
+      'name' => 'name'
+    }
+  end
+
+  it 'write options for attributes with Array validation' do
+    subject = create_model('subject', 'name', root_model_template.name, Etna::Clients::Magma::AttributeType::COLLECTION)
+    codex = create_model('codex', 'name', root_model_template.name, Etna::Clients::Magma::AttributeType::TABLE)
+
+    subject.attributes.attribute('name').validation = {
+      'type' => 'Array',
+      'value' => ['subject1', 'subject2']
+    }
+
+    dictionary = root_model_template.build_dictionary
+    dictionary.dictionary_model = "#{PROJECT}::Codex"
+    dictionary.model_name = 'subject'
+    dictionary.attributes = {
+      'name' => 'name'
+    }
+
+    project = Etna::Clients::Magma::ModelsOdmXml::Exporter.new(
+      project_name: PROJECT,
+      models: models)
+
+    xml = project.write_models
+
+    expected_code_list = <<-EOM
+    <CodeListDef OID="subject.name.choices" Name="subject.name" DataType="text" redcap:Variable="name">
+      <CodeListItem CodedValue="subject1">
+        <Decode>
+          <TranslatedText>subject1</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="subject2">
+        <Decode>
+          <TranslatedText>subject2</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeListDef>
+EOM
+    expect(xml.include?("<CodeListRef CodeListOID=\"subject.name.choices\"/>")).to eq(true)
+    expect(xml.include?(expected_code_list)).to eq(true)
   end
 end

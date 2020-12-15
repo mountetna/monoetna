@@ -26,10 +26,11 @@ module Etna
         class Exporter
           include Prettify
 
-          attr_reader :project_name
+          attr_reader :project_name, :models
 
-          def initialize(project_name:)
+          def initialize(project_name:, models:)
             @project_name = project_name
+            @models = models
           end
 
           def data_type_map
@@ -69,14 +70,13 @@ module Etna
             end
           end
 
-          def write_models(models, output_io: nil, filename: nil)
+          def write_models(output_io: nil, filename: nil)
             @document = Nokogiri::XML::Builder.new(encoding: 'UTF-8') do |xml|
               xml.ODM(odm_headers) do
                 xml.Study(OID: "Project.#{shorten(project_name)}") do
-
                 end
-                global_variables(xml, models)
-                metadata(xml, models)
+                global_variables(xml)
+                metadata(xml)
               end
             end
 
@@ -101,7 +101,7 @@ module Etna
             }
           end
 
-          def global_variables(xml, models)
+          def global_variables(xml)
             # Includes general metadata about the project, as well as
             # declarations of all repeating instruments,
             #   which seem like Timepoints to me.
@@ -128,11 +128,11 @@ module Etna
               xml.send('redcap:ProjectNotes', "Used to easily ingest clinical data for #{project_name} into the Data Library.")
               xml.send('redcap:MissingDataCodes')
 
-              repeating_instruments(xml, models)
+              repeating_instruments(xml)
             end
           end
 
-          def repeating_attribute_types(models)
+          def repeating_attribute_types
             # We don't have a good indicator for what is a repeating
             #   attribute for REDCap...
             # Will this work for models without timepoint, that go
@@ -142,7 +142,7 @@ module Etna
             end
           end
 
-          def clinical_dictionaries(models)
+          def clinical_dictionaries
             # Our indicator for if something needs a REDCap form will be any
             #   model with a dictionary.
             models.all.select do |model|
@@ -152,13 +152,13 @@ module Etna
             end
           end
 
-          def repeating_instruments(xml, models)
+          def repeating_instruments(xml)
             # Now we get into repeating instruments and events.
             # From a Magma model perspective, this should be
             #   Timepoint that hangs off of
             #   a Subject model.
             xml.send('redcap:RepeatingInstrumentsAndEvents') do
-              repeating_attribute_types(models).map do |repeating_attribute|
+              repeating_attribute_types.map do |repeating_attribute|
                 write_repeating_instrument_xml(xml, repeating_attribute)
               end
             end
@@ -173,10 +173,10 @@ module Etna
             node
           end
 
-          def metadata(xml, models)
+          def metadata(xml)
             # Includes form and field definitions
             xml.MetaDataVersion(
-              OID: "Metadata.#{shorten(project_name)}_#{DateTime.now}"
+              OID: "Metadata.#{shorten(project_name)}_#{DateTime.now}",
               Name: project_name,
               'redcap:RecordIdField': 'record_id'
             ) do
@@ -192,8 +192,8 @@ module Etna
                 #   CodeListItem children).
                 write_form_def(xml, dictionary)
                 write_item_group_def(xml, dictionary)
-                write_item_def(xml, models, dictionary)
-                write_code_list(xml, models, dictionary)
+                write_item_def(xml, dictionary)
+                write_code_list(xml, dictionary)
               end
             end
           end
@@ -209,7 +209,8 @@ module Etna
               xml.ItemGroupRef(
                 ItemGroupOID: "#{dictionary.model_name}.attributes",
                 Mandatory: "No"
-              )
+              ) do
+              end
             end
           end
 
@@ -224,12 +225,13 @@ module Etna
                   ItemOID: "#{dictionary.model_name}.#{attribute_name}", # Does this need to be unique across all items?
                   Mandatory: "No",
                   'redcap:Variable': attribute_name # Does this need to be unique?
-                )
+                ) do
+                end
               end
             end
           end
 
-          def write_item_def(xml, models, dictionary)
+          def write_item_def(xml, dictionary)
             model_attributes = models.model(dictionary.model_name).template.attributes
             dictionary.attributes.keys.map do |attribute_name|
               attribute = model_attributes.attribute(attribute_name)
@@ -239,11 +241,51 @@ module Etna
                 Name: attribute_name,
                 DataType: data_type_map[attribute_type],
                 'redcap:Variable': attribute_name,
-                'redcap:FieldType': redcap_field_type_map[attribute_type]
+                'redcap:FieldType': redcap_field_type_map[attribute_type],
+                Length: '999' # How could we infer shorter values?
               }
 
               params['redcap:TextValidationType'] = redcap_text_validation_map[attribute_type] if redcap_text_validation_map[attribute_type]
-              xml.ItemDef(params)
+              params['redcap:FieldNote'] = attribute.desc if attribute.desc
+              xml.ItemDef(params) do
+                xml.Question do
+                  xml.TranslatedText do
+                    attribute_name.capitalize
+                  end
+                end
+
+                if attribute.validation && Etna::Clients::Magma::AttributeValidationType::ARRAY == attribute.validation['type']
+                  xml.CodeListRef(
+                    CodeListOID: "#{dictionary.model_name}.#{attribute_name}.choices"
+                  ) do
+                  end
+                end
+              end
+            end
+          end
+
+          def write_code_list(xml, dictionary)
+            model_attributes = models.model(dictionary.model_name).template.attributes
+            dictionary.attributes.keys.map do |attribute_name|
+              attribute = model_attributes.attribute(attribute_name)
+              if attribute.validation && Etna::Clients::Magma::AttributeValidationType::ARRAY == attribute.validation['type']
+                xml.CodeListDef(
+                  OID: "#{dictionary.model_name}.#{attribute_name}.choices",
+                  Name: "#{dictionary.model_name}.#{attribute_name}",
+                  DataType: "text",
+                  'redcap:Variable': attribute_name
+                ) do
+                  attribute.validation['value'].map do |option|
+                    xml.CodeListItem(
+                      CodedValue: option
+                    ) do
+                      xml.Decode() do
+                        xml.send('TranslatedText', option)
+                      end
+                    end
+                  end
+                end
+              end
             end
           end
         end
