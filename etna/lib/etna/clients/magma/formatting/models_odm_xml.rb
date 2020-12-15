@@ -267,9 +267,9 @@ module Etna
             dictionary.attributes.keys.map do |attribute_name|
               attribute = model_attributes.attribute(attribute_name)
               if attribute.validation && Etna::Clients::Magma::AttributeValidationType::ARRAY == attribute.validation['type']
-                xml.CodeListDef(
+                xml.CodeList(
                   OID: "#{dictionary.model_name}.#{attribute_name}.choices",
-                  Name: "#{dictionary.model_name}.#{attribute_name}",
+                  Name: "#{attribute_name}",
                   DataType: "text",
                   'redcap:Variable': attribute_name
                 ) do

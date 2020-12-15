@@ -159,7 +159,7 @@ EOM
     xml = project.write_models
 
     expected_code_list = <<-EOM
-    <CodeListDef OID="subject.name.choices" Name="subject.name" DataType="text" redcap:Variable="name">
+    <CodeList OID="subject.name.choices" Name="name" DataType="text" redcap:Variable="name">
       <CodeListItem CodedValue="subject1">
         <Decode>
           <TranslatedText>subject1</TranslatedText>
@@ -170,7 +170,7 @@ EOM
           <TranslatedText>subject2</TranslatedText>
         </Decode>
       </CodeListItem>
-    </CodeListDef>
+    </CodeList>
 EOM
 
     expect(xml.include?("<CodeListRef CodeListOID=\"subject.name.choices\"/>")).to eq(true)
