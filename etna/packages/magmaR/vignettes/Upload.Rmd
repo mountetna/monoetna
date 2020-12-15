@@ -18,8 +18,15 @@ vignette: >
 knitr::opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
 library(BiocStyle)
 library(magmaR)
+library(vcr)
+vcr::vcr_configure(
+    filter_sensitive_data = list("<<<my_token>>>" = Sys.getenv('TOKEN')),
+    dir = "../tests/fixtures"
+)
 .MAGMAR_TOKEN <- Sys.getenv("TOKEN")
 .MAGMAR_URL <- Sys.getenv("URL")
+
+insert_cassette(name = "Upload-vignette")
 ```
 
 # Introduction
@@ -276,6 +283,10 @@ As with `updateValues()`, a successful update vis `updateMatrix()` should produc
 ```
 
 # Session information
+
+```{r, include = FALSE}
+eject_cassette()
+```
 
 ```{r}
 sessionInfo()

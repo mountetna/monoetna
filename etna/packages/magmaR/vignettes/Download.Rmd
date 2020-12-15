@@ -17,6 +17,12 @@ vignette: >
 ```{r, echo=FALSE, results="hide", message=FALSE}
 knitr::opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
 library(BiocStyle)
+library(vcr)
+vcr::vcr_configure(
+    filter_sensitive_data = list("<<<my_token>>>" = Sys.getenv('TOKEN')),
+    dir = "../tests/fixtures"
+)
+insert_cassette(name = "Download-vignette")
 ```
 
 # Introduction
@@ -379,6 +385,10 @@ dittoBoxPlot(sce, "gene1", group.by = "group")
 ```
 
 # Session information
+
+```{r, include = FALSE}
+eject_cassette()
+```
 
 ```{r}
 sessionInfo()
