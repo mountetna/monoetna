@@ -5,7 +5,7 @@ gem 'sequel'
 gem 'pg'
 gem 'nokogiri'
 gem 'puma', '5.0.2'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/32ea3a0d897a362b3af86328fd4a39048f9c5eda'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/0a31aa65bd5716f6a1668049f65b83961b8b3709'
 
 group :development, :test do
   gem 'rack-test', require: "rack/test"
