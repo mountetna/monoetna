@@ -206,4 +206,168 @@ describe MetisShell do
       FileUtils.rm_rf('spec/data/helmet')
     end
   end
+
+  describe MetisShell::Mkdir do
+    it 'warns if the path folder exists' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+
+      expect(Metis::Folder.count).to eq(1)
+
+      expect_output("metis://athena/armor", "mkdir", "helmet") { /Folder already exists/ }
+
+      expect(Metis::Folder.count).to eq(1)
+    end
+
+    it 'creates a folder hierarchy like mkdir -p' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+
+      expect(Metis::Folder.count).to eq(1)
+
+      expect_output("metis://athena/armor", "mkdir", "shield/shiny/padded") { // }
+
+      expect(Metis::Folder.count).to eq(4)
+    end
+  end
+
+  describe MetisShell::Rm do
+    it 'does nothing if the source file does not exist' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+
+      expect(Metis::File.count).to eq(1)
+
+      expect_output("metis://athena/armor", "rm", "helmet/helmet2.jpg") { // }
+
+      expect(Metis::File.count).to eq(1)
+    end
+
+    it 'warns if the parent folder does not exist' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+
+      expect(Metis::File.count).to eq(1)
+
+      expect_output("metis://athena/armor", "rm", "helmet2/helmet.jpg") { /Invalid folder/ }
+
+      expect(Metis::File.count).to eq(1)
+    end
+
+    it 'removes a file' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+
+      expect(Metis::File.count).to eq(1)
+
+      expect_output("metis://athena/armor", "rm", "helmet/helmet.jpg") { // }
+
+      expect(Metis::File.count).to eq(0)
+    end
+
+    it 'does nothing if the source folder does not exist' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+
+      expect(Metis::Folder.count).to eq(1)
+
+      expect_output("metis://athena/armor", "rm", "helmet2") { // }
+
+      expect(Metis::Folder.count).to eq(1)
+    end
+
+    it 'removes a folder' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+
+      expect(Metis::Folder.count).to eq(1)
+
+      expect_output("metis://athena/armor", "rm", "helmet") { // }
+
+      expect(Metis::Folder.count).to eq(0)
+    end
+  end
+
+  describe MetisShell::Cp do
+    it 'copies a file in the same directory' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+
+      expect(Metis::File.count).to eq(1)
+
+      expect_output("metis://athena/armor/helmet", "cp", "helmet.jpg", "helmet2.jpg") { // }
+
+      expect(Metis::File.count).to eq(2)
+    end
+
+    it 'copies a file using a relative destination path' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+      sub_folder = create_folder('athena', 'sub_helmet', bucket: bucket, folder: helmet_folder)
+
+      expect(Metis::File.count).to eq(1)
+
+      expect_output("metis://athena/armor/helmet/sub_helmet", "cp", "../helmet.jpg", ".") { // }
+
+      expect(Metis::File.count).to eq(2)
+    end
+
+    it 'copies a file using a relative parent destination path' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      sub_folder = create_folder('athena', 'sub_helmet', bucket: bucket, folder: helmet_folder)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: sub_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/sub_folder/helmet.jpg', HELMET)
+
+      expect(Metis::File.count).to eq(1)
+
+      expect_output("metis://athena/armor/helmet/sub_helmet", "cp", "helmet.jpg", "../") { // }
+
+      expect(Metis::File.count).to eq(2)
+    end
+
+    it 'copies a file to a new bucket using metis path' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+
+      sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'editor', owner: 'metis')
+
+      expect(Metis::File.count).to eq(1)
+
+      expect_output("metis://athena/armor/helmet", "cp", "helmet.jpg", "metis://athena/sundry/helmet.jpg") { // }
+
+      expect(Metis::File.count).to eq(2)
+    end
+
+    it 'copies a file from a different bucket using metis path' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+
+      sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'editor', owner: 'metis')
+
+      expect(Metis::File.count).to eq(1)
+
+      expect_output("metis://athena/sundry", "cp", "metis://athena/armor/helmet/helmet.jpg", "helmet.jpg") { // }
+
+      expect(Metis::File.count).to eq(2)
+    end
+  end
 end
