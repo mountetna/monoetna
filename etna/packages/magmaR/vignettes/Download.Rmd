@@ -29,21 +29,21 @@ insert_cassette(name = "Download-vignette")
 
 ## magmaR, magma, and the Mount Etna data library system
 
-This vignette focuses on how to explore, query, and retrieve data from *magma* via its an R-client, *magmaR*.
+This vignette focuses on how to explore, query, and retrieve data from **magma** via its R-client, **magmaR**.
 
 Magma is the *data warehouse* of the **Mount Etna data library system**.
 
-The Mount Etna data library system holds various research data sets, broadly broken up into “projects”, and provides tools for adding to, organizing, viewing and analyzing these data sets.
+The Mount Etna data library system holds various research data sets, broadly broken up into **“projects”**, and provides tools for adding to, organizing, viewing and analyzing these data sets.
 
 Mount Etna, internally, is a set of applications that each provides a different piece of the Mount Etna pie. Through the Magma application, one can query and retrieve data from "projects" that exist within Mount Etna.
 
 ## Organization of data within magma
 
-Data types within magma *projects* are organized into *models*, and individual data then make up the *records* of those models.
+Data types within magma ***projects*** are organized into ***models***, and individual data then make up the ***records*** of those models.
 
-For example, information & data for 3 tubes/run on a flow cytometer might make up 3 individual records of a "flow" (cytometry) model
+For example, information & data for 3 tubes/run on a flow cytometer might make up 3 individual records of a flow cytometry model
 
-Each *record* might have multiple *attributes*, such as the "gene_counts" matrix, the "cell_number", or sorted cell "fraction" *attributes* of *records* that are part of an "rna_seq" *model*.
+Each *record* might have multiple ***attributes***, such as the "gene_counts" matrix, the "cell_number", or sorted cell "fraction" *attributes* of *records* that are part of an "rna_seq" *model*.
 
 The set of attributes which a record might possess, are defined separately for each model. Thus, records of a "flow" model might have an "fcs_file" attribute, but records of the "rna_seq" model likely would not.
 
@@ -55,7 +55,11 @@ Here is a sketch of what an example project might look like. Quite literally tho
 
 ![example_project_map](example_map.jpg)
 
-At this point, you should know enough about the structure
+This "example" *project* has 6 different *models*, including the project model itself. Each *model* holds different chunks of information (*attributes*) about data in the "example" project.  For example, the `subject` model contains information about individuals (*records*) for whom biospecimens exist; the `biospecimen` model would then contain information about specific specimens obtained from each subject; and the `flow` and `rna_seq` models contain data and information from individual flow cytometry or rna_seq assays that were run on an individual biospecimen.
+
+Each *project* in the data library system might have its own distinct modeling layout -- as where to split up the information sharing scheme is highly dependent on a project's data collection and experimental plans. However, in general, one can think of *records* of a *model* at the bottom of the tree as inheriting attributes from the parent *records* of their parent *models*. So for example, although we can also think of each *model* as it's own independent set of data, "rna_seq"-model records are ultimately linked to individual "subject"-model records. Thus, even though attributes of the "subject"-model are not directly included in the "rna_seq"-model, all "subject"-model attributes of "subject"-model records do apply to linked "rna_seq"-model records. In magmaR, we include a function retrieveMetadata() for retrieving such linked data. More on that later.
+
+At this point, you should know enough about the structure of magma projects to start using magmaR. But more information exists within magma's own documentation: https://mountetna.github.io/magma.html.
 
 ## How magmaR functions work
 
@@ -68,7 +72,7 @@ In general, magmaR functions will:
 
 ### Data Restructuring Details
 
-The goal of magmaR is to allow users as direct as possible, yet also as ready-to-analyze as possible, access to the data that exists within magma. Thus, some minor restructuring is performed by magmaR functions which not change the underlying data but does reorganize that data into more efficient formats for downstream analysis within R.
+The goal of magmaR is to allow users as direct as possible, yet also as ready-to-analyze as possible, access to data that exists within magma. Thus, some minor restructuring is performed by magmaR functions which does not change the underlying data, but does reorganize that data into more efficient formats for downstream analysis within R.
 
 #### The two main output structures of magma returns 
 
@@ -111,9 +115,9 @@ library(magmaR)
 
 # Authorization process, a.k.a. janus token utilization:
 
-In order to access data in magma, a user needs to be authorized to do so. How this is achieved is via provision of a user-specific, temporary, string which we call a token.  This token can be obtained from https://janus.ucsf.edu/.
+In order to access data in magma, a user needs to be authorized to do so. How this is achieved is via provision of a user-specific, temporary, string which we call a ***token***.  This token can be obtained from https://janus.ucsf.edu/.
 
-## Providing the token
+## Providing a token
 
 Within magmaR, the token can be provided in either of 2 ways:
 
@@ -153,10 +157,11 @@ ids_subject <- retrieveIds(
 **NOTE: Instead of adding your token directly to any file which you might save, it is recommended that you utilize your `.Renviron` file to store your token.** To do so, you can:
 
 1. Utilize the convenient `usethis::edit_r_environ()` function to open your `.Renviron` file. (Install `usethis` with `install.packages("usethis")`.)
-2. Then add a line: `TOKEN="<your_token>"`.
+2. Then add this line to this file: `TOKEN="<your_token>"`.
 3. Save the file & restart your R session.
-3. Read in your token with `my_token <- Sys.getenv("TOKEN")`
-4. Now you can provide `magmaR_function(..., token = my_token)`, but when you save your script or .Rmd, the token itself will not be included.
+4. Read in your token with `my_token <- Sys.getenv("TOKEN")`
+5. Now you can provide `magmaR_function(..., token = my_token)`, but when you save your script or .Rmd, the token itself will not be included.
+6. Repeat these steps whenever your token refreshes. Tokens normally refresh every 24 hours, but you'll know when this happens because you will get the error message below.
 
 ## When magma thinks you are unauthorized
 
@@ -224,13 +229,13 @@ temp <- retrieveTemplate(
 
 Finally, the meet of why we're here.
 
-magma has two main data output functions, `/retrieve` and `/query`.
+**magma** has two main data output functions, **`/retrieve`** and **`/query`**.
 
-magmaR provides methods for both.
+**magmaR** provides methods for **both**.
 
-## `retrieve()` & `retrieveJSON()`, analagous to `magma/retrieve`
+## retrieve() & retrieveJSON()
 
-`retrieve()` is probably the main workhorse function of `magmaR`. If your goal is to download "subject" data for a specific patient of a project, or for all patients of the project, this is the function to use.
+`retrieve()` is probably the main workhorse function of `magmaR`. If your goal is to download "subject" data for a specific patient of a project, or for all patients of the project, this is the function to start with.
 
 The basic structure is to provide which project, `projectName` and which model, `modelName`, that you want data for.
 
@@ -254,9 +259,9 @@ df <- retrieve(
 head(df)
 ```
 
-The output format for the `retrieve()` function is a dataframe conversion of the tsv output given by a call to magma/retrieve with the json equivalent of `format = "tsv"`.
+Details: The output format for the `retrieve()` function is a dataframe conversion of the tsv output that is directly given by a call to magma/retrieve with the json equivalent of `format = "tsv"`.
 
-However, certain attribute types, such as `matrix` and `table` types, are not actually obtained via magma/retrieve when `format = "tsv"`.
+Unfortunately, certain attribute types, `matrix` and `table`, are not actually obtained via magma/retrieve when `format = "tsv"`.
 
 For such attributes, the `retrieveJSON()` function is required and retrieves such data via a magma/retrieve call with `format = "json"`.
 
@@ -269,6 +274,8 @@ json <- retrieveJSON(
     recordNames = c("EXAMPLE-HS1-WB1-RSQ1", "EXAMPLE-HS2-WB1-RSQ1"),
     attributeNames = "gene_counts")
 ```
+
+Details: The output format for the `retrieveJSON()` function is a nested list conversion of the nest hash json output that is directly given by a call to magma/retrieve with the json equivalent of `format = "json"`.
 
 ### Additional inputs
 
@@ -288,9 +295,9 @@ json <- retrieveJSON(
 
 For additional details such as how to format filter inputs, refer to https://mountetna.github.io/magma.html#retrieve
 
-## `query()`, analagous to `magma/query`
+## query()
 
-The Magma Query API lets you pull data out of Magma through an expressive query interface. Often, if you want a specific set of data from modelX, but only for records where linked records of modelY have data for attributeZ, then this is the endpoint you want.
+The Magma Query API lets you pull data out of Magma through an expressive query interface. Often, if you want a specific set of data from model-X, but only, say, for records where linked records of model-Y have data for attribute-Z, then this is the endpoint you want.
 
 But note: the format of `query()` calls can be a bit complicated, so it is recommended to check if `retreiveMetadata()` might better serve your purposes first. We'll describe that function a bit later.
 
@@ -307,7 +314,7 @@ query_out <- query(
     )
 ```
 
-The default output of this function is a list conversion of the direct json output returned by /query. This list will contains 2 or 3 parts:
+Details: The default output of this function is a list conversion of the direct json output returned by magma/query. This list will contain either 2 or 3 parts:
 
 ```{r}
 names(query_out)
@@ -331,9 +338,11 @@ subject_ids_of_rnaseq_records <- query(
 head(subject_ids_of_rnaseq_records)
 ```
 
-## `retrieveMatrix()`
+Details: When `format = "df"` is added, the list output will be converted to a data.frame where data comes from the `answer` and column names come from the `format` pieces.
 
-Because matrices are a very common data structure that are not returned by /retrieve via the easier to work with (in R) "tsv" format, we provide a simple function, which wraps `retrieveJSON()` internally, to retrieve such data.
+## retrieveMatrix()
+
+Because matrices are a very common data structure not returned by /retrieve via the easier to work with (in R) "tsv" format, we provide this function, which wraps `retrieveJSON()` internally, to retrieve such data.
 
 ```{r matrix}
 mat <- retrieveMatrix(
@@ -345,13 +354,11 @@ mat <- retrieveMatrix(
 head(mat, n = c(6,3))
 ```
 
-(Details which you don't necessarily need to know:
+Details: Under the hood, data is grabbed via `retrieveJSON()` (for 10 records at a time). The relevant data are then (combined and) converted into a matrix where column names = `recordNames` and row names are grabbed from the model's template for what this data should be. For our example data here, those row names are "gene1", "gene2", and so on, but for real rna_seq data, those row names would typically be the Ensembl gene ids that each row of the matrix represents.
 
-Under the hood, an internal `.matrix_retrieval_chunk()` function grabs data with `retrieveJSON()` for 10 records at a time. These data are then converted to matrix columns.  After all chunks are obtained, they are combined into one single matrix which will have column names = `recordNames` and rownames grabbed from the model's template. For rna_seq data like in the example here, those rownames would be the Ensembl gene ids that each row of the matrix represents.)
+## retrieveMetadata()
 
-## `retrieveMetadata()`
-
-This function attempts to simplify the process of obtaining "metadata" from model X for "target data" from model Y. For example, this function could be used to extract "subject"-model data from the "example" project that is linked to "rna_seq"-model records.
+This function attempts to simplify the process of obtaining "metadata" from model X for "target data" of model Y. For example, this function could be used to extract "subject"-model data from the "example" project that is linked to "rna_seq"-model records.
 
 ```{r meta}
 meta <- retrieveMetadata(
@@ -364,18 +371,20 @@ meta <- retrieveMetadata(
 head(meta, n = c(6,10))
 ```
 
-(Details that you don't necessarily need to know:
+General Details: The function determines how `target_modelName` and `meta_modelName` models relate to each other, then obtains data for `meta_attributeNames`-attributes, from the `meta_modelName`-model, for records of this model that are linked to `target_recordName`-records of the `target_modelName`-model. Data is then output as a data.frame with one row per `target_recordName`.
 
-Internally, the function first determines the model -> model path for navigating between the meta and target models. At the moment, ONLY parent links are used for this purpose, but utilization of link attributes is planned. Then, `query()`s based on these paths are utilized to obtain how target-model and meta-model recordNames are linked. Next, requested metadata (`meta_attributeNames`, and `target_modelNames`) is `retrieve()`d. Next, if there is more than 1:1 mapping between meta model records to target model records, the metadata is expanded in order to have one output row per `target_recordNames`. Finally, this data is output as a dataframe with rows = `target_recordNames` and columns of linkage record identifiers and of each requested meta-model attribute.)
+Specific Details: The function first determines the model -> model path for navigating between the meta and target models. (At the moment, ONLY parent links are used for this purpose, but utilization of link attributes is planned for the future.) Then, `query()`s based on these paths are utilized to obtain how target-model and meta-model recordNames are linked. Data is then `retrieve()`d from the `meta_modelName`-model for `meta_attributeNames`-attributes of records that are linked to `target_recordNames`-records of the `target_modelName`-model. Next, if there is more than 1:1 mapping between meta-model records to target-model records, the metadata is reorganized rightwards in order to have one output row per "target"-record. Finally, this data is output as a dataframe with rows = `target_recordNames` and columns of linkage record identifiers followed by columns of each requested meta-model attribute.
 
-Now that we have these metadata for our rna_seq records, we could use them to start exploring our rna_seq data:
+## Putting it all together
+
+In our example code for `retrieveMatrix()` and `retrieveMetadata()`, we obtained RNAseq data from the example project, and the linked metadata from the subject-model level. Now that we have these metadata for our rna_seq records, we could use them to start exploring our rna_seq data:
 
 ```{r}
 library(dittoSeq)
 # Make plot with dittoSeq
 sce <- importDittoBulk(
-  list(counts = mat),
-  metadata = meta
+  list(tpm = mat), # mat was obtained with retrieveMatrix()
+  metadata = meta # meta was obtained with retrieveMetadata()
 )
 
 ###### Remember to remove after bug fix!
