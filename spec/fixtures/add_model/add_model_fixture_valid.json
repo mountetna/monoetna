@@ -1,0 +1,37 @@
+{
+  "parent_model_name": "timepoint",
+  "parent_link_type": "collection",
+  "identifier": "tube_name",
+  "attributes": {
+    "tube_name": {
+      "attribute_name": "tube_name",
+      "validation": {
+        "type": "Regexp",
+        "value": "^[a-zA-Z]$"
+      }
+    },
+    "restricted": {
+      "attribute_name": "restricted",
+      "desc": "Controls access to the data.",
+      "display_name": "Restricted",
+      "attribute_type": "boolean"
+    },
+    "assay_pool": {
+      "attribute_name": "assay_pool",
+      "link_model_name": "assay_pool",
+      "desc": "Assay pool",
+      "display_name": "Assay Pool",
+      "attribute_type": "link"
+    },
+    "vendor": {
+      "attribute_name": "vendor",
+      "display_name": "Vendor",
+      "desc": "Vendor of the equipment",
+      "validation": {
+        "type": "Array",
+        "value": ["1x"]
+      },
+      "attribute_type": "string"
+    }
+  }
+}
