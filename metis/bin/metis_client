@@ -1067,8 +1067,7 @@ EOT
   private
 
   def self.log_error(e)
-    puts e.message
-    STDERR.puts(e.backtrace)
+    STDERR.puts(e.message)
   end
 
   def run_command(command=nil, *args)
