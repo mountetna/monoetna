@@ -330,7 +330,7 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel do
         project_name: PROJECT,
         filepath: './spec/fixtures/magma/nonexistent_input.csv'
       )
-    }.to raise_error(StandardError, 'Single Model invokation must include keyword :model_name.')
+    }.to raise_error(RuntimeError, 'Single Model invocation must include keyword :model_name.')
 
     expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end
