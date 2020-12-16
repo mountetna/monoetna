@@ -30,7 +30,7 @@ def setup_base_vcr(spec_helper_dir)
       end
     end
 
-    c.debug_logger = File.open('log/vcr_debug.log', 'w')
+    # c.debug_logger = File.open('log/vcr_debug.log', 'w')
 
     c.default_cassette_options = {
         serialize_with: :compressed,
