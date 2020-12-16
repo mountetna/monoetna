@@ -6,11 +6,22 @@ module WithEtnaClients
     EtnaApp.instance.environment
   end
 
+  def exit(status=true)
+    WithEtnaClients.exit(status)
+  end
+
+  # Abstraction used to prevent accidental exist in specs.
+  def self.exit(status)
+    Kernel.exit(status)
+  end
+
   def token(ignore_environment: false)
     unless ignore_environment
       if environment == :many
+        puts "yes?"
         raise "You have multiple environments configured, please specify your environment by adding --environment <staging|production|development>"
       elsif environment == :none
+        puts "yesss?"
         raise "You do not have a successfully configured environment, please run #{program_name} config set https://polyphemus.ucsf.edu"
       end
     end
