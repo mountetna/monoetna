@@ -11,7 +11,7 @@ describe Etna::Clients::Magma::CreateProjectWorkflow do
 
       VCR.use_cassette('create_project_workflow.e2e') do
         # Change this when re-running a cassette to ensure a new project is being created in your environment
-        test_project = "test_create_project_aad"
+        test_project = "test_create_project_aaf"
 
         # This is an expired development token and is safe to make public, does not leak anything about production or staging values
         # and cannot be used in a sensitive way.
@@ -37,7 +37,6 @@ describe Etna::Clients::Magma::CreateProjectWorkflow do
             project_name: test_project,
             project_name_full: 'This is a test ' + test_project
         )
-
 
         workflow.create!
       end
