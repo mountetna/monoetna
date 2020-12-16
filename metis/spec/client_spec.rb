@@ -9,6 +9,15 @@ def expect_output(path, *args)
   }.to output(yield).to_stdout
 end
 
+def expect_error(path, *args)
+  expect {
+    begin
+      MetisShell.new(path, *args).run
+    rescue SystemExit
+    end
+  }.to output(yield).to_stderr_from_any_process
+end
+
 describe MetisShell do
   include Rack::Test::Methods
 
@@ -216,7 +225,7 @@ describe MetisShell do
 
       expect(Metis::Folder.count).to eq(1)
 
-      expect_output("metis://athena/armor", "mkdir", "helmet") { /Folder already exists/ }
+      expect_error("metis://athena/armor", "mkdir", "helmet") { /Folder already exists/ }
 
       expect(Metis::Folder.count).to eq(1)
     end
@@ -244,7 +253,7 @@ describe MetisShell do
 
       expect(Metis::File.count).to eq(1)
 
-      expect_output("metis://athena/armor", "rm", "helmet/helmet2.jpg") { /Invalid path/ }
+      expect_error("metis://athena/armor", "rm", "helmet/helmet2.jpg") { /Invalid path/ }
 
       expect(Metis::File.count).to eq(1)
     end
@@ -257,7 +266,7 @@ describe MetisShell do
 
       expect(Metis::File.count).to eq(1)
 
-      expect_output("metis://athena/armor", "rm", "helmet2/helmet.jpg") { /Invalid folder/ }
+      expect_error("metis://athena/armor", "rm", "helmet2/helmet.jpg") { /Invalid folder/ }
 
       expect(Metis::File.count).to eq(1)
     end
@@ -281,7 +290,7 @@ describe MetisShell do
 
       expect(Metis::Folder.count).to eq(1)
 
-      expect_output("metis://athena/armor", "rm", "helmet2") { // }
+      expect_error("metis://athena/armor", "rm", "helmet2") { /Invalid path/ }
 
       expect(Metis::Folder.count).to eq(1)
     end
