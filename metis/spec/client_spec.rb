@@ -236,7 +236,7 @@ describe MetisShell do
   end
 
   describe MetisShell::Rm do
-    it 'does nothing if the source file does not exist' do
+    it 'warns if the path does not exist' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
@@ -244,7 +244,7 @@ describe MetisShell do
 
       expect(Metis::File.count).to eq(1)
 
-      expect_output("metis://athena/armor", "rm", "helmet/helmet2.jpg") { // }
+      expect_output("metis://athena/armor", "rm", "helmet/helmet2.jpg") { /Invalid path/ }
 
       expect(Metis::File.count).to eq(1)
     end
