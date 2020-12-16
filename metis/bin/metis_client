@@ -669,6 +669,8 @@ EOT
         @shell.client.remove_folder(@shell.project_name, path)
         return
       end
+
+      raise ShellError, "Invalid path, cannot remove: #{path}" unless file || folder
     end
   end
 
@@ -1065,7 +1067,6 @@ EOT
   private
 
   def self.log_error(e)
-    puts e.message
     STDERR.puts(e.message)
     STDERR.puts(e.backtrace)
   end
