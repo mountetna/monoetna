@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/mountetna/monoetna.git
-  revision: fb3c7d18f1b996682d5adbf84c1d69d046857397
-  branch: refs/artifacts/gem-etna/655d236d2609ddd0496bd2070040b68811b30701
+  revision: 3b6ca66fac3d1c347003a42211193e30dfbd89e0
+  branch: refs/artifacts/gem-etna/1442dc44dbcf7489f8dbd5f358c7ec0cb9eda9e9
   specs:
-    etna (0.1.19)
+    etna (0.1.22)
       jwt
       multipart-post
       net-http-persistent
@@ -104,7 +104,6 @@ GEM
     rack (2.2.3)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
-    rake (13.0.1)
     rollbar (3.1.1)
     rspec (3.9.0)
       rspec-core (~> 3.9.0)
@@ -119,8 +118,6 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.9.0)
     rspec-support (3.9.2)
-    ruby-debug-ide (0.7.2)
-      rake (>= 0.8.1)
     ruby-ole (1.2.12.2)
     ruby-vips (2.0.17)
       ffi (~> 1.9)
@@ -144,6 +141,7 @@ GEM
 
 PLATFORMS
   ruby
+  x86_64-linux
 
 DEPENDENCIES
   activesupport (>= 4.2.6)
@@ -163,7 +161,6 @@ DEPENDENCIES
   puma (= 5.0.2)
   rack-test
   rspec
-  ruby-debug-ide
   sequel (= 5.28.0)
   simplecov
   spreadsheet
@@ -174,4 +171,4 @@ RUBY VERSION
    ruby 2.5.7p206
 
 BUNDLED WITH
-   2.1.4
+   2.2.1

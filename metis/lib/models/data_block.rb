@@ -29,6 +29,29 @@ class Metis
           location
         )
       else
+        # We're running into an issue with Metis uploads where the upload
+        #   cannot be renamed when creating the data_block.
+        #   > Errno::EBUSY: Device or resource busy @ rb_file_s_rename -
+        #   > File "/var/www/metis/lib/models/data_block.rb", line 32, in rename
+        #   > File "/var/www/metis/lib/models/data_block.rb", line 19, in create_from
+        #   > File "/var/www/metis/lib/models/upload.rb", line 55, in finish!
+        #   > File "/var/www/metis/lib/server/controllers/upload_controller.rb", line 150, in complete_upload
+        #   > File "/var/www/metis/lib/server/controllers/upload_controller.rb", line 117, in upload_blob
+        #   > File "/var/www/metis/lib/models/data_block.rb", line 32, in set_file_data
+        # I suspect it's a BeeGFS issue, specifically with how
+        #   files get closed. Note the instructions for the config flag `tuneEarlyCloseResponse`:
+        #   > # Request close responses from the metadata server before the file is fully closed.
+        #   > # This may improve close() performance, but closed files may be accounted as
+        #   > # open for a short time after close() has returned. Files accounted as open
+        #   > # cannot be moved.
+        #   > # Default: false
+        # So it seems like files may be kept open for some amount
+        #   of time after the final blob is appended, which will
+        #   prevent it from being moved.
+        # Adding a delay (super hacky?!?) will hopefully give the
+        #   file system time to close the file. Hopefully this does not
+        #   significantly slow down uploads.
+        sleep(0.01)
         ::File.rename(
           file_path,
           location

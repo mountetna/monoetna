@@ -62,28 +62,26 @@ const formatAttribute = (document, template, att_name) => {
   if (value == undefined) return '';
 
   let attribute = template.attributes[att_name];
-  let {attribute_class, type} = attribute;
+  let {attribute_type} = attribute;
 
-  switch (attribute_class) {
-    case 'Magma::FileAttribute':
-    case 'Magma::ImageAttribute':
+  switch (attribute_type) {
+    case 'file':
+    case 'image':
       return value.url;
-    case 'Magma::CollectionAttribute':
+    case 'collection':
       return value.join(',');
-    case 'Magma::TableAttribute':
+    case 'table':
       return '';
-    case 'Magma::LinkAttribute':
+    case 'link':
+    case 'parent':
+    case 'child':
       return value || '';
-    case 'Magma::Attribute':
-      switch (type) {
-        case 'DateTime':
-          return Dates.formatDate(value) + '@' + Dates.formatTime(value);
-        case 'Integer':
-        case 'Float':
-          return value || 0;
-        default:
-          return value || '';
-      }
+    case 'date_time':
+      return Dates.formatDate(value) + '@' + Dates.formatTime(value);
+    case 'integer':
+    case 'float':
+      return value || 0;
+    case 'string':
     default:
       return value || '';
   }
@@ -150,24 +148,24 @@ export const selectRevision = (state, model_name, record_name) => {
 };
 
 export const filePathComponents = (metisPath) => {
-  const metisUploadPathRegex = new RegExp(
+  const metisUrlPathRegex = new RegExp(
     '^https://' +
       // hostname
       '([^/]*?)/' +
       // project_name
       '([^/]*?)/' +
-      'upload/' +
+      '(upload|download)/' +
       // bucket_name
       '([^/]*?)/' +
       // folder path + filename without query params
       '([^?]*)?.*'
   );
-  const results = metisPath.match(metisUploadPathRegex);
+  const results = metisPath.match(metisUrlPathRegex);
 
   return {
     hostname: results[1],
     project_name: results[2],
-    bucket_name: results[3],
-    file_name: results[4]
+    bucket_name: results[4],
+    file_name: results[5]
   };
 };

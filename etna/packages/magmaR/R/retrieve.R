@@ -41,8 +41,6 @@
 #'         filter = "")
 #' }
 #' 
-#' @importFrom utils URLencode
-
 retrieve <- function(
     projectName,
     modelName,
@@ -159,17 +157,19 @@ retrieveJSON <- function(
     }
     
     ### Perform '\retrieve'-al
-    curl <- .perform_curl(
-        fxn = "/retrieve", requestBody, token, url.base, verbose)
+    curl_out <- .perform_curl_get(
+        fxn = "/retrieve",
+        requestBody, token, url.base,
+        parse = TRUE, verbose = verbose)
     
     ### Output
     if (raw.return) {
-        curl$value()
+        curl_out
     } else {
         if (format=="tsv") {
-            .parse_tsv(curl$value(), names.only, connected.only)
+            .parse_tsv(curl_out, names.only, connected.only)
         } else {
-            jsonlite::fromJSON(curl$value())
+            jsonlite::fromJSON(curl_out)
         }
     }
 }

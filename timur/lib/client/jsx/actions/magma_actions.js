@@ -8,7 +8,7 @@ import {
 } from '../api/magma_api';
 import {setMetisCookie} from './metis_actions';
 import {filePathComponents} from '../selectors/magma';
-import {TEMP} from '../components/attributes/file_attribute';
+import {TEMP} from './file_actions';
 import {dispatchUploadWork} from 'etna-js/upload/actions/upload_actions';
 import {AddUploadCommand, Upload} from 'etna-js/upload/workers/uploader';
 
@@ -93,6 +93,7 @@ export const requestDocuments = (args) => {
     record_names,
     attribute_names,
     filter,
+    show_disconnected,
     page,
     page_size,
     collapse_tables,
@@ -135,6 +136,7 @@ export const requestDocuments = (args) => {
         record_names,
         attribute_names,
         filter,
+        show_disconnected,
         page,
         page_size,
         collapse_tables
@@ -158,6 +160,17 @@ export const requestModels = () => {
 
   return requestDocuments(reqOpts);
 };
+
+export const requestModel = (model_name) => {
+  let reqOpts = {
+    model_name: model_name,
+    record_names: [],
+    attribute_names: 'all',
+    exchange_name: 'request-model'
+  };
+
+  return requestDocuments(reqOpts);
+}
 
 export const requestIdentifiers = () => {
   let reqOpts = {
@@ -187,14 +200,11 @@ const uploadFileRevisions = (model_name, revisions, response, dispatch) => {
   });
 };
 
-const fileAttributeNamesForModel = (modelAttributes) => {
+const attributeNamesByTypeForModel = (modelAttributes, attribute_type) => {
   const fileAttributeNames = [];
   Object.keys(modelAttributes).forEach((attribute_name) => {
     let attribute = modelAttributes[attribute_name];
-    if (
-      attribute.attribute_type === 'file' ||
-      attribute.attribute_type === 'image'
-    ) {
+    if (attribute.attribute_type === attribute_type) {
       fileAttributeNames.push(attribute.attribute_name);
     }
   });
@@ -217,7 +227,10 @@ const uploadTemporaryFiles = (model_name, revisions, response, dispatch) => {
   if (!model) return;
 
   const modelAttributes = model.template.attributes;
-  const fileAttributeNames = fileAttributeNamesForModel(modelAttributes);
+  const fileAttributeNames = attributeNamesByTypeForModel(
+    modelAttributes,
+    'file'
+  ).concat(attributeNamesByTypeForModel(modelAttributes, 'image'));
 
   Object.keys(revisions).forEach((record_name) => {
     const revision = revisions[record_name];
@@ -268,7 +281,34 @@ const uploadTemporaryFiles = (model_name, revisions, response, dispatch) => {
   return;
 };
 
-export const sendRevisions = (model_name, revisions, success, error) => {
+export const finalizeUpload = (
+  model_name,
+  template,
+  record_name,
+  attribute_name,
+  upload
+) => {
+  return (dispatch) => {
+    let {project_name, bucket_name, file_name} = filePathComponents(upload.url);
+    
+    sendRevisions(model_name, template, {
+      [record_name]: {
+        [attribute_name]: {
+          path: `metis://${project_name}/${bucket_name}/${file_name}`,
+          original_filename: upload.original_filename
+        }
+      }
+    })(dispatch);
+  }
+};
+
+export const sendRevisions = (
+  model_name,
+  model_template,
+  revisions,
+  success,
+  error
+) => {
   return (dispatch) => {
     let localSuccess = (response) => {
       uploadFileRevisions(model_name, revisions, response, dispatch).then(
@@ -296,15 +336,22 @@ export const sendRevisions = (model_name, revisions, success, error) => {
     };
 
     let exchng = new Exchange(dispatch, `revisions-${model_name}`);
-    postRevisions(formatRevisions(revisions, model_name), exchng)
+    postRevisions(
+      formatRevisions(revisions, model_name, model_template),
+      exchng
+    )
       .then(localSuccess)
       .catch(localError);
   };
 };
 
-const formatRevisions = (revisions, model_name) => {
+// export for testing
+export const formatRevisions = (revisions, model_name, model_template) => {
   const modelRevisions = {};
-  modelRevisions[model_name] = revisions;
+  modelRevisions[model_name] = cleanFileCollectionRevisions(
+    revisions,
+    model_template
+  );
 
   const formattedRevs = {
     revisions: modelRevisions
@@ -312,12 +359,43 @@ const formatRevisions = (revisions, model_name) => {
   return formattedRevs;
 };
 
-// Download a TSV from magma via Timur.
-export const requestTSV = (model_name, filter, attribute_names) => {
-  return (dispatch) => {
-    getTSVForm(model_name, filter, attribute_names);
-  };
+const cleanFileCollectionRevisions = (revisions, model_template) => {
+  // Need to strip out any empty string FileCollection attribute updates.
+  // If someone clicks + but does not select a file or set a Metis path,
+  //    there will be a "" value in the FileCollection revision array.
+  // Magma will throw a ServerError on that value, because strings cannot
+  //    be set for FileCollection values.
+  const modelAttributes = model_template.attributes;
+  const fileCollectionAttributeNames = attributeNamesByTypeForModel(
+    modelAttributes,
+    'file_collection'
+  );
+
+  let cleanRevisions = {};
+
+  Object.keys(revisions).forEach((record_name) => {
+    const revision = revisions[record_name];
+    cleanRevisions[record_name] = {};
+    Object.keys(revision).forEach((attribute_name) => {
+      if (fileCollectionAttributeNames.indexOf(attribute_name) === -1) {
+        cleanRevisions[record_name][attribute_name] = revision[attribute_name];
+        return;
+      }
+
+      // Remove empty strings
+      cleanRevisions[record_name][attribute_name] = revision[
+        attribute_name
+      ].filter((rev) => {
+        return '' !== rev;
+      });
+    });
+  });
+
+  return cleanRevisions;
 };
+
+// Download a TSV from magma via Timur.
+export const requestTSV = (params) => (dispatch) => getTSVForm(params)
 
 export const requestAnswer = (question, callback) => {
   return (dispatch) => {

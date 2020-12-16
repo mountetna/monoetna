@@ -15,8 +15,8 @@ import {connect} from 'react-redux';
 
 // Class imports.
 import Header from '../header';
-import {TabBarContainer as TabBar} from '../tab_bar';
-import BrowserTab from './browser_tab';
+import ViewTabBar from './view_tab_bar';
+import ViewTab from './view_tab';
 
 // Module imports.
 import {requestManifests} from '../../actions/manifest_actions';
@@ -26,10 +26,10 @@ import {requestView} from '../../actions/view_actions';
 import {
   sendRevisions,
   discardRevision,
+  requestModel,
   requestAnswer
 } from '../../actions/magma_actions';
 import {
-  interleaveAttributes,
   getAttributes,
   getDefaultTab,
   selectView
@@ -39,7 +39,7 @@ import {
   selectDocument,
   selectRevision
 } from '../../selectors/magma';
-import {selectUserProjectRole} from '../../selectors/user_selector';
+import {selectIsEditor} from '../../selectors/user_selector';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {useRequestDocuments} from '../../hooks/useRequestDocuments';
@@ -81,9 +81,6 @@ export default function Browser({model_name, record_name, tab_name}) {
 
   // On mount
   useEffect(() => {
-    invoke(requestManifests());
-    invoke(requestPlots());
-
     // Decide data that should be loaded immediately.
     if (!model_name && !record_name) {
       // ask magma for the project name
@@ -100,15 +97,18 @@ export default function Browser({model_name, record_name, tab_name}) {
             )
         )
       );
-    } else if (!view) {
-      // we are told the model and record name, get the view
-      invoke(requestView(model_name, selectOrShowTab));
-    } else if (!tab_name) {
-      selectDefaultTab(view);
     } else {
-      showTab(view);
+      if (!template) requestModel(model_name);
+      if (!view) {
+        // we are told the model and record name, get the view
+        invoke(requestView(model_name, selectOrShowTab));
+      } else if (!tab_name) {
+        selectDefaultTab(view);
+      } else {
+        showTab(view);
+      }
     }
-  }, []);
+  }, [template, view]);
 
   if (loading) {
     return loadingDiv;
@@ -125,24 +125,16 @@ export default function Browser({model_name, record_name, tab_name}) {
         <div className='model-name'>{camelize(model_name)}</div>
         <div className='record-name'>{record_name}</div>
       </Header>
-      <TabBar
+      <ViewTabBar
         mode={mode}
         revision={revision}
         view={view}
         current_tab={tab_name}
         onClick={selectTab}
       />
-      <BrowserTab
-        {...{
-          model_name,
-          record_name,
-          template,
-          record,
-          revision,
-          mode,
-          tab
-        }}
-      />
+      <ViewTab {
+        ...{ model_name, record_name, template, record, revision, mode, tab }
+      } />
     </div>
   );
 }
@@ -152,24 +144,19 @@ function browserStateOf({model_name, record_name, tab_name}) {
     const template = selectTemplate(state, model_name);
     const record = selectDocument(state, model_name, record_name);
     const revision = selectRevision(state, model_name, record_name) || {};
-    const view = selectView(state, model_name);
-    const role = selectUserProjectRole(state);
+    const view = selectView(state, model_name, template);
+    const can_edit = selectIsEditor(state);
 
     const tab =
       view &&
       tab_name &&
-      template &&
-      view.tabs[tab_name] &&
-      interleaveAttributes(view.tabs[tab_name], template);
-
-    const can_edit = role === 'administrator' || role === 'editor';
+      view.tabs.find(t => t.name == tab_name);
 
     return {
       template,
       revision,
       view,
       record,
-      role,
       tab,
       can_edit,
       tab_name,
@@ -181,7 +168,7 @@ function browserStateOf({model_name, record_name, tab_name}) {
 
 function useEditActions(setMode, browserState) {
   const invoke = useActionInvoker();
-  const {revision, model_name, record_name} = browserState;
+  const {revision, model_name, template, record_name} = browserState;
 
   return {
     cancelEdits,
@@ -199,6 +186,7 @@ function useEditActions(setMode, browserState) {
     invoke(
       sendRevisions(
         model_name,
+        template,
         {[record_name]: revision},
         () => setMode('browse'),
         () => setMode('edit')
@@ -246,7 +234,7 @@ function useTabActions(browserState, setMode) {
   }
 
   function showTab(view) {
-    requestTabDocuments(view.tabs[currentTabName]);
+    requestTabDocuments(view.tabs.find(t=>t.name == currentTabName));
     setMode('browse');
   }
 
@@ -258,11 +246,7 @@ function useTabActions(browserState, setMode) {
     let hasAttributes =
       record &&
       template &&
-      Array.isArray(attribute_names) &&
-      attribute_names.every(
-        (attr_name) =>
-          !(attr_name in template.attributes) || attr_name in record
-      );
+      attribute_names.every(attr_name => attr_name in record);
 
     // ensure attribute data is present in the document
     if (!hasAttributes) {

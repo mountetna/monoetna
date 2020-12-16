@@ -3,7 +3,7 @@
     # the token as a hidden variable in the workspace.
     # Perhaps a DANGEROUS method, so not necessarily what to do in the end.
     
-    if (!exists(".MAGMAR_TOKEN")) {
+    if (!exists(".MAGMAR_TOKEN", envir = .GlobalEnv)) {
         
         if (interactive()) {
             assign(
@@ -23,7 +23,7 @@
     # the token as a hidden variable in the workspace.
     # Perhaps a DANGEROUS method, so not necessarily what to do in the end.
     
-    if (!exists(".MAGMAR_URL")) {
+    if (!exists(".MAGMAR_URL", envir = .GlobalEnv)) {
         assign(
             ".MAGMAR_URL",
             "https://magma.ucsf.edu",
@@ -33,37 +33,51 @@
     .MAGMAR_URL
 }
 
-.perform_curl <- function(
-    fxn = c("/retrieve", "/query"),
+.perform_curl_get <- function(
+    fxn = c("/retrieve", "/query", "/update"),
     requestBody,
     token,
     url.base,
-    verbose) {
+    parse = TRUE,
+    verbose = FALSE) {
     
     fxn <- match.arg(fxn)
     
-    curl <- RCurl::basicTextGatherer()
-    
-    RCurl::curlPerform(
-        url = paste0(url.base, fxn),
-        httpheader = c('Content-Type' = "application/json", 'Authorization' = paste0('Etna ', token)),
-        postfields = requestBody,
-        writefunction = curl$update,
-        verbose = verbose
+    curl <- crul::HttpClient$new(
+        url = paste0(url.base),
+        headers = list('Content-Type' = "application/json", 'Authorization' = paste0('Etna ', token)),
+        opts = list(postfields = requestBody)
         )
     
-    if (curl$value() == "You are unauthorized") {
+    curl <- curl$get(path = fxn)
+    
+    if (verbose) {
+        if (curl$success()) {
+            cat(paste0(fxn, ": successful."))
+        } else {
+            cat(fxn, ":\n")
+            print(curl$status_http())
+        }
+    }
+    
+    if (curl$status_code==401) {
         stop("You are unauthorized. If you think this is a mistake, run `rm(.MAGMAR_TOKEN)` or update your 'token' input, then retry.")
     }
     
-    curl
+    if (!parse) {
+        output <- curl
+    } else {
+        output <- curl$parse(encoding = "UTF-8")
+    }
+    
+    output
 }
 
 .parse_tsv <- function(
     string, names.only = FALSE, connected.only = TRUE) {
     
     ### Parse
-    table <- as.data.frame(readr::read_tsv(string))
+    table <- read.csv(text = string, sep = "\t")
 
     if(names.only) {
         return(names(table))

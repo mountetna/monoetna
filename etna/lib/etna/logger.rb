@@ -3,7 +3,15 @@ require 'rollbar'
 
 module Etna
   class Logger < ::Logger
-    def initialize(log_dev, age, size)
+    def initialize(log_dev, age, size=1048576)
+      # On windows, these posix devices exist, but are not mounted in *nix style paths.
+      # Swap the paths out with the actual IO handles instead.
+      if log_dev == '/dev/stdout'
+        log_dev = STDOUT
+      elsif log_dev == '/dev/stderr'
+        log_dev = STDERR
+      end
+
       super
       self.formatter = proc do |severity, datetime, progname, msg|
         format(severity, datetime, progname, msg)
