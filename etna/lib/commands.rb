@@ -54,15 +54,16 @@ class EtnaApp
       boolean_flags << '--ignore-ssl'
 
       def execute(host, ignore_ssl: false)
-        polyphemus_client ||= Etna::Clients::Polyphemus.new(
+        polyphemus_client = Etna::Clients::Polyphemus.new(
             host: host,
             token: token(ignore_environment: true),
+            persistent: false,
             ignore_ssl: ignore_ssl)
         workflow = Etna::Clients::Polyphemus::SetConfigurationWorkflow.new(
             polyphemus_client: polyphemus_client,
             config_file: EtnaApp.config_file_path)
         config = workflow.update_configuration_file(ignore_ssl: ignore_ssl)
-        logger.info("Updated #{config.environment} configuration from #{host}.")
+        logger&.info("Updated #{config.environment} configuration from #{host}.")
       end
 
       def setup(config)
@@ -226,7 +227,7 @@ class EtnaApp
 
           @last_load = File.stat(file).mtime
           @changeset = File.open(file, 'r') do |f|
-            workflow.prepare_changeset_from_csv(f) do |err|
+            workflow.prepare_changeset_from_csv(io: f) do |err|
               @errors << err
             end
           end

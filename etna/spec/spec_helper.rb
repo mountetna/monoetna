@@ -277,3 +277,7 @@ def configure_etna_yml
       }
   })
 end
+
+def WithEtnaClients.exit(status)
+  raise "WithEtnaClients.exit invoked"
+end
