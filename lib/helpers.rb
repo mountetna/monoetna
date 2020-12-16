@@ -6,6 +6,15 @@ module WithEtnaClients
     EtnaApp.instance.environment
   end
 
+  def exit(status=true)
+    WithEtnaClients.exit(status)
+  end
+
+  # Abstraction used to prevent accidental exist in specs.
+  def self.exit(status)
+    Kernel.exit(status)
+  end
+
   def token(ignore_environment: false)
     unless ignore_environment
       if environment == :many
