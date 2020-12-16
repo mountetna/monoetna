@@ -18,10 +18,8 @@ module WithEtnaClients
   def token(ignore_environment: false)
     unless ignore_environment
       if environment == :many
-        puts "yes?"
         raise "You have multiple environments configured, please specify your environment by adding --environment <staging|production|development>"
       elsif environment == :none
-        puts "yesss?"
         raise "You do not have a successfully configured environment, please run #{program_name} config set https://polyphemus.ucsf.edu"
       end
     end
