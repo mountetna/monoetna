@@ -16,6 +16,19 @@ class Metis
     @db.pool.connection_validation_timeout = -1
   end
 
+  def setup_logger
+    # Override this to get daily logs instead of by size. Easier to
+    #   debug Metis, since uploading in bulk won't overwrite
+    #   errors.
+    @logger = Etna::Logger.new(
+      # The name of the log_file, required.
+      config(:log_file),
+      config(:log_age) || 'daily'  # Logger doesn't rotate out old daily logs, though, so we'll manage that via a system process
+    )
+    log_level = (config(:log_level) || 'warn').upcase.to_sym
+    @logger.level = Logger.const_defined?(log_level) ? Logger.const_get(log_level) : Logger::WARN
+  end
+
   def load_models
     setup_db
 

@@ -1,0 +1,32 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://magma-stage.ucsf.edu/retrieve
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      User-Agent: libcurl/7.64.1 r-curl/4.3 crul/1.0.0
+      Accept-Encoding: gzip, deflate
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: application/json
+      Authorization: Etna <<<my_token>>>
+  response:
+    status:
+      status_code: '200'
+      message: OK
+      explanation: Request fulfilled, document follows
+    headers:
+      status: HTTP/1.1 200 OK
+      date: Thu, 10 Dec 2020 20:14:12 GMT
+      server: Apache
+      content-type: text/tsv
+      content-disposition: inline; filename="results.tsv
+      service-worker-allowed: /
+      transfer-encoding: chunked
+    body:
+      encoding: UTF-8
+      file: no
+      string: "name\tgroup\nEXAMPLE-HS1\t1\nEXAMPLE-HS2\t1\n"
+  recorded_at: 2020-12-10 20:14:12 GMT
+  recorded_with: vcr/0.5.4, webmockr/0.7.0

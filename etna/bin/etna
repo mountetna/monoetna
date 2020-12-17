@@ -12,14 +12,7 @@ require_relative '../lib/commands'
 config = if File.exists?(EtnaApp.config_file_path)
   YAML.load(File.read(EtnaApp.config_file_path))
 else
-  { production: {} }
+  {}
 end
 
-EtnaApp.instance.run_command(config, *ARGV) do |cmd, args|
-  if cmd.class.included_modules.include?(RequireConfirmation)
-    puts "Attempting to run #{cmd.program_name} in environment #{EtnaApp.instance.environment} with args #{args}"
-    StrongConfirmation.confirm
-  else
-    true
-  end
-end
+EtnaApp.instance.run_command(config, *ARGV)

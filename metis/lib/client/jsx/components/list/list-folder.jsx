@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { ListEntryColumn, ListEntryTypeColumn, ListEntryUpdatedColumn } from './list-entry';
+import { ListEntryColumn, ListEntryTypeColumn, ListEntryUpdatedColumn } from 'etna-js/components/ListEntry';
 import FolderControl from './folder-control';
-import Icon from '../icon';
+import Icon from 'etna-js/components/icon';
 import { FolderLink } from '../folder-link';
 
 const ListEntryFolderTypeColumn = ({folder: { read_only },widths}) =>

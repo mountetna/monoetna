@@ -6,9 +6,9 @@ class Metis
       raise 'Invalid revision, cannot revise!' unless valid?
       raise 'Cannot revise without a user' unless @user
 
-      Metis::File.copy({
+      Metis::File.link_to_block({
         project_name: @source.mpath.project_name,
-        source_file: @source.file,
+        source_data_block: @source.data_block,
         dest_file_path: @dest.mpath.file_path,
         dest_bucket_name: @dest.mpath.bucket_name,
         user: @user

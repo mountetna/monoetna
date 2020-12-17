@@ -86,7 +86,7 @@ describe Etna::Clients::Magma::AttributeActionsValidator do
       './spec/fixtures/attribute_actions/multiple_actions_invalid.json')
 
     expect(validator.valid?).to eq(false)
-    expect(validator.errors.length).to eq(6)
+    expect(validator.errors.length).to eq(5)
   end
 
   it 'reports errors for invalid add_attribute actions' do

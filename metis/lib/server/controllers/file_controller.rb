@@ -152,13 +152,11 @@ class FileController < Metis::Controller
 
     # In bulk copy mode, we fetch the buckets and folders in bulk
     #   and set them on the revision objects, to try and minimize database hits
-    hmac = @request.env['etna.hmac']
-
     user_authorized_buckets = Metis::Bucket.where(
       project_name: @params[:project_name],
-      owner: ['metis', hmac&.id.to_s].reject {|o| o.empty?},
+      owner: ['metis', @hmac&.id.to_s].reject {|o| o.empty?},
       name: revisions.map(&:bucket_names).flatten.uniq
-    ).all.select{|b| b.allowed?(@user, hmac)}
+    ).all.select{|b| b.allowed?(@user, @hmac)}
 
     revision_bucket_folders = {}
 
