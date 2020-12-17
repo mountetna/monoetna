@@ -1,0 +1,32 @@
+---
+:test:
+  :metis:
+    :host: https://metis.test
+  :magma:
+    :host: https://magma.test
+  :janus:
+    :host: https://janus.test
+
+:development:
+  :metis:
+    :host: https://metis.development.local
+  :magma:
+    :host: https://magma.development.local
+  :janus:
+    :host: https://janus.development.local
+
+:staging:
+  :metis:
+    :host: https://metis-stage.ucsf.edu
+  :magma:
+    :host: https://magma-stage.ucsf.edu
+  :janus:
+    :host: https://janus-stage.ucsf.edu
+
+:production:
+  :metis:
+    :host: https://metis.ucsf.edu
+  :magma:
+    :host: https://magma.ucsf.edu
+  :janus:
+    :host: https://janus.ucsf.edu
