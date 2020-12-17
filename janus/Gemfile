@@ -9,6 +9,7 @@ gem 'sequel'
 gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/ae373a9dec4d57e09ed2e3749cdbf511e56ff1d5'
 gem 'jwt'
 gem 'puma', '5.0.2'
+gem 'nokogiri'
 
 group :test do
   gem 'rspec'
@@ -16,7 +17,6 @@ group :test do
   gem 'rack-test', require: "rack/test"
   gem 'factory_bot'
   gem 'simplecov'
-  gem 'nokogiri'
   gem 'pry'
   gem 'database_cleaner'
 end
