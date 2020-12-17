@@ -29,7 +29,6 @@ GEM
     rack (2.2.2)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
-    rake (13.0.1)
     rollbar (2.27.0)
     rspec (3.9.0)
       rspec-core (~> 3.9.0)
@@ -44,8 +43,6 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.9.0)
     rspec-support (3.9.2)
-    ruby-debug-ide (0.7.2)
-      rake (>= 0.8.1)
     safe_yaml (1.0.5)
     simplecov (0.18.5)
       docile (~> 1.1)
@@ -72,7 +69,6 @@ DEPENDENCIES
   rack-test
   rollbar
   rspec
-  ruby-debug-ide
   simplecov
   timecop
   vcr
@@ -82,4 +78,4 @@ RUBY VERSION
    ruby 2.5.7p206
 
 BUNDLED WITH
-   2.1.4
+   2.2.0

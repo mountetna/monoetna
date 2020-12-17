@@ -2,7 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 
 import MetisNav from './metis-nav';
-import RootView from './root-view';
+import RootView from 'etna-js/components/RootView';
 import FolderView from './folder-view';
 import BucketView from './bucket-view';
 import ModalDialog from './modal-dialog';
@@ -36,19 +36,17 @@ setRoutes(ROUTES);
 
 const Invalid = () => <div>Path invalid</div>;
 
-class MetisUI extends React.Component {
-  render() {
-    let { route, params }  = findRoute({ path: window.location.pathname } ,ROUTES);
-    let Component = route ? route.component : Invalid;
+const MetisUI = () => {
+  let { route, params }  = findRoute({ path: window.location.pathname } ,ROUTES);
+  let Component = route ? route.component : Invalid;
 
-    return (
-      <div id='metis-group'>
-        <MetisNav/>
-        <Component {...params}/>
-        <ModalDialog/>
-      </div>
-    );
-  }
+  return (
+    <div id='metis-group'>
+      <MetisNav/>
+      <Component {...params}/>
+      <ModalDialog/>
+    </div>
+  );
 }
 
 export default MetisUI;

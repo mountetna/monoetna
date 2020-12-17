@@ -42,6 +42,10 @@ def progress(completion, rate, path)
   "\r#{progress} #{path} - #{rate}B/s"
 end
 
+def metis_path(path)
+  /^metis:\/\/(?<project>[^\/]+)\/(?<bucket>[^\/]+)\/(?<file_path>.+)$/.match(path)
+end
+
 class MetisConfig
   include Singleton
 
@@ -159,16 +163,45 @@ class MetisClient
     json_body(response)
   end
 
-  def blob_upload(upload_path, upload, blob)
-    response = multipart_post(
-      upload_path, [
-        [ 'action', 'blob', ],
-        [ 'blob_data', blob[:blob_data], {filename: 'blob'} ],
-        [ 'next_blob_size', blob[:next_blob_size].to_s ],
-        [ 'next_blob_hash', blob[:next_blob_hash].to_s ],
-        [ 'current_byte_position', blob[:current_byte_position].to_s ]
-      ]
-    )
+  def retry_blob(upload_path, upload, blob, retries)
+    retries += 1
+
+    print "\rWaiting for server restart"+"."*retries+"\x1b[0K"
+
+    sleep 15
+
+    if retries < 60
+      blob_upload(upload_path, upload, blob, retries)
+      return
+    end
+
+    raise MetisClient::Error, "Could not contact server, giving up"
+  end
+
+  def blob_upload(upload_path, upload, blob, retries=0)
+    begin
+      response = multipart_post(
+        upload_path, [
+          [ 'action', 'blob', ],
+          [ 'blob_data', blob[:blob_data], {filename: 'blob'} ],
+          [ 'next_blob_size', blob[:next_blob_size].to_s ],
+          [ 'next_blob_hash', blob[:next_blob_hash].to_s ],
+          [ 'current_byte_position', blob[:current_byte_position].to_s ]
+        ]
+      )
+    rescue OpenSSL::SSL::SSLError => e
+      if e.message =~ /write client hello/
+        return retry_blob(upload_path, upload, blob, retries)
+      end
+      raise e
+    rescue Errno::ECONNREFUSED => e
+      return retry_blob(upload_path, upload, blob, retries)
+    end
+
+    if response.code == '503' || response.code == '502'
+      retry_blob(upload_path, upload, blob, retries)
+      return
+    end
 
     raise MetisClient::UploadError, "Problem with uploading the blob: #{error(response)}" if response.code == '422'
     raise MetisClient::Error, "Could not upload file #{upload.file_path}\n#{error(response)}" unless response.code == "200"
@@ -211,12 +244,52 @@ class MetisClient
     end
   end
 
+  def remove_folder(project_name, folder_path)
+    response = delete_request("/#{project_name}/folder/remove/#{URI.encode(folder_path)}")
+    raise MetisClient::Error, "Could not remove folder #{folder_path}\n#{error(response)}" unless response.code == "200"
+  end
+
+  def remove_file(project_name, file_path)
+    response = delete_request("/#{project_name}/file/remove/#{URI.encode(file_path)}")
+    raise MetisClient::Error, "Could not remove file #{file_path}\n#{error(response)}" unless response.code == "200"
+  end
+
+  def copy_file(project_name, file_path, proposed_file_path)
+    if proposed_file_path.start_with?('metis://')
+      match = metis_path(proposed_file_path)
+      new_bucket_name = match[:bucket]
+      new_file_path = match[:file_path]
+    else
+      split_parts = proposed_file_path.split('/')
+      new_bucket_name = split_parts.first
+      new_file_path = split_parts.slice(1, split_parts.length - 1).join('/')
+    end
+
+    if file_path.start_with?('metis://')
+      match = metis_path(file_path)
+      old_file_path = "#{match[:bucket]}/#{match[:file_path]}"
+    else
+      old_file_path = file_path
+    end
+
+    response = json_post("/#{project_name}/file/copy/#{URI.encode(old_file_path)}",
+      new_file_path: new_file_path,
+      new_bucket_name: new_bucket_name)
+
+    raise MetisClient::Error, "Could not copy file #{file_path} to #{proposed_file_path}\n#{error(response)}" unless response.code == "200"
+  end
+
   private
 
   def json_post(path, body={})
     req = post(path)
     req['Content-Type'] = 'application/json'
     req.body = body.to_json
+    https.request(req)
+  end
+
+  def delete_request(path)
+    req = delete(path)
     https.request(req)
   end
 
@@ -232,6 +305,10 @@ class MetisClient
 
   def post(path)
     request(path, Net::HTTP::Post)
+  end
+
+  def delete(path)
+    request(path, Net::HTTP::Delete)
   end
 
   def https
@@ -519,6 +596,105 @@ EOT
     end
   end
 
+  class Cp < Command
+    usage "cp <source_file_path> <destination_file_path>"
+    def run(source_file_path, destination_file_path)
+      raise ShellError, 'No source file selected!' unless source_file_path
+
+      raise ShellError, 'No destination file selected!' unless destination_file_path
+
+      if !source_file_path.start_with?('metis://')
+        source_file_path.sub!(%r!(?<=.)/$!,'')
+        source_file_path = @shell.relative_path(source_file_path)
+
+        source_folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(source_file_path))
+
+        raise ShellError, "Invalid source path #{source_file_path}" unless source_folder
+
+        file = source_folder[:files].find do |f|
+          f[:file_name] == ::File.basename(source_file_path)
+        end
+
+        raise ShellError, "That source file does not exist #{source_file_path}" unless file
+      end
+
+      if !destination_file_path.start_with?('metis://')
+        destination_file_path.sub!(%r!(?<=.)/$!,'')
+        destination_file_path = @shell.relative_path(destination_file_path)
+
+        # Need to account for user providing a directory without a filename...
+        begin
+          folder = @shell.client.list_folder(@shell.project_name, destination_file_path)
+          source_file_name = source_file_path.split('/').last
+          destination_file_path = "#{destination_file_path}/#{source_file_name}" if folder
+        rescue MetisClient::Error
+          # Not a folder, so we'll keep the path
+        end
+      end
+
+      @shell.client.copy_file(
+        @shell.project_name,
+        source_file_path,
+        destination_file_path)
+    end
+  end
+
+  class Rm < Command
+    usage "rm <remote_path>"
+    def run(path)
+      raise ShellError, 'No project is selected' if !@shell.project_name
+
+      path = @shell.relative_path(path)
+
+      name = ::File.basename(path)
+
+      folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(path))
+
+      raise ShellError, "Invalid path #{path}" unless folder
+
+      file = folder[:files].find do |f|
+        f[:file_name] == name
+      end
+
+      if file
+        @shell.client.remove_file(@shell.project_name, path)
+        return
+      end
+
+      folder = folder[:folders].find do |f|
+        f[:folder_name] == name
+      end
+
+      if folder
+        @shell.client.remove_folder(@shell.project_name, path)
+        return
+      end
+
+      raise ShellError, "Invalid path, cannot remove: #{path}" unless file || folder
+    end
+  end
+
+  class Mkdir < Command
+    usage "mkdir <remote_path>"
+    def run(path)
+      raise ShellError, 'No project is selected' if !@shell.project_name
+
+      path = @shell.relative_path(path)
+
+      begin
+        folder = @shell.client.list_folder(@shell.project_name, path)
+
+        raise ShellError, "Folder already exists #{path}" if folder
+      rescue MetisClient::Error
+        # parent folder may not exist, but that's okay. This command
+        #   replicates `mkdir -p` so parent folders do not have to
+        #   exist a priori.
+      end
+
+      @shell.client.create_folder(@shell.project_name, path)
+    end
+  end
+
   class Pwd < Command
     usage "pwd"
     def run
@@ -714,11 +890,13 @@ EOT
 
           if current_attempt_number <= max_number_attempts
             puts "UploadError -- retrying the upload"
+            MetisShell.log_error(e)
             upload = Upload.new(actual_path)
             upload_json = @shell.client.reset_upload(upload_path, upload)
             upload.current_byte_position = 0
           else
             puts "UploadError -- max retries reached. Giving up."
+            MetisShell.log_error(e)
           end
         end
       end
@@ -888,6 +1066,10 @@ EOT
 
   private
 
+  def self.log_error(e)
+    STDERR.puts(e.message)
+  end
+
   def run_command(command=nil, *args)
     return if !command
     command = Command.list.find { |c| c.command_name == command.to_s }
@@ -902,13 +1084,14 @@ EOT
       args = cmd.parse(args)
       cmd.run(*args) unless cmd.done?
     rescue ShellError => e
-      puts e.message
+      MetisShell.log_error(e)
     rescue MetisClient::Error => e
-      puts e.message
+      MetisShell.log_error(e)
     rescue ArgumentError => e
       puts(command.usage ? "Usage:\n#{command.usage}" : e.message)
+      MetisShell.log_error(e)
     rescue Net::ReadTimeout => e
-      puts e.message
+      MetisShell.log_error(e)
     end
   end
 

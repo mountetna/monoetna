@@ -20,11 +20,14 @@ module Etna
       end
     end
 
-    def as_json
-      members.map do |k|
+    def as_json(keep_nils: false)
+      inner_json = members.map do |k|
         v = self.class.as_json(send(k))
         [k, v]
-      end.to_h.delete_if { |k, v| v.nil? }
+      end.to_h
+
+      return inner_json if keep_nils
+      inner_json.delete_if { |k, v| v.nil? }
     end
 
     def to_json

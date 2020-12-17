@@ -105,7 +105,7 @@ class Metis
       Metis::File.where(file_name: file_name, bucket: bucket, folder_id: parent_folder ? parent_folder.id : nil).count > 0
     end
 
-    def self.copy(params)
+    def self.link_to_block(params)
       # Assumes validations have been done, this just executes
       #   the copy and returns the new copy.
       dest_folder_path, dest_file_name = Metis::File.path_parts(params[:dest_file_path])
@@ -119,7 +119,7 @@ class Metis
 
       if Metis::File.exists?(dest_file_name, dest_bucket, dest_folder)
         old_dest_file = Metis::File.from_path(dest_bucket, params[:dest_file_path])
-        old_dest_file.data_block = params[:source_file].data_block
+        old_dest_file.data_block = params[:source_data_block]
         old_dest_file.save
         return old_dest_file
       else
@@ -129,7 +129,7 @@ class Metis
           folder_id: dest_folder&.id,
           bucket: dest_bucket,
           author: Metis::File.author(params[:user]),
-          data_block: params[:source_file].data_block
+          data_block: params[:source_data_block]
         )
       end
     end

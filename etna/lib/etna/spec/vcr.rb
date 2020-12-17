@@ -20,6 +20,7 @@ def setup_base_vcr(spec_helper_dir)
           request_2_json = begin
             JSON.parse(request_2.body) rescue 'not-json'
           end
+
           request_1_json == request_2_json
         else
           false
@@ -28,6 +29,8 @@ def setup_base_vcr(spec_helper_dir)
         request_1.body == request_2.body
       end
     end
+
+    # c.debug_logger = File.open('log/vcr_debug.log', 'w')
 
     c.default_cassette_options = {
         serialize_with: :compressed,
@@ -80,6 +83,11 @@ def setup_base_vcr(spec_helper_dir)
         interaction.response.body = plain
       end
     end
+  end
+
+  require 'multipartable'
+  def Multipartable.secure_boundary
+    "--THIS-IS-STABLE-FOR-TESTING"
   end
 end
 
