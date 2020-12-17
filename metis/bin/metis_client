@@ -455,7 +455,7 @@ EOT
   end
 
   class Ls < Command
-    usage "ls [<remote_folder_path>]"
+    usage "ls [<remote_folder_or_file_path>]"
 
     def parse(args)
       parse_opts(args) do |opts|
@@ -474,6 +474,27 @@ EOT
         display(buckets: @shell.client.list_buckets(@shell.project_name) || [])
         return
       end
+
+      name = ::File.basename(file_path)
+
+      folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(file_path))
+
+      raise ShellError, "Invalid path #{file_path}" unless folder
+
+      begin
+        file = folder[:files].find do |f|
+          f[:file_name] == name
+        end
+
+        if file
+          file[:file_name] = file_path
+          display(
+            folders: [],
+            files: [file]
+          )
+          return
+        end
+      end if folder[:files]
 
       folder = @shell.client.list_folder(@shell.project_name, file_path)
 
