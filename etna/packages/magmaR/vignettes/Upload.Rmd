@@ -33,23 +33,23 @@ insert_cassette(name = "Upload-vignette")
 
 ## Mini overview of magmaR, magma, and the Mount Etna data library system
 
-This vignette focuses on how to upload data to *magma* via its R-client, *magmaR*.
+This vignette focuses on how to upload data to **magma** via its R-client, **magmaR**.
 
 Magma is the *data warehouse* of the **Mount Etna data library system**.
 
-For a deeper overview of the structure of magma and the Mount Etna data library system, please see the download-focused vignette, `vignette("Downloading data from magma")`, or Mount Etna's own documentation, here https://mountetna.github.io/magma.html.
+For a deeper overview of the structure of magma and the Mount Etna data library system, please see the download-focused vignette, `vignette("Download", package = "magmaR")`, or Mount Etna's own documentation, here https://mountetna.github.io/magma.html.
 
 ## Scope of this vignette
 
-This vignette assumes that you already 1) have magmaR installed, 2) understand the `token` authentication process, and 3) understand how to switch, if you need to, between the production / staging / development magma environments. If you do not, see the relevant sections of `vignette("Downloading data from magma")`.
+This vignette assumes that you have already gone through the download-focused vignette, `vignette("Download", package = "magmaR")`, which covers how to 1) install magmaR, 2) use a *token* for authentication, and 3) switch, if needed, between the production / staging / development magma environments.
 
 This vignette focuses on use-cases where a user wishes to push data, from their own system, to magma.
 
 Not all Mount Etna users have write privileges, so not all magmaR users will have need for this vignette.
 
-For those that do, please note: Sending data to magma is an **advanced use-case which needs to be treated with due care.** The functions involved have the ability to overwrite data, so it is imperative, for data integrity purposes, that inputs to these functions are double-checked in order to make sure that they target only the intended records & attributes.
+For those that do, please note: ***Sending data to magma is an advanced use-case which needs to be treated with due care.*** The functions involved have the ability to overwrite data, so it is imperative, for data integrity purposes, that inputs to these functions are double-checked in order to make sure that they target only the intended records & attributes.
 
-Also note that a users' write-privileges are project-specific, so it is unlikely that you will be able to run any code, exactly as it exists in this vignette, without getting an authorization error. (That also means you don't run the risk of breaking our download/exploration vignette by testing out any fun alterations of the code in here... trade-offs =] .)
+Also note that a users' write-privileges are project-specific, so it is unlikely that you will be able to run any code, exactly as it exists in this vignette, without getting an authorization error. (That also means you don't run the risk of breaking our download vignette by testing out any fun alterations of the code in here... trade-offs =] .)
 
 ## How magmaR functions work
 
@@ -66,17 +66,17 @@ So in this vignette, our singular focus will be on how to input your data so tha
 
 # magmaR's data upload functions:
 
-magma has just one data input function, `/update`.
+**magma** has just one data input function, **`/update`**.
 
-magmaR provides methods for sending data into magma via this `/update` function.
+**magmaR** provides methods for sending data into magma via this function.
 
-In truth, there are many other pathways for sending data to magma. We have plans to expand magmaR's data upload functionality. We will update this vignette when we do. In the meantime, feel free to reach out to me (Dan) or anyone else on the Mount Etna engineering team with questions about the best method for uploading your particular data. 
+In truth, there are many other pathways for sending data to magma. We have plans to expand magmaR's data upload functionality. We will update this vignette when we do. In the meantime, feel free to reach out to me (Dan) or anyone else on the data library engineering team with questions about the best method for uploading your particular data. 
 
-## `updateValues()`, analagous to `magma/update`
+## updateValues()
 
-`update()` is the main workhorse function of `magmaR`'s data upload capabilities. It largely mimics `magma/update` except in that `hash` structures that are used by `magma/update` do not exist within R. Thus the format for the `revisions` input is a nested `list`, rather than a nested `hash`.
+`updateValues()` is the main workhorse function of `magmaR`'s data upload capabilities. It largely mimics `magma/update` except in that the `hash` structures that are used by `magma/update` do not exist within R. Thus the format for the `revisions` input is a nested `list`, rather than a nested `hash`.
 
-The function has 2 unique inputs, `project` and `revisions`:
+The function has 2 main inputs, `project` and `revisions`:
 
 - `project` is simply the String name of the project that you wish to upload data to; e.g. `updateValues(project = "example", ...)`.
 - `revisions` includes information about which model(s), which record(s), and which attribute(s) to update, and with what value(s). Each of these levels is encoded as a nested list where the format looks something like:
@@ -133,11 +133,7 @@ revisions = list(
     )
 ```
 
-**Let's try it out with some real examples which target the same "example" project that we used in the download vignette.**
-
-```{r}
-library(magmaR)
-```
+**Let's try it out with some real examples which target the same "example" project that we used in the download vignette.** 
 
 To refresh, the model map for this project is below.
 
@@ -146,6 +142,7 @@ To refresh, the model map for this project is below.
 The "biospecimen" and "rna_seq" models that we will target have attributes...
 
 ```{r}
+library(magmaR)
 retrieveAttributes("example", "biospecimen")
 retrieveAttributes("example", "rna_seq")
 ```
@@ -184,7 +181,7 @@ Proceed, Y/n?
 
 It is highly recommended that these outputs be checked carefully for accuracy before proceeding.
 
-However, for running `update()` code in non-interactive modes, like scripts or .Rmd, knits this user-prompt step can also be turned off by adding the input `auto.proceed = TRUE`.  Example:
+However, for running `update()` code in non-interactive modes, like scripts or .Rmd knits, this user-prompt step can also be turned off by adding the input `auto.proceed = TRUE`.  Example:
 
 ```{r, include = FALSE}
 revs <- list(
@@ -205,7 +202,7 @@ updateValues(
     auto.proceed = TRUE)
 ```
 
-After a successful `update()` a user should see this message unless `verbose` has been set to `FALSE`:
+After a successful `update()` a user should see this message (unless `verbose` has been set to `FALSE`):
 
 ```
 /update: successful.
@@ -227,7 +224,7 @@ WARNING: Check the above carefully. Once created, there is currently no way to r
 
 ## Type-dedicated update function(s)
 
-### `updateMatrix()`
+### updateMatrix()
 
 As the name suggests, `updateMatrix()` is a convenient wrapper function of `updateValues()` that is meant specifically for matrix data. It allows a user to point magmaR to either a file containing matrix data, or to a readily constructed matrix, without needing to perform the manual conversion of such data to the `revisions`-input format. 
 
@@ -276,7 +273,7 @@ head(matrix, n = c(6,2))
 1. Column names for the matrix are record identifiers for the target "rna_seq" model.
 2. Row names for the matrix are the feature-names for the matrix. So for rna_seq data, for example, these will be gene names of some type, typically Ensembl IDs.
 
-As with `updateValues()`, a successful update vis `updateMatrix()` should produce this final output line, unless one sets `verbose = FALSE`:
+As with `updateValues()`, a successful update via `updateMatrix()` should produce this final output line (unless one sets `verbose = FALSE`):
 
 ```
 /update: successful.
