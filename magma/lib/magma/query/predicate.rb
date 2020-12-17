@@ -50,9 +50,19 @@ class Magma
       @child_predicate
     end
 
+    def inspect
+      <<EOT
+#<#{self.class.name}:#{object_id}
+    @alias_name=#{@alias_name}
+    @arguments=#{@arguments}
+    @child_predicate=#<#{@child_predicate.class.name}:#{@child_predicate.object_id}
+  >
+EOT
+    end
+
     def join
       if @verb && @verb.gives?(:join)
-        [ @verb.do(:join) ].compact
+        [ @verb.do(:join) ].flatten.compact
       else
         []
       end
@@ -137,6 +147,12 @@ class Magma
       @verb.do(:validate,@arguments)
 
       @child_predicate = @verb.do(:child)
+    end
+
+    def join_filters
+      @filters.map do |filter|
+        filter.flatten.map(&:join).inject(&:+) || []
+      end.inject(&:+) || []
     end
 
     # Code relating to defining and looking up predicate verbs
@@ -238,6 +254,24 @@ class Magma
       )
     end
 
+    def or_constraint constraints
+      Magma::Constraint.new(
+        alias_name,
+        Sequel.|(
+          *constraints.map(&:conditions)
+        )
+      )
+    end
+
+    def and_constraint constraints
+      Magma::Constraint.new(
+        alias_name,
+        Sequel.&(
+          *constraints.map(&:conditions)
+        )
+      )
+    end
+
     def basic_constraint column_name, value
       Magma::Constraint.new(
         alias_name,
@@ -251,7 +285,7 @@ class Magma
     end
 
     def terminal value
-      raise QuestionError, 'Trailing arguments after terminal value!' unless @query_args.empty?
+      raise QuestionError, "Trailing arguments after terminal value! #{@query_args}" unless @query_args.empty?
       Magma::TerminalPredicate.new(@question, value)
     end
   end
@@ -260,7 +294,9 @@ end
 require_relative 'verb'
 require_relative 'predicate/column'
 require_relative 'predicate/model'
+require_relative 'predicate/start'
 require_relative 'predicate/record'
+require_relative 'predicate/filter'
 require_relative 'predicate/boolean'
 require_relative 'predicate/date_time'
 require_relative 'predicate/file'

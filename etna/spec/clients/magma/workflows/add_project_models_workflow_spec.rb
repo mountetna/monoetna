@@ -138,8 +138,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
             end
 
             it 'shows that error' do
-              expect(validation_errors.length).to eql(1)
-              expect(validation_errors.first).to match(/attribute mood_link has link_model_name/)
+              expect(validation_errors[3]).to match(/attribute mood_link has link_model_name/)
             end
           end
         end
