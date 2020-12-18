@@ -428,7 +428,7 @@ EOT
 
       folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(path))
 
-      raise ShellError, "Invalid path #{path}" unless folder
+      raise ShellError, "Invalid path, cannot mv #{path}" unless folder
 
       file = folder[:files].find do |f|
         f[:file_name] == name
@@ -455,7 +455,7 @@ EOT
   end
 
   class Ls < Command
-    usage "ls [<remote_folder_path>]"
+    usage "ls [<remote_folder_or_file_path>]"
 
     def parse(args)
       parse_opts(args) do |opts|
@@ -475,7 +475,32 @@ EOT
         return
       end
 
-      folder = @shell.client.list_folder(@shell.project_name, file_path)
+      name = ::File.basename(file_path)
+
+      parent_folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(file_path))
+
+      raise ShellError, "Invalid path, cannot list #{file_path}" unless parent_folder
+
+      begin
+        file = parent_folder[:files].find do |f|
+          f[:file_name] == name
+        end
+
+        if file
+          file[:file_name] = file_path
+          display(
+            folders: [],
+            files: [file]
+          )
+          return
+        end
+      end if parent_folder[:files]
+
+      begin
+        folder = @shell.client.list_folder(@shell.project_name, file_path)
+      rescue MetisClient::Error
+        raise ShellError, "No such file or folder: #{file_path}" unless folder
+      end
 
       display(
         folders: folder[:folders] || [],
@@ -590,7 +615,7 @@ EOT
 
       folder = @shell.client.list_folder(@shell.project_name, path)
 
-      raise ShellError, "No such folder #{dirname}" unless folder
+      raise ShellError, "Could not find folder #{dirname}" unless folder
 
       @shell.cwd = path
     end
@@ -650,7 +675,7 @@ EOT
 
       folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(path))
 
-      raise ShellError, "Invalid path #{path}" unless folder
+      raise ShellError, "Invalid path, cannot rm #{path}" unless folder
 
       file = folder[:files].find do |f|
         f[:file_name] == name
