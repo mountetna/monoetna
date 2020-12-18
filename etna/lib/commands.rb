@@ -54,15 +54,16 @@ class EtnaApp
       boolean_flags << '--ignore-ssl'
 
       def execute(host, ignore_ssl: false)
-        polyphemus_client ||= Etna::Clients::Polyphemus.new(
+        polyphemus_client = Etna::Clients::Polyphemus.new(
             host: host,
             token: token(ignore_environment: true),
+            persistent: false,
             ignore_ssl: ignore_ssl)
         workflow = Etna::Clients::Polyphemus::SetConfigurationWorkflow.new(
             polyphemus_client: polyphemus_client,
             config_file: EtnaApp.config_file_path)
         config = workflow.update_configuration_file(ignore_ssl: ignore_ssl)
-        logger.info("Updated #{config.environment} configuration from #{host}.")
+        logger&.info("Updated #{config.environment} configuration from #{host}.")
       end
 
       def setup(config)
@@ -297,6 +298,49 @@ class EtnaApp
             )
 
             workflow.write_csv_io(filename: file)
+          end
+        end
+
+        class LoadTableFromCsv < Etna::Command
+          include WithEtnaClients
+
+          boolean_flags << '--execute'
+
+          def execute(project_name, model_name, file_path, execute: false)
+            request = Etna::Clients::Magma::RetrievalRequest.new(project_name: project_name)
+            request.model_name = model_name
+            request.attribute_names = 'all'
+            request.record_names = 'all'
+            model = magma_client.retrieve(request).models.model(model_name)
+            model_parent_name = model.template.attributes.all.select do |attribute|
+              attribute.attribute_type == Etna::Clients::Magma::AttributeType::PARENT
+            end.first.name
+
+            other_attribute_names = model.template.attributes.all.reject do |attribute|
+              attribute.attribute_type == Etna::Clients::Magma::AttributeType::PARENT
+            end.map do |attribute|
+              attribute.name
+            end
+
+            # NOTE: This does not call ensure_parent currently because of MVIR1 consent--
+            #   if the timepoint doesn't exist, the patient may be no study? (one example, at least)
+            update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project_name)
+
+            data = CSV.parse(File.read(file_path), headers: true)
+
+            data.by_row.each do |row|
+              revision = {}
+              other_attribute_names.each do |attribute_name|
+                revision[attribute_name] = row[attribute_name] unless row[attribute_name].nil?
+              end
+              update_request.append_table(model_parent_name, row[model_parent_name], model_name, revision)
+            end
+
+            puts update_request
+
+            if execute
+              magma_client.update_json(update_request)
+            end
           end
         end
       end
