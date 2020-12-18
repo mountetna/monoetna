@@ -428,7 +428,7 @@ EOT
 
       folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(path))
 
-      raise ShellError, "Invalid path #{path}" unless folder
+      raise ShellError, "Invalid path, cannot mv #{path}" unless folder
 
       file = folder[:files].find do |f|
         f[:file_name] == name
@@ -477,12 +477,12 @@ EOT
 
       name = ::File.basename(file_path)
 
-      folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(file_path))
+      parent_folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(file_path))
 
-      raise ShellError, "Invalid path #{file_path}" unless folder
+      raise ShellError, "Invalid path, cannot list #{file_path}" unless parent_folder
 
       begin
-        file = folder[:files].find do |f|
+        file = parent_folder[:files].find do |f|
           f[:file_name] == name
         end
 
@@ -494,9 +494,13 @@ EOT
           )
           return
         end
-      end if folder[:files]
+      end if parent_folder[:files]
 
-      folder = @shell.client.list_folder(@shell.project_name, file_path)
+      begin
+        folder = @shell.client.list_folder(@shell.project_name, file_path)
+      rescue MetisClient::Error
+        raise ShellError, "No such file or folder: #{file_path}" unless folder
+      end
 
       display(
         folders: folder[:folders] || [],
@@ -611,7 +615,7 @@ EOT
 
       folder = @shell.client.list_folder(@shell.project_name, path)
 
-      raise ShellError, "No such folder #{dirname}" unless folder
+      raise ShellError, "Could not find folder #{dirname}" unless folder
 
       @shell.cwd = path
     end
@@ -671,7 +675,7 @@ EOT
 
       folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(path))
 
-      raise ShellError, "Invalid path #{path}" unless folder
+      raise ShellError, "Invalid path, cannot rm #{path}" unless folder
 
       file = folder[:files].find do |f|
         f[:file_name] == name
