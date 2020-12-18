@@ -193,6 +193,62 @@ describe Etna::Auth do
         )
       end
     end
+
+    context 'long-lived tokens' do
+      authenticated_user = nil
+      before(:each) do
+        authenticated_user = nil
+        stub_request(:any, /janus.test/)
+        Arachne::Server.get('/test') { authenticated_user = @user; success(@user.class) }
+
+        @public_key = OpenSSL::PKey::RSA.new(@private_key).public_key.to_s
+
+        @app = setup_app(
+          Arachne::Server,
+          [ Etna::Auth ],
+          test: {
+            rsa_private: @private_key,
+            rsa_public: @public_key,
+            janus: { host: 'https://janus.test/' },
+            token_name: 'ARACHNE_TOKEN',
+            token_algo: 'RS256'
+          }
+        )
+        clear_cookies
+      end
+
+      it "calls Janus for a long-lived token" do
+        token = Arachne.instance.sign.jwt_token(
+          email: 'janus@two-faces.org',
+          first: 'Janus',
+          last: 'Bifrons',
+          verify: true,
+          perm: 'a:labors'
+        )
+
+        auth_header(token)
+        get('/test')
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to eq('Etna::User')
+        expect(authenticated_user.token).to eq(token)
+        expect(WebMock).to have_requested(:post, /janus/)
+      end
+
+      it 'accepts a token via cookie' do
+        token = Arachne.instance.sign.jwt_token(
+          email: 'janus@two-faces.org',
+          first: 'Janus',
+          last: 'Bifrons',
+          perm: 'a:labors;e:olympics,argo;v:constellations'
+        )
+
+        set_cookie("#{Arachne.instance.config(:token_name)}=#{token}")
+        get('/test')
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to eq('Etna::User')
+        expect(authenticated_user.token).to eq(token)
+      end
+    end
   end
 
   context "hmac approval" do
