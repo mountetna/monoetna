@@ -91,11 +91,35 @@ describe MetisShell do
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       expect_output("metis://athena/armor/", "ls", "helmet") { "helmet.jpg\n" }
     end
+
     it 'lists the project root directory' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       expect_output("metis://athena/armor/helmet", "ls", "/") { "armor/\n" }
+    end
+
+
+    it 'lists files directly' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'armor', 'helmet/helmet.jpg', HELMET)
+
+      expect_output("metis://athena/armor", "ls", "helmet/helmet.jpg") { %r!armor/helmet/helmet.jpg!m }
+    end
+
+    it 'lists files directly in long format' do
+      Timecop.freeze(DateTime.parse("2020-06-17T04:37"))
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'armor', 'helmet/helmet.jpg', HELMET)
+
+      expect_output("metis://athena/armor", "ls", "-l", "helmet/helmet.jpg") {
+        "metis 13 Jun 17 04:37 armor/helmet/helmet.jpg\n"
+      }
+      Timecop.return
     end
   end
 
