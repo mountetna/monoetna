@@ -520,7 +520,10 @@ class Polyphemus
       redcap_etl = RedcapEtlScriptRunner.new(
         project_name: project_name,
         model_names: model_names.split(','),
-        redcap_token: redcap_token
+        redcap_token: redcap_token,
+        dateshift_salt: Polyphemus.instance.config(:dateshift_salt, @environ.environment),
+        redcap_host: Polyphemus.instance.config(:redcap, @environ.environment)[:host],
+        magma_host: @environ.magma_client.host
       )
 
       records = redcap_etl.run(magma_client: @environ.magma_client, commit: execute)

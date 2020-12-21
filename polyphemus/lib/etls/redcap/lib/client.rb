@@ -22,7 +22,7 @@ module Redcap
         format: 'json',
         returnFormat: 'json'
       )
-      uri = URI("https://#{@host}/api/")
+      uri = URI("#{@host}/api/")
       response = Net::HTTP.post_form(uri, request)
 
       return nil unless response.content_type =~ %r!application/json!
