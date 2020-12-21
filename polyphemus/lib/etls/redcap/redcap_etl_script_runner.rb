@@ -62,5 +62,9 @@ class Polyphemus
         project_name: @project_name,
       })
     end
+
+    def define_model(model_name)
+      Object.const_set(model_name, Class.new(Redcap::Model) {})
+    end
   end
 end
