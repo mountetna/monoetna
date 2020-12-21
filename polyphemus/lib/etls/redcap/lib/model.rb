@@ -3,7 +3,8 @@ module Redcap
     def self.create(model_name, scripts, template, salt)
       class_name = model_name.to_s.split('_').map(&:capitalize).join
       model_class = Kernel.const_defined?(class_name) ?  Kernel.const_get(class_name) : nil
-
+      require 'pry'
+      binding.pry
       raise "No model class for #{model_name}" unless model_class
 
       model_class.new(scripts, template, salt)

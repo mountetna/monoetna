@@ -1,14 +1,12 @@
 module Redcap
   class Loader
-    def initialize(config)
+    def initialize(config, magma_client)
       @config = config
+      @magma_client = magma_client
     end
 
     def run
-      magma_models = Etna::Clients::Magma.new(
-        token: ENV['TOKEN'],
-        host: @config[:magma_host]
-      ).retrieve(
+      magma_models = @magma_client.retrieve(
         Etna::Clients::Magma::RetrievalRequest.new(project_name: @config[:project_name])
       ).models
 

@@ -9,6 +9,9 @@ require_relative 'data_processing/magma_dsl'
 require_relative 'data_processing/flow_jo_dsl'
 require_relative 'ipi/process_rna_seq_output'
 
+require_relative 'etls/redcap/redcap_etl_script_runner'
+
+
 class Polyphemus
   class Migrate < Etna::Command
     usage 'Run migrations for the current environment.'
@@ -501,6 +504,27 @@ class Polyphemus
           execute: execute)
 
       process_rna_seq_output.process_rna_seq
+    end
+  end
+
+  class RunRedcapLoader < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+    usage 'run_redcap_loader <env> <project_name> <model_names> <redcap_token> [--execute]'
+    boolean_flags << '--execute'
+
+    def execute(env, project_name, model_names, redcap_token, execute: false)
+      @environ = environment(env)
+      @project_name = project_name
+
+      redcap_etl = RedcapEtlScriptRunner.new(
+        project_name: project_name,
+        model_names: model_names.split(','),
+        redcap_token: redcap_token
+      )
+
+      records = redcap_etl.run(magma_client: @environ.magma_client, commit: execute)
+      puts records
     end
   end
 
