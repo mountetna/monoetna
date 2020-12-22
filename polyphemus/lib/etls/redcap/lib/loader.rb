@@ -1,42 +1,36 @@
 module Redcap
   class Loader
+    attr_reader :records, :magma_models, :config
     def initialize(config, magma_client)
       @config = config
-      @magma_client = magma_client
+      @records = {}
+
+      @magma_models = magma_client.retrieve(
+        Etna::Clients::Magma::RetrievalRequest.new(project_name: @config[:project_name])
+      ).models
     end
 
     def run
-      magma_models = @magma_client.retrieve(
-        Etna::Clients::Magma::RetrievalRequest.new(project_name: @config[:project_name])
-      ).models
+      update_records_for_projects
 
-      records = {}
-      models.each do |model_name, model_config|
-        next if model_config[:disabled]
-        records[ model_name ] = {}
-
-        tokens.each do |token|
-          client = Redcap::Client.new(@config[:redcap_host], token)
-
-          records[ model_name ].update(
-            Redcap::Model.create(
-              model_name,
-              model_config[:scripts],
-              magma_models.model(model_name.to_s).template,
-              dateshift_salt
-            ).load(client)
-          )
-        end
-      end
-
-      patch_tables(records, magma_models)
+      patch_tables
 
       records
     end
 
     private
 
-    def patch_tables(records, magma_models)
+    def update_records_for_projects
+      tokens.each do |token|
+        client = Redcap::Client.new(config[:redcap_host], token)
+
+        project = Redcap::Project.new(client, config, magma_models)
+
+        records.update(project.fetch_records)
+      end
+    end
+
+    def patch_tables
       # find any table attributes
       magma_models.model_keys.each do |model_name|
         magma_models.model(model_name.to_s).template.attributes.tap do |atts|
@@ -61,16 +55,8 @@ module Redcap
       end
     end
 
-    def models
-      @config[:models]
-    end
-
-    def dateshift_salt
-      @config[:dateshift_salt]
-    end
-
     def tokens
-      @config[:tokens]
+      config[:tokens]
     end
   end
 end

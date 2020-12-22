@@ -1,29 +1,29 @@
 module Redcap
   class Model
-    def self.create(model_name, scripts, template, salt)
+    def self.create(model_name, scripts, magma_template, redcap_template, salt)
       class_name = model_name.to_s.split('_').map(&:capitalize).join
       model_class = Kernel.const_defined?(class_name) ?  Kernel.const_get(class_name) : nil
 
       raise "No model class for #{model_name}" unless model_class
 
-      model_class.new(scripts, template, salt)
+      model_class.new(scripts, magma_template, redcap_template, salt)
     end
 
-    def initialize(scripts, template, salt)
+    def initialize(scripts, magma_template, redcap_template, salt)
       @scripts = scripts.map do |script|
-        Redcap::Script.new(self, script)
+        Redcap::Script.new(self, script, redcap_template)
       end
-      @template = template
+      @magma_template = magma_template
       @salt = salt
       @offset_days = {}
     end
 
-    def load(client)
+    def load(project)
       puts "Attempting to load model #{name}"
 
       records = {}
       @scripts.each do |script|
-        records.update(script.load(client))
+        records.update(script.load(project))
       end
 
       records
@@ -72,11 +72,11 @@ module Redcap
     end
 
     def has_attribute?(att_name)
-      @template.attributes.attribute_keys.include?(att_name.to_s)
+      @magma_template.attributes.attribute_keys.include?(att_name.to_s)
     end
 
     def attribute(att_name)
-      @template.attributes.attribute(att_name.to_s)
+      @magma_template.attributes.attribute(att_name.to_s)
     end
 
     def cast_type(value, att_name, id)

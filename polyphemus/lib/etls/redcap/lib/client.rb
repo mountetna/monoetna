@@ -10,12 +10,6 @@ module Redcap
       @token = token
     end
 
-    def form_fields(form)
-      ([ 'record_id' ] + template.select{|f| f[:form_name] == form.to_s}.map{|f| f[:field_name]}).map.with_index do |f,i|
-        [ "fields[#{i}]", f ]
-      end.to_h
-    end
-
     def get_data(request)
       request = request.merge(
         token: @token,
@@ -28,20 +22,6 @@ module Redcap
       return nil unless response.content_type =~ %r!application/json!
 
       JSON.parse(response.body, symbolize_names: true)
-    end
-
-    def template
-      @template ||= get_data(content: 'metadata')
-    end
-
-    def has_form?(form)
-      forms.include?(form.to_sym)
-    end
-
-    def forms
-      @forms ||= template.map do |field|
-        field[:form_name]
-      end.uniq.map(&:to_sym)
     end
 
     def get_records(opts={})
@@ -66,13 +46,11 @@ module Redcap
     end
 
     def records(form, events=false)
-      require 'pry'
-      binding.pry
-      eavs = get_record_eavs(form_fields(form))
+      eavs = get_record_eavs(form.fields)
 
       return nil unless eavs
 
-      flat_records = get_record_flat(form_fields(form)).map do |record|
+      flat_records = get_record_flat(form.fields).map do |record|
         [ record[:record_id], record ]
       end.to_h
 
@@ -84,9 +62,10 @@ module Redcap
         [
           record_id,
           EavSet.new(
-            record_eavs, form,
+            record_eavs,
+            form.form_name,
             flat_records[record_id],
-            labels
+            form.labels
           ).record
         ]
       end.to_h.compact
@@ -94,20 +73,10 @@ module Redcap
       records
     end
 
-    def clean_field(name)
-      name.to_s.gsub(/_+[0-9]+$/,'').to_sym
-    end
-
-    def labels
-      @labels ||= template.map do |t|
-        [ t[:field_name].to_sym, t[:field_label] ]
-      end.to_h
-    end
-
     class EavSet
-      def initialize eavs, form, flat_record, labels
+      def initialize eavs, form_name, flat_record, labels
         @eavs = eavs
-        @form = form
+        @form_name = form_name
         @flat_record = flat_record || {}
         @labels = labels
       end
@@ -133,7 +102,7 @@ module Redcap
       end
 
       def add_eav?(eav)
-        eav[:field_name] != "#{@form}_complete" &&
+        eav[:field_name] != "#{@form_name}_complete" &&
           eav[:value] &&
           eav[:value] != '' &&
           ![ 'Not Available', 'Not Reported', 'Not reported' ].include?(eav[:value])

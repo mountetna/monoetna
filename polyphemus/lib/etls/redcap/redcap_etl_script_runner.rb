@@ -4,6 +4,7 @@ require_relative 'lib/loader'
 require_relative 'lib/script'
 require_relative 'lib/value'
 require_relative 'lib/form'
+require_relative 'lib/project'
 
 require_relative '../etl_script_runner'
 require_relative '../../magma_record_etl'
@@ -11,11 +12,11 @@ require_relative '../../magma_record_etl'
 class Polyphemus
   class RedcapEtlScriptRunner < EtlScriptRunner
 
-    attr_reader :magma_client, :update_request, :model_names, :redcap_token, :redcap_host, :magma_host, :dateshift_salt
+    attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :dateshift_salt
 
-    def initialize(project_name:, model_names:, redcap_token:, redcap_host:, magma_host:, dateshift_salt:)
+    def initialize(project_name:, model_names:, redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:)
       # Override initialize, user won't be passing in a filename directly.
-      raise "Must provide a REDCap token." unless redcap_token
+      raise "Must provide at least one REDCap token." unless redcap_tokens
 
       @file_path = File.join(File.dirname(__FILE__), 'projects', "#{project_name}.rb")
 
@@ -23,7 +24,7 @@ class Polyphemus
 
       @project_name = project_name
       @model_names = model_names
-      @redcap_token = redcap_token
+      @redcap_tokens = redcap_tokens
 
       raise "REDCap host must use https://" if redcap_host.start_with?("http://")
       raise "Magma host must use https://" if magma_host.start_with?("http://")
@@ -62,7 +63,7 @@ class Polyphemus
 
     def full_config
       config.update({
-        tokens: [ redcap_token ],
+        tokens: redcap_tokens,
         dateshift_salt: dateshift_salt || Polyphemus.instance.sign.uid,
         redcap_host: redcap_host,
         magma_host: magma_host,

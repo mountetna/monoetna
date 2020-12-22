@@ -510,17 +510,17 @@ class Polyphemus
   class RunRedcapLoader < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
-    usage 'run_redcap_loader <env> <project_name> <model_names> <redcap_token> [--execute]'
+    usage 'run_redcap_loader <env> <project_name> <model_names> <redcap_tokens> [--execute]'
     boolean_flags << '--execute'
 
-    def execute(env, project_name, model_names, redcap_token, execute: false)
+    def execute(env, project_name, model_names, redcap_tokens, execute: false)
       @environ = environment(env)
       @project_name = project_name
 
       redcap_etl = RedcapEtlScriptRunner.new(
         project_name: project_name,
         model_names: model_names.split(','),
-        redcap_token: redcap_token,
+        redcap_tokens: redcap_tokens.split(','),
         dateshift_salt: Polyphemus.instance.config(:dateshift_salt, @environ.environment),
         redcap_host: Polyphemus.instance.config(:redcap, @environ.environment)[:host],
         magma_host: @environ.magma_client.host
