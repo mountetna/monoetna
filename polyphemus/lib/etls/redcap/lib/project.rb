@@ -32,7 +32,7 @@ module Redcap
     end
 
     def forms
-      @forms ||= @template.map do |field|
+      @forms ||= template.map do |field|
         field[:form_name]
       end.uniq.map(&:to_sym)
     end

@@ -135,10 +135,10 @@
             "validation": null,
             "attribute_type": "identifier"
           },
-          "species": {
-            "name": "species",
-            "attribute_name": "species",
-            "display_name": "Species",
+          "label": {
+            "name": "label",
+            "attribute_name": "label",
+            "display_name": "Label",
             "match": "^[a-z\\s]+$",
             "restricted": false,
             "read_only": false,

@@ -39,7 +39,7 @@ class Polyphemus
     def run(magma_client:, commit: false)
       run_script(self.__binding__)
 
-      loader = Redcap::Loader.new(full_config, magma_client)
+      loader = Redcap::Loader.new(config.update(system_config), magma_client)
 
       records = loader.run
       puts records
@@ -55,24 +55,32 @@ class Polyphemus
       return records
     end
 
+    def system_config
+      {
+        tokens: redcap_tokens,
+        dateshift_salt: dateshift_salt || Polyphemus.instance.sign.uid,
+        redcap_host: redcap_host,
+        magma_host: magma_host,
+        project_name: @project_name,
+      }
+    end
+
     protected
 
     def disable_model?(model_name)
       ['all'] == model_names ? false : !model_names.include?(model_name)
     end
 
-    def full_config
-      config.update({
-        tokens: redcap_tokens,
-        dateshift_salt: dateshift_salt || Polyphemus.instance.sign.uid,
-        redcap_host: redcap_host,
-        magma_host: magma_host,
-        project_name: @project_name,
-      })
-    end
-
     def define_model(model_name, &block)
-      Object.const_set(model_name, Class.new(Redcap::Model) {})
+      # Set some default methods for each model
+      Object.const_set(model_name, Class.new(Redcap::Model) {
+        def identifier(record_name, event_name)
+          "::temp-#{record_name}-#{rand(36**8).to_s(36)}"
+        end
+
+        def patch(id, record)
+        end
+      })
     end
   end
 end
