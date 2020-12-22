@@ -11,7 +11,7 @@ module Redcap
     end
 
     def run
-      update_records_for_projects
+      update_records_from_project
 
       patch_tables
 
@@ -20,11 +20,9 @@ module Redcap
 
     private
 
-    def update_records_for_projects
+    def update_records_from_project
       tokens.each do |token|
-        client = Redcap::Client.new(config[:redcap_host], token)
-
-        project = Redcap::Project.new(client, config, magma_models)
+        project = Redcap::Project.new(token, config, magma_models)
 
         project.fetch_records.each do |model_name, model_records|
           records[model_name] = {} unless records.keys.include?(model_name)

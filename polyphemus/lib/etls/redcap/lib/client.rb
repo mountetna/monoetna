@@ -19,6 +19,8 @@ module Redcap
       uri = URI("#{@host}/api/")
       response = Net::HTTP.post_form(uri, request)
 
+      raise "Cannot fetch data from REDCap: #{response.body}." unless response.code == "200"
+
       return nil unless response.content_type =~ %r!application/json!
 
       JSON.parse(response.body, symbolize_names: true)

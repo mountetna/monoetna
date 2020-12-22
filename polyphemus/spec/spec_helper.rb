@@ -39,6 +39,9 @@ AUTH_USERS = {
   superuser: {
     email: 'zeus@twelve-labors.org', first: 'Zeus', perm: 'a:administration'
   },
+  administrator: {
+    email: 'hera@twelve-labors.org', first: 'Hera', perm: 'a:test'
+  },
   editor: {
     email: 'eurystheus@twelve-labors.org', first: 'Eurystheus', perm: 'e:labors'
   },
@@ -195,6 +198,11 @@ end
 def stub_magma_models
   stub_request(:post, "#{MAGMA_HOST}/retrieve")
     .to_return({ body: File.read('spec/fixtures/magma_test_models.json') })
+end
+
+def stub_magma_update_json
+  stub_request(:post, "#{MAGMA_HOST}/update")
+    .to_return({ status: 200, body: {}.to_json, headers: { 'Content-Type': 'application/json' } })
 end
 
 def stub_redcap_data
