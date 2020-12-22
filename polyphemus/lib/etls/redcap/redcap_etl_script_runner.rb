@@ -62,14 +62,11 @@ class Polyphemus
         redcap_host: redcap_host,
         magma_host: magma_host,
         project_name: @project_name,
+        models_to_build: model_names
       }
     end
 
     protected
-
-    def disable_model?(model_name)
-      ['all'] == model_names ? false : !model_names.include?(model_name)
-    end
 
     def define_model(model_name, &block)
       # Set some default methods for each model

@@ -15,7 +15,7 @@ module Redcap
     def fetch_records
       results = {}
       models.each do |model_name, model_config|
-        next if model_config[:disabled]
+        next unless build_model?(model_name)
         results[ model_name ] = {}
 
         results[ model_name ].update(
@@ -47,6 +47,14 @@ module Redcap
     end
 
     private
+
+    def build_model?(model_name)
+      ['all'] == models_to_build ? true : models_to_build.include?(model_name)
+    end
+
+    def models_to_build
+      config[:models_to_build]
+    end
 
     def models
       config[:models]
