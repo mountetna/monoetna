@@ -66,6 +66,8 @@ module Redcap
     end
 
     def records(form, events=false)
+      require 'pry'
+      binding.pry
       eavs = get_record_eavs(form_fields(form))
 
       return nil unless eavs

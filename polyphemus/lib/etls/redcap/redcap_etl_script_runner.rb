@@ -15,7 +15,12 @@ class Polyphemus
 
     def initialize(project_name:, model_names:, redcap_token:, redcap_host:, magma_host:, dateshift_salt:)
       # Override initialize, user won't be passing in a filename directly.
+      raise "Must provide a REDCap token." unless redcap_token
+
       @file_path = File.join(File.dirname(__FILE__), 'projects', "#{project_name}.rb")
+
+      raise "Project configuration does not exist." unless File.file?(@file_path)
+
       @project_name = project_name
       @model_names = model_names
       @redcap_token = redcap_token
@@ -26,6 +31,8 @@ class Polyphemus
       @redcap_host = redcap_host
       @magma_host = magma_host
       @dateshift_salt = dateshift_salt
+
+      warn "Warning: no dateshift_salt provided, will use a randomly generated one." unless dateshift_salt
     end
 
     def run(magma_client:, commit: false)
@@ -63,7 +70,7 @@ class Polyphemus
       })
     end
 
-    def define_model(model_name)
+    def define_model(model_name, &block)
       Object.const_set(model_name, Class.new(Redcap::Model) {})
     end
   end

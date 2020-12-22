@@ -23,6 +23,8 @@ Polyphemus.instance.configure(YAML.load(File.read('config.yml')))
 METIS_HOST = Polyphemus.instance.config(:metis)[:host]
 RELEASE_BUCKET = Polyphemus.instance.config(:metis)[:release_bucket]
 RESTRICT_BUCKET = Polyphemus.instance.config(:metis)[:restrict_bucket]
+MAGMA_HOST = Polyphemus.instance.config(:magma)[:host]
+REDCAP_HOST = Polyphemus.instance.config(:redcap)[:host]
 PROJECT = 'mvir1'
 
 OUTER_APP = Rack::Builder.new do
@@ -109,7 +111,7 @@ def stub_rename_folder(params={})
 end
 
 def stub_magma_restricted_pools(base_model, restricted_pools)
-  stub_request(:post, 'https://magma.test/query')
+  stub_request(:post, "https://#{MAGMA_HOST}/query")
     .with(body: hash_including({ project_name: 'mvir1',
                                 query: [ base_model,
                                           [ 'timepoint', 'patient', 'restricted', '::true' ],
@@ -120,7 +122,7 @@ def stub_magma_restricted_pools(base_model, restricted_pools)
 end
 
 def stub_magma_all_pools(base_model, all_pools)
-  stub_request(:post, 'https://magma.test/query')
+  stub_request(:post, "https://#{MAGMA_HOST}/query")
     .with(body: hash_including({ project_name: 'mvir1',
                                 query: [ "#{base_model}_pool", '::all', '::identifier' ] }))
     .to_return({ body: {
@@ -129,14 +131,14 @@ def stub_magma_all_pools(base_model, all_pools)
 end
 
 def stub_magma_setup(patient_documents)
-  stub_request(:post, 'https://magma.test/retrieve')
+  stub_request(:post, "https://#{MAGMA_HOST}/retrieve")
     .with(body: hash_including({ project_name: 'mvir1', model_name: 'patient',
                                 attribute_names: 'all', record_names: 'all' }))
     .to_return({ body: {
         'models': { 'patient': { 'documents': patient_documents } }
     }.to_json })
 
-  stub_request(:post, 'https://magma.test/update')
+  stub_request(:post, "https://#{MAGMA_HOST}/update")
     .to_return do |request|
 
   body = StringIO.new(request.body)
@@ -188,4 +190,19 @@ def stub_metis_setup
       },
       body: JSON.parse(File.read('spec/fixtures/metis_restrict_folder_fixture.json')).to_json
     })
+end
+
+def stub_magma_models
+  stub_request(:post, "https://#{MAGMA_HOST}/retrieve")
+    .to_return({ body: File.read('spec/fixtures/magma_test_models.json') })
+end
+
+def stub_redcap_data
+  stub_request(:post, "https://#{REDCAP_HOST}/api/")
+    .with(body: hash_including({ content: 'metadata' }))
+    .to_return({ body: File.read('spec/fixtures/redcap_mock_metadata.json') })
+
+  stub_request(:post, "https://#{REDCAP_HOST}/api/")
+    .with(body: hash_including({ content: 'record' }))
+    .to_return({ body: File.read('spec/fixtures/redcap_mock_data.json') })
 end
