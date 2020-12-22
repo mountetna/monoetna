@@ -15,7 +15,7 @@ module Redcap
     def fetch_records
       results = {}
       models.each do |model_name, model_config|
-        next unless build_model?(model_name)
+        next unless build_model?(model_name.to_s)
         results[ model_name ] = {}
 
         results[ model_name ].update(
