@@ -12,7 +12,7 @@ module Redcap
     end
 
     def fields
-      ([ 'record_id' ] + @redcap_template.select{|f| f[:form_name] == form_name.to_s}.map{|f| f[:field_name]}).map.with_index do |f,i|
+      @fields ||= ([ 'record_id' ] + @redcap_template.select{|f| f[:form_name] == form_name.to_s}.map{|f| f[:field_name]}).map.with_index do |f,i|
         [ "fields[#{i}]", f ]
       end.to_h
     end
