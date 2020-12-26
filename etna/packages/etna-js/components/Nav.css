@@ -1,0 +1,27 @@
+.etna-nav {
+  height: 60px;
+  position: relative;
+  margin: 0px 4px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid lightgray;
+  justify-content: space-between;
+
+}
+
+.etna-login {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  color: darkgoldenrod;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.etna-login i {
+  padding: 5px;
+  color: gray;
+}
+
+.etna-user {
+  font-size: 1.4em;
+}
