@@ -39,7 +39,7 @@ const Link = ({app}) => {
 
   let host_key = `${app}_host`;
 
-  if (!host_key in CONFIG) return image;
+  if (!CONFIG[host_key]) return image;
 
   let link = new URL(...[CONFIG.project_name, CONFIG[host_key]].filter(_=>_));
 

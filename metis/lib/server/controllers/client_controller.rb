@@ -10,7 +10,7 @@ class ClientController < Metis::Controller
     {
       project_name: @params[:project_name],
       token_name: Metis.instance.config(:token_name),
-      timur_host: Metis.instance.config(:timur)[:host],
+      timur_host: Metis.instance.config(:timur)&.dig(:host),
       janus_host: Metis.instance.config(:auth_redirect)
     }.to_json
   end
