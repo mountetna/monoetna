@@ -1,12 +1,15 @@
 .etna-nav {
   height: 60px;
   position: relative;
-  margin: 0px 4px;
   display: flex;
   align-items: center;
   border-bottom: 1px solid lightgray;
   justify-content: space-between;
 
+}
+
+.etna-logo {
+  margin-left: 5px;
 }
 
 .etna-login {
@@ -18,10 +21,10 @@
 }
 
 .etna-login i {
-  padding: 5px;
+  padding: 0px;
   color: gray;
 }
 
 .etna-user {
-  font-size: 1.4em;
+  font-size: 1.2em;
 }
