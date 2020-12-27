@@ -7,7 +7,7 @@ const Logo = () => <div id='logo'/>;
 
 const MetisNav = () => {
   let user = useReduxState( state => selectUser(state) );
-  return <Nav logo={Logo} user={user}/>;
+  return <Nav logo={Logo} user={user} app='metis'/>;
 }
 
 export default MetisNav;

@@ -12,6 +12,48 @@
   margin-left: 5px;
 }
 
+.etna-timur-logo {
+  background: url('~etna-js/images/timur.svg');
+}
+.etna-metis-logo {
+  background: url('~etna-js/images/metis.svg');
+}
+.etna-janus-logo {
+  background: url('~etna-js/images/janus.svg');
+}
+
+.etna-links {
+  color: gray;
+  font-size: 0.5em;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0px 10px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.etna-link {
+  width: 30px;
+  border-radius: 50%;
+  border: 1px solid gray;
+  margin: 5px;
+  background: white;
+}
+
+.etna-link:hover {
+  border: 1px solid darkblue;
+  width: 32px;
+  margin: 4px;
+}
+
+.etna-links i:hover {
+  color: lightgray;
+}
+
+.etna-link-box {
+}
+
 .etna-login {
   display: flex;
   justify-content: flex-end;
@@ -20,11 +62,8 @@
   font-family: 'Open Sans', sans-serif;
 }
 
-.etna-login i {
+.etna-user {
   padding: 0px;
   color: gray;
-}
-
-.etna-user {
   font-size: 1.2em;
 }
