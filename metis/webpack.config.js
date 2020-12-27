@@ -1,13 +1,3 @@
-/*
- * This file is used by webpack to package different components into separate
- * end points needed by the application. In this way we can keep all of our JS
- * modular and just drop application components where we need them and add a
- * line here for packaging.
- *
- * This file can also be viewed as describing the different JS sub applications
- * that are used in totality.
- */
-
 var path = require('path');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 const EventHooksPlugin = require('event-hooks-webpack-plugin');
@@ -48,6 +38,18 @@ module.exports = {
         ],
         test: /\.jsx?$/
       },
+
+      {
+        loader: ['style-loader', 'css-loader'],
+        include: [
+          path.resolve(__dirname, 'node_modules/etna-js/'),
+          path.resolve(__dirname, 'node_modules/animate.css/'),
+          path.resolve(__dirname, 'node_modules/react-notifications-component'),
+          '/etna/packages/etna-js'
+        ],
+        test: /\.css$/
+      },
+
       {
         loader: 'file-loader',
         test: /\.(jpe?g|png|svg)$/i,
