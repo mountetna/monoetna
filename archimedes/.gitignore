@@ -42,3 +42,5 @@ tmp
 # Ignore jest reporting files
 /coverage
 /spec/examples.txt
+
+*.pyc
