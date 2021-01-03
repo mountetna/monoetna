@@ -110,8 +110,32 @@ def test_supports_comparisons():
       @eq = 4 == 15'''
     )
 
-    assert payload['gt']
-    assert not payload['gte']
-    assert payload['lt']
-    assert payload['lte']
-    assert not payload['eq']
+    assert payload['gt'] == True
+    assert payload['gte'] == False
+    assert payload['lt'] == True
+    assert payload['lte'] == True
+    assert payload['eq'] == False
+
+def test_binds_a_vector_of_column_vectors_into_a_matrix():
+    payload = resolve_json('''@x = :: [ a: [ i: 1, j: 2 ], b: [ 3, 4 ] ]''')
+
+    assert payload['x'] == {
+        'matrix': {
+            'col_names': ['a', 'b'],
+            'row_names': ['i', 'j'],
+            'rows': [[1, 3], [2, 4]]
+        }
+    }
+
+def test_binds_to_an_existing_matrix():
+    payload = resolve_json('''x = :: [ a: [ i: 1, j: 2 ], b: [ 3, 4 ] ]
+        @y = x :: [ c: [ 5, 6 ] ]
+        ''')
+
+    assert payload['y'] == {
+        'matrix': {
+            'col_names': ['a', 'b', 'c'],
+            'row_names': ['i', 'j'],
+            'rows': [[1, 3, 5], [2, 4, 6]]
+        }
+    }

@@ -72,3 +72,11 @@ def test_supports_local_vars():
 
     assert not 'local' in payload
     assert payload['ret'] == 6
+
+def test_supports_access_operator():
+    payload = resolve('''
+        x = [ ant: 1, bear: 2, cat: 3 ]
+        @y = x$bear
+    ''')
+
+    assert payload['y'] == 2

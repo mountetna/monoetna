@@ -1,8 +1,9 @@
 from sly import Parser
 from lex import ArchimedesLexer
-from pandas import Series, isna
+from pandas import Series, DataFrame, isna, concat
 from errors import ArchimedesError
 from vector import Vector
+from matrix import Matrix
 import re
 
 class ArchimedesParser(Parser):
@@ -11,7 +12,7 @@ class ArchimedesParser(Parser):
 
     def error(self,p):
         if p:
-             msg = "Syntax error in line %d, near %s" % (p.lineno, p.type)
+             msg = "Syntax error in line %d, near %s" % (p.lineno, p.value)
         else:
              msg = "Syntax error at EOF"
 
@@ -118,7 +119,7 @@ class ArchimedesParser(Parser):
 
     @_('e QUESTION e COLON e')
     def e(self, p):
-        if type(p.e0) is Series:
+        if isinstance(p.e0, Series):
             return p.e0.ternary(p.e1,p.e2)
         else:
             return p.e1 if p.e0 else p.e2
@@ -176,35 +177,47 @@ class ArchimedesParser(Parser):
 
     @_('e OR e')
     def e(self, p):
-        if (type(p.e0) is Series or type(p.e1) is Series):
+        if (isinstance(p.e0, Series) or isinstance(p.e1, Series)):
             return p.e0 | p.e1
         return p.e0 or p.e1
 
     @_('e AND e')
     def e(self, p):
-        if (type(p.e0) is Series or type(p.e1) is Series):
+        if (isinstance(p.e0, Series) or isinstance(p.e1, Series)):
             return p.e0 & p.e1
         return p.e0 and p.e1
 
     @_('e EQ e')
     def e(self, p):
-        if type(p.e0) is Series and p.e1 is None:
+        if isinstance(p.e0, Series) and p.e1 is None:
             return isna(p.e0)
-        if type(p.e1) is Series and p.e0 is None:
+        if isinstance(p.e1, Series) and p.e0 is None:
             return isna(p.e1)
         return p.e0 == p.e1
 
     @_('e NEQ e')
     def e(self, p):
-        if type(p.e0) is Series and p.e1 is None:
+        if isinstance(p.e0, Series) and p.e1 is None:
             return ~isna(p.e0)
-        if type(p.e1) is Series and p.e0 is None:
+        if isinstance(p.e1, Series) and p.e0 is None:
             return ~isna(p.e1)
         return p.e0 != p.e1
 
     @_('e MATCH e')
     def e(self, p):
         return re.match(p.e1, p.e0)
+
+    @_('BIND e')
+    def e(self, p):
+        return Matrix(p.e)
+
+    @_('e BIND e')
+    def e(self, p):
+        if isinstance(p.e0, DataFrame):
+            e1 = Matrix(p.e1)
+            e1.index = p.e0.index
+            return concat([ p.e0, e1 ], axis = 1)
+        raise ArchimedesError('You must bind to an existing matrix')
 
     @_('var LPAREN args RPAREN')
     def e(self, p):

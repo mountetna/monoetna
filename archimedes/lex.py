@@ -7,7 +7,7 @@ class ArchimedesLexer(Lexer):
         EXP, DIV, MUL, ADD, SUB, ASSIGN, GT, GTE, LT,
         LTE, MOD, VAR, OR, AND, EQ, NEQ, DOLLAR,
         QUESTION, MATCH, EXC, RPAREN, LPAREN, RBRACKET,
-        LBRACKET, COMMA, COLON
+        LBRACKET, COMMA, COLON, BIND
     }
 
     def error(self, t):
@@ -69,6 +69,7 @@ class ArchimedesLexer(Lexer):
     RBRACKET = r'\]'
     LBRACKET = r'\['
     COMMA = r'\,'
+    BIND = r'\:\:'
     COLON = r'\:'
 
 

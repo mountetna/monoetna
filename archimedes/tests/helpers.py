@@ -8,7 +8,7 @@ def resolve_json(manifest):
     return json.loads(json.dumps(payload, cls=ArchimedesEncoder))
 
 def labels(v):
-    return [ k['label'] for k in v ]
+    return [ k['label'] for k in v['vector'] ]
 
 def values(v):
-    return [ k['value'] for k in v ]
+    return [ k['value'] for k in v['vector'] ]
