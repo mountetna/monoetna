@@ -7,19 +7,14 @@ os.chdir(curr_dir)
 sys.path.append("../")
 
 import pytest
-from request_handler import resolve
 from errors import ArchimedesError
-import json
-
-def resolve_json(manifest):
-    payload = resolve(manifest)
-    return json.loads(json.dumps(payload))
+from helpers import resolve_json, labels, values
 
 def test_allows_true_false_and_nil_keywords():
     payload = resolve_json(
      '''@t = true
-      @f = false
-      @n = nil'''
+        @f = false
+        @n = nil'''
     )
     assert payload['t'] == True
     assert payload['f'] == False
@@ -35,14 +30,14 @@ def test_compares_two_vectors():
       @vec2 = [ 1, 4, 3 ]
       @same = @vec1 == @vec2'''
     )
-    assert payload['same'].tolist() == [ True, False, True ]
+    assert values(payload['same']) == [ True, False, True ]
 
 def test_compares_a_vector_and_a_number():
     payload = resolve_json(
      '''@vec1 = [ 1, 2, 3 ]
       @gte = @vec1 >= 2'''
     )
-    assert payload['gte'].tolist() == [ False, True, True ]
+    assert values(payload['gte']) == [ False, True, True ]
 
 def test_compares_to_nil():
     payload = resolve_json(
@@ -50,11 +45,11 @@ def test_compares_to_nil():
       @n1 = @vec1 == nil
       @n2 = @vec1 != nil'''
     )
-    assert payload['n1'].tolist() == [ False, True, False ]
-    assert payload['n2'].tolist() == [ True, False, True ]
+    assert values(payload['n1']) == [ False, True, False ]
+    assert values(payload['n2']) == [ True, False, True ]
 
 def test_supports_boolean_comparisons():
-    payload = resolve(
+    payload = resolve_json(
         '''@or1 = true || false
         @or2 = false || false
         @or3 = false || true
@@ -80,8 +75,8 @@ def test_supports_boolean_vector_comparisons():
        @or = @v1 || @v2
        @and = @v1 && @v2'''
     )
-    assert payload['or'].tolist() == [ True, False, True, True ]
-    assert payload['and'].tolist() == [ False, False, False, True ]
+    assert values(payload['or']) == [ True, False, True, True ]
+    assert values(payload['and']) == [ False, False, False, True ]
 
 def test_supports_math_operations():
     payload = resolve_json(

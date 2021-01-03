@@ -44,3 +44,4 @@ tmp
 /spec/examples.txt
 
 *.pyc
+tests/parser.out

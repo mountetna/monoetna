@@ -176,11 +176,15 @@ class ArchimedesParser(Parser):
 
     @_('e OR e')
     def e(self, p):
-        return Vector.op(p.e0,p.e1, lambda e0, e1 : e0 or e1)
+        if (type(p.e0) is Series or type(p.e1) is Series):
+            return p.e0 | p.e1
+        return p.e0 or p.e1
 
     @_('e AND e')
     def e(self, p):
-        return Vector.op(p.e0,p.e1, lambda e0, e1 : e0 and e1)
+        if (type(p.e0) is Series or type(p.e1) is Series):
+            return p.e0 & p.e1
+        return p.e0 and p.e1
 
     @_('e EQ e')
     def e(self, p):

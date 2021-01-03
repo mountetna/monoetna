@@ -6,6 +6,7 @@ import sys
 import traceback
 from request_handler import execute
 from errors import ArchimedesError
+from encoder import ArchimedesEncoder
 
 app = Flask(__name__)
 
@@ -24,7 +25,13 @@ def route_manifest():
     try:
         # post request formatted
         #post_request = request.get_json(force=True)
-        return flask.jsonify(execute(request))
+        data = execute(request)
+        response = app.response_class(
+            response=json.dumps(data, cls=ArchimedesEncoder),
+            status=200,
+            mimetype='application/json'
+        )
+        return response
         
     except Exception:
         print(traceback.format_exc())

@@ -62,3 +62,13 @@ def test_supports_numbers():
     assert payload['float'] == 1.2345
     assert payload['neg'] == -1.2345
     assert payload['sci'] == 1.23e-3
+
+def test_supports_local_vars():
+    payload = resolve('''
+        local = 2
+        @ret = local + local ^ local
+    '''
+    )
+
+    assert not 'local' in payload
+    assert payload['ret'] == 6
