@@ -36,6 +36,10 @@ module Etna
       query_request(Net::HTTP::Get, endpoint, params, &block)
     end
 
+    def head(endpoint, params = {}, &block)
+      query_request(Net::HTTP::Head, endpoint, params, &block)
+    end
+
     def options(endpoint, params = {}, &block)
       query_request(Net::HTTP::Options, endpoint, params, &block)
     end
