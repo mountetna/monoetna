@@ -28,6 +28,11 @@ def execute(request):
 def resolve(query, token=None):
     arch_lexer = ArchimedesLexer()
     arch_parser = ArchimedesParser()
-    #import code; code.interact(local=dict(globals(), **locals()))
-    arch_parser.parse(arch_lexer.tokenize(query))
+
+    # generate the syntax tree
+    script = arch_parser.parse(arch_lexer.tokenize(query))
+
+    # actually run it
+    script()
+
     return arch_parser.return_vars

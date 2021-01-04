@@ -1,12 +1,10 @@
 import os
 import sys
+import pytest
 
-# setting working directory to the location of the test
-curr_dir = os.path.dirname(os.path.realpath(__file__))
-os.chdir(curr_dir)
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append("../")
 
-import pytest
 from errors import ArchimedesError
 from helpers import resolve_json, labels, values
 

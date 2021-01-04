@@ -1,36 +1,32 @@
 import os
 import sys
+import pytest
+from pandas import Series
 
-# setting working directory to the location of the test
-curr_dir = os.path.dirname(os.path.realpath(__file__))
-os.chdir(curr_dir)
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
 sys.path.append("../")
 
-import tempfile
-import pytest
-from request_handler import resolve
-import json
 from errors import ArchimedesError
-from pandas import Series
+from helpers import resolve_json, labels, values
 
 def test_reports_line_numbers():
     with pytest.raises(ArchimedesError) as e_info:
-        payload = resolve('''@var1= 1
+        payload = resolve_json('''@var1= 1
             @var2 = invalid syntax
-            @var3 = 2''', '')
+            @var3 = 2''')
 
     assert e_info.value.info == 'Syntax error in line 2: No such variable invalid'
 
 
 def test_supports_vectors():
-    payload = resolve("@var1 = [ ant: 'a', bear: 'b', cat: 'c' ]")
+    payload = resolve_json("@var1 = [ ant: 'a', bear: 'b', cat: 'c' ]")
     vector = payload['var1']
-    assert type(vector) is Series
-    assert vector.index.tolist() == ['ant', 'bear', 'cat']
-    assert vector.values.tolist() == ['a', 'b', 'c']
+    assert 'vector' in vector
+    assert labels(vector) == ['ant', 'bear', 'cat']
+    assert values(vector) == ['a', 'b', 'c']
 
 def test_supports_indexing_into_vectors():
-    payload = resolve(
+    payload = resolve_json(
      '''@list = [ ant: 'a', bear: 'b', cat: 'c' ]
         @int = @list[0]
         @let = @list['bear']'''
@@ -39,20 +35,23 @@ def test_supports_indexing_into_vectors():
     assert payload['let'] == 'b'
  
 def test_supports_nested_vectors():
-    payload = resolve(
+    payload = resolve_json(
      '''@list1 = [ ant: 'a', bear: 'b', cat: 'c' ]
         @list2 = [ uno: 1, dos: 2, tres: 3 ]
         @list3 = [ list1: @list1, list2: @list2 ]'''
     )
-    assert payload['list3']['list1'].tolist() == [ 'a', 'b', 'c' ]
-    assert payload['list3']['list2'].tolist() == [ 1, 2, 3 ]
+    assert labels(payload['list3'])[0] == 'list1'
+    assert values(values(payload['list3'])[0]) == [ 'a', 'b', 'c' ]
+
+    assert labels(payload['list3'])[1] == 'list2'
+    assert values(values(payload['list3'])[1]) == [ 1, 2, 3 ]
 
 def test_supports_strings():
-    payload = resolve("@var1 = 'a string'")
+    payload = resolve_json("@var1 = 'a string'")
     assert payload['var1'] == 'a string'
 
 def test_supports_numbers():
-    payload = resolve('''
+    payload = resolve_json('''
         @int = 12345
         @float = 1.2345
         @neg = -1.2345
@@ -64,7 +63,7 @@ def test_supports_numbers():
     assert payload['sci'] == 1.23e-3
 
 def test_supports_local_vars():
-    payload = resolve('''
+    payload = resolve_json('''
         local = 2
         @ret = local + local ^ local
     '''
@@ -74,7 +73,7 @@ def test_supports_local_vars():
     assert payload['ret'] == 6
 
 def test_supports_access_operator():
-    payload = resolve('''
+    payload = resolve_json('''
         x = [ ant: 1, bear: 2, cat: 3 ]
         @y = x$bear
     ''')
