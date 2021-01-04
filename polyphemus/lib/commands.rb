@@ -407,7 +407,8 @@ class Polyphemus
     end
 
     def magma_crud
-      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: @environ.magma_client, project_name: project_name)
+      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(
+        magma_client: @environ.magma_client, project_name: project_name)
     end
 
     def execute(env)

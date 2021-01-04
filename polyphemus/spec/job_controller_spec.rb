@@ -34,7 +34,9 @@ describe Polyphemus::Server do
     post('/test/job', model_names: ["all"], redcap_tokens: ["123"])
 
     expect(last_response.status).to eq(200)
-    expect(json_body[:records].keys.sort).to eq([:model_one, :model_two].sort)
+
+    expect(last_response.body.include?(":model_one=>")).to eq(true)
+    expect(last_response.body.include?(":model_two=>")).to eq(true)
   end
 end
 

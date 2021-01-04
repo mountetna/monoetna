@@ -1,3 +1,5 @@
+require 'open3'
+
 require_relative 'controller'
 require_relative '../../etls/redcap/redcap_etl_script_runner'
 
@@ -30,7 +32,8 @@ class JobController < Polyphemus::Controller
 
     raise Etna::BadRequest, "redcap_tokens must be an array of tokens." unless @params[:redcap_tokens].is_a?(Array)
     raise Etna::BadRequest, "model_names must be [\"all\"] or an array of model names." unless @params[:model_names].is_a?(Array)
-
+    require 'pry'
+    binding.pry
     out = capture_stdout do
       redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
         project_name: @params[:project_name],
@@ -51,7 +54,9 @@ class JobController < Polyphemus::Controller
           records: records
       }
     end
-    yield out
+
+    return [200, {}, out.string.split("\n")]
+    # yield out
     # return success(return_data.to_json, 'application/json')
   end
 end
