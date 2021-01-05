@@ -15,6 +15,8 @@ class Polyphemus
     attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :dateshift_salt
 
     def initialize(project_name:, model_names:, redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:)
+      raise "No dateshift_salt provided, please check the server configuration." unless dateshift_salt
+
       # Override initialize, user won't be passing in a filename directly.
       raise "Must provide at least one REDCap token." unless redcap_tokens
 
@@ -33,7 +35,6 @@ class Polyphemus
       @magma_host = magma_host
       @dateshift_salt = dateshift_salt
 
-      warn "Warning: no dateshift_salt provided, will use a randomly generated one." unless dateshift_salt
     end
 
     def run(magma_client:, commit: false, logger: STDOUT)
@@ -58,6 +59,9 @@ class Polyphemus
         magma_client.update_json(update_request)
       end
       return records
+    rescue => e
+      logger.write("#{e.message}\n#{e.backtrace}")
+      raise
     end
 
     def system_config
@@ -78,7 +82,7 @@ class Polyphemus
     protected
 
     def define_model(model_name, &block)
-      return if Object.const_defined?(model_name)
+      return Object.const_get(model_name) if Object.const_defined?(model_name)
 
       # Set some default methods for each model
       Object.const_set(model_name, Class.new(Redcap::Model) {

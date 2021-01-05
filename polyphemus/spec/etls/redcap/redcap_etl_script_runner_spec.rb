@@ -5,19 +5,17 @@ describe Polyphemus::RedcapEtlScriptRunner do
       stub_redcap_data
     end
 
-    it 'adds random salt when not provided' do
-      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
-        project_name: 'test',
-        model_names: "all",
-        redcap_tokens: ["faketoken"],
-        dateshift_salt: nil,
-        redcap_host: REDCAP_HOST,
-        magma_host: MAGMA_HOST
-      )
-
-      system_config = redcap_etl.system_config
-
-      expect(system_config[:dateshift_salt]).not_to eq(nil)
+    it 'throws exception if salt when not provided' do
+      expect {
+        Polyphemus::RedcapEtlScriptRunner.new(
+          project_name: 'test',
+          model_names: "all",
+          redcap_tokens: ["faketoken"],
+          dateshift_salt: nil,
+          redcap_host: REDCAP_HOST,
+          magma_host: MAGMA_HOST
+        )
+      }.to raise_error(RuntimeError, "No dateshift_salt provided, please check the server configuration.")
     end
 
     it 'uses the provided salt' do
