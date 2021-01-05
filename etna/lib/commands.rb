@@ -343,6 +343,41 @@ class EtnaApp
           end
         end
       end
+
+      class LoadFromRedcap < Etna::Command
+        include WithEtnaClients
+        include WithLogger
+
+        boolean_flags << '--commit'
+
+        def execute(project_name, target_models: "all", redcap_tokens: [], commit: false)
+          raise "Must provide at least one REDCap token." unless redcap_tokens.length > 0
+          unless File.exists?(file)
+            puts "File #{file} is being prepared from the #{project_name} project."
+            puts "Copying models descending from #{target_model}..."
+            prepare_template(file, project_name, target_model)
+            puts
+            puts "Done!  You can start editing the file #{file} now"
+          else
+            puts "File #{file} already exists!  Please remove or specify a different file name before running again."
+          end
+        end
+
+        def workflow
+          @workflow ||= Etna::Clients::Magma::AddProjectModelsWorkflow.new(magma_client: magma_client)
+        end
+
+        def prepare_template(file, project_name, target_model)
+          tf = Tempfile.new
+
+          begin
+            File.open(tf.path, 'wb') { |f| workflow.write_models_template_csv(project_name, target_model, io: f) }
+            FileUtils.cp(tf.path, file)
+          ensure
+            tf.close!
+          end
+        end
+      end
     end
   end
 

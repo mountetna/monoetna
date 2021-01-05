@@ -26,6 +26,15 @@ module Etna
 
         ConfigurationResponse.new(json)
       end
+
+      def job(job_request = JobRequest.new, &block)
+        json = nil
+        @etna_client.post(
+          "/#{job_request.project_name}/job",
+          job_request) do |res|
+          yield res.read_body
+        end
+      end
     end
   end
 end

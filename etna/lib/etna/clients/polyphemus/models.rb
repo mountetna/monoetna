@@ -12,6 +12,14 @@ module Etna
         end
       end
 
+      class JobRequest < Struct.new(:model_names, :redcap_tokens, :commit, :project_name, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({model_names: 'all', commit: false}.update(params))
+        end
+      end
+
       class ConfigurationResponse
         attr_reader :raw
 
