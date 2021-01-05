@@ -20,9 +20,9 @@ const Login = ({user}) => {
   if (permissions.administration && permissions.administration.role == 'administrator') role = 'superuser';
 
   return (
-    <div className='etna-login'>
+    <div className='etna-login' title={role}>
+      <Icon className='etna-user' icon={ ICONS[role] }/>
       {first} {last}
-      <Icon className='etna-user' icon={ ICONS[role] } title={role}/>
     </div>
   );
 };
@@ -46,30 +46,32 @@ const Link = ({app}) => {
   return <a href={link}>{image}</a>;
 }
 
-const Links = ({currentApp}) => {
+const Control = ({currentApp}) => {
   let [ shown, setShown ] = useState(false);
   let apps = [ 'timur', 'metis', 'janus' ].filter(a => a != currentApp);
 
-  if (!shown) return <div className='etna-links'>
-    <div className='etna-links-show' onClick={ () => setShown(true) } >
+  if (!shown) return <div className='etna-control'>
+    <div className='etna-control-show' onClick={ () => setShown(true) } >
       <Icon icon='bars'/>
     </div>
   </div>;
 
-  return <div className='etna-links'>
-    { apps.map( app => <Link key={app} app={app}/>) }
-    <div className='etna-links-hide' onClick={ () => setShown(false) } >
+  return <div className='etna-control'>
+    <div className='etna-control-links'>
+      { apps.map( app => <Link key={app} app={app}/>) }
+    </div>
+    <div className='etna-control-hide' onClick={ () => setShown(false) } >
       <Icon icon='bars'/>
     </div>
   </div>;
 }
 
 const Nav = ({logo, app, children, user}) => 
-  <div className='etna-nav'>
+  <nav className='etna-nav'>
     <Logo LogoImage={logo}/>
     {children && children.filter(_=>_).length ? children : <div style={{flex: 1}}/>}
-    <Links currentApp={app}/>
     <Login user={user}/>
-  </div>;
+    <Control currentApp={app}/>
+  </nav>;
 
 export default Nav;
