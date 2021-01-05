@@ -78,6 +78,8 @@ class Polyphemus
     protected
 
     def define_model(model_name, &block)
+      return if Object.const_defined?(model_name)
+
       # Set some default methods for each model
       Object.const_set(model_name, Class.new(Redcap::Model) {
         def identifier(record_name, event_name)

@@ -1,4 +1,5 @@
 require 'open3'
+require 'action_controller'
 
 require_relative 'controller'
 require_relative '../../etls/redcap/redcap_etl_script_runner'
@@ -22,6 +23,10 @@ class StringBuffer
   end
 
   def each_line
+    yield @strs.slice!(0)
+  end
+
+  def each
     yield @strs.slice!(0)
   end
 end
@@ -55,8 +60,8 @@ class JobController < Polyphemus::StreamingController
     raise Etna::BadRequest, "redcap_tokens must be an array of tokens." unless @params[:redcap_tokens].is_a?(Array)
     raise Etna::BadRequest, "model_names must be \"all\" or an array of model names." unless @params[:model_names].is_a?(Array) || "all" == @params[:model_names]
 
-    response.headers['Content-Type'] = 'text/event-stream'
-    response.headers['Last-Modified'] = Time.now.httpdate
+    # response.headers['Content-Type'] = 'text/event-stream'
+    # response.headers['Last-Modified'] = Time.now.httpdate
     # require 'pry'
     # binding.pry
     # out = capture_stdout do
@@ -81,28 +86,53 @@ class JobController < Polyphemus::StreamingController
     # require 'pry'
     # binding.pry
 
-    redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
-      project_name: @params[:project_name],
-      model_names: @params[:model_names],
-      redcap_tokens: @params[:redcap_tokens],
-      dateshift_salt: Polyphemus.instance.config(:dateshift_salt).to_s,
-      redcap_host: Polyphemus.instance.config(:redcap)[:host],
-      magma_host: Polyphemus.instance.config(:magma)[:host]
-    )
 
-    puts "standing up a magma client"
-    magma_client = Etna::Clients::Magma.new(
-      token: @user.token,
-      host: Polyphemus.instance.config(:magma)[:host])
+    # @response.headers["Content-Type"] = "text/event-stream"
 
-    puts "calling run"
-    redcap_etl.run(magma_client: magma_client, commit: false, logger: StringBuffer.new) do |logger|
-      logger.each_line do |line|
-        response.stream.write(line)
-      end
+    # @response.headers["rack.hijack"] = proc do |stream|
+    #   Thread.new do
+    #     launch_redcap_process(stream)
+    #   end
+    # end
+
+    # "head" is ActionController specific?
+    # head :ok
+
+    @request.env['rack.hijack'].call
+    stream = @request.env['rack.hijack_io']
+
+    send_headers(stream)
+
+    Thread.new do
+      launch_redcap_process(stream)
     end
 
-    # return [200, {'Last-Modified': Time.now.httpdate}, out]
+    @response.close
+
+    # redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+    #   project_name: @params[:project_name],
+    #   model_names: @params[:model_names],
+    #   redcap_tokens: @params[:redcap_tokens],
+    #   dateshift_salt: Polyphemus.instance.config(:dateshift_salt).to_s,
+    #   redcap_host: Polyphemus.instance.config(:redcap)[:host],
+    #   magma_host: Polyphemus.instance.config(:magma)[:host]
+    # )
+
+    # puts "standing up a magma client"
+    # magma_client = Etna::Clients::Magma.new(
+    #   token: @user.token,
+    #   host: Polyphemus.instance.config(:magma)[:host])
+
+    # logger = StringBuffer.new
+    # puts "calling run"
+    # redcap_etl.run(magma_client: magma_client, commit: false, logger: STDOUT)
+    # # redcap_etl.run(magma_client: magma_client, commit: false, logger: logger) do |logger|
+    # #   logger.each_line do |line|
+    # #     response.stream.write(line)
+    # #   end
+    # # end
+
+    # return [200, {'Last-Modified': Time.now.httpdate}, logger]
   rescue => e
     # puts e.message
     puts "#{e.message}\n#{e.backtrace}"
@@ -151,13 +181,45 @@ class JobController < Polyphemus::StreamingController
     # return [200, {}, SlowStreamer.new]
     # yield out
     # return success(return_data.to_json, 'application/json')
-  ensure
-    response.stream.close
+  # ensure
+    # response.stream.close
   end
 
   private
 
-  def launch_redcap_process
+  def launch_redcap_process(stream)
+    sse = ActionController::Live::SSE.new(stream, retry: 300, event: "taskProgress")
 
+    redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+      project_name: @params[:project_name],
+      model_names: @params[:model_names],
+      redcap_tokens: @params[:redcap_tokens],
+      dateshift_salt: Polyphemus.instance.config(:dateshift_salt).to_s,
+      redcap_host: Polyphemus.instance.config(:redcap)[:host],
+      magma_host: Polyphemus.instance.config(:magma)[:host]
+    )
+
+    puts "standing up a magma client"
+    magma_client = Etna::Clients::Magma.new(
+      token: @user.token,
+      host: Polyphemus.instance.config(:magma)[:host])
+
+    puts "calling run"
+    redcap_etl.run(magma_client: magma_client, commit: false, logger: sse)
+  ensure
+    sse.close
+  end
+
+  def send_headers(stream)
+    headers = [
+      "HTTP/1.1 200 OK",
+      "Content-Type: text/event-stream"
+    ]
+    stream.write(headers.map { |header| header + "\r\n" }.join)
+    stream.write("\r\n")
+    stream.flush
+  rescue
+    stream.close
+    raise
   end
 end
