@@ -14,7 +14,8 @@ class JobController < Polyphemus::StreamingController
     if can_hijack?
       run_loading_in_thread
     else
-      # Mostly for testing and as a basic fallback...
+      # Mostly for testing and as a basic fallback if we ever use a Rack server that
+      #   doesn't support hijacking.
       return run_loading_inline
     end
   rescue => e
@@ -27,6 +28,7 @@ class JobController < Polyphemus::StreamingController
   def run_loading_in_thread
     # Rack hijacking technique found here:
     #   https://blog.chumakoff.com/en/posts/rails_sse_rack_hijacking_api
+    # May not play well with HTTP2.
     @request.env['rack.hijack'].call
     stream = @request.env['rack.hijack_io']
 

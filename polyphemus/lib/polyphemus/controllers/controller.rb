@@ -12,7 +12,7 @@ class Polyphemus
     private
 
     def can_hijack?
-      @request.env['rack.hijack']
+      @request.env['rack.hijack?']
     end
 
     def send_headers(stream)
