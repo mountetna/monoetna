@@ -48,7 +48,7 @@
 }
 
 .etna-links i:hover {
-  color: lightgray;
+  color: #bbb;
 }
 
 .etna-link-box {
@@ -66,4 +66,21 @@
   padding: 0px;
   color: gray;
   font-size: 1.2em;
+}
+
+.etna-links-hide {
+  border: 1px solid #ccc;
+  padding: 5px 2px;
+  border-radius: 2px;
+  background: #ccc;
+}
+
+.etna-links-show {
+  border: 1px hidden #ccc;
+  padding: 5px 2px;
+  border-radius: 2px;
+}
+
+.etna-links-show:hover {
+  background: #eee;
 }

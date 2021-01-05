@@ -52,14 +52,14 @@ const Links = ({currentApp}) => {
 
   if (!shown) return <div className='etna-links'>
     <div className='etna-links-show' onClick={ () => setShown(true) } >
-      <Icon icon='chevron-circle-left'/>
+      <Icon icon='bars'/>
     </div>
   </div>;
 
   return <div className='etna-links'>
     { apps.map( app => <Link key={app} app={app}/>) }
     <div className='etna-links-hide' onClick={ () => setShown(false) } >
-      <Icon icon='chevron-circle-right'/>
+      <Icon icon='bars'/>
     </div>
   </div>;
 }
