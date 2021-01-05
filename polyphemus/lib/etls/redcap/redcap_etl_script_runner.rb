@@ -37,7 +37,7 @@ class Polyphemus
     end
 
     def run(magma_client:, commit: false)
-      run_script(self.__binding__)
+      run_script(self.get_binding)
 
       loader = Redcap::Loader.new(config.update(system_config), magma_client)
 
@@ -64,6 +64,10 @@ class Polyphemus
         project_name: @project_name,
         models_to_build: model_names
       }
+    end
+
+    def get_binding
+      binding
     end
 
     protected

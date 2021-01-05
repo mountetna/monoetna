@@ -8,7 +8,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
     it 'adds random salt when not provided' do
       redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
         project_name: 'test',
-        model_names: ["all"],
+        model_names: "all",
         redcap_tokens: ["faketoken"],
         dateshift_salt: nil,
         redcap_host: REDCAP_HOST,
@@ -23,7 +23,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
     it 'uses the provided salt' do
       redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
         project_name: 'test',
-        model_names: ["all"],
+        model_names: "all",
         redcap_tokens: ["faketoken"],
         dateshift_salt: '123',
         redcap_host: REDCAP_HOST,
@@ -78,14 +78,14 @@ describe Polyphemus::RedcapEtlScriptRunner do
     it 'all models' do
       redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
         project_name: 'test',
-        model_names: ["all"],
+        model_names: "all",
         redcap_tokens: ["faketoken"],
         dateshift_salt: '123',
         redcap_host: REDCAP_HOST,
         magma_host: MAGMA_HOST
       )
 
-      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token', persistent: false)
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token')
 
       records = redcap_etl.run(magma_client: magma_client)
 
@@ -114,7 +114,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
         magma_host: MAGMA_HOST
       )
 
-      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token', persistent: false)
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token')
 
       records = redcap_etl.run(magma_client: magma_client)
 
@@ -133,7 +133,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
         magma_host: MAGMA_HOST
       )
 
-      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token', persistent: false)
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token')
 
       records = redcap_etl.run(magma_client: magma_client)
 
@@ -155,7 +155,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
         magma_host: MAGMA_HOST
       )
 
-      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token', persistent: false)
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token')
 
       records = redcap_etl.run(magma_client: magma_client)
 

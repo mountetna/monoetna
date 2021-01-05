@@ -49,7 +49,7 @@ module Redcap
     private
 
     def build_model?(model_name)
-      ['all'] == models_to_build ? true : models_to_build.include?(model_name)
+      'all' == models_to_build ? true : models_to_build.include?(model_name)
     end
 
     def models_to_build
