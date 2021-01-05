@@ -25,10 +25,14 @@ class JobController < Polyphemus::StreamingController
 
   private
 
+  def commit?
+    !!@params[:commit]
+  end
+
   def run_loading_in_thread
     # Rack hijacking technique found here:
     #   https://blog.chumakoff.com/en/posts/rails_sse_rack_hijacking_api
-    # May not play well with HTTP2.
+    # Will not play well with HTTP2.
     @request.env['rack.hijack'].call
     stream = @request.env['rack.hijack_io']
 
@@ -60,8 +64,7 @@ class JobController < Polyphemus::StreamingController
       token: @user.token,
       host: Polyphemus.instance.config(:magma)[:host])
 
-    # TODO: Need to change commit to true before merge + deploy
-    redcap_etl.run(magma_client: magma_client, commit: false, logger: logger)
+    redcap_etl.run(magma_client: magma_client, commit: commit?, logger: logger)
   end
 
   def launch_redcap_process(stream)
