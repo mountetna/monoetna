@@ -11,6 +11,10 @@ class Polyphemus
 
     private
 
+    def can_hijack?
+      @request.env['rack.hijack']
+    end
+
     def send_headers(stream)
       headers = [
         "HTTP/1.1 200 OK",
