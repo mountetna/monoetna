@@ -1,9 +1,10 @@
 module Redcap
   class Loader
-    attr_reader :records, :magma_models, :config
-    def initialize(config, magma_client)
+    attr_reader :records, :magma_models, :config, :logger
+    def initialize(config, magma_client, logger=STDOUT)
       @config = config
       @records = {}
+      @logger = logger
 
       @magma_models = magma_client.retrieve(
         Etna::Clients::Magma::RetrievalRequest.new(project_name: @config[:project_name])
@@ -22,7 +23,7 @@ module Redcap
 
     def update_records_from_project
       tokens.each do |token|
-        project = Redcap::Project.new(token, config, magma_models)
+        project = Redcap::Project.new(token, config, magma_models, logger)
 
         project.fetch_records.each do |model_name, model_records|
           records[model_name] = {} unless records.keys.include?(model_name)

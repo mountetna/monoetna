@@ -19,7 +19,7 @@ module Redcap
     end
 
     def load(project)
-      puts "Attempting to load model #{name}"
+      project.logger.write("Attempting to load model #{name}.\n")
 
       records = {}
       @scripts.each do |script|

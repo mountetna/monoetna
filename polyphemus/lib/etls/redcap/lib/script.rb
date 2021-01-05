@@ -18,12 +18,12 @@ module Redcap
       forms.each do |form_name, form|
         raise "Missing form #{form_name}" unless project.has_form?(form_name)
 
-        puts "Processing form #{form_name}"
+        project.logger.write("Processing form #{form_name}.\n")
 
         form.load(project, records)
       end
 
-      puts "Patching unfilled attributes"
+      project.logger.write("Patching unfilled attributes.\n")
 
       records.each do |id, record|
         record.compact!

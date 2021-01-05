@@ -36,20 +36,25 @@ class Polyphemus
       warn "Warning: no dateshift_salt provided, will use a randomly generated one." unless dateshift_salt
     end
 
-    def run(magma_client:, commit: false)
+    def run(magma_client:, commit: false, logger: STDOUT)
+      yield logger if block_given?
+
+      # For some reason in the Puma environment, can't pass
+      #   self.__binding__ here -- throws an UndefinedMethod exception.
       run_script(self.get_binding)
 
-      loader = Redcap::Loader.new(config.update(system_config), magma_client)
+      loader = Redcap::Loader.new(config.update(system_config), magma_client, logger)
 
       records = loader.run
-      puts records
+      logger.write(records)
+      logger.write("\n")
 
       @update_request = Etna::Clients::Magma::UpdateRequest.new(
         project_name: @project_name,
         revisions: records)
 
       if commit
-        puts "Posting revisions"
+        logger.write("Posting revisions\n")
         magma_client.update_json(update_request)
       end
       return records

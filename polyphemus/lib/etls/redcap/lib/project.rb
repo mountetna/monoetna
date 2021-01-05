@@ -1,11 +1,12 @@
 module Redcap
   class Project
-    attr_reader :config, :client, :magma_models
-    def initialize(token, config, magma_models)
+    attr_reader :config, :client, :magma_models, :logger
+    def initialize(token, config, magma_models, logger)
       @client = Redcap::Client.new(config[:redcap_host], token)
 
       @config = config
       @magma_models = magma_models
+      @logger = logger
     end
 
     def template
