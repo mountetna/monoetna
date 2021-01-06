@@ -1,4 +1,6 @@
 class Polyphemus
+  # This data could eventually get stored in a database, where we track
+  #   job status, submission time, user, etc.
   class Job
     attr_reader :request_params, :request_env, :response, :job_params, :errors, :user
     def initialize(request_params, request_env, response, user)
