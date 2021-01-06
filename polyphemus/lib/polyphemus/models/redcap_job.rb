@@ -19,6 +19,7 @@ class Polyphemus
         return run_loading_inline
       end
     end
+
     private
 
     def commit?
