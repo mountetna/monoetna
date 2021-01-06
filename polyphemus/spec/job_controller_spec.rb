@@ -5,6 +5,10 @@ describe Polyphemus::Server do
     OUTER_APP
   end
 
+  before do
+    copy_redcap_project
+  end
+
   it 'project editors cannot submit jobs' do
     post('/test/job', job_type: "redcap", job_params: {
       model_names: ["all"], redcap_tokens: ["123"]

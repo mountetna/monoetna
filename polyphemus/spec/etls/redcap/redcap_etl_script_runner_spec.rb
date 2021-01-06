@@ -3,6 +3,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
     before do
       stub_magma_models
       stub_redcap_data
+      copy_redcap_project
     end
 
     it 'throws exception if salt when not provided' do

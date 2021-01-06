@@ -13,6 +13,8 @@ SimpleCov.start
 require 'yaml'
 require 'etna/spec/vcr'
 
+require 'fileutils'
+
 require_relative '../lib/server'
 require_relative '../lib/polyphemus'
 
@@ -26,6 +28,7 @@ RESTRICT_BUCKET = Polyphemus.instance.config(:metis)[:restrict_bucket]
 MAGMA_HOST = Polyphemus.instance.config(:magma)[:host]
 REDCAP_HOST = Polyphemus.instance.config(:redcap)[:host]
 PROJECT = 'mvir1'
+REDCAP_PROJECT_CONFIG_PATH = 'lib/etls/redcap/projects/test.rb'
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
@@ -240,4 +243,13 @@ def stub_redcap_multi_project_records
       },
       body: File.read('spec/fixtures/redcap_mock_data_project_2.json')
     })
+end
+
+def copy_redcap_project
+  # Make sure the test project is in the right location so the
+  # REDCap ETL can find it.
+  redcap_projects_dir = File.dirname(REDCAP_PROJECT_CONFIG_PATH)
+  test_fixture_path = "spec/fixtures/etls/redcap/#{File.basename(REDCAP_PROJECT_CONFIG_PATH)}"
+  FileUtils.mkdir_p(redcap_projects_dir) unless Dir.exist?(redcap_projects_dir)
+  FileUtils.cp(test_fixture_path, REDCAP_PROJECT_CONFIG_PATH) unless File.exist?(REDCAP_PROJECT_CONFIG_PATH)
 end
