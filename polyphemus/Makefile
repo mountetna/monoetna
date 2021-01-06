@@ -1,7 +1,8 @@
 include ../make-base/stubs.mk
 
 .projects-mark:
-	git clone git@github.com:mountetna/redcap-projects.git lib/etls/redcap/projects;
+	set +e
+	git clone git@github.com:mountetna/redcap-projects.git lib/etls/redcap/projects
 	@ touch .projects-mark
 
 docker-ready:: .projects-mark
