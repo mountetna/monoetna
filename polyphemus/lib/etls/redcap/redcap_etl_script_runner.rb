@@ -15,7 +15,7 @@ class Polyphemus
     attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :dateshift_salt
 
     def initialize(project_name:, model_names:, redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:)
-      raise "No dateshift_salt provided, please check the server configuration." unless dateshift_salt
+      raise "No dateshift_salt provided, please provide one." unless dateshift_salt
 
       # Override initialize, user won't be passing in a filename directly.
       raise "Must provide at least one REDCap token." unless redcap_tokens
