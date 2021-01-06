@@ -363,9 +363,19 @@ class EtnaApp
             project_name: project_name,
             commit: commit
           )) do |response|
-            response.read_body do |fragment|
-              puts fragment
+            response.read_body do |chunk|
+              puts clean_sne_message(chunk)
             end
+          end
+        end
+
+        def clean_sne_message(chunk)
+          chunk.split("\n").reject do |c|
+            c.start_with?("retry:") || c.start_with?("event:")
+          end.map do |c|
+            c.gsub("data:", "").strip
+          end.reject do |c|
+            c.empty?
           end
         end
       end
