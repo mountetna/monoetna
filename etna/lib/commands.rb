@@ -57,7 +57,6 @@ class EtnaApp
         polyphemus_client = Etna::Clients::Polyphemus.new(
             host: host,
             token: token(ignore_environment: true),
-            persistent: false,
             ignore_ssl: ignore_ssl)
         workflow = Etna::Clients::Polyphemus::SetConfigurationWorkflow.new(
             polyphemus_client: polyphemus_client,
