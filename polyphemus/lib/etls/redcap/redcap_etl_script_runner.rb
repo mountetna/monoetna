@@ -82,10 +82,10 @@ class Polyphemus
     protected
 
     def define_model(model_name, &block)
-      return Object.const_get(model_name) if Object.const_defined?(model_name)
+      return Kernel.const_get(model_name) if Kernel.const_defined?(model_name)
 
       # Set some default methods for each model
-      Object.const_set(model_name, Class.new(Redcap::Model) {
+      Kernel.const_set(model_name, Class.new(Redcap::Model) {
         def identifier(record_name, event_name)
           "::temp-#{record_name}-#{rand(36**8).to_s(36)}"
         end
