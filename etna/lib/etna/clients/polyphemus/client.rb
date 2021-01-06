@@ -28,11 +28,11 @@ module Etna
       end
 
       def job(job_request = JobRequest.new, &block)
-        json = nil
+        # Because this is a streaming response, slightly different
         @etna_client.post(
           "/#{job_request.project_name}/job",
           job_request) do |res|
-          yield res.read_body
+            yield res
         end
       end
     end

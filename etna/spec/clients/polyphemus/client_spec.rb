@@ -15,12 +15,14 @@ describe 'Polyphemus Client class' do
   end
 
   it 'can submit a job' do
-    test_class.job(Etna::Clients::Polyphemus::JobRequest.new(
+    test_class.job(Etna::Clients::Polyphemus::RedcapJobRequest.new(
       model_names: "all",
       redcap_tokens: ["123"],
       project_name: PROJECT
-    )) do |body_fragment|
-      expect(body_fragment).to eq('success!')
+    )) do |response|
+      response.read_body do |body_fragment|
+        expect(body_fragment).to eq('success!')
+      end
     end
     expect(WebMock).to have_requested(:post, /#{POLYPHEMUS_HOST}\/#{PROJECT}\/job/)
   end

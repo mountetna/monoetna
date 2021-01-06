@@ -12,11 +12,22 @@ module Etna
         end
       end
 
-      class JobRequest < Struct.new(:model_names, :redcap_tokens, :commit, :project_name, keyword_init: true)
+      class RedcapJobRequest < Struct.new(:model_names, :redcap_tokens, :commit, :project_name, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)
           super({model_names: 'all', commit: false}.update(params))
+        end
+
+        def to_json
+          {
+            job_type: Etna::Clients::Polyphemus::JobType::REDCAP,
+            job_params: {
+              commit: commit,
+              model_names: model_names,
+              redcap_tokens: redcap_tokens
+            }
+          }.to_json
         end
       end
 
@@ -70,6 +81,11 @@ module Etna
         def auth_redirect
           @raw['auth_redirect']
         end
+      end
+
+      class JobType < String
+        include Enum
+        REDCAP = JobType.new("redcap")
       end
     end
   end
