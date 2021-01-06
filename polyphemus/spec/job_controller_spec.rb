@@ -33,7 +33,25 @@ describe Polyphemus::Server do
 
   it 'throws exception for unknown job type' do
     auth_header(:administrator)
-    post('/test/job', job_type: "unsupported-job-type")
+    post('/test/job', job_type: "unsupported-job-type", job_params: {
+      something: "important"
+    })
+
+    expect(last_response.status).to eq(422)
+  end
+
+  it 'throws exception for missing job type parameter' do
+    auth_header(:administrator)
+    post('/test/job', job_params: {
+      something: "important"
+    })
+
+    expect(last_response.status).to eq(422)
+  end
+
+  it 'throws exception for missing job params parameter' do
+    auth_header(:administrator)
+    post('/test/job', job_type: "redcap")
 
     expect(last_response.status).to eq(422)
   end
