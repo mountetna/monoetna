@@ -67,7 +67,7 @@ class Polyphemus
     def system_config
       {
         tokens: redcap_tokens,
-        dateshift_salt: dateshift_salt || Polyphemus.instance.sign.uid,
+        dateshift_salt: dateshift_salt,
         redcap_host: redcap_host,
         magma_host: magma_host,
         project_name: @project_name,
