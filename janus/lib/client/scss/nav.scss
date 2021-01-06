@@ -1,12 +1,13 @@
 #nav {
   height: 60px;
-  border-bottom: 1px solid #666699;
+  border-bottom: 1px solid lightgray;
   display: flex;
+  align-items: center;
+  justify-content: space-between;
 
   #logo {
     flex-basis: 50px;
-    margin-top: 4px;
-    margin-left: 4px;
+    margin-left: 5px;
     .image {
       width: 50px;
       height: 50px;
@@ -19,15 +20,23 @@
   }
 
   #login {
-    flex: 1;
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: flex-end;
+
+    padding: 5px;
     margin-right: 5px;
     color: darkgoldenrod;
+    font-size: 0.8em;
+
+    border: 1px solid rgba(184,134,11,0.1);
+    border-radius: 2px;
+    background: rgba(184,134,11,0.01);
+
     .icon {
-      color: gray;
-      font-size: 1.2em;
+      color: darkgoldenrod;
+      padding-right: 3px;
     }
   }
 }
