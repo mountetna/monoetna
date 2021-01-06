@@ -6,21 +6,34 @@ describe Polyphemus::Server do
   end
 
   it 'project editors cannot submit jobs' do
-    post('/test/job', model_names: ["all"], redcap_tokens: ["123"])
+    post('/test/job', job_type: "redcap", job_params: {
+      model_names: ["all"], redcap_tokens: ["123"]
+    })
 
     expect(last_response.status).to eq(401)
   end
 
   it 'model names must be an array or "all"' do
     auth_header(:administrator)
-    post('/test/job', model_names: "blah", redcap_tokens: ["123"])
+    post('/test/job', job_type: "redcap", job_params: {
+      model_names: "blah", redcap_tokens: ["123"]
+    })
 
     expect(last_response.status).to eq(422)
   end
 
   it 'redcap tokens must be an array' do
     auth_header(:administrator)
-    post('/test/job', model_names: "all", redcap_tokens: "123")
+    post('/test/job', job_type: "redcap", job_params: {
+      model_names: "all", redcap_tokens: "123"
+    })
+
+    expect(last_response.status).to eq(422)
+  end
+
+  it 'throws exception for unknown job type' do
+    auth_header(:administrator)
+    post('/test/job', job_type: "unsupported-job-type")
 
     expect(last_response.status).to eq(422)
   end
@@ -33,12 +46,14 @@ describe Polyphemus::Server do
     stub_redcap_data
 
     auth_header(:administrator)
-    post('/test/job', model_names: "all", redcap_tokens: ["123"])
+    post('/test/job', job_type: "redcap", job_params: {
+      model_names: "all", redcap_tokens: ["123"]
+    })
 
     expect(last_response.status).to eq(200)
 
-    expect(json_body[:record].keys.first).to eq(:model_one)
-    expect(json_body[:record].keys.last).to eq(:model_two)
+    expect(json_body[:results].keys.first).to eq(:model_one)
+    expect(json_body[:results].keys.last).to eq(:model_two)
   end
 end
 
