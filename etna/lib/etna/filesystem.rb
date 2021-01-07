@@ -1,3 +1,5 @@
+require 'fileutils'
+
 module Etna
   # A class that encapsulates opening / reading file system entries that abstracts normal file access in order
   # to make stubbing, substituting, and testing easier.
@@ -11,13 +13,11 @@ module Etna
     end
 
     def mkdir_p(dir)
-      require 'fileutils'
       ::FileUtils.mkdir_p(dir)
     end
 
     def rm_rf(dir)
-      require 'fileutils'
-      FileUtils.rm_rf(dir)
+      ::FileUtils.rm_rf(dir)
     end
 
     def tmpdir
@@ -31,6 +31,81 @@ module Etna
     class EmptyIO < StringIO
       def write(*args)
         # Do nothing -- always leave empty
+      end
+    end
+
+    module WithPipeConsumer
+      def mkio(file, opts)
+        dir = Dir.tmpdir
+        begin
+          f = File.join(dir, file)
+          ::File.mkfifo(f)
+
+          thread = Thread.new do
+            run_consumer(file, opts)
+          end
+
+          ThreadConsumerIo.new(File.open(f, opts), thread)
+        ensure
+          ::FileUtils.rm_rf(dir)
+        end
+      end
+
+      class ThreadConsumerIo
+        def constructor(io, thread)
+          @io = io
+          @thread = thread
+        end
+
+        def close
+          @io.close.tap { @thread.join }
+        end
+
+        def method_missing(name, *args)
+          @io.send(name, *args)
+        end
+      end
+    end
+
+    class AsperaCliFilesystem < Filesystem
+      include WithPipeConsumer
+
+      def with_writeable(dest, opts = 'w', &block)
+        file = mkio(dest, opts)
+        begin
+          yield file
+        ensure
+          file.close
+        end
+      end
+
+      def with_readable(src, opts = 'r', &block)
+        file = mkio(dest, opts)
+        begin
+          yield file
+        ensure
+          file.close
+        end
+      end
+
+      def mkdir_p(dir)
+        ::FileUtils.mkdir_p(dir)
+      end
+
+      def rm_rf(dir)
+        ::FileUtils.rm_rf(dir)
+      end
+
+      def tmpdir
+        ::Dir.tmpdir
+      end
+
+      def exist?(src)
+        ::File.exist?(src)
+      end
+
+
+      def run_consumer(file, opts)
       end
     end
 

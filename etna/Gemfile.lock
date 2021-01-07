@@ -58,6 +58,7 @@ PLATFORMS
 DEPENDENCIES
   debase
   jwt
+  mkfifo
   multipart-post
   pry
   pry-byebug
