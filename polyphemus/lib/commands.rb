@@ -387,9 +387,9 @@ class Polyphemus
       @environ = environment(env)
 
       linker = IpiFlowWspLinker.new(
-        magma_crud: magma_crud,
-        metis_client: @environ.metis_client,
-        project_name: project_name)
+          magma_crud: magma_crud,
+          metis_client: @environ.metis_client,
+          project_name: project_name)
       linker.link_files
     end
   end
@@ -412,9 +412,9 @@ class Polyphemus
       @environ = environment(env)
 
       linker = IpiFlowFcsLinker.new(
-        magma_crud: magma_crud,
-        metis_client: @environ.metis_client,
-        project_name: project_name)
+          magma_crud: magma_crud,
+          metis_client: @environ.metis_client,
+          project_name: project_name)
       linker.link_files
     end
   end
@@ -721,18 +721,20 @@ class Polyphemus
         end
       end
     end
+  end
 
-    class Console < Etna::Command
-      usage 'Open a console with a connected Polyphemus instance.'
+  class Console < Etna::Command
+    usage 'Open a console with a connected Polyphemus instance.'
 
-      def execute
-        require 'irb'
-        ARGV.clear
-        IRB.start
-      end
+    def execute
+      require 'irb'
+      ARGV.clear
+      IRB.start
+    end
 
-      def setup(config)
-        super
-      end
+    def setup(config)
+      super
     end
   end
+end
+
