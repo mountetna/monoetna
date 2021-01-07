@@ -48,7 +48,7 @@ class AdminController < Janus::Controller
       permission.save
     end
 
-    @response.redirect("/project/#{@params[:project_name]}")
+    @response.redirect("/#{@params[:project_name]}")
     @response.finish
   end
 
@@ -81,7 +81,7 @@ class AdminController < Janus::Controller
       permission.save
     end
 
-    @response.redirect("/project/#{@params[:project_name]}")
+    @response.redirect("/#{@params[:project_name]}")
     @response.finish
   end
 

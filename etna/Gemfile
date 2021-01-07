@@ -9,7 +9,6 @@ gem 'simplecov'
 gem 'rack-test', require: "rack/test"
 gem 'rollbar'
 gem 'vcr' # For Etna::Client in recording mode.
-gem 'net-http-persistent'
 gem 'multipart-post'
 
 group :test do

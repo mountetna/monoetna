@@ -1,29 +1,13 @@
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { selectUserName, selectUserRole } from '../selectors/user-selector';
-import Icon from 'etna-js/components/icon';
+import Nav from 'etna-js/components/Nav';
+import {selectUser} from 'etna-js/selectors/user-selector';
+import {useReduxState} from 'etna-js/hooks/useReduxState';
 
-const ICONS = {
-  administrator: 'user-astronaut',
-  editor: 'user-edit',
-  viewer: 'user'
-};
+const Logo = () => <div id='logo'/>;
 
-const MetisNav = ({first, last, role, permissions}) =>
-  <div id='metis-nav'>
-    <div id='logo-group'>
-      <a href='/'><div id='logo'/></a>
-    </div>
-    <div id='nav-user'>
-      { first } { last }
-      <Icon icon={ ICONS[role] } title={role}/>
-    </div>
-  </div>
+const MetisNav = () => {
+  let user = useReduxState( state => selectUser(state) );
+  return <Nav logo={Logo} user={user} app='metis'/>;
+}
 
-export default connect(
-  // map state
-  (state) => ({
-    ...selectUserName(state),
-    role: selectUserRole(state)
-  })
-)(MetisNav);
+export default MetisNav;

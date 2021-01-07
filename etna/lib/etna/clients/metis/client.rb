@@ -1,4 +1,3 @@
-require 'net/http/persistent'
 require 'net/http/post/multipart'
 require 'singleton'
 require 'cgi'
@@ -10,13 +9,12 @@ module Etna
   module Clients
     class Metis
       attr_reader :token
-      def initialize(host:, token:, persistent: true, ignore_ssl: false)
+      def initialize(host:, token:, ignore_ssl: false)
         raise 'Metis client configuration is missing host.' unless host
         raise 'Metis client configuration is missing token.' unless token
         @etna_client = ::Etna::Client.new(
           host,
           token,
-          persistent: persistent,
           ignore_ssl: ignore_ssl)
 
         @token = token

@@ -3,8 +3,15 @@
 
 class ClientController < Metis::Controller
   def index
-    @token_name = Metis.instance.config(:token_name)
-    @janus_host = Metis.instance.config(:auth_redirect)
     erb_view :index
+  end
+
+  def config_json
+    {
+      project_name: @params[:project_name],
+      token_name: Metis.instance.config(:token_name),
+      timur_host: Metis.instance.config(:timur)&.dig(:host),
+      janus_host: Metis.instance.config(:janus)&.dig(:host)
+    }.to_json
   end
 end
