@@ -13,7 +13,11 @@ class JobController < Polyphemus::Controller
 
     raise "Unsupported job type: #{@params[:job_type]}." unless job_class
 
-    job = job_class.new(@params, @request.env, @response, @user)
+    job = job_class.new(
+      request_params: @params,
+      request_env: @request.env,
+      response: @response,
+      user: @user)
 
     job.validate
 

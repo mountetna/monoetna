@@ -6,6 +6,7 @@ class Polyphemus
   class RedcapJob < Polyphemus::Job
 
     def validate
+      require_job_params(:redcap_tokens, :model_names)
       raise Etna::BadRequest, "redcap_tokens must be an array of tokens." unless job_params[:redcap_tokens].is_a?(Array)
       raise Etna::BadRequest, "model_names must be \"all\" or an array of model names." unless job_params[:model_names].is_a?(Array) || "all" == job_params[:model_names]
     end

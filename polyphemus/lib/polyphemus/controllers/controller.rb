@@ -1,5 +1,3 @@
-require 'action_controller'
-
 class Polyphemus
   class Controller < Etna::Controller
     def initialize(request, action=nil)
