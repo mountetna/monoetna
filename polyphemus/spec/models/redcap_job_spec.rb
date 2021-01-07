@@ -1,5 +1,3 @@
-# require_relative '../lib/folder_path_calculator'
-
 describe Polyphemus::RedcapJob do
   def create_job(request_params: {job_type: 'redcap', project_name: PROJECT}, request_env: {}, response: {}, user: {})
     Polyphemus::RedcapJob.new(
@@ -24,7 +22,7 @@ describe Polyphemus::RedcapJob do
 
       expect {
         redcap_job.validate
-      }.to raise_error(Etna::BadRequest, "job_params missing required param(s): model_names")
+      }.to raise_error(Polyphemus::JobError, "job_params missing required param(s): model_names")
 
       redcap_job = create_job(request_params: payload_stamp.update(job_params: {
         model_names: "all"
@@ -32,7 +30,7 @@ describe Polyphemus::RedcapJob do
 
       expect {
         redcap_job.validate
-      }.to raise_error(Etna::BadRequest, "job_params missing required param(s): redcap_tokens")
+      }.to raise_error(Polyphemus::JobError, "job_params missing required param(s): redcap_tokens")
     end
 
     it 'if model_names param is invalid' do
@@ -43,7 +41,7 @@ describe Polyphemus::RedcapJob do
 
       expect {
         redcap_job.validate
-      }.to raise_error(Etna::BadRequest, "model_names must be \"all\" or an array of model names.")
+      }.to raise_error(Polyphemus::JobError, "model_names must be \"all\" or an array of model names.")
 
       redcap_job = create_job(request_params: payload_stamp.update(job_params: {
         redcap_tokens: ["123"],
@@ -52,7 +50,7 @@ describe Polyphemus::RedcapJob do
 
       expect {
         redcap_job.validate
-      }.to raise_error(Etna::BadRequest, "model_names must be \"all\" or an array of model names.")
+      }.to raise_error(Polyphemus::JobError, "model_names must be \"all\" or an array of model names.")
     end
 
     it 'if redcap_tokens param is invalid' do
@@ -63,7 +61,7 @@ describe Polyphemus::RedcapJob do
 
       expect {
         redcap_job.validate
-      }.to raise_error(Etna::BadRequest, "redcap_tokens must be an array of tokens.")
+      }.to raise_error(Polyphemus::JobError, "redcap_tokens must be an array of tokens.")
 
       redcap_job = create_job(request_params: payload_stamp.update(job_params: {
         redcap_tokens: {project_one: "123", project_two: "345"},
@@ -72,7 +70,7 @@ describe Polyphemus::RedcapJob do
 
       expect {
         redcap_job.validate
-      }.to raise_error(Etna::BadRequest, "redcap_tokens must be an array of tokens.")
+      }.to raise_error(Polyphemus::JobError, "redcap_tokens must be an array of tokens.")
     end
   end
 end

@@ -28,12 +28,15 @@ class Polyphemus
 
     def require_job_params(*params)
       missing_params = params.reject{|p| @job_params.key?(p) }
-      raise Etna::BadRequest, "job_params missing required param(s): #{missing_params.join(', ')}" unless missing_params.empty?
+      raise JobError, "job_params missing required param(s): #{missing_params.join(', ')}" unless missing_params.empty?
     end
     alias_method :require_job_param, :require_job_params
   end
 
   class JobType < String
     REDCAP = JobType.new("redcap")
+  end
+
+  class JobError < StandardError
   end
 end
