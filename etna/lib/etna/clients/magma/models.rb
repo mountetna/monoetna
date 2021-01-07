@@ -3,12 +3,13 @@ require_relative '../../json_serializable_struct'
 require_relative '../../multipart_serializable_nested_hash'
 require_relative '../../directed_graph'
 require_relative '../enum'
+require_relative '../base_client'
 
 # TODO:  In the near future, I'd like to transition to specifying apis via SWAGGER and generating model stubs from the
 # common definitions.  For nowe I've written them out by hand here.
 module Etna
   module Clients
-    class Magma
+    class Magma < Etna::Clients::BaseClient
       class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, :page, :page_size, :order, :filter, keyword_init: true)
         include JsonSerializableStruct
 

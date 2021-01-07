@@ -261,6 +261,15 @@ def stub_polyphemus_setup
         timur: 'zap',
         polyphemus: 'zop'}.to_json
     })
+
+  stub_request(:post, /#{POLYPHEMUS_HOST}\/#{PROJECT}\/job/)
+    .to_return({
+      status: 200,
+      headers: {
+        'Content-Type': 'text/event-stream'
+      },
+      body: "success!"
+    })
 end
 
 def configure_etna_yml
