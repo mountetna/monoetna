@@ -36,6 +36,9 @@
     CgX77PmgC3zcOpKDZW0LVb2x7qhp67Fz1EMnRbV1vJY5L6U4FlUnu59/WiTvCpwu
     NQIDAQAB
     -----END PUBLIC KEY-----
+  :dateshift_salt: 123456
+  :redcap:
+    :host: https://redcap.development.local
 
 :production:
   :magma:
@@ -68,3 +71,6 @@
     :user: developer
     :password: password
     :search_path: [ public ]
+  :dateshift_salt: 123456
+  :redcap:
+    :host: https://redcap.test

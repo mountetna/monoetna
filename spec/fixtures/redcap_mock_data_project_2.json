@@ -1,0 +1,32 @@
+[
+  {
+    "record": "test",
+    "redcap_event_name": "A test event",
+    "field_name": "birthday",
+    "value": "900-01-01"
+  },
+  {
+    "record": "321",
+    "redcap_event_name": "Calendar event",
+    "field_name": "today",
+    "value": "1020-01-01"
+  },
+  {
+    "record": "654",
+    "redcap_event_name": "Birthday Party!",
+    "field_name": "date_of_birth",
+    "value": "900-01-01"
+  },
+  {
+    "record": "987",
+    "redcap_event_name": "Name",
+    "field_name": "name",
+    "value": "Acme"
+  },
+  {
+    "record": "111",
+    "redcap_event_name": "Graduation day",
+    "field_name": "commencement",
+    "value": "1021-12-31"
+  }
+]

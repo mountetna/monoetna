@@ -13,7 +13,7 @@ class RunOrTest < Etna::Command
   attr_reader :runner
   def execute(script_file, record_id)
     @runner = Polyphemus::MagmaEtlScriptRunner.new(script_file)
-    magma_client = Etna::Clients::Magma.new(token: ENV['TOKEN'], host: ENV['MAGMA_HOST'], persistent: false)
+    magma_client = Etna::Clients::Magma.new(token: ENV['TOKEN'], host: ENV['MAGMA_HOST'])
 
     crud = Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: runner.project_name)
     record = crud.lookup_record(runner.model_name, record_id)
