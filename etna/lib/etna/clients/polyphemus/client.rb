@@ -28,7 +28,14 @@ module Etna
       end
 
       def job(job_request = JobRequest.new, &block)
-        # Because this is a streaming response, slightly different
+        # Because this is a streaming response, just yield the response back.
+        #   The consumer will have to iterate over the response.read_body, like
+        #
+        # polyphemus_client.job(request) do |response|
+        #   response.read_body do |fragment|
+        #     <fragment contains a chunk of text streamed back from the server>
+        #   end
+        # end
         @etna_client.post(
           "/#{job_request.project_name}/job",
           job_request) do |res|
