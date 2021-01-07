@@ -7,11 +7,11 @@ class ArchimedesLexer(Lexer):
         EXP, DIV, MUL, ADD, SUB, ASSIGN, GT, GTE, LT,
         LTE, MOD, VAR, OR, AND, EQ, NEQ, DOLLAR,
         QUESTION, MATCH, EXC, RPAREN, LPAREN, RBRACKET,
-        LBRACKET, COMMA, COLON, BIND, FUNC
+        LBRACKET, RBRACE, LBRACE, COMMA, COLON, BIND, FUNC, RETURN, IF, ELSE
     }
 
     def error(self, t):
-        raise ArchimedesError('Syntax error in line %d, near token %s' % (self.lineno, t.value))
+        raise ArchimedesError('Syntax error in line %d, near token %s (%s)' % (self.lineno, t.value, t.type))
 
     @_(r'\n+')
     def ignore_newline(self, t):
@@ -42,6 +42,9 @@ class ArchimedesLexer(Lexer):
     TRUE = r'true'
     FALSE = r'false'
     NIL = r'nil'
+    RETURN = r'return'
+    IF = r'if'
+    ELSE = r'else'
     IDENT = r'[A-Za-z][\.\w]*'
     EXP = r'\^'
     DIV = r'\/'
@@ -69,6 +72,8 @@ class ArchimedesLexer(Lexer):
     LPAREN = r'\('
     RBRACKET = r'\]'
     LBRACKET = r'\['
+    RBRACE = r'\}'
+    LBRACE = r'\{'
     COMMA = r'\,'
     BIND = r'\:\:'
     COLON = r'\:'

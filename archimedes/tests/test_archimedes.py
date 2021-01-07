@@ -15,7 +15,7 @@ def test_reports_line_numbers():
             @var2 = invalid syntax
             @var3 = 2''')
 
-    assert e_info.value.info == 'Syntax error in line 2: No such variable invalid'
+    assert e_info.value.info == 'Syntax error in line 3, near @'
 
 
 def test_supports_vectors():

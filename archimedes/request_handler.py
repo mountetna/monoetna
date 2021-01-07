@@ -35,4 +35,4 @@ def resolve(query, token=None):
     # actually run it
     script()
 
-    return arch_parser.return_vars
+    return arch_parser.payload()

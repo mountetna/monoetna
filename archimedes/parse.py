@@ -4,20 +4,31 @@ from pandas import Series, DataFrame, isna, concat
 from errors import ArchimedesError
 from vector import Vector
 from matrix import Matrix
+from function import Function
+from scope import Scope
+import inspect
 import re
+import sys
 
 class Op:
     def __init__(self, *args, **opts):
         self.args = args
         self.func = opts.get('func')
-        self.name = opts.get('name')
+
+        #caller = inspect.stack()[1]
+        #self.name = caller[3]
+        #self.code = caller[4][0]
 
     def resolve(self):
         return self.func(*self.args) if self.func else self.args[0]
 
+
 class ArchimedesParser(Parser):
     tokens = ArchimedesLexer.tokens
     debugfile = 'parser.out'
+
+    def payload(self):
+        return self.root_scope.export_vars
 
     def error(self,p):
         if p:
@@ -29,10 +40,14 @@ class ArchimedesParser(Parser):
 
     def __init__(self):
         self.names = {}
-        self.vars = {}
-        self.return_vars = {}
+        self.root_scope = Scope()
+
+        self.current_scope = self.root_scope
+        self.return_var = None
 
     precedence = (
+        ('right',FUNC),
+        ('right', ASSIGN),
         ('left', QUESTION),
         ('left', MOD),
         ('left', GT, GTE, LT, LTE, EQ, MATCH),
@@ -40,7 +55,7 @@ class ArchimedesParser(Parser):
         ('left', DIV, MUL),
         ('left', EXP),
         ('left', DOLLAR),
-        ('left', VAR)
+        ('left', VAR),
     )
 
     start = 'script'
@@ -49,29 +64,55 @@ class ArchimedesParser(Parser):
     def empty(self,p):
         pass
 
-    @_('assignment')
-    def script(self, p):
-        return Op(p.assignment, func=lambda a : [a()], name='script').resolve
+    @_('script_items')
+    def script(self,p):
+        def run_script(script_items):
+            for script_item in script_items:
+                # Assignment or return
+                script_item()
 
-    @_('assignment script')
-    def script(self, p):
-        return Op(p.assignment, p.script, func=lambda a, s : [a()] + s(), name='script').resolve
+                if self.return_var:
+                    if self.current_scope == self.root_scope:
+                        raise ArchimedesError("Cannot return from root scope!")
+
+                    value = self.return_var[0]
+                    self.return_var = None
+                    return value
+
+        return Op(p.script_items, func=run_script).resolve
+
+    @_('script_item')
+    def script_items(self, p):
+        return [ p.script_item ]
+
+    @_('script_item script_items')
+    def script_items(self, p):
+        return [ p.script_item ] + p.script_items
+
+    @_('assignment')
+    def script_item(self, p):
+        return Op(p.assignment, func=lambda a : a()).resolve
+
+    @_('RETURN e')
+    def script_item(self,p):
+        def returns(e):
+            self.return_var = [ e() ]
+        return Op(p.e, func=returns).resolve
 
     @_('VAR IDENT ASSIGN e')
     def assignment(self, p):
-        def assign(i,e,v,r):
-            e = e()
-            v[i] = e
-            r[i] = e
-            return e
-        return Op(p.IDENT, p.e, self.vars, self.return_vars, func=assign, name='assignment').resolve
+        def export_assign(ident,e,lineno):
+            if self.current_scope != self.root_scope:
+                raise ArchimedesError("Syntax error in line %d: Cannot export variables from non-root scope" % (l))
+            return self.current_scope.export_set(ident,e())
+        return Op(p.IDENT, p.e, p.lineno, func=export_assign).resolve
 
     @_('IDENT ASSIGN e')
     def assignment(self, p):
-        def assign(i,e,v):
-            v[i] = e()
-            return v[i]
-        return Op(p.IDENT, p.e, self.vars, func=assign, name='assignment').resolve
+        def assign(i,e):
+            return self.current_scope.set(i,e())
+
+        return Op(p.IDENT, p.e, func=assign).resolve
 
     @_('FLOAT')
     def e(self, p):
@@ -102,14 +143,52 @@ class ArchimedesParser(Parser):
     def e(self, p):
         return Op(None).resolve
 
-    @_('IDENT', 'VAR IDENT')
-    def var(self, p):
-        def getvar(i,v,l):
-            if not i in self.vars:
-                raise ArchimedesError("Syntax error in line %d: No such variable %s" % ( l, i) )
-            return v[i]
+    @_('LPAREN arg_defs RPAREN FUNC LBRACE script RBRACE')
+    def e(self,p):
+        return Op(p.arg_defs, p.script, func=lambda arg_defs, script : Function(arg_defs, script, self.current_scope)).resolve
 
-        return Op(p.IDENT, self.vars, p.lineno, func=getvar).resolve
+    @_('LPAREN arg_defs RPAREN FUNC e')
+    def e(self,p):
+        return Op(p.arg_defs, p.e, func=lambda arg_defs, e : Function(arg_defs, e, self.current_scope)).resolve
+
+    @_('arg_def')
+    def arg_defs(self, p):
+        return [ p.arg_def ]
+
+    @_('arg_def COMMA arg_defs')
+    def arg_defs(self, p):
+        return [ p.arg_def ] + p.arg_defs
+
+    @_('empty')
+    def arg_defs(self, p):
+        return []
+
+    @_('IDENT')
+    def arg_def(self, p):
+        return ( p.IDENT, None )
+
+    @_('IDENT ASSIGN e')
+    def arg_def(self, p):
+        return ( p.IDENT, p.e )
+
+    @_('IDENT')
+    def var(self, p):
+        def getvar(i,l):
+            try:
+                return self.current_scope.get(i)
+            except KeyError as e:
+                raise ArchimedesError("Syntax error in line %d: No such variable %s" % ( l, i) )
+        return Op(p.IDENT, p.lineno, func=getvar).resolve
+
+    @_('VAR IDENT')
+    def var(self, p):
+        def getvar(i,l):
+            try:
+                return self.root_scope.export_get(i)
+            except KeyError as e:
+                raise ArchimedesError("Syntax error in line %d: No such exported variable %s" % ( l, i) )
+
+        return Op(p.IDENT, p.lineno, func=getvar).resolve
 
     @_('var')
     def e(self, p):
@@ -264,37 +343,43 @@ class ArchimedesParser(Parser):
             raise ArchimedesError('You must bind to an existing matrix')
         return Op(p.e0, p.e1, func=bind).resolve
 
-    @_('LPAREN func_args RPAREN FUNC LBRACKET func_block RBRACKET')
-    def e(self,p):
-        return Op(p.func_args, p.func_block, func=lambda a, b : Function(a, b)).resolve
+    @_('e LPAREN args RPAREN')
+    def function_call(self, p):
+        return ( p.e, p.args )
 
-    @_('func_arg COMMA func_args')
-    def func_args(self, p):
-        return [ p.func_arg ] + p.func_args
+    @_('e LPAREN RPAREN')
+    def function_call(self, p):
+        return ( p.e, None )
 
-    @_('empty')
-    def func_args(self, p):
-        return []
-
-    @_('empty')
-    def func_block(self, p):
-        return []
-
-    @_('IDENT')
-    def func_arg(self, p):
-        return FuncArg( p.IDENT )
-
-    @_('IDENT EQ e')
-    def func_arg(self, p):
-        return FuncArg(p.IDENT, e)
-
-    @_('var LPAREN args RPAREN')
+    @_('function_call')
     def e(self, p):
-        return self.function(p.var, p.args)
+        def call_function(func, args):
+            func = func()
+            if args:
+                args = args()
+            else:
+                args = []
+            if not isinstance(func, Function):
+                raise ArchimedesError("Syntax error: not a function" % (l))
 
-    @_('var LPAREN RPAREN')
-    def e(self, p):
-        return self.function(p.var, [])
+            # create a new scope
+            previous_scope = self.current_scope
+
+            self.current_scope = Scope(func.parent_scope)
+
+            # set the arguments
+            for (arg_var, value) in func.getargs(args):
+                self.current_scope.set(arg_var, value)
+
+            # call the script
+            value = func.call()
+
+            # set the current scope back to the previous scope
+            self.current_scope = previous_scope
+
+            return value
+
+        return Op(*p.function_call, func=call_function).resolve
 
     @_('LBRACKET vector_items RBRACKET')
     def vector(self, p):
@@ -316,7 +401,7 @@ class ArchimedesParser(Parser):
 
     @_('vector_item COMMA vector_items')
     def vector_items(self, p):
-        return Op(p.vector_item, p.vector_items, func=lambda vi, vis : [ vi() ] + vis()).resolve 
+        return Op(p.vector_item, p.vector_items, func=lambda vi, vis : [ vi() ] + vis()).resolve
 
     @_('e')
     def vector_item(self, p):
@@ -340,8 +425,8 @@ class ArchimedesParser(Parser):
 
     @_('e')
     def slice(self,p):
-        return Op(p.e, func=lambda e : e())
+        return Op(p.e, func=lambda e : e()).resolve
 
     @_('empty')
     def slice(self,p):
-        return Op(None)
+        return Op(None).resolve

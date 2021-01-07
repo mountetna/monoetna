@@ -94,6 +94,18 @@ def test_supports_math_operations():
     assert payload['sub'] == 0
     assert payload['ternary'] == 4
 
+def test_obeys_precedence():
+    payload = resolve_json(
+      '''
+      @mul_plus = 4 * 4 + 2
+      @div_sub = 4 / 4 - 2
+      @add_exp = 4 + 4 ^ 2
+      '''
+    )
+    assert payload['mul_plus'] == 18
+    assert payload['div_sub'] == -1
+    assert payload['add_exp'] == 20
+
 def test_supports_infix_notation():
     payload = resolve_json( '@calc = (4 + 4) * 4 + 4')
 
