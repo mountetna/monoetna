@@ -28,8 +28,8 @@ class Polyphemus
       @model_names = model_names
       @redcap_tokens = redcap_tokens
 
-      raise "REDCap host must use https://" if redcap_host.start_with?("http://")
-      raise "Magma host must use https://" if magma_host.start_with?("http://")
+      raise "REDCap host must use https://" unless redcap_host.start_with?("https://")
+      raise "Magma host must use https://" unless magma_host.start_with?("https://")
 
       @redcap_host = redcap_host
       @magma_host = magma_host
