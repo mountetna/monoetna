@@ -69,7 +69,8 @@ class Polyphemus
 
       run_redcap_loader(sse)
     rescue => e
-      sse.write("#{e.message}\n#{e.backtrace}.")
+      Polyphemus.instance.logger.log_error(e)
+      sse.write(e.message)
     ensure
       sse.close
     end
