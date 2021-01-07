@@ -117,6 +117,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
       id_000 = temp_id(records, "000")
       id_123 = temp_id(records, "123")
 
+      # Dateshift checks
       expect(records[:model_one][id_456][:birthday]).not_to eq(raw_data_456[:value])
       expect(records[:model_one][id_456][:birthday].start_with?('1899')).to eq(true)
       expect(records[:model_one][id_000][:graduation_date]).not_to eq(raw_data_000[:value])
