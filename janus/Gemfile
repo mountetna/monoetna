@@ -6,7 +6,7 @@ gem 'rack'
 gem 'rack-throttle'
 gem 'pg'
 gem 'sequel'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/fabaa54fe8345c547369d55f18219a323bcbf584'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/800a4e10f5c621b9cba6f7f136cbbeddbb346d7c'
 gem 'jwt'
 gem 'puma', '5.0.2'
 

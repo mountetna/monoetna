@@ -343,6 +343,44 @@ class EtnaApp
           end
         end
       end
+
+      class LoadFromRedcap < Etna::Command
+        include WithEtnaClients
+        include WithLogger
+        include StrongConfirmation
+
+        boolean_flags << '--commit'
+        string_flags << '--models'
+
+        def execute(project_name, redcap_tokens, models: "all", commit: false)
+          raise "Must provide at least one REDCap token (comma-separated)." unless redcap_tokens.split(',').length > 0
+
+          raise "Your token is expired." if polyphemus_client.token_expired?
+
+          puts "NOTE: This is a **preview** of what the data loading will look like. Use the --commit flag to load records into Magma." unless commit
+
+          polyphemus_client.job(Etna::Clients::Polyphemus::RedcapJobRequest.new(
+            model_names: "all" == models ? "all" : models.split(','),
+            redcap_tokens: redcap_tokens.split(','),
+            project_name: project_name,
+            commit: commit
+          )) do |response|
+            response.read_body do |chunk|
+              puts clean_sne_message(chunk)
+            end
+          end
+        end
+
+        def clean_sne_message(chunk)
+          chunk.split("\n").reject do |c|
+            c.start_with?("retry:") || c.start_with?("event:")
+          end.map do |c|
+            c.gsub("data:", "").strip
+          end.reject do |c|
+            c.empty?
+          end
+        end
+      end
     end
   end
 

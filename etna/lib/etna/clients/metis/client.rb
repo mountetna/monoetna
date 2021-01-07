@@ -4,11 +4,12 @@ require 'cgi'
 require 'json'
 require_relative '../../client'
 require_relative './models'
+require_relative '../base_client'
 
 module Etna
   module Clients
-    class Metis
-      attr_reader :token
+    class Metis < Etna::Clients::BaseClient
+
       def initialize(host:, token:, ignore_ssl: false)
         raise 'Metis client configuration is missing host.' unless host
         raise 'Metis client configuration is missing token.' unless token
