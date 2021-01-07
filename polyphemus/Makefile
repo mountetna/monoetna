@@ -2,10 +2,12 @@ include ../make-base/stubs.mk
 
 .projects-mark:
 	git clone git@github.com:mountetna/redcap-projects.git lib/etls/redcap/projects || CLONE_FAILED=1
-	if [ -z "$(CLONE_FAILED)" ]; then \
+	if [ -n "$(CLONE_FAILED)" ]; then \
 		echo "Could not clone REDCap projects -- do you have the right permissions?"; \
+	else \
+		touch .projects-mark; \
 	fi
-	@ touch .projects-mark
+	@ true
 
 docker-ready:: .projects-mark
 	@ true

@@ -1,11 +1,12 @@
 require 'ostruct'
 require_relative '../../json_serializable_struct'
+require_relative '../base_client'
 
 # TODO:  In the near future, I'd like to transition to specifying apis via SWAGGER and generating model stubs from the
 # common definitions.  For nowe I've written them out by hand here.
 module Etna
   module Clients
-    class Polyphemus
+    class Polyphemus < Etna::Clients::BaseClient
       class ConfigurationRequest
         def map
           []

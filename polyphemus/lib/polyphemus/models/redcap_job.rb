@@ -65,7 +65,8 @@ class Polyphemus
     end
 
     def launch_redcap_process(stream)
-      sse = ActionController::Live::SSE.new(stream, retry: 300, event: "REDCapLoadingProgress")
+      # This retry value is longer because some REDCap requests seem to take forever...
+      sse = ActionController::Live::SSE.new(stream, retry: 900, event: "REDCapLoadingProgress")
 
       run_redcap_loader(sse)
     rescue => e

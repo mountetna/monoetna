@@ -68,7 +68,7 @@ module Redcap
     end
 
     def name
-      self.class.name.gsub(/(?<!^)[A-Z]/) do "_#$&" end.downcase
+      self.class.name.gsub(/(?<!^)[A-Z]/) do "_#$&" end.downcase.gsub("kernel::_", "")
     end
 
     def has_attribute?(att_name)
