@@ -11,11 +11,7 @@
   <body>
     <div id='ui-group'></div>
     <script type='text/javascript'>
-      var CONFIG = {
-        token_name: '<%= @token_name %>',
-        project_name: '<%= @params[:project_name] %>',
-        janus_host: '<%= @janus_host %>'
-      };
+      var CONFIG = <%= config_json %>;
     </script>
     <script type='text/javascript' src='/js/metis-main.bundle.js'></script>
   </body>

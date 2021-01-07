@@ -3,7 +3,7 @@ describe Etna::Clients::Magma::ModelSynchronizationWorkflow do
   let(:target_project) { "testproject1234111" }
   let(:workflow) do
     @source_client = Etna::Clients::Magma.new(host: "https://magma.ucsf.edu", token: ENV['PROD_TOKEN'] || 'token')
-    @target_client = Etna::Clients::Magma.new(host: "https://magma.development.local", token: ENV['LOCAL_TOKEN'] || 'token', persistent: false)
+    @target_client = Etna::Clients::Magma.new(host: "https://magma.development.local", token: ENV['LOCAL_TOKEN'] || 'token')
 
     @target_client.update_model(
         Etna::Clients::Magma::UpdateModelRequest.new(

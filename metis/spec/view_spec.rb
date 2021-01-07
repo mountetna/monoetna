@@ -4,7 +4,7 @@ describe ClientController do
     OUTER_APP
   end
   context '#index' do
-    it 'returns the map view html' do
+    it 'returns the view html' do
       token_header(:viewer)
       get('/athena')
 
