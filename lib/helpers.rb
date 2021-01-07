@@ -47,9 +47,6 @@ module WithEtnaClients
     @magma_client ||= Etna::Clients::Magma.new(
         token: token,
         ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
-        # Persistent connections cause problem with magma restarts, until we can fix that we should force them
-        # to close + reopen each request.
-        persistent: false,
         **EtnaApp.instance.config(:magma, environment) || {})
   end
 
