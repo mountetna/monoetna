@@ -317,8 +317,11 @@ module Etna
         end
 
         def document(document_key)
-          return nil unless raw.include?(document_key)
-          raw[document_key]
+          if document_key.is_a?(String)
+            raw[document_key]
+          else
+            raw[document_key&.to_s]
+          end
         end
       end
 
