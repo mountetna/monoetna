@@ -1,5 +1,6 @@
 import json
-from pandas import Series, DataFrame;
+from pandas import Series, DataFrame
+from numpy import int64
 
 class ArchimedesEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -19,6 +20,9 @@ class ArchimedesEncoder(json.JSONEncoder):
                     'rows': obj.values.tolist()
                 }
             }
+
+        if isinstance(obj, int64):
+            return obj.item()
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
