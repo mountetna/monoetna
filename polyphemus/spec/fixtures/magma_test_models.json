@@ -182,18 +182,7 @@
             "link_model_name": "model_two"
           }
         },
-        "parent": "parent_model",
-        "dictionary": {
-          "dictionary_model": "Labors::Codex",
-          "project_name": "labors",
-          "model_name": "codex",
-          "attributes": {
-            "monster": "monster",
-            "name": "aspect",
-            "source": "tome",
-            "value": "lore"
-          }
-        }
+        "parent": "parent_model"
       }
     }
   }
