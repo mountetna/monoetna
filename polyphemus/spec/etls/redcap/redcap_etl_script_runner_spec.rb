@@ -16,7 +16,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
           redcap_host: REDCAP_HOST,
           magma_host: MAGMA_HOST
         )
-      }.to raise_error(RuntimeError, "No dateshift_salt provided, please check the server configuration.")
+      }.to raise_error(RuntimeError, "No dateshift_salt provided, please provide one.")
     end
 
     it 'uses the provided salt' do
