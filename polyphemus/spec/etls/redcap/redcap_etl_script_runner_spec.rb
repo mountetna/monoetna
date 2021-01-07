@@ -35,6 +35,28 @@ describe Polyphemus::RedcapEtlScriptRunner do
     end
   end
 
+
+  context 'redcap tokens' do
+    before do
+      stub_magma_models
+      stub_redcap_data
+      copy_redcap_project
+    end
+
+    it 'throws exception if not provided' do
+      expect {
+        Polyphemus::RedcapEtlScriptRunner.new(
+          project_name: 'test',
+          model_names: "all",
+          redcap_tokens: [],
+          dateshift_salt: "123",
+          redcap_host: REDCAP_HOST,
+          magma_host: MAGMA_HOST
+        )
+      }.to raise_error(RuntimeError, "Must provide at least one REDCap token.")
+    end
+  end
+
   context 'loads' do
     before do
       stub_magma_models

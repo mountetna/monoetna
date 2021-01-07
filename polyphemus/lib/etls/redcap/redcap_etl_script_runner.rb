@@ -14,11 +14,11 @@ class Polyphemus
 
     attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :dateshift_salt
 
+    # Override initialize, user won't be passing in a filename directly as with other ETLs.
     def initialize(project_name:, model_names:, redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:)
       raise "No dateshift_salt provided, please provide one." unless dateshift_salt
 
-      # Override initialize, user won't be passing in a filename directly.
-      raise "Must provide at least one REDCap token." unless redcap_tokens
+      raise "Must provide at least one REDCap token." unless redcap_tokens&.length > 0
 
       @file_path = File.join(File.dirname(__FILE__), 'projects', "#{project_name}.rb")
 

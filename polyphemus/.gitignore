@@ -23,3 +23,5 @@ spec/examples.txt
 
 # Keep in a separate repo
 lib/etls/redcap/projects
+
+.projects-mark
