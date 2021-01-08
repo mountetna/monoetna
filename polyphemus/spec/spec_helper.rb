@@ -27,6 +27,8 @@ RELEASE_BUCKET = Polyphemus.instance.config(:metis)[:release_bucket]
 RESTRICT_BUCKET = Polyphemus.instance.config(:metis)[:restrict_bucket]
 MAGMA_HOST = Polyphemus.instance.config(:magma)[:host]
 REDCAP_HOST = Polyphemus.instance.config(:redcap)[:host]
+TEST_TOKEN = Polyphemus.instance.config(:polyphemus)[:token]
+
 PROJECT = 'mvir1'
 REDCAP_PROJECT_CONFIG_PATH = 'lib/etls/redcap/projects/test.rb'
 
