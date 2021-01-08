@@ -40,6 +40,17 @@ describe MetisShell do
     stub_request(:any, %r!^https://metis.test/!).to_rack(app)
   end
 
+  describe MetisShell do
+    it 'tells user if token is expired' do
+      # This is an expired development token and is safe to make public, does not leak anything about production or staging values
+      # and cannot be used in a sensitive way.
+      # This test depends on breaking down a tok to get expiration info, so it's important we actually set a token
+      ENV['TOKEN'] = 'eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6ImRldmVsb3BlckB1Y3NmLmVkdSIsImZpcnN0IjoiRGV2ZWxvcGVyIiwibGFzdCI6InBlcnNvbiIsInBlcm0iOiJhOnRlc3QtcHJvamVjdCIsImV4cCI6MTAwMH0.cTk-ea5WVpNR3-JXOhC7Z-1n3PL-4NKiZcpha4owr-pZoTtXfM9e3RH5sZW0UTKH7H-DYFdQNV7X1cOLCGTvAOk-3nfOCYHfAfM1sSlyEBEPw3E0dtNCO4APdK_Pz_yooO1yJMQHW0Af4MxTCku4Lu2004JnMsi-hkFATBmNlRprkdaUYHhaSW5rjQ3MSngvku88etZX1-2tFpi_q2FGBmj6_7GfXgxFESmWsGffci4uWceNzntkUIuO_r9xwSsTel99HNvCOnl39YqmnNHx-0uA9BrmyqZGI769f--22tqkpMe_ri-L5pGPZPjcKW2MQhDhl5mSIxCM37SAWsX1Dg'
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      expect_output("metis://athena", "ls") { %r!expired!}
+    end
+  end
+
   describe MetisShell::Ls do
     it 'lists root buckets' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
