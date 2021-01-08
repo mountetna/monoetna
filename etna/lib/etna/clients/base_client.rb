@@ -10,13 +10,15 @@ module Etna
         raise "#{self.class.name} client configuration is missing host." unless host
         raise "#{self.class.name} client configuration is missing token." unless token
 
+        @token = token
+        raise "Your token is expired." if token_expired?
+
         @etna_client = ::Etna::Client.new(
           host,
           token,
           routes_available: false,
           ignore_ssl: ignore_ssl)
         @host = host
-        @token = token
         @ignore_ssl = ignore_ssl
       end
 

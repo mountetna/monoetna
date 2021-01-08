@@ -3,7 +3,7 @@ require 'json'
 
 describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel do
   let(:magma_client) {Etna::Clients::Magma.new(
-      token: '123',
+      token: TEST_TOKEN,
       host: MAGMA_HOST)}
   let(:magma_crud) {Etna::Clients::Magma::MagmaCrudWorkflow.new(
       magma_client: magma_client, project_name: PROJECT)}
@@ -189,7 +189,7 @@ end
 
 describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel do
   let(:magma_client) {Etna::Clients::Magma.new(
-      token: '123',
+      token: TEST_TOKEN,
       host: MAGMA_HOST)}
   let(:magma_crud) {Etna::Clients::Magma::MagmaCrudWorkflow.new(
       magma_client: magma_client, project_name: PROJECT)}

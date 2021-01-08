@@ -71,6 +71,11 @@ PROJECT = 'test'
 RESTRICT_BUCKET = 'restrict'
 RELEASE_BUCKET = 'release'
 
+# This is a development token and is safe to make public, does not leak anything about production or staging values
+# and cannot be used in a sensitive way.
+# This must be used for any test that stands up a service client (i.e. Etna::Clients::Magma).
+TEST_TOKEN = 'eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6ImRldmVsb3BlckB1Y3NmLmVkdSIsImZpcnN0IjoiRGV2ZWxvcGVyIiwibGFzdCI6IlBlcnNvbiIsInBlcm0iOiJhOmFkbWluaXN0cmF0aW9uLGNvcHJvamVjdF90ZW1wbGF0ZSxpcGksbXZpcjEsdGVzdC1wcm9qZWN0LHRlc3RfY3JlYXRlX3Byb2plY3RfYWFhLHRlc3RfY3JlYXRlX3Byb2plY3RfYWFiLHRlc3RfY3JlYXRlX3Byb2plY3RfYWFjLHRlc3RfbXZpcjEsdGVzdF9tdmlyMix0ZXN0X212aXIzLHRlc3RfbXZpcl9hYmMiLCJleHAiOjg2NDAxNjA4MTM2NjM1fQ.I7eIxpAC7w_KjceR9_QEcWHqQOlwxBAj29s0liV7URNaKSLtTeDLS8eSFa2QCFAqqRzbU3HNDOMopNbKCKaJKFeJC4tWOHaDGYhzN3oQHXmD6vpCB6Ty3fRtz8D3y0sMHNM5ywNopJOPeGaSKUMoLMxvINBXfzFh48IhSs9WEt1myKGwNyvPMZntqZWMTBfXU22FQuVPApUEmhDTYgS5kiPZ2RR0l6yNPmTSwUteStWc4wzJFS73yXI-Lhpbbvza8ih4VU4cfxUso6-V1k3FGFgXMX6O3qEwqTuwLosM8sunn6lyJck_U-DXmpVywU0LcMsi2hq8dLUVTjXEY1qIcw'
+
 def stub_metis_setup
   route_payload = JSON.generate([
     {:method=>"GET", :route=>"/:project_name/list_all_folders/:bucket_name", :name=>"folder_list_all_folders", :params=>["project_name", "bucket_name"]},
