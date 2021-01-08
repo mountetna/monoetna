@@ -31,9 +31,12 @@ describe MetisShell do
       metis_uid_name: 'METIS_TEST_UID',
       metis_host: 'metis.test'
     )
-    ENV['TOKEN'] = Base64.strict_encode64(
-      { email: 'metis@olympus.org', perm: 'a:athena' }.to_json
+
+    token = Base64.strict_encode64(
+      { email: 'metis@olympus.org', perm: 'a:athena', exp: 253371439590 }.to_json
     )
+
+    ENV['TOKEN'] = "something.#{token}"
     stub_request(:any, %r!^https://metis.test/!).to_rack(app)
   end
 
