@@ -740,7 +740,7 @@ EOT
     usage "get <remote_folder_path> <local_path>"
 
     def run(folder_path, local_path)
-      raise ShellError, 'No remote folder selected!' unless @shell.cwd
+      raise ShellError, 'No remote folder selected!' unless @shell.relative_path(folder_path)
 
       path = local_path =~ %r!^/! ?
         local_path :
