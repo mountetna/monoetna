@@ -6,6 +6,7 @@ from vector import Vector
 from matrix import Matrix
 from function import Function
 from scope import Scope
+from function_library import Library, LibraryFunction
 import inspect
 import re
 import sys
@@ -56,6 +57,7 @@ class ArchimedesParser(Parser):
         ('left', EXP),
         ('left', DOLLAR),
         ('left', VAR),
+        ('left', LBRACKET, RBRACKET)
     )
 
     start = 'script'
@@ -145,11 +147,11 @@ class ArchimedesParser(Parser):
 
     @_('LPAREN arg_defs RPAREN FUNC LBRACE script RBRACE')
     def e(self,p):
-        return Op(p.arg_defs, p.script, func=lambda arg_defs, script : Function(arg_defs, script, self.current_scope)).resolve
+        return Op(p.arg_defs, p.script, func=lambda arg_defs, script : Function(self, arg_defs, script)).resolve
 
     @_('LPAREN arg_defs RPAREN FUNC e')
     def e(self,p):
-        return Op(p.arg_defs, p.e, func=lambda arg_defs, e : Function(arg_defs, e, self.current_scope)).resolve
+        return Op(p.arg_defs, p.e, func=lambda arg_defs, e : Function(self, arg_defs, e)).resolve
 
     @_('arg_def')
     def arg_defs(self, p):
@@ -177,6 +179,9 @@ class ArchimedesParser(Parser):
             try:
                 return self.current_scope.get(i)
             except KeyError as e:
+                if hasattr(Library,i):
+                    return LibraryFunction(getattr(Library,i))
+
                 raise ArchimedesError("Syntax error in line %d: No such variable %s" % ( l, i) )
         return Op(p.IDENT, p.lineno, func=getvar).resolve
 
@@ -359,25 +364,17 @@ class ArchimedesParser(Parser):
                 args = args()
             else:
                 args = []
+
+            if isinstance(func, LibraryFunction):
+                try:
+                    return func.call(*args)
+                except TypeError as e:
+                    raise ArchimedesError(e.args[0])
+
             if not isinstance(func, Function):
-                raise ArchimedesError("Syntax error: not a function" % (l))
+                raise ArchimedesError("Syntax error: not a function")
 
-            # create a new scope
-            previous_scope = self.current_scope
-
-            self.current_scope = Scope(func.parent_scope)
-
-            # set the arguments
-            for (arg_var, value) in func.getargs(args):
-                self.current_scope.set(arg_var, value)
-
-            # call the script
-            value = func.call()
-
-            # set the current scope back to the previous scope
-            self.current_scope = previous_scope
-
-            return value
+            return func.call(*args)
 
         return Op(*p.function_call, func=call_function).resolve
 
@@ -421,7 +418,7 @@ class ArchimedesParser(Parser):
 
     @_('e COMMA args')
     def args(self, p):
-        return Op(p.e, p.args, func=lambda e, a : [e()] + args()).resolve
+        return Op(p.e, p.args, func=lambda e, a : [e()] + a()).resolve
 
     @_('e')
     def slice(self,p):
