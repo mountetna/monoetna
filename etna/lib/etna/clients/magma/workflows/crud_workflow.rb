@@ -31,13 +31,19 @@ module Etna
                 record_names: 'all',
                 page_size: 20,
                 page: 1,
-            ))
+            ), &block)
 
           documents = Documents.new({})
           last_page = nil
-          while last_page.nil? || last_page.raw.length >= 20
-            last_page = magma_client.retrieve(request).models.model(model_name).documents
-            documents += last_page unless block_given?
+          while last_page.nil? || last_page.models.model_keys.map { |k| last_page.models.model(k).documents.raw.length }.sum > 0
+            begin
+              last_page = magma_client.retrieve(request)
+            rescue Etna::Error => e
+              raise e unless e.message.include?('not found')
+              break
+            end
+
+            documents += last_page.models.model(model_name).documents unless block_given?
             yield last_page if block_given?
             request.page += 1
           end

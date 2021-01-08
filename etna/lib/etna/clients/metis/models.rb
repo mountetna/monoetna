@@ -1,9 +1,10 @@
-require_relative '../../json_serializable_struct'
 require 'ostruct'
+require_relative '../../json_serializable_struct'
+require_relative '../base_client'
 
 module Etna
   module Clients
-    class Metis
+    class Metis < Etna::Clients::BaseClient
       class ListFoldersRequest < Struct.new(:project_name, :bucket_name, :offset, :limit, keyword_init: true)
         include JsonSerializableStruct
 
