@@ -37,6 +37,8 @@ The Mount Etna data library system holds various research data sets, broadly bro
 
 Mount Etna, internally, is a set of applications that each provides a different piece of the Mount Etna pie. Through the Magma application, one can query and retrieve data from "projects" that exist within Mount Etna.
 
+We provide some more detail below, but for an even deeper overview of the structure of magma and the Mount Etna data library system than is provided here, you can refer to Mount Etna's main source of documentation, https://mountetna.github.io/magma.html.
+
 ## Organization of data within magma
 
 Data types within magma ***projects*** are organized into ***models***, and individual data then make up the ***records*** of those models.
@@ -199,7 +201,7 @@ ids_subject <- retrieveIds(
 
 These functions allow exploration of what data exists within a given project.
 
-Although it is possible to rely on timur.ucsf.edu/<project_name>/map, or on Timur's search functionality, in order to determine options for `modelName`, `recordNames` or `attributeName(s)` inputs, magmaR provides these helper functions to allow users to achieve these goals without leaving R.
+Although it is possible to rely on timur.ucsf.edu/<project_name>/map, or on Timur's search functionality, in order **to determine options for `modelName`, `recordNames` or `attributeName(s)` inputs**, magmaR provides these helper functions to allow users to achieve these goals without leaving R.
 
 ```{r}
 # modelName options:
@@ -223,6 +225,20 @@ For more complex needs like a complicated `query()` request, you might require a
 # To retrieve the project template:
 temp <- retrieveTemplate(
     projectName = "example")
+```
+
+To explore the return, I recommend starting with the `str()` function looking
+only a few levels in.  You should see something like this:
+
+```{r}
+str(temp, max.level = 3)
+```
+
+Then, followup by looking into the `$template` of individual models further. The start of such output (run as below just without the `head()`), should look like this:
+
+```{r}
+# For the "subject" model:
+str(temp$models$subject$template)
 ```
 
 # Main data download functions:
@@ -258,6 +274,8 @@ df <- retrieve(
 
 head(df)
 ```
+
+(You can use the `retrieveIDs()` and `retrieveAttributes()` functions described above in the *Helper functions* section to determine options for the `recordNames` and `attributeNames` inputs, respectively.)
 
 Details: The output format for the `retrieve()` function is a dataframe conversion of the tsv output that is directly given by a call to magma/retrieve with the json equivalent of `format = "tsv"`.
 
