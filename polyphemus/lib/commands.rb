@@ -512,7 +512,6 @@ class Polyphemus
     include WithEtnaClients
     include WithLogger
 
-    string_flags << '--out-dir'
     boolean_flags << '--stub-files'
 
     MATERIALIZE_ATTRIBUTES = {
@@ -689,7 +688,7 @@ class Polyphemus
         ],
     }
 
-    def execute(project_name, model_name, stub_files: false, out_dir: '', filter: '')
+    def execute(stub_files: false, filter: '')
       workflow = Etna::Clients::Magma::MaterializeDataWorkflow.new(
           model_attributes_mask: MATERIALIZE_ATTRIBUTES,
           model_filters: {
@@ -697,36 +696,22 @@ class Polyphemus
               'patient' => 'comet_plus=true'
           },
           metis_client: metis_client, magma_client: magma_client, logger: logger,
-          project_name: project_name, model_name: model_name, stub_files: stub_files,
+          project_name: 'mvir1', model_name: 'patient', stub_files: stub_files,
           filesystem: filesystem)
 
       workflow.with_materialized_dir do |dir|
-        FileUtils.cp_r(dir, '/home/home/mvir1-share')
+        filesystem.run_ascli_cmd("mv", dir, "/Upload/gne-shared-#{DateTime.now.iso8601}")
       end
-
-      puts "Total size: #{@size_cell[0]} bytes"
     end
 
     def filesystem
-      return Etna::Filesystem.new
-
-      @filesystem ||= begin
-        # Shareable reference cell
-        size = @size_cell = [0]
-        Etna::Filesystem::Mock.new do |fname, opts|
-          puts "Creating file #{fname}"
-
-          io = Etna::Filesystem::EmptyIO.new
-          io.define_singleton_method(:write) do |chunk|
-            size[0] += chunk.length
-          end
-
-          io
-        end
-      end
+      ascli_bin = `which ascli`.chomp
+      ascp_bin = `ascli config ascp`.chomp
+      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(ascli_bin: ascli_bin, ascp_bin: ascp_bin,
+          host: "aspera01p-pxy.gene.com", username: "collinsz99", key_file: "/home/runner/.ssh/id_rsa_gne")
     end
   end
-  
+
   class RunRedcapLoader < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
