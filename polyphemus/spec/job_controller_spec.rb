@@ -72,7 +72,6 @@ describe Polyphemus::Server do
       model_names: "all", redcap_tokens: ["123"]
     })
 
-    puts last_response
     expect(last_response.status).to eq(200)
 
     expect(json_body[:results].keys.first).to eq(:model_one)

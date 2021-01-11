@@ -45,7 +45,7 @@ AUTH_USERS = {
     email: 'zeus@twelve-labors.org', first: 'Zeus', perm: 'a:administration'
   },
   administrator: {
-    email: 'hera@twelve-labors.org', first: 'Hera', perm: 'a:test'
+    email: 'hera@twelve-labors.org', first: 'Hera', perm: 'a:test', exp: 86401608136635
   },
   editor: {
     email: 'eurystheus@twelve-labors.org', first: 'Eurystheus', perm: 'e:labors'
