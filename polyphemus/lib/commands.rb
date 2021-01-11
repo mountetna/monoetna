@@ -512,7 +512,6 @@ class Polyphemus
     include WithEtnaClients
     include WithLogger
 
-    string_flags << '--out-dir'
     boolean_flags << '--stub-files'
 
     MATERIALIZE_ATTRIBUTES = {
@@ -689,7 +688,7 @@ class Polyphemus
         ],
     }
 
-    def execute(project_name, model_name, stub_files: false, out_dir: '', filter: '')
+    def execute(stub_files: false, filter: '')
       workflow = Etna::Clients::Magma::MaterializeDataWorkflow.new(
           model_attributes_mask: MATERIALIZE_ATTRIBUTES,
           model_filters: {
@@ -697,36 +696,25 @@ class Polyphemus
               'patient' => 'comet_plus=true'
           },
           metis_client: metis_client, magma_client: magma_client, logger: logger,
-          project_name: project_name, model_name: model_name, stub_files: stub_files,
+          project_name: 'mvir1', model_name: 'patient', stub_files: stub_files,
           filesystem: filesystem)
 
-      workflow.with_materialized_dir do |dir|
-        FileUtils.cp_r(dir, '/home/home/mvir1-share')
+      workflow.with_materialized_dir("/Upload/Comet", remove_on_failure: false, remove_on_success: false) do |dir|
+        logger.info("Done")
       end
-
-      puts "Total size: #{@size_cell[0]} bytes"
     end
 
     def filesystem
-      return Etna::Filesystem.new
+      aspera_comet = Polyphemus.instance.config(:aspera_comet)
+      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(**aspera_comet)
+    end
 
-      @filesystem ||= begin
-        # Shareable reference cell
-        size = @size_cell = [0]
-        Etna::Filesystem::Mock.new do |fname, opts|
-          puts "Creating file #{fname}"
-
-          io = Etna::Filesystem::EmptyIO.new
-          io.define_singleton_method(:write) do |chunk|
-            size[0] += chunk.length
-          end
-
-          io
-        end
-      end
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
     end
   end
-  
+
   class RunRedcapLoader < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
