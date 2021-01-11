@@ -24,9 +24,11 @@ module Etna
           @model_walker ||= WalkModelTreeWorkflow.new(magma_crud: magma_crud, logger: logger)
         end
 
-        def with_materialized_dir(&block)
-          tmp_dir = filesystem.tmpdir
-
+        def with_materialized_dir(
+            dir = filesystem.tmpdir,
+            remove_on_failure: true,
+            remove_on_success: true,
+            &block)
           begin
             model_walker.walk_from(
                 model_name,
@@ -34,12 +36,14 @@ module Etna
                 model_filters: model_filters,
             ) do |template, document|
               logger&.info("Materializing #{template.name}##{document[template.identifier]}")
-              materialize_record(tmp_dir, template, document)
+              materialize_record(dir, template, document)
             end
 
-            yield tmp_dir
-          ensure
-            filesystem.rm_rf(tmp_dir)
+            yield dir
+            filesystem.rm_rf(dir) if remove_on_success
+          rescue => e
+            filesystem.rm_rf(dir) if remove_on_failure
+            raise e
           end
         end
 
@@ -100,16 +104,43 @@ module Etna
             logger&.info("materializing file #{filename} (#{size} bytes)")
             filesystem.mkdir_p(File.dirname(File.join(dest_dir, dest_file)))
 
-            filesystem.with_writeable(File.join(dest_dir, dest_file), "w") do |io|
+            upload_timings = []
+            upload_amount = 0
+            last_rate = 0.00001
+
+            filesystem.with_writeable(File.join(dest_dir, dest_file), "w", size_hint: size) do |io|
               if stub_files
                 io.write("(stub) #{filename}: #{size} bytes")
               else
                 metis_client.download_file(url) do |chunk|
-                  if Random.rand < 0.1
-                    logger&.info("Writing #{chunk.length} bytes into #{dest_file}")
+                  io.write(chunk)
+
+                  upload_timings << [chunk.length, Time.now.to_f]
+                  upload_amount += chunk.length
+
+                  if upload_timings.length > 50
+                    s, _ = upload_timings.shift
+                    upload_amount -= s
                   end
 
-                  io.write(chunk)
+                  _, start_time = upload_timings.first
+                  _, end_time = upload_timings.last
+
+                  if start_time == end_time
+                    next
+                  end
+
+                  rate = upload_amount / (end_time - start_time)
+
+                  if rate / last_rate > 1.2 || rate / last_rate < 0.8
+                    logger&.info("Uploading #{Etna::Formatting.as_size(rate)} per second")
+
+                    if rate == 0
+                      last_rate = 0.0001
+                    else
+                      last_rate = rate
+                    end
+                  end
                 end
               end
             end

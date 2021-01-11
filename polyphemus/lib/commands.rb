@@ -699,16 +699,19 @@ class Polyphemus
           project_name: 'mvir1', model_name: 'patient', stub_files: stub_files,
           filesystem: filesystem)
 
-      workflow.with_materialized_dir do |dir|
-        filesystem.run_ascli_cmd("mv", dir, "/Upload/gne-shared-#{DateTime.now.iso8601}")
+      workflow.with_materialized_dir("/Upload/Comet", remove_on_failure: false, remove_on_success: false) do |dir|
+        logger.info("Done")
       end
     end
 
     def filesystem
-      ascli_bin = `which ascli`.chomp
-      ascp_bin = `ascli config ascp`.chomp
-      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(ascli_bin: ascli_bin, ascp_bin: ascp_bin,
-          host: "aspera01p-pxy.gene.com", username: "collinsz99", key_file: "/home/runner/.ssh/id_rsa_gne")
+      aspera_comet = Polyphemus.instance.config(:aspera_comet)
+      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(**aspera_comet)
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
     end
   end
 
