@@ -61,6 +61,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
     before do
       stub_magma_models
       stub_redcap_data
+      copy_redcap_project
     end
 
     let(:raw_data) {
@@ -115,7 +116,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
       raw_data_123 = data_for_id('123')
       id_456 = temp_id(records, "456")
       id_000 = temp_id(records, "000")
-      id_123 = temp_id(records, "123")
+      id_123 = "123"
 
       # Dateshift checks
       expect(records[:model_one][id_456][:birthday]).not_to eq(raw_data_456[:value])
@@ -160,7 +161,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
       records = redcap_etl.run(magma_client: magma_client)
 
       raw_template_today = template_for_field('today')
-      id_123 = temp_id(records, "123")
+      id_123 = "123"
 
       expect(records[:model_two][id_123][:label]).to eq(raw_template_today[:field_label])
     end
@@ -185,6 +186,83 @@ describe Polyphemus::RedcapEtlScriptRunner do
       expect(records.keys.include?(:model_two)).to eq(false)
 
       expect(records[:model_one].keys.length).to eq(6)
+    end
+
+    it 'updates a specific record' do
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test',
+        model_names: ["model_two"],
+        redcap_tokens: ["faketoken"],
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST,
+        record_names: '123'
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token')
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      expect(records.keys.include?(:model_two)).to eq(true)
+      expect(records[:model_two].keys.length).to eq(1)
+      expect(records[:model_two].keys.first).to eq("123")
+
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test',
+        model_names: ["model_two"],
+        redcap_tokens: ["faketoken"],
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST,
+        record_names: '321'
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token')
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      expect(records.keys.include?(:model_two)).to eq(true)
+      expect(records[:model_two].keys.length).to eq(1)
+      expect(records[:model_two].keys.first).to eq("321")
+    end
+
+    it 'updates records even if not in Magma' do
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test',
+        model_names: ["model_two"],
+        redcap_tokens: ["faketoken"],
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token')
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      expect(records.keys.include?(:model_two)).to eq(true)
+      expect(records[:model_two].keys.length).to eq(2)
+      expect(records[:model_two].keys).to match_array(["123", "321"])
+    end
+
+    it 'updates only records in Magma' do
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test',
+        model_names: ["model_two"],
+        redcap_tokens: ["faketoken"],
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST,
+        record_names: "existing"
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token')
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      expect(records.keys.include?(:model_two)).to eq(true)
+      expect(records[:model_two].keys.length).to eq(1)
+      expect(records[:model_two].keys).to eq(["123"])
     end
   end
 end

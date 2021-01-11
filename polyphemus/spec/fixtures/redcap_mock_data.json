@@ -12,6 +12,12 @@
     "value": "2020-01-01"
   },
   {
+    "record": "321",
+    "redcap_event_name": "Calendar event",
+    "field_name": "today",
+    "value": "2021-01-01"
+  },
+  {
     "record": "456",
     "redcap_event_name": "Birthday Party!",
     "field_name": "date_of_birth",

@@ -12,10 +12,10 @@ require_relative '../../magma_record_etl'
 class Polyphemus
   class RedcapEtlScriptRunner < EtlScriptRunner
 
-    attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :dateshift_salt
+    attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :dateshift_salt, :record_names
 
     # Override initialize, user won't be passing in a filename directly as with other ETLs.
-    def initialize(project_name:, model_names:, redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:)
+    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:, record_names: nil)
       raise "No dateshift_salt provided, please provide one." unless dateshift_salt
 
       raise "Must provide at least one REDCap token." unless redcap_tokens&.length > 0
@@ -34,7 +34,7 @@ class Polyphemus
       @redcap_host = redcap_host
       @magma_host = magma_host
       @dateshift_salt = dateshift_salt
-
+      @record_names = record_names # array of record_names to update, nil, or "all"
     end
 
     def run(magma_client:, commit: false, logger: STDOUT)
@@ -71,7 +71,8 @@ class Polyphemus
         redcap_host: redcap_host,
         magma_host: magma_host,
         project_name: @project_name,
-        models_to_build: model_names
+        models_to_build: model_names,
+        records_to_update: record_names
       }
     end
 
