@@ -3,7 +3,7 @@ require 'json'
 
 describe Etna::Clients::Magma::AttributeActionsFromJsonWorkflow do
   let(:magma_client) {Etna::Clients::Magma.new(
-    token: '123',
+    token: TEST_TOKEN,
     host: MAGMA_HOST)}
 
   before(:each) do
@@ -31,16 +31,16 @@ describe Etna::Clients::Magma::AttributeActionsFromJsonWorkflow do
     workflow.run!
 
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
-      with(headers: {Authorization: 'Etna 123'}).
+      with(headers: {Authorization: "Etna #{TEST_TOKEN}"}).
       with { |req| req.body.include?('add_attribute') }.times(1)
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
-      with(headers: {Authorization: 'Etna 123'}).
+      with(headers: {Authorization: "Etna #{TEST_TOKEN}"}).
       with { |req| req.body.include?('rename_attribute') }.times(1)
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
-      with(headers: {Authorization: 'Etna 123'}).
+      with(headers: {Authorization: "Etna #{TEST_TOKEN}"}).
       with { |req| req.body.include?('update_attribute') }.times(1)
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update_model/).
-      with(headers: {Authorization: 'Etna 123'}).
+      with(headers: {Authorization: "Etna #{TEST_TOKEN}"}).
       with { |req| req.body.include?('add_link') }.times(1)
   end
 end
