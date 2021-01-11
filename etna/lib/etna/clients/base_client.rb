@@ -10,13 +10,15 @@ module Etna
         raise "#{self.class.name} client configuration is missing host." unless host
         raise "#{self.class.name} client configuration is missing token." unless token
 
+        @token = token
+        raise "Your token is expired." if token_expired?
+
         @etna_client = ::Etna::Client.new(
           host,
           token,
           routes_available: false,
           ignore_ssl: ignore_ssl)
         @host = host
-        @token = token
         @ignore_ssl = ignore_ssl
       end
 
@@ -26,6 +28,7 @@ module Etna
       end
 
       def token_will_expire?(offset=3000)
+        # offset in seconds
         # Will the user's token expire in the given amount of time?
         epoch_seconds = JSON.parse(Base64.urlsafe_decode64(token.split('.')[1]))["exp"]
         expiration = DateTime.strptime(epoch_seconds.to_s, "%s")
