@@ -6,6 +6,7 @@ require 'bundler'
 require 'securerandom'
 require 'timecop'
 require 'webmock/rspec'
+require 'base64'
 
 Bundler.setup(:default, :test)
 
@@ -71,10 +72,14 @@ PROJECT = 'test'
 RESTRICT_BUCKET = 'restrict'
 RELEASE_BUCKET = 'release'
 
-# This is a development token and is safe to make public, does not leak anything about production or staging values
-# and cannot be used in a sensitive way.
 # This must be used for any test that stands up a service client (i.e. Etna::Clients::Magma).
-TEST_TOKEN = 'eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6ImRldmVsb3BlckB1Y3NmLmVkdSIsImZpcnN0IjoiRGV2ZWxvcGVyIiwibGFzdCI6InBlcnNvbiIsInBlcm0iOiJhOnRlc3QtcHJvamVjdCIsImV4cCI6ODY0MDE2MDgxMzY2MzV9.bfQvrJzyHIeQeOwx8up93FcfCfQ8iLw774h7QKDtpl0SuRqxt0XpO1_v80eJdLQmHW9-u2Tc2OviaW2CsLLi7auk5yJCUnwOecU3V8hwicXndpfcyLQAfH6JKC1ZjcfkNR_yDVChtSsaOUD6qWeyqv0SuUKof8quN6rmF3RxuGCoG078fT0YUJfG1rquY-jnvgt_4F459xSSa02eS5Sx2vw3MEojAUheEZGdi3l5waIHh_vDdN96e3pfLiZ5bzAHP3bYJLalF__wXeEMM8Sz-zUZoqbDO2rFUjI-Vh33yQ2qvAopgMGoElfIrQMM4ZASkjsTL-ulENQDktJLYHhQmw'
+params = {
+  email: "user@example.com",
+  first: "first",
+  last: "last",
+  exp: 86401608136635
+}
+TEST_TOKEN = "something.#{Base64.strict_encode64(params.to_json)}"
 
 def stub_metis_setup
   route_payload = JSON.generate([
