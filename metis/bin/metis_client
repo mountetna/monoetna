@@ -943,6 +943,11 @@ EOT
       exit
     end
 
+    if token_expired?
+      puts "Your token is expired. Please provide a new one in your environment."
+      exit
+    end
+
     match = METIS_PATH.match(path)
 
     @host = MetisConfig[:metis_host]
@@ -1081,7 +1086,7 @@ EOT
   def project_list
     @project_list ||= begin
       JSON.parse(
-        Base64.decode64(@token.split(/\./)[test_env? ? 0 : 1])
+        Base64.decode64(@token.split(/\./)[1])
       )["perm"].split(/;/).map{|l| l.split(/:/).last.split(/,/) }.flatten
     rescue
       puts "Could not parse token"
@@ -1130,6 +1135,20 @@ EOT
       input[:command],
       *Shellwords.split(input[:args] || '')
     ]
+  end
+
+  # This is duplicated code because we need to refactor Metis client
+  #   to use the etna gem clients...
+  def token_expired?
+    # Has the token already expired?
+    token_will_expire?(0)
+  end
+
+  def token_will_expire?(offset=3000)
+    # Will the user's token expire in the given amount of time?
+    epoch_seconds = JSON.parse(Base64.urlsafe_decode64(@token.split('.')[1]))["exp"]
+    expiration = DateTime.strptime(epoch_seconds.to_s, "%s")
+    expiration <= DateTime.now.new_offset + offset
   end
 end
 

@@ -6,6 +6,7 @@ require 'bundler'
 require 'securerandom'
 require 'timecop'
 require 'webmock/rspec'
+require 'base64'
 
 Bundler.setup(:default, :test)
 
@@ -70,6 +71,15 @@ POLYPHEMUS_HOST = 'https://polyphemus.test'
 PROJECT = 'test'
 RESTRICT_BUCKET = 'restrict'
 RELEASE_BUCKET = 'release'
+
+# This must be used for any test that stands up a service client (i.e. Etna::Clients::Magma).
+params = {
+  email: "user@example.com",
+  first: "first",
+  last: "last",
+  exp: 86401608136635
+}
+TEST_TOKEN = "something.#{Base64.strict_encode64(params.to_json)}"
 
 def stub_metis_setup
   route_payload = JSON.generate([
