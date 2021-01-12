@@ -275,8 +275,6 @@ class MetisClient
     response = json_post("/#{project_name}/file/copy/#{URI.encode(old_file_path)}",
       new_file_path: new_file_path,
       new_bucket_name: new_bucket_name)
-    require 'pry'
-    binding.pry
 
     raise MetisClient::Error, "Could not copy file #{file_path} to #{proposed_file_path}\n#{error(response)}" unless response.code == "200"
   end
