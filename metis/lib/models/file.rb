@@ -124,7 +124,7 @@ class Metis
         return old_dest_file
       else
         return Metis::File.create(
-          project_name: params[:project_name],
+          project_name: dest_bucket.project_name,
           file_name: dest_file_name,
           folder_id: dest_folder&.id,
           bucket: dest_bucket,

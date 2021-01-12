@@ -669,6 +669,7 @@ describe FileController do
       expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
 
       expect(new_wisdom_file.bucket).to eq(backup_bucket)
+      expect(new_wisdom_file.project_name).to eq('backup')
     end
 
     it 'throws exception if no permissions on dest project' do
@@ -1098,6 +1099,7 @@ describe FileController do
       expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
 
       expect(new_wisdom_file.bucket).to eq(backup_bucket)
+      expect(new_wisdom_file.project_name).to eq('backup')
     end
 
     it 'throws exception if no permissions on dest project' do

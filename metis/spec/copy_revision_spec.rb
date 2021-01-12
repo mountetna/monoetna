@@ -250,6 +250,7 @@ describe Metis::CopyRevision do
         expect(Metis::File.count).to eq(2)
         expect(learn_wisdom.data_block).to eq(@wisdom_file.data_block)
         expect(learn_wisdom.bucket).to eq(backup_bucket)
+        expect(learn_wisdom.project_name).to eq('backup')
     end
 
     it 'throws exception if you try to revise without setting user' do
