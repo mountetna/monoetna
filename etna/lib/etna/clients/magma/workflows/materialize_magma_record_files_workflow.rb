@@ -10,7 +10,7 @@ module Etna
           :metis_client, :magma_client, :project_name,
           :model_name, :model_filters, :model_attributes_mask,
           :filesystem, :logger, :stub_files,
-          keyword_init: true)
+          :skip_tmpdir, keyword_init: true)
 
         def initialize(**kwds)
           super(**({filesystem: Etna::Filesystem.new}.update(kwds)))
@@ -78,6 +78,7 @@ module Etna
           @sync_metis_data_workflow ||= Etna::Clients::Metis::SyncMetisDataWorkflow.new(
               metis_client: metis_client,
               logger: logger,
+              skip_tmpdir: skip_tmpdir,
               filesystem: filesystem)
         end
 

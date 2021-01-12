@@ -697,7 +697,7 @@ class Polyphemus
           },
           metis_client: metis_client, magma_client: magma_client, logger: logger,
           project_name: 'mvir1', model_name: 'patient', stub_files: stub_files,
-          filesystem: filesystem)
+          filesystem: filesystem, skip_tmpdir: true)
 
       workflow.materialize_all("/Upload")
       logger.info("Done")
@@ -720,11 +720,11 @@ class Polyphemus
 
     def execute
       workflow = Etna::Clients::Metis::SyncMetisDataWorkflow.new(
-          metis_client: metis_client, logger: logger,
+          metis_client: metis_client, logger: logger, skip_tmpdir: true,
           project_name: 'mvir1', bucket_name: 'data',
           filesystem: filesystem)
 
-      workflow.copy_directory("single_cell_TCR/processed", "/Upload/pool", "/Upload")
+      workflow.copy_directory("single_cell_TCR/processed", "/Upload/pool", "/Upload", nil)
       logger.info("Done")
     end
 
