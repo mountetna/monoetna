@@ -253,5 +253,8 @@ def copy_redcap_project
   redcap_projects_dir = File.dirname(REDCAP_PROJECT_CONFIG_PATH)
   test_fixture_path = "spec/fixtures/etls/redcap/#{File.basename(REDCAP_PROJECT_CONFIG_PATH)}"
   FileUtils.mkdir_p(redcap_projects_dir) unless Dir.exist?(redcap_projects_dir)
-  FileUtils.cp(test_fixture_path, REDCAP_PROJECT_CONFIG_PATH) unless File.exist?(REDCAP_PROJECT_CONFIG_PATH)
+
+  # Make sure we have the newest test project.
+  File.delete(REDCAP_PROJECT_CONFIG_PATH) if File.file?(REDCAP_PROJECT_CONFIG_PATH)
+  FileUtils.cp(test_fixture_path, REDCAP_PROJECT_CONFIG_PATH)
 end

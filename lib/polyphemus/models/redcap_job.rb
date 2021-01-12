@@ -8,7 +8,11 @@ class Polyphemus
     def validate
       require_job_params(:redcap_tokens, :model_names)
       raise JobError, "redcap_tokens must be an array of tokens." unless job_params[:redcap_tokens].is_a?(Array)
-      raise JobError, "model_names must be \"all\" or an array of model names." unless job_params[:model_names].is_a?(Array) || "all" == job_params[:model_names]
+      raise JobError, "model_names must be \"all\" or an array of model names." unless array_or_string_param(:model_names)
+
+      if job_params[:record_names]
+        raise JobError, "record_names must be nil, \"existing\", or an array of record names." unless array_or_string_param(:record_names, "existing")
+      end
     end
 
     def run
@@ -22,6 +26,10 @@ class Polyphemus
     end
 
     private
+
+    def array_or_string_param(param, str="all")
+      job_params[param].is_a?(Array) || str == job_params[param]
+    end
 
     def commit?
       !!job_params[:commit]
@@ -54,7 +62,8 @@ class Polyphemus
         redcap_tokens: job_params[:redcap_tokens],
         dateshift_salt: Polyphemus.instance.config(:dateshift_salt).to_s,
         redcap_host: Polyphemus.instance.config(:redcap)[:host],
-        magma_host: Polyphemus.instance.config(:magma)[:host]
+        magma_host: Polyphemus.instance.config(:magma)[:host],
+        record_names: job_params[:record_names]
       )
 
       magma_client = Etna::Clients::Magma.new(

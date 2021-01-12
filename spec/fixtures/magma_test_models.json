@@ -89,6 +89,11 @@
       }
     },
     "model_two": {
+      "documents": {
+        "123": {
+          "identifier": "123"
+        }
+      },
       "template": {
         "name": "model_two",
         "identifier": "name",

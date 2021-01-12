@@ -7,7 +7,10 @@ module Redcap
       @logger = logger
 
       @magma_models = magma_client.retrieve(
-        Etna::Clients::Magma::RetrievalRequest.new(project_name: @config[:project_name])
+        Etna::Clients::Magma::RetrievalRequest.new(
+          project_name: @config[:project_name],
+          attribute_names: "identifier",
+          record_names: "all")
       ).models
     end
 
@@ -27,7 +30,9 @@ module Redcap
 
         project.fetch_records.each do |model_name, model_records|
           records[model_name] = {} unless records.keys.include?(model_name)
-          records[model_name].update(model_records)
+          records[model_name].update(
+            filter_records(model_name, model_records)
+          )
         end
       end
     end
@@ -59,6 +64,28 @@ module Redcap
 
     def tokens
       config[:tokens]
+    end
+
+    def filter_records(model_name, model_records)
+      return model_records unless restrict_records_to_update?
+
+      model_records = filter_records_by_allowed_list(model_name, model_records)
+
+      model_records
+    end
+
+    def filter_records_by_allowed_list(model_name, model_records)
+      model_records.slice(*allowed_record_names(model_name))
+    end
+
+    def restrict_records_to_update?
+      !!config[:records_to_update]
+    end
+
+    def allowed_record_names(model_name)
+      return config[:records_to_update] unless "existing" == config[:records_to_update]
+
+      magma_models.model(model_name.to_s).documents.document_keys
     end
   end
 end
