@@ -255,6 +255,6 @@ def copy_redcap_project
   FileUtils.mkdir_p(redcap_projects_dir) unless Dir.exist?(redcap_projects_dir)
 
   # Make sure we have the newest test project.
-  File.delete(REDCAP_PROJECT_CONFIG_PATH)
+  File.delete(REDCAP_PROJECT_CONFIG_PATH) if File.file?(REDCAP_PROJECT_CONFIG_PATH)
   FileUtils.cp(test_fixture_path, REDCAP_PROJECT_CONFIG_PATH)
 end
