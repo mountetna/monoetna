@@ -13,11 +13,11 @@ module Etna
         end
       end
 
-      class RedcapJobRequest < Struct.new(:model_names, :redcap_tokens, :commit, :project_name, keyword_init: true)
+      class RedcapJobRequest < Struct.new(:model_names, :redcap_tokens, :commit, :project_name, :record_names, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)
-          super({model_names: 'all', commit: false}.update(params))
+          super({model_names: 'all', record_names: nil, commit: false}.update(params))
         end
 
         def to_json
@@ -26,7 +26,8 @@ module Etna
             job_params: {
               commit: commit,
               model_names: model_names,
-              redcap_tokens: redcap_tokens
+              redcap_tokens: redcap_tokens,
+              record_names: record_names
             }
           }.to_json
         end

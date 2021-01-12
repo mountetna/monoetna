@@ -351,14 +351,16 @@ class EtnaApp
 
         boolean_flags << '--commit'
         string_flags << '--models'
+        string_flags << '--record_names'
 
-        def execute(project_name, redcap_tokens, models: "all", commit: false)
+        def execute(project_name, redcap_tokens, models: "all", record_names: nil, commit: false)
           raise "Must provide at least one REDCap token (comma-separated)." unless redcap_tokens.split(',').length > 0
 
           puts "NOTE: This is a **preview** of what the data loading will look like. Use the --commit flag to load records into Magma." unless commit
 
           polyphemus_client.job(Etna::Clients::Polyphemus::RedcapJobRequest.new(
             model_names: "all" == models ? "all" : models.split(','),
+            record_names: nil == record_names ? nil : "existing" == record_names ? "existing" : record_names.split(','),
             redcap_tokens: redcap_tokens.split(','),
             project_name: project_name,
             commit: commit
