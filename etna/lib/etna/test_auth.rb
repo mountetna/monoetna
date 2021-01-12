@@ -7,7 +7,7 @@ module Etna
   class TestAuth < Auth
     def self.token_header(params)
       token = Base64.strict_encode64(params.to_json)
-      return [ 'Authorization', "Etna #{token}" ]
+      return [ 'Authorization', "Etna something.#{token}" ]
     end
 
     def self.token_param(params)
@@ -36,8 +36,12 @@ module Etna
 
       return false unless token
 
-      # here we simply base64-encode our user hash and pass it through
-      payload = JSON.parse(Base64.decode64(token))
+      # Here we simply base64-encode our user hash and pass it through
+      # In order to behave more like "real" tokens, we expect the user hash to be
+      #   in index 1 after splitting by ".".
+      # We do this to support Metis client tests, we pass in tokens with multiple "."-separated parts, so
+      #   have to account for that.
+      payload = JSON.parse(Base64.decode64(token.split('.')[1]))
 
       request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h, token)
     end

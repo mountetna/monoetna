@@ -196,7 +196,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         test_project = "test_add_project_models_workflow_full_ezdc"
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
-            token: ENV['TOKEN'] || 'token', ignore_ssl: true,
+            token: ENV['TOKEN'] || TEST_TOKEN, ignore_ssl: true,
         )
 
         magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(
@@ -256,7 +256,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         test_project = "test_add_project_models_workflow_full_tzi"
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
-            token: ENV['TOKEN'] || 'token', ignore_ssl: true,
+            token: ENV['TOKEN'] || TEST_TOKEN, ignore_ssl: true,
         )
 
         magma_client.update_model(Etna::Clients::Magma::UpdateModelRequest.new(

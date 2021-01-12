@@ -3,7 +3,7 @@ require 'json'
 require_relative '../../../lib/etna/clients/polyphemus'
 
 describe 'Polyphemus Client class' do
-  let(:test_class) { Etna::Clients::Polyphemus.new(token: 'fake-token', host: 'https://polyphemus.test') }
+  let(:test_class) { Etna::Clients::Polyphemus.new(token: TEST_TOKEN, host: 'https://polyphemus.test') }
 
   before(:each) do
     stub_polyphemus_setup

@@ -171,7 +171,11 @@ module Etna
 
       class FoldersAndFilesResponse < FoldersResponse
         def files
-          Files.new(raw[:files])
+          Files.new(raw[:files] || [])
+        end
+
+        def folders
+          Folders.new(raw[:folders] || [])
         end
       end
 
@@ -251,6 +255,10 @@ module Etna
 
         def folder_path
           raw[:folder_path]
+        end
+
+        def folder_name
+          raw[:folder_name]
         end
 
         def bucket_name

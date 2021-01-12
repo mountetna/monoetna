@@ -512,7 +512,6 @@ class Polyphemus
     include WithEtnaClients
     include WithLogger
 
-    string_flags << '--out-dir'
     boolean_flags << '--stub-files'
 
     MATERIALIZE_ATTRIBUTES = {
@@ -689,7 +688,7 @@ class Polyphemus
         ],
     }
 
-    def execute(project_name, model_name, stub_files: false, out_dir: '', filter: '')
+    def execute(stub_files: false)
       workflow = Etna::Clients::Magma::MaterializeDataWorkflow.new(
           model_attributes_mask: MATERIALIZE_ATTRIBUTES,
           model_filters: {
@@ -697,36 +696,49 @@ class Polyphemus
               'patient' => 'comet_plus=true'
           },
           metis_client: metis_client, magma_client: magma_client, logger: logger,
-          project_name: project_name, model_name: model_name, stub_files: stub_files,
+          project_name: 'mvir1', model_name: 'patient', stub_files: stub_files,
           filesystem: filesystem)
 
-      workflow.with_materialized_dir do |dir|
-        FileUtils.cp_r(dir, '/home/home/mvir1-share')
-      end
-
-      puts "Total size: #{@size_cell[0]} bytes"
+      workflow.materialize_all("/Upload")
+      logger.info("Done")
     end
 
     def filesystem
-      return Etna::Filesystem.new
+      aspera_comet = Polyphemus.instance.config(:aspera_comet)
+      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(**aspera_comet)
+    end
 
-      @filesystem ||= begin
-        # Shareable reference cell
-        size = @size_cell = [0]
-        Etna::Filesystem::Mock.new do |fname, opts|
-          puts "Creating file #{fname}"
-
-          io = Etna::Filesystem::EmptyIO.new
-          io.define_singleton_method(:write) do |chunk|
-            size[0] += chunk.length
-          end
-
-          io
-        end
-      end
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
     end
   end
-  
+
+  class CopyGNEPoolData < Etna::Command
+    include WithEtnaClients
+    include WithLogger
+
+    def execute
+      workflow = Etna::Clients::Metis::SyncMetisDataWorkflow.new(
+          metis_client: metis_client, logger: logger,
+          project_name: 'mvir1', bucket_name: 'data',
+          filesystem: filesystem)
+
+      workflow.copy_directory("single_cell_TCR/processed", "/Upload/pool", "/Upload")
+      logger.info("Done")
+    end
+
+    def filesystem
+      aspera_comet = Polyphemus.instance.config(:aspera_comet)
+      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(**aspera_comet)
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+    end
+  end
+
   class RunRedcapLoader < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger

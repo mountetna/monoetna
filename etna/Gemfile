@@ -10,6 +10,7 @@ gem 'rack-test', require: "rack/test"
 gem 'rollbar'
 gem 'vcr' # For Etna::Client in recording mode.
 gem 'multipart-post'
+gem 'aspera-cli'
 
 group :test do
   gem 'pry'
