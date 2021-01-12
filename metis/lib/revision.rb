@@ -78,7 +78,7 @@ class Metis
       if mpath_w_objs.bucket
         return true
       end
-      @errors.push("Invalid bucket: \"#{mpath_w_objs.mpath.bucket_name}\"")
+      @errors.push("Invalid bucket \"#{mpath_w_objs.mpath.bucket_name}\" in project \"#{mpath_w_objs.mpath.project_name}\". Check the bucket name and your permissions.")
       return false
     end
 

@@ -1054,6 +1054,34 @@ describe FileController do
       expect(new_wisdom_file.bucket).to eq(backup_bucket)
     end
 
+    it 'throws exception if no permissions on dest project' do
+      backup_bucket = default_bucket('backup')
+
+      token_header(:editor)
+
+      expect(Metis::File.count).to eq(2)
+
+      bulk_copy([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://second_backup/files/learn-wisdom.txt'
+      }])
+
+      stubs.add_file('backup', 'files', 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq([{
+        dest: "metis://second_backup/files/learn-wisdom.txt",
+        source: "metis://athena/files/wisdom.txt",
+        errors: ["Invalid bucket \"files\" in project \"second_backup\". Check the bucket name and your permissions."]}])
+
+      # the old file is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is no new file in the new bucket
+      expect(Metis::File.count).to eq(2)
+    end
+
     it 'refuses to copy without bucket permissions' do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'administrator', owner: 'metis' )
@@ -1071,7 +1099,7 @@ describe FileController do
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
         {"dest": "metis://athena/sundry/learn-wisdom.txt",
-         "errors": ["Invalid bucket: \"sundry\""],
+         "errors": ["Invalid bucket \"sundry\" in project \"athena\". Check the bucket name and your permissions."],
          "source": "metis://athena/files/wisdom.txt"}
       )
 
@@ -1129,7 +1157,7 @@ describe FileController do
       expect(json_body[:errors].length).to eq(1)
       expect(json_body[:errors][0]).to eq(
         {"dest": "metis://athena/sundry/learn-wisdom.txt",
-         "errors": ["Invalid bucket: \"sundry\""],
+         "errors": ["Invalid bucket \"sundry\" in project \"athena\". Check the bucket name and your permissions."],
          "source": "metis://athena/files/wisdom.txt"}
       )
 
@@ -1282,7 +1310,7 @@ describe FileController do
           "errors": ["Invalid path: \"\""],
           "source": "metis://athena/files/wisdom.txt"},
          {"dest": "metis://athena/sundry/learn-wisdom2.txt",
-          "errors": ["Invalid bucket: \"sundry\""],
+          "errors": ["Invalid bucket \"sundry\" in project \"athena\". Check the bucket name and your permissions."],
           "source": "metis://athena/files/wisdom.txt"}]
       )
 
@@ -1381,13 +1409,13 @@ describe FileController do
       expect(json_body[:errors].length).to eq(3)
       expect(json_body[:errors]).to eq(
         [{"dest": "metis://athena/sundry/learn-wisdom3.txt",
-         "errors": ["Invalid bucket: \"sundry\""],
+         "errors": ["Invalid bucket \"sundry\" in project \"athena\". Check the bucket name and your permissions."],
          "source": "metis://athena/files/wisdom.txt"},
         {"dest": "metis://athena/sundry/build-helmet.jpg",
-         "errors": ["Invalid bucket: \"sundry\""],
+         "errors": ["Invalid bucket \"sundry\" in project \"athena\". Check the bucket name and your permissions."],
          "source": "metis://athena/files/blueprints/helmet/helmet.jpg"},
         {"dest": "metis://athena/magma/polish-helmet.jpg",
-         "errors": ["Invalid bucket: \"sundry\""],
+         "errors": ["Invalid bucket \"sundry\" in project \"athena\". Check the bucket name and your permissions."],
          "source": "metis://athena/sundry/shiny-helmet.jpg"}])
 
       # there are no new files
