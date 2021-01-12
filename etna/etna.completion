@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+
 function _etna_completions() {
   _etna_inner_completions "${COMP_WORDS[@]:1:COMP_CWORD}"
 }
