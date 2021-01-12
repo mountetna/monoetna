@@ -499,9 +499,10 @@ COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
-all_flag_completion_names="$all_flag_completion_names --commit --models "
-string_flag_completion_names="$string_flag_completion_names --models "
+all_flag_completion_names="$all_flag_completion_names --commit --models --record_names "
+string_flag_completion_names="$string_flag_completion_names --models --record_names "
 declare _completions_for_models="__models__"
+declare _completions_for_record_names="__record_names__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
