@@ -5,7 +5,7 @@ gem 'sequel'
 gem 'pg'
 gem 'nokogiri'
 gem 'puma', '5.0.2'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/e127cbbd1eea6250e15f56cf7bf9c144904e353d'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/97f11e28eae7cf389a601da3e30698db8d1773b5'
 gem 'actionpack' # For streaming the job controller results back...
 
 group :development, :test do
