@@ -742,7 +742,7 @@ class Polyphemus
   class RunRedcapLoader < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
-    usage 'run_redcap_loader <env> <project_name> <model_names> <redcap_tokens> <record_names> [--execute]'
+    usage 'run_redcap_loader <env> <project_name> <model_names> <redcap_tokens> [--record_names] [--execute]'
     boolean_flags << '--execute'
     string_flags << '--record_names'
 
