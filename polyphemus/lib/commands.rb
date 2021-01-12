@@ -688,7 +688,7 @@ class Polyphemus
         ],
     }
 
-    def execute(stub_files: false, filter: '')
+    def execute(stub_files: false)
       workflow = Etna::Clients::Magma::MaterializeDataWorkflow.new(
           model_attributes_mask: MATERIALIZE_ATTRIBUTES,
           model_filters: {
@@ -699,9 +699,33 @@ class Polyphemus
           project_name: 'mvir1', model_name: 'patient', stub_files: stub_files,
           filesystem: filesystem)
 
-      workflow.with_materialized_dir("/Upload/Comet", remove_on_failure: false, remove_on_success: false) do |dir|
-        logger.info("Done")
-      end
+      workflow.materialize_all("/Upload")
+      logger.info("Done")
+    end
+
+    def filesystem
+      aspera_comet = Polyphemus.instance.config(:aspera_comet)
+      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(**aspera_comet)
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+    end
+  end
+
+  class CopyGNEPoolData < Etna::Command
+    include WithEtnaClients
+    include WithLogger
+
+    def execute
+      workflow = Etna::Clients::Metis::SyncMetisDataWorkflow.new(
+          metis_client: metis_client, logger: logger,
+          project_name: 'mvir1', bucket_name: 'data',
+          filesystem: filesystem)
+
+      workflow.copy_directory("single_cell_TCR/processed", "/Upload/pool", "/Upload")
+      logger.info("Done")
     end
 
     def filesystem
