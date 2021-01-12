@@ -11,7 +11,7 @@ class Polyphemus
       raise JobError, "model_names must be \"all\" or an array of model names." unless array_or_string_param(:model_names)
 
       if job_params[:record_names]
-        raise JobError, "record_names must be \"existing\" or an array of record names." unless array_or_string_param(:record_names, "existing")
+        raise JobError, "record_names must be nil, \"existing\", or an array of record names." unless array_or_string_param(:record_names, "existing")
       end
     end
 
