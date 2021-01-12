@@ -58,7 +58,7 @@ describe Etna::Clients::Magma::MaterializeDataWorkflow do
             stub_files: true,
         )
 
-        workflow.with_materialized_dir do |dir|
+        workflow.materialize_all do |dir|
           entries_by_dir = ::Dir.glob("**/*", base: dir).inject({}) do |acc, n|
             acc.tap do
               dirname = ::File.dirname(n)

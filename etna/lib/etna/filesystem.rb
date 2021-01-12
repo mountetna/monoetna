@@ -30,6 +30,10 @@ module Etna
       ::File.exist?(src)
     end
 
+    def mv(src, dest)
+      ::FileUtils.mv(src, dest)
+    end
+
     class EmptyIO < StringIO
       def write(*args)
         # Do nothing -- always leave empty
@@ -143,6 +147,10 @@ module Etna
         !run_ascli_cmd("ls", src).nil?
       end
 
+      def mv(src, dest)
+        raise "Failed to mv #{src} to #{dest}" unless run_ascli_cmd("mv", src, dest)
+      end
+
       def mkcommand(rd, wd, file, opts, size_hint: nil)
         env = {}
         cmd = [env, @ascp_bin]
@@ -182,8 +190,6 @@ module Etna
           cmd << { in: rd }
         end
 
-        p cmd
-
         cmd
       end
     end
@@ -219,6 +225,20 @@ module Etna
           @dirs[dest] = Set.new
           break if dest == "." || dest == "/"
           dest, _ = File.split(dest)
+        end
+      end
+
+      def mv(src, dest)
+        if exist?(dest)
+          raise "#{dest} already exists, cannot move"
+        end
+
+        if @dirs.include?(src)
+          @dirs[dest] = @dirs.delete(src)
+        elsif @files.include?(src)
+          @files[dest] = @files.delete(src)
+        else
+          raise "#{src} does not exist, cannot move"
         end
       end
 
