@@ -753,7 +753,7 @@ class Polyphemus
       redcap_etl = RedcapEtlScriptRunner.new(
         project_name: project_name,
         model_names: "all" == model_names ? "all" : model_names.split(','),
-        record_names: nil == record_names ? nil : "existing" == record_names ? "existing" : record_names.split(','),
+        record_names: nil == record_names || "existing" == record_names ? record_names : record_names.split(','),
         redcap_tokens: redcap_tokens.split(','),
         dateshift_salt: Polyphemus.instance.config(:dateshift_salt, @environ.environment),
         redcap_host: Polyphemus.instance.config(:redcap, @environ.environment)[:host],

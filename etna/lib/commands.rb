@@ -360,7 +360,7 @@ class EtnaApp
 
           polyphemus_client.job(Etna::Clients::Polyphemus::RedcapJobRequest.new(
             model_names: "all" == models ? "all" : models.split(','),
-            record_names: nil == record_names ? nil : "existing" == record_names ? "existing" : record_names.split(','),
+            record_names: nil == record_names || "existing" == record_names ? record_names : record_names.split(','),
             redcap_tokens: redcap_tokens.split(','),
             project_name: project_name,
             commit: commit
