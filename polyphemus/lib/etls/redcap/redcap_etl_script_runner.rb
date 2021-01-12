@@ -34,7 +34,7 @@ class Polyphemus
       @redcap_host = redcap_host
       @magma_host = magma_host
       @dateshift_salt = dateshift_salt
-      @record_names = record_names # array of record_names to update, nil, or "all"
+      @record_names = record_names # array of record_names to update, nil, or "existing"
     end
 
     def run(magma_client:, commit: false, logger: STDOUT)
