@@ -24,8 +24,8 @@ module Etna
           @model_walker ||= WalkModelTreeWorkflow.new(magma_crud: magma_crud, logger: logger)
         end
 
-        def materialize_all(dest = filesystem.tmpdir)
-          tmpdir = filesystem.tmpdir
+        def materialize_all(dest)
+          tmpdir = skip_tmpdir ? nil : filesystem.tmpdir
 
           begin
             model_walker.walk_from(
@@ -37,7 +37,7 @@ module Etna
               materialize_record(dest, tmpdir, template, document)
             end
           ensure
-            filesystem.rm_rf(tmpdir)
+            filesystem.rm_rf(tmpdir) unless skip_tmpdir
           end
         end
 

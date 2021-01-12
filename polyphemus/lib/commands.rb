@@ -705,7 +705,7 @@ class Polyphemus
 
     def filesystem
       aspera_comet = Polyphemus.instance.config(:aspera_comet)
-      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(**aspera_comet)
+      @filesystem ||= Etna::Filesystem::GeneAsperaCliFilesystem.new(**aspera_comet)
     end
 
     def setup(config)
@@ -730,7 +730,7 @@ class Polyphemus
 
     def filesystem
       aspera_comet = Polyphemus.instance.config(:aspera_comet)
-      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(**aspera_comet)
+      @filesystem ||= Etna::Filesystem::GeneAsperaCliFilesystem.new(**aspera_comet)
     end
 
     def setup(config)
