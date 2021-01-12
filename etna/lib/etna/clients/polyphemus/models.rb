@@ -1,14 +1,35 @@
 require 'ostruct'
 require_relative '../../json_serializable_struct'
+require_relative '../base_client'
 
 # TODO:  In the near future, I'd like to transition to specifying apis via SWAGGER and generating model stubs from the
 # common definitions.  For nowe I've written them out by hand here.
 module Etna
   module Clients
-    class Polyphemus
+    class Polyphemus < Etna::Clients::BaseClient
       class ConfigurationRequest
         def map
           []
+        end
+      end
+
+      class RedcapJobRequest < Struct.new(:model_names, :redcap_tokens, :commit, :project_name, :record_names, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({model_names: 'all', record_names: nil, commit: false}.update(params))
+        end
+
+        def to_json
+          {
+            job_type: Etna::Clients::Polyphemus::JobType::REDCAP,
+            job_params: {
+              commit: commit,
+              model_names: model_names,
+              redcap_tokens: redcap_tokens,
+              record_names: record_names
+            }
+          }.to_json
         end
       end
 
@@ -62,6 +83,11 @@ module Etna
         def auth_redirect
           @raw['auth_redirect']
         end
+      end
+
+      class JobType < String
+        include Enum
+        REDCAP = JobType.new("redcap")
       end
     end
   end

@@ -2,8 +2,8 @@ describe Etna::Clients::Magma::ModelSynchronizationWorkflow do
   # Swap this out if you like when you need to re-generate the recording.
   let(:target_project) { "testproject1234111" }
   let(:workflow) do
-    @source_client = Etna::Clients::Magma.new(host: "https://magma.ucsf.edu", token: ENV['PROD_TOKEN'] || 'token')
-    @target_client = Etna::Clients::Magma.new(host: "https://magma.development.local", token: ENV['LOCAL_TOKEN'] || 'token', persistent: false)
+    @source_client = Etna::Clients::Magma.new(host: "https://magma.ucsf.edu", token: ENV['PROD_TOKEN'] || TEST_TOKEN)
+    @target_client = Etna::Clients::Magma.new(host: "https://magma.development.local", token: ENV['LOCAL_TOKEN'] || TEST_TOKEN)
 
     @target_client.update_model(
         Etna::Clients::Magma::UpdateModelRequest.new(

@@ -48,7 +48,7 @@ describe AdminController do
       perm = create(:permission, project: door, user: user, role: 'administrator')
 
       auth_header(:janus)
-      get('/project/door')
+      get('/door')
 
       expect(last_response.status).to eq(200)
     end
@@ -60,7 +60,7 @@ describe AdminController do
       perm = create(:permission, project: door, user: user, role: 'editor')
 
       auth_header(:portunus)
-      get('/project/door')
+      get('/door')
 
       expect(last_response.status).to eq(200)
       expect(html_body.css('input')).to be_empty
@@ -73,7 +73,7 @@ describe AdminController do
       perm = create(:permission, project: door, user: user, role: 'viewer')
 
       auth_header(:lar)
-      get('/project/door')
+      get('/door')
 
       expect(last_response.status).to eq(403)
     end
@@ -82,7 +82,7 @@ describe AdminController do
       door = create(:project, project_name: 'door', project_name_full: 'Door')
 
       auth_header(:viewer)
-      get('/project/door')
+      get('/door')
 
       expect(last_response.status).to eq(403)
     end
@@ -96,7 +96,7 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'editor')
 
       auth_header(:janus)
-      get('/project/door')
+      get('/door')
 
       expect(last_response.status).to eq(200)
       expect(last_response.body).to match(/Door/)
@@ -116,7 +116,7 @@ describe AdminController do
       json_post('update_permission/door', email: 'portunus@two-faces.org', role: 'viewer')
 
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to eq('/project/door')
+      expect(last_response.headers['Location']).to eq('/door')
 
       perm2.refresh
       expect(perm2.role).to eq('viewer')
@@ -134,7 +134,7 @@ describe AdminController do
       json_post('update_permission/door', email: 'portunus@two-faces.org', affiliation: 'ILWU')
 
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to eq('/project/door')
+      expect(last_response.headers['Location']).to eq('/door')
 
       perm2.refresh
       expect(perm2.affiliation).to eq('ILWU')
@@ -152,7 +152,7 @@ describe AdminController do
       json_post('update_permission/door', email: 'portunus@two-faces.org', privileged: true)
 
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to eq('/project/door')
+      expect(last_response.headers['Location']).to eq('/door')
 
       perm2.refresh
       expect(perm2).to be_privileged
@@ -170,7 +170,7 @@ describe AdminController do
       json_post('update_permission/door', email: 'portunus@two-faces.org', privileged: false)
 
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to eq('/project/door')
+      expect(last_response.headers['Location']).to eq('/door')
 
       perm2.refresh
       expect(perm2).not_to be_privileged
@@ -256,7 +256,7 @@ describe AdminController do
       json_post('update_permission/door', email: 'portunus@two-faces.org', role: 'administrator')
 
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to eq('/project/door')
+      expect(last_response.headers['Location']).to eq('/door')
 
       perm2.refresh
       expect(perm2.role).to eq('administrator')
@@ -274,7 +274,7 @@ describe AdminController do
       json_post('update_permission/door', email: 'portunus@two-faces.org', role: 'editor')
 
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to eq('/project/door')
+      expect(last_response.headers['Location']).to eq('/door')
 
       perm2.refresh
       expect(perm2.role).to eq('editor')
@@ -309,7 +309,7 @@ describe AdminController do
       json_post('add_user/door', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor', affiliation: "ILWU")
 
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to eq('/project/door')
+      expect(last_response.headers['Location']).to eq('/door')
 
       expect(Permission.count).to eq(2)
       expect(User.count).to eq(2)
@@ -337,7 +337,7 @@ describe AdminController do
       json_post('add_user/door', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor')
 
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to eq('/project/door')
+      expect(last_response.headers['Location']).to eq('/door')
 
       expect(Permission.count).to eq(2)
       expect(User.count).to eq(2)
@@ -365,7 +365,7 @@ describe AdminController do
       json_post('add_user/door', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
 
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to eq('/project/door')
+      expect(last_response.headers['Location']).to eq('/door')
 
       expect(Permission.count).to eq(2)
       expect(User.count).to eq(2)
@@ -394,7 +394,7 @@ describe AdminController do
       json_post('add_user/door', email: 'portunus@two-faces.org', name: 'Portunus', role: 'editor', privileged: true)
 
       expect(last_response.status).to eq(302)
-      expect(last_response.headers['Location']).to eq('/project/door')
+      expect(last_response.headers['Location']).to eq('/door')
 
       expect(Permission.count).to eq(2)
       expect(User.count).to eq(2)

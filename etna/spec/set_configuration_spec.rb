@@ -16,7 +16,7 @@ describe EtnaApp::Config::Set do
   # Set TOKEN before re-recording test
   it 'collects server configuration into a local config file' do
     VCR.use_cassette('set_configuration_spec.e2e') do
-      ENV['TOKEN'] ||= 'token'
+      ENV['TOKEN'] ||= TEST_TOKEN
       cmd, args, kwds = EtnaApp.instance.find_command('config', 'set', 'https://polyphemus.development.local', '--ignore-ssl')
       cmd.execute(*args, **kwds)
     end

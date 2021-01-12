@@ -31,10 +31,24 @@ describe MetisShell do
       metis_uid_name: 'METIS_TEST_UID',
       metis_host: 'metis.test'
     )
-    ENV['TOKEN'] = Base64.strict_encode64(
-      { email: 'metis@olympus.org', perm: 'a:athena' }.to_json
+
+    token = Base64.strict_encode64(
+      { email: 'metis@olympus.org', perm: 'a:athena', exp: 253371439590 }.to_json
     )
+
+    ENV['TOKEN'] = "something.#{token}"
     stub_request(:any, %r!^https://metis.test/!).to_rack(app)
+  end
+
+  describe MetisShell do
+    it 'tells user if token is expired' do
+      # This is an expired development token and is safe to make public, does not leak anything about production or staging values
+      # and cannot be used in a sensitive way.
+      # This test depends on breaking down a tok to get expiration info, so it's important we actually set a token
+      ENV['TOKEN'] = 'eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6ImRldmVsb3BlckB1Y3NmLmVkdSIsImZpcnN0IjoiRGV2ZWxvcGVyIiwibGFzdCI6InBlcnNvbiIsInBlcm0iOiJhOnRlc3QtcHJvamVjdCIsImV4cCI6MTAwMH0.cTk-ea5WVpNR3-JXOhC7Z-1n3PL-4NKiZcpha4owr-pZoTtXfM9e3RH5sZW0UTKH7H-DYFdQNV7X1cOLCGTvAOk-3nfOCYHfAfM1sSlyEBEPw3E0dtNCO4APdK_Pz_yooO1yJMQHW0Af4MxTCku4Lu2004JnMsi-hkFATBmNlRprkdaUYHhaSW5rjQ3MSngvku88etZX1-2tFpi_q2FGBmj6_7GfXgxFESmWsGffci4uWceNzntkUIuO_r9xwSsTel99HNvCOnl39YqmnNHx-0uA9BrmyqZGI769f--22tqkpMe_ri-L5pGPZPjcKW2MQhDhl5mSIxCM37SAWsX1Dg'
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      expect_output("metis://athena", "ls") { %r!expired!}
+    end
   end
 
   describe MetisShell::Ls do
@@ -91,11 +105,35 @@ describe MetisShell do
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       expect_output("metis://athena/armor/", "ls", "helmet") { "helmet.jpg\n" }
     end
+
     it 'lists the project root directory' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       expect_output("metis://athena/armor/helmet", "ls", "/") { "armor/\n" }
+    end
+
+
+    it 'lists files directly' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'armor', 'helmet/helmet.jpg', HELMET)
+
+      expect_output("metis://athena/armor", "ls", "helmet/helmet.jpg") { %r!armor/helmet/helmet.jpg!m }
+    end
+
+    it 'lists files directly in long format' do
+      Timecop.freeze(DateTime.parse("2020-06-17T04:37"))
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'armor', 'helmet/helmet.jpg', HELMET)
+
+      expect_output("metis://athena/armor", "ls", "-l", "helmet/helmet.jpg") {
+        "metis 13 Jun 17 04:37 armor/helmet/helmet.jpg\n"
+      }
+      Timecop.return
     end
   end
 

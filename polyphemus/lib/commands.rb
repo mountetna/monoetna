@@ -9,6 +9,9 @@ require_relative 'data_processing/magma_dsl'
 require_relative 'data_processing/flow_jo_dsl'
 require_relative 'ipi/process_rna_seq_output'
 
+require_relative 'etls/redcap/redcap_etl_script_runner'
+
+
 class Polyphemus
   class Migrate < Etna::Command
     usage 'Run migrations for the current environment.'
@@ -387,9 +390,9 @@ class Polyphemus
       @environ = environment(env)
 
       linker = IpiFlowWspLinker.new(
-        magma_crud: magma_crud,
-        metis_client: @environ.metis_client,
-        project_name: project_name)
+          magma_crud: magma_crud,
+          metis_client: @environ.metis_client,
+          project_name: project_name)
       linker.link_files
     end
   end
@@ -404,7 +407,8 @@ class Polyphemus
     end
 
     def magma_crud
-      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: @environ.magma_client, project_name: project_name)
+      @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(
+        magma_client: @environ.magma_client, project_name: project_name)
     end
 
     def execute(env)
@@ -412,9 +416,9 @@ class Polyphemus
       @environ = environment(env)
 
       linker = IpiFlowFcsLinker.new(
-        magma_crud: magma_crud,
-        metis_client: @environ.metis_client,
-        project_name: project_name)
+          magma_crud: magma_crud,
+          metis_client: @environ.metis_client,
+          project_name: project_name)
       linker.link_files
     end
   end
@@ -504,6 +508,263 @@ class Polyphemus
     end
   end
 
+  class PullGNESharedData < Etna::Command
+    include WithEtnaClients
+    include WithLogger
+
+    boolean_flags << '--stub-files'
+
+    MATERIALIZE_ATTRIBUTES = {
+        'patient' => [
+            'created_at',
+            'updated_at',
+            'name',
+            'timepoint',
+            'status',
+            'symptom',
+            'history',
+            'treatment',
+            'testing',
+            'impacc_id',
+            'comet_id',
+            'symptom_date',
+            'height',
+            'weight',
+            'comet_plus',
+            'hosp_los',
+            'icu_los',
+            'sex_at_birth',
+            'vent_duration',
+            'd2b_id',
+            'race',
+            'bmi',
+            'ethnicity',
+            'age',
+            'english_proficiency',
+            'covid_status',
+            'admission_date',
+            'hospital_site',
+            'admission_level',
+            'oxygen_homesupport',
+            'discharge_icu',
+            'discharge_icu_to',
+            'discharg_icu_date',
+            'discharge_date',
+            'hospitalization_outcome',
+            'hospitalization_outcome_other',
+            'dead_after_discharge',
+            'deceased',
+            'date_of_death',
+            'age_at_death',
+            'cause_of_death',
+            'cause_of_death_other',
+            'pulmonary_infection',
+            'non_pulmonary_infection',
+            'date_of_birth',
+            'consent',
+        ],
+        'sc_rna_seq_pool' => [
+            'tenx_web_summary',
+            'biospecimen',
+            'tube_name',
+            'sc_rna_seq',
+            'cells_loaded',
+            'chemistry',
+            'genome',
+            'gene_annotation',
+            'tenx_metrics_csv',
+            'raw_counts_h5',
+            'filtered_counts_h5',
+            'tenx_cloupe_file',
+            'freemuxlet_sample_file',
+            'freemuxlet_vcf_file',
+        ],
+        'history' => [
+            'created_at',
+            'updated_at',
+            'name',
+            'present',
+        ],
+        'status' => [
+            'created_at',
+            'updated_at',
+            'name',
+            'value',
+        ],
+        'symptom' => [
+            'created_at',
+            'updated_at',
+            'name',
+            'present',
+            'bleeding_site',
+            'other_name',
+            'symptom_date',
+            'symptom_reported_by',
+        ],
+        'testing' => [
+            'created_at',
+            'updated_at',
+        ],
+        'timepoint' => [
+            'created_at',
+            'updated_at',
+            'name',
+            'sc_rna_seq',
+            'rna_seq',
+            'clinical_lab',
+            'day',
+            'study_day',
+            'patient_loc_today',
+            'mech_vent_today',
+            'immunoassay',
+        ],
+        'treatment' => [
+            'created_at',
+            'updated_at',
+            'name_hiv',
+            'other_meds_study',
+            'other_name',
+            'other_study',
+            'name',
+            'dose',
+            'start',
+            'end',
+            'study',
+        ],
+        'clinical_lab' => [
+            'created_at',
+            'updated_at',
+            'time',
+            'unit',
+            'value',
+            'name',
+        ],
+        'immunoassay' => [
+            'created_at',
+            'updated_at',
+            'name',
+            'assay_type',
+            'biospecimen',
+            'biospecimen_date',
+            'analyte',
+        ],
+        'rna_seq' => [
+            'tube_name',
+            'biospecimen',
+            'biospecimen_date',
+            'gene_tpm',
+        ],
+        'sc_rna_seq' => [
+            'tube_name',
+            'biospecimen_date',
+            # 'sc_rna_seq_pool',
+            'biospecimen',
+            'cells_loaded',
+            'chemistry',
+            'genome',
+            'gene_annotation',
+            'tenx_metrics_csv',
+            'tenx_web_summary',
+            'raw_counts_h5',
+            'filtered_counts_h5',
+            'tenx_cloupe_file',
+        ],
+        'analyte' => [
+            'created_at',
+            'updated_at',
+            'value',
+            'unit',
+            'alias',
+            'analyte_name',
+        ],
+        'document' => [
+            'created_at',
+            'updated_at',
+            'name',
+            'document_description',
+            'version',
+            'file',
+            'version_date',
+        ],
+    }
+
+    def execute(stub_files: false)
+      workflow = Etna::Clients::Magma::MaterializeDataWorkflow.new(
+          model_attributes_mask: MATERIALIZE_ATTRIBUTES,
+          model_filters: {
+              'immunoassay' => 'assay_type~^(?!Olink)',
+              'patient' => 'comet_plus=true'
+          },
+          metis_client: metis_client, magma_client: magma_client, logger: logger,
+          project_name: 'mvir1', model_name: 'patient', stub_files: stub_files,
+          filesystem: filesystem)
+
+      workflow.materialize_all("/Upload")
+      logger.info("Done")
+    end
+
+    def filesystem
+      aspera_comet = Polyphemus.instance.config(:aspera_comet)
+      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(**aspera_comet)
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+    end
+  end
+
+  class CopyGNEPoolData < Etna::Command
+    include WithEtnaClients
+    include WithLogger
+
+    def execute
+      workflow = Etna::Clients::Metis::SyncMetisDataWorkflow.new(
+          metis_client: metis_client, logger: logger,
+          project_name: 'mvir1', bucket_name: 'data',
+          filesystem: filesystem)
+
+      workflow.copy_directory("single_cell_TCR/processed", "/Upload/pool", "/Upload")
+      logger.info("Done")
+    end
+
+    def filesystem
+      aspera_comet = Polyphemus.instance.config(:aspera_comet)
+      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(**aspera_comet)
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+    end
+  end
+
+  class RunRedcapLoader < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+    usage 'run_redcap_loader <env> <project_name> <model_names> <redcap_tokens> [--record_names] [--execute]'
+    boolean_flags << '--execute'
+    string_flags << '--record_names'
+
+    def execute(env, project_name, model_names, redcap_tokens, record_names: nil, execute: false)
+      @environ = environment(env)
+      @project_name = project_name
+
+      redcap_etl = RedcapEtlScriptRunner.new(
+        project_name: project_name,
+        model_names: "all" == model_names ? "all" : model_names.split(','),
+        record_names: nil == record_names || "existing" == record_names ? record_names : record_names.split(','),
+        redcap_tokens: redcap_tokens.split(','),
+        dateshift_salt: Polyphemus.instance.config(:dateshift_salt, @environ.environment),
+        redcap_host: Polyphemus.instance.config(:redcap, @environ.environment)[:host],
+        magma_host: @environ.magma_client.host
+      )
+
+      records = redcap_etl.run(magma_client: @environ.magma_client, commit: execute)
+      puts records
+    end
+  end
+
   class Console < Etna::Command
     usage 'Open a console with a connected Polyphemus instance.'
 
@@ -518,3 +779,4 @@ class Polyphemus
     end
   end
 end
+

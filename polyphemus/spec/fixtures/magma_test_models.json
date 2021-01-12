@@ -1,0 +1,194 @@
+{
+  "models": {
+    "parent_model": {
+      "template": {
+        "name": "parent_model",
+        "identifier": "name",
+        "attributes": {
+          "birthday": {
+            "name": "birthday",
+            "attribute_name": "birthday",
+            "display_name": "Birthday",
+            "restricted": false,
+            "read_only": false,
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "favorite_day": {
+            "name": "favorite_day",
+            "attribute_name": "favorite_day",
+            "display_name": "Favorite day",
+            "restricted": false,
+            "read_only": false,
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          }
+        }
+      }
+    },
+    "model_one": {
+      "template": {
+        "name": "model_one",
+        "identifier": "name",
+        "attributes": {
+          "birthday": {
+            "name": "birthday",
+            "attribute_name": "birthday",
+            "display_name": "Birthday",
+            "restricted": false,
+            "read_only": false,
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "graduation_date": {
+            "name": "graduation_date",
+            "attribute_name": "graduation_date",
+            "display_name": "Graduation Date",
+            "restricted": false,
+            "read_only": false,
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "model_two": {
+            "name": "model_two",
+            "attribute_name": "model_two",
+            "model_name": "model_two",
+            "link_model_name": "model_two",
+            "display_name": "Model Two",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
+          }
+        }
+      }
+    },
+    "model_two": {
+      "documents": {
+        "123": {
+          "identifier": "123"
+        }
+      },
+      "template": {
+        "name": "model_two",
+        "identifier": "name",
+        "attributes": {
+          "birthday": {
+            "name": "birthday",
+            "attribute_name": "birthday",
+            "display_name": "Birthday",
+            "restricted": false,
+            "read_only": false,
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "yesterday": {
+            "name": "yesterday",
+            "attribute_name": "yesterday",
+            "display_name": "Yesterday",
+            "restricted": false,
+            "read_only": false,
+            "hidden": true,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "parent_model": {
+            "name": "parent_model",
+            "attribute_name": "parent_model",
+            "model_name": "parent_model",
+            "link_model_name": "parent_model",
+            "display_name": "ParentModel",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "label": {
+            "name": "label",
+            "attribute_name": "label",
+            "display_name": "Label",
+            "match": "^[a-z\\s]+$",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": {
+              "type": "Regexp",
+              "value": "^[a-z\\s]+$"
+            },
+            "attribute_type": "string"
+          },
+          "stats": {
+            "name": "stats",
+            "attribute_name": "stats",
+            "display_name": "Stats",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "file"
+          },
+          "selfie": {
+            "name": "selfie",
+            "attribute_name": "selfie",
+            "display_name": "Selfie",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "file"
+          },
+          "reference_model": {
+            "name": "reference_model",
+            "attribute_name": "reference_model",
+            "display_name": "ReferenceModel",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "link",
+            "model_name": "model_two",
+            "link_model_name": "model_two"
+          }
+        },
+        "parent": "parent_model"
+      }
+    }
+  }
+}

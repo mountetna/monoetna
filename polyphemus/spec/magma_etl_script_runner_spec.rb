@@ -2,8 +2,8 @@ describe Polyphemus::MagmaRecordScriptEtl::Scripts do
   describe Polyphemus::MagmaRecordScriptEtl::Scripts::IpiPatientFlowjo do
     xit 'runs without exception' do
       VCR.use_cassette('ipi+patient+flowjo.e2e') do
-        magma_client = Etna::Clients::Magma.new(host: 'https://magma.ucsf.edu', token: ENV['TOKEN'] || 'test-token', persistent: false)
-        metis_client = Etna::Clients::Metis.new(host: 'https://metis.ucsf.edu', token: ENV['TOKEN'] || 'test-token', persistent: false)
+        magma_client = Etna::Clients::Magma.new(host: 'https://magma.ucsf.edu', token: ENV['TOKEN'] || TEST_TOKEN)
+        metis_client = Etna::Clients::Metis.new(host: 'https://metis.ucsf.edu', token: ENV['TOKEN'] || TEST_TOKEN)
         crud = Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: 'ipi')
 
         etl = described_class.new

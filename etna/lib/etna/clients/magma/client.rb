@@ -1,27 +1,12 @@
-require 'net/http/persistent'
 require 'net/http/post/multipart'
 require 'singleton'
+require_relative '../base_client'
 require_relative '../../client'
 require_relative './models'
 
 module Etna
   module Clients
-    class Magma
-      attr_reader :host, :token, :ignore_ssl
-      def initialize(host:, token:, persistent: true, ignore_ssl: false)
-        raise 'Magma client configuration is missing host.' unless host
-        raise 'Magma client configuration is missing token.' unless token
-        @etna_client = ::Etna::Client.new(
-          host,
-          token,
-          routes_available: false,
-          persistent: persistent,
-          ignore_ssl: ignore_ssl)
-        @host = host
-        @token = token
-        @ignore_ssl = ignore_ssl
-      end
-
+    class Magma < Etna::Clients::BaseClient
       # This endpoint returns models and records by name:
       # e.g. params:
       # {

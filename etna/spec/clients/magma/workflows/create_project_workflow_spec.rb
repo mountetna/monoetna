@@ -21,7 +21,6 @@ describe Etna::Clients::Magma::CreateProjectWorkflow do
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
             token: tok,
-            persistent: false,
             ignore_ssl: true,
         )
 

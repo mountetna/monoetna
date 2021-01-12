@@ -14,7 +14,7 @@ const approveForm = function(e) {
     <div class='projects'>
       <% Project.all.each do |project| %>
         <div class='item'>
-          <a href='/project/<%= project.project_name %>'>
+          <a href='/<%= project.project_name %>'>
             <%= project.project_name_full.capitalize %>
           </a> - <%= project.project_name %>
         </div>
@@ -33,7 +33,7 @@ const approveForm = function(e) {
     <% @janus_user.permissions.sort_by{|p| p.role[0] + p.project.project_name_full.capitalize }.each do |permission| %>
       <div class='item'>
         <% if permission.editor? || @janus_user.superuser? %>
-          <a href='/project/<%= permission.project.project_name %>'>
+          <a href='/<%= permission.project.project_name %>'>
             <%= permission.project.project_name_full.capitalize %>
           </a>
         <% else %>
