@@ -1,0 +1,122 @@
+.etna-nav {
+  height: 60px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid lightgray;
+  justify-content: space-between;
+
+}
+
+.etna-logo {
+  margin-left: 5px;
+}
+
+.etna-timur-logo {
+  background: url('~etna-js/images/timur.svg');
+}
+.etna-metis-logo {
+  background: url('~etna-js/images/metis.svg');
+}
+.etna-janus-logo {
+  background: url('~etna-js/images/janus.svg');
+}
+
+.etna-login {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+
+  color: darkgoldenrod;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.8em;
+
+  padding: 5px;
+  cursor: default;
+
+  border: 1px solid rgba(184,134,11,0.1);
+  border-radius: 2px;
+  background: rgba(184,134,11,0.01);
+}
+
+.etna-login .icon-grp {
+  font-size: 0.5em;
+  padding-right: 3px;
+  color: darkgoldenrod;
+}
+
+.etna-control {
+  color: gray;
+  font-size: 0.5em;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0px 10px;
+  cursor: pointer;
+  position: relative;
+}
+
+@keyframes appear {
+  from { height: 0px; }
+  to { height: 90px; }
+}
+
+.etna-control-links {
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+
+  height: 90px;
+  overflow: hidden;
+
+  position: absolute;
+  top: 60px;
+  right: 0px;
+  z-index: 1001;
+
+  animation-name: appear;
+  animation-duration: 0.1s;
+
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0px 2px 2px #ccc;
+}
+
+.etna-link {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid gray;
+  margin: 5px;
+  background: white;
+}
+
+.etna-link:hover {
+  border: 1px solid darkblue;
+  width: 32px;
+  height: 32px;
+  margin: 4px;
+}
+
+.etna-control-hide {
+  border: 1px solid #ccc;
+  padding: 5px 2px;
+  border-radius: 2px;
+  background: #eee;
+}
+
+.etna-control-show {
+  border: 1px solid transparent;
+  padding: 5px 2px;
+  border-radius: 2px;
+}
+
+.etna-control-show:hover {
+  background: #eee;
+  color: #bbb;
+}
+
+.etna-control-hide:hover {
+  background: #eee;
+  color: #bbb;
+}
