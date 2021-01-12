@@ -42,7 +42,7 @@ describe Polyphemus::MagmaRecordEtl do
   # To re-record this test, delete the magma_record_etl.e2e.yml cassette and TOKEN=xxxxx to your environment before running.
   it 'should process magma records, and support reset' do
     VCR.use_cassette('magma_record_etl.e2e') do
-      magma_client = Etna::Clients::Magma.new(host: 'https://magma.development.local', token: ENV['TOKEN'] || 'test-token', persistent: false)
+      magma_client = Etna::Clients::Magma.new(host: 'https://magma.development.local', token: ENV['TOKEN'] || TEST_TOKEN)
       setup_client(magma_client)
 
       etl = etl_executor.subcommands['run'].etl

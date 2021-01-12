@@ -6,7 +6,6 @@
   </div>
   <div id="login">
     <% if @user %>
-      <%= @user.name %>
       <% if @params[:project_name] %>
         <% if @user.is_superuser? %>
           <i class="icon fa fa-fw fa-user-ninja" title="admin"></i>
@@ -21,6 +20,7 @@
           <% end %>
         <% end %>
       <% end %>
+      <%= @user.name %>
     <% else %>
       Login required
     <% end %>

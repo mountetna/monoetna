@@ -40,7 +40,7 @@ describe Etna::TestAuth do
     expect(user).to be_a(Etna::User)
     expect(user.is_admin?('labors')).to be_truthy
     expect(user.can_edit?('constellations')).to be_falsy
-    expect(user.token).to eq(Base64.strict_encode64(token_params.to_json))
+    expect(user.token).to eq("something.#{Base64.strict_encode64(token_params.to_json)}")
   end
 
   it 'allows noauth routes through without a header' do

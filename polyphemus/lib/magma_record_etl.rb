@@ -1,4 +1,5 @@
 require_relative 'etl'
+require_relative 'etl_cursor'
 require_relative 'time_scan_based_etl_scanner'
 
 class Polyphemus
