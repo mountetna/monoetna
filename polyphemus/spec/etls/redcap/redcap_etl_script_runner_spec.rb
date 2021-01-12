@@ -199,7 +199,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
         record_names: '123'
       )
 
-      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token')
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
 
       records = redcap_etl.run(magma_client: magma_client)
 
@@ -217,7 +217,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
         record_names: '321'
       )
 
-      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token')
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
 
       records = redcap_etl.run(magma_client: magma_client)
 
@@ -236,7 +236,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
         magma_host: MAGMA_HOST
       )
 
-      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token')
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
 
       records = redcap_etl.run(magma_client: magma_client)
 
@@ -256,7 +256,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
         record_names: "existing"
       )
 
-      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: 'test-token')
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
 
       records = redcap_etl.run(magma_client: magma_client)
 
