@@ -95,7 +95,7 @@ class FileController < Metis::Controller
 
     source_bucket = require_bucket
 
-    dest, dest_bucket = construct_dest_mpath
+    dest, dest_bucket = construct_dest_info
 
     revision = Metis::CopyRevision.new({
       source: Metis::Path.path_from_parts(
@@ -193,7 +193,7 @@ class FileController < Metis::Controller
 
   private
 
-  def construct_dest_mpath
+  def construct_dest_info
     if Metis::Path.filepath_match.match(@params[:new_file_path])
       dest = Metis::Path.new(@params[:new_file_path])
       dest_bucket = require_bucket(dest.bucket_name, dest.project_name)
