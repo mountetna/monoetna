@@ -111,7 +111,7 @@ class Metis
       dest_folder_path, dest_file_name = Metis::File.path_parts(params[:dest_file_path])
 
       dest_bucket = Metis::Bucket.find(
-        project_name: params[:project_name],
+        project_name: params[:dest_project_name] || params[:project_name],
         name: params[:dest_bucket_name]
       )
 

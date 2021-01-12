@@ -1024,6 +1024,36 @@ describe FileController do
       expect(new_wisdom_file.bucket).to eq(sundry_bucket)
     end
 
+    it 'copies a file to a new project' do
+      backup_bucket = default_bucket('backup')
+
+      token_header(:editor)
+
+      expect(Metis::File.count).to eq(2)
+
+      bulk_copy([{
+        source: 'metis://athena/files/wisdom.txt',
+        dest: 'metis://backup/files/learn-wisdom.txt'
+      }])
+
+      stubs.add_file('backup', 'files', 'learn-wisdom.txt')
+
+      expect(last_response.status).to eq(200)
+
+      # the old file is untouched
+      expect(@wisdom_file.file_name).to eq('wisdom.txt')
+      expect(@wisdom_file).to be_has_data
+
+      # there is a new file in the new bucket
+      expect(Metis::File.count).to eq(3)
+      new_wisdom_file = Metis::File.last
+      expect(new_wisdom_file.file_name).to eq('learn-wisdom.txt')
+      expect(new_wisdom_file).to be_has_data
+      expect(new_wisdom_file.data_block).to eq(@wisdom_file.data_block)
+
+      expect(new_wisdom_file.bucket).to eq(backup_bucket)
+    end
+
     it 'refuses to copy without bucket permissions' do
       token_header(:editor)
       sundry_bucket = create( :bucket, project_name: 'athena', name: 'sundry', access: 'administrator', owner: 'metis' )

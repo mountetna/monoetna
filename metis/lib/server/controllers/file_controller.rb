@@ -153,7 +153,6 @@ class FileController < Metis::Controller
     # In bulk copy mode, we fetch the buckets and folders in bulk
     #   and set them on the revision objects, to try and minimize database hits
     user_authorized_buckets = Metis::Bucket.where(
-      project_name: @params[:project_name],
       owner: ['metis', @hmac&.id.to_s].reject {|o| o.empty?},
       name: revisions.map(&:bucket_names).flatten.uniq
     ).all.select{|b| b.allowed?(@user, @hmac)}
@@ -170,7 +169,7 @@ class FileController < Metis::Controller
       #   revisions.
       bucket_folder_paths = revisions.
         map(&:mpaths).flatten.
-        select{|p| p.bucket_name == bucket.name}.
+        select{|p| p.bucket_matches?(bucket)}.
         map(&:folder_path).flatten.compact.uniq
 
       bucket_folders = bucket_folder_paths.map {
@@ -178,10 +177,10 @@ class FileController < Metis::Controller
       }.flatten.compact
 
       revisions.each do |rev|
-        if rev.source.mpath.bucket_name == bucket.name
+        if rev.source.mpath.bucket_matches?(bucket)
           rev.set_folder(rev.source, bucket_folders)
         end
-        if rev.dest.mpath.bucket_name == bucket.name
+        if rev.dest.mpath.bucket_matches?(bucket)
           rev.set_folder(rev.dest, bucket_folders)
         end
       end

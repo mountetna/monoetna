@@ -235,6 +235,23 @@ describe Metis::CopyRevision do
         expect(learn_wisdom.data_block).to eq(@wisdom_file.data_block)
     end
 
+    it 'can revise to different project' do
+        backup_bucket = default_bucket('backup')
+        expect(Metis::File.count).to eq(1)
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/wisdom.txt',
+            dest: 'metis://backup/files/learn-wisdom.txt',
+            user: @user
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = backup_bucket
+        revision.validate
+        learn_wisdom = revision.revise!
+        expect(Metis::File.count).to eq(2)
+        expect(learn_wisdom.data_block).to eq(@wisdom_file.data_block)
+        expect(learn_wisdom.bucket).to eq(backup_bucket)
+    end
+
     it 'throws exception if you try to revise without setting user' do
         expect(Metis::File.count).to eq(1)
         revision = Metis::CopyRevision.new({
