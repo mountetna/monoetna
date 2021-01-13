@@ -63,8 +63,8 @@ remotes::install_github(
   1. Run `usethis::edit_r_environ(scope = "project")` (which is included in the 
 `clear_stubs_for_true_test.R` file), and set it as:
 ```
-TOKEN="YOUR-staging-token"
-URL="https://magma-stage.ucsf.edu"
+TOKEN="YOUR-produciton-token"
+URL="https://magma.ucsf.edu"
 ```
   2. ((For a TRUE test, where magma is actually pinged, ensure that you have
 proper access to the example project in staging, then actually run the entirety
