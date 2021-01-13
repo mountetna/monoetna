@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/mountetna/monoetna.git
-  revision: 508046a5b97774e1bca0cdcb9073518385b7f665
-  branch: refs/artifacts/gem-etna/e127cbbd1eea6250e15f56cf7bf9c144904e353d
+  revision: 702ab282a849ec14faba4faa9803a171932b0fa2
+  branch: refs/artifacts/gem-etna/186d8e327414ab9dcf0b78faace4bf8054c2c01e
   specs:
-    etna (0.1.25)
+    etna (0.1.26)
       jwt
       multipart-post
       net-http-persistent
@@ -67,7 +67,7 @@ GEM
     minitest (5.14.1)
     multi_json (1.14.1)
     multipart-post (2.1.1)
-    net-http-persistent (4.0.0)
+    net-http-persistent (4.0.1)
       connection_pool (~> 2.2)
     nio4r (2.5.4)
     nokogiri (1.10.9)

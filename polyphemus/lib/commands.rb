@@ -697,7 +697,7 @@ class Polyphemus
           },
           metis_client: metis_client, magma_client: magma_client, logger: logger,
           project_name: 'mvir1', model_name: 'patient', stub_files: stub_files,
-          filesystem: filesystem)
+          filesystem: filesystem, skip_tmpdir: true)
 
       workflow.materialize_all("/Upload")
       logger.info("Done")
@@ -705,7 +705,7 @@ class Polyphemus
 
     def filesystem
       aspera_comet = Polyphemus.instance.config(:aspera_comet)
-      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(**aspera_comet)
+      @filesystem ||= Etna::Filesystem::GeneAsperaCliFilesystem.new(**aspera_comet)
     end
 
     def setup(config)
@@ -720,17 +720,17 @@ class Polyphemus
 
     def execute
       workflow = Etna::Clients::Metis::SyncMetisDataWorkflow.new(
-          metis_client: metis_client, logger: logger,
+          metis_client: metis_client, logger: logger, skip_tmpdir: true,
           project_name: 'mvir1', bucket_name: 'data',
           filesystem: filesystem)
 
-      workflow.copy_directory("single_cell_TCR/processed", "/Upload/pool", "/Upload")
+      workflow.copy_directory("single_cell_TCR/processed", "/Upload/pool", "/Upload", nil)
       logger.info("Done")
     end
 
     def filesystem
       aspera_comet = Polyphemus.instance.config(:aspera_comet)
-      @filesystem ||= Etna::Filesystem::AsperaCliFilesystem.new(**aspera_comet)
+      @filesystem ||= Etna::Filesystem::GeneAsperaCliFilesystem.new(**aspera_comet)
     end
 
     def setup(config)
@@ -742,16 +742,18 @@ class Polyphemus
   class RunRedcapLoader < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
-    usage 'run_redcap_loader <env> <project_name> <model_names> <redcap_tokens> [--execute]'
+    usage 'run_redcap_loader <env> <project_name> <model_names> <redcap_tokens> [--record_names] [--execute]'
     boolean_flags << '--execute'
+    string_flags << '--record_names'
 
-    def execute(env, project_name, model_names, redcap_tokens, execute: false)
+    def execute(env, project_name, model_names, redcap_tokens, record_names: nil, execute: false)
       @environ = environment(env)
       @project_name = project_name
 
       redcap_etl = RedcapEtlScriptRunner.new(
         project_name: project_name,
         model_names: "all" == model_names ? "all" : model_names.split(','),
+        record_names: nil == record_names || "existing" == record_names ? record_names : record_names.split(','),
         redcap_tokens: redcap_tokens.split(','),
         dateshift_salt: Polyphemus.instance.config(:dateshift_salt, @environ.environment),
         redcap_host: Polyphemus.instance.config(:redcap, @environ.environment)[:host],

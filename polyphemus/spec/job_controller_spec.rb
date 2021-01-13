@@ -60,6 +60,15 @@ describe Polyphemus::Server do
     expect(last_response.status).to eq(422)
   end
 
+  it 'throws exception for bad record_names parameter' do
+    auth_header(:administrator)
+    post('/test/job', job_type: "redcap", job_params: {
+      model_names: "all", redcap_tokens: ["123"], record_names: "rocks"
+    })
+
+    expect(last_response.status).to eq(422)
+  end
+
   it 'project administrators can submit jobs' do
     # Not a great test ... can't figure out how to test or mock for
     #   a process spun out in a different Thread.
@@ -76,6 +85,49 @@ describe Polyphemus::Server do
 
     expect(json_body[:results].keys.first).to eq(:model_one)
     expect(json_body[:results].keys.last).to eq(:model_two)
+
+    # Updates all records found in REDCap, by default
+    expect(json_body[:results][:model_two].keys).to match_array([:"123", :"321"])
+  end
+
+  it 'only updates existing magma records' do
+    # Not a great test ... can't figure out how to test or mock for
+    #   a process spun out in a different Thread.
+    stub_magma_models
+    stub_magma_update_json
+    stub_redcap_data
+
+    auth_header(:administrator)
+    post('/test/job', job_type: "redcap", job_params: {
+      model_names: ["model_two"],
+      redcap_tokens: ["123"],
+      record_names: "existing"
+    })
+
+    expect(last_response.status).to eq(200)
+
+    expect(json_body[:results].keys).to eq([:model_two])
+    expect(json_body[:results][:model_two].keys).to eq([:"123"])
+  end
+
+  it 'updates a specific record' do
+    # Not a great test ... can't figure out how to test or mock for
+    #   a process spun out in a different Thread.
+    stub_magma_models
+    stub_magma_update_json
+    stub_redcap_data
+
+    auth_header(:administrator)
+    post('/test/job', job_type: "redcap", job_params: {
+      model_names: ["model_two"],
+      redcap_tokens: ["123"],
+      record_names: ["321"]
+    })
+
+    expect(last_response.status).to eq(200)
+
+    expect(json_body[:results].keys).to eq([:model_two])
+    expect(json_body[:results][:model_two].keys).to eq([:"321"])
   end
 end
 
