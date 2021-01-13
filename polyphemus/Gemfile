@@ -7,6 +7,7 @@ gem 'nokogiri'
 gem 'puma', '5.0.2'
 gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/0eed6134f598aa7b08c01db50d0bbbcd538b620a'
 gem 'actionpack' # For streaming the job controller results back...
+gem 'aspera-cli'
 
 group :development, :test do
   gem 'rack-test', require: "rack/test"
