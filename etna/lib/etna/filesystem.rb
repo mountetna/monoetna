@@ -194,6 +194,51 @@ module Etna
       end
     end
 
+    # Genentech's aspera deployment doesn't support modern commands, unfortunately...
+    class GeneAsperaCliFilesystem < AsperaCliFilesystem
+      def tmpdir
+        raise "tmpdir is not supported"
+      end
+
+      def rm_rf
+        raise "rm_rf is not supported"
+      end
+
+      def mkdir_p(dest)
+        # Pass through -- this file system creates containing directories by default, womp womp.
+      end
+
+      def mv
+        raise "mv is not supported"
+      end
+
+
+      def mkcommand(rd, wd, file, opts, size_hint: nil)
+        if opts.include?('w')
+          super.map do |e|
+            if e.instance_of?(String) && e.start_with?("stdio://")
+              "stdio-tar://"
+            elsif e == file
+              ::File.dirname(file)
+            else
+              e
+            end
+          end.insert(2, "-d")
+        else
+          super
+        end
+      end
+
+      def with_writeable(dest, opts = 'w', size_hint: nil, &block)
+        super do |io|
+          io.write("File: #{::File.basename(dest)}\n")
+          io.write("Size: #{size_hint}\n")
+          io.write("\n")
+          yield io
+        end
+      end
+    end
+
     class Mock < Filesystem
       def initialize(&new_io)
         @files = {}
