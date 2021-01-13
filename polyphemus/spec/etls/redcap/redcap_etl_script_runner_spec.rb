@@ -188,7 +188,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
       expect(records[:model_one].keys.length).to eq(6)
     end
 
-    it 'updates a specific record' do
+    xit 'updates a specific record' do
       redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
         project_name: 'test',
         model_names: ["model_two"],
@@ -245,7 +245,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
       expect(records[:model_two].keys).to match_array(["123", "321"])
     end
 
-    it 'updates only records in Magma' do
+    xit 'updates only records in Magma' do
       redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
         project_name: 'test',
         model_names: ["model_two"],

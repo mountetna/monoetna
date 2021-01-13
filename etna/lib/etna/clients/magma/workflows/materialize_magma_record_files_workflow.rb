@@ -10,7 +10,7 @@ module Etna
           :metis_client, :magma_client, :project_name,
           :model_name, :model_filters, :model_attributes_mask,
           :filesystem, :logger, :stub_files,
-          keyword_init: true)
+          :skip_tmpdir, keyword_init: true)
 
         def initialize(**kwds)
           super(**({filesystem: Etna::Filesystem.new}.update(kwds)))
@@ -24,8 +24,8 @@ module Etna
           @model_walker ||= WalkModelTreeWorkflow.new(magma_crud: magma_crud, logger: logger)
         end
 
-        def materialize_all(dest = filesystem.tmpdir)
-          tmpdir = filesystem.tmpdir
+        def materialize_all(dest)
+          tmpdir = skip_tmpdir ? nil : filesystem.tmpdir
 
           begin
             model_walker.walk_from(
@@ -37,7 +37,7 @@ module Etna
               materialize_record(dest, tmpdir, template, document)
             end
           ensure
-            filesystem.rm_rf(tmpdir)
+            filesystem.rm_rf(tmpdir) unless skip_tmpdir
           end
         end
 
@@ -78,6 +78,7 @@ module Etna
           @sync_metis_data_workflow ||= Etna::Clients::Metis::SyncMetisDataWorkflow.new(
               metis_client: metis_client,
               logger: logger,
+              skip_tmpdir: skip_tmpdir,
               filesystem: filesystem)
         end
 
