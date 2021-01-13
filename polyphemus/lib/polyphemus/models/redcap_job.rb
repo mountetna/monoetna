@@ -11,7 +11,7 @@ class Polyphemus
       raise JobError, "model_names must be \"all\" or an array of model names." unless array_or_string_param(:model_names)
 
       if job_params[:record_names]
-        raise JobError, "record_names must be nil, \"existing\", or an array of record names." unless array_or_string_param(:record_names, "existing")
+        raise JobError, "record_names must be nil, \"existing\", \"strict\", or an array of record names." unless array_or_string_param(:record_names, ["existing", "strict"])
       end
     end
 
@@ -27,8 +27,8 @@ class Polyphemus
 
     private
 
-    def array_or_string_param(param, str="all")
-      job_params[param].is_a?(Array) || str == job_params[param]
+    def array_or_string_param(param, allowed_values=["all"])
+      job_params[param].is_a?(Array) || allowed_values.include?(job_params[param])
     end
 
     def commit?
@@ -71,6 +71,8 @@ class Polyphemus
         host: Polyphemus.instance.config(:magma)[:host])
 
       redcap_etl.run(magma_client: magma_client, commit: commit?, logger: logger)
+
+      return nil
     end
 
     def launch_redcap_process(stream)

@@ -1,3 +1,5 @@
+require 'json'
+
 require_relative 'lib/client'
 require_relative 'lib/model'
 require_relative 'lib/loader'
@@ -47,7 +49,8 @@ class Polyphemus
       loader = Redcap::Loader.new(config.update(system_config), magma_client, logger)
 
       records = loader.run
-      logger.write(records)
+
+      logger.write(JSON.pretty_generate(records))
       logger.write("\n")
 
       @update_request = Etna::Clients::Magma::UpdateRequest.new(
