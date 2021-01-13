@@ -67,8 +67,8 @@ TOKEN="YOUR-produciton-token"
 URL="https://magma.ucsf.edu"
 ```
   2. ((For a TRUE test, where magma is actually pinged, ensure that you have
-proper access to the example project in staging, then actually run the entirety
-of `clear_stubs_for_true_test.R`.))
+proper access to the example project, then actually run the entirety of
+`clear_stubs_for_true_test.R`.))
   3. Open the .Rmd file from the `vignettes/` folder & click the `Knit` button in
 the window where the file opens. OR run
 `rmarkdown::render("vignettes/<which_vignette.Rmd>")`.
