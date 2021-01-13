@@ -1,7 +1,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://magma-stage.ucsf.edu/retrieve
+    uri: https://magma.ucsf.edu/retrieve
     body:
       encoding: ''
       string: ''
@@ -18,7 +18,7 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 10 Dec 2020 20:14:12 GMT
+      date: Wed, 13 Jan 2021 17:12:51 GMT
       server: Apache
       content-type: text/tsv
       content-disposition: inline; filename="results.tsv
@@ -41,5 +41,5 @@ http_interactions:
         EXAMPLE-HS7
         EXAMPLE-HS8
         EXAMPLE-HS9
-  recorded_at: 2020-12-10 20:14:12 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.7.0
+  recorded_at: 2021-01-13 17:12:51 GMT
+  recorded_with: vcr/0.6.0, webmockr/0.7.4

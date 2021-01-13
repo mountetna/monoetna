@@ -31,7 +31,7 @@ retrieveMatrix <- function(
     # Break recordNames into chunks of 10 or fewer
     if (identical(recordNames, "all")) {
         recordNames <- retrieveIds(
-            projectName, modelName, ...)
+            projectName, modelName, token = token, ...)
     }
     
     sets <- split(recordNames, ceiling(seq_along(recordNames)/10))

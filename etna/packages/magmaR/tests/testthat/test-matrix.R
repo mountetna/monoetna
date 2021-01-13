@@ -35,4 +35,17 @@ vcr::use_cassette("matrix", {
         expect_type(mat, "integer")
         expect_equal(dim(mat), c(40,12))
     })
+    
+    test_that("retrieveMatrix 'token' is separate from .MAGMAR_TOKEN", {
+        
+        rm(.MAGMAR_TOKEN, envir = .GlobalEnv)
+        
+        expect_type(
+            retrieveMatrix(
+                "example", "rna_seq", attributeNames = "gene_counts", ids[1],
+                token = Sys.getenv("TOKEN")),
+            "integer")
+        
+        .GlobalEnv$.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
+    })
 })
