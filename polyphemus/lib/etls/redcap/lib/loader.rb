@@ -6,11 +6,15 @@ module Redcap
       @records = {}
       @logger = logger
 
+      # Fetch existing records separately, since tables
+      #   don't have identifiers and including
+      #   "record_names": "all", "attribute_names": "identifiers"
+      #   will not return their
+      #   templates.
       @magma_models = magma_client.retrieve(
         Etna::Clients::Magma::RetrievalRequest.new(
-          project_name: @config[:project_name],
-          attribute_names: "identifier",
-          record_names: "all")
+          project_name: @config[:project_name]
+        )
       ).models
     end
 
@@ -67,7 +71,8 @@ module Redcap
     end
 
     def filter_records(model_name, model_records)
-      return model_records unless restrict_records_to_update?
+      return model_records
+      # return model_records unless restrict_records_to_update?
 
       model_records = filter_records_by_allowed_list(model_name, model_records)
 
@@ -85,7 +90,16 @@ module Redcap
     def allowed_record_names(model_name)
       return config[:records_to_update] unless "existing" == config[:records_to_update]
 
-      magma_models.model(model_name.to_s).documents.document_keys
+      # For tables, we actually need to filter on their parent
+      #   model record_names....so this is broken for now.
+      magma_client.retrieve(
+        Etna::Clients::Magma::RetrievalRequest.new(
+          project_name: @config[:project_name],
+          model_name: model_name.to_s,
+          attribute_names: "identifier",
+          record_names: "all"
+        )
+      ).models.model(model_name.to_s).documents.document_keys
     end
   end
 end
