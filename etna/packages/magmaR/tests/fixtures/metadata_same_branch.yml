@@ -1,7 +1,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://magma-stage.ucsf.edu/retrieve
+    uri: https://magma.ucsf.edu/retrieve
     body:
       encoding: ''
       string: ''
@@ -18,7 +18,7 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 10 Dec 2020 20:14:12 GMT
+      date: Wed, 13 Jan 2021 17:12:50 GMT
       server: Apache
       content-type: text/tsv
       content-disposition: inline; filename="results.tsv
@@ -41,11 +41,11 @@ http_interactions:
         EXAMPLE-HS7-WB1
         EXAMPLE-HS8-WB1
         EXAMPLE-HS9-WB1
-  recorded_at: 2020-12-10 20:14:12 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.7.0
+  recorded_at: 2021-01-13 17:12:51 GMT
+  recorded_with: vcr/0.6.0, webmockr/0.7.4
 - request:
     method: get
-    uri: https://magma-stage.ucsf.edu/retrieve
+    uri: https://magma.ucsf.edu/retrieve
     body:
       encoding: ''
       string: ''
@@ -62,7 +62,7 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 10 Dec 2020 20:14:12 GMT
+      date: Wed, 13 Jan 2021 17:12:50 GMT
       server: Apache
       content-type: text/tsv
       content-disposition: inline; filename="results.tsv
@@ -71,13 +71,12 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: "name\tsubject\tbiospecimen_type\trna_seq\tflow\nEXAMPLE-HS10-WB1\tEXAMPLE-HS10\tWhole
-        Blood\tEXAMPLE-HS10-WB1-RSQ1\t\"\"\n"
-  recorded_at: 2020-12-10 20:14:12 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.7.0
+      string: "biospecimen_type\tflow\tname\trna_seq\tsubject\nWhole Blood\t\"\"\tEXAMPLE-HS10-WB1\tEXAMPLE-HS10-WB1-RSQ1\tEXAMPLE-HS10\n"
+  recorded_at: 2021-01-13 17:12:51 GMT
+  recorded_with: vcr/0.6.0, webmockr/0.7.4
 - request:
     method: get
-    uri: https://magma-stage.ucsf.edu/retrieve
+    uri: https://magma.ucsf.edu/retrieve
     body:
       encoding: ''
       string: ''
@@ -94,48 +93,49 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 10 Dec 2020 20:14:12 GMT
+      date: Wed, 13 Jan 2021 17:12:50 GMT
       server: Apache
       content-type: application/json
-      content-length: '13001'
+      content-length: '11251'
       service-worker-allowed: /
     body:
       encoding: UTF-8
       file: no
-      string: '{"models":{"rna_seq":{"documents":{},"template":{"name":"rna_seq","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Created
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Updated
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"tube_name":{"name":"tube_name","attribute_name":"tube_name","type":"String","attribute_class":"Magma::Attribute","display_name":"Tube
-        Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","attribute_class":"Magma::ForeignKeyAttribute","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"expression_type":{"name":"expression_type","attribute_name":"expression_type","type":"String","attribute_class":"Magma::Attribute","desc":"Desc.
-        of normalized gene expression, e.g. RPKM, FPKM, TPM, etc.","display_name":"Expression
-        Type","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"cell_number":{"name":"cell_number","attribute_name":"cell_number","type":"Integer","attribute_class":"Magma::Attribute","desc":"Number
-        of input cells","display_name":"Cell Number","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"integer"},"gene_tpm":{"name":"gene_tpm","attribute_name":"gene_tpm","type":"json","attribute_class":"Magma::MatrixAttribute","display_name":"Gene
-        Tpm","options":["gene1","gene2","gene3","gene4","gene5","gene6","gene7","gene8","gene9","gene10","gene11","gene12","gene13","gene14","gene15","gene16","gene17","gene18","gene19","gene20","gene21","gene22","gene23","gene24","gene25","gene26","gene27","gene28","gene29","gene30","gene31","gene32","gene33","gene34","gene35","gene36","gene37","gene38","gene39","gene40"],"restricted":false,"read_only":false,"hidden":false,"validation":{"type":"Array","value":["gene1","gene2","gene3","gene4","gene5","gene6","gene7","gene8","gene9","gene10","gene11","gene12","gene13","gene14","gene15","gene16","gene17","gene18","gene19","gene20","gene21","gene22","gene23","gene24","gene25","gene26","gene27","gene28","gene29","gene30","gene31","gene32","gene33","gene34","gene35","gene36","gene37","gene38","gene39","gene40"]},"attribute_type":"matrix"},"gene_counts":{"name":"gene_counts","attribute_name":"gene_counts","type":"json","attribute_class":"Magma::MatrixAttribute","display_name":"Gene
-        Counts","options":["gene1","gene2","gene3","gene4","gene5","gene6","gene7","gene8","gene9","gene10","gene11","gene12","gene13","gene14","gene15","gene16","gene17","gene18","gene19","gene20","gene21","gene22","gene23","gene24","gene25","gene26","gene27","gene28","gene29","gene30","gene31","gene32","gene33","gene34","gene35","gene36","gene37","gene38","gene39","gene40"],"restricted":false,"read_only":false,"hidden":false,"validation":{"type":"Array","value":["gene1","gene2","gene3","gene4","gene5","gene6","gene7","gene8","gene9","gene10","gene11","gene12","gene13","gene14","gene15","gene16","gene17","gene18","gene19","gene20","gene21","gene22","gene23","gene24","gene25","gene26","gene27","gene28","gene29","gene30","gene31","gene32","gene33","gene34","gene35","gene36","gene37","gene38","gene39","gene40"]},"attribute_type":"matrix"},"fraction":{"name":"fraction","attribute_name":"fraction","type":"String","attribute_class":"Magma::Attribute","desc":"The
-        sorted cell fraction represented","display_name":"Fraction","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"}},"identifier":"tube_name","parent":"biospecimen"}},"biospecimen":{"documents":{},"template":{"name":"biospecimen","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Created
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Updated
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"name":{"name":"name","attribute_name":"name","type":"String","attribute_class":"Magma::Attribute","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"subject":{"name":"subject","attribute_name":"subject","model_name":"subject","link_model_name":"subject","attribute_class":"Magma::ForeignKeyAttribute","display_name":"Subject","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"biospecimen_type":{"name":"biospecimen_type","attribute_name":"biospecimen_type","type":"String","attribute_class":"Magma::Attribute","display_name":"Biospecimen
-        Type","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"rna_seq":{"name":"rna_seq","attribute_name":"rna_seq","model_name":"rna_seq","link_model_name":"rna_seq","attribute_class":"Magma::CollectionAttribute","display_name":"Rna
-        Seq","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"},"flow":{"name":"flow","attribute_name":"flow","model_name":"flow","link_model_name":"flow","attribute_class":"Magma::CollectionAttribute","display_name":"Flow","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"}},"identifier":"name","parent":"subject"}},"subject":{"documents":{},"template":{"name":"subject","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Created
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Updated
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"name":{"name":"name","attribute_name":"name","type":"String","attribute_class":"Magma::Attribute","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"project":{"name":"project","attribute_name":"project","model_name":"project","link_model_name":"project","attribute_class":"Magma::ForeignKeyAttribute","display_name":"Project","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","attribute_class":"Magma::CollectionAttribute","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"},"group":{"name":"group","attribute_name":"group","type":"String","attribute_class":"Magma::Attribute","display_name":"Group","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"}},"identifier":"name","parent":"project"}},"project":{"documents":{},"template":{"name":"project","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Created
-        At","hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Updated
-        At","hidden":true,"validation":null,"attribute_type":"date_time"},"name":{"name":"name","attribute_name":"name","type":"String","attribute_class":"Magma::Attribute","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"subject":{"name":"subject","attribute_name":"subject","model_name":"subject","link_model_name":"subject","attribute_class":"Magma::CollectionAttribute","display_name":"Subject","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"},"description":{"name":"description","attribute_name":"description","type":"String","attribute_class":"Magma::Attribute","display_name":"Description","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"people":{"name":"people","attribute_name":"people","type":"String","attribute_class":"Magma::Attribute","desc":"People
-        involved in the project","display_name":"People","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"}},"identifier":"name"}},"flow":{"documents":{},"template":{"name":"flow","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Created
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Updated
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"stain_name":{"name":"stain_name","attribute_name":"stain_name","type":"String","attribute_class":"Magma::Attribute","display_name":"Stain
-        Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","attribute_class":"Magma::ForeignKeyAttribute","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"population":{"name":"population","attribute_name":"population","model_name":"population","link_model_name":"population","attribute_class":"Magma::TableAttribute","display_name":"Population","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"table"},"stain":{"name":"stain","attribute_name":"stain","type":"String","attribute_class":"Magma::Attribute","desc":"Flow
-        Cytometry stain panel.","display_name":"Stain","options":["dc","innate","nktb","sort","treg"],"restricted":false,"read_only":false,"hidden":false,"validation":{"type":"Array","value":["dc","innate","nktb","sort","treg"]},"attribute_type":"string"},"fcs_file":{"name":"fcs_file","attribute_name":"fcs_file","type":"json","attribute_class":"Magma::FileAttribute","desc":"FACS
-        format file.","display_name":"FCS file","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"file"}},"identifier":"stain_name","parent":"biospecimen"}},"population":{"documents":{},"template":{"name":"population","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Created
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","type":"DateTime","attribute_class":"Magma::Attribute","display_name":"Updated
-        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"flow":{"name":"flow","attribute_name":"flow","model_name":"flow","link_model_name":"flow","attribute_class":"Magma::ForeignKeyAttribute","display_name":"Flow","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"name":{"name":"name","attribute_name":"name","type":"String","attribute_class":"Magma::Attribute","desc":"Name
-        of this population.","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"count":{"name":"count","attribute_name":"count","type":"Integer","attribute_class":"Magma::Attribute","desc":"Number
-        of cells.","display_name":"Count","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"integer"},"ancestry":{"name":"ancestry","attribute_name":"ancestry","type":"String","attribute_class":"Magma::Attribute","desc":"Chain
-        of parent populations.","display_name":"Ancestry","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"id":{"name":"id","attribute_name":"id","type":"String","attribute_class":"Magma::Attribute","display_name":"Identifier","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"}},"identifier":"id","parent":"flow"}}}}'
-  recorded_at: 2020-12-10 20:14:12 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.7.0
+      string: '{"models":{"project":{"documents":{},"template":{"name":"project","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
+        At","hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","display_name":"Updated
+        At","hidden":true,"validation":null,"attribute_type":"date_time"},"description":{"name":"description","attribute_name":"description","display_name":"Description","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"name":{"name":"name","attribute_name":"name","display_name":"Name","options":["example"],"restricted":false,"format_hint":"example","read_only":false,"hidden":false,"validation":{"type":"Array","value":["example"]},"attribute_type":"identifier"},"people":{"name":"people","attribute_name":"people","description":"People
+        involved in the project","desc":"People involved in the project","display_name":"People","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"subject":{"name":"subject","attribute_name":"subject","model_name":"subject","link_model_name":"subject","display_name":"Subject","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"}},"identifier":"name"}},"population":{"documents":{},"template":{"name":"population","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","display_name":"Updated
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"ancestry":{"name":"ancestry","attribute_name":"ancestry","description":"Chain
+        of parent populations.","desc":"Chain of parent populations.","display_name":"Ancestry","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"count":{"name":"count","attribute_name":"count","description":"Number
+        of cells.","desc":"Number of cells.","display_name":"Count","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"integer"},"flow":{"name":"flow","attribute_name":"flow","model_name":"flow","link_model_name":"flow","display_name":"Flow","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"name":{"name":"name","attribute_name":"name","description":"Name
+        of this population.","desc":"Name of this population.","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"id":{"name":"id","attribute_name":"id","display_name":"Id","hidden":true,"validation":null,"attribute_type":"identifier"}},"identifier":"id","parent":"flow"}},"subject":{"documents":{},"template":{"name":"subject","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","display_name":"Updated
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"},"group":{"name":"group","attribute_name":"group","display_name":"Group","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"name":{"name":"name","attribute_name":"name","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"project":{"name":"project","attribute_name":"project","model_name":"project","link_model_name":"project","display_name":"Project","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"}},"identifier":"name","parent":"project"}},"rna_seq":{"documents":{},"template":{"name":"rna_seq","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","display_name":"Updated
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"cell_number":{"name":"cell_number","attribute_name":"cell_number","description":"Number
+        of input cells","desc":"Number of input cells","display_name":"Cell Number","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"integer"},"expression_type":{"name":"expression_type","attribute_name":"expression_type","description":"Desc.
+        of normalized gene expression, e.g. RPKM, FPKM, TPM, etc.","desc":"Desc. of
+        normalized gene expression, e.g. RPKM, FPKM, TPM, etc.","display_name":"Expression
+        Type","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"fraction":{"name":"fraction","attribute_name":"fraction","description":"The
+        sorted cell fraction represented","desc":"The sorted cell fraction represented","display_name":"Fraction","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"gene_counts":{"name":"gene_counts","attribute_name":"gene_counts","display_name":"Gene
+        Counts","options":["gene1","gene2","gene3","gene4","gene5","gene6","gene7","gene8","gene9","gene10","gene11","gene12","gene13","gene14","gene15","gene16","gene17","gene18","gene19","gene20","gene21","gene22","gene23","gene24","gene25","gene26","gene27","gene28","gene29","gene30","gene31","gene32","gene33","gene34","gene35","gene36","gene37","gene38","gene39","gene40"],"restricted":false,"read_only":false,"hidden":false,"validation":{"type":"Array","value":["gene1","gene2","gene3","gene4","gene5","gene6","gene7","gene8","gene9","gene10","gene11","gene12","gene13","gene14","gene15","gene16","gene17","gene18","gene19","gene20","gene21","gene22","gene23","gene24","gene25","gene26","gene27","gene28","gene29","gene30","gene31","gene32","gene33","gene34","gene35","gene36","gene37","gene38","gene39","gene40"]},"attribute_type":"matrix"},"gene_tpm":{"name":"gene_tpm","attribute_name":"gene_tpm","display_name":"Gene
+        Tpm","options":["gene1","gene2","gene3","gene4","gene5","gene6","gene7","gene8","gene9","gene10","gene11","gene12","gene13","gene14","gene15","gene16","gene17","gene18","gene19","gene20","gene21","gene22","gene23","gene24","gene25","gene26","gene27","gene28","gene29","gene30","gene31","gene32","gene33","gene34","gene35","gene36","gene37","gene38","gene39","gene40"],"restricted":false,"read_only":false,"hidden":false,"validation":{"type":"Array","value":["gene1","gene2","gene3","gene4","gene5","gene6","gene7","gene8","gene9","gene10","gene11","gene12","gene13","gene14","gene15","gene16","gene17","gene18","gene19","gene20","gene21","gene22","gene23","gene24","gene25","gene26","gene27","gene28","gene29","gene30","gene31","gene32","gene33","gene34","gene35","gene36","gene37","gene38","gene39","gene40"]},"attribute_type":"matrix"},"tube_name":{"name":"tube_name","attribute_name":"tube_name","display_name":"Tube
+        Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"}},"identifier":"tube_name","parent":"biospecimen"}},"flow":{"documents":{},"template":{"name":"flow","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","display_name":"Updated
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"biospecimen":{"name":"biospecimen","attribute_name":"biospecimen","model_name":"biospecimen","link_model_name":"biospecimen","display_name":"Biospecimen","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"},"fcs_file":{"name":"fcs_file","attribute_name":"fcs_file","description":"FACS
+        format file.","desc":"FACS format file.","display_name":"FCS file","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"file"},"population":{"name":"population","attribute_name":"population","model_name":"population","link_model_name":"population","display_name":"Population","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"table"},"stain":{"name":"stain","attribute_name":"stain","description":"Flow
+        Cytometry stain panel.","desc":"Flow Cytometry stain panel.","display_name":"Stain","options":["dc","innate","nktb","sort","treg"],"restricted":false,"read_only":false,"hidden":false,"validation":{"type":"Array","value":["dc","innate","nktb","sort","treg"]},"attribute_type":"string"},"stain_name":{"name":"stain_name","attribute_name":"stain_name","display_name":"Stain
+        Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"}},"identifier":"stain_name","parent":"biospecimen"}},"biospecimen":{"documents":{},"template":{"name":"biospecimen","attributes":{"created_at":{"name":"created_at","attribute_name":"created_at","display_name":"Created
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"updated_at":{"name":"updated_at","attribute_name":"updated_at","display_name":"Updated
+        At","restricted":false,"read_only":false,"hidden":true,"validation":null,"attribute_type":"date_time"},"biospecimen_type":{"name":"biospecimen_type","attribute_name":"biospecimen_type","display_name":"Biospecimen
+        Type","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"string"},"flow":{"name":"flow","attribute_name":"flow","model_name":"flow","link_model_name":"flow","display_name":"Flow","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"},"name":{"name":"name","attribute_name":"name","display_name":"Name","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"identifier"},"rna_seq":{"name":"rna_seq","attribute_name":"rna_seq","model_name":"rna_seq","link_model_name":"rna_seq","display_name":"Rna
+        Seq","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"collection"},"subject":{"name":"subject","attribute_name":"subject","model_name":"subject","link_model_name":"subject","display_name":"Subject","restricted":false,"read_only":false,"hidden":false,"validation":null,"attribute_type":"parent"}},"identifier":"name","parent":"subject"}}}}'
+  recorded_at: 2021-01-13 17:12:51 GMT
+  recorded_with: vcr/0.6.0, webmockr/0.7.4
 - request:
     method: get
-    uri: https://magma-stage.ucsf.edu/query
+    uri: https://magma.ucsf.edu/query
     body:
       encoding: ''
       string: ''
@@ -152,7 +152,7 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 10 Dec 2020 20:14:12 GMT
+      date: Wed, 13 Jan 2021 17:12:50 GMT
       server: Apache
       content-type: application/json
       content-length: '618'
@@ -161,11 +161,11 @@ http_interactions:
       encoding: UTF-8
       file: no
       string: '{"answer":[["EXAMPLE-HS10-WB1-RSQ1","EXAMPLE-HS10-WB1"],["EXAMPLE-HS11-WB1-RSQ1","EXAMPLE-HS11-WB1"],["EXAMPLE-HS12-WB1-RSQ1","EXAMPLE-HS12-WB1"],["EXAMPLE-HS1-WB1-RSQ1","EXAMPLE-HS1-WB1"],["EXAMPLE-HS2-WB1-RSQ1","EXAMPLE-HS2-WB1"],["EXAMPLE-HS3-WB1-RSQ1","EXAMPLE-HS3-WB1"],["EXAMPLE-HS4-WB1-RSQ1","EXAMPLE-HS4-WB1"],["EXAMPLE-HS5-WB1-RSQ1","EXAMPLE-HS5-WB1"],["EXAMPLE-HS6-WB1-RSQ1","EXAMPLE-HS6-WB1"],["EXAMPLE-HS7-WB1-RSQ1","EXAMPLE-HS7-WB1"],["EXAMPLE-HS8-WB1-RSQ1","EXAMPLE-HS8-WB1"],["EXAMPLE-HS9-WB1-RSQ1","EXAMPLE-HS9-WB1"]],"type":"String","format":["example::rna_seq#tube_name","example::biospecimen#name"]}'
-  recorded_at: 2020-12-10 20:14:12 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.7.0
+  recorded_at: 2021-01-13 17:12:51 GMT
+  recorded_with: vcr/0.6.0, webmockr/0.7.4
 - request:
     method: get
-    uri: https://magma-stage.ucsf.edu/retrieve
+    uri: https://magma.ucsf.edu/retrieve
     body:
       encoding: ''
       string: ''
@@ -182,7 +182,7 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Thu, 10 Dec 2020 20:14:12 GMT
+      date: Wed, 13 Jan 2021 17:12:51 GMT
       server: Apache
       content-type: text/tsv
       content-disposition: inline; filename="results.tsv
@@ -191,13 +191,13 @@ http_interactions:
     body:
       encoding: UTF-8
       file: no
-      string: "name\tsubject\tbiospecimen_type\trna_seq\tflow\nEXAMPLE-HS10-WB1\tEXAMPLE-HS10\tWhole
-        Blood\tEXAMPLE-HS10-WB1-RSQ1\t\"\"\nEXAMPLE-HS11-WB1\tEXAMPLE-HS11\tWhole
-        Blood\tEXAMPLE-HS11-WB1-RSQ1\t\"\"\nEXAMPLE-HS12-WB1\tEXAMPLE-HS12\tWhole
-        Blood\tEXAMPLE-HS12-WB1-RSQ1\t\"\"\nEXAMPLE-HS1-WB1\tEXAMPLE-HS1\tWhole Blood\tEXAMPLE-HS1-WB1-RSQ1\t\"\"\nEXAMPLE-HS2-WB1\tEXAMPLE-HS2\tWhole
-        Blood\tEXAMPLE-HS2-WB1-RSQ1\t\"\"\nEXAMPLE-HS3-WB1\tEXAMPLE-HS3\tWhole Blood\tEXAMPLE-HS3-WB1-RSQ1\t\"\"\nEXAMPLE-HS4-WB1\tEXAMPLE-HS4\tWhole
-        Blood\tEXAMPLE-HS4-WB1-RSQ1\t\"\"\nEXAMPLE-HS5-WB1\tEXAMPLE-HS5\tWhole Blood\tEXAMPLE-HS5-WB1-RSQ1\t\"\"\nEXAMPLE-HS6-WB1\tEXAMPLE-HS6\tWhole
-        Blood\tEXAMPLE-HS6-WB1-RSQ1\t\"\"\nEXAMPLE-HS7-WB1\tEXAMPLE-HS7\tWhole Blood\tEXAMPLE-HS7-WB1-RSQ1\t\"\"\nEXAMPLE-HS8-WB1\tEXAMPLE-HS8\tWhole
-        Blood\tEXAMPLE-HS8-WB1-RSQ1\t\"\"\nEXAMPLE-HS9-WB1\tEXAMPLE-HS9\tWhole Blood\tEXAMPLE-HS9-WB1-RSQ1\t\"\"\n"
-  recorded_at: 2020-12-10 20:14:12 GMT
-  recorded_with: vcr/0.5.4, webmockr/0.7.0
+      string: "biospecimen_type\tflow\tname\trna_seq\tsubject\nWhole Blood\t\"\"\tEXAMPLE-HS10-WB1\tEXAMPLE-HS10-WB1-RSQ1\tEXAMPLE-HS10\nWhole
+        Blood\t\"\"\tEXAMPLE-HS11-WB1\tEXAMPLE-HS11-WB1-RSQ1\tEXAMPLE-HS11\nWhole
+        Blood\t\"\"\tEXAMPLE-HS12-WB1\tEXAMPLE-HS12-WB1-RSQ1\tEXAMPLE-HS12\nWhole
+        Blood\t\"\"\tEXAMPLE-HS1-WB1\tEXAMPLE-HS1-WB1-RSQ1\tEXAMPLE-HS1\nWhole Blood\t\"\"\tEXAMPLE-HS2-WB1\tEXAMPLE-HS2-WB1-RSQ1\tEXAMPLE-HS2\nWhole
+        Blood\t\"\"\tEXAMPLE-HS3-WB1\tEXAMPLE-HS3-WB1-RSQ1\tEXAMPLE-HS3\nWhole Blood\t\"\"\tEXAMPLE-HS4-WB1\tEXAMPLE-HS4-WB1-RSQ1\tEXAMPLE-HS4\nWhole
+        Blood\t\"\"\tEXAMPLE-HS5-WB1\tEXAMPLE-HS5-WB1-RSQ1\tEXAMPLE-HS5\nWhole Blood\t\"\"\tEXAMPLE-HS6-WB1\tEXAMPLE-HS6-WB1-RSQ1\tEXAMPLE-HS6\nWhole
+        Blood\t\"\"\tEXAMPLE-HS7-WB1\tEXAMPLE-HS7-WB1-RSQ1\tEXAMPLE-HS7\nWhole Blood\t\"\"\tEXAMPLE-HS8-WB1\tEXAMPLE-HS8-WB1-RSQ1\tEXAMPLE-HS8\nWhole
+        Blood\t\"\"\tEXAMPLE-HS9-WB1\tEXAMPLE-HS9-WB1-RSQ1\tEXAMPLE-HS9\n"
+  recorded_at: 2021-01-13 17:12:51 GMT
+  recorded_with: vcr/0.6.0, webmockr/0.7.4

@@ -9,10 +9,11 @@ vcr::use_cassette("update_1", {
         mat <<- retrieveMatrix("example", "rna_seq", "all", "gene_counts")
         
         expect_output(
-            x <- updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
+            updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                 matrix = mat,
                 auto.proceed = TRUE),
-            "This update() will update data for 12 records.\n/update: successful.", fixed = TRUE
+"For model \"rna_seq\", this update() will update 12 records",
+            fixed = TRUE
         )
         mat_after <<- retrieveMatrix("example", "rna_seq", "all", "gene_counts")
     
@@ -24,10 +25,11 @@ vcr::use_cassette("update_2", {
     test_that("updateMatrix can take in data as csv", {
         
         expect_output(
-            x <- updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
+            updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                 matrix = "rna_seq_counts.csv",
                 auto.proceed = TRUE),
-            "This update() will update data for 12 records.\n/update: successful.", fixed = TRUE
+"For model \"rna_seq\", this update() will update 12 records",
+            fixed = TRUE
         )
         mat_after <- retrieveMatrix("example", "rna_seq", "all", "gene_counts")
     
@@ -39,11 +41,12 @@ vcr::use_cassette("update_3", {
     test_that("updateMatrix can take in data as tsv", {
         
         expect_output(
-            x <- updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
+            updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                 matrix = "rna_seq_counts.tsv",
                 separator = "\t",
                 auto.proceed = TRUE),
-            "This update() will update data for 12 records.\n/update: successful.", fixed = TRUE
+"For model \"rna_seq\", this update() will update 12 records",
+            fixed = TRUE
         )
         mat_after <- retrieveMatrix("example", "rna_seq", "all", "gene_counts")
     
@@ -51,7 +54,7 @@ vcr::use_cassette("update_3", {
         
         # Error if 'separator' is not changed:
         expect_error(
-            x <- updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
+            updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                 matrix = "rna_seq_counts.tsv",
                 auto.proceed = TRUE),
             "Parsing error.", fixed = TRUE
@@ -106,7 +109,20 @@ vcr::use_cassette("update_5", {
             suppressWarnings(
                 updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                     matrix = mat)),
-"This update() will update data for 12 records.", fixed = TRUE
+"For model \"rna_seq\", this update() will update 12 records:
+    EXAMPLE-HS10-WB1-RSQ1
+    EXAMPLE-HS11-WB1-RSQ1
+    EXAMPLE-HS12-WB1-RSQ1
+    EXAMPLE-HS1-WB1-RSQ1
+    EXAMPLE-HS2-WB1-RSQ1
+    EXAMPLE-HS3-WB1-RSQ1
+    EXAMPLE-HS4-WB1-RSQ1
+    EXAMPLE-HS5-WB1-RSQ1
+    EXAMPLE-HS6-WB1-RSQ1
+    EXAMPLE-HS7-WB1-RSQ1
+    EXAMPLE-HS8-WB1-RSQ1
+    EXAMPLE-HS9-WB1-RSQ1",
+            fixed = TRUE
         )
         
         # When some records are new and some are not:
@@ -116,10 +132,45 @@ vcr::use_cassette("update_5", {
             suppressWarnings(
                 updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
                     matrix = mat_halfIDs_wrong)),
-"This update() will create 6 new records: WRONG1, WRONG2, WRONG3, WRONG4, WRONG5, WRONG6 
-WARNING: Check the above carefully. Once created, there is currently no way to remove records form magma.
-
-This update() will update data for 6 records.", fixed = TRUE
+"For model \"rna_seq\", this update() will create 6 NEW records:
+    WRONG1
+    WRONG2
+    WRONG3
+    WRONG4
+    WRONG5
+    WRONG6
+WARNING: Check the above carefully. Once created, there is currently no way to remove records from magma.
+For model \"rna_seq\", this update() will update 6 records:
+    EXAMPLE-HS4-WB1-RSQ1
+    EXAMPLE-HS5-WB1-RSQ1
+    EXAMPLE-HS6-WB1-RSQ1
+    EXAMPLE-HS7-WB1-RSQ1
+    EXAMPLE-HS8-WB1-RSQ1
+    EXAMPLE-HS9-WB1-RSQ1", fixed = TRUE
+        )
+        
+        # When 0 records are current:
+        mat_allIDs_wrong <- mat
+        colnames(mat_allIDs_wrong) <- paste0("WRONG", seq_len(ncol(mat)))
+        expect_output(
+            suppressWarnings(
+                updateMatrix(projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
+                    matrix = mat_allIDs_wrong)),
+"For model \"rna_seq\", this update() will create 12 NEW records:
+    WRONG1
+    WRONG2
+    WRONG3
+    WRONG4
+    WRONG5
+    WRONG6
+    WRONG7
+    WRONG8
+    WRONG9
+    WRONG10
+    WRONG11
+    WRONG12
+WARNING: Check the above carefully. Once created, there is currently no way to remove records from magma.
+For model \"rna_seq\", this update() will update 0 records.", fixed = TRUE
         )
         
         # When user-cancels the upload (or in non-interactive mode).
@@ -136,9 +187,7 @@ This update() will update data for 6 records.", fixed = TRUE
                 updateMatrix(projectName = "example", modelName = "rna_seq",
                     attributeName = "fraction",
                     matrix = mat)),
-"WARNING: Target attribute does not have 'validation' info: no feature-names validation can be performed.
-
-This update() will update data for 12 records.", fixed = TRUE
+"WARNING: Target attribute does not have 'validation' info: no feature-names validation can be performed.\n\n", fixed = TRUE
         )
     })
 })
