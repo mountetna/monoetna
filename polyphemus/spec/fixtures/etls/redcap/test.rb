@@ -5,6 +5,7 @@ define_model("ModelTwo").class_eval do
     record_name
   end
 end
+define_model("Stats")
 
 def config
   {
@@ -37,6 +38,25 @@ def config
                   redcap_field: "today",
                   value: "value",
                   exists: true
+                }
+              }
+            }
+          }
+        ]
+      },
+      stats: {
+        scripts: [
+          {
+            each: "record",
+            forms: {
+              statistics: {
+                height: {
+                  redcap_field: "height",
+                  value: "value"
+                },
+                weight: {
+                  redcap_field: "weight",
+                  value: "value"
                 }
               }
             }

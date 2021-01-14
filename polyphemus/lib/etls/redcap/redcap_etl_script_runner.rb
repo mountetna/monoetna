@@ -15,12 +15,12 @@ require_relative '../../magma_record_etl'
 class Polyphemus
   class RedcapEtlScriptRunner < EtlScriptRunner
 
-    attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :dateshift_salt, :record_names
+    attr_reader :magma_client, :update_request, :model_names, :redcap_tokens, :redcap_host, :magma_host, :dateshift_salt, :mode
 
     # Override initialize, user won't be passing in a filename directly as with other ETLs.
-    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:, record_names: nil)
+    def initialize(project_name:, model_names: "all", redcap_tokens:, redcap_host:, magma_host:, dateshift_salt:, mode: nil)
       raise "No dateshift_salt provided, please provide one." unless dateshift_salt
-
+      raise "Mode must be nil, \"existing\", or \"strict\"." unless [nil, "existing", "strict"].include?(mode)
       raise "Must provide at least one REDCap token." unless redcap_tokens&.length > 0
 
       @file_path = File.join(File.dirname(__FILE__), 'projects', "#{project_name}.rb")
@@ -37,7 +37,7 @@ class Polyphemus
       @redcap_host = redcap_host
       @magma_host = magma_host
       @dateshift_salt = dateshift_salt
-      @record_names = record_names # array of record_names to update, nil, or "existing"
+      @mode = mode # operating mode: nil, "strict"
     end
 
     def run(magma_client:, commit: false, logger: STDOUT)
@@ -86,7 +86,7 @@ class Polyphemus
         magma_host: magma_host,
         project_name: @project_name,
         models_to_build: model_names,
-        records_to_update: record_names
+        mode: mode
       }
     end
 
@@ -103,7 +103,7 @@ Summary of upload
 ===============================
 Project: #{@project_name}
 Models: #{model_names}
-Record names setting: #{record_names}
+Mode setting: #{mode}
 Committed to Magma: #{commit}
 EOM
       )

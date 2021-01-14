@@ -53,7 +53,7 @@ module Redcap
 
                 # Blank out records that have no data if user specifies a
                 #   "strict" update
-                if strict_update
+                if strict_mode
                   found_record_names = records[ model_name.to_sym ].keys.map(&:to_s)
                   @records_to_blank ||= {}
                   @records_to_blank[ model_name.to_sym ] ||= []
@@ -78,33 +78,29 @@ module Redcap
     end
 
     def filter_records(model_name, model_records)
-      return model_records unless restrict_records_to_update?
+      return model_records unless restrict_mode?
 
-      model_records = filter_records_by_allowed_list(model_name, model_records)
-
-      model_records
+      filter_records_by_allowed_list(model_name, model_records)
     end
 
     def filter_records_by_allowed_list(model_name, model_records)
-      model_records.slice(*allowed_record_names(model_name))
+      model_records.slice(*allowed_record_names(model_name, model_records))
     end
 
-    def restrict_records_to_update?
-      !!config[:records_to_update] && !strict_update
+    def restrict_mode?
+      !!config[:mode] && !strict_mode && existing_mode
     end
 
-    def strict_update
-      "strict" == config[:records_to_update]
+    def strict_mode
+      "strict" == config[:mode]
     end
 
-    def existing_records_update
-      "existing" == config[:records_to_update]
+    def existing_mode
+      "existing" == config[:mode]
     end
 
-    def allowed_record_names(model_name)
-      return config[:records_to_update] unless existing_records_update
-
-      magma_models_wrapper.record_ids_for_model(model_name)
+    def allowed_record_names(model_name, model_records)
+      magma_models_wrapper.record_ids_for_model(model_name, model_records)
     end
   end
 end

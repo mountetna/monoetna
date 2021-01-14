@@ -162,32 +162,38 @@
             "read_only": false,
             "hidden": false,
             "validation": null,
-            "attribute_type": "file"
-          },
-          "selfie": {
-            "name": "selfie",
-            "attribute_name": "selfie",
-            "display_name": "Selfie",
-            "restricted": false,
-            "read_only": false,
-            "hidden": false,
-            "validation": null,
-            "attribute_type": "file"
-          },
-          "reference_model": {
-            "name": "reference_model",
-            "attribute_name": "reference_model",
-            "display_name": "ReferenceModel",
-            "restricted": false,
-            "read_only": false,
-            "hidden": false,
-            "validation": null,
-            "attribute_type": "link",
-            "model_name": "model_two",
-            "link_model_name": "model_two"
+            "attribute_type": "table"
           }
         },
         "parent": "parent_model"
+      }
+    },
+    "stats": {
+      "documents": {},
+      "template": {
+        "parent": "model_two",
+        "attributes": {
+          "height": {
+            "name": "height",
+            "attribute_name": "height",
+            "display_name": "Height",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "float"
+          },
+          "weight": {
+            "name": "weight",
+            "attribute_name": "weight",
+            "display_name": "Weight",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "float"
+          }
+        }
       }
     }
   }
