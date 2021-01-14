@@ -1,21 +1,12 @@
 module Redcap
   class Loader
-    attr_reader :records, :magma_models, :config, :logger
-    def initialize(config, magma_client, logger=STDOUT)
+    attr_reader :records, :magma_models_wrapper, :config, :logger
+    def initialize(config, magma_models_wrapper, logger=STDOUT)
       @config = config
       @records = {}
       @logger = logger
 
-      # Fetch existing records separately, since tables
-      #   don't have identifiers and including
-      #   "record_names": "all", "attribute_names": "identifiers"
-      #   will not return their
-      #   templates.
-      @magma_models = magma_client.retrieve(
-        Etna::Clients::Magma::RetrievalRequest.new(
-          project_name: @config[:project_name]
-        )
-      ).models
+      @magma_models_wrapper = magma_models_wrapper
     end
 
     def run
@@ -23,14 +14,14 @@ module Redcap
 
       patch_tables
 
-      records
+      return records, @records_to_blank
     end
 
     private
 
     def update_records_from_project
       tokens.each do |token|
-        project = Redcap::Project.new(token, config, magma_models, logger)
+        project = Redcap::Project.new(token, config, magma_models_wrapper.models, logger)
 
         project.fetch_records.each do |model_name, model_records|
           records[model_name] = {} unless records.keys.include?(model_name)
@@ -43,8 +34,8 @@ module Redcap
 
     def patch_tables
       # find any table attributes
-      magma_models.model_keys.each do |model_name|
-        magma_models.model(model_name.to_s).template.attributes.tap do |atts|
+      magma_models_wrapper.models.model_keys.each do |model_name|
+        magma_models_wrapper.models.model(model_name.to_s).template.attributes.tap do |atts|
           atts.attribute_keys.each do |att_name|
             if atts.attribute(att_name).attribute_type == 'table'
               # look for corresponding entries in the database
@@ -59,6 +50,22 @@ module Redcap
                   records[ model_name.to_sym ][ model_record_name ] ||= {}
                   records[ model_name.to_sym ][ model_record_name ][ att_name ] = temp_id_names
                 end
+
+                # Blank out records that have no data if user specifies a
+                #   "strict" update
+                if strict_mode
+                  found_record_names = records[ model_name.to_sym ].keys.map(&:to_s)
+                  @records_to_blank ||= {}
+                  @records_to_blank[ model_name.to_sym ] ||= []
+                  @records_to_blank[ model_name.to_sym ] = magma_models_wrapper.model_record_names(model_name).reject do |r|
+                    found_record_names.include?(r)
+                  end
+                  @records_to_blank[ model_name.to_sym ].each do |model_record_name|
+                    records[ model_name.to_sym ] ||= {}
+                    records[ model_name.to_sym ][ model_record_name ] ||= {}
+                    records[ model_name.to_sym ][ model_record_name ][ att_name ] = [] # empty array in Magma removes existing table records for an attribute
+                  end
+                end
               end
             end
           end
@@ -71,35 +78,29 @@ module Redcap
     end
 
     def filter_records(model_name, model_records)
-      return model_records
-      # return model_records unless restrict_records_to_update?
+      return model_records unless restrict_mode?
 
-      model_records = filter_records_by_allowed_list(model_name, model_records)
-
-      model_records
+      filter_records_by_allowed_list(model_name, model_records)
     end
 
     def filter_records_by_allowed_list(model_name, model_records)
-      model_records.slice(*allowed_record_names(model_name))
+      model_records.slice(*allowed_record_names(model_name, model_records))
     end
 
-    def restrict_records_to_update?
-      !!config[:records_to_update]
+    def restrict_mode?
+      !!config[:mode] && !strict_mode && existing_mode
     end
 
-    def allowed_record_names(model_name)
-      return config[:records_to_update] unless "existing" == config[:records_to_update]
+    def strict_mode
+      "strict" == config[:mode]
+    end
 
-      # For tables, we actually need to filter on their parent
-      #   model record_names....so this is broken for now.
-      magma_client.retrieve(
-        Etna::Clients::Magma::RetrievalRequest.new(
-          project_name: @config[:project_name],
-          model_name: model_name.to_s,
-          attribute_names: "identifier",
-          record_names: "all"
-        )
-      ).models.model(model_name.to_s).documents.document_keys
+    def existing_mode
+      "existing" == config[:mode]
+    end
+
+    def allowed_record_names(model_name, model_records)
+      magma_models_wrapper.record_ids_for_model(model_name, model_records)
     end
   end
 end

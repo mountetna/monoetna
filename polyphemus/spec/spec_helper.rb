@@ -258,3 +258,14 @@ def copy_redcap_project
   File.delete(REDCAP_PROJECT_CONFIG_PATH) if File.file?(REDCAP_PROJECT_CONFIG_PATH)
   FileUtils.cp(test_fixture_path, REDCAP_PROJECT_CONFIG_PATH)
 end
+
+def temp_id(records, id)
+  all_record_keys = []
+  records.keys.each do |key|
+    all_record_keys.concat(records[key].keys)
+  end
+
+  all_record_keys.each do |key|
+    return key if key =~ /::temp-#{id}-.*/
+  end
+end
