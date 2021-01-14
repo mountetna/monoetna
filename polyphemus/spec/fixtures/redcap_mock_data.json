@@ -34,5 +34,17 @@
     "redcap_event_name": "Graduation day",
     "field_name": "commencement",
     "value": "2021-12-31"
+  },
+  {
+    "record": "abc",
+    "redcap_event_name": "Height",
+    "field_name": "height",
+    "value": "180"
+  },
+  {
+    "record": "abc",
+    "redcap_event_name": "Weight",
+    "field_name": "weight",
+    "value": "75"
   }
 ]
