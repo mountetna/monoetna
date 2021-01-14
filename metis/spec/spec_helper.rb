@@ -325,7 +325,7 @@ EOT
 
 AUTH_USERS = {
   editor: {
-    email: 'metis@olympus.org', first: 'Metis', perm: 'e:athena'
+    email: 'metis@olympus.org', first: 'Metis', perm: 'e:athena,backup'
   },
   viewer: {
     email: 'athena@olympus.org', first: 'Athena', perm: 'v:athena'
