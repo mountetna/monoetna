@@ -46,7 +46,7 @@ describe Metis::FolderRenameRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Invalid bucket: \"sundry\""
+            "Invalid bucket \"sundry\" in project \"athena\". Check the bucket name and your permissions."
         )
     end
 
@@ -262,7 +262,7 @@ describe Metis::FolderRenameRevision do
         revision.validate
         expect(revision.errors.length).to eq(2)
         expect(revision.errors).to eq([
-            "Invalid bucket: \"war\"",
+            "Invalid bucket \"war\" in project \"athena\". Check the bucket name and your permissions.",
             "Cannot copy over existing folder: \"metis://athena/files/wisdom\""
         ])
     end
@@ -340,7 +340,7 @@ describe Metis::FolderRenameRevision do
         revision.validate
         expect(revision.errors.length).to eq(2)
         expect(revision.errors[0]).to eq(
-            "Invalid bucket: \"magma\""
+            "Invalid bucket \"magma\" in project \"athena\". Check the bucket name and your permissions."
         )
     end
 
@@ -442,7 +442,7 @@ describe Metis::FolderRenameRevision do
             source: 'metis://athena/magma/wisdom',
             dest: 'metis://athena/files/wisdom',
             errors: [
-                "Invalid bucket: \"magma\"",
+                "Invalid bucket \"magma\" in project \"athena\". Check the bucket name and your permissions.",
                 "Cannot copy over existing folder: \"metis://athena/files/wisdom\""],
         })
     end
