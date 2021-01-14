@@ -71,8 +71,6 @@ class Polyphemus
         host: Polyphemus.instance.config(:magma)[:host])
 
       redcap_etl.run(magma_client: magma_client, commit: commit?, logger: logger)
-
-      return nil
     end
 
     def launch_redcap_process(stream)

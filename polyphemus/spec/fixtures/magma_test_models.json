@@ -118,12 +118,12 @@
             "validation": null,
             "attribute_type": "date_time"
           },
-          "parent_model": {
-            "name": "parent_model",
-            "attribute_name": "parent_model",
-            "model_name": "parent_model",
-            "link_model_name": "parent_model",
-            "display_name": "ParentModel",
+          "model_one": {
+            "name": "model_one",
+            "attribute_name": "model_one",
+            "model_name": "model_one",
+            "link_model_name": "model_one",
+            "display_name": "ModelOne",
             "restricted": false,
             "read_only": false,
             "hidden": false,
@@ -158,6 +158,7 @@
             "name": "stats",
             "attribute_name": "stats",
             "display_name": "Stats",
+            "link_model_name": "stats",
             "restricted": false,
             "read_only": false,
             "hidden": false,
@@ -165,7 +166,7 @@
             "attribute_type": "table"
           }
         },
-        "parent": "parent_model"
+        "parent": "model_one"
       }
     },
     "stats": {
@@ -192,6 +193,15 @@
             "hidden": false,
             "validation": null,
             "attribute_type": "float"
+          },
+          "model_two": {
+            "name": "model_two",
+            "attribute_name": "model_two",
+            "model_name": "model_two",
+            "link_model_name": "model_two",
+            "display_name": "ModelTwo",
+            "validation": null,
+            "attribute_type": "parent"
           }
         }
       }

@@ -5,7 +5,11 @@ define_model("ModelTwo").class_eval do
     record_name
   end
 end
-define_model("Stats")
+define_model("Stats").class_eval do
+  def patch(id, record)
+    record[:model_two] = id.split('-')[1]
+  end
+end
 
 def config
   {
