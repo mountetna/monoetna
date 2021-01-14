@@ -60,10 +60,10 @@ describe Polyphemus::Server do
     expect(last_response.status).to eq(422)
   end
 
-  it 'throws exception for bad record_names parameter' do
+  it 'throws exception for bad mode parameter' do
     auth_header(:administrator)
     post('/test/job', job_type: "redcap", job_params: {
-      model_names: "all", redcap_tokens: ["123"], record_names: "rocks"
+      model_names: "all", redcap_tokens: ["123"], mode: "rocks"
     })
 
     expect(last_response.status).to eq(422)
@@ -83,14 +83,13 @@ describe Polyphemus::Server do
 
     expect(last_response.status).to eq(200)
 
-    expect(json_body[:results].keys.first).to eq(:model_one)
-    expect(json_body[:results].keys.last).to eq(:model_two)
+    expect(json_body[:results].keys).to match_array([:model_one, :model_two, :stats])
 
     # Updates all records found in REDCap, by default
-    expect(json_body[:results][:model_two].keys).to match_array([:"123", :"321"])
+    expect(json_body[:results][:model_two].keys).to match_array([:"123", :"321", :abc])
   end
 
-  xit 'only updates existing magma records' do
+  it 'only updates existing magma records in existing mode' do
     # Not a great test ... can't figure out how to test or mock for
     #   a process spun out in a different Thread.
     stub_magma_models
@@ -101,7 +100,7 @@ describe Polyphemus::Server do
     post('/test/job', job_type: "redcap", job_params: {
       model_names: ["model_two"],
       redcap_tokens: ["123"],
-      record_names: "existing"
+      mode: "existing"
     })
 
     expect(last_response.status).to eq(200)
@@ -110,7 +109,7 @@ describe Polyphemus::Server do
     expect(json_body[:results][:model_two].keys).to eq([:"123"])
   end
 
-  xit 'updates a specific record' do
+  it 'blanks "removed" magma records in strict mode' do
     # Not a great test ... can't figure out how to test or mock for
     #   a process spun out in a different Thread.
     stub_magma_models
@@ -119,15 +118,21 @@ describe Polyphemus::Server do
 
     auth_header(:administrator)
     post('/test/job', job_type: "redcap", job_params: {
-      model_names: ["model_two"],
+      model_names: ["stats"],
       redcap_tokens: ["123"],
-      record_names: ["321"]
+      mode: "strict"
     })
 
     expect(last_response.status).to eq(200)
 
-    expect(json_body[:results].keys).to eq([:model_two])
-    expect(json_body[:results][:model_two].keys).to eq([:"321"])
+    id_abc = temp_id(json_body[:results], "abc")
+
+    expect(json_body[:results].keys).to match_array([:stats, :model_two])
+    expect(json_body[:results][:model_two].keys).to match_array([:"123", :abc])
+    expect(json_body[:results][:stats].keys).to match_array([id_abc])
+
+    expect(json_body[:results][:model_two][:abc][:stats]).not_to eq([])
+    expect(json_body[:results][:model_two][:"123"][:stats]).to eq([])
   end
 end
 

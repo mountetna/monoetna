@@ -5,6 +5,11 @@ define_model("ModelTwo").class_eval do
     record_name
   end
 end
+define_model("Stats").class_eval do
+  def patch(id, record)
+    record[:model_two] = id.split('-')[1]
+  end
+end
 
 def config
   {
@@ -37,6 +42,25 @@ def config
                   redcap_field: "today",
                   value: "value",
                   exists: true
+                }
+              }
+            }
+          }
+        ]
+      },
+      stats: {
+        scripts: [
+          {
+            each: "record",
+            forms: {
+              statistics: {
+                height: {
+                  redcap_field: "height",
+                  value: "value"
+                },
+                weight: {
+                  redcap_field: "weight",
+                  value: "value"
                 }
               }
             }

@@ -1287,9 +1287,9 @@ COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
-all_flag_completion_names="$all_flag_completion_names --execute --record_names "
-string_flag_completion_names="$string_flag_completion_names --record_names "
-declare _completions_for_record_names="__record_names__"
+all_flag_completion_names="$all_flag_completion_names --execute --mode "
+string_flag_completion_names="$string_flag_completion_names --mode "
+declare _completions_for_mode="__mode__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
