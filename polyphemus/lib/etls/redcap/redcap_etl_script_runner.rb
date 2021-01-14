@@ -37,7 +37,7 @@ class Polyphemus
       @redcap_host = redcap_host
       @magma_host = magma_host
       @dateshift_salt = dateshift_salt
-      @mode = mode # operating mode: nil, "strict"
+      @mode = mode # operating mode: nil, "strict", "existing"
     end
 
     def run(magma_client:, commit: false, logger: STDOUT)
