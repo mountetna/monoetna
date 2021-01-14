@@ -5,7 +5,7 @@ require 'fileutils'
 
 ruby '~> 2.5'
 
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/2d3ed1bec50e2a594a95a16386867791e5e4bef0'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/91048bfdb46b22134ad644210cdb94043048ac11'
 gem 'pg'
 gem 'sequel', '5.28.0'
 gem 'mini_magick'
