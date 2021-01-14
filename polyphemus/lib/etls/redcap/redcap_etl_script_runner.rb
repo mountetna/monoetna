@@ -7,6 +7,7 @@ require_relative 'lib/script'
 require_relative 'lib/value'
 require_relative 'lib/form'
 require_relative 'lib/project'
+require_relative 'lib/magma_models'
 
 require_relative '../etl_script_runner'
 require_relative '../../magma_record_etl'
@@ -46,22 +47,32 @@ class Polyphemus
       #   self.__binding__ here -- throws an UndefinedMethod exception.
       run_script(self.get_binding)
 
-      loader = Redcap::Loader.new(config.update(system_config), magma_client, logger)
+      magma_models_wrapper = Redcap::MagmaModelsWrapper.new(magma_client, @project_name)
+      loader = Redcap::Loader.new(config.update(system_config), magma_models_wrapper, logger)
 
-      records = loader.run
+      all_records, records_to_blank = loader.run
 
-      logger.write(JSON.pretty_generate(records))
+      logger.write(JSON.pretty_generate(all_records))
       logger.write("\n")
 
       @update_request = Etna::Clients::Magma::UpdateRequest.new(
         project_name: @project_name,
-        revisions: records)
+        revisions: all_records)
 
       if commit
-        logger.write("Posting revisions\n")
+        logger.write("Posting revisions.\n")
         magma_client.update_json(update_request)
+        logger.write("Revisions saved to Magma.\n")
       end
-      return records
+
+      summarize(
+        logger: logger,
+        all_records: all_records,
+        magma_models_wrapper: magma_models_wrapper,
+        records_to_blank: records_to_blank,
+        commit: commit)
+
+      return all_records
     rescue => e
       logger.write("#{e.message}\n#{e.backtrace}")
       raise
@@ -84,6 +95,30 @@ class Polyphemus
     end
 
     protected
+
+    def summarize(logger:, all_records:, magma_models_wrapper:, records_to_blank:, commit:)
+      logger.write(<<-EOM
+===============================
+Summary of upload
+===============================
+Project: #{@project_name}
+Models: #{model_names}
+Record names setting: #{record_names}
+Committed to Magma: #{commit}
+EOM
+      )
+      all_records.keys.each do |model_name|
+        logger.write("#{model_name} records updated: #{all_records[model_name].keys.length}\n")
+      end
+
+      if records_to_blank
+        records_to_blank.keys.each do |model_name|
+          logger.write("#{model_name} records blanked: #{records_to_blank[model_name].length}\n")
+        end
+      end
+
+      logger.write("===============================\n")
+    end
 
     def define_model(model_name, &block)
       return Kernel.const_get(model_name) if Kernel.const_defined?(model_name)
