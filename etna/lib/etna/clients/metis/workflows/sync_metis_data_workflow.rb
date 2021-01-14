@@ -35,7 +35,7 @@ module Etna
         end
 
         def with_maybe_intermediate_tmp_dest(bin_file_name:, tmpdir:, dest_file_name:, &block)
-          filesystem.mkdir_p(::File.dirname(dest))
+          filesystem.mkdir_p(::File.dirname(dest_file_name))
           if tmpdir.nil?
             yield dest_file_name
           else

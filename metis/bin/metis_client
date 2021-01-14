@@ -256,9 +256,8 @@ class MetisClient
 
   def copy_file(project_name, file_path, proposed_file_path)
     if proposed_file_path.start_with?('metis://')
-      match = metis_path(proposed_file_path)
-      new_bucket_name = match[:bucket]
-      new_file_path = match[:file_path]
+      new_bucket_name = nil # not used
+      new_file_path = proposed_file_path
     else
       split_parts = proposed_file_path.split('/')
       new_bucket_name = split_parts.first

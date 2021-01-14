@@ -170,6 +170,7 @@ retrieveMetadata <- function(
                      path[2],
                      '::identifier'),
             format = "df",
+            token = token,
             ...)
     
     ind <- 2
@@ -184,6 +185,7 @@ retrieveMetadata <- function(
                      path[ind+1],
                      '::identifier'),
             format = "df",
+            token = token,
             ...)
         
         if (any(duplicated(new_id_map[1,]))) {

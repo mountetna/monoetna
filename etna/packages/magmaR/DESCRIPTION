@@ -11,8 +11,10 @@ Suggests: dittoSeq,
     BiocStyle,
     vcr,
     webmockr,
-    testthat
+    testthat,
+    knitr
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
+VignetteBuilder: knitr

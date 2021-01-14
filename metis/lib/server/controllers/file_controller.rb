@@ -95,10 +95,7 @@ class FileController < Metis::Controller
 
     source_bucket = require_bucket
 
-    dest_bucket = source_bucket
-    if @params[:new_bucket_name]
-      dest_bucket = require_bucket(@params[:new_bucket_name])
-    end
+    dest, dest_bucket = construct_dest_info
 
     revision = Metis::CopyRevision.new({
       source: Metis::Path.path_from_parts(
@@ -106,11 +103,7 @@ class FileController < Metis::Controller
         source_bucket.name,
         @params[:file_path]
       ),
-      dest: Metis::Path.path_from_parts(
-        @params[:project_name],
-        dest_bucket.name,
-        @params[:new_file_path]
-      ),
+      dest: dest.path,
       user: @user
     })
 
@@ -118,14 +111,13 @@ class FileController < Metis::Controller
     revision.set_bucket(revision.dest, [source_bucket, dest_bucket])
 
     source_folder_path, _ = Metis::File.path_parts(@params[:file_path])
-    dest_folder_path, _ = Metis::File.path_parts(@params[:new_file_path])
 
     revision.set_folder(
       revision.source,
       [require_folder(source_bucket, source_folder_path)]) if source_folder_path
     revision.set_folder(
       revision.dest,
-      [require_folder(dest_bucket, dest_folder_path)]) if dest_folder_path
+      [require_folder(dest_bucket, dest.folder_path)]) if dest.folder_path
 
     revision.validate
 
@@ -153,7 +145,6 @@ class FileController < Metis::Controller
     # In bulk copy mode, we fetch the buckets and folders in bulk
     #   and set them on the revision objects, to try and minimize database hits
     user_authorized_buckets = Metis::Bucket.where(
-      project_name: @params[:project_name],
       owner: ['metis', @hmac&.id.to_s].reject {|o| o.empty?},
       name: revisions.map(&:bucket_names).flatten.uniq
     ).all.select{|b| b.allowed?(@user, @hmac)}
@@ -170,7 +161,7 @@ class FileController < Metis::Controller
       #   revisions.
       bucket_folder_paths = revisions.
         map(&:mpaths).flatten.
-        select{|p| p.bucket_name == bucket.name}.
+        select{|p| p.bucket_matches?(bucket)}.
         map(&:folder_path).flatten.compact.uniq
 
       bucket_folders = bucket_folder_paths.map {
@@ -178,10 +169,10 @@ class FileController < Metis::Controller
       }.flatten.compact
 
       revisions.each do |rev|
-        if rev.source.mpath.bucket_name == bucket.name
+        if rev.source.mpath.bucket_matches?(bucket)
           rev.set_folder(rev.source, bucket_folders)
         end
-        if rev.dest.mpath.bucket_name == bucket.name
+        if rev.dest.mpath.bucket_matches?(bucket)
           rev.set_folder(rev.dest, bucket_folders)
         end
       end
@@ -198,5 +189,28 @@ class FileController < Metis::Controller
       files: revisions.map(&:revise!).
         map {|new_file| new_file.to_hash(request: @request)}
     )
+  end
+
+  private
+
+  def construct_dest_info
+    if Metis::Path.filepath_match.match(@params[:new_file_path])
+      dest = Metis::Path.new(@params[:new_file_path])
+      dest_bucket = require_bucket(dest.bucket_name, dest.project_name)
+      return dest, dest_bucket
+    end
+
+    dest_bucket = require_bucket
+    if @params[:new_bucket_name]
+      dest_bucket = require_bucket(@params[:new_bucket_name])
+    end
+
+    dest_path = Metis::Path.path_from_parts(
+      @params[:project_name],
+      dest_bucket.name,
+      @params[:new_file_path]
+    )
+
+    return Metis::Path.new(dest_path), dest_bucket
   end
 end

@@ -31,6 +31,9 @@ class Metis
       # Admins can always see the bucket
       return true if user.is_admin?(project_name)
 
+      # User not allowed if project not in their permissions.
+      return false unless user.permissions[project_name]
+
       # Access is restricted by role
       if ROLES[access.to_sym]
         return ROLES[access.to_sym] >= ROLES[user.permissions[project_name][:role]]

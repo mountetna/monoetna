@@ -273,7 +273,8 @@ describe FolderController do
 
       expect(last_response.status).to eq(422)
 
-      expect(json_body[:error]).to eq('Invalid bucket: "nonexistent"')
+      expect(json_body[:error]).to eq(
+        "Invalid bucket on project athena: \"nonexistent\"")
     end
   end
 
