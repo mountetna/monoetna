@@ -221,29 +221,71 @@ def stub_redcap_data
     })
 
   stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: hash_including({ content: 'record' }))
+    .with(body: /today/)
     .to_return({
       headers: {
         'Content-Type': 'application/json'
       },
-      body: File.read('spec/fixtures/redcap_mock_data.json')
+      body: File.read('spec/fixtures/redcap_mock_data_calendar.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /date_of_birth/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_essential_data.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /height/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_statistics.json')
     })
 end
 
 def stub_redcap_multi_project_records
   stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: hash_including({ content: 'record' }))
+    .with(body: /today/)
     .to_return({
       headers: {
         'Content-Type': 'application/json'
       },
-      body: File.read('spec/fixtures/redcap_mock_data.json')
+      body: File.read('spec/fixtures/redcap_mock_data_calendar.json')
     }).then
     .to_return({
       headers: {
         'Content-Type': 'application/json'
       },
-      body: File.read('spec/fixtures/redcap_mock_data_project_2.json')
+      body: File.read('spec/fixtures/redcap_mock_data_project_2_calendar.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /date_of_birth/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_essential_data.json')
+    }).then
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_project_2_essential_data.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /height/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_statistics.json')
     })
 end
 

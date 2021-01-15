@@ -65,7 +65,10 @@ describe Polyphemus::RedcapEtlScriptRunner do
     end
 
     let(:raw_data) {
-      JSON.parse(File.read('spec/fixtures/redcap_mock_data.json'), symbolize_names: true)
+      arry1 = JSON.parse(File.read('spec/fixtures/redcap_mock_data_calendar.json'), symbolize_names: true)
+      arry2 = JSON.parse(File.read('spec/fixtures/redcap_mock_data_essential_data.json'), symbolize_names: true)
+
+      return arry1 + arry2
     }
 
     let(:raw_template) {
@@ -181,7 +184,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
       it 'updates records even if not in Magma with regular model' do
         redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
           project_name: 'test',
-          model_names: ["model_two"],
+          model_names: "all",
           redcap_tokens: ["faketoken"],
           dateshift_salt: '123',
           redcap_host: REDCAP_HOST,
@@ -192,9 +195,14 @@ describe Polyphemus::RedcapEtlScriptRunner do
 
         records = redcap_etl.run(magma_client: magma_client)
 
+        expect(records.keys.include?(:model_one)).to eq(true)
         expect(records.keys.include?(:model_two)).to eq(true)
-        expect(records[:model_two].keys.length).to eq(2)
-        expect(records[:model_two].keys).to match_array(["123", "321"])
+
+        expect(records[:model_two].keys).to match_array(["123", "321", "abc"])
+
+        # Null value keys do not appear
+        id_456 = temp_id(records, "456")
+        expect(records[:model_one][id_456].keys.include?(:graduation_date)).to eq(false)
       end
 
       it 'updates records even if not in Magma with table model' do
@@ -217,7 +225,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
         expect(records[:stats].keys).to match_array([id_abc])
 
         expect(records.keys.include?(:model_two)).to eq(true)
-        expect(records[:model_two].keys.length).to eq(1)
         expect(records[:model_two].keys).to match_array(["abc"])
         expect(records[:model_two]["abc"]["stats"]).to eq(records[:stats].keys)
       end
@@ -240,7 +247,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
         records = redcap_etl.run(magma_client: magma_client)
 
         expect(records.keys.include?(:model_two)).to eq(true)
-        expect(records[:model_two].keys.length).to eq(1)
         expect(records[:model_two].keys).to eq(["123"])
       end
 
@@ -265,13 +271,10 @@ describe Polyphemus::RedcapEtlScriptRunner do
     end
 
     context("mode == strict") do
-      xit 'can null out attribute values on regular models' do
-      end
-
-      it 'does not affect regular models' do
+      it 'shows null values on regular models' do
         redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
           project_name: 'test',
-          model_names: ["model_two"],
+          model_names: ["model_one"],
           redcap_tokens: ["faketoken"],
           dateshift_salt: '123',
           redcap_host: REDCAP_HOST,
@@ -283,9 +286,12 @@ describe Polyphemus::RedcapEtlScriptRunner do
 
         records = redcap_etl.run(magma_client: magma_client)
 
-        expect(records.keys.include?(:model_two)).to eq(true)
-        expect(records[:model_two].keys.length).to eq(2)
-        expect(records[:model_two].keys).to match_array(["123", "321"])
+        expect(records.keys.include?(:model_one)).to eq(true)
+        # Make sure null values appear now!
+        # Null value keys do not appear
+        id_456 = temp_id(records, "456")
+        expect(records[:model_one][id_456].keys.include?(:graduation_date)).to eq(true)
+        expect(records[:model_one][id_456][:graduation_date]).to eq(nil)
       end
 
       it 'blanks parent records in Magma that are not in REDCap when updating table model' do

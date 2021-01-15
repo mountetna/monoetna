@@ -26,7 +26,7 @@ module Redcap
       project.logger.write("Patching unfilled attributes.\n")
 
       records.each do |id, record|
-        record.compact!
+        record.compact! unless project.strict
 
         @model.patch(id, record) unless record.empty?
       end

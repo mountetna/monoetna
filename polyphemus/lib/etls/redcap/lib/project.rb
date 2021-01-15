@@ -47,6 +47,10 @@ module Redcap
       client.records(form, events)
     end
 
+    def strict
+      "strict" == config[:mode]
+    end
+
     private
 
     def build_model?(model_name)
@@ -64,7 +68,5 @@ module Redcap
     def dateshift_salt
       config[:dateshift_salt]
     end
-
   end
-
 end

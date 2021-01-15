@@ -2,14 +2,8 @@
   {
     "record": "test",
     "redcap_event_name": "A test event",
-    "field_name": "birthday",
+    "field_name": "name",
     "value": "900-01-01"
-  },
-  {
-    "record": "321",
-    "redcap_event_name": "Calendar event",
-    "field_name": "today",
-    "value": "1020-01-01"
   },
   {
     "record": "654",

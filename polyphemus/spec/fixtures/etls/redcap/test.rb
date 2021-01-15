@@ -40,8 +40,7 @@ def config
                 },
                 yesterday: {
                   redcap_field: "today",
-                  value: "value",
-                  exists: true
+                  value: "value"
                 }
               }
             }
