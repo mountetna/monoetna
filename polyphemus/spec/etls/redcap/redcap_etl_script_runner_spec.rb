@@ -287,8 +287,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
         records = redcap_etl.run(magma_client: magma_client)
 
         expect(records.keys.include?(:model_one)).to eq(true)
-        # Make sure null values appear now!
-        # Null value keys do not appear
+        # Make sure null values appear now
         id_456 = temp_id(records, "456")
         expect(records[:model_one][id_456].keys.include?(:graduation_date)).to eq(true)
         expect(records[:model_one][id_456][:graduation_date]).to eq(nil)
