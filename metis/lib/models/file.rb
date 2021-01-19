@@ -150,8 +150,7 @@ class Metis
           id: :metis,
           headers: user ? {
             email: user.email,
-            first: user.first,
-            last: user.last
+            name: user.name.strip
           } : {}
         ).url_params
       )

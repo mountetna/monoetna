@@ -123,10 +123,19 @@ class UploadController < Metis::Controller
   private
 
   def user_by_hmac(hmac)
+    hmac_name = hmac.headers[:name]
+
+    # Definitely an assumption on how names are constructed...
+    hmac_name_parts = hmac_name&.split(' ')
+    first = hmac_name_parts ? hmac_name_parts.first : hmac.id
+    last = hmac_name_parts ?
+      hmac_name_parts.slice(1, hmac_name_parts.length - 1).join(" ") :
+      hmac.id
+
     return Etna::User.new(
         email: (hmac.headers[:email] || hmac.id).to_s,
-        first: (hmac.headers[:first] || hmac.id).to_s,
-        last: (hmac.headers[:last] || hmac.id).to_s) if hmac and hmac.valid?
+        first: first.to_s,
+        last: last.to_s) if hmac and hmac.valid?
     @user
   end
 
