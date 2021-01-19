@@ -67,33 +67,34 @@ class Metis
       %x{ md5sum "#{path}" }.split.first
     end
 
-    def self.upload_url(request, project_name, bucket_name, file_path)
+    def self.upload_url(request, project_name, bucket_name, file_path, user)
       hmac_url(
-        'POST',
-        request.host,
-        Metis::Server.route_path(
+        method: 'POST',
+        host: request.host,
+        path: Metis::Server.route_path(
           request,
           :upload,
           project_name: project_name,
           bucket_name: bucket_name,
           file_path: file_path
         ),
-        Metis.instance.config(:upload_expiration)
+        user: user,
+        expiration: Metis.instance.config(:upload_expiration)
       )
     end
 
     def self.download_url(request, project_name, bucket_name, file_path)
       hmac_url(
-        'GET',
-        request.host,
-        Metis::Server.route_path(
+        method: 'GET',
+        host: request.host,
+        path: Metis::Server.route_path(
           request,
           :download,
           project_name: project_name,
           bucket_name: bucket_name,
           file_path: file_path
         ),
-        Metis.instance.config(:download_expiration)
+        expiration: Metis.instance.config(:download_expiration)
       )
     end
 
@@ -136,7 +137,7 @@ class Metis
 
     private
 
-    def self.hmac_url(method, host, path, expiration=0)
+    def self.hmac_url(method:, host:, path:, user:  nil, expiration: 0)
 
       URI::HTTPS.build(
         Etna::Hmac.new(
@@ -147,7 +148,11 @@ class Metis
           expiration: (Time.now + expiration).iso8601,
           nonce: Metis.instance.sign.uid,
           id: :metis,
-          headers: { }
+          headers: user ? {
+            email: user.email,
+            first: user.first,
+            last: user.last
+          } : {}
         ).url_params
       )
     end

@@ -22,7 +22,8 @@ class UploadController < Metis::Controller
       @request,
       @params[:project_name],
       @params[:bucket_name],
-      @params[:file_path]
+      @params[:file_path],
+      @user
     )
 
     success_json(url: url)

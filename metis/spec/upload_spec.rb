@@ -43,6 +43,10 @@ describe UploadController do
       expect(last_response.status).to eq(200)
       expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_path]}")
       expect(hmac_params['X-Etna-Id']).to eq('metis')
+
+      expect(hmac_params['X-Etna-Email']).to eq('metis@olympus.org')
+      expect(hmac_params['X-Etna-First']).to eq('Metis')
+      expect(hmac_params['X-Etna-Headers']).to eq('email,first,last')
       upload = Metis::Upload.first
       expect(upload).to be_nil  # No Uploads now until upload_start
     end
