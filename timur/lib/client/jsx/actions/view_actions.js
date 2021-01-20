@@ -12,7 +12,7 @@ const addView = (view_name, view) => ({ type: 'ADD_VIEW', view_name, view })
  */
 export const requestView = (model_name) => (dispatch) => {
   let exchange = new Exchange(dispatch,`view for ${model_name}`);
-  getView(model_name, exchange)
+  return getView(model_name, exchange)
     .then(
       ({document})=>{
         dispatch(addView(model_name, document));

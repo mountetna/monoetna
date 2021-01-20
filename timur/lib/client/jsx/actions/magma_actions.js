@@ -115,7 +115,7 @@ export const requestDocuments = (args) => {
     let handleRequestError = (e) => {
       if (!e.response) {
         dispatch(showMessages([`Something is amiss. ${e}`]));
-        return;
+        return Promise.reject(e);
       }
 
       e.response.json().then((response) => {

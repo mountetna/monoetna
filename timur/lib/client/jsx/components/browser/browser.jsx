@@ -62,6 +62,14 @@ const errorDiv = (
   </div>
 );
 
+const notFoundDiv = (
+  <div className='browser'>
+    <div id='loader-container'>
+      <div className='loader'>Record not found</div>
+    </div>
+  </div>
+);
+
 function camelize(str) {
   return str
     .replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
@@ -90,8 +98,7 @@ export default function Browser({model_name, record_name, tab_name}) {
   if (mode === 'browse') skin = 'browser ' + model_name;
   const editMode = useCallback(() => setMode('edit'), [setMode]);
 
-  // const loading = !view || !template || !record || !tab_name;
-  const [loading, loadDocuments] = useAsyncWork(function* loadDocuments(model_name, view) {
+  const [_, loadDocuments] = useAsyncWork(function* loadDocuments(model_name, view) {
     setMode('loading');
 
     if (!template) yield invoke(requestModel(model_name));
@@ -106,9 +113,8 @@ export default function Browser({model_name, record_name, tab_name}) {
     }
 
     const tab = view.tabs.find(t=>t.name == tab_name)
+    if (!tab) throw new Error('Could not find tab by the name ' + tab_name);
 
-    // set tab
-    if (!tab) return Promise.reject('Could not find tab by the name ' + tab);
     let exchange_name = `tab ${tab.name} for ${model_name} ${record_name}`;
     let attribute_names = getAttributes(tab);
 
@@ -154,14 +160,18 @@ export default function Browser({model_name, record_name, tab_name}) {
         setError(e);
       });
     }
-  })
+  }, [])
 
-  if (loading) {
+  if (mode === 'loading') {
     return loadingDiv;
   }
 
   if (error) {
     return errorDiv;
+  }
+
+  if (!record) {
+    return notFoundDiv;
   }
 
   return (
