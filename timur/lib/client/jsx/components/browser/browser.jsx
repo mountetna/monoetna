@@ -79,11 +79,12 @@ function camelize(str) {
 }
 
 export default function Browser({ model_name, record_name, tab_name }) {
+  console.log("rendered...")
   const invoke = useActionInvoker();
   const browserState = useReduxState(
     browserStateOf({ model_name, record_name, tab_name })
   );
-  const { view, record, tab, revision, template, can_edit } = browserState;
+  let { view, record, tab, revision, template, can_edit } = browserState;
   const [mode, setMode] = useState('loading');
   const [error, setError] = useState(null);
   const { cancelEdits, approveEdits } = useEditActions(setMode, browserState);
@@ -98,7 +99,7 @@ export default function Browser({ model_name, record_name, tab_name }) {
   if (mode === 'browse') skin = 'browser ' + model_name;
   const editMode = useCallback(() => setMode('edit'), [setMode]);
 
-  const [_, loadDocuments] = useAsyncWork(function* loadDocuments(model_name, template, view) {
+  const [_, loadDocuments, awaitNextState] = useAsyncWork(function* loadDocuments() {
     setMode('loading');
 
     if (!model_name && !record_name) {
@@ -111,14 +112,14 @@ export default function Browser({ model_name, record_name, tab_name }) {
     }
 
     if (!template) {
-      const magma = yield invoke(requestModel(model_name));
-      template = selectTemplate({ magma }, model_name);
+      yield invoke(requestModel(model_name));
+      ({ template } = yield awaitNextState());
     }
 
     if (!view) {
       // we are told the model and record name, get the view
-      view = yield invoke(requestView(model_name));
-      view = selectView({ views: { [model_name]: view } }, model_name, template)
+      yield invoke(requestView(model_name));
+      ({ view } = yield awaitNextState());
     }
 
     if (!tab_name) {
@@ -149,11 +150,11 @@ export default function Browser({ model_name, record_name, tab_name }) {
     }
 
     setMode('browse');
-  }, { cancelWhenChange: [] });
+  }, { cancelWhenChange: [], renderedState: { view, template } });
 
   // On mount, startup the loading process.
   useEffect(() => {
-    loadDocuments(model_name, template, view).catch(e => {
+    loadDocuments().catch(e => {
       console.error(e);
       setError(e);
     });
