@@ -110,10 +110,15 @@ export default function Browser({ model_name, record_name, tab_name }) {
       return;
     }
 
-    if (!template) template = yield invoke(requestModel(model_name));
+    if (!template) {
+      const magma = yield invoke(requestModel(model_name));
+      template = selectTemplate({ magma }, model_name);
+    }
+
     if (!view) {
       // we are told the model and record name, get the view
       view = yield invoke(requestView(model_name));
+      view = selectView({ views: { [model_name]: view } }, model_name, template)
     }
 
     if (!tab_name) {
@@ -149,6 +154,7 @@ export default function Browser({ model_name, record_name, tab_name }) {
   // On mount, startup the loading process.
   useEffect(() => {
     loadDocuments(model_name, template, view).catch(e => {
+      console.error(e);
       setError(e);
     });
   }, [])

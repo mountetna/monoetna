@@ -20,7 +20,11 @@ export const requestView = (model_name) => (dispatch) => {
       }
     ).catch(e => {
       let { response } = e;
-      if (response && response.status == 404) dispatch(addView(model_name, {}));
+      if (response && response.status == 404) {
+        // Default view
+        dispatch(addView(model_name, {}));
+        return {};
+      }
       else throw new Error('Failed to load view: ' + e.toString())
     });
 };
