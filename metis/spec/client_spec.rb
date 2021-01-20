@@ -33,7 +33,7 @@ describe MetisShell do
     )
 
     token = Base64.strict_encode64(
-      { email: 'metis@olympus.org', perm: 'a:athena', exp: 253371439590 }.to_json
+      { email: 'metis@olympus.org', first: "Metis", last: "User", perm: 'a:athena', exp: 253371439590 }.to_json
     )
 
     ENV['TOKEN'] = "something.#{token}"
@@ -166,7 +166,8 @@ describe MetisShell do
       # There is a non-reset call to start the upload
       expect(WebMock).to have_requested(:post, /https:\/\/metis.test\/athena\/upload\/armor\/helmet.txt/).
         with(query: hash_including({
-          "X-Etna-Id": "metis"
+          "X-Etna-Id": "metis",
+          "X-Etna-Headers": "email,name"
         })).
         with(headers: {
           "Content-Type": "application/json"
