@@ -78,15 +78,15 @@ function camelize(str) {
     .replace(/\s+/g, '');
 }
 
-export default function Browser({model_name, record_name, tab_name}) {
+export default function Browser({ model_name, record_name, tab_name }) {
   const invoke = useActionInvoker();
   const browserState = useReduxState(
-    browserStateOf({model_name, record_name, tab_name})
+    browserStateOf({ model_name, record_name, tab_name })
   );
-  const {view, record, tab, revision, template, can_edit} = browserState;
+  const { view, record, tab, revision, template, can_edit } = browserState;
   const [mode, setMode] = useState('loading');
   const [error, setError] = useState(null);
-  const {cancelEdits, approveEdits} = useEditActions(setMode, browserState);
+  const { cancelEdits, approveEdits } = useEditActions(setMode, browserState);
   const requestDocuments = useRequestDocuments();
 
   const browseToTab = useCallback((tabName) => {
@@ -98,10 +98,19 @@ export default function Browser({model_name, record_name, tab_name}) {
   if (mode === 'browse') skin = 'browser ' + model_name;
   const editMode = useCallback(() => setMode('edit'), [setMode]);
 
-  const [_, loadDocuments] = useAsyncWork(function* loadDocuments(model_name, view) {
+  const [_, loadDocuments] = useAsyncWork(function* loadDocuments(model_name, template, view) {
     setMode('loading');
 
-    if (!template) yield invoke(requestModel(model_name));
+    if (!model_name && !record_name) {
+      // ask magma for the project name
+      const { answer } = yield invoke(requestAnswer({ query: ['project', '::first', '::identifier'] }));
+      invoke(setLocation(
+        Routes.browse_model_path(CONFIG.project_name, 'project', answer)
+      ))
+      return;
+    }
+
+    if (!template) template = yield invoke(requestModel(model_name));
     if (!view) {
       // we are told the model and record name, get the view
       view = yield invoke(requestView(model_name));
@@ -112,7 +121,7 @@ export default function Browser({model_name, record_name, tab_name}) {
       return;
     }
 
-    const tab = view.tabs.find(t=>t.name == tab_name)
+    const tab = view.tabs.find(t => t.name == tab_name)
     if (!tab) throw new Error('Could not find tab by the name ' + tab_name);
 
     let exchange_name = `tab ${tab.name} for ${model_name} ${record_name}`;
@@ -137,29 +146,11 @@ export default function Browser({model_name, record_name, tab_name}) {
     setMode('browse');
   }, { cancelWhenChange: [] });
 
-  // On mount, check if we have model and record names, and if not, navigate away and reload this component.
+  // On mount, startup the loading process.
   useEffect(() => {
-    if (!model_name && !record_name) {
-      // ask magma for the project name
-      invoke(
-        requestAnswer(
-          {query: ['project', '::first', '::identifier']},
-
-          // redirect there
-          ({answer}) =>
-            invoke(
-              setLocation(
-                Routes.browse_model_path(CONFIG.project_name, 'project', answer)
-              )
-            )
-        )
-      );
-    } else {
-      // otherwise, begin the loading process of other parts.
-      loadDocuments(model_name, view).catch(e => {
-        setError(e);
-      });
-    }
+    loadDocuments(model_name, template, view).catch(e => {
+      setError(e);
+    });
   }, [])
 
   if (mode === 'loading') {
@@ -193,13 +184,13 @@ export default function Browser({model_name, record_name, tab_name}) {
         onClick={browseToTab}
       />
       <ViewTab {
-        ...{ model_name, record_name, template, record, revision, mode, tab }
-      } />
+                 ...{ model_name, record_name, template, record, revision, mode, tab }
+               } />
     </div>
   );
 }
 
-function browserStateOf({model_name, record_name, tab_name}) {
+function browserStateOf({ model_name, record_name, tab_name }) {
   return (state) => {
     const template = selectTemplate(state, model_name);
     const record = selectDocument(state, model_name, record_name);
@@ -228,7 +219,7 @@ function browserStateOf({model_name, record_name, tab_name}) {
 
 function useEditActions(setMode, browserState) {
   const invoke = useActionInvoker();
-  const {revision, model_name, template, record_name} = browserState;
+  const { revision, model_name, template, record_name } = browserState;
 
   return {
     cancelEdits,
@@ -247,7 +238,7 @@ function useEditActions(setMode, browserState) {
       sendRevisions(
         model_name,
         template,
-        {[record_name]: revision},
+        { [record_name]: revision },
         () => setMode('browse'),
         () => setMode('edit')
       )

@@ -395,20 +395,22 @@ const cleanFileCollectionRevisions = (revisions, model_template) => {
 // Download a TSV from magma via Timur.
 export const requestTSV = (params) => (dispatch) => getTSVForm(params)
 
-export const requestAnswer = (question, callback) => {
+export const requestAnswer = (question, callback = null) => {
   return (dispatch) => {
     let localSuccess = (response) => {
       if ('error' in response) {
         dispatch(showMessages([`There was a ${response.type} error.`]));
         console.log(response.error);
-        return;
+        if(!callback) throw new Error(response.error);
       }
 
-      if (callback != undefined) callback(response);
+      if (callback) callback(response);
+      else return response
     };
 
     let localError = (error) => {
       console.log(error);
+      if (!callback) throw new Error(error);
     };
 
     let question_name = question;
@@ -416,7 +418,7 @@ export const requestAnswer = (question, callback) => {
       question_name = [].concat.apply([], question).join('-');
     }
     let exchange = new Exchange(dispatch, question_name);
-    getAnswer(question, exchange).then(localSuccess).catch(localError);
+    return getAnswer(question, exchange).then(localSuccess).catch(localError);
   };
 };
 
