@@ -25,7 +25,9 @@ export default function useAsyncWork(f, { cancelWhenChange = undefined }) {
   const [cancellable, setCancellable] = cancelWhenChange ? useState(new Cancellable()) : [null, null];
 
   if (cancellable) useEffect(function () {
-    cancellable.cancel();
+    // Return the cancel as a cleanup operation -- this will get invokved only between the cancelWhenChange has new
+    // values, or the component is dismounted.
+    return () => cancellable.cancel();
   }, cancelWhenChange);
 
   const wrapper = useCallback(_wrapper, [setLoading, f, cancellable, setCancellable]);

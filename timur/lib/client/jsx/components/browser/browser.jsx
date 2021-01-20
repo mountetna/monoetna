@@ -12,6 +12,8 @@
 // Framework libraries.
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import {connect} from 'react-redux';
+import 'regenerator-runtime/runtime';
+import useAsyncWork from "etna-js/hooks/useAsyncWork";
 
 // Class imports.
 import Header from '../header';
@@ -52,6 +54,14 @@ const loadingDiv = (
   </div>
 );
 
+const errorDiv = (
+  <div className='browser'>
+    <div id='loader-container'>
+      <div className='loader'>Failed to load.</div>
+    </div>
+  </div>
+);
+
 function camelize(str) {
   return str
     .replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
@@ -67,21 +77,62 @@ export default function Browser({model_name, record_name, tab_name}) {
   );
   const {view, record, tab, revision, template, can_edit} = browserState;
   const [mode, setMode] = useState('loading');
-  const loading = !view || !template || !record || !tab_name;
+  const [error, setError] = useState(null);
   const {cancelEdits, approveEdits} = useEditActions(setMode, browserState);
-  const {selectOrShowTab, selectDefaultTab, selectTab, showTab} = useTabActions(
-    browserState,
-    setMode
-  );
+  const requestDocuments = useRequestDocuments();
+
+  const browseToTab = useCallback((tabName) => {
+    invoke(setLocation(window.location.href.replace(/#.*/, '') + `#${tabName}`));
+  }, [invoke, setLocation]);
 
   // Set at 'skin' on the browser styling.
   let skin = 'browser';
   if (mode === 'browse') skin = 'browser ' + model_name;
   const editMode = useCallback(() => setMode('edit'), [setMode]);
 
-  // On mount
+  // const loading = !view || !template || !record || !tab_name;
+  const [loading, loadDocuments] = useAsyncWork(function* loadDocuments(model_name, view) {
+    setMode('loading');
+
+    if (!template) yield invoke(requestModel(model_name));
+    if (!view) {
+      // we are told the model and record name, get the view
+      view = yield invoke(requestView(model_name));
+    }
+
+    if (!tab_name) {
+      browseToTab(getDefaultTab(view));
+      return;
+    }
+
+    const tab = view.tabs.find(t=>t.name == tab_name)
+
+    // set tab
+    if (!tab) return Promise.reject('Could not find tab by the name ' + tab);
+    let exchange_name = `tab ${tab.name} for ${model_name} ${record_name}`;
+    let attribute_names = getAttributes(tab);
+
+    let hasAttributes =
+      record &&
+      template &&
+      attribute_names.every(attr_name => attr_name in record);
+
+    // ensure attribute data is present in the document
+    if (!hasAttributes) {
+      // or else make a new request
+      yield requestDocuments({
+        model_name,
+        record_names: [record_name],
+        attribute_names,
+        exchange_name,
+      });
+    }
+
+    setMode('browse');
+  }, { cancelWhenChange: [] });
+
+  // On mount, check if we have model and record names, and if not, navigate away and reload this component.
   useEffect(() => {
-    // Decide data that should be loaded immediately.
     if (!model_name && !record_name) {
       // ask magma for the project name
       invoke(
@@ -98,20 +149,19 @@ export default function Browser({model_name, record_name, tab_name}) {
         )
       );
     } else {
-      if (!template) requestModel(model_name);
-      if (!view) {
-        // we are told the model and record name, get the view
-        invoke(requestView(model_name, selectOrShowTab));
-      } else if (!tab_name) {
-        selectDefaultTab(view);
-      } else {
-        showTab(view);
-      }
+      // otherwise, begin the loading process of other parts.
+      loadDocuments(model_name, view).catch(e => {
+        setError(e);
+      });
     }
-  }, [template, view]);
+  })
 
   if (loading) {
     return loadingDiv;
+  }
+
+  if (error) {
+    return errorDiv;
   }
 
   return (
@@ -130,7 +180,7 @@ export default function Browser({model_name, record_name, tab_name}) {
         revision={revision}
         view={view}
         current_tab={tab_name}
-        onClick={selectTab}
+        onClick={browseToTab}
       />
       <ViewTab {
         ...{ model_name, record_name, template, record, revision, mode, tab }
@@ -200,64 +250,3 @@ function useEditActions(setMode, browserState) {
   }
 }
 
-function useTabActions(browserState, setMode) {
-  const {
-    record,
-    template,
-    tab_name: currentTabName,
-    model_name,
-    record_name
-  } = browserState;
-  const invoke = useActionInvoker();
-  const requestDocuments = useRequestDocuments();
-
-  return {
-    selectTab,
-    selectDefaultTab,
-    selectOrShowTab,
-    showTab
-  };
-
-  function selectTab(tabName) {
-    invoke(
-      setLocation(window.location.href.replace(/#.*/, '') + `#${tabName}`)
-    );
-  }
-
-  function selectDefaultTab(view) {
-    selectTab(getDefaultTab(view));
-  }
-
-  function selectOrShowTab(view) {
-    if (currentTabName) showTab(view);
-    else selectDefaultTab(view);
-  }
-
-  function showTab(view) {
-    requestTabDocuments(view.tabs.find(t=>t.name == currentTabName));
-    setMode('browse');
-  }
-
-  function requestTabDocuments(tab) {
-    if (!tab) return;
-    let exchange_name = `tab ${tab.name} for ${model_name} ${record_name}`;
-    let attribute_names = getAttributes(tab);
-
-    let hasAttributes =
-      record &&
-      template &&
-      attribute_names.every(attr_name => attr_name in record);
-
-    // ensure attribute data is present in the document
-    if (!hasAttributes) {
-      // or else make a new request
-      requestDocuments({
-        model_name,
-        record_names: [record_name],
-        attribute_names,
-        exchange_name,
-        success: () => setMode('browse')
-      });
-    }
-  }
-}

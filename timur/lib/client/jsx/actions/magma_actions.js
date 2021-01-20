@@ -125,9 +125,7 @@ export const requestDocuments = (args) => {
         errStr = [`### Our request was refused.\n\n${errStr}`];
         dispatch(showMessages(errStr));
       });
-      return new Promise((resolve, reject) => {
-        reject(e);
-      });
+      return Promise.reject(e);
     };
 
     let get_doc_args = [
