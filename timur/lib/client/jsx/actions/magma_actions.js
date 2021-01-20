@@ -118,14 +118,14 @@ export const requestDocuments = (args) => {
         return Promise.reject(e);
       }
 
-      e.response.json().then((response) => {
+      return e.response.json().then((response) => {
         let errStr = response.error
           ? response.error
           : response.errors.map((error) => `* ${error}`);
         errStr = [`### Our request was refused.\n\n${errStr}`];
         dispatch(showMessages(errStr));
+        return Promise.reject(e);
       });
-      return Promise.reject(e);
     };
 
     let get_doc_args = [

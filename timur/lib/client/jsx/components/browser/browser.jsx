@@ -153,12 +153,12 @@ export default function Browser({ model_name, record_name, tab_name }) {
     });
   }, [])
 
-  if (mode === 'loading') {
-    return loadingDiv;
-  }
-
   if (error) {
     return errorDiv;
+  }
+
+  if (mode === 'loading') {
+    return loadingDiv;
   }
 
   if (!record) {
