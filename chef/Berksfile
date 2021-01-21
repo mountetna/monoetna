@@ -1,4 +1,0 @@
-source 'https://supermarket.chef.io'
-
-cookbook 'mountetna', path: 'mountetna/'
-cookbook 'docker', path: 'docker/'
