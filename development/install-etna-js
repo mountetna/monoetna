@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ -n "$RUN_NPM_INSTALL" ]; then
+  cd packages/etna-js
+  npm install
+fi
