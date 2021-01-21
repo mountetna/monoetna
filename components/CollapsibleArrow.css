@@ -1,0 +1,18 @@
+.etna-collapsible-arrow {
+    transition: all 0.1s;
+    width: 10px;
+    display: inline-block;
+    user-select: none;
+    cursor: pointer;
+}
+
+.etna-collapsible-arrow.collapsed {
+    transform: rotate(-90deg);
+}
+
+.etna-collapsible-arrow::after {
+    content: '▼';
+    position: relative;
+    top: -1px;
+}
+
