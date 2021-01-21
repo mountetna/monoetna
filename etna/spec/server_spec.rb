@@ -228,4 +228,81 @@ describe Etna::Server do
 
     expect(last_response.status).to eq(403)
   end
+
+  context "redacting logs" do
+    it 'has no effect when not configured' do
+      Arachne::Server.route('POST', '/silk/:thread_weight/:shape', action: 'web#silk')
+
+      io = StringIO.new
+
+      @app = setup_app(Arachne::Server, nil, {test: {log_file: io}})
+      Etna::Application.instance.setup_logger
+
+      post(
+        '/silk/25/octagon',
+        {
+          image: 'athena-is-fat.jpg'
+        }.to_json,
+        {
+          'CONTENT_TYPE' => 'application/json'
+        }
+      )
+
+      expect(io.string.include?(
+        "with params {:image=>\"athena-is-fat.jpg\", :thread_weight=>\"25\", :shape=>\"octagon\"}")).to eq(true)
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'removes root param values' do
+      Arachne::Server.route('POST', '/silk/:thread_weight/:shape', action: 'web#silk')
+
+      io = StringIO.new
+
+      @app = setup_app(Arachne::Server, nil, {test: {log_file: io, log_redact_keys: "shape,image"}})
+      Etna::Application.instance.setup_logger
+
+      post(
+        '/silk/25/octagon',
+        {
+          image: 'athena-is-fat.jpg'
+        }.to_json,
+        {
+          'CONTENT_TYPE' => 'application/json'
+        }
+      )
+
+      expect(io.string.include?(
+        "with params {:image=>\"*\", :thread_weight=>\"25\", :shape=>\"*\"}")).to eq(true)
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'removes nested values' do
+      Arachne::Server.route('POST', '/silk/:thread_weight/:shape', action: 'web#silk')
+
+      io = StringIO.new
+
+      @app = setup_app(Arachne::Server, nil, {test: {log_file: io, log_redact_keys: "scary"}})
+      Etna::Application.instance.setup_logger
+
+      post(
+        '/silk/25/octagon',
+        {
+          something: {
+            deep: {
+              dark: {
+                scary: ["abc", "123", "BOO!"]
+              }
+            }
+          }
+        }.to_json,
+        {
+          'CONTENT_TYPE' => 'application/json'
+        }
+      )
+
+      expect(io.string.include?(
+        "with params {:something=>{:deep=>{:dark=>{:scary=>\"*\"}}}, :thread_weight=>\"25\", :shape=>\"octagon\"}")).to eq(true)
+      expect(last_response.status).to eq(200)
+    end
+  end
 end
