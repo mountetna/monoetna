@@ -96,7 +96,7 @@ module Etna
       @application ||= Etna::Application.instance
     end
 
-    def truncate(value)
+    def compact(value)
       value = value.to_s
       value = value[0..500] + "..." + value[-100..-1] if value.length > 600
       value
@@ -111,7 +111,7 @@ module Etna
     def redact(key, value)
       # From configuration, redact any values for the supplied key values, so they
       #   don't appear in the logs.
-      return truncate(value) unless application.config(:log_redact_keys)
+      return compact(value) unless application.config(:log_redact_keys)
 
       if value.is_a?(Hash)
         redacted_value = value.map do |value_key, value_value|
@@ -122,7 +122,7 @@ module Etna
         return "*"
       end
 
-      return value
+      return compact(value)
     end
 
     def authorized?(request)
