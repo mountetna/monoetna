@@ -5,7 +5,7 @@ gem 'sequel'
 gem 'pg'
 gem 'nokogiri'
 gem 'puma', '5.0.2'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/f97a86047fd362f21a4a9b307f9e6871210fe2f1'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/d5d71184e3b1c4b641aa8962db5ac0f159ba871c'
 gem 'actionpack' # For streaming the job controller results back...
 gem 'aspera-cli'
 
