@@ -81,7 +81,7 @@ function addToDigest() {
 }
 function recursiveDigest() {
   if [[ -n "$digestOnly" ]]; then
-     find "$1" -type f ! -path '*/node_modules/*' -exec md5sum {} \;
+     find "$1" -type f ! -path '*/node_modules/*' ! -path '*/.npmrc' ! -path '*/.bundle/config' -exec md5sum {} \;
      echo
   fi
 }
@@ -94,7 +94,7 @@ function findNewest() {
     find=gfind
   fi
 
-  lastModifiedFile=$($find $1 -type f ! -path '*/node_modules/*' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
+  lastModifiedFile=$($find $1 -type f ! -path '*/node_modules/*' ! -path '*/.npmrc' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
   if [ "$lastModifiedFile" -nt "$newestFile" ]; then
       newestFile="$lastModifiedFile"
    fi
