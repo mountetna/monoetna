@@ -71,6 +71,22 @@ describe MetisShell do
 
       Timecop.return
     end
+
+    it 'does not refresh the token if not close to expiring' do
+      frozen_time = 1000
+      Timecop.freeze(DateTime.strptime(frozen_time.to_s, "%s"))
+      token = Base64.strict_encode64(
+        { email: 'metis@olympus.org', first: "Metis", last: "User", perm: 'a:athena', exp: frozen_time + 100000 }.to_json
+      )
+      ENV['TOKEN'] = "something.#{token}"
+
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      expect_output("metis://athena", "ls") { %r!armor/!}
+
+      expect(WebMock).not_to have_requested(:get, "https://janus.test/refresh_token")
+
+      Timecop.return
+    end
   end
 
   describe MetisShell::Ls do
