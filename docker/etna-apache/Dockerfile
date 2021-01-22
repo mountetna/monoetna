@@ -10,4 +10,7 @@ RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tm
 
 COPY certs /root/certs
 COPY src/httpd.conf /usr/local/apache2/conf/httpd.conf
-
+RUN ln -sf /usr/opt/shibboleth/shibboleth2.xml /etc/shibboleth/shibboleth2.xml
+RUN ln -sf /usr/opt/shibboleth/incommon.pem /etc/shibboleth/incommon.pem
+RUN ln -sf /usr/opt/shibboleth/sp-cert.pem /etc/shibboleth/sp-cert.pem
+RUN ln -sf /usr/opt/shibboleth/sp-key.pem /etc/shibboleth/sp-key.pem
