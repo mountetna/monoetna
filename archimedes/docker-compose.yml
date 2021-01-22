@@ -1,0 +1,18 @@
+version: "3.4"
+
+volumes:
+  archimedes-virtualenv:
+    driver: local
+
+
+services:
+  archimedes_app:
+    image: vulcan-base
+    volumes:
+    - .:/app:delegated
+    - archimedes-virtualenv:/root/.cache/pypoetry/virtualenvs
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      APP_NAME: "archimedes"
+    entrypoint: /entrypoints/development.sh
+    command: echo hello!
