@@ -35,14 +35,14 @@ describe MetisShell do
     token = Base64.strict_encode64(
       { email: 'metis@olympus.org', first: "Metis", last: "User", perm: 'a:athena', exp: 253371439590 }.to_json
     )
-    full_token = "something.#{token}"
-    ENV['TOKEN'] = full_token
+    @long_lived_token = "something.#{token}"
+    ENV['TOKEN'] = @long_lived_token
     stub_request(:any, %r!^https://metis.test/!).to_rack(app)
 
     stub_request(:get, "https://janus.test/refresh_token")
       .to_return({
         status: 200,
-        body: full_token
+        body: @long_lived_token
       })
   end
 
@@ -69,6 +69,8 @@ describe MetisShell do
 
       expect(WebMock).to have_requested(:get, "https://janus.test/refresh_token")
 
+      expect(ENV["TOKEN"]).to eq(@long_lived_token)
+
       Timecop.return
     end
 
@@ -78,12 +80,14 @@ describe MetisShell do
       token = Base64.strict_encode64(
         { email: 'metis@olympus.org', first: "Metis", last: "User", perm: 'a:athena', exp: frozen_time + 100000 }.to_json
       )
-      ENV['TOKEN'] = "something.#{token}"
+      full_future_token = "something.#{token}"
+      ENV['TOKEN'] = full_future_token
 
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       expect_output("metis://athena", "ls") { %r!armor/!}
 
       expect(WebMock).not_to have_requested(:get, "https://janus.test/refresh_token")
+      expect(ENV["TOKEN"]).to eq(full_future_token)
 
       Timecop.return
     end

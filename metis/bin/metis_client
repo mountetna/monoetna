@@ -374,7 +374,13 @@ class MetisClient < Client
   end
 
   def request(path, method)
-    @token = janus.refresh_token if token_will_expire?
+    begin
+      @token = janus.refresh_token
+
+      # Make sure to set this in the current process, so
+      #   we can export it into a file later.
+      ENV["TOKEN"] = @token
+    end if token_will_expire?
 
     uri = URI.parse("https://#{@host}#{path}")
     req = method.new(uri.request_uri)
@@ -1270,6 +1276,10 @@ def start
   MetisConfig.instance.config(config)
   MetisShell.new(ARGV[0], *ARGV[1..-1]).run
   puts
+
+  # As a convenience, we'll print out the current
+  #   token, in case it was refreshed.
+  puts "TOKEN=#{ENV["TOKEN"]}"
 end
 
 start unless test_env?
