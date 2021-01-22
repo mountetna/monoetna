@@ -1276,10 +1276,6 @@ def start
   MetisConfig.instance.config(config)
   MetisShell.new(ARGV[0], *ARGV[1..-1]).run
   puts
-
-  # As a convenience, we'll print out the current
-  #   token, in case it was refreshed.
-  puts "TOKEN=#{ENV["TOKEN"]}"
 end
 
 start unless test_env?
