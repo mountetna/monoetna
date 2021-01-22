@@ -721,10 +721,10 @@ class Polyphemus
     def execute
       workflow = Etna::Clients::Metis::SyncMetisDataWorkflow.new(
           metis_client: metis_client, logger: logger, skip_tmpdir: true,
-          project_name: 'mvir1', bucket_name: 'data',
+          project_name: 'mvir1', bucket_name: 'GNE_redacted_data',
           filesystem: filesystem)
 
-      workflow.copy_directory("single_cell_TCR/processed", "/Upload/pool", "/Upload", nil)
+      workflow.copy_directory("data", "/Upload/GNE_redacted_data", "/Upload", nil)
       logger.info("Done")
     end
 

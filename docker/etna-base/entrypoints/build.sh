@@ -74,4 +74,4 @@ fi
 echo 'for file in /app/*.completion; do source $file || true; done' >> /root/.bashrc
 echo 'export PATH="/app/bin:$PATH"' >> /root/.bashrc
 # Allow other users to use the root bash setup
-chmod -R 777 /root/
+chmod 744 /root/*
