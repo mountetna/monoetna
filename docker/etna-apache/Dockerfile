@@ -14,3 +14,5 @@ RUN ln -sf /usr/opt/shibboleth/shibboleth2.xml /etc/shibboleth/shibboleth2.xml
 RUN ln -sf /usr/opt/shibboleth/incommon.pem /etc/shibboleth/incommon.pem
 RUN ln -sf /usr/opt/shibboleth/sp-cert.pem /etc/shibboleth/sp-cert.pem
 RUN ln -sf /usr/opt/shibboleth/sp-key.pem /etc/shibboleth/sp-key.pem
+RUN ln -sf /usr/opt/shibboleth/idp-metadata.xml /etc/shibboleth/idp-metadata.xml
+RUN ln -sf /usr/opt/shibboleth/attribute-map.xml /etc/shibboleth/attribute-map.xml
