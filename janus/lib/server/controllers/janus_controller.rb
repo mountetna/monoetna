@@ -21,5 +21,14 @@ class Janus
     def email_valid?(eml)
       eml =~ /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/
     end
+
+    def config_json
+      {
+        project_name: @params[:project_name],
+        token_name: Janus.instance.config(:token_name),
+        timur_host: Janus.instance.config(:timur)&.dig(:host),
+        metis_host: Janus.instance.config(:metis)&.dig(:host),
+      }.to_json
+    end
   end
 end

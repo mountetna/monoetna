@@ -72,11 +72,3 @@ $janus-color: #333366;
   background: none;
   font-size: 1.0em;
 }
-
-#janus-group {
-  padding: 10px;
-  margin: 0;
-  button {
-    @include janus-button;
-  }
-}

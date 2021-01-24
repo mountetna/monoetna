@@ -19,10 +19,6 @@ class Janus
     # This uses a signed nonce to generate a new token
     get '/generate', action: 'authorization#generate', auth: { noauth: true }
 
-    get '/', action: 'admin#main'
-
-    get '/projects', action: 'user#projects', auth: { user: { active?: true } }
-
     get '/refresh_token', action: 'user#refresh_token', auth: { user: { active?: true } }
 
     # Once we figure out a long-term token strategy, this should probably get
@@ -39,6 +35,10 @@ class Janus
     post '/flag_user', action: 'admin#flag_user', auth: { user: { is_superuser?: true } }
 
     post '/update_key', action: 'user#update_key'
+
+    get '/', action: 'admin#main'
+
+    get '/projects', action: 'user#projects', auth: { user: { active?: true } }
 
     get '/:project_name', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
 
