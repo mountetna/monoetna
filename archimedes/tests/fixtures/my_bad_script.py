@@ -8,7 +8,7 @@ while True:
     sneaky = exit
     sneaky(2)
 
-    __import__('my.module')
+    __import__("my.module")
 
-    getattr(obj, '_secret_value')
+    getattr(obj, "_secret_value")
     do_work(my_obj._private_value)
