@@ -6,7 +6,6 @@ require_relative './server/controllers/authorization_controller'
 
 class Janus
   class Server < Etna::Server
-
     # Only one of these two end points gets used. If you are using Shibboleth
     # then enable the appropriate end point.
     get '/login', action: 'authorization#login', auth: { noauth: true }

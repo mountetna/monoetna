@@ -23,7 +23,7 @@ a {
 $janus-color: #333366;
 
 @mixin janus-box {
-  padding-bottom: 10px;
+  padding: 10px;
 
   .title {
     font-size: 1.4em;

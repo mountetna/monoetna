@@ -6,7 +6,7 @@ import Cookies from 'js-cookie';
 import createStore from './store';
 import JanusUI from './janus-ui';
 
-const Janus = () => {
+function Janus() {
   this.store = createStore();
 
   // add the user
@@ -24,4 +24,4 @@ const Janus = () => {
   );
 }
 
-let janus = new Janus();
+window.janus = new Janus();

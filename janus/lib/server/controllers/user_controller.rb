@@ -44,6 +44,7 @@ class UserController < Janus::Controller
     projects = @janus_user.permissions.map do |perm|
       perm.project
     end.uniq.map do |proj|
+      @params[:full] ? proj.to_hash :
       # Don't use proj.to_hash because we don't necessarily want to send back
       #   all the information.
       {

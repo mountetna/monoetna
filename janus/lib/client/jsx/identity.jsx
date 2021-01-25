@@ -1,7 +1,5 @@
 import * as React from 'react';
 import Cookies from 'js-cookie';
-import {selectUser} from 'etna-js/selectors/user-selector';
-import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 const copyToken = (e) => {
   let token = Cookies.get(CONFIG.token_name);
@@ -15,14 +13,12 @@ const copyToken = (e) => {
   }
 }
 
-const Identity = () =>  {
-  let user = useReduxState( state => selectUser(state) );
-  return <div id='identity-group'>
+const Identity = ({user}) => 
+  <div id='identity-group'>
     <div class='title'>Your Identity</div>
     <div class='item'>{ user.first } { user.last }</div>
     <div class='item'>{ user.email }</div>
     <div class='item'><button onClick={ copyToken }>Copy Token</button></div>
-  </div>
-}
+  </div>;
 
 export default Identity;
