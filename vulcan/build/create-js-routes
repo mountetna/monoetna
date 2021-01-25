@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+
+set -e
+
+# The webpack build process depends on gem setup in order to build the routes, but it cannot run the bundle install
+# itself without conflicting with the ruby server, so it merely checks and waits before invoking.
+if [ -n "$RUN_NPM_INSTALL" ]; then
+  while true; do
+    bundle check && break
+    echo "Waiting for ruby process to finish bundle install before create_routes can be invoked..."
+    wait 1
+  done
+
+  if ! [ -e config.yml ]; then
+    cp config.yml.template config.yml
+    ./bin/vulcan create_routes
+    rm config.yml
+  else
+    ./bin/vulcan create_routes
+  fi
+fi

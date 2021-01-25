@@ -1,0 +1,129 @@
+.manifest-window {
+  .CodeMirror {
+    max-height: 200px;
+  }
+}
+
+.manifest-script {
+  &.editing {
+    border: 1px solid lightgray;
+  }
+  border-top: 1px solid #888;
+  border-bottom: 1px solid #888;
+  .cm-comment { color: #888; }
+  .cm-macro { color: #f40; }
+  .cm-variable { color: #b40; }
+  .cm-string { color: #a0f; }
+  .cm-function { color: #04d; }
+  .cm-label, &.column { color: #090; }
+  .cm-template { color: #f00; font-weight: bold; background: rgba(red,0.2); }
+  .cm-template-text { color: #c00; background: rgba(red,0.2); }
+  .cm-template-var { color: #00f; font-weight: bold; background: rgba(red,0.2); }
+  .cm-vector { color: #000; font-weight: bold; }
+}
+
+/******************************************************************************/
+.consignment-table-container {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 150px;
+  margin: 5px 0;
+
+  .consignment-table{
+    border: 1px solid #333;
+    font-family: monospace;
+    font-size: 1.1em;
+    border-spacing: 0px;
+    border-collapse: collapse;
+    font-weight: 100;
+    display: table;
+    width: 98%;
+
+    .consignment-row {
+      display: table-row;
+    }
+
+    .consignment-head {
+      border-bottom: 1px solid #666;
+      display: table-header-group;
+      .consignment-header {
+        display: table-cell;
+        padding: 2px;
+        padding-left: 4px;
+        padding-right: 4px;
+        border-right: 1px solid #888;
+        border-bottom: 1px solid #888;
+        background-color: #ccf;
+      }
+    }
+
+    .consignment-body {
+      max-height: 150px;
+      overflow: auto;
+      display: table-row-group;
+    }
+
+    .consignment-cell {
+      /*border-right: 1px solid #666;*/
+      display: table-cell;
+      padding: 2px;
+      padding-left: 4px;
+      padding-right: 4px;
+      border-right: 1px solid #888;
+      border-bottom: 1px solid #888;
+    }
+  }
+}
+
+.consignment-view {
+  padding-top: 5px;
+  display: table;
+  width: 100%;
+  .consignment-view-label {
+    font-weight: bold;
+    font-size: 0.8em;
+  }
+  .consignment-btn {
+    @include timur-button;
+  }
+  .consignment-variable-group {
+    display: table-row;
+    .consignment-variable-name {
+      color: #b40;
+      font-family: $value_font;
+      display: table-cell;
+      width: 20%;
+      padding-right: 10px;
+      text-align: right;
+      border-bottom: $thin_rule;
+      box-shadow: 1px 0 0 0 forestgreen;
+    }
+    .consignment-variable-result {
+      padding-left: 0px;
+      border-bottom: $thin_rule;
+    }
+    .consignment-result {
+      width: 100%;
+      display: block;
+      .size {
+        font-weight: bold;
+        color: #444;
+      }
+      .primitive-value {
+        font-family: $value_font;
+        color: darkorchid;
+        padding-left: 6px;
+      }
+      .icon {
+        @include icon_button;
+      }
+      .download-icon {
+        color: blue;
+        cursor: pointer;
+        &:hover {
+          color: dodgerblue;
+        }
+      }
+    }
+  }
+}
