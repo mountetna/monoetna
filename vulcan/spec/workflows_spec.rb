@@ -1,3 +1,5 @@
+require_relative '../lib/server/controllers/workflows_controller'
+
 describe WorkflowsController do
   include Rack::Test::Methods
 
@@ -11,15 +13,14 @@ describe WorkflowsController do
       get("/api/workflows")
 
       expect(last_response.status).to eq(200)
-      expect(last_response.body).to match(/CONFIG/)
-      expect(last_response.body).to match(/"project_name":null/)
+      expect(last_response.body).to match(/umap/)
     end
 
-    it 'returns 422 for a non-user' do
+    it 'rejects a non-user' do
       auth_header(:non_user)
       get("/api/workflows")
 
-      expect(last_response.status).to eq(422)
+      expect(last_response.status).to eq(403)
     end
   end
 end

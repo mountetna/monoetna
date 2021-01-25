@@ -1,0 +1,9 @@
+[
+  {
+    "number": 1,
+    "inputs": [{}],
+    "output": {
+      "type": "scatter_plot"
+    }
+  }
+]

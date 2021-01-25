@@ -1,3 +1,5 @@
+require 'etna'
+
 class Vulcan
   class Controller < Etna::Controller
     VIEW_PATH=File.expand_path('../views', __dir__)

@@ -1,14 +1,17 @@
 require 'json'
+require_relative './vulcan_controller'
 
 class StepsController < Vulcan::Controller
   def fetch
     raise Etna::NotFound, "No steps for workflow #{@params[:workflow_name]}." unless "umap" == @params[:workflow_name]
 
-    steps = JSON.parse(
-      File.expand_path('../steps/umap.json', __FILE__),
-      symbolize_names: true)
-
-    success_json(steps)
+    success_json({
+      steps: JSON.parse(
+        File.read(File.join(
+          File.dirname(__FILE__),
+          '../steps/umap.json')),
+        symbolize_names: true)
+    })
   end
 end
 

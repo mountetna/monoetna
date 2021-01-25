@@ -1,14 +1,15 @@
 require 'json'
+require_relative './vulcan_controller'
 
 class WorkflowsController < Vulcan::Controller
   def fetch
-    workflows = {
-      umap: JSON.parse(
-        File.expand_path('../workflows/umap.json', __FILE__),
+    success_json({
+      umap: JSON.load(
+          File.read(File.join(
+            File.dirname(__FILE__),
+            '../workflows/umap.json')),
         symbolize_names: true)
-    }
-
-    success_json(workflows)
+    })
   end
 end
 

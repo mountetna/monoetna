@@ -15,8 +15,8 @@ class Vulcan
       erb_view(:client)
     end
 
-    get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { is_active?: true } }
-    get 'api/workflows/:workflow_name/steps', action: 'steps#fetch', as: :steps_view, auth: { user: { is_active?: true } }
+    get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
+    get 'api/workflows/:workflow_name/steps', action: 'steps#fetch', as: :steps_view, auth: { user: { active?: true } }
 
     def initialize
       super
