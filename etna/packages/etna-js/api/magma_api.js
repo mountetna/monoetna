@@ -1,7 +1,4 @@
-import {
-  checkStatus,
-  headers
-} from 'etna-js/utils/fetch';
+import {checkStatus, headers} from '../utils/fetch';
 
 const magmaPath = (endpoint) => `${CONFIG.magma_host}/${endpoint}`;
 

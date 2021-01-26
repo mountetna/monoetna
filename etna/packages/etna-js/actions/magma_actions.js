@@ -1,5 +1,5 @@
-import {showMessages} from 'etna-js/actions/message_actions';
-import {Exchange} from 'etna-js/actions/exchange_actions';
+import {showMessages} from './message_actions';
+import {Exchange} from './exchange_actions';
 import {
   getDocuments,
   getAnswer,
@@ -9,8 +9,8 @@ import {
 import {setMetisCookie} from './metis_actions';
 import {filePathComponents} from '../selectors/magma';
 import {TEMP} from './file_actions';
-import {dispatchUploadWork} from 'etna-js/upload/actions/upload_actions';
-import {AddUploadCommand, Upload} from 'etna-js/upload/workers/uploader';
+import {dispatchUploadWork} from '../upload/actions/upload_actions';
+import {AddUploadCommand, Upload} from '../upload/workers/uploader';
 
 export const ADD_TEMPLATE = 'ADD_TEMPLATE';
 export const ADD_DOCUMENTS = 'ADD_DOCUMENTS';

@@ -1,8 +1,14 @@
 import nock from 'nock';
 
-import monsters from '../fixtures/monsters';
-import * as actions from '../../../lib/client/jsx/actions/magma_actions';
-import {mockStore, mockDate, mockFetch, stubUrl, cleanStubs} from '../helpers';
+import monsters from '../../spec/fixtures/monsters';
+import * as actions from '../magma_actions';
+import {
+  mockStore,
+  mockDate,
+  mockFetch,
+  stubUrl,
+  cleanStubs
+} from '../../spec/helpers';
 
 describe('async actions', () => {
   afterEach(() => {
@@ -71,7 +77,7 @@ describe('async actions', () => {
   });
 
   it('posts simple update revisions to the magma /update endpoint', (done) => {
-    const template = require('../fixtures/template_monster.json');
+    const template = require('../../spec/fixtures/template_monster.json');
 
     let revisions = {
       monster: {
@@ -122,7 +128,7 @@ describe('async actions', () => {
   });
 
   it('removes empty strings from FileCollection revisions', () => {
-    const template = require('../fixtures/template_monster.json');
+    const template = require('../../spec/fixtures/template_monster.json');
 
     let revisions = {
       monster: {
@@ -162,7 +168,7 @@ describe('async actions', () => {
   });
 
   it('submits revisions when finalizing an upload', async () => {
-    const template = require('../fixtures/template_monster.json');
+    const template = require('../../spec/fixtures/template_monster.json');
 
     const magmaMock = nock('https://magma.test')
       .post('/update')

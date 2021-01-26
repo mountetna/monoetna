@@ -1,4 +1,4 @@
-import {filePathComponents} from '../../../lib/client/jsx/selectors/magma';
+import {filePathComponents} from '../magma';
 
 describe('filePathComponents', () => {
   it('correctly parses an upload URL', () => {
