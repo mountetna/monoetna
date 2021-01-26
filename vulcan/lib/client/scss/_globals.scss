@@ -14,7 +14,7 @@ $light-grey: #ccc;
 $link_hover_color: #518651;
 
 $dialog-border: 1px solid #888;
-$timur-color: #15788f;
+$vulcan-color: #15788f;
 
 .dark-text {
   color: #000;
@@ -40,7 +40,7 @@ $timur-color: #15788f;
   border: none;
   cursor: text;
   border-bottom: 1px solid #dfdfdf;
-  background: rgba(gray,0.05);
+  background: rgba(gray, 0.05);
   &:focus {
     border-bottom: 1px solid forestgreen;
   }
@@ -60,7 +60,7 @@ $timur-color: #15788f;
   font-weight: bold;
 
   &:hover {
-    text-decoration: underline
+    text-decoration: underline;
   }
 
   span {
@@ -70,7 +70,7 @@ $timur-color: #15788f;
 }
 
 @function thin-rule($alpha, $color: forestgreen) {
-  @return 1px solid rgba($color,$alpha)
+  @return 1px solid rgba($color, $alpha);
 }
 
 $thin_rule: thin-rule(0.1);
@@ -95,7 +95,7 @@ $thin_rule: thin-rule(0.1);
     }
   }
   &:hover {
-    background-color: rgba($background,0.3);
+    background-color: rgba($background, 0.3);
     color: $color;
   }
 }
@@ -122,7 +122,9 @@ $thin_rule: thin-rule(0.1);
       color: indianred;
     }
   }
-  &.save, &.download, &.copy {
+  &.save,
+  &.download,
+  &.copy {
     &:hover {
       color: dodgerblue;
     }
@@ -130,12 +132,11 @@ $thin_rule: thin-rule(0.1);
 }
 /* NEW GLOBALS ****************************************************************/
 
-.disabled{
+.disabled {
   background: none;
   outline: none;
 }
 
-input:focus{
+input:focus {
   outline-offset: 0px;
 }
-

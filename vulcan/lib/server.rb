@@ -18,6 +18,8 @@ class Vulcan
     get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
     get 'api/workflows/:workflow_name/steps', action: 'steps#fetch', as: :steps_view, auth: { user: { active?: true } }
 
+    get 'workflow', action: 'workflows#view', as: :workflow_path, auth: { user: { active?: true } }
+
     def initialize
       super
       # application.setup_db

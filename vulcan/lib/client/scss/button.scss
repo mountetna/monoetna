@@ -7,14 +7,14 @@
   cursor: pointer;
   padding: 2px;
   font-size: 14px;
-  background-color: rgba(forestgreen,0.2);
+  background-color: rgba(forestgreen, 0.2);
   &:disabled {
     color: grey;
     border: darkgrey;
-    background-color: rgba(grey,0.2);
+    background-color: rgba(grey, 0.2);
   }
   &:hover {
-    background-color: rgba(forestgreen,0.3);
+    background-color: rgba(forestgreen, 0.3);
   }
 }
 
@@ -24,8 +24,8 @@
   color: forestgreen;
 }
 
-@mixin timur-button {
-  padding:5px;
+@mixin vulcan-button {
+  padding: 5px;
   border: 1px solid #333;
   margin-left: 10px;
   cursor: pointer;
@@ -37,17 +37,14 @@
     padding-right: 4px;
   }
 
-  &:hover:enabled,
-  {
+  &:hover:enabled {
     color: #fff;
     background: #22a778;
     border: 1px solid #22a778;
   }
 
-  &:disabled,
-  {
+  &:disabled {
     cursor: default;
     border: 1px solid #ccc;
   }
 }
-

@@ -10,16 +10,43 @@
   }
   border-top: 1px solid #888;
   border-bottom: 1px solid #888;
-  .cm-comment { color: #888; }
-  .cm-macro { color: #f40; }
-  .cm-variable { color: #b40; }
-  .cm-string { color: #a0f; }
-  .cm-function { color: #04d; }
-  .cm-label, &.column { color: #090; }
-  .cm-template { color: #f00; font-weight: bold; background: rgba(red,0.2); }
-  .cm-template-text { color: #c00; background: rgba(red,0.2); }
-  .cm-template-var { color: #00f; font-weight: bold; background: rgba(red,0.2); }
-  .cm-vector { color: #000; font-weight: bold; }
+  .cm-comment {
+    color: #888;
+  }
+  .cm-macro {
+    color: #f40;
+  }
+  .cm-variable {
+    color: #b40;
+  }
+  .cm-string {
+    color: #a0f;
+  }
+  .cm-function {
+    color: #04d;
+  }
+  .cm-label,
+  &.column {
+    color: #090;
+  }
+  .cm-template {
+    color: #f00;
+    font-weight: bold;
+    background: rgba(red, 0.2);
+  }
+  .cm-template-text {
+    color: #c00;
+    background: rgba(red, 0.2);
+  }
+  .cm-template-var {
+    color: #00f;
+    font-weight: bold;
+    background: rgba(red, 0.2);
+  }
+  .cm-vector {
+    color: #000;
+    font-weight: bold;
+  }
 }
 
 /******************************************************************************/
@@ -29,7 +56,7 @@
   max-height: 150px;
   margin: 5px 0;
 
-  .consignment-table{
+  .consignment-table {
     border: 1px solid #333;
     font-family: monospace;
     font-size: 1.1em;
@@ -84,7 +111,7 @@
     font-size: 0.8em;
   }
   .consignment-btn {
-    @include timur-button;
+    @include vulcan-button;
   }
   .consignment-variable-group {
     display: table-row;
