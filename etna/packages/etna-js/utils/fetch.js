@@ -1,3 +1,6 @@
+import downloadjs from 'downloadjs';
+import * as Cookies from './cookies';
+
 export const checkStatus = (response) => {
   let content = isJSON(response) ? response.json() : response.text();
   if (response.status >= 200 && response.status < 300) {
@@ -7,23 +10,46 @@ export const checkStatus = (response) => {
   }
 };
 
+export const parseJSON = (response) => {
+  try {
+    return response.json();
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+};
+
+export const makeBlob = (response) => {
+  return response.blob();
+};
+
+export const generateDownload = (filename) => {
+  return (blob) => {
+    return downloadjs(blob, filename, blob.type);
+  };
+};
+
 const isJSON = (response) =>
   response.headers.get('Content-Type') == 'application/json';
 
 export const headers = (...types) => {
-  var _headers = {};
+  let _headers = {};
+  let add = (header, value) => (_headers[header] = value);
 
-  var add = (header, value) => (_headers[header] = value);
-
-  for (var type of types) {
+  for (let type of types) {
     switch (type) {
       case 'json':
         add('Content-Type', 'application/json');
-        add('Accept', 'application/json');
         break;
       case 'csrf':
         let csrf = document.querySelector('meta[name=csrf-token]');
         if (csrf) add('X-CSRF-Token', csrf.getAttribute('content'));
+        break;
+      case 'auth':
+        let token = Cookies.getItem(CONFIG.token_name);
+        add('Authorization', `Etna ${token}`);
+        break;
+      default:
         break;
     }
   }
@@ -36,7 +62,7 @@ export const json_fetch = (method) => (path, params) =>
     method,
     credentials: 'include',
     headers: headers('json'),
-    ...(params && { body: JSON.stringify(params) })
+    ...(params && {body: JSON.stringify(params)})
   }).then(checkStatus);
 
 export const json_get = json_fetch('GET');
