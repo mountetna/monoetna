@@ -19,14 +19,14 @@ COPY src/httpd.conf /usr/local/apache2/conf/httpd.conf
 # language not supporting lazy evaluation, so we are ALSO forced to leave a plausible shibboleth2.xml
 # in case we are not backing the link (which has to be created at a build time, which is common
 # to all environments).  Yeesh.
-RUN mkdir -p /usr/opt/shibboleth/
-RUN cp /etc/shibboleth/shibboleth2.xml /usr/opt/shibboleth/shibboleth2.xml
-RUN ln -sf /usr/opt/shibboleth/shibboleth2.xml /etc/shibboleth/shibboleth2.xml
-RUN ln -sf /usr/opt/shibboleth/incommon.pem /etc/shibboleth/incommon.pem
-RUN ln -sf /usr/opt/shibboleth/sp-cert.pem /etc/shibboleth/sp-cert.pem
-RUN ln -sf /usr/opt/shibboleth/sp-key.pem /etc/shibboleth/sp-key.pem
-RUN ln -sf /usr/opt/shibboleth/idp-metadata.xml /etc/shibboleth/idp-metadata.xml
-RUN ln -sf /usr/opt/shibboleth/attribute-map.xml /etc/shibboleth/attribute-map.xml
+RUN mkdir -p /shibboleth/
+RUN cp /etc/shibboleth/shibboleth2.xml /shibboleth/shibboleth2.xml
+RUN ln -sf /shibboleth/shibboleth2.xml /etc/shibboleth/shibboleth2.xml
+RUN ln -sf /shibboleth/incommon.pem /etc/shibboleth/incommon.pem
+RUN ln -sf /shibboleth/sp-cert.pem /etc/shibboleth/sp-cert.pem
+RUN ln -sf /shibboleth/sp-key.pem /etc/shibboleth/sp-key.pem
+RUN ln -sf /shibboleth/idp-metadata.xml /etc/shibboleth/idp-metadata.xml
+RUN ln -sf /shibboleth/attribute-map.xml /etc/shibboleth/attribute-map.xml
 
 # Prepare the environment with ascript that can start shibd before httpd
 COPY src/bin/httpd_with_shibd.sh /bin/
