@@ -27,3 +27,7 @@ RUN ln -sf /usr/opt/shibboleth/sp-cert.pem /etc/shibboleth/sp-cert.pem
 RUN ln -sf /usr/opt/shibboleth/sp-key.pem /etc/shibboleth/sp-key.pem
 RUN ln -sf /usr/opt/shibboleth/idp-metadata.xml /etc/shibboleth/idp-metadata.xml
 RUN ln -sf /usr/opt/shibboleth/attribute-map.xml /etc/shibboleth/attribute-map.xml
+
+# Prepare the environment with ascript that can start shibd before httpd
+COPY src/bin/httpd_with_shibd.sh /bin/
+RUN chmod +x /bin/httpd_with_shibd.sh
