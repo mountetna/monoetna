@@ -3,8 +3,7 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 
 import Nav from 'etna-js/components/Nav';
-import IdentifierSearch from './identifier_search';
-import Link from './link';
+import Link from 'etna-js/components/link';
 import {selectUser} from 'etna-js/selectors/user-selector';
 
 const Halo = ({radius}) => (
@@ -43,7 +42,7 @@ const Logo = connect(({exchanges}) => ({exchanges}))(({exchanges}) => (
 ));
 
 const getTabs = () => ({
-  workflows: Routes.workflow_path(CONFIG.project_name),
+  workflows: '/workflows',
   help: 'https://mountetna.github.io/vulcan.html'
 });
 
@@ -62,7 +61,6 @@ const ModeBar = ({mode}) => (
 
 const VulcanNav = ({mode, user}) => (
   <Nav user={user} logo={Logo} app='vulcan'>
-    {mode !== 'home' && <IdentifierSearch />}
     {mode !== 'home' && <ModeBar mode={mode} />}
   </Nav>
 );
