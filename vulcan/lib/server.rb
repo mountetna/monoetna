@@ -18,7 +18,17 @@ class Vulcan
     get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
     get 'api/workflows/:workflow_name/steps', action: 'steps#fetch', as: :steps_view, auth: { user: { active?: true } }
 
-    get 'workflow', action: 'workflows#view', as: :workflow_path, auth: { user: { active?: true } }
+    with auth: { user: { can_view?: :project_name } } do
+
+      # remaining view routes are parsed by the client and must also be set there
+      get ':project_name', as: :project do
+        erb_view(:client)
+      end
+
+      get ':project_name/*view_path', as: :project_view do
+        erb_view(:client)
+      end
+    end
 
     def initialize
       super

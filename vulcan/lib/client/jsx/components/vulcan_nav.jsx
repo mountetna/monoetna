@@ -32,10 +32,7 @@ const Halo = ({radius}) => (
 );
 
 const Logo = connect(({exchanges}) => ({exchanges}))(({exchanges}) => (
-  <div
-    id='vulcan-logo'
-    className={Object.keys(exchanges).length > 0 ? 'throb' : null}
-  >
+  <div id='vulcan-logo' className='etna-vulcan-logo'>
     <div className='image' />
     <Halo radius={25} />
   </div>
@@ -46,7 +43,7 @@ const getTabs = () => ({
   help: 'https://mountetna.github.io/vulcan.html'
 });
 
-const ModeBar = ({mode}) => (
+const ModeBar = ({mode, user}) => (
   <div id='nav'>
     {Object.entries(getTabs()).map(([tab_name, route]) => (
       <div
@@ -61,7 +58,7 @@ const ModeBar = ({mode}) => (
 
 const VulcanNav = ({mode, user}) => (
   <Nav user={user} logo={Logo} app='vulcan'>
-    {mode !== 'home' && <ModeBar mode={mode} />}
+    {mode !== 'home' && <ModeBar mode={mode} user={user} />}
   </Nav>
 );
 

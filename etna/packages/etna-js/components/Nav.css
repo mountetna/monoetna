@@ -21,6 +21,9 @@
 .etna-janus-logo {
   background: url('~etna-js/images/janus.svg');
 }
+.etna-vulcan-logo {
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' version='1.1' height='50px' width='120px'><text x='25' y='25' fill='red' font-size='20'>V</text></svg>");
+}
 
 .etna-login {
   display: flex;

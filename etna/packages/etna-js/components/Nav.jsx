@@ -48,7 +48,7 @@ const Link = ({app}) => {
 
 const Control = ({currentApp}) => {
   let [ shown, setShown ] = useState(false);
-  let apps = [ 'timur', 'metis', 'janus' ].filter(a => a != currentApp);
+  let apps = [ 'timur', 'metis', 'janus', 'vulcan' ].filter(a => a != currentApp);
 
   if (!shown) return <div className='etna-control'>
     <div className='etna-control-show' onClick={ () => setShown(true) } >
@@ -69,9 +69,26 @@ const Control = ({currentApp}) => {
 const Nav = ({logo, app, children, user}) => 
   <nav className='etna-nav'>
     <Logo LogoImage={logo}/>
-    {children && children.filter(_=>_).length ? children : <div style={{flex: 1}}/>}
+    {findValidChildren(children)}
     <Login user={user}/>
     <Control currentApp={app}/>
-  </nav>;
+  </nav>
+
+function findValidChildren(children) {
+  if (children) {
+    // Only return non-null children from an Array, or
+    //  the singular child if provided. When only
+    //  one child is passed in, it is an Object, not an Array,
+    //  and has no `filter` method.
+    if (Array.isArray(children)) {
+      if (children.filter(_=>_).length) {
+        return children;
+      }
+    } else {
+      return children;
+    }
+  }
+  return <div style={{flex: 1}}/>;
+}
 
 export default Nav;

@@ -8,13 +8,15 @@ import messages from 'etna-js/reducers/message_reducer';
 import exchanges from 'etna-js/reducers/exchanges_reducer';
 import location from 'etna-js/reducers/location_reducer';
 import janus from 'etna-js/reducers/janus-reducer';
+import user from 'etna-js/reducers/user_reducer';
 
 export const VulcanStore = () => {
   let reducers = combineReducers({
     messages,
     exchanges,
     location,
-    janus
+    janus,
+    user
   });
 
   let middlewares = [thunk];
