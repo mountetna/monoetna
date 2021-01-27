@@ -1,0 +1,89 @@
+#!/usr/bin/env cwl-runner
+cwlVersion: v1.1
+class: Workflow
+
+requirements:
+  ResourceRequirement:
+    coresMax: 1
+    ramMin: 100 # just a default, could be lowered
+  SchemaDefRequirement:
+    types:
+      - $import: mvir1-sc_rna_seq_pool-names.yaml
+
+inputs:
+  sc_rna_seq_pools:
+    type:
+      type: array
+      items: mvir1-sc_rna_seq_pool-names.yaml#sc_rna_seq_pool
+      label: 'SC RNA Seq Pool record names'
+  processing_parameter_1:
+    type: int
+    default: 5
+    label: 'Param 1 for QC processing'
+  processing_parameter_2:
+    type: int
+    default: 42
+    label: 'Param 2 for QC processing'
+  counts:
+    type: boolean
+    default: false
+    label: Counts
+  genes:
+    type: boolean
+    default: false
+    label: Genes
+  per_mito:
+    type: boolean
+    default: false
+    label: '% mito'
+  per_ribo:
+    type: boolean
+    default: false
+    label: '% ribo'
+  pcs:
+    type:
+      type: array
+      items: int
+      label: 'Principle Components'
+
+outputs:
+  mvir1_sc_rna_seq_pool_names:
+    type: File
+    outputSource: query_magma/sc_rna_seq_pool_names
+  subset_data:
+    type: File
+    outputSource: subset_features_and_normalize/sc_rna_seq_normalized_data
+  pc_data:
+    type: File
+    outputSource: regress_features_pca/pca_output_data
+  umap_data:
+    type: File
+    outputSource: umap/umap_data
+
+steps:
+  query_magma:
+    run: query-mvir1-sc_rna_seq_pools.cwl
+    in: []
+    out: [sc_rna_seq_pool_names]
+  subset_features_and_normalize:
+    run: subset_features_and_normalize.cwl
+    in:
+      sc_rna_seq_pools: sc_rna_seq_pools
+      param1: processing_parameter_1
+      param2: processing_parameter_2
+    out: [sc_rna_seq_normalized_data]
+  regress_features_pca:
+    run: regress_features_pca.cwl
+    in:
+      data: subset_features_and_normalize/sc_rna_seq_normalized_data
+      counts: counts
+      genes: genes
+      per_mito: per_mito
+      per_ribo: per_ribo
+    out: [pca_output_data]
+  umap:
+    run: umap.cwl
+    in:
+      data: regress_features_pca/pca_output_data
+      pcs: pcs
+    out: [umap_data]
