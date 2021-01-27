@@ -11,7 +11,6 @@
 
 // Framework libraries.
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
-import {connect} from 'react-redux';
 import 'regenerator-runtime/runtime';
 import useAsyncWork from "etna-js/hooks/useAsyncWork";
 
@@ -21,16 +20,14 @@ import ViewTabBar from './view_tab_bar';
 import ViewTab from './view_tab';
 
 // Module imports.
-import {requestManifests} from '../../actions/manifest_actions';
-import {requestPlots} from '../../actions/plot_actions';
-import {setLocation} from '../../actions/location_actions';
+import {setLocation} from 'etna-js/actions/location_actions';
 import {requestView} from '../../actions/view_actions';
 import {
   sendRevisions,
   discardRevision,
   requestModel,
   requestAnswer
-} from '../../actions/magma_actions';
+} from 'etna-js/actions/magma_actions';
 import {
   getAttributes,
   getDefaultTab,
@@ -40,7 +37,7 @@ import {
   selectTemplate,
   selectDocument,
   selectRevision
-} from '../../selectors/magma';
+} from 'etna-js/selectors/magma';
 import {selectIsEditor} from '../../selectors/user_selector';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';

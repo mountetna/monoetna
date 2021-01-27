@@ -1,0 +1,68 @@
+@import "globals";
+
+.project {
+  .header {
+    >span {
+      display: none;
+    }
+  }
+
+  &.browser {
+    #tab {
+      &.overview {
+        .pane {
+          .items {
+            .view_item {
+              &:first-of-type {
+                .item_name {
+                  display: none;
+                }
+                .item_view {
+                    background-color: transparent;
+                    padding: 20px 0px;
+                    margin: 0px;
+                    color: seagreen;
+                    font-size: 20px;
+                }
+              }
+            }
+          }
+        }
+      }
+      .pane {
+        .items {
+          font-family: $body_font;
+          .view_item {
+            padding-left: 50px;
+            display: block;
+            &:not(:last-of-type) {
+              .item_name {
+                border: none;
+              }
+              .item_view {
+                border: none;
+              }
+            }
+            .item_name {
+              font-family: $body_font;
+              display: block;
+              border: none;
+              width: 100%;
+              margin-top: 10px;
+              text-align: unset;
+            }
+            .item_view {
+              .attribute {
+                font-family: $body_font;
+              }
+              display: block;
+              width: auto;
+              border: none;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

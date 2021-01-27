@@ -1,0 +1,99 @@
+[
+  {
+    "number": 1,
+    "inputs": [
+      {
+        "type": "multiselect",
+        "display_label": "Records",
+        "source": {
+          "type": "query",
+          "value": ["sc_rna_seq_pool", "::all", "identifier"]
+        }
+      }
+    ],
+    "command": "magma_query",
+    "output": {
+      "type": "scatter_plot"
+    },
+    "display_label": "Record selection"
+  },
+  {
+    "number": 2,
+    "inputs": [{"numerical_cutoff": 5}],
+    "hidden": true,
+    "command": "subset",
+    "output": {
+      "type": "scatter_plot"
+    },
+    "display_label": "Subset + trim"
+  },
+  {
+    "number": 3,
+    "inputs": [
+      {
+        "variable_gene_selection": ["ENSG00000210049"]
+      }
+    ],
+    "hidden": true,
+    "command": "normalize",
+    "output": {
+      "type": "scatter_plot"
+    },
+    "display_label": "Normalize counts"
+  },
+  {
+    "number": 4,
+    "inputs": [
+      {
+        "type": "checkbox",
+        "display_label": "Counts"
+      },
+      {
+        "type": "checkbox",
+        "display_label": "Gene"
+      },
+      {
+        "type": "checkbox",
+        "display_label": "% Mito"
+      },
+      {
+        "type": "checkbox",
+        "display_label": "% Ribo"
+      }
+    ],
+    "command": "normalize",
+    "output": {
+      "type": "scatter_plot"
+    },
+    "display_label": "Regress out features"
+  },
+  {
+    "number": 5,
+    "inputs": [],
+    "hidden": true,
+    "command": "pca",
+    "output": {
+      "type": "scatter_plot"
+    },
+    "display_label": "Run PCA"
+  },
+  {
+    "number": 6,
+    "inputs": [
+      {
+        "type": "checkbox",
+        "display_label": "Principle Components",
+        "validation": {
+          "type": "Range",
+          "value": [1, 15]
+        },
+        "default": "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15"
+      }
+    ],
+    "command": "umap",
+    "output": {
+      "type": "scatter_plot"
+    },
+    "display_label": "Run UMAP"
+  }
+]
