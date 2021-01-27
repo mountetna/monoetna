@@ -13,9 +13,6 @@ if [ -n "$RUN_NPM_INSTALL" ]; then
 
   if ! [ -e config.yml ]; then
     cp config.yml.template config.yml
-    ./bin/vulcan create_routes
     rm config.yml
-  else
-    ./bin/vulcan create_routes
   fi
 fi
