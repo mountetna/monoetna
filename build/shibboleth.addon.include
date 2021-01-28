@@ -1,3 +1,5 @@
+# ShibCompatValidUser Off
+
 <If "env('JANUS_ENV') == 'production'">
     # This line sets a special header available to Thin/Rack/Ruby.
     # The variable 'EMAIL' is only set IF Shibboleth is working and has
