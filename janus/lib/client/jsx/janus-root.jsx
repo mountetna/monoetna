@@ -11,13 +11,15 @@ const JanusRoot = () => {
   let [ projects, setProjects ]  = useState([]);
 
   useEffect(
-    () => fetch('/projects?full=1').then(checkStatus).then(
-      ({projects}) => setProjects(projects)
-    ), []
+    () => {
+      fetch('/projects?full=1')
+        .then(checkStatus)
+        .then(({projects}) => setProjects(projects))
+    }, []
   )
   return <div>
     <Identity user={user}/>
-    <UserProjects projects={projects}/>
+    <UserProjects user={user} projects={projects}/>
   </div>;
 }
 

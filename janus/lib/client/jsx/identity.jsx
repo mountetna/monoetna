@@ -15,10 +15,10 @@ const copyToken = (e) => {
 
 const Identity = ({user}) => 
   <div id='identity-group'>
-    <div class='title'>Your Identity</div>
-    <div class='item'>{ user.first } { user.last }</div>
-    <div class='item'>{ user.email }</div>
-    <div class='item'><button onClick={ copyToken }>Copy Token</button></div>
+    <div className='title'>Your Identity</div>
+    <div className='item'>{ user.first } { user.last }</div>
+    <div className='item'>{ user.email }</div>
+    <div className='item'><button onClick={ copyToken }>Copy Token</button></div>
   </div>;
 
 export default Identity;

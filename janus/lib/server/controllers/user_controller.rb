@@ -42,15 +42,14 @@ class UserController < Janus::Controller
     raise Etna::Forbidden, 'User not found' unless @janus_user
 
     projects = @janus_user.permissions.map do |perm|
-      perm.project
-    end.uniq.map do |proj|
-      @params[:full] ? proj.to_hash :
       # Don't use proj.to_hash because we don't necessarily want to send back
       #   all the information.
       {
-        project_name: proj.project_name,
-        project_name_full: proj.project_name_full,
-        project_description: proj.project_description
+        project_name: perm.project.project_name,
+        project_name_full: perm.project.project_name_full,
+        project_description: perm.project.project_description,
+        role: perm.role,
+        privileged: perm.privileged?
       }
     end
 
