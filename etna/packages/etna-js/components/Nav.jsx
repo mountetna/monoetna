@@ -48,7 +48,7 @@ const Link = ({app}) => {
 
 const Control = ({currentApp}) => {
   let [ shown, setShown ] = useState(false);
-  let apps = [ 'timur', 'metis', 'janus', 'vulcan' ].filter(a => a != currentApp);
+  let apps = [ 'timur', 'metis', 'janus' ].filter(a => a != currentApp);
 
   if (!shown) return <div className='etna-control'>
     <div className='etna-control-show' onClick={ () => setShown(true) } >

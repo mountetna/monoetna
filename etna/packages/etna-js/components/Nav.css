@@ -61,7 +61,7 @@
 
 @keyframes appear {
   from { height: 0px; }
-  to { height: 90px; }
+  to { height: 100%; }
 }
 
 .etna-control-links {
@@ -69,9 +69,8 @@
   flex-direction: column;
   justify-content: end;
 
-  height: 90px;
   overflow: hidden;
-
+  
   position: absolute;
   top: 60px;
   right: 0px;
