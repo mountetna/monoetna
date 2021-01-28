@@ -5,8 +5,7 @@ import * as ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import VulcanUI from './vulcan_ui';
 import {VulcanStore} from './vulcan_store';
-import {addTokenUser} from './actions/user_actions';
-import * as Cookies from './utils/cookies';
+import * as Cookies from 'etna-js/utils/cookies';
 
 class VulcanApplication {
   constructor(props, container_id) {

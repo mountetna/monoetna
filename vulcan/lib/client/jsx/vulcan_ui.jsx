@@ -3,15 +3,15 @@ import {connect} from 'react-redux';
 import {findRoute, setRoutes} from './router';
 
 // Components.
-import WorkflowBrowser from './components/workflow/browser';
+import Browser from './components/workflow/browser';
 import RootView from 'etna-js/components/RootView';
 import VulcanNav from './components/vulcan_nav';
-import Messages from './components/messages';
+import Messages from 'etna-js/components/messages';
+import {selectUser} from 'etna-js/selectors/user-selector';
 
-import {showMessages} from './actions/message_actions';
-import {updateLocation} from './actions/location_actions';
+import {showMessages} from 'etna-js/actions/message_actions';
+import {updateLocation} from 'etna-js/actions/location_actions';
 
-import {selectUser} from './selectors/user_selector';
 import {ModalDialogContainer} from 'etna-js/components/ModalDialogContainer';
 import {Notifications} from 'etna-js/components/Notifications';
 
@@ -22,9 +22,14 @@ const ROUTES = [
     mode: 'home'
   },
   {
+    template: ':project_name/',
+    component: Browser,
+    mode: 'workflow'
+  },
+  {
     name: 'workflow',
-    template: 'workflow',
-    component: WorkflowBrowser,
+    template: ':project_name/workflow/',
+    component: Browser,
     mode: 'workflow'
   }
 ];

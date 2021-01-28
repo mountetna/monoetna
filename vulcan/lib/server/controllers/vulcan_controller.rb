@@ -21,6 +21,9 @@ class Vulcan
         token_name: Vulcan.instance.config(:token_name),
         magma_host: Vulcan.instance.config(:magma)&.dig(:host),
         archimedes_host: Vulcan.instance.config(:archimedes)&.dig(:host),
+        janus_host: Vulcan.instance.config(:janus)&.dig(:host),
+        timur_host: Vulcan.instance.config(:timur)&.dig(:host),
+        metis_host: Vulcan.instance.config(:metis)&.dig(:host),
       }.to_json
     end
 

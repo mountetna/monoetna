@@ -1,4 +1,4 @@
-describe StepsController do
+describe DataController do
   include Rack::Test::Methods
 
   def app
