@@ -1,7 +1,7 @@
 require_relative './server/controllers/vulcan_controller'
 require_relative './server/controllers/browse_controller'
 require_relative './server/controllers/workflows_controller'
-require_relative './server/controllers/steps_controller'
+require_relative './server/controllers/data_controller'
 
 class Vulcan
   class Server < Etna::Server
@@ -16,7 +16,7 @@ class Vulcan
     end
 
     get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
-    get 'api/workflows/:workflow_name/steps', action: 'steps#fetch', as: :steps_view, auth: { user: { active?: true } }
+    get 'api/workflows/:workflow_name/:data', action: 'data#fetch', as: :data_view, auth: { user: { active?: true } }
 
     with auth: { user: { can_view?: :project_name } } do
 
