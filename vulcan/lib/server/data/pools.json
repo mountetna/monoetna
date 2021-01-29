@@ -1,0 +1,18 @@
+{
+  "answer": [
+    ["IPIPOOL001.P1.scrna.xvipbmc", "IPIPOOL001.P1.scrna.xvipbmc"],
+    ["IPIPOOL001.P1.scrna.xvipbmc2", "IPIPOOL001.P1.scrna.xvipbmc2"],
+    ["IPIPOOL001.P1.scrna.xvipbmc3", "IPIPOOL001.P1.scrna.xvipbmc3"],
+    ["IPIPOOL001.P1.scrna.xvipbmc4", "IPIPOOL001.P1.scrna.xvipbmc4"],
+    ["IPIPOOL002.P1.scrna.xvipbmc", "IPIPOOL002.P1.scrna.xvipbmc"],
+    ["IPIPOOL002.P1.scrna.xvipbmc2", "IPIPOOL002.P1.scrna.xvipbmc2"],
+    ["IPIPOOL002.P1.scrna.xvipbmc3", "IPIPOOL002.P1.scrna.xvipbmc3"],
+    ["IPIPOOL002.P1.scrna.xvipbmc4", "IPIPOOL002.P1.scrna.xvipbmc4"],
+    ["IPIPOOL003.P1.scrna.xvipbmc", "IPIPOOL003.P1.scrna.xvipbmc"],
+    ["IPIPOOL003.P1.scrna.xvipbmc2", "IPIPOOL003.P1.scrna.xvipbmc2"],
+    ["IPIPOOL003.P1.scrna.xvipbmc3", "IPIPOOL003.P1.scrna.xvipbmc3"],
+    ["IPIPOOL003.P1.scrna.xvipbmc4", "IPIPOOL003.P1.scrna.xvipbmc4"]
+  ],
+  "type": "String",
+  "format": ["ipi::sc_rna_seq_pool#tube_name", "ipi::sc_rna_seq_pool#tube_name"]
+}

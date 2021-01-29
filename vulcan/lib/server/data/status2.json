@@ -1,0 +1,20 @@
+{
+  "steps": {
+    "query_magma": {
+      "status": "complete",
+      "data": "pools"
+    },
+    "ui_pick_subset": {
+      "status": "complete"
+    },
+    "subset_normalize_and_select_features": {
+      "status": "pending"
+    },
+    "regress_and_pca": {
+      "status": "pending"
+    },
+    "umap": {
+      "status": "pending"
+    }
+  }
+}

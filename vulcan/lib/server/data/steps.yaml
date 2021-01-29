@@ -2,20 +2,7 @@
 cwlVersion: v1.1
 class: Workflow
 
-requirements:
-  ResourceRequirement:
-    coresMax: 1
-    ramMin: 100 # just a default, could be lowered
-  SchemaDefRequirement:
-    types:
-      - $import: mvir1-sc_rna_seq_pool-names.yaml
-
 inputs:
-  sc_rna_seq_pools:
-    type:
-      type: array
-      items: mvir1-sc_rna_seq_pool-names.yaml#sc_rna_seq_pool
-      label: 'SC RNA Seq Pool record names'
   min_nCounts:
     type: int
     default: 200
@@ -58,9 +45,6 @@ inputs:
     label: 'Maximum number of Principal Components'
 
 outputs:
-  mvir1_sc_rna_seq_pool_names:
-    type: File
-    outputSource: query_magma/sc_rna_seq_pool_names
   subset_data:
     type: File
     outputSource: subset_normalize_and_select_features/sc_rna_seq_normalized_data
@@ -76,10 +60,15 @@ steps:
     run: query-mvir1-sc_rna_seq_pools.cwl
     in: []
     out: [sc_rna_seq_pool_names]
+  ui_pick_subset:
+    run: ui-query-magma.cwl
+    in:
+      all_pool_names: query_magma/sc_rna_seq_pool_names
+    out: [subset_sc_rna_pool_names]
   subset_normalize_and_select_features:
     run: subset_normalize_and_select_features.cwl
     in:
-      sc_rna_seq_pools: sc_rna_seq_pools
+      sc_rna_seq_pools: ui_pick_subset/subset_sc_rna_pool_names
       min_nCounts: min_nCounts
       max_nCounts: max_nCounts
       min_nFeatures: min_nFeatures

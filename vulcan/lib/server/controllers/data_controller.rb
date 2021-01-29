@@ -11,9 +11,17 @@ class DataController < Vulcan::Controller
 
     raise Etna::NotFound, "No data for value #{@params[:data]}." unless ["steps", "pools"].include?(@params[:data])
 
+    case @params[:data]
+    when "steps"
+      filename = "steps.yaml"
+      mimetype = "text/yaml"
+    when "pools"
+      filename = "pools.json"
+      mimetype = "application/json"
+    end
     success(File.read(File.join(
       File.dirname(__FILE__),
-      "../data/#{@params[:data]}.yaml")), 'text/yaml')
+      "../data/#{filename}")), mimetype)
 
   end
 end

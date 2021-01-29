@@ -17,6 +17,7 @@ class Vulcan
 
     get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
     get 'api/workflows/:workflow_name/:data', action: 'data#fetch', as: :data_view, auth: { user: { active?: true } }
+    post 'api/workflows/:workflow_name/:status', action: 'workflows#submit', as: :submit_view, auth: { user: { active?: true } }
 
     with auth: { user: { can_view?: :project_name } } do
 
