@@ -35,7 +35,7 @@ export default function Browser() {
   let {projects} = browserState;
 
   useEffect(() => {
-    invoke(fetchProjectsAction());
+    // invoke(fetchProjectsAction());
   });
 
   return (
