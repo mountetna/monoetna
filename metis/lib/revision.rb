@@ -17,16 +17,16 @@ class Metis
 
     def set_bucket(path_with_objects, user_authorized_buckets)
       return unless path_with_objects.mpath.valid?
-      path_with_objects.bucket = user_authorized_buckets.find {
-        |b| b.name == path_with_objects.mpath.bucket_name
-      }
+      path_with_objects.bucket = user_authorized_buckets.find do |b|
+        path_with_objects.mpath.bucket_matches?(b)
+      end
     end
 
     def set_folder(path_with_objects, bucket_folders)
       return unless path_with_objects.mpath.valid?
-      path_with_objects.folder = bucket_folders.find {
-        |f| f.folder_path.join('/') == path_with_objects.mpath.folder_path
-      }
+      path_with_objects.folder = bucket_folders.find do |f|
+        path_with_objects.mpath.folder_matches?(f)
+      end
     end
 
     def valid?
@@ -78,7 +78,7 @@ class Metis
       if mpath_w_objs.bucket
         return true
       end
-      @errors.push("Invalid bucket: \"#{mpath_w_objs.mpath.bucket_name}\"")
+      @errors.push("Invalid bucket \"#{mpath_w_objs.mpath.bucket_name}\" in project \"#{mpath_w_objs.mpath.project_name}\". Check the bucket name and your permissions.")
       return false
     end
 

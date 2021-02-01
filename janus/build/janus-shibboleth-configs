@@ -9,7 +9,3 @@ fi
 for include in /app/build/shibboleth*; do
   cp "$include" /usr/opt/httpd.conf.d/
 done
-
-# TODO
-# Possibly copy over the shibboleth2.xml.erb from /secrets/ mount
-

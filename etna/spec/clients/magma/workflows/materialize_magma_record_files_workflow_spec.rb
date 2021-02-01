@@ -32,13 +32,13 @@ describe Etna::Clients::Magma::MaterializeDataWorkflow do
       VCR.use_cassette('materialize_data_workflow-base_case.e2e') do
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
-            token: ENV['TOKEN'] || 'token',
+            token: ENV['TOKEN'] || TEST_TOKEN,
             ignore_ssl: true,
         )
 
         metis_client = Etna::Clients::Metis.new(
             host: 'https://metis.development.local',
-            token: ENV['TOKEN'] || 'token',
+            token: ENV['TOKEN'] || TEST_TOKEN,
             ignore_ssl: true,
         )
 
@@ -58,7 +58,7 @@ describe Etna::Clients::Magma::MaterializeDataWorkflow do
             stub_files: true,
         )
 
-        workflow.with_materialized_dir do |dir|
+        workflow.materialize_all do |dir|
           entries_by_dir = ::Dir.glob("**/*", base: dir).inject({}) do |acc, n|
             acc.tap do
               dirname = ::File.dirname(n)
