@@ -38,7 +38,7 @@ export const getWorkflow = (workflow_name, exchange) => {
   return archimedesGet(`api/workflows/${workflow_name}`, exchange).then(
     (response) => {
       return new Promise((resolve, reject) => {
-        resolve(new CwlSerializer(response));
+        resolve(new CwlSerializer(response).json);
       });
     }
   );
