@@ -35,11 +35,11 @@ export default function Browser() {
   let {projects} = browserState;
 
   useEffect(() => {
-    // invoke(fetchProjectsAction());
-  });
+    invoke(fetchProjectsAction());
+  }, []);
 
   return (
-    <div>
+    <div className='vulcan-browser'>
       Select a workflow for{' '}
       {projectNameFull(projects, CONFIG.project_name) || CONFIG.project_name}
     </div>
@@ -48,6 +48,7 @@ export default function Browser() {
 
 function browserStateOf() {
   return (state) => {
+    console.log(state);
     return {projects: selectProjects(state)};
   };
 }

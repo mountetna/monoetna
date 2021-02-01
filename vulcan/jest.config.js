@@ -18,8 +18,8 @@ module.exports = {
     '^enzyme-adapter-react-16$':
       '<rootDir>/node_modules/enzyme-adapter-react-16'
   },
-  testMatch: ['**/test/**/?(*.)(spec|test).js?(x)'],
+  testMatch: ['**/__tests__/**/?(*.)(spec|test).js?(x)'],
   collectCoverageFrom: ['**/*.js?(x)'],
-  setupFilesAfterEnv: ['./test/setup.js'],
+  setupFilesAfterEnv: ['./lib/client/jsx/spec/setup.js'],
   setupFiles: ['raf/polyfill']
 };

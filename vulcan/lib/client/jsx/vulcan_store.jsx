@@ -9,6 +9,7 @@ import exchanges from 'etna-js/reducers/exchanges_reducer';
 import location from 'etna-js/reducers/location_reducer';
 import janus from 'etna-js/reducers/janus-reducer';
 import user from 'etna-js/reducers/user_reducer';
+import archimedes from './reducers/archimedes_reducer';
 
 export const VulcanStore = () => {
   let reducers = combineReducers({
@@ -16,7 +17,8 @@ export const VulcanStore = () => {
     exchanges,
     location,
     janus,
-    user
+    user,
+    archimedes
   });
 
   let middlewares = [thunk];
