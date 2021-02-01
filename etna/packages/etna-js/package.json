@@ -23,6 +23,8 @@
     "@babel/preset-react": "^7.10.1",
     "babel-jest": "^26.0.1",
     "core-js": "^3.6.5",
+    "d3": "^5.5.0",
+    "d3-ease": "^1.0.3",
     "downloadjs": "^1.4.7",
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.2",

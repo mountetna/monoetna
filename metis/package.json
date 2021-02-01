@@ -18,6 +18,8 @@
     "@babel/polyfill": "^7.10.1",
     "@fortawesome/fontawesome-free": "^5.12.0",
     "copy-webpack-plugin": "^4.6.0",
+    "d3": "^5.5.0",
+    "d3-ease": "^1.0.3",
     "downloadjs": "^1.4.7",
     "downzip": "git+https://git@github.com/mountetna/downzip.git",
     "etna-js": "git+https://git@github.com/mountetna/monoetna.git#9396db7da91ec5f4619ae5272e84e27065c50b8b",
