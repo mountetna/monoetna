@@ -69,26 +69,9 @@ const Control = ({currentApp}) => {
 const Nav = ({logo, app, children, user}) => 
   <nav className='etna-nav'>
     <Logo LogoImage={logo}/>
-    {findValidChildren(children)}
+    {children && children.filter(_=>_).length ? children : <div style={{flex: 1}}/>}
     <Login user={user}/>
     <Control currentApp={app}/>
-  </nav>
-
-function findValidChildren(children) {
-  if (children) {
-    // Only return non-null children from an Array, or
-    //  the singular child if provided. When only
-    //  one child is passed in, it is an Object, not an Array,
-    //  and has no `filter` method.
-    if (Array.isArray(children)) {
-      if (children.filter(_=>_).length) {
-        return children;
-      }
-    } else {
-      return children;
-    }
-  }
-  return <div style={{flex: 1}}/>;
-}
+  </nav>;
 
 export default Nav;

@@ -92,10 +92,3 @@ global.expect.extend({
     return {pass: false, message: 'Expected promise to resolve, but it rejected'};
   }
 })
-
-export const mockDate = () => {
-  const currentDate = new Date();
-  global.Date = jest.fn(() => currentDate);
-}
-
-export const mockFetch = () => global.fetch = fetch;

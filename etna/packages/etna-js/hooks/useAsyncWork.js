@@ -20,32 +20,16 @@ import {Cancellable} from "../utils/cancellable";
     that result in calls to this hook may trigger a cancellation of the last known invocation of f.  Any consecutive
     invocations of f cancel any previous invocations.
  */
-export default function useAsyncWork(f, { cancelWhenChange = undefined, renderedState = undefined }) {
+export default function useAsyncWork(f, { cancelWhenChange = undefined }) {
   const [loading, setLoading] = useState(false);
-  const [lastPendingResolve, setPendingResolve] = useState(null);
-  if (lastPendingResolve) {
-    lastPendingResolve(renderedState);
-    setPendingResolve(null);
-  }
-  // const [last, setLoading] = useState(false);
-
   const [cancellable, setCancellable] = cancelWhenChange ? useState(new Cancellable()) : [null, null];
 
   if (cancellable) useEffect(function () {
-    // Return the cancel as a cleanup operation -- this will get invokved only between the cancelWhenChange has new
-    // values, or the component is dismounted.
-    return () => cancellable.cancel();
+    cancellable.cancel();
   }, cancelWhenChange);
 
   const wrapper = useCallback(_wrapper, [setLoading, f, cancellable, setCancellable]);
-  const awaitNextRender = useCallback(_awaitNextRender, [setPendingResolve]);
-  return [loading, wrapper, awaitNextRender];
-
-  function _awaitNextRender() {
-    return new Promise((resolve) => {
-      setPendingResolve(() => resolve);
-    })
-  }
+  return [loading, wrapper];
 
   function _wrapper() {
     let result = f.apply(this, arguments);

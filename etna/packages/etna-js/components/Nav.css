@@ -21,9 +21,6 @@
 .etna-janus-logo {
   background: url('~etna-js/images/janus.svg');
 }
-.etna-vulcan-logo {
-  background: url('~etna-js/images/vulcan.svg');
-}
 
 .etna-login {
   display: flex;
@@ -61,7 +58,7 @@
 
 @keyframes appear {
   from { height: 0px; }
-  to { height: 100%; }
+  to { height: 90px; }
 }
 
 .etna-control-links {
@@ -69,6 +66,7 @@
   flex-direction: column;
   justify-content: end;
 
+  height: 90px;
   overflow: hidden;
 
   position: absolute;
@@ -91,7 +89,6 @@
   border: 1px solid gray;
   margin: 5px;
   background: white;
-  opacity: 0.2;
 }
 
 .etna-link:hover {
@@ -99,15 +96,6 @@
   width: 32px;
   height: 32px;
   margin: 4px;
-  cursor: not-allowed;
-}
-
-a .etna-link {
-  opacity: 1;
-}
-
-a .etna-link:hover {
-  cursor: default;
 }
 
 .etna-control-hide {

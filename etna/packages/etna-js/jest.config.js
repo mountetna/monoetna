@@ -2,8 +2,7 @@ module.exports = {
   globals: {
     __TEST__: true,
     CONFIG: {
-      project_name: 'labors',
-      magma_host: "https://magma.test"
+      project_name: 'labors'
     }
   },
   moduleNameMapper: {

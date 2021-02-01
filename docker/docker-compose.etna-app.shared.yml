@@ -1,21 +1,23 @@
+
 volumes:
-  '${APP_DASH_PREFIX}app-gems':
+  "${APP_DASH_PREFIX}app-gems":
     driver: local
-  '${APP_DASH_PREFIX}log-dir':
+  "${APP_DASH_PREFIX}log-dir":
     driver: local
-  '${APP_DASH_PREFIX}tmp-dir':
+  "${APP_DASH_PREFIX}tmp-dir":
     driver: local
-  '${APP_DASH_PREFIX}public-dir':
+  "${APP_DASH_PREFIX}public-dir":
     driver: local
-  '${APP_DASH_PREFIX}data-dir':
+  "${APP_DASH_PREFIX}data-dir":
     driver: local
-  '${APP_DASH_PREFIX}db-data':
+  "${APP_DASH_PREFIX}db-data":
     driver: local
-  '${APP_DASH_PREFIX}opt-dir':
+  "${APP_DASH_PREFIX}opt-dir":
     driver: local
 
-x-base-etna-service:
-  &base-etna-service # Base configuration used by most etna services.
+
+x-base-etna-service: &base-etna-service
+  # Base configuration used by most etna services.
   image: etna-base
   volumes: &base-etna-service-volumes
     - .:/app:delegated
@@ -27,8 +29,8 @@ x-base-etna-service:
     - ${APP_DASH_PREFIX}opt-dir:/usr/opt:rw
     - ../etna:/etna:delegated
   environment: &base-etna-env
-    '${APP_ENV_PREFIX}ENV': 'development'
-    APP_NAME: '${APP_NAME}'
+    "${APP_ENV_PREFIX}ENV": "development"
+    APP_NAME: "${APP_NAME}"
   entrypoint: /entrypoints/development.sh
 
   networks:
@@ -40,50 +42,51 @@ x-base-etna-service:
     - 'janus.development.local:172.16.238.10'
     - 'timur.development.local:172.16.238.10'
     - 'rtemis.development.local:172.16.238.10'
-    - 'archimedes.development.local:172.16.238.10'
     - 'polyphemus.development.local:172.16.238.10'
 
-x-base-etna-services:
-  &base-etna-services # Default list of services an etna app may have.
-  '${APP_NAME}_app': &base-etna-app # The ruby webserver
+x-base-etna-services: &base-etna-services
+  # Default list of services an etna app may have.
+  "${APP_NAME}_app": &base-etna-app
+    # The ruby webserver
     <<: *base-etna-service
     command: ./bin/puma.sh
     depends_on:
-      - '${APP_NAME}_db'
+      - "${APP_NAME}_db"
 
-  '${APP_NAME}_webpack':
-    &base-etna-webpack # The ruby webpack server watching for changes
+  "${APP_NAME}_webpack": &base-etna-webpack
+    # The ruby webpack server watching for changes
     <<: *base-etna-service
     environment:
       <<: *base-etna-env
-      RUN_NPM_INSTALL: 'true'
-      SKIP_RUBY_SETUP: 'true'
+      RUN_NPM_INSTALL: "true"
+      SKIP_RUBY_SETUP: "true"
     command: npm run webpack
 
-  '${APP_NAME}_db':
-    &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
+  "${APP_NAME}_db": &base-etna-db
+    # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
     image: development-psql
     volumes:
       - ${APP_DASH_PREFIX}db-data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: '${APP_NAME}_development'
+      POSTGRES_DB: "${APP_NAME}_development"
       POSTGRES_PASSWORD: password
       POSTGRES_USER: developer
-      APP_NAME: '${APP_NAME}'
-    container_name: '${APP_NAME}_db_1'
+      APP_NAME: "${APP_NAME}"
+    container_name: "${APP_NAME}_db_1"
 
-  '${APP_NAME}_app_fe':
-    &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the main app.
+  "${APP_NAME}_app_fe": &base-etna-fe
+    # The application level apache frontend serving static assets, data, and proxying the main app.
     image: etna-apache
     volumes:
       - ${APP_DASH_PREFIX}public-dir:/app/public:ro
       - ${APP_DASH_PREFIX}opt-dir:/usr/opt:ro
       - ../docker/etna-base/entrypoints:/entrypoints:ro
     depends_on:
-      - '${APP_NAME}_app'
+      - "${APP_NAME}_app"
     entrypoint: /entrypoints/development.sh
-    command: ['httpd', '-DFOREGROUND']
+    command: ["httpd", "-DFOREGROUND"]
     environment:
-      SKIP_BUILD: '1'
-      WAIT_FOR_APP: '1'
-      APP_NAME: '${APP_NAME}'
+      SKIP_BUILD: "1"
+      WAIT_FOR_APP: "1"
+      APP_NAME: "${APP_NAME}"
+
