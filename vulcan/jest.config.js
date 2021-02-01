@@ -3,7 +3,8 @@ module.exports = {
     fetch: require('node-fetch'),
     CONFIG: {
       project_name: 'labors',
-      magma_host: 'https://magma.test'
+      magma_host: 'https://magma.test',
+      archimedes_host: 'https://archimedes.test'
     }
   },
   testURL: 'http://localhost',

@@ -18,7 +18,7 @@ const archimedesPost = (endpoint, exchange, params) => {
     .then(checkStatus);
 };
 
-const archimedesGet = (endpoint, exchange, params) => {
+const archimedesGet = (endpoint, exchange) => {
   return exchange
     .fetch(archimedesPath(endpoint), {
       method: 'GET',
@@ -44,13 +44,9 @@ export const getWorkflow = (workflow_name, exchange) => {
   );
 };
 
-export const submitInputs = (workflow_name, step, inputs, exchange) => {
+export const submitInputs = (workflow_name, inputs, exchange) => {
   // TODO: remove the "step" stub for real Archimedes
-  return archimedesPost(
-    `api/workflows/${workflow_name}/${step}`,
-    exchange,
-    inputs
-  );
+  return archimedesPost(`api/workflows/${workflow_name}`, exchange, inputs);
 };
 
 export const getData = (workflow_name, data, exchange) => {

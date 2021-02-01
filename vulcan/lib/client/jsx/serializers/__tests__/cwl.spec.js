@@ -26,4 +26,18 @@ describe('CwlSerializer', () => {
       'final_step'
     ]);
   });
+
+  it('adds the correct step number to each step', () => {
+    const sample_yaml = fs.readFileSync(
+      path.resolve(__dirname, '../../spec/fixtures/sample_cwl.yaml'),
+      'utf8'
+    );
+    const cwl = new CwlSerializer(sample_yaml);
+
+    const doc = cwl.json;
+
+    expect(doc.steps.first_step.step_number).toEqual(1);
+    expect(doc.steps.ui_pick_subset.step_number).toEqual(2);
+    expect(doc.steps.final_step.step_number).toEqual(3);
+  });
 });

@@ -22,11 +22,11 @@ const archimedesReducer = (archimedes, action) => {
     case SUBMIT_INPUTS:
       // Update the current workflow with status returned from input submission;
       const updatedWorkflow = Object.assign({}, archimedes.workflow);
-      Object.keys(action.workflow.steps).forEach((stepName) => {
-        updatedWorkflow.steps[stepName] = Object.assign(
+      Object.keys(action.status).forEach((stepName) => {
+        updatedWorkflow[stepName] = Object.assign(
           {},
-          updatedWorkflow.steps[stepName],
-          action.workflow.steps[stepName]
+          updatedWorkflow[stepName],
+          action.status[stepName]
         );
       });
       return Object.assign({}, archimedes, {
