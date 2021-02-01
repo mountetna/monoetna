@@ -8,13 +8,13 @@ class Metis
       success(obj.to_json, 'application/json')
     end
 
-    def require_bucket(bucket_name=nil)
+    def require_bucket(bucket_name=nil, project_name=nil)
       bucket = Metis::Bucket.where(
-        project_name: @params[:project_name],
+        project_name: project_name || @params[:project_name],
         name: bucket_name || @params[:bucket_name]
       ).first
 
-      raise Etna::BadRequest, "Invalid bucket: \"#{bucket_name || @params[:bucket_name]}\"" unless bucket
+      raise Etna::BadRequest, "Invalid bucket on project #{project_name || @params[:project_name]}: \"#{bucket_name || @params[:bucket_name]}\"" unless bucket
 
       raise Etna::Forbidden, "Cannot access bucket: \"#{bucket_name || @params[:bucket_name]}\"" unless bucket.allowed?(@user, @request.env['etna.hmac'])
 

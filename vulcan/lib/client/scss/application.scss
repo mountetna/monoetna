@@ -1,0 +1,60 @@
+/*
+ * This is a manifest file that'll be compiled into application.css, which will include all the files
+ * listed below.
+ *
+ * Any CSS and SCSS file within this directory, lib/assets/stylesheets, vendor/assets/stylesheets,
+ * or any plugin's vendor/assets/stylesheets directory can be referenced here using a relative path.
+ *
+ * You're free to add application-wide styles to this file and they'll appear at the bottom of the
+ * compiled file so the styles you add here take precedence over styles defined in any styles
+ * defined in the other CSS/SCSS files in this directory. It is generally better to create a new
+ * file per style scope.
+ */
+
+@import "~code-mirror/codemirror";
+@import url(https://fonts.googleapis.com/css?family=Montserrat|Open+Sans|Lora|Crimson+Text|Cousine);
+
+@import "globals";
+@import "button";
+@import "logo";
+@import "navbar";
+@import "messages";
+@import "browser";
+@import "attribute";
+@import "datepicker";
+@import "project";
+@import "spectrum";
+@import "search";
+@import "help";
+@import "metrics";
+@import "activity";
+@import "manifest";
+@import "dropdown";
+@import "list_selector";
+@import "toggle";
+@import "predicate";
+@import "home_page";
+
+body {
+  padding: 0px;
+  margin: 0px;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+
+  #ui-container {
+    height: 100%;
+    width: 100%;
+  }
+}
+
+a {
+	text-decoration: none;
+	color: darkgoldenrod;
+}
+
+#browse {
+	padding-left: 150px;
+}

@@ -1,0 +1,23 @@
+[
+  {
+    "record": "test",
+    "record_id": "test",
+    "redcap_event_name": "A test event",
+    "field_name": "height",
+    "value": "150"
+  },
+  {
+    "record": "abc",
+    "record_id": "abc",
+    "redcap_event_name": "Height",
+    "field_name": "height",
+    "value": "180"
+  },
+  {
+    "record": "abc",
+    "record_id": "abc",
+    "redcap_event_name": "Weight",
+    "field_name": "weight",
+    "value": "75"
+  }
+]

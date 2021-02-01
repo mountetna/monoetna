@@ -4,7 +4,13 @@
 \alias{updateValues}
 \title{Analogous to the '/update' function of magma}
 \usage{
-updateValues(projectName, revisions = list(), token = .get_TOKEN(), ...)
+updateValues(
+  projectName,
+  revisions = list(),
+  token = .get_TOKEN(),
+  auto.proceed = FALSE,
+  ...
+)
 }
 \arguments{
 \item{projectName}{Single string. The name of the project to upload data to.}
@@ -26,6 +32,8 @@ When not explicitly given in a function call: you will be prompted to input toke
 This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
 and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.}
 
+\item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward to run '/update'.}
+
 \item{...}{Additional parameters passed along to the internal `.update()` function.
 For troubleshooting or privileged-user purposes only.
 Options: \itemize{
@@ -35,15 +43,24 @@ Options: \itemize{
 }}
 }
 \value{
-None directly.  The function sends data to magma, and the only output is whether that send was successful when \code{verbose} is set to \code{TRUE}.
+None directly.
+The function sends data to magma, and the only output is whether that send was successful, when \code{verbose = TRUE},
+or the string "No /update performed." if the user chooses not to proceed with performing the update.
 }
 \description{
 Analogous to the '/update' function of magma
 }
 \details{
 This function mimics the activity of the magma/update function, documented here \url{https://mountetna.github.io/magma.html#update},
-with the main difference being that the \code{revisions} input should be in nested-list format.
-Internally, this function does little more than directly pass its inputs along to magma/update via a curl request.
+with the main difference being that the \code{revisions} input should be in nested list format rather than nested hash.
+
+Internally, the function:
+
+1. Summarizes records of each model that will be targeted for updating.
+
+2. Prompts the user before proceeding (unless \code{auto.proceed} is set to \code{TRUE})
+
+3. Directly passes its inputs along to magma/update via a curl request.
 }
 \examples{
 
@@ -54,7 +71,7 @@ if (interactive()) {
     #   project, so this code can be expected to give and authorization error.
 
     updateValues(
-        projectName = projectName,
+        projectName = "example",
         revisions = list(
             # model
             'rna_seq' = list(

@@ -36,6 +36,15 @@ class Metis
         valid? ? Metis::Path.filepath_match.match(@path)[:bucket_name] : nil
       end
 
+      def bucket_matches?(bucket)
+        project_name == bucket.project_name && bucket_name == bucket.name
+      end
+
+      def folder_matches?(folder)
+        folder.folder_path.join('/') == folder_path &&
+        folder.project_name == project_name
+      end
+
       def folder_path
         folder_path, _ = Metis::File.path_parts(file_path)
         return folder_path

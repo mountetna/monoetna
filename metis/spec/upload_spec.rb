@@ -43,6 +43,10 @@ describe UploadController do
       expect(last_response.status).to eq(200)
       expect(uri.path).to eq("/#{params[:project_name]}/upload/files/#{params[:file_path]}")
       expect(hmac_params['X-Etna-Id']).to eq('metis')
+
+      expect(hmac_params['X-Etna-Email']).to eq('metis@olympus.org')
+      expect(hmac_params['X-Etna-Name']).to eq('Metis')
+      expect(hmac_params['X-Etna-Headers']).to eq('email,name')
       upload = Metis::Upload.first
       expect(upload).to be_nil  # No Uploads now until upload_start
     end
@@ -345,7 +349,7 @@ describe UploadController do
       expect(Metis::Upload.count).to eq(2)
     end
 
-    it 'should create a new upload on start using hmac email, first, and last, if does not exist' do
+    it 'should create a new upload on start using hmac email and name, if does not exist' do
       file = create_file('athena', 'wisdom.txt', WISDOM)
 
       # we create an upload, but the metis_uid is different from ours
@@ -362,8 +366,7 @@ describe UploadController do
       # we attempt to post to the path
       hmac_header(params={
         email: 'athena@olympus.org',
-        first: 'Athena',
-        last: 'Pallas'
+        name: 'Athena Pallas'
       })
       json_post(
         upload_path('athena', 'wisdom.txt'),

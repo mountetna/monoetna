@@ -1,0 +1,5 @@
+{
+  "workflow_name": "umap",
+  "display_name": "UMAP",
+  "description": "Example UMAP workflow, from Bulk RNA to Single-Cell RNA."
+}

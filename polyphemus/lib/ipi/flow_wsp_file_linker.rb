@@ -37,11 +37,14 @@ class IpiFlowWspLinker < Etna::Clients::Magma::FileLinkingWorkflow
   end
 
   def link_files
-    magma_crud.update_records do |update_request|
-      each_revision do |id, revision|
-        update_request.update_revision(model_name, id, revision)
-        puts "Updating #{model_name}, record #{id}."
-      end
+    each_revision do |id, revision|
+      # Not using magma_crud here with bulk updates, because was getting a
+      #   Net::ReadTimeout from Metis on the bulk_copy request.
+      # Have to inject project_name into the update request.
+      update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: 'ipi')
+      update_request.update_revision(model_name, id, revision)
+      puts "Updating #{model_name}, record #{id}."
+      magma_crud.magma_client.update(update_request)
     end
   end
 end

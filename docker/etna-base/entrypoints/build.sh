@@ -71,6 +71,12 @@ if [ -n "$RUN_NPM_INSTALL" ]; then
   if [ -e ../etna ]; then npm link ../etna/packages/etna-js; fi
 fi
 
+if [ -n "$RELEASE_TEST" ]; then
+  # TODO: Find a better test harness for this.  In release tests, let's also ensure that in the resulting
+  # setup, the app_fe comes up successfully.
+  dockerize -wait tcp://${APP_NAME}_app_fe:80 -timeout 300s
+fi
+
 echo 'for file in /app/*.completion; do source $file || true; done' >> /root/.bashrc
 echo 'export PATH="/app/bin:$PATH"' >> /root/.bashrc
 # Allow other users to use the root bash setup

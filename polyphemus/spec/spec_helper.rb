@@ -27,6 +27,8 @@ RELEASE_BUCKET = Polyphemus.instance.config(:metis)[:release_bucket]
 RESTRICT_BUCKET = Polyphemus.instance.config(:metis)[:restrict_bucket]
 MAGMA_HOST = Polyphemus.instance.config(:magma)[:host]
 REDCAP_HOST = Polyphemus.instance.config(:redcap)[:host]
+TEST_TOKEN = Polyphemus.instance.config(:polyphemus)[:token]
+
 PROJECT = 'mvir1'
 REDCAP_PROJECT_CONFIG_PATH = 'lib/etls/redcap/projects/test.rb'
 
@@ -43,7 +45,7 @@ AUTH_USERS = {
     email: 'zeus@twelve-labors.org', first: 'Zeus', perm: 'a:administration'
   },
   administrator: {
-    email: 'hera@twelve-labors.org', first: 'Hera', perm: 'a:test'
+    email: 'hera@twelve-labors.org', first: 'Hera', perm: 'a:test', exp: 86401608136635
   },
   editor: {
     email: 'eurystheus@twelve-labors.org', first: 'Eurystheus', perm: 'e:labors'
@@ -219,29 +221,71 @@ def stub_redcap_data
     })
 
   stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: hash_including({ content: 'record' }))
+    .with(body: /today/)
     .to_return({
       headers: {
         'Content-Type': 'application/json'
       },
-      body: File.read('spec/fixtures/redcap_mock_data.json')
+      body: File.read('spec/fixtures/redcap_mock_data_calendar.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /date_of_birth/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_essential_data.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /height/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_statistics.json')
     })
 end
 
 def stub_redcap_multi_project_records
   stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: hash_including({ content: 'record' }))
+    .with(body: /today/)
     .to_return({
       headers: {
         'Content-Type': 'application/json'
       },
-      body: File.read('spec/fixtures/redcap_mock_data.json')
+      body: File.read('spec/fixtures/redcap_mock_data_calendar.json')
     }).then
     .to_return({
       headers: {
         'Content-Type': 'application/json'
       },
-      body: File.read('spec/fixtures/redcap_mock_data_project_2.json')
+      body: File.read('spec/fixtures/redcap_mock_data_project_2_calendar.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /date_of_birth/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_essential_data.json')
+    }).then
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_project_2_essential_data.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /height/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_statistics.json')
     })
 end
 
@@ -251,5 +295,19 @@ def copy_redcap_project
   redcap_projects_dir = File.dirname(REDCAP_PROJECT_CONFIG_PATH)
   test_fixture_path = "spec/fixtures/etls/redcap/#{File.basename(REDCAP_PROJECT_CONFIG_PATH)}"
   FileUtils.mkdir_p(redcap_projects_dir) unless Dir.exist?(redcap_projects_dir)
-  FileUtils.cp(test_fixture_path, REDCAP_PROJECT_CONFIG_PATH) unless File.exist?(REDCAP_PROJECT_CONFIG_PATH)
+
+  # Make sure we have the newest test project.
+  File.delete(REDCAP_PROJECT_CONFIG_PATH) if File.file?(REDCAP_PROJECT_CONFIG_PATH)
+  FileUtils.cp(test_fixture_path, REDCAP_PROJECT_CONFIG_PATH)
+end
+
+def temp_id(records, id)
+  all_record_keys = []
+  records.keys.each do |key|
+    all_record_keys.concat(records[key].keys)
+  end
+
+  all_record_keys.each do |key|
+    return key if key =~ /::temp-#{id}-.*/
+  end
 end

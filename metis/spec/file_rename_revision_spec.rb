@@ -46,7 +46,7 @@ describe Metis::FileRenameRevision do
       revision.validate
       expect(revision.errors.length).to eq(1)
       expect(revision.errors[0]).to eq(
-          "Invalid bucket: \"sundry\""
+        "Invalid bucket \"sundry\" in project \"athena\". Check the bucket name and your permissions."
       )
   end
 
@@ -282,7 +282,7 @@ end
       revision.validate
       expect(revision.errors.length).to eq(1)
       expect(revision.errors[0]).to eq(
-          "Invalid bucket: \"war\""
+        "Invalid bucket \"war\" in project \"athena\". Check the bucket name and your permissions."
       )
   end
 
@@ -359,7 +359,7 @@ end
       revision.validate
       expect(revision.errors.length).to eq(1)
       expect(revision.errors[0]).to eq(
-          "Invalid bucket: \"magma\""
+        "Invalid bucket \"magma\" in project \"athena\". Check the bucket name and your permissions."
       )
   end
 
@@ -460,7 +460,7 @@ end
       expect(revision.to_hash).to eq({
           source: 'metis://athena/magma/wisdom.txt',
           dest: 'metis://athena/files/wisdom2.txt',
-          errors: ["Invalid bucket: \"magma\""]
+          errors: ["Invalid bucket \"magma\" in project \"athena\". Check the bucket name and your permissions."]
       })
   end
 end

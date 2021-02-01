@@ -46,7 +46,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Invalid bucket: \"sundry\""
+            "Invalid bucket \"sundry\" in project \"athena\". Check the bucket name and your permissions."
         )
     end
 
@@ -235,6 +235,24 @@ describe Metis::CopyRevision do
         expect(learn_wisdom.data_block).to eq(@wisdom_file.data_block)
     end
 
+    it 'can revise to different project' do
+        backup_bucket = default_bucket('backup')
+        expect(Metis::File.count).to eq(1)
+        revision = Metis::CopyRevision.new({
+            source: 'metis://athena/files/wisdom.txt',
+            dest: 'metis://backup/files/learn-wisdom.txt',
+            user: @user
+        })
+        revision.source.bucket = default_bucket('athena')
+        revision.dest.bucket = backup_bucket
+        revision.validate
+        learn_wisdom = revision.revise!
+        expect(Metis::File.count).to eq(2)
+        expect(learn_wisdom.data_block).to eq(@wisdom_file.data_block)
+        expect(learn_wisdom.bucket).to eq(backup_bucket)
+        expect(learn_wisdom.project_name).to eq('backup')
+    end
+
     it 'throws exception if you try to revise without setting user' do
         expect(Metis::File.count).to eq(1)
         revision = Metis::CopyRevision.new({
@@ -262,7 +280,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Invalid bucket: \"war\""
+            "Invalid bucket \"war\" in project \"athena\". Check the bucket name and your permissions."
         )
     end
 
@@ -339,7 +357,7 @@ describe Metis::CopyRevision do
         revision.validate
         expect(revision.errors.length).to eq(1)
         expect(revision.errors[0]).to eq(
-            "Invalid bucket: \"magma\""
+            "Invalid bucket \"magma\" in project \"athena\". Check the bucket name and your permissions."
         )
     end
 
@@ -440,7 +458,7 @@ describe Metis::CopyRevision do
         expect(revision.to_hash).to eq({
             source: 'metis://athena/magma/wisdom.txt',
             dest: 'metis://athena/files/wisdom.txt',
-            errors: ["Invalid bucket: \"magma\""]
+            errors: ["Invalid bucket \"magma\" in project \"athena\". Check the bucket name and your permissions."]
         })
     end
 end

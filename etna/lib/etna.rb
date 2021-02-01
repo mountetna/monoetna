@@ -19,6 +19,7 @@ require_relative './etna/clients'
 require_relative './etna/csvs'
 require_relative './etna/environment_scoped'
 require_relative './etna/filesystem'
+require_relative './etna/formatting'
 
 class EtnaApp
   include Etna::Application

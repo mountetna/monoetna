@@ -7,6 +7,7 @@
   :metis_uid_name: METIS_TEST_UID
   :token_domain: test
   :token_life: 31536000
+  :token_algo: RS256
   :host: https://metis.test
   :upload_expiration: 60
   :download_expiration: 60
