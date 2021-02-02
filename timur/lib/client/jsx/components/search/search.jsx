@@ -4,15 +4,12 @@ import {connect} from 'react-redux';
 import 'regenerator-runtime/runtime';
 import * as _ from 'lodash';
 
-import {css} from '@emotion/core';
-import ClimbingBoxLoader from 'react-spinners/ClimbingBoxLoader';
-
 import {
   selectModelNames,
-} from '../../selectors/magma';
+} from 'etna-js/selectors/magma';
 import {
   requestModels,
-} from '../../actions/magma_actions';
+} from 'etna-js/actions/magma_actions';
 import {
   selectSearchCache,
   selectSearchAttributeNames,
@@ -37,7 +34,7 @@ import {
 import ModelViewer from '../model_viewer';
 import useAsyncWork from "etna-js/hooks/useAsyncWork";
 import SearchQuery from "./search_query";
-import {showMessages} from "../../actions/message_actions";
+import {showMessages} from "etna-js/actions/message_actions";
 import {useRequestDocuments} from "../../hooks/useRequestDocuments";
 
 export function Search({

@@ -121,7 +121,7 @@ class AuthorizationController < Janus::Controller
 
   def respond_with_cookie(token, refer)
     # Set redirect.
-    @response.redirect(refer, 302)
+    @response.redirect(refer.gsub("http://", "https://"), 302)
 
     Janus.instance.set_token_cookie(@response,token)
     return @response.finish
