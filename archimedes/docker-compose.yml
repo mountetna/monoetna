@@ -7,7 +7,7 @@ volumes:
 
 services:
   archimedes_app:
-    image: vulcan-base
+    image: archimedes-base
     volumes:
     - .:/app:delegated
     - archimedes-virtualenv:/root/.cache/pypoetry/virtualenvs

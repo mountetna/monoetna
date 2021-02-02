@@ -24,7 +24,7 @@ class Runner:
         return tempfile.TemporaryFile(mode)
 
     # A simple entrypoint demonstrating a process to run.
-    def run(self, script_text, image="vulcan_base", output_keys: Iterable[bin] = tuple(), input_keys: Iterable[bin] = tuple(), environment: Iterable[str] = tuple()):
+    def run(self, script_text, image="archimedes-base", output_keys: Iterable[bin] = tuple(), input_keys: Iterable[bin] = tuple(), environment: Iterable[str] = tuple()):
         """
         :param script_text: The python script's text contents to run.
         :param output_keys: Keys to store process outputs. Any iterable.
