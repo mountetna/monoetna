@@ -1,7 +1,15 @@
+# We are the proxy service backing http termination on a secure internal docker network, so we just use port 80.
 <VirtualHost *:80>
   DocumentRoot /app/public
 
-  ServerName <%= @app_name %>_app_fe
+  # NOTE:  This url is a bit of a lie.  This virtual host is actually serving off port 80, and this
+  # isn't the physical access url in front of this service, either.  However,
+  # 1.  Mod shib requires us to specify the 443 and https in order for the idp to correctly respond
+  # 2.  We can't get the full physical url due to this file being backed in at build time.
+  # Rather than force, say, chef managing this file, the simple answer is to tell a white lie about our
+  # servername here for the sake of shibd.
+  # The actual https termination occurs via edge-apache service stood up on each host via monoetna recipes.
+  ServerName https://<%= @app_name %>_app_fe:443
 
   # Disable TRACE and TRACK. This bit here prevents a certain kind of attack
   # which leaks info by repeatedly calling these two methods.
