@@ -2,6 +2,7 @@ const ROLES = {a: 'administrator', e: 'editor', v: 'viewer'};
 
 export const isSuperuser = ({permissions}) => (permissions.administration && permissions.administration.role == ROLES.a)
 export const isEditor = ({permissions}, project_name) => (permissions[project_name] && [ ROLES.a, ROLES.e ].includes(permissions[project_name].role)) || isSuperuser({permissions})
+export const isAdmin = ({permissions}, project_name) => (permissions[project_name] && permissions[project_name].role == ROLES.a) || isSuperuser({permissions})
 
 const parsePermissions = (perms) => {
   // Permissions are encoded as 'a:project1,project2;v:project3'

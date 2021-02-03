@@ -6,18 +6,16 @@ class AdminController < Janus::Controller
 
   def project
     @project = Project[project_name: @params[:project_name]]
-    @static = nil
-    if @user.is_superuser?
-      @roles = ['administrator', 'viewer', 'editor', 'disabled']
-    elsif @user.is_admin?(@params[:project_name])
-      @roles = ['viewer', 'editor', 'disabled']
-    else
-      @roles = []
-      @static = true
-    end
 
-    @project_roles = @project.permissions.group_by(&:role)
-    erb_view(:project)
+    raise Etna::BadRequest, "No such project #{@params[:project_name]}" unless @project
+
+    success_json(
+      project: {
+        project_name: @project.project_name,
+        project_name_full: @project.project_name_full,
+        permissions: @project.permissions.map(&:to_hash)
+      }
+    )
   end
 
   def update_permission

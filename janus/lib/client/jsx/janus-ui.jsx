@@ -1,15 +1,21 @@
 import * as React from 'react';
 
 import JanusNav from './janus-nav';
-import JanusRoot from './janus-root';
+import JanusMain from './janus-main';
+import ProjectView from './project-view';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 
 const ROUTES = [
   {
-    name: 'root',
+    name: 'main',
     template: '',
-    component: JanusRoot
+    component: JanusMain
+  },
+  {
+    name: 'projects',
+    template: ':project_name',
+    component: ProjectView
   }
 ];
 

@@ -35,11 +35,13 @@ class Janus
 
     post '/update_key', action: 'user#update_key'
 
-    get '/', action: 'admin#main'
-
     get '/projects', action: 'user#projects', auth: { user: { active?: true } }
 
-    get '/:project_name', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
+    get '/project/:project_name', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
+
+    get '/' do erb_view(:client) end
+
+    get '/:project_name' do erb_view(:client) end
 
     def initialize
       super

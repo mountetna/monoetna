@@ -1,9 +1,39 @@
 #projects-group {
   @include janus-box;
-  .projects {
-    max-height: 400px;
-    overflow: auto;
+  width: 100%;
+  box-sizing: border-box;
+  .project {
+    display: flex;
+    flex-direction: row;
+    border-bottom: $thin-rule;
+    height: 20px;
+    align-items: center;
+    padding: 4px;
+
+    &.header {
+      @include janus-header;
+    }
+
+    .project_name {
+      padding: 0px 10px;
+      flex: 0 0 200px;
+    }
+    .role {
+      flex: 0 0 200px;
+    }
+    .full_name {
+      flex: 0 0 40%;
+    }
+    .privileged {
+      flex: 0 0 100px;
+      align-content: center;
+      .icon-grp {
+        font-size:0.5em;
+        color: dodgerblue;
+      }
+    }
   }
+
   .new {
     padding: 5px 7px 0px 7px;
     font-size: 0.9em;
