@@ -7,7 +7,7 @@ import {
 
 import CwlSerializer from '../serializers/cwl';
 
-const archimedesPath = (endpoint) => `${CONFIG.archimedes_host}/${endpoint}`;
+const archimedesPath = (endpoint) => `${CONFIG.archimedes_host}${endpoint}`;
 
 const archimedesPost = (endpoint, params) => {
   return fetch(archimedesPath(endpoint), {
@@ -31,14 +31,14 @@ const archimedesGet = (endpoint) => {
 
 export const getWorkflows = () => {
   // TODO: update this per real Archimedes endpoint
-  return archimedesGet('api/workflows')
+  return archimedesGet(ROUTES.fetch_workflows())
     .then(handleFetchSuccess)
     .catch(handleFetchError);
 };
 
 export const getWorkflow = (workflow_name) => {
   // TODO: update this per real Archimedes endpoint
-  return archimedesGet(`api/workflows/${workflow_name}`)
+  return archimedesGet(ROUTES.fetch_workflow(workflow_name))
     .then(handleFetchSuccess)
     .then((response) => {
       // response should be a YAML doc
@@ -57,8 +57,8 @@ export const submitInputs = (workflow_name, inputs) => {
   }, {});
 
   // NOTE: the returned data from the server may have to be
-  //   massaged to fit back into the Array.
-  return archimedesPost(`api/workflows/${workflow_name}`, inputsHash)
+  //   massaged by the consumer to fit back into the Array of steps.
+  return archimedesPost(ROUTES.submit_inputs(workflow_name), inputsHash)
     .then(handleFetchSuccess)
     .catch(handleFetchError);
 };

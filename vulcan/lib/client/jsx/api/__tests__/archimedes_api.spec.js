@@ -29,7 +29,7 @@ describe('Archimedes API', () => {
 
     stubUrl({
       verb: 'get',
-      path: '/api/workflows',
+      path: ROUTES.fetch_workflows(),
       response: expectedWorkflows,
       headers: {
         'Content-type': 'application/json'
@@ -101,7 +101,7 @@ describe('Archimedes API', () => {
 
     stubUrl({
       verb: 'get',
-      path: '/api/workflows/test',
+      path: ROUTES.fetch_workflow('test'),
       response: sample_yaml,
       headers: {
         'Content-type': 'text/yaml'
@@ -144,7 +144,7 @@ describe('Archimedes API', () => {
 
     stubUrl({
       verb: 'post',
-      path: '/api/workflows/test',
+      path: ROUTES.submit_inputs('test'),
       request: {
         first_step: {
           name: 'first_step'
@@ -172,12 +172,12 @@ describe('Archimedes API', () => {
   });
 
   it('getData returns data from the specified location', (done) => {
-    const url = 'api/workflows/test/file1.txt';
+    const url = '/api/workflows/test/file1.txt';
     const data = [1, 2, 4, 'abc'];
 
     stubUrl({
       verb: 'get',
-      path: `/${url}`,
+      path: url,
       response: data,
       headers: {
         'Content-type': 'application/json'
