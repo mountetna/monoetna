@@ -39,7 +39,7 @@ const Logo = connect(({exchanges}) => ({exchanges}))(({exchanges}) => (
 ));
 
 const getTabs = () => ({
-  workflow: ROUTES.workflow(CONFIG.project_name),
+  workflow: ROUTES.workflow(),
   help: 'https://mountetna.github.io/vulcan.html'
 });
 
