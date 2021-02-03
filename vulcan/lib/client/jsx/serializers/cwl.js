@@ -33,8 +33,7 @@ export default class CwlSerializer extends Serializer {
     //   in: {
     //     data_from_previous_step: previous_step/output_variable_name
     //   }
-    const numSteps = allSteps.length;
-    while (orderedSteps.length < numSteps) {
+    while (orderedSteps.length < allSteps.length) {
       allSteps.forEach((step) => {
         if (orderedSteps.includes(step)) return;
 

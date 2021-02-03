@@ -1,6 +1,5 @@
 import downloadjs from 'downloadjs';
 import * as Cookies from './cookies';
-import {showMessages} from '../actions/message_actions';
 
 export const checkStatus = (response) => {
   let content = isJSON(response) ? response.json() : response.text();
