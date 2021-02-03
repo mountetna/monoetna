@@ -2,15 +2,17 @@
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import 'regenerator-runtime/runtime';
 import useAsyncWork from 'etna-js/hooks/useAsyncWork';
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+
+import {getProjects} from 'etna-js/api/janus-api';
+import Dropdown from 'etna-js/components/inputs/dropdown';
 
 // Module imports.
 import {setLocation} from 'etna-js/actions/location_actions';
-import {useReduxState} from 'etna-js/hooks/useReduxState';
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {showMessages} from 'etna-js/actions/message_actions';
 
-import {selectProjects} from 'etna-js/selectors/janus-selector';
 import {projectNameFull} from 'etna-js/utils/janus';
-import {fetchProjectsAction} from 'etna-js/actions/janus-actions';
+import {getWorkflow, getWorkflows} from '../../api/archimedes_api';
 
 const loadingDiv = (
   <div className='browser'>
@@ -30,25 +32,86 @@ const errorDiv = (
 
 export default function Browser() {
   const invoke = useActionInvoker();
-  const browserState = useReduxState(browserStateOf());
-
-  let {projects} = browserState;
+  const [workflows, setWorkflows] = useState(null);
+  const [selectedWorkflowName, setSelectedWorkflowName] = useState(null);
+  const [currentWorkflow, setCurrentWorkflow] = useState(null);
+  const [projects, setProjects] = useState(null);
 
   useEffect(() => {
-    invoke(fetchProjectsAction());
+    getProjects().then((projects) => {
+      setProjects(projects);
+    });
+    getWorkflows()
+      .then((allWorkflows) => {
+        console.log('all workflows');
+        console.log(allWorkflows);
+        setWorkflows(allWorkflows);
+      })
+      .catch((e) => {
+        invoke(showMessages(e));
+      });
   }, []);
+
+  useEffect(() => {
+    if (selectedWorkflowName) {
+      getWorkflow(selectedWorkflowName)
+        .then((workflowDetails) => {
+          console.log(workflowDetails);
+          setCurrentWorkflow(workflowDetails);
+        })
+        .catch((e) => {
+          invoke(showMessages(e));
+        });
+    }
+  }, [selectedWorkflowName]);
 
   return (
     <div className='vulcan-browser'>
-      Select a workflow for{' '}
-      {projectNameFull(projects, CONFIG.project_name) || CONFIG.project_name}
+      <div>
+        Select a workflow for{' '}
+        {projectNameFull(projects, CONFIG.project_name) || CONFIG.project_name}
+      </div>
+      <div>
+        <Dropdown
+          list={workflows ? Object.keys(workflows) : []}
+          default_text='Select a workflow'
+          onSelect={(e) => setSelectedWorkflowName(e)}
+        ></Dropdown>
+      </div>
     </div>
   );
 }
 
-function browserStateOf() {
-  return (state) => {
-    console.log(state);
-    return {projects: selectProjects(state)};
+function useWorkflowActions(setCurrentWorkflow) {
+  const invoke = useActionInvoker();
+  const {revision, model_name, template, record_name} = browserState;
+
+  return {
+    cancelEdits,
+    approveEdits
   };
+
+  function cancelEdits() {
+    setMode('browse');
+    invoke(discardRevision(record_name, model_name));
+  }
+
+  function postEdits() {
+    setMode('submit');
+
+    invoke(
+      sendRevisions(
+        model_name,
+        template,
+        {[record_name]: revision},
+        () => setMode('browse'),
+        () => setMode('edit')
+      )
+    );
+  }
+
+  function approveEdits() {
+    if (Object.keys(revision).length > 0) postEdits();
+    else cancelEdits();
+  }
 }

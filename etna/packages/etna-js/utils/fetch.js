@@ -82,27 +82,25 @@ export const form_post = (path, params, performCheckStatus = true) => {
   }).then(performCheckStatus ? checkStatus : (v) => v);
 };
 
-export const handleFetchError = (dispatch, e) => {
+export const handleFetchError = (e) => {
   console.log(e);
   return e.then((response) => {
     if (!response) {
-      dispatch(showMessages([`Something is amiss. ${e}`]));
+      return Promise.reject([`Something is amiss. ${e}`]);
     }
 
     let errStr = response.error
       ? response.error
       : response.errors.map((error) => `* ${error}`);
     errStr = [`### Our request was refused.\n\n${errStr}`];
-    dispatch(showMessages(errStr));
-    return Promise.reject(e);
+    return Promise.reject(errStr);
   });
 };
 
-export const checkFetchSuccess = (dispatch, response) => {
-  if ('error' in response) {
-    dispatch(showMessages([`There was a ${response.type} error.`]));
+export const handleFetchSuccess = (response) => {
+  if (response && typeof response === 'object' && 'error' in response) {
     console.log(response.error);
-    return Promise.reject(response);
+    return Promise.reject([`There was a ${response.type} error.`]);
   }
   return Promise.resolve(response);
 };
