@@ -3,6 +3,9 @@ version: "3.4"
 volumes:
   archimedes-virtualenv:
     driver: local
+  archimedes-pycharm-opt:
+    driver: local
+
 
 
 services:
@@ -12,7 +15,9 @@ services:
     - .:/app:delegated
     - archimedes-virtualenv:/root/.cache/pypoetry/virtualenvs
     - /var/run/docker.sock:/var/run/docker.sock:ro
+    - archimedes-pycharm-opt:/opt/.pycharm_helpers
+#    - /tmp:/tmp:delegated
     environment:
-      APP_NAME: "archimedes"
+      HOST_DIR: $PWD
     entrypoint: /entrypoints/development.sh
     command: echo hello!

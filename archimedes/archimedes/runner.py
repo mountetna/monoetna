@@ -1,12 +1,25 @@
+"""
+This module implements a synchronous scheduler for running archimedes scripts in isolation.
+In the future, the intention is for this to mostly disappear -- when we select a proper
+scheduler, Vulcan will talk directly to that, and do so in an asynchronous fashion, submitting
+jobs and reporting their status back to the frontend.
+
+However, I believe this basic interface is stable enough to describe our use cases, so whatever
+scheduler we move to should support a similar approach.  Perhaps this runner becomes just a library
+that the scheduler itself uses locally to prepare the processes.  Or just a reference implementation
+for moving thi logic elsewhere based on how we land on the scheduler question.
+"""
+
 import os.path
 import os
 import shutil
-from concurrent.futures import Future
+import signal
+import subprocess
 from dataclasses import dataclass
-from typing import List, Iterable, Tuple, Dict, Any, BinaryIO, Set
-from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+from dataclasses_json import dataclass_json
+import time
+from typing import List, ContextManager, TypeVar, Generic, Tuple, IO, Optional
 
-import requests
 from docker import DockerClient
 from docker.types import Mount
 from docker.models.containers import Container
@@ -14,178 +27,205 @@ from archimedes.checker import run as run_checker
 import tempfile
 
 
+@dataclass_json
 @dataclass
 class RunResult:
     status: str
-    error: List[str]
+    error: Optional[str]
 
 
-class Runner:
-    def open_key(self, key, mode) -> BinaryIO:
-        # TODO, this is just a demonstration.  Ideally this would be a input/output stream to
-        # external storage service.
-        if mode.startswith("r"):
-            return open(
-                os.path.join(
-                    os.path.dirname(__file__),
-                    "..",
-                    "tests",
-                    "fixtures",
-                    "runner_inputs",
-                    key,
-                ),
-                "rb",
-            )
-        # Trick the type checker.
-        _result: Any = tempfile.TemporaryFile("wb")
-        return _result
+@dataclass_json
+@dataclass
+class StorageFile:
+    host_path: str
+    logical_name: str
 
-    def _prepare_fifo_files_from_keys(
-        self, names_and_keys: Iterable[Tuple[bin, bin]], keys_dir
-    ):
-        for name, key in names_and_keys:
-            path = os.path.join(keys_dir, name)
-            os.mkfifo(path)
-            yield path, key
 
-    def _prepare_container(
-        self, image, inputs_dir, outputs_dir, exec_dir, environment: Iterable[str]
-    ) -> Container:
+@dataclass_json
+@dataclass
+class RunRequest:
+    script: str
+    input_files: List[StorageFile]
+    output_files: List[StorageFile]
+    environment: List[str]
+    image: str = "archimedes-base"
+    isolator: str = "docker"
 
-        target_inputs_dir = "/var/run/vulcan/inputs"
-        target_outputs_dir = "/var/run/vulcan/outputs"
 
+T = TypeVar('T')
+
+
+class Isolator(Generic[T]):
+    def start(self, request: RunRequest, exec_script_path) -> T:
+        raise NotImplemented("Not implemented")
+
+    def is_running(self, t: T) -> bool:
+        raise NotImplemented("Not implemented")
+
+    def stop(self, t: T, timeout=10):
+        raise NotImplemented("Not implemented")
+
+    def wait(self, t: T) -> int:
+        raise NotImplemented("Not implemented")
+
+    def get_stderr(self, t: T) -> str:
+        raise NotImplemented("Not implemented")
+
+    def reserve_exec_dir(self) -> ContextManager[str]:
+        return tempfile.TemporaryDirectory()
+
+
+class DockerIsolator(Isolator[Container]):
+    docker_cli: DockerClient
+
+    target_inputs_dir = "/inputs"
+    target_outputs_dir = "/outputs"
+
+    def __init__(self, docker_cli: DockerClient = DockerClient.from_env()):
+        self.docker_cli = docker_cli
+
+    def is_running(self, t: Container) -> bool:
+        return t.status not in ['dead', 'exited']
+
+    def stop(self, t: Container, timeout=10):
+        return t.stop(timeout=timeout)
+
+    def get_stderr(self, t: Container) -> str:
+        return t.logs(stderr=True, stdout=False, tail='all')
+
+    def wait(self, t: Container) -> int:
+        result = t.wait()
+        return result["StatusCode"]
+
+    def start(self, request: RunRequest, exec_script_path: str) -> Container:
         mounts = [
-            Mount(target="/var/run/vulcan/exec", source=exec_dir, read_only=True),
-            Mount(target=target_inputs_dir, source=inputs_dir, read_only=True),
-            Mount(target=target_outputs_dir, source=outputs_dir, read_only=False),
-        ]
-        environment += (
-            f"INPUTS_DIR={target_inputs_dir}",
-            f"OUTPUTS_DIR={target_outputs_dir}",
-            f"ENFORCE_OUTPUTS_EXIST=1",
-        )
+                     Mount(target="/script.py", source=exec_script_path, read_only=True),
+                 ] + [
+                     Mount(target=os.path.join(self.target_inputs_dir, input_file.logical_name),
+                           source=input_file.host_path)
+                     for input_file in request.input_files
+                 ] + [
+                     Mount(target=os.path.join(self.target_outputs_dir, output_file.logical_name),
+                           source=output_file.host_path)
+                     for output_file in request.output_files
+                 ]
 
-        docker_cli: DockerClient = DockerClient.from_env()
+        environment = request.environment + [
+            f"INPUTS_DIR={self.target_inputs_dir}",
+            f"OUTPUTS_DIR={self.target_outputs_dir}",
+            f"ENFORCE_OUTPUTS_EXIST=1",
+        ]
+
         # Could set options like cpu_quote, mem_limit, restrict network access,
         # etc, to further lockdown the task.
-        return docker_cli.containers.run(
-            image,
-            "poetry run /var/run/vulcan/exec/script.py",
+        return self.docker_cli.containers.run(
+            request.image,
+            f"poetry run /script.py",
             auto_remove=True,
             detach=True,
-            environment=list(environment),
-            # Arbitrary limit of 2G for entire image size.
+            environment=environment,
+            # Arbitrary limit of 2G for any other buffered data.
             storage_opt=dict(size="2G"),
             mounts=mounts,
         )
 
-    # A simple entrypoint demonstrating a process to run.
-    # TODO: When detaching containers, label them in such a way that they are reaped
-    def run(
-        self,
-        script_text: str,
-        image="archimedes-base",
-        output_names_and_keys: Iterable[Tuple[bin, bin]] = tuple(),
-        input_names_and_keys: Iterable[Tuple[bin, bin]] = tuple(),
-        environment: Iterable[str] = tuple(),
-    ):
-        """
-        :param script_text: The python script's text contents to run.
-        :param output_names_and_keys: Iterable of cell input names and key paths
-        :param input_names_and_keys:  Iterable of cell output names and key paths
-        :param environment: Iterable of strings in the form "MYENVKEY=myvalue"
-        :return: For now, nothing, but in the future, this function may become asynchronous and
-            attach to a scheduler, in which case it would return the status of the job being scheduled.
-        """
-        with tempfile.TemporaryDirectory() as inputs_dir, tempfile.TemporaryDirectory() as outputs_dir, tempfile.TemporaryDirectory() as exec_dir:
-            script_path = os.path.join(exec_dir, "script.py")
-            with open(script_path, "w") as script_file:
-                script_file.write(script_text)
 
-            if not run_checker([script_path]):
-                raise ValueError(
-                    "Script did not conform to the archimedes dsl requirements."
-                )
+LocalProcess = Tuple[subprocess.Popen, IO[bin], str]
 
-            output_pipes = list(
-                self._prepare_fifo_files_from_keys(output_names_and_keys, outputs_dir)
+
+class LocalIsolator(Isolator[LocalProcess]):
+    root_dir: str
+
+    def is_running(self, t: LocalProcess) -> bool:
+        p, io, f = t
+        return p.returncode is None
+
+    def stop(self, t: LocalProcess, timeout=10):
+        p, io, f = t
+
+        done = time.time() + timeout
+        while self.is_running(t) and time.time() < done:
+            p.send_signal(signal.SIGTERM)
+            time.sleep(1)
+
+        p.kill()
+
+    def get_stderr(self, t: LocalProcess) -> str:
+        p, io, f = t
+        return open(f, "rb").read().decode('utf-8')
+
+    def wait(self, t: LocalProcess) -> int:
+        p, io, f = t
+        return p.wait()
+
+    def start(self, request: RunRequest, exec_script_path: str) -> LocalProcess:
+        inputs_dir = os.path.join(exec_script_path, "inputs")
+        outputs_dir = os.path.join(exec_script_path, "outputs")
+        stderr_log = os.path.join(exec_script_path, 'stderr')
+
+        os.mkdir(inputs_dir)
+        os.mkdir(outputs_dir)
+
+        for input_file in request.input_files:
+            os.symlink(input_file.host_path, os.path.join(inputs_dir, input_file.logical_name))
+
+        for output_file in request.output_files:
+            os.symlink(output_file.host_path, os.path.join(outputs_dir, output_file.logical_name))
+
+        environment = request.environment + [
+            f"INPUTS_DIR={inputs_dir}",
+            f"OUTPUTS_DIR={outputs_dir}",
+            f"ENFORCE_OUTPUTS_EXIST=1",
+        ]
+
+        stderr_log_io = open(stderr_log, 'wb')
+        return subprocess.Popen(
+            [shutil.which('python'), exec_script_path],
+            stderr=stderr_log_io,
+            env={k: v for k, v in [s.split('=', maxsplit=1) for s in environment]},
+        ), stderr_log_io, stderr_log
+
+
+def run(request: RunRequest, isolator: Isolator[T]) -> RunResult:
+    res = RunResult(status='running', error=None)
+
+    with isolator.reserve_exec_dir() as exec_dir:
+        script_path = os.path.join(exec_dir, "script.py")
+        with open(script_path, "w") as script_file:
+            script_file.write(request.script)
+
+        if not run_checker([script_path]):
+            raise ValueError(
+                "Script did not conform to the archimedes dsl requirements."
             )
-            input_pipes = list(
-                self._prepare_fifo_files_from_keys(input_names_and_keys, inputs_dir)
-            )
 
-            container = self._prepare_container(
-                image, inputs_dir, outputs_dir, exec_dir, environment
-            )
-            result = self._execute_container(container, output_pipes, input_pipes)
-            if result["StatusCode"] != 1:
-                print(result)
-                raise RuntimeError("Script failed, check the logs")
+        process = isolator.start(request, script_path)
 
-    def _consume_output_key(self, src, key):
-        with self.open_key(key, 'wb') as key_file:
-            with open(src, "rb") as output_file:
-                shutil.copyfileobj(output_file, key_file)
+        # Give cells up to 5 minutes.  In the future, with a proper async executor we would want to allow up to
+        # a much larger amount of time.
+        done = time.time() + 60 * 5
 
-    def _produce_input_key(self, dest, key):
-        with self.open_key(key, 'rb') as key_file:
-            with open(dest, "wb") as input_file:
-                shutil.copyfileobj(key_file, input_file)
+        while isolator.is_running(process) and time.time() < done:
+            time.sleep(1)
 
-    def _execute_container(
-        self,
-        container: Container,
-        output_pipes: List[Tuple[str, str]],
-        input_pipes: List[Tuple[str, str]],
-    ) -> Dict[str, Any]:
-        with ThreadPoolExecutor(
-            max_workers=len(output_pipes) + len(input_pipes) + 1
-        ) as executor:
-            consuming: Set[Future[Any]] = set(
-                executor.submit(self._consume_output_key, path, key)
-                for path, key in output_pipes
-            )
-            producing: Set[Future[Any]] = set(
-                executor.submit(self._produce_input_key, path, key)
-                for path, key in input_pipes
-            )
+        if isolator.is_running(process):
+            isolator.stop(process)
 
-            def run_container():
-                while True:
-                    try:
-                        return container.wait(timeout=1)
-                    except requests.exceptions.ReadTimeout:
-                        pass
+        code = isolator.wait(process)
 
-            ran = executor.submit(run_container)
+        if code != 0:
+            res.status = 'failed'
+            res.error = isolator.get_stderr(process)
+        else:
+            res.status = 'done'
 
-            try:
-                done: Set[Future[Any]] = set()
-                pending: Set[Future[Any]] = consuming.union(producing).union({ran})
-                f: Future
+    return res
 
-                while ran not in done:
-                    next_done, pending = wait(pending, return_when=FIRST_COMPLETED)
-                    done.update(next_done)
 
-                    for f in next_done:
-                        if f is ran or f.exception():
-                            break
+def main():
+    import sys
 
-                if ran.done():
-                    pass
-
-                for f in pending:
-                    f.cancel()
-
-                executor.shutdown()
-
-                if ran.cancelled():
-                    raise RuntimeError("Script failed, pipe was broken")
-
-                if ran.exception():
-                    raise ran.exception()
-                return ran.result()
-            finally:
-                container.stop()
+    request: RunRequest = RunRequest.schema().loads(sys.stdin.read())
+    if request.isolator == 'docker':
+        result = run(request, DockerIsolator())
+        print(RunResult.schema().dumps(result))
