@@ -1,5 +1,6 @@
 import downloadjs from 'downloadjs';
 import * as Cookies from './cookies';
+import {showMessages} from '../actions/message_actions';
 
 export const checkStatus = (response) => {
   let content = isJSON(response) ? response.json() : response.text();
@@ -79,4 +80,29 @@ export const form_post = (path, params, performCheckStatus = true) => {
     credentials: 'same-origin',
     body: form
   }).then(performCheckStatus ? checkStatus : (v) => v);
+};
+
+export const handleFetchError = (dispatch, e) => {
+  console.log(e);
+  return e.then((response) => {
+    if (!response) {
+      dispatch(showMessages([`Something is amiss. ${e}`]));
+    }
+
+    let errStr = response.error
+      ? response.error
+      : response.errors.map((error) => `* ${error}`);
+    errStr = [`### Our request was refused.\n\n${errStr}`];
+    dispatch(showMessages(errStr));
+    return Promise.reject(e);
+  });
+};
+
+export const checkFetchSuccess = (dispatch, response) => {
+  if ('error' in response) {
+    dispatch(showMessages([`There was a ${response.type} error.`]));
+    console.log(response.error);
+    return Promise.reject(response);
+  }
+  return Promise.resolve(response);
 };
