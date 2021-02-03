@@ -81,37 +81,3 @@ export default function Browser() {
     </div>
   );
 }
-
-function useWorkflowActions(setCurrentWorkflow) {
-  const invoke = useActionInvoker();
-  const {revision, model_name, template, record_name} = browserState;
-
-  return {
-    cancelEdits,
-    approveEdits
-  };
-
-  function cancelEdits() {
-    setMode('browse');
-    invoke(discardRevision(record_name, model_name));
-  }
-
-  function postEdits() {
-    setMode('submit');
-
-    invoke(
-      sendRevisions(
-        model_name,
-        template,
-        {[record_name]: revision},
-        () => setMode('browse'),
-        () => setMode('edit')
-      )
-    );
-  }
-
-  function approveEdits() {
-    if (Object.keys(revision).length > 0) postEdits();
-    else cancelEdits();
-  }
-}
