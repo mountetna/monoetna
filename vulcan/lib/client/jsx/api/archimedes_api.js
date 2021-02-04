@@ -57,7 +57,7 @@ export const submitInputs = (workflow_name, inputs) => {
   }, {});
 
   // NOTE: the returned data from the server may have to be
-  //   massaged by the consumer to fit back into the Array of steps.
+  //   massaged by the reducer / consumer to fit back into the Array of steps.
   return archimedesPost(ROUTES.submit_inputs(workflow_name), inputsHash)
     .then(handleFetchSuccess)
     .catch(handleFetchError);
