@@ -20,7 +20,7 @@ class Vulcan
         project_name: @params[:project_name],
         token_name: Vulcan.instance.config(:token_name),
         magma_host: Vulcan.instance.config(:magma)&.dig(:host),
-        archimedes_host: Vulcan.instance.config(:archimedes)&.dig(:host),
+        vulcan_host: Vulcan.instance.config(:vulcan)&.dig(:host),
         janus_host: Vulcan.instance.config(:janus)&.dig(:host),
         timur_host: Vulcan.instance.config(:timur)&.dig(:host),
         metis_host: Vulcan.instance.config(:metis)&.dig(:host),

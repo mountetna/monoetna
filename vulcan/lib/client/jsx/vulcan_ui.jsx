@@ -3,7 +3,7 @@ import {connect} from 'react-redux';
 import {findRoute, setRoutes} from './router';
 
 // Components.
-import Browser from './components/workflow/browser';
+import Browser from './components/browser';
 import RootView from 'etna-js/components/RootView';
 import VulcanNav from './components/vulcan_nav';
 import Messages from 'etna-js/components/messages';

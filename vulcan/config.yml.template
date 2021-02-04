@@ -10,8 +10,8 @@ default: &default
 :development:
   :magma:
     :host: https://magma.development.local
-  :archimedes:
-    :host: https://archimedes.development.local
+  :vulcan:
+    :host: https://vulcan.development.local
   :auth_redirect: https://janus.development.local
   :token_algo: RS256
   :token_name: JANUS_DEV_TOKEN
@@ -40,6 +40,6 @@ default: &default
     :database: vulcan_test
   :magma:
     :host: https://magma.test
-  :archimedes:
-    :host: https://archimedes.test
+  :vulcan:
+    :host: https://vulcan.test
   :log_file: /dev/null
