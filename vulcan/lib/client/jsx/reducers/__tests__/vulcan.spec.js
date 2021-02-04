@@ -1,12 +1,12 @@
-import reducer from '../archimedes';
+import reducer from '../vulcan';
 import {
   SET_DATA,
   SET_WORKFLOW,
   SET_WORKFLOWS,
   SET_STATUS
-} from '../../actions/archimedes';
+} from '../../actions/vulcan';
 
-describe('Archimedes Reducer', () => {
+describe('Vulcan Reducer', () => {
   it('correctly sets all workflows', () => {
     const expectedWorkflows = {
       analysis_1: {},
@@ -93,7 +93,7 @@ describe('Archimedes Reducer', () => {
       first_step: {
         name: 'first_step',
         status: 'complete',
-        data_url: `${CONFIG.archimedes_host}/data/blobs/here`
+        data_url: `${CONFIG.vulcan_host}/data/blobs/here`
       },
       ui_pick_subset: {
         status: 'pending',
@@ -165,7 +165,7 @@ describe('Archimedes Reducer', () => {
         run: 'first_step.cwl',
         name: 'first_step',
         status: 'complete',
-        data_url: `${CONFIG.archimedes_host}/data/blobs/here`
+        data_url: `${CONFIG.vulcan_host}/data/blobs/here`
       },
       {
         in: {

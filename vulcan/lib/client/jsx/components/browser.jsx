@@ -5,7 +5,7 @@ import 'regenerator-runtime/runtime';
 import {getProjects} from 'etna-js/api/janus-api';
 import {projectNameFull} from 'etna-js/utils/janus';
 
-import {ArchimedesProvider} from '../contexts/archimedes';
+import {VulcanProvider} from '../contexts/vulcan';
 import WorkflowManager from './workflow/manager';
 
 const loadingDiv = (
@@ -39,9 +39,9 @@ export default function Browser() {
         {projectNameFull(projects, CONFIG.project_name) || CONFIG.project_name}
       </header>
       <section>
-        <ArchimedesProvider>
+        <VulcanProvider>
           <WorkflowManager></WorkflowManager>
-        </ArchimedesProvider>
+        </VulcanProvider>
       </section>
     </main>
   );

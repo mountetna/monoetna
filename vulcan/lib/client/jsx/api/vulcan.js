@@ -7,10 +7,10 @@ import {
 
 import CwlSerializer from '../serializers/cwl';
 
-const archimedesPath = (endpoint) => `${CONFIG.archimedes_host}${endpoint}`;
+const vulcanPath = (endpoint) => `${CONFIG.vulcan_host}${endpoint}`;
 
-const archimedesPost = (endpoint, params) => {
-  return fetch(archimedesPath(endpoint), {
+const vulcanPost = (endpoint, params) => {
+  return fetch(vulcanPath(endpoint), {
     method: 'POST',
     credentials: 'include',
     headers: headers('json'),
@@ -21,8 +21,8 @@ const archimedesPost = (endpoint, params) => {
   }).then(checkStatus);
 };
 
-const archimedesGet = (endpoint) => {
-  return fetch(archimedesPath(endpoint), {
+const vulcanGet = (endpoint) => {
+  return fetch(vulcanPath(endpoint), {
     method: 'GET',
     credentials: 'include',
     headers: headers('json')
@@ -30,15 +30,15 @@ const archimedesGet = (endpoint) => {
 };
 
 export const getWorkflows = () => {
-  // TODO: update this per real Archimedes endpoint
-  return archimedesGet(ROUTES.fetch_workflows())
+  // TODO: update this per real Vulcan endpoint
+  return vulcanGet(ROUTES.fetch_workflows())
     .then(handleFetchSuccess)
     .catch(handleFetchError);
 };
 
 export const getWorkflow = (workflow_name) => {
-  // TODO: update this per real Archimedes endpoint
-  return archimedesGet(ROUTES.fetch_workflow(workflow_name))
+  // TODO: update this per real Vulcan endpoint
+  return vulcanGet(ROUTES.fetch_workflow(workflow_name))
     .then(handleFetchSuccess)
     .then((response) => {
       // response should be a YAML doc
@@ -48,7 +48,7 @@ export const getWorkflow = (workflow_name) => {
 };
 
 export const submitInputs = (workflow_name, inputs) => {
-  // TODO: remove the "step" stub for real Archimedes
+  // TODO: remove the "step" stub for real Vulcan
   // We'll have to convert inputs into a Hash for the backend,
   //   most likely.
   const inputsHash = inputs.reduce((result, stepInput) => {
@@ -58,12 +58,12 @@ export const submitInputs = (workflow_name, inputs) => {
 
   // NOTE: the returned data from the server may have to be
   //   massaged by the reducer / consumer to fit back into the Array of steps.
-  return archimedesPost(ROUTES.submit_inputs(workflow_name), inputsHash)
+  return vulcanPost(ROUTES.submit_inputs(workflow_name), inputsHash)
     .then(handleFetchSuccess)
     .catch(handleFetchError);
 };
 
 export const getData = (url) => {
-  // TODO: update this per real Archimedes endpoint
-  return archimedesGet(url);
+  // TODO: update this per real Vulcan endpoint
+  return vulcanGet(url);
 };

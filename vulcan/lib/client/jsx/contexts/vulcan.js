@@ -4,18 +4,18 @@ import {
   SET_WORKFLOW,
   SET_WORKFLOWS,
   SET_STATUS
-} from '../actions/archimedes';
-import ArchimedesReducer from '../reducers/archimedes';
+} from '../actions/vulcan';
+import VulcanReducer from '../reducers/vulcan';
 
-export const ArchimedesContext = createContext();
+export const VulcanContext = createContext();
 
-export const ArchimedesProvider = (props) => {
+export const VulcanProvider = (props) => {
   const initialState = {
     workflows: {},
     workflow: {}
   };
 
-  const [state, dispatch] = useReducer(ArchimedesReducer, initialState);
+  const [state, dispatch] = useReducer(VulcanReducer, initialState);
 
   const setWorkflows = (workflows) => {
     dispatch({type: SET_WORKFLOWS, workflows});
@@ -34,7 +34,7 @@ export const ArchimedesProvider = (props) => {
   };
 
   return (
-    <ArchimedesContext.Provider
+    <VulcanContext.Provider
       value={{
         workflows: state.workflows,
         workflow: state.workflow,
@@ -45,6 +45,6 @@ export const ArchimedesProvider = (props) => {
       }}
     >
       {props.children}
-    </ArchimedesContext.Provider>
+    </VulcanContext.Provider>
   );
 };

@@ -3,15 +3,10 @@ const path = require('path');
 
 import nock from 'nock';
 
-import {
-  getWorkflows,
-  getWorkflow,
-  submitInputs,
-  getData
-} from '../archimedes_api';
+import {getWorkflows, getWorkflow, submitInputs, getData} from '../vulcan';
 import {mockStore, stubUrl, mockFetch, cleanStubs} from 'etna-js/spec/helpers';
 
-describe('Archimedes API', () => {
+describe('Vulcan API', () => {
   afterEach(() => {
     cleanStubs();
     nock.cleanAll();
@@ -34,7 +29,7 @@ describe('Archimedes API', () => {
       headers: {
         'Content-type': 'application/json'
       },
-      host: CONFIG.archimedes_host
+      host: CONFIG.vulcan_host
     });
 
     return getWorkflows().then((data) => {
@@ -106,7 +101,7 @@ describe('Archimedes API', () => {
       headers: {
         'Content-type': 'text/yaml'
       },
-      host: CONFIG.archimedes_host
+      host: CONFIG.vulcan_host
     });
 
     return getWorkflow('test').then((data) => {
@@ -162,7 +157,7 @@ describe('Archimedes API', () => {
       headers: {
         'Content-type': 'application/json'
       },
-      host: CONFIG.archimedes_host
+      host: CONFIG.vulcan_host
     });
 
     return submitInputs('test', inputs).then((data) => {
@@ -182,7 +177,7 @@ describe('Archimedes API', () => {
       headers: {
         'Content-type': 'application/json'
       },
-      host: CONFIG.archimedes_host
+      host: CONFIG.vulcan_host
     });
 
     return getData(url).then((returnedData) => {

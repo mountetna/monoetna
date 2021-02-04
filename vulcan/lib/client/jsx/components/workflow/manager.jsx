@@ -5,8 +5,8 @@ import {showMessages} from 'etna-js/actions/message_actions';
 
 import Dropdown from 'etna-js/components/inputs/dropdown';
 
-import {ArchimedesContext} from '../../contexts/archimedes';
-import {getWorkflow, getWorkflows} from '../../api/archimedes_api';
+import {VulcanContext} from '../../contexts/vulcan';
+import {getWorkflow, getWorkflows} from '../../api/vulcan';
 
 const loadingDiv = (
   <div className='browser'>
@@ -27,7 +27,7 @@ const errorDiv = (
 export default function Manager() {
   const invoke = useActionInvoker();
   const {workflows, workflow, setWorkflows, setWorkflow} = useContext(
-    ArchimedesContext
+    VulcanContext
   );
 
   const [selectedWorkflowName, setSelectedWorkflowName] = useState(null);
