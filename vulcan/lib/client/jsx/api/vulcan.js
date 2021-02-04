@@ -5,8 +5,6 @@ import {
   headers
 } from 'etna-js/utils/fetch';
 
-import CwlSerializer from '../serializers/cwl';
-
 const vulcanPath = (endpoint) => `${CONFIG.vulcan_host}${endpoint}`;
 
 const vulcanPost = (endpoint, params) => {
@@ -15,8 +13,7 @@ const vulcanPost = (endpoint, params) => {
     credentials: 'include',
     headers: headers('json'),
     body: JSON.stringify({
-      ...params,
-      project_name: CONFIG.project_name
+      ...params
     })
   }).then(checkStatus);
 };
@@ -36,34 +33,22 @@ export const getWorkflows = () => {
     .catch(handleFetchError);
 };
 
-export const getWorkflow = (workflow_name) => {
+export const getWorkflow = (workflow_name, json = false) => {
+  // NOTE: response might be a YAML doc, for editing purposes.
   // TODO: update this per real Vulcan endpoint
-  return vulcanGet(ROUTES.fetch_workflow(workflow_name))
+  return vulcanGet(ROUTES.fetch_workflow(workflow_name, json))
     .then(handleFetchSuccess)
-    .then((response) => {
-      // response should be a YAML doc
-      return Promise.resolve(new CwlSerializer(response).json);
-    })
     .catch(handleFetchError);
 };
 
 export const submitInputs = (workflow_name, inputs) => {
   // TODO: remove the "step" stub for real Vulcan
-  // We'll have to convert inputs into a Hash for the backend,
-  //   most likely.
-  const inputsHash = inputs.reduce((result, stepInput) => {
-    result[stepInput.name] = stepInput;
-    return result;
-  }, {});
-
-  // NOTE: the returned data from the server may have to be
-  //   massaged by the reducer / consumer to fit back into the Array of steps.
-  return vulcanPost(ROUTES.submit_inputs(workflow_name), inputsHash)
+  return vulcanPost(ROUTES.submit_inputs(workflow_name), inputs)
     .then(handleFetchSuccess)
     .catch(handleFetchError);
 };
 
 export const getData = (url) => {
   // TODO: update this per real Vulcan endpoint
-  return vulcanGet(url);
+  return vulcanGet(url).then(handleFetchSuccess).catch(handleFetchError);
 };

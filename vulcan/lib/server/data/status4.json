@@ -1,20 +1,25 @@
-{
-  "steps": {
-    "query_magma": {
+[
+  [
+    {
+      "name": "query_magma",
       "status": "complete",
-      "data": "pools"
+      "data_url": "pools"
     },
-    "ui_pick_subset": {
+    {
+      "name": "ui_pick_subset",
       "status": "complete"
     },
-    "subset_normalize_and_select_features": {
+    {
+      "name": "subset_normalize_and_select_features",
       "status": "complete"
     },
-    "regress_and_pca": {
+    {
+      "name": "regress_and_pca",
       "status": "complete"
     },
-    "umap": {
+    {
+      "name": "umap",
       "status": "pending"
     }
-  }
-}
+  ]
+]

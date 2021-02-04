@@ -44,7 +44,7 @@ export default function Manager() {
 
   useEffect(() => {
     if (selectedWorkflowName) {
-      getWorkflow(selectedWorkflowName)
+      getWorkflow(selectedWorkflowName, true)
         .then((workflowDetails) => {
           console.log(workflowDetails);
           setWorkflow(workflowDetails);
@@ -70,8 +70,12 @@ export default function Manager() {
       <div>
         Steps:
         <ol>
+          {/* workflow.steps is actually an Array of Arrays.
+           This example assumes there is only one nested Array, because
+           there is only one possible path. For more complicated
+           workflows, we'll have to figure out how to render those. */}
           {workflow && workflow.steps
-            ? workflow.steps.map((step, index) => {
+            ? workflow.steps[0].map((step, index) => {
                 return <li key={index}>{step.name}</li>;
               })
             : "You'll see a list of steps here once you select a workflow."}
