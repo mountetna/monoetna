@@ -1,15 +1,11 @@
-// Framework libraries.
 import React, {useState, useContext, useEffect} from 'react';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-
-import {ArchimedesContext} from '../../contexts/archimedes';
+import {showMessages} from 'etna-js/actions/message_actions';
 
 import Dropdown from 'etna-js/components/inputs/dropdown';
 
-// Module imports.
-import {showMessages} from 'etna-js/actions/message_actions';
-
+import {ArchimedesContext} from '../../contexts/archimedes';
 import {getWorkflow, getWorkflows} from '../../api/archimedes_api';
 
 const loadingDiv = (
