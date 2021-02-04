@@ -15,9 +15,9 @@ class Vulcan
       erb_view(:client)
     end
 
-    get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
-    get 'api/workflows/:workflow_name/:data', action: 'data#fetch', as: :data_view, auth: { user: { active?: true } }
-    post 'api/workflows/:workflow_name/:status', action: 'workflows#submit', as: :submit_view, auth: { user: { active?: true } }
+    get 'api/:project_name/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { can_view?: :project_name } }
+    get 'api/:project_name/workflows/:workflow_name/:data', action: 'data#fetch', as: :data_view, auth: { user: { can_view?: :project_name } }
+    post 'api/:project_name/workflows/:workflow_name/:status', action: 'workflows#submit', as: :submit_view, auth: { user: { can_view?: :project_name } }
 
     with auth: { user: { can_view?: :project_name } } do
 

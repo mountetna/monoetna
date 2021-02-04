@@ -4,7 +4,7 @@ module.exports = {
     CONFIG: {
       project_name: 'labors',
       magma_host: 'https://magma.test',
-      archimedes_host: 'https://archimedes.test'
+      vulcan_host: 'https://vulcan.test'
     }
   },
   testURL: 'http://localhost',

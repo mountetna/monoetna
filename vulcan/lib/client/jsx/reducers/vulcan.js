@@ -3,9 +3,9 @@ import {
   SET_WORKFLOW,
   SET_WORKFLOWS,
   SET_STATUS
-} from '../actions/archimedes';
+} from '../actions/vulcan';
 
-export default function ArchimedesReducer(state, action) {
+export default function VulcanReducer(state, action) {
   state = state ? state : {};
 
   switch (action.type) {
