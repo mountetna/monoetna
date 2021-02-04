@@ -16,3 +16,8 @@ export const selectUserProjectRole = Reselect.createSelector(
     return perm ? perm.role : null
   }
 );
+
+export const selectIsEditor = Reselect.createSelector(
+  selectUserProjectRole,
+  role => role && (role === 'administrator' || role === 'editor')
+);
