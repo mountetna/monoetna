@@ -57,5 +57,4 @@ RUN mv /tmp/docker/* /usr/local/bin/
 
 # Install R from CRAN repo, to get latest
 COPY src/entrypoints /entrypoints
-COPY archimedes /archimedes
 

@@ -15,12 +15,13 @@ import os
 import shutil
 import signal
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from dataclasses_json import dataclass_json
 import time
 from typing import List, ContextManager, TypeVar, Generic, Tuple, IO, Optional
 
 from docker import DockerClient
+from docker.errors import NotFound
 from docker.types import Mount
 from docker.models.containers import Container
 from archimedes.checker import run as run_checker
@@ -45,10 +46,10 @@ class StorageFile:
 @dataclass
 class RunRequest:
     script: str
-    input_files: List[StorageFile]
-    output_files: List[StorageFile]
-    environment: List[str]
-    image: str = "archimedes-base"
+    input_files: List[StorageFile] = field(default_factory=list)
+    output_files: List[StorageFile] = field(default_factory=list)
+    environment: List[str] = field(default_factory=list)
+    image: str = "archimedes"
     isolator: str = "docker"
 
 
@@ -78,6 +79,9 @@ class Isolator(Generic[T]):
 class DockerIsolator(Isolator[Container]):
     docker_cli: DockerClient
 
+    # This needs to be a unique, top level directory to enable sane
+    # volume directory sharing.
+    exec_dir = '/archimedes-exec'
     target_inputs_dir = "/inputs"
     target_outputs_dir = "/outputs"
 
@@ -85,27 +89,47 @@ class DockerIsolator(Isolator[Container]):
         self.docker_cli = docker_cli
 
     def is_running(self, t: Container) -> bool:
-        return t.status not in ['dead', 'exited']
+        try:
+            t.reload()
+            return t.status == 'running'
+        except NotFound:
+            return False
 
     def stop(self, t: Container, timeout=10):
-        return t.stop(timeout=timeout)
+        try:
+            t.reload()
+            return t.stop(timeout=timeout)
+        except NotFound:
+            return
 
     def get_stderr(self, t: Container) -> str:
-        return t.logs(stderr=True, stdout=False, tail='all')
+        try:
+            t.reload()
+            return t.logs(stderr=True, stdout=True, tail='all')
+        except NotFound:
+            return 'Process disappeared'
 
     def wait(self, t: Container) -> int:
         result = t.wait()
         return result["StatusCode"]
 
+    def _is_self_container(self):
+        proc_file = '/proc/1/cgroup'
+
+        if not os.path.exists(proc_file):
+            return False
+
+        return b"/docker" in open(proc_file, 'rb').read()
+
     def start(self, request: RunRequest, exec_script_path: str) -> Container:
-        mounts = [
-                     Mount(target="/script.py", source=exec_script_path, read_only=True),
-                 ] + [
+        mounts =  [
                      Mount(target=os.path.join(self.target_inputs_dir, input_file.logical_name),
+                           type='bind',
                            source=input_file.host_path)
                      for input_file in request.input_files
                  ] + [
                      Mount(target=os.path.join(self.target_outputs_dir, output_file.logical_name),
+                           type='bind',
                            source=output_file.host_path)
                      for output_file in request.output_files
                  ]
@@ -116,18 +140,37 @@ class DockerIsolator(Isolator[Container]):
             f"ENFORCE_OUTPUTS_EXIST=1",
         ]
 
+        volumes_from = []
+
+        if not self._is_self_container():
+            mounts += [
+                Mount(
+                    target="/script.py",
+                    type='bind',
+                    source=exec_script_path,
+                    read_only=True
+                ),
+            ]
+            cmd = f"poetry run python /script.py"
+        else:
+            volumes_from += [ os.environ['HOSTNAME'] ]
+            cmd = f"poetry run python {exec_script_path}"
+
         # Could set options like cpu_quote, mem_limit, restrict network access,
         # etc, to further lockdown the task.
         return self.docker_cli.containers.run(
-            request.image,
-            f"poetry run /script.py",
-            auto_remove=True,
+            request.image, cmd,
             detach=True,
             environment=environment,
-            # Arbitrary limit of 2G for any other buffered data.
-            storage_opt=dict(size="2G"),
+            volumes_from=volumes_from,
             mounts=mounts,
         )
+
+    def reserve_exec_dir(self) -> ContextManager[str]:
+        if not os.path.exists(self.exec_dir):
+            os.mkdir(self.exec_dir)
+
+        return tempfile.TemporaryDirectory(dir=self.exec_dir)
 
 
 LocalProcess = Tuple[subprocess.Popen, IO[bin], str]
@@ -159,18 +202,22 @@ class LocalIsolator(Isolator[LocalProcess]):
         return p.wait()
 
     def start(self, request: RunRequest, exec_script_path: str) -> LocalProcess:
-        inputs_dir = os.path.join(exec_script_path, "inputs")
-        outputs_dir = os.path.join(exec_script_path, "outputs")
-        stderr_log = os.path.join(exec_script_path, 'stderr')
+        inputs_dir = os.path.join(os.path.dirname(exec_script_path), "inputs")
+        outputs_dir = os.path.join(os.path.dirname(exec_script_path), "outputs")
+        stderr_log = os.path.join(os.path.dirname(exec_script_path), 'stderr')
 
         os.mkdir(inputs_dir)
         os.mkdir(outputs_dir)
 
         for input_file in request.input_files:
             os.symlink(input_file.host_path, os.path.join(inputs_dir, input_file.logical_name))
+            print(input_file.host_path, os.path.join(inputs_dir, input_file.logical_name))
 
         for output_file in request.output_files:
             os.symlink(output_file.host_path, os.path.join(outputs_dir, output_file.logical_name))
+            print(output_file.host_path, os.path.join(outputs_dir, output_file.logical_name))
+
+        print(inputs_dir, outputs_dir)
 
         environment = request.environment + [
             f"INPUTS_DIR={inputs_dir}",
@@ -186,7 +233,7 @@ class LocalIsolator(Isolator[LocalProcess]):
         ), stderr_log_io, stderr_log
 
 
-def run(request: RunRequest, isolator: Isolator[T]) -> RunResult:
+def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 5, remove = True) -> RunResult:
     res = RunResult(status='running', error=None)
 
     with isolator.reserve_exec_dir() as exec_dir:
@@ -199,33 +246,69 @@ def run(request: RunRequest, isolator: Isolator[T]) -> RunResult:
                 "Script did not conform to the archimedes dsl requirements."
             )
 
-        process = isolator.start(request, script_path)
+        process: Container = isolator.start(request, script_path)
+        try:
 
-        # Give cells up to 5 minutes.  In the future, with a proper async executor we would want to allow up to
-        # a much larger amount of time.
-        done = time.time() + 60 * 5
+            # Give cells up to 5 minutes.  In the future, with a proper async executor we would want to allow up to
+            # a much larger amount of time.
+            done = time.time() + timeout
 
-        while isolator.is_running(process) and time.time() < done:
-            time.sleep(1)
+            while isolator.is_running(process) and time.time() < done:
+                time.sleep(1)
 
-        if isolator.is_running(process):
-            isolator.stop(process)
+            if isolator.is_running(process):
+                isolator.stop(process)
 
-        code = isolator.wait(process)
+            code = isolator.wait(process)
 
-        if code != 0:
-            res.status = 'failed'
-            res.error = isolator.get_stderr(process)
-        else:
-            res.status = 'done'
+            if code != 0:
+                res.status = 'failed'
+                res.error = isolator.get_stderr(process)
+            else:
+                res.status = 'done'
+        finally:
+            if remove:
+                process.remove()
 
     return res
 
+def make_storage_file(s: str) -> StorageFile:
+    parts = s.split(':', maxsplit=1)
+    if len(parts) != 2:
+        raise ValueError('files must be of the form name:/path/on/host')
+
+    return StorageFile(
+        logical_name=parts[0],
+        host_path=parts[1],
+    )
 
 def main():
     import sys
+    import argparse
 
-    request: RunRequest = RunRequest.schema().loads(sys.stdin.read())
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--file')
+    parser.add_argument('--isolator', default='local', choices=['docker', 'local'])
+    parser.add_argument('--image', default='etnaagent/archimedes:latest')
+    parser.add_argument('--input', dest='outputs', action='append', help="input files of the form name:/path/on/host")
+    parser.add_argument('--output', dest='outputs', action='append', help="output files of the form name:/path/on/host")
+    parser.add_argument('-e', '--env', dest='env', action='append', help="environment variables of the form ABC=abc")
+
+    args = parser.parse_args()
+
+    request: RunRequest = RunRequest(
+        isolator=args.isolator,
+        input_files=[make_storage_file(s) for s in args.inputs],
+        output_files=[make_storage_file(s) for s in args.outputs],
+        environment=args.e,
+        script=(args.file and open(args.file, 'r').read()) or sys.stdin.read(),
+        image=args.image,
+    )
+
     if request.isolator == 'docker':
         result = run(request, DockerIsolator())
+        print(RunResult.schema().dumps(result))
+
+    if request.isolator == 'local':
+        result = run(request, LocalIsolator())
         print(RunResult.schema().dumps(result))
