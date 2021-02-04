@@ -1,59 +1,69 @@
-import {checkStatus, headers} from 'etna-js/utils/fetch';
+import {
+  checkStatus,
+  handleFetchSuccess,
+  handleFetchError,
+  headers
+} from 'etna-js/utils/fetch';
 
 import CwlSerializer from '../serializers/cwl';
 
-const archimedesPath = (endpoint) => `${CONFIG.archimedes_host}/${endpoint}`;
+const archimedesPath = (endpoint) => `${CONFIG.archimedes_host}${endpoint}`;
 
-const archimedesPost = (endpoint, exchange, params) => {
-  return exchange
-    .fetch(archimedesPath(endpoint), {
-      method: 'POST',
-      credentials: 'include',
-      headers: headers('json'),
-      body: JSON.stringify({
-        ...params,
-        project_name: CONFIG.project_name
-      })
+const archimedesPost = (endpoint, params) => {
+  return fetch(archimedesPath(endpoint), {
+    method: 'POST',
+    credentials: 'include',
+    headers: headers('json'),
+    body: JSON.stringify({
+      ...params,
+      project_name: CONFIG.project_name
     })
-    .then(checkStatus);
+  }).then(checkStatus);
 };
 
-const archimedesGet = (endpoint, exchange, params) => {
-  return exchange
-    .fetch(archimedesPath(endpoint), {
-      method: 'GET',
-      credentials: 'include',
-      headers: headers('json')
+const archimedesGet = (endpoint) => {
+  return fetch(archimedesPath(endpoint), {
+    method: 'GET',
+    credentials: 'include',
+    headers: headers('json')
+  }).then(checkStatus);
+};
+
+export const getWorkflows = () => {
+  // TODO: update this per real Archimedes endpoint
+  return archimedesGet(ROUTES.fetch_workflows())
+    .then(handleFetchSuccess)
+    .catch(handleFetchError);
+};
+
+export const getWorkflow = (workflow_name) => {
+  // TODO: update this per real Archimedes endpoint
+  return archimedesGet(ROUTES.fetch_workflow(workflow_name))
+    .then(handleFetchSuccess)
+    .then((response) => {
+      // response should be a YAML doc
+      return Promise.resolve(new CwlSerializer(response).json);
     })
-    .then(checkStatus);
+    .catch(handleFetchError);
 };
 
-export const getWorkflows = (exchange) => {
-  // TODO: update this per real Archimedes endpoint
-  return archimedesGet('api/workflows', exchange);
-};
-
-export const getWorkflow = (workflow_name, exchange) => {
-  // TODO: update this per real Archimedes endpoint
-  return archimedesGet(`api/workflows/${workflow_name}`, exchange).then(
-    (response) => {
-      return new Promise((resolve, reject) => {
-        resolve(new CwlSerializer(response).json);
-      });
-    }
-  );
-};
-
-export const submitInputs = (workflow_name, step, inputs, exchange) => {
+export const submitInputs = (workflow_name, inputs) => {
   // TODO: remove the "step" stub for real Archimedes
-  return archimedesPost(
-    `api/workflows/${workflow_name}/${step}`,
-    exchange,
-    inputs
-  );
+  // We'll have to convert inputs into a Hash for the backend,
+  //   most likely.
+  const inputsHash = inputs.reduce((result, stepInput) => {
+    result[stepInput.name] = stepInput;
+    return result;
+  }, {});
+
+  // NOTE: the returned data from the server may have to be
+  //   massaged by the reducer / consumer to fit back into the Array of steps.
+  return archimedesPost(ROUTES.submit_inputs(workflow_name), inputsHash)
+    .then(handleFetchSuccess)
+    .catch(handleFetchError);
 };
 
-export const getData = (workflow_name, data, exchange) => {
+export const getData = (url) => {
   // TODO: update this per real Archimedes endpoint
-  return archimedesGet(`api/workflows/${workflow_name}/${data}`, exchange);
+  return archimedesGet(url);
 };

@@ -12,10 +12,11 @@
       const ROUTES = Object.assign(
         window.ROUTES || {},
         {
-          workflow: (project_name) => (`/${project_name}/workflow`),
-          fetch_steps: (project_name, workflow_name) => (`/api/workflows/${workflow_name}/steps`),
-          fetch_pools: (project_name, workflow_name) => (`/api/workflows/${workflow_name}/pools`),
-          submit_steps: (project_name, workflow_name, status) => (`/api/workflows/${workflow_name}/${status}`)
+          workflow: () => (`/${CONFIG.project_name}/workflow`),
+          fetch_workflows: () => ('/api/workflows'),
+          fetch_workflow: (workflow_name) => (`/api/workflows/${workflow_name}/steps`),
+          fetch_pools: (workflow_name) => (`/api/workflows/${workflow_name}/pools`),
+          submit_inputs: (workflow_name) => (`/api/workflows/${workflow_name}`)
         }
       );
     </script>

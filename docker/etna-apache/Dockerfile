@@ -1,11 +1,11 @@
 FROM library/httpd:2.4.43
 WORKDIR /app
 
-ENV DOCKERIZE_VERSION 0.5.0
+ENV DOCKERIZE_VERSION 0.6.1
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
 
 RUN apt-get update -y
-RUN apt-get install -y libapache2-mod-xsendfile libapache2-mod-shib2 curl
+RUN apt-get install -y libapache2-mod-xsendfile libapache2-mod-shib2 xmlsec1 curl
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
 
 COPY certs /root/certs
@@ -29,5 +29,7 @@ RUN ln -sf /shibboleth/idp-metadata.xml /etc/shibboleth/idp-metadata.xml
 RUN ln -sf /shibboleth/attribute-map.xml /etc/shibboleth/attribute-map.xml
 
 # Prepare the environment with ascript that can start shibd before httpd
-COPY src/bin/httpd_with_shibd.sh /bin/
-RUN chmod +x /bin/httpd_with_shibd.sh
+COPY src/bin/* /bin/
+RUN chmod +x /bin/*
+
+RUN /bin/prepare_shib.sh
