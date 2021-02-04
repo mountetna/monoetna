@@ -85,8 +85,8 @@ class DockerIsolator(Isolator[Container]):
     target_inputs_dir = "/inputs"
     target_outputs_dir = "/outputs"
 
-    def __init__(self, docker_cli: DockerClient = DockerClient.from_env()):
-        self.docker_cli = docker_cli
+    def __init__(self, docker_cli: Optional[DockerClient] = None):
+        self.docker_cli = docker_cli or DockerClient.from_env()
 
     def is_running(self, t: Container) -> bool:
         try:
