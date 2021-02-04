@@ -11,10 +11,17 @@ class DataController < Vulcan::Controller
 
     raise Etna::NotFound, "No data for value #{@params[:data]}." unless ["steps", "pools"].include?(@params[:data])
 
+    raise Etna::BadRequest, "Invalid format parameter: #{params[:format]}." if @params[:format] && !["json", "yaml"].include?(@params[:format])
+
     case @params[:data]
     when "steps"
-      filename = "steps.yaml"
-      mimetype = "text/yaml"
+      if @params[:format] && "json" == @params[:format]
+        filename = "steps.json"
+        mimetype = "application/json"
+      else
+        filename = "steps.yaml"
+        mimetype = "text/yaml"
+      end
     when "pools"
       filename = "pools.json"
       mimetype = "application/json"

@@ -20,31 +20,39 @@ export default function VulcanReducer(state, action) {
         workflow: action.workflow
       };
     case SET_STATUS:
-      // Inputs probably returned by the server as Hash.
-      // Need to re-map them to the workflow inputs, which
-      //   should be an Array.
+      // Status returned by the server as an Array of Arrays,
+      //   with possible looping paths as the nested Arrays.
+      // Assume stable order from the server.
       let statusWorkflow = {...state.workflow};
 
-      statusWorkflow.steps.forEach((step, index) => {
-        statusWorkflow.steps[index] = {
-          ...step,
-          ...action.status[step.name]
-        };
+      statusWorkflow.steps.forEach((path, pathIndex) => {
+        path.forEach((step, stepIndex) => {
+          statusWorkflow.steps[pathIndex][stepIndex] = {
+            ...step,
+            ...action.status[pathIndex][stepIndex]
+          };
+        });
       });
       return {
         ...state,
         workflow: statusWorkflow
       };
     case SET_DATA:
-      // Inject the data to state based on the URL.
+      // Inject the data payload to state based on the URL.
+      // Workflow steps are an Array of Arrays, so need to
+      //   loop through them to find matching data URLs.
+      // Assume stable order from the server.
       let dataWorkflow = {...state.workflow};
-      const stepIndex = dataWorkflow.steps.findIndex((step) => {
-        return step.data_url === action.url;
+      dataWorkflow.steps.forEach((path, pathIndex) => {
+        const stepIndex = path.findIndex((step) => {
+          return step.data_url === action.url;
+        });
+
+        dataWorkflow.steps[pathIndex][stepIndex] = {
+          ...dataWorkflow.steps[pathIndex][stepIndex],
+          data: action.data
+        };
       });
-      dataWorkflow.steps[stepIndex] = {
-        ...dataWorkflow.steps[stepIndex],
-        data: action.data
-      };
 
       return {
         ...state,
