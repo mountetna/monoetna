@@ -52,9 +52,7 @@ outputs:
     type: File
     outputSource: regress_and_pca/pca_output_data
   umap_data:
-    type:
-      type: array
-      items: File
+    type: File
     outputSource: umap/umap_data
 
 steps:
