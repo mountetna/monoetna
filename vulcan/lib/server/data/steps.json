@@ -58,7 +58,7 @@
           "per_mito": "regress_per_mito",
           "per_ribo": "regress_per_ribo"
         },
-        "out": ["pca_output_data"]
+        "out": ["pca_output_data.tsv"]
       },
       {
         "name": "umap",
@@ -67,7 +67,7 @@
           "data": "regress_and_pca/pca_output_data",
           "max_pc": "max_pc"
         },
-        "out": ["umap_data"]
+        "out": ["primary.tsv", "secondary.tsv"]
       }
     ]
   ]
