@@ -113,14 +113,16 @@ export const requestDocuments = (args) => {
     };
 
     let handleRequestError = (e) => {
-      return e.then((response) => {
+      return Promise.resolve(e).then((response) => {
         if (!response) {
           dispatch(showMessages([`Something is amiss. ${e}`]));
         }
 
         let errStr = response.error
           ? response.error
-          : response.errors.map((error) => `* ${error}`);
+          : response.errors
+          ? response.errors.map((error) => `* ${error}`)
+          : response;
         errStr = [`### Our request was refused.\n\n${errStr}`];
         dispatch(showMessages(errStr));
         return Promise.reject(e);
