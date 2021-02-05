@@ -3,7 +3,11 @@
     {
       "name": "query_magma",
       "status": "complete",
-      "data_url": "pools"
+      "out": {
+        "sc_rna_seq_pool_names": {
+          "data_url": "https://vulcan.development.test/api/ipi/data/xyz/pools.json"
+        }
+      }
     },
     {
       "name": "ui_pick_subset",
@@ -11,11 +15,21 @@
     },
     {
       "name": "subset_normalize_and_select_features",
-      "status": "complete"
+      "status": "complete",
+      "out": {
+        "sc_rna_seq_normalized_data": {
+          "data_url": "https://vulcan.development.test/api/ipi/data/1232/normalized.tsv"
+        }
+      }
     },
     {
       "name": "regress_and_pca",
-      "status": "complete"
+      "status": "complete",
+      "out": {
+        "pca_output_data": {
+          "data_url": "https://vulcan.development.test/api/ipi/data/321/pca_output_dadta.tsv"
+        }
+      }
     },
     {
       "name": "umap",

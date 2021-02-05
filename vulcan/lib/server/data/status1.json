@@ -3,7 +3,11 @@
     {
       "name": "query_magma",
       "status": "complete",
-      "data_url": "pools"
+      "out": {
+        "sc_rna_seq_pool_names": {
+          "data_url": "https://vulcan.development.test/api/ipi/data/xyz/pools.json"
+        }
+      }
     },
     {
       "name": "ui_pick_subset",

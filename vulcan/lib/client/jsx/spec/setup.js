@@ -10,8 +10,6 @@ global.ROUTES = {
     `/api/${CONFIG.project_name}/workflows/${workflow_name}/steps${
       json ? '?format=json' : ''
     }`,
-  fetch_pools: (workflow_name) =>
-    `/api/${CONFIG.project_name}/workflows/${workflow_name}/pools`,
   submit_inputs: (workflow_name) =>
     `/api/${CONFIG.project_name}/workflows/${workflow_name}`
 };

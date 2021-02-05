@@ -26,9 +26,16 @@ const errorDiv = (
 
 export default function Manager() {
   const invoke = useActionInvoker();
-  const {workflows, workflow, setWorkflows, setWorkflow} = useContext(
-    VulcanContext
-  );
+  const {
+    workflows,
+    workflow,
+    pathIndex,
+    stepIndex,
+    setWorkflows,
+    setWorkflow,
+    setPathIndex,
+    setStepIndex
+  } = useContext(VulcanContext);
 
   const [selectedWorkflowName, setSelectedWorkflowName] = useState(null);
 
