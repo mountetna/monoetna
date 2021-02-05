@@ -2,34 +2,33 @@ require 'json'
 require_relative './vulcan_controller'
 
 class DataController < Vulcan::Controller
-  def fetch
-    # This is a stub API that will be used for development only.
-    # We expect that the CWL YAML file will eventually be served
-    #   by Archimedes, not Vulcan itself.
-
+  def workflow_name
     raise Etna::NotFound, "No data for workflow #{@params[:workflow_name]}." unless "umap" == @params[:workflow_name]
+    @params[:workflow_name]
+  end
 
-    raise Etna::NotFound, "No data for value #{@params[:data]}." unless ["steps", "pools"].include?(@params[:data])
+  def cell_hash
+    raise Etna::BadRequest, "Relative paths not allowed in data urls" if @params[:cell_hash].include?(".")
+    @params[:cell_hash]
+  end
 
-    raise Etna::BadRequest, "Invalid format parameter: #{params[:format]}." if @params[:format] && !["json", "yaml"].include?(@params[:format])
+  def project_name
+    raise Etna::BadRequest, "Relative paths not allowed in data urls" if @params[:project_name].include?(".")
+    @params[:project_name]
+  end
 
-    case @params[:data]
-    when "steps"
-      if @params[:format] && "json" == @params[:format]
-        filename = "steps.json"
-        mimetype = "application/json"
-      else
-        filename = "steps.yaml"
-        mimetype = "text/yaml"
-      end
-    when "pools"
-      filename = "pools.json"
-      mimetype = "application/json"
-    end
-    success(File.read(File.join(
-      File.dirname(__FILE__),
-      "../data/#{filename}")), mimetype)
+  def data_filename
+    @params[:data_filename]
+  end
 
+  def fetch
+    return [
+        200,
+        { 'X-Sendfile' => Vulcan::Storage.data_path(project_name: project_name, cell_hash: cell_hash, data_filename: data_filename),
+          'Content-Disposition' => "attachment; filename=#{data_filename}"
+        },
+        [ '' ]
+    ]
   end
 end
 

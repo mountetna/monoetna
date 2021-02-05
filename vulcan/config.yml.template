@@ -13,6 +13,7 @@ default: &default
   :vulcan:
     :host: https://vulcan.development.local
   :auth_redirect: https://janus.development.local
+  :data_folder: /app/data
   :token_algo: RS256
   :token_name: JANUS_DEV_TOKEN
   :log_level: info

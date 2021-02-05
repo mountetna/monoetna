@@ -35,8 +35,8 @@
       :aws_secret_access_key: 'someKey'
       #:aws_access_key_id:
       #:aws_secret_access_key:
+  :vulcan:
+    :host: https://vulcan.test
   :magma:
     :host: https://magma.test
-  :archimedes:
-    :host: https://archimedes.test
   :log_file: /dev/null

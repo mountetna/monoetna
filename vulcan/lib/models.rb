@@ -1,1 +1,2 @@
-# Don't set this up yet -- let's figure out UMAPs first.
+require_relative 'server/models/session'
+require_relative 'server/models/workflow'

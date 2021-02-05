@@ -1,4 +1,6 @@
 require_relative 'commands'
+require_relative 'storage'
+require_relative 'orchestration'
 
 class Vulcan
   include Etna::Application
