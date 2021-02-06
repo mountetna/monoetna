@@ -1,26 +1,13 @@
-# A vulcan session model.  For now this is just static, but could be made backed by a database, or just about anything we like.
+# A vulcan workflow model.  For now this is just static, but could be made backed by a database, or just about anything we like.
+# TODO: We really need a
 class Workflow
-  attr_reader :workflow_name, :raw, :description, :display_name
+  attr_reader :workflow_name, :cwl, :description, :display_name
 
-  def initialize(workflow_name, raw, description: "", display_name: "")
+  def initialize(workflow_name, cwl, description: "", display_name: "")
     @workflow_name = workflow_name
-    @raw = raw
+    @cwl = cwl
     @description = description
     @display_name = display_name
-  end
-
-  def self.from_yaml_file(filename, description: "", display_name: "")
-    Workflow.new(
-        ::File.basename(filename),
-        YAML.safe_load(
-            File.join(
-                File.dirname(__FILE__),
-                "../workflows/#{filename}"
-            )
-        ),
-        description: description,
-        display_name: display_name,
-    )
   end
 
   # Returns a list of lists, describing the dependency between steps, primary inputs, and primary outputs.
@@ -30,7 +17,7 @@ class Workflow
     @ordered_steps ||= [].tap do |result|
       directed_graph = ::DirectedGraph.new
 
-      steps.each do |step|
+      cwl.steps.each do |step|
         step.in.each do |k, ref|
           directed_graph.add_connection(ref.first, step.step_name)
         end
@@ -45,41 +32,8 @@ class Workflow
     end
   end
 
-  class Step
-    attr_accessor :step_name
-
-    def initialize(step_name, definition)
-      @step_name = step_name
-      @definition = definition
-    end
-
-    def script
-      script_name = @definition['run'] || ''
-      ::File.read(::File.join(::File.dirname(__FILE__), '..', 'workflows', 'scripts', script_name))
-    end
-
-    def in
-      inputs = @definition['in'] || {}
-      if inputs.is_a?(Array)
-        inputs = inputs.each_with_index.map { |ref, i| ["input_#{i}", ref] }.to_h
-      end
-
-      inputs.map { |k, v| [k, Workflow.resolve_reference(v) ] }.sort_by { |v| v.first }
-    end
-
-    def out
-      @definition['out'] || []
-    end
-  end
-
-  def steps
-    @steps ||= (@raw['steps'] || {}).map do |k, definition|
-      Step.new(k, definition)
-    end.sort_by(&:step_name)
-  end
-
   def find_step(step_name)
-    @steps.select { |s| s.step_name == step_name }
+    cwl.steps.select { |s| s.step_name == step_name }
   end
 
   # Resolves a string of the forms "a-primary-identifier" or "step_name/output" into
@@ -98,7 +52,7 @@ class Workflow
   def primary_outputs
     @primary_outputs ||= {}.tap do |result|
       outputs = @raw['outputs'] || {}
-      inputs.each do |k, input_def|
+      outputs.each do |k, input_def|
         unless (src = input_def['outputSource']).nil? || (type = input_def['type']).nil?
           if type == 'File'
             result[k] = Workflow.resolve_reference(src)

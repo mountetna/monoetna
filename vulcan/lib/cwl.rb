@@ -1,0 +1,590 @@
+require 'yaml'
+
+class Vulcan
+  class Cwl
+    FIELD_LOADERS = {}
+
+    def initialize(attributes)
+      @attributes = attributes
+    end
+
+    def loader
+      RecordLoader.new(self)
+    end
+
+    # This would be replaced based on our storage and simply represents the entry point for
+    # our static dataset.
+    def self.from_yaml_file(filename)
+      attributes = YAML.safe_load(File.join(File.dirname(__FILE__), "../workflows/#{filename}"))
+      # determine type of file and select the right subclass.
+    end
+
+    class Loader
+      def load(val)
+        raise "Unimplemented"
+      end
+
+      def optional
+        OptionalLoader.new(self)
+      end
+
+      def map(&block)
+        MapLoader.new(self, &block)
+      end
+
+      def as_mapped_array(id_key = nil, value_key = nil)
+        MapLoader.new(self.as_array, id_key, value_key)
+      end
+
+      def or(*alternatives)
+        UnionLoader.new(self, *alternatives)
+      end
+
+      def as_array
+        ArrayLoader.new(self)
+      end
+    end
+
+    class AnyLoader < Loader
+      def load(val)
+        val
+      end
+
+      ANY = AnyLoader.new
+    end
+
+    class PrimitiveLoader < Loader
+      def initialize(name, type)
+        @name = name
+        @type = type
+      end
+
+      def load(val)
+        unless val.is_a?(@type)
+          raise "Unexpected val #{val.inspect} for #{@name} type"
+        end
+
+        val
+      end
+
+      def name
+        @name
+      end
+
+      def self.find_primitive_type_loader(type_name)
+        constants.each do |c|
+          c = const_get(c)
+          if c.is_a?(Loader)
+            return c if c.name == type_name
+          end
+        end
+      end
+
+      STRING = PrimitiveLoader.new('string', String)
+      INT = PrimitiveLoader.new('int', Integer)
+      LONG = PrimitiveLoader.new('long', Integer)
+      FLOAT = PrimitiveLoader.new('float', Float)
+      DOUBLE = PrimitiveLoader.new('double', Float)
+      NULL = PrimitiveLoader.new('null', NilClass)
+
+      class BooleanLoader < Loader
+        def name
+          'boolean'
+        end
+
+        def load(val)
+          raise "Invalid value #{val.inspect} for boolean" unless val.instance_of?(TrueClass) || val.instance_of?(FalseClass)
+          val
+        end
+      end
+
+      BOOLEAN = BooleanLoader.new
+    end
+
+    class SourceLoader < Loader
+      # Resolves a string of the forms "a-primary-identifier" or "step_name/output" into
+      #   [:primary_inputs, "a-primary-identifier"] or
+      #   ["step_name", "output"] respectively
+      def load(val)
+        parts = []
+
+        if val.is_a?(Array)
+          parts = val
+        elsif val.is_a?(String)
+          parts = reference.split('/', max = 2)
+        end
+
+        if parts.length == 1
+          return [:primary_inputs, parse[0]]
+        elsif parts.length == 2
+          return parts
+        end
+
+        raise "Unexpected value for source #{val.inspect}"
+      end
+    end
+
+    class MapLoader < Loader
+      def initialize(items, idKey = nil, valueKey = nil)
+        @items = items
+        @idKey = idKey
+        @valueKey = valueKey
+      end
+
+      def load(val)
+        unless val.is_a?(Hash)
+          raise "Unexpected val #{val.inspect} for map"
+        end
+
+        [].tap do |result|
+          errors = {}
+          val.keys.sort.each do |k|
+            begin
+              v = val[k]
+              if v.is_a?(Hash)
+                v[@idKey] = k
+              else
+                v = {@idKey => k, @valueKey => v}
+              end
+
+              loaded = Cwl.load_item(v, UnionLoader.new(self, self.items))
+              result << loaded
+            rescue => e
+              errors[k] = e.to_s
+            end
+          end
+
+          unless errors.empty?
+            raise errors.map { |k, v| "#{k}: #{v}" }.join("\n")
+          end
+        end
+      end
+    end
+
+    class ArrayLoader < Loader
+      def initialize(items)
+        @items = items
+      end
+
+      def load(val)
+        unless val.is_a?(Array)
+          raise "Unexpected val #{val.inspect} for array"
+        end
+
+        [].tap do |result|
+          errors = []
+          val.each do |item|
+            begin
+              loaded = Cwl.load_item(item, UnionLoader.new(self, self.items))
+              if loaded.is_a?(Array)
+                result.push(*loaded)
+              else
+                result << loaded
+              end
+            rescue => e
+              errors << e.to_s
+            end
+          end
+
+          unless errors.empty?
+            raise errors.join("\n")
+          end
+        end
+      end
+    end
+
+    class EnumLoader < Loader
+      def initialize(*options)
+        @options = options
+      end
+
+      def load(val)
+        if @options.include?(val)
+          return val
+        end
+
+        raise "Value #{val.inspect} does not belong to one of (#{@options.join(', ')})"
+      end
+
+      PRIMITIVE_TYPE = EnumLoader.new("null", "boolean", "int", "long", "float", "double", "string")
+      NOMINAL_TYPE = EnumLoader.new("File")
+    end
+
+    class OptionalLoader < Loader
+      def initialize(inner_loader)
+        @inner_loader = inner_loader
+      end
+
+      def load(val)
+        if val.is_nil?
+          return nil
+        end
+
+        @inner_loader.load(val)
+      end
+    end
+
+    class RecordLoader < Loader
+      def initiailize(klass, field_loaders = nil)
+        @klass = klass
+
+        if field_loaders && !@klass.const_defined?(:FIELD_LOADERS)
+          @klass.const_set(:FIELD_LOADERS, field_loaders)
+        end
+      end
+
+      def load(val)
+        unless @val.is_a?(Hash)
+          raise "Unexpected value #{val.inspect} for type #{@klass.name}"
+        end
+
+        errors = {}
+        {}.tap do |result|
+          @klass::FIELD_LOADERS.each do |field_sym, loader|
+            field_str = field_sym.to_s
+            begin
+              result[field_str] = loader.load(val[field_str])
+            rescue => e
+              errors[field_str] = e.to_s
+            end
+          end
+
+          unless errors.empty?
+            raise errors.map { |k, e| "#{k}: #{e}" }.join(',')
+          end
+        end
+      end
+    end
+
+    class NeverLoader < Loader
+      def load(val)
+        raise "This feature is not supported"
+      end
+
+      UNSUPPORTED = NeverLoader.new.optional
+    end
+
+    class UnionLoader < Loader
+      def initialize(*alternatives)
+        @alternatives = alternatives
+      end
+
+      def load(val)
+        errors = []
+        @alternatives.each do |loader|
+          begin
+            return loader.load(val)
+          rescue => e
+            errors << e.to_s
+          end
+        end
+
+        raise "Value #{val.inspect} does not match any possible options: #{errors.join(", ")}"
+      end
+    end
+
+    class ArrayType < Cwl
+      class InnerLoader < Loader
+        def load(val)
+          RecordLoader.new(ArrayType, {
+              type: EnumLoader.new("array"),
+              items: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
+          }).load(val)
+        end
+      end
+
+      def type_loader
+        @type_loader ||= ArrayLoader.new(@attributes['items'])
+      end
+    end
+
+    class EnumType < Cwl
+      class InnerLoader < Loader
+        def load(val)
+          RecordLoader.new(EnumType, {
+              type: EnumLoader.new("enum"),
+              symbols: PrimitiveLoader::STRING.as_array,
+          }).load(val)
+        end
+      end
+
+      def type_loader
+        @type_loader ||= EnumLoader.new(*@attributes['symbols'])
+      end
+    end
+
+    class RecordType < Cwl
+      class RecordTypeLoader
+        def load(val)
+          RecordLoader.new(RecordType, {
+              type: EnumLoader.new("record"),
+              fields: Field::FieldLoader.new.as_mapped_array('name', 'type')
+          }).load(val)
+        end
+      end
+
+      class Record
+        def self.new(h)
+          h
+        end
+      end
+
+      def type_loader
+        @type_loader ||= begin
+          class LoadedRecord < Record
+            FIELD_LOADERS = @attributes.fields.map { |field| [field.name.to_sym, Field.type_loader(field.type)] }.to_h
+          end
+
+          RecordLoader.new(LoadedRecord)
+        end
+      end
+
+      class Field < Cwl
+        class FieldLoader < Loader
+          def load(val)
+            RecordLoader.new(Field, {
+                name: PrimitiveLoader::STRING,
+                type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
+                doc: PrimitiveLoader::STRING.optional,
+            }).load(val)
+          end
+        end
+
+        def type
+          @attributes['type']
+        end
+
+        def type_loader
+          self.class.type_loader(self.type)
+        end
+
+        def self.type_loader(type)
+          case type
+          when Array
+            type_loaders = type.map { |t| Field.type_loader(t) }
+            UnionLoader.new(*type_loaders)
+          when EnumType
+            type.type_loader
+          when RecordType
+            type.type_loader
+          when ArrayType
+            type.type_loader
+          when String
+            PrimitiveLoader.find_primitive_type_loader(type) || AnyLoader::ANY
+          else
+            raise "Could not determine loader for type #{type.inspect}"
+          end
+        end
+      end
+    end
+
+    class MapLoader < Loader
+      def initialize(inner, &block)
+        @block = block
+        @inner = inner
+      end
+
+      def load(val)
+        @block.call(@inner.load(val))
+      end
+    end
+
+    # Prepares a unique set of structured nominal types for an inner
+    # loading of types
+    class TypedDSLLoader < Loader
+      def initialize(inner)
+        @inner = inner
+      end
+
+      REGEX = /^([^\[?]+)(\[\])?(\?)?$/
+
+      def resolve(val)
+        m = REGEX.match(val)
+
+        unless m.nil?
+          type = m[1]
+          unless m[2].nil?
+            type = {'type': 'array', 'items': first}
+          end
+          unless m[3].nil?
+            type = ["null", type]
+          end
+
+          return type
+        end
+
+        val
+      end
+
+      def load(val)
+        if val.is_a?(Array)
+          @inner.load(val.map do |item|
+            item.is_a?(String) ? resolve(item) : item
+          end)
+        elsif val.is_a?(String)
+          @inner.load(resolve(val))
+        else
+          @inner.load(val)
+        end
+      end
+
+      OUTER_TYPE_LOADER = TypedDSLLoader.new(
+          UnionLoader.new(
+              RecordType::RecordTypeLoader.new,
+              ArrayType::InnerLoader.new,
+              EnumType::InnerLoader.new,
+              EnumLoader::PRIMITIVE_TYPE,
+              EnumLoader::NOMINAL_TYPE,
+          )
+      )
+
+      WITH_UNIONS_TYPE_LOADER = TypedDSLLoader.new(
+          UnionLoader.new(
+              OUTER_TYPE_LOADER,
+              ArrayLoader.new(OTHER_TYPE_LOADER),
+          )
+      )
+    end
+
+    def self.load_item(val, field_type)
+      if val.is_a?(Hash)
+        if val.include?("$import")
+          raise "$import expressions are not yet supported"
+        elsif val.include?("$include")
+          raise "$include expressions are not yet supported"
+        end
+      end
+
+      return field_type.load(val)
+    end
+  end
+
+  class Workflow < Cwl
+    FIELD_LOADERS = {
+        id: PrimitiveLoader::STRING.optional,
+        label: PrimitiveLoader::STRING.optional,
+        doc: PrimitiveLoader::STRING.optional,
+        requirements: NeverLoader::UNSUPPORTED,
+        hints: NeverLoader::UNSUPPORTED,
+        intent: NeverLoader::UNSUPPORTED,
+        class: EnumLoader.new("Workflow"),
+        cwlVersion: EnumLoader.new("1.0", "1.1", "1.2"),
+        inputs: [],
+        outputs: [],
+        steps: Step.loader.as_mapped_array('id', 'source')
+    }
+
+    def steps
+      @attributes['steps']
+    end
+
+    class StepOutput < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING,
+      }
+    end
+
+    class InputParameter < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING.optional,
+          label: PrimitiveLoader::STRING.optional,
+          secondaryFiles: NeverLoader::UNSUPPORTED,
+          streamable: NeverLoader::UNSUPPORTED,
+          loadContents: NeverLoader::UNSUPPORTED,
+          loadListing: NeverLoader::UNSUPPORTED,
+          valueFrom: NeverLoader::UNSUPPORTED,
+          doc: PrimitiveLoader::STRING.optional,
+
+          type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
+          default: AnyLoader::ANY.optional,
+          format: PrimitiveLoader::STRING.optional,
+      }
+    end
+
+    class OutputParameter < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING.optional,
+          label: PrimitiveLoader::STRING.optional,
+          secondaryFiles: NeverLoader::UNSUPPORTED,
+          streamable: NeverLoader::UNSUPPORTED,
+          doc: PrimitiveLoader::STRING.optional,
+
+          outputBinding: NeverLoader::UNSUPPORTED,
+          type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
+          format: PrimitiveLoader::STRING.optional,
+      }
+    end
+
+
+    class StepInput < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING.optional,
+          source: SourceLoader.optional,
+          label: PrimitiveLoader::STRING.optional,
+          linkMerge: NeverLoader::UNSUPPORTED,
+          pickValue: NeverLoader::UNSUPPORTED,
+          loadContents: NeverLoader::UNSUPPORTED,
+          loadListing: NeverLoader::UNSUPPORTED,
+          valueFrom: NeverLoader::UNSUPPORTED,
+          default: AnyLoader::ANY.optional,
+      }
+    end
+
+    class Operation < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING.optional,
+          label: PrimitiveLoader::STRING.optional,
+          doc: PrimitiveLoader::STRING.optional,
+          requirements: NeverLoader::UNSUPPORTED,
+          hints: NeverLoader::UNSUPPORTED,
+          cwlVersion: EnumLoader.new("1.0", "1.1", "1.2"),
+          intent: NeverLoader::UNSUPPORTED,
+          class: EnumLoader.new("Operation"),
+          inputs: InputParameter.loader.as_mapped_array('id', 'type'),
+          outputs: OutputParameter.loader.as_mapped_array('id', 'type'),
+      }
+    end
+
+    class Step < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING.optional,
+          label: PrimitiveLoader::STRING.optional,
+          doc: PrimitiveLoader::STRING.optional,
+          in: StepInput.loader.as_mapped_array('id', 'source'),
+          out: StepOutput.loader.or(PrimitiveLoader::STRING.map { |id| StepOutput.loader.load({'id': id}) }).as_array,
+          requirements: NeverLoader::UNSUPPORTED,
+          hints: NeverLoader::UNSUPPORTED,
+          run: PrimitiveLoader::STRING.map { |id| Operation.loader.load({'id': id}) }.or(Workflow.loader, Operation.loader),
+          when: NeverLoader::UNSUPPORTED,
+          scatter: NeverLoader::UNSUPPORTED,
+          scatterMethod: NeverLoader::UNSUPPORTED,
+      }
+
+      def step_name
+        @attributes['id']
+      end
+
+      def script
+        script_name = @definition['run'] || ''
+        ::File.read(::File.join(::File.dirname(__FILE__), '..', 'workflows', 'scripts', script_name))
+      end
+
+      def run
+
+      end
+
+      def in
+        inputs = @definition['in'] || {}
+        if inputs.is_a?(Array)
+          inputs = inputs.each_with_index.map { |ref, i| ["input_#{i}", ref] }.to_h
+        end
+
+        inputs.map { |k, v| [k, Workflow.resolve_reference(v)] }.sort_by { |v| v.first }
+      end
+
+      def out
+        @definition['out'] || []
+      end
+    end
+  end
+end
