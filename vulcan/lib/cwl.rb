@@ -8,15 +8,15 @@ class Vulcan
       @attributes = attributes
     end
 
-    def loader
-      RecordLoader.new(self)
-    end
-
     # This would be replaced based on our storage and simply represents the entry point for
     # our static dataset.
     def self.from_yaml_file(filename)
       attributes = YAML.safe_load(File.join(File.dirname(__FILE__), "../workflows/#{filename}"))
-      # determine type of file and select the right subclass.
+      Workflow.loader.or(Operation.loader).load(attributes)
+    end
+
+    def loader
+      RecordLoader.new(self)
     end
 
     class Loader
@@ -29,7 +29,7 @@ class Vulcan
       end
 
       def map(&block)
-        MapLoader.new(self, &block)
+        FunctorMapLoader.new(self, &block)
       end
 
       def as_mapped_array(id_key = nil, value_key = nil)
@@ -294,7 +294,9 @@ class Vulcan
       end
 
       def type_loader
-        @type_loader ||= ArrayLoader.new(@attributes['items'])
+        loader = RecordType::Field.type_loader(@attributes['items'])
+        return nil if loader.nil?
+        @type_loader ||= ArrayLoader.new(loader)
       end
     end
 
@@ -331,11 +333,12 @@ class Vulcan
 
       def type_loader
         @type_loader ||= begin
-          class LoadedRecord < Record
-            FIELD_LOADERS = @attributes.fields.map { |field| [field.name.to_sym, Field.type_loader(field.type)] }.to_h
-          end
-
-          RecordLoader.new(LoadedRecord)
+          record_class = Class.new(Record)
+          RecordLoader.new(record_class,  @attributes.fields.map do |field|
+              loader = Field.type_loader(field.type)
+              return nil if loader.nil?
+              [field.name.to_sym, loader]
+            end.to_h)
         end
       end
 
@@ -362,6 +365,7 @@ class Vulcan
           case type
           when Array
             type_loaders = type.map { |t| Field.type_loader(t) }
+            return nil if type_loaders.any?(&:nil?)
             UnionLoader.new(*type_loaders)
           when EnumType
             type.type_loader
@@ -370,7 +374,7 @@ class Vulcan
           when ArrayType
             type.type_loader
           when String
-            PrimitiveLoader.find_primitive_type_loader(type) || AnyLoader::ANY
+            PrimitiveLoader.find_primitive_type_loader(type)
           else
             raise "Could not determine loader for type #{type.inspect}"
           end
@@ -378,7 +382,7 @@ class Vulcan
       end
     end
 
-    class MapLoader < Loader
+    class FunctorMapLoader < Loader
       def initialize(inner, &block)
         @block = block
         @inner = inner
@@ -469,8 +473,8 @@ class Vulcan
         intent: NeverLoader::UNSUPPORTED,
         class: EnumLoader.new("Workflow"),
         cwlVersion: EnumLoader.new("1.0", "1.1", "1.2"),
-        inputs: [],
-        outputs: [],
+        inputs: InputParameter.loader.as_mapped_array('id', 'type'),
+        outputs: OutputParameter.loader.as_mapped_array('id', 'type'),
         steps: Step.loader.as_mapped_array('id', 'source')
     }
 
@@ -559,32 +563,6 @@ class Vulcan
           scatter: NeverLoader::UNSUPPORTED,
           scatterMethod: NeverLoader::UNSUPPORTED,
       }
-
-      def step_name
-        @attributes['id']
-      end
-
-      def script
-        script_name = @definition['run'] || ''
-        ::File.read(::File.join(::File.dirname(__FILE__), '..', 'workflows', 'scripts', script_name))
-      end
-
-      def run
-
-      end
-
-      def in
-        inputs = @definition['in'] || {}
-        if inputs.is_a?(Array)
-          inputs = inputs.each_with_index.map { |ref, i| ["input_#{i}", ref] }.to_h
-        end
-
-        inputs.map { |k, v| [k, Workflow.resolve_reference(v)] }.sort_by { |v| v.first }
-      end
-
-      def out
-        @definition['out'] || []
-      end
     end
   end
 end
