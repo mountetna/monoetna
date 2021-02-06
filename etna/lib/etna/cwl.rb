@@ -1,6 +1,6 @@
 require 'yaml'
 
-class Vulcan
+module Etna
   class Cwl
     FIELD_LOADERS = {}
 
@@ -8,15 +8,8 @@ class Vulcan
       @attributes = attributes
     end
 
-    # This would be replaced based on our storage and simply represents the entry point for
-    # our static dataset.
-    def self.from_yaml_file(filename)
-      attributes = YAML.safe_load(File.join(File.dirname(__FILE__), "../workflows/#{filename}"))
-      Workflow.loader.or(Operation.loader).load(attributes)
-    end
-
-    def loader
-      RecordLoader.new(self)
+    def self.loader
+      Etna::Cwl::RecordLoader.new(self)
     end
 
     class Loader
@@ -109,13 +102,13 @@ class Vulcan
         parts = []
 
         if val.is_a?(Array)
-          parts = val
+          parts = PrimitiveLoader::STRING.as_array.load(val)
         elsif val.is_a?(String)
-          parts = reference.split('/', max = 2)
+          parts = val.split('/', max = 2)
         end
 
         if parts.length == 1
-          return [:primary_inputs, parse[0]]
+          return [:primary_inputs, parts[0]]
         elsif parts.length == 2
           return parts
         end
@@ -132,32 +125,31 @@ class Vulcan
       end
 
       def load(val)
-        unless val.is_a?(Hash)
-          raise "Unexpected val #{val.inspect} for map"
-        end
+        if val.is_a?(Hash)
+          val = [].tap do |result|
+            errors = {}
+            val.keys.sort.each do |k|
+              begin
+                v = val[k]
+                if v.is_a?(Hash)
+                  v[@idKey] = k
+                else
+                  v = {@idKey => k, @valueKey => v}
+                end
 
-        [].tap do |result|
-          errors = {}
-          val.keys.sort.each do |k|
-            begin
-              v = val[k]
-              if v.is_a?(Hash)
-                v[@idKey] = k
-              else
-                v = {@idKey => k, @valueKey => v}
+                result << v
+              rescue => e
+                errors[k] = e.to_s
               end
+            end
 
-              loaded = Cwl.load_item(v, UnionLoader.new(self, self.items))
-              result << loaded
-            rescue => e
-              errors[k] = e.to_s
+            unless errors.empty?
+              raise errors.map { |k, v| "#{k}: #{v}" }.join("\n")
             end
           end
-
-          unless errors.empty?
-            raise errors.map { |k, v| "#{k}: #{v}" }.join("\n")
-          end
         end
+
+        @items.load(val)
       end
     end
 
@@ -175,7 +167,7 @@ class Vulcan
           errors = []
           val.each do |item|
             begin
-              loaded = Cwl.load_item(item, UnionLoader.new(self, self.items))
+              loaded = Cwl.load_item(item, UnionLoader.new(self, @items))
               if loaded.is_a?(Array)
                 result.push(*loaded)
               else
@@ -216,7 +208,7 @@ class Vulcan
       end
 
       def load(val)
-        if val.is_nil?
+        if val.nil?
           return nil
         end
 
@@ -225,22 +217,23 @@ class Vulcan
     end
 
     class RecordLoader < Loader
-      def initiailize(klass, field_loaders = nil)
+      def initialize(klass, field_loaders = nil)
         @klass = klass
+        @field_loaders = field_loaders
+      end
 
-        if field_loaders && !@klass.const_defined?(:FIELD_LOADERS)
-          @klass.const_set(:FIELD_LOADERS, field_loaders)
-        end
+      def field_loaders
+        @field_loaders || @klass::FIELD_LOADERS
       end
 
       def load(val)
-        unless @val.is_a?(Hash)
+        unless val.is_a?(Hash)
           raise "Unexpected value #{val.inspect} for type #{@klass.name}"
         end
 
         errors = {}
-        {}.tap do |result|
-          @klass::FIELD_LOADERS.each do |field_sym, loader|
+        @klass.new({}.tap do |result|
+          field_loaders.each do |field_sym, loader|
             field_str = field_sym.to_s
             begin
               result[field_str] = loader.load(val[field_str])
@@ -252,7 +245,7 @@ class Vulcan
           unless errors.empty?
             raise errors.map { |k, e| "#{k}: #{e}" }.join(',')
           end
-        end
+        end)
       end
     end
 
@@ -279,7 +272,7 @@ class Vulcan
           end
         end
 
-        raise "Value #{val.inspect} does not match any possible options: #{errors.join(", ")}"
+        raise errors.join(", ")
       end
     end
 
@@ -334,11 +327,11 @@ class Vulcan
       def type_loader
         @type_loader ||= begin
           record_class = Class.new(Record)
-          RecordLoader.new(record_class,  @attributes.fields.map do |field|
-              loader = Field.type_loader(field.type)
-              return nil if loader.nil?
-              [field.name.to_sym, loader]
-            end.to_h)
+          RecordLoader.new(record_class, @attributes['fields'].map do |field|
+            loader = Field.type_loader(field.type)
+            return nil if loader.nil?
+            [field.name.to_sym, loader]
+          end.to_h)
         end
       end
 
@@ -351,6 +344,10 @@ class Vulcan
                 doc: PrimitiveLoader::STRING.optional,
             }).load(val)
           end
+        end
+
+        def name
+          @attributes['name']
         end
 
         def type
@@ -408,7 +405,7 @@ class Vulcan
         unless m.nil?
           type = m[1]
           unless m[2].nil?
-            type = {'type': 'array', 'items': first}
+            type = {'type' => 'array', 'items' => type}
           end
           unless m[3].nil?
             type = ["null", type]
@@ -445,7 +442,7 @@ class Vulcan
       WITH_UNIONS_TYPE_LOADER = TypedDSLLoader.new(
           UnionLoader.new(
               OUTER_TYPE_LOADER,
-              ArrayLoader.new(OTHER_TYPE_LOADER),
+              ArrayLoader.new(OUTER_TYPE_LOADER),
           )
       )
     end
@@ -463,6 +460,140 @@ class Vulcan
     end
   end
 
+  class InputParameter < Cwl
+    FIELD_LOADERS = {
+        id: PrimitiveLoader::STRING.optional,
+        label: PrimitiveLoader::STRING.optional,
+        secondaryFiles: NeverLoader::UNSUPPORTED,
+        streamable: NeverLoader::UNSUPPORTED,
+        loadContents: NeverLoader::UNSUPPORTED,
+        loadListing: NeverLoader::UNSUPPORTED,
+        valueFrom: NeverLoader::UNSUPPORTED,
+        doc: PrimitiveLoader::STRING.optional,
+
+        type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
+        default: AnyLoader::ANY.optional,
+        format: PrimitiveLoader::STRING.optional,
+    }
+
+    def default
+      default = @attributes['default']
+      return nil unless default
+      RecordType::Field.type_loader(@attributes['type'])&.load(default)
+    end
+  end
+
+  class OutputParameter < Cwl
+    FIELD_LOADERS = {
+        id: PrimitiveLoader::STRING.optional,
+        label: PrimitiveLoader::STRING.optional,
+        secondaryFiles: NeverLoader::UNSUPPORTED,
+        streamable: NeverLoader::UNSUPPORTED,
+        doc: PrimitiveLoader::STRING.optional,
+
+        outputBinding: NeverLoader::UNSUPPORTED,
+        type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
+        format: PrimitiveLoader::STRING.optional,
+    }
+  end
+
+  class WorkflowOutputParameter < Cwl
+    FIELD_LOADERS = {
+        id: PrimitiveLoader::STRING,
+        label: PrimitiveLoader::STRING.optional,
+        secondaryFiles: NeverLoader::UNSUPPORTED,
+        streamable: NeverLoader::UNSUPPORTED,
+        linkMerge: NeverLoader::UNSUPPORTED,
+        pickValue: NeverLoader::UNSUPPORTED,
+        doc: PrimitiveLoader::STRING.optional,
+
+        outputSource: SourceLoader.new,
+        type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
+        format: PrimitiveLoader::STRING.optional,
+    }
+
+    def outputSource
+      @attributes['outputSource']
+    end
+  end
+
+  class WorkflowInputParameter < Cwl
+    FIELD_LOADERS = {
+        id: PrimitiveLoader::STRING.optional,
+        label: PrimitiveLoader::STRING.optional,
+        secondaryFiles: NeverLoader::UNSUPPORTED,
+        streamable: NeverLoader::UNSUPPORTED,
+        loadContents: NeverLoader::UNSUPPORTED,
+        loadListing: NeverLoader::UNSUPPORTED,
+        doc: PrimitiveLoader::STRING.optional,
+        inputBinding: NeverLoader::UNSUPPORTED,
+
+        default: AnyLoader::ANY,
+        type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
+        format: PrimitiveLoader::STRING.optional,
+    }
+  end
+
+  class StepOutput < Cwl
+    FIELD_LOADERS = {
+        id: PrimitiveLoader::STRING,
+    }
+  end
+
+
+  class StepInput < Cwl
+    FIELD_LOADERS = {
+        id: PrimitiveLoader::STRING.optional,
+        source: SourceLoader.new.optional,
+        label: PrimitiveLoader::STRING.optional,
+        linkMerge: NeverLoader::UNSUPPORTED,
+        pickValue: NeverLoader::UNSUPPORTED,
+        loadContents: NeverLoader::UNSUPPORTED,
+        loadListing: NeverLoader::UNSUPPORTED,
+        valueFrom: NeverLoader::UNSUPPORTED,
+        default: AnyLoader::ANY.optional,
+    }
+
+    def source
+      @attributes['source']
+    end
+  end
+
+  class Operation < Cwl
+    FIELD_LOADERS = {
+        id: PrimitiveLoader::STRING.optional,
+        label: PrimitiveLoader::STRING.optional,
+        doc: PrimitiveLoader::STRING.optional,
+        requirements: NeverLoader::UNSUPPORTED,
+        hints: NeverLoader::UNSUPPORTED,
+        cwlVersion: EnumLoader.new("1.0", "1.1", "1.2"),
+        intent: NeverLoader::UNSUPPORTED,
+        class: EnumLoader.new("Operation"),
+        inputs: InputParameter.loader.as_mapped_array('id', 'type'),
+        outputs: OutputParameter.loader.as_mapped_array('id', 'type'),
+    }
+  end
+
+  class Step < Cwl
+    FIELD_LOADERS = {
+        id: PrimitiveLoader::STRING.optional,
+        label: PrimitiveLoader::STRING.optional,
+        doc: PrimitiveLoader::STRING.optional,
+        in: StepInput.loader.as_mapped_array('id', 'source'),
+        out: StepOutput.loader.or(PrimitiveLoader::STRING.map { |id| StepOutput.loader.load({'id' => id}) }).as_array,
+        requirements: NeverLoader::UNSUPPORTED,
+        hints: NeverLoader::UNSUPPORTED,
+        run: PrimitiveLoader::STRING.map { |id| Operation.loader.load({'id' => id}) }.or(Operation.loader),
+        when: NeverLoader::UNSUPPORTED,
+        scatter: NeverLoader::UNSUPPORTED,
+        scatterMethod: NeverLoader::UNSUPPORTED,
+    }
+
+    def id
+      @attributes['id']
+    end
+  end
+
   class Workflow < Cwl
     FIELD_LOADERS = {
         id: PrimitiveLoader::STRING.optional,
@@ -473,96 +604,17 @@ class Vulcan
         intent: NeverLoader::UNSUPPORTED,
         class: EnumLoader.new("Workflow"),
         cwlVersion: EnumLoader.new("1.0", "1.1", "1.2"),
-        inputs: InputParameter.loader.as_mapped_array('id', 'type'),
-        outputs: OutputParameter.loader.as_mapped_array('id', 'type'),
+        inputs: WorkflowInputParamter.loader.as_mapped_array('id', 'type'),
+        outputs: WorkflowOutputParameter.loader.as_mapped_array('id', 'type'),
         steps: Step.loader.as_mapped_array('id', 'source')
     }
 
+    def inputs
+      @attributes['inputs']
+    end
+
     def steps
       @attributes['steps']
-    end
-
-    class StepOutput < Cwl
-      FIELD_LOADERS = {
-          id: PrimitiveLoader::STRING,
-      }
-    end
-
-    class InputParameter < Cwl
-      FIELD_LOADERS = {
-          id: PrimitiveLoader::STRING.optional,
-          label: PrimitiveLoader::STRING.optional,
-          secondaryFiles: NeverLoader::UNSUPPORTED,
-          streamable: NeverLoader::UNSUPPORTED,
-          loadContents: NeverLoader::UNSUPPORTED,
-          loadListing: NeverLoader::UNSUPPORTED,
-          valueFrom: NeverLoader::UNSUPPORTED,
-          doc: PrimitiveLoader::STRING.optional,
-
-          type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
-          default: AnyLoader::ANY.optional,
-          format: PrimitiveLoader::STRING.optional,
-      }
-    end
-
-    class OutputParameter < Cwl
-      FIELD_LOADERS = {
-          id: PrimitiveLoader::STRING.optional,
-          label: PrimitiveLoader::STRING.optional,
-          secondaryFiles: NeverLoader::UNSUPPORTED,
-          streamable: NeverLoader::UNSUPPORTED,
-          doc: PrimitiveLoader::STRING.optional,
-
-          outputBinding: NeverLoader::UNSUPPORTED,
-          type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
-          format: PrimitiveLoader::STRING.optional,
-      }
-    end
-
-
-    class StepInput < Cwl
-      FIELD_LOADERS = {
-          id: PrimitiveLoader::STRING.optional,
-          source: SourceLoader.optional,
-          label: PrimitiveLoader::STRING.optional,
-          linkMerge: NeverLoader::UNSUPPORTED,
-          pickValue: NeverLoader::UNSUPPORTED,
-          loadContents: NeverLoader::UNSUPPORTED,
-          loadListing: NeverLoader::UNSUPPORTED,
-          valueFrom: NeverLoader::UNSUPPORTED,
-          default: AnyLoader::ANY.optional,
-      }
-    end
-
-    class Operation < Cwl
-      FIELD_LOADERS = {
-          id: PrimitiveLoader::STRING.optional,
-          label: PrimitiveLoader::STRING.optional,
-          doc: PrimitiveLoader::STRING.optional,
-          requirements: NeverLoader::UNSUPPORTED,
-          hints: NeverLoader::UNSUPPORTED,
-          cwlVersion: EnumLoader.new("1.0", "1.1", "1.2"),
-          intent: NeverLoader::UNSUPPORTED,
-          class: EnumLoader.new("Operation"),
-          inputs: InputParameter.loader.as_mapped_array('id', 'type'),
-          outputs: OutputParameter.loader.as_mapped_array('id', 'type'),
-      }
-    end
-
-    class Step < Cwl
-      FIELD_LOADERS = {
-          id: PrimitiveLoader::STRING.optional,
-          label: PrimitiveLoader::STRING.optional,
-          doc: PrimitiveLoader::STRING.optional,
-          in: StepInput.loader.as_mapped_array('id', 'source'),
-          out: StepOutput.loader.or(PrimitiveLoader::STRING.map { |id| StepOutput.loader.load({'id': id}) }).as_array,
-          requirements: NeverLoader::UNSUPPORTED,
-          hints: NeverLoader::UNSUPPORTED,
-          run: PrimitiveLoader::STRING.map { |id| Operation.loader.load({'id': id}) }.or(Workflow.loader, Operation.loader),
-          when: NeverLoader::UNSUPPORTED,
-          scatter: NeverLoader::UNSUPPORTED,
-          scatterMethod: NeverLoader::UNSUPPORTED,
-      }
     end
   end
 end

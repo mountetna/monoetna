@@ -48,7 +48,7 @@ class RunRequest:
     script: str
     input_files: List[StorageFile] = field(default_factory=list)
     output_files: List[StorageFile] = field(default_factory=list)
-    environment: List[str] = field(default_factory=list)
+    environment: List[str] = field(defaultlt_factory=list)
     image: str = "archimedes"
     isolator: str = "docker"
 
