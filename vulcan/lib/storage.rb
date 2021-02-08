@@ -4,20 +4,28 @@ require 'fileutils'
 
 class Vulcan
   module Storage
-    # Data is namespaced per project, just like workflows and anything else, to make data access authorization much simpler.
-    # You need project access to fetch any file under that path.
-    def self.data_url(project_name:, cell_hash:, data_filename:)
-      vulcan_host = Vulcan.instance.config(:vulcan)[:host]
-      "#{vulcan_host}/api/#{project_name}/data/#{cell_hash}/#{data_filename}"
+    attr_accessor :data_root, :data_host
+
+    def initialize(
+        data_host: Vulcan.instance.config(:vulcan)[:host],
+        data_root: Vulcan.instance.config(:data_path)
+    )
+      @data_host = data_host
+      @data_root = data_root
     end
 
-    def self.cell_data_path(project_name:, cell_hash:, prefix: "built")
-      data_path = Vulcan.instance.config(:data_path)
-      "#{data_path}/#{prefix}/#{project_name}/#{cell_hash}"
+    # Data is namespaced per project, just like workflows and anything else, to make data access authorization much simpler.
+    # You need project access to fetch any file under that path.
+    def data_url(project_name:, cell_hash:, data_filename:)
+      "#{data_host}/api/#{project_name}/data/#{cell_hash}/#{data_filename}"
+    end
+
+    def cell_data_path(project_name:, cell_hash:, prefix: "built")
+      "#{data_root}/#{prefix}/#{project_name}/#{cell_hash}"
     end
 
     # Finalized location for built outputs
-    def self.data_path(project_name:, cell_hash:, data_filename:, prefix: "built")
+    def data_path(project_name:, cell_hash:, data_filename:, prefix: "built")
       "#{cell_data_path(project_name: project_name, cell_hash: cell_hash, prefix: prefix)}/#{data_filename}"
     end
 
@@ -26,11 +34,12 @@ class Vulcan
     # build system.  After a successful invocation, places the temporary files into their true output locations.
     # When we move to a real scheduler, this 'finalization' logic will exist somewhere else (perhaps as a separate
     # endpoint for jobs to invoke themselves)
-    def self.with_output_transaction(project_name:, input_files:, output_filenames:, session_key:, script: nil, raw: nil, &block)
-      ch = cell_hash(
+    def with_build_transaction(project_name:, input_files:, output_filenames:, session_key:, script: nil, raw_hash: nil, &block)
+      ch = Storage.cell_hash(
           project_name: project_name, input_files: input_files,
           output_filenames: output_filenames, session_key: session_key,
-          script: script, raw: raw
+          script: script,
+          raw_hash: raw_hash,
       )
 
       build_dir = cell_data_path(project_name: project_name, cell_hash: ch, prefix: 'tmp')
@@ -67,33 +76,62 @@ class Vulcan
         @logical_name = logical_name
       end
 
-      def as_logical_key
-        "#{project_name}/#{cell_hash}/#{data_filename}/#{logical_name}"
+      def as_json
+        {
+            project_name: @project_name,
+            cell_hash: @cell_hash,
+            data_filename: @data_filename,
+            logical_name: @logical_name,
+        }
       end
 
-      def data_path(**args)
-        Storage.data_path(project_name: project_name, cell_hash: cell_hash, data_filename: data_filename, **args)
+      def data_path(storage, **args)
+        storage.data_path(project_name: project_name, cell_hash: cell_hash, data_filename: data_filename, **args)
       end
 
-      def to_archimedes_storage_file
-        "#{logical_name}:#{data_path}"
+      def to_archimedes_storage_file(storage)
+        "#{logical_name}:#{data_path(storage)}"
       end
     end
 
-    def self.cell_hash(project_name:, input_files:, output_filenames:, session_key:, script_or_raw_hash:)
+    def self.cell_hash(project_name:, input_files:, output_filenames:, session_key:, script: nil, raw_hash: nil)
       unless input_files.map(&:project_name).all? { |v| v == project_name }
         raise "input files are mixed across projects, they must all belong to #{project_name}"
       end
 
-      keys = input_files.map(&:as_logical_key)
-      keys.push(*output_filenames)
-      keys << project_name
-      keys << script_or_raw_hash
-      keys << session_key
-      # Sort so that input ordering does not change
-      keys.sort!
+      input_files = input_files.dup.sort_by(&:logical_name)
+      output_filenames = output_filenames.dup.sort
 
-      Digest::SHA1.hexdigest(keys.map { |k| URI.encode_www_form_component(k) }.join("&"))
+      hash_json_obj({
+          project_name: project_name,
+          input_files: input_files,
+          output_filenames: output_filenames,
+          session_key: session_key,
+          script: script,
+          raw_hash: raw_hash,
+      })
+    end
+
+    def self.hash_json_obj(obj)
+      parts = []
+      q = [['root', obj]]
+
+      until q.empty?
+        k, val = q.shift
+        val = val.as_json if val.respond_to?(:as_json)
+
+        if val.is_a?(Hash)
+          val.keys.sort.each do |subk|
+            q << ["#{k}.#{subk}", val[subk]]
+          end
+        elsif val.is_a?(Array)
+          val.each_with_index { |val, i| q << ["#{k}[#{i}]", val] }
+        else
+          parts << "#{k}=#{JSON.dump(val)}"
+        end
+      end
+
+      Digest::SHA1.hexdigest(parts.join('&'))
     end
   end
 end

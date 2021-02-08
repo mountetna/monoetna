@@ -519,7 +519,7 @@ module Etna
 
   class WorkflowInputParameter < Cwl
     FIELD_LOADERS = {
-        id: PrimitiveLoader::STRING.optional,
+        id: PrimitiveLoader::STRING,
         label: PrimitiveLoader::STRING.optional,
         secondaryFiles: NeverLoader::UNSUPPORTED,
         streamable: NeverLoader::UNSUPPORTED,
@@ -553,6 +553,10 @@ module Etna
         valueFrom: NeverLoader::UNSUPPORTED,
         default: AnyLoader::ANY.optional,
     }
+
+    def id
+      @attributes['id']
+    end
 
     def source
       @attributes['source']
@@ -604,7 +608,7 @@ module Etna
         intent: NeverLoader::UNSUPPORTED,
         class: EnumLoader.new("Workflow"),
         cwlVersion: EnumLoader.new("1.0", "1.1", "1.2"),
-        inputs: WorkflowInputParamter.loader.as_mapped_array('id', 'type'),
+        inputs: WorkflowInputParameter.loader.as_mapped_array('id', 'type'),
         outputs: WorkflowOutputParameter.loader.as_mapped_array('id', 'type'),
         steps: Step.loader.as_mapped_array('id', 'source')
     }
