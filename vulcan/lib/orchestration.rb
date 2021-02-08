@@ -8,6 +8,22 @@ class Vulcan
       @session = session
     end
 
+    MAX_RUNNABLE = 20
+
+    def run!
+      i = 0
+      # Because this is synchronous right now, and we want to prevent any bad code causing infinite loop
+      # that consumes all system resources, we restrict ourselves to a maximum of 20 iterations to complete work.
+      # In a future async sysystem this restriction can go away.
+      until (runnable = find_runnable_steps.find { |s| !s.nil? }).nil? or (i += 1) > MAX_RUNNABLE
+        step = workflow.find_step(runnable)
+        input_files = input_files_for(step)
+        output_files = output_files_for(step)
+
+
+      end
+    end
+
     # Returns a list of lists, describing the dependency between steps, primary inputs, and primary outputs.
     # Each inner list is a unique path in side of the workflow starting a primary_inputs and terminating
     # at either a primary_output or a step that is not used as an input the workflow
@@ -30,7 +46,10 @@ class Vulcan
     end
 
 
-    def self.find_runnable_steps
+    # For each unique branching path in the system, maps to the next step_name in that branch that is ready for
+    # execution.  Preserves the ordering and structure of unique paths; for any path that has no ready step,
+    # the mapped value is nil.
+    def find_runnable_steps
       unique_paths.map do |path|
         path.find do |step_name|
           step = workflow.find_step(step_name)
@@ -51,6 +70,9 @@ class Vulcan
       step.out.map { |step_output| create_output_storage_file(step.id, step_output.id) }
     end
 
+    # This version of cell_hash translates a CWL step belonging to the pair of (workflow, session) into a hash
+    # in the storage system by combining inputs that are outputs of the current session+workflow and any user
+    # specified inputs of the session.
     def cell_hash(step_name)
       if session.include?(step)
         return session.outputs_hash_for(step)
@@ -83,6 +105,8 @@ class Vulcan
       )
     end
 
+    # Convenience method that wraps up a step's input in a Storage::StorageFile by computing it's containing
+    # cell hash and assigning it data and logical names.
     def self.create_input_storage_file(input_name, source)
       step_name, output_file = source
       ch = cell_hash(step_name)
@@ -95,6 +119,8 @@ class Vulcan
       )
     end
 
+    # Convenience method that wraps up a step's output in a Storage::StorageFile by computing it's containing
+    # cell hash and assigning it data and logical names.
     def create_output_storage_file(step_name, output_name)
       ch = cell_hash(step_name)
 

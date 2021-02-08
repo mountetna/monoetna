@@ -16,7 +16,7 @@ class Session
 
   def orchestration
     return nil if workflow.nil?
-    @orchestration ||= Vulcan::Orchestration.new(workflow, session)
+    @orchestration ||= Vulcan::Orchestration.new(workflow, self)
   end
 
   def define_user_input(step_name, output_name, hash)
