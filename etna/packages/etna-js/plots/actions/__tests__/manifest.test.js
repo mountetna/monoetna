@@ -1,8 +1,13 @@
-import * as actions from '../../../lib/client/jsx/actions/manifest_actions';
-import {plot} from '../fixtures/all_manifests_response';
-import {manifestStore, manifest} from '../fixtures/manifests_store';
-import manifestResp from '../fixtures/manifest_response';
-import {mockStore, mockDate, mockFetch, stubUrl, cleanStubs} from '../helpers';
+import * as actions from '../manifest_actions';
+import {manifestStore, manifest} from '../../../spec/fixtures/manifests_store';
+import manifestResp from '../../../spec/fixtures/manifest_response';
+import {
+  mockStore,
+  mockDate,
+  mockFetch,
+  stubUrl,
+  cleanStubs
+} from '../../../spec/helpers';
 
 const PROJECT_NAME = 'labors';
 
