@@ -97,8 +97,9 @@ module Etna
 
           dest_file = File.join(dest_dir, metadata_file_name(record_name: record[template.identifier], record_model_name: template.name, ext: '.json'))
           filesystem.mkdir_p(File.dirname(dest_file))
-          filesystem.with_writeable(dest_file, "w") do |io|
-            io.write(record_to_serialize.to_json)
+          json = record_to_serialize.to_json
+          filesystem.with_writeable(dest_file, "w", size_hint: json.bytes.length) do |io|
+            io.write(json)
           end
         end
 
