@@ -50,6 +50,40 @@ class Magma(object):
         janusUrl = self._url.replace('magma', 'janus')
         return ('/'.join([janusUrl, 'projects']))
 
+    def getContent(self, response):
+        '''
+        An abstraction to
+        :param response:
+        :return:
+        '''
+        if self.type == "exp_file":
+            # don't use the decoded r.text
+            return r.content
+        if self.type == "version":
+            return r.content
+        # pylint: disable=lost-exception
+        if self.fmt == "json":
+            content = {}
+            # Decode
+            try:
+                # Watch out for bad/empty json
+                content = json.loads(r.text, strict=False)
+            except ValueError as e:
+                if not self.expect_empty_json():
+                    # reraise for requests that shouldn't send empty json
+                    raise ValueError(e) from e
+            finally:
+                return content
+        # pylint: enable=lost-exception
+        return r.text
+
+
+
+
+
+
+
+
 
     # TODO functions
     def get_projects(self) -> List[str]:
@@ -117,28 +151,6 @@ class RCRequest(object):
         content = self.get_content(response)
         return content, response.headers
 
-    def get_content(self, response):
-        """Abstraction for grabbing content from a returned response"""
-        if self.type == "exp_file":
-            # don't use the decoded r.text
-            return r.content
-        if self.type == "version":
-            return r.content
-        # pylint: disable=lost-exception
-        if self.fmt == "json":
-            content = {}
-            # Decode
-            try:
-                # Watch out for bad/empty json
-                content = json.loads(r.text, strict=False)
-            except ValueError as e:
-                if not self.expect_empty_json():
-                    # reraise for requests that shouldn't send empty json
-                    raise ValueError(e) from e
-            finally:
-                return content
-        # pylint: enable=lost-exception
-        return r.text
 
     # pylint: enable=invalid-name
 

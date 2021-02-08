@@ -1,5 +1,5 @@
 from unittest import TestCase
-from ..magmaPy.Magma import *
+from ..magby.Magma import *
 
 
 class TestMagma(TestCase):
