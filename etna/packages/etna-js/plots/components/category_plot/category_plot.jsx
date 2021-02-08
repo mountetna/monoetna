@@ -52,6 +52,8 @@ const SeriesComponent = ({
 }) => {
   let Component = COMPONENTS[series.series_type];
 
+  if (null === Component) return null;
+
   // the basic width cuts the bandwidth into even strips for each series
   //
   let gutter_size = empty(gutter) ? 8 : parseInt(gutter);
@@ -63,15 +65,13 @@ const SeriesComponent = ({
   );
   let offset = gutter_size + (width + gap_size) * index;
   return (
-    Component && (
-      <Component
-        xScale={xScale}
-        width={width}
-        offset={offset}
-        series={series}
-        {...props}
-      />
-    )
+    <Component
+      xScale={xScale}
+      width={width}
+      offset={offset}
+      series={series}
+      {...props}
+    />
   );
 };
 
