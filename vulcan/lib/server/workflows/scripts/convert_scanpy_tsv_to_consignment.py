@@ -60,31 +60,77 @@ import tempfile
 from pathlib import Path
 
 
-class Matrix:
-    def __init__(self, filename):
-        pass
-
+class Base:
     @staticmethod
-    def json():
-        pass
+    def cast(datum):
+        try:
+            return float(datum)
+        except:
+            return datum
 
 
-class Vector:
+class Matrix(Base):
     def __init__(self, filename):
-        pass
+        self.filename = filename
 
-    @staticmethod
-    def json():
-        pass
+    def json(self):
+        with open(self.filename, 'r') as input_file:
+            reader = csv.reader(input_file, delimiter="\t")
+
+            file_output_data = {
+                "rows": []
+            }
+            headers = False
+            row_names = []
+            for row in reader:
+                row_data = row[1:]
+                if not headers:
+                    headers = True
+                    file_output_data["col_names"] = row_data
+                    file_output_data["num_cols"] = len(row_data)
+                    continue
+                row_names.append(row[0])
+
+                numeric_row = []
+                for datum in row_data:
+                    numeric_row.append(self.cast(datum))
+
+                file_output_data["rows"].append(numeric_row)
+            file_output_data["num_rows"] = len(row_names)
+            file_output_data["row_names"] = row_names
+
+            return {
+                "matrix": file_output_data
+            }
+
+
+class Vector(Base):
+    def __init__(self, filename):
+        self.filename = filename
+
+    def json(self):
+        with open(self.filename, 'r') as input_file:
+            reader = csv.reader(input_file, delimiter="\t")
+
+            file_output_data = []
+            for row in reader:
+                file_output_data.append({
+                    "label": row[0],
+                    "value": self.cast(row[1])
+                })
+
+            return {
+                "vector": file_output_data
+            }
 
 
 def isMatrix(csv_reader):
     """ Stupid test -- if row[0], col[0] is empty, is a matrix?
-        otherwise is a label for a vector? """
+        otherwise is a label for a vector if only 2 rows? """
     for row in csv_reader:
-        if "" == row[0]:
-            return False
-        return True
+        if "" == row[0].strip() or len(row) > 2:
+            return True
+        return False
 
 
 def convert_tsv_to_json(inputs, output):
@@ -99,41 +145,20 @@ def convert_tsv_to_json(inputs, output):
                     data_class = Matrix(input_filename)
                 else:
                     data_class = Vector(input_filename)
-                file_output_data = {
-                    "rows": []
-                }
-                headers = False
-                row_names = []
-                for row in reader:
-                    row_data = row[1:]
-                    if not headers:
-                        headers = True
-                        file_output_data["col_names"] = row_data
-                        file_output_data["num_cols"] = len(row_data)
-                        continue
-                    row_names.append(row[0])
 
-                    numeric_row = []
-                    for datum in row_data:
-                        try:
-                            numeric_row.append(float(datum))
-                        except:
-                            numeric_row.append(datum)
-
-                    file_output_data["rows"].append(numeric_row)
-                file_output_data["num_rows"] = len(row_names)
-                file_output_data["row_names"] = row_names
-
-                output_data[basename] = file_output_data.copy()
+                output_data[basename] = data_class.json()
         json.dump(output_data, output_file, indent=2)
         return output_data
 
 
 def test_convert():
     results = convert_tsv_to_json(
-        ["fixtures/data.tsv"], tempfile.NamedTemporaryFile().name)
+        ["fixtures/matrix_data.tsv",
+         "fixtures/matrix2_data.tsv",
+         "fixtures/vector_data.tsv"], tempfile.NamedTemporaryFile().name)
+
     assert (results == {
-        "data": {
+        "matrix_data": {
             "matrix": {
                 "num_rows": 2,
                 "row_names": [
@@ -154,6 +179,37 @@ def test_convert():
                     "col2"
                 ]
             }
+        },
+        "matrix2_data": {
+            "matrix": {
+                "num_rows": 2,
+                "row_names": [
+                    "row1",
+                    "row2"
+                ],
+                "num_cols": 2,
+                "rows": [
+                    [
+                        1, 0
+                    ],
+                    [
+                        0, 1
+                    ]
+                ],
+                "col_names": [
+                    "col1",
+                    "col2"
+                ]
+            }
+        },
+        "vector_data": {
+            "vector": [{
+                "label": "label1",
+                "value": 2
+            }, {
+                "label": "label2",
+                "value": 4.321
+            }]
         }
     })
 
