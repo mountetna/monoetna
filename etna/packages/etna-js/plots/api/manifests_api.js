@@ -1,20 +1,21 @@
 // Module imports.
-import {headers, checkStatus} from 'etna-js/utils/fetch';
+import {headers, checkStatus} from '../../utils/fetch';
 
-export const fetchManifests = (exchange)=>{
+export const fetchManifests = (exchange) => {
   let route_opts = {
     credentials: 'same-origin',
     method: 'GET',
     headers: headers('json', 'csrf')
   };
 
-  let exchangePromise = exchange.fetch(Routes.manifests_fetch_path(CONFIG.project_name), route_opts)
+  let exchangePromise = exchange
+    .fetch(Routes.manifests_fetch_path(CONFIG.project_name), route_opts)
     .then(checkStatus);
 
   return exchangePromise;
 };
 
-export const createManifest = (manifest, exchange)=>{
+export const createManifest = (manifest, exchange) => {
   let route_opts = {
     credentials: 'same-origin',
     method: 'POST',
@@ -22,13 +23,14 @@ export const createManifest = (manifest, exchange)=>{
     body: JSON.stringify(manifest)
   };
 
-  let exchangePromise = exchange.fetch(Routes.manifests_create_path(CONFIG.project_name), route_opts)
+  let exchangePromise = exchange
+    .fetch(Routes.manifests_create_path(CONFIG.project_name), route_opts)
     .then(checkStatus);
 
   return exchangePromise;
 };
 
-export const updateManifest = (manifestUpdates, manifest_id, exchange)=>{
+export const updateManifest = (manifestUpdates, manifest_id, exchange) => {
   let route_opts = {
     credentials: 'same-origin',
     method: 'POST',
@@ -36,27 +38,34 @@ export const updateManifest = (manifestUpdates, manifest_id, exchange)=>{
     body: JSON.stringify(manifestUpdates)
   };
 
-  let exchangePromise = exchange.fetch(Routes.manifests_update_path(CONFIG.project_name, manifest_id), route_opts)
+  let exchangePromise = exchange
+    .fetch(
+      Routes.manifests_update_path(CONFIG.project_name, manifest_id),
+      route_opts
+    )
     .then(checkStatus);
 
   return exchangePromise;
 };
 
-export const destroyManifest = (manifest_id, exchange)=>{
+export const destroyManifest = (manifest_id, exchange) => {
   let route_opts = {
     credentials: 'same-origin',
     method: 'DELETE',
     headers: headers('json', 'csrf')
   };
 
-  let exchangePromise = exchange.fetch(Routes.manifests_destroy_path(CONFIG.project_name, manifest_id), route_opts)
+  let exchangePromise = exchange
+    .fetch(
+      Routes.manifests_destroy_path(CONFIG.project_name, manifest_id),
+      route_opts
+    )
     .then(checkStatus);
 
   return exchangePromise;
 };
 
-export const getConsignments = (queries, exchange)=>{
-
+export const getConsignments = (queries, exchange) => {
   let route_opts = {
     method: 'POST',
     credentials: 'same-origin',
@@ -64,14 +73,18 @@ export const getConsignments = (queries, exchange)=>{
     body: JSON.stringify({queries})
   };
 
-  let exchangePromise = exchange.fetch(Routes.consignment_path(CONFIG.project_name), route_opts)
+  let exchangePromise = exchange
+    .fetch(Routes.consignment_path(CONFIG.project_name), route_opts)
     .then(checkStatus);
 
   return exchangePromise;
 };
 
-export const getConsignmentsByManifestId = (manifest_ids, record_name, exchange)=>{
-
+export const getConsignmentsByManifestId = (
+  manifest_ids,
+  record_name,
+  exchange
+) => {
   let route_opts = {
     method: 'POST',
     credentials: 'same-origin',
@@ -79,7 +92,8 @@ export const getConsignmentsByManifestId = (manifest_ids, record_name, exchange)
     body: JSON.stringify({manifest_ids, record_name})
   };
 
-  let exchangePromise = exchange.fetch(Routes.consignment_path(CONFIG.project_name), route_opts)
+  let exchangePromise = exchange
+    .fetch(Routes.consignment_path(CONFIG.project_name), route_opts)
     .then(checkStatus);
 
   return exchangePromise;
