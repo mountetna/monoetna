@@ -3,12 +3,12 @@ require 'fileutils'
 
 
 class Vulcan
-  module Storage
+  class Storage
     attr_accessor :data_root, :data_host
 
     def initialize(
         data_host: Vulcan.instance.config(:vulcan)[:host],
-        data_root: Vulcan.instance.config(:data_path)
+        data_root: Vulcan.instance.config(:data_folder)
     )
       @data_host = data_host
       @data_root = data_root
@@ -34,14 +34,7 @@ class Vulcan
     # build system.  After a successful invocation, places the temporary files into their true output locations.
     # When we move to a real scheduler, this 'finalization' logic will exist somewhere else (perhaps as a separate
     # endpoint for jobs to invoke themselves)
-    def with_build_transaction(project_name:, input_files:, output_filenames:, session_key:, script: nil, raw_hash: nil, &block)
-      ch = Storage.cell_hash(
-          project_name: project_name, input_files: input_files,
-          output_filenames: output_filenames, session_key: session_key,
-          script: script,
-          raw_hash: raw_hash,
-      )
-
+    def with_build_transaction(project_name:, ch:, output_filenames:, &block)
       build_dir = cell_data_path(project_name: project_name, cell_hash: ch, prefix: 'tmp')
       outputs_dir = cell_data_path(project_name: project_name, cell_hash: ch)
 
@@ -52,8 +45,8 @@ class Vulcan
       ::FileUtils.mkdir_p(build_dir)
 
       output_storage_files = output_filenames.map do |filename|
-        StorageFile.new(project_name: project_name, cell_hash: ch, data_filename: filename, logical_name: filename).tap do |sf|
-          ::File.touch(sf.data_path(prefix: 'tmp'))
+        StorageFile.new(project_name: project_name, cell_hash: ch, data_filename: filename, logical_name: filename, prefix: 'tmp').tap do |sf|
+          ::FileUtils.touch(sf.data_path(self))
         end
       end
 
@@ -67,13 +60,14 @@ class Vulcan
       # Logical name is simply a mapping between the canonical filename and the filename used inside of the cell context
       # For output files, these are the same
       # For input files, these are different
-      attr_accessor :project_name, :cell_hash, :data_filename, :logical_name
+      attr_accessor :project_name, :cell_hash, :data_filename, :logical_name, :prefix
 
-      def initialize(project_name:, cell_hash:, data_filename:, logical_name:)
+      def initialize(project_name:, cell_hash:, data_filename:, logical_name:, prefix: "built")
         @project_name = project_name
         @cell_hash = cell_hash
         @data_filename = data_filename
         @logical_name = logical_name
+        @prefix = prefix
       end
 
       def as_json
@@ -85,8 +79,8 @@ class Vulcan
         }
       end
 
-      def data_path(storage, **args)
-        storage.data_path(project_name: project_name, cell_hash: cell_hash, data_filename: data_filename, **args)
+      def data_path(storage)
+        storage.data_path(project_name: project_name, cell_hash: cell_hash, data_filename: data_filename, prefix: prefix)
       end
 
       def to_archimedes_storage_file(storage)
@@ -126,8 +120,10 @@ class Vulcan
           end
         elsif val.is_a?(Array)
           val.each_with_index { |val, i| q << ["#{k}[#{i}]", val] }
-        else
+        elsif val.nil? || val.is_a?(Numeric) || val.is_a?(String) || val.is_a?(TrueClass) || val.is_a?(FalseClass)
           parts << "#{k}=#{JSON.dump(val)}"
+        else
+          raise "#{val.class.name} is not json serializable"
         end
       end
 

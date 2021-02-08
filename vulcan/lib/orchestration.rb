@@ -48,7 +48,7 @@ class Vulcan
     end
 
     def output_files_for(step)
-      step.out.map { |step_output| self.create_output_storage_file(step.id, step_output.id) }
+      step.out.map { |step_output| create_output_storage_file(step.id, step_output.id) }
     end
 
     def cell_hash(step_name)
@@ -77,7 +77,7 @@ class Vulcan
       Storage.cell_hash(
           project_name: session.project_name,
           input_files: input_files,
-          output_filenames: step.out,
+          output_filenames: step.out.map(&:id),
           session_key: session.key,
           script: script,
       )

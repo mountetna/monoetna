@@ -43,4 +43,5 @@ default: &default
     :host: https://magma.test
   :vulcan:
     :host: https://vulcan.test
+  :data_folder: /app/spec/data
   :log_file: /dev/null
