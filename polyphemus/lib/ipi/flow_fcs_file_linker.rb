@@ -14,7 +14,8 @@ class IpiFlowFcsLinker < Etna::Clients::Magma::FileLinkingWorkflow
         metis_client: metis_client,
         project_name: project_name,
         bucket_name: bucket_name,
-        extension: 'fcs'
+        extension: 'fcs',
+        flow_fcs_only: true
       ).each do |fcs_file|
         file_path = fcs_file.file_path
         key = [{
