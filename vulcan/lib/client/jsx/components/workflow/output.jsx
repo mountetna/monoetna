@@ -82,13 +82,13 @@ export default function Output() {
   }, [outputData, outputIndex]);
 
   useEffect(() => {
-    if (viewIndex && 'raw' === Object.keys(viewOptions)[viewIndex]) {
+    if (viewIndex) {
       // We should change this hash to be the actual cell hash.
       invoke(addConsignment('some-cell-hash', outputData));
     }
-  }, [viewIndex, outputData]);
+  }, [viewIndex]);
 
-  let viewOption = Object.keys(viewOptions)[viewIndex] || null;
+  let Component = viewOptions[Object.keys(viewOptions)[viewIndex]] || null;
 
   function handleOnSelectView(index) {
     setViewIndex(index);
@@ -114,11 +114,7 @@ export default function Output() {
           onSelect={handleOnSelectView}
         ></Dropdown>
       </div>
-      {'raw' === viewOption ? (
-        <Raw md5sum='some-cell-hash'></Raw>
-      ) : (
-        <Plot></Plot>
-      )}
+      {Component ? <Component md5sum='some-cell-hash'></Component> : null}
     </div>
   );
 }
