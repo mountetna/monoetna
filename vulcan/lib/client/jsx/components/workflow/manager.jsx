@@ -7,7 +7,7 @@ import Dropdown from 'etna-js/components/inputs/dropdown';
 
 import {VulcanContext} from '../../contexts/vulcan';
 import {getWorkflow, getWorkflows} from '../../api/vulcan';
-import OutputSelector from './output_selector';
+import Output from './output';
 
 const loadingDiv = (
   <div className='browser'>
@@ -89,7 +89,7 @@ export default function Manager() {
             : "You'll see a list of steps here once you select a workflow."}
         </ol>
       </div>
-      <OutputSelector></OutputSelector>
+      <Output></Output>
     </div>
   );
 }
