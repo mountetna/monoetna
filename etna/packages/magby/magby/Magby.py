@@ -1,3 +1,11 @@
+from typing import List
+import json
+import pandas as pd
+import os
+import pickle
+import pprint
+import re
+
 class Magby(object):
     def __init__(self, url, token):
         self._url = url.strip('/')
@@ -23,6 +31,13 @@ class Magby(object):
     def token(self) -> None:
         del self._token
 
+
+
+
+
+    # TODO functions
+    def get_projects(self) -> List[str]:
+        pass    # TODO get project names
     def _janusProjects(self) -> str:
         janusUrl = self._url.replace('magma', 'janus')
         return ('/'.join([janusUrl, 'projects']))

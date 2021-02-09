@@ -1,11 +1,5 @@
-import json
-import pandas as pd
-import os
-import pickle
-import pprint
-import re
 from io import BytesIO
-from typing import List, Dict, Tuple, Union
+from typing import Dict, Tuple, Union
 import json
 from requests import RequestException, Session
 
@@ -46,11 +40,11 @@ class Magma(object):
         return switch[self._fmt](response)
 
 
-    def _parseJSON(self, response):
+    def _parseJSON(self, response) -> Dict:
         return json.loads(response.text, strict=False)
 
 
-    def _parseBytes(self, response):
+    def _parseBytes(self, response) -> BytesIO:
         return BytesIO(response.content)
 
 
@@ -65,10 +59,10 @@ class Magma(object):
         content = self.getResponseContent(response)
         return content, response.headers
 
-    # TODO functions
-    def get_projects(self) -> List[str]:
-        pass    # TODO get project names
 
+
+
+    # TODO functions
     def _validUrl(self, url: str) -> bool:
         pass    # TODO implement URL validation
 
