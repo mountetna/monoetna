@@ -36,12 +36,23 @@ module Etna
           documents = Documents.new({})
           last_page = nil
           while last_page.nil? || last_page.models.model_keys.map { |k| last_page.models.model(k).documents.raw.length }.sum > 0
-            begin
-              last_page = magma_client.retrieve(request)
-            rescue Etna::Error => e
-              raise e unless e.message.include?('not found')
-              break
+            # TODO: Add better retry logic.  This is here only to fix a particularly nutty GNE upload that involves paging
+            # when there is a high probability of incidental read timeouts.
+            no_more_pages = false
+            5.times do |attempt|
+              begin
+                last_page = magma_client.retrieve(request)
+                break
+              rescue Etna::Error => e
+                raise e unless e.message.include?('not found')
+                no_more_pages = true
+                break
+              rescue => e
+                raise e if attempt == 4
+              end
             end
+
+            break if no_more_pages
 
             documents += last_page.models.model(model_name).documents unless block_given?
             yield last_page if block_given?
