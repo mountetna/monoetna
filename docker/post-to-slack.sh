@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -e
-
 NAME="$1"
 CHANNEL="$2"
 MSG="$3"
