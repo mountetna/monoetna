@@ -7,6 +7,14 @@ describe WorkflowsController do
     OUTER_APP
   end
 
+  describe 'loading' do
+    ::Dir.glob(::File.join(::File.dirname(__FILE__), '..', 'lib', 'server', 'workflows', '*.{yaml,yml,cwl}')).each do |yml|
+      it "#{yml} works" do
+        Etna::Workflow.from_yaml_file(File.basename(yml))
+      end
+    end
+  end
+
   context '#fetch' do
     it 'gets a list of workflows' do
       auth_header(:viewer)

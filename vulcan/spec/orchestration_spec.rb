@@ -1,4 +1,4 @@
 describe Vulcan::Orchestration do
-  context '#fetch' do
+  context '#find_build_targets' do
   end
 end

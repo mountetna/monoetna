@@ -34,7 +34,9 @@ class Vulcan
     # build system.  After a successful invocation, places the temporary files into their true output locations.
     # When we move to a real scheduler, this 'finalization' logic will exist somewhere else (perhaps as a separate
     # endpoint for jobs to invoke themselves)
-    def with_build_transaction(project_name:, ch:, output_filenames:, &block)
+    def with_build_transaction(buildable, &block)
+      project_name = buildable.project_name
+      ch = buildable.cell_hash
       build_dir = cell_data_path(project_name: project_name, cell_hash: ch, prefix: 'tmp')
       outputs_dir = cell_data_path(project_name: project_name, cell_hash: ch)
 
@@ -44,10 +46,10 @@ class Vulcan
 
       ::FileUtils.mkdir_p(build_dir)
 
-      output_storage_files = output_filenames.map do |filename|
-        StorageFile.new(project_name: project_name, cell_hash: ch, data_filename: filename, logical_name: filename, prefix: 'tmp').tap do |sf|
-          ::FileUtils.touch(sf.data_path(self))
-        end
+      output_storage_files = buildable.build_outputs.values.map do |sf|
+        sf = sf.with_prefix('tmp')
+        ::FileUtils.touch(sf.data_path(self))
+        sf
       end
 
       yield output_storage_files
@@ -79,8 +81,21 @@ class Vulcan
         }
       end
 
+      def with_prefix(prefix)
+        StorageFile.new(
+            project_name: project_name, cell_hash: cell_hash,
+            data_filename: data_filename, logical_name: logical_name,
+            prefix: prefix)
+      end
+
       def data_path(storage)
         storage.data_path(project_name: project_name, cell_hash: cell_hash, data_filename: data_filename, prefix: prefix)
+      end
+
+      def as_input(logical_name)
+        StorageFile.new(
+            project_name: project_name, cell_hash: cell_hash,
+            data_filename: data_filename, logical_name: logical_name)
       end
 
       def to_archimedes_storage_file(storage)
@@ -88,22 +103,94 @@ class Vulcan
       end
     end
 
-    def self.cell_hash(project_name:, input_files:, output_filenames:, session_key:, script: nil, raw_hash: nil)
-      unless input_files.map(&:project_name).all? { |v| v == project_name }
-        raise "input files are mixed across projects, they must all belong to #{project_name}"
+    class BuildTarget
+      attr_reader :script, :project_name, :input_files
+
+      def initialize(project_name:, session_key:, input_files:, output_filenames:, script:)
+        unless input_files.map(&:project_name).all? { |v| v == project_name }
+          raise "input files are mixed across projects, they must all belong to #{project_name}"
+        end
+
+        input_files = input_files.dup.sort_by(&:logical_name)
+        output_filenames = output_filenames.dup.sort
+
+        @project_name = project_name
+        @session_key = session_key
+        @input_files = input_files
+        @output_filenames = output_filenames
+        @script = script
       end
 
-      input_files = input_files.dup.sort_by(&:logical_name)
-      output_filenames = output_filenames.dup.sort
+      def cell_hash
+        @cell_hash ||= Storage.hash_json_obj({
+            project_name: @project_name,
+            input_files: @input_files,
+            output_filenames: @output_filenames,
+            session_key: @session_key,
+            script: @script,
+        })
+      end
 
-      hash_json_obj({
-          project_name: project_name,
-          input_files: input_files,
-          output_filenames: output_filenames,
-          session_key: session_key,
-          script: script,
-          raw_hash: raw_hash,
-      })
+      def build_outputs
+        @build_outputs ||= @output_filenames.map do |output_filename|
+          [output_filename,
+              StorageFile.new(
+                  project_name: @project_name, cell_hash: cell_hash,
+                  data_filename: output_filename, logical_name: output_filename
+              )]
+        end.to_h
+      end
+
+      def take_as_input(output_name, input_name)
+        build_outputs[output_name].as_input(input_name)
+      end
+
+      def is_buildable?(storage)
+        input_files.all? { |input_file| ::File.exists?(input_file.data_path(storage)) }
+      end
+
+      def is_built?(storage)
+        build_outputs.values.all? { |output_file| ::File.exists?(output_file.data_path(storage)) }
+      end
+
+      def should_build?(storage)
+        is_buildable?(storage) && !is_built?(storage)
+      end
+    end
+
+    class MaterialSource
+      attr_reader :project_name
+
+      def initialize(project_name:, session_key:, material_reference:)
+        @project_name = project_name
+        @session_key = session_key
+        @digest = Storage.hash_json_obj(material_reference)
+      end
+
+      def cell_hash
+        @cell_hash ||= Storage.hash_json_obj({
+            project_name: @project_name,
+            output_filenames: ['material.bin'],
+            session_key: @session_key,
+            digest: @digest,
+        })
+      end
+
+      def build_outputs
+        @build_outputs ||= {
+            'material.bin' =>
+                StorageFile.new(
+                  project_name: @project_name,
+                  cell_hash: cell_hash,
+                  data_filename: 'material.bin',
+                  logical_name: 'material.bin',
+              )
+          }
+      end
+
+      def take_as_input(input_name)
+        build_outputs.values.first.as_input(input_name)
+      end
     end
 
     def self.hash_json_obj(obj)
@@ -116,7 +203,7 @@ class Vulcan
 
         if val.is_a?(Hash)
           val.keys.sort.each do |subk|
-            q << ["#{k}.#{subk}", val[subk]]
+            q << ["#{k}.#{subk}", val[subk]] unless val[subk].nil?
           end
         elsif val.is_a?(Array)
           val.each_with_index { |val, i| q << ["#{k}[#{i}]", val] }

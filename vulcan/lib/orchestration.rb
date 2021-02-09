@@ -3,6 +3,7 @@ class Vulcan
   # Most of this logic will evolve outside of vulcan depending on where we land on orchestration.
   class Orchestration
     attr_reader :workflow, :session
+
     def initialize(workflow, session)
       @workflow = workflow
       @session = session
@@ -17,10 +18,8 @@ class Vulcan
       # In a future async sysystem this restriction can go away.
       until (runnable = find_runnable_steps.find { |s| !s.nil? }).nil? or (i += 1) > MAX_RUNNABLE
         step = workflow.find_step(runnable)
-        input_files = input_files_for(step)
-        output_files = output_files_for(step)
-
-
+        # input_files = input_files_for(step)
+        # output_files = output_files_for(step)
       end
     end
 
@@ -46,90 +45,76 @@ class Vulcan
     end
 
 
-    # For each unique branching path in the system, maps to the next step_name in that branch that is ready for
-    # execution.  Preserves the ordering and structure of unique paths; for any path that has no ready step,
-    # the mapped value is nil.
-    def find_runnable_steps
-      unique_paths.map do |path|
-        path.find do |step_name|
-          step = workflow.find_step(step_name)
-          input_files = input_files_for(step)
-          output_files = output_files_for(step)
+    def find_build_targets
+      build_target_cache = {}
 
-          input_files.all? { |input_file| ::File.exists?(input_file.data_path) } &&
-              output_files.any? { |output_file| ! ::File.exists?(output_file.data_path) }
+      unique_paths.map do |path|
+        path.map do |step_name|
+          step = workflow.find_step(step_name)
+          build_target_for(step.id, build_target_cache)
         end
       end
     end
 
-    def input_files_for(step)
-      step.in.map { |step_input| create_input_storage_file(step_input.id, step_input.source) }
+    # Combines any session given value for a primary input and the potential default that may be defined for it.
+    def material_reference_for_user_input(source, input)
+      if session.include?(source)
+        session.material_reference_for(source)
+      elsif input.default
+        {json_payload: JSON.dump(input.default)}
+      else
+        {unfulfilled: source}
+      end
     end
 
-    def output_files_for(step)
-      step.out.map { |step_output| create_output_storage_file(step.id, step_output.id) }
-    end
-
-    # This version of cell_hash translates a CWL step belonging to the pair of (workflow, session) into a hash
-    # in the storage system by combining inputs that are outputs of the current session+workflow and any user
-    # specified inputs of the session.
-    def cell_hash(step_name)
-      if session.include?(step)
-        return session.outputs_hash_for(step)
+    # Cache is used to save effort in computing common recursive targets within a single calculation session.
+    # Do not pass an actual value in for it.
+    def build_target_for(step_name, cache = {})
+      if cache.include?(step_name)
+        return cache[step_name]
       end
 
-      step = workflow.find_step(step_name)
-      return nil if step.nil?
+      cache[step_name] = begin
+        output_filenames = []
+        input_files = []
+        script = nil
 
-      input_files = []
-      step.in.each do |step_input|
-        inner_step, inner_output_name = step_input.source
-        ch = cell_hash(inner_step)
-        return nil if ch.nil?
+        if step_name == :primary_inputs
+          workflow.inputs.each do |input|
+            output_filenames << input.id
+            input_files << Storage::MaterialSource.new(
+                project_name: session.project_name, session_key: session.key,
+                material_reference: material_reference_for_user_input([:primary_inputs, input.id], input))
+          end
+        elsif step_name == :primary_outputs
+          workflow.outputs.each do |output|
+            output_filenames << output.id
 
-        input_files << Storage::StorageFile.new(
-            project_name: session.project_name, cell_hash: ch,
-            data_filename: inner_output_name, logical_name: step_input.id
+            source_step_name, source_output_name = output.outputSource
+            input_files << build_target_for(source_step_name, cache).take_as_input(source_output_name, output.id)
+          end
+        elsif (step = workflow.find_step(step_name))
+          step.out.each do |step_out|
+            output_filenames << step_out.id
+            if session.include?(step_name, step_out.id)
+              input_files << session.material_reference_for([step_name, step_out.id]).as_input(step_out.id)
+            end
+          end
+
+          step.in.each do |step_in|
+            source_step_name, source_output_name = step_in.source
+            input_files << build_target_for(source_step_name, cache).take_as_input(source_output_name, step_in.id)
+          end
+        end
+
+        Storage::BuildTarget.new(
+            project_name: session.project_name,
+            session_key: session.key,
+            input_files: input_files,
+            output_filenames: output_filenames,
+            script: script,
         )
       end
-
-      script = workflow.find_operation_script(step.id)
-      return nil if script.nil?
-
-      Storage.cell_hash(
-          project_name: session.project_name,
-          input_files: input_files,
-          output_filenames: step.out.map(&:id),
-          session_key: session.key,
-          script: script,
-      )
-    end
-
-    # Convenience method that wraps up a step's input in a Storage::StorageFile by computing it's containing
-    # cell hash and assigning it data and logical names.
-    def self.create_input_storage_file(input_name, source)
-      step_name, output_file = source
-      ch = cell_hash(step_name)
-
-      return nil if ch.nil?
-
-      Storage::StorageFile.new(
-          project_name: session.project_name, cell_hash: ch,
-          data_filename: output_file, logical_name: input_name
-      )
-    end
-
-    # Convenience method that wraps up a step's output in a Storage::StorageFile by computing it's containing
-    # cell hash and assigning it data and logical names.
-    def create_output_storage_file(step_name, output_name)
-      ch = cell_hash(step_name)
-
-      return nil if ch.nil?
-
-      Storage::StorageFile.new(
-          project_name: session.project_name, cell_hash: ch,
-          data_filename: output_name, logical_name: output_name,
-      )
     end
   end
 end

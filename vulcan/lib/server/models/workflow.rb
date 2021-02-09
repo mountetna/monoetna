@@ -1,9 +1,9 @@
 # Extends the base Etna::Workflow class with extra logic useful for
 module Etna
-  class Workflow
+  class Workflow < Cwl
     def self.from_yaml_file(filename)
-      attributes = YAML.safe_load(File.join(File.dirname(__FILE__), "../workflows/#{filename}"))
-      self.class.loader.load(attributes)
+      attributes = YAML.safe_load(::File.read(File.join(File.dirname(__FILE__), "../workflows/#{filename}")))
+      self.loader.load(attributes)
     end
 
     def find_step(step_name)
@@ -17,19 +17,38 @@ module Etna
     end
   end
 
-  class Step
+  class Step < Cwl
+    SCRIPT_REGEX = /^scripts\/(.*)$/
+    UI_QUERIES_REGEX = /^ui-queries\/(.*)$/
+
     def lookup_operation_script
+      return nil if script.nil?
+
+      # TODO: Run some type checking that the operation's inputs / outputs match the step.
+      script_path = File.join(File.dirname(__FILE__), "../scripts/#{script_name}.py")
+      if ::File.exists?(script_path)
+        run.load_attributes_from_script(script_path)
+        ::File.read(script_path)
+      end
+    end
+
+    def script_name
       run = @attributes['run']
       return nil if run.nil?
 
       if run.is_a?(Operation)
-        # TODO: Run some type checking that the operation's inputs / outputs match the step.
-        # Also, would be nice if
-        script_path = File.join(File.dirname(__FILE__), "../scripts/#{run.id}.py")
-        if ::File.exists?(script_path)
-          run.load_attributes_from_script(script_path)
-          return ::File.read(script_path)
-        end
+        m = SCRIPT_REGEX.match(run.id)
+        m.nil? ? nil : m[1]
+      end
+    end
+
+    def ui_query_name
+      run = @attributes['run']
+      return nil if run.nil?
+
+      if run.is_a?(Operation)
+        m = UI_QUERIES_REGEX.match(run.id)
+        m.nil? ? nil : m[1]
       end
     end
   end

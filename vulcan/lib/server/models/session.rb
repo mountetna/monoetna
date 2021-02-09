@@ -3,11 +3,24 @@
 class Session
   attr_reader :project_name, :workflow_name, :inputs, :key
 
-  def initialize(project_name, workflow_name, key, inputs = {primary_inputs: {}})
+  def initialize(project_name, workflow_name, key, inputs = {})
     @project_name = project_name
     @workflow_name = workflow_name
     @key = key
     @inputs = inputs
+  end
+
+  def as_json
+    {
+        project_name: project_name,
+        key: key,
+        inputs: inputs,
+        workflow_name: workflow_name,
+    }
+  end
+
+  def self.from_json(json)
+    self.new(json['project_name'], json['workflow_name'], json['key'], json['inputs'])
   end
 
   def workflow
@@ -19,42 +32,19 @@ class Session
     @orchestration ||= Vulcan::Orchestration.new(workflow, self)
   end
 
-  def define_user_input(step_name, output_name, hash)
-    (@inputs[step_name] ||= {})[output_name] = hash
+  def define_user_input(source, json_obj)
+    @inputs[source] = {json_payload: JSON.dump(json_obj)}
   end
 
-  def include?(step_name)
-    @inputs.include?(step_name)
+  def include?(source)
+    @inputs.include?(source)
   end
 
-  # Note -- data provided by a user does not, itself, have a script defining how to derive it.
-  # We pre-hash it here using a different mechanism than storage cell hashes
-  # which depend on a deterministic algorithm and not on the result itself.
-  def outputs_hash_for(step_name)
-    return nil unless include?(step_name)
-    outputs = @inputs[step_name]
-    hashes = outputs.keys.sort.map { |output_name| outputs[output_name] }
-    Digest::SHA1.hexdigest(hashes.join('&'))
-  end
-
-  def output_storage_files(step_name)
-    return nil unless include?(step_name)
-    outputs = @inputs[step_name]
-    ch = outputs_hash_for(step_name)
-    return nil if ch.nil?
-
-    outputs.keys.sort.map { |output_name| storage_file_for(step_name, output_name, ch) }
-  end
-
-  def storage_file_for(step_name, output_name, ch = nil)
-    ch ||= outputs_hash_for(step_name)
-    return nil if ch.nil?
-
-    Storage::StorageFile.new(
-        project_name: project_name,
-        cell_hash: ch,
-        data_filename: output_name,
-        logical_name: output_name,
-    )
+  def material_reference_for(source)
+    if include?(source)
+      @includes[source]
+    else
+      {unfulfilled: source}
+    end
   end
 end
