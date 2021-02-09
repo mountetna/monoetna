@@ -167,7 +167,7 @@ cp /assist/deploy.sh ./ && \\
 cp /assist/post-to-slack.sh ./ && \\
 chmod +x ./post-to-slack.sh && \\
 echo 'COPY built-from-sha /built-from-sha' >> /tmp/Dockerfile && \\
-echo 'COPY deploy.sh /bin/deploy >> /tmp/Dockerfile && \\
+echo 'COPY deploy.sh /bin/deploy' >> /tmp/Dockerfile && \\
 echo 'COPY post-to-slack.sh /bin/post-to-slack' >> /tmp/Dockerfile && \\
 docker build --rm --force-rm \\
   --tag $baseTag --cache-from $tag $* -f /tmp/Dockerfile ."
