@@ -1,5 +1,5 @@
 from unittest import TestCase
-import vcrpy
+import vcr
 from ..magby.Magby import *
 
 class TestMagby(TestCase):
@@ -26,7 +26,7 @@ class TestMagby(TestCase):
         self.assertTrue(isinstance(projects, list))
         self.assertTrue(len(projects) > 0)
 
-    @vcrpy.use_cassette()
+    @vcr.use_cassette()
     def test_retrieve(self):
         payload = self.magby.constructPayload()
         out = self.magby.retrieve(payload, 'df')
