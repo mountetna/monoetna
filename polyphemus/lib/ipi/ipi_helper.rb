@@ -6,7 +6,10 @@ class IpiHelper
   def initialize
   end
 
-  def find_files_by_extension(metis_client:, project_name:, bucket_name:, extension:)
+  def find_files_by_extension(metis_client:, project_name:, bucket_name:, extension:, flow_fcs_only: false)
+    regex = "/.*\.#{extension}$/i" unless flow_fcs_only
+    regex = "/.*_flow_.*\.#{extension}$/i" if flow_fcs_only
+
     metis_client.find(
       Etna::Clients::Metis::FindRequest.new(
         project_name: project_name,
@@ -14,7 +17,7 @@ class IpiHelper
         params: [Etna::Clients::Metis::FindParam.new(
           attribute: 'name',
           predicate: '=~',
-          value: "/.*\.#{extension}$/i",
+          value: regex,
           type: 'file'
         )]
     )).files.all
