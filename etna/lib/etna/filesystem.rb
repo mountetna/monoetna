@@ -230,6 +230,8 @@ module Etna
       end
 
       def with_writeable(dest, opts = 'w', size_hint: nil, &block)
+        raise "#{self.class.name} requires size_hint in with_writeable" if size_hint.nil?
+
         super do |io|
           io.write("File: #{::File.basename(dest)}\n")
           io.write("Size: #{size_hint}\n")
