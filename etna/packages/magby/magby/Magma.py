@@ -62,7 +62,5 @@ class Magma(object):
 
 
 
-    # TODO functions
-    def _validUrl(self, url: str) -> bool:
-        pass    # TODO implement URL validation
+
 

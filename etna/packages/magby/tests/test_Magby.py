@@ -1,4 +1,5 @@
 from unittest import TestCase
+import vcrpy
 from ..magby.Magby import *
 
 class TestMagby(TestCase):
@@ -18,5 +19,21 @@ class TestMagby(TestCase):
         self.magby.token = 'changed_token'
         self.assertNotEqual(self.magby.token, 'my_token')
         self.assertEqual(self.magby.token, 'changed_token')
+
+    def test_getProjects(self):
+        projects = self.magby.getProjects()
+        self.assertTrue('ipi' in projects)
+        self.assertTrue(isinstance(projects, list))
+        self.assertTrue(len(projects) > 0)
+
+    @vcrpy.use_cassette()
+    def test_retrieve(self):
+        payload = self.magby.constructPayload()
+        out = self.magby.retrieve(payload, 'df')
+        self.assertTrue(isinstance(out, pd.DataFrame))
+        self.assertEqual(out.shape, (10,10))
+
+
+
 
 
