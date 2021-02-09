@@ -7,25 +7,27 @@ class TestMagma(TestCase):
         self.magma = Magma('some_url', 'my_token')
         self.json_string = '{"projects":[{"project_name":"mvir1","project_name_full":"COMET","project_description":null},' \
                            '{"project_name":"dscolab","project_name_full":"Data Science CoLab","project_description":null}]}'
+        self.tsv_string = ''
 
-    def test_url(self):
-        self.assertEqual(self.magma.url, 'some_url')
-        self.magma.url = 'changed_url'
-        self.assertNotEqual(self.magma.url, 'some_url')
-        self.assertEqual(self.magma.url, 'changed_url')
-        
-    def test_token(self):
-        self.assertEqual(self.magma.token, 'my_token')
-        self.magma.token = 'changed_token'
-        self.assertNotEqual(self.magma.token, 'my_token')
-        self.assertEqual(self.magma.token, 'changed_token')
-
-    def test_extractContent(self):
-        responseContent = self.magma.getContent(self.json_string)
-        self.assertEqual(responseContent['projects'][0]['project_name'], 'mvir1')
+    def test_getResponseContent(self):
+        responseJSON = self.magma.getResponseContent(self.json_string)
+        self.assertTrue(isinstance(responseJSON, dict))
+        self.assertEqual(responseJSON['projects'][0]['project_name'], 'mvir1')
 
     def test_magmaCall(self):
-        pass
+        payload = {
+            "project_name": 'ipi',
+            "model_name": "sample",
+            "record_names": ['IPIBLAD013'],
+            "attribute_names": ['flojo_file']
+        }
+        magmaResponse, magmaResponseHeaders = self.magma.magmaCall(payload)
+        self.assertTrue(isinstance(magmaResponse, dict))
+        self.assertTrue(isinstance(magmaResponseHeaders, dict))
+        self.assertEqual(magmaResponse, 'stuff') # TODO get actual data
+        self.assertEqual(magmaResponseHeaders, 'headers_stuff') # TODO get actual data
+
+
 
 
 

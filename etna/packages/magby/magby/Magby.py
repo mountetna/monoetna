@@ -1,6 +1,31 @@
-class MagbyProject(object):
-    pass
+class Magby(object):
+    def __init__(self, url, token):
+        self._url = url.strip('/')
+        self._token = token
 
+    @property
+    def url(self) -> str:
+        return self._url
+
+    @url.setter
+    def url(self, newUrl: str) -> None:
+        self._url = newUrl
+
+    @property
+    def token(self) -> str:
+        return self._token
+
+    @token.setter
+    def token(self, newToken: str) -> None:
+        self._token = newToken
+
+    @token.deleter
+    def token(self) -> None:
+        del self._token
+
+    def _janusProjects(self) -> str:
+        janusUrl = self._url.replace('magma', 'janus')
+        return ('/'.join([janusUrl, 'projects']))
 
 
 
