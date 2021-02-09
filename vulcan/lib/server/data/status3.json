@@ -15,7 +15,12 @@
     },
     {
       "name": "subset_normalize_and_select_features",
-      "status": "complete"
+      "status": "complete",
+      "out": {
+        "sc_rna_seq_normalized_data": {
+          "data_url": "https://vulcan.development.test/api/ipi/data/1232/normalized.tsv"
+        }
+      }
     },
     {
       "name": "regress_and_pca",

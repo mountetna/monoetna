@@ -9,7 +9,7 @@ class DataController < Vulcan::Controller
 
     raise Etna::NotFound, "No data for workflow #{@params[:workflow_name]}." unless "umap" == @params[:workflow_name]
 
-    raise Etna::NotFound, "No data for value #{@params[:data]}." unless ["steps", "pools"].include?(@params[:data])
+    raise Etna::NotFound, "No data for value #{@params[:data]}." unless ["steps", "pools", "umap_data"].include?(@params[:data])
 
     raise Etna::BadRequest, "Invalid format parameter: #{params[:format]}." if @params[:format] && !["json", "yaml"].include?(@params[:format])
 
@@ -24,6 +24,9 @@ class DataController < Vulcan::Controller
       end
     when "pools"
       filename = "pools.json"
+      mimetype = "application/json"
+    when "umap_data"
+      filename = "umap_data.json"
       mimetype = "application/json"
     end
     success(File.read(File.join(
