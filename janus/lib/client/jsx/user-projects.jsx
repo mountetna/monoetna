@@ -6,15 +6,15 @@ const projectRoleKey = (p) => p.role + p.project_name_full.toUpperCase()
 
 const UserProjects = ({projects, user}) => {
   console.log({projects});
-  return <div id='projects-group'>
+  return <div id='user-projects'>
     <div className='title'>Your Projects</div>
       <div className='project header'>
-        <div className='project_name'> project_name </div>
-        <div className='full_name'> title </div>
-        <div className='role'> role </div>
-        <div className='privileged' title='can see restricted data'> privileged </div>
+        <div className='project_name'> Project Name </div>
+        <div className='full_name'> Title </div>
+        <div className='role'> Role </div>
+        <div className='privileged' title='can see restricted data'> Privileged </div>
       </div>
-    { Object.values(projects).sort((p1,p2) => projectRoleKey(p1).localeCompare(projectRoleKey(p2))).map( project =>
+    { projects.sort((p1,p2) => projectRoleKey(p1).localeCompare(projectRoleKey(p2))).map( project =>
       <div key={project.project_name} className='project'>
         <div className='project_name'>
         { isEditor(user, project.project_name) ?

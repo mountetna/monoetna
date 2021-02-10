@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {checkStatus} from 'etna-js/utils/fetch';
+import { json_post, checkStatus} from 'etna-js/utils/fetch';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import { isAdmin, isSuperuser } from 'etna-js/utils/janus';
 import Icon from 'etna-js/components/icon';
-import { json_get, json_delete, json_post } from 'etna-js/utils/fetch';
 
 const NEWUSER_INPUTS = {
   select: [ 'role' ],

@@ -18,6 +18,20 @@ class AdminController < Janus::Controller
     )
   end
 
+  def projects
+    projects = Project.all.map do |project|
+      # Don't use proj.to_hash because we don't necessarily want to send back
+      #   all the information.
+      {
+        project_name: project.project_name,
+        project_name_full: project.project_name_full,
+        project_description: project.project_description
+      }
+    end
+
+    success_json({projects: projects})
+  end
+
   def update_permission
     require_param(:email)
     @project = Project[project_name: @params[:project_name]]

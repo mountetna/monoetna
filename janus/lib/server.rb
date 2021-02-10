@@ -35,11 +35,15 @@ class Janus
 
     post '/update_key', action: 'user#update_key'
 
+    get '/allprojects', action: 'admin#projects', auth: { user: { is_superuser?: true } }
+
     get '/projects', action: 'user#projects', auth: { user: { active?: true } }
 
     get '/project/:project_name', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
 
     get '/' do erb_view(:client) end
+
+    get '/admin' do erb_view(:client) end
 
     get '/:project_name' do erb_view(:client) end
 
