@@ -55,7 +55,7 @@ export default function Output() {
   useEffect(() => {
     const STUB_URL = `https://vulcan.development.local/api/${CONFIG.project_name}/workflows/umap/umap_data`;
 
-    WORKFLOW.steps[0][4].data_url = STUB_URL;
+    WORKFLOW.steps[0][5].data_url = STUB_URL;
 
     setWorkflow(WORKFLOW);
     setOutputData(UMAP_DATA);
