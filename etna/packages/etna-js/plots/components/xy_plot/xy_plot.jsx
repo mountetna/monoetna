@@ -13,7 +13,9 @@ const COMPONENTS = {
 const SeriesComponent = ({series, ...props}) => {
   let Component = COMPONENTS[series.series_type];
 
-  return Component && <Component series={series} {...props} />;
+  if (!Component) return null;
+
+  return <Component series={series} {...props} />;
 };
 
 export default class XYPlot extends Component {
