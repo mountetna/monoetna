@@ -76,9 +76,9 @@ make up
 make -C janus bash
 ○ → ./bin/janus add_project 'test-project' 'Test Project'
 ○ → ./bin/janus add_user developer@ucsf.edu Developer LastName password
-○ → ./bin/janus permit developer@ucsf.edu test-project administrator
+○ → ./bin/janus permit developer@ucsf.edu test-project administrator true
 ○ → ./bin/janus add_project ipi 'Immuno Profiler Project'
-○ → ./bin/janus permit developer@ucsf.edu ipi administrator
+○ → ./bin/janus permit developer@ucsf.edu ipi administrator true
 ```
 
 ### Seeding timur and magma
