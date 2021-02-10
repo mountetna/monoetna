@@ -68,6 +68,16 @@
           "max_pc": "max_pc"
         },
         "out": ["umap_data"]
+      },
+      {
+        "name": "ui_plot",
+        "run": "xy.cwl",
+        "in": {
+          "series0": "umap/umap_data",
+          "group0": "umap/expression_matrix",
+          "series0__type": "scatter"
+        },
+        "out": []
       }
     ]
   ]

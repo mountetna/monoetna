@@ -1,24 +1,35 @@
-import React, {useContext} from 'react';
+import React, {useContext, useRef, useEffect, useState} from 'react';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {VulcanContext} from '../../../contexts/vulcan';
 
-import {plotData} from 'etna-js/plots/plot_script';
 import {selectConsignment} from 'etna-js/plots/selectors/consignment_selector';
 import XYPlot from 'etna-js/plots/components/xy_plot/xy_plot';
 import CategoryPlot from 'etna-js/plots/components/category_plot/category_plot';
 import Vector from 'etna-js/plots/models/vector';
 
 export default function Plot({md5sum}) {
+  const parentRef = useRef();
+  const [parentDims, setParentDims] = useState({width: 1600, height: 1200});
+
+  useEffect(() => {
+    if (parentRef.current) {
+      setParentDims({
+        width: parentRef.current.offsetWidth,
+        height: parentRef.current.offsetHeight
+      });
+    }
+  }, []);
+
   const {workflow, pathIndex, stepIndex, setData, setWorkflow} = useContext(
     VulcanContext
   );
 
-  // Will this be consistent?
-  const primaryOutputName = workflow.steps[0][4].out[0];
+  // The md5sum may come from the workflow step at some point?
+  const browserState = useReduxState(
+    browserStateOf(md5sum, workflow.steps[0][5], parentDims)
+  );
 
-  const browserState = useReduxState(browserStateOf(md5sum, primaryOutputName));
-
-  let {plot, data, width} = browserState;
+  let {plot, data} = browserState;
 
   if (!plot || !data) return null;
 
@@ -39,13 +50,15 @@ export default function Plot({md5sum}) {
   }
 
   return (
-    <PlotComponent
-      data={data}
-      plot={plot}
-      config_variables={variables}
-      layout={layout}
-      parent_width={800}
-    />
+    <div ref={parentRef}>
+      <PlotComponent
+        data={data}
+        plot={plot}
+        config_variables={variables}
+        layout={layout}
+        parent_width={parentDims.width}
+      />
+    </div>
   );
 }
 
@@ -63,8 +76,11 @@ function vectorize(values) {
   );
 }
 
-function browserStateOf(md5sum, primaryOutputName) {
+function browserStateOf(md5sum, step, dimensions) {
   return (state) => {
+    // Will this be consistent?
+    const primaryOutputName = step.out[0];
+
     let consignment = selectConsignment(state, md5sum);
 
     if (!consignment) return {};
@@ -118,45 +134,7 @@ function browserStateOf(md5sum, primaryOutputName) {
       }
     };
 
-    // let mockConsignment = {
-    //   x: {
-    //     vector: xValues.map((xVal) => ({
-    //       label: null,
-    //       value: xVal
-    //     }))
-    //   },
-    //   y: {
-    //     vector: yValues.map((yVal) => ({
-    //       label: null,
-    //       value: yVal
-    //     }))
-    //   },
-    //   series0___x: {
-    //     vector: xValues.map((xVal) => ({
-    //       label: null,
-    //       value: xVal
-    //     }))
-    //   },
-    //   series0___y: {
-    //     vector: yValues.map((yVal) => ({
-    //       label: null,
-    //       value: yVal
-    //     }))
-    //   },
-    //   xy____xdomain: {
-    //     vector: [padInt(xValues, Math.min), padInt(xValues, Math.max)]
-    //   },
-    //   xy____ydomain: {
-    //     vector: [padInt(yValues, Math.min), padInt(yValues, Math.max)]
-    //   }
-    // };
-
-    // let test = plotData(plot, mockConsignment);
     let labels = primaryConsignment.row_names;
-
-    console.log(xValues);
-    console.log(yValues);
-    console.log(labels);
 
     let data = {
       xdomain: [padInt(xValues, Math.min), padInt(xValues, Math.max)],
@@ -173,7 +151,7 @@ function browserStateOf(md5sum, primaryOutputName) {
         }
       ]
     };
-    console.log(data);
+
     return {plot, data};
   };
 }
