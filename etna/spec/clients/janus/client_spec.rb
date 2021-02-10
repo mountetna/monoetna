@@ -3,7 +3,7 @@ require 'json'
 require_relative '../../../lib/etna/clients/janus'
 
 describe 'Janus Client class' do
-  let(:test_class) { Etna::Clients::Janus.new(token: 'fake-token', host: 'https://janus.test') }
+  let(:test_class) { Etna::Clients::Janus.new(token: TEST_TOKEN, host: 'https://janus.test') }
 
   before(:each) do
     stub_janus_setup

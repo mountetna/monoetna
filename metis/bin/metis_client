@@ -114,7 +114,77 @@ class Upload
   end
 end
 
-class MetisClient
+class Client
+  # This is duplicated code because we need to refactor Metis client
+  #   to use the etna gem clients...
+  def token_expired?
+    # Has the token already expired?
+    token_will_expire?(0)
+  end
+
+  def token_will_expire?(offset=3000)
+    # Will the user's token expire in the given amount of time?
+    epoch_seconds = JSON.parse(Base64.urlsafe_decode64(@token.split('.')[1]))["exp"]
+    expiration = DateTime.strptime(epoch_seconds.to_s, "%s").to_time
+    expiration <= DateTime.now.new_offset.to_time + offset
+  end
+
+  private
+
+  def get(path)
+    request(path, Net::HTTP::Get)
+  end
+
+  def post(path)
+    request(path, Net::HTTP::Post)
+  end
+
+  def delete(path)
+    request(path, Net::HTTP::Delete)
+  end
+
+  def request
+    raise "Needs to be implemented in subclass."
+  end
+
+  def https
+    @https ||= begin
+      https = Net::HTTP.new(@host,443)
+      https.use_ssl = true
+      https
+    end
+  end
+end
+
+class JanusClient < Client
+  class Error < StandardError
+  end
+
+  def initialize(host, token)
+    @host = host
+    @token = token
+  end
+
+  def refresh_token
+    get_request("/refresh_token").body
+  end
+
+  private
+
+  def get_request(path)
+    req = get(path)
+    https.request(req)
+  end
+
+  def request(path, method)
+    uri = URI.parse("https://#{@host}#{path}")
+    req = method.new(uri.request_uri)
+    req['Authorization'] = "Etna #{@token}"
+    return req
+  end
+end
+
+class MetisClient < Client
   class Error < StandardError
   end
 
@@ -256,9 +326,8 @@ class MetisClient
 
   def copy_file(project_name, file_path, proposed_file_path)
     if proposed_file_path.start_with?('metis://')
-      match = metis_path(proposed_file_path)
-      new_bucket_name = match[:bucket]
-      new_file_path = match[:file_path]
+      new_bucket_name = nil # not used
+      new_file_path = proposed_file_path
     else
       split_parts = proposed_file_path.split('/')
       new_bucket_name = split_parts.first
@@ -281,6 +350,11 @@ class MetisClient
 
   private
 
+  def janus
+    # Don't memoize because we always will need the current @token value
+    JanusClient.new(@host.gsub("metis", "janus"), @token)
+  end
+
   def json_post(path, body={})
     req = post(path)
     req['Content-Type'] = 'application/json'
@@ -299,27 +373,15 @@ class MetisClient
     https.request(req)
   end
 
-  def get(path)
-    request(path, Net::HTTP::Get)
-  end
-
-  def post(path)
-    request(path, Net::HTTP::Post)
-  end
-
-  def delete(path)
-    request(path, Net::HTTP::Delete)
-  end
-
-  def https
-    @https ||= begin
-      https = Net::HTTP.new(@host,443)
-      https.use_ssl = true
-      https
-    end
-  end
-
   def request(path, method)
+    begin
+      @token = janus.refresh_token
+
+      # Make sure to set this in the current process, so
+      #   we can export it into a file later.
+      ENV["TOKEN"] = @token
+    end if token_will_expire?
+
     uri = URI.parse("https://#{@host}#{path}")
     req = method.new(uri.request_uri)
     req['Authorization'] = "Etna #{@token}"
@@ -428,7 +490,7 @@ EOT
 
       folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(path))
 
-      raise ShellError, "Invalid path #{path}" unless folder
+      raise ShellError, "Invalid path, cannot mv #{path}" unless folder
 
       file = folder[:files].find do |f|
         f[:file_name] == name
@@ -455,7 +517,7 @@ EOT
   end
 
   class Ls < Command
-    usage "ls [<remote_folder_path>]"
+    usage "ls [<remote_folder_or_file_path>]"
 
     def parse(args)
       parse_opts(args) do |opts|
@@ -475,7 +537,32 @@ EOT
         return
       end
 
-      folder = @shell.client.list_folder(@shell.project_name, file_path)
+      name = ::File.basename(file_path)
+
+      parent_folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(file_path))
+
+      raise ShellError, "Invalid path, cannot list #{file_path}" unless parent_folder
+
+      begin
+        file = parent_folder[:files].find do |f|
+          f[:file_name] == name
+        end
+
+        if file
+          file[:file_name] = file_path
+          display(
+            folders: [],
+            files: [file]
+          )
+          return
+        end
+      end if parent_folder[:files]
+
+      begin
+        folder = @shell.client.list_folder(@shell.project_name, file_path)
+      rescue MetisClient::Error
+        raise ShellError, "No such file or folder: #{file_path}" unless folder
+      end
 
       display(
         folders: folder[:folders] || [],
@@ -590,7 +677,7 @@ EOT
 
       folder = @shell.client.list_folder(@shell.project_name, path)
 
-      raise ShellError, "No such folder #{dirname}" unless folder
+      raise ShellError, "Could not find folder #{dirname}" unless folder
 
       @shell.cwd = path
     end
@@ -650,7 +737,7 @@ EOT
 
       folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(path))
 
-      raise ShellError, "Invalid path #{path}" unless folder
+      raise ShellError, "Invalid path, cannot rm #{path}" unless folder
 
       file = folder[:files].find do |f|
         f[:file_name] == name
@@ -715,7 +802,7 @@ EOT
     usage "get <remote_folder_path> <local_path>"
 
     def run(folder_path, local_path)
-      raise ShellError, 'No remote folder selected!' unless @shell.cwd
+      raise ShellError, 'No remote folder selected!' unless @shell.relative_path(folder_path)
 
       path = local_path =~ %r!^/! ?
         local_path :
@@ -926,6 +1013,11 @@ EOT
 
     raise 'No metis host selected' if !@host
 
+    if client.token_expired?
+      puts "Your token is expired. Please provide a new one in your environment."
+      exit
+    end
+
     if match&.[](:path)
       set_path(match[:path])
     end
@@ -1056,7 +1148,7 @@ EOT
   def project_list
     @project_list ||= begin
       JSON.parse(
-        Base64.decode64(@token.split(/\./)[test_env? ? 0 : 1])
+        Base64.decode64(@token.split(/\./)[1])
       )["perm"].split(/;/).map{|l| l.split(/:/).last.split(/,/) }.flatten
     rescue
       puts "Could not parse token"

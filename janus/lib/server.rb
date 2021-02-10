@@ -21,8 +21,6 @@ class Janus
 
     get '/', action: 'admin#main'
 
-    get '/project/:project_name', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
-
     get '/projects', action: 'user#projects', auth: { user: { active?: true } }
 
     get '/refresh_token', action: 'user#refresh_token', auth: { user: { active?: true } }
@@ -41,6 +39,8 @@ class Janus
     post '/flag_user', action: 'admin#flag_user', auth: { user: { is_superuser?: true } }
 
     post '/update_key', action: 'user#update_key'
+
+    get '/:project_name', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
 
     def initialize
       super

@@ -72,9 +72,7 @@ module Etna
         user = request.env['etna.user']
 
         params = request.env['rack.request.params'].map do |key,value|
-          value = value.to_s
-          value = value[0..500] + "..." + value[-100..-1] if value.length > 600
-          [ key, value ]
+          [ key, redact(key, value) ]
         end.to_h
 
         logger.warn("User #{user ? user.email : :unknown} calling #{controller}##{action} with params #{params}")
@@ -93,6 +91,39 @@ module Etna
     end
 
     private
+
+    def application
+      @application ||= Etna::Application.instance
+    end
+
+    def compact(value)
+      value = value.to_s
+      value = value[0..500] + "..." + value[-100..-1] if value.length > 600
+      value
+    end
+
+    def redact_keys
+      @redact_keys ||= application.config(:log_redact_keys).split(",").map do |key|
+        key.to_sym
+      end
+    end
+
+    def redact(key, value)
+      # From configuration, redact any values for the supplied key values, so they
+      #   don't appear in the logs.
+      return compact(value) unless application.config(:log_redact_keys)
+
+      if value.is_a?(Hash)
+        redacted_value = value.map do |value_key, value_value|
+          [ value_key, redact(value_key, value_value) ]
+        end.to_h
+        return redacted_value
+      elsif redact_keys.include?(key)
+        return "*"
+      end
+
+      return compact(value)
+    end
 
     def authorized?(request)
       # If there is no @auth requirement, they are ok - this doesn't preclude

@@ -1,23 +1,19 @@
-require 'net/http/persistent'
 require 'net/http/post/multipart'
 require 'singleton'
 require 'cgi'
 require 'json'
 require_relative '../../client'
 require_relative './models'
+require_relative '../base_client'
 
 module Etna
   module Clients
-    class Metis
-      attr_reader :token
-      def initialize(host:, token:, persistent: true, ignore_ssl: false)
+    class Metis < Etna::Clients::BaseClient
+
+      def initialize(host:, token:, ignore_ssl: false)
         raise 'Metis client configuration is missing host.' unless host
         raise 'Metis client configuration is missing token.' unless token
-        @etna_client = ::Etna::Client.new(
-          host,
-          token,
-          persistent: persistent,
-          ignore_ssl: ignore_ssl)
+        @etna_client = ::Etna::Client.new(host, token, ignore_ssl: ignore_ssl)
 
         @token = token
       end
@@ -87,6 +83,23 @@ module Etna
 
         @etna_client.get(download_path) do |response|
           response.read_body(&block)
+        end
+      end
+
+      def file_metadata(file_or_url = File.new)
+        if file_or_url.instance_of?(File)
+          download_path =  file_or_url.download_path
+        else
+          download_path = file_or_url.sub(%r!^https://[^/]*?/!, '/')
+        end
+
+        # Do not actually consume the data, however.
+        # TODO: implement HEAD requests in metis through apache.
+        @etna_client.get(download_path) do |response|
+          return {
+              etag: response['ETag'].gsub(/"/, ''),
+              size: response['Content-Length'],
+          }
         end
       end
 

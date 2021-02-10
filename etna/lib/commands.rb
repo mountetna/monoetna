@@ -57,7 +57,6 @@ class EtnaApp
         polyphemus_client = Etna::Clients::Polyphemus.new(
             host: host,
             token: token(ignore_environment: true),
-            persistent: false,
             ignore_ssl: ignore_ssl)
         workflow = Etna::Clients::Polyphemus::SetConfigurationWorkflow.new(
             polyphemus_client: polyphemus_client,
@@ -341,6 +340,44 @@ class EtnaApp
             if execute
               magma_client.update_json(update_request)
             end
+          end
+        end
+      end
+
+      class LoadFromRedcap < Etna::Command
+        include WithEtnaClients
+        include WithLogger
+        include StrongConfirmation
+
+        boolean_flags << '--commit'
+        string_flags << '--models'
+        string_flags << '--mode'
+
+        def execute(project_name, redcap_tokens, models: "all", mode: nil, commit: false)
+          raise "Must provide at least one REDCap token (comma-separated)." unless redcap_tokens.split(',').length > 0
+
+          puts "NOTE: This is a **preview** of what the data loading will look like. Use the --commit flag to load records into Magma." unless commit
+
+          polyphemus_client.job(Etna::Clients::Polyphemus::RedcapJobRequest.new(
+            model_names: "all" == models ? "all" : models.split(','),
+            mode: mode,
+            redcap_tokens: redcap_tokens.split(','),
+            project_name: project_name,
+            commit: commit
+          )) do |response|
+            response.read_body do |chunk|
+              puts clean_sne_message(chunk)
+            end
+          end
+        end
+
+        def clean_sne_message(chunk)
+          chunk.split("\n").reject do |c|
+            c.start_with?("retry:") || c.start_with?("event:")
+          end.map do |c|
+            c.gsub("data:", "").strip
+          end.reject do |c|
+            c.empty?
           end
         end
       end

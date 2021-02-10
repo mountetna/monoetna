@@ -1,9 +1,10 @@
-require_relative '../../json_serializable_struct'
 require 'ostruct'
+require_relative '../../json_serializable_struct'
+require_relative '../base_client'
 
 module Etna
   module Clients
-    class Metis
+    class Metis < Etna::Clients::BaseClient
       class ListFoldersRequest < Struct.new(:project_name, :bucket_name, :offset, :limit, keyword_init: true)
         include JsonSerializableStruct
 
@@ -170,7 +171,11 @@ module Etna
 
       class FoldersAndFilesResponse < FoldersResponse
         def files
-          Files.new(raw[:files])
+          Files.new(raw[:files] || [])
+        end
+
+        def folders
+          Folders.new(raw[:folders] || [])
         end
       end
 
@@ -250,6 +255,10 @@ module Etna
 
         def folder_path
           raw[:folder_path]
+        end
+
+        def folder_name
+          raw[:folder_name]
         end
 
         def bucket_name

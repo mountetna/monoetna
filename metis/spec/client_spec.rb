@@ -31,10 +31,66 @@ describe MetisShell do
       metis_uid_name: 'METIS_TEST_UID',
       metis_host: 'metis.test'
     )
-    ENV['TOKEN'] = Base64.strict_encode64(
-      { email: 'metis@olympus.org', perm: 'a:athena' }.to_json
+
+    token = Base64.strict_encode64(
+      { email: 'metis@olympus.org', first: "Metis", last: "User", perm: 'a:athena', exp: 253371439590 }.to_json
     )
+    @long_lived_token = "something.#{token}"
+    ENV['TOKEN'] = @long_lived_token
     stub_request(:any, %r!^https://metis.test/!).to_rack(app)
+
+    stub_request(:get, "https://janus.test/refresh_token")
+      .to_return({
+        status: 200,
+        body: @long_lived_token
+      })
+  end
+
+  describe MetisShell do
+    it 'tells user if token is expired' do
+      token = Base64.strict_encode64(
+        { email: 'metis@olympus.org', first: "Metis", last: "User", perm: 'a:athena', exp: 1000 }.to_json
+      )
+      ENV['TOKEN'] = "something.#{token}"
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      expect_output("metis://athena", "ls") { %r!expired!}
+    end
+
+    it 'refreshes the token if close to expiring' do
+      frozen_time = 1000
+      Timecop.freeze(DateTime.strptime(frozen_time.to_s, "%s"))
+      token = Base64.strict_encode64(
+        { email: 'metis@olympus.org', first: "Metis", last: "User", perm: 'a:athena', exp: frozen_time + 1000 }.to_json
+      )
+      ENV['TOKEN'] = "something.#{token}"
+
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      expect_output("metis://athena", "ls") { %r!armor/!}
+
+      expect(WebMock).to have_requested(:get, "https://janus.test/refresh_token")
+
+      expect(ENV["TOKEN"]).to eq(@long_lived_token)
+
+      Timecop.return
+    end
+
+    it 'does not refresh the token if not close to expiring' do
+      frozen_time = 1000
+      Timecop.freeze(DateTime.strptime(frozen_time.to_s, "%s"))
+      token = Base64.strict_encode64(
+        { email: 'metis@olympus.org', first: "Metis", last: "User", perm: 'a:athena', exp: frozen_time + 100000 }.to_json
+      )
+      full_future_token = "something.#{token}"
+      ENV['TOKEN'] = full_future_token
+
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      expect_output("metis://athena", "ls") { %r!armor/!}
+
+      expect(WebMock).not_to have_requested(:get, "https://janus.test/refresh_token")
+      expect(ENV["TOKEN"]).to eq(full_future_token)
+
+      Timecop.return
+    end
   end
 
   describe MetisShell::Ls do
@@ -91,11 +147,35 @@ describe MetisShell do
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       expect_output("metis://athena/armor/", "ls", "helmet") { "helmet.jpg\n" }
     end
+
     it 'lists the project root directory' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       expect_output("metis://athena/armor/helmet", "ls", "/") { "armor/\n" }
+    end
+
+
+    it 'lists files directly' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'armor', 'helmet/helmet.jpg', HELMET)
+
+      expect_output("metis://athena/armor", "ls", "helmet/helmet.jpg") { %r!armor/helmet/helmet.jpg!m }
+    end
+
+    it 'lists files directly in long format' do
+      Timecop.freeze(DateTime.parse("2020-06-17T04:37"))
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'armor', 'helmet/helmet.jpg', HELMET)
+
+      expect_output("metis://athena/armor", "ls", "-l", "helmet/helmet.jpg") {
+        "metis 13 Jun 17 04:37 armor/helmet/helmet.jpg\n"
+      }
+      Timecop.return
     end
   end
 
@@ -128,7 +208,8 @@ describe MetisShell do
       # There is a non-reset call to start the upload
       expect(WebMock).to have_requested(:post, /https:\/\/metis.test\/athena\/upload\/armor\/helmet.txt/).
         with(query: hash_including({
-          "X-Etna-Id": "metis"
+          "X-Etna-Id": "metis",
+          "X-Etna-Headers": "email,name"
         })).
         with(headers: {
           "Content-Type": "application/json"

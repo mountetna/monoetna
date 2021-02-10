@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/mountetna/monoetna.git
-  revision: 51bf8d512c647298c6ec7ab0ea2e58fe003c7b19
-  branch: refs/artifacts/gem-etna/ae373a9dec4d57e09ed2e3749cdbf511e56ff1d5
+  revision: 725e91bdc5df776c77f17798875d69808f653875
+  branch: refs/artifacts/gem-etna/50cfc7c7c7290db9cdbe83bb0624fe4d5f5869c6
   specs:
-    etna (0.1.23)
+    etna (0.1.27)
       jwt
       multipart-post
       net-http-persistent
@@ -13,25 +13,67 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
+    actionpack (6.1.0)
+      actionview (= 6.1.0)
+      activesupport (= 6.1.0)
+      rack (~> 2.0, >= 2.0.9)
+      rack-test (>= 0.6.3)
+      rails-dom-testing (~> 2.0)
+      rails-html-sanitizer (~> 1.0, >= 1.2.0)
+    actionview (6.1.0)
+      activesupport (= 6.1.0)
+      builder (~> 3.1)
+      erubi (~> 1.4)
+      rails-dom-testing (~> 2.0)
+      rails-html-sanitizer (~> 1.1, >= 1.2.0)
+    activesupport (6.1.0)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (>= 1.6, < 2)
+      minitest (>= 5.1)
+      tzinfo (~> 2.0)
+      zeitwerk (~> 2.3)
     addressable (2.7.0)
       public_suffix (>= 2.0.2, < 5.0)
+    aspera-cli (4.0.0.pre2)
+      execjs (~> 2.0)
+      jwt (~> 2.0)
+      mimemagic (~> 0.3)
+      net-ssh (~> 4.0)
+      ruby-progressbar (~> 1.0)
+      rubyzip (~> 2.0)
+      terminal-table (~> 1.8)
+      tty-spinner (~> 0.9)
+      xml-simple (~> 1.0)
+    builder (3.2.4)
     byebug (11.1.3)
     coderay (1.1.3)
+    concurrent-ruby (1.1.7)
     connection_pool (2.2.3)
     crack (0.4.4)
+    crass (1.0.6)
     database_cleaner (1.8.5)
     debase (0.2.4.1)
       debase-ruby_core_source (>= 0.10.2)
     debase-ruby_core_source (0.10.11)
     diff-lcs (1.4.4)
     docile (1.3.2)
+    erubi (1.10.0)
+    execjs (2.7.0)
     hashdiff (1.0.1)
+    i18n (1.8.7)
+      concurrent-ruby (~> 1.0)
     jwt (2.2.2)
+    loofah (2.8.0)
+      crass (~> 1.0.2)
+      nokogiri (>= 1.5.9)
     method_source (1.0.0)
+    mimemagic (0.3.5)
     mini_portile2 (2.4.0)
+    minitest (5.14.2)
     multipart-post (2.1.1)
-    net-http-persistent (4.0.0)
+    net-http-persistent (4.0.1)
       connection_pool (~> 2.2)
+    net-ssh (4.2.0)
     nio4r (2.5.4)
     nokogiri (1.10.10)
       mini_portile2 (~> 2.4.0)
@@ -48,6 +90,11 @@ GEM
     rack (2.2.3)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
+    rails-dom-testing (2.0.3)
+      activesupport (>= 4.2.0)
+      nokogiri (>= 1.6)
+    rails-html-sanitizer (1.3.0)
+      loofah (~> 2.3)
     rollbar (3.1.1)
     rspec (3.10.0)
       rspec-core (~> 3.10.0)
@@ -62,6 +109,9 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.10.0)
     rspec-support (3.10.0)
+    ruby-progressbar (1.11.0)
+    rubyzip (2.3.0)
+    safe_yaml (1.0.5)
     sequel (5.39.0)
     simplecov (0.20.0)
       docile (~> 1.1)
@@ -69,17 +119,29 @@ GEM
       simplecov_json_formatter (~> 0.1)
     simplecov-html (0.12.3)
     simplecov_json_formatter (0.1.2)
+    terminal-table (1.8.0)
+      unicode-display_width (~> 1.1, >= 1.1.1)
+    tty-cursor (0.7.1)
+    tty-spinner (0.9.3)
+      tty-cursor (~> 0.7)
+    tzinfo (2.0.4)
+      concurrent-ruby (~> 1.0)
+    unicode-display_width (1.7.0)
     vcr (6.0.0)
     webmock (3.10.0)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
+    xml-simple (1.1.8)
+    zeitwerk (2.4.2)
 
 PLATFORMS
   ruby
   x86_64-linux
 
 DEPENDENCIES
+  actionpack
+  aspera-cli
   database_cleaner
   debase
   etna!
@@ -97,4 +159,4 @@ DEPENDENCIES
   webmock
 
 BUNDLED WITH
-   2.2.1
+   2.2.9

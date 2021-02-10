@@ -1,14 +1,12 @@
-require 'net/http/persistent'
 require 'net/http/post/multipart'
 require 'singleton'
 require 'rack/utils'
 
 module Etna
   class Client
-    def initialize(host, token, routes_available: true, persistent: true, ignore_ssl: false)
+    def initialize(host, token, routes_available: true, ignore_ssl: false)
       @host = host.sub(%r!/$!, '')
       @token = token
-      @persistent = persistent
       @ignore_ssl = ignore_ssl
 
       if routes_available
@@ -36,6 +34,10 @@ module Etna
 
     def get(endpoint, params = {}, &block)
       query_request(Net::HTTP::Get, endpoint, params, &block)
+    end
+
+    def head(endpoint, params = {}, &block)
+      query_request(Net::HTTP::Head, endpoint, params, &block)
     end
 
     def options(endpoint, params = {}, &block)
@@ -78,16 +80,6 @@ module Etna
         end
       end
     end
-
-    def persistent_connection
-      @http ||= begin
-        http = Net::HTTP::Persistent.new
-        http.read_timeout = 3600
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE if @ignore_ssl
-        http
-      end
-    end
-
 
     def body_request(type, endpoint, params = {}, &block)
       uri = request_uri(endpoint)
@@ -141,36 +133,23 @@ module Etna
 
     def request(uri, data)
       if block_given?
-        if @persistent
-          persistent_connection.request(uri, data) do |response|
+        verify_mode = @ignore_ssl ?
+          OpenSSL::SSL::VERIFY_NONE :
+          OpenSSL::SSL::VERIFY_PEER
+        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode) do |http|
+          http.request(data) do |response|
             status_check!(response)
             yield response
           end
-        else
-          verify_mode = @ignore_ssl ?
-            OpenSSL::SSL::VERIFY_NONE :
-            OpenSSL::SSL::VERIFY_PEER
-          Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode) do |http|
-            http.request(data) do |response|
-              status_check!(response)
-              yield response
-            end
-          end
         end
       else
-        if @persistent
-          response = persistent_connection.request(uri, data)
+        verify_mode = @ignore_ssl ?
+          OpenSSL::SSL::VERIFY_NONE :
+          OpenSSL::SSL::VERIFY_PEER
+        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode) do |http|
+          response = http.request(data)
           status_check!(response)
           return response
-        else
-          verify_mode = @ignore_ssl ?
-            OpenSSL::SSL::VERIFY_NONE :
-            OpenSSL::SSL::VERIFY_PEER
-          Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode) do |http|
-            response = http.request(data)
-            status_check!(response)
-            return response
-          end
         end
       end
     end

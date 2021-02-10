@@ -13,6 +13,8 @@ SimpleCov.start
 require 'yaml'
 require 'etna/spec/vcr'
 
+require 'fileutils'
+
 require_relative '../lib/server'
 require_relative '../lib/polyphemus'
 
@@ -23,7 +25,12 @@ Polyphemus.instance.configure(YAML.load(File.read('config.yml')))
 METIS_HOST = Polyphemus.instance.config(:metis)[:host]
 RELEASE_BUCKET = Polyphemus.instance.config(:metis)[:release_bucket]
 RESTRICT_BUCKET = Polyphemus.instance.config(:metis)[:restrict_bucket]
+MAGMA_HOST = Polyphemus.instance.config(:magma)[:host]
+REDCAP_HOST = Polyphemus.instance.config(:redcap)[:host]
+TEST_TOKEN = Polyphemus.instance.config(:polyphemus)[:token]
+
 PROJECT = 'mvir1'
+REDCAP_PROJECT_CONFIG_PATH = 'lib/etls/redcap/projects/test.rb'
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
@@ -36,6 +43,9 @@ end
 AUTH_USERS = {
   superuser: {
     email: 'zeus@twelve-labors.org', first: 'Zeus', perm: 'a:administration'
+  },
+  administrator: {
+    email: 'hera@twelve-labors.org', first: 'Hera', perm: 'a:test', exp: 86401608136635
   },
   editor: {
     email: 'eurystheus@twelve-labors.org', first: 'Eurystheus', perm: 'e:labors'
@@ -109,7 +119,7 @@ def stub_rename_folder(params={})
 end
 
 def stub_magma_restricted_pools(base_model, restricted_pools)
-  stub_request(:post, 'https://magma.test/query')
+  stub_request(:post, "#{MAGMA_HOST}/query")
     .with(body: hash_including({ project_name: 'mvir1',
                                 query: [ base_model,
                                           [ 'timepoint', 'patient', 'restricted', '::true' ],
@@ -120,7 +130,7 @@ def stub_magma_restricted_pools(base_model, restricted_pools)
 end
 
 def stub_magma_all_pools(base_model, all_pools)
-  stub_request(:post, 'https://magma.test/query')
+  stub_request(:post, "#{MAGMA_HOST}/query")
     .with(body: hash_including({ project_name: 'mvir1',
                                 query: [ "#{base_model}_pool", '::all', '::identifier' ] }))
     .to_return({ body: {
@@ -129,14 +139,14 @@ def stub_magma_all_pools(base_model, all_pools)
 end
 
 def stub_magma_setup(patient_documents)
-  stub_request(:post, 'https://magma.test/retrieve')
+  stub_request(:post, "#{MAGMA_HOST}/retrieve")
     .with(body: hash_including({ project_name: 'mvir1', model_name: 'patient',
                                 attribute_names: 'all', record_names: 'all' }))
     .to_return({ body: {
         'models': { 'patient': { 'documents': patient_documents } }
     }.to_json })
 
-  stub_request(:post, 'https://magma.test/update')
+  stub_request(:post, "#{MAGMA_HOST}/update")
     .to_return do |request|
 
   body = StringIO.new(request.body)
@@ -188,4 +198,116 @@ def stub_metis_setup
       },
       body: JSON.parse(File.read('spec/fixtures/metis_restrict_folder_fixture.json')).to_json
     })
+end
+
+def stub_magma_models
+  stub_request(:post, "#{MAGMA_HOST}/retrieve")
+    .to_return({ body: File.read('spec/fixtures/magma_test_models.json') })
+end
+
+def stub_magma_update_json
+  stub_request(:post, "#{MAGMA_HOST}/update")
+    .to_return({ status: 200, body: {}.to_json, headers: { 'Content-Type': 'application/json' } })
+end
+
+def stub_redcap_data
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: hash_including({ content: 'metadata' }))
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_metadata.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /today/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_calendar.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /date_of_birth/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_essential_data.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /height/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_statistics.json')
+    })
+end
+
+def stub_redcap_multi_project_records
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /today/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_calendar.json')
+    }).then
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_project_2_calendar.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /date_of_birth/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_essential_data.json')
+    }).then
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_project_2_essential_data.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /height/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_mock_data_statistics.json')
+    })
+end
+
+def copy_redcap_project
+  # Make sure the test project is in the right location so the
+  # REDCap ETL can find it.
+  redcap_projects_dir = File.dirname(REDCAP_PROJECT_CONFIG_PATH)
+  test_fixture_path = "spec/fixtures/etls/redcap/#{File.basename(REDCAP_PROJECT_CONFIG_PATH)}"
+  FileUtils.mkdir_p(redcap_projects_dir) unless Dir.exist?(redcap_projects_dir)
+
+  # Make sure we have the newest test project.
+  File.delete(REDCAP_PROJECT_CONFIG_PATH) if File.file?(REDCAP_PROJECT_CONFIG_PATH)
+  FileUtils.cp(test_fixture_path, REDCAP_PROJECT_CONFIG_PATH)
+end
+
+def temp_id(records, id)
+  all_record_keys = []
+  records.keys.each do |key|
+    all_record_keys.concat(records[key].keys)
+  end
+
+  all_record_keys.each do |key|
+    return key if key =~ /::temp-#{id}-.*/
+  end
 end

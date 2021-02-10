@@ -1,0 +1,16 @@
+[
+  {
+    "record": "test",
+    "record_id": "test",
+    "redcap_event_name": "A test event",
+    "field_name": "today",
+    "value": "900-01-01"
+  },
+  {
+    "record": "321",
+    "record_id": "321",
+    "redcap_event_name": "Calendar event",
+    "field_name": "today",
+    "value": "1020-01-01"
+  }
+]

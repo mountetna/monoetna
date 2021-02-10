@@ -77,7 +77,7 @@ all_flag_completion_names="$all_flag_completion_names  "
 string_flag_completion_names="$string_flag_completion_names  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names="apply_template attributes copy_template help"
+all_completion_names="apply_template attributes copy_template help load_from_redcap"
 all_completion_names="$all_completion_names $all_flag_completion_names"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
@@ -448,6 +448,61 @@ elif [[ "$1" == "help" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
 string_flag_completion_names="$string_flag_completion_names  "
+while [[ "$#" != "0" ]]; do
+if [[ "$#" == "1" ]];  then
+all_completion_names=""
+all_completion_names="$all_completion_names $all_flag_completion_names"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
+return
+elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+a=$1
+shift
+if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$#" == "1" ]];  then
+a="${a//--/}"
+a="${a//-/_}"
+i="_completions_for_$a"
+all_completion_names="${!i}"
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+fi
+else
+return
+fi
+done
+return
+elif [[ "$1" == "load_from_redcap" ]]; then
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__project_name__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__redcap_tokens__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names --commit --models --mode "
+string_flag_completion_names="$string_flag_completion_names --models --mode "
+declare _completions_for_models="__models__"
+declare _completions_for_mode="__mode__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
