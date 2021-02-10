@@ -6,6 +6,7 @@ import {plotData} from 'etna-js/plots/plot_script';
 import {selectConsignment} from 'etna-js/plots/selectors/consignment_selector';
 import XYPlot from 'etna-js/plots/components/xy_plot/xy_plot';
 import CategoryPlot from 'etna-js/plots/components/category_plot/category_plot';
+import Vector from 'etna-js/plots/models/vector';
 
 export default function Plot({md5sum}) {
   const {workflow, pathIndex, stepIndex, setData, setWorkflow} = useContext(
@@ -66,7 +67,8 @@ function browserStateOf(md5sum, primaryOutputName) {
       configuration: {
         layout: {
           height: 400,
-          width: 600
+          width: 600,
+          margin: {}
         },
         variables: {
           x_label: x,
@@ -91,16 +93,25 @@ function browserStateOf(md5sum, primaryOutputName) {
       }
     };
 
+    let xValues = primaryConsignment.rows.map((r) => r[0]);
+    let yValues = primaryConsignment.rows.map((r) => r[1]);
+    let labels = primaryConsignment.row_names;
+
+    const margin = 1.2;
+    console.log(xValues);
+    console.log(yValues);
+
     let data = {
-      xdomain: [-500, 500],
-      ydomain: [-500, 500],
+      xdomain: [margin * Math.min(xValues), margin * Math.max(xValues)],
+      ydomain: [margin * Math.min(yValues), margin * Math.max(yValues)],
       plot_series: [
         {
           name: primaryOutputName,
           series_type: 'scatter',
           variables: {
-            x: primaryConsignment.rows.map((r) => r[0]),
-            y: primaryConsignment.rows.map((r) => r[1])
+            x: new Vector(xValues),
+            y: new Vector(yValues),
+            labels: new Vector(labels)
           }
         }
       ]
