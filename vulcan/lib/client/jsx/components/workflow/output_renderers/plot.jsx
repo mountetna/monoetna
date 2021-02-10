@@ -146,7 +146,7 @@ function browserStateOf(md5sum, step, dimensions) {
           variables: {
             x: vectorize(xValues),
             y: vectorize(yValues),
-            labels: vectorize(labels)
+            label: vectorize(labels)
           }
         }
       ]
