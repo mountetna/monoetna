@@ -18,12 +18,18 @@ class MagmaError(Exception):
 class Magma(object):
     def __init__(self, url: str,
                  token: str,
+                 endpoint: str,
                  fmt: str='json',
                  session: Session()=_session) -> None:
-        self._url = url.strip('/')
+        allowedEndpoints = ['update', 'retrieve', 'query', 'update_model']
+        if endpoint not in allowedEndpoints:
+            raise MagmaError(f'Magma(): unknown endpoint {endpoint}. Must be one of the {allowedEndpoints}')
+        self._url = '/'.join([url.strip('/'), endpoint])
         self._token = token
         self._fmt = fmt
         self._session = session
+        self._headers = {"Content-Type" : "application/json",
+                         "Authorization" : f"Etna {self._token}"}
 
 
     def getResponseContent(self, response) -> Union[Dict, BytesIO]:
@@ -55,7 +61,7 @@ class Magma(object):
         :param **kwargs: passed to requests.Session.post()
         :return: Tuple[Dict, Dict]. Dictionary of content, dictionary of response headers
         '''
-        response = self._session.post(self._url, data=payload, **kwargs)
+        response = self._session.post(self._url, data=payload, headers=self._headers, **kwargs)
         content = self.getResponseContent(response)
         return content, response.headers
 

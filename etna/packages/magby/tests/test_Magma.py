@@ -1,30 +1,47 @@
 from unittest import TestCase
+import vcr
+import configparser
 from ..magby.Magma import *
 
 
+
+conf = configparser.ConfigParser()
+conf.read('magby/tests/proxyConfig.ini')    # Config is in .gitignore
+
+
 class TestMagma(TestCase):
+    @vcr.use_cassette('tests/fixtures/vcr_cassettes/test_Magma.yaml')
     def setUp(self) -> None:
-        self.magma = Magma('some_url', 'my_token')
-        self.json_string = '{"projects":[{"project_name":"mvir1","project_name_full":"COMET","project_description":null},' \
-                           '{"project_name":"dscolab","project_name_full":"Data Science CoLab","project_description":null}]}'
-        self.tsv_string = ''
+        proxy = json.loads(conf['DEFAULT'].get('proxy'))
+        self.magma = Magma(conf['DEFAULT'].get('url'),
+                           conf['DEFAULT'].get('token'),
+                           'retrieve')
+        self.magma._session.proxies.update(proxy)
 
     def test_getResponseContent(self):
-        responseJSON = self.magma.getResponseContent(self.json_string)
+        payload = {
+            "project_name": "ipi",
+            "model_name": "sample",
+            "record_names": ["IPIADR001.T1"],
+            "attribute_names": ["patient"]
+        }
+        response = self.magma._session.post(self.magma._url, data=json.dumps(payload), headers=self.magma._headers, verify=False)
+        responseJSON = self.magma.getResponseContent(response)
         self.assertTrue(isinstance(responseJSON, dict))
-        self.assertEqual(responseJSON['projects'][0]['project_name'], 'mvir1')
+        self.assertEqual(len(responseJSON['models']['sample']['documents']["IPIADR001.T1"].keys()), 2)
+        self.assertEqual(responseJSON['models']['sample']['documents']["IPIADR001.T1"]['patient'], 'IPIADR001')
 
     def test_magmaCall(self):
         payload = {
-            "project_name": 'ipi',
+            "project_name": "ipi",
             "model_name": "sample",
-            "record_names": ['IPIBLAD013'],
-            "attribute_names": ['flojo_file']
+            "record_names": ["IPIADR001.T1"],
+            "attribute_names": ["patient"]
         }
         magmaResponse, magmaResponseHeaders = self.magma.magmaCall(payload)
         self.assertTrue(isinstance(magmaResponse, dict))
         self.assertTrue(isinstance(magmaResponseHeaders, dict))
-        self.assertEqual(magmaResponse, 'stuff') # TODO get actual data
+        self.assertEqual(magmaResponse['models']['sample']['documents']["IPIADR001.T1"]['patient'], 'IPIADR001')
         self.assertEqual(magmaResponseHeaders, 'headers_stuff') # TODO get actual data
 
 
