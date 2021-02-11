@@ -1,12 +1,22 @@
 from unittest import TestCase
-import vcr
+import configparser
 from ..magby.Magby import *
+from ..tests.testUtils import *
+
+conf = configparser.ConfigParser()
+conf.read('magby/tests/proxyConfig.ini')    # Config is in .gitignore
+
+
 
 class TestMagby(TestCase):
     def setUp(self) -> None:
-        self.magby = Magby('some_url', 'my_token')
-        self.json_string = '{"projects":[{"project_name":"mvir1","project_name_full":"COMET","project_description":null},' \
-                           '{"project_name":"dscolab","project_name_full":"Data Science CoLab","project_description":null}]}'
+        proxy = json.loads(conf['DEFAULT'].get('proxy'))
+        self.magby = Magby(conf['DEFAULT'].get('url'),
+                               conf['DEFAULT'].get('token'),
+                               'retrieve')
+        # TODO fix the session
+        self.magma._session.proxies.update(proxy)
+        self.vcr = prepCassette(self.magma._session)
 
     def test_url(self):
         self.assertEqual(self.magby.url, 'some_url')
