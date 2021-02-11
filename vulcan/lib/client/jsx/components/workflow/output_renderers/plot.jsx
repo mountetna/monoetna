@@ -58,7 +58,7 @@ export default function Plot({md5sum, parentRef}) {
 function browserStateOf(md5sum) {
   return (state) => {
     let consignment = selectConsignment(state, md5sum);
-
+    console.log(consignment);
     return {consignment};
   };
 }

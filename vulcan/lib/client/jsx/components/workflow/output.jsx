@@ -63,7 +63,7 @@ export default function Output() {
     const STUB_URL = `https://vulcan.development.local/api/${CONFIG.project_name}/workflows/umap/umap_data`;
 
     WORKFLOW.steps[0][5].data_url = STUB_URL;
-
+    console.log(UMAP_DATA);
     setWorkflow(WORKFLOW);
     setOutputData(UMAP_DATA);
   }, []);
