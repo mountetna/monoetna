@@ -35,9 +35,15 @@ export default class Scatter extends Component {
     let {series, xScale, yScale, color} = this.props;
     let {
       name,
-      variables: {x, y, label, model}
+      variables: {x, y, label, model, nodeColor}
     } = series;
     let points = x.map((l, v, i) => ({x: xScale(x(i)), y: yScale(y(i))}));
+
+    // If each dot's color is specified in the series, use that.
+    // Otherwise default to the props value sent in.
+    let nodeColors = nodeColor
+      ? nodeColor
+      : new Array(points.length).fill(color);
 
     let labels = label ? label.values : x.labels;
 
@@ -53,7 +59,7 @@ export default class Scatter extends Component {
             xmedian={xmedian}
             label={labels[index]}
             model={model}
-            color={color}
+            color={nodeColors[index]}
           />
         ))}
       </g>
