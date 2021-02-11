@@ -1,14 +1,16 @@
+import XYPlot from 'etna-js/plots/components/xy_plot/xy_plot';
 import Plot from './plot';
 import Domain from './domain';
 import Series from './series';
 
 export default class XYPlotModel extends Plot {
-  constructor(step, consignment, dimensions) {
-    super(step, consignment, dimensions);
+  constructor(step, consignment, parentWidth) {
+    super(step, consignment, parentWidth);
     this.type = 'xy';
 
     this.plotObj = {
       plot_type: this.type,
+      component: XYPlot,
       configuration: {
         layout: {},
         variables: {
@@ -26,7 +28,8 @@ export default class XYPlotModel extends Plot {
         configuration: {
           config: {}
         }
-      }
+      },
+      parentWidth: this.parentWidth
     };
     this.dataObj = {
       xdomain: new Domain([0]).asArray,
@@ -138,8 +141,8 @@ export default class XYPlotModel extends Plot {
     // Calculate the plot layout given the dimensions
     //   of a parent container.
     this.plotObj.configuration.layout = {
-      height: Math.round((3 * this.dimensions.width) / 4),
-      width: this.dimensions.width,
+      height: Math.round((3 * this.parentWidth) / 4),
+      width: this.parentWidth,
       margin: {
         bottom: 100,
         left: 100,
@@ -148,7 +151,7 @@ export default class XYPlotModel extends Plot {
       }
     };
     console.log('here');
-    console.log(this.dimensions);
+    console.log(this.parentWidth);
     console.log(this.plotObj);
   }
 }

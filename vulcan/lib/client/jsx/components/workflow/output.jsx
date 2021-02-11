@@ -1,4 +1,10 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, {
+  useState,
+  useContext,
+  useEffect,
+  useRef,
+  forwardRef
+} from 'react';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
@@ -26,6 +32,7 @@ const WORKFLOW = require('../../../../server/data/steps.json');
 const UMAP_DATA = require('../../../../server/data/umap_data.json');
 
 export default function Output() {
+  const outputRef = useRef(null);
   const invoke = useActionInvoker();
   const {workflow, pathIndex, stepIndex, setData, setWorkflow} = useContext(
     VulcanContext
@@ -114,7 +121,11 @@ export default function Output() {
           onSelect={handleOnSelectView}
         ></Dropdown>
       </div>
-      {Component ? <Component md5sum='some-cell-hash'></Component> : null}
+      <div ref={outputRef}>
+        {Component ? (
+          <Component md5sum='some-cell-hash' parentRef={outputRef}></Component>
+        ) : null}
+      </div>
     </div>
   );
 }

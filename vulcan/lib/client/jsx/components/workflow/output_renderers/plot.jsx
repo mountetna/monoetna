@@ -3,85 +3,61 @@ import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {VulcanContext} from '../../../contexts/vulcan';
 
 import {selectConsignment} from 'etna-js/plots/selectors/consignment_selector';
-import XYPlot from 'etna-js/plots/components/xy_plot/xy_plot';
+
 import CategoryPlot from 'etna-js/plots/components/category_plot/category_plot';
 
 import {plotDataForStep} from '../../../selectors/workflow_selector';
-import {plotData} from '../../../../../../../etna/packages/etna-js/plots/plot_script';
 
-export default function Plot({md5sum}) {
-  const parentRef = useRef();
-  const [parentDims, setParentDims] = useState({width: 0, height: 0});
-  const [plot, setPlot] = useState(null);
-  const [data, setData] = useState(null);
+export default function Plot({md5sum, parentRef}) {
+  const [plotConfig, setPlotConfig] = useState(null);
+  const [plotData, setPlotData] = useState(null);
 
-  useEffect(() => {
-    console.log(parentRef);
-    if (parentRef.current) {
-      setParentDims({
-        width: parentRef.current.offsetWidth,
-        height: parentRef.current.offsetHeight
-      });
-    }
-  }, [parentRef]);
-
-  const {workflow, pathIndex, stepIndex, setData, setWorkflow} = useContext(
-    VulcanContext
-  );
+  const {workflow, pathIndex, stepIndex} = useContext(VulcanContext);
 
   // The md5sum may come from the workflow step at some point?
-  let browserState = useReduxState(
-    browserStateOf(md5sum, workflow.steps[0][5])
-  );
-
-  useEffect(() => {
-    browserState = useReduxState(
-      browserStateOf(md5sum, workflow.steps[0][5], parentDims)
-    );
-  }, [parentDims]);
+  let browserState = useReduxState(browserStateOf(md5sum));
 
   let {consignment} = browserState;
 
-  console.log(plot);
-  console.log(data);
-  if (!plot || !data) return null;
+  useEffect(() => {
+    if (parentRef.current) {
+      let parentWidth = parentRef.current.offsetWidth;
+      let {plot, data} = plotDataForStep(
+        workflow.steps[0][5], // use pathIndex and stepIndex once we have those tied in
+        consignment,
+        parentWidth
+      );
+      setPlotConfig(plot);
+      setPlotData(data);
+    }
+  }, [parentRef.current]);
+
+  if (!plotConfig || !plotData) return null;
 
   let {
-    plot_type,
-    configuration: {layout, variables}
-  } = plot;
-  let PlotComponent;
-  switch (plot_type) {
-    case 'xy':
-      PlotComponent = XYPlot;
-      break;
-    case 'category':
-      PlotComponent = CategoryPlot;
-      break;
-    default:
-      return null;
-  }
+    configuration: {layout, variables},
+    parentWidth
+  } = plotConfig;
+  let PlotComponent = plotConfig.component;
+
+  if (!PlotComponent) return null;
 
   return (
     <div ref={parentRef}>
       <PlotComponent
-        data={data}
-        plot={plot}
+        data={plotData}
+        plot={plotConfig}
         config_variables={variables}
         layout={layout}
-        parent_width={parentDims.width}
+        parent_width={parentWidth}
       />
     </div>
   );
 }
 
-function browserStateOf(md5sum, step) {
+function browserStateOf(md5sum) {
   return (state) => {
-    console.log(step);
-
     let consignment = selectConsignment(state, md5sum);
-
-    if (!consignment) return null;
 
     return {consignment};
   };

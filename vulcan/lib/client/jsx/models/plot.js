@@ -1,8 +1,8 @@
 export default class Plot {
-  constructor(step, consignment, dimensions) {
+  constructor(step, consignment, parentWidth) {
     this.step = step;
     this.consignment = consignment;
-    this.dimensions = dimensions;
+    this.parentWidth = parentWidth;
 
     this.plotObj = {};
     this.dataObj = {};

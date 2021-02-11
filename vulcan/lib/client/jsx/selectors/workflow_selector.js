@@ -19,7 +19,7 @@ const plotType = (step) => {
   return step.run.replace(/\.cwl/g, '');
 };
 
-export const plotDataForStep = (step, consignment, dimensions) => {
+export const plotDataForStep = (step, consignment, parentWidth) => {
   // Take a consignment and step, and generate
   //   the plot config and data objects
   //   needed to generate a plot.
@@ -30,7 +30,7 @@ export const plotDataForStep = (step, consignment, dimensions) => {
 
   let plot;
   if ('xy' === type) {
-    plot = new XYPlotModel(step, consignment, dimensions);
+    plot = new XYPlotModel(step, consignment, parentWidth);
   }
 
   if (!plot) return null;
