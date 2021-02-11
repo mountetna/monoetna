@@ -52,10 +52,12 @@ class Vulcan
         sf
       end
 
-      yield output_storage_files
+      result = yield output_storage_files
 
       ::FileUtils.mkdir_p(::File.dirname(outputs_dir))
       ::FileUtils.mv(build_dir, outputs_dir, force: true)
+
+      result
     end
 
     class StorageFile
@@ -111,7 +113,7 @@ class Vulcan
           raise "input files are mixed across projects, they must all belong to #{project_name}"
         end
 
-        input_files = input_files.dup.sort_by(&:logical_name)
+        input_files = input_files.dup.sort_by(&:cell_hash)
         output_filenames = output_filenames.dup.sort
 
         @project_name = project_name

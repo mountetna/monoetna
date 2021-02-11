@@ -458,167 +458,167 @@ module Etna
 
       return field_type.load(val)
     end
-  end
 
-  class InputParameter < Cwl
-    FIELD_LOADERS = {
-        id: PrimitiveLoader::STRING.optional,
-        label: PrimitiveLoader::STRING.optional,
-        secondaryFiles: NeverLoader::UNSUPPORTED,
-        streamable: NeverLoader::UNSUPPORTED,
-        loadContents: NeverLoader::UNSUPPORTED,
-        loadListing: NeverLoader::UNSUPPORTED,
-        valueFrom: NeverLoader::UNSUPPORTED,
-        doc: PrimitiveLoader::STRING.optional,
+    class InputParameter < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING.optional,
+          label: PrimitiveLoader::STRING.optional,
+          secondaryFiles: NeverLoader::UNSUPPORTED,
+          streamable: NeverLoader::UNSUPPORTED,
+          loadContents: NeverLoader::UNSUPPORTED,
+          loadListing: NeverLoader::UNSUPPORTED,
+          valueFrom: NeverLoader::UNSUPPORTED,
+          doc: PrimitiveLoader::STRING.optional,
 
-        type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
-        default: AnyLoader::ANY.optional,
-        format: PrimitiveLoader::STRING.optional,
-    }
+          type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
+          default: AnyLoader::ANY.optional,
+          format: PrimitiveLoader::STRING.optional,
+      }
 
-    def default
-      default = @attributes['default']
-      return nil unless default
-      RecordType::Field.type_loader(@attributes['type'])&.load(default)
-    end
-  end
-
-  class OutputParameter < Cwl
-    FIELD_LOADERS = {
-        id: PrimitiveLoader::STRING.optional,
-        label: PrimitiveLoader::STRING.optional,
-        secondaryFiles: NeverLoader::UNSUPPORTED,
-        streamable: NeverLoader::UNSUPPORTED,
-        doc: PrimitiveLoader::STRING.optional,
-
-        outputBinding: NeverLoader::UNSUPPORTED,
-        type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
-        format: PrimitiveLoader::STRING.optional,
-    }
-  end
-
-  class WorkflowOutputParameter < Cwl
-    FIELD_LOADERS = {
-        id: PrimitiveLoader::STRING,
-        label: PrimitiveLoader::STRING.optional,
-        secondaryFiles: NeverLoader::UNSUPPORTED,
-        streamable: NeverLoader::UNSUPPORTED,
-        linkMerge: NeverLoader::UNSUPPORTED,
-        pickValue: NeverLoader::UNSUPPORTED,
-        doc: PrimitiveLoader::STRING.optional,
-
-        outputSource: SourceLoader.new,
-        type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
-        format: PrimitiveLoader::STRING.optional,
-    }
-
-    def outputSource
-      @attributes['outputSource']
-    end
-  end
-
-  class WorkflowInputParameter < Cwl
-    FIELD_LOADERS = {
-        id: PrimitiveLoader::STRING,
-        label: PrimitiveLoader::STRING.optional,
-        secondaryFiles: NeverLoader::UNSUPPORTED,
-        streamable: NeverLoader::UNSUPPORTED,
-        loadContents: NeverLoader::UNSUPPORTED,
-        loadListing: NeverLoader::UNSUPPORTED,
-        doc: PrimitiveLoader::STRING.optional,
-        inputBinding: NeverLoader::UNSUPPORTED,
-
-        default: AnyLoader::ANY,
-        type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
-        format: PrimitiveLoader::STRING.optional,
-    }
-  end
-
-  class StepOutput < Cwl
-    FIELD_LOADERS = {
-        id: PrimitiveLoader::STRING,
-    }
-  end
-
-
-  class StepInput < Cwl
-    FIELD_LOADERS = {
-        id: PrimitiveLoader::STRING.optional,
-        source: SourceLoader.new.optional,
-        label: PrimitiveLoader::STRING.optional,
-        linkMerge: NeverLoader::UNSUPPORTED,
-        pickValue: NeverLoader::UNSUPPORTED,
-        loadContents: NeverLoader::UNSUPPORTED,
-        loadListing: NeverLoader::UNSUPPORTED,
-        valueFrom: NeverLoader::UNSUPPORTED,
-        default: AnyLoader::ANY.optional,
-    }
-
-    def id
-      @attributes['id']
+      def default
+        default = @attributes['default']
+        return nil unless default
+        RecordType::Field.type_loader(@attributes['type'])&.load(default)
+      end
     end
 
-    def source
-      @attributes['source']
-    end
-  end
+    class OutputParameter < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING.optional,
+          label: PrimitiveLoader::STRING.optional,
+          secondaryFiles: NeverLoader::UNSUPPORTED,
+          streamable: NeverLoader::UNSUPPORTED,
+          doc: PrimitiveLoader::STRING.optional,
 
-  class Operation < Cwl
-    FIELD_LOADERS = {
-        id: PrimitiveLoader::STRING.optional,
-        label: PrimitiveLoader::STRING.optional,
-        doc: PrimitiveLoader::STRING.optional,
-        requirements: NeverLoader::UNSUPPORTED,
-        hints: NeverLoader::UNSUPPORTED,
-        cwlVersion: EnumLoader.new("v1.0", "v1.1", "v1.2").optional,
-        intent: NeverLoader::UNSUPPORTED,
-        class: EnumLoader.new("Operation"),
-        inputs: InputParameter.loader.as_mapped_array('id', 'type'),
-        outputs: OutputParameter.loader.as_mapped_array('id', 'type'),
-    }
-  end
-
-  class Step < Cwl
-    FIELD_LOADERS = {
-        id: PrimitiveLoader::STRING.optional,
-        label: PrimitiveLoader::STRING.optional,
-        doc: PrimitiveLoader::STRING.optional,
-        in: StepInput.loader.as_mapped_array('id', 'source'),
-        out: StepOutput.loader.or(PrimitiveLoader::STRING.map { |id| StepOutput.loader.load({'id' => id}) }).as_array,
-        requirements: NeverLoader::UNSUPPORTED,
-        hints: NeverLoader::UNSUPPORTED,
-        run: PrimitiveLoader::STRING.map { |id| Operation.loader.load({'id' => id, 'class' => 'Operation', 'inputs' => [], 'outputs' => []}) }.or(Operation.loader),
-        when: NeverLoader::UNSUPPORTED,
-        scatter: NeverLoader::UNSUPPORTED,
-        scatterMethod: NeverLoader::UNSUPPORTED,
-    }
-
-    def id
-      @attributes['id']
-    end
-  end
-
-  class Workflow < Cwl
-    FIELD_LOADERS = {
-        id: PrimitiveLoader::STRING.optional,
-        label: PrimitiveLoader::STRING.optional,
-        doc: PrimitiveLoader::STRING.optional,
-        requirements: NeverLoader::UNSUPPORTED,
-        hints: NeverLoader::UNSUPPORTED,
-        intent: NeverLoader::UNSUPPORTED,
-        class: EnumLoader.new("Workflow"),
-        cwlVersion: EnumLoader.new("v1.0", "v1.1", "v1.2"),
-        inputs: WorkflowInputParameter.loader.as_mapped_array('id', 'type'),
-        outputs: WorkflowOutputParameter.loader.as_mapped_array('id', 'type'),
-        steps: Step.loader.as_mapped_array('id', 'source')
-    }
-
-    def inputs
-      @attributes['inputs']
+          outputBinding: NeverLoader::UNSUPPORTED,
+          type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
+          format: PrimitiveLoader::STRING.optional,
+      }
     end
 
-    def steps
-      @attributes['steps']
+    class WorkflowOutputParameter < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING,
+          label: PrimitiveLoader::STRING.optional,
+          secondaryFiles: NeverLoader::UNSUPPORTED,
+          streamable: NeverLoader::UNSUPPORTED,
+          linkMerge: NeverLoader::UNSUPPORTED,
+          pickValue: NeverLoader::UNSUPPORTED,
+          doc: PrimitiveLoader::STRING.optional,
+
+          outputSource: SourceLoader.new,
+          type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
+          format: PrimitiveLoader::STRING.optional,
+      }
+
+      def outputSource
+        @attributes['outputSource']
+      end
+    end
+
+    class WorkflowInputParameter < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING,
+          label: PrimitiveLoader::STRING.optional,
+          secondaryFiles: NeverLoader::UNSUPPORTED,
+          streamable: NeverLoader::UNSUPPORTED,
+          loadContents: NeverLoader::UNSUPPORTED,
+          loadListing: NeverLoader::UNSUPPORTED,
+          doc: PrimitiveLoader::STRING.optional,
+          inputBinding: NeverLoader::UNSUPPORTED,
+
+          default: AnyLoader::ANY,
+          type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
+          format: PrimitiveLoader::STRING.optional,
+      }
+    end
+
+    class StepOutput < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING,
+      }
+    end
+
+
+    class StepInput < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING.optional,
+          source: SourceLoader.new.optional,
+          label: PrimitiveLoader::STRING.optional,
+          linkMerge: NeverLoader::UNSUPPORTED,
+          pickValue: NeverLoader::UNSUPPORTED,
+          loadContents: NeverLoader::UNSUPPORTED,
+          loadListing: NeverLoader::UNSUPPORTED,
+          valueFrom: NeverLoader::UNSUPPORTED,
+          default: AnyLoader::ANY.optional,
+      }
+
+      def id
+        @attributes['id']
+      end
+
+      def source
+        @attributes['source']
+      end
+    end
+
+    class Operation < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING.optional,
+          label: PrimitiveLoader::STRING.optional,
+          doc: PrimitiveLoader::STRING.optional,
+          requirements: NeverLoader::UNSUPPORTED,
+          hints: NeverLoader::UNSUPPORTED,
+          cwlVersion: EnumLoader.new("v1.0", "v1.1", "v1.2").optional,
+          intent: NeverLoader::UNSUPPORTED,
+          class: EnumLoader.new("Operation"),
+          inputs: InputParameter.loader.as_mapped_array('id', 'type'),
+          outputs: OutputParameter.loader.as_mapped_array('id', 'type'),
+      }
+    end
+
+    class Step < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING.optional,
+          label: PrimitiveLoader::STRING.optional,
+          doc: PrimitiveLoader::STRING.optional,
+          in: StepInput.loader.as_mapped_array('id', 'source'),
+          out: StepOutput.loader.or(PrimitiveLoader::STRING.map { |id| StepOutput.loader.load({'id' => id}) }).as_array,
+          requirements: NeverLoader::UNSUPPORTED,
+          hints: NeverLoader::UNSUPPORTED,
+          run: PrimitiveLoader::STRING.map { |id| Operation.loader.load({'id' => id, 'class' => 'Operation', 'inputs' => [], 'outputs' => []}) }.or(Operation.loader),
+          when: NeverLoader::UNSUPPORTED,
+          scatter: NeverLoader::UNSUPPORTED,
+          scatterMethod: NeverLoader::UNSUPPORTED,
+      }
+
+      def id
+        @attributes['id']
+      end
+    end
+
+    class Workflow < Cwl
+      FIELD_LOADERS = {
+          id: PrimitiveLoader::STRING.optional,
+          label: PrimitiveLoader::STRING.optional,
+          doc: PrimitiveLoader::STRING.optional,
+          requirements: NeverLoader::UNSUPPORTED,
+          hints: NeverLoader::UNSUPPORTED,
+          intent: NeverLoader::UNSUPPORTED,
+          class: EnumLoader.new("Workflow"),
+          cwlVersion: EnumLoader.new("v1.0", "v1.1", "v1.2"),
+          inputs: WorkflowInputParameter.loader.as_mapped_array('id', 'type'),
+          outputs: WorkflowOutputParameter.loader.as_mapped_array('id', 'type'),
+          steps: Step.loader.as_mapped_array('id', 'source')
+      }
+
+      def inputs
+        @attributes['inputs']
+      end
+
+      def steps
+        @attributes['steps']
+      end
     end
   end
 end

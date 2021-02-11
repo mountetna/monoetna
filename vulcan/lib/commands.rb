@@ -18,14 +18,12 @@ class Vulcan
     end
   end
 
-  class Schema < Etna::Command
-    usage 'Show the current database schema.'
+  class RunArchimedes < Etna::Command
+    string_flags << '--session'
 
-    def execute
-      Vulcan.instance.db.tap do |db|
-        db.extension(:schema_dumper)
-        puts db.dump_schema_migration
-      end
+    def execute(project_name, workflow_name, session: 'session')
+      session = Session.new(project_name, workflow_name, session, inputs={})
+      session.orchestration&.run_until_done!(Vulcan::Storage.new)
     end
 
     def setup(config)
@@ -33,6 +31,7 @@ class Vulcan
       Vulcan.instance.setup_db
     end
   end
+
   class Migrate < Etna::Command
     usage 'Run migrations for the current environment.'
     string_flags << '--version'

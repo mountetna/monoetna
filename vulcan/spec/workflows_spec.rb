@@ -10,7 +10,7 @@ describe WorkflowsController do
   describe 'loading' do
     ::Dir.glob(::File.join(::File.dirname(__FILE__), '..', 'lib', 'server', 'workflows', '*.{yaml,yml,cwl}')).each do |yml|
       it "#{yml} works" do
-        Etna::Workflow.from_yaml_file(File.basename(yml))
+        Etna::Workflow.from_yaml_file(File.basename(yml), File.dirname(yml))
       end
     end
   end

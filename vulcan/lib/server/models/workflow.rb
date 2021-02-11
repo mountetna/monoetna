@@ -1,8 +1,8 @@
 # Extends the base Etna::Workflow class with extra logic useful for
 module Etna
   class Workflow < Cwl
-    def self.from_yaml_file(filename)
-      attributes = YAML.safe_load(::File.read(File.join(File.dirname(__FILE__), "../workflows/#{filename}")))
+    def self.from_yaml_file(filename, prefix=Vulcan.instance.config(:workflows_folder))
+      attributes = YAML.safe_load(::File.read(File.join(prefix, filename)))
       self.loader.load(attributes)
     end
 
@@ -22,10 +22,10 @@ module Etna
     UI_QUERIES_REGEX = /^ui-queries\/(.*)$/
 
     def lookup_operation_script
-      return nil if script.nil?
+      return nil if script_name.nil?
 
       # TODO: Run some type checking that the operation's inputs / outputs match the step.
-      script_path = File.join(File.dirname(__FILE__), "../scripts/#{script_name}.py")
+      script_path = File.join(Vulcan.instance.config(:workflows_folder), "scripts/#{script_name}.py")
       if ::File.exists?(script_path)
         run.load_attributes_from_script(script_path)
         ::File.read(script_path)

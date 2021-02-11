@@ -29,10 +29,12 @@ module Etna
       write %Q(elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then)
       write "return"
       write %Q(elif [[ "$all_flag_completion_names" =~ $1\\  ]]; then)
+      write %Q(if ! [[ "$multi_flags" =~ $1\\  ]]; then)
       write %Q(all_flag_completion_names="${all_flag_completion_names//$1\\ /}")
+      write 'fi'
       write 'a=$1'
       write 'shift'
-      write %Q(if [[ "$string_flag_completion_names" =~ $a\\  ]]; then)
+      write %Q(if [[ "$arg_flag_completion_names" =~ $a\\  ]]; then)
       write 'if [[ "$#" == "1" ]];  then'
       write %Q(a="${a//--/}")
       write %Q(a="${a//-/_}")
@@ -58,12 +60,14 @@ module Etna
 
     def enable_flags(flags_container)
       boolean_flags = flags_container.boolean_flags
-      string_flags = flags_container.string_flags
-      flags = boolean_flags + string_flags
+      multi_flags = flags_container.multi_flags
+      arg_flags = flags_container.string_flags + multi_flags
+      flags = boolean_flags + arg_flags
       write %Q(all_flag_completion_names="$all_flag_completion_names #{flags.join(' ')} ")
-      write %Q(string_flag_completion_names="$string_flag_completion_names #{string_flags.join(' ')} ")
+      write %Q(arg_flag_completion_names="$arg_flag_completion_names #{arg_flags.join(' ')} ")
+      write %Q(multi_flags="$multi_flags #{multi_flags.join(' ')} ")
 
-      string_flags.each do |flag|
+      arg_flags.each do |flag|
         write %Q(declare _completions_for_#{flag_as_parameter(flag)}="#{completions_for(flag_as_parameter(flag)).join(' ')}")
       end
     end
@@ -107,7 +111,8 @@ function _#{name}_completions() {
 
 function _#{name}_inner_completions() {
   local all_flag_completion_names=''
-  local string_flag_completion_names=''
+  local arg_flag_completion_names=''
+  local multi_flags=''
   local all_completion_names=''
   local i=''
   local a=''

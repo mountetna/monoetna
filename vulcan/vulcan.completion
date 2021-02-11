@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-function _metis_completions() {
-  _metis_inner_completions "${COMP_WORDS[@]:1:COMP_CWORD}"
+function _vulcan_completions() {
+  _vulcan_inner_completions "${COMP_WORDS[@]:1:COMP_CWORD}"
 }
 
-function _metis_inner_completions() {
+function _vulcan_inner_completions() {
   local all_flag_completion_names=''
   local arg_flag_completion_names=''
   local multi_flags=''
@@ -17,115 +17,12 @@ arg_flag_completion_names="$arg_flag_completion_names  "
 multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names="archive assimilate console create_db generate_completion_script help migrate remove_orphan_data_blocks schema"
+all_completion_names="console create_db generate_completion_script help migrate run_archimedes schema"
 all_completion_names="$all_completion_names $all_flag_completion_names"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
 fi
 COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-elif [[ "$1" == "archive" ]]; then
-shift
-all_flag_completion_names="$all_flag_completion_names  "
-arg_flag_completion_names="$arg_flag_completion_names  "
-multi_flags="$multi_flags  "
-while [[ "$#" != "0" ]]; do
-if [[ "$#" == "1" ]];  then
-all_completion_names=""
-all_completion_names="$all_completion_names $all_flag_completion_names"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
-return
-elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
-if ! [[ "$multi_flags" =~ $1\  ]]; then
-all_flag_completion_names="${all_flag_completion_names//$1\ /}"
-fi
-a=$1
-shift
-if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
-if [[ "$#" == "1" ]];  then
-a="${a//--/}"
-a="${a//-/_}"
-i="_completions_for_$a"
-all_completion_names="${!i}"
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-fi
-else
-return
-fi
-done
-return
-elif [[ "$1" == "assimilate" ]]; then
-shift
-if [[ "$#" == "1" ]];  then
-all_completion_names="__project_name__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-if [[ "$#" == "1" ]];  then
-all_completion_names="__bucket_name__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-if [[ "$#" == "1" ]];  then
-all_completion_names="__folder_path__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-all_flag_completion_names="$all_flag_completion_names  "
-arg_flag_completion_names="$arg_flag_completion_names  "
-multi_flags="$multi_flags  "
-while [[ "$#" != "0" ]]; do
-if [[ "$#" == "1" ]];  then
-all_completion_names=""
-all_completion_names="$all_completion_names $all_flag_completion_names"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
-return
-elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
-if ! [[ "$multi_flags" =~ $1\  ]]; then
-all_flag_completion_names="${all_flag_completion_names//$1\ /}"
-fi
-a=$1
-shift
-if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
-if [[ "$#" == "1" ]];  then
-a="${a//--/}"
-a="${a//-/_}"
-i="_completions_for_$a"
-all_completion_names="${!i}"
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-fi
-else
-return
-fi
-done
 return
 elif [[ "$1" == "console" ]]; then
 shift
@@ -318,11 +215,30 @@ return
 fi
 done
 return
-elif [[ "$1" == "remove_orphan_data_blocks" ]]; then
+elif [[ "$1" == "run_archimedes" ]]; then
 shift
-all_flag_completion_names="$all_flag_completion_names  "
-arg_flag_completion_names="$arg_flag_completion_names  "
+if [[ "$#" == "1" ]];  then
+all_completion_names="__project_name__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__workflow_name__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
+all_flag_completion_names="$all_flag_completion_names --session "
+arg_flag_completion_names="$arg_flag_completion_names --session "
 multi_flags="$multi_flags  "
+declare _completions_for_session="__session__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -419,5 +335,5 @@ fi
 done
 }
 
-complete -o default -F _metis_completions metis
+complete -o default -F _vulcan_completions vulcan
 
