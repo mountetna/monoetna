@@ -12,11 +12,8 @@ class TestMagby(TestCase):
     def setUp(self) -> None:
         proxy = json.loads(conf['DEFAULT'].get('proxy'))
         self.magby = Magby(conf['DEFAULT'].get('url'),
-                               conf['DEFAULT'].get('token'),
-                               'retrieve')
-        # TODO fix the session
-        self.magma._session.proxies.update(proxy)
-        self.vcr = prepCassette(self.magma._session)
+                               conf['DEFAULT'].get('token'))
+
 
     def test_url(self):
         self.assertEqual(self.magby.url, 'some_url')
