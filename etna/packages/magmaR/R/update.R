@@ -36,7 +36,7 @@
 #'     # Running like this will ask for input of your janus token one time.
 #'     
 #'     # Note that you likely do not have write-permissions for the 'example'
-#'     #   project, so this code can be expected to give and authorization error.
+#'     # project, so this code can be expected to give and authorization error.
 #' 
 #'     updateValues(
 #'         projectName = "example",
@@ -75,7 +75,7 @@ updateValues <- function(
     
     ### Check if should move forward
     go <- .ask_before_proceeding(auto.proceed)
-    if (! go %in% c("Y", "y", "Yes", "yes", "YES")) {
+    if (! tolower(go) %in% c("y", "yes")) {
         return("No /update performed.")
     }
     
@@ -103,7 +103,7 @@ updateValues <- function(
         ### Summarize for NEW records
         cat("For model \"", modelName, "\", this update() will create ", num_new, " NEW records:\n    ",
             paste0(rec_names_new, collapse = "\n    "),
-            "\nWARNING: Check the above carefully. Once created, there is currently no way to remove records from magma.\n",
+            "\nWARNING: Check the above carefully. Once created, there is currently no easy way to remove records from magma.\n",
             sep="")
         
         num_current_recs <- num_recs - num_new

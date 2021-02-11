@@ -50,7 +50,7 @@
 #'     # Running like this will ask for input of your janus token one time.
 #'     
 #'     ### Note that you likely do not have write-permissions for the 'example'
-#'     #   project, so this code can be expected to give an authorization error.
+#'     # project, so this code can be expected to give an authorization error.
 #'     
 #'     ### Retrieve some data from magma, then update that same data.
 #'     mat <- retrieveMatrix("example", "rna_seq", "all", "gene_tpm")
@@ -109,12 +109,7 @@ updateMatrix <- function(
         }
     }
     
-    ### Convert & Pass to updateValues() to:
-    # Summarize
-    # Check
-    # Upload
-    
-    # Transform data into a nested list
+    # Transform into a nested list
     # Note: Do not supply recordNames directly to vapply as any "-" will be
     #   converted to "."
     rec_att_vals <- vapply(seq_len(ncol(matrix)), function(x) {
@@ -127,7 +122,10 @@ updateMatrix <- function(
     revs <- list(rec_att_vals)
     names(revs) <- modelName
     
-    ### Upload
+    ### Pass to updateValues() to:
+    # Summarize to user
+    # Check with the user before proceeding
+    # Perform upload
     updateValues(
         projectName = projectName,
         revisions = revs,

@@ -136,8 +136,8 @@ retrieveJSON <- function(
     jsonParams <- list(
         project_name = projectName,
         model_name = modelName,
-        record_names = .as_array_unless_all_or_brackets(recordNames),
-        attribute_names = .as_array_unless_all_or_identifier(attributeNames),
+        record_names = .I_list_unless_all(recordNames),
+        attribute_names = .I_list_unless_all_or_identifier(attributeNames),
         filter = filter,
         format = format)
 
@@ -172,4 +172,22 @@ retrieveJSON <- function(
             jsonlite::fromJSON(curl_out)
         }
     }
+}
+
+.I_list_unless_all <- function(values) {
+    
+    if (identical(values,"[]")) {
+        return(I(list()))
+    }
+    
+    ifelse(test = identical(values, "all"),
+           yes = values,
+           no = I(as.list(values)))
+}
+
+.I_list_unless_all_or_identifier <- function(values) {
+    
+    ifelse(test = (identical(values, "all") || identical(values, "identifier")),
+           yes = values,
+           no = I(as.list(values)))
 }

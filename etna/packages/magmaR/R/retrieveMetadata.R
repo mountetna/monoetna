@@ -161,6 +161,11 @@ retrieveMetadata <- function(
 
 .map_identifiers_by_path <- function(
     path, projectName, token = .get_TOKEN(), ...) {
+    # Function takes in a vector of model names, 'path', for a given project,
+    # then makes query() calls to obtain child-parent identifier linkage for
+    # all successive pairs of target models. Output is a data.frame which can
+    # serve as a dictionary of the linkage between recordNames of any of the
+    # models named in 'paths'
     
     ids <- query(
             projectName = projectName,
@@ -209,10 +214,11 @@ retrieveMetadata <- function(
     ids
 }
 
-.expand_metadata_to_have_1row_per_id <- function(meta_raw, meta_id_map, id_col_index){
+.expand_metadata_to_have_1row_per_id <- function(meta_raw, meta_id_map, id_col_index) {
     ### Expand metadata (columns direction) until 1 row per id.
     
     ## Method: By a user-provided grouping 
+    # NOT IMPLEMENTED
     # Retrieve grouping data if not already in 'meta'
     # grouping <- if (meta_group.by %in% colnames(meta)) {
     #     meta[,meta_group.by]
@@ -225,23 +231,29 @@ retrieveMetadata <- function(
     #         )[,meta_group.by]
     # }
     
-    ## Method: Simply expand rightward by shifting all data for repeated ids to new columns.
+    ## Method: Simply expand rightward by shifting all data for repeated ids to
+    # new columns.
+    
     linker_ids <- meta_id_map[,ncol(meta_id_map)]
+    
     if (any(duplicated(linker_ids))) {
         
+        # Initialize: Determine first current rows per target final rows, and collect
         inds <- match(unique(linker_ids), linker_ids)
-        
         meta <- meta_raw[inds,]
         
+        # Update knowledge of what remains to be added
         meta_left <- meta_raw[-inds,]
         linker_ids_left <- linker_ids[-inds]
         
         for (i in 2:max(table(linker_ids))) {
             
+            # Determine next current rows per target final rows
             inds <- match(unique(linker_ids_left), linker_ids_left)
             
-            # Extract next chunk
+            # Collect next chunk
             next_meta <- meta_left[inds,]
+            
             # Update column names with _i for all but the column containing Ids
             colnames(next_meta) <- paste(colnames(next_meta), i, sep="_")
             colnames(next_meta)[id_col_index] <- colnames(meta)[id_col_index]
@@ -249,11 +261,12 @@ retrieveMetadata <- function(
             # Add
             meta <- merge(meta, next_meta, all.x = TRUE, by = colnames(meta)[id_col_index])
             
-            # Update variables for next repeat
+            # Update knowledge of what remains to be added
             meta_left <- meta_left[-inds,]
             linker_ids_left <- linker_ids_left[-inds]
         }
     } else {
+        
         meta <- meta_raw
     }
     
@@ -261,6 +274,9 @@ retrieveMetadata <- function(
 }
 
 .trim_duplicated_columns <- function(meta, target_id_map, meta_id_col_name) {
+    # Takes two data.frames, 'meta' & 'target_id_map', and a column name to
+    # ignore, 'meta_id_col_name'. It trims any columns from meta, other than
+    # the ignored column, that have the same name as a column of target_id_map.
     
     potential_columns <- c(colnames(meta), colnames(target_id_map))
     

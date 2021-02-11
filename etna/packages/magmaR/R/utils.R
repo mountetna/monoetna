@@ -1,7 +1,9 @@
 .get_TOKEN <- function() {
-    # This function asks the user to provide their janus token, and then stores
-    # the token as a hidden variable in the workspace.
-    # Perhaps a DANGEROUS method, so not necessarily what to do in the end.
+    # This function asks the user to provide their janus token, one time, and 
+    # then stores the response as a hidden variable in the workspace. For that
+    # and future calls, it then provides this hidden variable as its response.
+    #
+    # Vignettes and error messages make this behavior clear.
     
     if (!exists(".MAGMAR_TOKEN", envir = .GlobalEnv)) {
         
@@ -19,9 +21,12 @@
 }
 
 .get_URL <- function() {
-    # This function asks the user to provide their janus token, and then stores
-    # the token as a hidden variable in the workspace.
-    # Perhaps a DANGEROUS method, so not necessarily what to do in the end.
+    # This function sets up the default magma url as a hidden variable in the
+    # workspace. This method of defaulting allows users to adjust their default
+    # url by manually setting .MAGMAR_URL <- <different_url> to bypass the
+    # behvaior below.
+    #
+    # Vignettes and error messages make this behavior clear.
     
     if (!exists(".MAGMAR_URL", envir = .GlobalEnv)) {
         assign(
@@ -43,14 +48,19 @@
     
     fxn <- match.arg(fxn)
     
+    # Set
     curl <- crul::HttpClient$new(
         url = paste0(url.base),
-        headers = list('Content-Type' = "application/json", 'Authorization' = paste0('Etna ', token)),
+        headers = list(
+            'Content-Type' = "application/json",
+            'Authorization' = paste0('Etna ', token)),
         opts = list(postfields = requestBody)
         )
     
+    # Perform
     curl <- curl$get(path = fxn)
     
+    # Summarize
     if (verbose) {
         if (curl$success()) {
             cat(paste0(fxn, ": successful."))
@@ -64,63 +74,25 @@
         stop("You are unauthorized. If you think this is a mistake, run `rm(.MAGMAR_TOKEN)` or update your 'token' input, then retry.")
     }
     
-    if (!parse) {
-        output <- curl
-    } else {
+    # Parse
+    if (parse) {
         output <- curl$parse(encoding = "UTF-8")
+    } else {
+        output <- curl
     }
     
     output
 }
 
 .parse_tsv <- function(
-    string, names.only = FALSE, connected.only = TRUE) {
+    string, names.only = FALSE) {
     
-    ### Parse
+    # Parse
     table <- read.csv(text = string, sep = "\t")
 
     if(names.only) {
         return(names(table))
     }
     
-    ### Clean data
-    # Logic is broken, but tooling is on the way.
-    # if (connected.only) {
-    #     # Remove if no data for parent.
-    #     dat <- dat[!is.null(dat[,1]),]
-    # }
-    
     table
-}
-
-### RENAME
-.as_array_unless_all_or_brackets <- function(values) {
-    
-    if (identical(values, "all")) {
-        return("all")
-    }
-    
-    if (identical(values, "[]")) {
-        return(I(list()))
-    }
-    
-    if (length(values) > 1) {
-        I(values)
-    } else {
-        I(list(values))
-    }
-}
-
-### RENAME
-.as_array_unless_all_or_identifier <- function(values) {
-    
-    if (identical(values, "all") || identical(values, "identifier")) {
-        return(values)
-    }
-    
-    if (length(values) > 1) {
-        I(values)
-    } else {
-        I(list(values))
-    }
 }
