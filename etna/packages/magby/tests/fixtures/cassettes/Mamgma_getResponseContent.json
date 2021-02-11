@@ -1,0 +1,73 @@
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2021-02-11T00:16:13",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "{\"project_name\": \"ipi\", \"model_name\": \"sample\", \"record_names\": [\"IPIADR001.T1\"], \"attribute_names\": [\"patient\"]}"
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "gzip, deflate"
+          ],
+          "Authorization": [
+            "<AUTH_TOKEN>"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "113"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "User-Agent": [
+            "python-requests/2.25.1"
+          ]
+        },
+        "method": "POST",
+        "uri": "https://magma.development.local/retrieve"
+      },
+      "response": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "{\"models\":{\"sample\":{\"documents\":{\"IPIADR001.T1\":{\"sample_name\":\"IPIADR001.T1\",\"patient\":\"IPIADR001\"}},\"template\":{\"name\":\"sample\",\"attributes\":{\"created_at\":{\"name\":\"created_at\",\"attribute_name\":\"created_at\",\"display_name\":\"Created At\",\"hidden\":true,\"validation\":null,\"attribute_type\":\"date_time\"},\"updated_at\":{\"name\":\"updated_at\",\"attribute_name\":\"updated_at\",\"display_name\":\"Updated At\",\"hidden\":true,\"validation\":null,\"attribute_type\":\"date_time\"},\"patient\":{\"name\":\"patient\",\"attribute_name\":\"patient\",\"model_name\":\"patient\",\"link_model_name\":\"patient\",\"display_name\":\"Patient\",\"validation\":null,\"attribute_type\":\"parent\"},\"tumor_type\":{\"name\":\"tumor_type\",\"attribute_name\":\"tumor_type\",\"description\":\"Tumor type for this sample\",\"desc\":\"Tumor type for this sample\",\"display_name\":\"Tumor Type\",\"options\":[\"Primary\",\"Metastasis\",\"Normal\",\"Lymph node\",\"Thrombus\"],\"validation\":{\"type\":\"Array\",\"value\":[\"Primary\",\"Metastasis\",\"Normal\",\"Lymph node\",\"Thrombus\"]},\"attribute_type\":\"string\"},\"weight\":{\"name\":\"weight\",\"attribute_name\":\"weight\",\"description\":\"Mass in grams\",\"desc\":\"Mass in grams\",\"display_name\":\"Weight\",\"validation\":null,\"attribute_type\":\"float\"},\"site\":{\"name\":\"site\",\"attribute_name\":\"site\",\"description\":\"Site of biopsy/extraction\",\"desc\":\"Site of biopsy/extraction\",\"display_name\":\"Site\",\"validation\":null,\"attribute_type\":\"string\"},\"stage\":{\"name\":\"stage\",\"attribute_name\":\"stage\",\"description\":\"Stage of tumor\",\"desc\":\"Stage of tumor\",\"display_name\":\"Stage\",\"validation\":null,\"attribute_type\":\"string\"},\"grade\":{\"name\":\"grade\",\"attribute_name\":\"grade\",\"description\":\"Tumor grade\",\"desc\":\"Tumor grade\",\"display_name\":\"Grade\",\"validation\":null,\"attribute_type\":\"string\"},\"description\":{\"name\":\"description\",\"attribute_name\":\"description\",\"description\":\"General description - how gross the sample looks\",\"desc\":\"General description - how gross the sample looks\",\"display_name\":\"Description\",\"validation\":null,\"attribute_type\":\"string\"},\"post_digest_cell_count\":{\"name\":\"post_digest_cell_count\",\"attribute_name\":\"post_digest_cell_count\",\"description\":\"Count of cells available after digest\",\"desc\":\"Count of cells available after digest\",\"display_name\":\"Post Digest Cell Count\",\"validation\":null,\"attribute_type\":\"integer\"},\"rbc_lysis\":{\"name\":\"rbc_lysis\",\"attribute_name\":\"rbc_lysis\",\"description\":\"Whether RBCs were lysed in this sample\",\"desc\":\"Whether RBCs were lysed in this sample\",\"display_name\":\"Rbc Lysis\",\"validation\":null,\"attribute_type\":\"boolean\"},\"treg_file\":{\"name\":\"treg_file\",\"attribute_name\":\"treg_file\",\"description\":\"FACS format file for T-reg stain\",\"desc\":\"FACS format file for T-reg stain\",\"display_name\":\"Treg File\",\"validation\":null,\"attribute_type\":\"file\"},\"nktb_file\":{\"name\":\"nktb_file\",\"attribute_name\":\"nktb_file\",\"description\":\"FACS format file for NKTB stain\",\"desc\":\"FACS format file for NKTB stain\",\"display_name\":\"Nktb File\",\"validation\":null,\"attribute_type\":\"file\"},\"sort_file\":{\"name\":\"sort_file\",\"attribute_name\":\"sort_file\",\"description\":\"FACS format file for Sort stain\",\"desc\":\"FACS format file for Sort stain\",\"display_name\":\"Sort File\",\"validation\":null,\"attribute_type\":\"file\"},\"dc_file\":{\"name\":\"dc_file\",\"attribute_name\":\"dc_file\",\"description\":\"FACS format file for DC stain\",\"desc\":\"FACS format file for DC stain\",\"display_name\":\"Dc File\",\"validation\":null,\"attribute_type\":\"file\"},\"innate_file\":{\"name\":\"innate_file\",\"attribute_name\":\"innate_file\",\"description\":\"FACS format file for Innate stain\",\"desc\":\"FACS format file for Innate stain\",\"display_name\":\"Innate File\",\"validation\":null,\"attribute_type\":\"file\"},\"treg_flag\":{\"name\":\"treg_flag\",\"attribute_name\":\"treg_flag\",\"description\":\"Quality flag for the treg stain\",\"desc\":\"Quality flag for the treg stain\",\"display_name\":\"Treg Flag\",\"options\":[\"good\",\"bad\",\"critical\"],\"validation\":{\"type\":\"Array\",\"value\":[\"good\",\"bad\",\"critical\"]},\"attribute_type\":\"string\"},\"nktb_flag\":{\"name\":\"nktb_flag\",\"attribute_name\":\"nktb_flag\",\"description\":\"Quality flag for the nktb stain\",\"desc\":\"Quality flag for the nktb stain\",\"display_name\":\"Nktb Flag\",\"options\":[\"good\",\"bad\",\"critical\"],\"validation\":{\"type\":\"Array\",\"value\":[\"good\",\"bad\",\"critical\"]},\"attribute_type\":\"string\"},\"sort_flag\":{\"name\":\"sort_flag\",\"attribute_name\":\"sort_flag\",\"description\":\"Quality flag for the sort stain\",\"desc\":\"Quality flag for the sort stain\",\"display_name\":\"Sort Flag\",\"options\":[\"good\",\"bad\",\"critical\"],\"validation\":{\"type\":\"Array\",\"value\":[\"good\",\"bad\",\"critical\"]},\"attribute_type\":\"string\"},\"dc_flag\":{\"name\":\"dc_flag\",\"attribute_name\":\"dc_flag\",\"description\":\"Quality flag for the dc stain\",\"desc\":\"Quality flag for the dc stain\",\"display_name\":\"Dc Flag\",\"options\":[\"good\",\"bad\",\"critical\"],\"validation\":{\"type\":\"Array\",\"value\":[\"good\",\"bad\",\"critical\"]},\"attribute_type\":\"string\"},\"innate_flag\":{\"name\":\"innate_flag\",\"attribute_name\":\"innate_flag\",\"description\":\"Quality flag for the innate stain\",\"desc\":\"Quality flag for the innate stain\",\"display_name\":\"Innate Flag\",\"options\":[\"good\",\"bad\",\"critical\"],\"validation\":{\"type\":\"Array\",\"value\":[\"good\",\"bad\",\"critical\"]},\"attribute_type\":\"string\"},\"treg_notes\":{\"name\":\"treg_notes\",\"attribute_name\":\"treg_notes\",\"description\":\"Notes for issues with the treg stain\",\"desc\":\"Notes for issues with the treg stain\",\"display_name\":\"Treg Notes\",\"validation\":null,\"attribute_type\":\"string\"},\"nktb_notes\":{\"name\":\"nktb_notes\",\"attribute_name\":\"nktb_notes\",\"description\":\"Notes for issues with the nktb stain\",\"desc\":\"Notes for issues with the nktb stain\",\"display_name\":\"Nktb Notes\",\"validation\":null,\"attribute_type\":\"string\"},\"sort_notes\":{\"name\":\"sort_notes\",\"attribute_name\":\"sort_notes\",\"description\":\"Notes for issues with the sort stain\",\"desc\":\"Notes for issues with the sort stain\",\"display_name\":\"Sort Notes\",\"validation\":null,\"attribute_type\":\"string\"},\"dc_notes\":{\"name\":\"dc_notes\",\"attribute_name\":\"dc_notes\",\"description\":\"Notes for issues with the dc stain\",\"desc\":\"Notes for issues with the dc stain\",\"display_name\":\"Dc Notes\",\"validation\":null,\"attribute_type\":\"string\"},\"innate_notes\":{\"name\":\"innate_notes\",\"attribute_name\":\"innate_notes\",\"description\":\"Notes for issues with the innate stain\",\"desc\":\"Notes for issues with the innate stain\",\"display_name\":\"Innate Notes\",\"validation\":null,\"attribute_type\":\"string\"},\"he_zstack\":{\"name\":\"he_zstack\",\"attribute_name\":\"he_zstack\",\"description\":\"Z-stack (Zeiss CZI) of H&E stain\",\"desc\":\"Z-stack (Zeiss CZI) of H&E stain\",\"display_name\":\"H&E stain ZStack\",\"validation\":null,\"attribute_type\":\"file\"},\"notes\":{\"name\":\"notes\",\"attribute_name\":\"notes\",\"description\":\"General notes about this sample\",\"desc\":\"General notes about this sample\",\"display_name\":\"Notes\",\"validation\":null,\"attribute_type\":\"string\"},\"processed\":{\"name\":\"processed\",\"attribute_name\":\"processed\",\"description\":\"Whether sample was processed or discarded\",\"desc\":\"Whether sample was processed or discarded\",\"display_name\":\"Processed\",\"validation\":null,\"attribute_type\":\"boolean\"},\"headshot\":{\"name\":\"headshot\",\"attribute_name\":\"headshot\",\"description\":\"Gross picture of the sample\",\"desc\":\"Gross picture of the sample\",\"display_name\":\"Head shot\",\"validation\":null,\"attribute_type\":\"image\"},\"he_low\":{\"name\":\"he_low\",\"attribute_name\":\"he_low\",\"description\":\"Flat image of H&E stain at low magnification\",\"desc\":\"Flat image of H&E stain at low magnification\",\"display_name\":\"H&E Low Magnification\",\"validation\":null,\"attribute_type\":\"image\"},\"he_high\":{\"name\":\"he_high\",\"attribute_name\":\"he_high\",\"description\":\"Flat image of H&E stain at high magnification\",\"desc\":\"Flat image of H&E stain at high magnification\",\"display_name\":\"H&E High Magnification\",\"validation\":null,\"attribute_type\":\"image\"},\"rna_seq\":{\"name\":\"rna_seq\",\"attribute_name\":\"rna_seq\",\"model_name\":\"rna_seq\",\"link_model_name\":\"rna_seq\",\"description\":\"RNA Seq experiments performed on this sample\",\"desc\":\"RNA Seq experiments performed on this sample\",\"display_name\":\"RNASeq Experiments\",\"validation\":null,\"attribute_type\":\"collection\"},\"dna_seq\":{\"name\":\"dna_seq\",\"attribute_name\":\"dna_seq\",\"model_name\":\"dna_seq\",\"link_model_name\":\"dna_seq\",\"description\":\"DNA Seq (exome) experiments performed on this sample\",\"desc\":\"DNA Seq (exome) experiments performed on this sample\",\"display_name\":\"DNASeq Experiments\",\"validation\":null,\"attribute_type\":\"collection\"},\"population\":{\"name\":\"population\",\"attribute_name\":\"population\",\"model_name\":\"population\",\"link_model_name\":\"population\",\"display_name\":\"Population\",\"validation\":null,\"attribute_type\":\"table\"},\"sample_name\":{\"name\":\"sample_name\",\"attribute_name\":\"sample_name\",\"description\":\"Unique name for this sample\",\"desc\":\"Unique name for this sample\",\"display_name\":\"Sample Name\",\"match\":\"^IPI(?:ADR|PROS|CRC|BLAD|SI|PDAC|REF|BRC|GBM|GALL|HNSC|KID|PNET|GYN|LUNG|MEL|HEP|MELB|GSTR|SRC)[0-9]{3}\\\\.[A-Z][0-9]$\",\"format_hint\":\"IPICRC001.T1\",\"validation\":{\"type\":\"Regexp\",\"value\":\"#<Proc:0x000055ab884ce490@/app/projects/ipi/models/sample.rb:72>\"},\"attribute_type\":\"identifier\"}},\"identifier\":\"sample_name\",\"parent\":\"patient\"}}}}"
+        },
+        "headers": {
+          "Connection": [
+            "Keep-Alive"
+          ],
+          "Content-Length": [
+            "9018"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Thu, 11 Feb 2021 00:16:13 GMT"
+          ],
+          "Keep-Alive": [
+            "timeout=5, max=100"
+          ],
+          "Server": [
+            "Apache"
+          ],
+          "Service-Worker-Allowed": [
+            "/"
+          ]
+        },
+        "status": {
+          "code": 200,
+          "message": "OK"
+        },
+        "url": "https://magma.development.local/retrieve"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.1"
+}

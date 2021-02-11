@@ -61,7 +61,7 @@ class Magma(object):
         :param **kwargs: passed to requests.Session.post()
         :return: Tuple[Dict, Dict]. Dictionary of content, dictionary of response headers
         '''
-        response = self._session.post(self._url, data=payload, headers=self._headers, **kwargs)
+        response = self._session.post(self._url, data=json.dumps(payload), headers=self._headers, **kwargs)
         content = self.getResponseContent(response)
         return content, response.headers
 
