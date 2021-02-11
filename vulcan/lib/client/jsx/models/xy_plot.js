@@ -44,6 +44,9 @@ export default class XYPlotModel extends Plot {
   }
 
   get validSeries() {
+    // Because we may have null series in the List,
+    //   we'll need to filter those out and only
+    //   use the "real" series.
     return this.series.filter((s) => null !== s);
   }
 
@@ -132,9 +135,7 @@ export default class XYPlotModel extends Plot {
     this.dataObj.xdomain = xDomain.asArray;
     this.dataObj.ydomain = yDomain.asArray;
 
-    this.validSeries.forEach((series) => {
-      this.dataObj.plot_series.push(series.asObj);
-    });
+    this.dataObj.plot_series = this.validSeries.map((s) => s.asObj);
   }
 
   calculateLayout() {
@@ -150,8 +151,5 @@ export default class XYPlotModel extends Plot {
         top: 100
       }
     };
-    console.log('here');
-    console.log(this.parentWidth);
-    console.log(this.plotObj);
   }
 }
