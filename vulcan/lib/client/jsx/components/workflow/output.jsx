@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useContext,
-  useEffect,
-  useRef,
-  forwardRef
-} from 'react';
+import React, {useState, useContext, useEffect, useRef} from 'react';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
@@ -106,10 +100,6 @@ export default function Output() {
   }
 
   if (!outputData) return loadingDiv;
-
-  // Can we assume that the "main" plot data belongs to the
-  //   same output variable as defined in the CWL, and any
-  //   other data in the consignment is secondary?
 
   return (
     <div className='output-wrapper'>
