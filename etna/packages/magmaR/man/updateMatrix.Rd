@@ -79,7 +79,7 @@ if (interactive()) {
     # Running like this will ask for input of your janus token one time.
     
     ### Note that you likely do not have write-permissions for the 'example'
-    #   project, so this code can be expected to give an authorization error.
+    # project, so this code can be expected to give an authorization error.
     
     ### Retrieve some data from magma, then update that same data.
     mat <- retrieveMatrix("example", "rna_seq", "all", "gene_tpm")

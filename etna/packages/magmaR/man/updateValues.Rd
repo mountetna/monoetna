@@ -68,7 +68,7 @@ if (interactive()) {
     # Running like this will ask for input of your janus token one time.
     
     # Note that you likely do not have write-permissions for the 'example'
-    #   project, so this code can be expected to give and authorization error.
+    # project, so this code can be expected to give and authorization error.
 
     updateValues(
         projectName = "example",
