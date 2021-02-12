@@ -1,3 +1,5 @@
+import XYPlotModel from '../models/xy_plot';
+
 export const stepDataUrls = ({workflow, pathIndex, stepIndex}) => {
   return workflow.steps[pathIndex][stepIndex].out.map((s) => s.data_url);
 };
@@ -11,4 +13,30 @@ export const stepOutputs = (workflow, pathIndex, stepIndex) => {
     return [];
 
   return workflow.steps[pathIndex][stepIndex].out;
+};
+
+const plotType = (step) => {
+  return step.run.replace(/\.cwl/g, '');
+};
+
+export const plotDataForStep = (step, consignment, parentWidth) => {
+  // Take a consignment and step, and generate
+  //   the plot config and data objects
+  //   needed to generate a plot.
+  // This should mostly be reverse-engineering the
+  //   series, data, and label values from the step +
+  //   consignment.
+  const type = plotType(step);
+
+  let plot;
+  if ('xy' === type) {
+    plot = new XYPlotModel(step, consignment, parentWidth);
+  }
+
+  if (!plot) return null;
+
+  return {
+    plot: plot.plot,
+    data: plot.data
+  };
 };

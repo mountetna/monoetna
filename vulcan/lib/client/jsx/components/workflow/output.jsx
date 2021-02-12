@@ -1,4 +1,4 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, {useState, useContext, useEffect, useRef} from 'react';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
@@ -26,6 +26,7 @@ const WORKFLOW = require('../../../../server/data/steps.json');
 const UMAP_DATA = require('../../../../server/data/umap_data.json');
 
 export default function Output() {
+  const outputRef = useRef(null);
   const invoke = useActionInvoker();
   const {workflow, pathIndex, stepIndex, setData, setWorkflow} = useContext(
     VulcanContext
@@ -55,7 +56,7 @@ export default function Output() {
   useEffect(() => {
     const STUB_URL = `https://vulcan.development.local/api/${CONFIG.project_name}/workflows/umap/umap_data`;
 
-    WORKFLOW.steps[0][4].data_url = STUB_URL;
+    WORKFLOW.steps[0][5].data_url = STUB_URL;
 
     setWorkflow(WORKFLOW);
     setOutputData(UMAP_DATA);
@@ -100,10 +101,6 @@ export default function Output() {
 
   if (!outputData) return loadingDiv;
 
-  // Can we assume that the "main" plot data belongs to the
-  //   same output variable as defined in the CWL, and any
-  //   other data in the consignment is secondary?
-
   return (
     <div className='output-wrapper'>
       <div>
@@ -114,7 +111,11 @@ export default function Output() {
           onSelect={handleOnSelectView}
         ></Dropdown>
       </div>
-      {Component ? <Component md5sum='some-cell-hash'></Component> : null}
+      <div ref={outputRef}>
+        {Component ? (
+          <Component md5sum='some-cell-hash' parentRef={outputRef}></Component>
+        ) : null}
+      </div>
     </div>
   );
 }

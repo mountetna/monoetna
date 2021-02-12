@@ -222,7 +222,7 @@ describe('Vulcan API', () => {
       host: CONFIG.vulcan_host
     });
 
-    return getData(url).then((returnedData) => {
+    return getData(`${CONFIG.vulcan_host}${url}`).then((returnedData) => {
       expect(data).toEqual(returnedData);
       done();
     });
