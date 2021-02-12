@@ -48,7 +48,7 @@ class RunRequest:
     script: str
     input_files: List[StorageFile] = field(default_factory=list)
     output_files: List[StorageFile] = field(default_factory=list)
-    environment: List[str] = field(defaultlt_factory=list)
+    environment: List[str] = field(default_factory=list)
     image: str = "archimedes"
     isolator: str = "docker"
 
@@ -290,7 +290,7 @@ def main():
     parser.add_argument('--file')
     parser.add_argument('--isolator', default='local', choices=['docker', 'local'])
     parser.add_argument('--image', default='etnaagent/archimedes:latest')
-    parser.add_argument('--input', dest='outputs', action='append', help="input files of the form name:/path/on/host")
+    parser.add_argument('--input', dest='inputs', action='append', help="input files of the form name:/path/on/host")
     parser.add_argument('--output', dest='outputs', action='append', help="output files of the form name:/path/on/host")
     parser.add_argument('-e', '--env', dest='env', action='append', help="environment variables of the form ABC=abc")
 
@@ -300,7 +300,7 @@ def main():
         isolator=args.isolator,
         input_files=[make_storage_file(s) for s in args.inputs],
         output_files=[make_storage_file(s) for s in args.outputs],
-        environment=args.e,
+        environment=args.env or [],
         script=(args.file and open(args.file, 'r').read()) or sys.stdin.read(),
         image=args.image,
     )

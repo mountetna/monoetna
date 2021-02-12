@@ -24,7 +24,7 @@ class Session
   end
 
   def workflow
-    @workflow ||= Etna::Workflow.from_yaml_file("#{workflow_name}.cwl")
+    @workflow ||= Etna::Cwl::Workflow.from_yaml_file(workflow_name)
   end
 
   def orchestration
@@ -42,7 +42,7 @@ class Session
 
   def material_reference_for(source)
     if include?(source)
-      @includes[source]
+      @inputs[source]
     else
       {unfulfilled: source}
     end

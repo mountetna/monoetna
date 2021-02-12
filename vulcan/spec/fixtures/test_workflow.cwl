@@ -12,7 +12,7 @@ inputs:
 outputs:
   the_result:
     type: int
-    outputSource: finalStep/a
+    outputSource: finalStep/sum
 
 steps:
   firstAdd:

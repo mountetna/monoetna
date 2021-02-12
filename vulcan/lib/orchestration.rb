@@ -14,11 +14,35 @@ class Vulcan
     MAX_RUNNABLE = 20
 
     def run_until_done!(storage)
-      until (runnables = next_runnable_build_targets(storage)).empty?
+      load_json_inputs!(storage)
+      i = 0
+      until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
+        p runnables.first.script
         run!(storage: storage, build_target: runnables.first)
       end
     end
 
+    def load_json_inputs!(storage)
+      workflow.inputs.each do |input|
+        reference = material_reference_for_user_input([:primary_inputs, input.id], input)
+        load_json_payload!(storage, reference)
+      end
+    end
+
+    # Note: do not validate json payloads here -- do so either at the entry point or simply allow cells to fail with
+    # bad inputs.  Validating here would start to conflate potential storage or logic errors with simple user input
+    # errors.
+    def load_json_payload!(storage, reference)
+      if reference.include?(:json_payload)
+        ms = material_source(reference)
+        unless ::File.exists?(ms.build_output&.data_path(storage))
+          storage.with_build_transaction(ms) do |build_files|
+            path = build_files.first.data_path(storage)
+            ::File.write(path, reference[:json_payload])
+          end
+        end
+      end
+    end
 
     def command(storage:, input_files:, output_files:)
       [
@@ -26,11 +50,10 @@ class Vulcan
           "run",
           "-i",
           "--rm",
-          "--mount",
           "-v",
           "/var/run/docker.sock:/var/run/docker.sock:ro",
           "-v",
-          "archimedes-exec:/archimedes-exec",
+          "#{Vulcan.instance.config(:archimedes_exec_volume)}:/archimedes-exec",
           Vulcan.instance.config(:archimedes_run_image),
           "poetry",
           "run",
@@ -48,37 +71,50 @@ class Vulcan
       status = nil
       output_str = nil
 
-      Open3.popen2(command(storage: storage, input_files: input_files, output_files: output_files)) do |input, output, wait_thr|
-        input.write(script)
+      cmd = command(storage: storage, input_files: input_files, output_files: output_files)
+      Open3.popen2(*cmd) do |input, output, wait_thr|
+        input.print(script)
+        input.close
         output_str = output.read
         status = wait_thr.value.exitstatus
       end
 
       if status != 0
-        raise "Failure to run archimedes-run command: #{output}"
+        Vulcan.instance.logger.warn("archimedes-run failure: #{output_str}")
+        raise "Failure to run archimedes-run command!  Check logs."
       end
 
       JSON.parse(output_str)
     end
 
+    def relative_path(from, to)
+      Pathname.new(to).relative_path_from(Pathname.new(to)).to_s
+    end
+
     def run!(storage:, build_target:)
       storage.with_build_transaction(build_target) do |output_files|
-        if build_target.script.is_a?(Hash)
+        script = build_target.script
+        if script.is_a?(Hash)
+          puts "Hash #{script}"
           # This is a copy cell.  Find inputs, link them.
           output_files.each do |of|
             input_file = script[of.logical_name]
             unless input_file.nil?
-              ::File.link(input_file.data_path(storage), of.data_path(storage))
+              ::File.unlink(of.data_path(storage))
+              ::File.symlink(relative_path(of.data_path(storage), input_file.data_path(storage)), of.data_path(storage))
             end
           end
-          { 'status' => 'done' }
+          {'status' => 'done'}
         else
+          puts "Run #{script.inspect}"
           run_script!(
               storage: storage, input_files: build_target.input_files,
-              output_files: output_files, script: build_target.script
+              output_files: output_files, script: script
           )
         end
       end
+
+      raise "Build for #{build_target} failed to produce outputs!" unless build_target.is_built?(storage)
     end
 
     # Returns a list of lists, describing the dependency between steps, primary inputs, and primary outputs.
@@ -105,7 +141,7 @@ class Vulcan
     def next_runnable_build_targets(storage)
       build_targets_for_paths.map do |path_build_targets|
         path_build_targets.select { |bt| bt.should_build?(storage) }.last
-      end.select { |v| !v.nil? }
+      end.select { |v| !v.nil? }.uniq { |bt| bt.cell_hash }
     end
 
     def build_targets_for_paths
@@ -114,7 +150,7 @@ class Vulcan
       unique_paths.map do |path|
         path.map do |step_name|
           step = workflow.find_step(step_name)
-          build_target_for(step.id, build_target_cache)
+          build_target_for(step&.id || step_name, build_target_cache)
         end
       end
     end
@@ -130,10 +166,10 @@ class Vulcan
       end
     end
 
-    def take_input_file_for_material_reference(material_reference, input_name)
+    def material_source(material_reference)
       Storage::MaterialSource.new(
           project_name: session.project_name, session_key: session.key,
-          material_reference: material_reference).take_as_input(input_name)
+          material_reference: material_reference)
     end
 
     # Cache is used to save effort in computing common recursive targets within a single calculation session.
@@ -152,8 +188,8 @@ class Vulcan
           script = {}
           workflow.inputs.each do |input|
             output_filenames << input.id
-            input_files << take_input_file_for_material_reference(
-                material_reference_for_user_input([:primary_inputs, input.id], input), input.id)
+            source = material_source(material_reference_for_user_input([:primary_inputs, input.id], input))
+            input_files << source.take_as_input(input.id)
             script[input.id] = input_files.last
           end
         elsif step_name == :primary_outputs
@@ -161,26 +197,35 @@ class Vulcan
             output_filenames << output.id
 
             source_step_name, source_output_name = output.outputSource
-            input_files << build_target_for(source_step_name, cache).take_as_input(source_output_name, output.id)
+            input_file = build_target_for(source_step_name, cache).take_as_input(source_output_name, output.id)
+            if input_file.nil?
+              raise "Could not find output #{source_output_name.inspect} from step #{source_step_name.inspect} for primary output #{output.id.inspect}"
+            end
+            input_files << input_file
           end
         elsif (step = workflow.find_step(step_name))
           if step.ui_query_name
             script = {}
           elsif step.script_name
-            script = step.script
+            script = step.lookup_operation_script
           end
 
           step.out.each do |step_out|
             output_filenames << step_out.id
-            if session.include?(step_name, step_out.id) && step.ui_query_name
-              input_files << take_input_file_for_material_reference(session.material_reference_for([step_name, step_out.id]), step_out.id)
+            if session.include?([step_name, step_out.id]) && step.ui_query_name
+              source = material_source(session.material_reference_for([step_name, step_out.id]))
+              input_files << source.take_as_input(step_out.id)
               script[step_out.id] = input_files.last
             end
           end
 
           step.in.each do |step_in|
             source_step_name, source_output_name = step_in.source
-            input_files << build_target_for(source_step_name, cache).take_as_input(source_output_name, step_in.id)
+            input_file = build_target_for(source_step_name, cache).take_as_input(source_output_name, step_in.id)
+            if input_file.nil?
+              raise "Could not find output #{source_output_name.inspect} from source #{source_step_name.inspect} while building input #{step_in.id.inspect} for step #{step.id.inspect}"
+            end
+            input_files << input_file
           end
         end
 

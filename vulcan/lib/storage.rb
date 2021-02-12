@@ -101,7 +101,13 @@ class Vulcan
       end
 
       def to_archimedes_storage_file(storage)
-        "#{logical_name}:#{data_path(storage)}"
+        path = data_path(storage)
+        if (host_dir_map = ENV['HOST_DIR_MAP'])
+          container_path, host_dir = host_dir_map.split('=', 2)
+          path.sub!(/^#{container_path}/, host_dir)
+        end
+
+        "#{logical_name}:#{path}"
       end
     end
 
@@ -144,7 +150,7 @@ class Vulcan
       end
 
       def take_as_input(output_name, input_name)
-        build_outputs[output_name].as_input(input_name)
+        build_outputs[output_name]&.as_input(input_name)
       end
 
       def is_buildable?(storage)
@@ -190,8 +196,12 @@ class Vulcan
           }
       end
 
+      def build_output
+        build_outputs.values.first
+      end
+
       def take_as_input(input_name)
-        build_outputs.values.first.as_input(input_name)
+        build_output&.as_input(input_name)
       end
     end
 
@@ -209,10 +219,10 @@ class Vulcan
           end
         elsif val.is_a?(Array)
           val.each_with_index { |val, i| q << ["#{k}[#{i}]", val] }
-        elsif val.nil? || val.is_a?(Numeric) || val.is_a?(String) || val.is_a?(TrueClass) || val.is_a?(FalseClass)
+        elsif val.nil? || val.is_a?(Numeric) || val.is_a?(String) || val.is_a?(Symbol) || val.is_a?(TrueClass) || val.is_a?(FalseClass)
           parts << "#{k}=#{JSON.dump(val)}"
         else
-          raise "#{val.class.name} is not json serializable"
+          raise "#{val.class.name} is not json serializable within #{obj}"
         end
       end
 

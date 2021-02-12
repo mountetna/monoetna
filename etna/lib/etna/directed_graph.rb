@@ -18,17 +18,23 @@ class DirectedGraph
     parents[parent] = parent_parents
   end
 
-  def paths_from(parent)
+  def paths_from(root)
     [].tap do |result|
-      parents_of_map = descendants(parent)
+      parents_of_map = descendants(root)
       seen = Set.new
 
       parents_of_map.to_a.sort_by { |k, parents| [-parents.length, k] }.each do |k, parents|
         unless seen.include?(k)
-          result << parents + [k]
+          if @children[k].keys.empty?
+            result << parents + [k]
+          else
+            @children[k].keys.dup.sort.each do |c|
+              result << parents + [k, c]
+            end
+          end
         end
 
-        parents.each { |k| seen.add(k) }
+        parents.each { |p| seen.add(p) }
       end
     end
   end

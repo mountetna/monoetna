@@ -514,6 +514,10 @@ module Etna
       def outputSource
         @attributes['outputSource']
       end
+
+      def id
+        @attributes['id']
+      end
     end
 
     class WorkflowInputParameter < Cwl
@@ -531,12 +535,24 @@ module Etna
           type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
           format: PrimitiveLoader::STRING.optional,
       }
+
+      def id
+        @attributes['id']
+      end
+
+      def default
+        @attributes['default']
+      end
     end
 
     class StepOutput < Cwl
       FIELD_LOADERS = {
           id: PrimitiveLoader::STRING,
       }
+
+      def id
+        @attributes['id']
+      end
     end
 
 
@@ -575,6 +591,10 @@ module Etna
           inputs: InputParameter.loader.as_mapped_array('id', 'type'),
           outputs: OutputParameter.loader.as_mapped_array('id', 'type'),
       }
+
+      def id
+        @attributes['id']
+      end
     end
 
     class Step < Cwl
@@ -595,6 +615,14 @@ module Etna
       def id
         @attributes['id']
       end
+
+      def in
+        @attributes['in']
+      end
+
+      def out
+        @attributes['out']
+      end
     end
 
     class Workflow < Cwl
@@ -614,6 +642,10 @@ module Etna
 
       def inputs
         @attributes['inputs']
+      end
+
+      def outputs
+        @attributes['outputs']
       end
 
       def steps
