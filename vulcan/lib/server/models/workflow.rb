@@ -19,7 +19,7 @@ module Etna
     end
 
     class Step < Cwl
-      SCRIPT_REGEX = /^scripts\/(.*)$/
+      SCRIPT_REGEX = /^scripts\/(.*)\.cwl$/
       UI_QUERIES_REGEX = /^ui-queries\/(.*)$/
 
       def lookup_operation_script
@@ -28,7 +28,6 @@ module Etna
         # TODO: Run some type checking that the operation's inputs / outputs match the step.
         script_path = File.join(Vulcan.instance.config(:workflows_folder), "scripts/#{script_name}.py")
         if ::File.exists?(script_path)
-          run.load_attributes_from_script(script_path)
           ::File.read(script_path)
         end
       end

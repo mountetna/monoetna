@@ -8,6 +8,10 @@ describe Vulcan::Orchestration do
     FileUtils.rm_rf(storage.data_root) if ::File.exist?(storage.data_root)
   end
 
+  def primary_outputs
+    orchestration.build_target_for(:primary_outputs)
+  end
+
   def unique_paths
     orchestration.unique_paths
   end
@@ -125,9 +129,15 @@ describe Vulcan::Orchestration do
 
   describe 'e2e' do
     it 'works' do
-      orchestration.run_until_done!(storage)
+      expect(orchestration.run_until_done!(storage).length).to eql(0)
+      expect(primary_outputs.is_built?(storage)).to eql(false)
       session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
-      orchestration.run_until_done!(storage)
+      expect(orchestration.run_until_done!(storage).length).to eql(2)
+      expect(primary_outputs.is_built?(storage)).to eql(false)
+      session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
+      session.define_user_input(["pickANum", "num"], 543)
+      expect(orchestration.run_until_done!(storage).length).to eql(3)
+      expect(::File.read(primary_outputs.build_outputs['the_result'].data_path(storage))).to eql("866")
     end
   end
 end

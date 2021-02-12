@@ -15,10 +15,12 @@ class Vulcan
 
     def run_until_done!(storage)
       load_json_inputs!(storage)
-      i = 0
-      until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
-        p runnables.first.script
-        run!(storage: storage, build_target: runnables.first)
+      [].tap do |ran|
+        i = 0
+        until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
+          run!(storage: storage, build_target: runnables.first)
+          ran << runnables.first
+        end
       end
     end
 
@@ -27,18 +29,22 @@ class Vulcan
         reference = material_reference_for_user_input([:primary_inputs, input.id], input)
         load_json_payload!(storage, reference)
       end
+
+      session.material_references.each do |reference|
+        load_json_payload!(storage, reference)
+      end
     end
 
     # Note: do not validate json payloads here -- do so either at the entry point or simply allow cells to fail with
     # bad inputs.  Validating here would start to conflate potential storage or logic errors with simple user input
     # errors.
     def load_json_payload!(storage, reference)
-      if reference.include?(:json_payload)
+      if (payload = reference[:json_payload])
         ms = material_source(reference)
         unless ::File.exists?(ms.build_output&.data_path(storage))
           storage.with_build_transaction(ms) do |build_files|
             path = build_files.first.data_path(storage)
-            ::File.write(path, reference[:json_payload])
+            ::File.write(path, payload)
           end
         end
       end
@@ -88,29 +94,38 @@ class Vulcan
     end
 
     def relative_path(from, to)
-      Pathname.new(to).relative_path_from(Pathname.new(to)).to_s
+      Pathname.new(to).relative_path_from(Pathname.new(::File.dirname(from))).to_s
     end
 
     def run!(storage:, build_target:)
       storage.with_build_transaction(build_target) do |output_files|
         script = build_target.script
         if script.is_a?(Hash)
-          puts "Hash #{script}"
           # This is a copy cell.  Find inputs, link them.
           output_files.each do |of|
+            output_path = of.data_path(storage)
             input_file = script[of.logical_name]
             unless input_file.nil?
-              ::File.unlink(of.data_path(storage))
-              ::File.symlink(relative_path(of.data_path(storage), input_file.data_path(storage)), of.data_path(storage))
+              input_path = input_file.data_path(storage)
+              relative_path = relative_path(output_path, input_path)
+              # puts("coping for #{of}")
+              # puts(output_path, input_path, relative_path)
+              ::File.unlink(output_path)
+              ::File.symlink(relative_path, output_path)
             end
           end
           {'status' => 'done'}
-        else
-          puts "Run #{script.inspect}"
-          run_script!(
+        elsif script
+          result = run_script!(
               storage: storage, input_files: build_target.input_files,
               output_files: output_files, script: script
           )
+
+          if (error = result["error"])
+            raise "Python error while executing script: #{error}"
+          end
+        else
+          raise "Could not determine or find backing script"
         end
       end
 
@@ -193,11 +208,13 @@ class Vulcan
             script[input.id] = input_files.last
           end
         elsif step_name == :primary_outputs
+          script = {}
           workflow.outputs.each do |output|
             output_filenames << output.id
 
             source_step_name, source_output_name = output.outputSource
             input_file = build_target_for(source_step_name, cache).take_as_input(source_output_name, output.id)
+            script[output.id] = input_file
             if input_file.nil?
               raise "Could not find output #{source_output_name.inspect} from step #{source_step_name.inspect} for primary output #{output.id.inspect}"
             end
@@ -208,12 +225,16 @@ class Vulcan
             script = {}
           elsif step.script_name
             script = step.lookup_operation_script
+            raise "Could not find backing script #{step.script_name.inspect} for step #{step.id}" if script.nil?
+          else
+            raise "Step #{step.id} has invalid run: #{step.run}.  Must be either a ui-queries/ or scripts/ entry." if script.nil?
           end
 
           step.out.each do |step_out|
             output_filenames << step_out.id
-            if session.include?([step_name, step_out.id]) && step.ui_query_name
-              source = material_source(session.material_reference_for([step_name, step_out.id]))
+            if step.ui_query_name
+              ref = session.material_reference_for([step_name, step_out.id])
+              source = material_source(ref)
               input_files << source.take_as_input(step_out.id)
               script[step_out.id] = input_files.last
             end
@@ -227,6 +248,8 @@ class Vulcan
             end
             input_files << input_file
           end
+        else
+          raise "Step #{step_name} has no backing definition."
         end
 
         Storage::BuildTarget.new(

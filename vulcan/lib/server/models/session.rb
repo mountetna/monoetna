@@ -40,6 +40,10 @@ class Session
     @inputs.include?(source)
   end
 
+  def material_references
+    @inputs.values
+  end
+
   def material_reference_for(source)
     if include?(source)
       @inputs[source]
