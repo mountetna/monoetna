@@ -7,12 +7,10 @@
 #' if (interactive()) {
 #'     # Running like this will ask for input of your janus token one time.
 #'     
-#'     ids <- retrieveIds("ipi", "rna_seq")
-#'     
 #'     retrieveMatrix(
-#'         projectName = "ipi",
+#'         projectName = "example",
 #'         modelName = "rna_seq",
-#'         recordNames = ids[1:4],
+#'         recordNames = "all",
 #'         attributeNames = "gene_counts")
 #' }
 #' 
@@ -74,7 +72,7 @@ retrieveMatrix <- function(
     ...
 ) {
     
-    if (!length(attributeNames) == 1 || attributeNames %in% c("all", "identifier")) {
+    if (!length(attributeNames) == 1 || attributeNames == "all") {
         stop("This function only works for one attribute at a time.")
     }
     

@@ -15,18 +15,18 @@
 #'     # Running like this will ask for input of your janus token one time.
 #'     
 #'     retrieveTemplate(
-#'         projectName = "ipi")
+#'         projectName = "example")
 #'         
 #'     retrieveModels(
-#'         projectName = "ipi")
+#'         projectName = "example")
 #'         
 #'     retrieveIds(
-#'         projectName = "ipi",
+#'         projectName = "example",
 #'         modelName = "rna_seq")
 #'         
 #'     retrieveAttributes(
-#'         projectName = "ipi",
-#'         modelName = "patient")
+#'         projectName = "example",
+#'         modelName = "subject")
 #' }
 NULL
 
@@ -82,8 +82,8 @@ retrieveIds <- function(
 #' @describeIn retrieve_SpecialCases Retrieve all the attribute options for a given project-model pair.
 #' @export
 retrieveAttributes <- function(
-    projectName = "ipi",
-    modelName = "patient",
+    projectName,
+    modelName,
     token = .get_TOKEN(),
     ...
 ) {

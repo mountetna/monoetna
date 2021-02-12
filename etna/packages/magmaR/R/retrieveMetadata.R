@@ -14,10 +14,11 @@
 #' if (interactive()) {
 #'     # Running like this will ask for input of your janus token one time.
 #'     retrieveMetadata(
-#'         projectName = "ipi",
-#'         meta_modelName = "sample",
-#'         meta_attributeNames = "tissue_type",
+#'         projectName = "example",
+#'         meta_modelName = "subject",
+#'         meta_attributeNames = "group",
 #'         target_modelName = "rna_seq",
+#'         target_modelRecords = "all",
 #'         filter = "")
 #' }
 #'

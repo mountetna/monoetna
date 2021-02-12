@@ -12,7 +12,6 @@ retrieve(
   filter = "",
   page = NULL,
   pageSize = 10,
-  connected.only = TRUE,
   token = .get_TOKEN(),
   ...
 )
@@ -35,8 +34,6 @@ Example: "<targetAttributeName>~GYN" to filter to records where <targetAttribute
 Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details.}
 
 \item{pageSize, page}{Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.}
-
-\item{connected.only}{\emph{Not implemented yet.} Logical. Whether data without a parent should be retained.}
 
 \item{token}{your personal TOKEN from \url{https://janus.ucsf.edu}. 
 
@@ -63,8 +60,8 @@ Then, it converts the tsv-string output into a dataframe.
 if (interactive()) {
     # Running like this will ask for input of your janus token one time.
     retrieve(
-        projectName = "ipi",
-        modelName = "patient",
+        projectName = "example",
+        modelName = "rna_seq",
         recordNames = "all",
         attributeNames = "all",
         filter = "")

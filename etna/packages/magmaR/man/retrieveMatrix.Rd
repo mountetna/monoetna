@@ -58,12 +58,10 @@ Download data from magma that is stored as a matrix
 if (interactive()) {
     # Running like this will ask for input of your janus token one time.
     
-    ids <- retrieveIds("ipi", "rna_seq")
-    
     retrieveMatrix(
-        projectName = "ipi",
+        projectName = "example",
         modelName = "rna_seq",
-        recordNames = ids[1:4],
+        recordNames = "all",
         attributeNames = "gene_counts")
 }
 

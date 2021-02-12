@@ -28,21 +28,21 @@
 #' 
 #'     # "Raw" output of query:
 #'     query(
-#'         projectName = projectName,
+#'         projectName = "example",
 #'         queryTerms = 
 #'             list('rna_seq',
 #'                  '::all',
-#'                  'sample',
+#'                  'subject',
 #'                  '::identifier'))
 #'                  
 #'     # Or instead re-formatted to a dataframe, which may be easier for
 #'     #   downstream applications in R:
 #'     query(
-#'         projectName = projectName,
+#'         projectName = "example",
 #'         queryTerms = 
 #'             list('rna_seq',
 #'                  '::all',
-#'                  'sample',
+#'                  'subject',
 #'                  '::identifier'),
 #'         format = 'df')
 #' }
