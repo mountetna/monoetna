@@ -169,7 +169,7 @@ For model \"rna_seq\", this update() will update 6 records:
     WRONG10
     WRONG11
     WRONG12
-WARNING: Check the above carefully. Once created, there is currently no way to remove records from magma.
+WARNING: Check the above carefully. Once created, there is currently no easy way to remove records from magma.
 For model \"rna_seq\", this update() will update 0 records.", fixed = TRUE
         )
         
