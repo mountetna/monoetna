@@ -16,7 +16,6 @@
 #' 
 #' Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details.
 #' @param pageSize,page Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.
-#' @param connected.only \emph{Not implemented yet.} Logical. Whether data without a parent should be retained. 
 #' @param ... Additional parameters passed along to the internal `.retrieve()` function.
 #' For troubleshooting or privileged-user purposes only.
 #' Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).
@@ -34,8 +33,8 @@
 #' if (interactive()) {
 #'     # Running like this will ask for input of your janus token one time.
 #'     retrieve(
-#'         projectName = "ipi",
-#'         modelName = "patient",
+#'         projectName = "example",
+#'         modelName = "rna_seq",
 #'         recordNames = "all",
 #'         attributeNames = "all",
 #'         filter = "")
@@ -49,7 +48,6 @@ retrieve <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
-    connected.only = TRUE,
     token = .get_TOKEN(),
     ...
 ) {
@@ -62,7 +60,6 @@ retrieve <- function(
         format = "tsv",
         page = page,
         pageSize = pageSize,
-        connected.only = TRUE,
         token = token,
         ...)
 }
@@ -79,8 +76,8 @@ retrieve <- function(
 #' if (interactive()) {
 #'     # Running like this will ask for input of your janus token one time.
 #'     retrieveJSON(
-#'         projectName = "ipi",
-#'         modelName = "patient",
+#'         projectName = "example",
+#'         modelName = "rna_seq",
 #'         recordNames = "all",
 #'         attributeNames = "all",
 #'         filter = "")
@@ -120,7 +117,6 @@ retrieveJSON <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
-    connected.only = TRUE,
     names.only = FALSE,
     request.only = FALSE,
     json.params.only = FALSE,
@@ -136,8 +132,8 @@ retrieveJSON <- function(
     jsonParams <- list(
         project_name = projectName,
         model_name = modelName,
-        record_names = .I_list_unless_all(recordNames),
-        attribute_names = .I_list_unless_all_or_identifier(attributeNames),
+        record_names = .match_expected_recName_structure(recordNames),
+        attribute_names = .match_expected_attName_structure(attributeNames),
         filter = filter,
         format = format)
 
@@ -167,27 +163,43 @@ retrieveJSON <- function(
         curl_out
     } else {
         if (format=="tsv") {
-            .parse_tsv(curl_out, names.only, connected.only)
+            .parse_tsv(curl_out, names.only)
         } else {
             jsonlite::fromJSON(curl_out)
         }
     }
 }
 
-.I_list_unless_all <- function(values) {
+.match_expected_recName_structure <- function(values) {
     
     if (identical(values,"[]")) {
         return(I(list()))
     }
     
-    ifelse(test = identical(values, "all"),
-           yes = values,
-           no = I(as.list(values)))
+    .match_expected_common(values)
 }
 
-.I_list_unless_all_or_identifier <- function(values) {
+.match_expected_attName_structure <- function(values) {
     
-    ifelse(test = (identical(values, "all") || identical(values, "identifier")),
-           yes = values,
-           no = I(as.list(values)))
+    if (identical(values, "identifier")) {
+        return(values)
+    }
+    
+    .match_expected_common(values)
+}
+
+.match_expected_common <- function(values) {
+    # all -> all
+    # vector -> I(vector)
+    # single -> I(list(single))
+    
+    if (identical(values, "all")) {
+        return(values)
+    }
+    
+    if (length(values) > 1) {
+        I(values)
+    } else {
+        I(list(values))
+    }
 }
