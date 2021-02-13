@@ -18,20 +18,6 @@ class Vulcan
     end
   end
 
-  class RunArchimedes < Etna::Command
-    string_flags << '--session'
-
-    def execute(project_name, workflow_name, session: 'session')
-      session = Session.new_session_for(project_name, workflow_name, session, inputs={})
-      session.orchestration&.run_until_done!(Vulcan::Storage.new)
-    end
-
-    def setup(config)
-      super
-      Vulcan.instance.setup_db
-    end
-  end
-
   class Migrate < Etna::Command
     usage 'Run migrations for the current environment.'
     string_flags << '--version'
