@@ -1,6 +1,14 @@
 # Extends the base Etna::Workflow class with extra logic useful for
 module Etna
   class Cwl
+    def self.source_as_string(os)
+      if os.first.is_a?(Symbol)
+        return os.last
+      end
+
+      "#{os.first}/#{os.last}"
+    end
+
     class Workflow < Cwl
       def self.from_yaml_file(filename, prefix = Vulcan.instance.config(:workflows_folder))
         attributes = YAML.safe_load(::File.read(File.join(prefix, filename)))
@@ -17,10 +25,11 @@ module Etna
         step.lookup_operation_script
       end
 
-      def as_steps_json
+      def as_steps_json(name)
         {
             class: "Workflow",
             cwlVersion: @attributes['cwlVersion'],
+            name: name,
             inputs: @attributes['inputs'].map(&:as_steps_inputs_json_pair).to_h,
             outputs: @attributes['outputs'].map(&:as_steps_output_json_pair).to_h,
             steps: Vulcan::Orchestration.unique_paths(self).map do |path|
@@ -53,12 +62,7 @@ module Etna
       end
 
       def output_source_as_string
-        os = @attributes['outputSource']
-        if os.first.is_a?(Symbol)
-          return os.last
-        end
-
-        "#{os.first}/#{os.last}"
+        Etna::Cwl.source_as_string(@attributes['outputSource'])
       end
     end
 

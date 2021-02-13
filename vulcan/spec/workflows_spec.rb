@@ -23,6 +23,8 @@ describe WorkflowsController do
       expect(last_response.status).to eq(200)
 
       response = JSON.parse(last_response.body)
+      expect(response['workflows'].first['name']).to eql('test_workflow.cwl')
+
       expect(response['workflows'].first['inputs']).to eql({
           "someInt" => {
               "default" => 200,

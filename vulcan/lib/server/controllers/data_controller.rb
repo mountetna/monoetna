@@ -41,9 +41,5 @@ class DataController < Vulcan::Controller
         [ '' ]
     ]
   end
-
-  def storage
-    @storage ||= Vulcan::Storage.new
-  end
 end
 

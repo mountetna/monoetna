@@ -22,7 +22,7 @@ class Vulcan
     string_flags << '--session'
 
     def execute(project_name, workflow_name, session: 'session')
-      session = Session.new(project_name, workflow_name, session, inputs={})
+      session = Session.new_session_for(project_name, workflow_name, session, inputs={})
       session.orchestration&.run_until_done!(Vulcan::Storage.new)
     end
 

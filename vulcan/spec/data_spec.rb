@@ -30,8 +30,8 @@ describe DataController do
 
     it 'fetches the data stored at the given hash and filename' do
       auth_header(:viewer)
-      path = store("somehash", "myfile", "abc")
-      get("/api/#{PROJECT}/data/somehash/myfile")
+      path = store("somehash", "myfile.zip", "abc")
+      get("/api/#{PROJECT}/data/somehash/myfile.zip")
       expect(last_response.status).to eq(200)
 
       expect(last_response['X-Sendfile']).to eq(path)

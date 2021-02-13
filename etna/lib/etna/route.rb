@@ -9,6 +9,7 @@ module Etna
       @name = route_name(options)
       @route = route.gsub(/\A(?=[^\/])/, '/')
       @block = block
+      @match_ext = options[:match_ext]
     end
 
     def to_hash
@@ -176,13 +177,21 @@ module Etna
       )
     end
 
+    def separator_free_match
+      if @match_ext
+        '(?<\1>[^\/\?]+)'
+      else
+        '(?<\1>[^\.\/\?]+)'
+      end
+    end
+
     def route_regexp
       @route_regexp ||=
         Regexp.new(
           '\A' +
           @route.
             # any :params match separator-free strings
-            gsub(NAMED_PARAM, '(?<\1>[^\.\/\?]+)').
+            gsub(NAMED_PARAM, separator_free_match).
             # any *params match arbitrary strings
             gsub(GLOB_PARAM, '(?<\1>.+)').
             # ignore any trailing slashes in the route

@@ -12,6 +12,26 @@ module Etna
       Etna::Cwl::RecordLoader.new(self)
     end
 
+    def self.as_json(obj)
+      if obj.is_a?(Cwl)
+        as_json(obj.instance_variable_get(:@attributes))
+      elsif obj.is_a?(Hash)
+        {}.tap do |result|
+          obj.each do |k, v|
+            result[k] = as_json(v)
+          end
+        end
+      elsif obj.is_a?(Array)
+        obj.map { |v| as_json(v) }
+      else
+        obj
+      end
+    end
+
+    def as_json
+      self.class.as_json(@attributes)
+    end
+
     class Loader
       def load(val)
         raise "Unimplemented"
@@ -101,6 +121,10 @@ module Etna
       def load(val)
         parts = []
 
+        if val.is_a?(Symbol)
+          val = val.to_s
+        end
+
         if val.is_a?(Array)
           parts = PrimitiveLoader::STRING.as_array.load(val)
         elsif val.is_a?(String)
@@ -114,6 +138,23 @@ module Etna
         end
 
         raise "Unexpected value for source #{val.inspect}"
+      end
+    end
+
+    class StrictMapLoader < Loader
+      def initialize(items, keys)
+        @items = items
+        @keys = keys
+      end
+
+      def load(val)
+        if val.is_a?(Hash)
+          val.map do |k, v|
+            [@keys.load(k), @items.load(v)]
+          end.to_h
+        else
+          raise "Unexpected val #{val.inspect} for hash"
+        end
       end
     end
 

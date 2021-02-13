@@ -1,7 +1,7 @@
 describe Vulcan::Orchestration do
   let(:storage) { Vulcan::Storage.new }
   let(:inputs) { {} }
-  let(:session) { Session.new('project', 'test_workflow.cwl', 'storage_key', inputs) }
+  let(:session) { Session.new_session_for('project', 'test_workflow.cwl', 'storage_key', inputs) }
   let(:orchestration) { session.orchestration }
 
   before(:each) do

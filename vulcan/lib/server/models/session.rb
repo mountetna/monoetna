@@ -1,26 +1,45 @@
+require 'securerandom'
+
 # A vulcan session model.  For now this is just static, but could be made backed by a database, or a browser
 # cookie session, or just about anything we like.
-class Session
+class Session < Etna::Cwl
   attr_reader :project_name, :workflow_name, :inputs, :key
 
-  def initialize(project_name, workflow_name, key, inputs = {})
-    @project_name = project_name
-    @workflow_name = workflow_name
-    @key = key
-    @inputs = inputs
+  def initialize(attributes)
+    @attributes = attributes
+    @project_name = attributes['project_name']
+    @workflow_name = attributes['workflow_name']
+    @key = attributes['key']
+    @inputs = attributes['inputs']
+  end
+
+  def self.new_session_for(project_name, workflow_name, key, inputs = {})
+    self.new({
+        'project_name' => project_name,
+        'workflow_name' => workflow_name,
+        'key' => key,
+        'inputs' => inputs,
+    })
+  end
+
+  FIELD_LOADERS = {
+      project_name: Etna::Cwl::PrimitiveLoader::STRING,
+      workflow_name: Etna::Cwl::PrimitiveLoader::STRING,
+      key: Etna::Cwl::PrimitiveLoader::STRING.optional.map { |v| v || SecureRandom.uuid.hex.to_s },
+      inputs: Etna::Cwl::StrictMapLoader.new(Etna::Cwl::AnyLoader::ANY.map { |v| {json_payload: v}}, Etna::Cwl::SourceLoader.new).optional.map { |v| v || {} },
+  }
+
+  def self.from_json(json)
+    json = json.map { |k, v| [ k.to_s, v ] }.to_h
+    loader.load(json)
   end
 
   def as_json
-    {
-        project_name: project_name,
-        key: key,
-        inputs: inputs,
-        workflow_name: workflow_name,
-    }
-  end
-
-  def self.from_json(json)
-    self.new(json['project_name'], json['workflow_name'], json['key'], json['inputs'])
+    super.tap do |result|
+      result['inputs'] = result['inputs'].map do |k, v|
+        [Etna::Cwl.source_as_string(k), v[:json_payload]]
+      end.to_h
+    end
   end
 
   def workflow
