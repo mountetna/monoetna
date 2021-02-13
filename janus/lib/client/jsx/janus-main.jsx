@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import Identity from './identity';
 import UserProjects from './user-projects';
 import {selectUser} from 'etna-js/selectors/user-selector';
-import {checkStatus} from 'etna-js/utils/fetch';
+import {json_get} from 'etna-js/utils/fetch';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 const JanusMain = () => {
@@ -12,7 +12,7 @@ const JanusMain = () => {
 
   useEffect(
     () => {
-      fetch('/projects').then(checkStatus)
+      json_get('/projects')
         .then(({projects}) => setProjects(projects))
     }, []
   )

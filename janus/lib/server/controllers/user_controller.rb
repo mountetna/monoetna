@@ -17,7 +17,15 @@ class UserController < Janus::Controller
     @janus_user.public_key = @params[:pem]
     @janus_user.save
 
-    success('User Public Key updated')
+    success_json(user: @janus_user.to_hash)
+  end
+
+  def info
+    @janus_user = User[email: @user.email]
+
+    raise Etna::Forbidden, 'User not found' unless @janus_user
+
+    success_json(user: @janus_user.to_hash)
   end
 
   def refresh_token

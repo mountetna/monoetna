@@ -10,6 +10,14 @@ class User < Sequel::Model
     [ first_name, last_name ].compact.join(' ')
   end
 
+  def to_hash
+    {
+      email: email,
+      name: name,
+      public_key: public_key && key_fingerprint
+    }.compact
+  end
+
   def jwt_payload(viewer_only: false)
     {
       email: email,

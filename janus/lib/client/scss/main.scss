@@ -14,11 +14,11 @@
     font-family: monospace;
   }
 
-  #error {
+  .error {
     color: crimson;
     background: rgba(255,0,0,0.1);
     padding: 2px 4px;
-    margin-bottom: 4px;
+    margin: 4px;
     width: 346px;
     font-size: 0.8em;
   }

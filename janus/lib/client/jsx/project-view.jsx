@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { json_post, checkStatus} from 'etna-js/utils/fetch';
+import { json_post, json_get } from 'etna-js/utils/fetch';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import { isAdmin, isSuperuser } from 'etna-js/utils/janus';
@@ -121,7 +121,7 @@ const ProjectView = ({project_name}) => {
 
   let retrieveProject = useCallback(
     () => {
-      fetch(`/project/${project_name}`).then(checkStatus)
+      json_get(`/project/${project_name}`)
         .then(({project}) => setProject(project))
     }, [project_name, setProject]
   );

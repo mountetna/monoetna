@@ -1,9 +1,8 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import { isEditor } from 'etna-js/utils/janus';
 import Icon from 'etna-js/components/icon';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectUser} from 'etna-js/selectors/user-selector';
-import { json_post, checkStatus} from 'etna-js/utils/fetch';
+import { json_post, json_get } from 'etna-js/utils/fetch';
 
 const Projects = ({projects}) => (
   <div id='admin-projects'>
@@ -36,7 +35,7 @@ const JanusAdmin = () => {
 
   let retrieveAllProjects = useCallback(
     () => {
-      fetch('/allprojects').then(checkStatus)
+      json_get('/allprojects')
         .then(({projects}) => setProjects(projects))
     }, [ setProjects ]
   );
@@ -46,7 +45,7 @@ const JanusAdmin = () => {
     <Projects user={user} projects={projects}/>
     <div id='new-project'>
       <div className='title'>New Project</div>
-      { error && <div className='error'>Error: {error.error}</div> }
+      { error && <div className='error'>Error: {error}</div> }
       <div className='item'>
         <div className='cell'>
           <input type='text' placeholder='Project Full Name' name='project_name_full'
@@ -67,7 +66,7 @@ const JanusAdmin = () => {
                 setError(null);
               }
             ).catch(
-              e => e.then( response => setError(response) )
+              e => e.then( ({error}) => setError(error) )
             )
           }/>
         </div>

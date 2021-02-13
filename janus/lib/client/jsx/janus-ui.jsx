@@ -3,6 +3,7 @@ import * as React from 'react';
 import JanusNav from './janus-nav';
 import JanusMain from './janus-main';
 import JanusAdmin from './janus-admin';
+import JanusSettings from './janus-settings';
 import ProjectView from './project-view';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
@@ -17,6 +18,11 @@ const ROUTES = [
     name: 'admin',
     template: 'admin',
     component: JanusAdmin
+  },
+  {
+    name: 'settings',
+    template: 'settings',
+    component: JanusSettings
   },
   {
     name: 'projects',
