@@ -21,14 +21,29 @@ class DataController < Vulcan::Controller
     @params[:data_filename]
   end
 
+  def data_path
+    @data_path ||= begin
+      storage.data_path(project_name: project_name, cell_hash: cell_hash, data_filename: data_filename).tap do |path|
+        unless ::File.exists?(path)
+          raise Etna::NotFound, "File #{data_filename} for hash #{cell_hash} in project #{project_name} was not found"
+        end
+      end
+    end
+  end
+
+  # TODO: Add content type and additional metadata from a cell's payload.
   def fetch
     return [
         200,
-        { 'X-Sendfile' => Vulcan::Storage.data_path(project_name: project_name, cell_hash: cell_hash, data_filename: data_filename),
+        { 'X-Sendfile' => data_path,
           'Content-Disposition' => "attachment; filename=#{data_filename}"
         },
         [ '' ]
     ]
+  end
+
+  def storage
+    @storage ||= Vulcan::Storage.new
   end
 end
 

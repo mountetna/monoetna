@@ -119,7 +119,7 @@ class Vulcan
           raise "input files are mixed across projects, they must all belong to #{project_name}"
         end
 
-        input_files = input_files.dup.sort_by(&:cell_hash)
+        input_files = input_files.dup.sort_by { |input_file| [input_file.cell_hash, input_file.data_filename, input_file.logical_name] }
         output_filenames = output_filenames.dup.sort
 
         @project_name = project_name
