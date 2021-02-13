@@ -135,22 +135,24 @@ class Vulcan
     # Returns a list of lists, describing the dependency between steps, primary inputs, and primary outputs.
     # Each inner list is a unique path in side of the workflow starting a primary_inputs and terminating
     # at either a primary_output or a step that is not used as an input the workflow
-    def unique_paths
-      @unique_paths ||= begin
-        directed_graph = ::DirectedGraph.new
+    def self.unique_paths(workflow)
+      directed_graph = ::DirectedGraph.new
 
-        workflow.steps.each do |step|
-          step.in.each do |step_input|
-            directed_graph.add_connection(step_input.source.first, step.id)
-          end
+      workflow.steps.each do |step|
+        step.in.each do |step_input|
+          directed_graph.add_connection(step_input.source.first, step.id)
         end
-
-        workflow.outputs.each do |output|
-          directed_graph.add_connection(output.outputSource.first, :primary_outputs)
-        end
-
-        directed_graph.paths_from(:primary_inputs)
       end
+
+      workflow.outputs.each do |output|
+        directed_graph.add_connection(output.outputSource.first, :primary_outputs)
+      end
+
+      directed_graph.paths_from(:primary_inputs)
+    end
+
+    def unique_paths
+      @unique_paths ||= self.class.unique_paths(workflow)
     end
 
     def next_runnable_build_targets(storage)

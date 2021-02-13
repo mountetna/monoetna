@@ -16,16 +16,70 @@ module Etna
         return nil if step.nil?
         step.lookup_operation_script
       end
+
+      def as_steps_json
+        {
+            class: "Workflow",
+            cwlVersion: @attributes['cwlVersion'],
+            inputs: @attributes['inputs'].map(&:as_steps_inputs_json_pair).to_h,
+            outputs: @attributes['outputs'].map(&:as_steps_output_json_pair).to_h,
+            steps: Vulcan::Orchestration.unique_paths(self).map do |path|
+              path.map { |step_name| self.find_step(step_name)&.as_step_json }.select { |v| v }
+            end
+        }
+      end
     end
 
+    class WorkflowInputParameter < Cwl
+      def as_steps_inputs_json_pair
+        [self.id, {
+            label: @attributes['label'],
+            type: @attributes['type'],
+            format: @attributes['format'],
+            default: @attributes['default'],
+        }]
+      end
+    end
+
+    class WorkflowOutputParameter < Cwl
+      def as_steps_output_json_pair
+        [self.id, {
+            outputSource: output_source_as_string,
+            label: @attributes['label'],
+            type: @attributes['type'],
+            default: @attributes['default'],
+            format: @attributes['format'],
+        }]
+      end
+
+      def output_source_as_string
+        os = @attributes['outputSource']
+        if os.first.is_a?(Symbol)
+          return os.last
+        end
+
+        "#{os.first}/#{os.last}"
+      end
+    end
+
+    # TODO: Add type checking capabilities that unfold the run operation or workflow and checks that the given
+    # in and out match sanely to the operation or workflow typings.
     class Step < Cwl
       SCRIPT_REGEX = /^scripts\/(.*)\.cwl$/
       UI_QUERIES_REGEX = /^ui-queries\/(.*)$/
 
+      def as_step_json
+        {
+            name: @attributes['id'],
+            run: @attributes['run'].id,
+            in: @attributes['in'].map(&:id),
+            out: @attributes['out'].map(&:id),
+        }
+      end
+
       def lookup_operation_script
         return nil if script_name.nil?
 
-        # TODO: Run some type checking that the operation's inputs / outputs match the step.
         script_path = File.join(Vulcan.instance.config(:workflows_folder), "scripts/#{script_name}.py")
         if ::File.exists?(script_path)
           ::File.read(script_path)
