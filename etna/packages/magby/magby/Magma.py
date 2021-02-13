@@ -1,4 +1,4 @@
-from io import BytesIO
+from io import StringIO
 from typing import Dict, Tuple, Union
 import json
 from requests import RequestException, Session
@@ -32,7 +32,7 @@ class Magma(object):
                          "Authorization" : f"Etna {self._token}"}
 
 
-    def getResponseContent(self, response) -> Union[Dict, BytesIO]:
+    def getResponseContent(self, response) -> Union[Dict, StringIO]:
         '''
         An abstraction to
         :param response: magma API response
@@ -40,7 +40,7 @@ class Magma(object):
         '''
         switch = {
             'json': self._parseJSON,
-            'file': self._parseBytes
+            'tsv': self._parseText
         }
 
         return switch[self._fmt](response)
@@ -50,8 +50,8 @@ class Magma(object):
         return json.loads(response.text, strict=False)
 
 
-    def _parseBytes(self, response) -> BytesIO:
-        return BytesIO(response.content)
+    def _parseText(self, response) -> StringIO:
+        return StringIO(response.text)
 
 
     def magmaCall(self, payload: Dict, **kwargs) -> Tuple:
@@ -65,6 +65,16 @@ class Magma(object):
         content = self.getResponseContent(response)
         return content, response.headers
 
+    def _janusProjectsCall(self, url: str, **kwargs) -> Dict:
+        '''
+        Get a projects object form Janus for a given user/token
+        :param url: Janus/projects url
+        :param kwargs: kwargs passed to requests.Session() methods
+        :return: Dictionary of projects
+        '''
+        response = self._session.get(url, headers=self._headers, **kwargs)
+        content = self.getResponseContent(response)
+        return content
 
 
 

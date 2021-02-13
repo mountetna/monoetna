@@ -49,5 +49,14 @@ class TestMagma(TestCase):
         self.assertEqual(magmaResponse['models']['sample']['documents']["IPIADR001.T1"]['patient'], 'IPIADR001')
         self.assertEqual(magmaResponseHeaders['Content-Length'], '9018')
 
+    def test__janusCall(self):
+        with self.vcr as vcr:
+            vcr.use_cassette('Mamgma__janusCall')
+            janusProjects = self.magma._janusProjectsCall('/'.join([conf['DEFAULT'].get('url').replace('magma', 'janus'),
+                                                                    'projects']), verify=False)
+        self.assertEqual(janusProjects['projects'][2]['project_name'], 'ipi')
+        self.assertTrue(isinstance(janusProjects, dict))
+        self.assertTrue(len(janusProjects) > 0)
+
 
 
