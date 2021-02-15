@@ -55,7 +55,6 @@ class UserController < Janus::Controller
       {
         project_name: perm.project.project_name,
         project_name_full: perm.project.project_name_full,
-        project_description: perm.project.project_description,
         role: perm.role,
         privileged: perm.privileged?
       }

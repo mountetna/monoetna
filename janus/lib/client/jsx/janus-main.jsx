@@ -13,7 +13,10 @@ const JanusMain = () => {
   useEffect(
     () => {
       json_get('/projects')
-        .then(({projects}) => setProjects(projects))
+      .then(({projects}) => {
+        setProjects(projects);
+        console.log({projects});
+      })
     }, []
   )
   return <div id='janus-main'>

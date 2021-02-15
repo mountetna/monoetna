@@ -14,6 +14,7 @@ class User < Sequel::Model
     {
       email: email,
       name: name,
+      flags: flags,
       public_key: public_key && key_fingerprint
     }.compact
   end

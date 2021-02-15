@@ -5,7 +5,6 @@ import Icon from 'etna-js/components/icon';
 const projectRoleKey = (p) => p.role + p.project_name_full.toUpperCase()
 
 const UserProjects = ({projects, user}) => {
-  console.log({projects});
   return <div id='user-projects'>
     <div className='title'>Your Projects</div>
       <div className='project header'>

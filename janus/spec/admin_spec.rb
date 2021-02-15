@@ -5,42 +5,39 @@ describe AdminController do
     OUTER_APP
   end
 
-  context 'main' do
-    it 'returns a list of user projects' do
+  context '#projects' do
+    before(:each) do
       user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
 
       gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
       tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
       mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
-
-      perm = create(:permission, project: mirror, user: user, role: 'editor')
-      perm = create(:permission, project: gateway, user: user, role: 'editor')
-
-      auth_header(:janus)
-      get('/')
-
-      expect(last_response.status).to eq(200)
-      expect(last_response.body).to match(/Your Projects/)
-      expect(last_response.body).to match(/Gateway/)
-      expect(last_response.body).to match(/Mirror/)
-      expect(last_response.body).not_to match(/Tunnel/)
     end
 
-    it 'returns the user public key fingerprint' do
-      pkey = OpenSSL::PKey::RSA.new(1024)
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org', public_key: pkey.public_key)
-
+    it 'prevents access to the list of all projects for non-superusers' do
+      # ordinary user cannot
       auth_header(:janus)
+      get('/allprojects')
 
-      get('/')
+      expect(last_response.status).to eq(403)
+    end
 
+    it 'returns a list of all projects' do
+      auth_header(:superuser)
+      get('/allprojects')
       expect(last_response.status).to eq(200)
-      expect(last_response.body).to match(/Your Keys/)
-      expect(last_response.body).to match(/#{user.key_fingerprint}/i)
+
+      expect(json_body[:projects]).to eq(
+        [
+          { project_name: "gateway", project_name_full: "Gateway"},
+          { project_name: "tunnel", project_name_full: "Tunnel"},
+          { project_name: "mirror", project_name_full: "Mirror"}
+        ]
+      )
     end
   end
 
-  context 'project' do
+  context '#project' do
     it 'returns a project view to the admin' do
       user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
 
@@ -51,19 +48,6 @@ describe AdminController do
       get('/door')
 
       expect(last_response.status).to eq(200)
-    end
-
-    it 'shows a static project view to editors' do
-      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
-
-      door = create(:project, project_name: 'door', project_name_full: 'Door')
-      perm = create(:permission, project: door, user: user, role: 'editor')
-
-      auth_header(:portunus)
-      get('/door')
-
-      expect(last_response.status).to eq(200)
-      expect(html_body.css('input')).to be_empty
     end
 
     it 'forbids the project view to viewers' do
@@ -96,14 +80,35 @@ describe AdminController do
       perm2 = create(:permission, project: door, user: user2, role: 'editor')
 
       auth_header(:janus)
-      get('/door')
+      get('/project/door')
 
       expect(last_response.status).to eq(200)
-      expect(last_response.body).to match(/Door/)
+      expect(json_body[:project]).to match(
+        permissions: [
+          {
+            affiliation: nil,
+            privileged: true,
+            project_name: "door",
+            role: "administrator",
+            user_email: "janus@two-faces.org",
+            user_name: "Janus Bifrons"
+          },
+          {
+            affiliation: nil,
+            privileged: nil,
+            project_name: "door",
+            role: "editor",
+            user_email: "portunus@two-faces.org",
+            user_name: "Portunus"
+          }
+        ],
+        project_name: "door",
+        project_name_full: "Door"
+      )
     end
   end
 
-  context 'update_permission' do
+  context '#update_permission' do
     it 'allows an admin to update a role' do
       user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
       user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
@@ -298,7 +303,7 @@ describe AdminController do
     end
   end
 
-  context 'add_user' do
+  context '#add_user' do
     it 'allows an admin to add a new user to a project' do
       user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
 
@@ -483,7 +488,7 @@ describe AdminController do
     end
   end
 
-  context 'add_project' do
+  context '#add_project' do
     it 'allows a superuser to add a new project' do
       auth_header(:superuser)
       json_post('add_project', project_name: 'door', project_name_full: "Doors")
@@ -529,7 +534,7 @@ describe AdminController do
     end
   end
 
-  context 'flag_user' do
+  context '#flag_user' do
     it 'sets flags on the user' do
       user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
 

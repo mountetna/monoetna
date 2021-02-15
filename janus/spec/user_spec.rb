@@ -277,6 +277,7 @@ describe UserController do
       gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
       tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
       mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
 
       # the JWT will include a string encoding these permissions
       perm = create(:permission, project: tunnel, user: user, role: 'viewer', privileged: true)
@@ -288,18 +289,39 @@ describe UserController do
 
       expect(last_response.status).to eq(200)
       expect(json_body[:projects]).to eq([{
-        project_description: nil,
         project_name: "tunnel",
-        project_name_full: "Tunnel"
+        project_name_full: "Tunnel",
+        role: "viewer",
+        privileged: true
       }, {
-        project_description: nil,
         project_name: "mirror",
-        project_name_full: "Mirror"
+        project_name_full: "Mirror",
+        role: "editor",
+        privileged: nil
       }, {
-        project_description: nil,
         project_name: "gateway",
-        project_name_full: "Gateway"
+        project_name_full: "Gateway",
+        role: "editor",
+        privileged: nil
       }])
+    end
+  end
+
+  context '#info' do
+    it 'returns the user public key fingerprint' do
+      pkey = OpenSSL::PKey::RSA.new(1024)
+      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org', public_key: pkey.public_key)
+
+      auth_header(:janus)
+
+      get('/user')
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:user]).to match(
+        email: "janus@two-faces.org",                                  
+        name: "Janus Bifrons",
+        public_key: user.key_fingerprint
+      )
     end
   end
 end
