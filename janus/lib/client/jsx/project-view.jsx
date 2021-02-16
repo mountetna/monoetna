@@ -5,43 +5,6 @@ import {useReduxState} from 'etna-js/hooks/useReduxState';
 import { isAdmin, isSuperuser } from 'etna-js/utils/janus';
 import Icon from 'etna-js/components/icon';
 
-const NEWUSER_INPUTS = {
-  select: [ 'role' ],
-  text: [ 'name', 'email' ]
-};
-
-const updateNewUser = function(e) {
-  let select = e.target;
-  let form = select.closest('.item');
-
-  if (inputsChanged(form, NEWUSER_INPUTS)) showForm(form);
-  else hideForm(form);
-}
-
-const cancelNewUser = function(e) {
-  let select = e.target;
-  let form = select.closest('.item');
-
-  resetInputs(form, NEWUSER_INPUTS);
-  hideForm(form);
-}
-
-const value = (item) => item.value || item.innerHTML;
-
-const filter = (e) => {
-  let filter = e.target.value;
-
-  let items = document.querySelectorAll('.items .item');
-  items.forEach(item => {
-    let columns = [ 'name', 'email', 'role', 'affiliation' ];
-    if (columns.some(value_class =>
-      value(item.querySelector(`.${value_class}`)).match(new RegExp(filter, 'i'))
-      )) {
-      show(item, 'flex');
-    } else hide(item);
-  })
-}
-
 const postUpdatePermission = (project_name, email, revision) => json_post(`/update_permission/${project_name}`, {email, ...revision});
 const postAddUser = (project_name, {email, name, role}) => json_post(`/add_user/${project_name}`, {email, name, role});
 
@@ -114,6 +77,17 @@ const Permission = ({roles, editable, onSave, permission={}, create}) => {
 }
 
 const userCount = (count, txt) => count == 0 ? null : `${count} ${txt}${ count === 1 ? '' : 's' }`;
+
+const displayPermissions = (permissions) => (
+  permissions.sort(
+    (a,b) => (a.role+a.user_email).localeCompare(b.role+b.user_email)
+  ).filter(
+    p => !filter || [ 'name', 'user_email', 'role', 'affiliation' ].some(
+      column => column in p && p[column].match(new RegExp(filter, 'i'))
+    )
+  )
+);
+
 const ProjectView = ({project_name}) => {
   let user = useReduxState( state => selectUser(state) );
   let [ project, setProject ] = useState({});
@@ -166,9 +140,7 @@ const ProjectView = ({project_name}) => {
       </div>
     }
     {
-      permissions.sort((a,b) => (a.role+a.user_email).localeCompare(b.role+b.user_email) ).filter(
-        p => !filter || [ 'name', 'user_email', 'role', 'affiliation' ].some( column => column in p && p[column].match(new RegExp(filter, 'i')))
-      ).map(
+      displayPermissions(permissions).map(
         p => <Permission
           key={p.user_email}
           permission={p}

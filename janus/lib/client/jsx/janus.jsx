@@ -7,17 +7,17 @@ import createStore from './store';
 import JanusUI from './janus-ui';
 
 function Janus() {
-  this.store = createStore();
+  const store = createStore();
 
   // add the user
-  this.store.dispatch({
+  store.dispatch({
     type: 'ADD_USER',
     token: Cookies.get(CONFIG.token_name)
   });
 
   // build the UI
   ReactDOM.render(
-    <Provider store={ this.store }>
+    <Provider store={ store }>
       <JanusUI/>
     </Provider>,
     document.getElementById('root')
