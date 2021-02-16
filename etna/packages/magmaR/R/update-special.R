@@ -10,12 +10,11 @@
 #' @param separator String indicating the field separator to use if providing \code{matrix} as a file location.
 #' Default = ","
 #' @param auto.proceed Logical. When set to TRUE, the function does not ask before proceeding forward to run '/update'.
-#' @param ... Additional parameters passed along to the internal `.update()` function.
-#' For troubleshooting or privileged-user purposes only.
-#' Options: \itemize{
-#' \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function short and return the values that would have been sent to magma
+#' @param ... Additional parameters passed along to the internal `.update()` function,
+#' for troubleshooting or advanced-user purposes only: \itemize{
+#' \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function short and return these values that would have been sent to magma.
 #' \item \code{verbose} (Logical) sets whether to report the status of the '/update' request to magma.
-#' \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma.
+#' \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 #' }
 #' 
 #' @return None directly.

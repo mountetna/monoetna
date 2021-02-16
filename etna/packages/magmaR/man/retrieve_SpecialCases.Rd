@@ -14,25 +14,23 @@ retrieveModels(projectName, token = .get_TOKEN(), ...)
 
 retrieveIds(projectName, modelName, token = .get_TOKEN(), ...)
 
-retrieveAttributes(
-  projectName = "ipi",
-  modelName = "patient",
-  token = .get_TOKEN(),
-  ...
-)
+retrieveAttributes(projectName, modelName, token = .get_TOKEN(), ...)
 }
 \arguments{
-\item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
+\item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears in the project_name column of https://timur.ucsf.edu}
 
-\item{token}{your personal TOKEN from \url{https://janus.ucsf.edu}. 
+\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
 
 When not explicitly given in a function call: you will be prompted to input token, one time.
-This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
-and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.}
+This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
+and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 
-\item{...}{Additional parameters passed along to the internal `.retrieve()` function.
-For troubleshooting or privileged-user purposes only.
-Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).}
+\item{...}{Additional parameters passed along to the internal `.retrieve()` function,
+for troubleshooting or advanced-user purposes only: \itemize{
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function short and return these values that would have been sent to magma.
+\item \code{verbose} (Logical) sets whether to report the status of the '/retrieve' curl request sent to magma.
+\item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
+}}
 
 \item{modelName}{Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
 For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.}
@@ -66,17 +64,17 @@ if (interactive()) {
     # Running like this will ask for input of your janus token one time.
     
     retrieveTemplate(
-        projectName = "ipi")
+        projectName = "example")
         
     retrieveModels(
-        projectName = "ipi")
+        projectName = "example")
         
     retrieveIds(
-        projectName = "ipi",
+        projectName = "example",
         modelName = "rna_seq")
         
     retrieveAttributes(
-        projectName = "ipi",
-        modelName = "patient")
+        projectName = "example",
+        modelName = "subject")
 }
 }

@@ -1,10 +1,13 @@
 #' Analogous to the '/query' function of magma
 #' @inheritParams retrieve
-#' @param queryTerms A string vector where elements are query predicates. See \url{https://mountetna.github.io/magma.html#query} for details.
+#' @param queryTerms A list of String vector where list elements are query predicates. See \url{https://mountetna.github.io/magma.html#query} for details.
 #' @param format Either "list" or "df" (=dataframe). This sets the desired output format.
-#' @param ... Additional parameters passed along to the internal `.query()` function.
-#' For troubleshooting or privileged-user purposes only.
-#' Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).
+#' @param ... Additional parameters passed along to the internal `.query()` function,
+#' for troubleshooting or advanced-user purposes only: \itemize{
+#' \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function short and return these values that would have been sent to magma.
+#' \item \code{verbose} (Logical) sets whether to report the status of the '/retrieve' curl request sent to magma.
+#' \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
+#' }
 #' @return A list, default, if \code{format == "list"},
 #' 
 #' OR A dataframe conversion if \code{format = "df"}
@@ -32,7 +35,7 @@
 #'         queryTerms = 
 #'             list('rna_seq',
 #'                  '::all',
-#'                  'subject',
+#'                  'biospecimen',
 #'                  '::identifier'))
 #'                  
 #'     # Or instead re-formatted to a dataframe, which may be easier for
@@ -42,7 +45,7 @@
 #'         queryTerms = 
 #'             list('rna_seq',
 #'                  '::all',
-#'                  'subject',
+#'                  'biospecimen',
 #'                  '::identifier'),
 #'         format = 'df')
 #' }
