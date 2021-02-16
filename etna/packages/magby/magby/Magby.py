@@ -13,9 +13,10 @@ _session = Session()
 
 
 class Magby(object):
-    def __init__(self, url: str, token: str, session=_session):
+    def __init__(self, url: str, token: str):
         self._url = url.strip('/')
         self._token = token
+
 
     @property
     def url(self) -> str:
@@ -58,8 +59,8 @@ class Magby(object):
 
     def getProjects(self, **kwargs) -> List:
         janusUrl = self._janusUrl()
-        magma = self._recordMagmaObj('retrieve')
-        janusProjects = magma._janusProjectsCall(janusUrl, **kwargs)
+        magma = self._recordMagmaObj('retrieve', 'json', **kwargs)
+        janusProjects = magma._janusProjectsCall(janusUrl)
         return janusProjects['projects']
 
 
@@ -68,8 +69,8 @@ class Magby(object):
                      fmt=fmt, session=session)
 
 
-    def _call_api(self, payload: Dict, magma: Magma, **kwargs):
-        return magma.magmaCall(payload, **kwargs)
+    def _call_api(self, payload: Dict, magma: Magma):
+        return magma.magmaCall(payload)
 
     @staticmethod
     def _selectFormat(dataType: str) -> List:
@@ -79,7 +80,7 @@ class Magby(object):
         :return: List where [0] is magma output format, [1] is a desired Magby output
         '''
         selection = {
-            'meta': ['tsv', 'df'],
+            'meta': ['tsv', 'meta'],
             'json': ['json', 'json'],
             'mtx': ['json', 'mtx']
         }
@@ -96,19 +97,20 @@ class Magby(object):
                  modelName: Union[List, str],
                  recordNames: Union[List, str]='all',
                  attributeNames: Union[List, str]='all',
-                 dataType: str='df',
+                 dataType: str='meta',
                  **kwargs) -> Union[pd.DataFrame, List, Dict]:
 
         typeSelection = self._selectFormat(dataType)
         payload = self._constructPayload(projectName, modelName, recordNames, attributeNames, format=typeSelection[0])
         magma = self._recordMagmaObj(endpoint='retrieve', fmt=typeSelection[0], **kwargs)
-        content, _ = self._call_api(payload, magma, **kwargs)
+        content, _ = self._call_api(payload, magma)
         switchReturns = {
-            'meta': partial(pd.DataFrame, sep='\t'),
+            'meta': pd.read_csv,
             'json': str,
             'mtx': np.array
         }
-        return switchReturns[typeSelection[1]]
+        kk = pd.read_csv(content, sep='\t')
+        return switchReturns[typeSelection[1](content)]
 
 
 

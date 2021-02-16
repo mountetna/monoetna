@@ -1,5 +1,6 @@
 from unittest import TestCase
 import configparser
+from requests import Session
 from ..magby.Magby import *
 from ..tests.testUtils import *
 
@@ -11,10 +12,12 @@ conf.read('magby/tests/proxyConfig.ini')    # Config is in .gitignore
 class TestMagby(TestCase):
     def setUp(self) -> None:
         self.proxy = json.loads(conf['DEFAULT'].get('proxy'))
+        self.session = Session()
+        self.session.proxies.update(self.proxy)
+        self.session.verify = False
+        self.vcr = prepCassette(self.session, './magby/tests/fixtures/cassettes')
         self.magby = Magby(conf['DEFAULT'].get('url'),
                            conf['DEFAULT'].get('token'))
-
-
 
     def test_url(self):
         self.assertEqual(self.magby.url, conf['DEFAULT'].get('url'))
@@ -37,15 +40,19 @@ class TestMagby(TestCase):
 
 
     def test_getProjects(self):
-        projects = self.magby.getProjects(proxies=self.proxy, verify=False)
+        with self.vcr as vcr:
+            vcr.use_cassette('Magby_getProjects')
+            projects = self.magby.getProjects(session=self.session)
         self.assertEqual(projects[2]['project_name'], 'ipi')
         self.assertTrue(isinstance(projects, list))
         self.assertTrue(len(projects) > 0)
 
     def test_retrieve(self):
+        #with self.vcr as vcr:
+        #    vcr.use_cassette('Magby_retrieve')
         out = self.magby.retrieve(projectName="ipi", modelName='sample',
-                                  recordNames='all', attributeNames=["patient"], dataType='df',
-                                  proxies=self.proxy, verify=False)
+                                  recordNames='all', attributeNames=["patient"], dataType='meta',
+                                  session=self.session)
         self.assertTrue(isinstance(out, pd.DataFrame))
         self.assertEqual(out.shape, (771,2))
 

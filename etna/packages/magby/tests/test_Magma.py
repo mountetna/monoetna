@@ -16,6 +16,7 @@ class TestMagma(TestCase):
                            conf['DEFAULT'].get('token'),
                            'retrieve')
         self.magma._session.proxies.update(proxy)
+        self.magma._session.verify = False
         self.vcr = prepCassette(self.magma._session, './magby/tests/fixtures/cassettes')
 
 
@@ -27,7 +28,7 @@ class TestMagma(TestCase):
             "attribute_names": ["patient"]
         }
         with self.vcr as vcr:
-            vcr.use_cassette('Mamgma_getResponseContent')
+            vcr.use_cassette('Magma_getResponseContent')
             response = self.magma._session.post(self.magma._url, data=json.dumps(payload), headers=self.magma._headers, verify=False)
             responseJSON = self.magma.getResponseContent(response)
         self.assertTrue(isinstance(responseJSON, dict))
@@ -43,17 +44,17 @@ class TestMagma(TestCase):
             "attribute_names": ["patient"]
         }
         with self.vcr as vcr:
-            vcr.use_cassette('Mamgma_magmaCall')
-            magmaResponse, magmaResponseHeaders = self.magma.magmaCall(payload, verify=False)
+            vcr.use_cassette('Magma_magmaCall')
+            magmaResponse, magmaResponseHeaders = self.magma.magmaCall(payload)
         self.assertTrue(isinstance(magmaResponse, dict))
         self.assertEqual(magmaResponse['models']['sample']['documents']["IPIADR001.T1"]['patient'], 'IPIADR001')
         self.assertEqual(magmaResponseHeaders['Content-Length'], '9018')
 
     def test__janusCall(self):
         with self.vcr as vcr:
-            vcr.use_cassette('Mamgma__janusCall')
+            vcr.use_cassette('Magma__janusCall')
             janusProjects = self.magma._janusProjectsCall('/'.join([conf['DEFAULT'].get('url').replace('magma', 'janus'),
-                                                                    'projects']), verify=False)
+                                                                    'projects']))
         self.assertEqual(janusProjects['projects'][2]['project_name'], 'ipi')
         self.assertTrue(isinstance(janusProjects, dict))
         self.assertTrue(len(janusProjects) > 0)

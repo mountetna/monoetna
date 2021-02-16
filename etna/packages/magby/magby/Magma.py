@@ -20,7 +20,7 @@ class Magma(object):
                  token: str,
                  endpoint: str,
                  fmt: str='json',
-                 session: Session()=_session) -> None:
+                 session: Session=_session) -> None:
         allowedEndpoints = ['update', 'retrieve', 'query', 'update_model']
         if endpoint not in allowedEndpoints:
             raise MagmaError(f'Magma(): unknown endpoint {endpoint}. Must be one of the {allowedEndpoints}')
@@ -54,25 +54,23 @@ class Magma(object):
         return StringIO(response.text)
 
 
-    def magmaCall(self, payload: Dict, **kwargs) -> Tuple:
+    def magmaCall(self, payload: Dict) -> Tuple:
         '''
         Make API call and return data and current headers
         :param payload: Dict. Payload
-        :param **kwargs: passed to requests.Session.post()
         :return: Tuple[Dict, Dict]. Dictionary of content, dictionary of response headers
         '''
-        response = self._session.post(self._url, data=json.dumps(payload), headers=self._headers, **kwargs)
+        response = self._session.post(self._url, data=json.dumps(payload), headers=self._headers)
         content = self.getResponseContent(response)
         return content, response.headers
 
-    def _janusProjectsCall(self, url: str, **kwargs) -> Dict:
+    def _janusProjectsCall(self, url: str) -> Dict:
         '''
         Get a projects object form Janus for a given user/token
         :param url: Janus/projects url
-        :param kwargs: kwargs passed to requests.Session() methods
         :return: Dictionary of projects
         '''
-        response = self._session.get(url, headers=self._headers, **kwargs)
+        response = self._session.get(url, headers=self._headers)
         content = self.getResponseContent(response)
         return content
 
