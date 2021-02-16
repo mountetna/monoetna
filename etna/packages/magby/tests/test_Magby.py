@@ -48,13 +48,21 @@ class TestMagby(TestCase):
         self.assertTrue(len(projects) > 0)
 
     def test_retrieve(self):
-        #with self.vcr as vcr:
-        #    vcr.use_cassette('Magby_retrieve')
-        out = self.magby.retrieve(projectName="ipi", modelName='sample',
-                                  recordNames='all', attributeNames=["patient"], dataType='meta',
-                                  session=self.session)
+        with self.vcr as vcr:
+            vcr.use_cassette('Magby_retrieve')
+            out = self.magby.retrieve(projectName="ipi", modelName='sample',
+                                      recordNames='all', attributeNames=["patient"], dataType='meta',
+                                      session=self.session)
         self.assertTrue(isinstance(out, pd.DataFrame))
         self.assertEqual(out.shape, (771,2))
+
+    def test_retrieveJSON(self):
+        with self.vcr as vcr:
+            vcr.use_cassette('Magby_retrieve_json')
+            out = self.magby.retrieve(projectName="ipi", modelName='sample',
+                                      recordNames='all', attributeNames=["patient"], dataType='json',
+                                      session=self.session)
+        pass
 
 
 

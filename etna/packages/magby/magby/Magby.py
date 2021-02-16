@@ -105,12 +105,11 @@ class Magby(object):
         magma = self._recordMagmaObj(endpoint='retrieve', fmt=typeSelection[0], **kwargs)
         content, _ = self._call_api(payload, magma)
         switchReturns = {
-            'meta': pd.read_csv,
-            'json': str,
+            'meta': partial(pd.read_csv, sep='\t'),
+            'json': json.loads,
             'mtx': np.array
         }
-        kk = pd.read_csv(content, sep='\t')
-        return switchReturns[typeSelection[1](content)]
+        return switchReturns.get(typeSelection[1])(content)
 
 
 
