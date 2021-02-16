@@ -35,7 +35,8 @@ class TestMagby(TestCase):
         payload = self.magby._constructPayload(projectName='ipi',
                                                modelName='sample',
                                                recordNames=["IPIADR001.T1"],
-                                               attributeNames=["patient"])
+                                               attributeNames=["patient"],
+                                               format='json')
         self.assertTrue(isinstance(payload, dict))
 
 
