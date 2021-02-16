@@ -1,29 +1,35 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 import Step from './step';
 
 export default function StepsList() {
-  const {workflow, pathIndex, setStepIndex} = useContext(VulcanContext);
+  const {workflow, pathIndex, stepIndex} = useContext(VulcanContext);
 
-  function handleOnClick(index) {
-    setStepIndex(index);
-  }
+  const [activeIndex, setActiveIndex] = useState(false);
+
+  useEffect(() => {
+    setActiveIndex(stepIndex);
+  }, []);
+
+  useEffect(() => {
+    setActiveIndex(stepIndex);
+  }, [stepIndex]);
 
   return (
-    <ol className='steps-list'>
+    <ul className='steps-list'>
       {workflow.steps && workflow.steps[pathIndex]
-        ? workflow.steps[pathIndex].forEach((step, index) => {
+        ? workflow.steps[pathIndex].map((step, index) => {
             return (
               <Step
                 key={index}
                 step={step}
                 index={index}
-                onClick={(e) => handleOnClick(index)}
+                active={activeIndex === index}
               ></Step>
             );
           })
         : null}
-    </ol>
+    </ul>
   );
 }

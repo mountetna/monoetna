@@ -3,7 +3,9 @@ import {
   SET_DATA,
   SET_WORKFLOW,
   SET_WORKFLOWS,
-  SET_STATUS
+  SET_STATUS,
+  SET_STEP,
+  SET_PATH
 } from '../actions/vulcan';
 import VulcanReducer from '../reducers/vulcan';
 
@@ -36,11 +38,11 @@ export const VulcanProvider = (props) => {
   };
 
   const setPathIndex = (pathIndex) => {
-    dispatch({type: SET_DATA, pathIndex});
+    dispatch({type: SET_PATH, pathIndex});
   };
 
   const setStepIndex = (stepIndex) => {
-    dispatch({type: SET_DATA, stepIndex});
+    dispatch({type: SET_STEP, stepIndex});
   };
 
   return (

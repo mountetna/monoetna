@@ -11,7 +11,6 @@
   flex: 1;
   min-width: 300px;
   border-right: 2px solid lightgray;
-  padding: 1rem;
 }
 
 .step-main-pane-wrapper {
@@ -23,4 +22,48 @@
 
 .step-input {
   border-bottom: 2px solid lightgray;
+}
+
+.steps-list {
+  padding-left: 0px;
+}
+
+.step {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  border-top: 1px solid gray;
+}
+
+.step:last-child {
+  border-bottom: 1px solid gray;
+}
+
+.step button {
+  width: 100%;
+  padding: 1rem;
+  text-align: left;
+  border: 0px;
+  border-radius: 0px;
+  outline: 0;
+  box-shadow: none;
+  -webkit-box-shadow: none;
+}
+
+.step.active button {
+  background-color: darkgray;
+}
+
+.active-wrapper {
+  position: relative;
+}
+
+.active-indicator {
+  border-color: transparent darkred transparent transparent;
+  border-style: solid;
+  border-width: 30px;
+  bottom: -54px;
+  left: 82%;
+  position: absolute;
+  height: 0px;
+  width: 0px;
 }
