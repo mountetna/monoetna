@@ -18,11 +18,11 @@ class Janus
     usage '<email> <name> [<password>]'
     def execute(email, name, password=nil)
       user = User.find_or_create(email: email) do |user|
-        user.name = name
+        user.name = name.strip
       end
 
       user.tap do |user|
-        user.name = name
+        user.name = name.strip
         if password
           user.pass_hash = Janus.instance.sign.hash_password(password)
         end

@@ -75,11 +75,13 @@ class AdminController < Janus::Controller
 
     unless @project.permissions.any? { |p| p.user.email == @email }
       user = User[email: @email]
+      name = @params[:name]&.strip
+
       unless user
         raise Etna::BadRequest, 'Badly formed email address' unless @email =~ URI::MailTo::EMAIL_REGEXP
 
-        raise Etna::BadRequest, 'Missing name' if @params[:name].empty?
-        user = User.create(email: @email, name: @params[:name])
+        raise Etna::BadRequest, 'Missing name' if name.empty?
+        user = User.create(email: @email, name: name)
       end
 
       permission = Permission.create(project: @project, user: user, role: @params[:role])
