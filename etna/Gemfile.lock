@@ -26,8 +26,11 @@ GEM
     jwt (2.2.2)
     method_source (1.0.0)
     mimemagic (0.3.5)
+    mini_portile2 (2.4.0)
     multipart-post (2.1.1)
     net-ssh (4.2.0)
+    nokogiri (1.10.10)
+      mini_portile2 (~> 2.4.0)
     pry (0.13.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -82,6 +85,7 @@ DEPENDENCIES
   debase
   jwt
   multipart-post
+  nokogiri
   pry
   pry-byebug
   rack
@@ -97,4 +101,4 @@ RUBY VERSION
    ruby 2.5.7p206
 
 BUNDLED WITH
-   2.2.4
+   2.2.7

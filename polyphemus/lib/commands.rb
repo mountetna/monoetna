@@ -699,7 +699,7 @@ class Polyphemus
           project_name: 'mvir1', model_name: 'patient', stub_files: stub_files,
           filesystem: filesystem, skip_tmpdir: true)
 
-      workflow.materialize_all("/Upload")
+      workflow.materialize_all("/Upload/processed")
       logger.info("Done")
     end
 
@@ -723,8 +723,8 @@ class Polyphemus
           metis_client: metis_client, logger: logger, skip_tmpdir: true,
           project_name: 'mvir1', bucket_name: 'GNE_redacted_data',
           filesystem: filesystem)
-
-      workflow.copy_directory("data", "/Upload/GNE_redacted_data", "/Upload", nil)
+      
+      workflow.copy_directory("data", "/Upload/processed/GNE_redacted_data", "/Upload/processed", nil)
       logger.info("Done")
     end
 

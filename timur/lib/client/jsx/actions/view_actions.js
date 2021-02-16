@@ -13,14 +13,15 @@ const addView = (view_name, view) => ({type: 'ADD_VIEW', view_name, view});
 export const requestView = (model_name) => (dispatch) => {
   let exchange = new Exchange(dispatch, `view for ${model_name}`);
   return getView(model_name, exchange)
-    .then(({document}) => {
-      dispatch(addView(model_name, document));
-      return document;
-    })
-    .catch((e) => {
+    .then(
+      ({document})=>{
+        dispatch(addView(model_name, document));
+        return document;
+      }
+    ).catch(e => {
       // e should be either response.json() or response.text()
       return e.then((body) => {
-        if (body && body.error && body.error.includes('No view for')) {
+        if (body && body.error && body.error.match(/^No.+view/i)) {
           // Default view
           dispatch(addView(model_name, {}));
           return {};
