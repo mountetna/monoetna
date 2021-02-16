@@ -1,6 +1,6 @@
 describe User do
   it 'returns a JWT' do
-    user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+    user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
     gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
     tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
     mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
@@ -17,15 +17,14 @@ describe User do
     payload, headers = Janus.instance.sign.jwt_decode(token)
 
     expect(payload['email']).to eq(user.email)
-    expect(payload['first']).to eq(user.first_name)
-    expect(payload['last']).to eq(user.last_name)
+    expect(payload['name']).to eq(user.name)
 
     # The permissions are grouped by role (a,e,v) with upper case for privileged access
     expect(payload['perm']).to eq('V:tunnel;e:gateway,mirror')
   end
 
   it 'returns a JWT with only viewer permissions' do
-    user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+    user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
     gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
     tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
     mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
@@ -42,8 +41,7 @@ describe User do
     payload, headers = Janus.instance.sign.jwt_decode(token)
 
     expect(payload['email']).to eq(user.email)
-    expect(payload['first']).to eq(user.first_name)
-    expect(payload['last']).to eq(user.last_name)
+    expect(payload['name']).to eq(user.name)
 
     # The permissions are grouped by role (a,e,v) with upper case for privileged access
     expect(payload['perm']).to eq('V:tunnel')
@@ -53,7 +51,7 @@ describe User do
     now = Time.now
     Timecop.freeze(now)
 
-    user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+    user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
 
     token = user.create_token!
 
@@ -85,13 +83,13 @@ describe User do
 
   it 'complains if the email address is not all-lower-case' do
     expect {
-      create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'Janus@two-faces.org')
+      create(:user, name: 'Janus Bifrons', email: 'Janus@two-faces.org')
     }.to raise_error(Sequel::ValidationFailed)
   end
 
   it 'sets flags on the user' do
     user = create(
-      :user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org',
+      :user, name: 'Janus Bifrons', email: 'janus@two-faces.org',
       flags: [ 'doors', 'portals', 'ports' ]
     )
 
@@ -112,7 +110,7 @@ describe UserController do
 
   context '#update_key' do
     it 'updates a key' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
       rsa_key = OpenSSL::PKey::RSA.generate(2048)
 
       auth_header(:janus)
@@ -124,7 +122,7 @@ describe UserController do
     end
 
     it 'complains if the key is not in PEM format' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
 
       auth_header(:janus)
       post('/update_key', pem: 'I am the very model of a modern major-general')
@@ -139,7 +137,7 @@ describe UserController do
     end
 
     it 'complains if the key is not 2048 bits' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
       rsa_key = OpenSSL::PKey::RSA.generate(1024)
 
       auth_header(:janus)
@@ -155,7 +153,7 @@ describe UserController do
     end
 
     it 'complains if the key is not RSA' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
       dsa_key = OpenSSL::PKey::DSA.generate(2048)
 
       auth_header(:janus)
@@ -171,7 +169,7 @@ describe UserController do
     end
 
     it 'complains if the key is private' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
       rsa_key = OpenSSL::PKey::RSA.generate(2048)
 
       auth_header(:janus)
@@ -198,7 +196,7 @@ describe UserController do
     end
 
     it 'requires authorization' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
       rsa_key = OpenSSL::PKey::RSA.generate(2048)
 
       post('/update_key', pem: rsa_key.public_key.to_s)
@@ -215,7 +213,7 @@ describe UserController do
 
   context '#refresh_token' do
     it 'generates a new user token' do
-      user = create(:user, first_name: 'Zeus', last_name: 'Almighty', email: 'zeus@olympus.org')
+      user = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
 
       auth_header(:zeus)
       get('/refresh_token')
@@ -225,7 +223,7 @@ describe UserController do
     end
 
     it 'non-superusers can also generate a token' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
 
       auth_header(:janus)
       get('/refresh_token')
@@ -237,7 +235,7 @@ describe UserController do
 
   context '#viewer_token' do
     it 'generates a new viewer-only token' do
-      user = create(:user, first_name: 'Zeus', last_name: 'Almighty', email: 'zeus@olympus.org')
+      user = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
       gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
       tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
       mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
@@ -261,7 +259,7 @@ describe UserController do
     end
 
     it 'non-superusers cannot generate viewer-only tokens' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
 
       auth_header(:janus)
       get('/viewer_token')
@@ -272,7 +270,7 @@ describe UserController do
 
   context '#projects' do
     it 'returns the user\'s projects' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
 
       gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
       tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
@@ -310,7 +308,7 @@ describe UserController do
   context '#info' do
     it 'returns the user public key fingerprint' do
       pkey = OpenSSL::PKey::RSA.new(1024)
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org', public_key: pkey.public_key)
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org', public_key: pkey.public_key)
 
       auth_header(:janus)
 

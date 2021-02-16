@@ -21,12 +21,11 @@ const parsePermissions = (perms) => {
 
 export function parseToken(token) {
   let [header, params, signature] = token.split(/\./);
-  let {email, first, last, perm} = JSON.parse(atob(params));
+  let {email, name, perm} = JSON.parse(atob(params));
 
   return {
     email,
-    first,
-    last,
+    name,
     permissions: parsePermissions(perm)
   };
 }

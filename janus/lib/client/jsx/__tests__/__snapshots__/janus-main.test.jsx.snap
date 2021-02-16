@@ -15,9 +15,7 @@ exports[`JanusMain renders 1`] = `
     <div
       className="item"
     >
-      Janus
-       
-      Bifrons
+      Janus Bifrons
     </div>
     <div
       className="item"

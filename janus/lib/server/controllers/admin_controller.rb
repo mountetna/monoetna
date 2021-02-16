@@ -78,11 +78,8 @@ class AdminController < Janus::Controller
       unless user
         raise Etna::BadRequest, 'Badly formed email address' unless @email =~ URI::MailTo::EMAIL_REGEXP
 
-        names = @params[:name].split
-        raise Etna::BadRequest, 'Missing name' if names.empty?
-        first, last = names.length > 1 ? [names[0..-2].join(' '), names.last] : names
-
-        user = User.create(email: @email, first_name: first, last_name: last)
+        raise Etna::BadRequest, 'Missing name' if @params[:name].empty?
+        user = User.create(email: @email, name: @params[:name])
       end
 
       permission = Permission.create(project: @project, user: user, role: @params[:role])

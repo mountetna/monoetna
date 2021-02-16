@@ -7,7 +7,7 @@ describe AdminController do
 
   context '#projects' do
     before(:each) do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
 
       gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
       tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
@@ -39,7 +39,7 @@ describe AdminController do
 
   context '#project' do
     it 'returns a project view to the admin' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator')
@@ -51,7 +51,7 @@ describe AdminController do
     end
 
     it 'forbids the project view to viewers' do
-      user = create(:user, first_name: 'Lar', last_name: 'Familiaris', email: 'lar@two-faces.org')
+      user = create(:user, name: 'Lar Familiaris', email: 'lar@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'viewer')
@@ -72,8 +72,8 @@ describe AdminController do
     end
 
     it 'returns a list of permissions for the project' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -110,8 +110,8 @@ describe AdminController do
 
   context '#update_permission' do
     it 'allows an admin to update a role' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -128,8 +128,8 @@ describe AdminController do
     end
 
     it 'allows an admin to update an affiliation' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -146,8 +146,8 @@ describe AdminController do
     end
 
     it 'allows an admin to grant privilege' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -164,8 +164,8 @@ describe AdminController do
     end
 
     it 'allows an admin to remove privilege' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -182,8 +182,8 @@ describe AdminController do
     end
 
     it 'forbids a non-admin from updating roles' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -199,8 +199,8 @@ describe AdminController do
     end
 
     it 'forbids a non-admin from updating affiliation' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -216,8 +216,8 @@ describe AdminController do
     end
 
     it 'forbids a non-admin from updating privileges' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -233,8 +233,8 @@ describe AdminController do
     end
 
     it 'forbids an admin from updating role for an admin' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -250,8 +250,8 @@ describe AdminController do
     end
 
     it 'allows the superuser to grant admin powers' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -268,8 +268,8 @@ describe AdminController do
     end
 
     it 'allows the superuser to remove admin powers' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -286,8 +286,8 @@ describe AdminController do
     end
 
     it 'deletes a permission' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -305,7 +305,7 @@ describe AdminController do
 
   context '#add_user' do
     it 'allows an admin to add a new user to a project' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -332,8 +332,8 @@ describe AdminController do
     end
 
     it 'allows an admin to add an existing user to a project' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -359,8 +359,8 @@ describe AdminController do
     end
 
     it 'allows an admin to add a user to a project twice' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -389,8 +389,8 @@ describe AdminController do
     end
 
     it 'does not allow admin to give privilege to a new user' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -416,8 +416,8 @@ describe AdminController do
     end
 
     it 'does not allow admin to give admin permission' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -434,7 +434,7 @@ describe AdminController do
     end
 
     it 'rejects incorrect email addresses for new users' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -452,7 +452,7 @@ describe AdminController do
     end
 
     it 'squashes case in email addresses' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -469,8 +469,8 @@ describe AdminController do
     end
 
     it 'forbids a non-admin from adding a user' do
-      user = create(:user, first_name: 'Janus', last_name: 'Bifrons', email: 'janus@two-faces.org')
-      #user2 = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org')
+      #user2 = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       door = create(:project, project_name: 'door', project_name_full: 'Door')
       perm = create(:permission, project: door, user: user, role: 'administrator', privileged: true)
@@ -536,7 +536,7 @@ describe AdminController do
 
   context '#flag_user' do
     it 'sets flags on the user' do
-      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       auth_header(:superuser)
       json_post('flag_user', email: 'portunus@two-faces.org', flags: [ 'doors' ])
@@ -551,7 +551,7 @@ describe AdminController do
     end
 
     it 'clears flags on the user' do
-      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org', flags: [ 'doors' ])
+      user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org', flags: [ 'doors' ])
 
       auth_header(:superuser)
       json_post('flag_user', email: 'portunus@two-faces.org', flags: nil)
@@ -566,7 +566,7 @@ describe AdminController do
     end
 
     it 'does not set invalid flags' do
-      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       auth_header(:superuser)
       json_post('flag_user', email: 'portunus@two-faces.org', flags: [ 'lll', 2 ])
@@ -579,7 +579,7 @@ describe AdminController do
     end
 
     it 'prevents non-superusers from setting flags' do
-      user = create(:user, first_name: 'Portunus', email: 'portunus@two-faces.org')
+      user = create(:user, name: 'Portunus', email: 'portunus@two-faces.org')
 
       auth_header(:portunus)
       json_post('flag_user', email: 'portunus@two-faces.org', flags: [ 'doors' ])

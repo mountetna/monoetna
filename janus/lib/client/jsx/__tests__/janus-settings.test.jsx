@@ -12,8 +12,7 @@ describe('JanusSettings', () => {
     store = mockStore({
       user: {
 	email: "janus@two-faces.org",
-	first: "Janus",
-	last: "Bifrons",
+	name: "Janus Bifrons",
 	permissions: { }
       }
     });

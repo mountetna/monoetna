@@ -14,7 +14,7 @@ const ICONS = {
 const Login = ({user}) => {
   if (!user) return null;
 
-  let {first, last, permissions} = user;
+  let {name, permissions} = user;
 
   let role = (permissions[CONFIG.project_name] || {}).role;
 
@@ -23,7 +23,7 @@ const Login = ({user}) => {
   return (
     <div className='etna-login' title={role}>
       <Icon className='etna-user' icon={ ICONS[role] }/>
-      {first} {last}
+      {name}
     </div>
   );
 };

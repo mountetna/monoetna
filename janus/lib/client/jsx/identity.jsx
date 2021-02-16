@@ -16,7 +16,7 @@ const copyToken = (e) => {
 const Identity = ({user}) => 
   <div id='identity-group'>
     <div className='title'>Your Identity</div>
-    <div className='item'>{ user.first } { user.last }</div>
+    <div className='item'>{ user.name }</div>
     <div className='item'>{ user.email }</div>
     <div className='item'><button onClick={ copyToken }>Copy Token</button></div>
   </div>;
