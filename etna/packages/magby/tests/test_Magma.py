@@ -16,7 +16,7 @@ class TestMagma(TestCase):
                            conf['DEFAULT'].get('token'),
                            'retrieve')
         self.magma._session.proxies.update(proxy)
-        self.vcr = prepCassette(self.magma, './magby/tests/fixtures/cassettes')
+        self.vcr = prepCassette(self.magma._session, './magby/tests/fixtures/cassettes')
 
 
     def test_getResponseContent(self):

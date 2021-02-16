@@ -15,6 +15,7 @@ class TestMagby(TestCase):
                            conf['DEFAULT'].get('token'))
 
 
+
     def test_url(self):
         self.assertEqual(self.magby.url, conf['DEFAULT'].get('url'))
         self.magby.url = 'changed_url'

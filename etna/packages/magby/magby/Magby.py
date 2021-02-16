@@ -9,11 +9,13 @@ from functools import partial
 
 from ..magby.Magma import *
 
+_session = Session()
+
+
 class Magby(object):
-    def __init__(self, url, token):
+    def __init__(self, url: str, token: str, session=_session):
         self._url = url.strip('/')
         self._token = token
-        self._magma = None
 
     @property
     def url(self) -> str:
@@ -56,21 +58,32 @@ class Magby(object):
 
     def getProjects(self, **kwargs) -> List:
         janusUrl = self._janusUrl()
-        magma = self._formMagmaObj('retrieve')
+        magma = self._recordMagmaObj('retrieve')
         janusProjects = magma._janusProjectsCall(janusUrl, **kwargs)
         return janusProjects['projects']
 
 
-    def _formMagmaObj(self, endpoint: str, fmt: str='json') -> Magma:
-        return Magma(self._url, self._token, endpoint, fmt)
+    def _recordMagmaObj(self, endpoint: str, fmt: str= 'json', session=_session) -> Magma:
+        return Magma(url=self._url, token=self._token, endpoint=endpoint,
+                     fmt=fmt, session=session)
 
 
-    def _call_api(self, payload: Dict, endpoint: str, fmt: str='json', **kwargs):
-        magma = self._formMagmaObj(endpoint, fmt)
+    def _call_api(self, payload: Dict, magma: Magma, **kwargs):
         return magma.magmaCall(payload, **kwargs)
 
-
-
+    @staticmethod
+    def _selectFormat(dataType: str) -> List:
+        '''
+        Selector for types of outputs to retrieve from magma
+        :param dataType: str
+        :return: List where [0] is magma output format, [1] is a desired Magby output
+        '''
+        selection = {
+            'meta': ['tsv', 'df'],
+            'json': ['json', 'json'],
+            'mtx': ['json', 'mtx']
+        }
+        return selection[dataType]
 
 
 ###### NOT TESTED
@@ -88,7 +101,8 @@ class Magby(object):
 
         typeSelection = self._selectFormat(dataType)
         payload = self._constructPayload(projectName, modelName, recordNames, attributeNames, format=typeSelection[0])
-        content, _ = self._call_api(payload, 'retrieve', fmt=typeSelection[0], **kwargs)
+        magma = self._recordMagmaObj(endpoint='retrieve', fmt=typeSelection[0], **kwargs)
+        content, _ = self._call_api(payload, magma, **kwargs)
         switchReturns = {
             'meta': partial(pd.DataFrame, sep='\t'),
             'json': str,
@@ -97,18 +111,7 @@ class Magby(object):
         return switchReturns[typeSelection[1]]
 
 
-    def _selectFormat(self, dataType: str) -> List:
-        '''
-        Selector for types of outputs to retrieve from magma
-        :param dataType: str
-        :return: List where [0] is magma output format, [1] is a desired Magby output
-        '''
-        selection = {
-            'meta': ['tsv', 'df'],
-            'json': ['json', 'json'],
-            'mtx': ['json', 'mtx']
-        }
-        return selection[dataType]
+
 
 
 

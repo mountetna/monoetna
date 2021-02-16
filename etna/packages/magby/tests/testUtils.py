@@ -6,8 +6,8 @@ from ..magby.Magma import *
 from typing import Dict
 
 
-def prepCassette(magma: Magma, cassette_dir: str):
-    vcr = Betamax(magma._session)
+def prepCassette(session: Session, cassette_dir: str):
+    vcr = Betamax(session)
     vcr.register_serializer(pretty_json.PrettyJSONSerializer)
     if not os.path.exists(cassette_dir):
         os.mkdir(cassette_dir)
