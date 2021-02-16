@@ -41,6 +41,7 @@
 .step button {
   width: 100%;
   padding: 1rem;
+  padding-left: 2rem;
   text-align: left;
   border: 0px;
   border-radius: 0px;
@@ -51,6 +52,18 @@
 
 .step.active button {
   background-color: darkgray;
+}
+
+.step-status-icon-wrapper {
+  position: relative;
+}
+.step-status-icon-positioner {
+  position: absolute;
+  top: 6px;
+}
+
+.step-status-icon-wrapper .step-status-icon {
+  font-size: 1rem;
 }
 
 .active-wrapper {
