@@ -25,7 +25,7 @@ export const stubUrl = ({
     host = url.protocol + "//" + url.hostname;
     path = url.pathname;
     if (url.search) {
-      path += "?" + url.search;
+      path += url.search;
     }
   }
 

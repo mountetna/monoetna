@@ -1,7 +1,0 @@
-type: enum
-name: sc_rna_seq_pool
-label: The current record names for the EXAMPLE sc_rna_seq_pool model
-symbols:
-  - EXAMPLE-POOL-SCB1
-  - EXAMPLE-POOL-SCB2
-  - EXAMPLE-POOL-SCB3

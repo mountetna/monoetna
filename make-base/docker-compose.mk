@@ -30,7 +30,7 @@ restart:: docker-ready
 	@ docker-compose restart
 
 bash:: docker-ready
-	@ docker-compose run -e SKIP_RUBY_SETUP=1 --rm $(app_service_name) bash
+	@ docker-compose run -e SKIP_RUBY_SETUP=1 -e SKIP_PYTHON_SETUP=1 --rm $(app_service_name) bash
 
 logs::
 	@ docker-compose logs -f
