@@ -7,10 +7,10 @@ export default class XYPlotModel extends Plot {
   constructor(step, consignment, parentWidth) {
     super(step, consignment, parentWidth);
     this.type = 'xy';
+    this.component = XYPlot;
 
-    this.plotObj = {
+    this.configObj = {
       plot_type: this.type,
-      component: XYPlot,
       configuration: {
         layout: {},
         variables: {
@@ -28,8 +28,7 @@ export default class XYPlotModel extends Plot {
         configuration: {
           config: {}
         }
-      },
-      parentWidth: this.parentWidth
+      }
     };
     this.dataObj = {
       xdomain: new Domain([0]).asArray,
@@ -41,30 +40,6 @@ export default class XYPlotModel extends Plot {
     this.calculatePlotObj();
     this.calculateLayout();
     this.calculateDataObj();
-  }
-
-  get validSeries() {
-    // Because we may have null series in the List,
-    //   we'll need to filter those out and only
-    //   use the "real" series.
-    return this.series.filter((s) => null !== s);
-  }
-
-  get minsMaxes() {
-    // Calculate this across all series
-    let current = {
-      x_min: Math.min(), // Counterintuitively, returns Infinity
-      x_max: Math.max(), // Counterintuitively, returns -Infinity
-      y_min: Math.min(),
-      y_max: Math.max()
-    };
-    this.validSeries.forEach((series) => {
-      current.x_min = Math.min(...[...series.xValues, current.x_min]);
-      current.x_max = Math.max(...[...series.xValues, current.x_max]);
-      current.y_min = Math.min(...[...series.yValues, current.y_min]);
-      current.y_max = Math.max(...[...series.yValues, current.y_max]);
-    });
-    return current;
   }
 
   defineSeries() {
@@ -87,6 +62,8 @@ export default class XYPlotModel extends Plot {
       let xValues;
       let yValues;
       let labels;
+      let secondaryData;
+
       if (input.match(seriesRegex)) {
         indexMatch = input.match(seriesRegex).groups.index;
         name = this.step.in[input].split('/')[1];
@@ -100,7 +77,9 @@ export default class XYPlotModel extends Plot {
         }
       } else if (input.match(groupRegex)) {
         indexMatch = input.match(groupRegex).groups.index;
-        // Don't know how to add this in to the Series yet...
+        const secondaryDataName = this.step.in[input].split('/')[1];
+
+        secondaryData = this.consignment[secondaryDataName];
       } else if (input.match(seriesTypeRegex)) {
         indexMatch = input.match(seriesTypeRegex).groups.index;
         type = this.step.in[input];
@@ -117,12 +96,14 @@ export default class XYPlotModel extends Plot {
       if (xValues) this.series[indexMatch].setXValues(xValues);
       if (yValues) this.series[indexMatch].setYValues(yValues);
       if (labels) this.series[indexMatch].setLabels(labels);
+      if (secondaryData)
+        this.series[indexMatch].setSecondaryData(secondaryData);
     });
   }
 
   calculatePlotObj() {
-    this.plotObj.configuration.variables = {
-      ...this.plotObj.configuration.variables,
+    this.configObj.configuration.variables = {
+      ...this.configObj.configuration.variables,
       ...this.minsMaxes
     };
   }
@@ -135,13 +116,17 @@ export default class XYPlotModel extends Plot {
     this.dataObj.xdomain = xDomain.asArray;
     this.dataObj.ydomain = yDomain.asArray;
 
+    this.updateDataPlotSeries();
+  }
+
+  updateDataPlotSeries() {
     this.dataObj.plot_series = this.validSeries.map((s) => s.asObj);
   }
 
   calculateLayout() {
     // Calculate the plot layout given the dimensions
     //   of a parent container.
-    this.plotObj.configuration.layout = {
+    this.configObj.configuration.layout = {
       height: Math.round((3 * this.parentWidth) / 4),
       width: this.parentWidth,
       margin: {
@@ -151,5 +136,20 @@ export default class XYPlotModel extends Plot {
         top: 100
       }
     };
+  }
+
+  colorSeriesBy(seriesNumber, colorBy) {
+    if (!this.series[seriesNumber]) return null;
+
+    this.series[seriesNumber].setColorBy(colorBy);
+
+    this.updateDataPlotSeries();
+  }
+
+  getSeriesColorOptions(seriesNumber) {
+    if (!this.series[seriesNumber] || !this.series[seriesNumber].secondaryData)
+      return null;
+
+    return this.series[seriesNumber].secondaryData.row_names;
   }
 }
