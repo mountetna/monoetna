@@ -15,12 +15,15 @@ const WORKFLOW_NAME = 'umap';
 
 export default function Manager() {
   const invoke = useActionInvoker();
-  const {setWorkflow} = useContext(VulcanContext);
+  const {setWorkflow, setPathIndex} = useContext(VulcanContext);
 
   useEffect(() => {
     getWorkflow(WORKFLOW_NAME, true)
       .then((workflowDetails) => {
         setWorkflow(workflowDetails);
+
+        // Hardcode the path for now, since only 1?
+        setPathIndex(0);
       })
       .catch((e) => {
         invoke(showMessages(e));
@@ -37,12 +40,8 @@ export default function Manager() {
           <StepsList></StepsList>
         </div>
         <div className='step-main-pane-wrapper'>
-          <div className='step-input-wrapper'>
-            <Input></Input>
-          </div>
-          <div className='step-output-wrapper'>
-            <Output></Output>
-          </div>
+          <Input></Input>
+          <Output></Output>
         </div>
       </div>
     </div>

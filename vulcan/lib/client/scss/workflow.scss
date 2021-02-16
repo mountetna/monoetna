@@ -2,3 +2,25 @@
   max-width: 50vw;
   min-width: 600px;
 }
+
+.step-wrapper {
+  display: flex;
+}
+
+.step-nav-wrapper {
+  flex: 1;
+  min-width: 300px;
+  border-right: 2px solid lightgray;
+  padding: 1rem;
+}
+
+.step-main-pane-wrapper {
+  flex: 5;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.step-input {
+  border-bottom: 2px solid lightgray;
+}

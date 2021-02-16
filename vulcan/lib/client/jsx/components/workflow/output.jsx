@@ -102,7 +102,7 @@ export default function Output() {
   if (!outputData) return loadingDiv;
 
   return (
-    <div className='workflow-output-wrapper'>
+    <div className='step-output'>
       <div>
         <p>Select a view option:</p>
         <Dropdown
