@@ -26,7 +26,7 @@ retrieveMetadata(
 
 \item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
 
-When not explicitly given in a function call: you will be prompted to input token, one time.
+When not explicitly given in a function call: you will be prompted to input your token, one time.
 This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
 and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 

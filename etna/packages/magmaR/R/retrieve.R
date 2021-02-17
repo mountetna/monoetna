@@ -1,7 +1,7 @@
 #' Download data from magma as a tsv, and convert to a data.frame
 #' @param token Single string. Your personal token from \url{https://janus.ucsf.edu}. 
 #' 
-#' When not explicitly given in a function call: you will be prompted to input token, one time.
+#' When not explicitly given in a function call: you will be prompted to input your token, one time.
 #' This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
 #' and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.
 #' @param projectName Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.
@@ -16,14 +16,14 @@
 #' 
 #' Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details.
 #' @param pageSize,page Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.
-#' @param ... Additional parameters passed along to the internal `.retrieve()` function,
+#' @param ... Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
 #' for troubleshooting or advanced-user purposes only: \itemize{
-#' \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function short and return these values that would have been sent to magma.
-#' \item \code{verbose} (Logical) sets whether to report the status of the '/retrieve' curl request sent to magma.
+#' \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+#' \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
 #' \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 #' }
 #' @return A dataframe
-#' @details This function makes a call to magma/retrieve with \code{format = "tsv"}.
+#' @details This function makes a curl get request to magma/retrieve, with properly reformatted versions of user inputs, plus \code{format = "tsv"}.
 #' Then, it converts the tsv-string output into a dataframe.
 #' @seealso
 #' \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.

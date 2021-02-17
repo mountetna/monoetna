@@ -28,16 +28,16 @@ See \url{https://mountetna.github.io/magma.html#update} for additional formattin
 
 \item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
 
-When not explicitly given in a function call: you will be prompted to input token, one time.
+When not explicitly given in a function call: you will be prompted to input your token, one time.
 This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
 and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 
 \item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward to run '/update'.}
 
-\item{...}{Additional parameters passed along to the internal `.update()` function,
+\item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
-\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function short and return these values that would have been sent to magma.
-\item \code{verbose} (Logical) sets whether to report the status of the '/update' request to magma.
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+\item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
 \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 }}
 }

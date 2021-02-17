@@ -2,16 +2,12 @@
 #' @inheritParams retrieve
 #' @param queryTerms A list of String vector where list elements are query predicates. See \url{https://mountetna.github.io/magma.html#query} for details.
 #' @param format Either "list" or "df" (=dataframe). This sets the desired output format.
-#' @param ... Additional parameters passed along to the internal `.query()` function,
-#' for troubleshooting or advanced-user purposes only: \itemize{
-#' \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function short and return these values that would have been sent to magma.
-#' \item \code{verbose} (Logical) sets whether to report the status of the '/retrieve' curl request sent to magma.
-#' \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
-#' }
 #' @return A list, default, if \code{format == "list"},
 #' 
 #' OR A dataframe conversion if \code{format = "df"}
-#' @details This function initially mimics the activity of the magma/query which is documented here \url{https://mountetna.github.io/magma.html#query}.
+#' @details This function initially mimics the activity of the magma/query,
+#' which is documented here \url{https://mountetna.github.io/magma.html#query},
+#' by performing a curl get request to the magma/query.
 #' 
 #' Afterwards, the json list output of magma/query is converted into an R list, and then the \code{format} input determines whether it should be wrangled further:
 #' \itemize{

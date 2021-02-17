@@ -21,14 +21,14 @@ query(
 
 \item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
 
-When not explicitly given in a function call: you will be prompted to input token, one time.
+When not explicitly given in a function call: you will be prompted to input your token, one time.
 This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
 and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 
-\item{...}{Additional parameters passed along to the internal `.query()` function,
+\item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
-\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function short and return these values that would have been sent to magma.
-\item \code{verbose} (Logical) sets whether to report the status of the '/retrieve' curl request sent to magma.
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+\item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
 \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 }}
 }
@@ -41,7 +41,9 @@ OR A dataframe conversion if \code{format = "df"}
 Analogous to the '/query' function of magma
 }
 \details{
-This function initially mimics the activity of the magma/query which is documented here \url{https://mountetna.github.io/magma.html#query}.
+This function initially mimics the activity of the magma/query,
+which is documented here \url{https://mountetna.github.io/magma.html#query},
+by performing a curl get request to the magma/query.
 
 Afterwards, the json list output of magma/query is converted into an R list, and then the \code{format} input determines whether it should be wrangled further:
 \itemize{
