@@ -114,7 +114,10 @@ class DockerIsolator(Isolator[Container]):
         return result["StatusCode"]
 
     def _is_self_container(self):
-        proc_file = '/proc/1/cgroup'
+        proc_file = '/proc/self/cgroup'
+
+        if os.path.exists('/.dockerenv'):
+            return True
 
         if not os.path.exists(proc_file):
             return False
