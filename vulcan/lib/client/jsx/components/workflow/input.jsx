@@ -1,25 +1,40 @@
 import React, {useState, useContext, useEffect} from 'react';
 
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {showMessages} from 'etna-js/actions/message_actions';
-
 import {VulcanContext} from '../../contexts/vulcan';
-import {getWorkflow, getWorkflows} from '../../api/vulcan';
 import StepInput from './steps/step_input';
+import StepError from './steps/step_error';
+import StepPending from './steps/step_pending';
+
+import {PENDING, COMPLETE, ERROR} from '../../models/steps';
+import {validStep} from '../../selectors/workflow_selector';
 
 export default function Input() {
-  const invoke = useActionInvoker();
-  const {
-    workflow,
-    pathIndex,
-    stepIndex,
-    setPathIndex,
-    setStepIndex
-  } = useContext(VulcanContext);
+  const {workflow, pathIndex, stepIndex} = useContext(VulcanContext);
+
+  if (!validStep({workflow, pathIndex, stepIndex})) return null;
+
+  let currentStep = workflow.steps[pathIndex][stepIndex];
+
+  let Component;
+  switch (currentStep.status) {
+    case PENDING:
+      Component = StepError;
+      break;
+    case ERROR:
+      Component = StepError;
+      break;
+    case COMPLETE:
+      Component = StepError;
+      break;
+    default:
+      break;
+  }
+
+  if (!Component) return null;
 
   return (
     <section className='step-input'>
-      <StepInput></StepInput>
+      <Component step={currentStep}></Component>
     </section>
   );
 }

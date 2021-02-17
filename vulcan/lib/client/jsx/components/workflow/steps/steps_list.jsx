@@ -2,6 +2,7 @@ import React, {useContext, useEffect, useState} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 import Step from './step';
+import {validPath} from '../../../selectors/workflow_selector';
 
 export default function StepsList() {
   const {workflow, pathIndex, stepIndex} = useContext(VulcanContext);
@@ -18,7 +19,7 @@ export default function StepsList() {
 
   return (
     <ul className='steps-list'>
-      {workflow.steps && workflow.steps[pathIndex]
+      {validPath({workflow, pathIndex})
         ? workflow.steps[pathIndex].map((step, index) => {
             return (
               <Step

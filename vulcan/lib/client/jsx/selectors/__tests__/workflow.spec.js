@@ -3,7 +3,7 @@ import Gradient from 'javascript-color-gradient';
 import {autoColors} from 'etna-js/utils/colors';
 import XYPlot from 'etna-js/plots/components/xy_plot/xy_plot';
 
-import {plotModelForStep} from '../workflow_selector';
+import {plotModelForStep, validPath, validStep} from '../workflow_selector';
 
 describe('Workflow Selector', () => {
   describe('XY Plots', () => {
@@ -164,6 +164,71 @@ describe('Workflow Selector', () => {
 
       expect(gene1Colors.length).toEqual(3);
       expect(gene1Colors).not.toEqual(gene2Colors);
+    });
+  });
+
+  describe('validPath', () => {
+    it('returns false if invalid', () => {
+      let results = validPath({
+        workflow: {},
+        pathIndex: 0
+      });
+
+      expect(results).toEqual(false);
+
+      results = validPath({
+        workflow: {
+          steps: [[]]
+        },
+        pathIndex: 1
+      });
+
+      expect(results).toEqual(false);
+    });
+
+    it('returns true if invalid', () => {
+      let results = validPath({
+        workflow: {
+          steps: [[]]
+        },
+        pathIndex: 0
+      });
+
+      expect(results).toEqual(true);
+    });
+  });
+
+  describe('validStep', () => {
+    it('returns false if invalid', () => {
+      let results = validStep({
+        workflow: {},
+        pathIndex: 0,
+        stepIndex: 0
+      });
+
+      expect(results).toEqual(false);
+
+      results = validStep({
+        workflow: {
+          steps: [[]]
+        },
+        pathIndex: 0,
+        stepIndex: 1
+      });
+
+      expect(results).toEqual(false);
+    });
+
+    it('returns true if invalid', () => {
+      let results = validStep({
+        workflow: {
+          steps: [[1]]
+        },
+        pathIndex: 0,
+        stepIndex: 0
+      });
+
+      expect(results).toEqual(true);
     });
   });
 });

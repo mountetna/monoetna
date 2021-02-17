@@ -4,7 +4,8 @@ import {
   SET_WORKFLOWS,
   SET_STATUS,
   SET_PATH,
-  SET_STEP
+  SET_STEP,
+  SET_SESSION
 } from '../actions/vulcan';
 
 export default function VulcanReducer(state, action) {
@@ -70,6 +71,11 @@ export default function VulcanReducer(state, action) {
       return {
         ...state,
         stepIndex: action.stepIndex
+      };
+    case SET_SESSION:
+      return {
+        ...state,
+        session: action.session
       };
     default:
       return state;

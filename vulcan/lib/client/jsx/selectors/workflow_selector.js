@@ -1,5 +1,17 @@
 import XYPlotModel from '../models/xy_plot';
 
+export const validStep = ({workflow, pathIndex, stepIndex}) => {
+  return !!(
+    workflow.steps &&
+    workflow.steps[pathIndex] &&
+    workflow.steps[pathIndex][stepIndex]
+  );
+};
+
+export const validPath = ({workflow, pathIndex}) => {
+  return !!(workflow.steps && workflow.steps[pathIndex]);
+};
+
 export const stepDataUrls = ({workflow, pathIndex, stepIndex}) => {
   return workflow.steps[pathIndex][stepIndex].out.map((s) => s.data_url);
 };
