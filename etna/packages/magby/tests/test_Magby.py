@@ -59,12 +59,43 @@ class TestMagby(TestCase):
 
     def test_retrieveJSON(self):
         with self.vcr as vcr:
-            vcr.use_cassette('Magby_retrieve_json')
+            vcr.use_cassette('Magby_retrieveJSON')
             out = self.magby.retrieve(projectName="ipi", modelName='sample',
                                       recordNames='all', attributeNames=["patient"], dataType='json',
                                       session=self.session)
-        pass
+        self.assertTrue(isinstance(out, dict))
+        self.assertEqual(out['models']['sample']['documents']['IPIADR001.T1']['patient'], 'IPIADR001')
+        self.assertEqual(len(out['models']['sample']['documents']), 771)
 
+
+    def test_retrieveMatrix(self):
+        with self.vcr as vcr:
+            vcr.use_cassette('Magby_retrieveMatrix')
+            out = self.magby.retrieve(projectName="ipi", modelName='rna_seq',
+                                      recordNames=['IPIBLAD005.N1.rna.cd45neg'], attributeNames=["gene_counts"], dataType='mtx',
+                                      session=self.session)
+        self.assertTrue(isinstance(out, pd.DataFrame))
+        self.assertEqual(out.shape, (58051,1))
+
+
+    def test_retrieveMatrixError(self):
+        with self.vcr as vcr:
+            vcr.use_cassette('Magby_retrieveMatrixError')
+            out = self.magby.retrieve(projectName="ipi", modelName='rna_seq',
+                                      recordNames=['IPIBLAD005.N1.rna.cd45neg'], attributeNames=["gene_counts"], dataType='mtx',
+                                      session=self.session)
+        self.assertTrue(isinstance(out, pd.DataFrame))
+        self.assertEqual(out.shape, (58051,1))
+
+
+    # UNTESTED
+
+    def test_query(self):
+        with self.vcr as vcr:
+            vcr.use_cassette('Magby_query')
+            out = self.magby.query(projectName="ipi", queryTerms=['some', '::query here'],
+                                   session=self.session)
+        pass
 
 
 

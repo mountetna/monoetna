@@ -17,7 +17,6 @@ class Magby(object):
         self._url = url.strip('/')
         self._token = token
 
-
     @property
     def url(self) -> str:
         return self._url
@@ -40,7 +39,7 @@ class Magby(object):
                           recordNames: Union[List, str],
                           attributeNames: Union[List, str],
                           format: str,
-                          filter: str=None) -> Dict:
+                          filter: str='') -> Dict:
         payload = {
             "project_name": projectName,
             "model_name": modelName,
@@ -86,10 +85,19 @@ class Magby(object):
         }
         return selection[dataType]
 
+    def _wrapReturn(self, fmt: str, **kwargs):
+        switchReturns = {
+            'meta': partial(pd.read_csv, sep='\t'),
+            'json': dict,
+            'mtx': partial(self._walkMatrix, **kwargs)
+        }
+        return switchReturns.get(fmt)
 
-###### NOT TESTED
-
-
+    @staticmethod
+    def _walkMatrix(response: Dict, modelName: str, attributeName: str):
+        observations = {x: response['models'][modelName]['documents'][x][attributeName] for x in response['models'][modelName]['documents']}
+        features = response['models'][modelName]['template']['attributes'][attributeName]['options']
+        return pd.DataFrame(observations, index=features)
 
 
     def retrieve(self,
@@ -98,18 +106,34 @@ class Magby(object):
                  recordNames: Union[List, str]='all',
                  attributeNames: Union[List, str]='all',
                  dataType: str='meta',
+                 filter='',
                  **kwargs) -> Union[pd.DataFrame, List, Dict]:
-
+        if (dataType == 'mtx') & (len(attributeNames) > 1):
+            raise MagmaError('Magby.retrieve(): retrieval of matrix data is limited to a single attribute at a time')
         typeSelection = self._selectFormat(dataType)
-        payload = self._constructPayload(projectName, modelName, recordNames, attributeNames, format=typeSelection[0])
+        payload = self._constructPayload(projectName, modelName, recordNames, attributeNames,
+                                         format=typeSelection[0], filter=filter)
         magma = self._recordMagmaObj(endpoint='retrieve', fmt=typeSelection[0], **kwargs)
         content, _ = self._call_api(payload, magma)
-        switchReturns = {
-            'meta': partial(pd.read_csv, sep='\t'),
-            'json': json.loads,
-            'mtx': np.array
+        if dataType == 'mtx':
+            return self._wrapReturn(typeSelection[1], modelName=modelName, attributeName=attributeNames[0])(content)
+        else:
+            return self._wrapReturn(typeSelection[1])(content)
+
+
+    def query(self,
+              projectName: str,
+              queryTerms: List,
+              **kwargs) -> Dict:
+        typeSelection = self._selectFormat('json')
+        payload = {
+            "project_name": projectName,
+            "query": queryTerms
         }
-        return switchReturns.get(typeSelection[1])(content)
+        magma = self._recordMagmaObj(endpoint='query', fmt=typeSelection[0], **kwargs)
+        content, _ = self._call_api(payload, magma)
+
+        return self._wrapReturn(typeSelection[1])(content)
 
 
 
@@ -119,9 +143,6 @@ class Magby(object):
 
 
     # TODO
-
-
-
 
     def _getModels(self, payload) -> List:
         pass
