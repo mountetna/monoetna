@@ -8,8 +8,7 @@ describe Metis::CopyRevision do
       default_bucket('athena')
 
       @user = Etna::User.new({
-        first: 'Athena',
-        last: 'Pallas',
+        name: 'Athena',
         email: 'athena@olympus.org',
         perm: 'a:athena'
       })

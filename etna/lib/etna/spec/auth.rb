@@ -2,22 +2,22 @@ module Etna::Spec
   module Auth
     AUTH_USERS = {
       superuser: {
-        email: 'zeus@olympus.org', first: 'Zeus', perm: 'A:administration'
+        email: 'zeus@olympus.org', name: 'Zeus', perm: 'A:administration'
       },
       admin: {
-        email: 'hera@olympus.org', first: 'Hera', perm: 'a:labors'
+        email: 'hera@olympus.org', name: 'Hera', perm: 'a:labors'
       },
       editor: {
-        email: 'eurystheus@twelve-labors.org', first: 'Eurystheus', perm: 'E:labors'
+        email: 'eurystheus@twelve-labors.org', name: 'Eurystheus', perm: 'E:labors'
       },
       restricted_editor: {
-        email: 'copreus@twelve-labors.org', first: 'Copreus', perm: 'e:labors'
+        email: 'copreus@twelve-labors.org', name: 'Copreus', perm: 'e:labors'
       },
       viewer: {
-        email: 'hercules@twelve-labors.org', first: 'Hercules', perm: 'v:labors'
+        email: 'hercules@twelve-labors.org', name: 'Hercules', perm: 'v:labors'
       },
       non_user: {
-        email: 'nessus@centaurs.org', first: 'Nessus', perm: ''
+        email: 'nessus@centaurs.org', name: 'Nessus', perm: ''
       }
     }
 
