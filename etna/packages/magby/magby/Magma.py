@@ -21,6 +21,16 @@ class Magma(object):
                  endpoint: str,
                  fmt: str='json',
                  session: Session=_session) -> None:
+
+        '''
+        Private class to interface with Magma
+        :param url: Magma url
+        :param token: Private Janus token
+        :param endpoint: Magma (and janus) endpoints for HTTP requests
+        :param fmt: Format of Magma output
+        :param session: Instance of requests.Session. Needed to modify proxies and SSL certificate verification
+        '''
+
         allowedEndpoints = ['update', 'retrieve', 'query', 'update_model']
         if endpoint not in allowedEndpoints:
             raise MagmaError(f'Magma(): unknown endpoint {endpoint}. Must be one of the {allowedEndpoints}')
@@ -33,16 +43,10 @@ class Magma(object):
 
 
     def getResponseContent(self, response) -> Union[Dict, StringIO]:
-        '''
-        An abstraction to
-        :param response: magma API response
-        :return: Dict
-        '''
         switch = {
             'json': self._parseJSON,
             'tsv': self._parseText
         }
-
         return switch[self._fmt](response)
 
 
@@ -56,7 +60,7 @@ class Magma(object):
 
     def magmaCall(self, payload: Dict) -> Tuple:
         '''
-        Make API call and return data and current headers
+        Makes an API call to Magma and returns data and current headers
         :param payload: Dict. Payload
         :return: Tuple[Dict, Dict]. Dictionary of content, dictionary of response headers
         '''
