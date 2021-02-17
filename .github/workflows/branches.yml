@@ -77,3 +77,21 @@ jobs:
           IMAGES_POSTFIX: :master
         run: |
           make -C etna release
+      - name: Run archimedes tests
+        id: archimedes_first_test_run
+        env:
+          IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
+          IMAGES_POSTFIX: :master
+        run: |
+          make -C archimedes release
+      - name: Run vulcan tests
+        id: vulcan_first_test_run
+        env:
+          IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
+          IMAGES_POSTFIX: :master
+        run: |
+          make -C vulcan release
