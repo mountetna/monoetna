@@ -1,0 +1,8 @@
+[
+  {
+    "action_name": "rename_attribute",
+    "model_name": "assay_name",
+    "attribute_name": "vendor",
+    "new_attribute_name": "vendor_2"
+  }
+]
