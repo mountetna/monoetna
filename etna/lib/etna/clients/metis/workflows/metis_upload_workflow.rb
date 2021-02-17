@@ -8,6 +8,9 @@ module Etna
   module Clients
     class Metis
       class MetisUploadWorkflow < Struct.new(:metis_client, :metis_uid, :project_name, :bucket_name, :max_attempts, keyword_init: true)
+        class StreamingUploadError < StandardError
+        end
+
 
         def initialize(args)
           super({max_attempts: 3, metis_uid: SecureRandom.hex}.update(args))
@@ -129,6 +132,48 @@ module Etna
           def resume_from!(upload_response)
             self.current_byte_position = upload_response.current_byte_position
             self.next_blob_size = upload_response.next_blob_size
+          end
+        end
+
+        class PullIOUpload < Upload
+          def initialize(readable_io:, size_hint: 0, **args)
+            super(**args)
+            @readable_io = readable_io
+            @size_hint = size_hint
+            @read_position = 0
+            @last_bytes = ""
+          end
+
+          def file_size
+            @size_hint
+          end
+
+          def next_blob_bytes
+            next_left = current_byte_position
+            next_right = current_byte_position + next_blob_bytes
+            last_right = @read_position
+
+            if next_right < last_right
+              raise StreamingUploadError.new("Upload needs restart, but source is streaming and ephemeral.  You need to restart the source stream and create a new upload.")
+            elsif last_right < next_left
+              # read from the stream and discard until we are positioned for the next read.
+              data = @readable_io.read(next_left - last_right)
+              @read_position += data.bytes.length
+            end
+
+            # If we have consumed all requested data, return what we have consumed.
+            # If we have requested no data, make sure to provide "" as the result.
+            if next_right == last_right
+              return @last_bytes
+            end
+
+            if last_right != next_left
+              raise StreamingUploadError.new("Alignment error, source data does not match expected upload resume.  Restart the upload to address.")
+            end
+
+            @last_bytes = begin
+              @readable_io.read(next_blob_size).tap { |data| @read_position += data.bytes.length }
+            end
           end
         end
       end

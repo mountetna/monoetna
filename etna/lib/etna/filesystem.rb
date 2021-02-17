@@ -241,6 +241,49 @@ module Etna
       end
     end
 
+    class Metis < Filesystem
+      def initialize(metis_client:, project_name:, bucket_name:, root: '/')
+        @metis_client = metis_client
+        @project_name = project_name
+        @bucket_name = bucket_name
+        @root = root
+      end
+
+      def with_writeable(dest, opts = 'w', size_hint: nil, &block)
+        tmp = ::Tempfile.new
+        begin
+          # Buffer it locally? hmm...
+          yield ::File.open(tmp.path, opts, &block)
+        ensure
+          tmp.close!
+        end
+      end
+
+      def with_readable(src, opts = 'r', &block)
+        ::File.open(src, opts, &block)
+      end
+
+      def mkdir_p(dir)
+        ::FileUtils.mkdir_p(dir)
+      end
+
+      def rm_rf(dir)
+        ::FileUtils.rm_rf(dir)
+      end
+
+      def tmpdir
+        ::Dir.mktmpdir
+      end
+
+      def exist?(src)
+        ::File.exist?(src)
+      end
+
+      def mv(src, dest)
+        ::FileUtils.mv(src, dest)
+      end
+    end
+
     class Mock < Filesystem
       def initialize(&new_io)
         @files = {}

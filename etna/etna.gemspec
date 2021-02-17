@@ -16,5 +16,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'nokogiri'
   spec.add_dependency 'multipart-post'
   spec.add_dependency 'rollbar'
+  spec.add_dependency 'nokogiri'
   spec.post_install_message = "\n\n\033[1;31mAdd 'source ~/etna.completion' to your .bashrc to get etna command line completions!\033[0m\n\n"
 end
