@@ -23,18 +23,22 @@ export default function Step({step, index, active}) {
   }
 
   const icons = {
-    complete: 'check',
-    pending: 'clock',
-    error: 'times-circle'
+    complete: {
+      icon: 'check',
+      className: 'light green'
+    },
+    pending: {icon: 'clock', className: 'light'},
+    error: {icon: 'times-circle', className: 'light red'}
   };
 
   let icon = icons[step.status ? step.status : 'pending'];
+  let className = `step-status-icon ${icon.className}`;
   console.log(icon);
   return (
     <li className={active ? 'active step' : 'step'}>
       <div className='step-status-icon-wrapper'>
         <div className='step-status-icon-positioner'>
-          <Icon className='step-status-icon' icon={icon}></Icon>
+          <Icon className={className} icon={icon.icon}></Icon>
         </div>
       </div>
       {active ? (
