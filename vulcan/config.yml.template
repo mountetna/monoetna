@@ -10,12 +10,16 @@ default: &default
 :development:
   :magma:
     :host: https://magma.development.local
-  :archimedes:
-    :host: https://archimedes.development.local
+  :vulcan:
+    :host: https://vulcan.development.local
   :auth_redirect: https://janus.development.local
+  :data_folder: $APP/data
+  :workflows_folder: /app/lib/server/workflows
   :token_algo: RS256
   :token_name: JANUS_DEV_TOKEN
   :log_level: info
+  :archimedes_run_image: etnaagent/archimedes
+  :archimedes_image:     etnaagent/archimedes
   :log_file: /dev/stdout
   :rsa_public: |
     -----BEGIN PUBLIC KEY-----
@@ -40,6 +44,11 @@ default: &default
     :database: vulcan_test
   :magma:
     :host: https://magma.test
-  :archimedes:
-    :host: https://archimedes.test
-  :log_file: /dev/null
+  :vulcan:
+    :host: https://vulcan.test
+  :data_folder: /app/spec/data
+  :workflows_folder: $APP/spec/fixtures
+  :archimedes_run_image: etnaagent/archimedes
+  :archimedes_image:     etnaagent/archimedes
+  :log_file: /dev/stdout
+  :log_level: info

@@ -6,13 +6,15 @@ function _metis_completions() {
 
 function _metis_inner_completions() {
   local all_flag_completion_names=''
-  local string_flag_completion_names=''
+  local arg_flag_completion_names=''
+  local multi_flags=''
   local all_completion_names=''
   local i=''
   local a=''
 
 all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names="archive assimilate console create_db generate_completion_script help migrate remove_orphan_data_blocks schema"
@@ -25,7 +27,8 @@ return
 elif [[ "$1" == "archive" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -38,10 +41,12 @@ return
 elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
 return
 elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
 all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
 a=$1
 shift
-if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
 if [[ "$#" == "1" ]];  then
 a="${a//--/}"
 a="${a//-/_}"
@@ -87,7 +92,8 @@ return
 fi
 shift
 all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -100,10 +106,12 @@ return
 elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
 return
 elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
 all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
 a=$1
 shift
-if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
 if [[ "$#" == "1" ]];  then
 a="${a//--/}"
 a="${a//-/_}"
@@ -122,7 +130,8 @@ return
 elif [[ "$1" == "console" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -135,10 +144,12 @@ return
 elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
 return
 elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
 all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
 a=$1
 shift
-if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
 if [[ "$#" == "1" ]];  then
 a="${a//--/}"
 a="${a//-/_}"
@@ -157,7 +168,8 @@ return
 elif [[ "$1" == "create_db" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -170,10 +182,12 @@ return
 elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
 return
 elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
 all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
 a=$1
 shift
-if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
 if [[ "$#" == "1" ]];  then
 a="${a//--/}"
 a="${a//-/_}"
@@ -192,7 +206,8 @@ return
 elif [[ "$1" == "generate_completion_script" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -205,10 +220,12 @@ return
 elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
 return
 elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
 all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
 a=$1
 shift
-if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
 if [[ "$#" == "1" ]];  then
 a="${a//--/}"
 a="${a//-/_}"
@@ -227,7 +244,8 @@ return
 elif [[ "$1" == "help" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -240,10 +258,12 @@ return
 elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
 return
 elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
 all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
 a=$1
 shift
-if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
 if [[ "$#" == "1" ]];  then
 a="${a//--/}"
 a="${a//-/_}"
@@ -262,7 +282,8 @@ return
 elif [[ "$1" == "migrate" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names --version "
-string_flag_completion_names="$string_flag_completion_names --version "
+arg_flag_completion_names="$arg_flag_completion_names --version "
+multi_flags="$multi_flags  "
 declare _completions_for_version="__version__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
@@ -276,10 +297,12 @@ return
 elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
 return
 elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
 all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
 a=$1
 shift
-if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
 if [[ "$#" == "1" ]];  then
 a="${a//--/}"
 a="${a//-/_}"
@@ -298,7 +321,8 @@ return
 elif [[ "$1" == "remove_orphan_data_blocks" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -311,10 +335,12 @@ return
 elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
 return
 elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
 all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
 a=$1
 shift
-if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
 if [[ "$#" == "1" ]];  then
 a="${a//--/}"
 a="${a//-/_}"
@@ -333,7 +359,8 @@ return
 elif [[ "$1" == "schema" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
-string_flag_completion_names="$string_flag_completion_names  "
+arg_flag_completion_names="$arg_flag_completion_names  "
+multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""
@@ -346,10 +373,12 @@ return
 elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
 return
 elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
 all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
 a=$1
 shift
-if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
 if [[ "$#" == "1" ]];  then
 a="${a//--/}"
 a="${a//-/_}"
@@ -368,10 +397,12 @@ return
 elif [[ -z "$(echo $all_flag_completion_names | xargs)" ]]; then
 return
 elif [[ "$all_flag_completion_names" =~ $1\  ]]; then
+if ! [[ "$multi_flags" =~ $1\  ]]; then
 all_flag_completion_names="${all_flag_completion_names//$1\ /}"
+fi
 a=$1
 shift
-if [[ "$string_flag_completion_names" =~ $a\  ]]; then
+if [[ "$arg_flag_completion_names" =~ $a\  ]]; then
 if [[ "$#" == "1" ]];  then
 a="${a//--/}"
 a="${a//-/_}"

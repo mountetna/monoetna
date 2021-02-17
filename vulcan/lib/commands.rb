@@ -18,21 +18,6 @@ class Vulcan
     end
   end
 
-  class Schema < Etna::Command
-    usage 'Show the current database schema.'
-
-    def execute
-      Vulcan.instance.db.tap do |db|
-        db.extension(:schema_dumper)
-        puts db.dump_schema_migration
-      end
-    end
-
-    def setup(config)
-      super
-      Vulcan.instance.setup_db
-    end
-  end
   class Migrate < Etna::Command
     usage 'Run migrations for the current environment.'
     string_flags << '--version'
