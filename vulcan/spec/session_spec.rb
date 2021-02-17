@@ -1,7 +1,7 @@
 describe Session do
   describe '#as_json <-> from_json' do
     it 'works' do
-      session = Session.new_session_for('project_name', 'workflow', 'thekey', {[:primary_inputs, "b"] => "a", ["primary_inputs", "c"] => "d"})
+      session = Session.new_session_for('project_name', 'workflow', 'thekey', {[:primary_inputs, "b"] => {json_payload: "a"}, ["primary_inputs", "c"] => {json_payload: "d"}})
       expect(Session.from_json(JSON.parse(session.as_json.to_json)).as_json).to eql(session.as_json)
     end
   end
