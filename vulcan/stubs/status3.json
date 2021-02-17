@@ -1,0 +1,25 @@
+[
+  [
+    {
+      "name": "query_magma",
+      "status": "complete",
+      "data_url": "pools"
+    },
+    {
+      "name": "ui_pick_subset",
+      "status": "complete"
+    },
+    {
+      "name": "subset_normalize_and_select_features",
+      "status": "complete"
+    },
+    {
+      "name": "regress_and_pca",
+      "status": "pending"
+    },
+    {
+      "name": "umap",
+      "status": "pending"
+    }
+  ]
+]

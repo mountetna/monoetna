@@ -10,6 +10,10 @@ trash.rb
 /tmp
 /log
 /source
+spec/data/built
+spec/data/tmp
+data/built
+data/tmp
 
 config.yml
 coverage

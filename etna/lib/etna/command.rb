@@ -39,6 +39,10 @@ module Etna
       def string_flags
         @string_flags ||= []
       end
+
+      def multi_flags
+        @multi_flags ||= []
+      end
     end
 
     def flag_as_parameter(flag)
@@ -68,6 +72,12 @@ module Etna
             raise "flag #{next_arg} requires an argument"
           else
             flags[arg_name] = args.shift
+          end
+        elsif self.class.multi_flags.include?(next_arg)
+          if args.empty?
+            raise "flag #{next_arg} requires an argument"
+          else
+            (flags[arg_name] ||= []) << args.shift
           end
         elsif !found_non_flag
           raise "#{program_name} does not recognize flag #{next_arg}"

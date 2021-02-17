@@ -1,43 +1,49 @@
+require 'fileutils'
+
 describe DataController do
   include Rack::Test::Methods
+
+  let(:storage) { Vulcan::Storage.new }
+  before(:each) do
+    FileUtils.rm_rf(storage.data_root) if ::File.exist?(storage.data_root)
+  end
 
   def app
     OUTER_APP
   end
 
+  def store(hash, filename, data)
+    path = storage.data_path(project_name: PROJECT, cell_hash: hash, data_filename: filename)
+    ::FileUtils.mkdir_p(::File.dirname(path))
+    ::File.write(path, data)
+    path
+  end
+
   context '#fetch' do
     it 'rejects a non-user' do
       auth_header(:non_user)
-      get("/api/#{PROJECT}/workflows/umap/steps")
+      store("somehash", "myfile", "abc")
+      get("/api/#{PROJECT}/data/somehash/myfile")
 
       expect(last_response.status).to eq(403)
     end
 
-    it 'gets the steps for the umap workflow' do
+    it 'fetches the data stored at the given hash and filename' do
       auth_header(:viewer)
-      get("/api/#{PROJECT}/workflows/umap/steps")
-
+      path = store("somehash", "myfile.zip", "abc")
+      get("/api/#{PROJECT}/data/somehash/myfile.zip")
       expect(last_response.status).to eq(200)
 
-      expect(last_response.body.length > 0).to eq(true)
-    end
-
-    it 'gets the steps for the umap workflow in JSON format' do
-      auth_header(:viewer)
-      get("/api/#{PROJECT}/workflows/umap/steps?format=json")
-
-      expect(last_response.status).to eq(200)
-
-      expect(json_body[:steps].length > 0).to eq(true)
+      expect(last_response['X-Sendfile']).to eq(path)
     end
 
     it 'returns 404 for a non-existent workflow' do
       auth_header(:viewer)
-      get("/api/#{PROJECT}/workflows/fancy_schmancy/steps")
+      get("/api/#{PROJECT}/data/somehash/a")
 
       expect(last_response.status).to eq(404)
 
-      expect(json_body[:error]).to eq('No data for workflow fancy_schmancy.')
+      expect(json_body[:error]).to eq('File a for hash somehash in project labors was not found')
     end
   end
 end

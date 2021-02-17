@@ -34,6 +34,8 @@ jobs:
         id: update-package-references
         env:
           IS_CI: 1
+          IMAGES_PREFIX: etnaagent/
+          IMAGES_POSTFIX: :master
         run: |
           make -C docker docker-ready
           ln -sf docker/docker-compose.yml docker-compose.yml
