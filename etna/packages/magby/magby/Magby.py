@@ -153,8 +153,6 @@ class Magby(object):
     def _getAttributes(self, payload) -> List:
         pass
 
-    def query(self, queryTerms: List):
-        pass
 
     # TODO functions
 

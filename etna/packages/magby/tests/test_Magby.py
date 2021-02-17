@@ -76,26 +76,20 @@ class TestMagby(TestCase):
                                       session=self.session)
         self.assertTrue(isinstance(out, pd.DataFrame))
         self.assertEqual(out.shape, (58051,1))
+        self.assertRaises(MagmaError, self.magby.retrieve, projectName="ipi", modelName='rna_seq',
+                          recordNames=['IPIBLAD005.N1.rna.cd45neg'], attributeNames=["gene_counts", "gene_tpm"],
+                          dataType='mtx',
+                          session=self.session)
 
-
-    def test_retrieveMatrixError(self):
-        with self.vcr as vcr:
-            vcr.use_cassette('Magby_retrieveMatrixError')
-            out = self.magby.retrieve(projectName="ipi", modelName='rna_seq',
-                                      recordNames=['IPIBLAD005.N1.rna.cd45neg'], attributeNames=["gene_counts"], dataType='mtx',
-                                      session=self.session)
-        self.assertTrue(isinstance(out, pd.DataFrame))
-        self.assertEqual(out.shape, (58051,1))
-
-
-    # UNTESTED
 
     def test_query(self):
         with self.vcr as vcr:
             vcr.use_cassette('Magby_query')
-            out = self.magby.query(projectName="ipi", queryTerms=['some', '::query here'],
+            out = self.magby.query(projectName='ipi', queryTerms=['sample', '::all', 'patient', '::identifier'],
                                    session=self.session)
-        pass
+        self.assertTrue(isinstance(out, dict))
+        self.assertEqual(out['answer'][0][1], 'IPIADR001')
+        self.assertEqual(len(out['answer']), 771)
 
 
 
