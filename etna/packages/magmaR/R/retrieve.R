@@ -4,8 +4,8 @@
 #' When not explicitly given in a function call: you will be prompted to input token, one time.
 #' This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
 #' and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.
-#' @param projectName Single string. The name of the project you would like to download data from, exactly as it appears in the project_name column of https://timur.ucsf.edu
-#' @param modelName Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
+#' @param projectName Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.
+#' @param modelName Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
 #' For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.
 #' @param recordNames Single string or string vector. Which particular sample/tube/etc. records to grab data for.
 #' Options are "all" or any combination of individual record names. To retrieve individual options, see \code{\link{retrieveIds}}.
@@ -27,6 +27,8 @@
 #' Then, it converts the tsv-string output into a dataframe.
 #' @seealso
 #' \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
+#' 
+#' \code{\link{retrieveProjects}} for exploring options for the \code{projectName} input.
 #' 
 #' \code{\link{retrieveModels}}, \code{\link{retrieveIds}}, and \code{\link{retrieveAttributes}} for exploring options for the \code{modelName}, \code{recordNames}, and \code{attributeNames} inputs, respectively.
 #' 

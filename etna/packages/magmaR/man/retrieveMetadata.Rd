@@ -16,7 +16,7 @@ retrieveMetadata(
 )
 }
 \arguments{
-\item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears in the project_name column of https://timur.ucsf.edu}
+\item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
 \item{meta_modelName, meta_attributeNames}{Strings which indicate the linked "meta"data to retrieve.}
 

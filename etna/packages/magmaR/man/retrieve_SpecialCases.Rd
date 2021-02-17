@@ -17,7 +17,7 @@ retrieveIds(projectName, modelName, token = .get_TOKEN(), ...)
 retrieveAttributes(projectName, modelName, token = .get_TOKEN(), ...)
 }
 \arguments{
-\item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears in the project_name column of https://timur.ucsf.edu}
+\item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
 \item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
 
@@ -32,7 +32,7 @@ for troubleshooting or advanced-user purposes only: \itemize{
 \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 }}
 
-\item{modelName}{Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
+\item{modelName}{Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
 For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.}
 }
 \value{

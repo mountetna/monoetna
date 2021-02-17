@@ -1,7 +1,5 @@
 #' A matrix-specific wrapper of updateValues()
 #' @inheritParams retrieve
-#' @param projectName Single string. The name of the project to upload data to.
-#' @param modelName Single string. The name of the model to upload data to.
 #' @param attributeName String naming the matrix attribute for which to upload data.
 #' @param matrix A matrix or dataframe containing the data to upload to magma.
 #' colnames must be record identifiers, and rownames should match the values of 'validation' associated with the target 'attribute'.

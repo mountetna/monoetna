@@ -16,9 +16,10 @@ updateMatrix(
 )
 }
 \arguments{
-\item{projectName}{Single string. The name of the project to upload data to.}
+\item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
-\item{modelName}{Single string. The name of the model to upload data to.}
+\item{modelName}{Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
+For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.}
 
 \item{attributeName}{String naming the matrix attribute for which to upload data.}
 

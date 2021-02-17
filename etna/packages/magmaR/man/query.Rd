@@ -13,7 +13,7 @@ query(
 )
 }
 \arguments{
-\item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears in the project_name column of https://timur.ucsf.edu}
+\item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
 \item{queryTerms}{A list of String vector where list elements are query predicates. See \url{https://mountetna.github.io/magma.html#query} for details.}
 
@@ -81,4 +81,8 @@ if (interactive()) {
 }
 \seealso{
 \url{https://mountetna.github.io/magma.html#query} for documentation of the underlying magma/query function.
+
+\code{\link{retrieveProjects}} for exploring options for the \code{projectName} input.
+
+\code{\link{retrieveModels}}, \code{\link{retrieveIds}}, and \code{\link{retrieveAttributes}} and \code{\link{retrieveTemplate}} for exploring the project structure and determining \code{queryTerm} options.
 }

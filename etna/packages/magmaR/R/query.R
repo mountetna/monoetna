@@ -20,6 +20,10 @@
 #' }
 #' @seealso
 #' \url{https://mountetna.github.io/magma.html#query} for documentation of the underlying magma/query function.
+#' 
+#' \code{\link{retrieveProjects}} for exploring options for the \code{projectName} input.
+#' 
+#' \code{\link{retrieveModels}}, \code{\link{retrieveIds}}, and \code{\link{retrieveAttributes}} and \code{\link{retrieveTemplate}} for exploring the project structure and determining \code{queryTerm} options.
 #' @export
 #' @examples
 #' 

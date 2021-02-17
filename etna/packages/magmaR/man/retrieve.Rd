@@ -17,9 +17,9 @@ retrieve(
 )
 }
 \arguments{
-\item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears in the project_name column of https://timur.ucsf.edu}
+\item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
-\item{modelName}{Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
+\item{modelName}{Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
 For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.}
 
 \item{recordNames}{Single string or string vector. Which particular sample/tube/etc. records to grab data for.
@@ -73,6 +73,8 @@ if (interactive()) {
 }
 \seealso{
 \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
+
+\code{\link{retrieveProjects}} for exploring options for the \code{projectName} input.
 
 \code{\link{retrieveModels}}, \code{\link{retrieveIds}}, and \code{\link{retrieveAttributes}} for exploring options for the \code{modelName}, \code{recordNames}, and \code{attributeNames} inputs, respectively.
 }

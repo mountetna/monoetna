@@ -13,7 +13,7 @@ updateValues(
 )
 }
 \arguments{
-\item{projectName}{Single string. The name of the project to upload data to.}
+\item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
 \item{revisions}{A list of named lists containing the data to be updated.
 
