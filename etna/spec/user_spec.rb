@@ -19,7 +19,7 @@ describe Etna::User do
     u = Etna::User.new(
       {
         email: 'janus@two-faces.org',
-        name: 'Janus Bifrons'
+        name: 'Janus Bifrons',
         perm: 'a:labors;e:olympics,argo;v:constellations'
       }
     )
