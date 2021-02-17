@@ -8,8 +8,6 @@ volumes:
   archimedes-exec:
     driver: local
 
-
-
 services:
   archimedes_app:
     image: archimedes-base
