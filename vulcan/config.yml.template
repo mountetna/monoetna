@@ -52,3 +52,4 @@ default: &default
   :archimedes_image:     etnaagent/archimedes
   :log_file: /dev/stdout
   :log_level: info
+  :archimedes_exec_volume: archimedes-exec
