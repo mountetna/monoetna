@@ -33,7 +33,7 @@ export default function Step({step, index, active}) {
 
   let icon = icons[step.status ? step.status : 'pending'];
   let className = `step-status-icon ${icon.className}`;
-  console.log(icon);
+
   return (
     <li className={active ? 'active step' : 'step'}>
       <div className='step-status-icon-wrapper'>
@@ -46,7 +46,9 @@ export default function Step({step, index, active}) {
           <div className='active-indicator'></div>
         </div>
       ) : null}
-      <button onClick={() => handleOnClick(index)}>{step.name}</button>
+      <button onClick={() => handleOnClick(index)}>
+        {step.label || step.name}
+      </button>
     </li>
   );
 }
