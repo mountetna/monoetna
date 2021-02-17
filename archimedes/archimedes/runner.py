@@ -246,9 +246,8 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 5, remove = T
                 "Script did not conform to the archimedes dsl requirements."
             )
 
-        process: Container = isolator.start(request, script_path)
+        process: T = isolator.start(request, script_path)
         try:
-
             # Give cells up to 5 minutes.  In the future, with a proper async executor we would want to allow up to
             # a much larger amount of time.
             done = time.time() + timeout
@@ -267,7 +266,7 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 5, remove = T
             else:
                 res.status = 'done'
         finally:
-            if remove:
+            if remove and isinstance(process, Container):
                 process.remove()
 
     return res
