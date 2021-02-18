@@ -18,13 +18,14 @@ export default function Input() {
   let Component;
   switch (currentStep.status) {
     case STATUS.PENDING:
-      Component = StepError;
+      Component = StepPending;
       break;
     case STATUS.ERROR:
       Component = StepError;
       break;
     case STATUS.COMPLETE:
-      Component = StepError;
+      // Show what the inputs were at this step
+      Component = StepInput;
       break;
     default:
       break;

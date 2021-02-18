@@ -38,8 +38,17 @@ export const getWorkflows = () => {
 //     .catch(handleFetchError);
 // };
 
-export const submit = (workflow_name, inputs) => {
-  return vulcanPost(ROUTES.submit_inputs(workflow_name), inputs)
+export const submit = (workflow_name, inputs, key) => {
+  return vulcanPost(ROUTES.submit(workflow_name), {inputs, key})
+    .then(handleFetchSuccess)
+    .catch(handleFetchError);
+};
+
+export const getSession = (workflow_name) => {
+  // A "blank" POST to submit generates and returns the
+  //   session, which we'll need for subsequent input
+  //   submit actions.
+  return vulcanPost(ROUTES.submit(workflow_name))
     .then(handleFetchSuccess)
     .catch(handleFetchError);
 };

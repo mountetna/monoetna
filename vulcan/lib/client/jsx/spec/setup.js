@@ -7,5 +7,5 @@ global.ROUTES = {
   workflow: () => `/${CONFIG.project_name}/workflow`,
   fetch_workflows: () => `/api/${CONFIG.project_name}/workflows`,
   submit: (workflow_name) =>
-    `/api/${CONFIG.project_name}/workflows/${workflow_name}`
+    `/api/${CONFIG.project_name}/session/${workflow_name}`
 };

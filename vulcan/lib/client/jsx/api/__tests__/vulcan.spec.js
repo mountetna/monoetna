@@ -193,7 +193,7 @@ describe('Vulcan API', () => {
 
     stubUrl({
       verb: 'post',
-      path: ROUTES.submit_inputs('test'),
+      path: ROUTES.submit('test'),
       request: inputs,
       response: status,
       headers: {
@@ -202,7 +202,7 @@ describe('Vulcan API', () => {
       host: CONFIG.vulcan_host
     });
 
-    return submit('test', inputs).then((data) => {
+    return submit('test', inputs, 'session_key').then((data) => {
       expect(data).toEqual(status);
       done();
     });
