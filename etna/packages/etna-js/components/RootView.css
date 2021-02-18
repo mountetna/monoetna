@@ -1,0 +1,40 @@
+.root-view {
+  padding: 10px 0px;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.root-view .title {
+margin-left: 0px;
+padding: 5px;
+padding-left: 15px;
+}
+
+.root-view .project {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid rgba(128,128,128,0.2);
+
+  padding: 4px;
+}
+
+.root-view .project.header {
+  background: #eee;
+  color: #333;
+  border-bottom: 1px solid #888;
+  border-top: 1px solid #888;
+  font-family: 'Cousine', monospace;
+}
+
+.root-view .project_name {
+  padding: 0px 10px;
+  flex: 0 0 200px;
+  font-family: 'Cousine', monospace;
+}
+
+.root-view .role {
+  flex: 0 0 200px;
+}
+
+.root-view .full_name {
+  flex: 0 1 auto;
+}

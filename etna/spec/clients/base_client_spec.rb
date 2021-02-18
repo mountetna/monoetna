@@ -7,8 +7,7 @@ describe 'Base Client class' do
   let(:expired_token) {
     params = {
       email: "user@example.com",
-      first: "first",
-      last: "last",
+      name: "name",
       exp: 1000
     }
     "something.#{Base64.strict_encode64(params.to_json)}"

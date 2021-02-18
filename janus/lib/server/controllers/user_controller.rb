@@ -17,7 +17,15 @@ class UserController < Janus::Controller
     @janus_user.public_key = @params[:pem]
     @janus_user.save
 
-    success('User Public Key updated')
+    success_json(user: @janus_user.to_hash)
+  end
+
+  def info
+    @janus_user = User[email: @user.email]
+
+    raise Etna::Forbidden, 'User not found' unless @janus_user
+
+    success_json(user: @janus_user.to_hash)
   end
 
   def refresh_token
@@ -42,14 +50,13 @@ class UserController < Janus::Controller
     raise Etna::Forbidden, 'User not found' unless @janus_user
 
     projects = @janus_user.permissions.map do |perm|
-      perm.project
-    end.uniq.map do |proj|
       # Don't use proj.to_hash because we don't necessarily want to send back
       #   all the information.
       {
-        project_name: proj.project_name,
-        project_name_full: proj.project_name_full,
-        project_description: proj.project_description
+        project_name: perm.project.project_name,
+        project_name_full: perm.project.project_name_full,
+        role: perm.role,
+        privileged: perm.privileged?
       }
     end
 

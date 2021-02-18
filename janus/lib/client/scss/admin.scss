@@ -1,0 +1,29 @@
+#admin-projects {
+  @include janus-box;
+  @include janus-project;
+}
+
+#new-project {
+  @include janus-row-container;
+
+  padding: 10px;
+
+  .title {
+    display: inline-block;
+    padding-bottom: 5px;
+    font-size: 0.9em;
+  }
+
+  .error {
+    display: inline-block;
+    background: rgba(255,0,0,0.1);
+    color: darkred;
+    font-size: 0.7em;
+    padding: 3px;
+    margin: 2px;
+  }
+
+  .approve {
+    @include janus-icon(dodgerblue);
+  }
+}

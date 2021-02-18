@@ -72,3 +72,6 @@ etna/packages/magmaR*.tar.gz
 .Rproj.user
 etna/packages/magmaR/.Renviron
 etna/packages/magmaR.Rcheck*
+
+venv/
+__pycache__

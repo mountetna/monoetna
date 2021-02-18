@@ -89,8 +89,7 @@ describe Etna::Auth do
       it "returns a user from a Janus token" do
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
-          first: 'Janus',
-          last: 'Bifrons',
+          name: 'Janus Bifrons',
           perm: 'a:labors;e:olympics,argo;v:constellations'
         )
 
@@ -104,8 +103,7 @@ describe Etna::Auth do
       it 'accepts a token via cookie' do
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
-          first: 'Janus',
-          last: 'Bifrons',
+          name: 'Janus Bifrons',
           perm: 'a:labors;e:olympics,argo;v:constellations'
         )
 
@@ -148,8 +146,7 @@ describe Etna::Auth do
         # signing key used to generate JWTs
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
-          first: 'Janus',
-          last: 'Bifrons',
+          name: 'Janus Bifrons',
           perm: 'a:labors;e:olympics,argo;v:constellations'
         )
 
@@ -181,8 +178,7 @@ describe Etna::Auth do
         )
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
-          first: 'Janus',
-          last: 'Bifrons',
+          name: 'Janus Bifrons',
           perm: 'a:labors;e:olympics,argo;v:constellations'
         )
 

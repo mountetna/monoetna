@@ -1,0 +1,87 @@
+@import 'globals';
+@import 'plotter/plot_series';
+@import 'plotter/plot_layout';
+@import 'plotter/plot_variables';
+@import 'plotter/plot_config';
+
+.plot-window {
+  .chart {
+    .plot-failed {
+      color: indianred;
+    }
+  }
+  .CodeMirror {
+    max-height: 800px;
+    width: 100%;
+  }
+
+  .section-header{
+    font-size: 115%;
+    letter-spacing: 0.03em;
+    text-transform: capitalize;
+    line-height: 40px;
+  }
+
+  // the editor component
+  .plotter-editor {
+    display: flex;
+    width: 100%;
+
+    .plotter-left {
+      flex-grow: 2;
+      padding-right: 10px;
+      border-right: 1px solid lightgray;
+      margin-right: 10px;
+    }
+
+    .plotter-right {
+      flex-basis: 500px;
+    }
+
+    .select-plot {
+      background-color: #eee;
+      padding: 10px;
+    }
+
+    .ps-list-container {
+      padding: 5px 5px 5px 5px;
+
+      &:empty {
+        border: none;
+        padding: 0px;
+      }
+    }
+
+    .ti-group {
+      .ti-label {
+        display: inline-block;
+        min-width: 100px;
+        text-align: right;
+        margin-right: 10px;
+        color: #767676;
+        font-size: 15px;
+        font-weight: 400;
+      }
+      .ti-input {
+        &::placeholder {
+          color: #dfdfdf;
+        }
+        &:hover {
+          &::placeholder {
+            color: gray;
+          }
+        }
+        @include text_basics;
+
+        -webkit-font-smoothing: antialiased;
+        margin-right: 5px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        min-width: 280px;
+        font-size: 15px;
+        padding-left: 10px;
+        line-height: 26px;
+      }
+    }
+  }
+}

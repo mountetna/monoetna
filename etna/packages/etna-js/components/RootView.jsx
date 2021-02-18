@@ -1,3 +1,4 @@
+require('./RootView.css');
 import React, {useEffect} from 'react';
 import {useReduxState} from '../hooks/useReduxState';
 
