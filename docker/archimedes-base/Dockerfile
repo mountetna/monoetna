@@ -55,6 +55,13 @@ RUN curl https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_V
 RUN tar -xf /tmp/docker.tgz -C /tmp/
 RUN mv /tmp/docker/* /usr/local/bin/
 
-# Install R from CRAN repo, to get latest
+# Copy entrypoint scripts
 COPY src/entrypoints /entrypoints
+
+# Install dittoSeq into R
+# This is a long process, so bake it in the image
+#       instead of using the entrypoints.
+RUN echo 'if (!requireNamespace("remotes", quietly = TRUE))\n    install.packages("remotes")\n\nremotes::install_github("dtm2451/dittoSeq")' > install_dittoseq.txt
+RUN R < install_dittoseq.txt --save
+
 
