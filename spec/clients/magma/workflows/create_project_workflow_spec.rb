@@ -16,7 +16,7 @@ describe Etna::Clients::Magma::CreateProjectWorkflow do
         # This is an expired development token and is safe to make public, does not leak anything about production or staging values
         # and cannot be used in a sensitive way.
         # This test depends on breaking down a tok to get user info, so it's important we actually set a token
-        tok = 'eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6ImRldmVsb3BlckB1Y3NmLmVkdSIsImZpcnN0IjoiRGV2ZWxvcGVyIiwibGFzdCI6IlBlcnNvbiIsInBlcm0iOiJhOmFkbWluaXN0cmF0aW9uLGNvcHJvamVjdF90ZW1wbGF0ZSxpcGksbXZpcjEsdGVzdC1wcm9qZWN0LHRlc3RfY3JlYXRlX3Byb2plY3RfYWFhLHRlc3RfY3JlYXRlX3Byb2plY3RfYWFiLHRlc3RfY3JlYXRlX3Byb2plY3RfYWFjLHRlc3RfbXZpcjEsdGVzdF9tdmlyMix0ZXN0X212aXIzLHRlc3RfbXZpcl9hYmMiLCJleHAiOjg2NDAxNjA4MTM2NjM1fQ.I7eIxpAC7w_KjceR9_QEcWHqQOlwxBAj29s0liV7URNaKSLtTeDLS8eSFa2QCFAqqRzbU3HNDOMopNbKCKaJKFeJC4tWOHaDGYhzN3oQHXmD6vpCB6Ty3fRtz8D3y0sMHNM5ywNopJOPeGaSKUMoLMxvINBXfzFh48IhSs9WEt1myKGwNyvPMZntqZWMTBfXU22FQuVPApUEmhDTYgS5kiPZ2RR0l6yNPmTSwUteStWc4wzJFS73yXI-Lhpbbvza8ih4VU4cfxUso6-V1k3FGFgXMX6O3qEwqTuwLosM8sunn6lyJck_U-DXmpVywU0LcMsi2hq8dLUVTjXEY1qIcw'
+        tok = 'eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6InNhdXJhYmguYXN0aGFuYUB1Y3NmLmVkdSIsImZpcnN0IjoiU2F1cmFiaCIsImxhc3QiOiJBc3RoYW5hIiwicGVybSI6IkE6YWRtaW5pc3RyYXRpb247YTpkc2NvbGFiLGR1bmxhcCxpcGkiLCJleHAiOjE2MTM3MDQ0MDZ9.aI3Tj79lQXFDghrfj7lcCr9FUPKC0Em80KUJsHZ__92HxcqVHJbVG1M1uOSDAYNvz8gn21g29atPDC1kRY2WX39tTlVvmrTG82TCxk_kEcsYPYvcvCrWcz8SHu8tHFwJdM1A19YOuAsed6Do5RaupUNikqwDYld1ZjxtyyEhFNVvClk5EtLKHPbfS4XLieJNx0ab6Eob-XTk_ADRSuczeQb4klBVDZ6OA7ynzeJLd72DHF4RArGcrVWM0bfVOMEbbDjhGEzK324N29CFsoCBOylUkF4SiP92_Eb5h1Kgq2pbS3vtyNWGXy-p6gPNV2rFoK8mWhO3sSsnljqO0MWMYg'
 
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
