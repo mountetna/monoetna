@@ -6,4 +6,4 @@ export const selectProjectPermissions = (state) => selectUserPermissions(state)[
 
 export const selectUserRole = (state) => selectProjectPermissions(state).role;
 
-export const selectUserName = ({user: {first,last}}) => ({first,last});
+export const selectUserName = ({user: {name}}) => ({name});

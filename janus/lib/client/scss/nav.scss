@@ -1,42 +1,20 @@
 #nav {
-  height: 60px;
-  border-bottom: 1px solid lightgray;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-grow: 1;
+  .nav_item {
+    height: 100%;
+    display: inline-block;
+    font-size: 18px;
+    padding: 0px 25px;
+    text-transform: capitalize;
 
-  #logo {
-    flex-basis: 50px;
-    margin-left: 5px;
-    .image {
-      width: 50px;
-      height: 50px;
-      background-size: 108%;
-      background-position: -2px -2px;
-      border: 1px solid $janus-color;
-      border-radius: 50px;
-      background-image: url('/img/janus.svg');
-    }
-  }
+    a {
+      color: gray;
+      cursor: pointer;
+      outline: 0;
 
-  #login {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-
-    padding: 5px;
-    margin-right: 5px;
-    color: darkgoldenrod;
-    font-size: 0.8em;
-
-    border: 1px solid rgba(184,134,11,0.1);
-    border-radius: 2px;
-    background: rgba(184,134,11,0.01);
-
-    .icon {
-      color: darkgoldenrod;
-      padding-right: 3px;
+      &:hover {
+        color: $janus-color;
+      }
     }
   }
 }
