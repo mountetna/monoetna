@@ -15,7 +15,7 @@
     "@babel/preset-env": "^7.10.2",
     "@babel/preset-react": "^7.10.1",
     "css-loader": "^3.6.0",
-    "etna-js": "git+https://git@github.com/mountetna/monoetna.git#be5cf2fd5b2070f2eb649ba50322cbd153ee74b0",
+    "etna-js": "git+https://git@github.com/mountetna/monoetna.git#cd10f5eea5e3fb6d139ed69b2b604962c9e8e29b",
     "isomorphic-fetch": "^3.0.0",
     "js-cookie": "^2.2.0",
     "node-sass": "^4.14.1",
