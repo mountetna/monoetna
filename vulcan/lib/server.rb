@@ -2,6 +2,9 @@ require_relative './server/controllers/vulcan_controller'
 require_relative './server/controllers/browse_controller'
 require_relative './server/controllers/workflows_controller'
 require_relative './server/controllers/data_controller'
+require_relative './server/controllers/sessions_controller'
+require_relative './server/models/session'
+require_relative './server/models/workflow'
 
 class Vulcan
   class Server < Etna::Server
@@ -15,8 +18,9 @@ class Vulcan
       erb_view(:client)
     end
 
-    get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
-    get 'api/workflows/:workflow_name/:data', action: 'data#fetch', as: :data_view, auth: { user: { active?: true } }
+    get 'api/:project_name/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { can_view?: :project_name } }
+    get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true, auth: { user: { can_view?: :project_name } }
+    post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true, auth: { user: { can_view?: :project_name } }
 
     with auth: { user: { can_view?: :project_name } } do
 

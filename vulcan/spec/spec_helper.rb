@@ -41,6 +41,8 @@ AUTH_USERS = {
   }
 }
 
+PROJECT = "labors"
+
 def auth_header(user_type)
   header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
 end
