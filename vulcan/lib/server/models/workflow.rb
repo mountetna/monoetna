@@ -1,150 +1,121 @@
-# A vulcan session model.  For now this is just static, but could be made backed by a database, or just about anything we like.
-class Workflow
-  attr_reader :workflow_name, :raw, :description, :display_name
-
-  def initialize(workflow_name, raw, description: "", display_name: "")
-    @workflow_name = workflow_name
-    @raw = raw
-    @description = description
-    @display_name = display_name
-  end
-
-  def self.from_yaml_file(filename, description: "", display_name: "")
-    Workflow.new(
-        ::File.basename(filename),
-        YAML.safe_load(
-            File.join(
-                File.dirname(__FILE__),
-                "../workflows/#{filename}"
-            )
-        ),
-        description: description,
-        display_name: display_name,
-    )
-  end
-
-  # Returns a list of lists, describing the dependency between steps, primary inputs, and primary outputs.
-  # Each inner list is a unique path in side of the workflow starting a primary_inputs and terminating
-  # at either a primary_output or a step that is not used as an input the workflow
-  def unique_paths
-    @ordered_steps ||= [].tap do |result|
-      directed_graph = ::DirectedGraph.new
-
-      steps.each do |step|
-        step.in.each do |k, ref|
-          directed_graph.add_connection(ref.first, step.step_name)
-        end
+# Extends the base Etna::Workflow class with extra logic useful for
+module Etna
+  class Cwl
+    def self.source_as_string(os)
+      if os.first.is_a?(Symbol)
+        return os.last
       end
 
-      primary_outputs.keys.sort.each do |output_name|
-        ref = primary_outputs[output_name]
-        directed_graph.add_connection(ref, :primary_outputs)
+      "#{os.first}/#{os.last}"
+    end
+
+    class Workflow < Cwl
+      def self.from_yaml_file(filename, prefix = Vulcan.instance.config(:workflows_folder))
+        attributes = YAML.safe_load(::File.read(File.join(prefix, filename)))
+        self.loader.load(attributes)
       end
 
-      directed_graph.paths_from(:primary_inputs)
-    end
-  end
-
-  class Step
-    attr_accessor :step_name
-
-    def initialize(step_name, definition)
-      @step_name = step_name
-      @definition = definition
-    end
-
-    def script
-      script_name = @definition['run'] || ''
-      ::File.read(::File.join(::File.dirname(__FILE__), '..', 'workflows', 'scripts', script_name))
-    end
-
-    def in
-      inputs = @definition['in'] || {}
-      if inputs.is_a?(Array)
-        inputs = inputs.each_with_index.map { |ref, i| ["input_#{i}", ref] }.to_h
+      def find_step(step_name)
+        steps.find { |s| s.id == step_name }
       end
 
-      inputs.map { |k, v| [k, Workflow.resolve_reference(v) ] }.sort_by { |v| v.first }
-    end
-
-    def out
-      @definition['out'] || []
-    end
-  end
-
-  def steps
-    @steps ||= (@raw['steps'] || {}).map do |k, definition|
-      Step.new(k, definition)
-    end.sort_by(&:step_name)
-  end
-
-  def find_step(step_name)
-    @steps.select { |s| s.step_name == step_name }
-  end
-
-  # Resolves a string of the forms "a-primary-identifier" or "step_name/output" into
-  #   [:primary_inputs, "a-primary-identifier"] or
-  #   ["step_name", "output"] respectively
-  def self.resolve_reference(reference)
-    parts = reference.split('/', max=2)
-    if parts.length == 1
-      [:primary_inputs, reference]
-    end
-      parts
-    nil
-  end
-
-  # Collects primary inputs of the format { name: [step_name, output_filename] }
-  def primary_outputs
-    @primary_outputs ||= {}.tap do |result|
-      outputs = @raw['outputs'] || {}
-      inputs.each do |k, input_def|
-        unless (src = input_def['outputSource']).nil? || (type = input_def['type']).nil?
-          if type == 'File'
-            result[k] = Workflow.resolve_reference(src)
-          end
-        end
+      def find_operation_script(step_name)
+        step = self.find_step(step_name)
+        return nil if step.nil?
+        step.lookup_operation_script
       end
-    end
-  end
 
-  # Collects primary inputs from the cwl definition in the form { name: default_value }
-  def primary_inputs
-    @primary_inputs ||= {}.tap do |result|
-      inputs = @raw['inputs'] || {}
-
-      # TODO: More robust handling for all CWL types.
-      inputs.each do |k, input_def|
-        unless (default = input_def['default']).nil? || (type = input_def['type']).nil?
-          case type
-          when 'int'
-            value = default.to_i
-          when 'boolean'
-            case default
-            when TrueClass
-              value = default
-            when FalseClass
-              value = default
-            when "true"
-              value = true
-            else
-              value = false
+      def as_steps_json(name)
+        {
+            class: "Workflow",
+            cwlVersion: @attributes['cwlVersion'],
+            name: name,
+            inputs: @attributes['inputs'].map(&:as_steps_inputs_json_pair).to_h,
+            outputs: @attributes['outputs'].map(&:as_steps_output_json_pair).to_h,
+            steps: Vulcan::Orchestration.unique_paths(self).map do |path|
+              path.map { |step_name| self.find_step(step_name)&.as_step_json }.select { |v| v }
             end
-          else
-            next
-          end
+        }
+      end
+    end
 
-          result[k] = value
+    class WorkflowInputParameter < Cwl
+      def as_steps_inputs_json_pair
+        [self.id, {
+            label: @attributes['label'],
+            type: @attributes['type'],
+            format: @attributes['format'],
+            default: @attributes['default'],
+        }]
+      end
+    end
+
+    class WorkflowOutputParameter < Cwl
+      def as_steps_output_json_pair
+        [self.id, {
+            outputSource: output_source_as_string,
+            label: @attributes['label'],
+            type: @attributes['type'],
+            default: @attributes['default'],
+            format: @attributes['format'],
+        }]
+      end
+
+      def output_source_as_string
+        Etna::Cwl.source_as_string(@attributes['outputSource'])
+      end
+    end
+
+    # TODO: Add type checking capabilities that unfold the run operation or workflow and checks that the given
+    # in and out match sanely to the operation or workflow typings.
+    class Step < Cwl
+      SCRIPT_REGEX = /^scripts\/(.*)\.cwl$/
+      UI_QUERIES_REGEX = /^ui-queries\/(.*)$/
+
+      def as_step_json
+        {
+            name: @attributes['id'],
+            run: @attributes['run'].id,
+            in: @attributes['in'].map(&:id),
+            out: @attributes['out'].map(&:id),
+        }
+      end
+
+      def lookup_operation_script
+        return nil if script_name.nil?
+
+        script_path = File.join(Vulcan.instance.config(:workflows_folder), "scripts/#{script_name}.py")
+        if ::File.exists?(script_path)
+          ::File.read(script_path)
+        end
+      end
+
+      def script_name
+        run = @attributes['run']
+        return nil if run.nil?
+
+        if run.is_a?(Operation)
+          m = SCRIPT_REGEX.match(run.id)
+          m.nil? ? nil : m[1]
+        end
+      end
+
+      def ui_query_name
+        run = @attributes['run']
+        return nil if run.nil?
+
+        if run.is_a?(Operation)
+          m = UI_QUERIES_REGEX.match(run.id)
+          m.nil? ? nil : m[1]
         end
       end
     end
-  end
 
-  class Script
-    attr_accessor :script_name, :contents
-    def initialize(script_name:, contents:)
-      @script_name = script_name
-      @contents = contents
+    class Operation
+      # Would be interesting to use python type inference to determine input / output types from a script file.
+      def load_attributes_from_script(script_path)
+        # TODO
+      end
     end
   end
 end

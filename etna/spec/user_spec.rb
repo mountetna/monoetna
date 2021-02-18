@@ -5,14 +5,12 @@ describe Etna::User do
     u = Etna::User.new(
       {
         email: 'janus@two-faces.org',
-        first: 'Janus',
-        last: 'Bifrons',
+        name: 'Janus Bifrons',
         perm: 'a:labors;e:olympics,argo;v:constellations'
       },
       'xyz123randomtoken'
     )
-    expect(u.first).to eq('Janus')
-    expect(u.last).to eq('Bifrons')
+    expect(u.name).to eq('Janus Bifrons')
     expect(u.email).to eq('janus@two-faces.org')
     expect(u.token).to eq('xyz123randomtoken')
   end
@@ -21,13 +19,11 @@ describe Etna::User do
     u = Etna::User.new(
       {
         email: 'janus@two-faces.org',
-        first: 'Janus',
-        last: 'Bifrons',
+        name: 'Janus Bifrons',
         perm: 'a:labors;e:olympics,argo;v:constellations'
       }
     )
-    expect(u.first).to eq('Janus')
-    expect(u.last).to eq('Bifrons')
+    expect(u.name).to eq('Janus Bifrons')
     expect(u.email).to eq('janus@two-faces.org')
     expect(u.token).to eq(nil)
   end
@@ -36,26 +32,22 @@ describe Etna::User do
     before(:each) do
       @overlord = Etna::User.new(
         email: 'janus@two-faces.org',
-        first: 'Janus',
-        last: 'Bifrons',
+        name: 'Janus Bifrons',
         perm: 'a:administration'
       )
       @admin = Etna::User.new(
         email: 'polyphemus@etna.org',
-        first: 'Polyphemus',
-        last: 'Cyclops',
+        name: 'Polyphemus',
         perm: 'A:labors'
       )
       @editor = Etna::User.new(
         email: 'daedalus@two-faces.org',
-        first: 'Daedalus',
-        last: '',
+        name: 'Daedalus',
         perm: 'E:labors'
       )
       @viewer = Etna::User.new(
         email: 'deino@graeae.org',
-        first: 'Deino',
-        last: 'Phorcides',
+        name: 'Deino Phorcides',
         perm: 'v:labors'
       )
     end
@@ -103,8 +95,7 @@ describe Etna::User do
       u = Etna::User.new(
         {
           email: 'janus@two-faces.org',
-          first: 'Janus',
-          last: 'Bifrons',
+          name: 'Janus Bifrons',
           perm: '',
           flags: 'doors;portals'
         },
@@ -116,8 +107,7 @@ describe Etna::User do
       u = Etna::User.new(
         {
           email: 'janus@two-faces.org',
-          first: 'Janus',
-          last: 'Bifrons',
+          name: 'Janus Bifrons',
           perm: '',
         },
         'xyz123randomtoken'
@@ -129,8 +119,7 @@ describe Etna::User do
   it "gives global permission to an administrator" do
     admin = Etna::User.new(
       email: 'janus@two-faces.org',
-      first: 'Janus',
-      last: 'Bifrons',
+      name: 'Janus Bifrons',
       perm: 'a:administration'
     )
     expect(admin.is_admin?(:administration)).to be_truthy

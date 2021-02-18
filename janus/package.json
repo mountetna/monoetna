@@ -11,10 +11,53 @@
     "lib": "lib"
   },
   "dependencies": {
-    "sass": "^1.22.7"
+    "@babel/core": "^7.10.2",
+    "@babel/preset-env": "^7.10.2",
+    "@babel/preset-react": "^7.10.1",
+    "css-loader": "^3.6.0",
+    "etna-js": "git+https://git@github.com/mountetna/monoetna.git#78ede0092eae8cab66bf43706f6e78f15a3caa52",
+    "isomorphic-fetch": "^3.0.0",
+    "js-cookie": "^2.2.0",
+    "node-sass": "^4.14.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-modal": "^3.12.1",
+    "react-redux": "^7.2.0",
+    "redux": "^4.0.5",
+    "redux-mock-store": "^1.5.4",
+    "redux-thunk": "^2.3.0",
+    "reselect": "^3.0.1",
+    "style-loader": "^1.2.1",
+    "webworkify-webpack": "^2.1.5"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "babel-eslint": "^7.1.1",
+    "babel-jest": "^26.1.0",
+    "babel-loader": "^8.1.0",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-polyfill": "^6.3.14",
+    "css-loader": "^0.28.11",
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-react-16": "^1.15.2",
+    "eslint": "^4.19.0",
+    "eslint-plugin-react": "^6.9.0",
+    "extract-text-webpack-plugin": "^3.0.2",
+    "file-loader": "^1.1.11",
+    "jest": "^26.1.0",
+    "nock": "^12.0.3",
+    "node-fetch": "^2.6.0",
+    "node-sass": "^4.13.0",
+    "raf": "^3.4.1",
+    "redux-logger": "^3.0.6",
+    "sass-loader": "^6.0.6",
+    "service-worker-loader": "^4.0.2",
+    "webpack": "^3.12.0"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest && webpack",
+    "build": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production",
+    "build-dev": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development",
+    "webpack": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production --watch",
+    "webpack-dev": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development --watch"
   }
 }

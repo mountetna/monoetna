@@ -6,37 +6,25 @@ class Vulcan
 
     private
 
+    def config_json
+      {
+        project_name: @params[:project_name],
+        token_name: Vulcan.instance.config(:token_name),
+        janus_host: Vulcan.instance.config(:janus)&.dig(:host)
+      }.to_json
+    end
+
+    def storage
+      @storage ||= Vulcan::Storage.new
+    end
+
     def redirect_to(path)
       @response.redirect(path,302)
       @response.finish
     end
 
-    def success_json(hash)
-      success(hash.to_json, 'application/json')
-    end
-
-    def config_json
-      {
-        project_name: @params[:project_name],
-        token_name: Vulcan.instance.config(:token_name),
-        magma_host: Vulcan.instance.config(:magma)&.dig(:host),
-        vulcan_host: Vulcan.instance.config(:vulcan)&.dig(:host),
-        janus_host: Vulcan.instance.config(:janus)&.dig(:host),
-        timur_host: Vulcan.instance.config(:timur)&.dig(:host),
-        metis_host: Vulcan.instance.config(:metis)&.dig(:host),
-      }.to_json
-    end
-
     def token
       @token ||= @request.cookies[Vulcan.instance.config(:token_name)]
-    end
-
-    def current_user
-      @current_user ||= User.find_or_create(email: @user.email) do |user|
-        user.name = "#{@user.first} #{@user.last}"
-      end.tap do |cuser|
-        cuser.etna_user = @user
-      end
     end
   end
 end

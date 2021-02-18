@@ -22,8 +22,8 @@ const loadingDiv = (
 );
 
 // These are stubs that should be fetched from the context, normally.
-const WORKFLOW = require('../../../../server/data/steps.json');
-const UMAP_DATA = require('../../../../server/data/umap_data.json');
+// const WORKFLOW = require('../../../../server/data/steps.json');
+// const UMAP_DATA = require('../../../../server/data/umap_data.json');
 
 export default function Output() {
   const outputRef = useRef(null);
@@ -53,14 +53,14 @@ export default function Output() {
   // }, [pathIndex, stepIndex]);
 
   // Used for DEV only
-  useEffect(() => {
-    const STUB_URL = `https://vulcan.development.local/api/${CONFIG.project_name}/workflows/umap/umap_data`;
+  // useEffect(() => {
+  //   const STUB_URL = `https://vulcan.development.local/api/${CONFIG.project_name}/workflows/umap/umap_data`;
 
-    WORKFLOW.steps[0][5].data_url = STUB_URL;
+  //   WORKFLOW.steps[0][5].data_url = STUB_URL;
 
-    setWorkflow(WORKFLOW);
-    setOutputData(UMAP_DATA);
-  }, []);
+  //   setWorkflow(WORKFLOW);
+  //   setOutputData(UMAP_DATA);
+  // }, []);
 
   // useEffect(() => {
   //   // When the workflow updates, let's pull out

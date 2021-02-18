@@ -1,6 +1,7 @@
 FROM ruby:2.5.7
 WORKDIR /app
 
+ENV DOCKER_VERSION 19.03.12
 ENV RUBY_VERSION 2.5.7
 ENV BUNDLER_VERSION 2.2.0
 ENV DOCKERIZE_VERSION 0.5.0
@@ -62,6 +63,11 @@ RUN echo 'deb http://cloud.r-project.org/bin/linux/debian buster-cran40/' >> /et
 RUN apt-get update && \
     apt-get install -y r-base \
     r-base-dev
+
+# Add the docker client
+RUN curl https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz > /tmp/docker.tgz
+RUN tar -xf /tmp/docker.tgz -C /tmp/
+RUN mv /tmp/docker/* /usr/local/bin/
 
 RUN mkdir -p /opt
 COPY src/npmrc /opt/npmrc

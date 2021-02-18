@@ -215,7 +215,7 @@ describe UploadController do
         current_byte_position: 0,
         file_name: 'wisdom.txt',
         project_name: 'athena',
-        author: 'metis@olympus.org|Metis ',
+        author: 'metis@olympus.org|Metis',
         next_blob_hash: '10',
         next_blob_size: 10
       )
@@ -247,7 +247,7 @@ describe UploadController do
         current_byte_position: 10,
         next_blob_size: 10,
         next_blob_hash: 'abcdef',
-        author: 'metis@olympus.org|Metis ',
+        author: 'metis@olympus.org|Metis',
         project_name: 'athena',
         file_name: 'wisdom.txt'
       )
@@ -280,7 +280,7 @@ describe UploadController do
                                  current_byte_position: 0,
                                  next_blob_size: 3,
                                  next_blob_hash: 'defabc',
-                                 author: 'metis|metis metis',
+                                 author: 'metis|metis',
                                  project_name: 'athena',
                                  file_name: 'wisdom.txt'
                              )
@@ -313,7 +313,7 @@ describe UploadController do
                                  current_byte_position: 0,
                                  next_blob_size: 3,
                                  next_blob_hash: 'defabc',
-                                 author: 'metis|metis metis',
+                                 author: 'metis|metis',
                                  project_name: 'athena',
                                  file_name: 'wisdom.txt'
                              )
@@ -569,7 +569,7 @@ describe UploadController do
       expect(json_body[:file][:download_url]).not_to be_nil
 
       # the author is set
-      expect(file.author).to eq('metis@olympus.org|Metis ')
+      expect(file.author).to eq('metis@olympus.org|Metis')
 
       # clean up the file
       File.delete(file.data_block.location)
@@ -605,7 +605,7 @@ describe UploadController do
       expect(file.updated_at).to be_within(1).of(Time.now)
 
       # so is the author
-      expect(file.author).to eq('metis@olympus.org|Metis ')
+      expect(file.author).to eq('metis@olympus.org|Metis')
 
       # clean up the file
       File.delete(file.data_block.location)
@@ -694,7 +694,7 @@ describe UploadController do
       expect(file.updated_at).to be_within(1).of(Time.now)
 
       # so is the author
-      expect(file.author).to eq('metis@olympus.org|Metis ')
+      expect(file.author).to eq('metis@olympus.org|Metis')
 
       # crucially, the folder is set
       expect(file.folder).to eq(blueprints_folder)

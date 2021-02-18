@@ -46,7 +46,6 @@ export default function VulcanReducer(state, action) {
       //   loop through them to find matching data URLs.
       // Assume stable order from the server.
       let dataWorkflow = {...state.workflow};
-
       dataWorkflow.steps.forEach((path, pathIndex) => {
         const stepIndex = path.findIndex((step) => {
           return step.data_url === action.url;

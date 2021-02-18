@@ -27,8 +27,7 @@ describe Etna::TestAuth do
 
     token_params = {
       email: 'janus@two-faces.org',
-      first: 'Janus',
-      last: 'Bifrons',
+      name: 'Janus Bifrons',
       perm: 'a:labors;e:olympics,argo;v:constellations'
     }
 
