@@ -2,7 +2,9 @@ import {
   SET_DATA,
   SET_WORKFLOW,
   SET_WORKFLOWS,
-  SET_STATUS
+  SET_STATUS,
+  SET_PATH,
+  SET_STEP
 } from '../actions/vulcan';
 
 export default function VulcanReducer(state, action) {
@@ -57,6 +59,16 @@ export default function VulcanReducer(state, action) {
       return {
         ...state,
         workflow: dataWorkflow
+      };
+    case SET_PATH:
+      return {
+        ...state,
+        pathIndex: action.pathIndex
+      };
+    case SET_STEP:
+      return {
+        ...state,
+        stepIndex: action.stepIndex
       };
     default:
       return state;

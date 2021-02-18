@@ -53,6 +53,9 @@ outputs:
   umap_data:
     type: File
     outputSource: umap/umap_data
+  expression_matrix:
+    type: File
+    outputSource: umap/expression_matrix
 
 steps:
   query_magma:
@@ -88,4 +91,12 @@ steps:
     in:
       data: regress_and_pca/pca_output_data
       max_pc: max_pc
-    out: [umap_data]
+    out: [umap_data, expression_matrix]
+  ui_plot:
+    run: xy.cwl # The type of plot.
+    in:
+      series0: umap/umap_data # Specify the primary plot for x-y coordinates
+      group0: umap/expression_matrix # Specify any secondary data to color by
+      series0__type:
+        default: scatter # The type of series
+    out: []
