@@ -53,13 +53,17 @@ describe WorkflowsController do
       expect(response['workflows'].first['steps']).to eql([
           [
               {
-                  "in" => ["a", "b"],
+                  "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
+                           {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
+                  "label"=>nil,
                   "out" => ["sum"],
                   "name" => "firstAdd",
                   "run" => "scripts/add.cwl",
               },
               {
-                  "in" => ["a", "b"],
+                  "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
+                           {"id"=>"b", "source"=>["pickANum", "num"]}],
+                  "label"=>nil,,
                   "out" => ["sum"],
                   "name" => "finalStep",
                   "run" => "scripts/add.cwl",
@@ -67,19 +71,24 @@ describe WorkflowsController do
           ],
           [
               {
-                  "in" => ["a", "b"],
+                  "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
+                           {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
+                  "label"=>nil,
                   "out" => ["sum"],
                   "name" => "firstAdd",
                   "run" => "scripts/add.cwl",
               },
               {
-                  "in" => ["num"],
+                  "in" => [{"id"=>"num", "source"=>["firstAdd", "sum"]}],
+                  "label"=>nil,
                   "out" => ["num"],
                   "name" => "pickANum",
                   "run" => "ui-queries/pick-a-number.cwl",
               },
               {
-                  "in" => ["a", "b"],
+                  "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
+                           {"id"=>"b", "source"=>["pickANum", "num"]}],
+                  "label"=>nil,
                   "out" => ["sum"],
                   "name" => "finalStep",
                   "run" => "scripts/add.cwl",

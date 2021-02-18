@@ -11,12 +11,13 @@ x-base-etna-service:
     - vulcan-tmp-dir:/app/tmp:rw
     - vulcan-public-dir:/app/public:rw
     - vulcan-opt-dir:/usr/opt:rw
+    - vulcan-data-dir:/app/vulcan/data:rw
     - ../etna:/etna:delegated
     - /var/run/docker.sock:/var/run/docker.sock:ro
   environment: &base-etna-env
     'VULCAN_ENV': 'development'
     APP_NAME: 'vulcan'
-    HOST_DIR_MAP: "/app=${PWD}/../vulcan"
+    HOST_DIR_MAP: "/app/vulcan=monoetna_vulcan-data-dir"
   entrypoint: /entrypoints/development.sh
 
   networks:
