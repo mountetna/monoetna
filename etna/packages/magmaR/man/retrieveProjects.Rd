@@ -2,7 +2,7 @@
 % Please edit documentation in R/retrieveProjects.R
 \name{retrieveProjects}
 \alias{retrieveProjects}
-\title{Retrieve all the projectName options that a user has access to, from janus.}
+\title{Helper function that retrieves all the projectName options which a user has access to, from janus.}
 \usage{
 retrieveProjects(token = .get_TOKEN(), url.base = .get_URL(), verbose = FALSE)
 }
@@ -23,7 +23,7 @@ Note that here, we actually pull from 'janus' rather than 'magma', but the funct
 A data.frame where elements of the 'project_name' column reflect what can be given to \code{projectName} inputs of other magmaR functions.
 }
 \description{
-Retrieve all the projectName options that a user has access to, from janus.
+Helper function that retrieves all the projectName options which a user has access to, from janus.
 }
 \details{
 This function takes in a user's authorization token, and a url targetting either magma or janus.

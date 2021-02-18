@@ -1,6 +1,12 @@
-#' Special cases for the magma retrieve function, as laid out in https://mountetna.github.io/magma.html#retrieve
+#' Helper functions & special cases of magma /retrieve
 #' @name retrieve_SpecialCases
 #' @inheritParams retrieve
+#' @details
+#' These functions aim to help users determine acceptable inputs to other magmaR functions without needing to leave R.
+#' 
+#' They make properly crafted calls to \code{\link{retrieve}} which target either the "template" or "identifier" special cases outlined in https://mountetna.github.io/magma.html#retrieve,
+#' followed by directly returning the output (\code{retrieveTemplate} and \code{retrieveIds}),
+#' or by returning just a targeted portion of that output (\code{retrieveModels} and \code{retrieveAttributes})
 #' @return
 #' retrieveTemplate = a list conversion of the project's template json.
 #' 
@@ -87,11 +93,10 @@ retrieveAttributes <- function(
     token = .get_TOKEN(),
     ...
 ) {
-
-    rec <- retrieveIds(projectName, modelName, token, ...)[1]
     
-    .retrieve(
-        projectName, modelName, recordNames = rec,
-        attributeNames = "all", format = "tsv",
-        names.only = TRUE, token = token, ...)
+    template <- retrieveTemplate(projectName, token, ...)
+    
+    atts <- names(template$models[[modelName]]$template$attributes)
+    
+    atts[!atts %in% c("created_at", "updated_at")]
 }

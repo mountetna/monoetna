@@ -1,4 +1,4 @@
-#' Retrieve all the projectName options that a user has access to, from janus.
+#' Helper function that retrieves all the projectName options which a user has access to, from janus.
 #' @inheritParams retrieve
 #' @param url.base Single string. A url which directs towards production versus staging versus development etna environments. See \code{\link{magma-environments}}.
 #' 

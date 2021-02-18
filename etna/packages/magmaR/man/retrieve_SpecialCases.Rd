@@ -6,7 +6,7 @@
 \alias{retrieveModels}
 \alias{retrieveIds}
 \alias{retrieveAttributes}
-\title{Special cases for the magma retrieve function, as laid out in https://mountetna.github.io/magma.html#retrieve}
+\title{Helper functions & special cases of magma /retrieve}
 \usage{
 retrieveTemplate(projectName, token = .get_TOKEN(), ...)
 
@@ -45,7 +45,14 @@ retrieveIds = a string vector of record names/identifiers.
 retrieveAttributes = a string vector of attribute names.
 }
 \description{
-Special cases for the magma retrieve function, as laid out in https://mountetna.github.io/magma.html#retrieve
+Helper functions & special cases of magma /retrieve
+}
+\details{
+These functions aim to help users determine acceptable inputs to other magmaR functions without needing to leave R.
+
+They make properly crafted calls to \code{\link{retrieve}} which target either the "template" or "identifier" special cases outlined in https://mountetna.github.io/magma.html#retrieve,
+followed by directly returning the output (\code{retrieveTemplate} and \code{retrieveIds}),
+or by returning just a targeted portion of that output (\code{retrieveModels} and \code{retrieveAttributes})
 }
 \section{Functions}{
 \itemize{
