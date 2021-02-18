@@ -45,6 +45,12 @@ RUN apt-get update && \
     apt-get install -y r-base \
     r-base-dev
 
+# Install dittoSeq into R
+# This is a long process, so bake it in the image
+#       instead of using the entrypoints.
+RUN echo 'if (!requireNamespace("remotes", quietly = TRUE))\n    install.packages("remotes")\n\nremotes::install_github("dtm2451/dittoSeq")' > install_dittoseq.txt
+RUN R < install_dittoseq.txt --save
+
 # bash improvements for easier working inside the container
 RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
     bash ~/.bash_it/install.sh --silent && \
@@ -57,11 +63,4 @@ RUN mv /tmp/docker/* /usr/local/bin/
 
 # Copy entrypoint scripts
 COPY src/entrypoints /entrypoints
-
-# Install dittoSeq into R
-# This is a long process, so bake it in the image
-#       instead of using the entrypoints.
-RUN echo 'if (!requireNamespace("remotes", quietly = TRUE))\n    install.packages("remotes")\n\nremotes::install_github("dtm2451/dittoSeq")' > install_dittoseq.txt
-RUN R < install_dittoseq.txt --save
-
 
