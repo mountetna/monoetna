@@ -42,22 +42,22 @@ end
 
 AUTH_USERS = {
   superuser: {
-    email: 'zeus@twelve-labors.org', first: 'Zeus', perm: 'a:administration'
+    email: 'zeus@twelve-labors.org', name: 'Zeus', perm: 'a:administration'
   },
   administrator: {
-    email: 'hera@twelve-labors.org', first: 'Hera', perm: 'a:test', exp: 86401608136635
+    email: 'hera@twelve-labors.org', name: 'Hera', perm: 'a:test', exp: 86401608136635
   },
   editor: {
-    email: 'eurystheus@twelve-labors.org', first: 'Eurystheus', perm: 'e:labors'
+    email: 'eurystheus@twelve-labors.org', name: 'Eurystheus', perm: 'e:labors'
   },
   privileged_editor: {
-    email: 'copreus@twelve-labors.org', first: 'Copreus', perm: 'E:labors'
+    email: 'copreus@twelve-labors.org', name: 'Copreus', perm: 'E:labors'
   },
   viewer: {
-    email: 'hercules@twelve-labors.org', first: 'Hercules', perm: 'v:labors'
+    email: 'hercules@twelve-labors.org', name: 'Hercules', perm: 'v:labors'
   },
   non_user: {
-    email: 'nessus@centaurs.org', first: 'Nessus', perm: ''
+    email: 'nessus@centaurs.org', name: 'Nessus', perm: ''
   }
 }
 

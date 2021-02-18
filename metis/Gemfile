@@ -7,7 +7,7 @@ gem 'pg'
 gem 'sequel'
 gem 'fog-aws'
 gem 'puma', '5.0.2'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/f57d85374a85ffc6353f6cf488e0b5f7df6404d8'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/9046827eb130c851a26af22114ec5f4c1ee0083e'
 gem 'nokogiri'
 
 group :test do

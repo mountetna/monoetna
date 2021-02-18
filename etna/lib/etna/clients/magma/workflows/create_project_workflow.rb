@@ -70,7 +70,7 @@ module Etna
           puts "Creating Janus project."
           create_janus_project!
           puts "Done! Adding you as an administrator on the project."
-          add_janus_user(user['email'], "#{user['first']} #{user['last']}", 'editor')
+          add_janus_user(user['email'], "#{user['name']}", 'editor')
           promote_to_administrator(user['email'])
           update_magma_client_token!
 

@@ -127,6 +127,8 @@ class AuthorizationController < Janus::Controller
     return @response.finish
   end
 
+  private
+
   def refer_valid?(refer)
     # Attempt to parse the refer.
     uri = URI.parse(refer)
@@ -137,4 +139,10 @@ class AuthorizationController < Janus::Controller
   rescue
     return false
   end
+
+  # Quick check that the email is in a somewhat valid format.
+  def email_valid?(eml)
+    eml =~ /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/
+  end
+
 end

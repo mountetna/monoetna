@@ -1,23 +1,34 @@
 class AdminController < Janus::Controller
   def main
     @janus_user = User[email: @user.email]
-    erb_view(:main)
+    erb_view(:client)
   end
 
   def project
     @project = Project[project_name: @params[:project_name]]
-    @static = nil
-    if @user.is_superuser?
-      @roles = ['administrator', 'viewer', 'editor', 'disabled']
-    elsif @user.is_admin?(@params[:project_name])
-      @roles = ['viewer', 'editor', 'disabled']
-    else
-      @roles = []
-      @static = true
+
+    raise Etna::BadRequest, "No such project #{@params[:project_name]}" unless @project
+
+    success_json(
+      project: {
+        project_name: @project.project_name,
+        project_name_full: @project.project_name_full,
+        permissions: @project.permissions.map(&:to_hash)
+      }
+    )
+  end
+
+  def projects
+    projects = Project.all.map do |project|
+      # Don't use proj.to_hash because we don't necessarily want to send back
+      #   all the information.
+      {
+        project_name: project.project_name,
+        project_name_full: project.project_name_full
+      }
     end
 
-    @project_roles = @project.permissions.group_by(&:role)
-    erb_view(:project)
+    success_json({projects: projects})
   end
 
   def update_permission
@@ -64,14 +75,13 @@ class AdminController < Janus::Controller
 
     unless @project.permissions.any? { |p| p.user.email == @email }
       user = User[email: @email]
+      name = @params[:name]&.strip
+
       unless user
         raise Etna::BadRequest, 'Badly formed email address' unless @email =~ URI::MailTo::EMAIL_REGEXP
 
-        names = @params[:name].split
-        raise Etna::BadRequest, 'Missing name' if names.empty?
-        first, last = names.length > 1 ? [names[0..-2].join(' '), names.last] : names
-
-        user = User.create(email: @email, first_name: first, last_name: last)
+        raise Etna::BadRequest, 'Missing name' if name.empty?
+        user = User.create(email: @email, name: name)
       end
 
       permission = Permission.create(project: @project, user: user, role: @params[:role])
