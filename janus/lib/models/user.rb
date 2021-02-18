@@ -6,15 +6,19 @@ class User < Sequel::Model
     errors.add(:email, 'must be lowercase') if email =~ /[A-Z]/
   end
 
-  def name
-    [ first_name, last_name ].compact.join(' ')
+  def to_hash
+    {
+      email: email,
+      name: name,
+      flags: flags,
+      public_key: public_key && key_fingerprint
+    }.compact
   end
 
   def jwt_payload(viewer_only: false)
     {
       email: email,
-      first: first_name,
-      last: last_name,
+      name: name,
       perm:  serialize_permissions(viewer_only: viewer_only),
       flags: flags&.join(';')
     }.compact

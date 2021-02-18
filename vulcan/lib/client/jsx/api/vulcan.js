@@ -18,8 +18,8 @@ const vulcanPost = (endpoint, params) => {
   }).then(checkStatus);
 };
 
-const vulcanGet = (endpoint) => {
-  return fetch(vulcanPath(endpoint), {
+const vulcanGet = (endpoint, pathOnly = true) => {
+  return fetch(pathOnly ? vulcanPath(endpoint) : endpoint, {
     method: 'GET',
     credentials: 'include',
     headers: headers('json')
@@ -50,5 +50,5 @@ export const submitInputs = (workflow_name, inputs) => {
 
 export const getData = (url) => {
   // TODO: update this per real Vulcan endpoint
-  return vulcanGet(url).then(handleFetchSuccess).catch(handleFetchError);
+  return vulcanGet(url, false).then(handleFetchSuccess).catch(handleFetchError);
 };

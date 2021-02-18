@@ -69,7 +69,7 @@ export const deleteOpts = { method: 'DELETE', ...opts };
 
 
 export const json_fetch = (method) => (path, params) =>
-  fetch(path, {
+  fetch((CONFIG.baseURL || '') + path, {
     method,
     credentials: 'include',
     headers: headers('json'),

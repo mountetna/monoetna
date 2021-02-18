@@ -32,6 +32,7 @@ describe "Token Generation" do
     @user = create(
       :user,
       email: 'janus@mount.etna',
+      name: 'Janus',
       public_key: @rsa_key.public_key.to_s
     )
   end

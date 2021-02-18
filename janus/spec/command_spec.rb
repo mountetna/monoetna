@@ -53,7 +53,7 @@ describe Janus::AddUser do
     email = 'test_user@test.edu'
 
     command = Janus::AddUser.new
-    command.execute(email, 'Janus', 'Two-faces')
+    command.execute(email, 'Janus Two-Faces')
 
     user = User.first
 
@@ -62,15 +62,14 @@ describe Janus::AddUser do
 
   it 'updates if the user exists' do
     email = 'test_user@test.edu'
-    last_name = 'Two-faces'
-    user = create(:user, email: email, first_name: 'Janus', last_name: 'One-face')
+    user = create(:user, email: email, name: 'Janus One-Face')
 
     command = Janus::AddUser.new
-    command.execute(email, 'Janus', last_name)
+    command.execute(email, 'Janus Two-Faces')
 
     user.refresh
 
-    expect(user.last_name).to eq(last_name)
+    expect(user.name).to eq('Janus Two-Faces')
   end
 end
 
@@ -80,7 +79,7 @@ describe Janus::Permit do
     project_name = 'augean_stables'
     role = 'viewer'
 
-    user = create(:user, email: email)
+    user = create(:user, email: email, name: 'Hercules')
     project = create(:project, project_name: project_name, project_name_full: 'Augean Stables')
 
     command = Janus::Permit.new

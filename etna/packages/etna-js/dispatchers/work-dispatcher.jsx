@@ -1,4 +1,4 @@
-import {createWorker, terminateWorker} from '../upload/workers/index';
+import {createWorker, terminateWorker} from '../web-workers/index';
 import { WORK, WORK_FAILED } from '../upload/actions/upload_actions';
 import {appSubscription} from "../utils/subscription";
 
