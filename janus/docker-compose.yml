@@ -109,10 +109,6 @@ volumes:
 
 services:
   <<: *base-etna-services
-  janus_webpack:
-    <<: *base-etna-webpack
-    command: sass --watch lib/client/scss/janus.scss:lib/client/css/janus.css
-
   janus_db:
     <<: *base-etna-db
     image: development-psql-9

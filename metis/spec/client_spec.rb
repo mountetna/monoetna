@@ -33,7 +33,7 @@ describe MetisShell do
     )
 
     token = Base64.strict_encode64(
-      { email: 'metis@olympus.org', first: "Metis", last: "User", perm: 'a:athena', exp: 253371439590 }.to_json
+      { email: 'metis@olympus.org', name: "Metis", perm: 'a:athena', exp: 253371439590 }.to_json
     )
     @long_lived_token = "something.#{token}"
     ENV['TOKEN'] = @long_lived_token
@@ -49,7 +49,7 @@ describe MetisShell do
   describe MetisShell do
     it 'tells user if token is expired' do
       token = Base64.strict_encode64(
-        { email: 'metis@olympus.org', first: "Metis", last: "User", perm: 'a:athena', exp: 1000 }.to_json
+        { email: 'metis@olympus.org', name: "Metis", perm: 'a:athena', exp: 1000 }.to_json
       )
       ENV['TOKEN'] = "something.#{token}"
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
@@ -60,7 +60,7 @@ describe MetisShell do
       frozen_time = 1000
       Timecop.freeze(DateTime.strptime(frozen_time.to_s, "%s"))
       token = Base64.strict_encode64(
-        { email: 'metis@olympus.org', first: "Metis", last: "User", perm: 'a:athena', exp: frozen_time + 1000 }.to_json
+        { email: 'metis@olympus.org', name: "Metis", perm: 'a:athena', exp: frozen_time + 1000 }.to_json
       )
       ENV['TOKEN'] = "something.#{token}"
 
@@ -78,7 +78,7 @@ describe MetisShell do
       frozen_time = 1000
       Timecop.freeze(DateTime.strptime(frozen_time.to_s, "%s"))
       token = Base64.strict_encode64(
-        { email: 'metis@olympus.org', first: "Metis", last: "User", perm: 'a:athena', exp: frozen_time + 100000 }.to_json
+        { email: 'metis@olympus.org', name: "Metis", perm: 'a:athena', exp: frozen_time + 100000 }.to_json
       )
       full_future_token = "something.#{token}"
       ENV['TOKEN'] = full_future_token

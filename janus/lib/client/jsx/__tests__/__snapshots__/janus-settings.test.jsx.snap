@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`JanusSettings renders 1`] = `
+<div
+  id="janus-settings"
+>
+  <div
+    id="keys-group"
+  >
+    <div
+      className="title"
+    >
+      Your Keys
+    </div>
+    <div
+      className="item"
+    >
+      <i
+        className="fa fa-key"
+      />
+       
+      74:68:69:73:69:73:6e:6f:74:72:61:6e:64:6f:6d:21
+    </div>
+    <div
+      className="item"
+    >
+      <textarea
+        placeholder="Paste 2048+ bit RSA key in PEM format"
+      />
+      <button
+        onClick={[Function]}
+      >
+        Upload Key
+      </button>
+    </div>
+  </div>
+</div>
+`;

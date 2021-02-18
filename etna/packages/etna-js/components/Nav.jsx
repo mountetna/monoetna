@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 require('./Nav.css');
+import { isSuperuser } from '../utils/janus';
 
 import Icon from './icon';
 
@@ -13,16 +14,16 @@ const ICONS = {
 const Login = ({user}) => {
   if (!user) return null;
 
-  let {first, last, permissions} = user;
+  let {name, permissions} = user;
 
   let role = (permissions[CONFIG.project_name] || {}).role;
 
-  if (permissions.administration && permissions.administration.role == 'administrator') role = 'superuser';
+  if (isSuperuser(user)) role = 'superuser';
 
   return (
     <div className='etna-login' title={role}>
       <Icon className='etna-user' icon={ ICONS[role] }/>
-      {first} {last}
+      {name}
     </div>
   );
 };

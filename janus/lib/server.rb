@@ -6,9 +6,6 @@ require_relative './server/controllers/authorization_controller'
 
 class Janus
   class Server < Etna::Server
-
-    # Only one of these two end points gets used. If you are using Shibboleth
-    # then enable the appropriate end point.
     get '/login', action: 'authorization#login', auth: { noauth: true }
 
     post '/validate-login', action: 'authorization#validate_login', auth: { noauth: true }
@@ -18,10 +15,6 @@ class Janus
 
     # This uses a signed nonce to generate a new token
     get '/generate', action: 'authorization#generate', auth: { noauth: true }
-
-    get '/', action: 'admin#main'
-
-    get '/projects', action: 'user#projects', auth: { user: { active?: true } }
 
     get '/refresh_token', action: 'user#refresh_token', auth: { user: { active?: true } }
 
@@ -40,7 +33,21 @@ class Janus
 
     post '/update_key', action: 'user#update_key'
 
-    get '/:project_name', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
+    get '/user', action: 'user#info'
+
+    get '/allprojects', action: 'admin#projects', auth: { user: { is_superuser?: true } }
+
+    get '/projects', action: 'user#projects', auth: { user: { active?: true } }
+
+    get '/project/:project_name', action: 'admin#project', auth: { user: { can_edit?: :project_name } }
+
+    get '/admin' do erb_view(:client) end
+
+    get '/settings' do erb_view(:client) end
+
+    get '/:project_name', auth: { user: { can_edit?: :project_name } } do erb_view(:client) end
+
+    get '/' do erb_view(:client) end
 
     def initialize
       super
