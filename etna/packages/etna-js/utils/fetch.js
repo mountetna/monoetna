@@ -58,7 +58,7 @@ export const headers = (...types) => {
 };
 
 export const json_fetch = (method) => (path, params) =>
-  fetch(path, {
+  fetch((CONFIG.baseURL || '') + path, {
     method,
     credentials: 'include',
     headers: headers('json'),

@@ -1,0 +1,411 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ProjectView renders statically for an editor 1`] = `
+<div
+  id="project-view"
+>
+  <div
+    className="title"
+  >
+     
+    Ports
+  </div>
+  <div
+    className="item summary"
+  >
+    2 editors, 1 privileged user
+  </div>
+  <div
+    className="item header"
+  >
+    <div
+      className="cell"
+    >
+      Name
+    </div>
+    <div
+      className="cell"
+    >
+      Email
+    </div>
+    <div
+      className="cell"
+    >
+      Role
+    </div>
+    <div
+      className="cell"
+    >
+      Affiliation
+    </div>
+    <div
+      className="cell"
+    >
+      Privileged
+    </div>
+    <div
+      className="cell submit"
+    />
+  </div>
+  <div
+    className="item permission"
+  >
+    <div
+      className="cell"
+    >
+      <span
+        className="name"
+      >
+        Janus Bifrons
+      </span>
+    </div>
+    <div
+      className="cell"
+    >
+      <span
+        className="email"
+      >
+        janus@two-faces.org
+      </span>
+    </div>
+    <div
+      className="cell"
+    >
+      <span
+        className="role"
+      >
+        editor
+      </span>
+    </div>
+    <div
+      className="cell"
+    >
+      <span
+        className="affiliation"
+      />
+    </div>
+    <div
+      className="cell"
+    >
+      Yes
+    </div>
+    <div
+      className="cell submit"
+    />
+  </div>
+  <div
+    className="item permission"
+  >
+    <div
+      className="cell"
+    >
+      <span
+        className="name"
+      >
+        Portunus
+      </span>
+    </div>
+    <div
+      className="cell"
+    >
+      <span
+        className="email"
+      >
+        portunus@two-faces.org
+      </span>
+    </div>
+    <div
+      className="cell"
+    >
+      <span
+        className="role"
+      >
+        editor
+      </span>
+    </div>
+    <div
+      className="cell"
+    >
+      <span
+        className="affiliation"
+      >
+        ILWU Local 34
+      </span>
+    </div>
+    <div
+      className="cell"
+    />
+    <div
+      className="cell submit"
+    />
+  </div>
+</div>
+`;
+
+exports[`ProjectView renders with inputs for an administrator 1`] = `
+<div
+  id="project-view"
+>
+  <div
+    className="title"
+  >
+     
+    Ports
+  </div>
+  <div
+    className="item summary"
+  >
+    1 administrator, 1 editor, 1 privileged user
+  </div>
+  <div
+    className="item header"
+  >
+    <div
+      className="cell"
+    >
+      Name
+    </div>
+    <div
+      className="cell"
+    >
+      Email
+    </div>
+    <div
+      className="cell"
+    >
+      Role
+    </div>
+    <div
+      className="cell"
+    >
+      Affiliation
+    </div>
+    <div
+      className="cell"
+    >
+      Privileged
+    </div>
+    <div
+      className="cell submit"
+    />
+  </div>
+  <div
+    className="item permission"
+  >
+    <div
+      className="cell"
+    >
+      <span
+        className="name"
+      >
+        Janus Bifrons
+      </span>
+    </div>
+    <div
+      className="cell"
+    >
+      <span
+        className="email"
+      >
+        janus@two-faces.org
+      </span>
+    </div>
+    <div
+      className="cell"
+    >
+      <select
+        className="role"
+        name="role"
+        onChange={[Function]}
+        value="administrator"
+      >
+        <option
+          value="editor"
+        >
+          editor
+        </option>
+        <option
+          value="viewer"
+        >
+          viewer
+        </option>
+        <option
+          value="disabled"
+        >
+          disabled
+        </option>
+      </select>
+    </div>
+    <div
+      className="cell"
+    >
+      <input
+        className="affiliation"
+        name="affiliation"
+        onChange={[Function]}
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="cell"
+    >
+      <input
+        checked={true}
+        name="privileged"
+        onChange={[Function]}
+        type="checkbox"
+      />
+    </div>
+    <div
+      className="cell submit"
+    />
+  </div>
+  <div
+    className="item permission"
+  >
+    <div
+      className="cell"
+    >
+      <span
+        className="name"
+      >
+        Portunus
+      </span>
+    </div>
+    <div
+      className="cell"
+    >
+      <span
+        className="email"
+      >
+        portunus@two-faces.org
+      </span>
+    </div>
+    <div
+      className="cell"
+    >
+      <select
+        className="role"
+        name="role"
+        onChange={[Function]}
+        value="editor"
+      >
+        <option
+          value="editor"
+        >
+          editor
+        </option>
+        <option
+          value="viewer"
+        >
+          viewer
+        </option>
+        <option
+          value="disabled"
+        >
+          disabled
+        </option>
+      </select>
+    </div>
+    <div
+      className="cell"
+    >
+      <input
+        className="affiliation"
+        name="affiliation"
+        onChange={[Function]}
+        type="text"
+        value="ILWU Local 34"
+      />
+    </div>
+    <div
+      className="cell"
+    >
+      <input
+        checked={null}
+        name="privileged"
+        onChange={[Function]}
+        type="checkbox"
+      />
+    </div>
+    <div
+      className="cell submit"
+    />
+  </div>
+  <div
+    className="new"
+  >
+    New User
+  </div>
+  <div
+    className="item permission"
+  >
+    <div
+      className="cell"
+    >
+      <input
+        name="name"
+        onChange={[Function]}
+        placeholder="Name"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="cell"
+    >
+      <input
+        name="email"
+        onChange={[Function]}
+        placeholder="Email"
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="cell"
+    >
+      <select
+        className="role"
+        name="role"
+        onChange={[Function]}
+        value=""
+      >
+        <option
+          value="Select role"
+        >
+          Select role
+        </option>
+        <option
+          value="viewer"
+        >
+          viewer
+        </option>
+        <option
+          value="editor"
+        >
+          editor
+        </option>
+      </select>
+    </div>
+    <div
+      className="cell"
+    >
+      <input
+        className="affiliation"
+        name="affiliation"
+        onChange={[Function]}
+        type="text"
+        value=""
+      />
+    </div>
+    <div
+      className="cell"
+    />
+    <div
+      className="cell submit"
+    />
+  </div>
+</div>
+`;

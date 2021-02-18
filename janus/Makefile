@@ -8,4 +8,4 @@ include ../make-base/docker-compose.mk
 
 release-test::
 	# Ensure that the janus css is created
-	docker run --rm $(fullTag) ls lib/client/css/janus.css
+	docker run --rm $(fullTag) ls public/css/janus.bundle.css
