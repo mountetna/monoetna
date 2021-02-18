@@ -70,6 +70,16 @@ module Etna
       return route && route.noauth?
     end
 
+    def janus_approved?(token)
+      return false unless application.config(:janus) && application.config(:janus)[:host]
+
+      janus_client = Etna::Clients::Janus.new(
+        token: token,
+        ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
+        **EtnaApp.instance.config(:janus, environment) || {}
+      )
+    end
+
     def approve_user(request)
       token = request.cookies[application.config(:token_name)] || auth(request, :etna)
 
@@ -78,12 +88,7 @@ module Etna
       begin
         payload, header = application.sign.jwt_decode(token)
 
-        if payload["verify"] && application.config(:janus) && application.config(:janus)[:host]
-          require 'pry'
-          binding.pry
-          client = Etna::Client.new(application.config(:janus)[:host], token)
-
-        end
+        return false if payload["verify"] && !janus_approved?(token)
         return request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h, token)
       rescue
         # bail out if anything goes wrong

@@ -206,4 +206,25 @@ describe AuthorizationController do
       expect{Janus.instance.sign.jwt_decode(token)}.not_to raise_error
     end
   end
+
+  context 'verify (long-lived) tokens' do
+    it 'creates a long-lived token' do
+      user = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
+      gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
+      tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
+      mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
+
+      # the JWT will include a string encoding these permissions
+      perm = create(:permission, project: tunnel, user: user, role: 'viewer', privileged: true)
+      perm = create(:permission, project: mirror, user: user, role: 'editor')
+      perm = create(:permission, project: gateway, user: user, role: 'editor')
+      auth_header(:zeus)
+
+      post('/verify_token', project_name: 'tunnel')
+      expect(last_response.status).to eq(200)
+
+      token = json_body[:token]
+      expect{Janus.instance.sign.jwt_decode(token)}.not_to raise_error
+    end
+  end
 end
