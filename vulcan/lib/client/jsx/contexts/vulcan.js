@@ -12,7 +12,9 @@ export const VulcanContext = createContext();
 export const VulcanProvider = (props) => {
   const initialState = {
     workflows: {},
-    workflow: {}
+    workflow: {},
+    pathIndex: 0,
+    stepIndex: 0
   };
 
   const [state, dispatch] = useReducer(VulcanReducer, initialState);
@@ -33,15 +35,27 @@ export const VulcanProvider = (props) => {
     dispatch({type: SET_DATA, url, data});
   };
 
+  const setPathIndex = (pathIndex) => {
+    dispatch({type: SET_DATA, pathIndex});
+  };
+
+  const setStepIndex = (stepIndex) => {
+    dispatch({type: SET_DATA, stepIndex});
+  };
+
   return (
     <VulcanContext.Provider
       value={{
         workflows: state.workflows,
         workflow: state.workflow,
+        pathIndex: state.pathIndex,
+        stepIndex: state.stepIndex,
         setWorkflows,
         setWorkflow,
         setData,
-        setStatus
+        setStatus,
+        setPathIndex,
+        setStepIndex
       }}
     >
       {props.children}

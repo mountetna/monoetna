@@ -102,6 +102,7 @@ DEPENDENCIES
   etna!
   factory_bot
   filigree (= 0.3.3)
+  nokogiri
   pg (~> 0.21)
   pry
   pry-byebug

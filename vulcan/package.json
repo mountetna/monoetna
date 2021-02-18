@@ -16,6 +16,7 @@
     "downloadjs": "^1.4.7",
     "etna-js": "git+https://git@github.com/mountetna/monoetna.git#cd10f5eea5e3fb6d139ed69b2b604962c9e8e29b",
     "identity-obj-proxy": "^3.0.0",
+    "javascript-color-gradient": "^1.3.2",
     "js-cookie": "^2.2.0",
     "json2csv": "^4.0.1",
     "lodash": "^4.17.15",
