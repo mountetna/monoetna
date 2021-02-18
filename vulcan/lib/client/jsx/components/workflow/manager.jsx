@@ -4,28 +4,36 @@ import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
 
 import {VulcanContext} from '../../contexts/vulcan';
-import {getWorkflow} from '../../api/vulcan';
+import {getWorkflows} from '../../api/vulcan';
 import Output from './output';
 import Input from './input';
 
 import StepsList from './steps/steps_list';
 
 // Hardcode for now, since only one workflow
-const WORKFLOW_NAME = 'umap';
+const WORKFLOW_NAME = 'umap.cwl';
 
 export default function Manager() {
   const invoke = useActionInvoker();
   const {setWorkflow, setPathIndex} = useContext(VulcanContext);
 
   useEffect(() => {
-    getWorkflow(WORKFLOW_NAME, true)
-      .then((workflowDetails) => {
-        setWorkflow(workflowDetails);
+    getWorkflows()
+      .then((response) => {
+        let currentWorkflow = response.workflows.find(
+          (w) => WORKFLOW_NAME === w.name
+        );
+        setWorkflow(currentWorkflow);
 
-        // Hardcode the path for now, since only 1?
-        setPathIndex(0);
+        // longest step chain == default path for now?
+        setPathIndex(
+          currentWorkflow.steps
+            .map((a) => a.length)
+            .indexOf(Math.max(...currentWorkflow.steps.map((a) => a.length)))
+        );
       })
       .catch((e) => {
+        console.error(e);
         invoke(showMessages(e));
       });
   }, []);

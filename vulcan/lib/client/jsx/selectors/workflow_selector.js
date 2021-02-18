@@ -12,6 +12,16 @@ export const validPath = ({workflow, pathIndex}) => {
   return !!(workflow.steps && workflow.steps[pathIndex]);
 };
 
+export const inputType = ({workflow, input}) => {
+  // First check the input itself for a locally typed input.
+  // If no type present, check the workflow inputs for
+  //   for type information.
+};
+
+export const hasUiInput = ({input}) => {
+  return input.name.startsWith('ui_');
+};
+
 export const stepDataUrls = ({workflow, pathIndex, stepIndex}) => {
   return workflow.steps[pathIndex][stepIndex].out.map((s) => s.data_url);
 };

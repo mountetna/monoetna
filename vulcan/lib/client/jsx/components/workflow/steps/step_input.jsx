@@ -7,7 +7,7 @@ import {
   IntegerInput,
   FloatInput
 } from 'etna-js/components/inputs/numeric_input';
-import ToggleInput from 'etna-js/components/inputs/toggle_input';
+import Toggle from 'etna-js/components/inputs/toggle';
 
 import {TYPE} from '../../../models/steps';
 import {inputType} from '../../../selectors/workflow_selector';

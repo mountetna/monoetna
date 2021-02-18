@@ -5,7 +5,7 @@ import StepInput from './steps/step_input';
 import StepError from './steps/step_error';
 import StepPending from './steps/step_pending';
 
-import {PENDING, COMPLETE, ERROR} from '../../models/steps';
+import {STATUS} from '../../models/steps';
 import {validStep} from '../../selectors/workflow_selector';
 
 export default function Input() {
@@ -17,13 +17,13 @@ export default function Input() {
 
   let Component;
   switch (currentStep.status) {
-    case PENDING:
+    case STATUS.PENDING:
       Component = StepError;
       break;
-    case ERROR:
+    case STATUS.ERROR:
       Component = StepError;
       break;
-    case COMPLETE:
+    case STATUS.COMPLETE:
       Component = StepError;
       break;
     default:

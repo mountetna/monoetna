@@ -4,23 +4,11 @@ import Icon from 'etna-js/components/icon';
 import {VulcanContext} from '../../../contexts/vulcan';
 import {STATUS} from '../../../models/steps';
 
-// Hacked in for dev
-const MOCK_STATUS = [];
-MOCK_STATUS[0] = require('../../../../../server/data/status1.json');
-MOCK_STATUS[1] = require('../../../../../server/data/status2.json');
-MOCK_STATUS[2] = require('../../../../../server/data/status3.json');
-MOCK_STATUS[3] = require('../../../../../server/data/status4.json');
-MOCK_STATUS[4] = require('../../../../../server/data/status5.json');
-
-// No status for step 6 yet...
-MOCK_STATUS[5] = require('../../../../../server/data/status5.json');
-
 export default function Step({step, index, active}) {
   const {setStepIndex, setStatus} = useContext(VulcanContext);
 
   function handleOnClick(index) {
     setStepIndex(index);
-    setStatus(MOCK_STATUS[index]);
   }
 
   const icons = {};
