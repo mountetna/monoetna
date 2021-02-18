@@ -13,6 +13,7 @@ describe AuthorizationController do
       @user = create(
         :user,
         email: 'janus@two-faces.org',
+        name: "Janus",
         pass_hash: Janus.instance.sign.hash_password(@password)
       )
     end
@@ -192,7 +193,7 @@ describe AuthorizationController do
 
     it 'creates a token and returns a user' do
       email = 'janus@two-faces.org'
-      user = create(:user, email: email)
+      user = create(:user, email: email, name: 'Janus')
       header('X-Shib-Attribute', email)
 
       get("/login?refer=#{@refer}")
