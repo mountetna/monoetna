@@ -5,3 +5,4 @@ export const SET_DATA = 'SET_DATA';
 export const SET_PATH = 'SET_PATH';
 export const SET_STEP = 'SET_STEP';
 export const SET_SESSION = 'SET_SESSION';
+export const SET_INPUTS = 'SET_INPUTS';

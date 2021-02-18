@@ -22,6 +22,10 @@ export const hasUiInput = ({input}) => {
   return input.name.startsWith('ui_');
 };
 
+export const inputs = ({session}) => {
+  return session.inputs;
+};
+
 export const stepDataUrls = ({workflow, pathIndex, stepIndex}) => {
   return workflow.steps[pathIndex][stepIndex].out.map((s) => s.data_url);
 };

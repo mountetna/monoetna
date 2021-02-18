@@ -6,7 +6,8 @@ import {
   SET_STATUS,
   SET_STEP,
   SET_PATH,
-  SET_SESSION
+  SET_SESSION,
+  SET_INPUTS
 } from '../actions/vulcan';
 import VulcanReducer from '../reducers/vulcan';
 
@@ -51,6 +52,10 @@ export const VulcanProvider = (props) => {
     dispatch({type: SET_SESSION, session});
   };
 
+  const setInputs = (inputs) => {
+    dispatch({type: SET_INPUTS, inputs});
+  };
+
   return (
     <VulcanContext.Provider
       value={{
@@ -65,7 +70,8 @@ export const VulcanProvider = (props) => {
         setStatus,
         setPathIndex,
         setStepIndex,
-        setSession
+        setSession,
+        setInputs
       }}
     >
       {props.children}

@@ -287,4 +287,19 @@ describe('Vulcan Reducer', () => {
       ]
     ]);
   });
+
+  it('correctly injects inputs into the session', () => {
+    const session = {
+      key: '123',
+      project_name: CONFIG.project_name,
+      workflow_name: 'test',
+      inputs: []
+    };
+
+    const inputs = [[{a: 123, b: 321}]];
+
+    const state = reducer({session}, {type: SET_INPUTS, inputs});
+
+    expect(state.session.inputs).toEqual(inputs);
+  });
 });

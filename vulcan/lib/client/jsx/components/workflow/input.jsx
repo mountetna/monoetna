@@ -16,6 +16,9 @@ export default function Input() {
   let currentStep = workflow.steps[pathIndex][stepIndex];
 
   let Component;
+  // Somehow have to calculate if all previous steps are
+  //   COMPLETE before showing a StepInput component.
+  // Also, should only show StepInput for ui_ steps.
   switch (currentStep.status) {
     case STATUS.PENDING:
       Component = StepPending;
