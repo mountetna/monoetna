@@ -18,12 +18,21 @@ export const inputType = ({workflow, input}) => {
   //   for type information.
 };
 
-export const hasUiInput = ({input}) => {
-  return input.name.startsWith('ui_');
+export const hasUiInput = (step) => {
+  return step.run.startsWith('ui-queries/');
 };
 
 export const inputs = ({session}) => {
   return session.inputs;
+};
+
+export const defaultInputValues = (workflow) => {
+  return Object.keys(workflow.inputs).reduce((result, inputName) => {
+    if (workflow.inputs[inputName].default) {
+      result[inputName] = workflow.inputs[inputName].default;
+    }
+    return result;
+  }, {});
 };
 
 export const stepDataUrls = ({workflow, pathIndex, stepIndex}) => {

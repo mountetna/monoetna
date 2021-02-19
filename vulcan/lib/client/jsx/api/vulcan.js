@@ -8,7 +8,6 @@ import {
 const vulcanPath = (endpoint) => `${CONFIG.vulcan_host}${endpoint}`;
 
 const vulcanPost = (endpoint, params) => {
-  console.log(endpoint);
   return fetch(endpoint, {
     method: 'POST',
     credentials: 'include',
@@ -42,7 +41,7 @@ export const getWorkflows = () => {
 // };
 
 export const submit = (workflow_name, inputs, key) => {
-  return vulcanPost(vulcanPath(ROUTES.submit(workflow_name), {inputs, key}))
+  return vulcanPost(vulcanPath(ROUTES.submit(workflow_name)), {inputs, key})
     .then(handleFetchSuccess)
     .catch(handleFetchError);
 };

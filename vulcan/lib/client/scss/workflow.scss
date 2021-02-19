@@ -98,3 +98,21 @@
   color: darkred;
   width: 100%;
 }
+
+.start-session {
+  align-self: center;
+
+  button.large {
+    background-color: lightgreen;
+    font-size: x-large;
+    border-radius: 20px;
+    width: 20rem;
+    margin: 5rem;
+    height: 5rem;
+    cursor: pointer;
+  }
+
+  button.large:hover {
+    border: 5px solid darkgreen;
+  }
+}

@@ -19,8 +19,8 @@ export const VulcanProvider = (props) => {
     workflow: {},
     pathIndex: null,
     stepIndex: null,
-    session: {},
-    status: {}
+    session: null,
+    status: null
   };
 
   const [state, dispatch] = useReducer(VulcanReducer, initialState);

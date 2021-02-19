@@ -6,8 +6,13 @@ inputs:
     type: int
     default: 200
     label: 'it is an int'
+  someInt2:
+    type: int
+    default: 2
+    label: 'another int'
   someIntWithoutDefault:
     type: int
+    label: 'User supplies a number'
 
 outputs:
   the_result:
@@ -20,12 +25,12 @@ steps:
     label: 'Add two numbers'
     in:
       a: someInt
-      b: someIntWithoutDefault
+      b: someInt2
     out: [sum]
   pickANum:
-    run: ui-queries/pick-a-number.cwl
+    run: ui-queries/multiselect.cwl
     in:
-      num: firstAdd/sum
+      a: firstAdd/sum
     out: [num]
   finalStep:
     run: scripts/add.cwl

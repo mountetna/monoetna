@@ -6,7 +6,7 @@ import StepError from './steps/step_error';
 import StepPending from './steps/step_pending';
 
 import {STATUS} from '../../models/steps';
-import {validStep} from '../../selectors/workflow_selector';
+import {validStep, hasUiInput} from '../../selectors/workflow_selector';
 
 export default function Input() {
   const {workflow, pathIndex, stepIndex} = useContext(VulcanContext);
@@ -14,6 +14,8 @@ export default function Input() {
   if (!validStep({workflow, pathIndex, stepIndex})) return null;
 
   let currentStep = workflow.steps[pathIndex][stepIndex];
+
+  if (!hasUiInput(currentStep)) return null;
 
   let Component;
   // Somehow have to calculate if all previous steps are

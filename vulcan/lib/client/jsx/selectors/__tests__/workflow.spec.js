@@ -3,7 +3,12 @@ import Gradient from 'javascript-color-gradient';
 import {autoColors} from 'etna-js/utils/colors';
 import XYPlot from 'etna-js/plots/components/xy_plot/xy_plot';
 
-import {plotModelForStep, validPath, validStep} from '../workflow_selector';
+import {
+  plotModelForStep,
+  validPath,
+  validStep,
+  defaultInputValues
+} from '../workflow_selector';
 
 describe('Workflow Selector', () => {
   describe('XY Plots', () => {
@@ -229,6 +234,41 @@ describe('Workflow Selector', () => {
       });
 
       expect(results).toEqual(true);
+    });
+  });
+
+  describe('defaultInputValues', () => {
+    it('returns values', () => {
+      const workflow = {
+        class: 'Workflow',
+        cwlVersion: 'v1.1',
+        inputs: {
+          bool_input: {
+            default: true,
+            label: 'Sample boolean',
+            type: 'boolean'
+          },
+          int_input: {
+            default: 42,
+            label: 'Sample input',
+            type: 'int'
+          },
+          no_default: {
+            default: null,
+            type: 'int'
+          }
+        },
+        outputs: {
+          sample_data: {
+            outputSource: 'final_step/sample_data',
+            type: 'File'
+          }
+        },
+        steps: []
+      };
+
+      let results = defaultInputValues(workflow);
+      expect(results).toEqual({bool_input: true, int_input: 42});
     });
   });
 });

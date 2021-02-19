@@ -10,7 +10,8 @@ class Vulcan
       {
         project_name: @params[:project_name],
         token_name: Vulcan.instance.config(:token_name),
-        janus_host: Vulcan.instance.config(:janus)&.dig(:host)
+        janus_host: Vulcan.instance.config(:janus)&.dig(:host),
+        vulcan_host: Vulcan.instance.config(:vulcan)&.dig(:host)
       }.to_json
     end
 
