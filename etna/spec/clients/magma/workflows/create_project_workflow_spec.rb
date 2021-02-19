@@ -11,12 +11,12 @@ describe Etna::Clients::Magma::CreateProjectWorkflow do
 
       VCR.use_cassette('create_project_workflow.e2e') do
         # Change this when re-running a cassette to ensure a new project is being created in your environment
-        test_project = "test_create_project_aaf"
+        test_project = "test_create_project_aag"
 
         # This is an expired development token and is safe to make public, does not leak anything about production or staging values
         # and cannot be used in a sensitive way.
         # This test depends on breaking down a tok to get user info, so it's important we actually set a token
-        tok = 'eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6InNhdXJhYmguYXN0aGFuYUB1Y3NmLmVkdSIsImZpcnN0IjoiU2F1cmFiaCIsImxhc3QiOiJBc3RoYW5hIiwicGVybSI6IkE6YWRtaW5pc3RyYXRpb247YTpkc2NvbGFiLGR1bmxhcCxpcGkiLCJleHAiOjE2MTM3MDQ0MDZ9.aI3Tj79lQXFDghrfj7lcCr9FUPKC0Em80KUJsHZ__92HxcqVHJbVG1M1uOSDAYNvz8gn21g29atPDC1kRY2WX39tTlVvmrTG82TCxk_kEcsYPYvcvCrWcz8SHu8tHFwJdM1A19YOuAsed6Do5RaupUNikqwDYld1ZjxtyyEhFNVvClk5EtLKHPbfS4XLieJNx0ab6Eob-XTk_ADRSuczeQb4klBVDZ6OA7ynzeJLd72DHF4RArGcrVWM0bfVOMEbbDjhGEzK324N29CFsoCBOylUkF4SiP92_Eb5h1Kgq2pbS3vtyNWGXy-p6gPNV2rFoK8mWhO3sSsnljqO0MWMYg'
+        tok = 'eyJhbGciOiJSUzI1NiJ9.eyJlbWFpbCI6ImRldmVsb3BlckB1Y3NmLmVkdSIsIm5hbWUiOiJEZXZlbG9wZXIgTGFzdE5hbWUiLCJwZXJtIjoiQTp0ZXN0LXByb2plY3Q7YTphZG1pbmlzdHJhdGlvbiIsImV4cCI6ODY0MDE2MDgxMzY2MzV9.cL1PAZHf1IfegxkdXDUKSzhdgO5c_wM_veZsp7pyg28uxyXGs9CKWRNyh2zAIrdHF40Hb6rLDj0mr1itaUtILcqTVEss2SB5xhHly3gUdKAkjVACB6FNltUrBhobBlhKxbL_-PS0SI5eRrIHQdQ1iO5wMAcjHGqSh3zYC7SsNHiW9WjwvRlJ2SJSOzq_kJB5G_wHI1ZqsSHuMarc22ztQ_lU9CrqrX4csGkNm2bouYJginXggCVgI34Cwj6nmBWHte0u8YOBUxk2OO1Nln4YFaMFAlPvnD9KzU2CQAO93IDt5bAXWURWeYNYA0A6kcx-GLmvx1RbcnSZR5z_PoCmiQ'
 
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
