@@ -1,7 +1,7 @@
 {
   "http_interactions": [
     {
-      "recorded_at": "2021-02-11T21:12:48",
+      "recorded_at": "2021-02-19T20:55:47",
       "request": {
         "body": {
           "encoding": "utf-8",
@@ -28,25 +28,25 @@
           ]
         },
         "method": "GET",
-        "uri": "https://janus.development.local/projects"
+        "uri": "https://janus.ucsf.edu/projects"
       },
       "response": {
         "body": {
           "encoding": "utf-8",
-          "string": "{\"projects\":[{\"project_name\":\"test-project\",\"project_name_full\":\"TestProject\",\"project_description\":null},{\"project_name\":\"administration\",\"project_name_full\":\"Admin\",\"project_description\":null},{\"project_name\":\"ipi\",\"project_name_full\":\"ImmunoProfilerProject\",\"project_description\":null}]}"
+          "string": "{\"projects\":[{\"project_name\":\"mvir1\",\"project_name_full\":\"COMET\",\"role\":\"viewer\",\"privileged\":false},{\"project_name\":\"dscolab\",\"project_name_full\":\"Data Science CoLab\",\"role\":\"viewer\",\"privileged\":false},{\"project_name\":\"ipi\",\"project_name_full\":\"Immunoprofiler Initiative\",\"role\":\"viewer\",\"privileged\":false},{\"project_name\":\"xhlt1\",\"project_name_full\":\"Immune Cell Census\",\"role\":\"administrator\",\"privileged\":false},{\"project_name\":\"coprojects_template\",\"project_name_full\":\"Coprojects Template\",\"role\":\"administrator\",\"privileged\":false},{\"project_name\":\"example\",\"project_name_full\":\"Example project\",\"role\":\"editor\",\"privileged\":false}]}"
         },
         "headers": {
           "Connection": [
             "Keep-Alive"
           ],
           "Content-Length": [
-            "290"
+            "642"
           ],
           "Content-Type": [
             "application/json"
           ],
           "Date": [
-            "Thu, 11 Feb 2021 21:12:48 GMT"
+            "Fri, 19 Feb 2021 20:55:47 GMT"
           ],
           "Keep-Alive": [
             "timeout=5, max=100"
@@ -62,7 +62,7 @@
           "code": 200,
           "message": "OK"
         },
-        "url": "https://janus.development.local/projects"
+        "url": "https://janus.ucsf.edu/projects"
       }
     }
   ],
