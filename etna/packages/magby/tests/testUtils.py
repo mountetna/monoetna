@@ -2,8 +2,8 @@ from betamax.cassette import cassette
 from betamax import Betamax
 from betamax_serializers import pretty_json
 import os
-from ..magby.Magma import *
-from typing import Dict
+
+from magby.Magma import *
 
 
 def prepCassette(session: Session, cassette_dir: str):

@@ -1,23 +1,18 @@
+import unittest
 from unittest import TestCase
-import configparser
-from ..magby.Magma import *
-from ..tests.testUtils import *
+from magby.Magma import *
+from testUtils import *
 
-conf = configparser.ConfigParser()
-conf.read('magby/tests/proxyConfig.ini')    # Config is in .gitignore
-
-
+url = 'https://magma.development.local'
+token = 'mytoken'
+currDir = os.path.dirname(os.path.realpath(__file__))
 
 class TestMagma(TestCase):
 
     def setUp(self) -> None:
-        proxy = json.loads(conf['DEFAULT'].get('proxy'))
-        self.magma = Magma(conf['DEFAULT'].get('url'),
-                           conf['DEFAULT'].get('token'),
-                           'retrieve')
-        self.magma._session.proxies.update(proxy)
+        self.magma = Magma(url, token, 'retrieve')
         self.magma._session.verify = False
-        self.vcr = prepCassette(self.magma._session, './magby/tests/fixtures/cassettes')
+        self.vcr = prepCassette(self.magma._session, os.path.join(currDir,'fixtures/cassettes'))
 
 
     def test_getResponseContent(self):
@@ -53,11 +48,15 @@ class TestMagma(TestCase):
     def test__janusCall(self):
         with self.vcr as vcr:
             vcr.use_cassette('Magma__janusCall')
-            janusProjects = self.magma._janusProjectsCall('/'.join([conf['DEFAULT'].get('url').replace('magma', 'janus'),
+            janusProjects = self.magma._janusProjectsCall('/'.join([url.replace('magma', 'janus'),
                                                                     'projects']))
         self.assertEqual(janusProjects['projects'][2]['project_name'], 'ipi')
         self.assertTrue(isinstance(janusProjects, dict))
         self.assertTrue(len(janusProjects) > 0)
+
+
+if __name__ == '__main__':
+    unittest.main()
 
 
 

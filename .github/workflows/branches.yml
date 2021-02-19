@@ -10,6 +10,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
     steps:
       - uses: actions/checkout@v2
       - name: docker login
@@ -95,3 +98,19 @@ jobs:
           IMAGES_POSTFIX: :master
         run: |
           make -C vulcan release
+      - name: Run Magby tests
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+        id: magby_first_test_run
+        env:
+          IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
+          IMAGES_POSTFIX: :master
+        run: |
+          python -m pip install --upgrade pip
+          pip install etna/packages/magby/
+          python etna/packages/magby/tests/test_Magby.py
+          python etna/packages/magby/tests/test_Magma.py
+

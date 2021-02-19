@@ -1,34 +1,33 @@
+import unittest
 from unittest import TestCase
 import configparser
 from requests import Session
-from ..magby.Magby import *
-from ..tests.testUtils import *
+from magby.Magby import *
+from testUtils import *
 
-conf = configparser.ConfigParser()
-conf.read('magby/tests/proxyConfig.ini')    # Config is in .gitignore
 
+url = 'https://magma.development.local'
+token = 'mytoken'
+currDir = os.path.dirname(os.path.realpath(__file__))
 
 
 class TestMagby(TestCase):
     def setUp(self) -> None:
-        self.proxy = json.loads(conf['DEFAULT'].get('proxy'))
         self.session = Session()
-        self.session.proxies.update(self.proxy)
         self.session.verify = False
-        self.vcr = prepCassette(self.session, './magby/tests/fixtures/cassettes')
-        self.magby = Magby(conf['DEFAULT'].get('url'),
-                           conf['DEFAULT'].get('token'))
+        self.vcr = prepCassette(self.session, os.path.join(currDir,'fixtures/cassettes'))
+        self.magby = Magby(url, 'mytoken')
 
     def test_url(self):
-        self.assertEqual(self.magby.url, conf['DEFAULT'].get('url'))
+        self.assertEqual(self.magby.url, url)
         self.magby.url = 'changed_url'
-        self.assertNotEqual(self.magby.url, conf['DEFAULT'].get('url'))
+        self.assertNotEqual(self.magby.url, url)
         self.assertEqual(self.magby.url, 'changed_url')
 
     def test_token(self):
-        self.assertEqual(self.magby.token, conf['DEFAULT'].get('token'))
+        self.assertEqual(self.magby.token, token)
         self.magby.token = 'changed_token'
-        self.assertNotEqual(self.magby.token, conf['DEFAULT'].get('token'))
+        self.assertNotEqual(self.magby.token, token)
         self.assertEqual(self.magby.token, 'changed_token')
 
     def test__constructPayload(self):
@@ -92,4 +91,5 @@ class TestMagby(TestCase):
         self.assertEqual(len(out['answer']), 771)
 
 
-
+if __name__ == '__main__':
+    unittest.main()
