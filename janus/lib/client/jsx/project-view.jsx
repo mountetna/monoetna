@@ -78,7 +78,7 @@ const Permission = ({roles, editable, onSave, permission={}, create}) => {
 
 const userCount = (count, txt) => count == 0 ? null : `${count} ${txt}${ count === 1 ? '' : 's' }`;
 
-const displayPermissions = (permissions) => (
+const displayPermissions = (permissions, filter) => (
   permissions.sort(
     (a,b) => (a.role+a.user_email).localeCompare(b.role+b.user_email)
   ).filter(
@@ -140,7 +140,7 @@ const ProjectView = ({project_name}) => {
       </div>
     }
     {
-      displayPermissions(permissions).map(
+      displayPermissions(permissions, filter).map(
         p => <Permission
           key={p.user_email}
           permission={p}
