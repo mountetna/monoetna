@@ -36,8 +36,17 @@ module Etna
           documents = Documents.new({})
           last_page = nil
           while last_page.nil? || last_page.models.model_keys.map { |k| last_page.models.model(k).documents.raw.length }.sum > 0
+            attempts = 0
             begin
+              attempts += 1
               last_page = magma_client.retrieve(request)
+            # Unfortunately, paging in magma is not great and times out from time to time.
+            rescue Net::ReadTimeout => e
+              if attempts > 5
+                raise e
+              end
+
+              retry
             rescue Etna::Error => e
               raise e unless e.message.include?('not found')
               break

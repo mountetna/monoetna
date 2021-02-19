@@ -652,12 +652,12 @@ class Polyphemus
             'tube_name',
             'biospecimen',
             'biospecimen_date',
-            'gene_tpm',
+            'gene_expression',
         ],
         'sc_rna_seq' => [
             'tube_name',
             'biospecimen_date',
-            # 'sc_rna_seq_pool',
+            'sc_rna_seq_pool',
             'biospecimen',
             'cells_loaded',
             'chemistry',
@@ -677,15 +677,6 @@ class Polyphemus
             'alias',
             'analyte_name',
         ],
-        'document' => [
-            'created_at',
-            'updated_at',
-            'name',
-            'document_description',
-            'version',
-            'file',
-            'version_date',
-        ],
     }
 
     def execute(stub_files: false)
@@ -693,7 +684,8 @@ class Polyphemus
           model_attributes_mask: MATERIALIZE_ATTRIBUTES,
           model_filters: {
               'immunoassay' => 'assay_type~^(?!Olink)',
-              'patient' => 'comet_plus=true'
+              'patient' => 'comet_plus=true',
+              'sc_rna_seq_pool' => 'biospecimen=Whole.blood',
           },
           metis_client: metis_client, magma_client: magma_client, logger: logger,
           project_name: 'mvir1', model_name: 'patient', stub_files: stub_files,
@@ -704,8 +696,7 @@ class Polyphemus
     end
 
     def filesystem
-      aspera_comet = Polyphemus.instance.config(:aspera_comet)
-      @filesystem ||= Etna::Filesystem::GeneAsperaCliFilesystem.new(**aspera_comet)
+      @filesystem ||= Etna::Filesystem::Metis.new(metis_client: metis_client, project_name: 'zach_test_project_one', bucket_name: 'gne_upload')
     end
 
     def setup(config)

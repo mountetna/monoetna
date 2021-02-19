@@ -16,8 +16,12 @@ module Etna
           super({max_attempts: 3, metis_uid: SecureRandom.hex}.update(args))
         end
 
-        def do_upload(source_file, dest_path, &block)
-          upload = Upload.new(source_file: source_file)
+        def do_upload(source_file_or_upload, dest_path, &block)
+          unless source_file_or_upload.is_a?(Upload)
+            upload = Upload.new(source_file: source_file_or_upload)
+          else
+            upload = source_file_or_upload
+          end
 
           dir = ::File.dirname(dest_path)
           metis_client.create_folder(CreateFolderRequest.new(
@@ -70,6 +74,13 @@ module Etna
               ))
 
               unsent_zero_byte_file = false
+            rescue StreamingUploadError => e
+              m = yield [:error, e] unless block.nil?
+              if m == false
+                raise e
+              end
+
+              return upload_parts(upload, upload_path, attempt_number + 1, true, &block)
             rescue Etna::Error => e
               m = yield [:error, e] unless block.nil?
               if m == false
@@ -93,13 +104,17 @@ module Etna
           end
         end
 
-        class Upload < Struct.new(:source_file, :next_blob_size, :current_byte_position, keyword_init: true)
+        class Upload
           INITIAL_BLOB_SIZE = 2 ** 10
           MAX_BLOB_SIZE = 2 ** 22
           ZERO_HASH = 'd41d8cd98f00b204e9800998ecf8427e'
 
-          def initialize(**args)
-            super
+          attr_accessor :source_file, :next_blob_size, :current_byte_position
+
+          def initialize(source_file: nil, next_blob_size: nil, current_byte_position: nil)
+            self.source_file = source_file
+            self.next_blob_size = next_blob_size
+            self.current_byte_position = current_byte_position
             self.next_blob_size = [file_size, INITIAL_BLOB_SIZE].min
             self.current_byte_position = 0
           end
@@ -135,13 +150,13 @@ module Etna
           end
         end
 
-        class PullIOUpload < Upload
+        class StreamingIOUpload < Upload
           def initialize(readable_io:, size_hint: 0, **args)
-            super(**args)
             @readable_io = readable_io
             @size_hint = size_hint
             @read_position = 0
             @last_bytes = ""
+            super(**args)
           end
 
           def file_size
@@ -150,7 +165,7 @@ module Etna
 
           def next_blob_bytes
             next_left = current_byte_position
-            next_right = current_byte_position + next_blob_bytes
+            next_right = current_byte_position + next_blob_size
             last_right = @read_position
 
             if next_right < last_right
