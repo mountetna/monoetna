@@ -5,7 +5,10 @@ import {
   headers
 } from 'etna-js/utils/fetch';
 
+const vulcanPath = (endpoint) => `${CONFIG.vulcan_host}${endpoint}`;
+
 const vulcanPost = (endpoint, params) => {
+  console.log(endpoint);
   return fetch(endpoint, {
     method: 'POST',
     credentials: 'include',
@@ -25,7 +28,7 @@ const vulcanGet = (endpoint) => {
 };
 
 export const getWorkflows = () => {
-  return vulcanGet(ROUTES.fetch_workflows())
+  return vulcanGet(vulcanPath(ROUTES.fetch_workflows()))
     .then(handleFetchSuccess)
     .catch(handleFetchError);
 };
@@ -39,7 +42,7 @@ export const getWorkflows = () => {
 // };
 
 export const submit = (workflow_name, inputs, key) => {
-  return vulcanPost(ROUTES.submit(workflow_name), {inputs, key})
+  return vulcanPost(vulcanPath(ROUTES.submit(workflow_name), {inputs, key}))
     .then(handleFetchSuccess)
     .catch(handleFetchError);
 };
@@ -48,7 +51,7 @@ export const getSession = (workflow_name) => {
   // A "blank" POST to submit generates and returns the
   //   session, which we'll need for subsequent input
   //   submit actions.
-  return vulcanPost(ROUTES.submit(workflow_name))
+  return vulcanPost(vulcanPath(ROUTES.submit(workflow_name)))
     .then(handleFetchSuccess)
     .catch(handleFetchError);
 };

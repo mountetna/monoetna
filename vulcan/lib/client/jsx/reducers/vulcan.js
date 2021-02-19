@@ -24,43 +24,35 @@ export default function VulcanReducer(state, action) {
         workflow: action.workflow
       };
     case SET_STATUS:
-      // Status returned by the server as an Array of Arrays,
-      //   with possible looping paths as the nested Arrays.
-      // Assume stable order from the server.
-      let statusWorkflow = {...state.workflow};
-
-      statusWorkflow.steps.forEach((path, pathIndex) => {
-        path.forEach((step, stepIndex) => {
-          statusWorkflow.steps[pathIndex][stepIndex] = {
-            ...step,
-            ...action.status[pathIndex][stepIndex]
-          };
-        });
-      });
       return {
         ...state,
-        workflow: statusWorkflow
+        status: action.status
       };
     case SET_DATA:
-      // Inject the data payload to state based on the URL.
-      // Workflow steps are an Array of Arrays, so need to
+      // Inject the data payload to status based on the URL.
+      // Workflow status are an Array of Arrays, so need to
       //   loop through them to find matching data URLs.
       // Assume stable order from the server.
-      let dataWorkflow = {...state.workflow};
-      dataWorkflow.steps.forEach((path, pathIndex) => {
-        const stepIndex = path.findIndex((step) => {
-          return step.data_url === action.url;
-        });
+      let dataStatus = [...state.status];
+      dataStatus.forEach((path, pathIndex) => {
+        path.forEach((step, stepIndex) => {
+          if (!step.downloads) return;
 
-        dataWorkflow.steps[pathIndex][stepIndex] = {
-          ...dataWorkflow.steps[pathIndex][stepIndex],
-          data: action.data
-        };
+          Object.keys(step.downloads).forEach((downloadKey) => {
+            if (action.url === step.downloads[downloadKey]) {
+              if (!dataStatus[pathIndex][stepIndex].data) {
+                dataStatus[pathIndex][stepIndex].data = {};
+              }
+
+              dataStatus[pathIndex][stepIndex].data[downloadKey] = action.data;
+            }
+          });
+        });
       });
 
       return {
         ...state,
-        workflow: dataWorkflow
+        status: dataStatus
       };
     case SET_PATH:
       return {

@@ -194,7 +194,7 @@ describe('Vulcan API', () => {
     stubUrl({
       verb: 'post',
       path: ROUTES.submit('test'),
-      request: inputs,
+      request: () => ({inputs, key: 'session_key'}),
       response: status,
       headers: {
         'Content-type': 'application/json'

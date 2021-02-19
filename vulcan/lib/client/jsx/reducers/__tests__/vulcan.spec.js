@@ -3,7 +3,8 @@ import {
   SET_DATA,
   SET_WORKFLOW,
   SET_WORKFLOWS,
-  SET_STATUS
+  SET_STATUS,
+  SET_INPUTS
 } from '../../actions/vulcan';
 
 describe('Vulcan Reducer', () => {
@@ -162,127 +163,58 @@ describe('Vulcan Reducer', () => {
 
     const state = reducer({workflow}, {type: SET_STATUS, status});
 
-    expect(state.workflow.steps).toEqual([
+    expect(state.status).toEqual(status);
+  });
+
+  it('correctly injects data payload to right step in status', () => {
+    const url = `${CONFIG.project_name}/api/data/blob`;
+    const status = [
       [
         {
-          in: [],
-          out: ['choice_set'],
-          run: 'first_step.cwl',
           name: 'first_step',
           status: 'complete',
-          data_url: `${CONFIG.vulcan_host}/data/blobs/here`
+          downloads: {
+            output: url
+          }
         },
         {
-          in: {
-            all_pool_names: 'first_step/choice_set'
-          },
-          out: ['subset'],
-          run: 'ui_pick_subset.cwl',
-          name: 'ui_pick_subset',
           status: 'pending',
-          data_url: null
+          data_url: null,
+          name: 'ui_pick_subset'
         },
         {
-          in: {
-            bool_input: 'bool_input',
-            data: 'ui_pick_subset/subset',
-            int_input: 'int_input'
-          },
-          out: ['sample_data'],
-          run: 'final_step.cwl',
           name: 'final_step',
           status: 'pending',
           data_url: null
         }
       ]
-    ]);
-  });
+    ];
 
-  it('correctly injects data payload to right step', () => {
-    const workflow = {
-      class: 'Workflow',
-      cwlVersion: 'v1.1',
-      inputs: {
-        bool_input: {
-          default: true,
-          label: 'Sample boolean',
-          type: 'boolean'
-        },
-        int_input: {
-          default: 42,
-          label: 'Sample input',
-          type: 'int'
-        }
-      },
-      outputs: {
-        sample_data: {
-          outputSource: 'final_step/sample_data',
-          type: 'File'
-        }
-      },
-      steps: [
-        [
-          {
-            in: [],
-            out: ['choice_set'],
-            run: 'first_step.cwl',
-            name: 'first_step',
-            data_url: '/api/workflows/test/file1.txt'
-          },
-          {
-            in: {
-              all_pool_names: 'first_step/choice_set'
-            },
-            out: ['subset'],
-            run: 'ui_pick_subset.cwl',
-            name: 'ui_pick_subset'
-          },
-          {
-            in: {
-              bool_input: 'bool_input',
-              data: 'ui_pick_subset/subset',
-              int_input: 'int_input'
-            },
-            out: ['sample_data'],
-            run: 'final_step.cwl',
-            name: 'final_step'
-          }
-        ]
-      ]
-    };
-
-    const url = '/api/workflows/test/file1.txt';
     const data = [1, 2, 4, 'abc'];
 
-    const state = reducer({workflow}, {type: SET_DATA, url, data});
+    const state = reducer({status}, {type: SET_DATA, url, data});
 
-    expect(state.workflow.steps).toEqual([
+    expect(state.status).toEqual([
       [
         {
-          in: [],
-          out: ['choice_set'],
-          run: 'first_step.cwl',
           name: 'first_step',
-          data_url: '/api/workflows/test/file1.txt',
-          data: [1, 2, 4, 'abc']
+          status: 'complete',
+          downloads: {
+            output: url
+          },
+          data: {
+            output: data
+          }
         },
         {
-          in: {
-            all_pool_names: 'first_step/choice_set'
-          },
-          out: ['subset'],
-          run: 'ui_pick_subset.cwl',
+          status: 'pending',
+          data_url: null,
           name: 'ui_pick_subset'
         },
         {
-          in: {
-            bool_input: 'bool_input',
-            data: 'ui_pick_subset/subset',
-            int_input: 'int_input'
-          },
-          out: ['sample_data'],
-          run: 'final_step.cwl',
-          name: 'final_step'
+          name: 'final_step',
+          status: 'pending',
+          data_url: null
         }
       ]
     ]);
