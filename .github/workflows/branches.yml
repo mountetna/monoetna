@@ -98,10 +98,12 @@ jobs:
           IMAGES_POSTFIX: :master
         run: |
           make -C vulcan release
-      - name: Run Magby tests
+      - name: Setup Python
+        id: magby_setup_py
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Run Magby tests
         id: magby_first_test_run
         env:
           IMAGES_PREFIX: etnaagent/
