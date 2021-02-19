@@ -5,7 +5,10 @@ import {showMessages} from 'etna-js/actions/message_actions';
 
 import {getSession, submit} from '../../../api/vulcan';
 import {VulcanContext} from '../../../contexts/vulcan';
-import {allInputsDefined} from '../../../selectors/workflow_selector';
+import {
+  allInputsDefined,
+  defaultInputValues
+} from '../../../selectors/workflow_selector';
 
 import PrimaryInputs from './primary_inputs';
 
@@ -19,7 +22,8 @@ export default function SessionManager() {
     pathIndex,
     setStepIndex,
     setSession,
-    setStatus
+    setStatus,
+    setInputs
   } = useContext(VulcanContext);
   const [complete, setComplete] = useState(null);
 
@@ -32,6 +36,9 @@ export default function SessionManager() {
         .then((response) => {
           setSession(response.session);
           setStatus(response.status);
+
+          // Set the default input values in the session
+          setInputs(defaultInputValues(workflow));
         })
         .catch((e) => {
           console.error(e);
