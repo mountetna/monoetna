@@ -5,11 +5,17 @@ import {VulcanContext} from '../../../contexts/vulcan';
 import {STATUS} from '../../../models/steps';
 
 export default function Step({step, index, active}) {
-  const {setStepIndex, setStatus} = useContext(VulcanContext);
+  const {status, pathIndex, setStepIndex, setStatus} = useContext(
+    VulcanContext
+  );
 
   function handleOnClick(index) {
     setStepIndex(index);
   }
+
+  if (!status || !pathIndex) return null;
+
+  const stepStatus = status[pathIndex][index].status;
 
   const icons = {};
   icons[STATUS.COMPLETE] = {
@@ -19,7 +25,8 @@ export default function Step({step, index, active}) {
   icons[STATUS.PENDING] = {icon: 'clock', className: 'light'};
   icons[STATUS.ERROR] = {icon: 'times-circle', className: 'light red'};
 
-  let icon = icons[step.status || STATUS.PENDING];
+  let icon = icons[stepStatus || STATUS.PENDING];
+
   let className = `step-status-icon ${icon.className}`;
 
   return (

@@ -65,6 +65,7 @@ export const VulcanProvider = (props) => {
         pathIndex: state.pathIndex,
         stepIndex: state.stepIndex,
         session: state.session,
+        status: state.status,
         setWorkflows,
         setWorkflow,
         setData,
