@@ -6,7 +6,7 @@ import {getProjects} from 'etna-js/api/janus-api';
 import {projectNameFull} from 'etna-js/utils/janus';
 
 import {VulcanProvider} from '../contexts/vulcan';
-import WorkflowManager from './workflow/manager';
+import WorkflowManager from './workflow/workflow_manager';
 
 const loadingDiv = (
   <div className='browser'>

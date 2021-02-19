@@ -73,8 +73,11 @@ export default function VulcanReducer(state, action) {
       return {
         ...state,
         session: {
-          ...action.session,
-          inputs: action.inputs
+          ...(state.session || {}),
+          inputs: {
+            ...(state.session ? state.session.inputs : {}),
+            ...action.inputs
+          }
         }
       };
     default:

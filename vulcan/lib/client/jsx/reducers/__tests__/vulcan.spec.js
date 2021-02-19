@@ -225,13 +225,24 @@ describe('Vulcan Reducer', () => {
       key: '123',
       project_name: CONFIG.project_name,
       workflow_name: 'test',
-      inputs: []
+      inputs: {
+        foo: 'bar'
+      }
     };
 
-    const inputs = [[{a: 123, b: 321}]];
+    const inputs = {a: 123, b: 321};
 
     const state = reducer({session}, {type: SET_INPUTS, inputs});
 
-    expect(state.session.inputs).toEqual(inputs);
+    expect(state.session).toEqual({
+      key: '123',
+      project_name: CONFIG.project_name,
+      workflow_name: 'test',
+      inputs: {
+        foo: 'bar',
+        a: 123,
+        b: 321
+      }
+    });
   });
 });

@@ -8,16 +8,16 @@ import {getWorkflows} from '../../api/vulcan';
 import Output from './output';
 import Input from './input';
 
-import StartSession from './session/start';
+import SessionManager from './session/session_manager';
 
 import StepsList from './steps/steps_list';
 
 // Hardcode for now, since only one workflow
 const WORKFLOW_NAME = 'umap.cwl';
 
-export default function Manager() {
+export default function WorkflowManager() {
   const invoke = useActionInvoker();
-  const {session, setWorkflow, setPathIndex} = useContext(VulcanContext);
+  const {setWorkflow, setPathIndex} = useContext(VulcanContext);
 
   useEffect(() => {
     getWorkflows()
@@ -50,14 +50,7 @@ export default function Manager() {
           <StepsList></StepsList>
         </div>
         <div className='step-main-pane-wrapper'>
-          {session ? (
-            <React.Fragment>
-              <Input></Input>
-              <Output></Output>
-            </React.Fragment>
-          ) : (
-            <StartSession></StartSession>
-          )}
+          <SessionManager></SessionManager>
         </div>
       </div>
     </div>

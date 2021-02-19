@@ -1,3 +1,5 @@
+import * as _ from 'lodash';
+
 import XYPlotModel from '../models/xy_plot';
 
 export const validStep = ({workflow, pathIndex, stepIndex}) => {
@@ -22,10 +24,6 @@ export const hasUiInput = (step) => {
   return step.run.startsWith('ui-queries/');
 };
 
-export const inputs = ({session}) => {
-  return session.inputs;
-};
-
 export const defaultInputValues = (workflow) => {
   return Object.keys(workflow.inputs).reduce((result, inputName) => {
     if (workflow.inputs[inputName].default) {
@@ -33,6 +31,18 @@ export const defaultInputValues = (workflow) => {
     }
     return result;
   }, {});
+};
+
+export const allInputsDefined = (workflow, inputs) => {
+  return (
+    _.isEqual(
+      Object.keys(workflow.inputs).sort(),
+      Object.keys(inputs).sort()
+    ) &&
+    Object.keys(inputs).every((key) => {
+      return null !== inputs[key] && undefined !== inputs[key];
+    })
+  );
 };
 
 export const stepDataUrls = ({workflow, pathIndex, stepIndex}) => {

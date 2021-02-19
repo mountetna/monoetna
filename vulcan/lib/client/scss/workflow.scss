@@ -100,10 +100,13 @@
 }
 
 .start-session {
-  align-self: center;
+  .start-btn-container {
+    display: flex;
+    justify-content: center;
+  }
 
   button.large {
-    background-color: lightgreen;
+    background-color: green;
     font-size: x-large;
     border-radius: 20px;
     width: 20rem;
@@ -112,7 +115,13 @@
     cursor: pointer;
   }
 
-  button.large:hover {
-    border: 5px solid darkgreen;
+  button.large:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
+}
+
+.primary-inputs-container {
+  display: flex;
+  justify-content: space-around;
 }

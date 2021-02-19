@@ -7,7 +7,8 @@ import {
   plotModelForStep,
   validPath,
   validStep,
-  defaultInputValues
+  defaultInputValues,
+  allInputsDefined
 } from '../workflow_selector';
 
 describe('Workflow Selector', () => {
@@ -269,6 +270,129 @@ describe('Workflow Selector', () => {
 
       let results = defaultInputValues(workflow);
       expect(results).toEqual({bool_input: true, int_input: 42});
+    });
+  });
+
+  describe('allInputsDefined', () => {
+    fit('returns true when defined', () => {
+      const workflow = {
+        class: 'Workflow',
+        cwlVersion: 'v1.1',
+        inputs: {
+          bool_input: {
+            default: true,
+            label: 'Sample boolean',
+            type: 'boolean'
+          },
+          int_input: {
+            default: 42,
+            label: 'Sample input',
+            type: 'int'
+          },
+          no_default: {
+            default: null,
+            type: 'int'
+          }
+        },
+        outputs: {
+          sample_data: {
+            outputSource: 'final_step/sample_data',
+            type: 'File'
+          }
+        },
+        steps: []
+      };
+
+      expect(
+        allInputsDefined(workflow, {
+          int_input: 1,
+          bool_input: true,
+          no_default: 2
+        })
+      ).toEqual(true);
+    });
+
+    it('returns false if null or undefined', () => {
+      const workflow = {
+        class: 'Workflow',
+        cwlVersion: 'v1.1',
+        inputs: {
+          bool_input: {
+            default: true,
+            label: 'Sample boolean',
+            type: 'boolean'
+          },
+          int_input: {
+            default: 42,
+            label: 'Sample input',
+            type: 'int'
+          },
+          no_default: {
+            default: null,
+            type: 'int'
+          }
+        },
+        outputs: {
+          sample_data: {
+            outputSource: 'final_step/sample_data',
+            type: 'File'
+          }
+        },
+        steps: []
+      };
+
+      expect(
+        allInputsDefined(workflow, {
+          bool_input: true,
+          int_input: null,
+          no_default: 2
+        })
+      ).toEqual(false);
+
+      expect(
+        allInputsDefined(workflow, {
+          bool_input: true,
+          int_input: 1,
+          no_default: undefined
+        })
+      ).toEqual(false);
+    });
+
+    it('returns false if key missing', () => {
+      const workflow = {
+        class: 'Workflow',
+        cwlVersion: 'v1.1',
+        inputs: {
+          bool_input: {
+            default: true,
+            label: 'Sample boolean',
+            type: 'boolean'
+          },
+          int_input: {
+            default: 42,
+            label: 'Sample input',
+            type: 'int'
+          },
+          no_default: {
+            default: null,
+            type: 'int'
+          }
+        },
+        outputs: {
+          sample_data: {
+            outputSource: 'final_step/sample_data',
+            type: 'File'
+          }
+        },
+        steps: []
+      };
+
+      expect(
+        allInputsDefined(workflow, {
+          bool_input: true,
+          int_input: 1
+        })
+      ).toEqual(false);
     });
   });
 });
