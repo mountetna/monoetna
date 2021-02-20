@@ -33,6 +33,7 @@ class Polyphemus::SyncGneMetisFilesEtl < Polyphemus::MetisFileEtl
         begin
           file_path = file.file_path
           file_path = file_path.gsub(/^data\//, "")
+          logger.info "Writing #{file_path}"
           workflow.copy_file(dest: ::File.join(root, file_path), url: file.download_url)
         rescue => e
           errors << e

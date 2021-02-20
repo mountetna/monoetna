@@ -27,6 +27,7 @@ module Etna
           upload_timings = []
           upload_amount = 0
           last_rate = 0.00001
+          remaining = size
 
           filesystem.with_writeable(tmp_file, "w", size_hint: size) do |io|
             if stub
@@ -37,6 +38,7 @@ module Etna
 
                 upload_timings << [chunk.length, Time.now.to_f]
                 upload_amount += chunk.length
+                remaining -= chunk.length
 
                 if upload_timings.length > 150
                   s, _ = upload_timings.shift
@@ -53,7 +55,7 @@ module Etna
                 rate = upload_amount / (end_time - start_time)
 
                 if rate / last_rate > 1.3 || rate / last_rate < 0.7
-                  logger&.info("Uploading #{Etna::Formatting.as_size(rate)} per second")
+                  logger&.info("Uploading #{Etna::Formatting.as_size(rate)} per second, #{Etna::Formatting.as_size(remaining)} remaining")
 
                   if rate == 0
                     last_rate = 0.0001
