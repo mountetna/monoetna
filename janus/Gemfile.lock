@@ -83,6 +83,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  concurrent-ruby
   database_cleaner
   etna!
   factory_bot
