@@ -12,10 +12,10 @@
 #' See \url{https://mountetna.github.io/magma.html#update} for additional formatting details.
 #' 
 #' @return None directly.
-#' The function sends data to magma, and the only output is whether that send was successful, when \code{verbose = TRUE},
-#' or the string "No /update performed." if the user chooses not to proceed with performing the update.
+#' 
+#' The function sends data to magma, and the only outputs are information reported via the console.
 #' @details This function mimics the activity of the magma/update function, documented here \url{https://mountetna.github.io/magma.html#update},
-#' with the main difference being that the \code{revisions} input should be in nested list format rather than nested hash.
+#' with the main difference being that the \code{revisions} input should be in nested list format rather than nested hash (because R does not support hash structures).
 #' 
 #' Internally, the function:
 #' 

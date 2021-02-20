@@ -32,7 +32,7 @@ When not explicitly given in a function call: you will be prompted to input your
 This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
 and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 
-\item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward to run '/update'.}
+\item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.}
 
 \item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
@@ -43,15 +43,15 @@ for troubleshooting or advanced-user purposes only: \itemize{
 }
 \value{
 None directly.
-The function sends data to magma, and the only output is whether that send was successful, when \code{verbose = TRUE},
-or the string "No /update performed." if the user chooses not to proceed with performing the update.
+
+The function sends data to magma, and the only outputs are information reported via the console.
 }
 \description{
 Analogous to the '/update' function of magma
 }
 \details{
 This function mimics the activity of the magma/update function, documented here \url{https://mountetna.github.io/magma.html#update},
-with the main difference being that the \code{revisions} input should be in nested list format rather than nested hash.
+with the main difference being that the \code{revisions} input should be in nested list format rather than nested hash (because R does not support hash structures).
 
 Internally, the function:
 
