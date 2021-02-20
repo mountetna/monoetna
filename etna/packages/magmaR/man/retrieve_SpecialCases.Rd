@@ -50,9 +50,10 @@ Helper functions & special cases of magma /retrieve
 \details{
 These functions aim to help users determine acceptable inputs to other magmaR functions without needing to leave R.
 
-They make properly crafted calls to \code{\link{retrieve}} which target either the "template" or "identifier" special cases outlined in https://mountetna.github.io/magma.html#retrieve,
+They make properly crafted calls to \code{\link{retrieve}} which target either the "template" or "identifier" special cases outlined in \url{https://mountetna.github.io/magma.html#retrieve},
 followed by directly returning the output (\code{retrieveTemplate} and \code{retrieveIds}),
-or by returning just a targeted portion of that output (\code{retrieveModels} and \code{retrieveAttributes})
+by returning just a targeted portion of that output (\code{retrieveModels}),
+or by returning a targeted portion of a subsequent single-record call to \code{\link{retrieve}} (\code{retrieveAttributes}).
 }
 \section{Functions}{
 \itemize{
