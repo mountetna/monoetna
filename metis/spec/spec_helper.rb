@@ -325,16 +325,16 @@ EOT
 
 AUTH_USERS = {
   editor: {
-    email: 'metis@olympus.org', first: 'Metis', perm: 'e:athena,backup'
+    email: 'metis@olympus.org', name: 'Metis', perm: 'e:athena,backup'
   },
   viewer: {
-    email: 'athena@olympus.org', first: 'Athena', perm: 'v:athena'
+    email: 'athena@olympus.org', name: 'Athena', perm: 'v:athena'
   },
   admin: {
-    email: 'zeus@olympus.org', first: 'Zeus', perm: 'a:athena'
+    email: 'zeus@olympus.org', name: 'Zeus', perm: 'a:athena'
   },
   non_user: {
-    email: 'nessus@centaurs.org', first: 'Nessus', perm: ''
+    email: 'nessus@centaurs.org', name: 'Nessus', perm: ''
   }
 }
 def token_header(user_type)

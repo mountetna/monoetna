@@ -9,7 +9,7 @@ describe Janus::RefreshToken do
     @user = create(
       :user,
       email: 'janus@two-faces.org',
-      first_name: 'Janus', last_name: 'Bifrons'
+      name: 'Janus Bifrons'
     )
     gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
     @perm = create(:permission, project: gateway, user: @user, role: 'viewer')

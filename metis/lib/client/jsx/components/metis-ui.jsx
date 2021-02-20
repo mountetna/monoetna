@@ -7,7 +7,7 @@ import FolderView from './folder-view';
 import BucketView from './bucket-view';
 import ModalDialog from './modal-dialog';
 
-import { findRoute, setRoutes } from '../router';
+import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 
 const ROUTES = [
   {

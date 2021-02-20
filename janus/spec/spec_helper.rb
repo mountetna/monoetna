@@ -19,16 +19,16 @@ include Etna::Spec::Auth
 
 AUTH_USERS.update(
   zeus: {
-    email: 'zeus@olympus.org', first: 'Zeus', last: 'Almighty', perm: 'A:administration'
+    email: 'zeus@olympus.org', name: 'Zeus Almighty', perm: 'A:administration'
   },
   janus: {
-    email: 'janus@two-faces.org', first: 'Janus', last: 'Bifrons', perm: 'V:tunnel;e:gateway,mirror;a:door'
+    email: 'janus@two-faces.org', name: 'Janus Bifrons', perm: 'V:tunnel;e:gateway,mirror;a:door'
   },
   portunus: {
-    email: 'portunus@two-faces.org', first: 'Portunus', perm: 'e:door'
+    email: 'portunus@two-faces.org', name: 'Portunus', perm: 'e:door'
   },
   lar: {
-    email: 'lar@two-faces.org', first: 'Lar', last: 'Familiaris', perm: 'v:door'
+    email: 'lar@two-faces.org', name: 'Lar Familiaris', perm: 'v:door'
   }
 
 )
