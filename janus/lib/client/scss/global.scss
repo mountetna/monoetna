@@ -5,9 +5,9 @@
 }
 
 a {
-  color: darkorchid;
+  color: #0808fe;
   &:hover {
-    color: orchid;
+    color: turquoise;
   }
   text-decoration: none;
 }
@@ -21,22 +21,84 @@ a {
 }
 
 $janus-color: #333366;
+@function thin-rule($alpha, $color: $janus-color) {
+  @return 1px solid rgba($color,$alpha)
+}
+
+$thin_rule: thin-rule(0.1);
 
 @mixin janus-box {
-  padding-bottom: 10px;
-
   .title {
-    font-size: 1.4em;
-    border-bottom: 1px solid #a06db0;
-    padding-bottom: 5px;
-    padding-left: 5px;
-    margin-bottom: 5px;
+    font-size: 1.0em;
+    border-bottom: 1px solid #4431c6;
+    padding: 10px;
+    padding-left: 15px;
+    padding-top: 15px;
+    margin: 0;
   }
   .item {
     border-bottom: 1px solid rgba(#6d9eb0,0.1);
     padding: 7px;
+    padding-left: 15px;
     font-size: 1.0em;
   }
+}
+
+@mixin janus-project {
+  width: 100%;
+  box-sizing: border-box;
+
+  .project {
+    display: flex;
+    flex-direction: row;
+    border-bottom: $thin-rule;
+    height: 20px;
+    align-items: center;
+    padding: 4px;
+
+    &.header {
+      @include janus-header;
+    }
+
+    .project_name {
+      padding: 0px 10px;
+      flex: 0 0 200px;
+    }
+    .role {
+      flex: 0 0 200px;
+    }
+    .full_name {
+      flex: 0 0 40%;
+    }
+    .privileged {
+      flex: 0 0 100px;
+      align-content: center;
+      .icon-grp {
+        font-size:0.5em;
+        color: dodgerblue;
+      }
+    }
+    @include janus-row-container;
+  }
+}
+
+@mixin janus-row-container {
+  .item {
+    display: flex;
+    .cell {
+      padding-right: 5px;
+      input {
+        @include janus-input;
+      }
+
+    }
+  }
+}
+
+@mixin janus-header {
+  background: #eee;
+  color: #333;
+  font-family: 'Cousine', monospace;
 }
 
 @mixin janus-icon($color) {
@@ -50,10 +112,10 @@ $janus-color: #333366;
 
 
 @mixin janus-button {
-  border-radius: 1px;
+  border-radius: 2px;
   border: 1px solid rgba($janus-color,0.1);
   background: rgba($janus-color,0.1);
-  padding: 2px;
+  padding: 2px 4px;
   cursor: pointer;
   color: $janus-color;
   &:hover {
@@ -71,12 +133,4 @@ $janus-color: #333366;
   color: black;
   background: none;
   font-size: 1.0em;
-}
-
-#janus-group {
-  padding: 10px;
-  margin: 0;
-  button {
-    @include janus-button;
-  }
 }

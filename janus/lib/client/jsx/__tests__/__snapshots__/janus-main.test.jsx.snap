@@ -1,0 +1,150 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`JanusMain renders 1`] = `
+<div
+  id="janus-main"
+>
+  <div
+    id="identity-group"
+  >
+    <div
+      className="title"
+    >
+      Your Identity
+    </div>
+    <div
+      className="item"
+    >
+      Janus Bifrons
+    </div>
+    <div
+      className="item"
+    >
+      janus@two-faces.org
+    </div>
+    <div
+      className="item"
+    >
+      <button
+        onClick={[Function]}
+      >
+        Copy Token
+      </button>
+    </div>
+  </div>
+  <div
+    id="user-projects"
+  >
+    <div
+      className="title"
+    >
+      Your Projects
+    </div>
+    <div
+      className="project header"
+    >
+      <div
+        className="project_name"
+      >
+         Project Name 
+      </div>
+      <div
+        className="full_name"
+      >
+         Title 
+      </div>
+      <div
+        className="role"
+      >
+         Role 
+      </div>
+      <div
+        className="privileged"
+        title="can see restricted data"
+      >
+         Privileged 
+      </div>
+    </div>
+    <div
+      className="project"
+    >
+      <div
+        className="project_name"
+      >
+        <span>
+          gateway
+        </span>
+      </div>
+      <div
+        className="full_name"
+      >
+        Gateway
+      </div>
+      <div
+        className="role"
+      >
+        editor
+      </div>
+      <div
+        className="privileged"
+      />
+    </div>
+    <div
+      className="project"
+    >
+      <div
+        className="project_name"
+      >
+        <span>
+          mirror
+        </span>
+      </div>
+      <div
+        className="full_name"
+      >
+        Mirror
+      </div>
+      <div
+        className="role"
+      >
+        editor
+      </div>
+      <div
+        className="privileged"
+      />
+    </div>
+    <div
+      className="project"
+    >
+      <div
+        className="project_name"
+      >
+        <span>
+          tunnel
+        </span>
+      </div>
+      <div
+        className="full_name"
+      >
+        Tunnel
+      </div>
+      <div
+        className="role"
+      >
+        viewer
+      </div>
+      <div
+        className="privileged"
+      >
+        <span
+          className="icon-grp fa-stack fa-fw"
+        >
+          <i
+            className="icon undefined check fa fa-2x fa-check"
+          />
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+`;
