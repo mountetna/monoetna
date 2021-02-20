@@ -25,7 +25,14 @@
 #' @return A dataframe
 #' @details This function makes a curl get request to magma/retrieve, with properly reformatted versions of user inputs, plus \code{format = "tsv"}.
 #' Then, it converts the tsv-string output into a dataframe.
+#' 
+#' Note: When \code{format = "tsv"}, magma/retrieve returns just an identifier for matrix-type attributes.
+#' To retrieve underlying data for such attributes, use \code{\link{retrieveMatrix}} which is a specialized wrapper around \code{\link{retrieveJSON}}.
 #' @seealso
+#' \code{\link{retrieveMatrix}} for retrieving matrix data types.
+#' 
+#' \code{\link{retrieveJSON}} for similar functionality, but where the call to magma/retrieve is made with \code{format = "json"} and the output is a list.
+#' 
 #' \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
 #' 
 #' \code{\link{retrieveProjects}} for exploring options for the \code{projectName} input.
@@ -71,10 +78,20 @@ retrieve <- function(
 
 #' Download data from magma as a json, and convert to a list
 #' @inheritParams retrieve
-#' @param filter potential filter of the data
 #' @return A list
 #' @details This function makes a call to magma/retrieve with \code{format = "json"}.
 #' Then, it converts the json output into a list which is more compatible with R.
+#' @seealso
+#' \code{\link{retrieve}} for similar functionality, but where the call to magma/retrieve will be made with \code{format = "tsv"} and the output is a dataframe.
+#' 
+#' \code{\link{retrieveMatrix}} for matrix data-targeted utilization of this current \code{retreiveJSON} function, followed by automated restructuring of the return into a matrix format.
+#' 
+#' \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
+#' 
+#' \code{\link{retrieveProjects}} for exploring options for the \code{projectName} input.
+#' 
+#' \code{\link{retrieveModels}}, \code{\link{retrieveIds}}, and \code{\link{retrieveAttributes}} for exploring options for the \code{modelName}, \code{recordNames}, and \code{attributeNames} inputs, respectively.
+#' 
 #' @export
 #' @examples
 #' 

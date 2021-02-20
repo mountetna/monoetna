@@ -76,7 +76,7 @@ retrieveMatrix <- function(
         stop("This function only works for one attribute at a time.")
     }
     
-    # Retrieve as json to get the matrix itself
+    # Retrieve as json to get the matrix data
     json <- retrieveJSON(
         projectName = projectName,
         modelName = modelName,

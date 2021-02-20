@@ -57,6 +57,9 @@ Download data from magma as a tsv, and convert to a data.frame
 \details{
 This function makes a curl get request to magma/retrieve, with properly reformatted versions of user inputs, plus \code{format = "tsv"}.
 Then, it converts the tsv-string output into a dataframe.
+
+Note: When \code{format = "tsv"}, magma/retrieve returns just an identifier for matrix-type attributes.
+To retrieve underlying data for such attributes, use \code{\link{retrieveMatrix}} which is a specialized wrapper around \code{\link{retrieveJSON}}.
 }
 \examples{
 
@@ -72,6 +75,10 @@ if (interactive()) {
 
 }
 \seealso{
+\code{\link{retrieveMatrix}} for retrieving matrix data types.
+
+\code{\link{retrieveJSON}} for similar functionality, but where the call to magma/retrieve is made with \code{format = "json"} and the output is a list.
+
 \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
 
 \code{\link{retrieveProjects}} for exploring options for the \code{projectName} input.

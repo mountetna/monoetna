@@ -1,12 +1,29 @@
-#' Retrieve data from one model of a project, metadata, for records linked to data from a different, target model of the same project
+#' Retrieve data from one model ("meta") of a project, for records that are linked to records of data from a different model ("target").
 #' @inheritParams retrieve
 #' @param target_modelName,target_recordNames Strings which indicate the 'target' data that meta-data is desired to be linked to.
-#' @param meta_modelName,meta_attributeNames Strings which indicate the linked "meta"data to retrieve.
-#' @param meta_group.by \emph{Not implemented yet.} String, an attribute within the meta_model that can be used to group data when there are expected to be more than 1 record of metadata per record of target data.
-#' @param ... Additional parameters passed along to the internal `.query()` and `.retrieve()` functions.
-#' For troubleshooting or privileged-user purposes only.
-#' Options: \code{verbose} (Logical), or \code{url.base} (String which can be user to direct toward production versus staging versus development versions of magma).
-#' @return A dataframe with rows = target_recordNames and columns = either meta_attributeNames or repeats of meta_attributeNames to accommodate 1:many mappings of target data records to metadata records.
+#' They work the same as inputs of other functions without the \code{target_} portion, and
+#' these inputs ultimately set which records of "meta" model data to actually obtain.
+#' 
+#' \strong{The idea here...} is retrieval of "meta"data, such as patient-level data, to go alongside of a separate download (separate call) of "target" assay data that might be part of a different model.
+#' @param meta_modelName,meta_attributeNames Strings which indicate the "meta"data to retrieve.
+#' They work the same as inputs of other functions without the \code{meta_} portion.
+#' @details This function retrieves data from one model (the "meta" model) transformed so that rows of the returned dataframe correspond to records of a different model (the "target" model).
+#' 
+#' Internally, it first determines the path, through child-parent model linkages, to navigate from the meta_model to the target_model.
+#' 
+#' Then, it performs calls to \code{\link{query}} in order to retrieve identifier linkage along that path.
+#' The identifier linkage is turned into a dataframe of identifier traces.
+#' 
+#' Next, it performs a call to \code{\link{retrieve}} to obtain the wanted metadata as a dataframe.
+#' 
+#' (If linkage paths would create any 1:many mappings of target data records to metadata records, data of extra records are shifted "rightwards" into columns appended with "_#" in their names.
+#' This is a reliable, though imperfect, method so we hope to implement alternatives in the future.)
+#' 
+#' Finally, the dataframe of linkage path identifiers is merged with the metadata dataframe, reshaping the metadata to properly have one row per requested \code{target_recordName}.
+#' @return A dataframe with rows = \code{target_recordNames} and columns = model identifiers and either \code{meta_attributeNames} or repeats of \code{meta_attributeNames_#} when there are 1:many mappings of target data records to metadata records.
+#' @seealso
+#' \code{\link{retrieve}} and \code{\link{retrieveMatrix}} which will likely be useful for retrieving associated "target" data.
+#' 
 #' @export
 #' @importFrom utils tail
 #' @examples
@@ -18,8 +35,7 @@
 #'         meta_modelName = "subject",
 #'         meta_attributeNames = "group",
 #'         target_modelName = "rna_seq",
-#'         target_modelRecords = "all",
-#'         filter = "")
+#'         target_recordNames = "all")
 #' }
 #'
 retrieveMetadata <- function(
@@ -28,7 +44,6 @@ retrieveMetadata <- function(
     meta_attributeNames = "all",
     target_modelName,
     target_recordNames = "all",
-    meta_group.by = NULL,
     token = .get_TOKEN(),
     ...) {
     
