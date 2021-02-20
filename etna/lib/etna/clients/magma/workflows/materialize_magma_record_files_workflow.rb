@@ -1,5 +1,4 @@
 require 'ostruct'
-require 'digest'
 require 'fileutils'
 require 'tempfile'
 
@@ -10,10 +9,10 @@ module Etna
           :metis_client, :magma_client, :project_name,
           :model_name, :model_filters, :model_attributes_mask,
           :filesystem, :logger, :stub_files, :concurrency,
-          :skip_tmpdir, keyword_init: true)
+          :record_names, keyword_init: true)
 
         def initialize(**kwds)
-          super(**({filesystem: Etna::Filesystem.new, concurrency: 10}.update(kwds)))
+          super(**({filesystem: Etna::Filesystem.new, concurrency: 10, record_names: "all"}.update(kwds)))
         end
 
         def magma_crud
@@ -25,41 +24,20 @@ module Etna
         end
 
         def materialize_all(dest)
-          tmpdir = skip_tmpdir ? nil : filesystem.tmpdir
           templates = {}
 
           semaphore = Concurrent::Semaphore.new(concurrency)
           errors = Queue.new
 
-          begin
-            model_walker.walk_from(
-                model_name,
-                model_attributes_mask: model_attributes_mask,
-                model_filters: model_filters,
-                page_size: 500,
-            ) do |template, document|
-              logger&.info("Materializing #{template.name}##{document[template.identifier]}")
-              templates[template.name] = template
-
-              begin
-                if (error = errors.pop(true))
-                  raise error
-                end
-              rescue ThreadError
-              end
-
-              semaphore.acquire
-
-              Thread.new do
-                materialize_record(dest, tmpdir, template, document)
-              rescue => e
-                errors << e
-              ensure
-                semaphore.release
-              end
-            end
-
-            semaphore.acquire(concurrency)
+          model_walker.walk_from(
+              model_name,
+              record_names,
+              model_attributes_mask: model_attributes_mask,
+              model_filters: model_filters,
+              page_size: 500,
+          ) do |template, document|
+            logger&.info("Materializing #{template.name}##{document[template.identifier]}")
+            templates[template.name] = template
 
             begin
               if (error = errors.pop(true))
@@ -67,20 +45,26 @@ module Etna
               end
             rescue ThreadError
             end
-          ensure
-            filesystem.rm_rf(tmpdir) unless skip_tmpdir
-          end
-        end
 
-        def each_root_record
-          request = RetrievalRequest.new(project_name: project_name, model_name: model_name, record_names: "all",
-              filter: filter, page_size: 100, page: 1)
-          magma_crud.page_records(model_name, request) do |response|
-            model = response.models.model(model_name)
-            template = model.template
-            model.documents.document_keys.each do |key|
-              yield template, model.documents.document(key)
+            semaphore.acquire
+            Thread.new do
+              begin
+                materialize_record(dest, template, document)
+              rescue => e
+                errors << e
+              ensure
+                semaphore.release
+              end
             end
+          end
+
+          semaphore.acquire(concurrency)
+
+          begin
+            if (error = errors.pop(true))
+              raise error
+            end
+          rescue ThreadError
           end
         end
 
@@ -109,11 +93,10 @@ module Etna
           @sync_metis_data_workflow ||= Etna::Clients::Metis::SyncMetisDataWorkflow.new(
               metis_client: metis_client,
               logger: logger,
-              skip_tmpdir: skip_tmpdir,
               filesystem: filesystem)
         end
 
-        def materialize_record(dest_dir, tmpdir, template, record)
+        def materialize_record(dest_dir, template, record)
           record_to_serialize = record.dup
 
           each_file(template, record) do |attr_name, url, filename, idx|
@@ -122,7 +105,7 @@ module Etna
             end
 
             dest_file = File.join(dest_dir, metadata_file_name(record_name: record[template.identifier], record_model_name: template.name, ext: "_#{attr_name}_#{idx}#{File.extname(filename)}"))
-            sync_metis_data_workflow.copy_file(bin_root_dir: dest_dir, tmpdir: tmpdir, dest: dest_file, url: url, stub: stub_files)
+            sync_metis_data_workflow.copy_file(dest: dest_file, url: url, stub: stub_files)
             record_to_serialize[attr_name] << {file: dest_file, original_filename: filename}
           end
 

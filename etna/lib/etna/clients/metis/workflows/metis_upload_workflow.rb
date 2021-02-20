@@ -4,6 +4,8 @@ require 'fileutils'
 require 'tempfile'
 require 'securerandom'
 
+$digest_mutx = Mutex.new
+
 module Etna
   module Clients
     class Metis
@@ -74,17 +76,12 @@ module Etna
               ))
 
               unsent_zero_byte_file = false
-            rescue StreamingUploadError => e
-              m = yield [:error, e] unless block.nil?
-              if m == false
-                raise e
-              end
-
-              return upload_parts(upload, upload_path, attempt_number + 1, true, &block)
             rescue Etna::Error => e
-              m = yield [:error, e] unless block.nil?
-              if m == false
-                raise e
+              unless block.nil?
+                m = yield [:error, e]
+                if m == false
+                  raise e
+                end
               end
 
               if e.status == 422
@@ -126,10 +123,10 @@ module Etna
           def advance_position!
             self.current_byte_position = self.current_byte_position + self.next_blob_size
             self.next_blob_size = [
-                MAX_BLOB_SIZE,
-                # in fact we should stop when we hit the end of the file
-                file_size - current_byte_position
-            ].min
+                                      MAX_BLOB_SIZE,
+                                      # in fact we should stop when we hit the end of the file
+                                      file_size - current_byte_position
+                                  ].min
           end
 
           def complete?
@@ -137,7 +134,14 @@ module Etna
           end
 
           def next_blob_hash
-            Digest::MD5.hexdigest(next_blob_bytes)
+            bytes = next_blob_bytes
+            if bytes.empty?
+              return ZERO_HASH
+            end
+
+            $digest_mutx.synchronize do
+              return Digest::MD5.hexdigest(bytes)
+            end
           end
 
           def next_blob_bytes
@@ -166,28 +170,34 @@ module Etna
           def next_blob_bytes
             next_left = current_byte_position
             next_right = current_byte_position + next_blob_size
-            last_right = @read_position
 
-            if next_right < last_right
-              raise StreamingUploadError.new("Upload needs restart, but source is streaming and ephemeral.  You need to restart the source stream and create a new upload.")
-            elsif last_right < next_left
+            if next_right < @read_position
+              raise StreamingUploadError.new("Upload needs restart, but source is streaming and ephemeral. #{next_right} #{@read_position} You need to restart the source stream and create a new upload.")
+            elsif @read_position < next_left
               # read from the stream and discard until we are positioned for the next read.
-              data = @readable_io.read(next_left - last_right)
+              data = @readable_io.read(next_left - @read_position)
+              raise StreamingUploadError.new("Unexpected EOF in read stream") if data.nil?
+
               @read_position += data.bytes.length
             end
 
             # If we have consumed all requested data, return what we have consumed.
             # If we have requested no data, make sure to provide "" as the result.
-            if next_right == last_right
+            if next_right == @read_position
               return @last_bytes
             end
 
-            if last_right != next_left
-              raise StreamingUploadError.new("Alignment error, source data does not match expected upload resume.  Restart the upload to address.")
+            if @read_position != next_left
+              raise StreamingUploadError.new("Alignment error, source data does not match expected upload resume. #{@read_position} #{next_left} Restart the upload to address.")
             end
 
-            @last_bytes = begin
-              @readable_io.read(next_blob_size).tap { |data| @read_position += data.bytes.length }
+            @last_bytes = "".tap do |bytes|
+              while @read_position < next_right
+                bytes << @readable_io.read(next_right - @read_position).tap do |data|
+                  raise StreamingUploadError.new("Unexpected EOF in read stream") if data.nil?
+                  @read_position += data.bytes.length
+                end
+              end
             end
           end
         end

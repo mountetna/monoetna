@@ -265,17 +265,27 @@ module Etna
       def with_hot_pipe(opts, receiver, *args, &block)
         rp, wp = IO.pipe
         begin
-          executor = Concurrent::SingleThreadExecutor.new
+          executor = Concurrent::SingleThreadExecutor.new(fallback_policy: :abort)
           begin
             if opts.include?('w')
               future = Concurrent::Promises.future_on(executor) do
                 self.send(receiver, rp, *args)
+              rescue => e
+                Etna::Application.instance.logger.log_error(e)
+                raise e
+              ensure
+                rp.close
               end
 
               yield wp
             else
               future = Concurrent::Promises.future_on(executor) do
                 self.send(receiver, wp, *args)
+              rescue => e
+                Etna::Application.instance.logger.log_error(e)
+                raise e
+              ensure
+                wp.close
               end
 
               yield rp
@@ -347,7 +357,7 @@ module Etna
         rescue Etna::Error => e
           if e.status == 404
             return false
-          elsif e.msg =~ /Invalid folder/
+          elsif e.message =~ /Invalid folder/
             return false
           end
 
