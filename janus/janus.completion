@@ -92,16 +92,7 @@ return
 fi
 shift
 if [[ "$#" == "1" ]];  then
-all_completion_names="__first_name__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-if [[ "$#" == "1" ]];  then
-all_completion_names="__last_name__"
+all_completion_names="__name__"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
 fi

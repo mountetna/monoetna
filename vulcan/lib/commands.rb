@@ -1,5 +1,6 @@
 require 'date'
 require 'logger'
+require 'readline'
 
 class Vulcan
   class Schema < Etna::Command
@@ -15,6 +16,174 @@ class Vulcan
     def setup(config)
       super
       Vulcan.instance.setup_db
+    end
+  end
+
+  class Workflow
+    include Etna::CommandExecutor
+
+    class Run
+      def execute(project_name, workflow_name)
+        @project_name = project_name
+        @workflow_name = workflow_name
+
+        while true
+          orchestration.run_until_done!(storage)
+          find_all_output_ui_queries.each do |query_name, source, path|
+            if self.respond_to?(query_name.to_sym)
+              self.send(query_name.to_sym, source, path)
+            else
+              show_data(source, path)
+            end
+          end
+
+          while (input = find_next_primary_input)
+            val = collect_primary_input(input.id, input.type)
+            session.define_user_input([:primary_inputs, input.id], val)
+          end
+
+          while (ui_query = find_next_input_ui_query)
+            query_name, source = ui_query
+
+            if self.respond_to?(query_name.to_sym)
+              val = self.send(query_name.to_sym, source.join('/'))
+            else
+              val = self.query_json(source.join('/'))
+            end
+            session.define_user_input(source, val)
+          end
+        end
+      end
+
+      def show_data(source, path)
+        puts "** #{source.join('/')}:"
+        puts ::File.read(path)
+        puts
+      end
+
+      def query_json(name)
+        JSON.parse(Readline.gets("json value for #{name.inspect}: ", true))
+      end
+
+      def query_string(name)
+        Readline.gets("string value for #{name.inspect}: ", true)
+      end
+
+      def query_float(name)
+        while true
+          val = Readline.gets("float value for #{name.inspect}: ", true)
+          begin
+            return Float(val)
+          rescue
+          end
+        end
+      end
+
+      def query_int(name)
+        while true
+          val = Readline.gets("int value for #{name.inspect}: ", true)
+          begin
+            return Integer(val)
+          rescue
+          end
+        end
+      end
+
+      def collect_primary_input(id, type)
+        case type
+        when 'null'
+          nil
+        when 'string'
+          query_string("primary input #{id}")
+        when 'int'
+          query_int("primary input #{id}")
+        when 'long'
+          query_float("primary input #{id}")
+        when 'double'
+          query_float("primary input #{id}")
+        when 'float'
+          query_float("primary input #{id}")
+        else
+          query_json("primary input #{id}")
+        end
+      end
+
+      def find_next_primary_input
+        workflow.inputs.each do |input|
+          return input unless session.include?([:primary_inputs, input.id])
+        end
+      end
+
+      def find_next_input_ui_query
+        orchestration.unique_paths.zip(orchestration.build_targets_for_paths).each do |path, build_targets|
+          path.zip(build_targets).each do |step_name, build_target|
+            step = workflow.find_step(step_name)
+            next if step.nil?
+
+            query_name = step.ui_query_name
+            next if query_name.nil?
+
+            build_target.build_outputs.keys.each do |build_output_name|
+              source = [step_name, build_output_name]
+              return [query_name, source] unless session.include?(source)
+            end
+          end
+        end
+      end
+
+      def find_all_output_ui_queries
+        [].tap do |result|
+          orchestration.unique_paths.zip(orchestration.build_targets_for_paths).each do |path, build_targets|
+            path.zip(build_targets).each do |step_name, build_target|
+              step = workflow.find_step(step_name)
+
+              if step
+                query_name = step.ui_query_name
+                next if query_name.nil?
+              elsif step_name == :primary_outputs
+                query_name = :show_data
+              else
+                next
+              end
+
+              if build_target.is_built?(storage) && build_target.build_outputs.length == 0
+                build_target.input_files.each do |sf|
+                  result << [query_name, [step_name, sf.logical_name], sf.data_path(storage)]
+                end
+              end
+            end
+          end
+        end
+      end
+
+      def workflow
+        session.workflow.tap do |workflow|
+          if workflow.nil?
+            raise "Workflow by name #{@workflow_name} does not exist!"
+          end
+        end
+      end
+
+      def session
+        @session ||= Session.from_json({'project_name' => project_name, 'workflow_name' => workflow_name})
+      end
+
+      def orchestration
+        session.orchestration.tap do |orchestration|
+          if orchestration.nil?
+            raise Etna::NotFound.new("Workflow by the name #{session.workflow_name} could not be found.")
+          end
+        end
+      end
+
+      def storage
+        @storage ||= Vulcan::Storage.new
+      end
+
+      def setup(config)
+        super
+        Vulcan.instance.setup_db
+      end
     end
   end
 

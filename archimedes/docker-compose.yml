@@ -17,7 +17,7 @@ services:
     - /var/run/docker.sock:/var/run/docker.sock:ro
     - archimedes-pycharm-opt:/opt/.pycharm_helpers
     - archimedes-exec:/archimedes-exec
-    - ../vulcan/workflows/scripts:/app/vulcan_scripts
+    - ../vulcan/lib/server/workflows/scripts:/app/vulcan_scripts
     environment:
       HOST_DIR: $PWD
     entrypoint: /entrypoints/development.sh
