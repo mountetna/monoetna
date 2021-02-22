@@ -57,11 +57,11 @@ export default function WorkflowManager() {
     <div className='workflow-manager'>
       <div className='workflow-header'>{WORKFLOW_SHORT}</div>
       <div className='step-wrapper'>
-        <div className='step-nav-wrapper'>
-          <StepsList></StepsList>
-        </div>
         <div className='step-main-pane-wrapper'>
           <SessionManager></SessionManager>
+        </div>
+        <div className='step-nav-wrapper'>
+          <StepsList></StepsList>
         </div>
       </div>
       <Modal

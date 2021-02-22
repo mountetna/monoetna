@@ -89,7 +89,7 @@ export default function PrimaryInputs() {
 
   return (
     <div className='primary-inputs inputs-pane'>
-      <div class='title'>Primary inputs</div>
+      <div class='title'>Inputs</div>
       <div className='primary-inputs-container items'>
         {components.map((comp) => {
           return comp;
