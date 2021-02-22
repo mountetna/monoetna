@@ -289,7 +289,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--file')
+    parser.add_argument('--file', help="The script file to run")
     parser.add_argument('--isolator', default='local', choices=['docker', 'local'])
     parser.add_argument('--image', default='etnaagent/archimedes:latest')
     parser.add_argument('--input', dest='inputs', action='append', help="input files of the form name:/path/on/host")
