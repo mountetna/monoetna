@@ -1,4 +1,5 @@
 import React, {useContext, useEffect} from 'react';
+import Modal from 'react-modal';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
@@ -18,7 +19,20 @@ const WORKFLOW_NAME = `${WORKFLOW_SHORT}.cwl`;
 
 export default function WorkflowManager() {
   const invoke = useActionInvoker();
-  const {setWorkflow, setPathIndex} = useContext(VulcanContext);
+  const {calculating, setWorkflow, setPathIndex} = useContext(VulcanContext);
+
+  Modal.setAppElement('#root');
+
+  const customStyles = {
+    content: {
+      top: '50%',
+      left: '50%',
+      right: 'auto',
+      bottom: 'auto',
+      marginRight: '-50%',
+      transform: 'translate(-50%, -50%)'
+    }
+  };
 
   useEffect(() => {
     getWorkflows()
@@ -52,6 +66,14 @@ export default function WorkflowManager() {
           <SessionManager></SessionManager>
         </div>
       </div>
+      <Modal
+        isOpen={calculating}
+        style={customStyles}
+        contentLabel='Calculating Notice'
+      >
+        <h2>Calculations in progress</h2>
+        <div>Archimedes calculations in progress. Please be patient.</div>
+      </Modal>
     </div>
   );
 }

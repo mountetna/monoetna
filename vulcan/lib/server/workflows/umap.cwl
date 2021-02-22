@@ -13,11 +13,18 @@ inputs:
   someIntWithoutDefault:
     type: int
     label: 'User supplies a number'
+  includeParamA:
+    type: boolean
+    default: true
+    label: 'regress by param A?'
+  aFloat:
+    type: float
 
 outputs:
   the_result:
     type: int
     outputSource: finalStep/sum
+    format: text
 
 steps:
   firstAdd:

@@ -12,6 +12,7 @@ import {
 } from '../../../selectors/workflow_selector';
 
 import PrimaryInputs from './primary_inputs';
+import {STATUS} from '../../../models/steps';
 
 export default function SessionManager() {
   // Placeholder for when user can select a session
@@ -24,7 +25,8 @@ export default function SessionManager() {
     setStepIndex,
     setSession,
     setStatus,
-    setInputs
+    setInputs,
+    setCalculating
   } = useContext(VulcanContext);
   const [complete, setComplete] = useState(null);
 
@@ -55,10 +57,17 @@ export default function SessionManager() {
   }, [workflow, session]);
 
   function handleOnClick() {
+    setCalculating(true);
     submit(workflow.name, session.inputs, session.key)
       .then((response) => {
         setSession(response.session);
         setStatus(response.status);
+        setCalculating(false);
+        setStepIndex(
+          response.status[pathIndex].findIndex(
+            (s) => STATUS.PENDING === s.status
+          )
+        );
       })
       .catch((e) => {
         console.error(e);
