@@ -14,6 +14,10 @@ class Polyphemus
       @version = version
     end
 
+    def to_s
+      value.inspect
+    end
+
     def [](k)
       value[k.to_s]
     end
@@ -22,9 +26,10 @@ class Polyphemus
       value[k.to_s] = v
     end
 
-    def reset!
+    def reset!(&block)
       load_from_db
       @updated_at = Time.at(0)
+      block.call unless block.nil?
       save_to_db
       self
     end

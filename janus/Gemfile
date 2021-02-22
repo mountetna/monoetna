@@ -10,6 +10,7 @@ gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/arti
 gem 'jwt'
 gem 'puma', '5.0.2'
 gem 'nokogiri'
+gem 'concurrent-ruby'
 
 group :test do
   gem 'rspec'

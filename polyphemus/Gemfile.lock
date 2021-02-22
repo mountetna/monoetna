@@ -142,6 +142,7 @@ PLATFORMS
 DEPENDENCIES
   actionpack
   aspera-cli
+  concurrent-ruby
   database_cleaner
   debase
   etna!

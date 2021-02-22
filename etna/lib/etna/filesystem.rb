@@ -1,36 +1,52 @@
 require 'yaml'
 require 'fileutils'
 require 'open3'
+require 'securerandom'
+require 'concurrent-ruby'
 
 module Etna
   # A class that encapsulates opening / reading file system entries that abstracts normal file access in order
   # to make stubbing, substituting, and testing easier.
   class Filesystem
     def with_writeable(dest, opts = 'w', size_hint: nil, &block)
+      raise "with_writeable not supported by #{self.class.name}" unless self.class == Filesystem
       ::File.open(dest, opts, &block)
     end
 
+    def ls(dir)
+      raise "ls not supported by #{self.class.name}" unless self.class == Filesystem
+      ::Dir.entries(dir).select { |p| !p.start_with?('.') }.map do |path|
+        ::File.file?(::File.join(dir, path)) ? [:file, path] : [:dir, path]
+      end
+    end
+
     def with_readable(src, opts = 'r', &block)
+      raise "with_readable not supported by #{self.class.name}" unless self.class == Filesystem
       ::File.open(src, opts, &block)
     end
 
     def mkdir_p(dir)
+      raise "mkdir_p not supported by #{self.class.name}" unless self.class == Filesystem
       ::FileUtils.mkdir_p(dir)
     end
 
     def rm_rf(dir)
+      raise "rm_rf not supported by #{self.class.name}" unless self.class == Filesystem
       ::FileUtils.rm_rf(dir)
     end
 
     def tmpdir
+      raise "tmpdir not supported by #{self.class.name}" unless self.class == Filesystem
       ::Dir.mktmpdir
     end
 
     def exist?(src)
+      raise "exist? not supported by #{self.class.name}" unless self.class == Filesystem
       ::File.exist?(src)
     end
 
     def mv(src, dest)
+      raise "mv not supported by #{self.class.name}" unless self.class == Filesystem
       ::FileUtils.mv(src, dest)
     end
 
@@ -179,7 +195,7 @@ module Etna
           cmd << remote_path
           cmd << local_path
 
-          cmd << { out: wd }
+          cmd << {out: wd}
         elsif opts.include?('w')
           cmd << '--mode=send'
           cmd << "--host=#{@host}"
@@ -187,7 +203,7 @@ module Etna
           cmd << local_path
           cmd << remote_path
 
-          cmd << { in: rd }
+          cmd << {in: rd}
         end
 
         cmd
@@ -196,22 +212,9 @@ module Etna
 
     # Genentech's aspera deployment doesn't support modern commands, unfortunately...
     class GeneAsperaCliFilesystem < AsperaCliFilesystem
-      def tmpdir
-        raise "tmpdir is not supported"
-      end
-
-      def rm_rf
-        raise "rm_rf is not supported"
-      end
-
       def mkdir_p(dest)
         # Pass through -- this file system creates containing directories by default, womp womp.
       end
-
-      def mv
-        raise "mv is not supported"
-      end
-
 
       def mkcommand(rd, wd, file, opts, size_hint: nil)
         if opts.include?('w')
@@ -238,6 +241,131 @@ module Etna
           io.write("\n")
           yield io
         end
+      end
+    end
+
+    class Metis < Filesystem
+      def initialize(metis_client:, project_name:, bucket_name:, root: '/', uuid: SecureRandom.uuid)
+        @metis_client = metis_client
+        @project_name = project_name
+        @bucket_name = bucket_name
+        @root = root
+        @metis_uid = uuid
+      end
+
+      def metis_path_of(path)
+        joined = ::File.join(@root, path)
+        joined[0] == "/" ? joined.slice(1..-1) : joined
+      end
+
+      def create_upload_workflow
+        Etna::Clients::Metis::MetisUploadWorkflow.new(metis_client: @metis_client, metis_uid: @metis_uid, project_name: @project_name, bucket_name: @bucket_name, max_attempts: 3)
+      end
+
+      def with_hot_pipe(opts, receiver, *args, &block)
+        rp, wp = IO.pipe
+        begin
+          executor = Concurrent::SingleThreadExecutor.new(fallback_policy: :abort)
+          begin
+            if opts.include?('w')
+              future = Concurrent::Promises.future_on(executor) do
+                self.send(receiver, rp, *args)
+              rescue => e
+                Etna::Application.instance.logger.log_error(e)
+                raise e
+              ensure
+                rp.close
+              end
+
+              yield wp
+            else
+              future = Concurrent::Promises.future_on(executor) do
+                self.send(receiver, wp, *args)
+              rescue => e
+                Etna::Application.instance.logger.log_error(e)
+                raise e
+              ensure
+                wp.close
+              end
+
+              yield rp
+            end
+
+            future.wait!
+          ensure
+            executor.shutdown
+            executor.kill unless executor.wait_for_termination(5)
+          end
+        ensure
+          rp.close
+          wp.close
+        end
+      end
+
+      def do_streaming_upload(rp, dest, size_hint)
+        streaming_upload = Etna::Clients::Metis::MetisUploadWorkflow::StreamingIOUpload.new(readable_io: rp, size_hint: size_hint)
+        create_upload_workflow.do_upload(
+            streaming_upload,
+            metis_path_of(dest)
+        )
+      end
+
+      def with_writeable(dest, opts = 'w', size_hint: nil, &block)
+        self.with_hot_pipe(opts, :do_streaming_upload, dest, size_hint) do |wp|
+          yield wp
+        end
+      end
+
+      def create_download_workflow
+        Etna::Clients::Metis::MetisDownloadWorkflow.new(metis_client: @metis_client, project_name: @project_name, bucket_name: @bucket_name, max_attempts: 3)
+      end
+
+      def do_streaming_download(wp, metis_file)
+        create_download_workflow.do_download(wp, metis_file)
+      end
+
+      def with_readable(src, opts = 'r', &block)
+        metis_file = list_metis_directory(::File.dirname(src)).files.all.find { |f| f.file_name == ::File.basename(src) }
+        raise "Metis file at #{@project_name}/#{@bucket_name}/#{@root}/#{src} not found.  No such file" if metis_file.nil?
+
+        self.with_hot_pipe(opts, :do_streaming_download, metis_file) do |rp|
+          yield rp
+        end
+      end
+
+      def list_metis_directory(path)
+        @metis_client.list_folder(Etna::Clients::Metis::ListFolderRequest.new(project_name: @project_name, bucket_name: @bucket_name, folder_path: metis_path_of(path)))
+      end
+
+      def mkdir_p(dir)
+        create_folder_request = Etna::Clients::Metis::CreateFolderRequest.new(
+            project_name: @project_name,
+            bucket_name: @bucket_name,
+            folder_path: metis_path_of(dir),
+        )
+        @metis_client.create_folder(create_folder_request)
+      end
+
+      def ls(dir)
+        response = list_metis_directory(::File.dirname(dir))
+        response.files.map { |f| [:file, f.file_name] } + response.folders.map { |f| [:folder, f.folder_name] }
+      end
+
+      def exist?(src)
+        begin
+          response = list_metis_directory(::File.dirname(src))
+        rescue Etna::Error => e
+          if e.status == 404
+            return false
+          elsif e.message =~ /Invalid folder/
+            return false
+          end
+
+          raise e
+        end
+
+        response.files.all.any? { |f| f.file_name == ::File.basename(src) } ||
+            response.folders.all.any? { |f| f.folder_name == ::File.basename(src) }
       end
     end
 
