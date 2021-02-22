@@ -19,6 +19,7 @@ export default function SessionManager() {
   // Placeholder for when user can select a session
   //   or continue a past session.
   const invoke = useActionInvoker();
+  const context = useContext(VulcanContext);
   const {
     workflow,
     session,
@@ -29,7 +30,7 @@ export default function SessionManager() {
     setStatus,
     setInputs,
     setCalculating
-  } = useContext(VulcanContext);
+  } = context;
   const [complete, setComplete] = useState(null);
   const [sessionStart, setSessionStart] = useState(true);
 
@@ -62,15 +63,11 @@ export default function SessionManager() {
   function handleOnClick() {
     setCalculating(true);
     setSessionStart(false);
-    submit(workflow.name, session.inputs, session.key)
-      .then((response) => {
-        setSession(response.session);
-        setStatus(response.status);
+    submit(context)
+      .then(() => {
         setCalculating(false);
         setStepIndex(
-          response.status[pathIndex].findIndex(
-            (s) => STATUS.PENDING === s.status
-          )
+          status[pathIndex].findIndex((s) => STATUS.PENDING === s.status)
         );
       })
       .catch((e) => {

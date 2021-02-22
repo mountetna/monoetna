@@ -40,9 +40,57 @@ export const getWorkflows = () => {
 //     .catch(handleFetchError);
 // };
 
-export const submit = (workflow_name, inputs, key) => {
-  return vulcanPost(vulcanPath(ROUTES.submit(workflow_name)), {inputs, key})
+export const submit = (context) => {
+  let {
+    workflow,
+    session,
+    status,
+    pathIndex,
+    setSession,
+    setStatus,
+    setData
+  } = context;
+
+  return vulcanPost(vulcanPath(ROUTES.submit(workflow.name)), {
+    inputs: session.inputs,
+    key: session.key
+  })
     .then(handleFetchSuccess)
+    .then((response) => {
+      setSession(response.session);
+      setStatus(response.status);
+      // Fetch data and update Context
+
+      // Calculate this locally because useContext
+      //   updates async?
+      let updatedStatus = [...status].map((oldPath, oldPathIndex) => {
+        return oldPath.map((oldStep, oldStepIndex) => {
+          return {...oldStep, ...response.status[oldPathIndex][oldStepIndex]};
+        });
+      });
+
+      let dataRequests = [];
+
+      updatedStatus[pathIndex].forEach((step) => {
+        if (step.downloads) {
+          Object.keys(step.downloads).forEach((download) => {
+            if (!step.data || !step.data[download]) {
+              dataRequests.push(getData(step.downloads.download));
+            }
+          });
+        }
+      });
+      return Promise.all(dataRequests);
+    })
+    .then((downloads) => {
+      downloads.forEach((response) => {
+        let url = response.url;
+        let data = response.text(); // This should depend on mimetype?
+
+        setData(url, data);
+      });
+      return Promise.resolve();
+    })
     .catch(handleFetchError);
 };
 

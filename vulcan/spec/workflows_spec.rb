@@ -63,7 +63,7 @@ describe WorkflowsController do
               {
                   "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
                            {"id"=>"b", "source"=>["pickANum", "num"]}],
-                  "label"=>nil,,
+                  "label"=>nil,
                   "out" => ["sum"],
                   "name" => "finalStep",
                   "run" => "scripts/add.cwl",

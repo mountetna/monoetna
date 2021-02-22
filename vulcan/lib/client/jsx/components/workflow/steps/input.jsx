@@ -1,12 +1,12 @@
 import React, {useState, useContext, useEffect} from 'react';
 
-import {VulcanContext} from '../../contexts/vulcan';
-import StepComplete from './steps/step_complete';
-import StepError from './steps/step_error';
-import StepPending from './steps/step_pending';
+import {VulcanContext} from '../../../contexts/vulcan';
+import StepComplete from './step_complete';
+import StepError from './step_error';
+import StepPending from './step_pending';
 
-import {STATUS} from '../../models/steps';
-import {validStep, hasUiInput} from '../../selectors/workflow_selector';
+import {STATUS} from '../../../models/steps';
+import {validStep, hasUiInput} from '../../../selectors/workflow_selector';
 
 export default function Input() {
   const {workflow, pathIndex, stepIndex} = useContext(VulcanContext);
