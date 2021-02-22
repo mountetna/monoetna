@@ -2,27 +2,21 @@ import React, {useState, useContext, useEffect} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
-import ListInput from 'etna-js/components/inputs/list_input';
-import SelectInput from 'etna-js/components/inputs/select_input';
-import Dropdown from 'etna-js/components/inputs/dropdown';
-import {
-  IntegerInput,
-  FloatInput
-} from 'etna-js/components/inputs/numeric_input';
-import Toggle from 'etna-js/components/inputs/toggle';
+import {validPath} from '../../../selectors/workflow_selector';
 
-import {TYPE} from '../../../models/steps';
-import {inputType, validStep} from '../../../selectors/workflow_selector';
+import StepName from './step_name';
 
-export default function StepComplete() {
-  const {workflow, pathIndex, stepIndex, session, status} = useContext(
-    VulcanContext
-  );
+export default function StepComplete({step, stepIndex}) {
+  const {workflow, pathIndex, session, status} = useContext(VulcanContext);
 
-  if (!validStep({workflow, pathIndex, stepIndex})) return null;
-  if (!session || !status) return null;
-
-  let step = workflow.steps[pathIndex][stepIndex];
+  if (
+    !validPath({workflow, pathIndex}) ||
+    !session ||
+    !status ||
+    !step ||
+    null === stepIndex
+  )
+    return null;
 
   function wrapPaneItem(item) {
     return (
@@ -68,7 +62,11 @@ export default function StepComplete() {
   }
 
   return (
-    <div>
+    <div className='step-complete step'>
+      <StepName
+        step={step}
+        status={status[pathIndex][stepIndex].status}
+      ></StepName>
       <div className='step-inputs inputs-pane'>
         <div class='title'>Step inputs</div>
         <div className='step-inputs-container items'>

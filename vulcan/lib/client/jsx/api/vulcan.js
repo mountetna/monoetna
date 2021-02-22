@@ -2,7 +2,8 @@ import {
   checkStatus,
   handleFetchSuccess,
   handleFetchError,
-  headers
+  headers,
+  isJSON
 } from 'etna-js/utils/fetch';
 
 const vulcanPath = (endpoint) => `${CONFIG.vulcan_host}${endpoint}`;
@@ -18,12 +19,16 @@ const vulcanPost = (endpoint, params) => {
   }).then(checkStatus);
 };
 
-const vulcanGet = (endpoint) => {
+const rawVulcanGet = (endpoint) => {
   return fetch(endpoint, {
     method: 'GET',
     credentials: 'include',
     headers: headers('json')
-  }).then(checkStatus);
+  });
+};
+
+const vulcanGet = (endpoint) => {
+  return rawVulcanGet(endpoint).then(checkStatus);
 };
 
 export const getWorkflows = () => {
@@ -51,6 +56,9 @@ export const submit = (context) => {
     setData
   } = context;
 
+  let submitResponse;
+  let dataUrls = [];
+
   return vulcanPost(vulcanPath(ROUTES.submit(workflow.name)), {
     inputs: session.inputs,
     key: session.key
@@ -69,13 +77,22 @@ export const submit = (context) => {
         });
       });
 
-      let dataRequests = [];
+      // Store this to send back because may need
+      //   to update based on the response.
+      submitResponse = response;
 
+      let dataRequests = [];
       updatedStatus[pathIndex].forEach((step) => {
         if (step.downloads) {
           Object.keys(step.downloads).forEach((download) => {
             if (!step.data || !step.data[download]) {
-              dataRequests.push(getData(step.downloads.download));
+              let dataUrl = step.downloads[download];
+              dataUrls.push(dataUrl);
+              dataRequests.push(
+                // Don't want checkStatus here so that we
+                //  can call Promise.all(), just the raw fetch.
+                rawVulcanGet(dataUrl)
+              );
             }
           });
         }
@@ -83,13 +100,21 @@ export const submit = (context) => {
       return Promise.all(dataRequests);
     })
     .then((downloads) => {
-      downloads.forEach((response) => {
-        let url = response.url;
-        let data = response.text(); // This should depend on mimetype?
+      let extractData = [];
 
-        setData(url, data);
+      downloads.forEach((response) => {
+        let data = isJSON(response) ? response.json() : response.text();
+
+        extractData.push(data);
       });
-      return Promise.resolve();
+
+      return Promise.all(extractData);
+    })
+    .then((extractions) => {
+      extractions.forEach((datum, index) => {
+        setData(dataUrls[index], datum);
+      });
+      return Promise.resolve(submitResponse);
     })
     .catch(handleFetchError);
 };

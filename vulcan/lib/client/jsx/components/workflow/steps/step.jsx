@@ -3,11 +3,10 @@ import React, {useState, useContext, useEffect} from 'react';
 import Icon from 'etna-js/components/icon';
 import {VulcanContext} from '../../../contexts/vulcan';
 import {STATUS} from '../../../models/steps';
+import StepName from './step_name';
 
-export default function Step({step, index, active}) {
-  const {status, pathIndex, setStepIndex, setStatus} = useContext(
-    VulcanContext
-  );
+export default function Step({step, index}) {
+  const {status, pathIndex, setStepIndex} = useContext(VulcanContext);
 
   function handleOnClick(index) {
     setStepIndex(index);
@@ -30,16 +29,10 @@ export default function Step({step, index, active}) {
   let className = `step-status-icon ${icon.className}`;
 
   return (
-    <div className={active ? 'active step' : 'step'}>
-      <div className='step-status-icon-wrapper'>
-        <Icon className={className} icon={icon.icon}></Icon>
-      </div>
-      <div className='step-button' onClick={() => handleOnClick(index)}>
-        {step.label || step.name}
-      </div>
-      <div className='step-active'>
-        {active && <Icon className='active-indicator' icon='caret-left'/> }
-      </div>
-    </div>
+    <StepName
+      step={step}
+      status={stepStatus}
+      onClick={handleOnClick}
+    ></StepName>
   );
 }

@@ -64,41 +64,30 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-
-    .step-button {
-      flex: 1 1 auto;
-      text-align: left;
-      padding: 10px;
-
-      &.active {
-        background-color: darkgray;
-      }
-    }
-
-    .step-status-icon-wrapper {
-      flex: 0 0 40px;
-      display: flex;
-      justify-content: center;
-    }
-    .step-status-icon-wrapper .step-status-icon {
-      font-size: 1rem;
-    }
-
-    .step-active {
-      flex: 0 0 40px;
-    }
+    cursor: default;
   }
 }
 
-.active-indicator {
-  border-color: transparent darkgoldenrod transparent transparent;
-  border-style: solid;
-  border-width: 10px;
-  bottom: -25px;
-  right: 0;
-  position: absolute;
-  height: 0px;
-  width: 0px;
+.step-name {
+  display: flex;
+
+  .step-status-icon-wrapper {
+    flex: 0 0 40px;
+    display: flex;
+    justify-content: center;
+  }
+  .step-status-icon-wrapper .step-status-icon {
+    font-size: 1rem;
+  }
+  .step-button {
+    flex: 1 1 auto;
+    text-align: left;
+    padding: 5px;
+
+    &.active {
+      background-color: darkgray;
+    }
+  }
 }
 
 .light {
@@ -129,6 +118,11 @@ $button-background: #d66;
     cursor: pointer;
     color: white;
     padding: 4px;
+    padding-left: 12px;
+
+    .small {
+      font-size: 1em;
+    }
 
     &:disabled {
       color: grey;
@@ -202,5 +196,12 @@ $button-background: #d66;
         flex: 1;
       }
     }
+  }
+}
+
+.session-feed {
+  .step {
+    border-top: 1px solid lightgray;
+    border-bottom: 1px solid lightgray;
   }
 }
