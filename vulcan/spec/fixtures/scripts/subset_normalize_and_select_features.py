@@ -9,27 +9,30 @@ max_per_mito = open(input_path('max_per_mito'), 'r').read()
 max_per_ribo = open(input_path('max_per_ribo'), 'r').read()
 
 ##### magby retrieve gene_counts files....
-## Empty Stub
+## Obtain gene expression data + processed metadata if that exists.
+## Fleshing this part out more fully will involve a discussion with Arjun about what's in the data library
 
 
-##### scanpy processing
-
+## scanpy processing
 # Read in
 adata = scanpy.read_10x_mtx(
     'data/filtered_gene_bc_matrices/hg19/',  # the directory with the `.mtx` file
     var_names='gene_ids',                # use gene symbols for the variable names (variables-axis index)
     cache=True)                              # write a cache file for faster subsequent reading
 
-# Filter cells by min_genes
-scanpy.pp.filter_cells(adata, min_genes=200)
+# Merge objects
 
+### Wrap in if (metadata not already available) statement
 # Calculate mito QC metrics
 adata.var['mt'] = adata.var_names.str.startswith('MT-')  # annotate the group of mitochondrial genes as 'mt'
+adata.var['rb'] = adata.var_names.str.startswith('RPS-|RPL-')  # annotate the group of ribosomal genes as 'rb' ## not sure if the syntax works.
 scanpy.pp.calculate_qc_metrics(adata, qc_vars=['mt'], percent_top=None, log1p=False, inplace=True)
+scanpy.pp.calculate_qc_metrics(adata, qc_vars=['rb'], percent_top=None, log1p=False, inplace=True)
 
-# Filter on max genes and mitochondria
-adata = adata[adata.obs.n_genes_by_counts < 2500, :]
-adata = adata[adata.obs.pct_counts_mt < 5, :]
+# Perform all filtering
+scanpy.pp.filter_cells(adata, min_genes=min_nFeatures, min_counts=min_nCounts, max_counts=max_nCounts)
+adata = adata[adata.obs.pct_counts_mt < max_per_mito, :]
+adata = adata[adata.obs.pct_counts_rb < max_per_ribo, :]
 
 # Normalize: Counts depth then log transformation
 scanpy.pp.normalize_total(adata, target_sum=1e4)
