@@ -6,8 +6,6 @@ import {showMessages} from 'etna-js/actions/message_actions';
 
 import {VulcanContext} from '../../contexts/vulcan';
 import {getWorkflows} from '../../api/vulcan';
-import Output from './output';
-import Input from './input';
 
 import SessionManager from './session/session_manager';
 

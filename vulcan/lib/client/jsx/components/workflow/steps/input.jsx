@@ -1,7 +1,7 @@
 import React, {useState, useContext, useEffect} from 'react';
 
 import {VulcanContext} from '../../contexts/vulcan';
-import StepInput from './steps/step_input';
+import StepComplete from './steps/step_complete';
 import StepError from './steps/step_error';
 import StepPending from './steps/step_pending';
 
@@ -19,8 +19,8 @@ export default function Input() {
 
   let Component;
   // Somehow have to calculate if all previous steps are
-  //   COMPLETE before showing a StepInput component.
-  // Also, should only show StepInput for ui_ steps.
+  //   COMPLETE before showing a StepComplete component.
+  // Also, should only show StepComplete for ui_ steps.
   switch (currentStep.status) {
     case STATUS.PENDING:
       Component = StepPending;
@@ -30,7 +30,7 @@ export default function Input() {
       break;
     case STATUS.COMPLETE:
       // Show what the inputs were at this step
-      Component = StepInput;
+      Component = StepComplete;
       break;
     default:
       break;

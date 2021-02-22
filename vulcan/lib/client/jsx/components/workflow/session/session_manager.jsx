@@ -10,6 +10,7 @@ import {
   allInputsDefined,
   defaultInputValues
 } from '../../../selectors/workflow_selector';
+import ActiveStep from '../steps/active_step';
 
 import PrimaryInputs from './primary_inputs';
 import {STATUS} from '../../../models/steps';
@@ -22,6 +23,7 @@ export default function SessionManager() {
     workflow,
     session,
     pathIndex,
+    stepIndex,
     setStepIndex,
     setSession,
     setStatus,
@@ -29,6 +31,7 @@ export default function SessionManager() {
     setCalculating
   } = useContext(VulcanContext);
   const [complete, setComplete] = useState(null);
+  const [sessionStart, setSessionStart] = useState(true);
 
   useEffect(() => {
     // Leave this as getSession (without default inputs), since
@@ -58,6 +61,7 @@ export default function SessionManager() {
 
   function handleOnClick() {
     setCalculating(true);
+    setSessionStart(false);
     submit(workflow.name, session.inputs, session.key)
       .then((response) => {
         setSession(response.session);
@@ -75,14 +79,24 @@ export default function SessionManager() {
       });
   }
   return (
-    <div className='start-session'>
-      <div className='start-btn-container'>
-        <button disabled={!complete} className='large' onClick={handleOnClick}>
-          Run
-          <Icon icon='play' className='small'></Icon>
-        </button>
-      </div>
-      <PrimaryInputs></PrimaryInputs>
+    <div className='session-manager'>
+      {sessionStart ? (
+        <React.Fragment>
+          <div className='start-btn-container'>
+            <button
+              disabled={!complete}
+              className='large'
+              onClick={handleOnClick}
+            >
+              Run
+              <Icon icon='play' className='small'></Icon>
+            </button>
+          </div>
+          <PrimaryInputs></PrimaryInputs>
+        </React.Fragment>
+      ) : (
+        <ActiveStep></ActiveStep>
+      )}
     </div>
   );
 }

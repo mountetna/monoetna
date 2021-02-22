@@ -101,7 +101,7 @@
   width: 100%;
 }
 
-.start-session {
+.session-manager {
   button {
     background-color: green;
     border-radius: 10px;
@@ -119,7 +119,8 @@
   }
 }
 
-.inputs-pane {
+.inputs-pane,
+.outputs-pane {
   display: flex;
   flex-direction: column;
   margin: 10px;
