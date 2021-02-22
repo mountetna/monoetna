@@ -6,7 +6,8 @@ import {
   SET_PATH,
   SET_STEP,
   SET_SESSION,
-  SET_INPUTS
+  SET_INPUTS,
+  SET_CALCULATING
 } from '../actions/vulcan';
 
 export default function VulcanReducer(state, action) {
@@ -79,6 +80,13 @@ export default function VulcanReducer(state, action) {
             ...action.inputs
           }
         }
+      };
+    case SET_CALCULATING:
+      // This should go away once we have async jobs and
+      //   a different way to check status.
+      return {
+        ...state,
+        calculating: action.calculating
       };
     default:
       return state;

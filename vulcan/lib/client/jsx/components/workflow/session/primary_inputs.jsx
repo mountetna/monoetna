@@ -25,33 +25,64 @@ export default function PrimaryInputs() {
     setInputs(userInputs);
   }
 
+  function wrapInput(inputComponent, input, inputName) {
+    return (
+      <div className='view_item'>
+        <div className='item_name'>{input.label || inputName}</div>
+        <div className='item_view'>{inputComponent}</div>
+      </div>
+    );
+  }
+
   let components = Object.keys(workflow.inputs).map((inputName, index) => {
     let input = workflow.inputs[inputName];
     switch (input.type) {
       case TYPE.INTEGER:
-        return (
-          <div className='view_item'>
-            <div className='item_name'>{input.label || inputName}</div>
-            <div className='item_view'>
-              <IntegerInput
-                key={index}
-                defaultValue={input.default}
-                onChange={(e) => {
-                  handleInputChange(inputName, e);
-                }}
-              ></IntegerInput>
-            </div>
-          </div>
+        return wrapInput(
+          <IntegerInput
+            key={index}
+            defaultValue={input.default}
+            onChange={(e) => {
+              handleInputChange(inputName, e);
+            }}
+          ></IntegerInput>,
+          input,
+          inputName
+        );
+      case TYPE.FLOAT:
+        return wrapInput(
+          <FloatInput
+            key={index}
+            defaultValue={input.default}
+            onChange={(e) => {
+              handleInputChange(inputName, e);
+            }}
+          ></FloatInput>,
+          input,
+          inputName
         );
         break;
-      case TYPE.FLOAT:
-        return <FloatInput key={index}></FloatInput>;
-        break;
       case TYPE.BOOL:
-        return <Toggle key={index}></Toggle>;
+        return wrapInput(
+          <input
+            key={index}
+            type='checkbox'
+            className='text_box'
+            onChange={(e) => {
+              handleInputChange(inputName, e);
+            }}
+            defaultChecked={input.default}
+          />,
+          input,
+          inputName
+        );
         break;
       default:
-        return <SlowTextInput key={index}></SlowTextInput>;
+        return wrapInput(
+          <SlowTextInput key={index}></SlowTextInput>,
+          input,
+          inputName
+        );
         break;
     }
   });
