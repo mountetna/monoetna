@@ -9,6 +9,7 @@ gem 'fog-aws'
 gem 'puma', '5.0.2'
 gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/60667019a69dda8b6246a241d9962b717081b9bd'
 gem 'nokogiri'
+gem 'concurrent-ruby'
 
 group :test do
   gem 'rspec'

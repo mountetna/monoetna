@@ -12,8 +12,7 @@ class Polyphemus
     end
 
     def reset!
-      self[:seen_ids] = []
-      super
+      super { self[:seen_ids] = [] }
     end
   end
 

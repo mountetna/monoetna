@@ -1,0 +1,195 @@
+require_relative '../magma_record_etl'
+
+class Polyphemus::MaterializeGneMagmaRecordsEtl < Polyphemus::MagmaRecordEtl
+  def initialize
+    super(project_model_pairs: [['mvir1', 'patient']])
+  end
+
+  def process(cursor, records)
+    record_names = records.map { |r| r.keys.first }
+    logger.info("Processing patients #{record_names.join(', ')}...")
+    workflow = Etna::Clients::Magma::MaterializeDataWorkflow.new(
+        model_attributes_mask: MATERIALIZE_ATTRIBUTES,
+        record_names: record_names,
+        model_filters: {
+            'immunoassay' => 'assay_type~^(?!Olink)',
+            'patient' => 'comet_plus=true',
+            'sc_rna_seq_pool' => 'biospecimen~.*Whole.*blood.*',
+        },
+        metis_client: metis_client, magma_client: magma_client, logger: logger,
+        project_name: 'mvir1', model_name: 'patient', filesystem: filesystem)
+
+    workflow.materialize_all("/Upload/processed")
+    logger.info("Done")
+  end
+
+  def filesystem
+    @filesystem ||= Etna::Filesystem::Metis.new(metis_client: metis_client,
+        project_name: 'mvir1', bucket_name: 'GNE_composite')
+  end
+
+  MATERIALIZE_ATTRIBUTES = {
+      'patient' => [
+          'created_at',
+          'updated_at',
+          'name',
+          'timepoint',
+          'status',
+          'symptom',
+          'history',
+          'treatment',
+          'testing',
+          'impacc_id',
+          'comet_id',
+          'symptom_date',
+          'height',
+          'weight',
+          'comet_plus',
+          'hosp_los',
+          'icu_los',
+          'sex_at_birth',
+          'vent_duration',
+          'd2b_id',
+          'race',
+          'bmi',
+          'ethnicity',
+          'age',
+          'english_proficiency',
+          'covid_status',
+          'admission_date',
+          'hospital_site',
+          'admission_level',
+          'oxygen_homesupport',
+          'discharge_icu',
+          'discharge_icu_to',
+          'discharg_icu_date',
+          'discharge_date',
+          'hospitalization_outcome',
+          'hospitalization_outcome_other',
+          'dead_after_discharge',
+          'deceased',
+          'date_of_death',
+          'age_at_death',
+          'cause_of_death',
+          'cause_of_death_other',
+          'pulmonary_infection',
+          'non_pulmonary_infection',
+          'date_of_birth',
+          'consent',
+      ],
+      'sc_rna_seq_pool' => [
+          'tenx_web_summary',
+          'biospecimen',
+          'tube_name',
+          'sc_rna_seq',
+          'cells_loaded',
+          'chemistry',
+          'genome',
+          'gene_annotation',
+          'tenx_metrics_csv',
+          'raw_counts_h5',
+          'filtered_counts_h5',
+          'tenx_cloupe_file',
+          'freemuxlet_sample_file',
+          'freemuxlet_vcf_file',
+      ],
+      'history' => [
+          'created_at',
+          'updated_at',
+          'name',
+          'present',
+      ],
+      'status' => [
+          'created_at',
+          'updated_at',
+          'name',
+          'value',
+      ],
+      'symptom' => [
+          'created_at',
+          'updated_at',
+          'name',
+          'present',
+          'bleeding_site',
+          'other_name',
+          'symptom_date',
+          'symptom_reported_by',
+      ],
+      'testing' => [
+          'created_at',
+          'updated_at',
+      ],
+      'timepoint' => [
+          'created_at',
+          'updated_at',
+          'name',
+          'sc_rna_seq',
+          'rna_seq',
+          'clinical_lab',
+          'day',
+          'study_day',
+          'patient_loc_today',
+          'mech_vent_today',
+          'immunoassay',
+      ],
+      'treatment' => [
+          'created_at',
+          'updated_at',
+          'name_hiv',
+          'other_meds_study',
+          'other_name',
+          'other_study',
+          'name',
+          'dose',
+          'start',
+          'end',
+          'study',
+      ],
+      'clinical_lab' => [
+          'created_at',
+          'updated_at',
+          'time',
+          'unit',
+          'value',
+          'name',
+      ],
+      'immunoassay' => [
+          'created_at',
+          'updated_at',
+          'name',
+          'assay_type',
+          'biospecimen',
+          'biospecimen_date',
+          'analyte',
+      ],
+      'rna_seq' => [
+          'tube_name',
+          'biospecimen',
+          'biospecimen_date',
+          'gene_expression',
+      ],
+      'sc_rna_seq' => [
+          'tube_name',
+          'biospecimen_date',
+          'sc_rna_seq_pool',
+          'biospecimen',
+          'cells_loaded',
+          'chemistry',
+          'genome',
+          'gene_annotation',
+          'tenx_metrics_csv',
+          'tenx_web_summary',
+          'raw_counts_h5',
+          'filtered_counts_h5',
+          'tenx_cloupe_file',
+      ],
+      'analyte' => [
+          'created_at',
+          'updated_at',
+          'value',
+          'unit',
+          'alias',
+          'analyte_name',
+      ],
+  }
+end
