@@ -1,3 +1,6 @@
+from typing import Dict
+
+
 def flatten(dictionary, parent_key='', sep=' '):
     items = []
     for currKey, currVal in dictionary.items():
@@ -10,12 +13,13 @@ def flatten(dictionary, parent_key='', sep=' '):
 
 
 def askAttribute(field: str, magmaAttr: str) -> str:
-    answerOptions = '\n'.join(
-        ['Y/y:\tyes',
-         'Or type the correct attribute name',
-         '0:\tback',
-         'STOP:\tcancel pipeline']
-    )
+    answerOptionsPre = {
+        'Y/y': 'yes',
+        'Or type the correct attribute name': '_',
+        '0': 'back',
+        'STOP': 'cancel pipeline'
+    }
+    answerOptions = formatOptions(answerOptionsPre)
     question = f'\nIs {magmaAttr} correct for {field}?\n' \
                f'ANSWER OPTIONS:\n{answerOptions}'
     answer = input(question)
@@ -32,12 +36,24 @@ def askCharacteristics() -> str:
         '0': 'back',
         'STOP': 'cancel pipeline'
     }
-
-    formatted = [':\t'.join([x, answerOptionsPre[x]]) for x in answerOptionsPre]
-    answerOptions = '\n'.join(formatted)
+    answerOptions = formatOptions(answerOptionsPre)
     answer = input(answerOptions)
     return answerOptionsPre[answer]
-    
 
 
+def addAnother() -> str:
+    answerOptionsPre = {
+        'Y/y': 'yes',
+        'n': 'no - same as STOP',
+        '0': 'back',
+        'STOP': 'cancel pipeline'
+    }
+    answerOptions = formatOptions(answerOptionsPre)
+    answer = input(answerOptions)
+    return answer
 
+
+def formatOptions(options: Dict):
+    formatted = [':\t'.join([x, options[x]]) for x in options]
+    answerOptions = '\n'.join(formatted)
+    return answerOptions
