@@ -25,39 +25,4 @@ class Geoline:
         self._token = token
 
 
-    def _samplesSection(self,
-                        title: str,
-                        sourceName: str,
-                        organism: str,
-                        characteristics: Dict,
-                        molecule: str,
-                        description: str,
-                        processedDataFile: str,
-                        rawFile: Dict):
-        out = {
-            'title': title,
-            'source name': sourceName,
-            'organism': organism,
-            'characteristics': characteristics,
-            'molecule': molecule,
-            'description': description,
-            'processed data file': processedDataFile,
-            'raw file': rawFile
-        }
-        return self._flatten(out)
-
-
-    def _flatten(self, dictionary, parent_key='', sep=' '):
-        items = []
-        for currKey, currVal in dictionary.items():
-            new_key = parent_key + sep + currKey if parent_key else currKey
-            if isinstance(currVal, dict):
-                items.extend(self._flatten(currVal, new_key, sep=sep).items())
-            else:
-                items.append((new_key, currVal))
-        return dict(items)
-
-
-
-
 
