@@ -18,7 +18,8 @@ export default function StepsList() {
   }, [stepIndex]);
 
   return (
-    <ul className='steps-list'>
+    <div className='steps-list'>
+      <div className='title'>Steps</div>
       {validPath({workflow, pathIndex})
         ? workflow.steps[pathIndex].map((step, index) => {
             return (
@@ -31,6 +32,6 @@ export default function StepsList() {
             );
           })
         : null}
-    </ul>
+    </div>
   );
 }
