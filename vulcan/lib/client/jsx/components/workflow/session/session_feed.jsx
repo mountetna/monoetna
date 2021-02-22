@@ -13,18 +13,19 @@ import {
 } from '../../../selectors/workflow_selector';
 import {STATUS} from '../../../models/steps';
 import StepComplete from '../steps/step_complete';
+import StepPending from '../steps/step_pending';
 
 export default function SessionFeed() {
   // Shows stream of Input, Output, Plots, etc.,
   //   as the session object updates.
   const invoke = useActionInvoker();
   const context = useContext(VulcanContext);
-  const {workflow, session, pathIndex, status} = context;
+  const {workflow, session, pathIndex, status, setInputs} = context;
 
   if (!workflow || !validPath({workflow, pathIndex}) || !session || !status)
     return null;
 
-  let stepsToRender = status[pathIndex]
+  let completedSteps = status[pathIndex]
     .map((step, index) => {
       if (STATUS.COMPLETE === step.status) {
         return {
@@ -35,11 +36,38 @@ export default function SessionFeed() {
     })
     .filter((s) => s);
 
+  let nextInputStepIndex = status[pathIndex].findIndex(
+    (s) => STATUS.PENDING === s.status
+  );
+
+  // We need to inject a `null` input into the session,
+  //   to indicate that we're waiting for a user input value
+  //   to return to the server.
+  if (-1 !== nextInputStepIndex) {
+    let nextInputStep = workflow.steps[pathIndex][nextInputStepIndex];
+    let missingInputs = nextInputStep.in.filter((input) => {
+      return !Object.keys(session.inputs).includes(input.id);
+    });
+    setInputs(
+      missingInputs.reduce((result, input) => {
+        if (!result.hasOwnProperty(inptu.id)) {
+          result[input.id] = null;
+        }
+      }, {})
+    );
+  }
+
   return (
     <div className='session-feed'>
-      {stepsToRender.map((s) => (
+      {completedSteps.map((s) => (
         <StepComplete step={s.step} stepIndex={s.index}></StepComplete>
       ))}
+      {nextInputStep ? (
+        <StepPending
+          step={nextInputStep}
+          stepIndex={nextInputStepIndex}
+        ></StepPending>
+      ) : null}
     </div>
   );
 }

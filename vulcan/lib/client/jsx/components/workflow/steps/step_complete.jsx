@@ -2,7 +2,7 @@ import React, {useState, useContext, useEffect} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
-import {validPath} from '../../../selectors/workflow_selector';
+import {validStep} from '../../../selectors/workflow_selector';
 
 import StepName from './step_name';
 
@@ -10,7 +10,7 @@ export default function StepComplete({step, stepIndex}) {
   const {workflow, pathIndex, session, status} = useContext(VulcanContext);
 
   if (
-    !validPath({workflow, pathIndex}) ||
+    !validStep({workflow, pathIndex, stepIndex}) ||
     !session ||
     !status ||
     !step ||

@@ -22,9 +22,6 @@ export default function SessionManager() {
   const {
     workflow,
     session,
-    pathIndex,
-    stepIndex,
-    setStepIndex,
     setSession,
     setStatus,
     setInputs,
