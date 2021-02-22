@@ -13,7 +13,7 @@ import {
 
 import PrimaryInputs from './primary_inputs';
 
-export default function SessionManager() {
+export default function SessionManager({name}) {
   // Placeholder for when user can select a session
   //   or continue a past session.
   const invoke = useActionInvoker();
@@ -67,8 +67,11 @@ export default function SessionManager() {
   }
   return (
     <div className='start-session'>
-      <div className='start-tools'>
-        <Icon icon='play' title='Run' className='small' onClick={handleOnClick}/>
+      <div className='session-header'>
+        <div className='session-title'>{name.toUpperCase()}</div>
+        <div className='session-run'>
+          { complete ? <Icon icon='play' title='Run' className='run' onClick={handleOnClick}/> : <span className='waiting'>Awaiting input...</span> }
+        </div>
       </div>
       <PrimaryInputs></PrimaryInputs>
     </div>

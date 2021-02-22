@@ -43,10 +43,9 @@ export default function WorkflowManager() {
 
   return (
     <div className='workflow-manager'>
-      <div className='workflow-header'>{WORKFLOW_SHORT}</div>
       <div className='step-wrapper'>
         <div className='step-main-pane-wrapper'>
-          <SessionManager></SessionManager>
+          <SessionManager name={WORKFLOW_SHORT}></SessionManager>
         </div>
         <div className='step-nav-wrapper'>
           <StepsList></StepsList>
