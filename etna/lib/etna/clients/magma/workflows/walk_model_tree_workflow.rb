@@ -7,6 +7,10 @@ module Etna
   module Clients
     class Magma
       class WalkModelTreeWorkflow < Struct.new(:magma_crud, :logger, keyword_init: true)
+        def initialize(**args)
+          super(**({}.update(args)))
+        end
+
         def walk_from(
             model_name,
             record_names = 'all',
@@ -43,7 +47,8 @@ module Etna
 
               template.attributes.attribute_keys.each do |attr_name|
                 attributes_mask = model_attributes_mask[model_name]
-                next if !attributes_mask.nil? && !attributes_mask.include?(attr_name) && attr_name != template.identifier
+                black_listed = !attributes_mask.nil? && !attributes_mask.include?(attr_name)
+                next if black_listed && attr_name != template.identifier && attr_name != 'parent'
                 attributes << attr_name
 
                 attr = template.attributes.attribute(attr_name)
@@ -58,7 +63,7 @@ module Etna
                 elsif attr.attribute_type == AttributeType::CHILD
                   related_models[attr.link_model_name] ||= Set.new
                   links << attr_name
-                elsif attr.attribute_type == AttributeType::PARENT
+                elsif attr.attribute_type == AttributeType::PARENT && !black_listed
                   related_models[attr.link_model_name] ||= Set.new
                   links << attr_name
                 end
