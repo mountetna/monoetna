@@ -8,11 +8,9 @@ import WorkflowManager from './workflow/workflow_manager';
 export default function Browser() {
   return (
     <main className='vulcan-browser browser'>
-      <section>
-        <VulcanProvider>
-          <WorkflowManager></WorkflowManager>
-        </VulcanProvider>
-      </section>
+      <VulcanProvider>
+        <WorkflowManager></WorkflowManager>
+      </VulcanProvider>
     </main>
   );
 }

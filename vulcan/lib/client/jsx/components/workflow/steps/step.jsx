@@ -30,20 +30,16 @@ export default function Step({step, index, active}) {
   let className = `step-status-icon ${icon.className}`;
 
   return (
-    <li className={active ? 'active step' : 'step'}>
+    <div className={active ? 'active step' : 'step'}>
       <div className='step-status-icon-wrapper'>
-        <div className='step-status-icon-positioner'>
-          <Icon className={className} icon={icon.icon}></Icon>
-        </div>
+        <Icon className={className} icon={icon.icon}></Icon>
       </div>
-      {active ? (
-        <div className='active-wrapper'>
-          <div className='active-indicator'></div>
-        </div>
-      ) : null}
-      <button onClick={() => handleOnClick(index)}>
+      <div className='step-button' onClick={() => handleOnClick(index)}>
         {step.label || step.name}
-      </button>
-    </li>
+      </div>
+      <div className='step-active'>
+        {active && <Icon className='active-indicator' icon='caret-left'/> }
+      </div>
+    </div>
   );
 }
