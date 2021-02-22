@@ -13,7 +13,8 @@ import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
 
 // Hardcode for now, since only one workflow
-const WORKFLOW_NAME = 'umap.cwl';
+const WORKFLOW_SHORT = 'umap';
+const WORKFLOW_NAME = `${WORKFLOW_SHORT}.cwl`;
 
 export default function WorkflowManager() {
   const invoke = useActionInvoker();
@@ -42,9 +43,7 @@ export default function WorkflowManager() {
 
   return (
     <div className='workflow-manager'>
-      <div className='workflow-header'>
-        You are working on a {WORKFLOW_NAME.toUpperCase()} workflow:
-      </div>
+      <div className='workflow-header'>{WORKFLOW_SHORT}</div>
       <div className='step-wrapper'>
         <div className='step-nav-wrapper'>
           <StepsList></StepsList>

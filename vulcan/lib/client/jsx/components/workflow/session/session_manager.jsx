@@ -2,6 +2,7 @@ import React, {useState, useContext, useEffect} from 'react';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
+import Icon from 'etna-js/components/icon';
 
 import {getSession, submit} from '../../../api/vulcan';
 import {VulcanContext} from '../../../contexts/vulcan';
@@ -66,12 +67,13 @@ export default function SessionManager() {
   }
   return (
     <div className='start-session'>
-      <PrimaryInputs></PrimaryInputs>
       <div className='start-btn-container'>
         <button disabled={!complete} className='large' onClick={handleOnClick}>
-          Start Session
+          Run
+          <Icon icon='play' className='small'></Icon>
         </button>
       </div>
+      <PrimaryInputs></PrimaryInputs>
     </div>
   );
 }

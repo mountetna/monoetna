@@ -30,15 +30,17 @@ export default function PrimaryInputs() {
     switch (input.type) {
       case TYPE.INTEGER:
         return (
-          <div>
-            <span>{input.label || inputName}</span>
-            <IntegerInput
-              key={index}
-              defaultValue={input.default}
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-            ></IntegerInput>
+          <div className='view_item'>
+            <div className='item_name'>{input.label || inputName}</div>
+            <div className='item_view'>
+              <IntegerInput
+                key={index}
+                defaultValue={input.default}
+                onChange={(e) => {
+                  handleInputChange(inputName, e);
+                }}
+              ></IntegerInput>
+            </div>
           </div>
         );
         break;
@@ -55,13 +57,11 @@ export default function PrimaryInputs() {
   });
 
   return (
-    <div className='primary-inputs'>
-      <div>
-        <p>Please fill out all the primary inputs.</p>
-      </div>
-      <div className='primary-inputs-container'>
+    <div className='primary-inputs inputs-pane'>
+      <div class='title'>Primary inputs</div>
+      <div className='primary-inputs-container items'>
         {components.map((comp) => {
-          return <div className='primary-input-wrapper'>{comp}</div>;
+          return comp;
         })}
       </div>
     </div>

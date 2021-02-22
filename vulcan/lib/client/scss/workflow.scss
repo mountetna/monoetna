@@ -3,6 +3,10 @@
   min-width: 600px;
 }
 
+.workflow-header {
+  text-transform: uppercase;
+}
+
 .step-wrapper {
   display: flex;
 }
@@ -10,7 +14,7 @@
 .step-nav-wrapper {
   flex: 1;
   min-width: 300px;
-  border-right: 2px solid lightgray;
+  border-right: 1px solid lightgray;
 }
 
 .step-main-pane-wrapper {
@@ -26,44 +30,42 @@
 
 .steps-list {
   padding-left: 0px;
+  padding-right: 0.5rem;
 }
 
 .step {
   text-overflow: ellipsis;
   overflow: hidden;
-  border-top: 1px solid gray;
-}
+  border-bottom: 1px solid rgba(34, 139, 34, 0.1);
 
-.step:last-child {
-  border-bottom: 1px solid gray;
-}
+  button {
+    width: 100%;
+    padding: 0.5rem;
+    padding-left: 2rem;
+    text-align: left;
+    border: 0px;
+    border-radius: 0px;
+    outline: 0;
+    box-shadow: none;
+    -webkit-box-shadow: none;
+    background-color: white;
 
-.step button {
-  width: 100%;
-  padding: 1rem;
-  padding-left: 2rem;
-  text-align: left;
-  border: 0px;
-  border-radius: 0px;
-  outline: 0;
-  box-shadow: none;
-  -webkit-box-shadow: none;
-}
-
-.step.active button {
-  background-color: darkgray;
+    &:hover {
+      background-color: lightgray;
+    }
+  }
 }
 
 .step-status-icon-wrapper {
   position: relative;
+
+  .step-status-icon {
+    font-size: 1rem;
+  }
 }
 .step-status-icon-positioner {
   position: absolute;
-  top: 6px;
-}
-
-.step-status-icon-wrapper .step-status-icon {
-  font-size: 1rem;
+  top: -3px;
 }
 
 .active-wrapper {
@@ -71,11 +73,11 @@
 }
 
 .active-indicator {
-  border-color: transparent darkred transparent transparent;
+  border-color: transparent darkgoldenrod transparent transparent;
   border-style: solid;
-  border-width: 30px;
-  bottom: -54px;
-  left: 82%;
+  border-width: 10px;
+  bottom: -25px;
+  right: 0;
   position: absolute;
   height: 0px;
   width: 0px;
@@ -100,28 +102,76 @@
 }
 
 .start-session {
-  .start-btn-container {
-    display: flex;
-    justify-content: center;
-  }
-
-  button.large {
+  button {
     background-color: green;
-    font-size: x-large;
-    border-radius: 20px;
-    width: 20rem;
-    margin: 5rem;
-    height: 5rem;
+    border-radius: 10px;
     cursor: pointer;
-  }
+    padding-left: 15px;
 
-  button.large:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
+    i.small {
+      font-size: 1em;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
   }
 }
 
-.primary-inputs-container {
+.inputs-pane {
   display: flex;
-  justify-content: space-around;
+  flex-direction: column;
+  margin: 10px;
+  .title {
+    background: rgb(251, 248, 244);
+    border: 1px solid #ccc;
+    border-right: 1px solid forestgreen;
+    border-bottom: none;
+    position: relative;
+    font-family: $body_font;
+    color: indianred;
+    width: 200px;
+    padding-right: 8px;
+    text-align: right;
+  }
+  .items {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ccc;
+    padding-right: 5px;
+    .view_item {
+      display: flex;
+      &:not(:last-of-type) {
+        .item_name {
+          border-bottom: $thin_rule;
+        }
+        .item_view {
+          border-bottom: $thin_rule;
+        }
+      }
+      .item_name {
+        cursor: default;
+        &.revised {
+          background-color: pink;
+        }
+        border-right: 1px solid forestgreen;
+        display: inline-block;
+        flex: 0 0 200px;
+        padding-right: 8px;
+        padding-top: 4px;
+        text-align: right;
+        font-family: $body_font;
+        color: darkblue;
+      }
+      .item_view {
+        display: inline-block;
+        padding-left: 9px;
+        padding-bottom: 3px;
+        padding-top: 3px;
+        box-sizing: border-box;
+        flex: 1;
+      }
+    }
+  }
 }
