@@ -56,9 +56,7 @@ export default function PrimaryInputs() {
 
   return (
     <div className='primary-inputs'>
-      <div>
-        <p>Please fill out all the primary inputs.</p>
-      </div>
+      <div class='title'>Inputs</div>
       <div className='primary-inputs-container'>
         {components.map((comp) => {
           return <div className='primary-input-wrapper'>{comp}</div>;

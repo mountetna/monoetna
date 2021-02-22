@@ -35,14 +35,9 @@ export default function Browser() {
 
   return (
     <main className='vulcan-browser browser'>
-      <header className='header'>
-        {projectNameFull(projects, CONFIG.project_name) || CONFIG.project_name}
-      </header>
-      <section>
-        <VulcanProvider>
-          <WorkflowManager></WorkflowManager>
-        </VulcanProvider>
-      </section>
+      <VulcanProvider>
+        <WorkflowManager></WorkflowManager>
+      </VulcanProvider>
     </main>
   );
 }

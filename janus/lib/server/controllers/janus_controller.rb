@@ -18,6 +18,7 @@ class Janus
         token_name: Janus.instance.config(:token_name),
         timur_host: Janus.instance.config(:timur)&.dig(:host),
         metis_host: Janus.instance.config(:metis)&.dig(:host),
+        vulcan_host: Janus.instance.config(:vulcan)&.dig(:host)
       }.to_json
     end
   end

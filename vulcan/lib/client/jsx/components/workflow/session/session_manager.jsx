@@ -68,7 +68,7 @@ export default function SessionManager() {
     <div className='start-session'>
       <PrimaryInputs></PrimaryInputs>
       <div className='start-btn-container'>
-        <button disabled={!complete} className='large' onClick={handleOnClick}>
+        <button disabled={!complete} className='start-button' onClick={handleOnClick}>
           Start Session
         </button>
       </div>

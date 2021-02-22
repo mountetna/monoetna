@@ -32,7 +32,7 @@ const Halo = ({radius}) => (
 );
 
 const Logo = connect(({exchanges}) => ({exchanges}))(({exchanges}) => (
-  <div id='vulcan-logo' className='etna-vulcan-logo'>
+  <div id='vulcan-logo'>
     <div className='image' />
     <Halo radius={25} />
   </div>
