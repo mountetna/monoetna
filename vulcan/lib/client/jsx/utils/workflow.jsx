@@ -131,8 +131,6 @@ export const defaultInputValues = (workflow) => {
 export const allInputsDefined = (workflow, userInputs) => {
   // Session Inputs can also include UI interaction inputs,
   //   so they won't be defined in the workflow inputs.
-  console.log('user inputs', userInputs);
-  console.log(Object.keys(workflow.inputs));
   return (
     Object.keys(workflow.inputs).every((primaryInput) =>
       Object.keys(userInputs).includes(primaryInput)
