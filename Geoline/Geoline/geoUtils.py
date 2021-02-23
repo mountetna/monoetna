@@ -1,12 +1,12 @@
 from typing import Dict, Tuple
 
 
-def flatten(dictionary, parent_key='', sep=' '):
+def flatten(dictionary, sep='', parent_key=''):
     items = []
     for currKey, currVal in dictionary.items():
         new_key = parent_key + sep + currKey if parent_key else currKey
         if isinstance(currVal, dict):
-            items.extend(flatten(currVal, new_key, sep=sep).items())
+            items.extend(flatten(currVal, sep=sep, parent_key=new_key).items())
         else:
             items.append((new_key, currVal))
     return dict(items)
@@ -23,9 +23,6 @@ def askAttribute(field: str, magmaAttr: str='') -> str:
     question = f'\nIs {magmaAttr} correct for {field}?\n' \
                f'ANSWER OPTIONS:\n{answerOptions}'
     answer = input(question)
-    if answer not in answerOptionsPre.keys():
-        raise KeyError(f'askAttribute(): selected answer {answer} is not an allowed option'
-                       f'Choose one from {list(answerOptionsPre.keys())}')
     return answer
 
 

@@ -50,23 +50,15 @@ def peExperiment(interactiveFunc) -> Dict:
 
 ## INTERACTIVE
 
-def characteristics(func: Callable, d: Dict) -> Dict:
-    addCharacteristic = addAnother()
-    while addCharacteristic in ['y', 'Y']:
+def characteristics(addAnother: Callable, d: Dict) -> Dict:
+    aw = addAnother
+    if aw == 'Y':
         updateInfo = askCharacteristics()
-        out.update({updateInfo[0]: updateInfo[1]})
-
-    switch = {
-        'Y': characteristics(func, d),
-        'y': characteristics(func, d),
-        'n': '',
-        '0': '',
-        'STOP': ''
-    }
-    updateInfo = switch.get(addCharacteristic)
-    out.update({updateInfo[0]: updateInfo[1]})
-    return out
-
+        dc = d.copy()
+        dc.update({updateInfo[0]: updateInfo[1]})
+        characteristics(addAnother, dc)
+    else:
+        return d
 
 
 
