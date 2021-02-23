@@ -9,7 +9,7 @@ export const fetchManifests = (exchange) => {
   };
 
   let exchangePromise = exchange
-    .fetch(Routes.manifests_fetch_path(CONFIG.project_name), route_opts)
+    .fetch(Routes.fetch_manifests_path(CONFIG.project_name), route_opts)
     .then(checkStatus);
 
   return exchangePromise;
@@ -24,7 +24,7 @@ export const createManifest = (manifest, exchange) => {
   };
 
   let exchangePromise = exchange
-    .fetch(Routes.manifests_create_path(CONFIG.project_name), route_opts)
+    .fetch(Routes.create_manifest_path(CONFIG.project_name), route_opts)
     .then(checkStatus);
 
   return exchangePromise;
@@ -40,7 +40,7 @@ export const updateManifest = (manifestUpdates, manifest_id, exchange) => {
 
   let exchangePromise = exchange
     .fetch(
-      Routes.manifests_update_path(CONFIG.project_name, manifest_id),
+      Routes.update_manifest_path(CONFIG.project_name, manifest_id),
       route_opts
     )
     .then(checkStatus);
@@ -57,7 +57,7 @@ export const destroyManifest = (manifest_id, exchange) => {
 
   let exchangePromise = exchange
     .fetch(
-      Routes.manifests_destroy_path(CONFIG.project_name, manifest_id),
+      Routes.destroy_manifest_path(CONFIG.project_name, manifest_id),
       route_opts
     )
     .then(checkStatus);

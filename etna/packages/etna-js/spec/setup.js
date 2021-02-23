@@ -34,13 +34,13 @@ global.FormData = URLSearchParams;
 
 // For plots/actions/__tests__/manifest.test.js
 global.Routes = {
-  manifests_fetch_path: (projectName) =>
+  fetch_manifests_path: (projectName) =>
     `http://localhost/${projectName}/manifests`,
-  manifests_destroy_path: (projectName, manifestId) =>
+  destroy_manifest_path: (projectName, manifestId) =>
     `http://localhost/${projectName}/manifests/destroy/${manifestId}`,
-  manifests_create_path: (projectName) =>
+  create_manifest_path: (projectName) =>
     `http://localhost/${projectName}/manifests/create`,
-  manifests_update_path: (projectName, manifestId) =>
+  update_manifest_path: (projectName, manifestId) =>
     `http://localhost/${projectName}/manifests/update/${manifestId}`,
   plots_fetch_path: (project_name) => `http://localhost/${project_name}/plots`,
   view_path: (project_name, model_name) =>

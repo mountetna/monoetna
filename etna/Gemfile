@@ -12,6 +12,8 @@ gem 'vcr' # For Etna::Client in recording mode.
 gem 'multipart-post'
 gem 'nokogiri'
 gem 'aspera-cli'
+gem 'concurrent-ruby'
+gem 'concurrent-ruby-ext'
 
 group :test do
   gem 'pry'
