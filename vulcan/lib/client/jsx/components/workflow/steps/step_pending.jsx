@@ -28,7 +28,6 @@ export default function StepPending({step, stepIndex}) {
     return null;
 
   function handleInputChange(inputName, value) {
-    console.log('handling change', inputName, value);
     let userInputs = {...session.inputs};
     userInputs[inputName] = value;
     setInputs(userInputs);

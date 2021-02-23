@@ -56,7 +56,6 @@ export const submit = (context) => {
     setData
   } = context;
 
-  let submitResponse;
   let dataUrls = [];
 
   return vulcanPost(vulcanPath(ROUTES.submit(workflow.name)), {
@@ -76,10 +75,6 @@ export const submit = (context) => {
           return {...oldStep, ...response.status[oldPathIndex][oldStepIndex]};
         });
       });
-
-      // Store this to send back because may need
-      //   to update based on the response.
-      submitResponse = response;
 
       let dataRequests = [];
       updatedStatus[pathIndex].forEach((step) => {
@@ -114,7 +109,7 @@ export const submit = (context) => {
       extractions.forEach((datum, index) => {
         setData(dataUrls[index], datum);
       });
-      return Promise.resolve(submitResponse);
+      return Promise.resolve();
     })
     .catch(handleFetchError);
 };
