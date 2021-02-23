@@ -23,7 +23,7 @@ class DirectedGraph
       parents_of_map = descendants(root)
       seen = Set.new
 
-      parents_of_map.to_a.sort_by { |k, parents| [-parents.length, k] }.each do |k, parents|
+      parents_of_map.to_a.sort_by { |k, parents| [-parents.length, k.inspect] }.each do |k, parents|
         unless seen.include?(k)
           if @children[k].keys.empty?
             result << parents + [k]

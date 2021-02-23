@@ -584,6 +584,10 @@ module Etna
       def default
         @attributes['default']
       end
+
+      def type
+        @attributes['type']
+      end
     end
 
     class StepOutput < Cwl
