@@ -29,7 +29,7 @@ export const generateDownload = (filename) => {
   };
 };
 
-const isJSON = (response) =>
+export const isJSON = (response) =>
   response.headers.get('Content-Type') == 'application/json';
 
 export const headers = (...types) => {
@@ -57,16 +57,18 @@ export const headers = (...types) => {
   return _headers;
 };
 
-
 const opts = {
   credentials: 'same-origin',
   headers: headers('json', 'csrf')
 };
 
-export const getOpts = { method: 'GET', ...opts };
-export const postOpts = (body) => ({ method: 'POST', body: JSON.stringify(body), ...opts });
-export const deleteOpts = { method: 'DELETE', ...opts };
-
+export const getOpts = {method: 'GET', ...opts};
+export const postOpts = (body) => ({
+  method: 'POST',
+  body: JSON.stringify(body),
+  ...opts
+});
+export const deleteOpts = {method: 'DELETE', ...opts};
 
 export const json_fetch = (method) => (path, params) =>
   fetch((CONFIG.baseURL || '') + path, {

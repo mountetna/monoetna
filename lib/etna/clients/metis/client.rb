@@ -98,7 +98,7 @@ module Etna
         @etna_client.get(download_path) do |response|
           return {
               etag: response['ETag'].gsub(/"/, ''),
-              size: response['Content-Length'],
+              size: response['Content-Length'].to_i,
           }
         end
       end
