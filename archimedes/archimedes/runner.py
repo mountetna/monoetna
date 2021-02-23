@@ -26,6 +26,7 @@ from docker.types import Mount
 from docker.models.containers import Container
 from archimedes.checker import run as run_checker
 import tempfile
+import sys
 
 
 @dataclass_json
@@ -184,6 +185,7 @@ class LocalIsolator(Isolator[LocalProcess]):
 
     def is_running(self, t: LocalProcess) -> bool:
         p, io, f = t
+        p.poll()
         return p.returncode is None
 
     def stop(self, t: LocalProcess, timeout=10):
@@ -213,14 +215,22 @@ class LocalIsolator(Isolator[LocalProcess]):
         os.mkdir(outputs_dir)
 
         for input_file in request.input_files:
-            os.symlink(input_file.host_path, os.path.join(inputs_dir, input_file.logical_name))
-            print(input_file.host_path, os.path.join(inputs_dir, input_file.logical_name))
+            in_path = os.path.abspath(input_file.host_path)
+            isolated_path = os.path.join(inputs_dir, input_file.logical_name)
+            print("Linking input: ", in_path, isolated_path, file=sys.stderr)
+
+            os.symlink(in_path, isolated_path)
 
         for output_file in request.output_files:
-            os.symlink(output_file.host_path, os.path.join(outputs_dir, output_file.logical_name))
-            print(output_file.host_path, os.path.join(outputs_dir, output_file.logical_name))
+            out_path = os.path.abspath(output_file.host_path)
+            isolated_path = os.path.join(outputs_dir, output_file.logical_name)
+            print("Linking output: ", out_path, isolated_path, file=sys.stderr)
 
-        print(inputs_dir, outputs_dir)
+            os.symlink(out_path, isolated_path)
+            with open(out_path, "wb") as f:
+                f.write(b'')
+
+        print("Creating links for inputs and outputs", inputs_dir, outputs_dir, file=sys.stderr)
 
         environment = request.environment + [
             f"INPUTS_DIR={inputs_dir}",
@@ -238,27 +248,32 @@ class LocalIsolator(Isolator[LocalProcess]):
 
 def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 5, remove = True) -> RunResult:
     res = RunResult(status='running', error=None)
+    print(f"Preparing to run script using {request.isolator} isolator", file=sys.stderr)
 
     with isolator.reserve_exec_dir() as exec_dir:
         script_path = os.path.join(exec_dir, "script.py")
         with open(script_path, "w") as script_file:
             script_file.write(request.script)
 
+        print("Validating script...", file=sys.stderr)
         if not run_checker([script_path]):
             raise ValueError(
                 "Script did not conform to the archimedes dsl requirements."
             )
 
+        print("Starting script...", file=sys.stderr)
         process: T = isolator.start(request, script_path)
         try:
             # Give cells up to 5 minutes.  In the future, with a proper async executor we would want to allow up to
             # a much larger amount of time.
             done = time.time() + timeout
 
+            print("Waiting for process to finish...", file=sys.stderr)
             while isolator.is_running(process) and time.time() < done:
                 time.sleep(1)
 
             if isolator.is_running(process):
+                print("Timeout reached, forcing stop", file=sys.stderr)
                 isolator.stop(process)
 
             code = isolator.wait(process)
@@ -270,6 +285,7 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 5, remove = T
                 res.status = 'done'
         finally:
             if remove and isinstance(process, Container):
+                print("Cleaning up docker container", file=sys.stderr)
                 process.remove()
 
     return res
@@ -284,12 +300,13 @@ def make_storage_file(s: str) -> StorageFile:
         host_path=parts[1],
     )
 
+
 def main():
     import sys
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--file')
+    parser.add_argument('--file', help="The script file to run")
     parser.add_argument('--isolator', default='local', choices=['docker', 'local'])
     parser.add_argument('--image', default='etnaagent/archimedes:latest')
     parser.add_argument('--input', dest='inputs', action='append', help="input files of the form name:/path/on/host")
@@ -307,10 +324,13 @@ def main():
         image=args.image,
     )
 
+    result = RunResult(status='done', error=f"Did not run, isolator {request.isolator} unrecognized")
     if request.isolator == 'docker':
         result = run(request, DockerIsolator())
-        print(RunResult.schema().dumps(result))
 
     if request.isolator == 'local':
         result = run(request, LocalIsolator())
-        print(RunResult.schema().dumps(result))
+
+    if result.error:
+        print(result.error, file=sys.stderr)
+    print(RunResult.schema().dumps(result))
