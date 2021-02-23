@@ -4,7 +4,7 @@ gem 'rack'
 gem 'sequel'
 gem 'pg'
 gem 'puma', '5.0.2'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/60667019a69dda8b6246a241d9962b717081b9bd'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/054749276887c09bb9818cb2a5769985e8f0594e'
 gem 'actionpack' # For streaming the job controller results back...
 gem 'aspera-cli'
 gem 'concurrent-ruby'
