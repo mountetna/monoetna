@@ -274,7 +274,7 @@ describe('Workflow Utils', () => {
   });
 
   describe('allInputsDefined', () => {
-    fit('returns true when defined', () => {
+    it('returns true when defined', () => {
       const workflow = {
         class: 'Workflow',
         cwlVersion: 'v1.1',

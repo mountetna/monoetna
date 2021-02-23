@@ -80,7 +80,7 @@ export const submit = (context) => {
       updatedStatus[pathIndex].forEach((step) => {
         if (step.downloads) {
           Object.keys(step.downloads).forEach((download) => {
-            if (!step.data || !step.data[download]) {
+            if (!(step.data && step.data[download])) {
               let dataUrl = step.downloads[download];
               dataUrls.push(dataUrl);
               dataRequests.push(
