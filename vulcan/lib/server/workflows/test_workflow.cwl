@@ -26,6 +26,11 @@ steps:
     in:
       num: firstAdd/sum
     out: [num]
+  showPickedNum:
+    run: ui-queries/show-data.cwl
+    in:
+      numberPicked: pickANum/num
+    out: []
   finalStep:
     run: scripts/add.cwl
     in:

@@ -23,19 +23,12 @@ class Vulcan
     include Etna::CommandExecutor
 
     class Run < Etna::Command
-      def run_ui_query(query_name, backup, *args)
-        query_name = query_name.gsub(/-/, '_').gsub('.cwl', '').to_sym
-        unless respond_to?(query_name)
-          puts "Could not find #{query_name}, falling back"
-          query_name = backup
-        end
+      string_flags << '--session-key'
 
-        send(query_name, *args)
-      end
-
-      def execute(project_name, workflow_name)
+      def execute(project_name, workflow_name, session_key: SecureRandom.uuid.hex.to_s)
         @project_name = project_name
         @workflow_name = workflow_name
+        @key = session_key
 
         while true
           orchestration.run_until_done!(storage)
@@ -61,6 +54,17 @@ class Vulcan
           break unless found_needed_input
         end
       end
+
+      def run_ui_query(query_name, backup, *args)
+        query_name = query_name.gsub(/-/, '_').gsub('.cwl', '').to_sym
+        unless respond_to?(query_name)
+          puts "Could not find #{query_name}, falling back"
+          query_name = backup
+        end
+
+        send(query_name, *args)
+      end
+
 
       def show_data(source, path)
         puts "** #{source.join('/')}:"
@@ -159,7 +163,7 @@ class Vulcan
                 next
               end
 
-              if build_target.is_built?(storage)
+              if build_target.is_buildable?(storage) && build_target.is_built?(storage)
                 build_target.input_files.each do |sf|
                   result << [query_name, [step_name, sf.logical_name], sf.data_path(storage)]
                 end
@@ -178,7 +182,7 @@ class Vulcan
       end
 
       def session
-        @session ||= Session.from_json({'project_name' => @project_name, 'workflow_name' => @workflow_name})
+        @session ||= Session.from_json({'project_name' => @project_name, 'workflow_name' => @workflow_name, 'key' => @key})
       end
 
       def orchestration
