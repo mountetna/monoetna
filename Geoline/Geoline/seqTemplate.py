@@ -1,14 +1,7 @@
 from typing import Dict, Callable
-from geoUtils import flatten
+from geoUtils import *
 
-def samples(title: str,
-            sourceName: str,
-            organism: str,
-            characteristics: Dict,
-            molecule: str,
-            description: str,
-            processedDataFile: str,
-            rawFile: Dict) -> Dict:
+def samples() -> Dict:
     out = {
         'title': title,
         'source name': sourceName,
@@ -55,8 +48,26 @@ def peExperiment(interactiveFunc) -> Dict:
     return out
 
 
-def characteristics():
-    out = {}
+## INTERACTIVE
+
+def characteristics(func: Callable, d: Dict) -> Dict:
+    addCharacteristic = addAnother()
+    while addCharacteristic in ['y', 'Y']:
+        updateInfo = askCharacteristics()
+        out.update({updateInfo[0]: updateInfo[1]})
+
+    switch = {
+        'Y': characteristics(func, d),
+        'y': characteristics(func, d),
+        'n': '',
+        '0': '',
+        'STOP': ''
+    }
+    updateInfo = switch.get(addCharacteristic)
+    out.update({updateInfo[0]: updateInfo[1]})
+    return out
+
+
 
 
 

@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Tuple
 
 
 def flatten(dictionary, parent_key='', sep=' '):
@@ -12,7 +12,7 @@ def flatten(dictionary, parent_key='', sep=' '):
     return dict(items)
 
 
-def askAttribute(field: str, magmaAttr: str) -> str:
+def askAttribute(field: str, magmaAttr: str='') -> str:
     answerOptionsPre = {
         'Y/y': 'yes',
         'Or type the correct attribute name': '_',
@@ -23,10 +23,13 @@ def askAttribute(field: str, magmaAttr: str) -> str:
     question = f'\nIs {magmaAttr} correct for {field}?\n' \
                f'ANSWER OPTIONS:\n{answerOptions}'
     answer = input(question)
+    if answer not in answerOptionsPre.keys():
+        raise KeyError(f'askAttribute(): selected answer {answer} is not an allowed option'
+                       f'Choose one from {list(answerOptionsPre.keys())}')
     return answer
 
 
-def askCharacteristics() -> str:
+def askCharacteristics() -> Tuple:
     answerOptionsPre = {
         '1': 'tissue',
         '2': 'cell type',
@@ -37,8 +40,12 @@ def askCharacteristics() -> str:
         'STOP': 'cancel pipeline'
     }
     answerOptions = formatOptions(answerOptionsPre)
-    answer = input(answerOptions)
-    return answerOptionsPre[answer]
+    answerKey = input(answerOptions)
+    if answerKey not in answerOptionsPre.keys():
+        raise KeyError(f'askCharacteristics(): selected answer {answerKey} is not an allowed option'
+                       f'Choose one from {list(answerOptionsPre.keys())}')
+    answerValue = input('Enter attribute name for this characteristic')
+    return answerOptionsPre[answerKey], answerValue
 
 
 def addAnother() -> str:
@@ -50,10 +57,13 @@ def addAnother() -> str:
     }
     answerOptions = formatOptions(answerOptionsPre)
     answer = input(answerOptions)
+    if answer not in answerOptionsPre.keys():
+        raise KeyError(f'addAnother(): selected answer {answer} is not an allowed option'
+                       f'Choose one from {list(answerOptionsPre.keys())}')
     return answer
 
 
-def formatOptions(options: Dict):
+def formatOptions(options: Dict) -> str:
     formatted = [':\t'.join([x, options[x]]) for x in options]
     answerOptions = '\n'.join(formatted)
     return answerOptions
