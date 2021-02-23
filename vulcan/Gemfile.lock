@@ -45,8 +45,6 @@ GEM
     nokogiri (1.11.1)
       mini_portile2 (~> 2.5.0)
       racc (~> 1.4)
-    nokogiri (1.11.1-x86_64-linux)
-      racc (~> 1.4)
     pg (0.21.0)
     pry (0.13.1)
       coderay (~> 1.1)
@@ -103,7 +101,6 @@ DEPENDENCIES
   etna!
   factory_bot
   filigree (= 0.3.3)
-  nokogiri
   pg (~> 0.21)
   pry
   pry-byebug
