@@ -35,7 +35,7 @@ steps:
       b: someInt2
     out: [sum]
   pickANum:
-    run: ui-queries/multiselect.cwl
+    run: ui-queries/multiselect-string.cwl
     in:
       a: firstAdd/sum
     out: [num]

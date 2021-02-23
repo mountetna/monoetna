@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useState} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 import Step from './step';
-import {validPath} from '../../../selectors/workflow_selector';
+import {validPath} from '../../../utils/workflow';
 
 export default function StepsList() {
   const {workflow, pathIndex} = useContext(VulcanContext);

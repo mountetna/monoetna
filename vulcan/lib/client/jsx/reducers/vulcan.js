@@ -25,9 +25,26 @@ export default function VulcanReducer(state, action) {
         workflow: action.workflow
       };
     case SET_STATUS:
+      // Update each entry in the status Arrays.
+      // Workflow status are an Array of Arrays, so need to
+      //   loop through them.
+      // Assume stable order from the server.
+      let currentStatus = [...(state.status || [])];
+      action.status.forEach((path, pathIndex) => {
+        if (!currentStatus[pathIndex]) currentStatus[pathIndex] = [];
+        path.forEach((step, stepIndex) => {
+          if (!currentStatus[pathIndex][stepIndex])
+            currentStatus[pathIndex][stepIndex] = {};
+
+          currentStatus[pathIndex][stepIndex] = {
+            ...currentStatus[pathIndex][stepIndex],
+            ...step
+          };
+        });
+      });
       return {
         ...state,
-        status: action.status
+        status: currentStatus
       };
     case SET_DATA:
       // Inject the data payload to status based on the URL.

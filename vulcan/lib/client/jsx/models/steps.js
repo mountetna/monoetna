@@ -12,5 +12,6 @@ export const TYPE = {
   BOOL: 'boolean',
   STRING: 'string',
   ARRAY: 'array',
-  FILE: 'File'
+  FILE: 'File',
+  MULTISELECT_STRING: 'multiselect-string'
 };

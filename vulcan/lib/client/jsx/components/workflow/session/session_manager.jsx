@@ -6,10 +6,7 @@ import Icon from 'etna-js/components/icon';
 
 import {getSession, submit} from '../../../api/vulcan';
 import {VulcanContext} from '../../../contexts/vulcan';
-import {
-  allInputsDefined,
-  defaultInputValues
-} from '../../../selectors/workflow_selector';
+import {allInputsDefined, defaultInputValues} from '../../../utils/workflow';
 import SessionFeed from './session_feed';
 
 import PrimaryInputs from './primary_inputs';
@@ -28,6 +25,7 @@ export default function SessionManager() {
     setCalculating
   } = context;
   const [complete, setComplete] = useState(null);
+  const [firstRun, setFirstRun] = useState(true);
 
   useEffect(() => {
     // Leave this as getSession (without default inputs), since
@@ -57,14 +55,10 @@ export default function SessionManager() {
 
   function handleOnClick() {
     setCalculating(true);
+    setFirstRun(false);
     submit(context)
-      .then((response) => {
+      .then(() => {
         setCalculating(false);
-        // setStepIndex(
-        //   response.status[pathIndex].findIndex(
-        //     (s) => STATUS.PENDING === s.status
-        //   )
-        // );
       })
       .catch((e) => {
         console.error(e);
@@ -85,7 +79,7 @@ export default function SessionManager() {
       </div>
       <div className='scroll-window'>
         <PrimaryInputs></PrimaryInputs>
-        <SessionFeed></SessionFeed>
+        {!firstRun ? <SessionFeed></SessionFeed> : null}
       </div>
     </div>
   );

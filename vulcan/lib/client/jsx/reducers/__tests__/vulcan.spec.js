@@ -110,60 +110,42 @@ describe('Vulcan Reducer', () => {
       ]
     ];
 
-    const workflow = {
-      class: 'Workflow',
-      cwlVersion: 'v1.1',
-      inputs: {
-        bool_input: {
-          default: true,
-          label: 'Sample boolean',
-          type: 'boolean'
-        },
-        int_input: {
-          default: 42,
-          label: 'Sample input',
-          type: 'int'
-        }
-      },
-      outputs: {
-        sample_data: {
-          outputSource: 'final_step/sample_data',
-          type: 'File'
-        }
-      },
-      steps: [
-        [
-          {
-            in: [],
-            out: ['choice_set'],
-            run: 'first_step.cwl',
-            name: 'first_step'
-          },
-          {
-            in: {
-              all_pool_names: 'first_step/choice_set'
-            },
-            out: ['subset'],
-            run: 'ui_pick_subset.cwl',
-            name: 'ui_pick_subset'
-          },
-          {
-            in: {
-              bool_input: 'bool_input',
-              data: 'ui_pick_subset/subset',
-              int_input: 'int_input'
-            },
-            out: ['sample_data'],
-            run: 'final_step.cwl',
-            name: 'final_step'
-          }
+    const state = reducer(
+      {
+        status: [
+          [
+            {
+              name: 'first_step',
+              status: 'complete',
+              data_url: `${CONFIG.vulcan_host}/data/blobs/here`,
+              data: 'existing data'
+            }
+          ]
         ]
+      },
+      {type: SET_STATUS, status}
+    );
+
+    expect(state.status).toEqual([
+      [
+        {
+          name: 'first_step',
+          status: 'complete',
+          data_url: `${CONFIG.vulcan_host}/data/blobs/here`,
+          data: 'existing data'
+        },
+        {
+          status: 'pending',
+          data_url: null,
+          name: 'ui_pick_subset'
+        },
+        {
+          name: 'final_step',
+          status: 'pending',
+          data_url: null
+        }
       ]
-    };
-
-    const state = reducer({workflow}, {type: SET_STATUS, status});
-
-    expect(state.status).toEqual(status);
+    ]);
   });
 
   it('correctly injects data payload to right step in status', () => {

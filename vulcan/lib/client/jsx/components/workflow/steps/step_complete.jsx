@@ -2,7 +2,7 @@ import React, {useState, useContext, useEffect} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
-import {validStep} from '../../../selectors/workflow_selector';
+import {validStep, wrapPaneItem} from '../../../utils/workflow';
 
 import StepName from './step_name';
 
@@ -18,15 +18,6 @@ export default function StepComplete({step, stepIndex}) {
   )
     return null;
 
-  function wrapPaneItem(item) {
-    return (
-      <div className='view_item'>
-        <div className='item_name'>{item.name}</div>
-        <div className='item_view'>{item.value}</div>
-      </div>
-    );
-  }
-
   // Find the step's inputs + values from the Primary Inputs
   let inputValues = step.in.map((input) => {
     let value;
@@ -40,7 +31,11 @@ export default function StepComplete({step, stepIndex}) {
         (s) => outputStepName === s.name
       );
       let outputVariableName = input.source[1];
-      value = status[(pathIndex, outputStepIndex)].data[outputVariableName];
+      // Sometimes data won't be available yet, so we
+      //   have to punt and wait for State to update.
+      if (status[pathIndex][outputStepIndex].data) {
+        value = status[pathIndex][outputStepIndex].data[outputVariableName];
+      }
     }
 
     return {

@@ -1,16 +1,7 @@
 import React, {useState, useContext, useEffect} from 'react';
 
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {showMessages} from 'etna-js/actions/message_actions';
-import Icon from 'etna-js/components/icon';
-
-import {submit} from '../../../api/vulcan';
 import {VulcanContext} from '../../../contexts/vulcan';
-import {
-  allInputsDefined,
-  defaultInputValues,
-  validPath
-} from '../../../selectors/workflow_selector';
+import {validPath, hasUiInput, uiStepInputNames} from '../../../utils/workflow';
 import {STATUS} from '../../../models/steps';
 import StepComplete from '../steps/step_complete';
 import StepPending from '../steps/step_pending';
@@ -18,7 +9,6 @@ import StepPending from '../steps/step_pending';
 export default function SessionFeed() {
   // Shows stream of Input, Output, Plots, etc.,
   //   as the session object updates.
-  const invoke = useActionInvoker();
   const context = useContext(VulcanContext);
   const {workflow, session, pathIndex, status, setInputs} = context;
 
@@ -39,22 +29,32 @@ export default function SessionFeed() {
   let nextInputStepIndex = status[pathIndex].findIndex(
     (s) => STATUS.PENDING === s.status
   );
+  let nextInputStep;
 
-  // We need to inject a `null` input into the session,
+  // TODO: This needs to be seriously refactored!
+  // We inject a `null` input into the session,
   //   to indicate that we're waiting for a user input value
   //   to return to the server.
   if (-1 !== nextInputStepIndex) {
-    let nextInputStep = workflow.steps[pathIndex][nextInputStepIndex];
-    let missingInputs = nextInputStep.in.filter((input) => {
-      return !Object.keys(session.inputs).includes(input.id);
-    });
-    setInputs(
-      missingInputs.reduce((result, input) => {
-        if (!result.hasOwnProperty(inptu.id)) {
-          result[input.id] = null;
-        }
-      }, {})
-    );
+    nextInputStep = workflow.steps[pathIndex][nextInputStepIndex];
+
+    if (hasUiInput(nextInputStep)) {
+      let missingInputs = uiStepInputNames(nextInputStep).filter(
+        (outputName) => !Object.keys(session.inputs).includes(outputName)
+      );
+
+      if (missingInputs.length > 0) {
+        let missingInputsHash = missingInputs.reduce((result, input) => {
+          if (!result.hasOwnProperty(input)) {
+            result[input] = null;
+          }
+
+          return result;
+        }, {});
+
+        setInputs(missingInputsHash);
+      }
+    }
   }
 
   return (

@@ -9,9 +9,9 @@ import {
   validStep,
   defaultInputValues,
   allInputsDefined
-} from '../workflow_selector';
+} from '..//workflow';
 
-describe('Workflow Selector', () => {
+describe('Workflow Utils', () => {
   describe('XY Plots', () => {
     it('correctly returns plot model', () => {
       const step = {
