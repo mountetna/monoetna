@@ -24,8 +24,9 @@ class Vulcan
 
     class Run < Etna::Command
       def run_ui_query(query_name, backup, *args)
-        query_name = query_name.gsub(/-/, '_').to_sym
+        query_name = query_name.gsub(/-/, '_').gsub('.cwl', '').to_sym
         unless respond_to?(query_name)
+          puts "Could not find #{query_name}, falling back"
           query_name = backup
         end
 
@@ -42,9 +43,11 @@ class Vulcan
             run_ui_query(query_name, :show_data, source, path)
           end
 
+          found_needed_input = false
           while (input = find_next_primary_input)
             val = collect_primary_input(input.id, input.type)
             session.define_user_input([:primary_inputs, input.id], val)
+            found_needed_input = true
           end
 
           while (ui_query = find_next_input_ui_query)
@@ -52,7 +55,10 @@ class Vulcan
 
             val = run_ui_query(query_name, :query_json, source.join('/'), *input_files)
             session.define_user_input(source, val)
+            found_needed_input = true
           end
+
+          break unless found_needed_input
         end
       end
 
@@ -145,13 +151,15 @@ class Vulcan
               if step
                 query_name = step.ui_query_name
                 next if query_name.nil?
+                # "output" ui steps, other than primary outputs, are steps that lack any output
+                next unless build_target.build_outputs.length == 0
               elsif step_name == :primary_outputs
-                query_name = :show_data
+                query_name = 'show_data'
               else
                 next
               end
 
-              if build_target.is_built?(storage) && build_target.build_outputs.length == 0
+              if build_target.is_built?(storage)
                 build_target.input_files.each do |sf|
                   result << [query_name, [step_name, sf.logical_name], sf.data_path(storage)]
                 end
