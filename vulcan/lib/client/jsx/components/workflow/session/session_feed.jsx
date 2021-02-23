@@ -3,6 +3,7 @@ import React, {useState, useContext, useEffect} from 'react';
 import {VulcanContext} from '../../../contexts/vulcan';
 import {validPath, hasUiInput, uiStepInputNames} from '../../../utils/workflow';
 import {STATUS} from '../../../models/steps';
+import StepComplete from '../steps/step_complete';
 import StepPending from '../steps/step_pending';
 
 export default function SessionFeed() {
@@ -13,6 +14,18 @@ export default function SessionFeed() {
 
   if (!workflow || !validPath({workflow, pathIndex}) || !session || !status)
     return null;
+
+  let completedSteps = status[pathIndex]
+    .map((step, index) => {
+      let workflowStep = workflow.steps[pathIndex][index];
+      if (STATUS.COMPLETE === step.status && hasUiInput(workflowStep)) {
+        return {
+          step: workflowStep,
+          index
+        };
+      }
+    })
+    .filter((s) => s);
 
   let nextInputStepIndex = status[pathIndex].findIndex(
     (s) => STATUS.PENDING === s.status
@@ -47,6 +60,9 @@ export default function SessionFeed() {
 
   return (
     <div className='session-feed'>
+      {completedSteps.map((s) => (
+        <StepComplete step={s.step} stepIndex={s.index}></StepComplete>
+      ))}
       {nextInputStep ? (
         <StepPending
           step={nextInputStep}
