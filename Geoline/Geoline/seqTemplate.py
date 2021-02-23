@@ -1,5 +1,5 @@
 from typing import Dict, Callable
-from geoUtils import *
+from Geoline.Geoline.geoUtils import *
 
 def samples() -> Dict:
     out = {
@@ -51,8 +51,8 @@ def peExperiment(interactiveFunc) -> Dict:
 ## INTERACTIVE
 
 def characteristics(addAnother: Callable, d: Dict) -> Dict:
-    aw = addAnother
-    if aw == 'Y':
+    aw = addAnother()
+    if aw == 'y':
         updateInfo = askCharacteristics()
         dc = d.copy()
         dc.update({updateInfo[0]: updateInfo[1]})

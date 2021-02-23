@@ -47,7 +47,7 @@ def askCharacteristics() -> Tuple:
 
 def addAnother() -> str:
     answerOptionsPre = {
-        'Y/y': 'yes',
+        'y': 'yes',
         'n': 'no - same as STOP',
         '0': 'back',
         'STOP': 'cancel pipeline'
