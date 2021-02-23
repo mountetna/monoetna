@@ -1,1 +1,1 @@
-from .path import input_path, output_path
+from .path import input_path, output_path, input_var
