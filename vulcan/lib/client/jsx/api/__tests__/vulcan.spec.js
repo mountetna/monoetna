@@ -3,7 +3,7 @@ const path = require('path');
 
 import nock from 'nock';
 
-import {getWorkflows, getWorkflow, submitInputs, getData} from '../vulcan';
+import {getWorkflows, submit, getData} from '../vulcan';
 import {mockStore, stubUrl, mockFetch, cleanStubs} from 'etna-js/spec/helpers';
 
 describe('Vulcan API', () => {
@@ -38,7 +38,7 @@ describe('Vulcan API', () => {
     });
   });
 
-  it('getWorkflow returns a YAML workflow by default', (done) => {
+  xit('getWorkflow returns a YAML workflow by default', (done) => {
     const sample_yaml = fs.readFileSync(
       path.resolve(__dirname, '../../spec/fixtures/sample_cwl.yaml'),
       'utf8'
@@ -60,7 +60,7 @@ describe('Vulcan API', () => {
     });
   });
 
-  it('getWorkflow returns a JSON workflow when requested', (done) => {
+  xit('getWorkflow returns a JSON workflow when requested', (done) => {
     const workflow = {
       class: 'Workflow',
       cwlVersion: 'v1.1',
@@ -130,7 +130,7 @@ describe('Vulcan API', () => {
     });
   });
 
-  it('submitInputs posts existing steps', (done) => {
+  it('submit posts existing inputs and fetches getData', (done) => {
     const inputs = [
       [
         {
@@ -158,11 +158,16 @@ describe('Vulcan API', () => {
       ]
     ];
 
+    const url = '/api/workflows/test/file1.txt';
+    const data = [1, 2, 4, 'abc'];
     const status = [
       [
         {
           name: 'first_step',
-          status: 'complete'
+          status: 'complete',
+          downloads: {
+            sum: `${CONFIG.vulcan_host}${url}`
+          }
         },
         {
           all_pool_names: [1, 2, 3, 4],
@@ -177,7 +182,10 @@ describe('Vulcan API', () => {
       [
         {
           name: 'first_step',
-          status: 'complete'
+          status: 'complete',
+          downloads: {
+            sum: `${CONFIG.vulcan_host}${url}`
+          }
         },
         {
           all_pool_names: [1],
@@ -193,17 +201,52 @@ describe('Vulcan API', () => {
 
     stubUrl({
       verb: 'post',
-      path: ROUTES.submit_inputs('test'),
-      request: inputs,
-      response: status,
+      path: ROUTES.submit('test'),
+      request: () => ({inputs, key: 'session_key'}),
+      response: {
+        status,
+        session: {}
+      },
+      headers: {
+        'Content-type': 'application/json'
+      },
+      host: CONFIG.vulcan_host
+    });
+    stubUrl({
+      verb: 'get',
+      path: url,
+      response: data,
       headers: {
         'Content-type': 'application/json'
       },
       host: CONFIG.vulcan_host
     });
 
-    return submitInputs('test', inputs).then((data) => {
-      expect(data).toEqual(status);
+    const mockSetSession = jest.fn();
+    const mockSetStatus = jest.fn();
+    const mockSetData = jest.fn();
+
+    let context = {
+      workflow: {
+        name: 'test'
+      },
+      session: {
+        inputs,
+        key: 'session_key'
+      },
+      status: [
+        [{name: 'first_step'}, {name: 'ui_pick_subset'}, {name: 'final_step'}]
+      ],
+      pathIndex: 0,
+      setSession: mockSetSession,
+      setStatus: mockSetStatus,
+      setData: mockSetData
+    };
+
+    return submit(context).then(() => {
+      expect(mockSetSession.mock.calls.length).toBe(1);
+      expect(mockSetStatus.mock.calls.length).toBe(1);
+      expect(mockSetData.mock.calls.length).toBe(1);
       done();
     });
   });

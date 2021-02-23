@@ -6,6 +6,7 @@
 
 .browser {
   position: relative;
+  height: calc(100vh - 61px);
   .header {
     font-family: $body_font;
     position: relative;
