@@ -22,7 +22,16 @@ class Vulcan
   class Workflow
     include Etna::CommandExecutor
 
-    class Run
+    class Run < Etna::Command
+      def run_ui_query(query_name, backup, *args)
+        query_name = query_name.gsub(/-/, '_').to_sym
+        unless respond_to?(query_name)
+          query_name = backup
+        end
+
+        send(query_name, *args)
+      end
+
       def execute(project_name, workflow_name)
         @project_name = project_name
         @workflow_name = workflow_name
@@ -30,11 +39,7 @@ class Vulcan
         while true
           orchestration.run_until_done!(storage)
           find_all_output_ui_queries.each do |query_name, source, path|
-            if self.respond_to?(query_name.to_sym)
-              self.send(query_name.to_sym, source, path)
-            else
-              show_data(source, path)
-            end
+            run_ui_query(query_name, :show_data, source, path)
           end
 
           while (input = find_next_primary_input)
@@ -43,13 +48,9 @@ class Vulcan
           end
 
           while (ui_query = find_next_input_ui_query)
-            query_name, source = ui_query
+            query_name, source, input_files = ui_query
 
-            if self.respond_to?(query_name.to_sym)
-              val = self.send(query_name.to_sym, source.join('/'))
-            else
-              val = self.query_json(source.join('/'))
-            end
+            val = run_ui_query(query_name, :query_json, source.join('/'), *input_files)
             session.define_user_input(source, val)
           end
         end
@@ -61,17 +62,17 @@ class Vulcan
         puts
       end
 
-      def query_json(name)
-        JSON.parse(Readline.gets("json value for #{name.inspect}: ", true))
+      def query_json(name, *args)
+        JSON.parse(Readline.readline("json value for #{name.inspect}: ", true))
       end
 
-      def query_string(name)
-        Readline.gets("string value for #{name.inspect}: ", true)
+      def query_string(name, *args)
+        Readline.readline("string value for #{name.inspect}: ", true)
       end
 
-      def query_float(name)
+      def query_float(name, *args)
         while true
-          val = Readline.gets("float value for #{name.inspect}: ", true)
+          val = Readline.readline("float value for #{name.inspect}: ", true)
           begin
             return Float(val)
           rescue
@@ -79,9 +80,9 @@ class Vulcan
         end
       end
 
-      def query_int(name)
+      def query_int(name, *args)
         while true
-          val = Readline.gets("int value for #{name.inspect}: ", true)
+          val = Readline.readline("int value for #{name.inspect}: ", true)
           begin
             return Integer(val)
           rescue
@@ -112,6 +113,8 @@ class Vulcan
         workflow.inputs.each do |input|
           return input unless session.include?([:primary_inputs, input.id])
         end
+
+        nil
       end
 
       def find_next_input_ui_query
@@ -125,10 +128,12 @@ class Vulcan
 
             build_target.build_outputs.keys.each do |build_output_name|
               source = [step_name, build_output_name]
-              return [query_name, source] unless session.include?(source)
+              return [query_name, source, build_target.input_files] unless session.include?(source)
             end
           end
         end
+
+        nil
       end
 
       def find_all_output_ui_queries
@@ -165,7 +170,7 @@ class Vulcan
       end
 
       def session
-        @session ||= Session.from_json({'project_name' => project_name, 'workflow_name' => workflow_name})
+        @session ||= Session.from_json({'project_name' => @project_name, 'workflow_name' => @workflow_name})
       end
 
       def orchestration
