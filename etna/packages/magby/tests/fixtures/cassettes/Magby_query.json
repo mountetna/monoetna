@@ -1,0 +1,73 @@
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2021-02-19T21:32:01",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "{\"project_name\": \"example\", \"query\": [\"rna_seq\", \"::all\", \"biospecimen\", \"::identifier\"]}"
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "gzip, deflate"
+          ],
+          "Authorization": [
+            "<AUTH_TOKEN>"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "89"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "User-Agent": [
+            "python-requests/2.25.1"
+          ]
+        },
+        "method": "POST",
+        "uri": "https://magma.ucsf.edu/query"
+      },
+      "response": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "{\"answer\":[[\"EXAMPLE-HS10-WB1-RSQ1\",\"EXAMPLE-HS10-WB1\"],[\"EXAMPLE-HS11-WB1-RSQ1\",\"EXAMPLE-HS11-WB1\"],[\"EXAMPLE-HS12-WB1-RSQ1\",\"EXAMPLE-HS12-WB1\"],[\"EXAMPLE-HS1-WB1-RSQ1\",\"EXAMPLE-HS1-WB1\"],[\"EXAMPLE-HS2-WB1-RSQ1\",\"EXAMPLE-HS2-WB1\"],[\"EXAMPLE-HS3-WB1-RSQ1\",\"EXAMPLE-HS3-WB1\"],[\"EXAMPLE-HS4-WB1-RSQ1\",\"EXAMPLE-HS4-WB1\"],[\"EXAMPLE-HS5-WB1-RSQ1\",\"EXAMPLE-HS5-WB1\"],[\"EXAMPLE-HS6-WB1-RSQ1\",\"EXAMPLE-HS6-WB1\"],[\"EXAMPLE-HS7-WB1-RSQ1\",\"EXAMPLE-HS7-WB1\"],[\"EXAMPLE-HS8-WB1-RSQ1\",\"EXAMPLE-HS8-WB1\"],[\"EXAMPLE-HS9-WB1-RSQ1\",\"EXAMPLE-HS9-WB1\"]],\"type\":\"String\",\"format\":[\"example::rna_seq#tube_name\",\"example::biospecimen#name\"]}"
+        },
+        "headers": {
+          "Connection": [
+            "Keep-Alive"
+          ],
+          "Content-Length": [
+            "618"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Fri, 19 Feb 2021 21:32:00 GMT"
+          ],
+          "Keep-Alive": [
+            "timeout=5, max=100"
+          ],
+          "Server": [
+            "Apache"
+          ],
+          "Service-Worker-Allowed": [
+            "/"
+          ]
+        },
+        "status": {
+          "code": 200,
+          "message": "OK"
+        },
+        "url": "https://magma.ucsf.edu/query"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.1"
+}
