@@ -1,0 +1,1 @@
+require_relative './workflows/set_configuration_workflow'
