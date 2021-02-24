@@ -1,0 +1,73 @@
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2021-02-19T21:15:33",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "{\"project_name\": \"example\", \"model_name\": \"subject\", \"record_names\": \"all\", \"attribute_names\": [\"group\"], \"format\": \"json\", \"filter\": \"\"}"
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "gzip, deflate"
+          ],
+          "Authorization": [
+            "<AUTH_TOKEN>"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "137"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "User-Agent": [
+            "python-requests/2.25.1"
+          ]
+        },
+        "method": "POST",
+        "uri": "https://magma.ucsf.edu/retrieve"
+      },
+      "response": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "{\"models\":{\"subject\":{\"documents\":{\"EXAMPLE-HS1\":{\"name\":\"EXAMPLE-HS1\",\"group\":\"g1\"},\"EXAMPLE-HS10\":{\"name\":\"EXAMPLE-HS10\",\"group\":\"g3\"},\"EXAMPLE-HS11\":{\"name\":\"EXAMPLE-HS11\",\"group\":\"g3\"},\"EXAMPLE-HS12\":{\"name\":\"EXAMPLE-HS12\",\"group\":\"g3\"},\"EXAMPLE-HS2\":{\"name\":\"EXAMPLE-HS2\",\"group\":\"g1\"},\"EXAMPLE-HS3\":{\"name\":\"EXAMPLE-HS3\",\"group\":\"g1\"},\"EXAMPLE-HS4\":{\"name\":\"EXAMPLE-HS4\",\"group\":\"g1\"},\"EXAMPLE-HS5\":{\"name\":\"EXAMPLE-HS5\",\"group\":\"g2\"},\"EXAMPLE-HS6\":{\"name\":\"EXAMPLE-HS6\",\"group\":\"g2\"},\"EXAMPLE-HS7\":{\"name\":\"EXAMPLE-HS7\",\"group\":\"g2\"},\"EXAMPLE-HS8\":{\"name\":\"EXAMPLE-HS8\",\"group\":\"g2\"},\"EXAMPLE-HS9\":{\"name\":\"EXAMPLE-HS9\",\"group\":\"g3\"}},\"template\":{\"name\":\"subject\",\"attributes\":{\"created_at\":{\"name\":\"created_at\",\"attribute_name\":\"created_at\",\"display_name\":\"Created At\",\"restricted\":false,\"read_only\":false,\"hidden\":true,\"validation\":null,\"attribute_type\":\"date_time\"},\"updated_at\":{\"name\":\"updated_at\",\"attribute_name\":\"updated_at\",\"display_name\":\"Updated At\",\"restricted\":false,\"read_only\":false,\"hidden\":true,\"validation\":null,\"attribute_type\":\"date_time\"},\"name\":{\"name\":\"name\",\"attribute_name\":\"name\",\"display_name\":\"Name\",\"restricted\":false,\"read_only\":false,\"hidden\":false,\"validation\":null,\"attribute_type\":\"identifier\"},\"project\":{\"name\":\"project\",\"attribute_name\":\"project\",\"model_name\":\"project\",\"link_model_name\":\"project\",\"display_name\":\"Project\",\"restricted\":false,\"read_only\":false,\"hidden\":false,\"validation\":null,\"attribute_type\":\"parent\"},\"biospecimen\":{\"name\":\"biospecimen\",\"attribute_name\":\"biospecimen\",\"model_name\":\"biospecimen\",\"link_model_name\":\"biospecimen\",\"display_name\":\"Biospecimen\",\"restricted\":false,\"read_only\":false,\"hidden\":false,\"validation\":null,\"attribute_type\":\"collection\"},\"group\":{\"name\":\"group\",\"attribute_name\":\"group\",\"display_name\":\"Group\",\"restricted\":false,\"read_only\":false,\"hidden\":false,\"validation\":null,\"attribute_type\":\"string\"}},\"identifier\":\"name\",\"parent\":\"project\"}}}}"
+        },
+        "headers": {
+          "Connection": [
+            "Keep-Alive"
+          ],
+          "Content-Length": [
+            "1932"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Fri, 19 Feb 2021 21:15:32 GMT"
+          ],
+          "Keep-Alive": [
+            "timeout=5, max=100"
+          ],
+          "Server": [
+            "Apache"
+          ],
+          "Service-Worker-Allowed": [
+            "/"
+          ]
+        },
+        "status": {
+          "code": 200,
+          "message": "OK"
+        },
+        "url": "https://magma.ucsf.edu/retrieve"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.1"
+}
