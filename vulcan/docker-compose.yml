@@ -1,4 +1,3 @@
-
 version: '3.4'
 
 x-base-etna-service:
@@ -16,7 +15,7 @@ x-base-etna-service:
   environment: &base-etna-env
     'VULCAN_ENV': 'development'
     APP_NAME: 'vulcan'
-    HOST_DIR_MAP: "/app=${PWD}/../vulcan"
+    HOST_DIR_MAP: '/app=${PWD}/../vulcan'
   entrypoint: /entrypoints/development.sh
 
   networks:
@@ -67,6 +66,7 @@ x-base-etna-services:
       - vulcan-public-dir:/app/public:ro
       - vulcan-opt-dir:/usr/opt:ro
       - ../docker/etna-base/entrypoints:/entrypoints:ro
+      - ./data:/app/data:delegated
     depends_on:
       - 'vulcan_app'
     entrypoint: /entrypoints/development.sh
@@ -107,4 +107,3 @@ networks:
 
 services:
   <<: *base-etna-services
-
