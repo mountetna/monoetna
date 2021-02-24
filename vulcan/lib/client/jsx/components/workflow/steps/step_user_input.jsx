@@ -38,7 +38,7 @@ export default function StepUserInput({step, stepIndex}) {
   let inputNames = uiStepInputNames(step);
   let mockStepInputs = inputNames.reduce((result, inputName) => {
     result[inputName] = {
-      type: 'int', //uiStepType(step),
+      type: uiStepType(step),
       label: step.label || step.name,
       default: session.inputs[inputName] || null
     };

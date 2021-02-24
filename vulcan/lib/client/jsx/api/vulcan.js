@@ -126,7 +126,8 @@ export const submit = (context) => {
     .catch(handleFetchError);
 };
 
-const downloadUrlUpdated = (oldStep, newStep, downloadKey) => {
+// export for testing
+export const downloadUrlUpdated = (oldStep, newStep, downloadKey) => {
   return (
     !(newStep.data && newStep.data[downloadKey]) ||
     newStep.downloads[downloadKey] !== oldStep.downloads[downloadKey]

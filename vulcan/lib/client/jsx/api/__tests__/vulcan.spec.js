@@ -3,7 +3,7 @@ const path = require('path');
 
 import nock from 'nock';
 
-import {getWorkflows, submit, getData} from '../vulcan';
+import {getWorkflows, submit, getData, downloadUrlUpdated} from '../vulcan';
 import {mockStore, stubUrl, mockFetch, cleanStubs} from 'etna-js/spec/helpers';
 
 describe('Vulcan API', () => {
@@ -424,6 +424,81 @@ describe('Vulcan API', () => {
     return getData(`${CONFIG.vulcan_host}${url}`).then((returnedData) => {
       expect(data).toEqual(returnedData);
       done();
+    });
+  });
+
+  describe('downloadUrlUpdated', () => {
+    it('returns true if data does not exist on new Status', () => {
+      let oldStatus = {
+        name: 'foo'
+      };
+
+      let newStatus = {
+        downloads: {
+          key: 'URL'
+        }
+      };
+
+      let result = downloadUrlUpdated(oldStatus, newStatus, 'key');
+      expect(result).toEqual(true);
+
+      oldStatus = {
+        name: 'foo',
+        data: {
+          another_key: 'blob'
+        }
+      };
+
+      result = downloadUrlUpdated(oldStatus, newStatus, 'key');
+      expect(result).toEqual(true);
+    });
+
+    it('returns false if url did not change', () => {
+      let oldStatus = {
+        name: 'foo',
+        downloads: {
+          key: 'URL'
+        },
+        data: {
+          key: 'blob'
+        }
+      };
+
+      let newStatus = {
+        downloads: {
+          key: 'URL'
+        },
+        data: {
+          key: 'blob'
+        }
+      };
+
+      let result = downloadUrlUpdated(oldStatus, newStatus, 'key');
+      expect(result).toEqual(false);
+    });
+
+    it('returns true if url changed but data exists', () => {
+      let oldStatus = {
+        name: 'foo',
+        downloads: {
+          key: 'URL'
+        },
+        data: {
+          key: 'blob'
+        }
+      };
+
+      let newStatus = {
+        downloads: {
+          key: 'URL2'
+        },
+        data: {
+          key: 'blob2'
+        }
+      };
+
+      let result = downloadUrlUpdated(oldStatus, newStatus, 'key');
+      expect(result).toEqual(true);
     });
   });
 });
