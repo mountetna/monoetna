@@ -7,6 +7,7 @@ import XYPlotModel from '../models/xy_plot';
 import ListInput from 'etna-js/components/inputs/list_input';
 import SelectInput from 'etna-js/components/inputs/select_input';
 import Dropdown from 'etna-js/components/inputs/dropdown';
+import DropdownInput from 'etna-js/components/inputs/dropdown_input';
 import {
   IntegerInput,
   FloatInput
@@ -72,6 +73,23 @@ export const wrapEditableInputs = (inputs, handleInputChange) => {
             />
           )
         });
+      case TYPE.MULTISELECT_STRING:
+        return wrapPaneItem({
+          name,
+          value: (
+            <ListInput
+              key={key}
+              placeholder='Select items from the list'
+              className='link_text'
+              values={input.default || []} // Will have to test if this persists
+              itemInput={DropdownInput}
+              list={input.options || []}
+              onChange={(e) => {
+                handleInputChange(inputName, e);
+              }}
+            />
+          )
+        });
       default:
         return wrapPaneItem({
           name,
@@ -97,6 +115,23 @@ export const uiStepType = (step) => {
   return step.run.split('/')[1].replace('.cwl', '');
 };
 
+export const uiStepOptions = ({step, pathIndex, status}) => {
+  // Pull out any previous step's output data that is a required
+  //   input into this UI step.
+  // Assume a single input data file for now.
+  let previousStepName = step.in[0].source[0];
+  let outputKey = step.in[0].source[1];
+
+  let previousStep = status[pathIndex].find((s) => s.name === previousStepName);
+
+  if (!previousStep || !previousStep.data || !previousStep.data[outputKey])
+    return [];
+
+  let outputData = previousStep.data[outputKey];
+
+  return Array.isArray(outputData) ? outputData : [outputData];
+};
+
 export const validStep = ({workflow, pathIndex, stepIndex}) => {
   return !!(
     workflow.steps &&
@@ -116,7 +151,7 @@ export const inputType = ({workflow, input}) => {
 };
 
 export const hasUiInput = (step) => {
-  return step.run.startsWith('ui-queries/');
+  return step.run && step.run.startsWith('ui-queries/');
 };
 
 export const defaultInputValues = (workflow) => {
@@ -131,14 +166,23 @@ export const defaultInputValues = (workflow) => {
 export const allInputsDefined = (workflow, userInputs) => {
   // Session Inputs can also include UI interaction inputs,
   //   so they won't be defined in the workflow inputs.
-  console.log('user inputs', userInputs);
-  console.log(Object.keys(workflow.inputs));
   return (
     Object.keys(workflow.inputs).every((primaryInput) =>
       Object.keys(userInputs).includes(primaryInput)
     ) &&
     Object.keys(userInputs).every((key) => {
-      return null !== userInputs[key] && undefined !== userInputs[key];
+      let userInput = userInputs[key];
+      // The userInput !== userInput is to check for NaN, because
+      //    NaN !== NaN
+      // For multiselect, need to make sure the inputs are not
+      //    [""] or []...
+      return !(
+        null === userInput ||
+        undefined === userInput ||
+        userInput !== userInput ||
+        _.isEqual([''], userInput) ||
+        _.isEqual([], userInput)
+      );
     })
   );
 };
