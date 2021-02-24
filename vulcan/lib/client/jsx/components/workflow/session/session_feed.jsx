@@ -4,6 +4,7 @@ import {VulcanContext} from '../../../contexts/vulcan';
 import {validPath, hasUiInput, uiStepInputNames} from '../../../utils/workflow';
 import {STATUS} from '../../../models/steps';
 import StepUserInput from '../steps/step_user_input';
+import StepError from '../steps/step_error';
 
 export default function SessionFeed() {
   // Shows stream of Input, Output, Plots, etc.,
@@ -60,10 +61,25 @@ export default function SessionFeed() {
     });
   }
 
+  let errorSteps = status[pathIndex]
+    .map((step, index) => {
+      let workflowStep = workflow.steps[pathIndex][index];
+      if (STATUS.ERROR === step.status) {
+        return {
+          step: workflowStep,
+          index
+        };
+      }
+    })
+    .filter((s) => s);
+
   return (
     <div className='session-feed'>
       {uiSteps.map((s) => (
         <StepUserInput step={s.step} stepIndex={s.index}></StepUserInput>
+      ))}
+      {errorSteps.map((s) => (
+        <StepError step={s.step} stepIndex={s.index}></StepError>
       ))}
     </div>
   );

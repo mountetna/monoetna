@@ -139,5 +139,18 @@ describe Vulcan::Orchestration do
       expect(orchestration.run_until_done!(storage).length).to eql(3)
       expect(::File.read(primary_outputs.build_outputs['the_result'].data_path(storage))).to eql("866")
     end
+
+    it 'reports cell errors correctly' do
+      expect(orchestration.run_until_done!(storage).length).to eql(0)
+      expect(orchestration.errors).to eql({})
+      session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 'abc-not-an-int')
+      expect(orchestration.run_until_done!(storage).length).to eql(2)
+
+      bt = orchestration.build_target_for('firstAdd', {})
+      expect(orchestration.build_target_has_error?(bt)).to eql(true)
+
+      expected_error = "ValueError: invalid literal for int() with base 10: '\"abc-not-an-int\"'"
+      expect(orchestration.build_target_error(bt).message.include? (expected_error)).to eql(true)
+    end
   end
 end
