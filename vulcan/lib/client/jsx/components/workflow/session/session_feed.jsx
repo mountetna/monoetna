@@ -14,7 +14,7 @@ export default function SessionFeed() {
   if (!workflow || !validPath({workflow, pathIndex}) || !session || !status)
     return null;
 
-  let completedUISteps = status[pathIndex]
+  let uiSteps = status[pathIndex]
     .map((step, index) => {
       let workflowStep = workflow.steps[pathIndex][index];
       if (STATUS.COMPLETE === step.status && hasUiInput(workflowStep)) {
@@ -53,19 +53,18 @@ export default function SessionFeed() {
 
       setInputs(missingInputsHash);
     }
+
+    uiSteps.push({
+      step: nextInputStep,
+      index: nextInputStepIndex
+    });
   }
 
   return (
     <div className='session-feed'>
-      {completedUISteps.map((s) => (
+      {uiSteps.map((s) => (
         <StepUserInput step={s.step} stepIndex={s.index}></StepUserInput>
       ))}
-      {nextInputStep ? (
-        <StepUserInput
-          step={nextInputStep}
-          stepIndex={nextInputStepIndex}
-        ></StepUserInput>
-      ) : null}
     </div>
   );
 }
