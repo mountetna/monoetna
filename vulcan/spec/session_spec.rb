@@ -102,8 +102,6 @@ describe SessionsController do
       response = last_json_response
 
       expect(response['session']['inputs']).to eql(inputs)
-      require 'pry'
-      binding.pry
       check_url_for(response['status'].first[0]['downloads']['sum'], orchestration.build_target_for('firstAdd').build_outputs['sum'])
       check_url_for(response['status'].first[1]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
 
