@@ -10,9 +10,6 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.6]
     steps:
       - uses: actions/checkout@v2
       - name: docker login
@@ -102,7 +99,7 @@ jobs:
         id: magby_setup_py
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.6
       - name: Run Magby tests
         id: magby_first_test_run
         env:
