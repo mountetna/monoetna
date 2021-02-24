@@ -31,6 +31,8 @@ class SessionsController < Vulcan::Controller
         end,
         outputs: step_status_json(:primary_outputs, orchestration.build_target_for(:primary_outputs)).slice(:status, :downloads),
     })
+  rescue => e
+    raise Etna::BadRequest.new(e.message)
   end
 
   def step_status_json(step_name, bt)

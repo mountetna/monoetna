@@ -1,11 +1,12 @@
 #vulcan-logo {
-  $color: #066306;
+  $color: #630606;
   $image: '~etna-js/images/vulcan.svg';
   $logo_size: 50px;
 
   width: $logo_size;
   height: $logo_size;
   border: 1px solid $color;
+  box-shadow: 0 0 5px 0px rgba(255,0,0,0.4);
   border-radius: 50%;
   position: relative;
 
