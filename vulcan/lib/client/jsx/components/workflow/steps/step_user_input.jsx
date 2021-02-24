@@ -9,7 +9,8 @@ import {
   hasUiInput,
   wrapEditableInputs,
   uiStepInputNames,
-  uiStepType
+  uiStepType,
+  uiStepOptions
 } from '../../../utils/workflow';
 
 export default function StepUserInput({step, stepIndex}) {
@@ -40,7 +41,8 @@ export default function StepUserInput({step, stepIndex}) {
     result[inputName] = {
       type: uiStepType(step),
       label: step.label || step.name,
-      default: session.inputs[inputName] || null
+      default: session.inputs[inputName] || null,
+      options: uiStepOptions({step, pathIndex, status})
     };
     return result;
   }, {});

@@ -78,11 +78,12 @@ export const wrapEditableInputs = (inputs, handleInputChange) => {
           name,
           value: (
             <ListInput
+              key={key}
               placeholder='Select items from the list'
               className='link_text'
               values={input.default || []} // Will have to test if this persists
               itemInput={DropdownInput}
-              list={['HS1', 'HS2', 'HS3']} // We'll have to grab these from state later.
+              list={input.options || []}
               onChange={(e) => {
                 handleInputChange(inputName, e);
               }}
@@ -112,6 +113,23 @@ export const uiStepInputNames = (step) => {
 
 export const uiStepType = (step) => {
   return step.run.split('/')[1].replace('.cwl', '');
+};
+
+export const uiStepOptions = ({step, pathIndex, status}) => {
+  // Pull out any previous step's output data that is a required
+  //   input into this UI step.
+  // Assume a single input data file for now.
+  let previousStepName = step.in[0].source[0];
+  let outputKey = step.in[0].source[1];
+
+  let previousStep = status[pathIndex].find((s) => s.name === previousStepName);
+
+  if (!previousStep || !previousStep.data || !previousStep.data[outputKey])
+    return [];
+
+  let outputData = previousStep.data[outputKey];
+
+  return Array.isArray(outputData) ? outputData : [outputData];
 };
 
 export const validStep = ({workflow, pathIndex, stepIndex}) => {

@@ -8,7 +8,8 @@ import {
   validPath,
   validStep,
   defaultInputValues,
-  allInputsDefined
+  allInputsDefined,
+  uiStepOptions
 } from '..//workflow';
 
 describe('Workflow Utils', () => {
@@ -411,6 +412,85 @@ describe('Workflow Utils', () => {
           int_input: 1
         })
       ).toEqual(false);
+    });
+  });
+
+  describe('uiStepOptions', () => {
+    it('retrieves data from a required step as an Array', () => {
+      let step = {
+        name: 'foo',
+        in: [
+          {
+            source: ['previous', 'output']
+          }
+        ]
+      };
+
+      const status = [
+        [
+          {
+            name: 'previous',
+            data: {
+              output: 'blah'
+            }
+          },
+          {
+            name: 'alternate',
+            data: {
+              output: [1, 2, 3]
+            }
+          }
+        ]
+      ];
+
+      let results = uiStepOptions({step, status, pathIndex: 0});
+      expect(results).toEqual(['blah']);
+
+      step = {
+        name: 'foo',
+        in: [
+          {
+            source: ['alternate', 'output']
+          }
+        ]
+      };
+
+      results = uiStepOptions({step, status, pathIndex: 0});
+      expect(results).toEqual([1, 2, 3]);
+    });
+
+    it('returns empty list when step has no data', () => {
+      const step = {
+        name: 'foo',
+        in: [
+          {
+            source: ['previous', 'output']
+          }
+        ]
+      };
+
+      let status = [
+        [
+          {
+            name: 'previous'
+          }
+        ]
+      ];
+
+      let results = uiStepOptions({step, status, pathIndex: 0});
+      expect(results).toEqual([]);
+
+      status = [
+        [
+          {
+            name: 'previous',
+            data: {}
+          }
+        ]
+      ];
+
+      results = uiStepOptions({step, status, pathIndex: 0});
+      expect(results).toEqual([]);
     });
   });
 });
