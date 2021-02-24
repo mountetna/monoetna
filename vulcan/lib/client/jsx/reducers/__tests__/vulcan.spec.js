@@ -3,7 +3,8 @@ import {
   SET_DATA,
   SET_WORKFLOW,
   SET_WORKFLOWS,
-  SET_STATUS
+  SET_STATUS,
+  SET_INPUTS
 } from '../../actions/vulcan';
 
 describe('Vulcan Reducer', () => {
@@ -109,87 +110,36 @@ describe('Vulcan Reducer', () => {
       ]
     ];
 
-    const workflow = {
-      class: 'Workflow',
-      cwlVersion: 'v1.1',
-      inputs: {
-        bool_input: {
-          default: true,
-          label: 'Sample boolean',
-          type: 'boolean'
-        },
-        int_input: {
-          default: 42,
-          label: 'Sample input',
-          type: 'int'
-        }
-      },
-      outputs: {
-        sample_data: {
-          outputSource: 'final_step/sample_data',
-          type: 'File'
-        }
-      },
-      steps: [
-        [
-          {
-            in: [],
-            out: ['choice_set'],
-            run: 'first_step.cwl',
-            name: 'first_step'
-          },
-          {
-            in: {
-              all_pool_names: 'first_step/choice_set'
-            },
-            out: ['subset'],
-            run: 'ui_pick_subset.cwl',
-            name: 'ui_pick_subset'
-          },
-          {
-            in: {
-              bool_input: 'bool_input',
-              data: 'ui_pick_subset/subset',
-              int_input: 'int_input'
-            },
-            out: ['sample_data'],
-            run: 'final_step.cwl',
-            name: 'final_step'
-          }
+    const state = reducer(
+      {
+        status: [
+          [
+            {
+              name: 'first_step',
+              status: 'complete',
+              data_url: `${CONFIG.vulcan_host}/data/blobs/here`,
+              data: 'existing data'
+            }
+          ]
         ]
-      ]
-    };
+      },
+      {type: SET_STATUS, status}
+    );
 
-    const state = reducer({workflow}, {type: SET_STATUS, status});
-
-    expect(state.workflow.steps).toEqual([
+    expect(state.status).toEqual([
       [
         {
-          in: [],
-          out: ['choice_set'],
-          run: 'first_step.cwl',
           name: 'first_step',
           status: 'complete',
-          data_url: `${CONFIG.vulcan_host}/data/blobs/here`
+          data_url: `${CONFIG.vulcan_host}/data/blobs/here`,
+          data: 'existing data'
         },
         {
-          in: {
-            all_pool_names: 'first_step/choice_set'
-          },
-          out: ['subset'],
-          run: 'ui_pick_subset.cwl',
-          name: 'ui_pick_subset',
           status: 'pending',
-          data_url: null
+          data_url: null,
+          name: 'ui_pick_subset'
         },
         {
-          in: {
-            bool_input: 'bool_input',
-            data: 'ui_pick_subset/subset',
-            int_input: 'int_input'
-          },
-          out: ['sample_data'],
-          run: 'final_step.cwl',
           name: 'final_step',
           status: 'pending',
           data_url: null
@@ -198,93 +148,83 @@ describe('Vulcan Reducer', () => {
     ]);
   });
 
-  it('correctly injects data payload to right step', () => {
-    const workflow = {
-      class: 'Workflow',
-      cwlVersion: 'v1.1',
-      inputs: {
-        bool_input: {
-          default: true,
-          label: 'Sample boolean',
-          type: 'boolean'
-        },
-        int_input: {
-          default: 42,
-          label: 'Sample input',
-          type: 'int'
-        }
-      },
-      outputs: {
-        sample_data: {
-          outputSource: 'final_step/sample_data',
-          type: 'File'
-        }
-      },
-      steps: [
-        [
-          {
-            in: [],
-            out: ['choice_set'],
-            run: 'first_step.cwl',
-            name: 'first_step',
-            data_url: '/api/workflows/test/file1.txt'
-          },
-          {
-            in: {
-              all_pool_names: 'first_step/choice_set'
-            },
-            out: ['subset'],
-            run: 'ui_pick_subset.cwl',
-            name: 'ui_pick_subset'
-          },
-          {
-            in: {
-              bool_input: 'bool_input',
-              data: 'ui_pick_subset/subset',
-              int_input: 'int_input'
-            },
-            out: ['sample_data'],
-            run: 'final_step.cwl',
-            name: 'final_step'
-          }
-        ]
-      ]
-    };
-
-    const url = '/api/workflows/test/file1.txt';
-    const data = [1, 2, 4, 'abc'];
-
-    const state = reducer({workflow}, {type: SET_DATA, url, data});
-
-    expect(state.workflow.steps).toEqual([
+  it('correctly injects data payload to right step in status', () => {
+    const url = `${CONFIG.project_name}/api/data/blob`;
+    const status = [
       [
         {
-          in: [],
-          out: ['choice_set'],
-          run: 'first_step.cwl',
           name: 'first_step',
-          data_url: '/api/workflows/test/file1.txt',
-          data: [1, 2, 4, 'abc']
+          status: 'complete',
+          downloads: {
+            output: url
+          }
         },
         {
-          in: {
-            all_pool_names: 'first_step/choice_set'
-          },
-          out: ['subset'],
-          run: 'ui_pick_subset.cwl',
+          status: 'pending',
+          data_url: null,
           name: 'ui_pick_subset'
         },
         {
-          in: {
-            bool_input: 'bool_input',
-            data: 'ui_pick_subset/subset',
-            int_input: 'int_input'
+          name: 'final_step',
+          status: 'pending',
+          data_url: null
+        }
+      ]
+    ];
+
+    const data = [1, 2, 4, 'abc'];
+
+    const state = reducer({status}, {type: SET_DATA, url, data});
+
+    expect(state.status).toEqual([
+      [
+        {
+          name: 'first_step',
+          status: 'complete',
+          downloads: {
+            output: url
           },
-          out: ['sample_data'],
-          run: 'final_step.cwl',
-          name: 'final_step'
+          data: {
+            output: data
+          }
+        },
+        {
+          status: 'pending',
+          data_url: null,
+          name: 'ui_pick_subset'
+        },
+        {
+          name: 'final_step',
+          status: 'pending',
+          data_url: null
         }
       ]
     ]);
+  });
+
+  it('correctly injects inputs into the session', () => {
+    const session = {
+      key: '123',
+      project_name: CONFIG.project_name,
+      workflow_name: 'test',
+      inputs: {
+        foo: 'bar'
+      }
+    };
+
+    const inputs = {a: 123, b: 321};
+
+    const state = reducer({session}, {type: SET_INPUTS, inputs});
+
+    expect(state.session).toEqual({
+      key: '123',
+      project_name: CONFIG.project_name,
+      workflow_name: 'test',
+      inputs: {
+        foo: 'bar',
+        a: 123,
+        b: 321
+      }
+    });
   });
 });

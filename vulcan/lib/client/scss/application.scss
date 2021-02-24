@@ -12,7 +12,7 @@
  */
 
 @import "~code-mirror/codemirror";
-@import url(https://fonts.googleapis.com/css?family=Montserrat|Open+Sans|Lora|Crimson+Text|Cousine);
+@import url('https://fonts.googleapis.com/css?family=Montserrat|Open+Sans|Lora|Crimson+Text|Cousine');
 
 @import "globals";
 @import "button";
@@ -34,6 +34,9 @@
 @import "toggle";
 @import "predicate";
 @import "home_page";
+@import "plots";
+@import "plotter";
+@import "workflow";
 
 body {
   padding: 0px;
@@ -57,4 +60,9 @@ a {
 
 #browse {
 	padding-left: 150px;
+}
+
+.vulcan-browser {
+  font-family: "Open Sans", sans-serif;
+  padding: 0.5rem;
 }

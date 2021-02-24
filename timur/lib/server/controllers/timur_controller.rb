@@ -20,6 +20,7 @@ class Timur
         janus_host: Timur.instance.config(:janus)&.dig(:host),
         magma_host: Timur.instance.config(:magma)&.dig(:host),
         metis_host: Timur.instance.config(:metis)&.dig(:host),
+        vulcan_host: Timur.instance.config(:vulcan)&.dig(:host),
         metis_uid_name: Timur.instance.config(:metis_uid_name)
       }.to_json
     end
@@ -30,7 +31,7 @@ class Timur
 
     def current_user
       @current_user ||= User.find_or_create(email: @user.email) do |user|
-        user.name = "#{@user.first} #{@user.last}"
+        user.name = @user.name
       end.tap do |cuser|
         cuser.etna_user = @user
       end

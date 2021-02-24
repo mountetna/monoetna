@@ -2,7 +2,12 @@ import {
   SET_DATA,
   SET_WORKFLOW,
   SET_WORKFLOWS,
-  SET_STATUS
+  SET_STATUS,
+  SET_PATH,
+  SET_STEP,
+  SET_SESSION,
+  SET_INPUTS,
+  SET_CALCULATING
 } from '../actions/vulcan';
 
 export default function VulcanReducer(state, action) {
@@ -20,43 +25,85 @@ export default function VulcanReducer(state, action) {
         workflow: action.workflow
       };
     case SET_STATUS:
-      // Status returned by the server as an Array of Arrays,
-      //   with possible looping paths as the nested Arrays.
+      // Update each entry in the status Arrays.
+      // Workflow status are an Array of Arrays, so need to
+      //   loop through them.
       // Assume stable order from the server.
-      let statusWorkflow = {...state.workflow};
-
-      statusWorkflow.steps.forEach((path, pathIndex) => {
+      let currentStatus = [...(state.status || [])];
+      action.status.forEach((path, pathIndex) => {
+        if (!currentStatus[pathIndex]) currentStatus[pathIndex] = [];
         path.forEach((step, stepIndex) => {
-          statusWorkflow.steps[pathIndex][stepIndex] = {
-            ...step,
-            ...action.status[pathIndex][stepIndex]
+          if (!currentStatus[pathIndex][stepIndex])
+            currentStatus[pathIndex][stepIndex] = {};
+
+          currentStatus[pathIndex][stepIndex] = {
+            ...currentStatus[pathIndex][stepIndex],
+            ...step
           };
         });
       });
       return {
         ...state,
-        workflow: statusWorkflow
+        status: currentStatus
       };
     case SET_DATA:
-      // Inject the data payload to state based on the URL.
-      // Workflow steps are an Array of Arrays, so need to
+      // Inject the data payload to status based on the URL.
+      // Workflow status are an Array of Arrays, so need to
       //   loop through them to find matching data URLs.
       // Assume stable order from the server.
-      let dataWorkflow = {...state.workflow};
-      dataWorkflow.steps.forEach((path, pathIndex) => {
-        const stepIndex = path.findIndex((step) => {
-          return step.data_url === action.url;
-        });
+      let dataStatus = [...state.status];
+      dataStatus.forEach((path, pathIndex) => {
+        path.forEach((step, stepIndex) => {
+          if (!step.downloads) return;
 
-        dataWorkflow.steps[pathIndex][stepIndex] = {
-          ...dataWorkflow.steps[pathIndex][stepIndex],
-          data: action.data
-        };
+          Object.keys(step.downloads).forEach((downloadKey) => {
+            if (action.url === step.downloads[downloadKey]) {
+              if (!dataStatus[pathIndex][stepIndex].data) {
+                dataStatus[pathIndex][stepIndex].data = {};
+              }
+
+              dataStatus[pathIndex][stepIndex].data[downloadKey] = action.data;
+            }
+          });
+        });
       });
 
       return {
         ...state,
-        workflow: dataWorkflow
+        status: dataStatus
+      };
+    case SET_PATH:
+      return {
+        ...state,
+        pathIndex: action.pathIndex
+      };
+    case SET_STEP:
+      return {
+        ...state,
+        stepIndex: action.stepIndex
+      };
+    case SET_SESSION:
+      return {
+        ...state,
+        session: action.session
+      };
+    case SET_INPUTS:
+      return {
+        ...state,
+        session: {
+          ...(state.session || {}),
+          inputs: {
+            ...(state.session ? state.session.inputs : {}),
+            ...action.inputs
+          }
+        }
+      };
+    case SET_CALCULATING:
+      // This should go away once we have async jobs and
+      //   a different way to check status.
+      return {
+        ...state,
+        calculating: action.calculating
       };
     default:
       return state;

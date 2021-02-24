@@ -3,7 +3,12 @@ import {
   SET_DATA,
   SET_WORKFLOW,
   SET_WORKFLOWS,
-  SET_STATUS
+  SET_STATUS,
+  SET_STEP,
+  SET_PATH,
+  SET_SESSION,
+  SET_INPUTS,
+  SET_CALCULATING
 } from '../actions/vulcan';
 import VulcanReducer from '../reducers/vulcan';
 
@@ -12,7 +17,12 @@ export const VulcanContext = createContext();
 export const VulcanProvider = (props) => {
   const initialState = {
     workflows: {},
-    workflow: {}
+    workflow: {},
+    pathIndex: null,
+    stepIndex: null,
+    session: null,
+    status: null,
+    calculating: null
   };
 
   const [state, dispatch] = useReducer(VulcanReducer, initialState);
@@ -33,15 +43,45 @@ export const VulcanProvider = (props) => {
     dispatch({type: SET_DATA, url, data});
   };
 
+  const setPathIndex = (pathIndex) => {
+    dispatch({type: SET_PATH, pathIndex});
+  };
+
+  const setStepIndex = (stepIndex) => {
+    dispatch({type: SET_STEP, stepIndex});
+  };
+
+  const setSession = (session) => {
+    dispatch({type: SET_SESSION, session});
+  };
+
+  const setInputs = (inputs) => {
+    dispatch({type: SET_INPUTS, inputs});
+  };
+
+  const setCalculating = (calculating) => {
+    dispatch({type: SET_CALCULATING, calculating});
+  };
+
   return (
     <VulcanContext.Provider
       value={{
         workflows: state.workflows,
         workflow: state.workflow,
+        pathIndex: state.pathIndex,
+        stepIndex: state.stepIndex,
+        session: state.session,
+        status: state.status,
+        calculating: state.calculating,
         setWorkflows,
         setWorkflow,
         setData,
-        setStatus
+        setStatus,
+        setPathIndex,
+        setStepIndex,
+        setSession,
+        setInputs,
+        setCalculating
       }}
     >
       {props.children}

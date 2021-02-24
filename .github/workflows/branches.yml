@@ -2,10 +2,10 @@ name: Run tests
 on:
   push:
     branches:
-      - "*"
-      - "*/*"
-      - "*/*/*"
-      - "!master"
+      - '*'
+      - '*/*'
+      - '*/*/*'
+      - '!master'
 
 jobs:
   test:

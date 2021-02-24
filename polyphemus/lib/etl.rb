@@ -30,6 +30,12 @@ class Polyphemus
 
           logger.info("No more work detected, resting")
         end
+
+        def setup(config)
+          super
+          Polyphemus.instance.setup_db
+          Polyphemus.instance.setup_logger
+        end
       end) unless self.const_defined?(:Run)
 
       self.const_set(:Reset, Class.new(Etna::Command) do
@@ -43,6 +49,12 @@ class Polyphemus
         def execute
           logger.warn("Resetting etl cursors!")
           etl.cursor_group.reset_all!
+        end
+
+        def setup(config)
+          super
+          Polyphemus.instance.setup_db
+          Polyphemus.instance.setup_logger
         end
       end) unless self.const_defined?(:Reset)
     end
@@ -89,14 +101,20 @@ class Polyphemus
 
     # Returns true iff a batch was processed as part of this iteration.
     def run_once
+      logger.info("Starting loop")
       @cursor_group.with_next do |cursor|
+        logger.info("Selecting cursor for #{cursor}")
         cursor.load_from_db
+        logger.info("Finding batch...")
         batch = @scanner.find_batch(cursor)
 
+        logger.info("Attempting to process")
         if batch.empty? || process(cursor, batch) == :stop
+          logger.info("No more work found, stopping.")
           return false
         end
 
+        logger.info("Saving cursor to database")
         cursor.save_to_db
         return true
       end
@@ -111,10 +129,5 @@ class Polyphemus
     # within the batch is not ready.  In this case, the cursor is not saved and a future run will again attempt to process
     # the batch.
     def process(cursor, batch) end
-
-    def setup(config)
-      super
-      Polyphemus.instance.setup_db
-    end
   end
 end
