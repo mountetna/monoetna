@@ -99,7 +99,7 @@ jobs:
         id: magby_setup_py
         uses: actions/setup-python@v2
         with:
-          python-version: 3.6
+          python-version: {{3.6, 3.7}}
       - name: Run Magby tests
         id: magby_first_test_run
         env:
