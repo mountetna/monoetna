@@ -8,9 +8,8 @@ import {
   validPath,
   validStep,
   defaultInputValues,
-  allInputsDefined,
-  uiStepOptions
-} from '..//workflow';
+  allInputsDefined
+} from '../../utils/workflow';
 
 describe('Workflow Utils', () => {
   describe('XY Plots', () => {
@@ -357,24 +356,6 @@ describe('Workflow Utils', () => {
           no_default: undefined
         })
       ).toEqual(false);
-
-      expect(
-        allInputsDefined(workflow, {
-          bool_input: true,
-          int_input: 1,
-          no_default: 3,
-          user_input: null
-        })
-      ).toEqual(false);
-
-      expect(
-        allInputsDefined(workflow, {
-          bool_input: true,
-          int_input: 1,
-          no_default: 3,
-          user_input: NaN
-        })
-      ).toEqual(false);
     });
 
     it('returns false if key missing', () => {
@@ -412,85 +393,6 @@ describe('Workflow Utils', () => {
           int_input: 1
         })
       ).toEqual(false);
-    });
-  });
-
-  describe('uiStepOptions', () => {
-    it('retrieves data from a required step as an Array', () => {
-      let step = {
-        name: 'foo',
-        in: [
-          {
-            source: ['previous', 'output']
-          }
-        ]
-      };
-
-      const status = [
-        [
-          {
-            name: 'previous',
-            data: {
-              output: 'blah'
-            }
-          },
-          {
-            name: 'alternate',
-            data: {
-              output: [1, 2, 3]
-            }
-          }
-        ]
-      ];
-
-      let results = uiStepOptions({step, status, pathIndex: 0});
-      expect(results).toEqual(['blah']);
-
-      step = {
-        name: 'foo',
-        in: [
-          {
-            source: ['alternate', 'output']
-          }
-        ]
-      };
-
-      results = uiStepOptions({step, status, pathIndex: 0});
-      expect(results).toEqual([1, 2, 3]);
-    });
-
-    it('returns empty list when step has no data', () => {
-      const step = {
-        name: 'foo',
-        in: [
-          {
-            source: ['previous', 'output']
-          }
-        ]
-      };
-
-      let status = [
-        [
-          {
-            name: 'previous'
-          }
-        ]
-      ];
-
-      let results = uiStepOptions({step, status, pathIndex: 0});
-      expect(results).toEqual([]);
-
-      status = [
-        [
-          {
-            name: 'previous',
-            data: {}
-          }
-        ]
-      ];
-
-      results = uiStepOptions({step, status, pathIndex: 0});
-      expect(results).toEqual([]);
     });
   });
 });
