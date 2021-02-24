@@ -172,24 +172,13 @@ class Vulcan
       end
     end
 
-    # Combines any session given value for a primary input and the potential default that may be defined for it.
-    def material_reference_for_user_input(source, input)
-      if session.include?(source)
-        session.material_reference_for(source)
-      elsif input.default
-        {json_payload: JSON.dump(input.default)}
-      else
-        {unfulfilled: source}
+    def primary_input_material_sources
+      workflow.inputs.map do |input|
+        material_source(material_reference_for_user_input([:primary_inputs, input.id], input))
       end
     end
 
-    def material_source(material_reference)
-      Storage::MaterialSource.new(
-          project_name: session.project_name, session_key: session.key,
-          material_reference: material_reference)
-    end
-
-    # Cache is used to save effort in computing common recursive targets within a single calculation session.
+      # Cache is used to save effort in computing common recursive targets within a single calculation session.
     # Do not pass an actual value in for it.
     def build_target_for(step_name, cache = {})
       if cache.include?(step_name)
@@ -203,9 +192,8 @@ class Vulcan
 
         if step_name == :primary_inputs
           script = {}
-          workflow.inputs.each do |input|
+          workflow.inputs.zip(primary_input_material_sources).each do |input, source|
             output_filenames << input.id
-            source = material_source(material_reference_for_user_input([:primary_inputs, input.id], input))
             input_files << source.take_as_input(input.id)
             script[input.id] = input_files.last
           end
@@ -262,6 +250,23 @@ class Vulcan
             script: script,
         )
       end
+    end
+
+    # Combines any session given value for a primary input and the potential default that may be defined for it.
+    def material_reference_for_user_input(source, input)
+      if session.include?(source)
+        session.material_reference_for(source)
+      elsif input.default
+        {json_payload: JSON.dump(input.default)}
+      else
+        {unfulfilled: source}
+      end
+    end
+
+    def material_source(material_reference)
+      Storage::MaterialSource.new(
+          project_name: session.project_name, session_key: session.key,
+          material_reference: material_reference)
     end
   end
 end
