@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 
 def flatten(dictionary, sep='', parent_key=''):
@@ -64,3 +64,10 @@ def formatOptions(options: Dict) -> str:
     formatted = [':\t'.join([x, options[x]]) for x in options]
     answerOptions = '\n'.join(formatted)
     return answerOptions
+
+
+def parseSubjectName(subjectName: str, conventions: List, sep: str='') -> Dict:
+    nameSplit = subjectName.split(sep)
+    nameSections = {x: nameSplit[n] for n,x in enumerate(conventions)}
+    return nameSections
+

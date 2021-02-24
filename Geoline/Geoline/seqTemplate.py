@@ -1,7 +1,15 @@
 from typing import Dict, Callable
-from Geoline.Geoline.geoUtils import *
+from ..Geoline.geoUtils import *
 
-def samples() -> Dict:
+
+def samplesSection(title: str,
+                   sourceName: str,
+                   organism: str,
+                   characteristics: Dict,
+                   molecule: str,
+                   description: str,
+                   processedDataFile: str,
+                   rawFile: Dict) -> Dict:
     out = {
         'title': title,
         'source name': sourceName,
@@ -12,12 +20,12 @@ def samples() -> Dict:
         'processed data file': processedDataFile,
         'raw file': rawFile
     }
-    return flatten(out)
+    return flatten(out, sep=' ')
 
 
-def processedFiles(fileName: str,
-                   fileType: str,
-                   checksum: str) -> Dict:
+def processedFilesSection(fileName: str,
+                          fileType: str,
+                          checksum: str) -> Dict:
     out = {
         'file name': fileName,
         'file type': fileType,
@@ -31,7 +39,7 @@ def rawFiles(fileName: str,
              checksum: str,
              instrumentModel: str,
              pe: str):
-    out = processedFiles(fileName, fileType, checksum)
+    out = processedFilesSection(fileName, fileType, checksum)
     out.update({
         'instrument model': instrumentModel,
         'single or paired-end': pe
@@ -39,7 +47,7 @@ def rawFiles(fileName: str,
     return out
 
 
-def peExperiment(interactiveFunc) -> Dict:
+def peExperimentSection(interactiveFunc) -> Dict:
     out = {
         'file name 1': 'ATTR',
         'file name 2': 'ATTR'
@@ -48,21 +56,13 @@ def peExperiment(interactiveFunc) -> Dict:
     return out
 
 
-## INTERACTIVE
-
 def characteristics(addAnother: Callable, d: Dict) -> Dict:
     aw = addAnother()
     if aw == 'y':
         updateInfo = askCharacteristics()
         dc = d.copy()
         dc.update({updateInfo[0]: updateInfo[1]})
-        characteristics(addAnother, dc)
+        return characteristics(addAnother, dc)
     else:
         return d
 
-
-
-
-from geoUtils import askAttribute
-def func(somedict):
-    somedict.update({x: askAttribute(x, somedict[x]) for x in somedict})
