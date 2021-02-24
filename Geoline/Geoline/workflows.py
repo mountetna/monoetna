@@ -13,3 +13,7 @@ def sampleMapAttr(assay: str) -> Dict:
                                  'raw file ': f'{assay}:raw_fastqs',
                              })
     return samples
+
+def processedFilesMapAttr(assay: str) -> Dict:
+    pass
+    #processedFiles = processedFilesSection(fileName=f'{assay}:',

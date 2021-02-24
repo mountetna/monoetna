@@ -27,12 +27,7 @@ class Geoline:
     def selectWorkflow(self, assay: str):
         allowedAssays = ['rna_seq', 'dna_seq', 'sc_seq']
         samples = sampleMapAttr(assay)
-        for field, magmaAttr in samples.items():
-            aw = askAttribute(field, magmaAttr)
-            if aw == 'Y':
-                continue
-            else:
-                samples.update({field: aw})
+        updated = self._updater(samples)
 
 
     ### TEST THIS STUFF
