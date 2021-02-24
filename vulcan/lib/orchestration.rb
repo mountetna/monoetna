@@ -4,11 +4,13 @@ class Vulcan
   # This is the temporary glue for running synchronous workflows from a given session and its inputs.
   # Most of this logic will evolve outside of vulcan depending on where we land on orchestration.
   class Orchestration
-    attr_reader :workflow, :session
+    attr_reader :workflow, :session, :errors
 
     def initialize(workflow, session)
       @workflow = workflow
       @session = session
+
+      @errors = {}
     end
 
     MAX_RUNNABLE = 20
@@ -18,8 +20,13 @@ class Vulcan
       [].tap do |ran|
         i = 0
         until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
-          run!(storage: storage, build_target: runnables.first)
-          ran << runnables.first
+          begin
+            run!(storage: storage, build_target: runnables.first)
+          rescue => e
+            @errors[runnables.first.cell_hash] = e
+          ensure
+            ran << runnables.first
+          end
         end
       end
     end
@@ -157,7 +164,9 @@ class Vulcan
 
     def next_runnable_build_targets(storage)
       build_targets_for_paths.map do |path_build_targets|
-        path_build_targets.select { |bt| bt.should_build?(storage) }.last
+        path_build_targets.select { |bt|
+          bt.should_build?(storage) && !build_target_has_error?(bt)
+        }.last
       end.select { |v| !v.nil? }.uniq { |bt| bt.cell_hash }
     end
 
@@ -250,6 +259,14 @@ class Vulcan
             script: script,
         )
       end
+    end
+
+    def build_target_has_error?(build_target)
+      @errors.key?(build_target.cell_hash)
+    end
+
+    def build_target_error(build_target)
+      @errors[build_target.cell_hash]
     end
 
     # Combines any session given value for a primary input and the potential default that may be defined for it.

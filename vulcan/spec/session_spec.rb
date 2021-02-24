@@ -71,13 +71,13 @@ describe SessionsController do
       expect(last_json_response['session']['inputs']).to eql({})
       expect(last_json_response['status']).to eql([
           [
-              {'downloads' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
-              {'downloads' => nil, 'name' => 'finalStep', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'finalStep', 'status' => 'pending'},
           ],
           [
-              {'downloads' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
-              {'downloads' => nil, 'name' => 'pickANum', 'status' => 'pending'},
-              {'downloads' => nil, 'name' => 'finalStep', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'pickANum', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'finalStep', 'status' => 'pending'},
           ]
       ])
       expect(last_json_response['outputs']).to eql({'downloads' => nil, 'status' => 'pending'})
@@ -102,6 +102,8 @@ describe SessionsController do
       response = last_json_response
 
       expect(response['session']['inputs']).to eql(inputs)
+      require 'pry'
+      binding.pry
       check_url_for(response['status'].first[0]['downloads']['sum'], orchestration.build_target_for('firstAdd').build_outputs['sum'])
       check_url_for(response['status'].first[1]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
 

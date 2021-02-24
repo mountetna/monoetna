@@ -25,20 +25,28 @@ class SessionsController < Vulcan::Controller
           paths.map do |step_name|
             step = orchestration.workflow.find_step(step_name)
             next nil if step.nil?
-            bt = orchestration.build_target_for(step.id, build_target_cache)
-            step_status_json(step.id, bt)
+            step_status_json(step.id, orchestration, build_target_cache)
           end.select { |v| v }
         end,
-        outputs: step_status_json(:primary_outputs, orchestration.build_target_for(:primary_outputs)).slice(:status, :downloads),
+        outputs: step_status_json(
+          :primary_outputs,
+          orchestration).slice(:status, :downloads),
     })
   rescue => e
     raise Etna::BadRequest.new(e.message)
   end
 
-  def step_status_json(step_name, bt)
+  def step_status_json(step_name, orchestration, build_target_cache = {})
+    bt = orchestration.build_target_for(step_name, build_target_cache)
+    status = orchestration.build_target_has_error?(bt) ?
+      'error' :
+      bt.is_built?(storage) ?
+      'complete' :
+      'pending'
     {
         name: step_name,
-        status: bt.is_built?(storage) ? 'complete' : 'pending',
+        status: status,
+        message: orchestration.build_target_has_error?(bt) ? orchestration.build_target_error(bt) : nil,
         downloads: bt.is_built?(storage) ? bt.build_outputs.map do |output_name, sf|
           [
               output_name,
