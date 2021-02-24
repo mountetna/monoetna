@@ -39,7 +39,8 @@ export default function StepPending({step, stepIndex}) {
   let mockStepInputs = inputNames.reduce((result, inputName) => {
     result[inputName] = {
       type: 'int', //uiStepType(step),
-      label: step.label || step.name
+      label: step.label || step.name,
+      default: session.inputs[inputName] || null
     };
     return result;
   }, {});
