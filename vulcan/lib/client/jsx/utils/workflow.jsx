@@ -81,7 +81,7 @@ export const wrapEditableInputs = (inputs, handleInputChange) => {
               key={key}
               placeholder='Select items from the list'
               className='link_text'
-              values={input.default || []} // Will have to test if this persists
+              values={input.default || []}
               itemInput={DropdownInput}
               list={input.options || []}
               onChange={(e) => {
