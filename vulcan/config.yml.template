@@ -12,6 +12,12 @@ default: &default
     :host: https://magma.development.local
   :vulcan:
     :host: https://vulcan.development.local
+  :timur:
+    :host: https://timur.development.local
+  :metis:
+    :host: https://metis.development.local
+  :janus:
+    :host: https://janus.development.local
   :auth_redirect: https://janus.development.local
   :data_folder: /app/data
   :workflows_folder: /app/lib/server/workflows
