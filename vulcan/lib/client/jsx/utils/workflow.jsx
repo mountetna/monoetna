@@ -116,7 +116,7 @@ export const inputType = ({workflow, input}) => {
 };
 
 export const hasUiInput = (step) => {
-  return step.run.startsWith('ui-queries/');
+  return step.run && step.run.startsWith('ui-queries/');
 };
 
 export const defaultInputValues = (workflow) => {
@@ -136,7 +136,14 @@ export const allInputsDefined = (workflow, userInputs) => {
       Object.keys(userInputs).includes(primaryInput)
     ) &&
     Object.keys(userInputs).every((key) => {
-      return null !== userInputs[key] && undefined !== userInputs[key];
+      let userInput = userInputs[key];
+      // The userInput !== userInput is to check for NaN, because
+      //    NaN !== NaN
+      return !(
+        null === userInput ||
+        undefined === userInput ||
+        userInput !== userInput
+      );
     })
   );
 };

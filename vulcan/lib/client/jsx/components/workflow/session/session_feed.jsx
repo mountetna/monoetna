@@ -3,8 +3,7 @@ import React, {useState, useContext, useEffect} from 'react';
 import {VulcanContext} from '../../../contexts/vulcan';
 import {validPath, hasUiInput, uiStepInputNames} from '../../../utils/workflow';
 import {STATUS} from '../../../models/steps';
-import StepComplete from '../steps/step_complete';
-import StepPending from '../steps/step_pending';
+import StepUserInput from '../steps/step_user_input';
 
 export default function SessionFeed() {
   // Shows stream of Input, Output, Plots, etc.,
@@ -15,7 +14,7 @@ export default function SessionFeed() {
   if (!workflow || !validPath({workflow, pathIndex}) || !session || !status)
     return null;
 
-  let completedSteps = status[pathIndex]
+  let completedUISteps = status[pathIndex]
     .map((step, index) => {
       let workflowStep = workflow.steps[pathIndex][index];
       if (STATUS.COMPLETE === step.status && hasUiInput(workflowStep)) {
@@ -27,47 +26,45 @@ export default function SessionFeed() {
     })
     .filter((s) => s);
 
-  let nextInputStepIndex = status[pathIndex].findIndex(
-    (s) => STATUS.PENDING === s.status
-  );
+  let nextInputStepIndex = status[pathIndex].findIndex((s, index) => {
+    let workflowStep = workflow.steps[pathIndex][index];
+    return STATUS.PENDING === s.status && hasUiInput(workflowStep);
+  });
   let nextInputStep;
 
-  // TODO: This needs to be seriously refactored!
   // We inject a `null` input into the session,
   //   to indicate that we're waiting for a user input value
   //   to return to the server.
   if (-1 !== nextInputStepIndex) {
     nextInputStep = workflow.steps[pathIndex][nextInputStepIndex];
 
-    if (hasUiInput(nextInputStep)) {
-      let missingInputs = uiStepInputNames(nextInputStep).filter(
-        (outputName) => !Object.keys(session.inputs).includes(outputName)
-      );
+    let missingInputs = uiStepInputNames(nextInputStep).filter(
+      (outputName) => !Object.keys(session.inputs).includes(outputName)
+    );
 
-      if (missingInputs.length > 0) {
-        let missingInputsHash = missingInputs.reduce((result, input) => {
-          if (!result.hasOwnProperty(input)) {
-            result[input] = null;
-          }
+    if (missingInputs.length > 0) {
+      let missingInputsHash = missingInputs.reduce((result, input) => {
+        if (!result.hasOwnProperty(input)) {
+          result[input] = null;
+        }
 
-          return result;
-        }, {});
+        return result;
+      }, {});
 
-        setInputs(missingInputsHash);
-      }
+      setInputs(missingInputsHash);
     }
   }
 
   return (
     <div className='session-feed'>
-      {completedSteps.map((s) => (
-        <StepComplete step={s.step} stepIndex={s.index}></StepComplete>
+      {completedUISteps.map((s) => (
+        <StepUserInput step={s.step} stepIndex={s.index}></StepUserInput>
       ))}
       {nextInputStep ? (
-        <StepPending
+        <StepUserInput
           step={nextInputStep}
           stepIndex={nextInputStepIndex}
-        ></StepPending>
+        ></StepUserInput>
       ) : null}
     </div>
   );

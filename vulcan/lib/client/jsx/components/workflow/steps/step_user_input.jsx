@@ -12,7 +12,7 @@ import {
   uiStepType
 } from '../../../utils/workflow';
 
-export default function StepPending({step, stepIndex}) {
+export default function StepUserInput({step, stepIndex}) {
   const {workflow, pathIndex, session, status, setInputs} = useContext(
     VulcanContext
   );

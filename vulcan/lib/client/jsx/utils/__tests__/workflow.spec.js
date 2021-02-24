@@ -356,6 +356,24 @@ describe('Workflow Utils', () => {
           no_default: undefined
         })
       ).toEqual(false);
+
+      expect(
+        allInputsDefined(workflow, {
+          bool_input: true,
+          int_input: 1,
+          no_default: 3,
+          user_input: null
+        })
+      ).toEqual(false);
+
+      expect(
+        allInputsDefined(workflow, {
+          bool_input: true,
+          int_input: 1,
+          no_default: 3,
+          user_input: NaN
+        })
+      ).toEqual(false);
     });
 
     it('returns false if key missing', () => {
