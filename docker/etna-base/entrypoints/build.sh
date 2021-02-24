@@ -32,11 +32,11 @@ if [ -z "$SKIP_RUBY_SETUP" ]; then
   if [ -e ../etna ] && grep 'monoetna.git' /app/Gemfile 1>/dev/null; then
     mkdir -p /tmp/
     rm -rf /tmp/.git
-    mv /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/.git /tmp/.git
+    cp -rf /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/.git /tmp/.git
     rm -rf /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/*
     cp -r /etna/* /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/
     rm -rf /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/packages
-    mv /tmp/.git /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/
+    cp -rf /tmp/.git /app/vendor/bundle/*/ruby/*/bundler/gems/monoetna-*/
     cd /app
     bundle install
     rm /app/vendor/bundle/*/bin/etna
