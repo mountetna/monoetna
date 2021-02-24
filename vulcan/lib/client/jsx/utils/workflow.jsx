@@ -174,10 +174,14 @@ export const allInputsDefined = (workflow, userInputs) => {
       let userInput = userInputs[key];
       // The userInput !== userInput is to check for NaN, because
       //    NaN !== NaN
+      // For multiselect, need to make sure the inputs are not
+      //    [""] or []...
       return !(
         null === userInput ||
         undefined === userInput ||
-        userInput !== userInput
+        userInput !== userInput ||
+        _.isEqual([''], userInput) ||
+        _.isEqual([], userInput)
       );
     })
   );

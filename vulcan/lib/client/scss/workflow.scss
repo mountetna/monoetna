@@ -231,6 +231,11 @@ $button-background: #d66;
 
         .delete_link {
           cursor: default;
+
+          &:hover {
+            text-decoration: line-through;
+            opacity: 0.5;
+          }
         }
       }
     }
