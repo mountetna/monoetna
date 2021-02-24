@@ -1,17 +1,10 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
 import StepName from './step_name';
 
-import {
-  validStep,
-  hasUiInput,
-  wrapEditableInputs,
-  uiStepInputNames,
-  uiStepType,
-  uiStepOptions
-} from '../../../utils/workflow';
+import {validStep} from '../../../utils/workflow';
 
 export default function StepError({step, stepIndex}) {
   const {workflow, pathIndex, status} = useContext(VulcanContext);
