@@ -9,7 +9,9 @@ import {
   validStep,
   defaultInputValues,
   allInputsDefined,
-  uiStepOptions
+  uiStepOptions,
+  missingUiInputs,
+  inputNamesToHashStub
 } from '..//workflow';
 
 describe('Workflow Utils', () => {
@@ -491,6 +493,52 @@ describe('Workflow Utils', () => {
 
       results = uiStepOptions({step, status, pathIndex: 0});
       expect(results).toEqual([]);
+    });
+  });
+
+  describe('missingUiInputs', () => {
+    it('returns input names not in the session inputs', () => {
+      const step = {
+        out: ['output'],
+        name: 'step1'
+      };
+
+      const session = {
+        inputs: {
+          a: 123
+        }
+      };
+
+      let results = missingUiInputs(step, session);
+      expect(results).toEqual(['step1/output']);
+    });
+
+    it('does not return input names already in the session inputs', () => {
+      const step = {
+        out: ['output'],
+        name: 'step1'
+      };
+
+      const session = {
+        inputs: {
+          'step1/output': 123
+        }
+      };
+
+      let results = missingUiInputs(step, session);
+      expect(results).toEqual([]);
+    });
+  });
+
+  describe('inputNamesToHashStub', () => {
+    it('reduces array of names to Hash with null values', () => {
+      const names = ['step1/output1', 'step1/output2'];
+
+      let result = inputNamesToHashStub(names);
+      expect(result).toEqual({
+        'step1/output1': null,
+        'step1/output2': null
+      });
     });
   });
 });

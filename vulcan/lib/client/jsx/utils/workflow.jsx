@@ -5,8 +5,6 @@ import * as _ from 'lodash';
 import XYPlotModel from '../models/xy_plot';
 
 import ListInput from 'etna-js/components/inputs/list_input';
-import SelectInput from 'etna-js/components/inputs/select_input';
-import Dropdown from 'etna-js/components/inputs/dropdown';
 import DropdownInput from 'etna-js/components/inputs/dropdown_input';
 import {
   IntegerInput,
@@ -109,6 +107,24 @@ export const wrapEditableInputs = (inputs, handleInputChange) => {
 
 export const uiStepInputNames = (step) => {
   return step.out.map((output) => `${step.name}/${output}`);
+};
+
+export const missingUiInputs = (step, session) => {
+  return uiStepInputNames(step).filter(
+    (outputName) => !Object.keys(session.inputs).includes(outputName)
+  );
+};
+
+export const inputNamesToHashStub = (inputNames) => {
+  // Convert a list of input strings to
+  //   Hash, where all values are `null`.
+  return inputNames.reduce((result, input) => {
+    if (!result.hasOwnProperty(input)) {
+      result[input] = null;
+    }
+
+    return result;
+  }, {});
 };
 
 export const uiStepType = (step) => {
