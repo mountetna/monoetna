@@ -7,6 +7,7 @@ import XYPlotModel from '../models/xy_plot';
 import ListInput from 'etna-js/components/inputs/list_input';
 import SelectInput from 'etna-js/components/inputs/select_input';
 import Dropdown from 'etna-js/components/inputs/dropdown';
+import DropdownInput from 'etna-js/components/inputs/dropdown_input';
 import {
   IntegerInput,
   FloatInput
@@ -69,6 +70,22 @@ export const wrapEditableInputs = (inputs, handleInputChange) => {
                 handleInputChange(inputName, e);
               }}
               defaultChecked={input.default}
+            />
+          )
+        });
+      case TYPE.MULTISELECT_STRING:
+        return wrapPaneItem({
+          name,
+          value: (
+            <ListInput
+              placeholder='Select items from the list'
+              className='link_text'
+              values={input.default || []} // Will have to test if this persists
+              itemInput={DropdownInput}
+              list={['HS1', 'HS2', 'HS3']} // We'll have to grab these from state later.
+              onChange={(e) => {
+                handleInputChange(inputName, e);
+              }}
             />
           )
         });

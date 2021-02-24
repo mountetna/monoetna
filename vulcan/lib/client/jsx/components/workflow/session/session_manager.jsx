@@ -49,8 +49,6 @@ export default function SessionManager() {
 
   useEffect(() => {
     if (workflow && session && session.inputs) {
-      console.log('session inputs');
-      console.log(session.inputs);
       setComplete(allInputsDefined(workflow, session.inputs));
     }
   }, [workflow, session]);

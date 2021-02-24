@@ -228,6 +228,10 @@ $button-background: #d66;
         padding-top: 3px;
         box-sizing: border-box;
         flex: 1;
+
+        .delete_link {
+          cursor: default;
+        }
       }
     }
   }

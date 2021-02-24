@@ -51,15 +51,18 @@ export default class ListInput extends Component {
   }
 
   editValue(new_value) {
-    if (new_value == null || new_value == undefined || new_value == '') return;
+    console.log('new_value', new_value);
+    if (new_value === null || new_value === undefined || new_value === '') return;
 
     let { values, onChange } = this.props;
+    console.log('values', values);
 
     let new_values = values.slice();
       
     new_values.splice(values.length-1,1,new_value);
 
     onChange(new_values);
+    console.log('new_values', new_values);
   }
 
   addListItem() {
