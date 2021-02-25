@@ -3,9 +3,15 @@ import Gradient from 'javascript-color-gradient';
 import {autoColors} from 'etna-js/utils/colors';
 import XYPlot from 'etna-js/plots/components/xy_plot/xy_plot';
 
-import {plotModelForStep} from '../workflow_selector';
+import {
+  plotModelForStep,
+  validPath,
+  validStep,
+  defaultInputValues,
+  allInputsDefined
+} from '../../utils/workflow';
 
-describe('Workflow Selector', () => {
+describe('Workflow Utils', () => {
   describe('XY Plots', () => {
     it('correctly returns plot model', () => {
       const step = {
@@ -164,6 +170,229 @@ describe('Workflow Selector', () => {
 
       expect(gene1Colors.length).toEqual(3);
       expect(gene1Colors).not.toEqual(gene2Colors);
+    });
+  });
+
+  describe('validPath', () => {
+    it('returns false if invalid', () => {
+      let results = validPath({
+        workflow: {},
+        pathIndex: 0
+      });
+
+      expect(results).toEqual(false);
+
+      results = validPath({
+        workflow: {
+          steps: [[]]
+        },
+        pathIndex: 1
+      });
+
+      expect(results).toEqual(false);
+    });
+
+    it('returns true if invalid', () => {
+      let results = validPath({
+        workflow: {
+          steps: [[]]
+        },
+        pathIndex: 0
+      });
+
+      expect(results).toEqual(true);
+    });
+  });
+
+  describe('validStep', () => {
+    it('returns false if invalid', () => {
+      let results = validStep({
+        workflow: {},
+        pathIndex: 0,
+        stepIndex: 0
+      });
+
+      expect(results).toEqual(false);
+
+      results = validStep({
+        workflow: {
+          steps: [[]]
+        },
+        pathIndex: 0,
+        stepIndex: 1
+      });
+
+      expect(results).toEqual(false);
+    });
+
+    it('returns true if invalid', () => {
+      let results = validStep({
+        workflow: {
+          steps: [[1]]
+        },
+        pathIndex: 0,
+        stepIndex: 0
+      });
+
+      expect(results).toEqual(true);
+    });
+  });
+
+  describe('defaultInputValues', () => {
+    it('returns values', () => {
+      const workflow = {
+        class: 'Workflow',
+        cwlVersion: 'v1.1',
+        inputs: {
+          bool_input: {
+            default: true,
+            label: 'Sample boolean',
+            type: 'boolean'
+          },
+          int_input: {
+            default: 42,
+            label: 'Sample input',
+            type: 'int'
+          },
+          no_default: {
+            default: null,
+            type: 'int'
+          }
+        },
+        outputs: {
+          sample_data: {
+            outputSource: 'final_step/sample_data',
+            type: 'File'
+          }
+        },
+        steps: []
+      };
+
+      let results = defaultInputValues(workflow);
+      expect(results).toEqual({bool_input: true, int_input: 42});
+    });
+  });
+
+  describe('allInputsDefined', () => {
+    it('returns true when defined', () => {
+      const workflow = {
+        class: 'Workflow',
+        cwlVersion: 'v1.1',
+        inputs: {
+          bool_input: {
+            default: true,
+            label: 'Sample boolean',
+            type: 'boolean'
+          },
+          int_input: {
+            default: 42,
+            label: 'Sample input',
+            type: 'int'
+          },
+          no_default: {
+            default: null,
+            type: 'int'
+          }
+        },
+        outputs: {
+          sample_data: {
+            outputSource: 'final_step/sample_data',
+            type: 'File'
+          }
+        },
+        steps: []
+      };
+
+      expect(
+        allInputsDefined(workflow, {
+          int_input: 1,
+          bool_input: true,
+          no_default: 2
+        })
+      ).toEqual(true);
+    });
+
+    it('returns false if null or undefined', () => {
+      const workflow = {
+        class: 'Workflow',
+        cwlVersion: 'v1.1',
+        inputs: {
+          bool_input: {
+            default: true,
+            label: 'Sample boolean',
+            type: 'boolean'
+          },
+          int_input: {
+            default: 42,
+            label: 'Sample input',
+            type: 'int'
+          },
+          no_default: {
+            default: null,
+            type: 'int'
+          }
+        },
+        outputs: {
+          sample_data: {
+            outputSource: 'final_step/sample_data',
+            type: 'File'
+          }
+        },
+        steps: []
+      };
+
+      expect(
+        allInputsDefined(workflow, {
+          bool_input: true,
+          int_input: null,
+          no_default: 2
+        })
+      ).toEqual(false);
+
+      expect(
+        allInputsDefined(workflow, {
+          bool_input: true,
+          int_input: 1,
+          no_default: undefined
+        })
+      ).toEqual(false);
+    });
+
+    it('returns false if key missing', () => {
+      const workflow = {
+        class: 'Workflow',
+        cwlVersion: 'v1.1',
+        inputs: {
+          bool_input: {
+            default: true,
+            label: 'Sample boolean',
+            type: 'boolean'
+          },
+          int_input: {
+            default: 42,
+            label: 'Sample input',
+            type: 'int'
+          },
+          no_default: {
+            default: null,
+            type: 'int'
+          }
+        },
+        outputs: {
+          sample_data: {
+            outputSource: 'final_step/sample_data',
+            type: 'File'
+          }
+        },
+        steps: []
+      };
+
+      expect(
+        allInputsDefined(workflow, {
+          bool_input: true,
+          int_input: 1
+        })
+      ).toEqual(false);
     });
   });
 });

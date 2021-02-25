@@ -33,6 +33,8 @@
     :host: https://timur.development.local
   :janus:
     :host: https://janus.development.local
+  :vulcan:
+    :host: https://vulcan.development.local
   :log_file: log/error.log
   :auth_redirect: https://janus.development.local
   :token_name: JANUS_DEV_TOKEN

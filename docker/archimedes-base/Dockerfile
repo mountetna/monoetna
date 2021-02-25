@@ -48,8 +48,10 @@ RUN apt-get update && \
 # Install dittoSeq into R
 # This is a long process, so bake it in the image
 #       instead of using the entrypoints.
-RUN echo 'if (!requireNamespace("remotes", quietly = TRUE))\n    install.packages("remotes")\n\nremotes::install_github("dtm2451/dittoSeq")' > install_dittoseq.txt
-RUN R < install_dittoseq.txt --save
+# Taking out for performance. Leaving here as comment in case
+#       we decide we need dittoSeq back.
+# RUN echo 'if (!requireNamespace("remotes", quietly = TRUE))\n    install.packages("remotes")\n\nremotes::install_github("dtm2451/dittoSeq")' > install_dittoseq.txt
+# RUN R < install_dittoseq.txt --save
 
 # bash improvements for easier working inside the container
 RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \

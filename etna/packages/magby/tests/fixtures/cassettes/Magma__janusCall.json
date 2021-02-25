@@ -1,0 +1,70 @@
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2021-02-19T20:55:47",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": ""
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "gzip, deflate"
+          ],
+          "Authorization": [
+            "<AUTH_TOKEN>"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "User-Agent": [
+            "python-requests/2.25.1"
+          ]
+        },
+        "method": "GET",
+        "uri": "https://janus.ucsf.edu/projects"
+      },
+      "response": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "{\"projects\":[{\"project_name\":\"mvir1\",\"project_name_full\":\"COMET\",\"role\":\"viewer\",\"privileged\":false},{\"project_name\":\"dscolab\",\"project_name_full\":\"Data Science CoLab\",\"role\":\"viewer\",\"privileged\":false},{\"project_name\":\"ipi\",\"project_name_full\":\"Immunoprofiler Initiative\",\"role\":\"viewer\",\"privileged\":false},{\"project_name\":\"xhlt1\",\"project_name_full\":\"Immune Cell Census\",\"role\":\"administrator\",\"privileged\":false},{\"project_name\":\"coprojects_template\",\"project_name_full\":\"Coprojects Template\",\"role\":\"administrator\",\"privileged\":false},{\"project_name\":\"example\",\"project_name_full\":\"Example project\",\"role\":\"editor\",\"privileged\":false}]}"
+        },
+        "headers": {
+          "Connection": [
+            "Keep-Alive"
+          ],
+          "Content-Length": [
+            "642"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Fri, 19 Feb 2021 20:55:47 GMT"
+          ],
+          "Keep-Alive": [
+            "timeout=5, max=100"
+          ],
+          "Server": [
+            "Apache"
+          ],
+          "Service-Worker-Allowed": [
+            "/"
+          ]
+        },
+        "status": {
+          "code": 200,
+          "message": "OK"
+        },
+        "url": "https://janus.ucsf.edu/projects"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.1"
+}
