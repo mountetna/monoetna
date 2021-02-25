@@ -17,6 +17,29 @@ module Etna
 
     attr_reader :routes
 
+    def signed_route_path(route, params)
+      path = route_path(route,params)
+
+      signatory = params.delete(:signatory)
+
+      return path unless signatory
+
+      hmac = Etna::Hmac.new(
+        signatory,
+        method: route[:method],
+        host: @host,
+        path: path,
+        expiration: (DateTime.now + 10).iso8601,
+        id: signatory.id,
+        nonce: SecureRandom.hex,
+        headers: params.except(*route[:params].map(&:to_sym))
+      )
+
+      url_params = hmac.url_params(route[:method] == 'GET')
+
+      return url_params[:path] + '?' + url_params[:query]
+    end
+
     def route_path(route, params)
       Etna::Route.path(route[:route], params)
     end
@@ -60,14 +83,19 @@ module Etna
       @routes.each do |route|
         next unless route[:name]
         self.define_singleton_method(route[:name]) do |params = {}|
-
           missing_params = (route[:params] - params.keys.map(&:to_s))
+
           unless missing_params.empty?
             raise ArgumentError, "Missing required #{missing_params.size > 1 ?
                 'params' : 'param'} #{missing_params.join(', ')}"
           end
 
-          response = send(route[:method].downcase, route_path(route, params), params)
+          response = send(
+            route[:method].downcase,
+            signed_route_path(route, params),
+            params
+          )
+
           if block_given?
             yield response
           else
