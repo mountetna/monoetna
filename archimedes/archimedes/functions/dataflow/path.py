@@ -19,7 +19,7 @@ def input_var(name, inputs_env=_os.environ, inputs_dir=None):
     return open(input_path(name, inputs_env, inputs_dir), 'r').read()
 
 def input_tsv(name, inputs_env=_os.environ, inputs_dir=None):
-    return DataFrame.from_tsv( input_path(name, inputs_env, inputs_dir) , sep='\t')
+    return DataFrame.from_csv( input_path(name, inputs_env, inputs_dir) , sep='\t')
 
 def output_path(name, outputs_env=_os.environ, outputs_dir=None):
     if outputs_dir is None:
@@ -31,3 +31,6 @@ def output_path(name, outputs_env=_os.environ, outputs_dir=None):
             raise ValueError(f"Output key {name} does not exist for this cell.")
 
     return path
+
+def output_tsv(name, outputs_env=_os.environ, outputs_dir=None):
+    return DataFrame.to_csv( output_path(name, outputs_env, outputs_dir) , sep='\t')
