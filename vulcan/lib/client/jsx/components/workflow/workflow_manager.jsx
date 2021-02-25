@@ -41,6 +41,7 @@ export default function WorkflowManager() {
         setWorkflow(currentWorkflow);
 
         // longest step chain == default path for now?
+        debugger;
         setPathIndex(
           currentWorkflow.steps
             .map((a) => a.length)

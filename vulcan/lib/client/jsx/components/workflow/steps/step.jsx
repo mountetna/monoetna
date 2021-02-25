@@ -6,7 +6,7 @@ import StepName from './step_name';
 export default function Step({step, index, onClick}) {
   const {status, pathIndex} = useContext(VulcanContext);
 
-  if (!status || !pathIndex) return null;
+  if (!status || null === pathIndex) return null;
 
   function handleOnClick() {
     onClick(index);

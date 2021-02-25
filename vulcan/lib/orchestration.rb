@@ -222,11 +222,13 @@ class Vulcan
         elsif (step = workflow.find_step(step_name))
           if step.ui_query_name
             script = {}
+          elsif step.ui_output_name
+            script = {}
           elsif step.script_name
             script = step.lookup_operation_script
             raise "Could not find backing script #{step.script_name.inspect} for step #{step.id}" if script.nil?
           else
-            raise "Step #{step.id} has invalid run: #{step.run}.  Must be either a ui-queries/ or scripts/ entry." if script.nil?
+            raise "Step #{step.id} has invalid run: #{step.run}.  Must be either a ui-queries/, ui-outputs/, or scripts/ entry." if script.nil?
           end
 
           step.out.each do |step_out|
