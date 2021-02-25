@@ -51,7 +51,7 @@ export default class ListInput extends Component {
   }
 
   editValue(new_value) {
-    if (new_value == null || new_value == undefined || new_value == '') return;
+    if (new_value === null || new_value === undefined || new_value === '') return;
 
     let { values, onChange } = this.props;
 
