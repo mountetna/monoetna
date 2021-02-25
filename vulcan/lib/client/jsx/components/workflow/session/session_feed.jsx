@@ -49,11 +49,15 @@ export default function SessionFeed() {
 
   return (
     <div className='session-feed'>
-      {uiSteps.map((s) => (
-        <StepUserInput step={s.step} stepIndex={s.index}></StepUserInput>
+      {uiSteps.map((s, index) => (
+        <StepUserInput
+          key={index}
+          step={s.step}
+          stepIndex={s.index}
+        ></StepUserInput>
       ))}
-      {errorSteps.map((s) => (
-        <StepError step={s.step} stepIndex={s.index}></StepError>
+      {errorSteps.map((s, index) => (
+        <StepError key={index} step={s.step} stepIndex={s.index}></StepError>
       ))}
     </div>
   );

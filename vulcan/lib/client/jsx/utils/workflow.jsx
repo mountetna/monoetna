@@ -14,9 +14,9 @@ import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
 
 import {TYPE} from '../models/steps';
 
-export const wrapPaneItem = (item) => {
+export const wrapPaneItem = (item, key) => {
   return (
-    <div className='view_item'>
+    <div className='view_item' key={key}>
       <div className='item_name'>{item.name}</div>
       <div className='item_view'>{item.value}</div>
     </div>
@@ -31,76 +31,86 @@ export const wrapEditableInputs = (inputs, handleInputChange) => {
 
     switch (input.type) {
       case TYPE.INTEGER:
-        return wrapPaneItem({
-          name,
-          value: (
-            <IntegerInput
-              key={key}
-              defaultValue={input.default}
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-            ></IntegerInput>
-          )
-        });
+        return wrapPaneItem(
+          {
+            name,
+            value: (
+              <IntegerInput
+                defaultValue={input.default}
+                onChange={(e) => {
+                  handleInputChange(inputName, e);
+                }}
+              ></IntegerInput>
+            )
+          },
+          key
+        );
       case TYPE.FLOAT:
-        return wrapPaneItem({
-          name,
-          value: (
-            <FloatInput
-              key={key}
-              defaultValue={input.default}
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-            ></FloatInput>
-          )
-        });
+        return wrapPaneItem(
+          {
+            name,
+            value: (
+              <FloatInput
+                defaultValue={input.default}
+                onChange={(e) => {
+                  handleInputChange(inputName, e);
+                }}
+              ></FloatInput>
+            )
+          },
+          key
+        );
       case TYPE.BOOL:
-        return wrapPaneItem({
-          name,
-          value: (
-            <input
-              key={key}
-              type='checkbox'
-              className='text_box'
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-              defaultChecked={input.default}
-            />
-          )
-        });
+        return wrapPaneItem(
+          {
+            name,
+            value: (
+              <input
+                type='checkbox'
+                className='text_box'
+                onChange={(e) => {
+                  handleInputChange(inputName, e);
+                }}
+                defaultChecked={input.default}
+              />
+            )
+          },
+          key
+        );
       case TYPE.MULTISELECT_STRING:
-        return wrapPaneItem({
-          name,
-          value: (
-            <ListInput
-              key={key}
-              placeholder='Select items from the list'
-              className='link_text'
-              values={input.default || []}
-              itemInput={DropdownInput}
-              list={input.options || []}
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-            />
-          )
-        });
+        return wrapPaneItem(
+          {
+            name,
+            value: (
+              <ListInput
+                placeholder='Select items from the list'
+                className='link_text'
+                values={input.default || []}
+                itemInput={DropdownInput}
+                list={input.options || []}
+                onChange={(e) => {
+                  handleInputChange(inputName, e);
+                }}
+              />
+            )
+          },
+          key
+        );
       default:
-        return wrapPaneItem({
-          name,
-          value: (
-            <SlowTextInput
-              key={key}
-              defaultValue={input.default}
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-            ></SlowTextInput>
-          )
-        });
+        return wrapPaneItem(
+          {
+            name,
+            value: (
+              <SlowTextInput
+                defaultValue={input.default}
+                onChange={(e) => {
+                  handleInputChange(inputName, e);
+                }}
+              ></SlowTextInput>
+            )
+          },
+          key
+        );
     }
   });
 };
