@@ -50,7 +50,7 @@ class TestMagby(TestCase):
         with self.vcr as vcr:
             vcr.use_cassette('Magby_retrieve')
             out = self.magby.retrieve(projectName="example", modelName='subject',
-                                      recordNames='all', attributeNames=["group"], dataType='meta',
+                                      recordNames='all', attributeNames="group", dataType='meta',
                                       session=self.session)
         self.assertTrue(isinstance(out, pd.DataFrame))
         self.assertEqual(out.shape, (1618,2))
@@ -59,7 +59,7 @@ class TestMagby(TestCase):
         with self.vcr as vcr:
             vcr.use_cassette('Magby_retrieveJSON')
             out = self.magby.retrieve(projectName="example", modelName='subject',
-                                      recordNames='all', attributeNames=["group"], dataType='json',
+                                      recordNames='all', attributeNames="group", dataType='json',
                                       session=self.session)
         self.assertTrue(isinstance(out, dict))
         self.assertEqual(out['models']['subject']['documents']["EXAMPLE-HS1"]['group'], 'g1')

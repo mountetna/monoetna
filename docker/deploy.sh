@@ -4,9 +4,10 @@ set -e
 
 function notifySlackOfVersion() {
   if [ -e /var/run/deployment ]; then
-    if ! [ -e /var/run/deployment/notified/$(cat /built-from-sha) ]; then
-      touch /var/run/deployment/notified/$(cat /built-from-sha)
-      post-to-slack "${APP_NAME} in ${ENV}" "bioinformatics-ping" "Deploying https://github.com/mountetna/monoetna/compare/${ENV}...$(cat /built-from-sha)"
+    mkdir -p "/var/run/deployment/notified/${APP_NAME}"
+    if ! [ -e "/var/run/deployment/notified/${APP_NAME}/$(cat /built-from-sha)" ]; then
+      touch "/var/run/deployment/notified/${APP_NAME}/$(cat /built-from-sha)"
+      post-to-slack "${APP_NAME} in ${ENV}" "bioinformatics-ping" "Deployed https://github.com/mountetna/monoetna/commit/$(cat /built-from-sha)"
     fi
   fi
 }

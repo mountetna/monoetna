@@ -57,6 +57,7 @@ class Magby(object):
                         and other attributes
         :return: Data from magma in the form of pandas.DataFrame or Dict, depending on the dataType argument
         '''
+        attributeNames = self._isAll(attributeNames)
         if (dataType == 'mtx') & (len(attributeNames) > 1):
             raise MagmaError('Magby.retrieve(): retrieval of matrix data is limited to a single attribute at a time')
         typeSelection = self._selectFormat(dataType)
@@ -108,8 +109,8 @@ class Magby(object):
 
 
     ### PRIVATE METHODS
-    @staticmethod
-    def _constructPayload(projectName: str,
+    def _constructPayload(self,
+                          projectName: str,
                           modelName: Union[List, str],
                           recordNames: Union[List, str],
                           attributeNames: Union[List, str],
@@ -118,13 +119,25 @@ class Magby(object):
         payload = {
             "project_name": projectName,
             "model_name": modelName,
-            "record_names": recordNames,
-            "attribute_names": attributeNames,
+            "record_names": self._isAll(recordNames),
+            "attribute_names": self._isAll(attributeNames),
             "format": format,
             "filter": filter
         }
         return payload
 
+    def _isAll(self, content: Union[List, str]) -> Union[List, str]:
+        if content == 'all':
+            return content
+        else:
+            return self._encapsulateToList(content)
+
+    @staticmethod
+    def _encapsulateToList(content: Union[List, str]) -> List:
+        if isinstance(content, list):
+            return content
+        if isinstance(content, str):
+            return [content]
 
     def _janusUrl(self) -> str:
         janusUrl = self._url.replace('magma', 'janus')
