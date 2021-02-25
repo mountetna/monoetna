@@ -18,6 +18,35 @@ class DirectedGraph
     parents[parent] = parent_parents
   end
 
+  def serialized_path_from(root)
+    seen = Set.new
+    [].tap do |result|
+      result << root
+      seen.add(root)
+      path_q = paths_from(root)
+
+      until path_q.empty?
+        next_path = path_q.shift
+        next if next_path.nil?
+
+        until next_path.empty?
+          next_n = next_path.shift
+          next if next_n.nil?
+          next if seen.include?(next_n)
+
+          if @parents[next_n].keys.any? { |p| !seen.include?(p) }
+            next_path.unshift(next_n)
+            path_q.push(next_path)
+            break
+          else
+            result << next_n
+            seen.add(next_n)
+          end
+        end
+      end
+    end
+  end
+
   def paths_from(root)
     [].tap do |result|
       parents_of_map = descendants(root)
