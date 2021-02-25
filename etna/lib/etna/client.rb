@@ -27,7 +27,7 @@ module Etna
       hmac = Etna::Hmac.new(
         signatory,
         method: route[:method],
-        host: @host,
+        host: URI(@host).host,
         path: path,
         expiration: (DateTime.now + 10).iso8601,
         id: signatory.id,

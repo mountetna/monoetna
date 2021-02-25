@@ -44,6 +44,7 @@
   :download_expiration: 86400
   :hmac_keys:
     :metis: 35e7c8775406612c431b654663fed668
+    :magma: haggis
   :data_path: ./data
   :rsa_public: |
     -----BEGIN PUBLIC KEY-----
