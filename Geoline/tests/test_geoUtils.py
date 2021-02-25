@@ -40,3 +40,10 @@ class Test(TestCase):
             aw = addAnother()
             self.assertTrue(isinstance(aw, str))
             self.assertEqual(aw, 'STOP')
+
+
+    def test_characteristics(self):
+        with patch('builtins.input', side_effect=['y', '1', 'cancer', 'n']):
+            aw = characteristics(addAnother, {})
+            self.assertTrue(isinstance(aw, dict))
+            self.assertEqual(aw, {'tissue': 'cancer'})

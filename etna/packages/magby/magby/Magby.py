@@ -119,7 +119,7 @@ class Magby(object):
             "project_name": projectName,
             "model_name": modelName,
             "record_names": recordNames,
-            "attribute_names": attributeNames,
+            "attribute_names": attributeNames if attributeNames=='all' else [attributeNames],
             "format": format,
             "filter": filter
         }

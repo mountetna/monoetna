@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Callable
 
 
 def flatten(dictionary, sep='', parent_key=''):
@@ -14,8 +14,8 @@ def flatten(dictionary, sep='', parent_key=''):
 
 def askAttribute(field: str, magmaAttr: str='') -> str:
     answerOptionsPre = {
-        'Y/y': 'yes',
-        'Or type the correct attribute name': '_',
+        'y': 'yes',
+        'Or type the correct attribute name': '  ',
         '0': 'back',
         'STOP': 'cancel pipeline'
     }
@@ -23,6 +23,10 @@ def askAttribute(field: str, magmaAttr: str='') -> str:
     question = f'\nIs {magmaAttr} correct for {field}?\n' \
                f'ANSWER OPTIONS:\n{answerOptions}'
     answer = input(question)
+    while not verifyMapFormat(answer):
+        verification = f'\nThe answer {answer} is not in format model:attribute\n' \
+                       f'Provide a correctly formatted answer'
+        answer = input(verification)
     return answer
 
 
@@ -70,4 +74,19 @@ def parseSubjectName(subjectName: str, conventions: List, sep: str='') -> Dict:
     nameSplit = subjectName.split(sep)
     nameSections = {x: nameSplit[n] for n,x in enumerate(conventions)}
     return nameSections
+
+
+def characteristics(addAnother: Callable, d: Dict) -> Dict:
+    aw = addAnother()
+    if aw == 'y':
+        updateInfo = askCharacteristics()
+        dc = d.copy()
+        dc.update({updateInfo[0]: updateInfo[1]})
+        return characteristics(addAnother, dc)
+    else:
+        return d
+
+
+def verifyMapFormat(attrMap: str) -> bool:
+    return len(attrMap.split(':')) == 2
 
