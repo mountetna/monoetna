@@ -41,15 +41,27 @@
   border-bottom: 2px solid lightgray;
 }
 
+.scroll-window {
+  max-height: 75vh;
+  overflow-y: auto;
+}
+
 .steps-list {
   padding-left: 0px;
   padding-right: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 
   .title {
     width: calc(100% - 10px);
     margin: 5px;
     margin-bottom: 10px;
     border-bottom: 1px solid #f00;
+  }
+
+  .steps-list-wrapper {
+    flex: 1;
   }
 
   .step-error {
@@ -67,6 +79,26 @@
     flex-direction: row;
     align-items: center;
     cursor: default;
+  }
+
+  .step.step-view-card {
+    flex-direction: column;
+
+    .title {
+      padding-left: 8px;
+      text-align: left;
+      border-right: 1px solid #ccc;
+      border-bottom: 1px solid forestgreen;
+      margin-left: 0px;
+      margin-right: 0px;
+      margin-bottom: 0px;
+    }
+
+    .view_item {
+      .item_name {
+        flex: 1;
+      }
+    }
   }
 }
 
@@ -196,6 +228,15 @@ $button-background: #d66;
         padding-top: 3px;
         box-sizing: border-box;
         flex: 1;
+
+        .delete_link {
+          cursor: default;
+
+          &:hover {
+            text-decoration: line-through;
+            opacity: 0.5;
+          }
+        }
       }
     }
   }

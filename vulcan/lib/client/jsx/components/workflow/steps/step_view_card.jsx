@@ -6,7 +6,9 @@ import {validStep, wrapPaneItem} from '../../../utils/workflow';
 
 import StepName from './step_name';
 
-export default function StepComplete({step, stepIndex}) {
+// Small, non-editable version of a
+//   step, used for informational / non-interactive purposes.
+export default function StepViewCard({step, stepIndex}) {
   const {workflow, pathIndex, session, status} = useContext(VulcanContext);
 
   if (
@@ -57,7 +59,7 @@ export default function StepComplete({step, stepIndex}) {
   }
 
   return (
-    <div className='step-complete step'>
+    <div className='step-view-card step'>
       <StepName
         step={step}
         status={status[pathIndex][stepIndex].status}
