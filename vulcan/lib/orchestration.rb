@@ -4,13 +4,11 @@ class Vulcan
   # This is the temporary glue for running synchronous workflows from a given session and its inputs.
   # Most of this logic will evolve outside of vulcan depending on where we land on orchestration.
   class Orchestration
-    attr_reader :workflow, :session, :errors
+    attr_reader :workflow, :session
 
     def initialize(workflow, session)
       @workflow = workflow
       @session = session
-
-      @errors = {}
     end
 
     MAX_RUNNABLE = 20
@@ -18,16 +16,18 @@ class Vulcan
     def run_until_done!(storage)
       load_json_inputs!(storage)
       [].tap do |ran|
+        errors = []
         i = 0
         until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
           begin
             run!(storage: storage, build_target: runnables.first)
           rescue => e
-            @errors[runnables.first.cell_hash] = e
+            errors << RunError.new(runnables.first.cell_hash, e)
           ensure
             ran << runnables.first
           end
         end
+        raise RunErrors(errors) unless errors.empty?
       end
     end
 
@@ -165,7 +165,7 @@ class Vulcan
     def next_runnable_build_targets(storage)
       build_targets_for_paths.map do |path_build_targets|
         path_build_targets.select { |bt|
-          bt.should_build?(storage) && !build_target_has_error?(bt)
+          bt.should_build?(storage)
         }.last
       end.select { |v| !v.nil? }.uniq { |bt| bt.cell_hash }
     end
@@ -261,22 +261,6 @@ class Vulcan
       end
     end
 
-    def build_target_has_error?(build_target)
-      @errors.key?(build_target.cell_hash)
-    end
-
-    def build_target_error(build_target)
-      @errors[build_target.cell_hash]
-    end
-
-    def build_target_status(build_target:, storage:)
-      build_target_has_error?(build_target) ?
-      'error' :
-      build_target.is_built?(storage) ?
-      'complete' :
-      'pending'
-    end
-
     # Combines any session given value for a primary input and the potential default that may be defined for it.
     def material_reference_for_user_input(source, input)
       if session.include?(source)
@@ -292,6 +276,30 @@ class Vulcan
       Storage::MaterialSource.new(
           project_name: session.project_name, session_key: session.key,
           material_reference: material_reference)
+    end
+
+    class RunError < StandardError
+      attr_reader :cell_hash, :error
+      def initialize(cell_hash, error)
+        @cell_hash = cell_hash
+        @error = error
+      end
+    end
+
+    class RunErrors < StandardError
+      def initialize(errors)
+        @errors = errors.map do |e|
+          [e.cell_hash, e.error]
+        end.to_h
+      end
+
+      def include?(bt)
+        @errors.key?(bt.cell_hash)
+      end
+
+      def message(bt)
+        @errors[bt.cell_hash].message
+      end
     end
   end
 end

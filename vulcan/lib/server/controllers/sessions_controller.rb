@@ -16,33 +16,39 @@ class SessionsController < Vulcan::Controller
       raise Etna::NotFound.new("Workflow by the name #{session.workflow_name} could not be found.")
     end
 
-    orchestration.run_until_done!(storage)
-
-    build_target_cache = {}
-    success_json({
-        session: session.as_json,
-        status: orchestration.unique_paths.map do |paths|
-          paths.map do |step_name|
-            step = orchestration.workflow.find_step(step_name)
-            next nil if step.nil?
-            step_status_json(step.id, orchestration, build_target_cache)
-          end.select { |v| v }
-        end,
-        outputs: step_status_json(
-          :primary_outputs,
-          orchestration).slice(:status, :downloads),
-    })
+    begin
+      orchestration.run_until_done!(storage)
+    rescue Vulcan::Orchestration::RunErrors => e
+      run_errors = e
+    ensure
+      success_json({
+          session: session.as_json,
+          status: orchestration_status(orchestration, run_errors),
+          outputs: step_status_json(
+            :primary_outputs,
+            orchestration.build_target_for(:primary_outputs)).slice(:status, :downloads),
+      })
+    end
   rescue => e
     raise Etna::BadRequest.new(e.message)
   end
 
-  def step_status_json(step_name, orchestration, build_target_cache = {})
-    bt = orchestration.build_target_for(step_name, build_target_cache)
+  def orchestration_status(orchestration, errors)
+    build_target_cache = {}
+    orchestration.unique_paths.map do |paths|
+      paths.map do |step_name|
+        step = orchestration.workflow.find_step(step_name)
+        next nil if step.nil?
+        bt = orchestration.build_target_for(step_name, build_target_cache)
+        step_status_json(step.id, bt, errors)
+      end.select { |v| v }
+    end
+  end
 
+  def step_status_json(step_name, bt)
     {
         name: step_name,
-        status: orchestration.build_target_status(build_target: bt, storage: storage),
-        message: orchestration.build_target_has_error?(bt) ? orchestration.build_target_error(bt) : nil,
+        status: bt.is_built?(storage) ? 'complete' : 'pending',
         downloads: bt.is_built?(storage) ? bt.build_outputs.map do |output_name, sf|
           [
               output_name,
