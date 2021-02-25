@@ -269,6 +269,14 @@ class Vulcan
       @errors[build_target.cell_hash]
     end
 
+    def build_target_status(build_target:, storage:)
+      build_target_has_error?(build_target) ?
+      'error' :
+      build_target.is_built?(storage) ?
+      'complete' :
+      'pending'
+    end
+
     # Combines any session given value for a primary input and the potential default that may be defined for it.
     def material_reference_for_user_input(source, input)
       if session.include?(source)

@@ -38,14 +38,10 @@ class SessionsController < Vulcan::Controller
 
   def step_status_json(step_name, orchestration, build_target_cache = {})
     bt = orchestration.build_target_for(step_name, build_target_cache)
-    status = orchestration.build_target_has_error?(bt) ?
-      'error' :
-      bt.is_built?(storage) ?
-      'complete' :
-      'pending'
+
     {
         name: step_name,
-        status: status,
+        status: orchestration.build_target_status(build_target: bt, storage: storage),
         message: orchestration.build_target_has_error?(bt) ? orchestration.build_target_error(bt) : nil,
         downloads: bt.is_built?(storage) ? bt.build_outputs.map do |output_name, sf|
           [
