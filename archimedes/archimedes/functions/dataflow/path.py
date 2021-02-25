@@ -32,5 +32,5 @@ def output_path(name, outputs_env=_os.environ, outputs_dir=None):
 
     return path
 
-def output_tsv(name, outputs_env=_os.environ, outputs_dir=None):
-    return DataFrame.to_csv( output_path(name, outputs_env, outputs_dir) , sep='\t')
+def output_tsv(data, name, outputs_env=_os.environ, outputs_dir=None):
+    return data.to_csv( output_path(name, outputs_env, outputs_dir) , sep='\t')

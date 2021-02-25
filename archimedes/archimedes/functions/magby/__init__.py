@@ -1,1 +1,1 @@
-import ....magby as magby
+from magby import Magby
