@@ -65,7 +65,7 @@ with open(output_path('sum'), 'w') as output_file:
             }
         ],
         "layout": {
-            "autosize": false,
+            "autosize": False,
             "height": 480,
             "hovermode": "closest",
             "margin": {
@@ -75,7 +75,7 @@ with open(output_path('sum'), 'w') as output_file:
                 "r": 63,
                 "t": 57
             },
-            "showlegend": false,
+            "showlegend": False,
             "template": {
                 "data": {
                     "bar": [
@@ -431,7 +431,7 @@ with open(output_path('sum'), 'w') as output_file:
                     ],
                     "pie": [
                         {
-                            "automargin": true,
+                            "automargin": True,
                             "type": "pie"
                         }
                     ],
@@ -776,8 +776,8 @@ with open(output_path('sum'), 'w') as output_file:
                         "bgcolor": "white",
                         "lakecolor": "white",
                         "landcolor": "#E5ECF6",
-                        "showlakes": true,
-                        "showland": true,
+                        "showlakes": True,
+                        "showland": True,
                         "subunitcolor": "white"
                     },
                     "hoverlabel": {
@@ -808,7 +808,7 @@ with open(output_path('sum'), 'w') as output_file:
                             "gridcolor": "white",
                             "gridwidth": 2,
                             "linecolor": "white",
-                            "showbackground": true,
+                            "showbackground": True,
                             "ticks": "",
                             "zerolinecolor": "white"
                         },
@@ -817,7 +817,7 @@ with open(output_path('sum'), 'w') as output_file:
                             "gridcolor": "white",
                             "gridwidth": 2,
                             "linecolor": "white",
-                            "showbackground": true,
+                            "showbackground": True,
                             "ticks": "",
                             "zerolinecolor": "white"
                         },
@@ -826,7 +826,7 @@ with open(output_path('sum'), 'w') as output_file:
                             "gridcolor": "white",
                             "gridwidth": 2,
                             "linecolor": "white",
-                            "showbackground": true,
+                            "showbackground": True,
                             "ticks": "",
                             "zerolinecolor": "white"
                         }
@@ -858,7 +858,7 @@ with open(output_path('sum'), 'w') as output_file:
                         "x": 0.05
                     },
                     "xaxis": {
-                        "automargin": true,
+                        "automargin": True,
                         "gridcolor": "white",
                         "linecolor": "white",
                         "ticks": "",
@@ -869,7 +869,7 @@ with open(output_path('sum'), 'w') as output_file:
                         "zerolinewidth": 2
                     },
                     "yaxis": {
-                        "automargin": true,
+                        "automargin": True,
                         "gridcolor": "white",
                         "linecolor": "white",
                         "ticks": "",
@@ -894,8 +894,8 @@ with open(output_path('sum'), 'w') as output_file:
                     -132.12825658239723,
                     137.07579383475877
                 ],
-                "showgrid": false,
-                "showline": true,
+                "showgrid": False,
+                "showline": True,
                 "side": "bottom",
                 "ticks": "inside",
                 "title": {
@@ -906,7 +906,7 @@ with open(output_path('sum'), 'w') as output_file:
                     "text": "UMAP1"
                 },
                 "type": "linear",
-                "zeroline": false
+                "zeroline": False
             },
             "yaxis": {
                 "anchor": "x",
@@ -920,8 +920,8 @@ with open(output_path('sum'), 'w') as output_file:
                     -433.0278955626146,
                     310.9517585899883
                 ],
-                "showgrid": false,
-                "showline": true,
+                "showgrid": False,
+                "showline": True,
                 "side": "left",
                 "ticks": "inside",
                 "title": {
@@ -932,7 +932,7 @@ with open(output_path('sum'), 'w') as output_file:
                     "text": "UMAP2"
                 },
                 "type": "linear",
-                "zeroline": false
+                "zeroline": False
             }
         }
     }

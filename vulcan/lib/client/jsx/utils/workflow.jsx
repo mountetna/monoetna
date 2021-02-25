@@ -14,6 +14,23 @@ import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
 
 import {TYPE, RUN} from '../models/steps';
 
+export const flatten = (items) => {
+  // This should go away once we have a consistent, flat
+  //   ordering in the workflows
+  return _.uniqBy(_.flatten(items), 'name');
+};
+
+export const stringify = (text) => {
+  // For previewing data inputs / outputs, we just want a string
+  //   representation. Unsure if input is JSON or a string.
+
+  try {
+    text = JSON.stringify(text);
+  } catch (e) {}
+
+  return text;
+};
+
 export const wrapPaneItem = (item, key) => {
   return (
     <div className='view_item' key={key}>

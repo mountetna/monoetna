@@ -11,11 +11,10 @@ import {
   uiStepInputDataRaw
 } from '../../../utils/workflow';
 
-export default function StepOutputPlotly({step, stepIndex}) {
-  const {workflow, pathIndex, session, status, setInputs} = useContext(
-    VulcanContext
-  );
+export default function StepOutput({step, stepIndex}) {
+  const {workflow, pathIndex, session, status} = useContext(VulcanContext);
 
+  console.log('here in plotly output');
   if (
     !validStep({workflow, pathIndex, stepIndex}) ||
     !session ||

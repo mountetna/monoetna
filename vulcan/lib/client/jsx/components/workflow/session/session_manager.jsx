@@ -1,4 +1,5 @@
 import React, {useState, useContext, useEffect} from 'react';
+import * as _ from 'lodash';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
@@ -6,7 +7,11 @@ import Icon from 'etna-js/components/icon';
 
 import {getSession, submit} from '../../../api/vulcan';
 import {VulcanContext} from '../../../contexts/vulcan';
-import {allInputsDefined, defaultInputValues} from '../../../utils/workflow';
+import {
+  allInputsDefined,
+  defaultInputValues,
+  flatten
+} from '../../../utils/workflow';
 import SessionFeed from './session_feed';
 
 import PrimaryInputs from './primary_inputs';
@@ -35,7 +40,13 @@ export default function SessionManager() {
       getSession(workflow.name)
         .then((response) => {
           setSession(response.session);
-          setStatus(response.status);
+
+          // TODO: REMOVE
+          // Flatten the status
+          let status = [...response.status];
+          status.push(flatten(status));
+
+          setStatus(status);
 
           // Set the default input values in the session
           setInputs(defaultInputValues(workflow));

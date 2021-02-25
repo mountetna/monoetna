@@ -21,9 +21,9 @@ inputs:
     type: float
 
 outputs:
-  the_plot:
+  the_data:
     type: File
-    outputSource: showMe/scatter
+    outputSource: finalStep/sum
 
 steps:
   firstAdd:
@@ -46,8 +46,8 @@ steps:
       b: pickANum/num
     out: [sum]
   showMe:
-    run: ui-queries/plotly.cwl
+    run: ui-outputs/plotly.cwl
     in:
       a: finalStep/sum
-    out: [scatter]
+    out: []
     label: 'Final plot'
