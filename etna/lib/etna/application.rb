@@ -92,7 +92,7 @@ module Etna::Application
   end
 
   def id
-    self.class.name.snake_case.split(/::/).last
+    ENV["APP_NAME"] || self.class.name.snake_case.split(/::/).last
   end
 
   def find_descendents(klass)
