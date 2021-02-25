@@ -59,7 +59,7 @@ class Dropdown extends Component {
     const {list, selected_index, default_text, className} = this.props;
     const {list_open} = this.state;
     let selected_item =
-      selected_index == null || selected_index == -1
+      selected_index === null || selected_index === -1
         ? null
         : list[selected_index];
     let header_text = selected_item || default_text;

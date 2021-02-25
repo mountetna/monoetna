@@ -3,7 +3,7 @@ const path = require('path');
 
 import nock from 'nock';
 
-import {getWorkflows, submit, getData} from '../vulcan';
+import {getWorkflows, submit, getData, downloadUrlUpdated} from '../vulcan';
 import {mockStore, stubUrl, mockFetch, cleanStubs} from 'etna-js/spec/helpers';
 
 describe('Vulcan API', () => {
@@ -251,6 +251,162 @@ describe('Vulcan API', () => {
     });
   });
 
+  it('submit does not refetch data if output URL stays same', (done) => {
+    const inputs = [
+      [
+        {
+          name: 'first_step'
+        }
+      ]
+    ];
+
+    const url = '/api/workflows/test/file1.txt';
+    const data = [1, 2, 4, 'abc'];
+    const status1 = [
+      [
+        {
+          name: 'first_step',
+          status: 'complete',
+          downloads: {
+            sum: `${CONFIG.vulcan_host}${url}`
+          },
+          data: {
+            sum: data
+          }
+        }
+      ]
+    ];
+
+    stubUrl({
+      verb: 'post',
+      path: ROUTES.submit('test'),
+      request: () => ({inputs, key: 'session_key'}),
+      response: {
+        status: status1,
+        session: {}
+      },
+      headers: {
+        'Content-type': 'application/json'
+      },
+      host: CONFIG.vulcan_host
+    });
+
+    const mockSetSession = jest.fn();
+    const mockSetStatus = jest.fn();
+    const mockSetData = jest.fn();
+
+    let context = {
+      workflow: {
+        name: 'test'
+      },
+      session: {
+        inputs,
+        key: 'session_key'
+      },
+      status: status1,
+      pathIndex: 0,
+      setSession: mockSetSession,
+      setStatus: mockSetStatus,
+      setData: mockSetData
+    };
+
+    return submit(context).then(() => {
+      expect(mockSetSession.mock.calls.length).toBe(1);
+      expect(mockSetStatus.mock.calls.length).toBe(1);
+      expect(mockSetData.mock.calls.length).toBe(0);
+      done();
+    });
+  });
+
+  it('submit refetches data if output URL changes', (done) => {
+    const inputs = [
+      [
+        {
+          name: 'first_step'
+        }
+      ]
+    ];
+
+    const url = '/api/workflows/test/file1.txt';
+    const url2 = '/api/workflows/test/file2.txt';
+    const data = [1, 2, 4, 'abc'];
+    const data2 = [5, 6, 7, 'xyz'];
+    const status1 = [
+      [
+        {
+          name: 'first_step',
+          status: 'complete',
+          downloads: {
+            sum: `${CONFIG.vulcan_host}${url}`
+          },
+          data: {
+            sum: data
+          }
+        }
+      ]
+    ];
+    const status2 = [
+      [
+        {
+          name: 'first_step',
+          status: 'complete',
+          downloads: {
+            sum: `${CONFIG.vulcan_host}${url2}`
+          }
+        }
+      ]
+    ];
+
+    stubUrl({
+      verb: 'post',
+      path: ROUTES.submit('test'),
+      request: () => ({inputs, key: 'session_key'}),
+      response: {
+        status: status2,
+        session: {}
+      },
+      headers: {
+        'Content-type': 'application/json'
+      },
+      host: CONFIG.vulcan_host
+    });
+    stubUrl({
+      verb: 'get',
+      path: url2,
+      response: data2,
+      headers: {
+        'Content-type': 'application/json'
+      },
+      host: CONFIG.vulcan_host
+    });
+
+    const mockSetSession = jest.fn();
+    const mockSetStatus = jest.fn();
+    const mockSetData = jest.fn();
+
+    let context = {
+      workflow: {
+        name: 'test'
+      },
+      session: {
+        inputs,
+        key: 'session_key'
+      },
+      status: status1,
+      pathIndex: 0,
+      setSession: mockSetSession,
+      setStatus: mockSetStatus,
+      setData: mockSetData
+    };
+
+    return submit(context).then(() => {
+      expect(mockSetSession.mock.calls.length).toBe(1);
+      expect(mockSetStatus.mock.calls.length).toBe(1);
+      expect(mockSetData.mock.calls.length).toBe(1);
+      done();
+    });
+  });
+
   it('getData returns data from the specified location', (done) => {
     const url = '/api/workflows/test/file1.txt';
     const data = [1, 2, 4, 'abc'];
@@ -268,6 +424,81 @@ describe('Vulcan API', () => {
     return getData(`${CONFIG.vulcan_host}${url}`).then((returnedData) => {
       expect(data).toEqual(returnedData);
       done();
+    });
+  });
+
+  describe('downloadUrlUpdated', () => {
+    it('returns true if data does not exist on new Status', () => {
+      let oldStatus = {
+        name: 'foo'
+      };
+
+      let newStatus = {
+        downloads: {
+          key: 'URL'
+        }
+      };
+
+      let result = downloadUrlUpdated(oldStatus, newStatus, 'key');
+      expect(result).toEqual(true);
+
+      oldStatus = {
+        name: 'foo',
+        data: {
+          another_key: 'blob'
+        }
+      };
+
+      result = downloadUrlUpdated(oldStatus, newStatus, 'key');
+      expect(result).toEqual(true);
+    });
+
+    it('returns false if url did not change', () => {
+      let oldStatus = {
+        name: 'foo',
+        downloads: {
+          key: 'URL'
+        },
+        data: {
+          key: 'blob'
+        }
+      };
+
+      let newStatus = {
+        downloads: {
+          key: 'URL'
+        },
+        data: {
+          key: 'blob'
+        }
+      };
+
+      let result = downloadUrlUpdated(oldStatus, newStatus, 'key');
+      expect(result).toEqual(false);
+    });
+
+    it('returns true if url changed but data exists', () => {
+      let oldStatus = {
+        name: 'foo',
+        downloads: {
+          key: 'URL'
+        },
+        data: {
+          key: 'blob'
+        }
+      };
+
+      let newStatus = {
+        downloads: {
+          key: 'URL2'
+        },
+        data: {
+          key: 'blob2'
+        }
+      };
+
+      let result = downloadUrlUpdated(oldStatus, newStatus, 'key');
+      expect(result).toEqual(true);
     });
   });
 });
