@@ -67,8 +67,8 @@ export default function StepViewCard({step, stepIndex}) {
       <div className='step-inputs inputs-pane'>
         <div class='title'>Step inputs</div>
         <div className='step-inputs-container items'>
-          {inputValues.map((input) => {
-            return wrapPaneItem(input);
+          {inputValues.map((input, index) => {
+            return wrapPaneItem(input, index);
           })}
         </div>
       </div>
