@@ -23,10 +23,11 @@ def askAttribute(field: str, magmaAttr: str='') -> str:
     question = f'\nIs {magmaAttr} correct for {field}?\n' \
                f'ANSWER OPTIONS:\n{answerOptions}'
     answer = input(question)
-    while not verifyMapFormat(answer):
-        verification = f'\nThe answer {answer} is not in format model:attribute\n' \
-                       f'Provide a correctly formatted answer'
-        answer = input(verification)
+    if answer not in answerOptionsPre.keys():
+        while not verifyMapFormat(answer):
+            verification = f'\nThe answer {answer} is not in format model:attribute\n' \
+                           f'Provide a correctly formatted answer'
+            answer = input(verification)
     return answer
 
 
@@ -36,9 +37,7 @@ def askCharacteristics() -> Tuple:
         '2': 'cell type',
         '3': 'treatment',
         '4': 'genotype',
-        '5': 'disease state',
-        '0': 'back',
-        'STOP': 'cancel pipeline'
+        '5': 'disease state'
     }
     answerOptions = formatOptions(answerOptionsPre)
     answerKey = input(answerOptions)
@@ -46,6 +45,10 @@ def askCharacteristics() -> Tuple:
         raise KeyError(f'askCharacteristics(): selected answer {answerKey} is not an allowed option'
                        f'Choose one from {list(answerOptionsPre.keys())}')
     answerValue = input('Enter attribute name for this characteristic')
+    while not verifyMapFormat(answerValue):
+        verification = f'\nThe answer {answerValue} is not in format model:attribute\n' \
+                       f'Provide a correctly formatted answer'
+        answerValue = input(verification)
     return answerOptionsPre[answerKey], answerValue
 
 
@@ -57,7 +60,9 @@ def addAnother() -> str:
         'STOP': 'cancel pipeline'
     }
     answerOptions = formatOptions(answerOptionsPre)
-    answer = input(answerOptions)
+    question = f'\nDo you want to add a sample characteristic?\n' \
+               f'ANSWER OPTIONS:\n{answerOptions}'
+    answer = input(question)
     if answer not in answerOptionsPre.keys():
         raise KeyError(f'addAnother(): selected answer {answer} is not an allowed option'
                        f'Choose one from {list(answerOptionsPre.keys())}')
@@ -68,13 +73,6 @@ def formatOptions(options: Dict) -> str:
     formatted = [':\t'.join([x, options[x]]) for x in options]
     answerOptions = '\n'.join(formatted)
     return answerOptions
-
-
-def parseSubjectName(subjectName: str, conventions: List, sep: str='') -> Dict:
-    nameSplit = subjectName.split(sep)
-    nameSections = {x: nameSplit[n] for n,x in enumerate(conventions)}
-    return nameSections
-
 
 def characteristics(addAnother: Callable, d: Dict) -> Dict:
     aw = addAnother()
@@ -91,6 +89,10 @@ def verifyMapFormat(attrMap: str) -> bool:
     return len(attrMap.split(':')) == 2
 
 
+def parseSubjectName(subjectName: str, conventions: List, sep: str='') -> Dict:
+    nameSplit = subjectName.split(sep)
+    nameSections = {x: nameSplit[n] for n,x in enumerate(conventions)}
+    return nameSections
 
 
 ### TODO

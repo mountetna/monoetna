@@ -1,12 +1,12 @@
 from ..Geoline.geoUtils import *
-
+from functools import partial
 
 def samplesSection(assay: str) -> Dict:
     out = {
         'title': f'{assay}:tube_name',
         'source name': f'{assay}:biospecimen',
         'organism': 'subject:name',
-        'characteristics': characteristics(addAnother, {}),
+        'characteristics': partial(characteristics, addAnother=addAnother),
         'molecule': f'{assay}:tube_name',
         'description': f'{assay}:notes',
         'processed data file': f'{assay}:gene_expression',
