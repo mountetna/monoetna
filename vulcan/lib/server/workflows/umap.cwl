@@ -21,10 +21,9 @@ inputs:
     type: float
 
 outputs:
-  the_result:
-    type: int
-    outputSource: finalStep/sum
-    format: text
+  the_plot:
+    type: File
+    outputSource: showMe/scatter
 
 steps:
   firstAdd:
@@ -40,9 +39,15 @@ steps:
       a: firstAdd/sum
     out: [num]
   finalStep:
-    run: scripts/add.cwl
+    run: scripts/add_from_list.cwl
     label: 'Add your numbers to the previous sum'
     in:
       a: firstAdd/sum
       b: pickANum/num
     out: [sum]
+  showMe:
+    run: ui-queries/plotly.cwl
+    in:
+      a: finalStep/sum
+    out: [scatter]
+    label: 'Final plot'

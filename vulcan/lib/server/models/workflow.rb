@@ -71,6 +71,7 @@ module Etna
     class Step < Cwl
       SCRIPT_REGEX = /^scripts\/(.*)\.cwl$/
       UI_QUERIES_REGEX = /^ui-queries\/(.*)$/
+      UI_OUTPUTS_REGEX = /^ui-outputs\/(.*)$/
 
       def as_step_json
         {
@@ -114,6 +115,16 @@ module Etna
 
         if run.is_a?(Operation)
           m = UI_QUERIES_REGEX.match(run.id)
+          m.nil? ? nil : m[1]
+        end
+      end
+
+      def ui_output_name
+        run = @attributes['run']
+        return nil if run.nil?
+
+        if run.is_a?(Operation)
+          m = UI_OUTPUTS_REGEX.match(run.id)
           m.nil? ? nil : m[1]
         end
       end
