@@ -7,10 +7,10 @@ def samplesSection(assay: str) -> Dict:
         'source name': f'{assay}:biospecimen',
         'organism': 'subject:name',
         'characteristics': characteristics(addAnother, {}),
-        'molecule': '',
+        'molecule': f'{assay}:tube_name',
         'description': f'{assay}:notes',
         'processed data file': f'{assay}:gene_expression',
-        'raw': ''
+        'raw': f'{assay}:raw_fastqs'
     }
     return flatten(out, sep=' ')
 

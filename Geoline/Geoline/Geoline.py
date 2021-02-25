@@ -18,7 +18,11 @@ class Geoline:
         self._url = url
         self._token = token
 
-    def selectWorkflow(self, template: Callable, assay: str):
+
+
+
+
+    def _selectWorkflow(self, template: Callable, assay: str) -> Dict:
         allowedAssays = ['rna_seq', 'dna_seq', 'sc_seq']
         if assay not in allowedAssays:
             raise GeolineError(f'Geoline.selectWorkflow(): unrecognized assay {assay}'
@@ -32,7 +36,7 @@ class Geoline:
         return updated
 
 
-    def _updater(self, section: dict, prev: int=0, curr: int=0):
+    def _updater(self, section: dict, prev: int=0, curr: int=0) -> Dict:
         if (prev < 0) | (curr > len(section)):
             return section
         attributeMap = list(section.items())[curr]

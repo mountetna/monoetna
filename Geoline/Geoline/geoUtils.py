@@ -90,3 +90,16 @@ def characteristics(addAnother: Callable, d: Dict) -> Dict:
 def verifyMapFormat(attrMap: str) -> bool:
     return len(attrMap.split(':')) == 2
 
+
+
+
+### TODO
+
+
+def walkMetisDir(metisDir: str) -> List:
+    pass
+
+
+def getChecksums() -> Dict:
+    pass
+
