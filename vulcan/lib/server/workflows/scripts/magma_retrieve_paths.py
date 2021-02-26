@@ -1,8 +1,8 @@
 from archimedes.functions.dataflow import output_tsv, input_var
 from archimedes.functions.magby import Magby
+from archimedes.functions.environment import token
 
 input_records = input_var('record_ids').split(", ")
-token = input_var('token')
 
 # Improve these with magby.getModels or similar in future
 seq_pool_model_name = 'sc_rna_seq_pool' 
