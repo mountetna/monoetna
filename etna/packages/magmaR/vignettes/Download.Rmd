@@ -176,7 +176,7 @@ You are unauthorized. If you think this is a mistake, run `rm(.MAGMAR_TOKEN)` or
 
 # Controlling which version of magma to target
 
-For privileged users with access to the staging or development versions of magma, switching can be achieved by:
+For advanced users with access to the staging or development versions of magma, switching can be achieved by:
 
 1. Adding `url.base = "production/staging/development-url"` to your function calls, OR
 2. Running `.MAGMAR_URL <- "production/staging/development-url` one time to update the default url utilized in all subsequent magmaR calls.
