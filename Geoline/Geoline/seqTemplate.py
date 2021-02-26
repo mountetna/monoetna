@@ -7,12 +7,12 @@ def samplesSection(assay: str) -> Dict:
         'source name': f'{assay}:biospecimen',
         'organism': 'subject:name',
         'characteristics': partial(characteristics, addAnother=addAnother),
-        'molecule': f'{assay}:tube_name',
+        'molecule': '',
         'description': f'{assay}:notes',
         'processed data file': f'{assay}:gene_expression',
         'raw': f'{assay}:raw_fastqs'
     }
-    return flatten(out, sep=' ')
+    return out
 
 
 def processedFilesSection(assay: str) -> Dict:
