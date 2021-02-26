@@ -128,6 +128,10 @@ module Etna
           m.nil? ? nil : m[1]
         end
       end
+
+      def ui_behavior?
+        ui_query_name || ui_output_name
+      end
     end
 
     class Operation

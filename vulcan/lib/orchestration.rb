@@ -230,9 +230,7 @@ class Vulcan
             input_files << input_file
           end
         elsif (step = workflow.find_step(step_name))
-          if step.ui_query_name
-            script = {}
-          elsif step.ui_output_name
+          if step.ui_behavior?
             script = {}
           elsif step.script_name
             script = step.lookup_operation_script
@@ -243,7 +241,7 @@ class Vulcan
 
           step.out.each do |step_out|
             output_filenames << step_out.id
-            if step.ui_query_name or step.ui_output_name
+            if step.ui_behavior?
               ref = session.material_reference_for([step_name, step_out.id])
               source = material_source(ref)
               input_files << source.take_as_input(step_out.id)
