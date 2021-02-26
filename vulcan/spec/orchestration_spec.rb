@@ -43,8 +43,9 @@ describe Vulcan::Orchestration do
   describe '#unique_paths' do
     it 'works' do
       expect(unique_paths).to eql([
+          [:primary_inputs, "firstAdd", "pickANum", "finalStep", :primary_outputs],
           [:primary_inputs, "firstAdd", "finalStep", :primary_outputs],
-          [:primary_inputs, "firstAdd", "pickANum", "finalStep"]
+          [:primary_inputs, "firstAdd", "pickANum", "finalStep"],
       ])
     end
   end
@@ -55,6 +56,7 @@ describe Vulcan::Orchestration do
         orchestration.load_json_inputs!(storage)
 
         expect(should_builds).to eql([
+            [false, false, false, false, false],
             [false, false, false, false],
             [false, false, false, false],
         ])
@@ -65,6 +67,7 @@ describe Vulcan::Orchestration do
         orchestration.load_json_inputs!(storage)
 
         expect(should_builds).to eql([
+            [true, false, false, false, false],
             [true, false, false, false],
             [true, false, false, false],
         ])
@@ -77,6 +80,7 @@ describe Vulcan::Orchestration do
         orchestration.run!(storage: storage, build_target: next_buildable)
 
         expect(should_builds).to eql([
+            [false, true, false, false, false],
             [false, true, false, false],
             [false, true, false, false],
         ])
@@ -90,6 +94,7 @@ describe Vulcan::Orchestration do
         prev_cell_hashes = cell_hashes
         session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
+            [false, false, false, false, false],
             [false, false, false, false],
             [false, false, false, false]
         ])
@@ -98,6 +103,7 @@ describe Vulcan::Orchestration do
         # does not work.
         prev_cell_hashes = cell_hashes
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
+            [true, true, true, true, true],
             [true, true, true, true],
             [true, true, true, true]
         ])
@@ -105,6 +111,7 @@ describe Vulcan::Orchestration do
         prev_cell_hashes = cell_hashes
         session.define_user_input(["primary_inputs", "notARealInput"], 123)
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
+            [true, true, true, true, true],
             [true, true, true, true],
             [true, true, true, true]
         ])
@@ -112,6 +119,7 @@ describe Vulcan::Orchestration do
         prev_cell_hashes = cell_hashes
         session.define_user_input([:primary_inputs, "alsoNotAnInput"], 123)
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
+            [true, true, true, true, true],
             [true, true, true, true],
             [true, true, true, true]
         ])
@@ -120,6 +128,7 @@ describe Vulcan::Orchestration do
         prev_cell_hashes = cell_hashes
         session.define_user_input(["pickANum", "num"], 543)
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
+            [true, true, false, false, false],
             [true, true, false, false],
             [true, true, false, false]
         ])
@@ -142,15 +151,11 @@ describe Vulcan::Orchestration do
 
     it 'reports cell errors correctly' do
       expect(orchestration.run_until_done!(storage).length).to eql(0)
-      expect(orchestration.errors).to eql({})
       session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 'abc-not-an-int')
-      expect(orchestration.run_until_done!(storage).length).to eql(2)
 
-      bt = orchestration.build_target_for('firstAdd', {})
-      expect(orchestration.build_target_has_error?(bt)).to eql(true)
-
-      expected_error = "ValueError: invalid literal for int() with base 10: '\"abc-not-an-int\"'"
-      expect(orchestration.build_target_error(bt).message.include? (expected_error)).to eql(true)
+      expect {
+        orchestration.run_until_done!(storage)
+      }.to raise_error(Vulcan::Orchestration::RunErrors)
     end
   end
 end

@@ -4,13 +4,11 @@ class Vulcan
   # This is the temporary glue for running synchronous workflows from a given session and its inputs.
   # Most of this logic will evolve outside of vulcan depending on where we land on orchestration.
   class Orchestration
-    attr_reader :workflow, :session, :errors
+    attr_reader :workflow, :session
 
     def initialize(workflow, session)
       @workflow = workflow
       @session = session
-
-      @errors = {}
     end
 
     MAX_RUNNABLE = 20
@@ -18,16 +16,21 @@ class Vulcan
     def run_until_done!(storage)
       load_json_inputs!(storage)
       [].tap do |ran|
+        errors = RunErrors.new
         i = 0
-        until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
+        num_cells_successful = 1
+        until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE || num_cells_successful == 0
           begin
+            num_cells_successful = 0
             run!(storage: storage, build_target: runnables.first)
           rescue => e
-            @errors[runnables.first.cell_hash] = e
+            errors << {cell_hash: runnables.first.cell_hash, error: e}
           ensure
             ran << runnables.first
+            num_cells_successful += 1 unless errors.include?(runnables.first)
           end
         end
+        raise errors unless errors.empty?
       end
     end
 
@@ -140,8 +143,15 @@ class Vulcan
     end
 
     # Returns a list of lists, describing the dependency between steps, primary inputs, and primary outputs.
-    # Each inner list is a unique path in side of the workflow starting a primary_inputs and terminating
-    # at either a primary_output or a step that is not used as an input the workflow
+    # The first inner list is a serialized path traversing all nodes in a strictly linear fashion.
+    # Note that this ordering is NOT Guaranteed to be the execution order; tasks that exist on divergent paths
+    # might be run in parallel, and thus may complete in a non deterministic ordering.  But this serialized
+    # ordering will, nonetheless, occur in an order such that an strict dependency is always before
+    # convergent nodes.
+    # After the first inner list, each other inner list is a unique path in side of the workflow starting
+    # a primary_inputs and terminating at either a primary_output or a step that is not used as an input the workflow
+    # Each path represents a potential divergent -> convergent ordering that has strict execution ordering.  The
+    # first node and last node of each of these paths _may_ be shared with other paths as part of convergence.
     def self.unique_paths(workflow)
       directed_graph = ::DirectedGraph.new
 
@@ -155,7 +165,7 @@ class Vulcan
         directed_graph.add_connection(output.outputSource.first, :primary_outputs)
       end
 
-      directed_graph.paths_from(:primary_inputs)
+      [ directed_graph.serialized_path_from(:primary_inputs) ] + directed_graph.paths_from(:primary_inputs)
     end
 
     def unique_paths
@@ -165,7 +175,7 @@ class Vulcan
     def next_runnable_build_targets(storage)
       build_targets_for_paths.map do |path_build_targets|
         path_build_targets.select { |bt|
-          bt.should_build?(storage) && !build_target_has_error?(bt)
+          bt.should_build?(storage)
         }.last
       end.select { |v| !v.nil? }.uniq { |bt| bt.cell_hash }
     end
@@ -263,22 +273,6 @@ class Vulcan
       end
     end
 
-    def build_target_has_error?(build_target)
-      @errors.key?(build_target.cell_hash)
-    end
-
-    def build_target_error(build_target)
-      @errors[build_target.cell_hash]
-    end
-
-    def build_target_status(build_target:, storage:)
-      build_target_has_error?(build_target) ?
-      'error' :
-      build_target.is_built?(storage) ?
-      'complete' :
-      'pending'
-    end
-
     # Combines any session given value for a primary input and the potential default that may be defined for it.
     def material_reference_for_user_input(source, input)
       if session.include?(source)
@@ -294,6 +288,32 @@ class Vulcan
       Storage::MaterialSource.new(
           project_name: session.project_name, session_key: session.key,
           material_reference: material_reference)
+    end
+
+    class RunErrors < StandardError
+      def initialize
+        @errors = {}
+      end
+
+      def <<(value)
+        @errors[value[:cell_hash]] = value[:error]
+      end
+
+      def include?(bt)
+        @errors.key?(bt.cell_hash)
+      end
+
+      def message_for_build_target(bt)
+        @errors[bt.cell_hash].message
+      end
+
+      def message
+        @errors
+      end
+
+      def empty?
+        @errors.keys.empty?
+      end
     end
   end
 end
