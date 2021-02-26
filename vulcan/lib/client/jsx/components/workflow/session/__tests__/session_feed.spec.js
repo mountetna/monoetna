@@ -30,7 +30,7 @@ describe('SessionFeed', () => {
             },
             {
               name: 'fourth',
-              run: 'ui-output/show-the-user.cwl'
+              run: 'ui-outputs/show-the-user.cwl'
             }
           ]
         ]
@@ -59,7 +59,7 @@ describe('SessionFeed', () => {
             status: 'pending'
           },
           {
-            name: 'fourt',
+            name: 'fourth',
             status: 'pending'
           }
         ]

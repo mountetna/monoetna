@@ -69,7 +69,7 @@ describe SessionsController do
       expect(last_json_response['session']['key']).to_not be_empty
       expect(last_json_response['session']['workflow_name']).to eql(workflow_name)
       expect(last_json_response['session']['inputs']).to eql({})
-      expect(last_json_response['status']).to eql([
+      expect(last_json_response['status']).to match_array([
           [
               {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
               {'downloads' => nil, 'message' => nil, 'name' => 'pickANum', 'status' => 'pending'},

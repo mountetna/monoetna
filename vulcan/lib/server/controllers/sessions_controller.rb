@@ -56,7 +56,7 @@ class SessionsController < Vulcan::Controller
       name: step_name,
       status: run_errors&.include?(bt) ? 'error' : step_status(bt, ui_output),
       message: run_errors&.include?(bt) ? run_errors.message_for_build_target(bt) : nil,
-      downloads: bt.is_built?(storage) ? bt.build_outputs.map do |output_name, sf|
+      downloads: step_has_downloads?(bt, ui_output) ? bt.build_outputs.map do |output_name, sf|
         [
             output_name,
             storage.data_url(project_name: sf.project_name, cell_hash: sf.cell_hash, data_filename: sf.data_filename),
@@ -72,6 +72,14 @@ class SessionsController < Vulcan::Controller
     return bt.is_buildable?(storage) ? 'complete' : 'pending' if ui_output
 
     bt.is_built?(storage) ? 'complete' : 'pending'
+  end
+
+  def step_has_downloads?(bt, ui_output)
+    # UI Sinks (plot, download data, etc), will not have outputs
+    #   defined, only inputs. So there are no downloads.
+    return false if ui_output
+
+    bt.is_built?(storage)
   end
 end
 
