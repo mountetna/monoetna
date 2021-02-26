@@ -72,6 +72,7 @@ export const submit = (context) => {
     .then((response) => {
       setSession(response.session);
       setStatus(response.status);
+
       // Fetch data and update Context
 
       // Calculate this locally because useContext
@@ -119,6 +120,13 @@ export const submit = (context) => {
     })
     .then((extractions) => {
       extractions.forEach((datum, index) => {
+        // We don't currently have accurate Content-Type headers
+        //   from the response, so we'll try here if it's a
+        //   JSON string or not.
+        try {
+          datum = JSON.parse(datum);
+        } catch (e) {}
+
         setData(dataUrls[index], datum);
       });
       return Promise.resolve();

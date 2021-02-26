@@ -230,18 +230,18 @@ class Vulcan
             input_files << input_file
           end
         elsif (step = workflow.find_step(step_name))
-          if step.ui_query_name
+          if step.ui_behavior?
             script = {}
           elsif step.script_name
             script = step.lookup_operation_script
             raise "Could not find backing script #{step.script_name.inspect} for step #{step.id}" if script.nil?
           else
-            raise "Step #{step.id} has invalid run: #{step.run}.  Must be either a ui-queries/ or scripts/ entry." if script.nil?
+            raise "Step #{step.id} has invalid run: #{step.run}.  Must be either a ui-queries/, ui-outputs/, or scripts/ entry." if script.nil?
           end
 
           step.out.each do |step_out|
             output_filenames << step_out.id
-            if step.ui_query_name
+            if step.ui_behavior?
               ref = session.material_reference_for([step_name, step_out.id])
               source = material_source(ref)
               input_files << source.take_as_input(step_out.id)

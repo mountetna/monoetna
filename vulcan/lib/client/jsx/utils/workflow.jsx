@@ -12,7 +12,18 @@ import {
 } from 'etna-js/components/inputs/numeric_input';
 import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
 
-import {TYPE} from '../models/steps';
+import {TYPE, RUN} from '../models/steps';
+
+export const stringify = (text) => {
+  // For previewing data inputs / outputs, we just want a string
+  //   representation. Unsure if input is JSON or a string.
+
+  try {
+    text = JSON.stringify(text);
+  } catch (e) {}
+
+  return text;
+};
 
 export const wrapPaneItem = (item, key) => {
   return (
@@ -141,21 +152,30 @@ export const uiStepType = (step) => {
   return step.run.split('/')[1].replace('.cwl', '');
 };
 
-export const uiStepOptions = ({step, pathIndex, status}) => {
+export const uiStepInputDataRaw = ({step, pathIndex, status}) => {
   // Pull out any previous step's output data that is a required
   //   input into this UI step.
   // Assume a single input data file for now.
+  // Provide the raw data object back.
   let previousStepName = step.in[0].source[0];
   let outputKey = step.in[0].source[1];
 
   let previousStep = status[pathIndex].find((s) => s.name === previousStepName);
 
   if (!previousStep || !previousStep.data || !previousStep.data[outputKey])
-    return [];
+    return null;
 
-  let outputData = previousStep.data[outputKey];
+  return previousStep.data[outputKey];
+};
 
-  return Array.isArray(outputData) ? outputData : [outputData];
+export const uiStepOptions = ({step, pathIndex, status}) => {
+  // Pull out any previous step's output data that is a required
+  //   input into this UI step.
+  // Assume a single input data file for now.
+  const rawData = uiStepInputDataRaw({step, pathIndex, status});
+  if (null === rawData) return [];
+
+  return Array.isArray(rawData) ? rawData : [rawData];
 };
 
 export const validStep = ({workflow, pathIndex, stepIndex}) => {
@@ -170,14 +190,12 @@ export const validPath = ({workflow, pathIndex}) => {
   return !!(workflow.steps && workflow.steps[pathIndex]);
 };
 
-export const inputType = ({workflow, input}) => {
-  // First check the input itself for a locally typed input.
-  // If no type present, check the workflow inputs for
-  //   for type information.
+export const hasUiInput = (step) => {
+  return step.run && step.run.startsWith(RUN.UI_QUERY);
 };
 
-export const hasUiInput = (step) => {
-  return step.run && step.run.startsWith('ui-queries/');
+export const hasUiOutput = (step) => {
+  return step.run && step.run.startsWith(RUN.UI_OUTPUT);
 };
 
 export const defaultInputValues = (workflow) => {

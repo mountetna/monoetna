@@ -9,10 +9,12 @@ import {
 import {
   completedUiStepsSelector,
   nextUiStepIndexSelector,
-  errorStepsSelector
+  errorStepsSelector,
+  completedUiOutputsSelector
 } from '../../../selectors/workflow';
 import StepUserInput from '../steps/step_user_input';
 import StepError from '../steps/step_error';
+import StepOutput from '../steps/step_output';
 
 export default function SessionFeed() {
   // Shows stream of Input, Output, Plots, etc.,
@@ -47,6 +49,8 @@ export default function SessionFeed() {
 
   let errorSteps = errorStepsSelector(context);
 
+  let outputs = completedUiOutputsSelector(context);
+
   return (
     <div className='session-feed'>
       {uiSteps.map((s, index) => (
@@ -58,6 +62,9 @@ export default function SessionFeed() {
       ))}
       {errorSteps.map((s, index) => (
         <StepError key={index} step={s.step} stepIndex={s.index}></StepError>
+      ))}
+      {outputs.map((s, index) => (
+        <StepOutput key={index} step={s.step} stepIndex={s.index}></StepOutput>
       ))}
     </div>
   );
