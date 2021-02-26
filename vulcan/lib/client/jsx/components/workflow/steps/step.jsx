@@ -13,7 +13,10 @@ export default function Step({step, index, onClick}) {
     onClick(index);
   }
 
-  const stepStatus = status ? status[pathIndex][index].status : STATUS.PENDING;
+  const stepStatus =
+    status && status[pathIndex] && status[pathIndex][index]
+      ? status[pathIndex][index].status
+      : STATUS.PENDING;
 
   return (
     <div className='step'>

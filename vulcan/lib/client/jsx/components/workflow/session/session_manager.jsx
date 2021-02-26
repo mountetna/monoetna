@@ -32,18 +32,8 @@ export default function SessionManager() {
     //   we may provide a session key in the future to fetch
     //   a persisted session.
     if (workflow && workflow.name) {
-      getSession(workflow.name)
-        .then((response) => {
-          setSession(response.session);
-          setStatus(response.status);
-
-          // Set the default input values in the session
-          setInputs(defaultInputValues(workflow));
-        })
-        .catch((e) => {
-          console.error(e);
-          invoke(showMessages(e));
-        });
+      // Set the default input values in the session
+      setInputs(defaultInputValues(workflow));
     }
   }, [workflow]);
 
@@ -74,7 +64,7 @@ export default function SessionManager() {
     <div className='session-manager'>
       <div className='start-btn-container'>
         <button
-          disabled={!complete || !session}
+          disabled={!complete}
           className='start-button'
           onClick={handleOnClick}
         >
