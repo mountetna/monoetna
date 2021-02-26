@@ -238,6 +238,11 @@ $button-background: #d66;
       }
     }
   }
+
+  .plot-container {
+    display: flex;
+    justify-content: center;
+  }
 }
 
 .session-feed {
