@@ -113,4 +113,31 @@ describe SessionsController do
           orchestration.build_target_for(:primary_outputs).build_outputs['the_result'])
     end
   end
+
+  describe 'handling errors' do
+    before(:each) do
+      inputs["someIntWithoutDefault"] = 'abc'
+      inputs["pickANum/num"] = 'xyz'
+    end
+
+    def check_url_for(url, storage_file)
+      get(URI.parse(url).path)
+      expect(last_response['X-Sendfile']).to eql(storage_file.data_path(storage))
+    end
+
+    it 'reports error status and message' do
+      make_request
+      expect(last_response.status).to eql(200)
+
+      response = last_json_response
+
+      expect(response['session']['inputs']).to eql(inputs)
+      expect(response['status'].first[0]['status']).to eq('error')
+      expect(response['status'].first[0]['message'].include?('ValueError')).to eq(true)
+
+      expect(response['status'][1][0]['status']).to eq('error')
+      expect(response['status'][1][2]['status']).to eq('pending') # Can't run finalStep since firstStep has an error
+      expect(response['status'][1][0]['message'].include?('ValueError')).to eq(true)
+    end
+  end
 end

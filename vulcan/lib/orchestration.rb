@@ -16,18 +16,21 @@ class Vulcan
     def run_until_done!(storage)
       load_json_inputs!(storage)
       [].tap do |ran|
-        errors = []
+        errors = RunErrors.new
         i = 0
-        until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
+        num_cells_successful = 1
+        until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE || num_cells_successful == 0
           begin
+            num_cells_successful = 0
             run!(storage: storage, build_target: runnables.first)
           rescue => e
-            errors << RunError.new(runnables.first.cell_hash, e)
+            errors << {cell_hash: runnables.first.cell_hash, error: e}
           ensure
             ran << runnables.first
+            num_cells_successful += 1 unless errors.include?(runnables.first)
           end
         end
-        raise RunErrors(errors) unless errors.empty?
+        raise errors unless errors.empty?
       end
     end
 
@@ -287,18 +290,28 @@ class Vulcan
     end
 
     class RunErrors < StandardError
-      def initialize(errors)
-        @errors = errors.map do |e|
-          [e.cell_hash, e.error]
-        end.to_h
+      def initialize
+        @errors = {}
+      end
+
+      def <<(value)
+        @errors[value[:cell_hash]] = value[:error]
       end
 
       def include?(bt)
         @errors.key?(bt.cell_hash)
       end
 
-      def message(bt)
+      def message_for_build_target(bt)
         @errors[bt.cell_hash].message
+      end
+
+      def message
+        @errors
+      end
+
+      def empty?
+        @errors.keys.empty?
       end
     end
   end
