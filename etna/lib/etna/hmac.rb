@@ -20,14 +20,14 @@ module Etna
     end
 
     # this returns arguments for URI::HTTP.build
-    def url_params
+    def url_params(with_headers=true)
       params = {
         signature: signature,
         expiration: @expiration,
         nonce: @nonce,
         id: @id.to_s,
         headers: @headers.keys.join(','),
-      }.merge(@headers).map do |name, value|
+      }.merge(with_headers ? @headers : {}).map do |name, value|
         [
           "X-Etna-#{ name.to_s.split(/_/).map(&:capitalize).join('-') }",
           value

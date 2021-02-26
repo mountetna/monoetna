@@ -40,8 +40,8 @@ steps:
       a: firstAdd/sum
     out: [num]
   finalStep:
-    run: scripts/add.cwl
-    label: 'Add your number to the previous sum'
+    run: scripts/add_from_list.cwl
+    label: 'Add your numbers to the previous sum'
     in:
       a: firstAdd/sum
       b: pickANum/num

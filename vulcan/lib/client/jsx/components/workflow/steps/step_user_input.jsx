@@ -9,10 +9,11 @@ import {
   hasUiInput,
   wrapEditableInputs,
   uiStepInputNames,
-  uiStepType
+  uiStepType,
+  uiStepOptions
 } from '../../../utils/workflow';
 
-export default function StepPending({step, stepIndex}) {
+export default function StepUserInput({step, stepIndex}) {
   const {workflow, pathIndex, session, status, setInputs} = useContext(
     VulcanContext
   );
@@ -38,8 +39,10 @@ export default function StepPending({step, stepIndex}) {
   let inputNames = uiStepInputNames(step);
   let mockStepInputs = inputNames.reduce((result, inputName) => {
     result[inputName] = {
-      type: 'int', //uiStepType(step),
-      label: step.label || step.name
+      type: uiStepType(step),
+      label: step.label || step.name,
+      default: session.inputs[inputName] || null,
+      options: uiStepOptions({step, pathIndex, status})
     };
     return result;
   }, {});

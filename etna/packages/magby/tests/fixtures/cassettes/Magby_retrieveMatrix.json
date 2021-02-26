@@ -1,0 +1,73 @@
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2021-02-19T21:28:55",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "{\"project_name\": \"example\", \"model_name\": \"rna_seq\", \"record_names\": \"all\", \"attribute_names\": [\"gene_tpm\"], \"format\": \"json\", \"filter\": \"\"}"
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "gzip, deflate"
+          ],
+          "Authorization": [
+            "<AUTH_TOKEN>"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "140"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "User-Agent": [
+            "python-requests/2.25.1"
+          ]
+        },
+        "method": "POST",
+        "uri": "https://magma.ucsf.edu/retrieve"
+      },
+      "response": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "{\"models\":{\"rna_seq\":{\"documents\":{\"EXAMPLE-HS10-WB1-RSQ1\":{\"tube_name\":\"EXAMPLE-HS10-WB1-RSQ1\",\"gene_tpm\":[0.5187,29.9572,111.6587,269.3555,0.3891,0,3.8905,8.8186,137.2066,0,4.7983,14.395,0.6484,0,0.1297,130.2036,2.3343,495.3962,1.0375,497.2118,6.2249,0,0.1297,15.3028,3.2421,0,0.1297,2.7234,0,28.79,0,5.1874,0,0.1297,0,134.7426,94.7996,0,0,0.6484]},\"EXAMPLE-HS11-WB1-RSQ1\":{\"tube_name\":\"EXAMPLE-HS11-WB1-RSQ1\",\"gene_tpm\":[7.996,42.9785,154.9225,426.7866,1.999,0,1.999,9.995,43.978,0,1.999,39.98,0,0,0,35.982,1.999,238.8806,0.9995,731.6342,1.999,0,0,12.9935,0,0,5.997,2.9985,0,66.9665,0,0,0,0,0,85.957,80.9595,0,0,0]},\"EXAMPLE-HS12-WB1-RSQ1\":{\"tube_name\":\"EXAMPLE-HS12-WB1-RSQ1\",\"gene_tpm\":[4.8278,31.254,114.0897,302.6299,0,0,1.5246,15.4999,0.2541,0.7623,1.0164,3.0492,0,0,0,9.4016,2.541,203.0238,1.7787,316.0971,0.2541,0.2541,0,16.0081,0,0,0,0,0,232.2449,0,3.0492,0,0,0,590.5222,148.1387,0,0,1.7787]},\"EXAMPLE-HS1-WB1-RSQ1\":{\"tube_name\":\"EXAMPLE-HS1-WB1-RSQ1\",\"gene_tpm\":[0.6168,6.7849,37.0085,189.6685,0.3084,0,16.9622,10.1773,177.3323,1.8504,0.3084,157.9029,0,0,0,14.1866,1.2336,261.835,0.3084,577.0239,9.8689,0,0.6168,7.4017,0,0.3084,42.5598,23.7471,0,230.0694,0,0,0,0,0,0.3084,228.8358,2.7756,0,0]},\"EXAMPLE-HS2-WB1-RSQ1\":{\"tube_name\":\"EXAMPLE-HS2-WB1-RSQ1\",\"gene_tpm\":[17.9872,0.059,51.1898,72.3027,0,0,0.059,6.6051,10.5564,0,0.5308,0,0.059,0,0.059,18.9308,0.6487,623.5957,0.8256,1087.7245,2.8897,0,0,11.8539,0,0,0,2.359,0.1769,5.1308,0,0,0,1.8282,0,1.1795,83.2719,0,0,0.1769]},\"EXAMPLE-HS3-WB1-RSQ1\":{\"tube_name\":\"EXAMPLE-HS3-WB1-RSQ1\",\"gene_tpm\":[13.2802,0,31.2823,94.7322,5.017,0.5902,0.2951,13.5753,84.108,0,0,15.346,0,0,0,30.1018,6.7877,455.0686,2.656,901.874,0,0,0.5902,29.2165,0,0,0,15.346,5.6072,10.6242,0,4.7219,0,0,0,8.5584,269.7359,0,0,0.8853]},\"EXAMPLE-HS4-WB1-RSQ1\":{\"tube_name\":\"EXAMPLE-HS4-WB1-RSQ1\",\"gene_tpm\":[0.664,15.0066,21.3811,195.4847,0,0.7968,0.1328,14.6082,52.324,0.7968,0.3984,0,0,0,0,45.9495,3.9841,794.9535,0.7968,475.5644,0.2656,0,0,6.3745,0,0,0,0.7968,0,314.8738,0,0,0.1328,0,0,17.2643,35.8566,0,0.1328,1.4608]},\"EXAMPLE-HS5-WB1-RSQ1\":{\"tube_name\":\"EXAMPLE-HS5-WB1-RSQ1\",\"gene_tpm\":[1.9321,17.0915,76.0942,316.7125,3.4183,0,0.2972,21.2529,28.684,0,0.4459,23.3336,0,0,0,35.0747,3.7155,471.2789,2.6752,429.0704,5.2018,0.1486,0.1486,32.5481,0,0,0,6.688,0.1486,82.9308,0.1486,2.0807,1.0404,1.4862,0,39.9792,396.3736,0,0,0]},\"EXAMPLE-HS6-WB1-RSQ1\":{\"tube_name\":\"EXAMPLE-HS6-WB1-RSQ1\",\"gene_tpm\":[9.5189,8.6535,91.035,264.4514,3.6345,0,0.1731,143.4753,0.1731,0,1.9038,48.2866,0,0.5192,0,8.6535,3.4614,327.9682,30.9796,664.7629,0,0,0,11.9418,0,0,0,0,2.2499,102.9768,0,2.7691,9.865,8.1343,0,252.5095,1.9038,0,0,0]},\"EXAMPLE-HS7-WB1-RSQ1\":{\"tube_name\":\"EXAMPLE-HS7-WB1-RSQ1\",\"gene_tpm\":[1.0166,19.0621,88.7025,327.6147,0.2542,0,8.3873,12.9623,0,1.7791,0,44.4783,0,0,0,4.0666,0,316.4316,1.0166,417.3338,5.5916,0,0.2542,12.9623,0.2542,0,2.7958,8.1332,0,256.1952,0,6.354,0,0,0,141.5682,322.7856,0,0,0]},\"EXAMPLE-HS8-WB1-RSQ1\":{\"tube_name\":\"EXAMPLE-HS8-WB1-RSQ1\",\"gene_tpm\":[1.4216,7.582,85.061,223.4332,0,0,0.7108,2.6063,3.5541,0,1.1847,7.582,0,0,0,0,0,281.2463,0.4739,982.3481,19.192,5.9235,0,8.5298,0,0,0,0,0,129.8424,0,0,0,0,0,10.4253,228.8828,0,0,0]},\"EXAMPLE-HS9-WB1-RSQ1\":{\"tube_name\":\"EXAMPLE-HS9-WB1-RSQ1\",\"gene_tpm\":[2.7531,23.5845,97.1827,195.2831,6.5156,3.2119,2.5695,43.0394,7.4332,0,0,71.1205,2.2024,3.6707,0,35.6979,0,268.239,8.9933,1091.8601,1.1012,0.0918,0,3.3037,0.1835,0.2753,13.3064,9.0851,4.772,25.7869,0,42.4888,0.0918,0.0918,0.0918,34.7802,0.9177,0,0.0918,0.1835]}},\"template\":{\"name\":\"rna_seq\",\"attributes\":{\"created_at\":{\"name\":\"created_at\",\"attribute_name\":\"created_at\",\"display_name\":\"Created At\",\"restricted\":false,\"read_only\":false,\"hidden\":true,\"validation\":null,\"attribute_type\":\"date_time\"},\"updated_at\":{\"name\":\"updated_at\",\"attribute_name\":\"updated_at\",\"display_name\":\"Updated At\",\"restricted\":false,\"read_only\":false,\"hidden\":true,\"validation\":null,\"attribute_type\":\"date_time\"},\"tube_name\":{\"name\":\"tube_name\",\"attribute_name\":\"tube_name\",\"display_name\":\"Tube Name\",\"restricted\":false,\"read_only\":false,\"hidden\":false,\"validation\":null,\"attribute_type\":\"identifier\"},\"biospecimen\":{\"name\":\"biospecimen\",\"attribute_name\":\"biospecimen\",\"model_name\":\"biospecimen\",\"link_model_name\":\"biospecimen\",\"display_name\":\"Biospecimen\",\"restricted\":false,\"read_only\":false,\"hidden\":false,\"validation\":null,\"attribute_type\":\"parent\"},\"expression_type\":{\"name\":\"expression_type\",\"attribute_name\":\"expression_type\",\"description\":\"Desc. of normalized gene expression, e.g. RPKM, FPKM, TPM, etc.\",\"desc\":\"Desc. of normalized gene expression, e.g. RPKM, FPKM, TPM, etc.\",\"display_name\":\"Expression Type\",\"restricted\":false,\"read_only\":false,\"hidden\":false,\"validation\":null,\"attribute_type\":\"string\"},\"cell_number\":{\"name\":\"cell_number\",\"attribute_name\":\"cell_number\",\"description\":\"Number of input cells\",\"desc\":\"Number of input cells\",\"display_name\":\"Cell Number\",\"restricted\":false,\"read_only\":false,\"hidden\":false,\"validation\":null,\"attribute_type\":\"integer\"},\"gene_tpm\":{\"name\":\"gene_tpm\",\"attribute_name\":\"gene_tpm\",\"display_name\":\"Gene Tpm\",\"options\":[\"gene1\",\"gene2\",\"gene3\",\"gene4\",\"gene5\",\"gene6\",\"gene7\",\"gene8\",\"gene9\",\"gene10\",\"gene11\",\"gene12\",\"gene13\",\"gene14\",\"gene15\",\"gene16\",\"gene17\",\"gene18\",\"gene19\",\"gene20\",\"gene21\",\"gene22\",\"gene23\",\"gene24\",\"gene25\",\"gene26\",\"gene27\",\"gene28\",\"gene29\",\"gene30\",\"gene31\",\"gene32\",\"gene33\",\"gene34\",\"gene35\",\"gene36\",\"gene37\",\"gene38\",\"gene39\",\"gene40\"],\"restricted\":false,\"read_only\":false,\"hidden\":false,\"validation\":{\"type\":\"Array\",\"value\":[\"gene1\",\"gene2\",\"gene3\",\"gene4\",\"gene5\",\"gene6\",\"gene7\",\"gene8\",\"gene9\",\"gene10\",\"gene11\",\"gene12\",\"gene13\",\"gene14\",\"gene15\",\"gene16\",\"gene17\",\"gene18\",\"gene19\",\"gene20\",\"gene21\",\"gene22\",\"gene23\",\"gene24\",\"gene25\",\"gene26\",\"gene27\",\"gene28\",\"gene29\",\"gene30\",\"gene31\",\"gene32\",\"gene33\",\"gene34\",\"gene35\",\"gene36\",\"gene37\",\"gene38\",\"gene39\",\"gene40\"]},\"attribute_type\":\"matrix\"},\"gene_counts\":{\"name\":\"gene_counts\",\"attribute_name\":\"gene_counts\",\"display_name\":\"Gene Counts\",\"options\":[\"gene1\",\"gene2\",\"gene3\",\"gene4\",\"gene5\",\"gene6\",\"gene7\",\"gene8\",\"gene9\",\"gene10\",\"gene11\",\"gene12\",\"gene13\",\"gene14\",\"gene15\",\"gene16\",\"gene17\",\"gene18\",\"gene19\",\"gene20\",\"gene21\",\"gene22\",\"gene23\",\"gene24\",\"gene25\",\"gene26\",\"gene27\",\"gene28\",\"gene29\",\"gene30\",\"gene31\",\"gene32\",\"gene33\",\"gene34\",\"gene35\",\"gene36\",\"gene37\",\"gene38\",\"gene39\",\"gene40\"],\"restricted\":false,\"read_only\":false,\"hidden\":false,\"validation\":{\"type\":\"Array\",\"value\":[\"gene1\",\"gene2\",\"gene3\",\"gene4\",\"gene5\",\"gene6\",\"gene7\",\"gene8\",\"gene9\",\"gene10\",\"gene11\",\"gene12\",\"gene13\",\"gene14\",\"gene15\",\"gene16\",\"gene17\",\"gene18\",\"gene19\",\"gene20\",\"gene21\",\"gene22\",\"gene23\",\"gene24\",\"gene25\",\"gene26\",\"gene27\",\"gene28\",\"gene29\",\"gene30\",\"gene31\",\"gene32\",\"gene33\",\"gene34\",\"gene35\",\"gene36\",\"gene37\",\"gene38\",\"gene39\",\"gene40\"]},\"attribute_type\":\"matrix\"},\"fraction\":{\"name\":\"fraction\",\"attribute_name\":\"fraction\",\"description\":\"The sorted cell fraction represented\",\"desc\":\"The sorted cell fraction represented\",\"display_name\":\"Fraction\",\"restricted\":false,\"read_only\":false,\"hidden\":false,\"validation\":null,\"attribute_type\":\"string\"}},\"identifier\":\"tube_name\",\"parent\":\"biospecimen\"}}}}"
+        },
+        "headers": {
+          "Connection": [
+            "Keep-Alive"
+          ],
+          "Content-Length": [
+            "7183"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Fri, 19 Feb 2021 21:28:54 GMT"
+          ],
+          "Keep-Alive": [
+            "timeout=5, max=100"
+          ],
+          "Server": [
+            "Apache"
+          ],
+          "Service-Worker-Allowed": [
+            "/"
+          ]
+        },
+        "status": {
+          "code": 200,
+          "message": "OK"
+        },
+        "url": "https://magma.ucsf.edu/retrieve"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.1"
+}
