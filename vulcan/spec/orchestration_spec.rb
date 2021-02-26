@@ -148,5 +148,14 @@ describe Vulcan::Orchestration do
       expect(orchestration.run_until_done!(storage).length).to eql(3)
       expect(::File.read(primary_outputs.build_outputs['the_result'].data_path(storage))).to eql("866")
     end
+
+    it 'reports cell errors correctly' do
+      expect(orchestration.run_until_done!(storage).length).to eql(0)
+      session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 'abc-not-an-int')
+
+      expect {
+        orchestration.run_until_done!(storage)
+      }.to raise_error(Vulcan::Orchestration::RunErrors)
+    end
   end
 end

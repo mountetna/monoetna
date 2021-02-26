@@ -49,7 +49,7 @@ export default function StepUserInput({step, stepIndex}) {
   let components = wrapEditableInputs(mockStepInputs, handleInputChange);
 
   return (
-    <div className='step-pending step'>
+    <div className='step-user-input step'>
       <StepName
         step={step}
         status={status[pathIndex][stepIndex].status}

@@ -16,11 +16,21 @@ class Vulcan
     def run_until_done!(storage)
       load_json_inputs!(storage)
       [].tap do |ran|
+        errors = RunErrors.new
         i = 0
         until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
-          run!(storage: storage, build_target: runnables.first)
-          ran << runnables.first
+          begin
+            next_runnable = runnables.find { |r| !errors.include?(r) }
+            break if next_runnable.nil?
+
+            run!(storage: storage, build_target: runnables.first)
+          rescue => e
+            errors << {cell_hash: runnables.first.cell_hash, error: e}
+          ensure
+            ran << runnables.first
+          end
         end
+        raise errors unless errors.empty?
       end
     end
 
@@ -164,7 +174,9 @@ class Vulcan
 
     def next_runnable_build_targets(storage)
       build_targets_for_paths.map do |path_build_targets|
-        path_build_targets.select { |bt| bt.should_build?(storage) }.last
+        path_build_targets.select { |bt|
+          bt.should_build?(storage)
+        }.last
       end.select { |v| !v.nil? }.uniq { |bt| bt.cell_hash }
     end
 
@@ -274,6 +286,32 @@ class Vulcan
       Storage::MaterialSource.new(
           project_name: session.project_name, session_key: session.key,
           material_reference: material_reference)
+    end
+
+    class RunErrors < StandardError
+      def initialize
+        @errors = {}
+      end
+
+      def <<(value)
+        @errors[value[:cell_hash]] = value[:error]
+      end
+
+      def include?(bt)
+        @errors.key?(bt.cell_hash)
+      end
+
+      def message_for_build_target(bt)
+        @errors[bt.cell_hash].message
+      end
+
+      def message
+        @errors
+      end
+
+      def empty?
+        @errors.keys.empty?
+      end
     end
   end
 end
