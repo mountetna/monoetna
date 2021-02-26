@@ -22,7 +22,7 @@ export const VulcanProvider = (props) => {
     stepIndex: null,
     session: null,
     status: null,
-    calculating: null,
+    calculating: false,
     ...props.state // useful for testing
   };
 
