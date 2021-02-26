@@ -1,14 +1,13 @@
 #' Analogous to the '/query' function of magma
 #' @inheritParams retrieve
-#' @param queryTerms A string vector where elements are query predicates. See \url{https://mountetna.github.io/magma.html#query} for details.
+#' @param queryTerms A list of String vector where list elements are query predicates. See \url{https://mountetna.github.io/magma.html#query} for details.
 #' @param format Either "list" or "df" (=dataframe). This sets the desired output format.
-#' @param ... Additional parameters passed along to the internal `.query()` function.
-#' For troubleshooting or privileged-user purposes only.
-#' Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).
 #' @return A list, default, if \code{format == "list"},
 #' 
 #' OR A dataframe conversion if \code{format = "df"}
-#' @details This function initially mimics the activity of the magma/query which is documented here \url{https://mountetna.github.io/magma.html#query}.
+#' @details This function initially mimics the activity of the magma/query,
+#' which is documented here \url{https://mountetna.github.io/magma.html#query},
+#' by performing a curl get request to the magma/query.
 #' 
 #' Afterwards, the json list output of magma/query is converted into an R list, and then the \code{format} input determines whether it should be wrangled further:
 #' \itemize{
@@ -17,6 +16,10 @@
 #' }
 #' @seealso
 #' \url{https://mountetna.github.io/magma.html#query} for documentation of the underlying magma/query function.
+#' 
+#' \code{\link{retrieveProjects}} for exploring options for the \code{projectName} input.
+#' 
+#' \code{\link{retrieveModels}}, \code{\link{retrieveIds}}, and \code{\link{retrieveAttributes}} and \code{\link{retrieveTemplate}} for exploring the project structure and determining \code{queryTerm} options.
 #' @export
 #' @examples
 #' 
@@ -28,21 +31,21 @@
 #' 
 #'     # "Raw" output of query:
 #'     query(
-#'         projectName = projectName,
+#'         projectName = "example",
 #'         queryTerms = 
 #'             list('rna_seq',
 #'                  '::all',
-#'                  'sample',
+#'                  'biospecimen',
 #'                  '::identifier'))
 #'                  
 #'     # Or instead re-formatted to a dataframe, which may be easier for
 #'     #   downstream applications in R:
 #'     query(
-#'         projectName = projectName,
+#'         projectName = "example",
 #'         queryTerms = 
 #'             list('rna_seq',
 #'                  '::all',
-#'                  'sample',
+#'                  'biospecimen',
 #'                  '::identifier'),
 #'         format = 'df')
 #' }
