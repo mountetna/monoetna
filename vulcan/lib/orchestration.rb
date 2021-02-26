@@ -18,16 +18,16 @@ class Vulcan
       [].tap do |ran|
         errors = RunErrors.new
         i = 0
-        num_cells_successful = 1
-        until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE || num_cells_successful == 0
+        until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
           begin
-            num_cells_successful = 0
+            next_runnable = runnables.find { |r| !errors.include?(r) }
+            break if next_runnable.nil?
+
             run!(storage: storage, build_target: runnables.first)
           rescue => e
             errors << {cell_hash: runnables.first.cell_hash, error: e}
           ensure
             ran << runnables.first
-            num_cells_successful += 1 unless errors.include?(runnables.first)
           end
         end
         raise errors unless errors.empty?
