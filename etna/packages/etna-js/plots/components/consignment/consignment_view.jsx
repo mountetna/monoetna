@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import ConsignmentResult from './consignment_result';
 import { selectConsignment } from '../../selectors/consignment_selector';
-import Consignment from './consignment'
+import ConsignmentTable from './consignment_table'
 
 class ConsignmentView extends React.Component {
   render() {
@@ -12,7 +11,7 @@ class ConsignmentView extends React.Component {
 
     return <div className='consignment-view'>
       <div className='consignment-view-label'>Results:</div>
-      <Consignment consignment={consignment}></Consignment>
+      <ConsignmentTable consignment={consignment}></ConsignmentTable>
     </div>
   }
 }

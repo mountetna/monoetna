@@ -1,6 +1,9 @@
 import React, {useContext} from 'react';
 import Plot from 'react-plotly.js';
 
+import ConsignmentTable from 'etna-js/plots/components/consignment/consignment_table';
+import Consignment from 'etna-js/plots/models/consignment';
+
 import {VulcanContext} from '../../../contexts/vulcan';
 
 import StepName from './step_name';
@@ -27,6 +30,8 @@ export default function StepOutput({step, stepIndex}) {
   // We need to extract the data from the input source.
   let rawInputData = uiStepInputDataRaw({step, pathIndex, status});
 
+  if (null == rawInputData) return null;
+
   let Component;
   switch (step.run.split('/')[1].replace('.cwl', '')) {
     case 'plotly':
@@ -35,13 +40,20 @@ export default function StepOutput({step, stepIndex}) {
       //   data: <JSON>,
       //   layout: <JSON>
       // }
-      if (null === rawInputData || !rawInputData.data || !rawInputData.layout)
-        return null;
+      if (!rawInputData.data || !rawInputData.layout) return null;
       Component = (
         <Plot data={rawInputData.data} layout={rawInputData.layout}></Plot>
       );
       break;
-    case 'raw':
+    case 'consignment':
+      // Not sure how to check consignment format?
+      Component = (
+        <div className='consignment-view'>
+          <ConsignmentTable
+            consignment={new Consignment(rawInputData)}
+          ></ConsignmentTable>
+        </div>
+      );
     default:
       break;
   }

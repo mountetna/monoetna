@@ -1,7 +1,7 @@
 import * as React from 'react';
 import ConsignmentResult from './consignment_result';
 
-export default function ConsignmentView({consignment}) {
+export default function ConsignmentTable({consignment}) {
   if (!consignment) return null;
 
   return (
