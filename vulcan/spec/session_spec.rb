@@ -139,10 +139,7 @@ describe SessionsController do
       expect(response['session']['inputs']).to eql(inputs)
       expect(response['status'].first[0]['status']).to eq('error')
       expect(response['status'].first[0]['message'].include?('ValueError')).to eq(true)
-
-      expect(response['status'][1][0]['status']).to eq('error')
-      expect(response['status'][1][2]['status']).to eq('pending') # Can't run finalStep since firstStep has an error
-      expect(response['status'][1][0]['message'].include?('ValueError')).to eq(true)
+      expect(response['status'].first[2]['status']).to eq('pending') # Can't run finalStep since firstStep has an error
     end
   end
 end
