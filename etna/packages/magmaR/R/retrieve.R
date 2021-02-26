@@ -1,11 +1,11 @@
 #' Download data from magma as a tsv, and convert to a data.frame
-#' @param token your personal TOKEN from \url{https://janus.ucsf.edu}. 
+#' @param token Single string. Your personal token from \url{https://janus.ucsf.edu}. 
 #' 
-#' When not explicitly given in a function call: you will be prompted to input token, one time.
-#' This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
-#' and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.
-#' @param projectName Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu
-#' @param modelName Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
+#' When not explicitly given in a function call: you will be prompted to input your token, one time.
+#' This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
+#' and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.
+#' @param projectName Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.
+#' @param modelName Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
 #' For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.
 #' @param recordNames Single string or string vector. Which particular sample/tube/etc. records to grab data for.
 #' Options are "all" or any combination of individual record names. To retrieve individual options, see \code{\link{retrieveIds}}.
@@ -16,15 +16,26 @@
 #' 
 #' Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details.
 #' @param pageSize,page Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.
-#' @param connected.only \emph{Not implemented yet.} Logical. Whether data without a parent should be retained. 
-#' @param ... Additional parameters passed along to the internal `.retrieve()` function.
-#' For troubleshooting or privileged-user purposes only.
-#' Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).
+#' @param ... Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
+#' for troubleshooting or advanced-user purposes only: \itemize{
+#' \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+#' \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
+#' \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
+#' }
 #' @return A dataframe
-#' @details This function makes a call to magma/retrieve with \code{format = "tsv"}.
+#' @details This function makes a curl get request to magma/retrieve, with properly reformatted versions of user inputs, plus \code{format = "tsv"}.
 #' Then, it converts the tsv-string output into a dataframe.
+#' 
+#' Note: When \code{format = "tsv"}, magma/retrieve returns just an identifier for matrix-type attributes.
+#' To retrieve underlying data for such attributes, use \code{\link{retrieveMatrix}} which is a specialized wrapper around \code{\link{retrieveJSON}}.
 #' @seealso
+#' \code{\link{retrieveMatrix}} for retrieving matrix data types.
+#' 
+#' \code{\link{retrieveJSON}} for similar functionality, but where the call to magma/retrieve is made with \code{format = "json"} and the output is a list.
+#' 
 #' \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
+#' 
+#' \code{\link{retrieveProjects}} for exploring options for the \code{projectName} input.
 #' 
 #' \code{\link{retrieveModels}}, \code{\link{retrieveIds}}, and \code{\link{retrieveAttributes}} for exploring options for the \code{modelName}, \code{recordNames}, and \code{attributeNames} inputs, respectively.
 #' 
@@ -34,8 +45,8 @@
 #' if (interactive()) {
 #'     # Running like this will ask for input of your janus token one time.
 #'     retrieve(
-#'         projectName = "ipi",
-#'         modelName = "patient",
+#'         projectName = "example",
+#'         modelName = "rna_seq",
 #'         recordNames = "all",
 #'         attributeNames = "all",
 #'         filter = "")
@@ -49,7 +60,6 @@ retrieve <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
-    connected.only = TRUE,
     token = .get_TOKEN(),
     ...
 ) {
@@ -62,25 +72,34 @@ retrieve <- function(
         format = "tsv",
         page = page,
         pageSize = pageSize,
-        connected.only = TRUE,
         token = token,
         ...)
 }
 
-#' Download data from magma as a json, and view it as a list
+#' Download data from magma as a json, and convert to a list
 #' @inheritParams retrieve
-#' @param filter potential filter of the data
 #' @return A list
 #' @details This function makes a call to magma/retrieve with \code{format = "json"}.
 #' Then, it converts the json output into a list which is more compatible with R.
+#' @seealso
+#' \code{\link{retrieve}} for similar functionality, but where the call to magma/retrieve will be made with \code{format = "tsv"} and the output is a dataframe.
+#' 
+#' \code{\link{retrieveMatrix}} for matrix data-targeted utilization of this current \code{retreiveJSON} function, followed by automated restructuring of the return into a matrix format.
+#' 
+#' \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
+#' 
+#' \code{\link{retrieveProjects}} for exploring options for the \code{projectName} input.
+#' 
+#' \code{\link{retrieveModels}}, \code{\link{retrieveIds}}, and \code{\link{retrieveAttributes}} for exploring options for the \code{modelName}, \code{recordNames}, and \code{attributeNames} inputs, respectively.
+#' 
 #' @export
 #' @examples
 #' 
 #' if (interactive()) {
 #'     # Running like this will ask for input of your janus token one time.
 #'     retrieveJSON(
-#'         projectName = "ipi",
-#'         modelName = "patient",
+#'         projectName = "example",
+#'         modelName = "rna_seq",
 #'         recordNames = "all",
 #'         attributeNames = "all",
 #'         filter = "")
@@ -120,7 +139,6 @@ retrieveJSON <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
-    connected.only = TRUE,
     names.only = FALSE,
     request.only = FALSE,
     json.params.only = FALSE,
@@ -136,8 +154,8 @@ retrieveJSON <- function(
     jsonParams <- list(
         project_name = projectName,
         model_name = modelName,
-        record_names = .as_array_unless_all_or_brackets(recordNames),
-        attribute_names = .as_array_unless_all_or_identifier(attributeNames),
+        record_names = .match_expected_recName_structure(recordNames),
+        attribute_names = .match_expected_attName_structure(attributeNames),
         filter = filter,
         format = format)
 
@@ -167,9 +185,43 @@ retrieveJSON <- function(
         curl_out
     } else {
         if (format=="tsv") {
-            .parse_tsv(curl_out, names.only, connected.only)
+            .parse_tsv(curl_out, names.only)
         } else {
             jsonlite::fromJSON(curl_out)
         }
+    }
+}
+
+.match_expected_recName_structure <- function(values) {
+    
+    if (identical(values,"[]")) {
+        return(I(list()))
+    }
+    
+    .match_expected_common(values)
+}
+
+.match_expected_attName_structure <- function(values) {
+    
+    if (identical(values, "identifier")) {
+        return(values)
+    }
+    
+    .match_expected_common(values)
+}
+
+.match_expected_common <- function(values) {
+    # all -> all
+    # vector -> I(vector)
+    # single -> I(list(single))
+    
+    if (identical(values, "all")) {
+        return(values)
+    }
+    
+    if (length(values) > 1) {
+        I(values)
+    } else {
+        I(list(values))
     }
 }

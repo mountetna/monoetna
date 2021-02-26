@@ -1,6 +1,13 @@
-#' Special cases for the magma retrieve function, as laid out in https://mountetna.github.io/magma.html#retrieve
+#' Helper functions & special cases of magma /retrieve
 #' @name retrieve_SpecialCases
 #' @inheritParams retrieve
+#' @details
+#' These functions aim to help users determine acceptable inputs to other magmaR functions without needing to leave R.
+#' 
+#' They make properly crafted calls to \code{\link{retrieve}} which target either the "template" or "identifier" special cases outlined in \url{https://mountetna.github.io/magma.html#retrieve},
+#' followed by directly returning the output (\code{retrieveTemplate} and \code{retrieveIds}),
+#' by returning just a targeted portion of that output (\code{retrieveModels}),
+#' or by returning a targeted portion of a subsequent single-record call to \code{\link{retrieve}} (\code{retrieveAttributes}).
 #' @return
 #' retrieveTemplate = a list conversion of the project's template json.
 #' 
@@ -15,18 +22,18 @@
 #'     # Running like this will ask for input of your janus token one time.
 #'     
 #'     retrieveTemplate(
-#'         projectName = "ipi")
+#'         projectName = "example")
 #'         
 #'     retrieveModels(
-#'         projectName = "ipi")
+#'         projectName = "example")
 #'         
 #'     retrieveIds(
-#'         projectName = "ipi",
+#'         projectName = "example",
 #'         modelName = "rna_seq")
 #'         
 #'     retrieveAttributes(
-#'         projectName = "ipi",
-#'         modelName = "patient")
+#'         projectName = "example",
+#'         modelName = "subject")
 #' }
 NULL
 
@@ -82,14 +89,14 @@ retrieveIds <- function(
 #' @describeIn retrieve_SpecialCases Retrieve all the attribute options for a given project-model pair.
 #' @export
 retrieveAttributes <- function(
-    projectName = "ipi",
-    modelName = "patient",
+    projectName,
+    modelName,
     token = .get_TOKEN(),
     ...
 ) {
-
-    rec <- retrieveIds(projectName, modelName, token, ...)[1]
     
+    rec <- retrieveIds(projectName, modelName, token, ...)[1]
+
     .retrieve(
         projectName, modelName, recordNames = rec,
         attributeNames = "all", format = "tsv",
