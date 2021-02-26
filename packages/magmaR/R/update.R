@@ -12,10 +12,10 @@
 #' See \url{https://mountetna.github.io/magma.html#update} for additional formatting details.
 #' 
 #' @return None directly.
-#' The function sends data to magma, and the only output is whether that send was successful, when \code{verbose = TRUE},
-#' or the string "No /update performed." if the user chooses not to proceed with performing the update.
+#' 
+#' The function sends data to magma, and the only outputs are information reported via the console.
 #' @details This function mimics the activity of the magma/update function, documented here \url{https://mountetna.github.io/magma.html#update},
-#' with the main difference being that the \code{revisions} input should be in nested list format rather than nested hash.
+#' with the main difference being that the \code{revisions} input should be in nested list format rather than nested hash (because R does not support hash structures).
 #' 
 #' Internally, the function:
 #' 
@@ -36,7 +36,7 @@
 #'     # Running like this will ask for input of your janus token one time.
 #'     
 #'     # Note that you likely do not have write-permissions for the 'example'
-#'     #   project, so this code can be expected to give and authorization error.
+#'     # project, so this code can be expected to give and authorization error.
 #' 
 #'     updateValues(
 #'         projectName = "example",
@@ -75,7 +75,7 @@ updateValues <- function(
     
     ### Check if should move forward
     go <- .ask_before_proceeding(auto.proceed)
-    if (! go %in% c("Y", "y", "Yes", "yes", "YES")) {
+    if (! tolower(go) %in% c("y", "yes")) {
         return("No /update performed.")
     }
     
@@ -103,7 +103,7 @@ updateValues <- function(
         ### Summarize for NEW records
         cat("For model \"", modelName, "\", this update() will create ", num_new, " NEW records:\n    ",
             paste0(rec_names_new, collapse = "\n    "),
-            "\nWARNING: Check the above carefully. Once created, there is currently no way to remove records from magma.\n",
+            "\nWARNING: Check the above carefully. Once created, there is currently no easy way to remove records from magma.\n",
             sep="")
         
         num_current_recs <- num_recs - num_new

@@ -13,7 +13,7 @@ updateValues(
 )
 }
 \arguments{
-\item{projectName}{Single string. The name of the project to upload data to.}
+\item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
 \item{revisions}{A list of named lists containing the data to be updated.
 
@@ -26,33 +26,32 @@ List structure:
 
 See \url{https://mountetna.github.io/magma.html#update} for additional formatting details.}
 
-\item{token}{your personal TOKEN from \url{https://janus.ucsf.edu}. 
+\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
 
-When not explicitly given in a function call: you will be prompted to input token, one time.
-This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
-and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.}
+When not explicitly given in a function call: you will be prompted to input your token, one time.
+This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
+and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 
-\item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward to run '/update'.}
+\item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.}
 
-\item{...}{Additional parameters passed along to the internal `.update()` function.
-For troubleshooting or privileged-user purposes only.
-Options: \itemize{
-\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function short and return the values that would have been sent to magma
-\item \code{verbose} (Logical) sets whether to report the status of the '/update' request to magma.
-\item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma.
+\item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
+for troubleshooting or advanced-user purposes only: \itemize{
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+\item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
+\item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 }}
 }
 \value{
 None directly.
-The function sends data to magma, and the only output is whether that send was successful, when \code{verbose = TRUE},
-or the string "No /update performed." if the user chooses not to proceed with performing the update.
+
+The function sends data to magma, and the only outputs are information reported via the console.
 }
 \description{
 Analogous to the '/update' function of magma
 }
 \details{
 This function mimics the activity of the magma/update function, documented here \url{https://mountetna.github.io/magma.html#update},
-with the main difference being that the \code{revisions} input should be in nested list format rather than nested hash.
+with the main difference being that the \code{revisions} input should be in nested list format rather than nested hash (because R does not support hash structures).
 
 Internally, the function:
 
@@ -68,7 +67,7 @@ if (interactive()) {
     # Running like this will ask for input of your janus token one time.
     
     # Note that you likely do not have write-permissions for the 'example'
-    #   project, so this code can be expected to give and authorization error.
+    # project, so this code can be expected to give and authorization error.
 
     updateValues(
         projectName = "example",

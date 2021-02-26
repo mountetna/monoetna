@@ -2,7 +2,7 @@
 % Please edit documentation in R/update-special.R
 \name{updateMatrix}
 \alias{updateMatrix}
-\title{A matrix-specific wrapper of updateValues()}
+\title{A matrix-specific wrapper of \code{\link{updateValues}}}
 \usage{
 updateMatrix(
   projectName,
@@ -16,9 +16,10 @@ updateMatrix(
 )
 }
 \arguments{
-\item{projectName}{Single string. The name of the project to upload data to.}
+\item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
-\item{modelName}{Single string. The name of the model to upload data to.}
+\item{modelName}{Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
+For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.}
 
 \item{attributeName}{String naming the matrix attribute for which to upload data.}
 
@@ -28,46 +29,46 @@ colnames must be record identifiers, and rownames should match the values of 'va
 Alternatively, the location of a file containing such a data.}
 
 \item{separator}{String indicating the field separator to use if providing \code{matrix} as a file location.
-Default = ","}
+Default = \code{","}.}
 
-\item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward to run '/update'.}
+\item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.}
 
-\item{token}{your personal TOKEN from \url{https://janus.ucsf.edu}. 
+\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
 
-When not explicitly given in a function call: you will be prompted to input token, one time.
-This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
-and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.}
+When not explicitly given in a function call: you will be prompted to input your token, one time.
+This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
+and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 
-\item{...}{Additional parameters passed along to the internal `.update()` function.
-For troubleshooting or privileged-user purposes only.
-Options: \itemize{
-\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function short and return the values that would have been sent to magma
-\item \code{verbose} (Logical) sets whether to report the status of the '/update' request to magma.
-\item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma.
+\item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
+for troubleshooting or advanced-user purposes only: \itemize{
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+\item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
+\item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 }}
 }
 \value{
 None directly.
-The function sends data to magma, and the only output is whether that send was successful, when \code{verbose = TRUE},
-or the string "No /update performed." if the user chooses not to proceed with performing the update.
+
+The function sends data to magma, and the only outputs are information reported via the console.
 }
 \description{
-A matrix-specific wrapper of updateValues()
+A matrix-specific wrapper of \code{\link{updateValues}}
 }
 \details{
 This function utilizes the magma/query function, documented here \url{https://mountetna.github.io/magma.html#update},
 to upload data to a matrix attribute (named \code{attributeName}) of the \code{modelName} model of \code{projectName} project.
 
 \code{matrix} data are provided either as a matrix, dataframe, or file path which points toward such data.
-If given as a file path, the \code{separator} can be used to adjust for whether the file is a csv, \code{default, separator = ","}, or tsv, \code{separator = "\t"}.
+If given as a file path, the \code{separator} input can be used to adjust for whether the file is a csv (the default, \code{separator = ","}), or tsv, \code{separator = "\t"}, or other format.
 
-Data is then validated by ensuring that all row names are among the options in the attribute's 'validation', and rows are reordered to be in the same order as these options.
+Data is then validated by ensuring that all row names are among the valid 'options' of the target attribute (See the See Also section below for a note on how to explore these options yourself.).
+Rows are reordered to be in the same order as these 'options'.
 
 For any missing 'validation' options, NAs are added.
 
 The data is then transformed and passed along to \code{\link{updateValues}}.
 
-The \code{updateValues()} function will summarized records to be updated and allow the user to double-check this information before proceeding.
+The \code{updateValues()} function will summarize records to be updated and allow the user to double-check this information before proceeding.
 
 This user-prompt step can be bypassed (useful when running in a non-interactive way) by setting \code{auto.proceed = TRUE}, but NOTE:
 It is a good idea to always check carefully before proceeding, if possible.
@@ -79,7 +80,7 @@ if (interactive()) {
     # Running like this will ask for input of your janus token one time.
     
     ### Note that you likely do not have write-permissions for the 'example'
-    #   project, so this code can be expected to give an authorization error.
+    # project, so this code can be expected to give an authorization error.
     
     ### Retrieve some data from magma, then update that same data.
     mat <- retrieveMatrix("example", "rna_seq", "all", "gene_tpm")
@@ -96,4 +97,6 @@ if (interactive()) {
 \url{https://mountetna.github.io/magma.html#update} for documentation of the underlying magma/update function.
 
 \code{\link{updateValues}} for a the more general version of this function which can handle non-matrix data types.
+
+\code{\link{retrieveTemplate}}, then check the \code{<output>$models$<modelName>$template$attributes$<attributeName>$options} to explore the rownames that your matrix should have.
 }
