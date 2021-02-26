@@ -143,8 +143,15 @@ class Vulcan
     end
 
     # Returns a list of lists, describing the dependency between steps, primary inputs, and primary outputs.
-    # Each inner list is a unique path in side of the workflow starting a primary_inputs and terminating
-    # at either a primary_output or a step that is not used as an input the workflow
+    # The first inner list is a serialized path traversing all nodes in a strictly linear fashion.
+    # Note that this ordering is NOT Guaranteed to be the execution order; tasks that exist on divergent paths
+    # might be run in parallel, and thus may complete in a non deterministic ordering.  But this serialized
+    # ordering will, nonetheless, occur in an order such that an strict dependency is always before
+    # convergent nodes.
+    # After the first inner list, each other inner list is a unique path in side of the workflow starting
+    # a primary_inputs and terminating at either a primary_output or a step that is not used as an input the workflow
+    # Each path represents a potential divergent -> convergent ordering that has strict execution ordering.  The
+    # first node and last node of each of these paths _may_ be shared with other paths as part of convergence.
     def self.unique_paths(workflow)
       directed_graph = ::DirectedGraph.new
 
@@ -158,7 +165,7 @@ class Vulcan
         directed_graph.add_connection(output.outputSource.first, :primary_outputs)
       end
 
-      directed_graph.paths_from(:primary_inputs)
+      [ directed_graph.serialized_path_from(:primary_inputs) ] + directed_graph.paths_from(:primary_inputs)
     end
 
     def unique_paths
