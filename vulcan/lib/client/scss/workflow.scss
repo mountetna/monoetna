@@ -223,6 +223,10 @@ $button-background: #d66;
         box-sizing: border-box;
         flex: 1;
 
+        .add_item {
+          cursor: default;
+        }
+
         .delete_link {
           cursor: default;
 

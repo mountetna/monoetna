@@ -27,7 +27,7 @@ with open(output_path('sum'), 'w') as output_file:
                         "color": [],
                         "width": 1.0
                     },
-                    "size": 100.0,
+                    "size": 10.0,
                     "symbol": "circle"
                 },
                 "mode": "markers",
