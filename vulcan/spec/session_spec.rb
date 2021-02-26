@@ -74,10 +74,12 @@ describe SessionsController do
               {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
               {'downloads' => nil, 'message' => nil, 'name' => 'pickANum', 'status' => 'pending'},
               {'downloads' => nil, 'message' => nil, 'name' => 'finalStep', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'aPlot', 'status' => 'pending'},
           ],
           [
               {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
               {'downloads' => nil, 'message' => nil, 'name' => 'finalStep', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'aPlot', 'status' => 'pending'},
           ],
           [
               {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
@@ -107,15 +109,25 @@ describe SessionsController do
       response = last_json_response
 
       expect(response['session']['inputs']).to eql(inputs)
-      check_url_for(response['status'][1][0]['downloads']['sum'], orchestration.build_target_for('firstAdd').build_outputs['sum'])
-      check_url_for(response['status'][1][1]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
-
       check_url_for(response['status'][2][0]['downloads']['sum'], orchestration.build_target_for('firstAdd').build_outputs['sum'])
-      check_url_for(response['status'][2][1]['downloads']['num'], orchestration.build_target_for('pickANum').build_outputs['num'])
-      check_url_for(response['status'][2][2]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
+      check_url_for(response['status'][2][1]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
+
+      check_url_for(response['status'][3][0]['downloads']['sum'], orchestration.build_target_for('firstAdd').build_outputs['sum'])
+      check_url_for(response['status'][3][1]['downloads']['num'], orchestration.build_target_for('pickANum').build_outputs['num'])
+      check_url_for(response['status'][3][2]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
 
       check_url_for(response['outputs']['downloads']['the_result'],
           orchestration.build_target_for(:primary_outputs).build_outputs['the_result'])
+    end
+
+    it 'updates UI Output status correctly' do
+      make_request
+      expect(last_response.status).to eql(200)
+
+      response = last_json_response
+
+      expect(response['session']['inputs']).to eql(inputs)
+      expect(response['status'][0][3]['status']).to eql('complete')
     end
   end
 
@@ -140,9 +152,9 @@ describe SessionsController do
       expect(response['status'].first[0]['status']).to eq('error')
       expect(response['status'].first[0]['message'].include?('ValueError')).to eq(true)
 
-      expect(response['status'][1][0]['status']).to eq('error')
-      expect(response['status'][1][2]['status']).to eq('pending') # Can't run finalStep since firstStep has an error
-      expect(response['status'][1][0]['message'].include?('ValueError')).to eq(true)
+      expect(response['status'][2][0]['status']).to eq('error')
+      expect(response['status'][2][2]['status']).to eq('pending') # Can't run finalStep since firstStep has an error
+      expect(response['status'][2][0]['message'].include?('ValueError')).to eq(true)
     end
   end
 end
