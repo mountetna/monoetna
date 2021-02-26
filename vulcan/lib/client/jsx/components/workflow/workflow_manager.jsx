@@ -6,7 +6,6 @@ import {showMessages} from 'etna-js/actions/message_actions';
 
 import {VulcanContext} from '../../contexts/vulcan';
 import {getWorkflows} from '../../api/vulcan';
-import {flatten} from '../../utils/workflow';
 
 import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
@@ -38,9 +37,6 @@ export default function WorkflowManager() {
         let currentWorkflow = response.workflows.find(
           (w) => WORKFLOW_NAME === w.name
         );
-
-        // TODO: REMOVE Flatten the workflow steps
-        currentWorkflow.steps.push(flatten(currentWorkflow.steps));
 
         setWorkflow(currentWorkflow);
 

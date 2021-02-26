@@ -8,8 +8,6 @@ import {
   isJSON
 } from 'etna-js/utils/fetch';
 
-import {flatten} from '../utils/workflow';
-
 const vulcanPath = (endpoint) => `${CONFIG.vulcan_host}${endpoint}`;
 
 const vulcanPost = (endpoint, params) => {
@@ -73,12 +71,7 @@ export const submit = (context) => {
     .then(handleFetchSuccess)
     .then((response) => {
       setSession(response.session);
-
-      // TODO: REMOVE
-      let status = [...response.status];
-      status.push(flatten(status));
-
-      setStatus(status);
+      setStatus(response.status);
 
       // Fetch data and update Context
 
@@ -86,7 +79,7 @@ export const submit = (context) => {
       //   updates async?
       let updatedStatus = [...oldStatus].map((oldPath, oldPathIndex) => {
         return oldPath.map((oldStep, oldStepIndex) => {
-          return {...oldStep, ...status[oldPathIndex][oldStepIndex]};
+          return {...oldStep, ...response.status[oldPathIndex][oldStepIndex]};
         });
       });
 

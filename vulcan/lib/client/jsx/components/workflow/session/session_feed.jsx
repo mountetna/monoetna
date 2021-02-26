@@ -63,9 +63,9 @@ export default function SessionFeed() {
       {errorSteps.map((s, index) => (
         <StepError key={index} step={s.step} stepIndex={s.index}></StepError>
       ))}
-      {outputs.map((s, index) => {
-        <StepOutput key={index} step={s.step} stepIndex={s.index}></StepOutput>;
-      })}
+      {outputs.map((s, index) => (
+        <StepOutput key={index} step={s.step} stepIndex={s.index}></StepOutput>
+      ))}
     </div>
   );
 }

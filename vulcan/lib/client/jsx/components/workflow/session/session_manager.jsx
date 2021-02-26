@@ -7,11 +7,7 @@ import Icon from 'etna-js/components/icon';
 
 import {getSession, submit} from '../../../api/vulcan';
 import {VulcanContext} from '../../../contexts/vulcan';
-import {
-  allInputsDefined,
-  defaultInputValues,
-  flatten
-} from '../../../utils/workflow';
+import {allInputsDefined, defaultInputValues} from '../../../utils/workflow';
 import SessionFeed from './session_feed';
 
 import PrimaryInputs from './primary_inputs';
@@ -40,13 +36,7 @@ export default function SessionManager() {
       getSession(workflow.name)
         .then((response) => {
           setSession(response.session);
-
-          // TODO: REMOVE
-          // Flatten the status
-          let status = [...response.status];
-          status.push(flatten(status));
-
-          setStatus(status);
+          setStatus(response.status);
 
           // Set the default input values in the session
           setInputs(defaultInputValues(workflow));
