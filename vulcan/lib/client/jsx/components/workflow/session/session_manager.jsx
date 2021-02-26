@@ -48,7 +48,12 @@ export default function SessionManager() {
   }, [workflow]);
 
   useEffect(() => {
-    if (workflow && session && session.inputs) {
+    if (
+      workflow &&
+      session &&
+      session.inputs &&
+      Object.keys(session.inputs).length > 0
+    ) {
       setComplete(allInputsDefined(workflow, session.inputs));
     }
   }, [workflow, session]);
@@ -69,7 +74,7 @@ export default function SessionManager() {
     <div className='session-manager'>
       <div className='start-btn-container'>
         <button
-          disabled={!complete}
+          disabled={!complete || !session}
           className='start-button'
           onClick={handleOnClick}
         >

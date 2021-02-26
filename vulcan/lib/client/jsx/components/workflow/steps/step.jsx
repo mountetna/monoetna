@@ -2,17 +2,18 @@ import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 import StepName from './step_name';
+import {STATUS} from '../../../models/steps';
 
 export default function Step({step, index, onClick}) {
   const {status, pathIndex} = useContext(VulcanContext);
 
-  if (!status || null == pathIndex) return null;
+  if (null == pathIndex) return null;
 
   function handleOnClick() {
     onClick(index);
   }
 
-  const stepStatus = status[pathIndex][index].status;
+  const stepStatus = status ? status[pathIndex][index].status : STATUS.PENDING;
 
   return (
     <div className='step'>
