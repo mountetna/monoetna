@@ -1,5 +1,4 @@
 import React, {useState, useContext, useEffect} from 'react';
-import * as _ from 'lodash';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
