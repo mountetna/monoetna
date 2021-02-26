@@ -288,14 +288,6 @@ class Vulcan
           material_reference: material_reference)
     end
 
-    class RunError < StandardError
-      attr_reader :cell_hash, :error
-      def initialize(cell_hash, error)
-        @cell_hash = cell_hash
-        @error = error
-      end
-    end
-
     class RunErrors < StandardError
       def initialize
         @errors = {}
