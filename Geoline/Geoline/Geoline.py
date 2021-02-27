@@ -1,4 +1,5 @@
 from typing import List, Dict
+import functools
 from ..Geoline.seqTemplate import *
 from functools import partial
 from magby.Magby import Magby
@@ -20,11 +21,12 @@ class Geoline:
         self._token = token
 
 
-    def seqWorkflows(self, projectName: str, assay: str) -> None:
+    def seqWorkflows(self, projectName: str, assay: str, **kwargs) -> None:
         templates = [samplesSection, processedFilesSection, rawFilesSection]
-        attributeMaps = [self._selectWorkflow(x, assay) for x in templates]
-        modelGroups = [self._grouper(x) for x in attributeMaps]
-        magmaExtracts = [self._magmaExtractor(projectName, x, modelGroups[x]) for x in modelGroups]
+        attributeMaps = [self._selectWorkflow(template, assay) for template in templates]
+        modelGroups = [self._grouper(attrMap) for attrMap in attributeMaps]
+        magmaExtracts = [self._magmaWrapper(projectName, x, **kwargs) for x in modelGroups]
+
 
 
     # Private functions
@@ -79,7 +81,6 @@ class Geoline:
         else:
             return attrMap.split(':')
 
-
     def _magmaExtractor(self, projectName: str, model: str, attributeMaps: Dict, **kwargs) -> DataFrame:
         magby = Magby(self._url, self._token)
         metadata = magby.retrieve(projectName=projectName,
@@ -91,11 +92,13 @@ class Geoline:
         columnMaps = {attributeMaps[x][1]: x for x in attributeMaps}
         return metadata.rename(columns=columnMaps)
 
+    def _magmaWrapper(self, projectName: str, modelGroup: Dict, **kwargs) -> List:
+        out = [self._magmaExtractor(projectName, model, modelGroup[model], **kwargs) for model in modelGroup]
+        return out
 
 
 
-
-
+## TODO how to create a magma query for a complex model structure defined by the user??????
 
 
 
