@@ -6,7 +6,7 @@
 \alias{retrieveModels}
 \alias{retrieveIds}
 \alias{retrieveAttributes}
-\title{Special cases for the magma retrieve function, as laid out in https://mountetna.github.io/magma.html#retrieve}
+\title{Helper functions & special cases of magma /retrieve}
 \usage{
 retrieveTemplate(projectName, token = .get_TOKEN(), ...)
 
@@ -14,27 +14,25 @@ retrieveModels(projectName, token = .get_TOKEN(), ...)
 
 retrieveIds(projectName, modelName, token = .get_TOKEN(), ...)
 
-retrieveAttributes(
-  projectName = "ipi",
-  modelName = "patient",
-  token = .get_TOKEN(),
-  ...
-)
+retrieveAttributes(projectName, modelName, token = .get_TOKEN(), ...)
 }
 \arguments{
-\item{projectName}{Single string. The name of the project you would like to download data from, exactly as it appears at https://timur.ucsf.edu}
+\item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
-\item{token}{your personal TOKEN from \url{https://janus.ucsf.edu}. 
+\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
 
-When not explicitly given in a function call: you will be prompted to input token, one time.
-This user provided token will then be stored as a hidden variable, \code{.TOKEN}, in the global R environment,
-and all future magmaR calls without an explicitly provided token will turn to this \code{.TOKEN}.}
+When not explicitly given in a function call: you will be prompted to input your token, one time.
+This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
+and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 
-\item{...}{Additional parameters passed along to the internal `.retrieve()` function.
-For troubleshooting or privileged-user purposes only.
-Options: \code{request.only} (Logical), \code{json.params.only} (Logical), \code{verbose} (Logical), or \code{url.base} (String which can be used to direct toward production versus staging versus development versions of magma).}
+\item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
+for troubleshooting or advanced-user purposes only: \itemize{
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+\item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
+\item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
+}}
 
-\item{modelName}{Single string. The name of data structure within your project, which are referred to as 'model's in magma, form which to download data.
+\item{modelName}{Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
 For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.}
 }
 \value{
@@ -47,7 +45,15 @@ retrieveIds = a string vector of record names/identifiers.
 retrieveAttributes = a string vector of attribute names.
 }
 \description{
-Special cases for the magma retrieve function, as laid out in https://mountetna.github.io/magma.html#retrieve
+Helper functions & special cases of magma /retrieve
+}
+\details{
+These functions aim to help users determine acceptable inputs to other magmaR functions without needing to leave R.
+
+They make properly crafted calls to \code{\link{retrieve}} which target either the "template" or "identifier" special cases outlined in \url{https://mountetna.github.io/magma.html#retrieve},
+followed by directly returning the output (\code{retrieveTemplate} and \code{retrieveIds}),
+by returning just a targeted portion of that output (\code{retrieveModels}),
+or by returning a targeted portion of a subsequent single-record call to \code{\link{retrieve}} (\code{retrieveAttributes}).
 }
 \section{Functions}{
 \itemize{
@@ -66,17 +72,17 @@ if (interactive()) {
     # Running like this will ask for input of your janus token one time.
     
     retrieveTemplate(
-        projectName = "ipi")
+        projectName = "example")
         
     retrieveModels(
-        projectName = "ipi")
+        projectName = "example")
         
     retrieveIds(
-        projectName = "ipi",
+        projectName = "example",
         modelName = "rna_seq")
         
     retrieveAttributes(
-        projectName = "ipi",
-        modelName = "patient")
+        projectName = "example",
+        modelName = "subject")
 }
 }

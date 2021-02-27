@@ -1,8 +1,8 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
-import {validStep, wrapPaneItem} from '../../../utils/workflow';
+import {validStep, wrapPaneItem, stringify} from '../../../utils/workflow';
 
 import StepName from './step_name';
 
@@ -35,8 +35,13 @@ export default function StepViewCard({step, stepIndex}) {
       let outputVariableName = input.source[1];
       // Sometimes data won't be available yet, so we
       //   have to punt and wait for State to update.
-      if (status[pathIndex][outputStepIndex].data) {
-        value = status[pathIndex][outputStepIndex].data[outputVariableName];
+      if (
+        status[pathIndex][outputStepIndex] &&
+        status[pathIndex][outputStepIndex].data
+      ) {
+        value = stringify(
+          status[pathIndex][outputStepIndex].data[outputVariableName]
+        );
       }
     }
 
@@ -55,7 +60,7 @@ export default function StepViewCard({step, stepIndex}) {
     status[pathIndex][stepIndex].data &&
     status[pathIndex][stepIndex].data[outputName]
   ) {
-    outputValue = status[pathIndex][stepIndex].data[outputName];
+    outputValue = stringify(status[pathIndex][stepIndex].data[outputName]);
   }
 
   return (
@@ -67,8 +72,8 @@ export default function StepViewCard({step, stepIndex}) {
       <div className='step-inputs inputs-pane'>
         <div class='title'>Step inputs</div>
         <div className='step-inputs-container items'>
-          {inputValues.map((input) => {
-            return wrapPaneItem(input);
+          {inputValues.map((input, index) => {
+            return wrapPaneItem(input, index);
           })}
         </div>
       </div>
