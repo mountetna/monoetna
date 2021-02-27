@@ -32,3 +32,8 @@ steps:
       a: firstAdd/sum
       b: pickANum/num
     out: [sum]
+  aPlot:
+    run: ui-outputs/plotter.cwl
+    in:
+      a: finalStep/sum
+    out: []

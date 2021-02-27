@@ -3,5 +3,5 @@
 set -e
 
 /etc/init.d/shibd start
-httpd -DFOREGROUND
+exec httpd -DFOREGROUND
 

@@ -1,4 +1,4 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
@@ -9,10 +9,11 @@ import {
   hasUiInput,
   wrapEditableInputs,
   uiStepInputNames,
-  uiStepType
+  uiStepType,
+  uiStepOptions
 } from '../../../utils/workflow';
 
-export default function StepPending({step, stepIndex}) {
+export default function StepUserInput({step, stepIndex}) {
   const {workflow, pathIndex, session, status, setInputs} = useContext(
     VulcanContext
   );
@@ -38,15 +39,17 @@ export default function StepPending({step, stepIndex}) {
   let inputNames = uiStepInputNames(step);
   let mockStepInputs = inputNames.reduce((result, inputName) => {
     result[inputName] = {
-      type: 'int', //uiStepType(step),
-      label: step.label || step.name
+      type: uiStepType(step),
+      label: step.label || step.name,
+      default: session.inputs[inputName] || null,
+      options: uiStepOptions({step, pathIndex, status})
     };
     return result;
   }, {});
   let components = wrapEditableInputs(mockStepInputs, handleInputChange);
 
   return (
-    <div className='step-pending step'>
+    <div className='step-user-input step'>
       <StepName
         step={step}
         status={status[pathIndex][stepIndex].status}

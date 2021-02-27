@@ -15,3 +15,9 @@ export const TYPE = {
   FILE: 'File',
   MULTISELECT_STRING: 'multiselect-string'
 };
+
+// CWL Step RUN Sentinels
+export const RUN = {
+  UI_QUERY: 'ui-queries/',
+  UI_OUTPUT: 'ui-outputs/'
+};

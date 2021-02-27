@@ -10,7 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 1
+          # Arbitrarily deep in order for find-parent-pr-merge.sh to work.
+          fetch-depth: 10
       - name: docker login
         env:
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}

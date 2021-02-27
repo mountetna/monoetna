@@ -91,6 +91,10 @@ module Etna::Application
     (ENV["#{self.class.name.upcase}_ENV"] || :development).to_sym
   end
 
+  def id
+    ENV["APP_NAME"] || self.class.name.snake_case.split(/::/).last
+  end
+
   def find_descendents(klass)
     ObjectSpace.each_object(Class).select do |k|
       k < klass

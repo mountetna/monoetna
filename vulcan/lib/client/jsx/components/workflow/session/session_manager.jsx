@@ -42,7 +42,7 @@ export default function SessionManager() {
         })
         .catch((e) => {
           console.error(e);
-          invoke(showMessages([e]));
+          invoke(showMessages(e));
         });
     }
   }, [workflow]);

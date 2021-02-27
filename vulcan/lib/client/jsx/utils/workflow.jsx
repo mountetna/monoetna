@@ -5,19 +5,29 @@ import * as _ from 'lodash';
 import XYPlotModel from '../models/xy_plot';
 
 import ListInput from 'etna-js/components/inputs/list_input';
-import SelectInput from 'etna-js/components/inputs/select_input';
-import Dropdown from 'etna-js/components/inputs/dropdown';
+import DropdownInput from 'etna-js/components/inputs/dropdown_input';
 import {
   IntegerInput,
   FloatInput
 } from 'etna-js/components/inputs/numeric_input';
 import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
 
-import {TYPE} from '../models/steps';
+import {TYPE, RUN} from '../models/steps';
 
-export const wrapPaneItem = (item) => {
+export const stringify = (text) => {
+  // For previewing data inputs / outputs, we just want a string
+  //   representation. Unsure if input is JSON or a string.
+
+  try {
+    text = JSON.stringify(text);
+  } catch (e) {}
+
+  return text;
+};
+
+export const wrapPaneItem = (item, key) => {
   return (
-    <div className='view_item'>
+    <div className='view_item' key={key}>
       <div className='item_name'>{item.name}</div>
       <div className='item_view'>{item.value}</div>
     </div>
@@ -32,59 +42,86 @@ export const wrapEditableInputs = (inputs, handleInputChange) => {
 
     switch (input.type) {
       case TYPE.INTEGER:
-        return wrapPaneItem({
-          name,
-          value: (
-            <IntegerInput
-              key={key}
-              defaultValue={input.default}
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-            ></IntegerInput>
-          )
-        });
+        return wrapPaneItem(
+          {
+            name,
+            value: (
+              <IntegerInput
+                defaultValue={input.default}
+                onChange={(e) => {
+                  handleInputChange(inputName, e);
+                }}
+              ></IntegerInput>
+            )
+          },
+          key
+        );
       case TYPE.FLOAT:
-        return wrapPaneItem({
-          name,
-          value: (
-            <FloatInput
-              key={key}
-              defaultValue={input.default}
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-            ></FloatInput>
-          )
-        });
+        return wrapPaneItem(
+          {
+            name,
+            value: (
+              <FloatInput
+                defaultValue={input.default}
+                onChange={(e) => {
+                  handleInputChange(inputName, e);
+                }}
+              ></FloatInput>
+            )
+          },
+          key
+        );
       case TYPE.BOOL:
-        return wrapPaneItem({
-          name,
-          value: (
-            <input
-              key={key}
-              type='checkbox'
-              className='text_box'
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-              defaultChecked={input.default}
-            />
-          )
-        });
+        return wrapPaneItem(
+          {
+            name,
+            value: (
+              <input
+                type='checkbox'
+                className='text_box'
+                onChange={(e) => {
+                  handleInputChange(inputName, e);
+                }}
+                defaultChecked={input.default}
+              />
+            )
+          },
+          key
+        );
+      case TYPE.MULTISELECT_STRING:
+        return wrapPaneItem(
+          {
+            name,
+            value: (
+              <ListInput
+                placeholder='Select items from the list'
+                className='link_text'
+                values={input.default || []}
+                itemInput={DropdownInput}
+                list={input.options || []}
+                onChange={(e) => {
+                  handleInputChange(inputName, e);
+                }}
+              />
+            )
+          },
+          key
+        );
       default:
-        return wrapPaneItem({
-          name,
-          value: (
-            <SlowTextInput
-              key={key}
-              defaultValue={input.default}
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-            ></SlowTextInput>
-          )
-        });
+        return wrapPaneItem(
+          {
+            name,
+            value: (
+              <SlowTextInput
+                defaultValue={input.default}
+                onChange={(e) => {
+                  handleInputChange(inputName, e);
+                }}
+              ></SlowTextInput>
+            )
+          },
+          key
+        );
     }
   });
 };
@@ -93,8 +130,52 @@ export const uiStepInputNames = (step) => {
   return step.out.map((output) => `${step.name}/${output}`);
 };
 
+export const missingUiInputs = (step, session) => {
+  return uiStepInputNames(step).filter(
+    (outputName) => !Object.keys(session.inputs).includes(outputName)
+  );
+};
+
+export const inputNamesToHashStub = (inputNames) => {
+  // Convert a list of input strings to
+  //   Hash, where all values are `null`.
+  return inputNames.reduce((result, input) => {
+    if (!result.hasOwnProperty(input)) {
+      result[input] = null;
+    }
+
+    return result;
+  }, {});
+};
+
 export const uiStepType = (step) => {
   return step.run.split('/')[1].replace('.cwl', '');
+};
+
+export const uiStepInputDataRaw = ({step, pathIndex, status}) => {
+  // Pull out any previous step's output data that is a required
+  //   input into this UI step.
+  // Assume a single input data file for now.
+  // Provide the raw data object back.
+  let previousStepName = step.in[0].source[0];
+  let outputKey = step.in[0].source[1];
+
+  let previousStep = status[pathIndex].find((s) => s.name === previousStepName);
+
+  if (!previousStep || !previousStep.data || !previousStep.data[outputKey])
+    return null;
+
+  return previousStep.data[outputKey];
+};
+
+export const uiStepOptions = ({step, pathIndex, status}) => {
+  // Pull out any previous step's output data that is a required
+  //   input into this UI step.
+  // Assume a single input data file for now.
+  const rawData = uiStepInputDataRaw({step, pathIndex, status});
+  if (null === rawData) return [];
+
+  return Array.isArray(rawData) ? rawData : [rawData];
 };
 
 export const validStep = ({workflow, pathIndex, stepIndex}) => {
@@ -109,14 +190,12 @@ export const validPath = ({workflow, pathIndex}) => {
   return !!(workflow.steps && workflow.steps[pathIndex]);
 };
 
-export const inputType = ({workflow, input}) => {
-  // First check the input itself for a locally typed input.
-  // If no type present, check the workflow inputs for
-  //   for type information.
+export const hasUiInput = (step) => {
+  return step.run && step.run.startsWith(RUN.UI_QUERY);
 };
 
-export const hasUiInput = (step) => {
-  return step.run.startsWith('ui-queries/');
+export const hasUiOutput = (step) => {
+  return step.run && step.run.startsWith(RUN.UI_OUTPUT);
 };
 
 export const defaultInputValues = (workflow) => {
@@ -131,14 +210,23 @@ export const defaultInputValues = (workflow) => {
 export const allInputsDefined = (workflow, userInputs) => {
   // Session Inputs can also include UI interaction inputs,
   //   so they won't be defined in the workflow inputs.
-  console.log('user inputs', userInputs);
-  console.log(Object.keys(workflow.inputs));
   return (
     Object.keys(workflow.inputs).every((primaryInput) =>
       Object.keys(userInputs).includes(primaryInput)
     ) &&
     Object.keys(userInputs).every((key) => {
-      return null !== userInputs[key] && undefined !== userInputs[key];
+      let userInput = userInputs[key];
+      // The userInput !== userInput is to check for NaN, because
+      //    NaN !== NaN
+      // For multiselect, need to make sure the inputs are not
+      //    [""] or []...
+      return !(
+        null === userInput ||
+        undefined === userInput ||
+        userInput !== userInput ||
+        _.isEqual([''], userInput) ||
+        _.isEqual([], userInput)
+      );
     })
   );
 };

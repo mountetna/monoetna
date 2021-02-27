@@ -1,3 +1,5 @@
+import * as _ from 'lodash';
+
 import {
   checkStatus,
   handleFetchSuccess,
@@ -58,6 +60,10 @@ export const submit = (context) => {
 
   let dataUrls = [];
 
+  // Use a deep clone because we need to check if the download URL
+  //   changed, later.
+  let oldStatus = _.cloneDeep(status);
+
   return vulcanPost(vulcanPath(ROUTES.submit(workflow.name)), {
     inputs: session.inputs,
     key: session.key
@@ -66,21 +72,28 @@ export const submit = (context) => {
     .then((response) => {
       setSession(response.session);
       setStatus(response.status);
+
       // Fetch data and update Context
 
       // Calculate this locally because useContext
       //   updates async?
-      let updatedStatus = [...status].map((oldPath, oldPathIndex) => {
+      let updatedStatus = [...oldStatus].map((oldPath, oldPathIndex) => {
         return oldPath.map((oldStep, oldStepIndex) => {
           return {...oldStep, ...response.status[oldPathIndex][oldStepIndex]};
         });
       });
 
       let dataRequests = [];
-      updatedStatus[pathIndex].forEach((step) => {
+      updatedStatus[pathIndex].forEach((step, stepIndex) => {
         if (step.downloads) {
           Object.keys(step.downloads).forEach((download) => {
-            if (!(step.data && step.data[download])) {
+            if (
+              downloadUrlUpdated(
+                oldStatus[pathIndex][stepIndex],
+                step,
+                download
+              )
+            ) {
               let dataUrl = step.downloads[download];
               dataUrls.push(dataUrl);
               dataRequests.push(
@@ -107,11 +120,26 @@ export const submit = (context) => {
     })
     .then((extractions) => {
       extractions.forEach((datum, index) => {
+        // We don't currently have accurate Content-Type headers
+        //   from the response, so we'll try here if it's a
+        //   JSON string or not.
+        try {
+          datum = JSON.parse(datum);
+        } catch (e) {}
+
         setData(dataUrls[index], datum);
       });
       return Promise.resolve();
     })
     .catch(handleFetchError);
+};
+
+// export for testing
+export const downloadUrlUpdated = (oldStep, newStep, downloadKey) => {
+  return (
+    !(newStep.data && newStep.data[downloadKey]) ||
+    newStep.downloads[downloadKey] !== oldStep.downloads[downloadKey]
+  );
 };
 
 export const getSession = (workflow_name) => {

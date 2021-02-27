@@ -54,6 +54,63 @@ describe WorkflowsController do
           [
               {
                   "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
+                      {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
+                  "label"=>nil,
+                  "out" => ["sum"],
+                  "name" => "firstAdd",
+                  "run" => "scripts/add.cwl",
+              },
+              {
+                  "in" => [{"id"=>"num", "source"=>["firstAdd", "sum"]}],
+                  "label"=>nil,
+                  "out" => ["num"],
+                  "name" => "pickANum",
+                  "run" => "ui-queries/pick-a-number.cwl",
+              },
+              {
+                  "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
+                      {"id"=>"b", "source"=>["pickANum", "num"]}],
+                  "label"=>nil,
+                  "out" => ["sum"],
+                  "name" => "finalStep",
+                  "run"=>"scripts/add.cwl"},
+              {
+                  "in" => [{"id"=>"a", "source"=>["finalStep", "sum"]}],
+                  "label"=>nil,
+                  "name"=>"aPlot",
+                  "out"=>[],
+                  "run"=>"ui-outputs/plotter.cwl"}
+          ],
+          [
+              {
+                  "in" =>
+                    [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
+                        {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
+                  "label"=>nil,
+                  "name"=>"firstAdd",
+                  "out"=>["sum"],
+                  "run"=>"scripts/add.cwl"
+              },
+              {
+                  "in"=>
+                    [{"id"=>"a", "source"=>["firstAdd", "sum"]},
+                        {"id"=>"b", "source"=>["pickANum", "num"]}],
+                  "label"=>nil,
+                  "name"=>"finalStep",
+                  "out"=>["sum"],
+                  "run"=>"scripts/add.cwl"
+              },
+              {
+                  "in"=>[{"id"=>"a", "source"=>["finalStep", "sum"]}],
+                  "label"=>nil,
+                  "name"=>"aPlot",
+                  "out"=>[],
+                  "run"=>"ui-outputs/plotter.cwl"
+              }
+          ],
+          [
+              {
+                  "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
                            {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
                   "label"=>nil,
                   "out" => ["sum"],
