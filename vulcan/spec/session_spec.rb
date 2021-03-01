@@ -69,20 +69,26 @@ describe SessionsController do
       expect(last_json_response['session']['key']).to_not be_empty
       expect(last_json_response['session']['workflow_name']).to eql(workflow_name)
       expect(last_json_response['session']['inputs']).to eql({})
-      expect(last_json_response['status']).to eql([
+      expect(last_json_response['status']).to match_array([
           [
-              {'downloads' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
-              {'downloads' => nil, 'name' => 'pickANum', 'status' => 'pending'},
-              {'downloads' => nil, 'name' => 'finalStep', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'pickANum', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'finalStep', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'aPlot', 'status' => 'pending'},
           ],
           [
-              {'downloads' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
-              {'downloads' => nil, 'name' => 'finalStep', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'finalStep', 'status' => 'pending'},
           ],
           [
-              {'downloads' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
-              {'downloads' => nil, 'name' => 'pickANum', 'status' => 'pending'},
-              {'downloads' => nil, 'name' => 'finalStep', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'finalStep', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'aPlot', 'status' => 'pending'},
+          ],
+          [
+              {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'pickANum', 'status' => 'pending'},
+              {'downloads' => nil, 'message' => nil, 'name' => 'finalStep', 'status' => 'pending'},
           ]
       ])
       expect(last_json_response['outputs']).to eql({'downloads' => nil, 'status' => 'pending'})
@@ -107,15 +113,49 @@ describe SessionsController do
       response = last_json_response
 
       expect(response['session']['inputs']).to eql(inputs)
-      check_url_for(response['status'][1][0]['downloads']['sum'], orchestration.build_target_for('firstAdd').build_outputs['sum'])
-      check_url_for(response['status'][1][1]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
-
       check_url_for(response['status'][2][0]['downloads']['sum'], orchestration.build_target_for('firstAdd').build_outputs['sum'])
-      check_url_for(response['status'][2][1]['downloads']['num'], orchestration.build_target_for('pickANum').build_outputs['num'])
-      check_url_for(response['status'][2][2]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
+      check_url_for(response['status'][2][1]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
+
+      check_url_for(response['status'][3][0]['downloads']['sum'], orchestration.build_target_for('firstAdd').build_outputs['sum'])
+      check_url_for(response['status'][3][1]['downloads']['num'], orchestration.build_target_for('pickANum').build_outputs['num'])
+      check_url_for(response['status'][3][2]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
 
       check_url_for(response['outputs']['downloads']['the_result'],
           orchestration.build_target_for(:primary_outputs).build_outputs['the_result'])
+    end
+
+    it 'updates UI Output status correctly' do
+      make_request
+      expect(last_response.status).to eql(200)
+
+      response = last_json_response
+
+      expect(response['session']['inputs']).to eql(inputs)
+      expect(response['status'][0][3]['status']).to eql('complete')
+    end
+  end
+
+  describe 'handling errors' do
+    before(:each) do
+      inputs["someIntWithoutDefault"] = 'abc'
+      inputs["pickANum/num"] = 'xyz'
+    end
+
+    def check_url_for(url, storage_file)
+      get(URI.parse(url).path)
+      expect(last_response['X-Sendfile']).to eql(storage_file.data_path(storage))
+    end
+
+    it 'reports error status and message' do
+      make_request
+      expect(last_response.status).to eql(200)
+
+      response = last_json_response
+
+      expect(response['session']['inputs']).to eql(inputs)
+      expect(response['status'].first[0]['status']).to eq('error')
+      expect(response['status'].first[0]['message'].include?('ValueError')).to eq(true)
+      expect(response['status'].first[2]['status']).to eq('pending') # Can't run finalStep since firstStep has an error
     end
   end
 end

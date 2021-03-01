@@ -21,10 +21,9 @@ inputs:
     type: float
 
 outputs:
-  the_result:
-    type: int
+  the_data:
+    type: File
     outputSource: finalStep/sum
-    format: text
 
 steps:
   firstAdd:
@@ -46,3 +45,9 @@ steps:
       a: firstAdd/sum
       b: pickANum/num
     out: [sum]
+  showMe:
+    run: ui-outputs/plotly.cwl
+    in:
+      a: finalStep/sum
+    out: []
+    label: 'Final plot'
