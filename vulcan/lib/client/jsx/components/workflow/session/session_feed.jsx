@@ -15,6 +15,7 @@ import {
 import StepUserInput from '../steps/step_user_input';
 import StepError from '../steps/step_error';
 import StepOutput from '../steps/step_output';
+import OutputFocus from './output_focus';
 
 export default function SessionFeed() {
   // Shows stream of Input, Output, Plots, etc.,
@@ -66,6 +67,7 @@ export default function SessionFeed() {
       {outputs.map((s, index) => (
         <StepOutput key={index} step={s.step} stepIndex={s.index}></StepOutput>
       ))}
+      <OutputFocus />
     </div>
   );
 }

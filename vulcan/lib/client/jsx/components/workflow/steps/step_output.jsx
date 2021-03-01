@@ -61,7 +61,7 @@ export default function StepOutput({step, stepIndex}) {
   if (!Component) return null;
 
   return (
-    <div className='step-output-plotly'>
+    <div className='step-output'>
       <StepName
         step={step}
         status={status[pathIndex][stepIndex].status}
