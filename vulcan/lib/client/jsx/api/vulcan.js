@@ -79,7 +79,10 @@ export const submit = (context) => {
       //   updates async?
       let updatedStatus = [...oldStatus].map((oldPath, oldPathIndex) => {
         return oldPath.map((oldStep, oldStepIndex) => {
-          return {...oldStep, ...response.status[oldPathIndex][oldStepIndex]};
+          return {
+            ...oldStep,
+            ...(response.status[oldPathIndex][oldStepIndex] || {})
+          };
         });
       });
 
