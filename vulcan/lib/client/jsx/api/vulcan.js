@@ -77,11 +77,19 @@ export const submit = (context) => {
 
       // Calculate this locally because useContext
       //   updates async?
-      let updatedStatus = [...oldStatus].map((oldPath, oldPathIndex) => {
-        return oldPath.map((oldStep, oldStepIndex) => {
+      let updatedStatus = response.status.map((newPath, newPathIndex) => {
+        return newPath.map((newStep, newStepIndex) => {
+          let oldStep = {};
+          if (
+            oldStatus &&
+            oldStatus[newPathIndex] &&
+            oldStatus[newPathIndex][newStepIndex]
+          )
+            oldStep = oldStatus[newPathIndex][newStepIndex];
+
           return {
             ...oldStep,
-            ...(response.status[oldPathIndex][oldStepIndex] || {})
+            ...newStep
           };
         });
       });

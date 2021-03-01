@@ -2,7 +2,7 @@ from archimedes.functions.dataflow import output_path, input_path, json
 
 a = json.load(open(input_path('a'), 'r'))
 
-with open(output_path('sum'), 'w') as output_file:
+with open(output_path('umap'), 'w') as output_file:
     mock_data = {
         "data": [
             {
