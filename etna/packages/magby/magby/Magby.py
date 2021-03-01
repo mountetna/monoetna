@@ -35,7 +35,7 @@ class Magby(object):
 
     def retrieve(self,
                  projectName: str,
-                 modelName: Union[List, str],
+                 modelName: str,
                  recordNames: Union[List, str]='all',
                  attributeNames: Union[List, str]='all',
                  dataType: str='meta',
@@ -44,7 +44,7 @@ class Magby(object):
         '''
         Method to retrieve data from Magma
         :param projectName: str. Project name in Magma
-        :param modelName: List[str] or str. Name(s) of model(s) in Magma
+        :param modelName: str. Name of a model in Magma
         :param recordNames: List[str] or str. Name(s) of record(s) in Magma
         :param attributeNames: List[str] or str. Name(s) of attribute(s) in Magma
         :param dataType: str. Type of data output. Allowed:
@@ -127,7 +127,7 @@ class Magby(object):
         return payload
 
     def _isAll(self, content: Union[List, str]) -> Union[List, str]:
-        if content == 'all':
+        if content in ['all', 'identifier']:
             return content
         else:
             return self._encapsulateToList(content)
