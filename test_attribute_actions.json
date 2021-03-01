@@ -1,0 +1,29 @@
+[
+  {
+    "action_name": "update_attribute",
+    "model_name": "document",
+    "attribute_name": "version",
+    "hidden": false
+  },
+  {
+    "action_name": "rename_attribute",
+    "model_name": "assay_name",
+    "attribute_name": "vendor",
+    "new_attribute_name": "e_vendor"
+  },
+  {
+    "action_name": "add_link",
+    "links": [
+      {
+        "model_name": "assay_name",
+        "attribute_name": "document",
+        "attribute_type": "link"
+      },
+      {
+        "model_name": "document",
+        "attribute_name": "assay_name",
+        "attribute_type": "collection"
+      }
+    ]
+  }
+]
