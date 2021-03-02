@@ -37,8 +37,7 @@ module Etna
         end
 
         def update_attributes
-          method = json_values ? :update_json : :update
-          magma_crud.update_records(method: method) do |update_request|
+          magma_crud.update_records(method: :update_json) do |update_request|
             each_revision do |model_name, record_name, revision|
               update_request.update_revision(model_name, record_name, revision)
             end
