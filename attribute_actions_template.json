@@ -1,0 +1,43 @@
+// Make sure to remove all comments before using -- JSON doesn't allow comments!
+[
+  // Attribute actions can be "add_attribute", "update_attribute", "rename_attribute", or "add_link".
+  // These are all executed at the same time -- so you can't "update" an attribute that you "add"
+  //    in the same file -- everything must already exist on the server."
+  {
+    "action_name": "add_attribute",
+    "model_name": "assay_name", // Each action must include a model_name that it applies to.
+    "attribute_type": "string", // When adding, you must include attribute_type, attribute_name, desc, and display_name.
+    "attribute_name": "notes",
+    "display_name": "Notes",
+    "desc": "for notes that you have."
+  },
+  {
+    "action_name": "update_attribute",
+    "model_name": "document",
+    "attribute_name": "version", // When updating, you must include model_name and attribute_name, but any additional values are optional.
+    "read_only": true
+  },
+  {
+    "action_name": "rename_attribute",
+    "model_name": "assay_name",
+    "attribute_name": "vendor",
+    "new_attribute_name": "e_vendor" // When renaming an attribute, you need to include a "new_attribute_name" value.
+  },
+  {
+    // Links require two hashes inside of a "links" attribute.
+    "action_name": "add_link",
+    "links": [
+      {
+        "model_name": "assay_name",
+        "attribute_name": "document",
+        "attribute_type": "link" // One link must be of type "link". This has a one-to-one relationship with the other model.
+        // In this case, each assay_name has one document record, but document records can point to zero-or-more assay_name records.
+      },
+      {
+        "model_name": "document",
+        "attribute_name": "assay_name",
+        "attribute_type": "collection" // The other link must be of type "collection". This is a one-to-many relationship with the other model.
+      }
+    ]
+  }
+]
