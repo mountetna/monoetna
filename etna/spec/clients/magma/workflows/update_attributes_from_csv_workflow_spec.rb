@@ -9,19 +9,9 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel do
       magma_client: magma_client, project_name: PROJECT)}
 
   before(:each) do
-    @all_updates = []
     stub_magma_models(
       JSON.parse(File.read('./spec/fixtures/magma/magma_test_model.json')))
-    stub_magma_update
-  end
-
-  def updates
-    @all_updates.inject({}) do |acc, n|
-      n.keys.each do |k|
-        (acc[k] ||= {}).update(n[k])
-      end
-      acc
-    end
+    stub_magma_update_json
   end
 
   it 'raises exception for rows that are too short' do
@@ -125,18 +115,30 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel do
 
     workflow.update_attributes
 
-    expect(updates).to eq({
-      "model_two" => {
-        "234" => {"height" => "64.2","invisible" => "true"},
-        "123" => {"name" => "Record #123","strength" => "2","invisible" => "1"}
-      },
-      "model_one" => {
-        "xyz" => {"name" => "First model of the day"},
-        "098" => {"name" => ""},
-      }
-    })
-
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+      .with(body: hash_including({
+        "revisions": {
+          "model_two": {
+            "123": {
+              "name": "Record #123",
+              "strength": "2",
+              "invisible": "1"
+            },
+            "234": {
+              "height": "64.2",
+              "invisible": "true"
+            }
+          },
+          "model_one": {
+            "xyz": {
+              "name": "First model of the day"
+            },
+            "098": {
+              "name": nil
+            }
+          }
+        },
+        "project_name": "test"}))
   end
 
   it 'trims whitespace from entries' do
@@ -148,13 +150,16 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowMultiModel do
 
     workflow.update_attributes
 
-    expect(updates).to eq({
-      "model_two" => {
-        "234" => {"height" => "64.2"}
-      },
-    })
-
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+      .with(body: hash_including({
+        "revisions": {
+          "model_two": {
+            "234": {
+              "height": "64.2"
+            }
+          }
+        }
+      }))
   end
 
   it 'raises exception for invalid attribute name' do
@@ -195,19 +200,9 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel do
       magma_client: magma_client, project_name: PROJECT)}
 
   before(:each) do
-    @all_updates = []
     stub_magma_models(
       JSON.parse(File.read('./spec/fixtures/magma/magma_test_model.json')))
-    stub_magma_update
-  end
-
-  def updates
-    @all_updates.inject({}) do |acc, n|
-      n.keys.each do |k|
-        (acc[k] ||= {}).update(n[k])
-      end
-      acc
-    end
+    stub_magma_update_json
   end
 
   it 'raises exception for invalid models' do
@@ -263,14 +258,23 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel do
 
     workflow.update_attributes
 
-    expect(updates).to eq({
-      "model_two" => {
-        "234" => {"name" => "Record #234","strength" => "5", "invisible" => "false"},
-        "123" => {"name" => "Record #123","strength" => "2","invisible" => "true"}
-      }
-    })
-
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+    .with(body: hash_including({
+      "revisions": {
+        "model_two": {
+          "123": {
+            "name": "Record #123",
+            "strength": "2",
+            "invisible": "true"
+          },
+          "234": {
+            "name": "Record #234",
+            "strength": "5",
+            "invisible": "false"
+          }
+        }
+      },
+      "project_name": "test"}))
   end
 
   it 'trims whitespace from entries' do
@@ -283,14 +287,23 @@ describe Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel do
 
     workflow.update_attributes
 
-    expect(updates).to eq({
-      "model_two" => {
-        "234" => {"name" => "Record #234","strength" => "5", "invisible" => "false"},
-        "123" => {"name" => "Record #123","strength" => "2","invisible" => "true"}
-      }
-    })
-
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+    .with(body: hash_including({
+      "revisions": {
+        "model_two": {
+          "123": {
+            "name": "Record #123",
+            "strength": "2",
+            "invisible": "true"
+          },
+          "234": {
+            "name": "Record #234",
+            "strength": "5",
+            "invisible": "false"
+          }
+        }
+      },
+      "project_name": "test"}))
   end
 
   it 'raises exception for invalid attribute name' do
