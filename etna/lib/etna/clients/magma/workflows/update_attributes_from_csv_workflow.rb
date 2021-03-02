@@ -5,7 +5,7 @@ require_relative './crud_workflow'
 module Etna
   module Clients
     class Magma
-      class UpdateAttributesFromCsvWorkflowBase < Struct.new(:magma_crud, :project_name, :filepath, :model_name, :hole_value, keyword_init: true)
+      class UpdateAttributesFromCsvWorkflowBase < Struct.new(:magma_crud, :project_name, :filepath, :model_name, :json_values, :hole_value, keyword_init: true)
         def initialize(opts)
           super(**{}.update(opts))
         end
@@ -61,7 +61,9 @@ module Etna
         def stripped_value(attribute, attribute_value)
           attribute_value = attribute_value&.strip
 
-          if attribute_value && attribute_value != @workflow.hole_value && attribute_is_json?(attribute)
+          if attribute_value &&
+             ( @workflow.json_values || attribute_is_json?(attribute) ) &&
+             attribute_value != @workflow.hole_value
             attribute_value = JSON.parse(attribute_value)
           end
           attribute_value
