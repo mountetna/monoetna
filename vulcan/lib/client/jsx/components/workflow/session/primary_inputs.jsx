@@ -7,7 +7,7 @@ import {wrapEditableInputs} from '../../../utils/workflow';
 export default function PrimaryInputs() {
   const {workflow, session, setInputs} = useContext(VulcanContext);
 
-  if (!workflow || !workflow.inputs || !session) return null;
+  if (!workflow || !workflow.inputs) return null;
 
   function handleInputChange(inputName, value) {
     let userInputs = {...session.inputs};
