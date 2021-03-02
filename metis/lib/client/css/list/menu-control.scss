@@ -27,10 +27,8 @@
     padding: 5px;
     background: white;
     list-style-type: none;
+    margin-top: -1px;
 
-    &.up {
-      top: 22px;
-    }
     &.down {
       bottom: 22px;
     }
@@ -38,7 +36,7 @@
     li {
       padding: 5px;
       cursor: pointer;
-      font-size: 1.0em;
+      font-size: 1em;
       color: #888;
       &:hover {
         background: #e6fafc;
