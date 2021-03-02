@@ -247,7 +247,6 @@ class EtnaApp
           include WithEtnaClients
           include WithLogger
 
-          boolean_flags << '--json-values'
           string_flags << '--hole-value'
 
           def magma_crud
@@ -256,7 +255,7 @@ class EtnaApp
                 project_name: @project_name)
           end
 
-          def execute(project_name, model_name, filepath, hole_value: '_', json_values: false)
+          def execute(project_name, model_name, filepath, hole_value: '_')
             @project_name = project_name
 
             update_attributes_workflow = Etna::Clients::Magma::UpdateAttributesFromCsvWorkflowSingleModel.new(
@@ -264,8 +263,7 @@ class EtnaApp
                 project_name: project_name,
                 model_name: model_name,
                 filepath: filepath,
-                hole_value: hole_value,
-                json_values: json_values)
+                hole_value: hole_value)
             update_attributes_workflow.update_attributes
           end
         end
