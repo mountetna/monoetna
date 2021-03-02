@@ -68,15 +68,17 @@ export const json_delete = json_fetch('DELETE');
 export const json_post = json_fetch('POST');
 
 export const handleFetchError = (e) => {
-  console.log(e);
-  return e.then((response) => {
+  console.error(e);
+  return Promise.resolve(e).then((response) => {
     if (!response) {
       return Promise.reject([`Something is amiss. ${e}`]);
     }
 
     let errStr = response.error
       ? response.error
-      : response.errors.map((error) => `* ${error}`);
+      : response.errors
+      ? response.errors.map((error) => `* ${error}`)
+      : response;
     errStr = [`### Our request was refused.\n\n${errStr}`];
     return Promise.reject(errStr);
   });
@@ -84,7 +86,7 @@ export const handleFetchError = (e) => {
 
 export const handleFetchSuccess = (response) => {
   if (response && typeof response === 'object' && 'error' in response) {
-    console.log(response.error);
+    console.error(response.error);
     return Promise.reject([`There was a ${response.type} error.`]);
   }
   return Promise.resolve(response);
