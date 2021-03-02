@@ -40,21 +40,23 @@
 
 .perform_curl_get <- function(
     fxn = c("/retrieve", "/query", "/update", "/projects"),
+    target,
     requestBody,
-    token,
-    url.base,
     parse = TRUE,
     verbose = FALSE) {
     
     fxn <- match.arg(fxn)
     
+    opts <- target$opts
+    opts$postfields <- requestBody
+    
     # Set
     curl <- crul::HttpClient$new(
-        url = paste0(url.base),
+        url = target$url,
         headers = list(
             'Content-Type' = "application/json",
-            'Authorization' = paste0('Etna ', token)),
-        opts = list(postfields = requestBody)
+            'Authorization' = paste0('Etna ', target$token)),
+        opts = opts
         )
     
     # Perform

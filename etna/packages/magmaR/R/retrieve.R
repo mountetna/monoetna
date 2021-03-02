@@ -43,8 +43,14 @@
 #' @examples
 #' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token one time.
+#'     # First, we use magmaRset to create an object which will tell other magmaR
+#'     #  functions our authentication token (as well as some other optional bits).
+#'     # When run in this way, it will ask you to give your token.
+#'     magma <- magmaRset()
+#'     
+#'     # Now we can retrieve data with...
 #'     retrieve(
+#'         target = magma,
 #'         projectName = "example",
 #'         modelName = "rna_seq",
 #'         recordNames = "all",
@@ -53,6 +59,7 @@
 #' }
 #' 
 retrieve <- function(
+    target,
     projectName,
     modelName,
     recordNames = "all",
@@ -60,10 +67,10 @@ retrieve <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
-    token = .get_TOKEN(),
     ...
 ) {
     .retrieve(
+        target = target,
         projectName = projectName,
         modelName = modelName,
         recordNames = recordNames,
@@ -72,12 +79,12 @@ retrieve <- function(
         format = "tsv",
         page = page,
         pageSize = pageSize,
-        token = token,
         ...)
 }
 
 #' Download data from magma as a json, and convert to a list
 #' @inheritParams retrieve
+#' @param hideTemplate Logical. Allows to leave out the project template from the return. Often this does not matter much, but the template can be bulky.
 #' @return A list
 #' @details This function makes a call to magma/retrieve with \code{format = "json"}.
 #' Then, it converts the json output into a list which is more compatible with R.
@@ -106,6 +113,7 @@ retrieve <- function(
 #' }
 #' 
 retrieveJSON <- function(
+    target,
     projectName,
     modelName,
     recordNames = "all",
@@ -113,11 +121,12 @@ retrieveJSON <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
-    token = .get_TOKEN(),
+    hideTemplate = FALSE,
     ...
 ) {
     
     .retrieve(
+        target = target,
         projectName = projectName,
         modelName = modelName,
         recordNames = recordNames,
@@ -126,11 +135,12 @@ retrieveJSON <- function(
         format = "json",
         page = page,
         pageSize = pageSize,
-        token = token,
+        hideTemplate = hideTemplate,
         ...)
 }
 
 .retrieve <- function(
+    target,
     projectName,
     modelName,
     recordNames,
@@ -139,12 +149,11 @@ retrieveJSON <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
+    hideTemplate = FALSE,
     names.only = FALSE,
     request.only = FALSE,
     json.params.only = FALSE,
     raw.return = FALSE,
-    url.base = .get_URL(),
-    token = .get_TOKEN(),
     verbose = FALSE
 ) {
     
@@ -157,6 +166,7 @@ retrieveJSON <- function(
         record_names = .match_expected_recName_structure(recordNames),
         attribute_names = .match_expected_attName_structure(attributeNames),
         filter = filter,
+        hide_template = hideTemplate,
         format = format)
 
     if (!identical(page, NULL)) {
@@ -177,7 +187,7 @@ retrieveJSON <- function(
     ### Perform '\retrieve'-al
     curl_out <- .perform_curl_get(
         fxn = "/retrieve",
-        requestBody, token, url.base,
+        target, requestBody,
         parse = TRUE, verbose = verbose)
     
     ### Output
