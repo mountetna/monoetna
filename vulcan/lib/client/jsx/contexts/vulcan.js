@@ -18,10 +18,10 @@ export const VulcanProvider = (props) => {
   const initialState = {
     workflows: {},
     workflow: {},
-    pathIndex: null,
+    pathIndex: 0,
     stepIndex: null,
-    session: null,
-    status: null,
+    session: {inputs: {}},
+    status: [[]],
     calculating: false,
     ...props.state // useful for testing
   };
