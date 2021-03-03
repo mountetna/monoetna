@@ -5,6 +5,7 @@
 \title{Download data from magma as a tsv, and convert to a data.frame}
 \usage{
 retrieve(
+  target,
   projectName,
   modelName,
   recordNames = "all",
@@ -12,7 +13,6 @@ retrieve(
   filter = "",
   page = NULL,
   pageSize = 10,
-  token = .get_TOKEN(),
   ...
 )
 }
@@ -35,18 +35,18 @@ Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details.
 
 \item{pageSize, page}{Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.}
 
-\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
-
-When not explicitly given in a function call: you will be prompted to input your token, one time.
-This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
-and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
-
 \item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
 \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
 \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
 \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 }}
+
+\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
+
+When not explicitly given in a function call: you will be prompted to input your token, one time.
+This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
+and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 }
 \value{
 A dataframe
@@ -64,8 +64,14 @@ To retrieve underlying data for such attributes, use \code{\link{retrieveMatrix}
 \examples{
 
 if (interactive()) {
-    # Running like this will ask for input of your janus token one time.
+    # First, we use magmaRset to create an object which will tell other magmaR
+    #  functions our authentication token (as well as some other optional bits).
+    # When run in this way, it will ask you to give your token.
+    magma <- magmaRset()
+    
+    # Now we can retrieve data with...
     retrieve(
+        target = magma,
         projectName = "example",
         modelName = "rna_seq",
         recordNames = "all",
@@ -75,9 +81,11 @@ if (interactive()) {
 
 }
 \seealso{
-\code{\link{retrieveMatrix}} for retrieving matrix data types.
+\code{\link{retrieveMatrix}} for retrieving data for matrix type attributes.
 
 \code{\link{retrieveJSON}} for similar functionality, but where the call to magma/retrieve is made with \code{format = "json"} and the output is a list.
+This output often contains more information, and can retrieve data for attribute types of type matrix, which are not returned by the current function.
+But in most cases, the data returned by \code{retrieve} and \code{retrieveMatrix} will suffice.
 
 \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
 

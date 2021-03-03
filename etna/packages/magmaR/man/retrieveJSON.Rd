@@ -5,6 +5,7 @@
 \title{Download data from magma as a json, and convert to a list}
 \usage{
 retrieveJSON(
+  target,
   projectName,
   modelName,
   recordNames = "all",
@@ -12,7 +13,7 @@ retrieveJSON(
   filter = "",
   page = NULL,
   pageSize = 10,
-  token = .get_TOKEN(),
+  hideTemplate = FALSE,
   ...
 )
 }
@@ -37,11 +38,7 @@ Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details.
 
 \item{pageSize}{Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.}
 
-\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
-
-When not explicitly given in a function call: you will be prompted to input your token, one time.
-This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
-and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
+\item{hideTemplate}{Logical. Allows to leave out the project template from the return. Often this does not matter much, but the template can be bulky.}
 
 \item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
@@ -63,13 +60,34 @@ Then, it converts the json output into a list which is more compatible with R.
 \examples{
 
 if (interactive()) {
-    # Running like this will ask for input of your janus token one time.
-    retrieveJSON(
+    # First, we use magmaRset to create an object which will tell other magmaR
+    #  functions our authentication token (as well as some other optional bits).
+    # When run in this way, it will ask you to give your token.
+    magma <- magmaRset()
+    
+    # Now we can retrieve data as json (->list) with...
+    json_out <- retrieveJSON(
+        target = magma,
         projectName = "example",
         modelName = "rna_seq",
         recordNames = "all",
         attributeNames = "all",
         filter = "")
+    # The return will be a nested list with data in a 'documents' element and
+    #  some extra information about each attribute in a 'template' element.
+    str(json_out, max.level = 4)
+
+    # Often, the 'template' is not so its retrieval may be turned off by giving
+    #  'hideTemplaate = TRUE'
+    json_out <- retrieveJSON(
+        target = magma,
+        projectName = "example",
+        modelName = "rna_seq",
+        recordNames = "all",
+        attributeNames = "all",
+        filter = "",
+        hideTemplate = TRUE)
+    str(json_out, max.level = 4)
 }
 
 }

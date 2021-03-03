@@ -29,9 +29,11 @@
 #' Note: When \code{format = "tsv"}, magma/retrieve returns just an identifier for matrix-type attributes.
 #' To retrieve underlying data for such attributes, use \code{\link{retrieveMatrix}} which is a specialized wrapper around \code{\link{retrieveJSON}}.
 #' @seealso
-#' \code{\link{retrieveMatrix}} for retrieving matrix data types.
+#' \code{\link{retrieveMatrix}} for retrieving data for matrix type attributes.
 #' 
 #' \code{\link{retrieveJSON}} for similar functionality, but where the call to magma/retrieve is made with \code{format = "json"} and the output is a list.
+#' This output often contains more information, and can retrieve data for attribute types of type matrix, which are not returned by the current function.
+#' But in most cases, the data returned by \code{retrieve} and \code{retrieveMatrix} will suffice.
 #' 
 #' \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
 #' 
@@ -103,13 +105,34 @@ retrieve <- function(
 #' @examples
 #' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token one time.
-#'     retrieveJSON(
+#'     # First, we use magmaRset to create an object which will tell other magmaR
+#'     #  functions our authentication token (as well as some other optional bits).
+#'     # When run in this way, it will ask you to give your token.
+#'     magma <- magmaRset()
+#'     
+#'     # Now we can retrieve data as json (->list) with...
+#'     json_out <- retrieveJSON(
+#'         target = magma,
 #'         projectName = "example",
 #'         modelName = "rna_seq",
 #'         recordNames = "all",
 #'         attributeNames = "all",
 #'         filter = "")
+#'     # The return will be a nested list with data in a 'documents' element and
+#'     #  some extra information about each attribute in a 'template' element.
+#'     str(json_out, max.level = 4)
+#'
+#'     # Often, the 'template' is not so its retrieval may be turned off by giving
+#'     #  'hideTemplaate = TRUE'
+#'     json_out <- retrieveJSON(
+#'         target = magma,
+#'         projectName = "example",
+#'         modelName = "rna_seq",
+#'         recordNames = "all",
+#'         attributeNames = "all",
+#'         filter = "",
+#'         hideTemplate = TRUE)
+#'     str(json_out, max.level = 4)
 #' }
 #' 
 retrieveJSON <- function(
@@ -166,7 +189,7 @@ retrieveJSON <- function(
         record_names = .match_expected_recName_structure(recordNames),
         attribute_names = .match_expected_attName_structure(attributeNames),
         filter = filter,
-        hide_template = hideTemplate,
+        hide_templates = hideTemplate,
         format = format)
 
     if (!identical(page, NULL)) {

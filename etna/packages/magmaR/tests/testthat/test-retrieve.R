@@ -21,6 +21,9 @@ test_that("retrieve & retrieveJSON work with minimal input", {
     
     # Attributes per record is many per record for the json method
     expect_gt(length(json$models$subject$documents[[1]]), 3)
+    
+    # Template returned for json method
+    expect_true("template" %in% names(names(json[[1]][[1]])))
 })
 
 test_that("retrieve works with targetted input, 1att", {
@@ -51,4 +54,17 @@ test_that("retrieve works with targetted input, 1rec", {
     # Proper numbers retrieved?
     # Id attribute is targeted, no +1 to columns
     expect_equal(dim(ret), c(1,3))
+})
+
+test_that("retrieveJSON can hide templates", {
+    vcr::use_cassette("retrieve_json_no_temp", {
+        ret <- retrieveJSON(
+            "example", "subject",
+            recordNames = c("EXAMPLE-HS1"),
+            attributeNames = c("biospecimen"),
+            hideTemplate = TRUE)
+    })
+    
+    expect_type(ret, "list")
+    expect_false("template" %in% names(names(ret[[1]][[1]])))
 })
