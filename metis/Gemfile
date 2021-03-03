@@ -7,7 +7,7 @@ gem 'pg'
 gem 'sequel'
 gem 'fog-aws'
 gem 'puma', '5.0.2'
-gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/a9f6a68eac091ec1a0d703ae218d5069622b06d6'
+gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/91d63a49d4bfa64eca5ab1dcb634542dd7dbccb4'
 gem 'concurrent-ruby'
 
 group :test do

@@ -22,7 +22,7 @@
     "d3-ease": "^1.0.3",
     "downloadjs": "^1.4.7",
     "downzip": "git+https://git@github.com/mountetna/downzip.git",
-    "etna-js": "git+https://git@github.com/mountetna/monoetna.git#aeb51394bbcd857605fc0f89dca8dc7473cadac0",
+    "etna-js": "git+https://git@github.com/mountetna/monoetna.git#f5417dc0a8fb9278fed802bcd5288fa4a7768654",
     "event-hooks-webpack-plugin": "^1.0.0",
     "fs-extra": "^9.0.1",
     "js-cookie": "^2.2.1",
