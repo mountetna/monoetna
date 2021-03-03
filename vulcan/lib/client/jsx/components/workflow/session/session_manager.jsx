@@ -16,14 +16,7 @@ export default function SessionManager() {
   //   or continue a past session.
   const invoke = useActionInvoker();
   const context = useContext(VulcanContext);
-  const {
-    workflow,
-    session,
-    setSession,
-    setStatus,
-    setInputs,
-    setCalculating
-  } = context;
+  const {workflow, session, calculating, setInputs, setCalculating} = context;
   const [complete, setComplete] = useState(null);
   const [firstRun, setFirstRun] = useState(true);
 
@@ -64,7 +57,7 @@ export default function SessionManager() {
     <div className='session-manager'>
       <div className='start-btn-container'>
         <button
-          disabled={!complete}
+          disabled={!complete || calculating}
           className='start-button'
           onClick={handleOnClick}
         >
