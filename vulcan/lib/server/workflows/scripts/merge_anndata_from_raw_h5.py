@@ -1,30 +1,31 @@
-from archimedes.functions.dataflow import output_path, input_path
-from archimedes.functions.metis import metis_file_path
-from archimedes import scanpy
+from archimedes.functions.dataflow import output_path, input_tsv, curl_data
+from archimedes.functions.scanpy import scanpy as sc
 
-magma_output = input_tsv('magma_output')
+data_urls = input_tsv('h5_locations')
 
-merged_data = None
-# Loop per record
-for (tube_name, raw_counts_h5_mpath, metadata_file_mpath) in magma_output():
-    # Convert from record name to the location of its h5 file
-
-    ## scanpy processing
+def scanpy_import(tube_name, raw_counts_h5_mpath):
+    ## scanpy Read-in
     # Read in
-    adata = scanpy.read_10x_h5( # probably want a different scanpy read-in function
-        metis_file_path(raw_counts_h5_mpath),  # the directory with the `.mtx` file
-        var_names='gene_ids'                # use gene symbols for the variable names (variables-axis index)
-        )                              # write a cache file for faster subsequent reading
+    adata = sc.read_10x_h5(
+        curl_data(raw_counts_h5_mpath)
+        )
 
-    ### Wrap in if (metadata not already available) statement
-    metadata = DataFrame.from_tsv(metis_file_path(metadata_file_mpath), sep='\t')
-    # add metadata named Sample where that comes from the metadata
-    adata.obs['sample'] = metadata['Sample.By.ABs'] # Figure out what it needs to be for this data, or expose as an input to the cell.
-    
     # add metadata named Library where it always equals tube_name
+    adata.obs['Record_ID'] = tube_name
 
-    # Merge objects
-    merged_data = merged_data.merge(adata) if merged_data else adata
+    return adata
+
+# Initialize merged data, then loop through
+merged_data = scanpy_import(data_urls.tube_name[0], data_urls.raw_counts_h5[0])
+
+if data_urls['tube_name'].length()>1:
+    # Loop per record
+    for (tube_name, raw_counts_h5_mpath) in data_urls[1:].iterrows():
+        # Convert from record name and metis path to the actual data
+        new_data = scanpy_import(tube_name, raw_counts_h5)
+
+        # Merge objects
+        merged_data = merged_data.merge(new_data) if merged_data else adata
 
 ##### OUTPUT
 merged_data.write(output_path('merged_anndata'))
