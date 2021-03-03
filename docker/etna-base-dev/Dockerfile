@@ -1,0 +1,75 @@
+FROM ruby:2.5.7
+WORKDIR /app
+
+ENV DOCKER_VERSION 19.03.12
+ENV RUBY_VERSION 2.5.7
+ENV BUNDLER_VERSION 2.2.0
+ENV DOCKERIZE_VERSION 0.5.0
+ENV NODE_VERSION 12.18.1
+ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
+ENV RACK_ENV development
+ENV PATH "/app/bin:/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH:/home/aspera/.aspera/connect/bin"
+
+ADD certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
+RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
+
+# add postgres 10 repo for debian stretch
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ stretch-pgdg main" >> /etc/apt/sources.list.d/pgdg.list
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+
+RUN apt-get update \
+   && apt-get install -y \
+      curl \
+      libopenblas-base \
+      libcurl4-openssl-dev \
+      libssl-dev \
+      parallel \
+      postgresql-client-10 \
+      --no-install-recommends &&\
+    rm -rf /var/lib/apt/lists/*
+
+RUN curl -o /aspera-connect.tar.gz -L https://d3gcli72yxqn2z.cloudfront.net/connect_3_11_0_3b68012_ga/v4/bin/ibm-aspera-connect-3.11.0.5-linux-g2.12-64.tar.gz
+RUN cd / && tar -xf /aspera-connect.tar.gz
+RUN rm /aspera-connect.tar.gz
+RUN useradd -ms /bin/bash aspera
+RUN su aspera -c /ibm-aspera-connect-3.11.0.5-linux-g2.12-64.sh
+
+RUN curl https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.gz | tar --strip-components=1 -xzC /usr/local/ \
+    && npm install -g yarn
+
+RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
+
+# We want the bundle installed into the default location (/vendor/bundle)
+ENV BUNDLE_PATH="/app/vendor/bundle/$RUBY_VERSION"
+ENV BUNDLE_BIN="$BUNDLE_PATH/bin"
+ENV BUNDLE_SILENCE_ROOT_WARNING=0
+ENV BUNDLE_APP_CONFIG="/app/.bundle"
+
+RUN gem install bundler --default -v "=$BUNDLER_VERSION"
+RUN gem update --system
+
+# We also the GEM_PATH to be this BUNDLE_PATH so that ides (Rubymine) will find gems easier.
+ENV GEM_HOME="$BUNDLE_PATH"
+ENV GEM_PATH="/root/.gem/ruby/2.5.0:/usr/local/lib/ruby/gems/2.5.0:/usr/local/bundle:$BUNDLE_PATH/ruby/2.5.0"
+
+# bash improvements for easier working inside the container
+RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
+    bash ~/.bash_it/install.sh --silent && \
+    echo "export SCM_CHECK=false" >> ~/.bashrc
+
+# Install R from CRAN repo, to get latest
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF'
+RUN echo 'deb http://cloud.r-project.org/bin/linux/debian buster-cran40/' >> /etc/apt/sources.list
+RUN apt-get update && \
+    apt-get install -y r-base \
+    r-base-dev
+
+# Add the docker client
+RUN curl https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz > /tmp/docker.tgz
+RUN tar -xf /tmp/docker.tgz -C /tmp/
+RUN mv /tmp/docker/* /usr/local/bin/
+
+RUN mkdir -p /opt
+COPY src/entrypoints /entrypoints
+COPY src/fe.conf.erb /opt/fe.conf.erb
+

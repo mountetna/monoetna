@@ -1,9 +1,9 @@
 
 version: "3.4"
 
-x-base-etna-service: &base-etna-service
-  # Base configuration used by most etna services.
-  image: etna-base
+x-base-etna-service:
+  &base-etna-service # Base configuration used by most etna services.
+  image: etna-base-dev
   volumes: &base-etna-service-volumes
     - .:/app:delegated
     - app-gems:/app/vendor/bundle:rw
@@ -14,8 +14,8 @@ x-base-etna-service: &base-etna-service
     - opt-dir:/usr/opt:rw
     - ../etna:/etna:delegated
   environment: &base-etna-env
-    "METIS_ENV": "development"
-    APP_NAME: "metis"
+    'METIS_ENV': 'development'
+    APP_NAME: 'metis'
   entrypoint: /entrypoints/development.sh
 
   networks:
@@ -30,51 +30,50 @@ x-base-etna-service: &base-etna-service
     - 'archimedes.development.local:172.16.238.10'
     - 'polyphemus.development.local:172.16.238.10'
 
-x-base-etna-services: &base-etna-services
-  # Default list of services an etna app may have.
-  "metis_app": &base-etna-app
-    # The ruby webserver
+x-base-etna-services:
+  &base-etna-services # Default list of services an etna app may have.
+  'metis_app': &base-etna-app # The ruby webserver
     <<: *base-etna-service
     command: ./bin/puma.sh
     depends_on:
-      - "metis_db"
+      - 'metis_db'
 
-  "metis_webpack": &base-etna-webpack
-    # The ruby webpack server watching for changes
+  'metis_webpack':
+    &base-etna-webpack # The ruby webpack server watching for changes
     <<: *base-etna-service
     environment:
       <<: *base-etna-env
-      RUN_NPM_INSTALL: "true"
-      SKIP_RUBY_SETUP: "true"
+      RUN_NPM_INSTALL: 'true'
+      SKIP_RUBY_SETUP: 'true'
     command: npm run webpack
 
-  "metis_db": &base-etna-db
-    # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
+  'metis_db':
+    &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
     image: development-psql
     volumes:
       - db-data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: "metis_development"
+      POSTGRES_DB: 'metis_development'
       POSTGRES_PASSWORD: password
       POSTGRES_USER: developer
-      APP_NAME: "metis"
-    container_name: "metis_db_1"
+      APP_NAME: 'metis'
+    container_name: 'metis_db_1'
 
-  "metis_app_fe": &base-etna-fe
-    # The application level apache frontend serving static assets, data, and proxying the main app.
+  'metis_app_fe':
+    &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the main app.
     image: etna-apache
     volumes:
       - public-dir:/app/public:ro
       - opt-dir:/usr/opt:ro
-      - ../docker/etna-base/entrypoints:/entrypoints:ro
+      - ../docker/etna-base-dev/entrypoints:/entrypoints:ro
     depends_on:
-      - "metis_app"
+      - 'metis_app'
     entrypoint: /entrypoints/development.sh
-    command: ["httpd", "-DFOREGROUND"]
+    command: ['httpd', '-DFOREGROUND']
     environment:
-      SKIP_BUILD: "1"
-      WAIT_FOR_APP: "1"
-      APP_NAME: "metis"
+      SKIP_BUILD: '1'
+      WAIT_FOR_APP: '1'
+      APP_NAME: 'metis'
 
 services:
   <<: *base-etna-services
