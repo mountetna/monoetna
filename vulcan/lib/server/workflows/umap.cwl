@@ -35,13 +35,13 @@ steps:
       e: maxPcs
     out: [names]
   pickPools:
-    run: ui-queries/select.cwl
+    run: ui-queries/multiselect-string.cwl
     label: 'Select pool records'
     in:
       a: queryMagma/names
     out: [names]
   doUmapStuff:
-    run: scripts/fake_umap_calculations.cwl
+    run: scripts/fake_large_umap_calculations.cwl
     label: 'Do the UMAP stuff'
     in:
       a: pickPools/names
