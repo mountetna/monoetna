@@ -5,6 +5,7 @@ include ../make-base/stubs.mk
 app_name=janus
 include ../make-base/etna-ruby.mk
 include ../make-base/docker-compose.mk
+include ../make-base/node.mk
 
 release-test::
 	# Ensure that the janus css is created
