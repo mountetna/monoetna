@@ -37,8 +37,7 @@ module Etna
         end
 
         def update_attributes
-          method = json_values ? :update_json : :update
-          magma_crud.update_records(method: method) do |update_request|
+          magma_crud.update_records(method: :update_json) do |update_request|
             each_revision do |model_name, record_name, revision|
               update_request.update_revision(model_name, record_name, revision)
             end
@@ -53,10 +52,18 @@ module Etna
       end
 
       class RowBase
-        def stripped_value(attribute_value)
+        def attribute_is_json?(attribute)
+          [Etna::Clients::Magma::AttributeType::FILE,
+           Etna::Clients::Magma::AttributeType::FILE_COLLECTION,
+           Etna::Clients::Magma::AttributeType::IMAGE].include?(attribute.attribute_type)
+        end
+
+        def stripped_value(attribute, attribute_value)
           attribute_value = attribute_value&.strip
 
-          if attribute_value && @workflow.json_values && attribute_value != @workflow.hole_value
+          if attribute_value &&
+             ( @workflow.json_values || attribute_is_json?(attribute) ) &&
+             attribute_value != @workflow.hole_value
             attribute_value = JSON.parse(attribute_value)
           end
           attribute_value
@@ -123,7 +130,7 @@ module Etna
                     raise "Invalid attribute #{attribute_name} for model #{model_name}."
                   end
 
-                  stripped = stripped_value(@raw[index + 1])
+                  stripped = stripped_value(attribute, @raw[index + 1])
                   unless @workflow.hole_value.nil?
                     next if stripped == @workflow.hole_value
                   end
@@ -234,7 +241,7 @@ module Etna
                 attribute_name_clean = attribute_name.strip
                 raise "Invalid attribute \"#{attribute_name_clean}\" for model #{@model_name}." unless attribute = @workflow.find_attribute(@model_name, attribute_name_clean)
 
-                attributes[attribute_name_clean] = stripped_value(@raw[attribute_name])
+                attributes[attribute_name_clean] = stripped_value(attribute, @raw[attribute_name])
               end
             end
           end
