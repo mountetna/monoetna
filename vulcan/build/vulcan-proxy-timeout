@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+set -e
+
+if [ -n "$VERBOSE" ]; then
+  set -x
+fi
+
+for include in /app/build/proxy*; do
+  cp "$include" /usr/opt/httpd.conf.d/
+done
