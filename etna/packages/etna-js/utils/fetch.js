@@ -61,7 +61,11 @@ export const postOpts = (body) => ({
 });
 export const deleteOpts = {method: 'DELETE', ...opts};
 
-export const json_fetch = base_json_fetch;
+export const json_fetch = (method) => (
+  path,
+  params
+) =>
+  base_json_fetch(method)(`${CONFIG.baseURL || ''}${path}`, params);
 
 export const json_get = json_fetch('GET');
 export const json_delete = json_fetch('DELETE');
