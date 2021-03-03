@@ -13,7 +13,8 @@ export const TYPE = {
   STRING: 'string',
   ARRAY: 'array',
   FILE: 'File',
-  MULTISELECT_STRING: 'multiselect-string'
+  MULTISELECT_STRING: 'multiselect-string',
+  SELECT: 'select'
 };
 
 // CWL Step RUN Sentinels

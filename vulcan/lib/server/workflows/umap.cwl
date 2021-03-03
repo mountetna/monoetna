@@ -35,7 +35,7 @@ steps:
       e: maxPcs
     out: [names]
   pickPools:
-    run: ui-queries/multiselect-string.cwl
+    run: ui-queries/select.cwl
     label: 'Select pool records'
     in:
       a: queryMagma/names
