@@ -59,6 +59,7 @@ export default function SessionManager() {
         <button
           disabled={!complete || calculating}
           className='start-button'
+          type='button'
           onClick={handleOnClick}
         >
           Run

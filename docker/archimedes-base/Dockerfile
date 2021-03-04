@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM python:3.8
 WORKDIR /app
 
 ENV DOCKER_VERSION 19.03.12
