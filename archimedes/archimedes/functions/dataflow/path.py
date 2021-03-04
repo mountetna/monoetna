@@ -22,6 +22,9 @@ def input_var(name, inputs_env=_os.environ, inputs_dir=None):
 def input_tsv(name, inputs_env=_os.environ, inputs_dir=None):
     return read_csv( input_path(name, inputs_env, inputs_dir) , sep='\t')
 
+def input_json(name, inputs_env=_os.environ, inputs_dir=None):
+    return json.load(open(input_path(name, inputs_env, inputs_dir)))
+
 def output_path(name, outputs_env=_os.environ, outputs_dir=None):
     if outputs_dir is None:
         outputs_dir = outputs_env["OUTPUTS_DIR"]
