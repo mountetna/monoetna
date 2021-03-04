@@ -1,9 +1,13 @@
 from typing import List, Dict
 import functools
-from ..Geoline.seqTemplate import *
 from functools import partial
-from magby.Magby import Magby
 from pandas import DataFrame
+
+from magby.Magby import Magby
+
+from ..Geoline.seqTemplate import *
+from ..Geoline.TemplateTree import *
+
 '''
 TODO 
 parser of sample name
@@ -16,16 +20,17 @@ class GeolineError(Exception):
     '''Errors corresponding to misuse of Geoline'''
 
 class Geoline:
-    def __init__(self, url: str, token: str) -> None:
+    def __init__(self, url: str, token: str, projectName: str) -> None:
         self._url = url
         self._token = token
+        self._projectName = projectName
 
 
-    def seqWorkflows(self, projectName: str, assay: str, **kwargs) -> None:
+    def seqWorkflows(self, assay: str, **kwargs) -> None:
         templates = [samplesSection, processedFilesSection, rawFilesSection]
         attributeMaps = [self._selectWorkflow(template, assay) for template in templates]
         modelGroups = [self._grouper(attrMap) for attrMap in attributeMaps]
-        magmaExtracts = [self._magmaWrapper(projectName, x, **kwargs) for x in modelGroups]
+        magmaExtracts = [self._magmaWrapper(self._projectName, x, **kwargs) for x in modelGroups]
 
 
 
@@ -81,6 +86,39 @@ class Geoline:
         else:
             return attrMap.split(':')
 
+
+    def _extractAttributes(self, attrMap: Dict) -> List:
+        return [x[1] for x in attrMap.values()]
+
+
+    def _getGlobalTemplate(self) -> Dict:
+        mb = Magby(self._url, self._token)
+        globalTemplate = mb.retrieve(self._projectName, 'all', [], 'all', dataType='json')
+        return globalTemplate
+
+
+    def multiModelQuery(self, modelGroup: Dict, primaryModelName: str) -> List:
+        '''
+        Construct a query for all models at once
+        :param modelGroup: Dict. Structure: {Model : {GEO_meta_data_field : [model_name, attr_name]}}
+        :param primaryModelName: str. Name of a model considered to be a starting point for the query
+        :return: List. A Magby query
+        '''
+        if primaryModelName not in modelGroup.keys():
+            raise GeolineError(f'TemplateTree.multiModelQuery(): {primaryModelName} is not in the list of models '
+                               f'{list(modelGroup.keys())}')
+        primaryModel = modelGroup.pop(primaryModelName)
+        primaryModelAttributes = self._extractAttributes(primaryModel.values())
+        templateTree = TemplateTree(self._getGlobalTemplate())
+        pathsToModels = [templateTree.traverseToModel(primaryModelName, x)+['::all'] for x in modelGroup.keys() if x != '']
+## TODO map attributes to all models
+
+
+
+
+
+
+
     def _magmaExtractor(self, projectName: str, model: str, attributeMaps: Dict, **kwargs) -> DataFrame:
         magby = Magby(self._url, self._token)
         metadata = magby.retrieve(projectName=projectName,
@@ -95,15 +133,6 @@ class Geoline:
     def _magmaWrapper(self, projectName: str, modelGroup: Dict, **kwargs) -> List:
         out = [self._magmaExtractor(projectName, model, modelGroup[model], **kwargs) for model in modelGroup]
         return out
-
-
-
-## TODO how to create a magma query for a complex model structure defined by the user??????
-
-
-
-
-
 
 
 
