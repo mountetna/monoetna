@@ -8,7 +8,8 @@ import {
   SET_PATH,
   SET_SESSION,
   SET_INPUTS,
-  SET_CALCULATING
+  SET_CALCULATING,
+  SET_DIRTY
 } from '../actions/vulcan';
 import VulcanReducer from '../reducers/vulcan';
 
@@ -23,6 +24,7 @@ export const VulcanProvider = (props) => {
     session: {inputs: {}},
     status: [[]],
     calculating: false,
+    dirty: false,
     ...props.state // useful for testing
   };
 
@@ -64,6 +66,10 @@ export const VulcanProvider = (props) => {
     dispatch({type: SET_CALCULATING, calculating});
   };
 
+  const setDirty = (dirty) => {
+    dispatch({type: SET_DIRTY, dirty});
+  };
+
   return (
     <VulcanContext.Provider
       value={{
@@ -74,6 +80,7 @@ export const VulcanProvider = (props) => {
         session: state.session,
         status: state.status,
         calculating: state.calculating,
+        dirty: state.dirty,
         setWorkflows,
         setWorkflow,
         setData,
@@ -82,7 +89,8 @@ export const VulcanProvider = (props) => {
         setStepIndex,
         setSession,
         setInputs,
-        setCalculating
+        setCalculating,
+        setDirty
       }}
     >
       {props.children}

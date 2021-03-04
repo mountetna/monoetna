@@ -5,6 +5,7 @@ import {showMessages} from 'etna-js/actions/message_actions';
 
 import {VulcanContext} from '../../contexts/vulcan';
 import {getWorkflows} from '../../api/vulcan';
+import {defaultInputValues} from '../../utils/workflow';
 
 import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
@@ -15,7 +16,7 @@ const WORKFLOW_NAME = `${WORKFLOW_SHORT}.cwl`;
 
 export default function WorkflowManager() {
   const invoke = useActionInvoker();
-  const {setWorkflow, setPathIndex} = useContext(VulcanContext);
+  const {setWorkflow, setPathIndex, setInputs} = useContext(VulcanContext);
 
   useEffect(() => {
     getWorkflows()
@@ -25,6 +26,9 @@ export default function WorkflowManager() {
         );
 
         setWorkflow(currentWorkflow);
+
+        // Set the default input values
+        setInputs(defaultInputValues(currentWorkflow));
 
         // first path is always the "work" path
         setPathIndex(0);

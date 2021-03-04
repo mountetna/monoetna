@@ -21,7 +21,7 @@ export default function SessionFeed() {
   // Shows stream of Input, Output, Plots, etc.,
   //   as the session object updates.
   const context = useContext(VulcanContext);
-  const {workflow, session, pathIndex, status, setInputs} = context;
+  const {workflow, session, pathIndex, status, setInputs, setDirty} = context;
 
   if (!workflow || !validPath({workflow, pathIndex}) || !session || !status)
     return null;
@@ -40,6 +40,7 @@ export default function SessionFeed() {
 
     if (missingInputs.length > 0) {
       setInputs(inputNamesToHashStub(missingInputs));
+      setDirty(true);
     }
 
     uiSteps.push({
