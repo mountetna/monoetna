@@ -41,7 +41,7 @@ steps:
       a: queryMagma/names
     out: [names]
   doUmapStuff:
-    run: scripts/fake_large_umap_calculations.cwl
+    run: scripts/fake_umap_calculations.cwl
     label: 'Do the UMAP stuff'
     in:
       a: pickPools/names
@@ -63,7 +63,7 @@ steps:
       a: doUmapStuff/umap
     out: [output]
   downloadRawData:
-    run: ui-outputs/consignment.cwl
+    run: ui-outputs/link.cwl
     in:
       a: convertToConsignment/output
     out: []

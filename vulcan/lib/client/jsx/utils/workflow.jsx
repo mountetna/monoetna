@@ -165,6 +165,25 @@ export const uiStepType = (step) => {
   return step.run.split('/')[1].replace('.cwl', '');
 };
 
+export const uiStepInputDataLink = ({step, pathIndex, status}) => {
+  // Pull out any previous step's output data link that is a required
+  //   input into this UI step.
+  // Assume a single input data link for now.
+  let previousStepName = step.in[0].source[0];
+  let outputKey = step.in[0].source[1];
+
+  let previousStep = status[pathIndex].find((s) => s.name === previousStepName);
+
+  if (
+    !previousStep ||
+    !previousStep.downloads ||
+    !previousStep.downloads[outputKey]
+  )
+    return null;
+
+  return previousStep.downloads[outputKey];
+};
+
 export const uiStepInputDataRaw = ({step, pathIndex, status}) => {
   // Pull out any previous step's output data that is a required
   //   input into this UI step.

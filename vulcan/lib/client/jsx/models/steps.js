@@ -22,3 +22,10 @@ export const RUN = {
   UI_QUERY: 'ui-queries/',
   UI_OUTPUT: 'ui-outputs/'
 };
+
+// UI Output widgets
+export const OUTPUT_COMPONENT = {
+  LINK: 'link',
+  PLOTLY: 'plotly',
+  CONSIGNMENT: 'consignment'
+};
