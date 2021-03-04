@@ -6,6 +6,7 @@ import XYPlotModel from '../models/xy_plot';
 
 import ListInput from 'etna-js/components/inputs/list_input';
 import DropdownInput from 'etna-js/components/inputs/dropdown_input';
+import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import {
   IntegerInput,
   FloatInput
@@ -107,6 +108,18 @@ export const wrapEditableInputs = (inputs, handleInputChange) => {
           },
           key
         );
+      case TYPE.SELECT_AUTOCOMPLETE:
+        return wrapPaneItem({
+          name,
+          value: (
+            <DropdownAutocomplete
+              onSelect={(e) => {
+                handleInputChange(inputName, e);
+              }}
+              list={input.options || []}
+            ></DropdownAutocomplete>
+          )
+        });
       default:
         return wrapPaneItem(
           {

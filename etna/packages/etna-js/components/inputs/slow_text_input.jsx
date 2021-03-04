@@ -23,7 +23,14 @@ export default class SlowTextInput extends Component {
   }
 
   render() {
-    let {onChange, waitTime, defaultValue, ...inputProps} = this.props;
+    let {
+      onChange,
+      onBlur,
+      onFocus,
+      waitTime,
+      defaultValue,
+      ...inputProps
+    } = this.props;
     let {input_value} = this.state;
 
     if (defaultValue == null || defaultValue == undefined) defaultValue = '';
@@ -35,6 +42,8 @@ export default class SlowTextInput extends Component {
         onChange={this.handleChange.bind(this)}
         value={input_value == undefined ? defaultValue : input_value}
         {...inputProps}
+        onBlur={onBlur}
+        onFocus={onFocus}
       />
     );
   }
