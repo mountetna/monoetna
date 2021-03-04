@@ -40,30 +40,34 @@
 #' @examples
 #' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token one time.
+#'     # First, we use magmaRset to create an object which will tell other magmaR
+#'     #  functions our authentication token (as well as some other optional bits).
+#'     # When run in this way, it will ask you to give your token.
+#'     magma <- magmaRset()
 #'     
 #'     ### Note that you likely do not have write-permissions for the 'example'
 #'     # project, so this code can be expected to give an authorization error.
 #'     
 #'     ### Retrieve some data from magma, then update that same data.
-#'     mat <- retrieveMatrix("example", "rna_seq", "all", "gene_tpm")
+#'     mat <- retrieveMatrix(magma, "example", "rna_seq", "all", "gene_tpm")
 #' 
 #'     updateMatrix(
+#'         target = magma,
 #'         projectName = "example",
 #'         modelName = "rna_seq",
 #'         attributeName = "gene_tpm",
-#'         matrix = mat)
+#'         matrix = mat, request.only = TRUE)
 #' }
 #'
 #' @importFrom utils read.csv
 updateMatrix <- function(
+    target,
     projectName,
     modelName,
     attributeName,
     matrix,
     separator = ",",
     auto.proceed = FALSE,
-    token = .get_TOKEN(),
     ...) {
     
     ### Read in matrix if passed as a string (file-location)
@@ -81,7 +85,7 @@ updateMatrix <- function(
     
     ### Validate rownames (genes / value names)
     # Obtain 'validation' / rowname options
-    temp <- retrieveTemplate(projectName, token = token, ...)
+    temp <- retrieveTemplate(target, projectName)
     row_options <- 
         temp$models[[modelName]]$template$attributes[[attributeName]]$validation$value
     
@@ -120,9 +124,9 @@ updateMatrix <- function(
     # Check with the user before proceeding
     # Perform upload
     updateValues(
+        target = target,
         projectName = projectName,
         revisions = revs,
-        token = token,
         auto.proceed = auto.proceed,
         ...)
 }

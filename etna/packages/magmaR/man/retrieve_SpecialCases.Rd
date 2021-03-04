@@ -8,22 +8,16 @@
 \alias{retrieveAttributes}
 \title{Helper functions & special cases of magma /retrieve}
 \usage{
-retrieveTemplate(projectName, token = .get_TOKEN(), ...)
+retrieveTemplate(target, projectName, ...)
 
-retrieveModels(projectName, token = .get_TOKEN(), ...)
+retrieveModels(tagret, projectName, ...)
 
-retrieveIds(projectName, modelName, token = .get_TOKEN(), ...)
+retrieveIds(target, projectName, modelName, ...)
 
-retrieveAttributes(projectName, modelName, token = .get_TOKEN(), ...)
+retrieveAttributes(target, projectName, modelName, ...)
 }
 \arguments{
 \item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
-
-\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
-
-When not explicitly given in a function call: you will be prompted to input your token, one time.
-This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
-and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 
 \item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{

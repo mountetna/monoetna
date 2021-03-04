@@ -57,9 +57,9 @@
 #' }
 #'
 updateValues <- function(
+    target,
     projectName,
     revisions = list(),
-    token = .get_TOKEN(),
     auto.proceed = FALSE,
     ...
 ) {
@@ -68,7 +68,7 @@ updateValues <- function(
     lapply(names(revisions), function(model) {
         
         current_ids <- retrieveIds(
-            projectName, model, token, ...)
+            target, projectName, model)
         
         .summarize_model_values(revisions[[model]], model, current_ids)
     })
@@ -80,9 +80,9 @@ updateValues <- function(
     }
     
     .update(
+        target = target,
         projectName = projectName,
         revisions = revisions,
-        token = token,
         ...)
 }
 
@@ -137,12 +137,11 @@ updateValues <- function(
 }
 
 .update <- function(
+    target,
     projectName,
     revisions,
     request.only = FALSE,
     json.params.only = FALSE,
-    url.base = .get_URL(),
-    token = .get_TOKEN(),
     verbose = TRUE
 ) {
     
@@ -164,6 +163,6 @@ updateValues <- function(
     ### Perform '\update'
     curl_out <- .perform_curl_get(
         fxn = "/update",
-        requestBody, token, url.base,
+        target, requestBody,
         parse = FALSE, verbose = verbose)
 }

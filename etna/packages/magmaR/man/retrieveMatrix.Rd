@@ -5,6 +5,7 @@
 \title{Download data from magma that is stored as a matrix}
 \usage{
 retrieveMatrix(
+  target,
   projectName,
   modelName,
   recordNames = "all",
@@ -59,9 +60,13 @@ Download data from magma that is stored as a matrix
 \examples{
 
 if (interactive()) {
-    # Running like this will ask for input of your janus token one time.
+    # First, we use magmaRset to create an object which will tell other magmaR
+    #  functions our authentication token (as well as some other optional bits).
+    # When run in this way, it will ask you to give your token.
+    magma <- magmaRset()
     
     retrieveMatrix(
+        target = magma,
         projectName = "example",
         modelName = "rna_seq",
         recordNames = "all",

@@ -5,13 +5,13 @@
 \title{A matrix-specific wrapper of \code{\link{updateValues}}}
 \usage{
 updateMatrix(
+  target,
   projectName,
   modelName,
   attributeName,
   matrix,
   separator = ",",
   auto.proceed = FALSE,
-  token = .get_TOKEN(),
   ...
 )
 }
@@ -32,12 +32,6 @@ Alternatively, the location of a file containing such a data.}
 Default = \code{","}.}
 
 \item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.}
-
-\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
-
-When not explicitly given in a function call: you will be prompted to input your token, one time.
-This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
-and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 
 \item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
@@ -77,19 +71,23 @@ Data can be overwritten with NAs or zeros or the like, but improperly named reco
 \examples{
 
 if (interactive()) {
-    # Running like this will ask for input of your janus token one time.
+    # First, we use magmaRset to create an object which will tell other magmaR
+    #  functions our authentication token (as well as some other optional bits).
+    # When run in this way, it will ask you to give your token.
+    magma <- magmaRset()
     
     ### Note that you likely do not have write-permissions for the 'example'
     # project, so this code can be expected to give an authorization error.
     
     ### Retrieve some data from magma, then update that same data.
-    mat <- retrieveMatrix("example", "rna_seq", "all", "gene_tpm")
+    mat <- retrieveMatrix(magma, "example", "rna_seq", "all", "gene_tpm")
 
     updateMatrix(
+        target = magma,
         projectName = "example",
         modelName = "rna_seq",
         attributeName = "gene_tpm",
-        matrix = mat)
+        matrix = mat, request.only = TRUE)
 }
 
 }
