@@ -6,4 +6,4 @@ def curl_data(url, token = token):
         url,
         headers={
             "Content-Type" : "application/json",
-            "Authorization" : f"Etna {token}"}).content
+            "Authorization" : f"Etna {token}"})
