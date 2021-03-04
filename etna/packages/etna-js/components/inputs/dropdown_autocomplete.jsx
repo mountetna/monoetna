@@ -45,7 +45,7 @@ export default function DropdownAutocomplete({
     //   that event to happen.
     setTimeout(() => {
       setShowList(false);
-    }, 100);
+    }, 150);
   }
 
   function toggleList() {
