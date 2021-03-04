@@ -2,6 +2,7 @@
 import os as _os
 import os.path as _os_path
 from pandas import DataFrame, read_csv
+import json
 
 
 def input_path(name, inputs_env=_os.environ, inputs_dir=None):
@@ -34,3 +35,7 @@ def output_path(name, outputs_env=_os.environ, outputs_dir=None):
 
 def output_tsv(data, name, outputs_env=_os.environ, outputs_dir=None):
     return data.to_csv( output_path(name, outputs_env, outputs_dir) , sep='\t')
+
+def output_json(data, name, outputs_env=_os.environ, outputs_dir=None):
+    with open(output_path(name, outputs_env, outputs_dir), 'w') as output_file:
+        output_file.write(json.dumps(data))
