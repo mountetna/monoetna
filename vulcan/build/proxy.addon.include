@@ -1,4 +1,0 @@
-# Increase timeout because Archimedes cells can take
-#   awhile to run synchronously
-# ProxyTimeout 600
-KeepAlive On

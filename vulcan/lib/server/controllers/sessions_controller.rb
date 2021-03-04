@@ -11,6 +11,54 @@ class SessionsController < Vulcan::Controller
   end
 
   def submit
+    if can_hijack?
+      stream_response
+    else
+      success_json(run_orchestration)
+    end
+  rescue => e
+    Vulcan.instance.logger.log_error(e)
+    raise Etna::BadRequest.new(e.message)
+  end
+
+  def stream_response
+    # We stream the headers back first because
+    #   FireFox has a very short timeout for "network-change"
+    #   events. If a workflow run takes more than 10s
+    #   to return the first byte (TTFB), FF will throw a
+    #   NetworkError and abort the request.
+    # We circumvent this by returning headers immediately and
+    #   then stream back the data. The issue will be that
+    #   any errors will not be identifiable via status codes.
+    @request.env['rack.hijack'].call
+    stream = @request.env['rack.hijack_io']
+
+    send_headers(stream)
+
+    # Okay, this is incredibly stupid, but for FF we have to
+    #   continuously send data back, because there appears to be
+    #   an additional 10s default timeout such that
+    #   if no data is returned within a 10s window, a request
+    #   is automatically terminated.
+    # Sending a null byte back allows the JSON parser in the client
+    #   to still parse the payload.
+    # The \n flushes the stream and sends the null byte to the client.
+    stream.write("\n")
+
+    Thread.new do
+      while !stream.closed?
+        stream.write("\n")
+        sleep(5)
+      end
+    end
+
+    stream.write(run_orchestration.to_json)
+
+    stream.close
+    @response.close
+  end
+
+  def run_orchestration
     orchestration = session.orchestration
     if orchestration.nil?
       raise Etna::NotFound.new("Workflow by the name #{session.workflow_name} could not be found.")
@@ -22,17 +70,14 @@ class SessionsController < Vulcan::Controller
       run_errors = e
     end
 
-    success_json({
-        session: session.as_json,
-        status: orchestration_status(orchestration, run_errors),
-        outputs: step_status_json(
-          step_name: :primary_outputs,
-          bt: orchestration.build_target_for(:primary_outputs)
-        ).slice(:status, :downloads)
-    })
-  rescue => e
-    Vulcan.instance.logger.log_error(e)
-    raise Etna::BadRequest.new(e.message)
+    {
+      session: session.as_json,
+      status: orchestration_status(orchestration, run_errors),
+      outputs: step_status_json(
+        step_name: :primary_outputs,
+        bt: orchestration.build_target_for(:primary_outputs)
+      ).slice(:status, :downloads)
+    }
   end
 
   def orchestration_status(orchestration, run_errors)
@@ -80,6 +125,23 @@ class SessionsController < Vulcan::Controller
     return false if ui_output
 
     bt.is_built?(storage)
+  end
+
+  def send_headers(stream)
+    headers = [
+      "HTTP/1.1 200 OK",
+      "Content-Type: application/json"
+    ]
+    stream.write(headers.map { |header| header + "\r\n" }.join)
+    stream.write("\r\n")
+    stream.flush
+  rescue
+    stream.close
+    raise
+  end
+
+  def can_hijack?
+    @request.env['rack.hijack?']
   end
 end
 
