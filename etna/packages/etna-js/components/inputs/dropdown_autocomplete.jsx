@@ -57,6 +57,8 @@ export default function DropdownAutocomplete({
     setSelectedValue(value);
     if (sortedList.indexOf(value) === -1) {
       onSelect(null);
+    } else {
+      onSelect(value);
     }
   }
 

@@ -24,8 +24,8 @@ class SessionsController < Vulcan::Controller
   def stream_response
     # We stream the headers back first because
     #   FireFox has a very short timeout for "network-change"
-    #   events. If a workflow run takes more than 10s
-    #   to return the first byte (TTFB), FF will throw a
+    #   events. If a workflow run takes more than 5s
+    #   to return the headers (?), FF will throw a
     #   NetworkError and abort the request.
     # We circumvent this by returning headers immediately and
     #   then stream back the data. The issue will be that
@@ -35,27 +35,38 @@ class SessionsController < Vulcan::Controller
 
     send_headers(stream)
 
-    # Okay, this is incredibly stupid, but for FF we have to
-    #   continuously send data back, because there appears to be
-    #   an additional 10s default timeout such that
-    #   if no data is returned within a 10s window, a request
-    #   is automatically terminated.
-    # Sending a null byte back allows the JSON parser in the client
-    #   to still parse the payload.
-    # The \n flushes the stream and sends the null byte to the client.
-    stream.write("\n")
+    begin
+      # For FF we have to
+      #   continuously send data back, because there appears to be
+      #   an additional 10s default timeout such that
+      #   if no data is returned within a 10s window, a request
+      #   is automatically terminated.
+      # Sending a null byte back allows the JSON parser in the client
+      #   to still parse the payload without modification.
+      # The \n flushes the stream and sends the null byte to the client.
+      stream.write("\n")
 
-    Thread.new do
-      while !stream.closed?
-        stream.write("\n")
-        sleep(5)
+      Thread.new do
+        while !stream.closed?
+          stream.write("\n")
+          sleep(5)
+        end
       end
+
+      stream.write(run_orchestration.to_json)
+    rescue => e
+      Vulcan.instance.logger.log_error(e)
+      # Since we've already sent the status code back as 200,
+      #   we'll have to identify errors in the client by
+      #   using the error key in the response JSON.
+      stream.write({
+        error: e.message,
+        type: e.class.name
+      }.to_json)
+    ensure
+      stream.close
+      @response.close
     end
-
-    stream.write(run_orchestration.to_json)
-
-    stream.close
-    @response.close
   end
 
   def run_orchestration

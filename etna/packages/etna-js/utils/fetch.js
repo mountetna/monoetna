@@ -91,7 +91,8 @@ export const handleFetchError = (e) => {
 export const handleFetchSuccess = (response) => {
   if (response && typeof response === 'object' && 'error' in response) {
     console.error(response.error);
-    return Promise.reject([`There was a ${response.type} error.`]);
+    return Promise.reject([
+      `There was a ${response.type} error. ${response.error}`]);
   }
   return Promise.resolve(response);
 };
