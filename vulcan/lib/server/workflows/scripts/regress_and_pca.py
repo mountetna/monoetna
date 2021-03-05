@@ -2,8 +2,6 @@ from archimedes.functions.dataflow import output_path, input_path, input_bool
 from archimedes.functions.scanpy import scanpy as sc
 
 scdata = sc.read(input_path('normed_anndata.h5ad'))
-
-# These actually don't work rn.  They are always True.
 regress_nCounts = input_bool('regress_counts')
 regress_nFeatures = input_bool('regress_genes')
 regress_pct_mito = input_bool('regress_pct_mito')
