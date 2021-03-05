@@ -16,10 +16,10 @@ export default function SessionManager() {
   const context = useContext(VulcanContext);
   const {workflow, session, calculating, setCalculating} = context;
   const [complete, setComplete] = useState(null);
-  const [firstLoad, setFirstLoad] = useState(true);
+  const [firstRun, setFirstRun] = useState(true);
 
   useEffect(() => {
-    if (workflow && workflow.name && firstLoad) {
+    if (workflow && workflow.name && firstRun) {
       if (allInputsDefined(workflow, session.inputs)) {
         setCalculating(true);
 
@@ -27,7 +27,7 @@ export default function SessionManager() {
         submit(context)
           .then(() => {
             setCalculating(false);
-            setFirstLoad(false);
+            setFirstRun(false);
           })
           .catch((e) => {
             console.error(e);
