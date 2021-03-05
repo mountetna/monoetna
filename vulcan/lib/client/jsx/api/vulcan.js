@@ -59,7 +59,6 @@ export const submit = (context) => {
     setData
   } = context;
 
-  console.log('in submit', session);
   let dataUrls = [];
 
   // Use a deep clone because we need to check if the download URL

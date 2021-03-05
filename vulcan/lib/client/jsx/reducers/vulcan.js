@@ -7,8 +7,7 @@ import {
   SET_STEP,
   SET_SESSION,
   SET_INPUTS,
-  SET_CALCULATING,
-  SET_DIRTY
+  SET_CALCULATING
 } from '../actions/vulcan';
 
 export default function VulcanReducer(state, action) {
@@ -107,11 +106,6 @@ export default function VulcanReducer(state, action) {
       return {
         ...state,
         calculating: action.calculating
-      };
-    case SET_DIRTY:
-      return {
-        ...state,
-        dirty: action.dirty
       };
     default:
       return state;
