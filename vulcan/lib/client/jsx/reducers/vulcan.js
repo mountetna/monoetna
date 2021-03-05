@@ -88,8 +88,6 @@ export default function VulcanReducer(state, action) {
         session: action.session
       };
     case SET_INPUTS:
-      console.log('state', state);
-      console.log('action', action);
       return {
         ...state,
         session: {
