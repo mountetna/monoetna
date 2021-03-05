@@ -19,21 +19,24 @@ export default function SessionManager() {
   const [firstRun, setFirstRun] = useState(true);
 
   useEffect(() => {
-    if (workflow && workflow.name && firstRun) {
-      if (allInputsDefined(workflow, session.inputs)) {
-        setCalculating(true);
+    if (
+      workflow &&
+      workflow.name &&
+      allInputsDefined(workflow, session.inputs) &&
+      firstRun
+    ) {
+      setCalculating(true);
 
-        // See how much work can be done when the page loads
-        submit(context)
-          .then(() => {
-            setCalculating(false);
-            setFirstRun(false);
-          })
-          .catch((e) => {
-            console.error(e);
-            invoke(showMessages(e));
-          });
-      }
+      // See how much work can be done when the page loads
+      submit(context)
+        .then(() => {
+          setCalculating(false);
+          setFirstRun(false);
+        })
+        .catch((e) => {
+          console.error(e);
+          invoke(showMessages(e));
+        });
     }
   }, [session.inputs]);
 
