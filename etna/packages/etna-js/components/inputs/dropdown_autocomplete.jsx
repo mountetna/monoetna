@@ -3,7 +3,7 @@
 //   see a list of filtered options.
 import React, {useEffect, useState} from 'react';
 
-import Icon from 'etna-js/components/icon';
+import Icon from '../icon';
 import debounce from '../../utils/debounce';
 
 export default function DropdownAutocomplete({
@@ -55,6 +55,9 @@ export default function DropdownAutocomplete({
   function onChange(value) {
     filterTheList(value);
     setSelectedValue(value);
+    if (sortedList.indexOf(value) === -1) {
+      onSelect(null);
+    }
   }
 
   function handleChange(e) {
