@@ -25,8 +25,6 @@ export default class SlowTextInput extends Component {
   render() {
     let {
       onChange,
-      onBlur,
-      onFocus,
       waitTime,
       defaultValue,
       ...inputProps
@@ -42,8 +40,6 @@ export default class SlowTextInput extends Component {
         onChange={this.handleChange.bind(this)}
         value={input_value == undefined ? defaultValue : input_value}
         {...inputProps}
-        onBlur={onBlur}
-        onFocus={onFocus}
       />
     );
   }
