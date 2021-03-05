@@ -9,6 +9,7 @@ from ..Geoline.Geoline import *
 
 url = 'https://magma.ucsf.edu'
 token = 'token'
+project = 'example'
 currDir = os.path.dirname(os.path.realpath(__file__))
 
 section = {
@@ -20,7 +21,7 @@ section = {
 
 class TestGeoline(TestCase):
     def setUp(self) -> None:
-        self.geoline = Geoline(url, token)
+        self.geoline = Geoline(url, token, project)
         self.session = Session()
         self.vcr = prepCassette(self.session, os.path.join(currDir,'fixtures/cassettes'))
 
@@ -51,18 +52,16 @@ class TestGeoline(TestCase):
             self.assertEqual(modelGroups['rna_seq']['processed data file'], ['rna_seq','gene_expression'])
 
 
-    def test__magmaExtractor(self):
+    def test_constructMultiModelQuery(self):
         with patch('builtins.input', side_effect=['y', 'y', 'y',
                                                   'y', '1', 'rna_seq:fraction', 'n',  # characteristics
                                                   'STOP']):
-            with self.vcr as vcr:
-                vcr.use_cassette('Geoline_MmagmaExtractor')
-                samples = self.geoline._selectWorkflow(samplesSection, 'rna_seq')
-                modelGroups = self.geoline._grouper(samples)
-                meta = self.geoline._magmaExtractor('example', 'rna_seq', modelGroups['rna_seq'], session=self.session)
-                self.assertTrue(isinstance(meta, DataFrame))
-                self.assertEqual(meta.shape[0], 12)
-                self.assertEqual(meta.iloc[2,1], 'EXAMPLE-HS12-WB1')
+            samples = self.geoline._selectWorkflow(samplesSection, 'rna_seq')
+            modelGroups = self.geoline._grouper(samples)
+            query = self.geoline.constructMultiModelQuery(modelGroups, 'rna_seq')
+            self.assertTrue(isinstance(query, dict))
+            self.assertEqual(len(query), 12)
+            self.assertEqual(query[2][1][0], 'EXAMPLE-HS12-WB1')
 
 
 

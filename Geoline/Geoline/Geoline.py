@@ -30,7 +30,6 @@ class Geoline:
         templates = [samplesSection, processedFilesSection, rawFilesSection]
         attributeMaps = [self._selectWorkflow(template, assay) for template in templates]
         modelGroups = [self._grouper(attrMap) for attrMap in attributeMaps]
-        magmaExtracts = [self._magmaWrapper(self._projectName, x, **kwargs) for x in modelGroups]
 
 
 
@@ -97,7 +96,7 @@ class Geoline:
         return globalTemplate
 
 
-    def multiModelQuery(self, modelGroup: Dict, primaryModelName: str) -> List:
+    def constructMultiModelQuery(self, modelGroup: Dict, primaryModelName: str) -> List:
         '''
         Construct a query for all models at once
         :param modelGroup: Dict. Structure: {Model : {GEO_meta_data_field : [model_name, attr_name]}}
@@ -108,27 +107,32 @@ class Geoline:
             raise GeolineError(f'TemplateTree.multiModelQuery(): {primaryModelName} is not in the list of models '
                                f'{list(modelGroup.keys())}')
         primaryModel = modelGroup.pop(primaryModelName)
-        primaryModelAttributes = self._extractAttributes(primaryModel.values())
+        primaryModelAttributes = list(self._extractAttributes(primaryModel))
         templateTree = TemplateTree(self._getGlobalTemplate())
-        pathsToModels = [templateTree.traverseToModel(primaryModelName, x)+['::all'] for x in modelGroup.keys() if x != '']
-## TODO map attributes to all models
+        for model in modelGroup:
+            if model != '':
+                pathToModel = templateTree.traverseToModel(primaryModelName, model)+['::all']
+                modelAttrMap = self._extractAttributes(modelGroup[model])
+                pathToModel.append(modelAttrMap)
+                primaryModelAttributes.append(pathToModel)
+        primaryQuery = [primaryModelName, '::all']
+        primaryQuery.append(primaryModelAttributes)
+        return primaryQuery
+
+
+    def _walkAnswer(self, answerElement: List, answerFormat: List, flattenedAnswer: Dict) -> Dict:
+        for elementNum in range(len(answerFormat)):
+            if isinstance(answerFormat[elementNum], list):
+                return self._walkAnswer(answerElement[elementNum], answerFormat[elementNum], flattenedAnswer)
+            if isinstance(answerElement[elementNum], list):
+                reshapedAnswerElement = [list(x) for x in zip(*answerElement[elementNum])]
+                flattenedAnswer.update({answerFormat[elementNum]: reshapedAnswerElement[0]})
+                return self._walkAnswer(reshapedAnswerElement[1:], answerFormat[1:], flattenedAnswer)
+        flattenedAnswer.update({answerElement[0]: answerFormat[0]})
+        return flattenedAnswer
 
 
 
-
-
-
-
-    def _magmaExtractor(self, projectName: str, model: str, attributeMaps: Dict, **kwargs) -> DataFrame:
-        magby = Magby(self._url, self._token)
-        metadata = magby.retrieve(projectName=projectName,
-                                  modelName=model,
-                                  recordNames='all',
-                                  attributeNames = [x[1] for x in attributeMaps.values()],
-                                  dataType='meta',
-                                  **kwargs)
-        columnMaps = {attributeMaps[x][1]: x for x in attributeMaps}
-        return metadata.rename(columns=columnMaps)
 
     def _magmaWrapper(self, projectName: str, modelGroup: Dict, **kwargs) -> List:
         out = [self._magmaExtractor(projectName, model, modelGroup[model], **kwargs) for model in modelGroup]

@@ -29,7 +29,7 @@ class TemplateTree(object):
     def traverseToModel(self, primaryModel: str, secondaryModel: str) -> List:
         primaryTree, secondaryTree = [self._ascendTree([x]) for x in [primaryModel, secondaryModel]]
         commonRoot = self._commonRoot(primaryTree, secondaryTree)
-        newPath = primaryTree[1:primaryTree.index(commonRoot)] + secondaryTree[:secondaryTree.index(commonRoot)][::-1]
+        newPath = primaryTree[1:primaryTree.index(commonRoot)] + secondaryTree[:(secondaryTree.index(commonRoot))+1][::-1]
         return newPath
 
 
