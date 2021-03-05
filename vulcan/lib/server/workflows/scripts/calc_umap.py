@@ -1,12 +1,12 @@
-from archimedes.functions.dataflow import output_path, input_path
-from archimedes import scanpy
+from archimedes.functions.dataflow import output_path, input_path, input_var
+from archimedes.functions.scanpy import scanpy as sc
 
-adata = open(input_path('data'), 'r').read()
-max_pc = open(input_path('max_pc'), 'r').read()
+scdata = sc.read(input_path('pca_anndata.h5ad'))
+max_pc = int(input_var('max_pc'))
 
 # Neighborhood and umap
-sc.pp.neighbors(adata, n_neighbors=10, n_pcs= max_pc)
-sc.tl.umap(adata)
+sc.pp.neighbors(scdata, n_neighbors=10, n_pcs= max_pc)
+sc.tl.umap(scdata)
 
 ##### OUTPUT
-adata.write(output_path('umap_data'))
+scdata.write(output_path('umap_anndata'))
