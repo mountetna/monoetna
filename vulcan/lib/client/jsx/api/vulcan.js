@@ -13,7 +13,6 @@ const vulcanPath = (endpoint) => `${CONFIG.vulcan_host}${endpoint}`;
 const vulcanPost = (endpoint, params) => {
   return fetch(endpoint, {
     method: 'POST',
-    cache: 'no-cache',
     credentials: 'include',
     headers: headers('json'),
     body: JSON.stringify({
