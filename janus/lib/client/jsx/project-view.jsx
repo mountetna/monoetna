@@ -82,8 +82,8 @@ const displayPermissions = (permissions, filter) => (
   permissions.sort(
     (a,b) => (a.role+a.user_email).localeCompare(b.role+b.user_email)
   ).filter(
-    p => !filter || [ 'name', 'user_email', 'role', 'affiliation' ].some(
-      column => column in p && p[column].match(new RegExp(filter, 'i'))
+    p => !filter || [ 'user_name', 'user_email', 'role', 'affiliation' ].some(
+      column => column in p && null != p[column] && p[column].match(new RegExp(filter, 'i'))
     )
   )
 );
