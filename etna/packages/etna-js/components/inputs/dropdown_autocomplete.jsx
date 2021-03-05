@@ -9,7 +9,7 @@ import debounce from '../../utils/debounce';
 export default function DropdownAutocomplete({
   list,
   onSelect,
-  value,
+  defaultValue,
   waitTime
 }) {
   var collator = new Intl.Collator(undefined, {
@@ -68,7 +68,7 @@ export default function DropdownAutocomplete({
 
   useEffect(() => {
     onChange = debounce(onChange, waitTime || 500);
-    setSelectedValue(value ? value : '');
+    setSelectedValue(defaultValue ? defaultValue : '');
   }, []);
 
   useEffect(() => {

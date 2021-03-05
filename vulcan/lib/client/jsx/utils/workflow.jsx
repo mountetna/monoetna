@@ -117,7 +117,7 @@ export const wrapEditableInputs = (inputs, handleInputChange) => {
                 handleInputChange(inputName, e);
               }}
               list={input.options || []}
-              value={input.default || null}
+              defaultValue={input.default || null}
             ></DropdownAutocomplete>
           )
         });
