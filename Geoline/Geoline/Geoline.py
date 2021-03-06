@@ -16,8 +16,16 @@ directory browser:
     extractor of the file names 
 '''
 
+# Decorator for special treatment of specific columns
+def specialColumns(functionOfColumn):
+    @functools.wraps(functionOfColumn)
+    def specialColumnsWrapper(column: List, *args, **kwargs):
+        return [functionOfColumn(x) for x in column]
+    return specialColumnsWrapper
+
 class GeolineError(Exception):
     '''Errors corresponding to misuse of Geoline'''
+
 
 class Geoline:
     def __init__(self, url: str, token: str, projectName: str) -> None:
@@ -29,16 +37,33 @@ class Geoline:
 
     def seqWorkflows(self, assay: str, primaryModel: str, **kwargs) -> None:
         templates = [samplesSection, processedFilesSection, rawFilesSection]
-        attributeMaps = [self._selectWorkflow(template, assay) for template in templates]
-        modelGroups = [self._grouper(attrMap) for attrMap in attributeMaps]
-        queries = [self._constructMultiModelQuery(x, primaryModel, **kwargs) for x in modelGroups]
-        answers = [self._magbyInstance.query(self._projectName, x, **kwargs) for x in queries]
-        flatAnswers = [self._queryWrapper(x['answer'], x['format']) for x in answers]
+        attributeMaps = [self._selectWorkflow(x, assay) for x in templates]
+        flatAnswers = [self._workflow(x, primaryModel, **kwargs) for x in attributeMaps]
+        answerDFs = [self._organizeAnswerDFColumns(DataFrame(x[0]), x[1]) for x in zip(flatAnswers, attributeMaps)]
 
 
 
 
-    # Private functions
+    def _organizeAnswerDFColumns(self, answerDF: DataFrame, attrMap: Dict):
+        organizedDF = DataFrame()
+        for geoField in attrMap:
+            if attrMap[geoField] in answerDF.columns:
+                organizedDF[geoField] = answerDF[attrMap[geoField]]
+            else:
+                organizedDF[geoField] = ['Not in Magma'] * answerDF.shape[0]
+        return organizedDF
+
+
+
+
+    def _workflow(self, attributeMaps: Dict, primaryModel: str, **kwargs) -> List:
+        modelGroups = self._grouper(attributeMaps)
+        query = self._constructMultiModelQuery(modelGroups, primaryModel, **kwargs)
+        answer = self._magbyInstance.query(self._projectName, query, **kwargs)
+        flatAnswer = self._queryWrapper(answer['answer'], answer['format'])
+        return flatAnswer
+
+
     def _constructMultiModelQuery(self, modelGroup: Dict, primaryModelName: str, **kwargs) -> List:
         '''
         Construct a query for all models at once
@@ -136,8 +161,20 @@ class Geoline:
                 if isinstance(answerElement[elem], list):
                     reduced = self._reduceOneToMany(answerElement)
                     return self._walkAnswer(reduced, answerFormat)
-                flatAnswer.update({answerFormat[elem]: answerElement[elem]})
+                flatAnswer.update({self._convertModelAttrToColumn(answerFormat[elem]): answerElement[elem]})
         return flatAnswer
+
+
+    def _convertModelAttrToColumn(self, modelAttr: str) -> str:
+        '''
+        A query to magma returns an answer with "columns" in the format {project::model#attr}.
+        Need to convert it to {model:attr} here called Geoline Format - to further map to GEO metadata fields
+        :param modelAttr: str. Magma format
+        :return: str. Geoline format
+        '''
+        dropProject = modelAttr.split("::")[1]
+        return dropProject.replace("#", ":")
+
 
 
     def _reduceOneToMany(self, multiAnswer: List) -> List:
@@ -149,4 +186,6 @@ class Geoline:
     def _queryWrapper(self, answer: List, format: List) -> List:
         out = [self._walkAnswer(answerElement, format) for answerElement in answer]
         return out
+
+
 

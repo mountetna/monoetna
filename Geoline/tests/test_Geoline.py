@@ -79,7 +79,7 @@ class TestGeoline(TestCase):
                 reply = mb.query(self.geoline._projectName, query, session=self.session)
                 aw = self.geoline._walkAnswer(reply['answer'][0], reply['format'])
             self.assertTrue(isinstance(aw, dict))
-            self.assertEqual(aw['example::rna_seq#tube_name'], 'EXAMPLE-HS10-WB1-RSQ1')
+            self.assertEqual(aw['rna_seq:tube_name'], 'EXAMPLE-HS10-WB1-RSQ1')
             self.assertEqual(len(aw), 5)
 
     def test__walkAnswerWithOneToMany(self):
@@ -94,7 +94,7 @@ class TestGeoline(TestCase):
 
         aw = self.geoline._walkAnswer(awElem, awFormat)
         self.assertTrue(isinstance(aw, dict))
-        self.assertEqual(aw['proj::elven_bread#pool_name'], 'Bread Sort 1; Bread Sort 3; Bread Sort 5')
+        self.assertEqual(aw['elven_bread:pool_name'], 'Bread Sort 1; Bread Sort 3; Bread Sort 5')
 
 
     def test__reduceOneToMany(self):
