@@ -30,6 +30,9 @@ class TemplateTree(object):
         primaryTree, secondaryTree = [self._ascendTree([x]) for x in [primaryModel, secondaryModel]]
         commonRoot = self._commonRoot(primaryTree, secondaryTree)
         newPath = primaryTree[1:primaryTree.index(commonRoot)] + secondaryTree[:(secondaryTree.index(commonRoot))+1][::-1]
+        # Branching models
+        if not all(x in primaryTree for x in secondaryTree):
+            newPath.append('::all')
         return newPath
 
 

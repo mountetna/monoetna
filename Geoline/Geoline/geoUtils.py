@@ -86,6 +86,8 @@ def characteristics(addAnother: Callable, d: Dict) -> Dict:
 
 
 def verifyMapFormat(attrMap: str) -> bool:
+    if attrMap == '':
+        return True
     return len(attrMap.split(':')) == 2
 
 

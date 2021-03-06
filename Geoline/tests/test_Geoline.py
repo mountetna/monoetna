@@ -52,16 +52,58 @@ class TestGeoline(TestCase):
             self.assertEqual(modelGroups['rna_seq']['processed data file'], ['rna_seq','gene_expression'])
 
 
-    def test_constructMultiModelQuery(self):
+    def test__constructMultiModelQuery(self):
         with patch('builtins.input', side_effect=['y', 'y', 'y',
                                                   'y', '1', 'rna_seq:fraction', 'n',  # characteristics
                                                   'STOP']):
             samples = self.geoline._selectWorkflow(samplesSection, 'rna_seq')
             modelGroups = self.geoline._grouper(samples)
-            query = self.geoline.constructMultiModelQuery(modelGroups, 'rna_seq')
-            self.assertTrue(isinstance(query, dict))
-            self.assertEqual(len(query), 12)
-            self.assertEqual(query[2][1][0], 'EXAMPLE-HS12-WB1')
+            with self.vcr as vcr:
+                vcr.use_cassette('Geoline__constructMultiModelQuery')
+                query = self.geoline._constructMultiModelQuery(modelGroups, 'rna_seq', session=self.session)
+            self.assertTrue(isinstance(query, list))
+            self.assertEqual(len(query), 3)
+            self.assertEqual(query[2][4], 'gene_expression')
+
+
+    def test__walkAnswer(self):
+        with patch('builtins.input', side_effect=['y', 'flow:stain', 'subject:group',
+                                                  'y', '1', 'rna_seq:fraction', 'n',  # characteristics
+                                                  '', '', '']):
+            samples = self.geoline._selectWorkflow(samplesSection, 'rna_seq')
+            modelGroups = self.geoline._grouper(samples)
+            with self.vcr as vcr:
+                vcr.use_cassette('Geoline__walkAnswer')
+                query = self.geoline._constructMultiModelQuery(modelGroups, 'rna_seq', session=self.session)
+                mb = Magby(url, token)
+                reply = mb.query(self.geoline._projectName, query, session=self.session)
+                aw = self.geoline._walkAnswer(reply['answer'][0], reply['format'])
+            self.assertTrue(isinstance(aw, dict))
+            self.assertEqual(aw['example::rna_seq#tube_name'], 'EXAMPLE-HS10-WB1-RSQ1')
+            self.assertEqual(len(aw), 5)
+
+    def test__walkAnswerWithOneToMany(self):
+        awElem = ['SAMPLE1-RSQ1',
+                  ['Lembas Bread',
+                   [['Bread Sort 1', None],
+                    ['Bread Sort 3', 'Honey'],
+                    ['Bread Sort 5', None]]]]
+        awFormat = ['proj::elven_bread#shape',
+                    ['proj::elven_bread#texture',
+                     ['proj::elven_bread#pool_name', 'proj::bread#panel']]]
+
+        aw = self.geoline._walkAnswer(awElem, awFormat)
+        self.assertTrue(isinstance(aw, dict))
+        self.assertEqual(aw['proj::elven_bread#pool_name'], 'Bread Sort 1; Bread Sort 3; Bread Sort 5')
+
+
+    def test__reduceOneToMany(self):
+        otm = [['Name1', None],
+               ['Name2', 'Bread Sample v1'],
+               ['Name3', None]]
+        reduced = self.geoline._reduceOneToMany(otm)
+        self.assertTrue(isinstance(reduced[0], str))
+        self.assertEqual(reduced[1], 'None; Bread Sample v1; None')
 
 
 
