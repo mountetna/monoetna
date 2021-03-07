@@ -40,12 +40,8 @@ export default function WorkflowManager() {
 
         setWorkflow(currentWorkflow);
 
-        // longest step chain == default path for now?
-        setPathIndex(
-          currentWorkflow.steps
-            .map((a) => a.length)
-            .indexOf(Math.max(...currentWorkflow.steps.map((a) => a.length)))
-        );
+        // first path is always the "work" path
+        setPathIndex(0);
       })
       .catch((e) => {
         console.error(e);

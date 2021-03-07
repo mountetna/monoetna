@@ -16,7 +16,7 @@ export default function StepsList() {
   }
 
   useEffect(() => {
-    if (null === cardIndex) {
+    if (null == cardIndex) {
       setCardStep(null);
     } else {
       setCardStep(workflow.steps[pathIndex][cardIndex]);
