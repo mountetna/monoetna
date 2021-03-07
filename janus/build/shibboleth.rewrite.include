@@ -1,4 +1,3 @@
-<If "env('JANUS_ENV') == 'production'">
-    # This exception condition applies to the rule in fe.conf.erb
-    RewriteCond %{REQUEST_URI} !^/Shibboleth.sso
-</If>
+# This exception condition applies to the rule in fe.conf.erb
+RewriteCond %{REQUEST_URI} !^/Shibboleth.sso
+
