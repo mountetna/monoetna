@@ -35,7 +35,7 @@ steps:
       e: maxPcs
     out: [names]
   pickPools:
-    run: ui-queries/multiselect-string.cwl
+    run: ui-queries/select-autocomplete.cwl
     label: 'Select pool records'
     in:
       a: queryMagma/names
@@ -63,7 +63,7 @@ steps:
       a: doUmapStuff/umap
     out: [output]
   downloadRawData:
-    run: ui-outputs/consignment.cwl
+    run: ui-outputs/link.cwl
     in:
       a: convertToConsignment/output
     out: []
