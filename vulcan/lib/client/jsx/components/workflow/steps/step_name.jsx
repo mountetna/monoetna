@@ -1,9 +1,14 @@
-import React from 'react';
+import React, {useContext} from 'react';
+
+import {VulcanContext} from '../../../contexts/vulcan';
 
 import Icon from 'etna-js/components/icon';
 import {STATUS} from '../../../models/steps';
+import AnimatedClock from './animated_clock';
 
 export default function StepName({step, status, onClick}) {
+  let {calculating} = useContext(VulcanContext);
+
   const icons = {};
   icons[STATUS.COMPLETE] = {
     icon: 'check',
@@ -12,15 +17,21 @@ export default function StepName({step, status, onClick}) {
   icons[STATUS.PENDING] = {icon: 'clock', className: 'light'};
   icons[STATUS.ERROR] = {icon: 'times-circle', className: 'light red'};
 
-  let icon = icons[status || STATUS.PENDING];
+  let stepStatus = status || STATUS.PENDING;
+  let icon = icons[stepStatus];
 
   let className = `step-status-icon ${icon.className}`;
+  let IconComponent = <Icon className={className} icon={icon.icon}></Icon>;
+
+  // If the icon is PENDING and also the app state `calculating` == true,
+  //   we'll replace the icon with an animated one!
+  if (STATUS.PENDING === stepStatus && calculating) {
+    IconComponent = <AnimatedClock />;
+  }
 
   return (
     <div className='step-name'>
-      <div className='step-status-icon-wrapper'>
-        <Icon className={className} icon={icon.icon}></Icon>
-      </div>
+      <div className='step-status-icon-wrapper'>{IconComponent}</div>
       <div className='step-button' onClick={onClick}>
         {step.label || step.name}
       </div>
