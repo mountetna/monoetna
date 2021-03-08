@@ -23,7 +23,12 @@ export default class SlowTextInput extends Component {
   }
 
   render() {
-    let {onChange, waitTime, defaultValue, ...inputProps} = this.props;
+    let {
+      onChange,
+      waitTime,
+      defaultValue,
+      ...inputProps
+    } = this.props;
     let {input_value} = this.state;
 
     if (defaultValue == null || defaultValue == undefined) defaultValue = '';
