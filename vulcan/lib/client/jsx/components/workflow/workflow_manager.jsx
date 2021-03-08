@@ -1,11 +1,11 @@
 import React, {useContext, useEffect} from 'react';
-import Modal from 'react-modal';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
 
 import {VulcanContext} from '../../contexts/vulcan';
 import {getWorkflows} from '../../api/vulcan';
+import {defaultInputValues} from '../../utils/workflow';
 
 import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
@@ -16,20 +16,7 @@ const WORKFLOW_NAME = `${WORKFLOW_SHORT}.cwl`;
 
 export default function WorkflowManager() {
   const invoke = useActionInvoker();
-  const {calculating, setWorkflow, setPathIndex} = useContext(VulcanContext);
-
-  Modal.setAppElement('#root');
-
-  const customStyles = {
-    content: {
-      top: '50%',
-      left: '50%',
-      right: 'auto',
-      bottom: 'auto',
-      marginRight: '-50%',
-      transform: 'translate(-50%, -50%)'
-    }
-  };
+  const {setWorkflow, setPathIndex, setInputs} = useContext(VulcanContext);
 
   useEffect(() => {
     getWorkflows()
@@ -39,6 +26,9 @@ export default function WorkflowManager() {
         );
 
         setWorkflow(currentWorkflow);
+
+        // Set the default input values
+        setInputs(defaultInputValues(currentWorkflow));
 
         // first path is always the "work" path
         setPathIndex(0);
@@ -60,14 +50,6 @@ export default function WorkflowManager() {
           <StepsList></StepsList>
         </div>
       </div>
-      <Modal
-        isOpen={calculating}
-        style={customStyles}
-        contentLabel='Calculating Notice'
-      >
-        <h2>Calculations in progress</h2>
-        <div>Archimedes calculations in progress. Please be patient.</div>
-      </Modal>
     </div>
   );
 }
