@@ -8,7 +8,6 @@ import {VulcanContext} from '../../contexts/vulcan';
 import {getWorkflows} from '../../api/vulcan';
 
 import SessionManager from './session/session_manager';
-
 import StepsList from './steps/steps_list';
 
 // Hardcode for now, since only one workflow
@@ -38,14 +37,11 @@ export default function WorkflowManager() {
         let currentWorkflow = response.workflows.find(
           (w) => WORKFLOW_NAME === w.name
         );
+
         setWorkflow(currentWorkflow);
 
-        // longest step chain == default path for now?
-        setPathIndex(
-          currentWorkflow.steps
-            .map((a) => a.length)
-            .indexOf(Math.max(...currentWorkflow.steps.map((a) => a.length)))
-        );
+        // first path is always the "work" path
+        setPathIndex(0);
       })
       .catch((e) => {
         console.error(e);

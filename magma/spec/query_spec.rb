@@ -7,10 +7,13 @@ describe QueryController do
 
   before(:each) do
     route_payload = JSON.generate([
-      {:success=>true}
+      {:method=>"POST", :route=>"/:project_name/find/:bucket_name", :name=>"bucket_find", :params=>["project_name", "bucket_name"]}
     ])
-    stub_request(:any, /https:\/\/metis.test/).
-      to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
+    stub_request(:options, 'https://metis.test').
+    to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
+
+    #stub_request(:any, /https:\/\/metis.test/).
+      #to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
     @project = create(:project, name: 'The Twelve Labors of Hercules')
   end
 
@@ -449,6 +452,34 @@ describe QueryController do
       expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#stats'])
     end
 
+    it 'returns the md5' do
+      route_payload = JSON.generate({
+        files: Labors::Monster.all.map do |monster|
+          {
+            file_name: monster.stats["filename"],
+            project_name: "labors",
+            bucket_name: "magma",
+            file_hash: "hashfor#{monster.stats["filename"]}"
+          }
+        end,
+        folders: []
+      })
+
+      stub_request(:post, %r!https://metis.test/labors/find/magma!).
+        to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
+
+      query(
+        [ 'monster', '::all', 'stats', '::md5' ]
+      )
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:answer].map(&:last).sort).to eq([
+        'hashforhydra-stats.tsv', 'hashforlion-stats.tsv', 'hashforstables-stats.tsv'
+      ])
+      expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#stats'])
+    end
+
     it 'returns all the file data' do
       query(
         [ 'monster', '::all', 'stats', '::all' ]
@@ -536,6 +567,39 @@ describe QueryController do
         ["aa_diploma_stables.txt", "jd_diploma_stables.txt"],
         ["ba_diploma_hydra.txt", "phd_diploma_hydra.txt"],
         ["sb_diploma_lion.txt", "sm_diploma_lion.txt"]
+      ])
+      expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#certificates'])
+    end
+
+    it 'returns md5s' do
+      route_payload = JSON.generate({
+        files: Labors::Monster.all.map do |monster|
+          monster.certificates.map do |f|
+            {
+              file_name: f["filename"],
+              project_name: "labors",
+              bucket_name: "magma",
+              file_hash: "hashfor#{f["filename"]}"
+            }
+          end
+        end.flatten,
+        folders: []
+      })
+
+      stub_request(:post, %r!https://metis.test/labors/find/magma!).
+        to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
+
+
+      query(
+        [ 'monster', '::all', 'certificates', '::md5' ]
+      )
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:answer].map(&:last).sort).to eq([
+        ["hashformonster-Augean Stables-certificates-0.txt", "hashformonster-Augean Stables-certificates-1.txt"],
+        ["hashformonster-Lernean Hydra-certificates-0.txt", "hashformonster-Lernean Hydra-certificates-1.txt"],
+        ["hashformonster-Nemean Lion-certificates-0.txt", "hashformonster-Nemean Lion-certificates-1.txt"]
       ])
       expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#certificates'])
     end

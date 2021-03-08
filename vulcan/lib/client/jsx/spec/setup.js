@@ -9,3 +9,6 @@ global.ROUTES = {
   submit: (workflow_name) =>
     `/api/${CONFIG.project_name}/session/${workflow_name}`
 };
+
+// Used by plotly.js
+global.URL.createObjectURL = jest.fn();

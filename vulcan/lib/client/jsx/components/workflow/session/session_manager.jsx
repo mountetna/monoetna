@@ -32,23 +32,18 @@ export default function SessionManager() {
     //   we may provide a session key in the future to fetch
     //   a persisted session.
     if (workflow && workflow.name) {
-      getSession(workflow.name)
-        .then((response) => {
-          setSession(response.session);
-          setStatus(response.status);
-
-          // Set the default input values in the session
-          setInputs(defaultInputValues(workflow));
-        })
-        .catch((e) => {
-          console.error(e);
-          invoke(showMessages([e]));
-        });
+      // Set the default input values in the session
+      setInputs(defaultInputValues(workflow));
     }
   }, [workflow]);
 
   useEffect(() => {
-    if (workflow && session && session.inputs) {
+    if (
+      workflow &&
+      session &&
+      session.inputs &&
+      Object.keys(session.inputs).length > 0
+    ) {
       setComplete(allInputsDefined(workflow, session.inputs));
     }
   }, [workflow, session]);

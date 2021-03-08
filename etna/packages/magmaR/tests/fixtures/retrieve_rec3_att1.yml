@@ -18,7 +18,7 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Wed, 13 Jan 2021 17:12:51 GMT
+      date: Fri, 12 Feb 2021 09:15:26 GMT
       server: Apache
       content-type: text/tsv
       content-disposition: inline; filename="results.tsv
@@ -28,5 +28,5 @@ http_interactions:
       encoding: UTF-8
       file: no
       string: "name\tgroup\nEXAMPLE-HS1\tg1\nEXAMPLE-HS2\tg1\n"
-  recorded_at: 2021-01-13 17:12:51 GMT
+  recorded_at: 2021-02-12 09:15:27 GMT
   recorded_with: vcr/0.6.0, webmockr/0.7.4

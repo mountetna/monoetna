@@ -41,7 +41,7 @@ describe('JanusAdmin', () => {
     );
 
     await act( async () => {
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 15));
     });
 
     expect( component.toJSON() ).toMatchSnapshot()

@@ -2,47 +2,69 @@ cwlVersion: v1.1
 class: Workflow
 
 inputs:
-  someInt:
-    type: int
-    default: 200
-    label: 'it is an int'
-  someInt2:
-    type: int
-    default: 2
-    label: 'another int'
-  someIntWithoutDefault:
-    type: int
-    label: 'User supplies a number'
   includeParamA:
     type: boolean
     default: true
     label: 'regress by param A?'
-  aFloat:
-    type: float
+  includeParamB:
+    type: boolean
+    default: true
+    label: 'regress by param B?'
+  includeParamC:
+    type: boolean
+    default: true
+    label: 'regress by param C?'
+  maxPcs:
+    type: int
+    default: 15
+    label: 'Maximum number of PCs'
 
 outputs:
-  the_result:
-    type: int
-    outputSource: finalStep/sum
-    format: text
+  the_data:
+    type: File
+    outputSource: doUmapStuff/umap
 
 steps:
-  firstAdd:
-    run: scripts/add.cwl
-    label: 'Add two numbers'
+  queryMagma:
+    run: scripts/fake_query.cwl
+    label: 'Fetch pool record names'
     in:
-      a: someInt
-      b: someInt2
-    out: [sum]
-  pickANum:
+      b: includeParamA
+      c: includeParamB
+      d: includeParamC
+      e: maxPcs
+    out: [names]
+  pickPools:
     run: ui-queries/multiselect-string.cwl
+    label: 'Select pool records'
     in:
-      a: firstAdd/sum
-    out: [num]
-  finalStep:
-    run: scripts/add_from_list.cwl
-    label: 'Add your numbers to the previous sum'
+      a: queryMagma/names
+    out: [names]
+  doUmapStuff:
+    run: scripts/fake_umap_calculations.cwl
+    label: 'Do the UMAP stuff'
     in:
-      a: firstAdd/sum
-      b: pickANum/num
-    out: [sum]
+      a: pickPools/names
+      b: includeParamA
+      c: includeParamB
+      d: includeParamC
+      e: maxPcs
+    out: [umap]
+  showMe:
+    run: ui-outputs/plotly.cwl
+    in:
+      a: doUmapStuff/umap
+    out: []
+    label: 'UMAP'
+  convertToConsignment:
+    run: scripts/convert_to_consignment.cwl
+    label: 'Convert data to TSV'
+    in:
+      a: doUmapStuff/umap
+    out: [output]
+  downloadRawData:
+    run: ui-outputs/consignment.cwl
+    in:
+      a: convertToConsignment/output
+    out: []
+    label: 'Download Raw Data as TSV'
