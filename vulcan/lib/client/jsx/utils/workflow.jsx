@@ -233,7 +233,7 @@ export const hasUiOutput = (step) => {
 
 export const defaultInputValues = (workflow) => {
   return Object.keys(workflow.inputs).reduce((result, inputName) => {
-    if (workflow.inputs[inputName].default) {
+    if (null != workflow.inputs[inputName].default) {
       result[inputName] = workflow.inputs[inputName].default;
     }
     return result;
@@ -254,8 +254,7 @@ export const allInputsDefined = (workflow, userInputs) => {
       // For multiselect, need to make sure the inputs are not
       //    [""] or []...
       return !(
-        null === userInput ||
-        undefined === userInput ||
+        null == userInput ||
         userInput !== userInput ||
         _.isEqual([''], userInput) ||
         _.isEqual([], userInput)
