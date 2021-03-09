@@ -128,12 +128,12 @@ Within magmaR, the token can be provided in either of 2 ways:
 Recommended when coding interactively: When not provided explicitly, as is the other method, the user will be prompted to provide their token one single time, upon the first call to a magmaR function. The given value will then be stored within the user's global R environment as `.MAGMAR_TOKEN` and any future calls to magmaR functions will automatically fill in their `token` input with this value.
 
 ```{r, hide = TRUE, echo=FALSE}
-.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
-.MAGMAR_URL <- Sys.getenv("URL")
+prod <- magmaRset(Sys.getenv("TOKEN"))
 ```
 
 ```{r}
 ids_subject <- retrieveIds(
+    target = prod,
     projectName = "example",
     modelName = "subject")
 ```
@@ -151,9 +151,9 @@ All functions have a `token` input to which a token can be given directly. This 
 
 ```{r, eval = FALSE}
 ids_subject <- retrieveIds(
+    target = prod,
     projectName = "example",
-    modelName = "subject",
-    token = "<give_token_here>")
+    modelName = "subject")
 ```
 
 **NOTE: Instead of adding your token directly to any file which you might save, it is recommended that you utilize your `.Renviron` file to store your token.** To do so, you can:
@@ -184,6 +184,7 @@ For advanced users with access to the staging or development versions of magma, 
 ```{r, eval = FALSE}
 # Option 1: Given explicitly in every function call:
 ids_subject <- retrieveIds(
+    target = prod,
     projectName = "example",
     modelName = "subject",
     url.base = "http://magma.development.local")
@@ -193,6 +194,7 @@ ids_subject <- retrieveIds(
 # Afterwards, all future calls will target this version
 #   (unless they contain an explicit `url.base` input).
 ids_subject <- retrieveIds(
+    target = prod,
     projectName = "example",
     modelName = "subject")
 ```
@@ -206,15 +208,18 @@ Although it is possible to rely on timur.ucsf.edu/<project_name>/map, or on Timu
 ```{r}
 # modelName options:
 retrieveModels(
+    target = prod,
     projectName = "example")
 
 # recordNames options:
 retrieveIds(
+    target = prod,
     projectName = "example",
     modelName = "subject")
 
 # attributeName(s) options:
 retrieveAttributes(
+    target = prod,
     projectName = "example",
     modelName = "subject")
 ```
@@ -224,6 +229,7 @@ For more complex needs like a complicated `query()` request, you might require a
 ```{r}
 # To retrieve the project template:
 temp <- retrieveTemplate(
+    target = prod,
     projectName = "example")
 ```
 
@@ -257,6 +263,7 @@ The basic structure is to provide which project, `projectName` and which model, 
 
 ```{r}
 df <- retrieve(
+    target = prod,
     projectName = "example",
     modelName = "subject")
 
@@ -267,6 +274,7 @@ Optionally, a set of `recordNames` or `attributeNames` can be given as well to g
 
 ```{r}
 df <- retrieve(
+    target = prod,
     projectName = "example",
     modelName = "subject",
     recordNames = c("EXAMPLE-HS1", "EXAMPLE-HS2"),
@@ -287,6 +295,7 @@ Users should not typically need to make use of this function, as when the desire
 
 ```{r retJSON}
 json <- retrieveJSON(
+    target = prod,
     projectName = "example",
     modelName = "rna_seq",
     recordNames = c("EXAMPLE-HS1-WB1-RSQ1", "EXAMPLE-HS2-WB1-RSQ1"),
@@ -301,6 +310,7 @@ Details: The output format for the `retrieveJSON()` function is a nested list co
 
 ```{r}
 json <- retrieveJSON(
+    target = prod,
     projectName = "example",
     modelName = "subject",
     recordNames = "all",
@@ -323,6 +333,7 @@ For guidance on how to format `query()` calls, see `?query` and https://mountetn
 
 ```{r query}
 query_out <- query(
+    target = prod,
     projectName = "example",
     queryTerms = 
         list('rna_seq',
@@ -344,6 +355,7 @@ Alternatively, the output can be reformatted as a dataframe if `format = "df"` i
 
 ```{r query2}
 subject_ids_of_rnaseq_records <- query(
+    target = prod,
     projectName = "example",
     queryTerms = 
         list('rna_seq',
@@ -364,6 +376,7 @@ Because matrices are a very common data structure not returned by /retrieve via 
 
 ```{r matrix}
 mat <- retrieveMatrix(
+    target = prod,
     projectName = "example",
     modelName = "rna_seq",
     recordNames = "all",
@@ -380,6 +393,7 @@ This function attempts to simplify the process of obtaining "metadata" from mode
 
 ```{r meta}
 meta <- retrieveMetadata(
+    target = prod,
     projectName = "example",
     meta_modelName = "subject",
     meta_attributeNames = "all",

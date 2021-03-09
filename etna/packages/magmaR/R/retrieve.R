@@ -1,9 +1,5 @@
 #' Download data from magma as a tsv, and convert to a data.frame
-#' @param token Single string. Your personal token from \url{https://janus.ucsf.edu}. 
-#' 
-#' When not explicitly given in a function call: you will be prompted to input your token, one time.
-#' This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
-#' and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.
+#' @param target A list, which can be created using \code{\link{magmaRset}}, containing your authorization 'token' (a string), a 'url' of magma to target (a string), and optional 'opts' for specifying additions parameters for curl requests (a named list).
 #' @param projectName Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.
 #' @param modelName Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
 #' For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.

@@ -13,6 +13,8 @@ updateValues(
 )
 }
 \arguments{
+\item{target}{A list, which can be created using \code{\link{magmaRset}}, containing your authorization 'token' (a string), a 'url' of magma to target (a string), and optional 'opts' for specifying additions parameters for curl requests (a named list).}
+
 \item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
 \item{revisions}{A list of named lists containing the data to be updated.

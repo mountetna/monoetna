@@ -17,6 +17,8 @@ retrieve(
 )
 }
 \arguments{
+\item{target}{A list, which can be created using \code{\link{magmaRset}}, containing your authorization 'token' (a string), a 'url' of magma to target (a string), and optional 'opts' for specifying additions parameters for curl requests (a named list).}
+
 \item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
 \item{modelName}{Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
@@ -41,12 +43,6 @@ for troubleshooting or advanced-user purposes only: \itemize{
 \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
 \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 }}
-
-\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
-
-When not explicitly given in a function call: you will be prompted to input your token, one time.
-This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
-and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 }
 \value{
 A dataframe

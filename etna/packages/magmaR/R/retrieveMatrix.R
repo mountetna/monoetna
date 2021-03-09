@@ -27,7 +27,6 @@ retrieveMatrix <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
-    token = .get_TOKEN(),
     ...
 ) {
     

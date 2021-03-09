@@ -52,19 +52,19 @@
 #'
 
 query <- function(
+    target,
     projectName,
     queryTerms = list(),
     format = c("list", "df"),
-    token = .get_TOKEN(),
     ...
 ) {
     
     format <- match.arg(format)
     
     raw <- .query(
+        target = target,
         projectName = projectName,
         queryTerms = queryTerms,
-        token = token,
         ...)
     
     if (format == "list") {
@@ -78,12 +78,11 @@ query <- function(
 }
 
 .query <- function(
+    target,
     projectName,
     queryTerms = list(),
     request.only = FALSE,
     json.params.only = FALSE,
-    url.base = .get_URL(),
-    token = .get_TOKEN(),
     verbose = FALSE
 ) {
     
@@ -106,7 +105,7 @@ query <- function(
     ### Perform '\query'
     curl_out <- .perform_curl_get(
         fxn = "/query",
-        requestBody, token, url.base,
+        target, requestBody,
         parse = TRUE, verbose = verbose)
     
     ### Output

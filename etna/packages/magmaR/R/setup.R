@@ -22,12 +22,12 @@
 #'     # TARGET = staging:
 #'     # Give the proper url.
 #'     # Again, because we are not providing our token to the call, it will ask.
-#'     stage <- magmaRset(url = https://magma-stage.ucsf.edu)
+#'     stage <- magmaRset(url = "https://magma-stage.ucsf.edu")
 #'     
 #'     # We can also give additional curl options to the 'opts' input:
 #'     prod_opts <- magmaRset(
 #'         token = prod$token,
-#'         opts = <fill_in_something>) 
+#'         opts = list(proxyport = 1234)) 
 #'     
 #'     # Now we can retrieve data with...
 #'     retrieve(

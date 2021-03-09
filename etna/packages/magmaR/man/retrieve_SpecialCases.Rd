@@ -10,13 +10,15 @@
 \usage{
 retrieveTemplate(target, projectName, ...)
 
-retrieveModels(tagret, projectName, ...)
+retrieveModels(target, projectName, ...)
 
 retrieveIds(target, projectName, modelName, ...)
 
 retrieveAttributes(target, projectName, modelName, ...)
 }
 \arguments{
+\item{target}{A list, which can be created using \code{\link{magmaRset}}, containing your authorization 'token' (a string), a 'url' of magma to target (a string), and optional 'opts' for specifying additions parameters for curl requests (a named list).}
+
 \item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
 \item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,

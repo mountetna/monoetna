@@ -5,16 +5,18 @@
 \title{Retrieve data from one model ("meta") of a project, for records that are linked to records of data from a different model ("target").}
 \usage{
 retrieveMetadata(
+  target,
   projectName,
   meta_modelName,
   meta_attributeNames = "all",
   target_modelName,
   target_recordNames = "all",
-  token = .get_TOKEN(),
   ...
 )
 }
 \arguments{
+\item{target}{A list, which can be created using \code{\link{magmaRset}}, containing your authorization 'token' (a string), a 'url' of magma to target (a string), and optional 'opts' for specifying additions parameters for curl requests (a named list).}
+
 \item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
 \item{meta_modelName, meta_attributeNames}{Strings which indicate the "meta"data to retrieve.
@@ -25,12 +27,6 @@ They work the same as inputs of other functions without the \code{target_} porti
 these inputs ultimately set which records of "meta" model data to actually obtain.
 
 \strong{The idea here...} is retrieval of "meta"data, such as patient-level data, to go alongside of a separate download (separate call) of "target" assay data that might be part of a different model.}
-
-\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
-
-When not explicitly given in a function call: you will be prompted to input your token, one time.
-This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
-and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
 
 \item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{

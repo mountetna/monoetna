@@ -39,15 +39,15 @@
 #' }
 #'
 retrieveMetadata <- function(
+    target,
     projectName,
     meta_modelName,
     meta_attributeNames = "all",
     target_modelName,
     target_recordNames = "all",
-    token = .get_TOKEN(),
     ...) {
     
-    temp <- retrieveTemplate(projectName, token = token, ...)
+    temp <- retrieveTemplate(target, projectName)
     
     ### Establish linkage and retrieve identifier mappings
     paths <- .obtain_linkage_paths(target_modelName, meta_modelName, temp)
@@ -55,9 +55,9 @@ retrieveMetadata <- function(
     
     ### Target data
     target_id_map <- .map_identifiers_by_path(
+        target = target,
         path = paths$target_path,
         projectName = projectName,
-        token = token,
         ...)
     
     if (!identical(target_recordNames, "all")) {
@@ -68,10 +68,10 @@ retrieveMetadata <- function(
     # Determine linked records
     if (separate_branches) {
         meta_id_map <- .map_identifiers_by_path(
-        path = paths$meta_path,
-        projectName = projectName,
-        token = token,
-        ...)
+            target = target,
+            path = paths$meta_path,
+            projectName = projectName,
+            ...)
     
         # Subset meta side to matching data
         meta_id_map <- meta_id_map[
@@ -89,11 +89,9 @@ retrieveMetadata <- function(
     
     ### Retrieve metadata
     meta_raw <- retrieve(
-        projectName = projectName, modelName = meta_modelName,
+        target = target, projectName = projectName, modelName = meta_modelName,
         recordNames = meta_record_names,
-        attributeNames = meta_attributeNames,
-        token = token,
-        ...)
+        attributeNames = meta_attributeNames)
     
     ### Ensure metadata has 1 row per linked target data row
     # Find identifier column
@@ -176,7 +174,7 @@ retrieveMetadata <- function(
 }
 
 .map_identifiers_by_path <- function(
-    path, projectName, token = .get_TOKEN(), ...) {
+    target, path, projectName, ...) {
     # Function takes in a vector of model names, 'path', for a given project,
     # then makes query() calls to obtain child-parent identifier linkage for
     # all successive pairs of target models. Output is a data.frame which can
@@ -184,21 +182,22 @@ retrieveMetadata <- function(
     # models named in 'paths'
     
     ids <- query(
-            projectName = projectName,
-            queryTerms = 
-                list(path[1],
-                     '::all',
-                     path[2],
-                     '::identifier'),
-            format = "df",
-            token = token,
-            ...)
+        target = target,
+        projectName = projectName,
+        queryTerms = 
+            list(path[1],
+                 '::all',
+                 path[2],
+                 '::identifier'),
+        format = "df",
+        ...)
     
     ind <- 2
     
     while (ind < length(path)) {
         
         new_id_map <- query(
+            target = target,
             projectName = projectName,
             queryTerms = 
                 list(path[ind],
@@ -206,7 +205,6 @@ retrieveMetadata <- function(
                      path[ind+1],
                      '::identifier'),
             format = "df",
-            token = token,
             ...)
         
         if (any(duplicated(new_id_map[1,]))) {

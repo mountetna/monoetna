@@ -58,7 +58,7 @@ retrieveTemplate <- function(
 #' @describeIn retrieve_SpecialCases Retrieve the modelNames for a given project
 #' @export
 retrieveModels <- function(
-    tagret,
+    target,
     projectName,
     ...
 ) {
