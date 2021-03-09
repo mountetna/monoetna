@@ -40,7 +40,7 @@ class TestTemplateTree(TestCase):
     def test_traverseToModel(self):
         newPath = self.templateTree.traverseToModel('rna_seq', 'flow')
         self.assertTrue(isinstance(newPath, list))
-        self.assertEqual(newPath, ['biospecimen', 'flow'])
+        self.assertEqual(newPath, ['biospecimen', 'flow', '::all'])
 
 
 if __name__ == '__main__':
