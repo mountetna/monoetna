@@ -1,4 +1,4 @@
-from ..Geoline.geoUtils import *
+from Geoline.geoUtils import *
 from functools import partial
 
 def samplesSection(assay: str) -> Dict:

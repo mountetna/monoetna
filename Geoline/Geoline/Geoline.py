@@ -6,8 +6,8 @@ import re
 
 from magby.Magby import Magby
 
-from ..Geoline.seqTemplate import *
-from ..Geoline.TemplateTree import *
+from Geoline.seqTemplate import *
+from Geoline.TemplateTree import *
 
 '''
 TODO 

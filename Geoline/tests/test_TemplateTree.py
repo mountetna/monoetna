@@ -1,9 +1,11 @@
+import unittest
+
 from unittest import TestCase
 
 from magby import Magby
-from ..tests.testUtils import *
+from testUtils import *
 
-from ..Geoline.TemplateTree import *
+from Geoline.TemplateTree import *
 
 url = 'https://magma.ucsf.edu'
 token = 'token'
@@ -39,3 +41,7 @@ class TestTemplateTree(TestCase):
         newPath = self.templateTree.traverseToModel('rna_seq', 'flow')
         self.assertTrue(isinstance(newPath, list))
         self.assertEqual(newPath, ['biospecimen', 'flow'])
+
+
+if __name__ == '__main__':
+    unittest.main()

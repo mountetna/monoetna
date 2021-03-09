@@ -11,6 +11,7 @@ setup(
     description='Interactive submissions to GEO using data in DSCo Lab Data Library',
     python_requires='>=3.6',
 	install_requires=['betamax',
-                      'betamax_serializers'],
+                      'betamax_serializers',
+                      'pandas'],
 
 )

@@ -112,4 +112,17 @@ jobs:
           pip install etna/packages/magby/
           python etna/packages/magby/tests/test_Magby.py
           python etna/packages/magby/tests/test_Magma.py
+      - name: Run Geoline tests
+        id: geoline_first_test_run
+        env:
+          IMAGES_PREFIX: etnaagent/
+          IS_CI: 1
+          CI_SECRET: ${{ secrets.CI_SECRET }}
+          IMAGES_POSTFIX: :master
+        run: |
+          python -m pip install --upgrade pip
+          pip install Geoline/
+          python Geoline/tests/test_Geoline.py
+          python Geoline/tests/test_geoUtils.py
+          python Geoline/tests/test_TemplateTree.py
 

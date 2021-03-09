@@ -1,11 +1,12 @@
+import unittest
 from unittest import TestCase
 from unittest.mock import patch
 from pandas import DataFrame
 
 from magby import Magby
-from ..tests.testUtils import *
+from testUtils import *
 
-from ..Geoline.Geoline import *
+from Geoline.Geoline import *
 
 url = 'https://magma.ucsf.edu'
 token = 'token'
@@ -118,7 +119,8 @@ class TestGeoline(TestCase):
                 self.assertEqual(samples.shape, (12,8))
                 self.assertEqual(samples.title[0], 'EXAMPLE-HS10-WB1-RSQ1')
 
-
+if __name__ == '__main__':
+    unittest.main()
 
 
 
