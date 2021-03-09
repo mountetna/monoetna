@@ -69,8 +69,6 @@ class Vulcan
           "-v",
           "/var/run/docker.sock:/var/run/docker.sock:ro",
           "-v",
-          "/app/magby:/app/magby",
-          "-v",
           "#{Vulcan.instance.config(:archimedes_exec_volume)}:/archimedes-exec",
           Vulcan.instance.config(:archimedes_run_image),
           "poetry",
