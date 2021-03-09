@@ -1,1 +1,1 @@
-from .env import token
+from .env import token, magma_host

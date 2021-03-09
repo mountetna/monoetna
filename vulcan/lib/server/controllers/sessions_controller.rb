@@ -76,7 +76,7 @@ class SessionsController < Vulcan::Controller
     end
 
     begin
-      orchestration.run_until_done!(storage)
+      orchestration.run_until_done!(storage, @user.token)
     rescue Vulcan::Orchestration::RunErrors => e
       run_errors = e
     end

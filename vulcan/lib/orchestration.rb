@@ -13,7 +13,7 @@ class Vulcan
 
     MAX_RUNNABLE = 20
 
-    def run_until_done!(storage)
+    def run_until_done!(storage, token=nil)
       load_json_inputs!(storage)
       [].tap do |ran|
         errors = RunErrors.new
@@ -23,7 +23,7 @@ class Vulcan
             next_runnable = runnables.find { |r| !errors.include?(r) }
             break if next_runnable.nil?
 
-            run!(storage: storage, build_target: runnables.first)
+            run!(storage: storage, build_target: runnables.first, token: token)
           rescue => e
             errors << {cell_hash: runnables.first.cell_hash, error: e}
           ensure
@@ -60,7 +60,7 @@ class Vulcan
       end
     end
 
-    def command(storage:, input_files:, output_files:)
+    def command(storage:, input_files:, output_files:, token:)
       [
           "docker",
           "run",
@@ -75,6 +75,10 @@ class Vulcan
           "run",
           "archimedes-run",
           "--isolator=docker",
+          "-e",
+          "MAGMA_HOST=#{Vulcan.instance.config(:magma)&.dig(:host)}",
+          "-e",
+          "TOKEN=#{token}",
           "--image=" + Vulcan.instance.config(:archimedes_image),
       ] + output_files.map do |sf|
         "--output=#{sf.to_archimedes_storage_file(storage)}"
@@ -83,11 +87,15 @@ class Vulcan
       end
     end
 
-    def run_script!(storage:, script:, input_files:, output_files:)
+    def run_script!(storage:, script:, input_files:, output_files:, token:)
       status = nil
       output_str = nil
 
-      cmd = command(storage: storage, input_files: input_files, output_files: output_files)
+      cmd = command(
+        storage: storage,
+        input_files: input_files,
+        output_files: output_files,
+        token: token)
       Open3.popen2(*cmd) do |input, output, wait_thr|
         input.print(script)
         input.close
@@ -107,7 +115,7 @@ class Vulcan
       Pathname.new(to).relative_path_from(Pathname.new(::File.dirname(from))).to_s
     end
 
-    def run!(storage:, build_target:)
+    def run!(storage:, build_target:, token:)
       storage.with_build_transaction(build_target) do |output_files|
         script = build_target.script
         if script.is_a?(Hash)
@@ -128,7 +136,8 @@ class Vulcan
         elsif script
           result = run_script!(
               storage: storage, input_files: build_target.input_files,
-              output_files: output_files, script: script
+              output_files: output_files, script: script,
+              token: token
           )
 
           if (error = result["error"])
