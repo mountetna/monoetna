@@ -1,0 +1,1 @@
+from magby import Magby

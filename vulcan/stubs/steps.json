@@ -23,48 +23,55 @@
     [
       {
         "name": "query_magma",
-        "run": "query-mvir1-sc_rna_seq_pools.cwl",
+        "run": "query-mvir1-sc_rna_seq_recs.cwl",
         "in": [],
-        "out": ["sc_rna_seq_pool_names"]
+        "out": ["record_ids"]
       },
       {
-        "name": "ui_pick_subset",
-        "run": "ui-query-magma.cwl",
+        "name": "magma_query_paths",
+        "run": "magma_query_paths.cwl",
         "in": {
-          "all_pool_names": "query_magma/sc_rna_seq_pool_names"
+          "all_pool_names": "query_magma/record_ids"
         },
-        "out": ["subset_sc_rna_pool_names"]
+        "out": ["h5_locations"]
+      },
+      {
+        "name": "merge_anndata_from_ram_h5",
+        "run": "merge_anndata_from_raw_h5",
+        "in": {
+          "h5_locations": "query_magma/h5_locations"
+        }
       },
       {
         "name": "subset_normalize_and_select_features",
         "run": "subset_normalize_and_select_features.cwl",
         "in": {
-          "sc_rna_seq_pools": "ui_pick_subset/subset_sc_rna_pool_names",
+          "merged_anndata": "magma_query_paths/merged_anndata",
           "min_nCounts": "min_nCounts",
           "max_nCounts": "max_nCounts",
           "min_nFeatures": "min_nFeatures",
           "max_per_mito": "max_per_mito",
           "max_per_ribo": "max_per_ribo"
         },
-        "out": ["sc_rna_seq_normalized_data"]
+        "out": ["normed_anndata"]
       },
       {
         "name": "regress_and_pca",
         "run": "regress_and_pca.cwl",
         "in": {
-          "data": "subset_normalize_and_select_features/sc_rna_seq_normalized_data",
-          "counts": "regress_nCounts",
-          "genes": "regress_nFeatures",
-          "per_mito": "regress_per_mito",
-          "per_ribo": "regress_per_ribo"
+          "data": "subset_normalize_and_select_features/normed_anndata",
+          "counts": "regress_counts",
+          "genes": "regress_genes",
+          "per_mito": "regress_pct_mito",
+          "per_ribo": "regress_pct_ribo"
         },
-        "out": ["pca_output_data"]
+        "out": ["pca_anndata"]
       },
       {
         "name": "umap",
         "run": "umap.cwl",
         "in": {
-          "data": "regress_and_pca/pca_output_data",
+          "data": "regress_and_pca/pca_anndata",
           "max_pc": "max_pc"
         },
         "out": ["umap_data"]
