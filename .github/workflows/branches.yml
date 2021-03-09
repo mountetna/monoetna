@@ -112,7 +112,7 @@ jobs:
           pip install etna/packages/magby/
           python etna/packages/magby/tests/test_Magby.py
           python etna/packages/magby/tests/test_Magma.py
-      - name: Run Geoline tests
+      - name: Run geoline tests
         id: geoline_first_test_run
         env:
           IMAGES_PREFIX: etnaagent/

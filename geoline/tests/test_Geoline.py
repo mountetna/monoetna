@@ -4,9 +4,9 @@ from unittest.mock import patch
 from pandas import DataFrame
 
 from magby import Magby
-from testUtils import *
 
-from Geoline.Geoline import *
+from testUtils import *
+from geoline.Geoline import *
 
 url = 'https://magma.ucsf.edu'
 token = 'token'

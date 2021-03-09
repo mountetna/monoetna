@@ -6,8 +6,8 @@ import re
 
 from magby.Magby import Magby
 
-from Geoline.seqTemplate import *
-from Geoline.TemplateTree import *
+from geoline.seqTemplate import *
+from geoline.TemplateTree import *
 
 '''
 TODO 
@@ -25,7 +25,7 @@ def specialColumns(functionOfColumn):
     return specialColumnsWrapper
 
 class GeolineError(Exception):
-    '''Errors corresponding to misuse of Geoline'''
+    '''Errors corresponding to misuse of geoline'''
 
 
 class Geoline:
@@ -47,7 +47,7 @@ class Geoline:
         query = self._constructMultiModelQuery(modelGroups, primaryModel, **kwargs)
         answer = self._magbyInstance.query(self._projectName, query, **kwargs)
         if 'errors' in answer.keys():
-            raise GeolineError(f'Geoline._workflow(): Malformed magma query {answer["errors"]}')
+            raise GeolineError(f'geoline._workflow(): Malformed magma query {answer["errors"]}')
         flatAnswer = self._queryWrapper(answer['answer'], answer['format'])
         answerDF = self._organizeAnswerDFColumns(DataFrame(flatAnswer), attributeMaps)
         return answerDF
@@ -99,7 +99,7 @@ class Geoline:
     def _selectWorkflow(self, template: Callable, assay: str) -> Dict:
         allowedAssays = ['rna_seq', 'dna_seq', 'sc_seq']
         if assay not in allowedAssays:
-            raise GeolineError(f'Geoline.selectWorkflow(): unrecognized assay {assay}'
+            raise GeolineError(f'geoline.selectWorkflow(): unrecognized assay {assay}'
                                f'allowed assays are {allowedAssays}')
         workflow = template(assay)
         updated = self._updater(workflow)
@@ -174,9 +174,9 @@ class Geoline:
     def _convertModelAttrToColumn(self, modelAttr: str) -> str:
         '''
         A query to magma returns an answer with "columns" in the format {project::model#attr}.
-        Need to convert it to {model:attr} here called Geoline Format - to further map to GEO metadata fields
+        Need to convert it to {model:attr} here called geoline Format - to further map to GEO metadata fields
         :param modelAttr: str. Magma format
-        :return: str. Geoline format
+        :return: str. geoline format
         '''
         dropProject = modelAttr.split("::")[1]
         return dropProject.replace("#", ":")
