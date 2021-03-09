@@ -2,6 +2,7 @@ from typing import List, Dict
 import functools
 from functools import partial
 from pandas import DataFrame
+import re
 
 from magby.Magby import Magby
 
@@ -35,16 +36,23 @@ class Geoline:
         self._projectName = projectName
 
 
-    def seqWorkflows(self, assay: str, primaryModel: str, **kwargs) -> None:
+    def seqWorkflows(self, assay: str, primaryModel: str, **kwargs) -> List:
         templates = [samplesSection, processedFilesSection, rawFilesSection]
         attributeMaps = [self._selectWorkflow(x, assay) for x in templates]
-        flatAnswers = [self._workflow(x, primaryModel, **kwargs) for x in attributeMaps]
-        answerDFs = [self._organizeAnswerDFColumns(DataFrame(x[0]), x[1]) for x in zip(flatAnswers, attributeMaps)]
+        answerDFs = [self._workflow(x, primaryModel, **kwargs) for x in attributeMaps]
+        return answerDFs
 
+    def _workflow(self, attributeMaps: Dict, primaryModel: str, **kwargs) -> DataFrame:
+        modelGroups = self._grouper(attributeMaps)
+        query = self._constructMultiModelQuery(modelGroups, primaryModel, **kwargs)
+        answer = self._magbyInstance.query(self._projectName, query, **kwargs)
+        if 'errors' in answer.keys():
+            raise GeolineError(f'Geoline._workflow(): Malformed magma query {answer["errors"]}')
+        flatAnswer = self._queryWrapper(answer['answer'], answer['format'])
+        answerDF = self._organizeAnswerDFColumns(DataFrame(flatAnswer), attributeMaps)
+        return answerDF
 
-
-
-    def _organizeAnswerDFColumns(self, answerDF: DataFrame, attrMap: Dict):
+    def _organizeAnswerDFColumns(self, answerDF: DataFrame, attrMap: Dict) -> DataFrame:
         organizedDF = DataFrame()
         for geoField in attrMap:
             if attrMap[geoField] in answerDF.columns:
@@ -52,16 +60,6 @@ class Geoline:
             else:
                 organizedDF[geoField] = ['Not in Magma'] * answerDF.shape[0]
         return organizedDF
-
-
-
-
-    def _workflow(self, attributeMaps: Dict, primaryModel: str, **kwargs) -> List:
-        modelGroups = self._grouper(attributeMaps)
-        query = self._constructMultiModelQuery(modelGroups, primaryModel, **kwargs)
-        answer = self._magbyInstance.query(self._projectName, query, **kwargs)
-        flatAnswer = self._queryWrapper(answer['answer'], answer['format'])
-        return flatAnswer
 
 
     def _constructMultiModelQuery(self, modelGroup: Dict, primaryModelName: str, **kwargs) -> List:
@@ -77,11 +75,14 @@ class Geoline:
                                f'{list(modelGroup.keys())}')
         primaryModel = modelGroup.pop(primaryModelName)
         primaryModelAttributes = list(self._extractAttributes(primaryModel))
-        templateTree = TemplateTree(self._getGlobalTemplate(**kwargs))
+        globalTemplate = self._getGlobalTemplate(**kwargs)
+        templateTree = TemplateTree(globalTemplate)
         for model in modelGroup:
             if model != '':
                 pathToModel = templateTree.traverseToModel(primaryModelName, model)
                 modelAttrMap = self._extractAttributes(modelGroup[model])
+                #   special treatment of FILE and FILE_COLLECTION attr types
+                modelAttrMap = [[x, '::all'] if self._isFile(x) else x for x in modelAttrMap]
                 pathToModel.append(modelAttrMap)
                 primaryModelAttributes.append(pathToModel)
         primaryQuery = [primaryModelName, '::all']
@@ -89,6 +90,11 @@ class Geoline:
         return primaryQuery
 
 
+    def _getAttrType(self, globalTemplate: Dict, model: str, attribute: str) -> str:
+        return globalTemplate['models'][model]['template']['attributes'][attribute]['attribute_type']
+
+    def _isFile(self, attrType: str) -> bool:
+        return bool(re.search('file', attrType))
 
     def _selectWorkflow(self, template: Callable, assay: str) -> Dict:
         allowedAssays = ['rna_seq', 'dna_seq', 'sc_seq']
