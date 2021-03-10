@@ -63,6 +63,20 @@ class Vulcan
       end
     end
 
+    def is_dev?
+      :development == Vulcan.instance.environment
+    end
+
+    def dev_options
+      [
+        "--network=monoetna_edge_net",
+        "--extra-host=magma.development.local:172.16.238.10",
+        "--extra-host=metis.development.local:172.16.238.10",
+        "-e",
+        "ARCHIMEDES_ENV=#{Vulcan.instance.environment}",
+      ]
+    end
+
     def command(storage:, input_files:, output_files:, token:)
       [
           "docker",
@@ -79,15 +93,11 @@ class Vulcan
           "poetry",
           "run",
           "archimedes-run",
-          "--isolator=docker",
-          "--network=monoetna_edge_net",
-          "--extra-host=magma.development.local:172.16.238.10",
-          "--extra-host=metis.development.local:172.16.238.10",
+          "--isolator=docker"
+      ] + (is_dev? ? dev_options : []) + [
           "--local-package=#{local_package_path('magby', '/app/../etna/packages/magby/magby/')}",
           "-e",
           "MAGMA_HOST=#{Vulcan.instance.config(:magma)&.dig(:host)}",
-          "-e",
-          "ARCHIMEDES_ENV=#{Vulcan.instance.environment}",
           "-e",
           "TOKEN=#{token}",
           "--image=" + Vulcan.instance.config(:archimedes_image),
