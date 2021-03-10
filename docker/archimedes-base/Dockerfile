@@ -40,9 +40,9 @@ RUN python /opt/get-poetry.py --version $POETRY_VERSION
 
 # Make sure Magby is always available in the image so
 #   that it can be used in Vulcan.
-RUN git clone --depth 1 https://github.com/mountetna/monoetna.git /tmp/monoetna && \
-    cd /tmp/monoetna && \
-    mkdir /app/magby && cp -rf /tmp/monoetna/etna/packages/magby/magby/* /app/magby/
+# RUN git clone --depth 1 https://github.com/mountetna/monoetna.git /tmp/monoetna && \
+#     cd /tmp/monoetna && \
+#     mkdir /app/magby && cp -rf /tmp/monoetna/etna/packages/magby/magby/* /app/magby/
 
 # Install R from CRAN repo, to get latest
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF'
