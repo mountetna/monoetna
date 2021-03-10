@@ -278,11 +278,11 @@ export const stepOutputs = (workflow, pathIndex, stepIndex) => {
   return workflow.steps[pathIndex][stepIndex].out;
 };
 
-export const stepIsLink = (step) => {
+export const downloadStepData = (step) => {
   return (
     hasUiOutput(step) &&
-    (step.run.split('/')[1] !== OUTPUT_COMPONENT.PLOTLY ||
-      step.run.split('/')[1] !== OUTPUT_COMPONENT.CONSIGNMENT)
+    (step.run.split('/')[1] === OUTPUT_COMPONENT.PLOTLY ||
+      step.run.split('/')[1] === OUTPUT_COMPONENT.CONSIGNMENT)
   );
 };
 
