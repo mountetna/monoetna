@@ -81,7 +81,7 @@ function addToDigest() {
 }
 function recursiveDigest() {
   if [[ -n "$digestOnly" ]]; then
-     find "$1" -type f ! -path '*/node_modules/*' ! -path '*/.npmrc' ! -path '*/.bundle/config' -exec md5sum {} \;
+     find "$1" -type f ! -path '*/node_modules/*' ! -path '*/.bundle/config' -exec md5sum {} \;
      echo
   fi
 }
@@ -94,7 +94,7 @@ function findNewest() {
     find=gfind
   fi
 
-  lastModifiedFile=$($find $1 -type f ! -path '*/node_modules/*' ! -path '*/.npmrc' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
+  lastModifiedFile=$($find $1 -type f ! -path '*/node_modules/*' ! -path '*/.bundle/config' -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2)
   if [ "$lastModifiedFile" -nt "$newestFile" ]; then
       newestFile="$lastModifiedFile"
    fi
@@ -130,24 +130,33 @@ findNewest "$(dirname $Dockerfile)"
 foundMounts=
 
 while (( "$#" )); do
-    if [[ "$1" == "--" ]]; then
+    mountPath=$1
+    skipLocalRebuild=
+    if [[ "$mountPath" == "--" ]]; then
       shift
       break
     fi
 
+    if [[ "$mountPath" =~ ^\? ]]; then
+      mountPath="${mountPath:1}"
+      skipLocalRebuild=1
+    fi
+
+    mountPath="$(realpath "$mountPath")"
+
     # Dedup mounts
-    if echo "$foundMounts" | grep "$(realpath "$1")" &>/dev/null; then
+    if echo "$foundMounts" | grep "$mountPath" &>/dev/null; then
       shift
       continue
     fi
 
-    foundMounts="$(realpath "$1")
+    foundMounts="$mountPath
 $foundMounts"
 
     #- While other dependencies are mounted as siblings to the 'src' directory using their basename.
-    mounts="$mounts --mount type=bind,source=$(realpath $1),target=/build/$(basename $1)"
-    recursiveDigest "$(realpath $1)" | addToDigest
-    findNewest "$1"
+    mounts="$mounts --mount type=bind,source=$mountPath,target=/build/$(basename $mountPath)"
+    recursiveDigest "$mountPath" | addToDigest
+    [[ -z "$skipLocalRebuild" ]] && findNewest "$mountPath"
     shift
 done
 

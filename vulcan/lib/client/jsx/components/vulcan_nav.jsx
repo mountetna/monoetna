@@ -1,7 +1,8 @@
 // Framework libraries.
-import * as React from 'react';
+import React, {useContext} from 'react';
 import {connect} from 'react-redux';
 
+import {VulcanContext} from '../contexts/vulcan';
 import Nav from 'etna-js/components/Nav';
 import Link from 'etna-js/components/link';
 import {selectUser} from 'etna-js/selectors/user-selector';
@@ -31,12 +32,16 @@ const Halo = ({radius}) => (
   </div>
 );
 
-const Logo = connect(({exchanges}) => ({exchanges}))(({exchanges}) => (
-  <div id='vulcan-logo'>
-    <div className='image' />
-    <Halo radius={25} />
-  </div>
-));
+function Logo() {
+  let {calculating} = useContext(VulcanContext);
+
+  return (
+    <div id='vulcan-logo' className={calculating ? 'throb' : null}>
+      <div className='image' />
+      <Halo radius={25} />
+    </div>
+  );
+}
 
 const getTabs = () => ({
   workflow: ROUTES.workflow(),
