@@ -36,4 +36,4 @@ scdata.raw = scdata
 scdata = scdata[:, scdata.var.highly_variable]
 
 ##### OUTPUT
-scdata.write(output_path('sc_rna_seq_normalized_data'))
+scdata.write(output_path('normed_anndata.h5ad'))

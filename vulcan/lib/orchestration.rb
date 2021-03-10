@@ -69,14 +69,22 @@ class Vulcan
           "-v",
           "/var/run/docker.sock:/var/run/docker.sock:ro",
           "-v",
+          "/etna/packages/magby/magby/:/app/magby/:ro",
+          "-v",
           "#{Vulcan.instance.config(:archimedes_exec_volume)}:/archimedes-exec",
           Vulcan.instance.config(:archimedes_run_image),
           "poetry",
           "run",
           "archimedes-run",
           "--isolator=docker",
+          "--network=monoetna_edge_net",
+          "--extra-host=magma.development.local:172.16.238.10",
+          "--extra-host=metis.development.local:172.16.238.10",
+          "--local-package=#{local_package_path('magby', '/app/../etna/packages/magby/magby/')}",
           "-e",
           "MAGMA_HOST=#{Vulcan.instance.config(:magma)&.dig(:host)}",
+          "-e",
+          "ARCHIMEDES_ENV=#{Vulcan.instance.environment}",
           "-e",
           "TOKEN=#{token}",
           "--image=" + Vulcan.instance.config(:archimedes_image),
@@ -85,6 +93,16 @@ class Vulcan
       end + input_files.map do |sf|
         "--input=#{sf.to_archimedes_storage_file(storage)}"
       end
+    end
+
+    def local_package_path(pkg_name, pkg_path)
+      path = pkg_path
+      if (host_dir_map = ENV['HOST_DIR_MAP'])
+        container_path, host_dir = host_dir_map.split('=', 2)
+        path.sub!(/^#{container_path}/, host_dir)
+      end
+
+      "#{pkg_name}:#{path}"
     end
 
     def run_script!(storage:, script:, input_files:, output_files:, token:)
@@ -96,10 +114,12 @@ class Vulcan
         input_files: input_files,
         output_files: output_files,
         token: token)
+      puts cmd
       Open3.popen2(*cmd) do |input, output, wait_thr|
         input.print(script)
         input.close
         output_str = output.read
+        puts output_str
         status = wait_thr.value.exitstatus
       end
 
