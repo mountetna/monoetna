@@ -2,8 +2,8 @@ import unittest
 from unittest import TestCase
 from magby import Magby
 
-from .testUtils import *
-from ..geoline.TemplateTree import *
+from testUtils import *
+from geoline.TemplateTree import *
 
 url = 'https://magma.ucsf.edu'
 token = 'token'

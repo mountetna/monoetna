@@ -6,8 +6,8 @@ import re
 
 from magby.Magby import Magby
 
-from ..geoline.seqTemplate import *
-from ..geoline.TemplateTree import *
+from geoline.seqTemplate import *
+from geoline.TemplateTree import *
 
 '''
 TODO 
@@ -120,7 +120,7 @@ class Geoline:
     # TODO refactor
     def _updater(self, section: Dict, prev: int=0, curr: int=0) -> Dict:
         # Check out of range
-        if (prev < 0) | (curr >= len(section)):
+        if (curr < 0) | (curr >= len(section)):
             return section
         attributeMap = list(section.items())[curr]
 
