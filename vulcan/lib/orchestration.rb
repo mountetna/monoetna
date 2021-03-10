@@ -49,7 +49,10 @@ class Vulcan
     # bad inputs.  Validating here would start to conflate potential storage or logic errors with simple user input
     # errors.
     def load_json_payload!(storage, reference)
-      if (payload = reference[:json_payload])
+      if (reference.key?(:json_payload))
+        # We want to write `false` files as well,
+        #   so do not use payload in the if conditional.
+        payload = reference[:json_payload]
         ms = material_source(reference)
         unless ::File.exists?(ms.build_output&.data_path(storage))
           storage.with_build_transaction(ms) do |build_files|
@@ -114,12 +117,10 @@ class Vulcan
         input_files: input_files,
         output_files: output_files,
         token: token)
-      puts cmd
       Open3.popen2(*cmd) do |input, output, wait_thr|
         input.print(script)
         input.close
         output_str = output.read
-        puts output_str
         status = wait_thr.value.exitstatus
       end
 
@@ -304,7 +305,7 @@ class Vulcan
     def material_reference_for_user_input(source, input)
       if session.include?(source)
         session.material_reference_for(source)
-      elsif input.default
+      elsif nil != input.default
         {json_payload: JSON.dump(input.default)}
       else
         {unfulfilled: source}

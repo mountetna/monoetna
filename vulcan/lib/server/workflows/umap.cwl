@@ -22,6 +22,22 @@ inputs:
     type: float
     default: 100
     label: 'Cell Filter: maximum percentage of reads per cell coming from ribosomal genes (from 0 to 100)'
+  regress_counts:
+    type: boolean
+    default: true
+    label: 'regress by number of counts per cell?'
+  regress_genes:
+    type: boolean
+    default: false
+    label: 'regress by number of genes per cell?'
+  regress_pct_mito:
+    type: boolean
+    default: true
+    label: 'regress by percent of reads from mitochondrial genes?'
+  regress_pct_ribo:
+    type: boolean
+    default: false
+    label: 'regress by percent of reads from ribosomal genes?'
   max_pc:
     type: int
     default: 15
@@ -42,6 +58,10 @@ steps:
       c: min_nFeatures
       d: max_per_mito
       e: max_per_ribo
+      f: regress_counts
+      g: regress_genes
+      h: regress_pct_mito
+      i: regress_pct_ribo
       j: max_pc
     out: [names]
   pickPools:
@@ -78,6 +98,10 @@ steps:
     label: 'Regress parameters (and then calculate PCA)'
     in:
       normed_anndata.h5ad: subset_normalize_and_select_features/normed_anndata.h5ad
+      regress_counts: regress_counts
+      regress_genes: regress_genes
+      regress_pct_mito: regress_pct_mito
+      regress_pct_ribo: regress_pct_ribo
     out: [pca_anndata.h5ad]
   calc_umap:
     run: scripts/calc_umap.cwl
