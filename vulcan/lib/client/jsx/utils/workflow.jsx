@@ -13,7 +13,7 @@ import {
 } from 'etna-js/components/inputs/numeric_input';
 import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
 
-import {TYPE, RUN} from '../models/steps';
+import {TYPE, RUN, OUTPUT_COMPONENT} from '../models/steps';
 
 export const stringify = (text) => {
   // For previewing data inputs / outputs, we just want a string
@@ -276,6 +276,14 @@ export const stepOutputs = (workflow, pathIndex, stepIndex) => {
     return [];
 
   return workflow.steps[pathIndex][stepIndex].out;
+};
+
+export const stepIsLink = (step) => {
+  return (
+    hasUiOutput(step) &&
+    (step.run.split('/')[1] !== OUTPUT_COMPONENT.PLOTLY ||
+      step.run.split('/')[1] !== OUTPUT_COMPONENT.CONSIGNMENT)
+  );
 };
 
 const plotType = (step) => {
