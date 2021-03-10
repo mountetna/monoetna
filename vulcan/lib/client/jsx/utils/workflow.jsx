@@ -6,6 +6,7 @@ import XYPlotModel from '../models/xy_plot';
 
 import ListInput from 'etna-js/components/inputs/list_input';
 import DropdownInput from 'etna-js/components/inputs/dropdown_input';
+import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import {
   IntegerInput,
   FloatInput
@@ -107,6 +108,19 @@ export const wrapEditableInputs = (inputs, handleInputChange) => {
           },
           key
         );
+      case TYPE.SELECT_AUTOCOMPLETE:
+        return wrapPaneItem({
+          name,
+          value: (
+            <DropdownAutocomplete
+              onSelect={(e) => {
+                handleInputChange(inputName, e);
+              }}
+              list={input.options || []}
+              defaultValue={input.default || null}
+            ></DropdownAutocomplete>
+          )
+        });
       default:
         return wrapPaneItem(
           {
@@ -150,6 +164,25 @@ export const inputNamesToHashStub = (inputNames) => {
 
 export const uiStepType = (step) => {
   return step.run.split('/')[1].replace('.cwl', '');
+};
+
+export const uiStepInputDataLink = ({step, pathIndex, status}) => {
+  // Pull out any previous step's output data link that is a required
+  //   input into this UI step.
+  // Assume a single input data link for now.
+  let previousStepName = step.in[0].source[0];
+  let outputKey = step.in[0].source[1];
+
+  let previousStep = status[pathIndex].find((s) => s.name === previousStepName);
+
+  if (
+    !previousStep ||
+    !previousStep.downloads ||
+    !previousStep.downloads[outputKey]
+  )
+    return null;
+
+  return previousStep.downloads[outputKey];
 };
 
 export const uiStepInputDataRaw = ({step, pathIndex, status}) => {

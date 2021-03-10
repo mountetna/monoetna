@@ -2,6 +2,8 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {findRoute, setRoutes} from './router';
 
+import {VulcanProvider} from './contexts/vulcan';
+
 // Components.
 import Browser from './components/browser';
 import RootView from 'etna-js/components/RootView';
@@ -75,12 +77,14 @@ class VulcanUI extends React.Component {
     return (
       <React.Fragment>
         <ModalDialogContainer>
-          <div id='ui-container'>
-            <Notifications />
-            <VulcanNav environment={environment} mode={mode} />
-            <Messages />
-            <Component key={key} {...params} />
-          </div>
+          <VulcanProvider>
+            <div id='ui-container'>
+              <Notifications />
+              <VulcanNav environment={environment} mode={mode} />
+              <Messages />
+              <Component key={key} {...params} />
+            </div>
+          </VulcanProvider>
         </ModalDialogContainer>
       </React.Fragment>
     );
