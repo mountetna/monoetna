@@ -1,4 +1,4 @@
-name: Build and upload staging artifacts
+name: Build and upload staging images
 on:
   push:
     branches:
