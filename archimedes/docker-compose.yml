@@ -23,3 +23,23 @@ services:
       HOST_DIR: $PWD
     entrypoint: /entrypoints/development.sh
     command: echo hello!
+
+    networks:
+      default:
+      edge_net:
+    extra_hosts:
+      - 'metis.development.local:172.16.238.10'
+      - 'magma.development.local:172.16.238.10'
+      - 'janus.development.local:172.16.238.10'
+      - 'timur.development.local:172.16.238.10'
+      - 'rtemis.development.local:172.16.238.10'
+      - 'archimedes.development.local:172.16.238.10'
+      - 'polyphemus.development.local:172.16.238.10'
+
+networks:
+  edge_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: '172.16.238.0/24'
+        - subnet: '2001:3984:3989::/64'
