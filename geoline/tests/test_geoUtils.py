@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 
-from geoline.geoUtils import *
+from ..geoline.geoUtils import *
 
 testDict = {
     'a': 'lol',
@@ -50,6 +50,7 @@ class Test(TestCase):
             aw = characteristics(addAnother, {})
             self.assertTrue(isinstance(aw, dict))
             self.assertEqual(aw, {'tissue': 'model:cancer'})
+
 
 
 if __name__ == '__main__':

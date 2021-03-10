@@ -23,13 +23,11 @@ def askAttribute(field: str, magmaAttr: str='') -> str:
     question = f'\nIs {magmaAttr} correct for {field}?\n' \
                f'ANSWER OPTIONS:\n{answerOptions}'
     answer = input(question)
-    if answer not in answerOptionsPre.keys():
-        while not verifyMapFormat(answer):
-            verification = f'\nThe answer {answer} is not in format model:attribute\n' \
-                           f'Provide a correctly formatted answer'
-            answer = input(verification)
+    while not verifyMapFormat(answer) and answer not in answerOptionsPre.keys():
+        verification = f'\nThe answer {answer} is not in format model:attribute\n' \
+                       f'Provide a correctly formatted answer'
+        answer = input(verification)
     return answer
-
 
 def askCharacteristics() -> Tuple:
     answerOptionsPre = {
@@ -41,9 +39,10 @@ def askCharacteristics() -> Tuple:
     }
     answerOptions = formatOptions(answerOptionsPre)
     answerKey = input(answerOptions)
-    if answerKey not in answerOptionsPre.keys():
-        raise KeyError(f'askCharacteristics(): selected answer {answerKey} is not an allowed option'
-                       f'Choose one from {list(answerOptionsPre.keys())}')
+    while answerKey not in answerOptionsPre.keys():
+        verification = f'\nThe answer {answerKey} is not in allowed answers\n' \
+                       f'Provide an allowed answer'
+        answerKey = input(verification)
     answerValue = input('Enter attribute name for this characteristic')
     while not verifyMapFormat(answerValue):
         verification = f'\nThe answer {answerValue} is not in format model:attribute\n' \
@@ -63,9 +62,10 @@ def addAnother() -> str:
     question = f'\nDo you want to add a sample characteristic?\n' \
                f'ANSWER OPTIONS:\n{answerOptions}'
     answer = input(question)
-    if answer not in answerOptionsPre.keys():
-        raise KeyError(f'addAnother(): selected answer {answer} is not an allowed option'
-                       f'Choose one from {list(answerOptionsPre.keys())}')
+    while answer not in answerOptionsPre.keys():
+        verification = f'\nThe answer {answer} is not in allowed answers\n' \
+                       f'Provide an allowed answer'
+        answer = input(verification)
     return answer
 
 

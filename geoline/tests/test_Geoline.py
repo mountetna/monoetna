@@ -5,8 +5,8 @@ from pandas import DataFrame
 
 from magby import Magby
 
-from testUtils import *
-from geoline.Geoline import *
+from .testUtils import *
+from ..geoline.Geoline import *
 
 url = 'https://magma.ucsf.edu'
 token = 'token'
@@ -107,17 +107,18 @@ class TestGeoline(TestCase):
         self.assertEqual(reduced[1], 'None; Bread Sample v1; None')
 
 
-    def test_eqWorkflows(self):
-        with patch('builtins.input', side_effect=['y', 'flow:stain', 'subject:group',
-                                                  'y', '1', 'rna_seq:fraction', 'n',  # characteristics
-                                                  '', '', '']):
-            with self.vcr as vcr:
-                vcr.use_cassette('Geoline_seqWorkflows')
-                attrMap = self.geoline._selectWorkflow(samplesSection, 'rna_seq')
-                samples = self.geoline._workflow(attrMap, 'rna_seq', session=self.session)
-                self.assertTrue(isinstance(samples, DataFrame))
-                self.assertEqual(samples.shape, (12,8))
-                self.assertEqual(samples.title[0], 'EXAMPLE-HS10-WB1-RSQ1')
+    def test_seqWorkflows(self):
+        #with patch('builtins.input', side_effect=['y', 'flow:stain', 'subject:group',
+        #                                          'y', '1', 'rna_seq:fraction', 'n',  # characteristics
+        #                                          '', '', '']):
+            #with self.vcr as vcr:
+            #    vcr.use_cassette('Geoline_seqWorkflows')
+            samples = self.geoline.seqWorkflow('rna_seq', 'rna_seq', session=self.session)
+            self.assertTrue(isinstance(samples, DataFrame))
+            self.assertEqual(samples.shape, (12,8))
+            self.assertEqual(samples.title[0], 'EXAMPLE-HS10-WB1-RSQ1')
+
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -6,8 +6,8 @@ import re
 
 from magby.Magby import Magby
 
-from geoline.seqTemplate import *
-from geoline.TemplateTree import *
+from ..geoline.seqTemplate import *
+from ..geoline.TemplateTree import *
 
 '''
 TODO 
@@ -30,19 +30,29 @@ class GeolineError(Exception):
 
 class Geoline:
     def __init__(self, url: str, token: str, projectName: str) -> None:
+        '''
+        Class to auto populate GEO metadata template
+        :param url: str. Magma url
+        :param token: str. Private token
+        :projectName: str. Name of the project
+        '''
         self._url = url
         self._token = token
         self._magbyInstance = Magby(url, token)
         self._projectName = projectName
 
 
-    def seqWorkflows(self, assay: str, primaryModel: str, **kwargs) -> List:
-        templates = [samplesSection, processedFilesSection, rawFilesSection]
-        attributeMaps = [self._selectWorkflow(x, assay) for x in templates]
-        answerDFs = [self._workflow(x, primaryModel, **kwargs) for x in attributeMaps]
-        return answerDFs
-
-    def _workflow(self, attributeMaps: Dict, primaryModel: str, **kwargs) -> DataFrame:
+    def seqWorkflow(self, assay: str, primaryModel: str, **kwargs) -> DataFrame:
+        '''
+        Function to trigger interactive auto population of the template.
+        :param assay: str. Assay type to focus on. Accepted 'rna_seq', 'dna_seq', 'sc_seq'
+        :param primaryModel: str. Name of the model that contains most of the data.
+        :param kwargs: Additional kwargs to pass to Magma class. Used for passing requests.Session with custom proxies
+                        and other attributes
+        :return: DataFrame with columns corresponding to the columns in the GEO meta data spreadsheet
+        '''
+        template = samplesSection
+        attributeMaps = self._selectWorkflow(template, assay)
         modelGroups = self._grouper(attributeMaps)
         query = self._constructMultiModelQuery(modelGroups, primaryModel, **kwargs)
         answer = self._magbyInstance.query(self._projectName, query, **kwargs)
@@ -51,6 +61,7 @@ class Geoline:
         flatAnswer = self._queryWrapper(answer['answer'], answer['format'])
         answerDF = self._organizeAnswerDFColumns(DataFrame(flatAnswer), attributeMaps)
         return answerDF
+
 
     def _organizeAnswerDFColumns(self, answerDF: DataFrame, attrMap: Dict) -> DataFrame:
         organizedDF = DataFrame()
