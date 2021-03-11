@@ -108,7 +108,6 @@ export const submit = (context) => {
               shouldDownloadStepData({workflow, pathIndex, stepIndex})
             ) {
               let dataUrl = step.downloads[download];
-              console.log('fetching data from', dataUrl);
               dataUrls.push(dataUrl);
               dataRequests.push(
                 // Don't want checkStatus here so that we
