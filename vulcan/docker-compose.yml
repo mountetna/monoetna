@@ -1,4 +1,3 @@
-
 version: '3.4'
 
 x-base-etna-service:
@@ -6,6 +5,7 @@ x-base-etna-service:
   image: etna-base-dev
   volumes: &base-etna-service-volumes
     - .:/app:delegated
+    - /var/run/docker.sock:/var/run/docker.sock:ro
     - vulcan-app-gems:/app/vendor/bundle:rw
     - vulcan-log-dir:/app/log:rw
     - vulcan-tmp-dir:/app/tmp:rw
@@ -106,4 +106,3 @@ networks:
 
 services:
   <<: *base-etna-services
-

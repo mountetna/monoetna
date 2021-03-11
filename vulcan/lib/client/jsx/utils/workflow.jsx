@@ -278,12 +278,25 @@ export const stepOutputs = (workflow, pathIndex, stepIndex) => {
   return workflow.steps[pathIndex][stepIndex].out;
 };
 
-export const downloadStepData = (step) => {
-  return (
-    hasUiOutput(step) &&
-    (step.run.split('/')[1] === OUTPUT_COMPONENT.PLOTLY ||
-      step.run.split('/')[1] === OUTPUT_COMPONENT.CONSIGNMENT)
-  );
+export const shouldDownloadStepData = ({workflow, pathIndex, stepIndex}) => {
+  // Only download step data if its output is an input to
+  //   a UI INPUT widget or a UI OUTPUT step that is Plotly or a
+  //   Consignment.
+  let step = workflow.steps[pathIndex][stepIndex];
+  let dependentSteps = workflow.steps[0].filter((s) => {
+    return (
+      (hasUiInput(s) ||
+        (hasUiOutput(s) &&
+          [OUTPUT_COMPONENT.PLOTLY, OUTPUT_COMPONENT.CONSIGNMENT].indexOf(
+            s.run.split('/')[1]
+          ) > -1)) &&
+      s.in.filter((input) => {
+        return step.name === input.source[0] && step.out[0] === input.source[1];
+      }).length > 0
+    );
+  });
+
+  return dependentSteps.length > 0;
 };
 
 const plotType = (step) => {

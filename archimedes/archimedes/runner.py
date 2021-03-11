@@ -177,7 +177,8 @@ class DockerIsolator(Isolator[Container]):
             "detach": True,
             "environment": environment,
             "volumes_from": volumes_from,
-            "mounts": mounts
+            "mounts": mounts,
+
         }
         if request.network is not None:
             params["network"] = request.network
