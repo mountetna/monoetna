@@ -32,4 +32,4 @@ sc.tl.pca(scdata, svd_solver='arpack')
 scdata
 
 ##### OUTPUT
-scdata.write(output_path('pca_anndata'))
+scdata.write(output_path('pca_anndata.h5ad'))
