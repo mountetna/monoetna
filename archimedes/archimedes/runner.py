@@ -54,7 +54,6 @@ class RunRequest:
     isolator: str = "docker"
     network: str = None
     extra_hosts: List[str] = field(default_factory=list)
-    local_packages: List[str] = field(default_factory=list)
 
 
 T = TypeVar('T')
@@ -140,14 +139,6 @@ class DockerIsolator(Isolator[Container]):
                            source=output_file.host_path)
                      for output_file in request.output_files
                  ]
-
-        if len(request.local_packages) > 0:
-            mounts += [
-                Mount(target=f"/app/{package.split(':')[0]}/",
-                     type='bind',
-                     source=package.split(':')[1])
-                for package in request.local_packages
-            ]
 
         environment = request.environment + [
             f"INPUTS_DIR={self.target_inputs_dir}",
@@ -337,8 +328,7 @@ def main():
     parser.add_argument('-e', '--env', dest='env', action='append', help="environment variables of the form ABC=abc")
     parser.add_argument('--network', dest='network', default=None, help="docker network name")
     parser.add_argument('--extra-host', dest='extra_hosts', action='append', help="host mappings to add to /etc/hosts, of the form hostname:ip-addr")
-    parser.add_argument('--local-package', dest='local_packages', action='append', help="local python packages of the form name:/path/on/host/")
-    
+
     args = parser.parse_args()
 
     request: RunRequest = RunRequest(
@@ -350,7 +340,6 @@ def main():
         image=args.image,
         network=args.network or None,
         extra_hosts=args.extra_hosts or [],
-        local_packages=args.local_packages or []
     )
 
     result = RunResult(status='done', error=f"Did not run, isolator {request.isolator} unrecognized")
