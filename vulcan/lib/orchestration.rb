@@ -88,8 +88,6 @@ class Vulcan
           "-v",
           "/etna/packages/magby/magby/:/app/magby/:ro",
           "-v",
-          "vulcan-data-dir:/app/data/:rw",
-          "-v",
           "#{Vulcan.instance.config(:archimedes_exec_volume)}:/archimedes-exec",
           Vulcan.instance.config(:archimedes_run_image),
           "poetry",
