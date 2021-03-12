@@ -33,8 +33,6 @@ export default function StepOutput({step, stepIndex}) {
   // We need to extract the data from the input source.
   let rawInputData = uiStepInputDataRaw({step, pathIndex, status});
 
-  if (null == rawInputData) return null;
-
   let Component;
   switch (step.run.split('/')[1].replace('.cwl', '')) {
     case OUTPUT_COMPONENT.PLOTLY:
@@ -43,13 +41,15 @@ export default function StepOutput({step, stepIndex}) {
       //   data: <JSON>,
       //   layout: <JSON>
       // }
-      if (!rawInputData.data || !rawInputData.layout) return null;
+      if (!rawInputData || !rawInputData.data || !rawInputData.layout)
+        return null;
       Component = (
         <Plot data={rawInputData.data} layout={rawInputData.layout}></Plot>
       );
       break;
     case OUTPUT_COMPONENT.CONSIGNMENT:
       // Not sure how to check consignment format?
+      if (!rawInputData) return null;
       Component = (
         <div className='consignment-view'>
           <ConsignmentTable
