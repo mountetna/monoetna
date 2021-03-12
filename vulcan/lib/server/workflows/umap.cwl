@@ -46,7 +46,7 @@ inputs:
 outputs:
   the_data:
     type: File
-    outputSource: calc_umap/umap_anndata.h5ad
+    outputSource: doUmapStuff/umap
 
 steps:
   queryMagma:
@@ -61,11 +61,11 @@ steps:
       f: regress_counts
       g: regress_genes
       h: regress_pct_mito
-      i: regress_pct_ribo
-      j: max_pc
+      j: regress_pct_ribo
+      k: max_pc
     out: [names]
   pickPools:
-    run: ui-queries/select-autocomplete.cwl
+    run: ui-queries/multiselect-string.cwl
     label: 'Select pool records'
     in:
       a: queryMagma/names
