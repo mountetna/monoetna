@@ -80,7 +80,10 @@ describe Vulcan::Orchestration do
         ])
 
         expect(next_buildable.script).to be_a(Hash)
-        orchestration.run!(storage: storage, build_target: next_buildable)
+        orchestration.run!(
+          storage: storage,
+          build_target: next_buildable,
+          token: 'test-token')
 
         expect(should_builds).to eql([
             [false, true, false, false, false, false],

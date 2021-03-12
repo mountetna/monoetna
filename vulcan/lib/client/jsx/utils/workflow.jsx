@@ -6,13 +6,14 @@ import XYPlotModel from '../models/xy_plot';
 
 import ListInput from 'etna-js/components/inputs/list_input';
 import DropdownInput from 'etna-js/components/inputs/dropdown_input';
+import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import {
   IntegerInput,
   FloatInput
 } from 'etna-js/components/inputs/numeric_input';
 import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
 
-import {TYPE, RUN} from '../models/steps';
+import {TYPE, RUN, OUTPUT_COMPONENT} from '../models/steps';
 
 export const stringify = (text) => {
   // For previewing data inputs / outputs, we just want a string
@@ -107,6 +108,19 @@ export const wrapEditableInputs = (inputs, handleInputChange) => {
           },
           key
         );
+      case TYPE.SELECT_AUTOCOMPLETE:
+        return wrapPaneItem({
+          name,
+          value: (
+            <DropdownAutocomplete
+              onSelect={(e) => {
+                handleInputChange(inputName, e);
+              }}
+              list={input.options || []}
+              defaultValue={input.default || null}
+            ></DropdownAutocomplete>
+          )
+        });
       default:
         return wrapPaneItem(
           {
@@ -150,6 +164,25 @@ export const inputNamesToHashStub = (inputNames) => {
 
 export const uiStepType = (step) => {
   return step.run.split('/')[1].replace('.cwl', '');
+};
+
+export const uiStepInputDataLink = ({step, pathIndex, status}) => {
+  // Pull out any previous step's output data link that is a required
+  //   input into this UI step.
+  // Assume a single input data link for now.
+  let previousStepName = step.in[0].source[0];
+  let outputKey = step.in[0].source[1];
+
+  let previousStep = status[pathIndex].find((s) => s.name === previousStepName);
+
+  if (
+    !previousStep ||
+    !previousStep.downloads ||
+    !previousStep.downloads[outputKey]
+  )
+    return null;
+
+  return previousStep.downloads[outputKey];
 };
 
 export const uiStepInputDataRaw = ({step, pathIndex, status}) => {
@@ -200,7 +233,7 @@ export const hasUiOutput = (step) => {
 
 export const defaultInputValues = (workflow) => {
   return Object.keys(workflow.inputs).reduce((result, inputName) => {
-    if (workflow.inputs[inputName].default) {
+    if (null != workflow.inputs[inputName].default) {
       result[inputName] = workflow.inputs[inputName].default;
     }
     return result;
@@ -221,8 +254,7 @@ export const allInputsDefined = (workflow, userInputs) => {
       // For multiselect, need to make sure the inputs are not
       //    [""] or []...
       return !(
-        null === userInput ||
-        undefined === userInput ||
+        null == userInput ||
         userInput !== userInput ||
         _.isEqual([''], userInput) ||
         _.isEqual([], userInput)
@@ -244,6 +276,37 @@ export const stepOutputs = (workflow, pathIndex, stepIndex) => {
     return [];
 
   return workflow.steps[pathIndex][stepIndex].out;
+};
+
+const stepDependsOn = (step, otherStep) => {
+  return (
+    step.in &&
+    step.in.filter((input) => {
+      return (
+        otherStep.name === input.source[0] &&
+        otherStep.out[0] === input.source[1]
+      );
+    }).length > 0
+  );
+};
+
+export const shouldDownloadStepData = ({workflow, pathIndex, stepIndex}) => {
+  // Only download step data if its output is an input to
+  //   a UI INPUT widget or a UI OUTPUT step that is Plotly or a
+  //   Consignment.
+  let step = workflow.steps[pathIndex][stepIndex];
+  let dependentSteps = workflow.steps[pathIndex].filter((s) => {
+    return (
+      (hasUiInput(s) ||
+        (hasUiOutput(s) &&
+          [OUTPUT_COMPONENT.PLOTLY, OUTPUT_COMPONENT.CONSIGNMENT].indexOf(
+            s.run.split('/')[1]
+          ) > -1)) &&
+      stepDependsOn(s, step)
+    );
+  });
+
+  return dependentSteps.length > 0;
 };
 
 const plotType = (step) => {

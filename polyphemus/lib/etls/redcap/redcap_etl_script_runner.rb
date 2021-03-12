@@ -55,13 +55,19 @@ class Polyphemus
       logger.write(JSON.pretty_generate(all_records))
       logger.write("\n")
 
-      @update_request = Etna::Clients::Magma::UpdateRequest.new(
-        project_name: @project_name,
-        revisions: all_records)
-
       if commit
         logger.write("Posting revisions.\n")
-        magma_client.update_json(update_request)
+
+        grouped_revisions = group_revisions(magma_models_wrapper, all_records)
+        grouped_revisions.each do |revision, index|
+          update_request = Etna::Clients::Magma::UpdateRequest.new(
+            project_name: @project_name,
+            revisions: revision)
+          logger.write("Sending revision #{index + 1} of #{grouped_revisions.length}.\n")
+          logger.write(revision)
+          magma_client.update_json(update_request)
+        end
+
         logger.write("Revisions saved to Magma.\n")
       end
 
@@ -132,6 +138,40 @@ EOM
         def patch(id, record)
         end
       })
+    end
+
+    def group_revisions(magma_models, all_records)
+      # We need to group any table records with
+      #   their parent records, so the temporary ids
+      #   line up.
+      grouped_revisions = []
+
+      record_models = all_records.keys
+      # Start the groupings with the non-table models
+      starting_models = record_models.select {|m| !magma_models.is_table?(m)}
+      starting_models.each do |model_name|
+        all_records[model_name].each do |model_record_name, revisions|
+          revision = {}
+          revision[model_name] = {}
+          revision[model_name][model_record_name] = revisions
+
+          # if any revision key is a table model, we need to
+          #   pull in the respective records.
+          revisions.keys.select do |attribute_name|
+            magma_models.is_table?(attribute_name)
+          end.each do |table_model_name|
+            revision[table_model_name] = {}
+
+            revisions[table_model_name].each do |table_record_name|
+              revision[table_model_name][table_record_name] = all_records[table_model_name.to_sym][table_record_name]
+            end
+          end
+
+          grouped_revisions << revision
+        end
+      end
+
+      grouped_revisions
     end
   end
 end

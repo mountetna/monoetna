@@ -3,15 +3,18 @@ import Plot from 'react-plotly.js';
 
 import ConsignmentTable from 'etna-js/plots/components/consignment/consignment_table';
 import Consignment from 'etna-js/plots/models/consignment';
+import Link from 'etna-js/components/link';
 
 import {VulcanContext} from '../../../contexts/vulcan';
+import {OUTPUT_COMPONENT} from '../../../models/steps';
 
 import StepName from './step_name';
 
 import {
   validStep,
   hasUiOutput,
-  uiStepInputDataRaw
+  uiStepInputDataRaw,
+  uiStepInputDataLink
 } from '../../../utils/workflow';
 
 export default function StepOutput({step, stepIndex}) {
@@ -30,23 +33,23 @@ export default function StepOutput({step, stepIndex}) {
   // We need to extract the data from the input source.
   let rawInputData = uiStepInputDataRaw({step, pathIndex, status});
 
-  if (null == rawInputData) return null;
-
   let Component;
   switch (step.run.split('/')[1].replace('.cwl', '')) {
-    case 'plotly':
+    case OUTPUT_COMPONENT.PLOTLY:
       // Plotly.js data payload should be in format of:
       // {
       //   data: <JSON>,
       //   layout: <JSON>
       // }
-      if (!rawInputData.data || !rawInputData.layout) return null;
+      if (!rawInputData || !rawInputData.data || !rawInputData.layout)
+        return null;
       Component = (
         <Plot data={rawInputData.data} layout={rawInputData.layout}></Plot>
       );
       break;
-    case 'consignment':
+    case OUTPUT_COMPONENT.CONSIGNMENT:
       // Not sure how to check consignment format?
+      if (!rawInputData) return null;
       Component = (
         <div className='consignment-view'>
           <ConsignmentTable
@@ -54,7 +57,14 @@ export default function StepOutput({step, stepIndex}) {
           ></ConsignmentTable>
         </div>
       );
+      break;
+    case OUTPUT_COMPONENT.LINK:
     default:
+      Component = (
+        <Link link={uiStepInputDataLink({step, pathIndex, status})}>
+          Download data here
+        </Link>
+      );
       break;
   }
 
