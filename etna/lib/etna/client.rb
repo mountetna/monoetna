@@ -165,6 +165,7 @@ module Etna
           OpenSSL::SSL::VERIFY_NONE :
           OpenSSL::SSL::VERIFY_PEER
         Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode) do |http|
+          http.use_ssl = true
           http.request(data) do |response|
             status_check!(response)
             yield response
@@ -175,6 +176,7 @@ module Etna
           OpenSSL::SSL::VERIFY_NONE :
           OpenSSL::SSL::VERIFY_PEER
         Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode) do |http|
+          http.use_ssl = true
           response = http.request(data)
           status_check!(response)
           return response
