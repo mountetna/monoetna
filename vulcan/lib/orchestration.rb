@@ -67,6 +67,7 @@ class Vulcan
       :development == Vulcan.instance.environment
     end
 
+    # Will go away when we get hmacs for inter service.
     def dev_options
       [
         "--network=monoetna_edge_net",
@@ -86,8 +87,6 @@ class Vulcan
           "-v",
           "/var/run/docker.sock:/var/run/docker.sock:ro",
           "-v",
-          "/etna/packages/magby/magby/:/app/magby/:ro",
-          "-v",
           "#{Vulcan.instance.config(:archimedes_exec_volume)}:/archimedes-exec",
           Vulcan.instance.config(:archimedes_run_image),
           "poetry",
@@ -95,12 +94,11 @@ class Vulcan
           "archimedes-run",
           "--isolator=docker"
       ] + (is_dev? ? dev_options : []) + [
-          "--local-package=#{local_package_path('magby', '/app/../etna/packages/magby/magby/')}",
           "-e",
           "MAGMA_HOST=#{Vulcan.instance.config(:magma)&.dig(:host)}",
           "-e",
           "TOKEN=#{token}",
-          "--image=" + Vulcan.instance.config(:archimedes_image),
+          "--image=" + Vulcan.instance.config(:archimedes_run_image),
       ] + output_files.map do |sf|
         "--output=#{sf.to_archimedes_storage_file(storage)}"
       end + input_files.map do |sf|

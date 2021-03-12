@@ -25,7 +25,6 @@ default: &default
   :token_name: JANUS_DEV_TOKEN
   :log_level: info
   :archimedes_run_image: etnaagent/archimedes
-  :archimedes_image:     etnaagent/archimedes
   :archimedes_exec_volume: archimedes-exec
   :log_file: /dev/stdout
   :rsa_public: |
@@ -56,7 +55,6 @@ default: &default
   :data_folder: /app/spec/data
   :workflows_folder: /app/spec/fixtures
   :archimedes_run_image: etnaagent/archimedes
-  :archimedes_image:     etnaagent/archimedes
   :log_file: /dev/stdout
   :log_level: info
   :archimedes_exec_volume: archimedes-exec
