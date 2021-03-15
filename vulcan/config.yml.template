@@ -8,6 +8,7 @@ default: &default
   :timeout: 5000
 
 :development:
+  :archimdes_token: your-production-token-to-use-in-development
   :magma:
     :host: https://magma.development.local
   :vulcan:
