@@ -6,7 +6,7 @@ gem 'rack'
 gem 'pg'
 gem 'sequel'
 gem 'fog-aws'
-gem 'puma', '5.0.2'
+gem 'puma', '>=5.0.2'
 gem 'etna', path: '/etna'
 gem 'concurrent-ruby'
 

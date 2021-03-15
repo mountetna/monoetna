@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 gem 'rack'
 gem 'sequel'
 gem 'pg'
-gem 'puma', '5.0.2'
+gem 'puma', '>=5.0.2'
 gem 'etna', git: 'https://github.com/mountetna/monoetna.git', branch: 'refs/artifacts/gem-etna/c953534aeaeb22cccf0f3004ed7b21d4d73d7686'
 gem 'actionpack' # For streaming the job controller results back...
 gem 'aspera-cli'
