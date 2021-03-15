@@ -26,12 +26,12 @@ export default function SessionManager() {
       firstRun
     ) {
       setCalculating(true);
+      setFirstRun(false);
 
       // See how much work can be done when the page loads
       submit(context)
         .then(() => {
           setCalculating(false);
-          setFirstRun(false);
         })
         .catch((e) => {
           console.error(e);

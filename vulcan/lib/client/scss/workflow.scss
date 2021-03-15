@@ -324,7 +324,7 @@ $button-background: #d66;
 .dropdown-autocomplete-options {
   list-style: none;
   margin-top: -1px;
-  width: 200px;
+  width: 300px;
   border: 1px solid lightgray;
   padding-left: 0px;
   border-radius: 2px;
@@ -340,7 +340,11 @@ $button-background: #d66;
 
 .dropdown-autocomplete-input-field {
   display: flex;
-  width: 200px;
+  width: 300px;
+
+  input {
+    width: 100%;
+  }
 
   .icon-wrapper {
     display: flex;

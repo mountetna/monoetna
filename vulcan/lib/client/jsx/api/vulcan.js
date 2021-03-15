@@ -7,6 +7,7 @@ import {
   headers,
   isJSON
 } from 'etna-js/utils/fetch';
+import {shouldDownloadStepData} from '../utils/workflow';
 
 const vulcanPath = (endpoint) => `${CONFIG.vulcan_host}${endpoint}`;
 
@@ -103,7 +104,8 @@ export const submit = (context) => {
                 oldStatus[pathIndex][stepIndex],
                 step,
                 download
-              )
+              ) &&
+              shouldDownloadStepData({workflow, pathIndex, stepIndex})
             ) {
               let dataUrl = step.downloads[download];
               dataUrls.push(dataUrl);
