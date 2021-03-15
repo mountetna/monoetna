@@ -13,7 +13,7 @@ import {
   missingUiInputs,
   inputNamesToHashStub,
   shouldDownloadStepData
-} from '..//workflow';
+} from '../workflow';
 
 describe('Workflow Utils', () => {
   describe('XY Plots', () => {
@@ -608,6 +608,7 @@ describe('Workflow Utils', () => {
       expect(result).toEqual(true);
     });
 
+<<<<<<< HEAD
     it('flags raw output as true', () => {
       const workflow = {
         steps: [
@@ -640,6 +641,8 @@ describe('Workflow Utils', () => {
       expect(result).toEqual(true);
     });
 
+=======
+>>>>>>> fix shouldDownload; add spec
     it('flags ui query as true', () => {
       const workflow = {
         steps: [
