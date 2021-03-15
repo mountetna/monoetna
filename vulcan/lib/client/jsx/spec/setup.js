@@ -4,10 +4,10 @@ import ReactModal from 'react-modal';
 ReactModal.setAppElement('*'); // suppresses modal-related test warnings.
 
 global.ROUTES = {
-  workflow: () => `/${CONFIG.project_name}/workflow`,
-  fetch_workflows: () => `/api/${CONFIG.project_name}/workflows`,
-  submit: (workflow_name) =>
-    `/api/${CONFIG.project_name}/session/${workflow_name}`
+  workflow: () => `/workflow`,
+  fetch_workflows: () => `/api/workflows`,
+  submit: (project_name, workflow_name) =>
+    `/api/${project_name}/session/${workflow_name}`
 };
 
 // Used by plotly.js

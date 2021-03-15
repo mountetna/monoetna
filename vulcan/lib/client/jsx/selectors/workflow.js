@@ -53,3 +53,6 @@ export const errorStepsSelector = (context) => {
     })
     .filter((s) => s);
 };
+
+export const workflowByName = ({workflows, workflowName}) =>
+  workflows.find((w) => w.name === workflowName);

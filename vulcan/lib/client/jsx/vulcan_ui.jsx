@@ -6,7 +6,7 @@ import {VulcanProvider} from './contexts/vulcan';
 
 // Components.
 import Browser from './components/browser';
-import RootView from 'etna-js/components/RootView';
+import Dashboard from './components/dashboard';
 import VulcanNav from './components/vulcan_nav';
 import Messages from 'etna-js/components/messages';
 import {selectUser} from 'etna-js/selectors/user-selector';
@@ -20,17 +20,12 @@ import {Notifications} from 'etna-js/components/Notifications';
 const ROUTES = [
   {
     template: '',
-    component: RootView,
+    component: Dashboard,
     mode: 'home'
   },
   {
-    template: ':project_name/',
-    component: Browser,
-    mode: 'workflow'
-  },
-  {
     name: 'workflow',
-    template: ':project_name/workflow/',
+    template: 'workflow/',
     component: Browser,
     mode: 'workflow'
   }
