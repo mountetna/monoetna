@@ -13,23 +13,33 @@ export default function WorkflowManager({workflowName}) {
   );
 
   useEffect(() => {
-    setWorkflow(
+    if (
+      workflows.workflows &&
       workflowByName({
-        workflows,
+        workflows: workflows.workflows,
         workflowName
       })
-    );
+    ) {
+      let selectedWorkflow = workflowByName({
+        workflows: workflows.workflows,
+        workflowName
+      });
+      setWorkflow(selectedWorkflow);
 
-    // Set the default input values
-    setInputs(defaultInputValues(currentWorkflow));
+      // Set the default input values
+      setInputs(defaultInputValues(selectedWorkflow));
 
-    // first path is always the "work" path
-    setPathIndex(0);
-  }, []);
+      // first path is always the "work" path
+      setPathIndex(0);
+    }
+  }, [workflows]);
+
+  console.log(workflowName);
+  console.log(workflows);
 
   return (
     <div className='workflow-manager'>
-      <div className='workflow-header'>{WORKFLOW_SHORT}</div>
+      <div className='workflow-header'>{workflowName}</div>
       <div className='step-wrapper'>
         <div className='step-main-pane-wrapper'>
           <SessionManager></SessionManager>

@@ -26,6 +26,9 @@ export const stringify = (text) => {
   return text;
 };
 
+export const workflowName = (workflow) =>
+  workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
+
 export const wrapPaneItem = (item, key) => {
   return (
     <div className='view_item' key={key}>

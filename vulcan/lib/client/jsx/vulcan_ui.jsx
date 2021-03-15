@@ -25,13 +25,13 @@ const ROUTES = [
   },
   {
     name: 'workflows',
-    template: 'workflow/',
+    template: 'workflow',
     component: Browser,
     mode: 'workflow'
   },
   {
     name: 'workflow',
-    template: 'workflow/:workflow_name',
+    template: 'workflow/:workflowName',
     component: Browser,
     mode: 'workflow'
   }
@@ -55,7 +55,6 @@ class VulcanUI extends React.Component {
 
   render() {
     let {location, showMessages, environment, user} = this.props;
-
     let {route, params} = findRoute(location, ROUTES);
     let Component;
     let mode;

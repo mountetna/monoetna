@@ -1,7 +1,11 @@
 // Framework libraries.
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {connect} from 'react-redux';
 
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import {showMessages} from 'etna-js/actions/message_actions';
+
+import {getWorkflows} from '../api/vulcan';
 import {VulcanContext} from '../contexts/vulcan';
 import Nav from 'etna-js/components/Nav';
 import Link from 'etna-js/components/link';
@@ -61,11 +65,29 @@ const ModeBar = ({mode, user}) => (
   </div>
 );
 
-const VulcanNav = ({mode, user}) => (
-  <Nav user={user} logo={Logo} app='vulcan'>
-    {mode !== 'home' && <ModeBar mode={mode} user={user} />}
-  </Nav>
-);
+const VulcanNav = ({mode, user}) => {
+  const invoke = useActionInvoker();
+  let {setWorkflows, setCalculating} = useContext(VulcanContext);
+
+  useEffect(() => {
+    setCalculating(true);
+    getWorkflows()
+      .then((response) => {
+        setWorkflows(response);
+        setCalculating(false);
+      })
+      .catch((e) => {
+        console.error(e);
+        invoke(showMessages([e]));
+      });
+  }, []);
+
+  return (
+    <Nav user={user} logo={Logo} app='vulcan'>
+      {mode !== 'home' && <ModeBar mode={mode} user={user} />}
+    </Nav>
+  );
+};
 
 export default connect((state) => ({
   user: selectUser(state)

@@ -7,10 +7,17 @@ require('../../../img/umap.png');
 require('../../../img/default.png');
 require('../../../img/test_workflow.png');
 
-export default function Card({workflow}) {
-  const displayFields = ['name', 'authors', 'lastModified'];
+function MultiLineOutput(iterator) {
+  return iterator.map((item, ind) => (
+    <div key={ind} className='sub_item'>
+      {item}
+    </div>
+  ));
+}
+
+export default function Card({workflow, onClick}) {
   return (
-    <div className='workflow-card'>
+    <div className='workflow-card' onClick={onClick}>
       <figure className='workflow-card-image'>
         <img src={`/images/${workflow.image || 'default.png'}`} />
       </figure>
@@ -21,13 +28,7 @@ export default function Card({workflow}) {
         </div>
         <div className='row'>
           <div className='label'>Authors</div>
-          <div className='value'>
-            {workflow.authors.map((a, ind) => (
-              <div key={ind} className='sub_item'>
-                {a}
-              </div>
-            ))}
-          </div>
+          <div className='value'>{MultiLineOutput(workflow.authors)}</div>
         </div>
         <div className='row'>
           <div className='label'>Last Modified</div>
@@ -37,13 +38,7 @@ export default function Card({workflow}) {
           <div className='label'>
             <Icon className='card-tags' icon='tags'></Icon> Tags
           </div>
-          <div className='value'>
-            {workflow.tags.map((t, ind) => (
-              <div key={ind} className='sub_item'>
-                {t}
-              </div>
-            ))}
-          </div>
+          <div className='value'>{MultiLineOutput(workflow.tags)}</div>
         </div>
       </div>
     </div>
