@@ -6,6 +6,7 @@ import {showMessages} from 'etna-js/actions/message_actions';
 
 import {VulcanContext} from '../contexts/vulcan';
 import {getWorkflows} from '../api/vulcan';
+import Card from '../components/dashboard/card';
 
 export default function Dashboard() {
   const invoke = useActionInvoker();
@@ -28,8 +29,8 @@ export default function Dashboard() {
 
   return (
     <main className='vulcan-dashboard'>
-      {workflows.workflows.map((w) => {
-        return <div>{w.name}</div>;
+      {workflows.workflows.map((w, ind) => {
+        return <Card workflow={w} key={ind}></Card>;
       })}
     </main>
   );

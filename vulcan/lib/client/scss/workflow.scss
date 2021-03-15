@@ -358,3 +358,75 @@ $button-background: #d66;
     border-left: 1px solid lightgray;
   }
 }
+
+.vulcan-dashboard {
+  display: flex;
+
+  .workflow-card {
+    margin: 2rem;
+    border: 1px solid lightgray;
+    border-radius: 10px;
+    width: 300px;
+    height: 400px;
+    cursor: pointer;
+
+    .workflow-card-image {
+      height: 50%;
+      overflow: hidden;
+      margin: 0;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+
+      img {
+        display: block;
+        width: 150%;
+        margin: -25%;
+        filter: blur(2px);
+        -webkit-filter: blur(2px);
+        opacity: 0.5;
+      }
+    }
+
+    .workflow-card-description {
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+
+      .row {
+        flex: 1;
+        display: flex;
+        border-top: 1px solid lightgray;
+        display: flex;
+        &:not(:last-of-type) {
+          .item_name {
+            border-bottom: $thin_rule;
+          }
+          .item_view {
+            border-bottom: $thin_rule;
+          }
+        }
+
+        .label {
+          cursor: default;
+          border-right: 1px solid forestgreen;
+          display: inline-block;
+          flex: 0 0 140px;
+          padding-right: 8px;
+          padding-top: 4px;
+          text-align: right;
+          font-family: $body_font;
+          color: darkblue;
+        }
+
+        .value {
+          display: inline-block;
+          padding-left: 9px;
+          padding-bottom: 3px;
+          padding-top: 3px;
+          box-sizing: border-box;
+          flex: 1;
+        }
+      }
+    }
+  }
+}

@@ -24,8 +24,14 @@ const ROUTES = [
     mode: 'home'
   },
   {
-    name: 'workflow',
+    name: 'workflows',
     template: 'workflow/',
+    component: Browser,
+    mode: 'workflow'
+  },
+  {
+    name: 'workflow',
+    template: 'workflow/:workflow_name',
     component: Browser,
     mode: 'workflow'
   }
