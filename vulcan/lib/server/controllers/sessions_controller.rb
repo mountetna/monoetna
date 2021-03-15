@@ -162,9 +162,9 @@ class SessionsController < Vulcan::Controller
     # Note: You'll need to configure the Magma host
     #   in config.yml :development to also point to
     #   production Magma.
-    return @user.token if :production == Vulcan.instance.environment
+    return Vulcan.instance.config(:archimedes_token) || @user.token if :development == Vulcan.instance.environment
 
-    Vulcan.instance.config(:archimedes_token) || @user.token
+    @user.token
   end
 end
 
