@@ -58,12 +58,20 @@ module Etna
       has_roles(:administration, :admin)
     end
 
+    def is_supereditor? project=nil
+      has_roles(:administration, :admin, :editor)
+    end
+
+    def is_superviewer? project=nil
+      has_roles(:administration, :admin, :editor, :viewer)
+    end
+
     def can_edit? project
-      is_superuser? || has_roles(project, :admin, :editor)
+      is_supereditor? || has_roles(project, :admin, :editor)
     end
 
     def can_view? project
-      is_superuser? || has_roles(project, :admin, :editor, :viewer)
+      is_superviewer? || has_roles(project, :admin, :editor, :viewer)
     end
 
     # superusers - administrators of the Administration group - cannot
