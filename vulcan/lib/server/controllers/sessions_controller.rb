@@ -159,9 +159,9 @@ class SessionsController < Vulcan::Controller
     # For development, we can inject a production token
     #   via config.yml, to talk directly to production services.
     #   This should reduce duplication of data.
-    # Note: You'll need to configire the Magma host to
+    # Note: You'll need to configure the Magma host
     #   in config.yml :development to also point to
-    #   production
+    #   production Magma.
     return @user.token if :production == Vulcan.instance.environment
 
     Vulcan.instance.config(:archimedes_token) || @user.token
