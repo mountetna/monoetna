@@ -34,9 +34,6 @@ export default function WorkflowManager({workflowName}) {
     }
   }, [workflows]);
 
-  console.log(workflowName);
-  console.log(workflows);
-
   return (
     <div className='workflow-manager'>
       <div className='workflow-header'>{workflowName}</div>
