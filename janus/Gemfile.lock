@@ -37,7 +37,7 @@ GEM
     mini_portile2 (2.5.0)
     minitest (5.14.3)
     multipart-post (2.1.1)
-    nio4r (2.5.5)
+    nio4r (2.5.7)
     nokogiri (1.11.1)
       mini_portile2 (~> 2.5.0)
       racc (~> 1.4)
@@ -47,7 +47,7 @@ GEM
     pry (0.14.0)
       coderay (~> 1.1)
       method_source (~> 1.0)
-    puma (5.0.2)
+    puma (5.2.2)
       nio4r (~> 2.0)
     racc (1.5.2)
     rack (2.2.3)
@@ -94,7 +94,7 @@ DEPENDENCIES
   jwt
   pg
   pry
-  puma (= 5.0.2)
+  puma (>= 5.0.2)
   rack
   rack-test
   rack-throttle
@@ -107,4 +107,4 @@ RUBY VERSION
    ruby 2.5.7p206
 
 BUNDLED WITH
-   2.2.11
+   2.2.13

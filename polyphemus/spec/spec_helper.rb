@@ -141,7 +141,7 @@ end
 def stub_magma_setup(patient_documents)
   stub_request(:post, "#{MAGMA_HOST}/retrieve")
     .with(body: hash_including({ project_name: 'mvir1', model_name: 'patient',
-                                attribute_names: 'all', record_names: 'all' }))
+                                attribute_names: ['name', 'consent', 'restricted'], record_names: 'all' }))
     .to_return({ body: {
         'models': { 'patient': { 'documents': patient_documents } }
     }.to_json })
