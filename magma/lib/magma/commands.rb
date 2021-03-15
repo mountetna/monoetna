@@ -79,7 +79,7 @@ class Magma
       project_paths.each do |project_dir|
         table = "schema_info_#{project_dir.gsub(/[^\w]+/,'_').sub(/^_/,'').sub(/_$/,'')}"
 
-        unless ::File.exists?(File.join(path, 'migrations'))
+        unless ::File.exists?(File.join(project_dir, 'migrations'))
           if Magma.instance.environment == :development || Magma.instance.environment == :test
             puts "Project #{project_dir} is listed in your config.yml, but it does not exist in your magma directory.  Ignoring.."
           else
