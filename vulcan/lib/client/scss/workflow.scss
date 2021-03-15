@@ -432,6 +432,10 @@ $button-background: #d66;
           padding-top: 4px;
           box-sizing: border-box;
           flex: 1;
+
+          .sub_item {
+            border-bottom: $thin_rule;
+          }
         }
       }
     }

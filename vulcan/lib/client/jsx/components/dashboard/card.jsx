@@ -23,7 +23,9 @@ export default function Card({workflow}) {
           <div className='label'>Authors</div>
           <div className='value'>
             {workflow.authors.map((a, ind) => (
-              <div key={ind}>{a}</div>
+              <div key={ind} className='sub_item'>
+                {a}
+              </div>
             ))}
           </div>
         </div>
@@ -37,7 +39,9 @@ export default function Card({workflow}) {
           </div>
           <div className='value'>
             {workflow.tags.map((t, ind) => (
-              <div key={ind}>{t}</div>
+              <div key={ind} className='sub_item'>
+                {t}
+              </div>
             ))}
           </div>
         </div>
