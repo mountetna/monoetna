@@ -213,7 +213,7 @@ class Polyphemus
     def execute
       request = Etna::Clients::Magma::RetrievalRequest.new(project_name: project)
       request.model_name = 'patient'
-      request.attribute_names = 'all'
+      request.attribute_names = ['name', 'consent', 'restricted']
       request.record_names = 'all'
       patient_documents = magma_client.retrieve(request).models.model('patient').documents
 
