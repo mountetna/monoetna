@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Tag from './tag';
+import Icon from 'etna-js/components/icon';
 
 // To get webpack to pick up the files.
 require('../../../img/umap.png');
@@ -32,10 +32,12 @@ export default function Card({workflow}) {
           <div className='value'>{workflow.lastModified}</div>
         </div>
         <div className='row'>
-          <div className='label'>Tags</div>
+          <div className='label'>
+            <Icon className='card-tags' icon='tags'></Icon> Tags
+          </div>
           <div className='value'>
             {workflow.tags.map((t, ind) => (
-              <Tag value={t} key={ind}></Tag>
+              <div key={ind}>{t}</div>
             ))}
           </div>
         </div>
