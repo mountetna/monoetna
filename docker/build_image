@@ -60,6 +60,10 @@ baseTag=$(basename "$(dirname "$(realpath $Dockerfile)")")
 #- The final tag will also include env variables IMAGES_PREFIX and IMAGES_POSTFIX
 tag="${IMAGES_PREFIX}${baseTag}${IMAGES_POSTFIX}"
 
+function imageExists() {
+  docker inspect --type=image $tag &>/dev/null
+}
+
 #- Markers are used locally to detect when new builds should be kicked off by comparing the Dockerfile's parent
 #- directory and all dependency directories for changes newer than the marker.  Markers are kept in /tmp/etna-build-markers
 MARKERS_DIR=${MARKERS_DIR:-/tmp/etna-build-markers}
@@ -194,13 +198,13 @@ if [[ -n "$digestOnly" ]]; then
   exit 0
 fi
 
-if [[ -z "$force" && "$newestFile" -ot "$marker" ]]; then
+if imageExists && [[ -z "$force" && "$newestFile" -ot "$marker" ]]; then
   echo -e "${YELLOW}Image $tag already up to date, skipping build${NC}"
   exit 0
 fi
 
 if [[ "$newestFile" -ot "$marker" ]]; then
-  echo -e "${RED}Being forced to build despite up to date marker.${NC}"
+  echo -e "${RED}Forcing rebuild, image does not exist or force flag set.${NC}"
 fi
 
 if [ -e $marker ]; then
