@@ -59,7 +59,7 @@ class Polyphemus
         logger.write("Posting revisions.\n")
 
         grouped_revisions = group_revisions(magma_models_wrapper, all_records)
-        grouped_revisions.each do |revision, index|
+        grouped_revisions.each_with_index do |revision, index|
           update_request = Etna::Clients::Magma::UpdateRequest.new(
             project_name: @project_name,
             revisions: revision)
