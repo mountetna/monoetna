@@ -9,4 +9,4 @@ sc.pp.neighbors(scdata, n_neighbors=10, n_pcs= max_pc)
 sc.tl.umap(scdata)
 
 ##### OUTPUT
-scdata.write(output_path('umap_anndata'))
+scdata.write(output_path('umap_anndata.h5ad'))

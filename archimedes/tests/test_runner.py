@@ -65,3 +65,22 @@ def test_runner():
         assert result.status == 'done'
 
         assert out_file.read() == "Some other input with more stuff in it"
+
+    with expected_output('output_one') as (out_path, out_file):
+        request = RunRequest(
+            script=read_resource('fixtures/test_runner_a.py.donotrun'),
+            input_files=[
+                host_storage_file('input_one', 'tests/fixtures/runner_inputs/b')
+            ],
+            output_files=[
+                host_storage_file('output_one', out_path)
+            ],
+            network="default",
+            extra_hosts=["hostname:192.168.0.1"]
+        )
+
+        result = run(request, DockerIsolator(), 4, False)
+        assert result.error is None
+        assert result.status == 'done'
+
+        assert out_file.read() == "Some other input with more stuff in it"

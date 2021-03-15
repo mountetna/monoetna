@@ -65,4 +65,5 @@ RUN mv /tmp/docker/* /usr/local/bin/
 
 # Copy entrypoint scripts
 COPY src/entrypoints /entrypoints
+COPY magby /magby
 

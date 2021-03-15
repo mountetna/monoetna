@@ -46,17 +46,23 @@ inputs:
 outputs:
   the_data:
     type: File
-    outputSource: doUmapStuff/umap
+    outputSource: calc_umap/umap_anndata.h5ad
 
 steps:
   queryMagma:
     run: scripts/fake_query.cwl
     label: 'Fetch pool record names'
     in:
-      b: includeParamA
-      c: includeParamB
-      d: includeParamC
-      e: maxPcs
+      a: min_nCounts
+      b: max_nCounts
+      c: min_nFeatures
+      d: max_per_mito
+      e: max_per_ribo
+      f: regress_counts
+      g: regress_genes
+      h: regress_pct_mito
+      i: regress_pct_ribo
+      j: max_pc
     out: [names]
   pickPools:
     run: ui-queries/select-autocomplete.cwl
