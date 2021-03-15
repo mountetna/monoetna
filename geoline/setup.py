@@ -1,5 +1,7 @@
 from setuptools import setup, find_packages
 
+
+
 setup(
     name='geoline',
     version='0.0.1',
@@ -12,6 +14,9 @@ setup(
     python_requires='>=3.6',
 	install_requires=['betamax',
                       'betamax_serializers',
-                      'pandas'],
+                      'pandas',
+                      'grpcio == 1.29.0',
+                      'protobuf == 3.12.1',
+                      'google~=2.0.3'],
 
 )
