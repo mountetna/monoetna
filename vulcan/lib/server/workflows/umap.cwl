@@ -121,9 +121,16 @@ steps:
       pca_anndata.h5ad: regress_and_pca/pca_anndata.h5ad
       max_pc: UMAP_Calculation__max_pc
     out: [umap_anndata.h5ad]
-  downloadRawData:
-    run: ui-outputs/link.cwl
+  plot_umap:
+    run: scripts/plot_umap.cwl
+    label: 'Create UMAP plot'
     in:
-      a: calc_umap/umap_anndata.h5ad
+      umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
+      max_pc: max_pc
+    out: [umap.plotly.json]
+  show_umap_plot:
+    run: ui-outputs/plotly.cwl
+    in:
+      a: plot_umap/umap.plotly.json
     out: []
-    label: 'Download Raw Data as h5ad'
+    label: 'Display UMAP'
