@@ -36,7 +36,9 @@ rm -rf /usr/opt/httpd.conf.d/*.include
 
 if [ -e /app/build ]; then
   for hook in /app/build/*; do
-    [ -x "$hook" ] && $hook
+    if stat -c  %A $hook | grep x &>/dev/null; then
+      $hook
+    fi
   done
 fi
 
