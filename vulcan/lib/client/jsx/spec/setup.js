@@ -5,6 +5,7 @@ ReactModal.setAppElement('*'); // suppresses modal-related test warnings.
 
 global.ROUTES = {
   workflow: () => `/workflow`,
+  workflow_vignette: (workflow_name) => `/workflow/${workflow_name}/vignette`,
   fetch_workflows: () => `/api/workflows`,
   submit: (project_name, workflow_name) =>
     `/api/${project_name}/session/${workflow_name}`

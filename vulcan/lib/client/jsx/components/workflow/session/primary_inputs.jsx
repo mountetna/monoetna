@@ -25,7 +25,10 @@ export default function PrimaryInputs() {
         result[inputName] = {
           type: workflowInput.type,
           label: workflowInput.label || inputName,
-          default: session.inputs[inputName] || workflowInput.default || null
+          default:
+            (session.inputs && session.inputs[inputName]) ||
+            workflowInput.default ||
+            null
         };
         return result;
       },

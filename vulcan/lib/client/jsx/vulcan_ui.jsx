@@ -9,6 +9,7 @@ import Browser from './components/browser';
 import Dashboard from './components/dashboard';
 import VulcanNav from './components/vulcan_nav';
 import ContextManager from './components/context_manager';
+import Vignette from './components/workflow/vignette';
 import Messages from 'etna-js/components/messages';
 import {selectUser} from 'etna-js/selectors/user-selector';
 
@@ -35,6 +36,12 @@ const ROUTES = [
     template: 'workflow/:workflowName',
     component: Browser,
     mode: 'workflow'
+  },
+  {
+    name: 'vignette',
+    template: 'workflow/:workflowName/vignette',
+    component: Vignette,
+    mode: 'vignette'
   }
 ];
 
