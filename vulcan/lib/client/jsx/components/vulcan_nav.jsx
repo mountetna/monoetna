@@ -1,5 +1,5 @@
 // Framework libraries.
-import React, {useContext, useEffect} from 'react';
+import React, {useContext} from 'react';
 import {connect} from 'react-redux';
 
 import {VulcanContext} from '../contexts/vulcan';

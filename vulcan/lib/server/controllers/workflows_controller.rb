@@ -28,10 +28,8 @@ class WorkflowsController < Vulcan::Controller
 
         end.select do |v|
           # We only want workflows where the user is
-          #   authorized for all listed projects,
-          #   or projects is null (from the metadata), so
-          #   it is available to everyone.
-          v[:projects] == nil ||
+          #   authorized for all listed projects.
+          # We should use the `example` project for public demo?
           v[:projects]&.all? {|p| @user.can_view?(p)}
         end
     })
