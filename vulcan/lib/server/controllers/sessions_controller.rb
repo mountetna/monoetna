@@ -76,7 +76,7 @@ class SessionsController < Vulcan::Controller
     end
 
     begin
-      orchestration.run_until_done!(storage, @user.token)
+      orchestration.run_until_done!(storage, token)
     rescue Vulcan::Orchestration::RunErrors => e
       run_errors = e
     end
@@ -153,6 +153,18 @@ class SessionsController < Vulcan::Controller
 
   def can_hijack?
     @request.env['rack.hijack?']
+  end
+
+  def token
+    # For development, we can inject a production token
+    #   via config.yml, to talk directly to production services.
+    #   This should reduce duplication of data.
+    # Note: You'll need to configure the Magma host
+    #   in config.yml :development to also point to
+    #   production Magma.
+    return Vulcan.instance.config(:archimedes_token) || @user.token if :development == Vulcan.instance.environment
+
+    @user.token
   end
 end
 
