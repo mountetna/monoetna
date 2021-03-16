@@ -1,11 +1,13 @@
 import React, {useState} from 'react';
 require('./Nav.css');
-import { isSuperuser } from '../utils/janus';
+import { isSuperuser, isSuperEditor, isSuperViewer } from '../utils/janus';
 
 import Icon from './icon';
 
 const ICONS = {
   superuser: 'user-ninja',
+  supereditor: 'user-nurse',
+  superviewer: 'user-tie',
   administrator: 'user-astronaut',
   editor: 'user-edit',
   viewer: 'user'
@@ -19,6 +21,8 @@ const Login = ({user}) => {
   let role = (permissions[CONFIG.project_name] || {}).role;
 
   if (isSuperuser(user)) role = 'superuser';
+  else if (isSuperEditor(user)) role = 'supereditor';
+  else if (isSuperViewer(user)) role = 'superviewer';
 
   return (
     <div className='etna-login' title={role}>

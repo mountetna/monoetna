@@ -1,7 +1,9 @@
 const ROLES = {a: 'administrator', e: 'editor', v: 'viewer'};
 
 export const isSuperuser = ({permissions}) => (permissions.administration && permissions.administration.role == ROLES.a)
-export const isEditor = ({permissions}, project_name) => (permissions[project_name] && [ ROLES.a, ROLES.e ].includes(permissions[project_name].role)) || isSuperuser({permissions})
+export const isSuperEditor = ({permissions}) => (permissions.administration && [ ROLES.a, ROLES.e ].includes(permissions.administration.role))
+export const isSuperViewer = ({permissions}) => (permissions.administration && [ ROLES.a, ROLES.e, ROLES.v ].includes(permissions.administration.role))
+export const isEditor = ({permissions}, project_name) => (permissions[project_name] && [ ROLES.a, ROLES.e ].includes(permissions[project_name].role)) || isSuperEditor({permissions})
 export const isAdmin = ({permissions}, project_name) => (permissions[project_name] && permissions[project_name].role == ROLES.a) || isSuperuser({permissions})
 
 const parsePermissions = (perms) => {
