@@ -11,7 +11,8 @@ import {
   allInputsDefined,
   uiStepOptions,
   missingUiInputs,
-  inputNamesToHashStub
+  inputNamesToHashStub,
+  shouldDownloadStepData
 } from '..//workflow';
 
 describe('Workflow Utils', () => {
@@ -539,6 +540,168 @@ describe('Workflow Utils', () => {
         'step1/output1': null,
         'step1/output2': null
       });
+    });
+  });
+
+  describe('shouldDownloadStepData', () => {
+    it('flags plotly output as true', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'ui-outputs/plotly.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(true);
+    });
+
+    it('flags consignment output as true', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'ui-outputs/consignment.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(true);
+    });
+
+    it('flags raw output as true', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'ui-outputs/raw.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(true);
+    });
+
+    it('flags ui query as true', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'ui-queries/ask.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(true);
+    });
+
+    it('flags server-side steps as false', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'scripts/process.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(false);
     });
   });
 });
