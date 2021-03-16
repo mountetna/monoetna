@@ -114,12 +114,18 @@ steps:
       regress_pct_mito: Regress__regress_pct_mito
       regress_pct_ribo: Regress__regress_pct_ribo
     out: [pca_anndata.h5ad]
+  neighbors:
+    run: scripts/neighbors.cwl
+    label: 'Calculate nearest neighbors (based on PCA)'
+    in:
+      pca_anndata.h5ad: regress_and_pca/pca_anndata.h5ad
+      max_pc: max_pc
+    out: [nn_anndata.h5ad]
   calc_umap:
     run: scripts/calc_umap.cwl
     label: 'Calculate UMAP'
     in:
-      pca_anndata.h5ad: regress_and_pca/pca_anndata.h5ad
-      max_pc: UMAP_Calculation__max_pc
+      nn_anndata.h5ad: neighbors/nn_anndata.h5ad
     out: [umap_anndata.h5ad]
   plot_umap:
     run: scripts/plot_umap.cwl
