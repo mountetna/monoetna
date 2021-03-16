@@ -58,6 +58,10 @@ export default function StepOutput({step, stepIndex}) {
         </div>
       );
       break;
+    case OUTPUT_COMPONENT.RAW:
+      if (!rawInputData) return null;
+      Component = <div className='raw-view'>{rawInputData}</div>;
+      break;
     case OUTPUT_COMPONENT.LINK:
     default:
       Component = (

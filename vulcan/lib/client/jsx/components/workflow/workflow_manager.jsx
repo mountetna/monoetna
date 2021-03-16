@@ -8,9 +8,14 @@ import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
 
 export default function WorkflowManager({workflowName}) {
-  const {workflows, setWorkflow, setPathIndex, setInputs} = useContext(
-    VulcanContext
-  );
+  const {
+    workflows,
+    setWorkflow,
+    setPathIndex,
+    setInputs,
+    setSession,
+    getLocalSession
+  } = useContext(VulcanContext);
 
   useEffect(() => {
     if (
@@ -26,8 +31,14 @@ export default function WorkflowManager({workflowName}) {
       });
       setWorkflow(selectedWorkflow);
 
-      // Set the default input values
-      setInputs(defaultInputValues(selectedWorkflow));
+      getLocalSession(selectedWorkflow).then((session) => {
+        if (null == session) {
+          // Set the default input values
+          setInputs(defaultInputValues(selectedWorkflow));
+        } else {
+          setSession(session);
+        }
+      });
 
       // first path is always the "work" path
       setPathIndex(0);

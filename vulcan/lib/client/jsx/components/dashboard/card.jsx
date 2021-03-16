@@ -2,10 +2,13 @@ import React from 'react';
 
 import Icon from 'etna-js/components/icon';
 
+import {workflowName} from '../../utils/workflow';
+import ImageMemo from './image_memo';
+
 // To get webpack to pick up the files.
-require('../../../img/umap.png');
-require('../../../img/default.png');
-require('../../../img/test_workflow.png');
+require('../../../img/umap-thumbnail.png');
+require('../../../img/default-thumbnail.png');
+require('../../../img/add_integers-thumbnail.png');
 
 function MultiLineOutput(iterator) {
   return iterator.map((item, ind) => (
@@ -19,12 +22,15 @@ export default function Card({workflow, onClick}) {
   return (
     <div className='workflow-card' onClick={onClick}>
       <figure className='workflow-card-image'>
-        <img src={`/images/${workflow.image || 'default.png'}`} />
+        <ImageMemo
+          src={`/images/${workflow.image || 'default-thumbnail.png'}`}
+          alt='Workflow image'
+        />
       </figure>
       <div className='workflow-card-description'>
         <div className='row'>
           <div className='label'>Name</div>
-          <div className='value'>{workflow.name}</div>
+          <div className='value'>{workflowName(workflow) || workflow.name}</div>
         </div>
         <div className='row'>
           <div className='label'>Authors</div>

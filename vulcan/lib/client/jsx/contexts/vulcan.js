@@ -53,6 +53,10 @@ export const VulcanProvider = (props) => {
   };
 
   const setSession = (session) => {
+    localStorage.setItem(
+      `${state.workflow.name}.session`,
+      JSON.stringify(session)
+    );
     dispatch({type: SET_SESSION, session});
   };
 
@@ -62,6 +66,11 @@ export const VulcanProvider = (props) => {
 
   const setCalculating = (calculating) => {
     dispatch({type: SET_CALCULATING, calculating});
+  };
+
+  const getLocalSession = (workflow) => {
+    let storedSession = localStorage.getItem(`${workflow.name}.session`);
+    return Promise.resolve(storedSession ? JSON.parse(storedSession) : null);
   };
 
   return (
@@ -82,7 +91,8 @@ export const VulcanProvider = (props) => {
         setStepIndex,
         setSession,
         setInputs,
-        setCalculating
+        setCalculating,
+        getLocalSession
       }}
     >
       {props.children}

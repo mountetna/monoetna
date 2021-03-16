@@ -15,7 +15,30 @@ export default function PrimaryInputs() {
     setInputs(userInputs);
   }
 
-  let components = wrapEditableInputs(workflow.inputs, handleInputChange);
+  function mergeSessionDefaultInputs() {
+    // Merge the session and workflow default inputs,
+    //   with any session inputs taking precedence.
+    let mergedInputs = Object.keys(workflow.inputs).reduce(
+      (result, inputName) => {
+        let workflowInput = workflow.inputs[inputName];
+
+        result[inputName] = {
+          type: workflowInput.type,
+          label: workflowInput.label || inputName,
+          default: session.inputs[inputName] || workflowInput.default || null
+        };
+        return result;
+      },
+      {}
+    );
+
+    return mergedInputs;
+  }
+
+  let components = wrapEditableInputs(
+    mergeSessionDefaultInputs(),
+    handleInputChange
+  );
 
   return (
     <div className='primary-inputs inputs-pane'>

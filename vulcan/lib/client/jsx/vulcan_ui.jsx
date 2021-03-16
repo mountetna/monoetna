@@ -8,6 +8,7 @@ import {VulcanProvider} from './contexts/vulcan';
 import Browser from './components/browser';
 import Dashboard from './components/dashboard';
 import VulcanNav from './components/vulcan_nav';
+import ContextManager from './components/context_manager';
 import Messages from 'etna-js/components/messages';
 import {selectUser} from 'etna-js/selectors/user-selector';
 
@@ -79,10 +80,12 @@ class VulcanUI extends React.Component {
         <ModalDialogContainer>
           <VulcanProvider>
             <div id='ui-container'>
-              <Notifications />
-              <VulcanNav environment={environment} mode={mode} />
-              <Messages />
-              <Component key={key} {...params} />
+              <ContextManager params={params}>
+                <Notifications />
+                <VulcanNav environment={environment} mode={mode} />
+                <Messages />
+                <Component key={key} {...params} />
+              </ContextManager>
             </div>
           </VulcanProvider>
         </ModalDialogContainer>
