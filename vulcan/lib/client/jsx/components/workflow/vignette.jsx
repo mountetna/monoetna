@@ -8,7 +8,7 @@ import {workflowByName} from '../../selectors/workflow';
 export default function Vignette({workflowName}) {
   let {workflows} = useContext(VulcanContext);
 
-  const [text, setText] = useState(null);
+  const [text, setText] = useState('');
 
   useEffect(() => {
     if (
