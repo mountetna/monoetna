@@ -46,7 +46,7 @@ module Etna
             type: @attributes['type'],
             format: @attributes['format'],
             default: @attributes['default'],
-            group: @attributes['group']
+            group: @attributes['group']  # Non-CWL attribute
         }]
       end
     end
