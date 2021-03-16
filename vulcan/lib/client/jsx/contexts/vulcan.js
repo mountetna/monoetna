@@ -53,10 +53,11 @@ export const VulcanProvider = (props) => {
   };
 
   const setSession = (session) => {
-    localStorage.setItem(
-      `${state.workflow.name}.session`,
-      JSON.stringify(session)
-    );
+    if (state.workflow && state.workflow.name)
+      localStorage.setItem(
+        `${state.workflow.name}.session`,
+        JSON.stringify(session)
+      );
     dispatch({type: SET_SESSION, session});
   };
 
