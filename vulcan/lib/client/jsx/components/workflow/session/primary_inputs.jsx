@@ -1,20 +1,24 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
-import {wrapEditableInputs} from '../../../utils/workflow';
+import UserInput from '../user_interactions/user_input';
 
-function InputGroup({inputs, onClick}) {
+function InputGroup({inputs, onChange}) {
   let groupName = inputs[0].group || 'Inputs';
-
-  let components = wrapEditableInputs(inputs, onClick);
 
   return (
     <div className='inputs-pane'>
       <div className='title'>{groupName}</div>
       <div className='primary-inputs-container items'>
-        {components.map((comp) => {
-          return comp;
+        {inputs.map((input, index) => {
+          return (
+            <UserInput
+              input={input}
+              onChange={onChange}
+              key={index}
+            ></UserInput>
+          );
         })}
       </div>
     </div>
@@ -40,14 +44,13 @@ export default function PrimaryInputs() {
         let workflowInput = workflow.inputs[inputName];
 
         result.push({
+          ...workflowInput,
           name: inputName,
-          type: workflowInput.type,
           label: workflowInput.label || inputName,
           default:
             (session.inputs && session.inputs[inputName]) ||
             workflowInput.default ||
-            null,
-          group: workflowInput.group
+            null
         });
 
         return result;

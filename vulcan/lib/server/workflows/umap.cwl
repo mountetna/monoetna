@@ -7,51 +7,61 @@ inputs:
     default: 200
     label: 'minimum number of UMIs per cell'
     group: 'Cell Filter'
+    doc: 'This generally should be a small number'
   max_nCounts:
     type: int
     default: 30000
     label: 'maximum number of UMIs per cell'
     group: 'Cell Filter'
+    doc: 'This should not be more than the number of events in your experiment'
   min_nFeatures:
     type: int
     default: 100
     label: 'minimum number of genes per cell'
     group: 'Cell Filter'
+    doc: 'Reasonably should be between 100 and 200'
   max_per_mito:
     type: float
     default: 20
     label: 'maximum percentage of reads per cell coming from mitochondrial genes (from 0 to 100)'
     group: 'Cell Filter'
+    doc: 'This generally should be <50'
   max_per_ribo:
     type: float
     default: 100
     label: 'maximum percentage of reads per cell coming from ribosomal genes (from 0 to 100)'
     group: 'Cell Filter'
+    doc: 'This generally should be a large percentage'
   regress_counts:
     type: boolean
     default: true
     label: 'regress by number of counts per cell?'
     group: 'Regress'
+    doc: 'You should only regress by counts or genes, but never both'
   regress_genes:
     type: boolean
     default: false
     label: 'regress by number of genes per cell?'
     group: 'Regress'
+    doc: 'You should only regress by counts or genes, but never both'
   regress_pct_mito:
     type: boolean
     default: true
     label: 'regress by percent of reads from mitochondrial genes?'
     group: 'Regress'
+    doc: 'You should only regress by % mito or % ribo, but never both'
   regress_pct_ribo:
     type: boolean
     default: false
     label: 'regress by percent of reads from ribosomal genes?'
     group: 'Regress'
+    doc: 'You should only regress by % mito or % ribo, but never both'
   max_pc:
     type: int
     default: 15
     label: 'Maximum number of PCs'
     group: 'UMAP Calculation'
+    doc: 'Principal components, from 1 to this number'
 
 outputs:
   the_data:

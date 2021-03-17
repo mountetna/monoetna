@@ -46,6 +46,7 @@ module Etna
             type: @attributes['type'],
             format: @attributes['format'],
             default: @attributes['default'],
+            doc: @attributes['doc'],
             group: @attributes['group']  # Non-CWL attribute
         }]
       end
@@ -80,7 +81,8 @@ module Etna
             run: @attributes['run'].id,
             in: @attributes['in'].map { |i| input_as_json(i) },
             out: @attributes['out'].map(&:id),
-            label: @attributes['label']
+            label: @attributes['label'],
+            doc: @attributes['doc']
         }
       end
 

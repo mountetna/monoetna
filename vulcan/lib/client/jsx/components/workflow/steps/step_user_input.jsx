@@ -2,12 +2,12 @@ import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
+import UserInput from '../user_interactions/user_input';
 import StepName from './step_name';
 
 import {
   validStep,
   hasUiInput,
-  wrapEditableInputs,
   uiStepInputNames,
   uiStepType,
   uiStepOptions
@@ -37,16 +37,16 @@ export default function StepUserInput({step, stepIndex}) {
   // We need to map the user input step's output to
   //   a set of input items.
   let inputNames = uiStepInputNames(step);
-  let mockStepInputs = inputNames.reduce((result, inputName) => {
-    result[inputName] = {
+  let stepInputs = inputNames.reduce((result, inputName) => {
+    result.push({
       type: uiStepType(step),
       label: step.label || step.name,
       default: session.inputs[inputName] || null,
-      options: uiStepOptions({step, pathIndex, status})
-    };
+      options: uiStepOptions({step, pathIndex, status}),
+      name: step.name
+    });
     return result;
-  }, {});
-  let components = wrapEditableInputs(mockStepInputs, handleInputChange);
+  }, []);
 
   return (
     <div className='step-user-input step'>
@@ -57,8 +57,14 @@ export default function StepUserInput({step, stepIndex}) {
       <div className='step-inputs inputs-pane'>
         <div class='title'>User inputs</div>
         <div className='step-inputs-container items'>
-          {components.map((comp) => {
-            return comp;
+          {stepInputs.map((input, index) => {
+            return (
+              <UserInput
+                input={input}
+                onChange={handleInputChange}
+                key={index}
+              ></UserInput>
+            );
           })}
         </div>
       </div>

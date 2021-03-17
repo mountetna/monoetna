@@ -38,110 +38,73 @@ export const wrapPaneItem = (item, key) => {
   );
 };
 
-export const wrapEditableInputs = (inputs, handleInputChange) => {
-  return Object.keys(inputs).map((inputName, index) => {
-    let input = inputs[inputName];
-    let name = input.label || inputName;
-    let key = `${inputName}-${index}`;
+// export const wrapEditableInputs = (inputs, handleInputChange) => {
+//   return Object.keys(inputs).map((inputName, index) => {
+//     let input = inputs[inputName];
+//     let name = input.label || inputName;
+//     let key = `${inputName}-${index}`;
 
-    switch (input.type) {
-      case TYPE.INTEGER:
-        return wrapPaneItem(
-          {
-            name,
-            value: (
-              <IntegerInput
-                defaultValue={input.default}
-                onChange={(e) => {
-                  handleInputChange(inputName, e);
-                }}
-              ></IntegerInput>
-            )
-          },
-          key
-        );
-      case TYPE.FLOAT:
-        return wrapPaneItem(
-          {
-            name,
-            value: (
-              <FloatInput
-                defaultValue={input.default}
-                onChange={(e) => {
-                  handleInputChange(inputName, e);
-                }}
-              ></FloatInput>
-            )
-          },
-          key
-        );
-      case TYPE.BOOL:
-        return wrapPaneItem(
-          {
-            name,
-            value: (
-              <input
-                type='checkbox'
-                className='text_box'
-                onChange={(e) => {
-                  handleInputChange(inputName, e);
-                }}
-                defaultChecked={input.default}
-              />
-            )
-          },
-          key
-        );
-      case TYPE.MULTISELECT_STRING:
-        return wrapPaneItem(
-          {
-            name,
-            value: (
-              <ListInput
-                placeholder='Select items from the list'
-                className='link_text'
-                values={input.default || []}
-                itemInput={DropdownInput}
-                list={input.options || []}
-                onChange={(e) => {
-                  handleInputChange(inputName, e);
-                }}
-              />
-            )
-          },
-          key
-        );
-      case TYPE.SELECT_AUTOCOMPLETE:
-        return wrapPaneItem({
-          name,
-          value: (
-            <DropdownAutocomplete
-              onSelect={(e) => {
-                handleInputChange(inputName, e);
-              }}
-              list={input.options || []}
-              defaultValue={input.default || null}
-            ></DropdownAutocomplete>
-          )
-        });
-      default:
-        return wrapPaneItem(
-          {
-            name,
-            value: (
-              <SlowTextInput
-                defaultValue={input.default}
-                onChange={(e) => {
-                  handleInputChange(inputName, e);
-                }}
-              ></SlowTextInput>
-            )
-          },
-          key
-        );
-    }
-  });
-};
+//     switch (input.type) {
+//       case TYPE.INTEGER:
+//         return wrapPaneItem(
+//           {
+//             name,
+//             value: (
+
+//             )
+//           },
+//           key
+//         );
+//       case TYPE.FLOAT:
+//         return wrapPaneItem(
+//           {
+//             name,
+//             value: (
+
+//             )
+//           },
+//           key
+//         );
+//       case :
+//         return wrapPaneItem(
+//           {
+//             name,
+//             value: (
+
+//             )
+//           },
+//           key
+//         );
+//       case TYPE.MULTISELECT_STRING:
+//         return wrapPaneItem(
+//           {
+//             name,
+//             value: (
+
+//             )
+//           },
+//           key
+//         );
+//       case TYPE.SELECT_AUTOCOMPLETE:
+//         return wrapPaneItem({
+//           name,
+//           value: (
+
+//           )
+//         });
+//       default:
+//         return wrapPaneItem(
+//           {
+//             name,
+//             value: (
+
+//             )
+//           },
+//           key
+//         );
+//     }
+//   });
+// };
 
 export const uiStepInputNames = (step) => {
   return step.out.map((output) => `${step.name}/${output}`);
