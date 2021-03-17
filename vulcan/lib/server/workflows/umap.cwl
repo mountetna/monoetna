@@ -127,11 +127,18 @@ steps:
     in:
       nn_anndata.h5ad: neighbors/nn_anndata.h5ad
     out: [umap_anndata.h5ad]
+  calc_leiden:
+    run: scripts/calc_leiden.cwl
+    label: 'Calculate Leiden clustering'
+    in:
+      nn_anndata.h5ad: neighbors/nn_anndata.h5ad
+    out: [leiden.json]
   plot_umap:
     run: scripts/plot_umap.cwl
     label: 'Create UMAP plot'
     in:
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
+      leiden.json: calc_leiden/leiden.json
       max_pc: max_pc
     out: [umap.plotly.json]
   show_umap_plot:

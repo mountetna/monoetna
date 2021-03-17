@@ -3,6 +3,7 @@ import React, {useState, useContext, useEffect} from 'react';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
 import Icon from 'etna-js/components/icon';
+import Link from 'etna-js/components/link';
 
 import {submit} from '../../../api/vulcan';
 import {VulcanContext} from '../../../contexts/vulcan';
@@ -51,7 +52,7 @@ export default function SessionManager({name}) {
     }
   }, [workflow, session]);
 
-  function handleOnClick() {
+  function runWorkflow() {
     setCalculating(true);
     submit(context)
       .then(() => {
@@ -69,13 +70,15 @@ export default function SessionManager({name}) {
         <span className='session-workflow-name'>
         { workflowName(workflow) }
         </span>
-        <button
+        <Link link={ROUTES.workflow_vignette(workflowName(workflow))}>
+          <Icon className='vignette' icon='book'/>
+        </Link>
+        <Icon
+          className='run'
           disabled={!complete || calculating}
-          className='start-button'
-          onClick={handleOnClick}
-        >
-          <Icon icon='play'/>
-        </button>
+          title='Run workflow'
+          onClick={runWorkflow}
+          icon='play'/>
       </div>
       <div className='scroll-window'>
         <PrimaryInputs></PrimaryInputs>
