@@ -212,14 +212,12 @@ class Vulcan
       Sequel.extension(:migration)
       db = Vulcan.instance.db
 
-      puts "Not migrating yet -- we don't have any database models."
-
       if version
-        # puts "Migrating to version #{version}"
-        # Sequel::Migrator.run(db, 'db/migrations', target: version.to_i)
+        puts "Migrating to version #{version}"
+        Sequel::Migrator.run(db, 'db/migrations', target: version.to_i)
       else
-        # puts 'Migrating to latest'
-        # Sequel::Migrator.run(db, 'db/migrations')
+        puts 'Migrating to latest'
+        Sequel::Migrator.run(db, 'db/migrations')
       end
     end
 

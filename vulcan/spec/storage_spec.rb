@@ -26,7 +26,7 @@ describe Vulcan::Storage do
   describe '#with_build_transaction' do
     def test_with_build_transaction(buildable)
       expect do
-        storage.with_build_transaction(buildable) do |output_files|
+        storage.with_run_cell_build(run_cell: storage.run_cell_for(buildable)) do |build_dir, output_files|
           output_files = output_files.map { |of| of.data_path(storage) }
           output_files.each { |of| expect(::File.exists?(of)).to eql(true) }
           output_files.each { |of| ::File.write(of, "test data") }
@@ -39,12 +39,14 @@ describe Vulcan::Storage do
       built_paths = buildable.build_outputs.values.map { |sf| sf.data_path(storage) }
       built_paths.each { |of| expect(::File.exists?(of)).to eql(false) }
 
-      storage.with_build_transaction(buildable) do |output_files|
+      storage.with_run_cell_build(run_cell: storage.run_cell_for(buildable)) do |build_dir, output_files|
         output_files = output_files.map { |of| of.data_path(storage) }
 
         output_files.each { |of| expect(::File.exists?(of)).to eql(true) }
         output_files.each { |of| expect(::File.read(of)).to eql("") }
         output_files.each_with_index { |of, i| ::File.write(of, "stuff #{i}") }
+
+        storage.install_build_output(buildable: buildable, build_dir: build_dir)
       end
 
       built_paths.each { |of| expect(::File.exists?(of)).to eql(true) }

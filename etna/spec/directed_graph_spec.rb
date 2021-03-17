@@ -15,6 +15,12 @@ describe DirectedGraph do
             ["a", "b", "d"],
             ["a", "c", "f"],
         ])
+
+        expect(graph.paths_from('a', false)).to eql([
+            ["b", "e", "g"],
+            ["b", "d"],
+            ["c", "f"],
+        ])
       end
     end
 
@@ -31,6 +37,7 @@ describe DirectedGraph do
         graph.add_connection('f', 'g')
         graph.add_connection('g', 'h')
         graph.add_connection('g', 'i')
+        graph.add_connection('t', 'i')
 
         expect(graph.paths_from('a')).to eql([
             ["a", "c", "d", "f", "g", "h"],
@@ -55,9 +62,14 @@ describe DirectedGraph do
       graph.add_connection('f', 'g')
       graph.add_connection('g', 'h')
       graph.add_connection('g', 'i')
+      graph.add_connection('t', 'i')
 
       expect(graph.serialized_path_from('a')).to eql([
           "a", "c", "b", "d", "f", "e", "g", "h", "i"
+      ])
+
+      expect(graph.serialized_path_from('a', false)).to eql([
+          "c", "b", "d", "f", "e", "g", "h", "i"
       ])
     end
   end

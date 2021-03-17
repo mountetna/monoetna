@@ -61,14 +61,17 @@ RSpec.configure do |config|
   config.before(:suite) do
     FactoryBot.find_definitions
     # DatabaseCleaner.strategy = :transaction
-    # DatabaseCleaner.clean_with(:truncation)
+    DatabaseCleaner.clean_with(:truncation)
   end
 
-  # config.around(:each) do |example|
-  #   DatabaseCleaner.cleaning do
-  #     example.run
-  #   end
-  # end
+  config.around(:each) do |example|
+    # Unfortunately, DatabaseCleaner + Sequel does not properly handle the auto_savepointing, which means that
+    # exceptions handled in rescue blocks do not behave correctly in tests (where as they would be fine outside of
+    # tests).  Thus, we are forced to manually handle the transaction wrapping of examples manually to set this option.
+    # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
+    #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
+    Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
+  end
 end
 
 

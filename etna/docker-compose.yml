@@ -23,6 +23,7 @@ services:
       - ../docker/etna-base/entrypoints:/entrypoints:ro
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
+      - $HOME/etna.yml:/root/etna.yml
     environment:
       SKIP_DB_WAIT: 1
     networks:

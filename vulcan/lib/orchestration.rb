@@ -1,4 +1,5 @@
 require 'open3'
+require_relative './asynchronous_scheduler'
 
 class Vulcan
   # This is the temporary glue for running synchronous workflows from a given session and its inputs.
@@ -13,7 +14,12 @@ class Vulcan
 
     MAX_RUNNABLE = 20
 
-    def run_until_done!(storage, token=nil)
+    def scheduler
+      @scheduler ||= AsynchronousScheduler.new(orchestration: self)
+    end
+
+    # Synchronous scheduler that runs all the processes inline.
+    def run_until_done!(storage, token = nil)
       load_json_inputs!(storage)
       [].tap do |ran|
         errors = RunErrors.new
@@ -55,9 +61,10 @@ class Vulcan
         payload = reference[:json_payload]
         ms = material_source(reference)
         unless ::File.exists?(ms.build_output&.data_path(storage))
-          storage.with_build_transaction(ms) do |build_files|
+          storage.with_run_cell_build(run_cell: storage.run_cell_for(ms)) do |build_dir, build_files|
             path = build_files.first.data_path(storage)
             ::File.write(path, payload)
+            storage.install_build_output(buildable: ms, build_dir: build_dir)
           end
         end
       end
@@ -70,20 +77,30 @@ class Vulcan
     # Will go away when we get hmacs for inter service.
     def dev_options
       [
-        "--network=monoetna_edge_net",
-        "--extra-host=magma.development.local:172.16.238.10",
-        "--extra-host=metis.development.local:172.16.238.10",
-        "-e",
-        "ARCHIMEDES_ENV=#{Vulcan.instance.environment}",
+          "--network=monoetna_edge_net",
+          "--extra-host=magma.development.local:172.16.238.10",
+          "--extra-host=metis.development.local:172.16.238.10",
+          "-e",
+          "ARCHIMEDES_ENV=#{Vulcan.instance.environment}",
       ]
     end
 
-    def command(storage:, input_files:, output_files:, token:)
+    def command(storage:, input_files:, output_files:, token:, ch:)
       [
           "docker",
           "run",
-          "-i",
           "--rm",
+      ] + docker_run_args(storage: storage, input_files: input_files, output_files: output_files, token: token, ch: ch)
+    end
+
+    def docker_run_args(storage:, input_files:, output_files:, token:, ch:)
+      [
+          "-i",
+          # Give the container a unique name based on the cell hash so as a mutex around attempting to build
+          # the same cell from multiple places (cli, web interface, etc).  This may result in some contentious
+          # runs failing, but this is ideal compared to duplicated work.
+          "--name",
+          "vulcan-build-#{ch}",
           "-v",
           "/var/run/docker.sock:/var/run/docker.sock:ro",
           "-v",
@@ -116,15 +133,17 @@ class Vulcan
       "#{pkg_name}:#{path}"
     end
 
-    def run_script!(storage:, script:, input_files:, output_files:, token:)
+    def run_script!(storage:, script:, input_files:, output_files:, token:, ch:)
       status = nil
       output_str = nil
 
       cmd = command(
-        storage: storage,
-        input_files: input_files,
-        output_files: output_files,
-        token: token)
+          storage: storage,
+          input_files: input_files,
+          output_files: output_files,
+          token: token,
+          ch: ch,
+      )
       Open3.popen2(*cmd) do |input, output, wait_thr|
         input.print(script)
         input.close
@@ -144,37 +163,68 @@ class Vulcan
       Pathname.new(to).relative_path_from(Pathname.new(::File.dirname(from))).to_s
     end
 
-    def run!(storage:, build_target:, token:)
-      storage.with_build_transaction(build_target) do |output_files|
-        script = build_target.script
-        if script.is_a?(Hash)
+    def run_as_copy_cell(storage:, build_target:, script:)
+      if script.is_a?(Hash)
+        storage.with_run_cell_build(run_cell: storage.run_cell_for(build_target)) do |build_dir, output_files|
           # This is a copy cell.  Find inputs, link them.
           output_files.each do |of|
             output_path = of.data_path(storage)
             input_file = script[of.logical_name]
+
             unless input_file.nil?
               input_path = input_file.data_path(storage)
               relative_path = relative_path(output_path, input_path)
-              # puts("coping for #{of}")
-              # puts(output_path, input_path, relative_path)
               ::File.unlink(output_path)
               ::File.symlink(relative_path, output_path)
             end
           end
-          {'status' => 'done'}
-        elsif script
-          result = run_script!(
-              storage: storage, input_files: build_target.input_files,
-              output_files: output_files, script: script,
-              token: token
-          )
 
-          if (error = result["error"])
-            raise "Python error while executing script: #{error}"
-          end
-        else
-          raise "Could not determine or find backing script"
+          storage.install_build_output(buildable: build_target, build_dir: build_dir)
         end
+
+        return true
+      end
+
+      false
+    end
+
+    # This version keeps a lock on the storage for the entire duration of the script.
+    def run_script_synchronously(storage:, build_target:, script:, token:)
+      storage.with_run_cell_build(run_cell: storage.run_cell_for(build_target)) do |build_dir, output_files|
+        result = run_script!(
+            storage: storage,
+            input_files: build_target.input_files,
+            output_files: output_files,
+            script: script,
+            token: token,
+            ch: build_target.cell_hash,
+        )
+
+        if (error = result["error"])
+          raise "Python error while executing script: #{error}"
+        end
+
+        storage.install_build_output(
+            buildable: build_target,
+            build_dir: build_dir
+        )
+      end
+    end
+
+      # Synchronous runner implementation that expects the transaction to complete.
+    def run!(storage:, build_target:, token:)
+      script = build_target.script
+      if run_as_copy_cell(storage: storage, build_target: build_target, script: script)
+        {'status' => 'done'}
+      elsif script
+        run_script_synchronously(
+            storage: storage,
+            build_target: build_target,
+            script: script,
+            token: token
+        )
+      else
+        raise "Could not determine or find backing script"
       end
 
       raise "Build for #{build_target} failed to produce outputs!" unless build_target.is_built?(storage)
@@ -193,6 +243,8 @@ class Vulcan
     def self.unique_paths(workflow)
       directed_graph = ::DirectedGraph.new
 
+      directed_graph.add_connection(:root, :primary_inputs)
+
       workflow.steps.each do |step|
         step.in.each do |step_input|
           directed_graph.add_connection(step_input.source.first, step.id)
@@ -203,7 +255,7 @@ class Vulcan
         directed_graph.add_connection(output.outputSource.first, :primary_outputs)
       end
 
-      [ directed_graph.serialized_path_from(:primary_inputs) ] + directed_graph.paths_from(:primary_inputs)
+      [directed_graph.serialized_path_from(:root, false)] + directed_graph.paths_from(:root, false)
     end
 
     def unique_paths
@@ -235,7 +287,7 @@ class Vulcan
       end
     end
 
-      # Cache is used to save effort in computing common recursive targets within a single calculation session.
+    # Cache is used to save effort in computing common recursive targets within a single calculation session.
     # Do not pass an actual value in for it.
     def build_target_for(step_name, cache = {})
       if cache.include?(step_name)
