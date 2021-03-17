@@ -29,38 +29,6 @@ export const stringify = (text) => {
 export const workflowName = (workflow) =>
   workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
 
-export const wrapPaneItem = (item, key) => {
-  return (
-    <div className='view_item' key={key}>
-      <div className='item_name'>{item.name}</div>
-      <div className='item_view'>{item.value}</div>
-    </div>
-  );
-};
-
-export const validDataFormat = (rawInputData, stepType) => {
-  switch (stepType) {
-    case OUTPUT_COMPONENT.PLOTLY:
-      // Plotly.js data payload should be in format of:
-      // {
-      //   data: <JSON>,
-      //   layout: <JSON>
-      // }
-      if (!rawInputData || !rawInputData.data || !rawInputData.layout)
-        return false;
-    case OUTPUT_COMPONENT.CONSIGNMENT:
-      // Not sure how to check consignment format?
-      if (!rawInputData) return false;
-    case OUTPUT_COMPONENT.RAW:
-      if (!rawInputData) return false;
-    case OUTPUT_COMPONENT.LINK:
-    default:
-      break;
-  }
-
-  return true;
-};
-
 export const uiStepInputNames = (step) => {
   return step.out.map((output) => `${step.name}/${output}`);
 };

@@ -8,7 +8,6 @@ import IntegerInput from './integer';
 import MultiselectStringInput from './multiselect_string';
 import SelectAutocompleteInput from './select_autocomplete';
 import StringInput from './string';
-import {wrapPaneItem} from '../../../../utils/workflow';
 
 export default function UserInput({input, onChange}) {
   const INPUTS = {
@@ -24,15 +23,14 @@ export default function UserInput({input, onChange}) {
 
   let Component = INPUTS[inputType];
 
-  return wrapPaneItem(
-    {
-      name: input.name,
-      value: (
+  return (
+    <div className='view_item' key={input.name}>
+      <div className='item_name'>{input.name}</div>
+      <div className='item_view'>
         <InputHelp input={input}>
           <Component input={input} onChange={onChange}></Component>
         </InputHelp>
-      )
-    },
-    input.name
+      </div>
+    </div>
   );
 }
