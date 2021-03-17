@@ -71,7 +71,7 @@ outputs:
 steps:
   queryMagma:
     run: scripts/fake_query.cwl
-    label: 'Fetch pool record names'
+    label: 'Fetch user selection options'
     in:
       a: min_nCounts
       b: max_nCounts
@@ -83,18 +83,31 @@ steps:
       h: regress_pct_mito
       i: regress_pct_ribo
       j: max_pc
-    out: [names]
-  pickPools:
-    run: ui-queries/select-autocomplete.cwl
-    label: 'Select pool records'
+    out: [experiments, tissues, records, pools]
+  pickExperiments:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select experiments'
     in:
-      a: queryMagma/names
+      a: queryMagma/experiments
+    out: [names]
+  pickTissueTypes:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select tissue types'
+    in:
+      a: queryMagma/tissues
+    out: [names]
+  verifyRecordNames:
+    run: ui-queries/checkboxes.cwl
+    label: 'Confirm record names'
+    in:
+      a: pickExperiments/names
+      b: pickTissueTypes/names
     out: [names]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl
     label: 'Retrieve path to raw counts files'
     in:
-      record_ids: pickPools/names
+      record_ids: verifyRecordNames/names
     out: [h5_locations]
   merge_anndata_from_raw_h5:
     run: scripts/merge_anndata_from_raw_h5.cwl

@@ -13,8 +13,13 @@ describe('SessionFeed', () => {
         steps: [
           [
             {
+              name: 'zero',
+              run: 'scripts/something-wrong.cwl'
+            },
+            {
               name: 'first',
-              run: 'scripts/something.cwl'
+              run: 'scripts/something.cwl',
+              out: ['output']
             },
             {
               name: 'second',
@@ -46,13 +51,20 @@ describe('SessionFeed', () => {
       status: [
         [
           {
-            name: 'first',
+            name: 'zero',
             status: 'error',
             message: 'oops!'
           },
           {
+            name: 'first',
+            status: 'complete',
+            downloads: {
+              output: 'https://foo'
+            }
+          },
+          {
             name: 'second',
-            status: 'complete'
+            status: 'pending'
           },
           {
             name: 'third',
