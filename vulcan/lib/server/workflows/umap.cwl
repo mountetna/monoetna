@@ -90,18 +90,38 @@ steps:
     in:
       a: queryMagma/experiments
     out: [names]
-  pickTissueTypes:
+  pickTissues:
     run: ui-queries/multiselect-string.cwl
     label: 'Select tissue types'
     in:
       a: queryMagma/tissues
     out: [names]
+  pickPools:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select pool records'
+    in:
+      a: queryMagma/pools
+    out: [names]
+  pickTubes:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select individual tube records'
+    in:
+      a: queryMagma/records
+    out: [names]
+  parseRecordSelections:
+    run: scripts/parse_record_selections.cwl
+    label: 'Interpret record selection inputs.'
+    in:
+      experiments:  pickExperiments/names
+      tissues: pickTissues/names
+      pools: pickPools/names
+      tubes: pickTubes/names
+    out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
     label: 'Confirm record names'
     in:
-      a: pickExperiments/names
-      b: pickTissueTypes/names
+      a: parseRecordSelections/tube_recs
     out: [names]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl

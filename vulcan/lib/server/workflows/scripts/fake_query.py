@@ -11,3 +11,16 @@ mock_tissues = [
     'Tumor'
 ]
 output_json(mock_tissues, 'tissues')
+
+mock_pools = [
+    'Pool1',
+    'Pool2'
+]
+output_json(mock_pools, 'pools')
+
+
+mock_records = [
+    'XCRS1-MM170-SCPYMT3PTL1-SCG1',
+    'XCRS1-MM170-SCPYMT3PTM1-SCG1'
+]
+output_json(mock_records, 'records')
