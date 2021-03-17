@@ -38,73 +38,28 @@ export const wrapPaneItem = (item, key) => {
   );
 };
 
-// export const wrapEditableInputs = (inputs, handleInputChange) => {
-//   return Object.keys(inputs).map((inputName, index) => {
-//     let input = inputs[inputName];
-//     let name = input.label || inputName;
-//     let key = `${inputName}-${index}`;
+export const validDataFormat = (rawInputData, stepType) => {
+  switch (stepType) {
+    case OUTPUT_COMPONENT.PLOTLY:
+      // Plotly.js data payload should be in format of:
+      // {
+      //   data: <JSON>,
+      //   layout: <JSON>
+      // }
+      if (!rawInputData || !rawInputData.data || !rawInputData.layout)
+        return false;
+    case OUTPUT_COMPONENT.CONSIGNMENT:
+      // Not sure how to check consignment format?
+      if (!rawInputData) return false;
+    case OUTPUT_COMPONENT.RAW:
+      if (!rawInputData) return false;
+    case OUTPUT_COMPONENT.LINK:
+    default:
+      break;
+  }
 
-//     switch (input.type) {
-//       case TYPE.INTEGER:
-//         return wrapPaneItem(
-//           {
-//             name,
-//             value: (
-
-//             )
-//           },
-//           key
-//         );
-//       case TYPE.FLOAT:
-//         return wrapPaneItem(
-//           {
-//             name,
-//             value: (
-
-//             )
-//           },
-//           key
-//         );
-//       case :
-//         return wrapPaneItem(
-//           {
-//             name,
-//             value: (
-
-//             )
-//           },
-//           key
-//         );
-//       case TYPE.MULTISELECT_STRING:
-//         return wrapPaneItem(
-//           {
-//             name,
-//             value: (
-
-//             )
-//           },
-//           key
-//         );
-//       case TYPE.SELECT_AUTOCOMPLETE:
-//         return wrapPaneItem({
-//           name,
-//           value: (
-
-//           )
-//         });
-//       default:
-//         return wrapPaneItem(
-//           {
-//             name,
-//             value: (
-
-//             )
-//           },
-//           key
-//         );
-//     }
-//   });
-// };
+  return true;
+};
 
 export const uiStepInputNames = (step) => {
   return step.out.map((output) => `${step.name}/${output}`);
