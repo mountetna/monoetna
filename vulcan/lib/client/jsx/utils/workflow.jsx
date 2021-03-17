@@ -1,19 +1,8 @@
-import React from 'react';
-
 import * as _ from 'lodash';
 
 import XYPlotModel from '../models/xy_plot';
 
-import ListInput from 'etna-js/components/inputs/list_input';
-import DropdownInput from 'etna-js/components/inputs/dropdown_input';
-import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import {
-  IntegerInput,
-  FloatInput
-} from 'etna-js/components/inputs/numeric_input';
-import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
-
-import {TYPE, RUN, OUTPUT_COMPONENT} from '../models/steps';
+import {RUN, OUTPUT_COMPONENT} from '../models/steps';
 
 export const stringify = (text) => {
   // For previewing data inputs / outputs, we just want a string
