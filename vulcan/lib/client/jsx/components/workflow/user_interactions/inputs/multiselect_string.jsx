@@ -16,6 +16,6 @@ export default function MultiselectStringInput({input, onChange}) {
       onChange={(e) => {
         onChange(input.name, e);
       }}
-    />
+    ></ListInput>
   );
 }

@@ -6,7 +6,7 @@ import {OUTPUT_COMPONENT} from '../../../models/steps';
 import StepName from './step_name';
 import RawOutput from '../user_interactions/outputs/raw';
 import LinkOutput from '../user_interactions/outputs/link';
-import PlotlyOutput from '../user_interactions/outputs/plotly';
+import PlotOutput from '../user_interactions/outputs/plot';
 import ConsignmentOutput from '../user_interactions/outputs/consignment';
 
 import {
@@ -38,7 +38,7 @@ export default function StepOutput({step, stepIndex}) {
   const OUTPUTS = {
     default: LinkOutput,
     [OUTPUT_COMPONENT.LINK]: LinkOutput,
-    [OUTPUT_COMPONENT.PLOTLY]: PlotlyOutput,
+    [OUTPUT_COMPONENT.PLOTLY]: PlotOutput,
     [OUTPUT_COMPONENT.CONSIGNMENT]: ConsignmentOutput,
     [OUTPUT_COMPONENT.RAW]: RawOutput
   };
@@ -51,7 +51,7 @@ export default function StepOutput({step, stepIndex}) {
     data = uiStepInputDataRaw({step, pathIndex, status});
   }
 
-  let Component = OUTPUTS[stepType];
+  let OutputComponent = OUTPUTS[stepType];
 
   return (
     <div className='step-output'>
@@ -60,7 +60,7 @@ export default function StepOutput({step, stepIndex}) {
         status={status[pathIndex][stepIndex].status}
       ></StepName>
       <div className='outputs-pane'>
-        <Component data={data}></Component>
+        <OutputComponent data={data}></OutputComponent>
       </div>
     </div>
   );

@@ -19,16 +19,19 @@ export default function UserInput({input, onChange}) {
     [TYPE.SELECT_AUTOCOMPLETE]: SelectAutocompleteInput
   };
 
-  let inputType = input.type || 'default';
+  let inputType =
+    input.type && Object.values(TYPE).includes(input.type)
+      ? input.type
+      : 'default';
 
-  let Component = INPUTS[inputType];
+  let InputComponent = INPUTS[inputType];
 
   return (
-    <div className='view_item' key={input.name}>
+    <div className='view_item'>
       <div className='item_name'>{input.name}</div>
       <div className='item_view'>
         <InputHelp input={input}>
-          <Component input={input} onChange={onChange}></Component>
+          <InputComponent input={input} onChange={onChange}></InputComponent>
         </InputHelp>
       </div>
     </div>
