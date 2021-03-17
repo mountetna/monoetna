@@ -81,8 +81,7 @@ module Etna
             run: @attributes['run'].id,
             in: @attributes['in'].map { |i| input_as_json(i) },
             out: @attributes['out'].map(&:id),
-            label: @attributes['label'],
-            doc: @attributes['doc']
+            label: @attributes['label']
         }
       end
 

@@ -31,12 +31,16 @@ describe WorkflowsController do
               "format" => nil,
               "label" => "it is an int",
               "type" => "int",
+              "doc" => "help tip",
+              "group" => "one"
           },
           "someIntWithoutDefault" => {
               "default" => nil,
               "format" => nil,
               "label" => nil,
               "type" => "int",
+              "doc" => "another tip",
+              "group" => "two"
           },
       })
 
