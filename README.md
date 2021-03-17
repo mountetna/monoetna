@@ -75,7 +75,7 @@ make up
 # Enters bash console in janus
 make -C janus bash
 ○ → ./bin/janus add_project 'test-project' 'Test Project'
-○ → ./bin/janus add_user developer@ucsf.edu Developer LastName password
+○ → ./bin/janus add_user developer@ucsf.edu Developer password
 ○ → ./bin/janus permit developer@ucsf.edu test-project administrator false
 ○ → ./bin/janus add_project ipi 'Immuno Profiler Project'
 ○ → ./bin/janus permit developer@ucsf.edu ipi administrator false
