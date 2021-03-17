@@ -201,7 +201,7 @@ describe('Vulcan API', () => {
 
     stubUrl({
       verb: 'post',
-      path: ROUTES.submit('test'),
+      path: ROUTES.submit('example', 'test'),
       request: () => ({inputs, key: 'session_key'}),
       response: {
         status,
@@ -295,7 +295,7 @@ describe('Vulcan API', () => {
 
     stubUrl({
       verb: 'post',
-      path: ROUTES.submit('test'),
+      path: ROUTES.submit('example', 'test'),
       request: () => ({inputs, key: 'session_key'}),
       response: {
         status: status1,
@@ -385,7 +385,7 @@ describe('Vulcan API', () => {
 
     stubUrl({
       verb: 'post',
-      path: ROUTES.submit('test'),
+      path: ROUTES.submit('example', 'test'),
       request: () => ({inputs, key: 'session_key'}),
       response: {
         status: status2,
@@ -484,7 +484,7 @@ describe('Vulcan API', () => {
 
     stubUrl({
       verb: 'post',
-      path: ROUTES.submit('test'),
+      path: ROUTES.submit('example', 'test'),
       request: () => ({inputs, key: 'session_key'}),
       response: {
         status: status2,

@@ -26,6 +26,9 @@ export const stringify = (text) => {
   return text;
 };
 
+export const workflowName = (workflow) =>
+  workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
+
 export const wrapPaneItem = (item, key) => {
   return (
     <div className='view_item' key={key}>
@@ -292,16 +295,13 @@ const stepDependsOn = (step, otherStep) => {
 
 export const shouldDownloadStepData = ({workflow, pathIndex, stepIndex}) => {
   // Only download step data if its output is an input to
-  //   a UI INPUT widget or a UI OUTPUT step that is Plotly or a
-  //   Consignment.
+  //   a UI INPUT widget or a UI OUTPUT step that is not a LINK
   let step = workflow.steps[pathIndex][stepIndex];
   let dependentSteps = workflow.steps[pathIndex].filter((s) => {
     return (
       (hasUiInput(s) ||
         (hasUiOutput(s) &&
-          [OUTPUT_COMPONENT.PLOTLY, OUTPUT_COMPONENT.CONSIGNMENT].indexOf(
-            s.run.split('/')[1]
-          ) > -1)) &&
+          OUTPUT_COMPONENT.LINK !== s.run.split('/')[1].replace('.cwl', ''))) &&
       stepDependsOn(s, step)
     );
   });

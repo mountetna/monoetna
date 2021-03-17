@@ -1,5 +1,9 @@
 import {STATUS} from '../models/steps';
-import {hasUiInput, hasUiOutput} from '../utils/workflow';
+import {
+  hasUiInput,
+  hasUiOutput,
+  workflowName as workflowNameShortener
+} from '../utils/workflow';
 
 export const completedUiStepsSelector = (context) => {
   let {status, workflow, pathIndex} = context;
@@ -53,3 +57,6 @@ export const errorStepsSelector = (context) => {
     })
     .filter((s) => s);
 };
+
+export const workflowByName = ({workflows, workflowName}) =>
+  workflows.find((w) => workflowNameShortener(w) === workflowName);

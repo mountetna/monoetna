@@ -27,5 +27,6 @@ export const RUN = {
 export const OUTPUT_COMPONENT = {
   LINK: 'link',
   PLOTLY: 'plotly',
-  CONSIGNMENT: 'consignment'
+  CONSIGNMENT: 'consignment',
+  RAW: 'raw'
 };
