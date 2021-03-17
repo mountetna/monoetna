@@ -2,7 +2,7 @@ import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
-import UserInput from '../user_interactions/user_input';
+import UserInput from '../user_interactions/inputs/user_input';
 import StepName from './step_name';
 
 import {
@@ -43,7 +43,7 @@ export default function StepUserInput({step, stepIndex}) {
       label: step.label || step.name,
       default: session.inputs[inputName] || null,
       options: uiStepOptions({step, pathIndex, status}),
-      name: step.name
+      name: inputName
     });
     return result;
   }, []);

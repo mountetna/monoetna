@@ -1,15 +1,13 @@
 import React, {useContext} from 'react';
-import Plot from 'react-plotly.js';
-
-import ConsignmentTable from 'etna-js/plots/components/consignment/consignment_table';
-import Consignment from 'etna-js/plots/models/consignment';
-import Link from 'etna-js/components/link';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 import {OUTPUT_COMPONENT} from '../../../models/steps';
 
 import StepName from './step_name';
-import UserOutput from '../user_interactions/user_output';
+import RawOutput from '../user_interactions/outputs/raw';
+import LinkOutput from '../user_interactions/outputs/link';
+import PlotlyOutput from '../user_interactions/outputs/plotly';
+import ConsignmentOutput from '../user_interactions/outputs/consignment';
 
 import {
   validStep,
@@ -31,6 +29,30 @@ export default function StepOutput({step, stepIndex}) {
   )
     return null;
 
+  let stepType = step.run.split('/')[1].replace('.cwl', '');
+
+  stepType = Object.values(OUTPUT_COMPONENT).includes(stepType)
+    ? stepType
+    : 'default';
+
+  const OUTPUTS = {
+    default: LinkOutput,
+    [OUTPUT_COMPONENT.LINK]: LinkOutput,
+    [OUTPUT_COMPONENT.PLOTLY]: PlotlyOutput,
+    [OUTPUT_COMPONENT.CONSIGNMENT]: ConsignmentOutput,
+    [OUTPUT_COMPONENT.RAW]: RawOutput
+  };
+
+  let data;
+
+  if (['default', OUTPUT_COMPONENT.LINK].includes(stepType)) {
+    data = uiStepInputDataLink({step, pathIndex, status});
+  } else {
+    data = uiStepInputDataRaw({step, pathIndex, status});
+  }
+
+  let Component = OUTPUTS[stepType];
+
   return (
     <div className='step-output'>
       <StepName
@@ -38,7 +60,7 @@ export default function StepOutput({step, stepIndex}) {
         status={status[pathIndex][stepIndex].status}
       ></StepName>
       <div className='outputs-pane'>
-        <UserOutput step={step}></UserOutput>
+        <Component data={data}></Component>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
-import UserInput from '../user_interactions/user_input';
+import UserInput from '../user_interactions/inputs/user_input';
 
 function InputGroup({inputs, onChange}) {
   let groupName = inputs[0].group || 'Inputs';
@@ -80,7 +80,7 @@ export default function PrimaryInputs() {
             <InputGroup
               key={index}
               inputs={groupedInputs[groupName]}
-              onClick={handleInputChange}
+              onChange={handleInputChange}
             ></InputGroup>
           );
         })}
