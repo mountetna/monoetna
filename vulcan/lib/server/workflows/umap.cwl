@@ -63,18 +63,45 @@ steps:
       h: regress_pct_mito
       i: regress_pct_ribo
       j: max_pc
+    out: [experiments, tissues, pools, records]
+  pickExperiments:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select Experiments'
+    in:
+      a: queryMagma/experiments
+    out: [names]
+  pickTissues:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select Tissues (AND logic)'
+    in:
+      a: queryMagma/tissues
     out: [names]
   pickPools:
-    run: ui-queries/select-autocomplete.cwl
+    run: ui-queries/multiselect-string.cwl
     label: 'Select pool records'
     in:
-      a: queryMagma/names
+      a: queryMagma/pools
     out: [names]
+  pickTubes:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select individual tube records'
+    in:
+      a: queryMagma/records
+    out: [names]
+  parse_record_selections:
+    run: scripts/parse_record_selections.cwl
+    label: 'Interpret record selection inputs.
+    in:
+      experiments: pickExperiments/names
+      tissues: pickTissues/names
+      pools: pickPools/names
+      tubes: pickTubes/names
+    out: [tube_recs]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl
-    label: 'Retrieve path to raw counts files'
+    label: 'Query paths to raw counts files'
     in:
-      record_ids: pickPools/names
+      record_ids: parse_record_selections/tube_recs
     out: [h5_locations]
   merge_anndata_from_raw_h5:
     run: scripts/merge_anndata_from_raw_h5.cwl
