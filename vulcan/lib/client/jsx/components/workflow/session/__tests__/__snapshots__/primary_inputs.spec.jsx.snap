@@ -42,10 +42,10 @@ exports[`PrimaryInputs renders each type of input 1`] = `
               title="help"
             >
               <span
-                className="icon-grp fa-stack fa-fw"
+                className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
               >
                 <i
-                  className="icon help-icon question-circle fa fa-2x fa-question-circle"
+                  className="icon help-icon  question-circle fa fa-2x fa-question-circle"
                 />
               </span>
             </div>
@@ -79,10 +79,10 @@ exports[`PrimaryInputs renders each type of input 1`] = `
               title="help"
             >
               <span
-                className="icon-grp fa-stack fa-fw"
+                className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
               >
                 <i
-                  className="icon help-icon question-circle fa fa-2x fa-question-circle"
+                  className="icon help-icon  question-circle fa fa-2x fa-question-circle"
                 />
               </span>
             </div>
@@ -116,10 +116,10 @@ exports[`PrimaryInputs renders each type of input 1`] = `
               title="help"
             >
               <span
-                className="icon-grp fa-stack fa-fw"
+                className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
               >
                 <i
-                  className="icon help-icon question-circle fa fa-2x fa-question-circle"
+                  className="icon help-icon  question-circle fa fa-2x fa-question-circle"
                 />
               </span>
             </div>
@@ -153,10 +153,10 @@ exports[`PrimaryInputs renders each type of input 1`] = `
               title="help"
             >
               <span
-                className="icon-grp fa-stack fa-fw"
+                className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
               >
                 <i
-                  className="icon help-icon question-circle fa fa-2x fa-question-circle"
+                  className="icon help-icon  question-circle fa fa-2x fa-question-circle"
                 />
               </span>
             </div>
@@ -190,10 +190,10 @@ exports[`PrimaryInputs renders each type of input 1`] = `
               title="help"
             >
               <span
-                className="icon-grp fa-stack fa-fw"
+                className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
               >
                 <i
-                  className="icon help-icon question-circle fa fa-2x fa-question-circle"
+                  className="icon help-icon  question-circle fa fa-2x fa-question-circle"
                 />
               </span>
             </div>
@@ -227,10 +227,10 @@ exports[`PrimaryInputs renders each type of input 1`] = `
               title="help"
             >
               <span
-                className="icon-grp fa-stack fa-fw"
+                className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
               >
                 <i
-                  className="icon help-icon question-circle fa fa-2x fa-question-circle"
+                  className="icon help-icon  question-circle fa fa-2x fa-question-circle"
                 />
               </span>
             </div>
