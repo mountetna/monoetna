@@ -40,7 +40,6 @@ export default function CheckboxesInput({input, onChange}) {
     } else {
       copy = selectedOptions.filter((opt) => option !== opt);
     }
-    console.log(copy);
     setSelectedOptions(copy);
   }
 
