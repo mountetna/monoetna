@@ -33,8 +33,7 @@
   border: 1px solid #ccc;
 }
 
-.step-input,
-.step-user-input {
+.step-input {
   border-bottom: 2px solid lightgray;
 }
 
@@ -202,6 +201,30 @@ $button-background: #d66;
       max-width: 500px;
 
       .step-user-input {
+        padding: 10px;
+
+        .step-name {
+          background: rgb(251, 248, 244);
+          border: 1px solid #ccc;
+          border-right: 1px solid forestgreen;
+          border-bottom: none;
+          position: relative;
+          font-family: $body_font;
+          color: indianred;
+          width: 300px;
+          padding-right: 8px;
+
+          .step-button {
+            text-align: right;
+          }
+        }
+
+        .view_item {
+          border: 1px solid #ccc;
+          padding-right: 5px;
+          overflow: hidden;
+        }
+
         .item_view {
           padding-left: 2rem;
 
@@ -222,11 +245,9 @@ $button-background: #d66;
 
           .list_item {
             border-bottom: 1px solid lightgray;
-            padding: 0.5rem;
+            padding: 0.25rem;
 
             &:last-child {
-              margin-top: 0.5rem;
-              margin-bottom: 0.5rem;
               border-bottom: 0;
             }
 
