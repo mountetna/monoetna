@@ -1,9 +1,8 @@
-from archimedes.functions.dataflow import output_json, input_var
+from archimedes.functions.dataflow import output_json, input_var, input_json
 from archimedes.functions.magby import Magby
 from archimedes.functions.environment import token, magma_host, app_env
-from archimedes.functions.utils import json_loads
 
-input_records = json_loads(input_var('record_ids'))
+input_records = input_json('record_ids')
 
 # Improve these with magby.getModels or similar in future
 seq_pool_model_name = 'sc_seq_pool'
