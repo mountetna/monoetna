@@ -7,6 +7,9 @@ class Vulcan
   class Orchestration
     attr_reader :workflow, :session
 
+    # Global threaded scheduler
+    @@scheduler = AsynchronousScheduler.new
+
     def initialize(workflow, session)
       @workflow = workflow
       @session = session
@@ -15,7 +18,7 @@ class Vulcan
     MAX_RUNNABLE = 20
 
     def scheduler
-      @scheduler ||= AsynchronousScheduler.new(orchestration: self)
+      @@scheduler
     end
 
     # Synchronous scheduler that runs all the processes inline.
@@ -239,10 +242,11 @@ class Vulcan
       directed_graph = ::DirectedGraph.new
 
       directed_graph.add_connection(:root, :primary_inputs)
-      directed_graph.add_connection(:root, :primary_outputs)
 
       workflow.steps.each do |step|
-        directed_graph.add_connection(:root, step.id)
+        if step.in.empty?
+          directed_graph.add_connection(:root, step.id)
+        end
 
         step.in.each do |step_input|
           directed_graph.add_connection(step_input.source.first, step.id)
@@ -253,7 +257,7 @@ class Vulcan
         directed_graph.add_connection(output.outputSource.first, :primary_outputs)
       end
 
-      [directed_graph.serialized_path_from(:root, false)] + directed_graph.paths_from(:root, false)
+      [directed_graph.serialized_path_from(:root, false)]
     end
 
     def unique_paths

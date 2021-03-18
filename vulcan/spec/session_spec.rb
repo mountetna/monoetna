@@ -69,27 +69,16 @@ describe SessionsController do
       expect(last_json_response['session']['key']).to_not be_empty
       expect(last_json_response['session']['workflow_name']).to eql(workflow_name)
       expect(last_json_response['session']['inputs']).to eql({})
+      expect(last_json_response['status'].map { |a| a.map { |v| v['name'] }}).to match_array([
+          ['firstAdd', 'pickANum', 'finalStep', 'aPlot'],
+      ])
       expect(last_json_response['status']).to match_array([
           [
-              {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
-              {'downloads' => nil, 'message' => nil, 'name' => 'pickANum', 'status' => 'pending'},
-              {'downloads' => nil, 'message' => nil, 'name' => 'finalStep', 'status' => 'pending'},
-              {'downloads' => nil, 'message' => nil, 'name' => 'aPlot', 'status' => 'pending'},
+              {'downloads' => nil, 'name' => 'firstAdd',  'status' => 'pending'},
+              {'downloads' => nil, 'name' => 'pickANum',  'status' => 'pending'},
+              {'downloads' => nil, 'name' => 'finalStep', 'status' => 'pending'},
+              {'downloads' => nil, 'name' => 'aPlot',     'status' => 'pending'},
           ],
-          [
-              {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
-              {'downloads' => nil, 'message' => nil, 'name' => 'finalStep', 'status' => 'pending'},
-          ],
-          [
-              {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
-              {'downloads' => nil, 'message' => nil, 'name' => 'finalStep', 'status' => 'pending'},
-              {'downloads' => nil, 'message' => nil, 'name' => 'aPlot', 'status' => 'pending'},
-          ],
-          [
-              {'downloads' => nil, 'message' => nil, 'name' => 'firstAdd', 'status' => 'pending'},
-              {'downloads' => nil, 'message' => nil, 'name' => 'pickANum', 'status' => 'pending'},
-              {'downloads' => nil, 'message' => nil, 'name' => 'finalStep', 'status' => 'pending'},
-          ]
       ])
       expect(last_json_response['outputs']).to eql({'downloads' => nil, 'status' => 'pending'})
     end
@@ -109,28 +98,22 @@ describe SessionsController do
     it 'builds and makes available downloads to those outputs' do
       make_request
       expect(last_response.status).to eql(200)
-
       response = last_json_response
 
       expect(response['session']['inputs']).to eql(inputs)
-      check_url_for(response['status'][2][0]['downloads']['sum'], orchestration.build_target_for('firstAdd').build_outputs['sum'])
-      check_url_for(response['status'][2][1]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
+      orchestration.scheduler.join_all
 
-      check_url_for(response['status'][3][0]['downloads']['sum'], orchestration.build_target_for('firstAdd').build_outputs['sum'])
-      check_url_for(response['status'][3][1]['downloads']['num'], orchestration.build_target_for('pickANum').build_outputs['num'])
-      check_url_for(response['status'][3][2]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
+      make_request
+      expect(last_response.status).to eql(200)
+      response = last_json_response
+
+      check_url_for(response['status'][0][0]['downloads']['sum'], orchestration.build_target_for('firstAdd').build_outputs['sum'])
+      check_url_for(response['status'][0][1]['downloads']['num'], orchestration.build_target_for('pickANum').build_outputs['num'])
+      check_url_for(response['status'][0][2]['downloads']['sum'], orchestration.build_target_for('finalStep').build_outputs['sum'])
 
       check_url_for(response['outputs']['downloads']['the_result'],
           orchestration.build_target_for(:primary_outputs).build_outputs['the_result'])
-    end
 
-    it 'updates UI Output status correctly' do
-      make_request
-      expect(last_response.status).to eql(200)
-
-      response = last_json_response
-
-      expect(response['session']['inputs']).to eql(inputs)
       expect(response['status'][0][3]['status']).to eql('complete')
     end
   end
@@ -149,7 +132,10 @@ describe SessionsController do
     it 'reports error status and message' do
       make_request
       expect(last_response.status).to eql(200)
+      orchestration.scheduler.join_all
 
+      make_request
+      expect(last_response.status).to eql(200)
       response = last_json_response
 
       expect(response['session']['inputs']).to eql(inputs)

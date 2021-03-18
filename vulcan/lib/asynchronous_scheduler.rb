@@ -1,7 +1,6 @@
 class Vulcan
   class AsynchronousScheduler
-    def initialize(orchestration:)
-      @orchestration = orchestration
+    def initialize
       @running = {}
       @running_semaphore = Mutex.new
       @orchestration_semaphore = Mutex.new
@@ -9,14 +8,6 @@ class Vulcan
       # Used in testing to control when jobs actually start to run, in order to allow better consistent test behavior.
       # Not exposed or used anywhere else.
       @_test_gating_semaphore = Mutex.new
-    end
-
-    def workflow
-      @orchestration.workflow
-    end
-
-    def session
-      @orchestration.session
     end
 
     def labels
@@ -73,7 +64,7 @@ class Vulcan
 
     # Schedules a thread to build the given build_target, thn runs it via orchestration, cleaning up
     # as it goes.
-    def schedule!(build_target:, token:, storage:)
+    def schedule!(orchestration:, build_target:, token:, storage:)
       hash = build_target.cell_hash
       # Ensure that any previous errors are cleared as we start a new process
       s = @running_semaphore
@@ -93,9 +84,9 @@ class Vulcan
           begin
             @_test_gating_semaphore.synchronize do
               Vulcan.instance.logger.info "trying to run for hash #{hash}"
-              @orchestration.run!(storage: storage, build_target: build_target, token: token)
+              orchestration.run!(storage: storage, build_target: build_target, token: token)
               Vulcan.instance.logger.info "Finished running, now scheduling more..."
-              schedule_more!(token: token, storage: storage)
+              schedule_more!(orchestration: orchestration, token: token, storage: storage)
             end
           rescue => e
             Vulcan.instance.logger.error "Error #{e.to_s}"
@@ -113,15 +104,15 @@ class Vulcan
     end
 
     # Finds any runnable jobs, clears errors associated with their hashes, and starts processes for them.
-    def schedule_more!(token:, storage:)
+    def schedule_more!(token:, storage:, orchestration:)
       @orchestration_semaphore.synchronize do
         Vulcan.instance.logger.info("scheduling more...")
-        runnables = @orchestration.next_runnable_build_targets(storage)
+        runnables = orchestration.next_runnable_build_targets(storage)
 
         started = []
 
         runnables.each do |build_target|
-          started << build_target.cell_hash if schedule!(build_target: build_target, token: token, storage: storage)
+          started << build_target.cell_hash if schedule!(orchestration: orchestration, build_target: build_target, token: token, storage: storage)
         end
 
         started

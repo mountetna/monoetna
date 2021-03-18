@@ -15,7 +15,7 @@ describe Vulcan::AsynchronousScheduler do
 
   describe 'e2e' do
     it 'works' do
-      expect(scheduler.schedule_more!(token: '', storage: storage)).to eql([])
+      expect(scheduler.schedule_more!(orchestration: orchestration, token: '', storage: storage)).to eql([])
       session.define_user_input([:primary_inputs, "a"], 123)
       session.define_user_input([:primary_inputs, "b"], 234)
       session.define_user_input(["pickANum", "num"], 51)
@@ -24,8 +24,8 @@ describe Vulcan::AsynchronousScheduler do
       orchestration.load_json_inputs!(storage)
 
       scheduler.instance_variable_get(:@_test_gating_semaphore).synchronize do
-        expect(scheduler.schedule_more!(token: '', storage: storage).length).to eql(2)
-        expect(scheduler.schedule_more!(token: '', storage: storage).length).to eql(0)
+        expect(scheduler.schedule_more!(orchestration: orchestration, token: '', storage: storage).length).to eql(2)
+        expect(scheduler.schedule_more!(orchestration: orchestration, token: '', storage: storage).length).to eql(0)
       end
 
       scheduler.join_all
@@ -43,7 +43,7 @@ describe Vulcan::AsynchronousScheduler do
 
       expect {
         orchestration.load_json_inputs!(storage)
-        scheduler.schedule_more!(token: '', storage: storage)
+        scheduler.schedule_more!(orchestration: orchestration, token: '', storage: storage)
         scheduler.join_all
       }.to change {
         scheduler.status(storage: storage, build_target: bt)[:status]
@@ -58,7 +58,7 @@ describe Vulcan::AsynchronousScheduler do
 
       expect {
         orchestration.load_json_inputs!(storage)
-        scheduler.schedule_more!(token: '', storage: storage)
+        scheduler.schedule_more!(orchestration: orchestration, token: '', storage: storage)
         scheduler.join_all
       }.to change {
         scheduler.status(storage: storage, build_target: bt)[:status]
