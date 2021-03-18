@@ -2,29 +2,8 @@ import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
-import UserInput from '../user_interactions/inputs/user_input';
 import {inputGroupName} from '../../../utils/workflow';
-
-function InputGroup({inputs, onChange}) {
-  let groupName = inputGroupName(inputs[0]);
-
-  return (
-    <div className='inputs-pane'>
-      <div className='title'>{groupName}</div>
-      <div className='primary-inputs-container items'>
-        {inputs.map((input, index) => {
-          return (
-            <UserInput
-              input={input}
-              onChange={onChange}
-              key={index}
-            ></UserInput>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+import InputGroup from './input_group';
 
 export default function PrimaryInputs() {
   const {workflow, session, setInputs} = useContext(VulcanContext);

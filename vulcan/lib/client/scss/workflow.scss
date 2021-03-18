@@ -63,6 +63,7 @@
     height: 0;
     border-top: 8px solid transparent;
     border-bottom: 8px solid transparent;
+    border-left: 8px solid lightgray;
 
     transition: border-left 250ms ease-in-out;
     transition: border-right 250ms ease-in-out;
@@ -70,19 +71,21 @@
 
   &.open {
     right: 0px;
-    transition: right 250ms ease-out;
+    transition: right 250ms ease-in-out;
 
     .steps-list-toggle {
-      border-left: 8px solid lightgray;
+      transition: transform 250ms ease-in-out;
+      transform: rotate(0deg);
     }
   }
 
   &.closed {
     right: -270px;
-    transition: right 250ms ease-out;
+    transition: right 250ms ease-in-out;
 
     .steps-list-toggle {
-      border-right: 8px solid lightgray;
+      transition: transform 250ms ease-in-out;
+      transform: rotate(180deg);
     }
   }
 
@@ -239,7 +242,7 @@ $button-background: #d66;
 
             .checkbox-input-option {
               flex: 1;
-              padding: 0.5rem;
+              padding: 0.25rem;
             }
           }
         }
@@ -258,7 +261,10 @@ $button-background: #d66;
   display: flex;
   flex-direction: column;
   margin: 10px;
-  .title {
+
+  .inputs-pane-header {
+    display: flex;
+
     background: rgb(251, 248, 244);
     border: 1px solid #ccc;
     border-right: 1px solid forestgreen;
@@ -268,13 +274,55 @@ $button-background: #d66;
     color: indianred;
     width: 200px;
     padding-right: 8px;
-    text-align: right;
+
+    .inputs-pane-toggle {
+      margin-top: 5px;
+      margin-right: 20px;
+      margin-left: 10px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 8px solid lightgray;
+    }
+
+    &.open {
+      .inputs-pane-toggle {
+        transition: transform 250ms ease-in-out;
+        transform: rotate(0deg);
+      }
+    }
+
+    &.closed {
+      .inputs-pane-toggle {
+        transition: transform 250ms ease-in-out;
+        transform: rotate(180deg);
+      }
+    }
+
+    .title {
+      flex: 1;
+      text-align: right;
+    }
   }
+
   .items {
     display: flex;
     flex-direction: column;
     border: 1px solid #ccc;
     padding-right: 5px;
+    overflow: hidden;
+
+    &.open {
+      height: 100%;
+      transition: height 150ms ease-in-out;
+    }
+
+    &.closed {
+      height: 0;
+      transition: height 150ms ease-in-out;
+    }
+
     .view_item {
       display: flex;
       &:not(:last-of-type) {
