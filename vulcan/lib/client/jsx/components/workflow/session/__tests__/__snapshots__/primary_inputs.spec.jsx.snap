@@ -10,7 +10,7 @@ exports[`PrimaryInputs renders each type of input 1`] = `
     <div
       className="title"
     >
-      one
+      Inputs
     </div>
     <div
       className="primary-inputs-container items"
@@ -126,19 +126,6 @@ exports[`PrimaryInputs renders each type of input 1`] = `
           </div>
         </div>
       </div>
-    </div>
-  </div>
-  <div
-    className="inputs-pane"
-  >
-    <div
-      className="title"
-    >
-      two
-    </div>
-    <div
-      className="primary-inputs-container items"
-    >
       <div
         className="view_item"
       >
