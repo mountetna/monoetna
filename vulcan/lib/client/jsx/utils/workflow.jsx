@@ -97,6 +97,13 @@ export const validStep = ({workflow, pathIndex, stepIndex}) => {
   );
 };
 
+export const inputGroupName = (input) => {
+  let groupName = input.name.split('__')[0];
+  if (groupName.length === 1) groupName = 'Inputs';
+
+  return groupName;
+};
+
 export const validPath = ({workflow, pathIndex}) => {
   return !!(workflow.steps && workflow.steps[pathIndex]);
 };

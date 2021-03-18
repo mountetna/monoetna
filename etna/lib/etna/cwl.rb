@@ -575,9 +575,6 @@ module Etna
           default: AnyLoader::ANY,
           type: TypedDSLLoader::WITH_UNIONS_TYPE_LOADER,
           format: PrimitiveLoader::STRING.optional,
-
-          # Non-CWL attribute for UI
-          group: PrimitiveLoader::STRING.optional,
       }
 
       def id

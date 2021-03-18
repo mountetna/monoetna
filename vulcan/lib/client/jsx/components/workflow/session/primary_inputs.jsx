@@ -3,9 +3,10 @@ import React, {useContext} from 'react';
 import {VulcanContext} from '../../../contexts/vulcan';
 
 import UserInput from '../user_interactions/inputs/user_input';
+import {inputGroupName} from '../../../utils/workflow';
 
 function InputGroup({inputs, onChange}) {
-  let groupName = inputs[0].group || 'Inputs';
+  let groupName = inputGroupName(inputs[0]);
 
   return (
     <div className='inputs-pane'>
@@ -64,9 +65,11 @@ export default function PrimaryInputs() {
   let primaryInputs = mergeSessionDefaultInputs();
 
   let groupedInputs = primaryInputs.reduce((result, input) => {
-    if (!result.hasOwnProperty(input.group)) result[input.group] = [];
+    let groupName = inputGroupName(input);
 
-    result[input.group].push(input);
+    if (!result.hasOwnProperty(groupName)) result[groupName] = [];
+
+    result[groupName].push(input);
 
     return result;
   }, {});
