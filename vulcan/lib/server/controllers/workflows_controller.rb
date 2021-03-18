@@ -15,8 +15,25 @@ class WorkflowsController < Vulcan::Controller
             next nil
           end
 
-          workflow.as_steps_json(cwl_name)
-        end.select { |v| v }
+          # Really we should fetch the metadata from a more
+          #   permanent store. Right now storing them in
+          #   JSON files in the workflows folder.
+          metadata_file = Vulcan.instance.config(:workflows_folder) + "/#{cwl_name.gsub('.cwl', '')}.metadata.json"
+
+          workflow.as_steps_json(cwl_name).update(
+            File.exists?(metadata_file) ?
+              JSON.parse(File.read(metadata_file),
+              symbolize_names: true) :
+              {})
+
+        end.select do |v|
+          # We only want workflows where the user is
+          #   authorized for all listed projects,
+          #   or projects is null (from the metadata), so
+          #   it is available to everyone.
+          v[:projects] == nil ||
+          v[:projects]&.all? {|p| @user.can_view?(p)}
+        end
     })
   end
 
