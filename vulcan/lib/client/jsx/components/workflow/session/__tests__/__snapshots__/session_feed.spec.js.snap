@@ -14,10 +14,10 @@ exports[`SessionFeed renders complete UI steps and error steps 1`] = `
         className="step-status-icon-wrapper"
       >
         <span
-          className="icon-grp fa-stack fa-fw"
+          className="icon-grp icon-grp-step-status-icon light green  fa-stack fa-fw"
         >
           <i
-            className="icon step-status-icon light green check fa fa-2x fa-check"
+            className="icon step-status-icon light green  check fa fa-2x fa-check"
           />
         </span>
       </div>
@@ -75,10 +75,10 @@ exports[`SessionFeed renders complete UI steps and error steps 1`] = `
         className="step-status-icon-wrapper"
       >
         <span
-          className="icon-grp fa-stack fa-fw"
+          className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
         >
           <i
-            className="icon step-status-icon light clock fa fa-2x fa-clock"
+            className="icon step-status-icon light  clock fa fa-2x fa-clock"
           />
         </span>
       </div>
@@ -136,10 +136,10 @@ exports[`SessionFeed renders complete UI steps and error steps 1`] = `
         className="step-status-icon-wrapper"
       >
         <span
-          className="icon-grp fa-stack fa-fw"
+          className="icon-grp icon-grp-step-status-icon light red  fa-stack fa-fw"
         >
           <i
-            className="icon step-status-icon light red times-circle fa fa-2x fa-times-circle"
+            className="icon step-status-icon light red  times-circle fa fa-2x fa-times-circle"
           />
         </span>
       </div>

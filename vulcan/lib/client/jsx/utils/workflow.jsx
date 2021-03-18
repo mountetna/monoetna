@@ -101,6 +101,8 @@ export const inputGroupName = (input) => {
   let groupName = input.name.split('__')[0];
   if (groupName === input.name) groupName = 'Inputs';
 
+  groupName = groupName.replace(/_/g,' ');
+
   return groupName;
 };
 
@@ -167,6 +169,7 @@ const stepDependsOn = (step, otherStep) => {
   return (
     step.in &&
     step.in.filter((input) => {
+      console.log(input);
       return (
         otherStep.name === input.source[0] &&
         otherStep.out[0] === input.source[1]
@@ -187,7 +190,6 @@ export const shouldDownloadStepData = ({workflow, pathIndex, stepIndex}) => {
       stepDependsOn(s, step)
     );
   });
-
   return dependentSteps.length > 0;
 };
 
