@@ -101,6 +101,8 @@ export const inputGroupName = (input) => {
   let groupName = input.name.split('__')[0];
   if (groupName === input.name) groupName = 'Inputs';
 
+  groupName = groupName.replace(/_/g,' ');
+
   return groupName;
 };
 

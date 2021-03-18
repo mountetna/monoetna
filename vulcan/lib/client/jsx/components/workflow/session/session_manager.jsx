@@ -70,9 +70,11 @@ export default function SessionManager({name}) {
         <span className='session-workflow-name'>
         { workflowName(workflow) }
         </span>
-        <Link link={ROUTES.workflow_vignette(workflowName(workflow))}>
-          <Icon className='vignette' icon='book'/>
-        </Link>
+        { workflow.vignette &&
+          <Link link={ROUTES.workflow_vignette(workflowName(workflow))}>
+            <Icon className='vignette' icon='book'/>
+          </Link>
+        }
         <Icon
           className='run'
           disabled={!complete || calculating}

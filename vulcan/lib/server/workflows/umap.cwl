@@ -2,28 +2,27 @@ cwlVersion: v1.1
 class: Workflow
 
 inputs:
-  CellFilter__min_nCounts:
+  Cell_Filtering__min_nCounts:
     type: int
     default: 200
     label: 'minimum UMIs per cell'
     doc: 'Minimum number of unique transcript reads per cell. Cells with fewer will be discarded. Recommended range: 200 (lower quality data, macrophage retention) to 1000 (very high quality data). Set to 0 to skip.'
-  CellFilter__max_nCounts:
+  Cell_Filtering__max_nCounts:
     type: int
     default: 30000
     label: 'maximum UMIs per cell'
-    group: 'Cell Filter'
     doc: 'Maximum number of unique transcript reads per cell. Cells with more will be discarded. Can serve as a poor-mans doublet filter. Recommended range: at least 20000. Set absurdly high (e.g. 1000000) to effectively turn this off.'
-  CellFilter__min_nFeatures:
+  Cell_Filtering__min_nFeatures:
     type: int
     default: 100
     label: 'minimum genes per cell'
     doc: 'Minimum number of genes captured per cell. Cells with fewer will be discarded. Reasonably should be be at least 100 to 500+ for highest quality data. Set to 0 to skip.'
-  CellFilter__max_per_mito:
+  Cell_Filtering__max_per_mito:
     type: float
     default: 20
     label: 'maximum percent mitochondrial'
     doc: 'Maximum percentage of reads per cell coming from mitochondrial genes (from 0 to 100). Cells with higher than the given percentage will be discarded. High mitochondrial content is thought to be a sign of dead/dying/low quality cells. Recommended: 5-20 depending on the data.'
-  CellFilter__max_per_ribo:
+  Cell_Filtering__max_per_ribo:
     type: float
     default: 100
     label: 'maximum percent ribosomal'
@@ -58,6 +57,7 @@ inputs:
     type: float
     default: 1
     label: 'Resolution of Leiden clustering'
+    doc: 'Higher resolution yields more clusters'
 
 outputs:
   the_data:
@@ -69,30 +69,17 @@ steps:
     run: scripts/fake_query.cwl
     label: 'Fetch pool record names'
     in:
-<<<<<<< HEAD
-      a: CellFilter__min_nCounts
-      b: CellFilter__max_nCounts
-      c: CellFilter__min_nFeatures
-      d: CellFilter__max_per_mito
-      e: CellFilter__max_per_ribo
+      a: Cell_Filtering__min_nCounts
+      b: Cell_Filtering__max_nCounts
+      c: Cell_Filtering__min_nFeatures
+      d: Cell_Filtering__max_per_mito
+      e: Cell_Filtering__max_per_ribo
       f: Regress__regress_counts
       g: Regress__regress_genes
       h: Regress__regress_pct_mito
       i: Regress__regress_pct_ribo
       j: UMAP_Calculation__max_pc
-=======
-      a: min_nCounts
-      b: max_nCounts
-      c: min_nFeatures
-      d: max_per_mito
-      e: max_per_ribo
-      f: regress_counts
-      g: regress_genes
-      h: regress_pct_mito
-      i: regress_pct_ribo
-      j: max_pc
-      k: leiden_resolution
->>>>>>> add leiden resolution
+      k: UMAP_Calculation__leiden_resolution
     out: [names]
   pickPools:
     run: ui-queries/select-autocomplete.cwl
@@ -117,11 +104,11 @@ steps:
     label: 'Subset cells and normalize'
     in:
       merged_anndata.h5ad: merge_anndata_from_raw_h5/merged_anndata.h5ad
-      min_nCounts: CellFilter__min_nCounts
-      max_nCounts: CellFilter__max_nCounts
-      min_nFeatures: CellFilter__min_nFeatures
-      max_per_mito: CellFilter__max_per_mito
-      max_per_ribo: CellFilter__max_per_ribo
+      min_nCounts: Cell_Filtering__min_nCounts
+      max_nCounts: Cell_Filtering__max_nCounts
+      min_nFeatures: Cell_Filtering__min_nFeatures
+      max_per_mito: Cell_Filtering__max_per_mito
+      max_per_ribo: Cell_Filtering__max_per_ribo
     out: [normed_anndata.h5ad]
   regress_and_pca:
     run: scripts/regress_and_pca.cwl
@@ -138,7 +125,7 @@ steps:
     label: 'Calculate nearest neighbors (based on PCA)'
     in:
       pca_anndata.h5ad: regress_and_pca/pca_anndata.h5ad
-      max_pc: max_pc
+      max_pc: UMAP_Calculation__max_pc
     out: [nn_anndata.h5ad]
   calc_umap:
     run: scripts/calc_umap.cwl
@@ -151,7 +138,7 @@ steps:
     label: 'Calculate Leiden clustering'
     in:
       nn_anndata.h5ad: neighbors/nn_anndata.h5ad
-      leiden_resolution: leiden_resolution
+      leiden_resolution: UMAP_Calculation__leiden_resolution
     out: [leiden.json]
   plot_umap:
     run: scripts/plot_umap.cwl
@@ -159,7 +146,7 @@ steps:
     in:
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden.json: calc_leiden/leiden.json
-      max_pc: max_pc
+      max_pc: UMAP_Calculation__max_pc
     out: [umap.plotly.json]
   show_umap_plot:
     run: ui-outputs/plotly.cwl
