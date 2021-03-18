@@ -29,8 +29,8 @@ const Plot = ({data, layout}) => {
           zerolinewidth: 1,
           linecolor: '#000'
         },
-        width: 1024,
-        height: 1024,
+        width: 800,
+        height: 800,
         paper_bgcolor: '#fff',
         plot_bgcolor: '#f0f0f0'
       }

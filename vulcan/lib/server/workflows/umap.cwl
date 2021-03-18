@@ -53,6 +53,11 @@ inputs:
     default: 15
     label: 'Number of PCs to use'
     doc: 'Principal components, from 1 to this number will be carried forward into UMAP and clustering calculations. Commonly, some number 15 or fewer is ideal. Additional tooling is planned to power tuning this parameter.'
+    label: 'Maximum number of PCs'
+  UMAP_Calculation__leiden_resolution:
+    type: float
+    default: 1
+    label: 'Resolution of Leiden clustering'
 
 outputs:
   the_data:
@@ -64,6 +69,7 @@ steps:
     run: scripts/fake_query.cwl
     label: 'Fetch pool record names'
     in:
+<<<<<<< HEAD
       a: CellFilter__min_nCounts
       b: CellFilter__max_nCounts
       c: CellFilter__min_nFeatures
@@ -74,6 +80,19 @@ steps:
       h: Regress__regress_pct_mito
       i: Regress__regress_pct_ribo
       j: UMAP_Calculation__max_pc
+=======
+      a: min_nCounts
+      b: max_nCounts
+      c: min_nFeatures
+      d: max_per_mito
+      e: max_per_ribo
+      f: regress_counts
+      g: regress_genes
+      h: regress_pct_mito
+      i: regress_pct_ribo
+      j: max_pc
+      k: leiden_resolution
+>>>>>>> add leiden resolution
     out: [names]
   pickPools:
     run: ui-queries/select-autocomplete.cwl
@@ -132,6 +151,7 @@ steps:
     label: 'Calculate Leiden clustering'
     in:
       nn_anndata.h5ad: neighbors/nn_anndata.h5ad
+      leiden_resolution: leiden_resolution
     out: [leiden.json]
   plot_umap:
     run: scripts/plot_umap.cwl
