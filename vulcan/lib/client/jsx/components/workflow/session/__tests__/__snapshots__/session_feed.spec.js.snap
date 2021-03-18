@@ -14,10 +14,10 @@ exports[`SessionFeed renders complete UI steps and error steps 1`] = `
         className="step-status-icon-wrapper"
       >
         <span
-          className="icon-grp icon-grp-step-status-icon light green  fa-stack fa-fw"
+          className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
         >
           <i
-            className="icon step-status-icon light clock fa fa-2x fa-clock"
+            className="icon step-status-icon light  clock fa fa-2x fa-clock"
           />
         </span>
       </div>
