@@ -22,6 +22,16 @@ class Vulcan
       }
     end
 
+    def join_all
+      threads = @running_semaphore.synchronize do
+        @running.values
+      end
+
+      threads.each do |t|
+        t.join
+      end
+    end
+
     def running?(build_target)
       @running_semaphore.synchronize do
         if @running.include?(build_target.cell_hash)
@@ -29,6 +39,7 @@ class Vulcan
         end
       end
     end
+
     #
     # def status(storage:, build_target:)
     #   hash = build_target.cell_hash
@@ -58,35 +69,50 @@ class Vulcan
       s = @running_semaphore
 
       s.synchronize do
+        puts "inside schedule, checking included... #{hash}"
+
         if @running.include?(hash)
-          return
+          return 0
         end
+
+        puts "not included #{hash}"
 
         WorkflowError.find_error(hash: hash)&.clear!
 
         @running[hash] = Thread.new do
           begin
+            puts "trying to run for hash #{hash}"
             @orchestration.run!(storage: storage, build_target: build_target, token: token)
+            puts "Finished running, now scheduling more..."
             schedule_more!(token: token, storage: storage)
           rescue => e
+            puts "Error #{e.to_s}"
             WorkflowError.mark_error!(hash: hash, message: e.to_s)
           ensure
             s.synchronize do
+              puts "Removing #{hash} from running"
               @running.delete(hash)
             end
           end
         end
       end
+
+      1
     end
 
     # Finds any runnable jobs, clears errors associated with their hashes, and starts processes for them.
     def schedule_more!(token:, storage:)
       @orchestration_semaphore.synchronize do
+        puts "scheduling more..."
         runnables = @orchestration.next_runnable_build_targets(storage)
 
+        started = 0
+
         runnables.each do |build_target|
-          schedule!(build_target: build_target, token: token, storage: storage)
+          started += schedule!(build_target: build_target, token: token, storage: storage)
         end
+
+        started
       end
     end
   end

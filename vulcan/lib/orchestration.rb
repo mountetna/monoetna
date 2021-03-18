@@ -96,11 +96,6 @@ class Vulcan
     def docker_run_args(storage:, input_files:, output_files:, token:, ch:)
       [
           "-i",
-          # Give the container a unique name based on the cell hash so as a mutex around attempting to build
-          # the same cell from multiple places (cli, web interface, etc).  This may result in some contentious
-          # runs failing, but this is ideal compared to duplicated work.
-          "--name",
-          "vulcan-build-#{ch}",
           "-v",
           "/var/run/docker.sock:/var/run/docker.sock:ro",
           "-v",
@@ -244,8 +239,11 @@ class Vulcan
       directed_graph = ::DirectedGraph.new
 
       directed_graph.add_connection(:root, :primary_inputs)
+      directed_graph.add_connection(:root, :primary_outputs)
 
       workflow.steps.each do |step|
+        directed_graph.add_connection(:root, step.id)
+
         step.in.each do |step_input|
           directed_graph.add_connection(step_input.source.first, step.id)
         end

@@ -75,6 +75,7 @@ class Vulcan
         if ::File.exists?(outputs_dir)
           raise ContentionError.new("Contention writing #{outputs_dir}, another process has already built it.")
         end
+
         ::FileUtils.mkdir_p(::File.dirname(outputs_dir))
         ::FileUtils.mv(build_dir, outputs_dir)
       end
