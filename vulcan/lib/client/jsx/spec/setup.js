@@ -3,6 +3,8 @@ require('etna-js/spec/setup');
 import ReactModal from 'react-modal';
 ReactModal.setAppElement('*'); // suppresses modal-related test warnings.
 
+import 'jest-canvas-mock';
+
 global.ROUTES = {
   workflow: () => `/workflow`,
   workflow_vignette: (workflow_name) => `/workflow/${workflow_name}/vignette`,

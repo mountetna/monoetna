@@ -1,9 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SessionFeed renders complete UI steps and error steps 1`] = `
+exports[`InputFeed renders complete UI steps and error steps 1`] = `
 <div
-  className="session-feed"
+  className="session-input-feed"
 >
+  <div
+    className="primary-inputs"
+  />
   <div
     className="step-user-input step"
   >
