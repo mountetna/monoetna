@@ -90,7 +90,7 @@ steps:
     out: [names]
   parse_record_selections:
     run: scripts/parse_record_selections.cwl
-    label: 'Interpret record selection inputs.
+    label: 'Interpret record selection inputs.'
     in:
       experiments: pickExperiments/names
       tissues: pickTissues/names
