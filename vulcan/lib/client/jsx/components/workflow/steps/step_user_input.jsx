@@ -54,20 +54,16 @@ export default function StepUserInput({step, stepIndex}) {
         step={step}
         status={status[pathIndex][stepIndex].status}
       ></StepName>
-      <div className='step-inputs inputs-pane'>
-        <div class='title'>User inputs</div>
-        <div className='step-inputs-container items'>
-          {stepInputs.map((input, index) => {
-            return (
-              <UserInput
-                input={input}
-                onChange={handleInputChange}
-                key={index}
-              ></UserInput>
-            );
-          })}
-        </div>
-      </div>
+      {stepInputs.map((input, index) => {
+        return (
+          <UserInput
+            input={input}
+            hideLabel={true}
+            onChange={handleInputChange}
+            key={index}
+          ></UserInput>
+        );
+      })}
     </div>
   );
 }

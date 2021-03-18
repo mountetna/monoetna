@@ -33,7 +33,8 @@
   border: 1px solid #ccc;
 }
 
-.step-input {
+.step-input,
+.step-user-input {
   border-bottom: 2px solid lightgray;
 }
 
@@ -188,9 +189,61 @@ $button-background: #d66;
     display: flex;
     height: 100%;
 
+    .session-input-feed,
+    .session-output-feed {
+      overflow-y: auto;
+    }
+
     .session-input-feed {
       flex: 1;
       max-width: 500px;
+
+      .step-user-input {
+        .item_view {
+          padding-left: 2rem;
+
+          .add_item {
+            cursor: default;
+            color: green;
+          }
+
+          .delete_link {
+            cursor: default;
+
+            &:hover {
+              text-decoration: line-through;
+              opacity: 0.5;
+              color: darkred;
+            }
+          }
+
+          .list_item {
+            border-bottom: 1px solid lightgray;
+            padding: 0.5rem;
+
+            &:last-child {
+              margin-top: 0.5rem;
+              margin-bottom: 0.5rem;
+              border-bottom: 0;
+            }
+
+            .dd-header,
+            .dd-list {
+              width: 100%;
+            }
+          }
+
+          .checkbox-input-wrapper {
+            display: flex;
+            flex-direction: column;
+
+            .checkbox-input-option {
+              flex: 1;
+              padding: 0.5rem;
+            }
+          }
+        }
+      }
     }
 
     .session-output-feed {
