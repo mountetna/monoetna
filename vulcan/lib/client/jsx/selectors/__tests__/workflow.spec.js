@@ -83,7 +83,11 @@ describe('Workflow Selectors', () => {
               run: 'ui-queries/something.cwl',
               in: [{source: ['step1', 'output']}]
             },
-            {name: 'step3', run: 'ui-queries/other.cwl'},
+            {
+              name: 'step3',
+              run: 'ui-queries/other.cwl',
+              in: [{source: ['step1', 'output']}]
+            },
             {name: 'step4', run: 'ui-queries/final.cwl'}
           ]
         ]
@@ -96,6 +100,12 @@ describe('Workflow Selectors', () => {
         name: 'step2',
         index: 1,
         run: 'ui-queries/something.cwl',
+        in: [{source: ['step1', 'output']}]
+      },
+      {
+        name: 'step3',
+        index: 2,
+        run: 'ui-queries/other.cwl',
         in: [{source: ['step1', 'output']}]
       }
     ]);
