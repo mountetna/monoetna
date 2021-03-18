@@ -1,5 +1,6 @@
 .workflow-manager {
   display: flex;
+  margin-left: 10px;
   flex-direction: column;
   height: 100%;
   font-family: $body_font;
@@ -33,10 +34,6 @@
   flex: 5;
   display: flex;
   flex-direction: column;
-  padding: 10px;
-  margin: 5px;
-  margin-right: 0px;
-  border: 1px solid #ccc;
 }
 
 .step-input {
@@ -49,7 +46,7 @@
 }
 
 .steps-list {
-  padding-left: 0px;
+  padding-left: 10px;
   padding-right: 0.5rem;
   display: flex;
   flex-direction: column;
@@ -57,8 +54,8 @@
 
   .title {
     width: calc(100% - 10px);
-    margin: 5px;
-    margin-bottom: 10px;
+    margin: 10px 5px;
+    flex: 0 0 20px;
     border-bottom: 1px solid #f00;
   }
 
@@ -129,60 +126,57 @@
   color: red;
 }
 
-$button-background: #d66;
 
 .session-manager {
-  .start-btn-container {
+  .session-header {
     display: flex;
     justify-content: center;
-  }
+    align-items: center;
+    border-bottom: 1px solid red;
+    height: 30px;
+    margin-bottom: 15px;
+    .icon-grp {
+      font-family: $body_font;
+      font-size: 0.6em;
+      cursor: pointer;
+      .run {
+        color: #d66;
+      }
 
-  .start-button {
-    background-color: $button-background;
-    font-family: $body_font;
-    border: 1px solid $button-background;
-    border-radius: 2px;
-    cursor: pointer;
-    color: white;
-    padding: 4px;
-    padding-left: 12px;
-
-    .small {
-      font-size: 1em;
-    }
-
-    &:disabled {
-      color: grey;
-      border: 1px solid #eee;
-      background-color: #eee;
-      cursor: not-allowed;
       &:hover {
-        background-color: #eee;
+        opacity: 0.3
+      }
+      .icon.disabled {
         color: grey;
+        cursor: not-allowed;
+        &:hover {
+          color: grey;
+        }
       }
     }
-    &:hover {
-      background-color: rgba($button-background, 0.3);
-      color: $button-background;
-    }
   }
+
+  .session-workflow-name {
+    flex: 1 1 auto;
+    font-size: 1.2em;
+  }
+
 }
 
 .inputs-pane,
 .outputs-pane {
   display: flex;
   flex-direction: column;
-  margin: 10px;
+  margin-bottom: 5px;
   .title {
     background: rgb(251, 248, 244);
     border: 1px solid #ccc;
-    border-right: 1px solid forestgreen;
+    border-right: 1px solid #ccc;
     border-bottom: none;
     position: relative;
     font-family: $body_font;
     color: indianred;
-    width: 200px;
-    padding-right: 8px;
+    padding-right: 340px;
     text-align: right;
   }
   .items {
@@ -202,17 +196,21 @@ $button-background: #d66;
       }
       .item_name {
         cursor: default;
+        color: darkblue;
+        font-family: $body_font;
+        border-right: 1px solid #ccc;
+
+        flex: 1 1 auto;
+        display: flex;
+        align-items: flex-start;
+        justify-content: right;
+        line-height: 30px;
+        padding-right: 10px;
+        padding-top: 4px;
+
         &.revised {
           background-color: pink;
         }
-        border-right: 1px solid forestgreen;
-        display: inline-block;
-        flex: 0 0 200px;
-        padding-right: 8px;
-        padding-top: 4px;
-        text-align: right;
-        font-family: $body_font;
-        color: darkblue;
       }
       .item_view {
         display: inline-block;
@@ -220,7 +218,7 @@ $button-background: #d66;
         padding-bottom: 3px;
         padding-top: 3px;
         box-sizing: border-box;
-        flex: 1;
+        flex: 0 0 325px;
 
         .add_item {
           cursor: default;
@@ -237,6 +235,7 @@ $button-background: #d66;
 
         .input-help {
           display: flex;
+          align-items: center;
 
           .help-icon-wrapper {
             cursor: help;
@@ -258,11 +257,6 @@ $button-background: #d66;
 }
 
 .session-feed {
-  .step {
-    border-top: 1px solid lightgray;
-    border-bottom: 1px solid lightgray;
-  }
-
   .step-error {
     textarea {
       resize: none;
