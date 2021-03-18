@@ -5,6 +5,10 @@ class Vulcan
       @running = {}
       @running_semaphore = Mutex.new
       @orchestration_semaphore = Mutex.new
+
+      # Used in testing to control when jobs actually start to run, in order to allow better consistent test behavior.
+      # Not exposed or used anywhere else.
+      @_test_gating_semaphore = Mutex.new
     end
 
     def workflow
@@ -22,13 +26,20 @@ class Vulcan
       }
     end
 
-    def join_all
+    def join_scheduled
       threads = @running_semaphore.synchronize do
         @running.values
       end
 
       threads.each do |t|
         t.join
+      end
+
+      threads.length
+    end
+
+    def join_all
+      while join_scheduled > 0
       end
     end
 
@@ -40,26 +51,25 @@ class Vulcan
       end
     end
 
-    #
-    # def status(storage:, build_target:)
-    #   hash = build_target.cell_hash
-    #
-    #   if build_target.is_built?(storage)
-    #     return {status: 'complete'}
-    #   end
-    #
-    #   @running_semaphore.synchronize do
-    #     if @running.include?(hash)
-    #       return {status: 'running'}
-    #     end
-    #   end
-    #
-    #   if (err = WorkflowError.find_error(hash: hash))
-    #     return {status: 'error', error: err.message}
-    #   end
-    #
-    #   return {status: 'pending'}
-    # end
+    def status(storage:, build_target:)
+      hash = build_target.cell_hash
+
+      if build_target.is_built?(storage)
+        return {status: 'complete'}
+      end
+
+      @running_semaphore.synchronize do
+        if @running.include?(hash)
+          return {status: 'running'}
+        end
+      end
+
+      if (err = WorkflowError.find_error(hash: hash))
+        return {status: 'error', error: err.message}
+      end
+
+      return {status: 'pending'}
+    end
 
     # Schedules a thread to build the given build_target, thn runs it via orchestration, cleaning up
     # as it goes.
@@ -69,47 +79,49 @@ class Vulcan
       s = @running_semaphore
 
       s.synchronize do
-        puts "inside schedule, checking included... #{hash}"
+        Vulcan.instance.logger.info "inside schedule, checking included... #{hash}"
 
         if @running.include?(hash)
-          return 0
+          return false
         end
 
-        puts "not included #{hash}"
+        Vulcan.instance.logger.info "not included #{hash}"
 
         WorkflowError.find_error(hash: hash)&.clear!
 
         @running[hash] = Thread.new do
           begin
-            puts "trying to run for hash #{hash}"
-            @orchestration.run!(storage: storage, build_target: build_target, token: token)
-            puts "Finished running, now scheduling more..."
-            schedule_more!(token: token, storage: storage)
+            @_test_gating_semaphore.synchronize do
+              Vulcan.instance.logger.info "trying to run for hash #{hash}"
+              @orchestration.run!(storage: storage, build_target: build_target, token: token)
+              Vulcan.instance.logger.info "Finished running, now scheduling more..."
+              schedule_more!(token: token, storage: storage)
+            end
           rescue => e
-            puts "Error #{e.to_s}"
+            Vulcan.instance.logger.error "Error #{e.to_s}"
             WorkflowError.mark_error!(hash: hash, message: e.to_s)
           ensure
             s.synchronize do
-              puts "Removing #{hash} from running"
+              Vulcan.instance.logger.info "Removing #{hash} from running"
               @running.delete(hash)
             end
           end
         end
       end
 
-      1
+      true
     end
 
     # Finds any runnable jobs, clears errors associated with their hashes, and starts processes for them.
     def schedule_more!(token:, storage:)
       @orchestration_semaphore.synchronize do
-        puts "scheduling more..."
+        Vulcan.instance.logger.info("scheduling more...")
         runnables = @orchestration.next_runnable_build_targets(storage)
 
-        started = 0
+        started = []
 
         runnables.each do |build_target|
-          started += schedule!(build_target: build_target, token: token, storage: storage)
+          started << build_target.cell_hash if schedule!(build_target: build_target, token: token, storage: storage)
         end
 
         started
