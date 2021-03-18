@@ -28,6 +28,8 @@ export const missingUiInputs = (step, session) => {
   );
 };
 
+export const localStorageKey = (workflow) => `${workflow.name}.session`;
+
 export const inputNamesToHashStub = (inputNames) => {
   // Convert a list of input strings to
   //   Hash, where all values are `null`.
