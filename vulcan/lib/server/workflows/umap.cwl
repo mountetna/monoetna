@@ -116,7 +116,7 @@ steps:
     out: [names]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl
-    label: 'Obtain raw data locations'
+    label: 'Query paths to raw counts files'
     in:
       record_ids: verifyRecordNames/names
     out: [h5_locations]
