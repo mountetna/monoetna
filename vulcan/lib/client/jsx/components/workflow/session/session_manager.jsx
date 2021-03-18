@@ -7,9 +7,8 @@ import Icon from 'etna-js/components/icon';
 import {submit} from '../../../api/vulcan';
 import {VulcanContext} from '../../../contexts/vulcan';
 import {allInputsDefined} from '../../../utils/workflow';
-import SessionFeed from './session_feed';
-
-import PrimaryInputs from './primary_inputs';
+import InputFeed from './input_feed';
+import OutputFeed from './output_feed';
 
 export default function SessionManager() {
   const invoke = useActionInvoker();
@@ -75,9 +74,9 @@ export default function SessionManager() {
           <Icon icon='play' className='small'></Icon>
         </button>
       </div>
-      <div className='scroll-window'>
-        <PrimaryInputs></PrimaryInputs>
-        <SessionFeed></SessionFeed>
+      <div className='session-feed-container'>
+        <InputFeed></InputFeed>
+        <OutputFeed></OutputFeed>
       </div>
     </div>
   );
