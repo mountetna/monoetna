@@ -4,4 +4,4 @@ def unique(ls):
     return list(dict.fromkeys(ls))
 
 def flatten(ls):
-    return itertools.chain.from_iterable()
+    return list(itertools.chain.from_iterable(ls))
