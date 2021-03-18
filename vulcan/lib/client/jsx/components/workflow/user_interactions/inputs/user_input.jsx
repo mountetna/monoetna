@@ -28,7 +28,7 @@ export default function UserInput({input, onChange}) {
 
   return (
     <div className='view_item'>
-      <div className='item_name'>{input.name}</div>
+      <div className='item_name'>{input.label || input.name}</div>
       <div className='item_view'>
         <InputHelp input={input}>
           <InputComponent input={input} onChange={onChange}></InputComponent>

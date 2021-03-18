@@ -44,7 +44,7 @@ exports[`SessionFeed renders complete UI steps and error steps 1`] = `
           <div
             className="item_name"
           >
-            second/response
+            second
           </div>
           <div
             className="item_view"
@@ -105,7 +105,7 @@ exports[`SessionFeed renders complete UI steps and error steps 1`] = `
           <div
             className="item_name"
           >
-            third/response
+            third
           </div>
           <div
             className="item_view"

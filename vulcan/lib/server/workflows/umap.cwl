@@ -2,66 +2,57 @@ cwlVersion: v1.1
 class: Workflow
 
 inputs:
-  min_nCounts:
+  CellFilter__min_nCounts:
     type: int
     default: 200
-    label: 'minimum number of UMIs per cell'
-    group: 'Cell Filter'
-    doc: 'This generally should be a small number'
-  max_nCounts:
+    label: 'minimum UMIs per cell'
+    doc: 'Minimum number of unique transcript reads per cell. Cells with fewer will be discarded. Recommended range: 200 (lower quality data, macrophage retention) to 1000 (very high quality data). Set to 0 to skip.'
+  CellFilter__max_nCounts:
     type: int
     default: 30000
-    label: 'maximum number of UMIs per cell'
+    label: 'maximum UMIs per cell'
     group: 'Cell Filter'
-    doc: 'This should not be more than the number of events in your experiment'
-  min_nFeatures:
+    doc: 'Maximum number of unique transcript reads per cell. Cells with more will be discarded. Can serve as a poor-mans doublet filter. Recommended range: at least 20000. Set absurdly high (e.g. 1000000) to effectively turn this off.'
+  CellFilter__min_nFeatures:
     type: int
     default: 100
-    label: 'minimum number of genes per cell'
-    group: 'Cell Filter'
-    doc: 'Reasonably should be between 100 and 200'
-  max_per_mito:
+    label: 'minimum genes per cell'
+    doc: 'Minimum number of genes captured per cell. Cells with fewer will be discarded. Reasonably should be be at least 100 to 500+ for highest quality data. Set to 0 to skip.'
+  CellFilter__max_per_mito:
     type: float
     default: 20
-    label: 'maximum percentage of reads per cell coming from mitochondrial genes (from 0 to 100)'
-    group: 'Cell Filter'
-    doc: 'This generally should be <50'
-  max_per_ribo:
+    label: 'maximum percent mitochondrial'
+    doc: 'Maximum percentage of reads per cell coming from mitochondrial genes (from 0 to 100). Cells with higher than the given percentage will be discarded. High mitochondrial content is thought to be a sign of dead/dying/low quality cells. Recommended: 5-20 depending on the data.'
+  CellFilter__max_per_ribo:
     type: float
     default: 100
-    label: 'maximum percentage of reads per cell coming from ribosomal genes (from 0 to 100)'
-    group: 'Cell Filter'
-    doc: 'This generally should be a large percentage'
-  regress_counts:
+    label: 'maximum percent ribosomal'
+    doc: 'Maximum percentage of reads per cell coming from ribosomal genes (from 0 to 100). Cells with higher than the given percentage will be discarded. High ribosomal content essentilaly just means less "meaningful" content but is not thought to necessarily mark lower quality cells. Recommended: 100 = off or 50+ when used.'
+  Regress__regress_counts:
     type: boolean
     default: true
-    label: 'regress by number of counts per cell?'
-    group: 'Regress'
-    doc: 'You should only regress by counts or genes, but never both'
-  regress_genes:
+    label: 'regress Counts?'
+    doc: 'Controls whether to regress data that correlates with cells UMI counts. Regression of data confounders prior to PCA/UMAP/clustering can improve results of these steps. NOTE: You should only regress by counts or genes, but not both'
+  Regress__regress_genes:
     type: boolean
     default: false
-    label: 'regress by number of genes per cell?'
-    group: 'Regress'
-    doc: 'You should only regress by counts or genes, but never both'
-  regress_pct_mito:
+    label: 'regress Genes?'
+    doc: 'Controls whether to regress data that correlates with cells genes counts. Regression of data confounders prior to PCA/UMAP/clustering can improve results of these steps. NOTE: You should only regress by counts or genes, but not both'
+  Regress__regress_pct_mito:
     type: boolean
     default: true
-    label: 'regress by percent of reads from mitochondrial genes?'
-    group: 'Regress'
-    doc: 'You should only regress by % mito or % ribo, but never both'
-  regress_pct_ribo:
+    label: 'regress percent.mitochondrial?'
+    doc: 'Controls whether to regress data that correlates with cells percentage of mitochondrial reads. Regression of data confounders prior to PCA/UMAP/clustering can improve results of these steps.'
+  Regress__regress_pct_ribo:
     type: boolean
     default: false
-    label: 'regress by percent of reads from ribosomal genes?'
-    group: 'Regress'
-    doc: 'You should only regress by % mito or % ribo, but never both'
-  max_pc:
+    label: 'regress percent.ribosomal?'
+    doc: 'Controls whether to regress data that correlates with cells percentage of ribosomal reads. Regression of data confounders prior to PCA/UMAP/clustering can improve results of these steps.'
+  UMAP_Calculation__max_pc:
     type: int
     default: 15
-    label: 'Maximum number of PCs'
-    group: 'UMAP Calculation'
-    doc: 'Principal components, from 1 to this number'
+    label: 'Number of PCs to use'
+    doc: 'Principal components, from 1 to this number will be carried forward into UMAP and clustering calculations. Commonly, some number 15 or fewer is ideal. Additional tooling is planned to power tuning this parameter.'
 
 outputs:
   the_data:
@@ -73,16 +64,16 @@ steps:
     run: scripts/fake_query.cwl
     label: 'Fetch user selection options'
     in:
-      a: min_nCounts
-      b: max_nCounts
-      c: min_nFeatures
-      d: max_per_mito
-      e: max_per_ribo
-      f: regress_counts
-      g: regress_genes
-      h: regress_pct_mito
-      i: regress_pct_ribo
-      j: max_pc
+      a: CellFilter__min_nCounts
+      b: CellFilter__max_nCounts
+      c: CellFilter__min_nFeatures
+      d: CellFilter__max_per_mito
+      e: CellFilter__max_per_ribo
+      f: Regress__regress_counts
+      g: Regress__regress_genes
+      h: Regress__regress_pct_mito
+      i: Regress__regress_pct_ribo
+      j: UMAP_Calculation__max_pc
     out: [experiments, tissues, records, pools]
   pickExperiments:
     run: ui-queries/multiselect-string.cwl
@@ -125,43 +116,43 @@ steps:
     out: [names]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl
-    label: 'Retrieve path to raw counts files'
+    label: 'Obtain raw data locations'
     in:
       record_ids: verifyRecordNames/names
     out: [h5_locations]
   merge_anndata_from_raw_h5:
     run: scripts/merge_anndata_from_raw_h5.cwl
-    label: 'Read into scanpy and merge all records'
+    label: 'Import into scanpy'
     in:
       h5_locations: magma_query_paths/h5_locations
     out: [merged_anndata.h5ad]
   subset_normalize_and_select_features:
     run: scripts/subset_normalize_and_select_features.cwl
-    label: 'Subset cells (and then normalize)'
+    label: 'Subset cells and normalize'
     in:
       merged_anndata.h5ad: merge_anndata_from_raw_h5/merged_anndata.h5ad
-      min_nCounts: min_nCounts
-      max_nCounts: max_nCounts
-      min_nFeatures: min_nFeatures
-      max_per_mito: max_per_mito
-      max_per_ribo: max_per_ribo
+      min_nCounts: CellFilter__min_nCounts
+      max_nCounts: CellFilter__max_nCounts
+      min_nFeatures: CellFilter__min_nFeatures
+      max_per_mito: CellFilter__max_per_mito
+      max_per_ribo: CellFilter__max_per_ribo
     out: [normed_anndata.h5ad]
   regress_and_pca:
     run: scripts/regress_and_pca.cwl
-    label: 'Regress parameters (and then calculate PCA)'
+    label: 'Regress params and run PCA'
     in:
       normed_anndata.h5ad: subset_normalize_and_select_features/normed_anndata.h5ad
-      regress_counts: regress_counts
-      regress_genes: regress_genes
-      regress_pct_mito: regress_pct_mito
-      regress_pct_ribo: regress_pct_ribo
+      regress_counts: Regress__regress_counts
+      regress_genes: Regress__regress_genes
+      regress_pct_mito: Regress__regress_pct_mito
+      regress_pct_ribo: Regress__regress_pct_ribo
     out: [pca_anndata.h5ad]
   calc_umap:
     run: scripts/calc_umap.cwl
-    label: 'Calculate UMAP (based on PCA)'
+    label: 'Calculate UMAP'
     in:
       pca_anndata.h5ad: regress_and_pca/pca_anndata.h5ad
-      max_pc: max_pc
+      max_pc: UMAP_Calculation__max_pc
     out: [umap_anndata.h5ad]
   downloadRawData:
     run: ui-outputs/link.cwl
