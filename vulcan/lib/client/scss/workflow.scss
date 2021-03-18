@@ -234,6 +234,19 @@ $button-background: #d66;
             opacity: 0.5;
           }
         }
+
+        .input-help {
+          display: flex;
+
+          .help-icon-wrapper {
+            cursor: help;
+
+            .question-circle {
+              font-size: 1em;
+              opacity: 0.5;
+            }
+          }
+        }
       }
     }
   }

@@ -49,11 +49,17 @@ exports[`SessionFeed renders complete UI steps and error steps 1`] = `
           <div
             className="item_view"
           >
-            <input
-              onChange={[Function]}
-              type="text"
-              value=""
-            />
+            <div
+              className="input-help"
+            >
+              <div>
+                <input
+                  onChange={[Function]}
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -104,11 +110,17 @@ exports[`SessionFeed renders complete UI steps and error steps 1`] = `
           <div
             className="item_view"
           >
-            <input
-              onChange={[Function]}
-              type="text"
-              value=""
-            />
+            <div
+              className="input-help"
+            >
+              <div>
+                <input
+                  onChange={[Function]}
+                  type="text"
+                  value=""
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

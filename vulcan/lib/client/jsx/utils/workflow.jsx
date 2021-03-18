@@ -1,19 +1,8 @@
-import React from 'react';
-
 import * as _ from 'lodash';
 
 import XYPlotModel from '../models/xy_plot';
 
-import ListInput from 'etna-js/components/inputs/list_input';
-import DropdownInput from 'etna-js/components/inputs/dropdown_input';
-import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import {
-  IntegerInput,
-  FloatInput
-} from 'etna-js/components/inputs/numeric_input';
-import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
-
-import {TYPE, RUN, OUTPUT_COMPONENT} from '../models/steps';
+import {RUN, OUTPUT_COMPONENT} from '../models/steps';
 
 export const stringify = (text) => {
   // For previewing data inputs / outputs, we just want a string
@@ -28,120 +17,6 @@ export const stringify = (text) => {
 
 export const workflowName = (workflow) =>
   workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
-
-export const wrapPaneItem = (item, key) => {
-  return (
-    <div className='view_item' key={key}>
-      <div className='item_name'>{item.name}</div>
-      <div className='item_view'>{item.value}</div>
-    </div>
-  );
-};
-
-export const wrapEditableInputs = (inputs, handleInputChange) => {
-  return Object.keys(inputs).map((inputName, index) => {
-    let input = inputs[inputName];
-    let name = input.label || inputName;
-    let key = `${inputName}-${index}`;
-
-    switch (input.type) {
-      case TYPE.INTEGER:
-        return wrapPaneItem(
-          {
-            name,
-            value: (
-              <IntegerInput
-                defaultValue={input.default}
-                onChange={(e) => {
-                  handleInputChange(inputName, e);
-                }}
-              ></IntegerInput>
-            )
-          },
-          key
-        );
-      case TYPE.FLOAT:
-        return wrapPaneItem(
-          {
-            name,
-            value: (
-              <FloatInput
-                defaultValue={input.default}
-                onChange={(e) => {
-                  handleInputChange(inputName, e);
-                }}
-              ></FloatInput>
-            )
-          },
-          key
-        );
-      case TYPE.BOOL:
-        return wrapPaneItem(
-          {
-            name,
-            value: (
-              <input
-                type='checkbox'
-                className='text_box'
-                onChange={(e) => {
-                  handleInputChange(inputName, e);
-                }}
-                defaultChecked={input.default}
-              />
-            )
-          },
-          key
-        );
-      case TYPE.MULTISELECT_STRING:
-        return wrapPaneItem(
-          {
-            name,
-            value: (
-              <ListInput
-                placeholder='Select items from the list'
-                className='link_text'
-                values={input.default || []}
-                itemInput={DropdownInput}
-                list={input.options || []}
-                onChange={(e) => {
-                  handleInputChange(inputName, e);
-                }}
-              />
-            )
-          },
-          key
-        );
-      case TYPE.SELECT_AUTOCOMPLETE:
-        return wrapPaneItem({
-          name,
-          value: (
-            <DropdownAutocomplete
-              onSelect={(e) => {
-                handleInputChange(inputName, e);
-              }}
-              list={input.options || []}
-              defaultValue={input.default || null}
-            ></DropdownAutocomplete>
-          )
-        });
-      default:
-        return wrapPaneItem(
-          {
-            name,
-            value: (
-              <SlowTextInput
-                defaultValue={input.default}
-                onChange={(e) => {
-                  handleInputChange(inputName, e);
-                }}
-              ></SlowTextInput>
-            )
-          },
-          key
-        );
-    }
-  });
-};
 
 export const uiStepInputNames = (step) => {
   return step.out.map((output) => `${step.name}/${output}`);
@@ -220,6 +95,13 @@ export const validStep = ({workflow, pathIndex, stepIndex}) => {
     workflow.steps[pathIndex] &&
     workflow.steps[pathIndex][stepIndex]
   );
+};
+
+export const inputGroupName = (input) => {
+  let groupName = input.name.split('__')[0];
+  if (groupName === input.name) groupName = 'Inputs';
+
+  return groupName;
 };
 
 export const validPath = ({workflow, pathIndex}) => {

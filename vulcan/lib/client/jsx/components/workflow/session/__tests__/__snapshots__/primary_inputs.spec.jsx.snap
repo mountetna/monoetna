@@ -2,128 +2,240 @@
 
 exports[`PrimaryInputs renders each type of input 1`] = `
 <div
-  className="primary-inputs inputs-pane"
+  className="primary-inputs"
 >
   <div
-    className="title"
-  >
-    Inputs
-  </div>
-  <div
-    className="primary-inputs-container items"
+    className="inputs-pane"
   >
     <div
-      className="view_item"
+      className="title"
     >
-      <div
-        className="item_name"
-      >
-        anInt
-      </div>
-      <div
-        className="item_view"
-      >
-        <input
-          onChange={[Function]}
-          onKeyPress={[Function]}
-          type="text"
-          value={1}
-        />
-      </div>
+      Inputs
     </div>
     <div
-      className="view_item"
+      className="primary-inputs-container items"
     >
       <div
-        className="item_name"
+        className="view_item"
       >
-        aFloat
+        <div
+          className="item_name"
+        >
+          anInt
+        </div>
+        <div
+          className="item_view"
+        >
+          <div
+            className="input-help"
+          >
+            <div>
+              <input
+                onChange={[Function]}
+                onKeyPress={[Function]}
+                type="text"
+                value={1}
+              />
+            </div>
+            <div
+              className="help-icon-wrapper"
+              title="help"
+            >
+              <span
+                className="icon-grp fa-stack fa-fw"
+              >
+                <i
+                  className="icon help-icon question-circle fa fa-2x fa-question-circle"
+                />
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
       <div
-        className="item_view"
+        className="view_item"
       >
-        <input
-          onChange={[Function]}
-          onKeyPress={[Function]}
-          type="text"
-          value={1.2}
-        />
-      </div>
-    </div>
-    <div
-      className="view_item"
-    >
-      <div
-        className="item_name"
-      >
-        aBool
-      </div>
-      <div
-        className="item_view"
-      >
-        <input
-          className="text_box"
-          defaultChecked={true}
-          onChange={[Function]}
-          type="checkbox"
-        />
-      </div>
-    </div>
-    <div
-      className="view_item"
-    >
-      <div
-        className="item_name"
-      >
-        anIntWithoutDefault
-      </div>
-      <div
-        className="item_view"
-      >
-        <input
-          onChange={[Function]}
-          onKeyPress={[Function]}
-          type="text"
-          value=""
-        />
-      </div>
-    </div>
-    <div
-      className="view_item"
-    >
-      <div
-        className="item_name"
-      >
-        aFloatWithoutDefault
+        <div
+          className="item_name"
+        >
+          aFloat
+        </div>
+        <div
+          className="item_view"
+        >
+          <div
+            className="input-help"
+          >
+            <div>
+              <input
+                onChange={[Function]}
+                onKeyPress={[Function]}
+                type="text"
+                value={1.2}
+              />
+            </div>
+            <div
+              className="help-icon-wrapper"
+              title="help"
+            >
+              <span
+                className="icon-grp fa-stack fa-fw"
+              >
+                <i
+                  className="icon help-icon question-circle fa fa-2x fa-question-circle"
+                />
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
       <div
-        className="item_view"
+        className="view_item"
       >
-        <input
-          onChange={[Function]}
-          onKeyPress={[Function]}
-          type="text"
-          value=""
-        />
+        <div
+          className="item_name"
+        >
+          aBool
+        </div>
+        <div
+          className="item_view"
+        >
+          <div
+            className="input-help"
+          >
+            <div>
+              <input
+                className="text_box"
+                defaultChecked={true}
+                onChange={[Function]}
+                type="checkbox"
+              />
+            </div>
+            <div
+              className="help-icon-wrapper"
+              title="help"
+            >
+              <span
+                className="icon-grp fa-stack fa-fw"
+              >
+                <i
+                  className="icon help-icon question-circle fa fa-2x fa-question-circle"
+                />
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div
-      className="view_item"
-    >
       <div
-        className="item_name"
+        className="view_item"
       >
-        aBoolWithoutDefault
+        <div
+          className="item_name"
+        >
+          anIntWithoutDefault
+        </div>
+        <div
+          className="item_view"
+        >
+          <div
+            className="input-help"
+          >
+            <div>
+              <input
+                onChange={[Function]}
+                onKeyPress={[Function]}
+                type="text"
+                value=""
+              />
+            </div>
+            <div
+              className="help-icon-wrapper"
+              title="help"
+            >
+              <span
+                className="icon-grp fa-stack fa-fw"
+              >
+                <i
+                  className="icon help-icon question-circle fa fa-2x fa-question-circle"
+                />
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
       <div
-        className="item_view"
+        className="view_item"
       >
-        <input
-          className="text_box"
-          defaultChecked={null}
-          onChange={[Function]}
-          type="checkbox"
-        />
+        <div
+          className="item_name"
+        >
+          aFloatWithoutDefault
+        </div>
+        <div
+          className="item_view"
+        >
+          <div
+            className="input-help"
+          >
+            <div>
+              <input
+                onChange={[Function]}
+                onKeyPress={[Function]}
+                type="text"
+                value=""
+              />
+            </div>
+            <div
+              className="help-icon-wrapper"
+              title="help"
+            >
+              <span
+                className="icon-grp fa-stack fa-fw"
+              >
+                <i
+                  className="icon help-icon question-circle fa fa-2x fa-question-circle"
+                />
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        className="view_item"
+      >
+        <div
+          className="item_name"
+        >
+          aBoolWithoutDefault
+        </div>
+        <div
+          className="item_view"
+        >
+          <div
+            className="input-help"
+          >
+            <div>
+              <input
+                className="text_box"
+                defaultChecked={null}
+                onChange={[Function]}
+                type="checkbox"
+              />
+            </div>
+            <div
+              className="help-icon-wrapper"
+              title="help"
+            >
+              <span
+                className="icon-grp fa-stack fa-fw"
+              >
+                <i
+                  className="icon help-icon question-circle fa fa-2x fa-question-circle"
+                />
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
