@@ -64,16 +64,16 @@ steps:
     run: scripts/fake_query.cwl
     label: 'Fetch pool record names'
     in:
-      a: min_nCounts
-      b: max_nCounts
-      c: min_nFeatures
-      d: max_per_mito
-      e: max_per_ribo
-      f: regress_counts
-      g: regress_genes
-      h: regress_pct_mito
-      i: regress_pct_ribo
-      j: max_pc
+      a: CellFilter__min_nCounts
+      b: CellFilter__max_nCounts
+      c: CellFilter__min_nFeatures
+      d: CellFilter__max_per_mito
+      e: CellFilter__max_per_ribo
+      f: Regress__regress_counts
+      g: Regress__regress_genes
+      h: Regress__regress_pct_mito
+      i: Regress__regress_pct_ribo
+      j: UMAP_Calculation__max_pc
     out: [names]
   pickPools:
     run: ui-queries/select-autocomplete.cwl
@@ -98,28 +98,28 @@ steps:
     label: 'Subset cells and normalize'
     in:
       merged_anndata.h5ad: merge_anndata_from_raw_h5/merged_anndata.h5ad
-      min_nCounts: min_nCounts
-      max_nCounts: max_nCounts
-      min_nFeatures: min_nFeatures
-      max_per_mito: max_per_mito
-      max_per_ribo: max_per_ribo
+      min_nCounts: CellFilter__min_nCounts
+      max_nCounts: CellFilter__max_nCounts
+      min_nFeatures: CellFilter__min_nFeatures
+      max_per_mito: CellFilter__max_per_mito
+      max_per_ribo: CellFilter__max_per_ribo
     out: [normed_anndata.h5ad]
   regress_and_pca:
     run: scripts/regress_and_pca.cwl
     label: 'Regress params and run PCA'
     in:
       normed_anndata.h5ad: subset_normalize_and_select_features/normed_anndata.h5ad
-      regress_counts: regress_counts
-      regress_genes: regress_genes
-      regress_pct_mito: regress_pct_mito
-      regress_pct_ribo: regress_pct_ribo
+      regress_counts: Regress__regress_counts
+      regress_genes: Regress__regress_genes
+      regress_pct_mito: Regress__regress_pct_mito
+      regress_pct_ribo: Regress__regress_pct_ribo
     out: [pca_anndata.h5ad]
   calc_umap:
     run: scripts/calc_umap.cwl
     label: 'Calculate UMAP'
     in:
       pca_anndata.h5ad: regress_and_pca/pca_anndata.h5ad
-      max_pc: max_pc
+      max_pc: UMAP_Calculation__max_pc
     out: [umap_anndata.h5ad]
   downloadRawData:
     run: ui-outputs/link.cwl
