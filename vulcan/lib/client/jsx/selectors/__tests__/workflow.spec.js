@@ -65,7 +65,7 @@ describe('Workflow Selectors', () => {
           },
           {
             name: 'step3',
-            status: 'complete'
+            status: 'pending'
           },
           {
             name: 'step4',
