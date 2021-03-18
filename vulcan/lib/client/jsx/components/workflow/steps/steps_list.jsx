@@ -13,9 +13,9 @@ export default function StepsList() {
   }
 
   return (
-    <div className={`steps-list ${open ? 'open' : 'closed'}`}>
+    <div className={`steps-list toggle-control ${open ? 'open' : 'closed'}`}>
       <div className='steps-list-header' onClick={handleToggle}>
-        <div className='steps-list-toggle'></div>
+        <div className='steps-list-toggle arrow-toggle toggle-left-right'></div>
         <div className='title'>Steps</div>
       </div>
       <div className='steps-list-wrapper'>

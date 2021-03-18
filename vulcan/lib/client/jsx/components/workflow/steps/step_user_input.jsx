@@ -1,9 +1,9 @@
-import React, {useContext} from 'react';
+import React, {useContext, useState} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
 import UserInput from '../user_interactions/inputs/user_input';
-import StepName from './step_name';
+import StepNameToggle from './step_name_toggle';
 
 import {
   validStep,
@@ -14,6 +14,7 @@ import {
 } from '../../../utils/workflow';
 
 export default function StepUserInput({step, stepIndex}) {
+  const [open, setOpen] = useState(true);
   const {workflow, pathIndex, session, status, setInputs} = useContext(
     VulcanContext
   );
@@ -49,11 +50,15 @@ export default function StepUserInput({step, stepIndex}) {
   }, []);
 
   return (
-    <div className='step-user-input step'>
-      <StepName
+    <div
+      className={`step-user-input step toggle-control ${
+        open ? 'open' : 'closed'
+      }`}
+    >
+      <StepNameToggle
         step={step}
         status={status[pathIndex][stepIndex].status}
-      ></StepName>
+      ></StepNameToggle>
       {stepInputs.map((input, index) => {
         return (
           <UserInput

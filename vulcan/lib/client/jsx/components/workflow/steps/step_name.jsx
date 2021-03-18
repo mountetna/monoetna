@@ -6,7 +6,7 @@ import Icon from 'etna-js/components/icon';
 import {STATUS} from '../../../models/steps';
 import AnimatedClock from './animated_clock';
 
-export default function StepName({step, status, onClick}) {
+export default function StepName({step, status}) {
   let {calculating} = useContext(VulcanContext);
 
   const icons = {};
@@ -32,9 +32,7 @@ export default function StepName({step, status, onClick}) {
   return (
     <div className='step-name'>
       <div className='step-status-icon-wrapper'>{IconComponent}</div>
-      <div className='step-button' onClick={onClick}>
-        {step.label || step.name}
-      </div>
+      <div className='step-button'>{step.label || step.name}</div>
     </div>
   );
 }
