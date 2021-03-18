@@ -28,7 +28,7 @@ describe SessionsController do
   end
   let(:project_name) { PROJECT }
   let(:workflow_name) { "test_workflow.cwl" }
-  let(:path) { "/api/#{project_name}/session/#{workflow_name}" }
+  let(:workflow_path) { "/api/#{project_name}/session/#{workflow_name}" }
   let(:body) { body_json.to_json }
   let(:body_json) do
     {
@@ -38,10 +38,9 @@ describe SessionsController do
   end
   let(:key) { 'mykey' }
   let(:inputs) { {} }
-  let(:method) { :post }
 
-  def make_request
-    send(method, path, body, headers)
+  def make_request(postfix = "")
+    post("#{workflow_path}#{postfix}", body, headers)
   end
 
   def last_json_response
@@ -63,7 +62,7 @@ describe SessionsController do
     end
 
     it 'creates a new empty session and returns it' do
-      make_request
+      make_request("/status")
       expect(last_response.status).to eql(200)
       expect(last_json_response['session']['project_name']).to eql(project_name)
       expect(last_json_response['session']['key']).to_not be_empty
@@ -103,7 +102,7 @@ describe SessionsController do
       expect(response['session']['inputs']).to eql(inputs)
       orchestration.scheduler.join_all
 
-      make_request
+      make_request("/status")
       expect(last_response.status).to eql(200)
       response = last_json_response
 
@@ -134,13 +133,12 @@ describe SessionsController do
       expect(last_response.status).to eql(200)
       orchestration.scheduler.join_all
 
-      make_request
+      make_request("/status")
       expect(last_response.status).to eql(200)
       response = last_json_response
 
       expect(response['session']['inputs']).to eql(inputs)
       expect(response['status'].first[0]['status']).to eq('error')
-      expect(response['status'].first[0]['message'].include?('ValueError')).to eq(true)
       expect(response['status'].first[2]['status']).to eq('pending') # Can't run finalStep since firstStep has an error
     end
   end

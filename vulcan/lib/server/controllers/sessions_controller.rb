@@ -26,10 +26,13 @@ class SessionsController < Vulcan::Controller
     orchestration.load_json_inputs!(storage)
     scheduler.schedule_more!(orchestration: orchestration, token: @user.token, storage: storage)
     success_json(status_payload)
-    # stream.write(run_orchestration.to_json)
   rescue => e
     Vulcan.instance.logger.log_error(e)
     raise Etna::BadRequest.new(e.message)
+  end
+
+  def status
+    success_json(status_payload)
   end
 
   def status_payload(build_target_cache: {})
