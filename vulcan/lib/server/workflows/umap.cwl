@@ -69,19 +69,6 @@ steps:
     run: scripts/fake_query.cwl
     label: 'Fetch pool record names'
     in:
-<<<<<<< HEAD
-      a: min_nCounts
-      b: max_nCounts
-      c: min_nFeatures
-      d: max_per_mito
-      e: max_per_ribo
-      f: regress_counts
-      g: regress_genes
-      h: regress_pct_mito
-      i: regress_pct_ribo
-      j: max_pc
-    out: [experiments, tissues]
-=======
       a: Cell_Filtering__min_nCounts
       b: Cell_Filtering__max_nCounts
       c: Cell_Filtering__min_nFeatures
@@ -94,7 +81,6 @@ steps:
       j: UMAP_Calculation__max_pc
       k: UMAP_Calculation__leiden_resolution
     out: [experiments, tissues, pools, records]
->>>>>>> 1f38e3e6b25af0e2feb2efd801e243f30a8f7ba8
   pickExperiments:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Experiments'
