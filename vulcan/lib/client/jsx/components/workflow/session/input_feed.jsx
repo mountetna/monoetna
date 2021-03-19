@@ -9,16 +9,15 @@ import {
 import {
   completedUiStepsSelector,
   nextUiStepsSelector,
-  errorStepsSelector,
-  completedUiOutputsSelector
+  errorStepsSelector
 } from '../../../selectors/workflow';
+
+import PrimaryInputs from './primary_inputs';
 import StepUserInput from '../steps/step_user_input';
 import StepError from '../steps/step_error';
-import StepOutput from '../steps/step_output';
-import OutputFocus from './output_focus';
 
-export default function SessionFeed() {
-  // Shows stream of Input, Output, Plots, etc.,
+export default function InputFeed() {
+  // Shows stream of Inputs,
   //   as the session object updates.
   const context = useContext(VulcanContext);
   const {workflow, session, pathIndex, status, setInputs} = context;
@@ -37,7 +36,12 @@ export default function SessionFeed() {
       let missingInputs = missingUiInputs(nextInputStep, session);
 
       if (missingInputs.length > 0) {
-        setInputs(inputNamesToHashStub(missingInputs));
+        // Make sure to copy over the current inputs, otherwise
+        //   they'll get wiped out in the reducer.
+        setInputs({
+          ...session.inputs,
+          ...inputNamesToHashStub(missingInputs)
+        });
       }
 
       uiSteps.push({
@@ -49,10 +53,9 @@ export default function SessionFeed() {
 
   let errorSteps = errorStepsSelector(context);
 
-  let outputs = completedUiOutputsSelector(context);
-
   return (
-    <div className='session-feed'>
+    <div className='session-input-feed'>
+      <PrimaryInputs></PrimaryInputs>
       {uiSteps.map((s, index) => (
         <StepUserInput
           key={index}
@@ -63,10 +66,6 @@ export default function SessionFeed() {
       {errorSteps.map((s, index) => (
         <StepError key={index} step={s.step} stepIndex={s.index}></StepError>
       ))}
-      {outputs.map((s, index) => (
-        <StepOutput key={index} step={s.step} stepIndex={s.index}></StepOutput>
-      ))}
-      <OutputFocus />
     </div>
   );
 }

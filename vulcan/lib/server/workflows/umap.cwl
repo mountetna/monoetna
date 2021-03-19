@@ -66,8 +66,8 @@ outputs:
 
 steps:
   queryMagma:
-    run: scripts/fake_query.cwl
-    label: 'Fetch user selection options'
+    run: scripts/user_filter_options.cwl
+    label: 'Identify selection methods'
     in:
       a: Cell_Filtering__min_nCounts
       b: Cell_Filtering__max_nCounts
@@ -80,39 +80,31 @@ steps:
       i: Regress__regress_pct_ribo
       j: UMAP_Calculation__max_pc
       k: UMAP_Calculation__leiden_resolution
-    out: [experiments, tissues, records, pools]
-  pickExperiments:
-    run: ui-queries/multiselect-string.cwl
-    label: 'Select experiments'
+    out: [options]
+  pickSelectionOption:
+    run: ui-queries/select-autocomplete.cwl
+    label: 'Select initial filters'
     in:
-      a: queryMagma/experiments
-    out: [names]
-  pickTissues:
-    run: ui-queries/multiselect-string.cwl
-    label: 'Select tissue types'
+      a: queryMagma/options
+    out: [options]
+  generateOptions:
+    run: scripts/generate_filter_options_from_type.cwl
+    label: 'Generate filter options'
     in:
-      a: queryMagma/tissues
-    out: [names]
-  pickPools:
+      type: pickSelectionOption/options
+    out: [options]
+  pickOptions:
     run: ui-queries/multiselect-string.cwl
-    label: 'Select pool records'
+    label: 'Select records'
     in:
-      a: queryMagma/pools
-    out: [names]
-  pickTubes:
-    run: ui-queries/multiselect-string.cwl
-    label: 'Select individual tube records'
-    in:
-      a: queryMagma/records
-    out: [names]
+      a: generateOptions/options
+    out: [selectedOptions]
   parseRecordSelections:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
     in:
-      experiments:  pickExperiments/names
-      tissues: pickTissues/names
-      pools: pickPools/names
-      tubes: pickTubes/names
+      options:  pickOptions/selectedOptions
+      optionType: pickSelectionOption/options
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl

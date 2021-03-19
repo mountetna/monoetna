@@ -10,7 +10,7 @@ import SelectAutocompleteInput from './select_autocomplete';
 import StringInput from './string';
 import CheckboxesInput from './checkboxes';
 
-export default function UserInput({input, onChange}) {
+export default function UserInput({input, onChange, hideLabel}) {
   const INPUTS = {
     default: StringInput,
     [TYPE.INTEGER]: IntegerInput,
@@ -30,7 +30,9 @@ export default function UserInput({input, onChange}) {
 
   return (
     <div className='view_item'>
-      <div className='item_name'>{input.label || input.name}</div>
+      {!hideLabel ? (
+        <div className='item_name'>{input.label || input.name}</div>
+      ) : null}
       <div className='item_view'>
         <InputHelp input={input}>
           <InputComponent input={input} onChange={onChange}></InputComponent>

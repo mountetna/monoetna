@@ -1,9 +1,9 @@
 import React from 'react';
 import {VulcanProvider} from '../../../../contexts/vulcan';
 import renderer from 'react-test-renderer';
-import SessionFeed from '../session_feed';
+import InputFeed from '../input_feed';
 
-describe('SessionFeed', () => {
+describe('InputFeed', () => {
   let state;
 
   beforeEach(() => {
@@ -83,7 +83,7 @@ describe('SessionFeed', () => {
     // Wrap with Provider here so store gets passed down to child components in Context
     const component = renderer.create(
       <VulcanProvider state={state}>
-        <SessionFeed />
+        <InputFeed />
       </VulcanProvider>
     );
 
