@@ -103,7 +103,7 @@ export const inputGroupName = (input) => {
   let groupName = input.name.split('__')[0];
   if (groupName === input.name) groupName = 'Inputs';
 
-  groupName = groupName.replace(/_/g,' ');
+  groupName = groupName.replace(/_/g, ' ');
 
   return groupName;
 };
@@ -193,6 +193,11 @@ export const shouldDownloadStepData = ({workflow, pathIndex, stepIndex}) => {
     );
   });
   return dependentSteps.length > 0;
+};
+
+export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
+  // Search the non-work paths for any UI-query steps that
+  //   follow the
 };
 
 const plotType = (step) => {

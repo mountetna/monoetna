@@ -28,7 +28,9 @@ export default function StepError({step, stepIndex}) {
         status={status[pathIndex][stepIndex].status}
       ></StepName>
       <div className='text-wrapper'>
-        <textarea rows={message.split('\n').length}>{message}</textarea>
+        <textarea readonly rows={message.split('\n').length + 1}>
+          {message}
+        </textarea>
       </div>
     </div>
   );

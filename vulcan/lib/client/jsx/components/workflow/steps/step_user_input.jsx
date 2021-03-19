@@ -11,7 +11,8 @@ import {
   hasUiInput,
   uiStepInputNames,
   uiStepType,
-  uiStepOptions
+  uiStepOptions,
+  removeDependentInputs
 } from '../../../utils/workflow';
 
 export default function StepUserInput({step, stepIndex}) {
@@ -33,7 +34,20 @@ export default function StepUserInput({step, stepIndex}) {
   function handleInputChange(inputName, value) {
     let userInputs = {...session.inputs};
     userInputs[inputName] = value;
-    setInputs(userInputs);
+
+    // Changing a user input should remove any
+    //   subsequent inputs from userInputs,
+    //   because we don't know how the selection
+    //   changes downstream calculations.
+    // If we leave them in, the workflow will
+    //   re-run with potentially invalid inputs
+    //   to subsequent steps.
+    setInputs(
+      removeDependentInputs({
+        userInputs,
+        workflow
+      })
+    );
   }
 
   function toggleInputs() {
