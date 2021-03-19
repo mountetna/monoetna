@@ -1,4 +1,4 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 
 import {VulcanContext} from '../../contexts/vulcan';
 import {defaultInputValues} from '../../utils/workflow';
@@ -49,10 +49,6 @@ export default function WorkflowManager({workflowName}) {
 
   return (
     <div className='workflow-manager'>
-      <div className='workflow-header'>
-        <div className='workflow-name'>{workflowName}</div>
-        <Link link={ROUTES.workflow_vignette(workflowName)}>Vignette</Link>
-      </div>
       <div className='step-wrapper'>
         <div className='step-main-pane-wrapper'>
           <SessionManager></SessionManager>

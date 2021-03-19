@@ -1,14 +1,13 @@
 import React, {useContext} from 'react';
-import Plot from 'react-plotly.js';
-
-import ConsignmentTable from 'etna-js/plots/components/consignment/consignment_table';
-import Consignment from 'etna-js/plots/models/consignment';
-import Link from 'etna-js/components/link';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 import {OUTPUT_COMPONENT} from '../../../models/steps';
 
 import StepName from './step_name';
+import RawOutput from '../user_interactions/outputs/raw';
+import LinkOutput from '../user_interactions/outputs/link';
+import PlotOutput from '../user_interactions/outputs/plot';
+import ConsignmentOutput from '../user_interactions/outputs/consignment';
 
 import {
   validStep,
@@ -30,49 +29,29 @@ export default function StepOutput({step, stepIndex}) {
   )
     return null;
 
-  // We need to extract the data from the input source.
-  let rawInputData = uiStepInputDataRaw({step, pathIndex, status});
+  let stepType = step.run.split('/')[1].replace('.cwl', '');
 
-  let Component;
-  switch (step.run.split('/')[1].replace('.cwl', '')) {
-    case OUTPUT_COMPONENT.PLOTLY:
-      // Plotly.js data payload should be in format of:
-      // {
-      //   data: <JSON>,
-      //   layout: <JSON>
-      // }
-      if (!rawInputData || !rawInputData.data || !rawInputData.layout)
-        return null;
-      Component = (
-        <Plot data={rawInputData.data} layout={rawInputData.layout}></Plot>
-      );
-      break;
-    case OUTPUT_COMPONENT.CONSIGNMENT:
-      // Not sure how to check consignment format?
-      if (!rawInputData) return null;
-      Component = (
-        <div className='consignment-view'>
-          <ConsignmentTable
-            consignment={new Consignment(rawInputData)}
-          ></ConsignmentTable>
-        </div>
-      );
-      break;
-    case OUTPUT_COMPONENT.RAW:
-      if (!rawInputData) return null;
-      Component = <div className='raw-view'>{rawInputData}</div>;
-      break;
-    case OUTPUT_COMPONENT.LINK:
-    default:
-      Component = (
-        <Link link={uiStepInputDataLink({step, pathIndex, status})}>
-          Download data here
-        </Link>
-      );
-      break;
+  stepType = Object.values(OUTPUT_COMPONENT).includes(stepType)
+    ? stepType
+    : 'default';
+
+  const OUTPUTS = {
+    default: LinkOutput,
+    [OUTPUT_COMPONENT.LINK]: LinkOutput,
+    [OUTPUT_COMPONENT.PLOTLY]: PlotOutput,
+    [OUTPUT_COMPONENT.CONSIGNMENT]: ConsignmentOutput,
+    [OUTPUT_COMPONENT.RAW]: RawOutput
+  };
+
+  let data;
+
+  if (['default', OUTPUT_COMPONENT.LINK].includes(stepType)) {
+    data = uiStepInputDataLink({step, pathIndex, status});
+  } else {
+    data = uiStepInputDataRaw({step, pathIndex, status});
   }
 
-  if (!Component) return null;
+  let OutputComponent = OUTPUTS[stepType];
 
   return (
     <div className='step-output'>
@@ -80,7 +59,9 @@ export default function StepOutput({step, stepIndex}) {
         step={step}
         status={status[pathIndex][stepIndex].status}
       ></StepName>
-      <div className='outputs-pane'>{Component}</div>
+      <div className='outputs-pane'>
+        <OutputComponent data={data}></OutputComponent>
+      </div>
     </div>
   );
 }

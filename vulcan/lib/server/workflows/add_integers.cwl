@@ -6,6 +6,7 @@ inputs:
     type: int
     default: 500
     label: 'A'
+    doc: 'Just put in an integer'
   someInt:
     type: int
     default: 200
