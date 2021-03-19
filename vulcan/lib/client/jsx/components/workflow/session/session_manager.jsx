@@ -14,7 +14,7 @@ import PrimaryInputs from './primary_inputs';
 export default function SessionManager() {
   const invoke = useActionInvoker();
   const context = useContext(VulcanContext);
-  const {workflow, session, calculating, setCalculating} = context;
+  const {workflow, session} = context;
   const [complete, setComplete] = useState(null);
   const [firstRun, setFirstRun] = useState(true);
 

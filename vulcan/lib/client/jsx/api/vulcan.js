@@ -68,16 +68,17 @@ export const submit = (context) => {
   return vulcanPost(vulcanPath(ROUTES.submit(workflow.name)), {
     inputs: session.inputs,
     key: session.key
-  })
-    .then(handleFetchSuccess)
+  }).then(handleFetchSuccess)
     .then((response) => {
       setSession(response.session);
       setStatus(response.status);
 
-      // Fetch data and update Context
-
       // Calculate this locally because useContext
       //   updates async?
+      // Right -- we should move away from reducers and immutable state, and instead just have service objects
+      // that are mutable  being shared via the context, that way once we have a reference to that mutable
+      // service object, state changes can be shared via that shared reference, rather than being forced to await the
+      // new context value being propagated up.
       let updatedStatus = response.status.map((newPath, newPathIndex) => {
         return newPath.map((newStep, newStepIndex) => {
           let oldStep = {};
@@ -153,15 +154,6 @@ export const downloadUrlUpdated = (oldStep, newStep, downloadKey) => {
     !(newStep.data && newStep.data[downloadKey]) ||
     newStep.downloads[downloadKey] !== oldStep.downloads[downloadKey]
   );
-};
-
-export const getSession = (workflow_name) => {
-  // A "blank" POST to submit generates and returns the
-  //   session, which we'll need for subsequent input
-  //   submit actions.
-  return vulcanPost(vulcanPath(ROUTES.submit(workflow_name)))
-    .then(handleFetchSuccess)
-    .catch(handleFetchError);
 };
 
 export const getData = (url) => {
