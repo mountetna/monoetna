@@ -199,26 +199,21 @@ export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
   //   follow the given input. For any UI-query steps
   //   in those paths, return the userInputs without their
   //   input values.
-  console.log(inputName);
   let validInputs = {...userInputs};
   // Start iterating from index 1, since 0 is work path.
-  console.log(workflow.steps);
   for (let i = 1; i < workflow.steps.length; i++) {
     let path = workflow.steps[i];
     let stepIndex = path.findIndex((s) => s.name === inputName);
     if (stepIndex > -1) {
-      console.log('found step in path', i);
       for (let j = stepIndex + 1; j < path.length; j++) {
         let futureStep = path[j];
-        console.log('looking at step', futureStep);
         if (hasUiInput(futureStep)) {
-          console.log('futureStep', futureStep);
           delete validInputs[uiStepInputNames(futureStep)];
         }
       }
     }
   }
-  console.log('validInputs', validInputs);
+
   return validInputs;
 };
 

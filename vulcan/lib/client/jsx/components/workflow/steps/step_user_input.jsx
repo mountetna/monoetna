@@ -42,13 +42,13 @@ export default function StepUserInput({step, stepIndex}) {
     // If we leave them in, the workflow will
     //   re-run with potentially invalid inputs
     //   to subsequent steps.
-    let newInputs = removeDependentInputs({
-      userInputs,
-      inputName: inputName.split('/')[0],
-      workflow
-    });
-    console.log('newInputs', newInputs);
-    setInputs(newInputs);
+    setInputs(
+      removeDependentInputs({
+        userInputs,
+        inputName: inputName.split('/')[0],
+        workflow
+      })
+    );
   }
 
   function toggleInputs() {
@@ -56,7 +56,12 @@ export default function StepUserInput({step, stepIndex}) {
   }
 
   useEffect(() => {
-    if (STATUS.COMPLETE === status[pathIndex][stepIndex].status) setOpen(false);
+    let stepStatus = status[pathIndex][stepIndex].status;
+    if (STATUS.COMPLETE === stepStatus) {
+      setOpen(false);
+    } else if (STATUS.PENDING === stepStatus) {
+      setOpen(true);
+    }
   }, [status]);
 
   // We need to map the user input step's output to
