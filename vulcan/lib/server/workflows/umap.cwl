@@ -66,7 +66,7 @@ outputs:
 
 steps:
   queryMagma:
-    run: scripts/fake_query.cwl
+    run: scripts/retrieve_selection_options.cwl
     label: 'Fetch pool record names'
     in:
       a: Cell_Filtering__min_nCounts
@@ -80,16 +80,18 @@ steps:
       i: Regress__regress_pct_ribo
       j: UMAP_Calculation__max_pc
       k: UMAP_Calculation__leiden_resolution
-    out: [experiments, tissues, pools, records]
-  pickExperiments:
+    out: [experiments, tissues]
+  Select_Records__pickExperiments:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Experiments'
+    doc: 'Subset  of experiments to use. These selections get combined with Tissue selections with AND logic. If you want to just select tube records directly, pick No Selections for both here.'
     in:
       a: queryMagma/experiments
     out: [names]
-  pickTissues:
+  Select_Records__pickTissues:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Tissues (AND logic)'
+    doc: 'Subset of biospecimen_types to use. These selections get combined with Experiment selections with AND logic. If you want to just select tube records directly, pick No Selections for both here.'
     in:
       a: queryMagma/tissues
     out: [names]
@@ -99,8 +101,6 @@ steps:
     in:
       experiments: pickExperiments/names
       tissues: pickTissues/names
-      pools: pickPools/names
-      tubes: pickTubes/names
     out: [tube_recs]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl

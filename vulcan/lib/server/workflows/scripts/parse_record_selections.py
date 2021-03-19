@@ -6,8 +6,8 @@ from archimedes.functions.list import unique, flatten
 # Expecting this may need to change...
 experiments = input_json('experiments')
 tissues = input_json('tissues')
-pools = input_json('pools')
-tubes = input_json('tubes')
+# pools = input_json('pools')
+# tubes = input_json('tubes')
 
 seq_model_name = "sc_seq"
 seq_pool_model_name = "sc_seq_pool"
@@ -18,13 +18,13 @@ def defaultOnlyIfThere(x, default = "No Selection"):
     return x
 experiments = defaultOnlyIfThere(experiments)
 tissues = defaultOnlyIfThere(tissues)
-pools = defaultOnlyIfThere(pools)
-tubes = defaultOnlyIfThere(tubes)
+# pools = defaultOnlyIfThere(pools)
+# tubes = defaultOnlyIfThere(tubes)
 
 print("expts:", experiments)
 print("tissues:", tissues)
-print("pools:", pools)
-print("tubes:", tubes)
+# print("pools:", pools)
+# print("tubes:", tubes)
 
 # Setup query targets
 # expt_model = 'experiment'
@@ -73,21 +73,21 @@ if len(selection_terms)!=0:
                 ])['answer']
         )
 
-# Pools and Tubes (OR logic / just add them!)
-selection_terms = []
-#### NEED TO TEST POOLS ONCE ADDED
-if pools != ['No Selection']:
-    tube_records.extend(
-        magma.query(projectName=project_name, 
-            queryTerms=[
-                seq_model_name,
-                [seq_pool_model_name, '::identifier',
-                        '::in', pools],
-                '::all', '::identifier'
-            ])['answer']
-        )
-if tubes != ['No Selection']:
-    tube_records.extend(tubes)        
+# # Pools and Tubes (OR logic / just add them!)
+# selection_terms = []
+# #### NEED TO TEST POOLS ONCE ADDED
+# if pools != ['No Selection']:
+#     tube_records.extend(
+#         magma.query(projectName=project_name, 
+#             queryTerms=[
+#                 seq_model_name,
+#                 [seq_pool_model_name, '::identifier',
+#                         '::in', pools],
+#                 '::all', '::identifier'
+#             ])['answer']
+#         )
+# if tubes != ['No Selection']:
+#     tube_records.extend(tubes)        
 
 print("before trim:", tube_records)
 
