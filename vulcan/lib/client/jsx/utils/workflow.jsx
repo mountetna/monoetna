@@ -171,7 +171,6 @@ const stepDependsOn = (step, otherStep) => {
   return (
     step.in &&
     step.in.filter((input) => {
-      console.log(input);
       return (
         otherStep.name === input.source[0] &&
         otherStep.out[0] === input.source[1]
@@ -197,7 +196,30 @@ export const shouldDownloadStepData = ({workflow, pathIndex, stepIndex}) => {
 
 export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
   // Search the non-work paths for any UI-query steps that
-  //   follow the
+  //   follow the given input. For any UI-query steps
+  //   in those paths, return the userInputs without their
+  //   input values.
+  console.log(inputName);
+  let validInputs = {...userInputs};
+  // Start iterating from index 1, since 0 is work path.
+  console.log(workflow.steps);
+  for (let i = 1; i < workflow.steps.length; i++) {
+    let path = workflow.steps[i];
+    let stepIndex = path.findIndex((s) => s.name === inputName);
+    if (stepIndex > -1) {
+      console.log('found step in path', i);
+      for (let j = stepIndex + 1; j < path.length; j++) {
+        let futureStep = path[j];
+        console.log('looking at step', futureStep);
+        if (hasUiInput(futureStep)) {
+          console.log('futureStep', futureStep);
+          delete validInputs[uiStepInputNames(futureStep)];
+        }
+      }
+    }
+  }
+  console.log('validInputs', validInputs);
+  return validInputs;
 };
 
 const plotType = (step) => {

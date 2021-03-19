@@ -155,6 +155,7 @@ export const submit = (context) => {
 export const downloadUrlUpdated = (oldStep, newStep, downloadKey) => {
   return (
     !(newStep.data && newStep.data[downloadKey]) ||
+    !oldStep.downloads ||
     newStep.downloads[downloadKey] !== oldStep.downloads[downloadKey]
   );
 };

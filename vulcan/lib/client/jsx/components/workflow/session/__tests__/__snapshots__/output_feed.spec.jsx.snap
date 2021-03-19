@@ -14,10 +14,10 @@ exports[`OutputFeed renders UI output steps 1`] = `
         className="step-status-icon-wrapper"
       >
         <span
-          className="icon-grp fa-stack fa-fw"
+          className="icon-grp icon-grp-step-status-icon light green  fa-stack fa-fw"
         >
           <i
-            className="icon step-status-icon light green check fa fa-2x fa-check"
+            className="icon step-status-icon light green  check fa fa-2x fa-check"
           />
         </span>
       </div>
@@ -50,10 +50,10 @@ exports[`OutputFeed renders UI output steps 1`] = `
         className="step-status-icon-wrapper"
       >
         <span
-          className="icon-grp fa-stack fa-fw"
+          className="icon-grp icon-grp-step-status-icon light green  fa-stack fa-fw"
         >
           <i
-            className="icon step-status-icon light green check fa fa-2x fa-check"
+            className="icon step-status-icon light green  check fa fa-2x fa-check"
           />
         </span>
       </div>
@@ -85,10 +85,10 @@ exports[`OutputFeed renders UI output steps 1`] = `
         className="step-status-icon-wrapper"
       >
         <span
-          className="icon-grp fa-stack fa-fw"
+          className="icon-grp icon-grp-step-status-icon light green  fa-stack fa-fw"
         >
           <i
-            className="icon step-status-icon light green check fa fa-2x fa-check"
+            className="icon step-status-icon light green  check fa fa-2x fa-check"
           />
         </span>
       </div>

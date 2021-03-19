@@ -42,12 +42,13 @@ export default function StepUserInput({step, stepIndex}) {
     // If we leave them in, the workflow will
     //   re-run with potentially invalid inputs
     //   to subsequent steps.
-    setInputs(
-      removeDependentInputs({
-        userInputs,
-        workflow
-      })
-    );
+    let newInputs = removeDependentInputs({
+      userInputs,
+      inputName: inputName.split('/')[0],
+      workflow
+    });
+    console.log('newInputs', newInputs);
+    setInputs(newInputs);
   }
 
   function toggleInputs() {

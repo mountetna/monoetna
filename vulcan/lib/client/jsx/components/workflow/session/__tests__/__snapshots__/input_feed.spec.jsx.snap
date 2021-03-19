@@ -11,57 +11,47 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
     className="step-user-input step"
   >
     <div
-      className="step-name"
+      onClick={[Function]}
     >
       <div
-        className="step-status-icon-wrapper"
+        className="step-name"
       >
-        <span
-          className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
+        <div
+          className="step-status-icon-wrapper"
         >
-          <i
-            className="icon step-status-icon light  clock fa fa-2x fa-clock"
-          />
-        </span>
-      </div>
-      <div
-        className="step-button"
-      >
-        second
+          <span
+            className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
+          >
+            <i
+              className="icon step-status-icon light  clock fa fa-2x fa-clock"
+            />
+          </span>
+        </div>
+        <div
+          className="step-button"
+        >
+          second
+        </div>
       </div>
     </div>
     <div
-      className="step-inputs inputs-pane"
+      className="step-user-input-inputs sliding-panel vertical open"
     >
       <div
-        class="title"
-      >
-        User inputs
-      </div>
-      <div
-        className="step-inputs-container items"
+        className="view_item"
       >
         <div
-          className="view_item"
+          className="item_view"
         >
           <div
-            className="item_name"
+            className="input-help"
           >
-            second
-          </div>
-          <div
-            className="item_view"
-          >
-            <div
-              className="input-help"
-            >
-              <div>
-                <input
-                  onChange={[Function]}
-                  type="text"
-                  value=""
-                />
-              </div>
+            <div>
+              <input
+                onChange={[Function]}
+                type="text"
+                value=""
+              />
             </div>
           </div>
         </div>
@@ -72,57 +62,47 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
     className="step-user-input step"
   >
     <div
-      className="step-name"
+      onClick={[Function]}
     >
       <div
-        className="step-status-icon-wrapper"
+        className="step-name"
       >
-        <span
-          className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
+        <div
+          className="step-status-icon-wrapper"
         >
-          <i
-            className="icon step-status-icon light  clock fa fa-2x fa-clock"
-          />
-        </span>
-      </div>
-      <div
-        className="step-button"
-      >
-        third
+          <span
+            className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
+          >
+            <i
+              className="icon step-status-icon light  clock fa fa-2x fa-clock"
+            />
+          </span>
+        </div>
+        <div
+          className="step-button"
+        >
+          third
+        </div>
       </div>
     </div>
     <div
-      className="step-inputs inputs-pane"
+      className="step-user-input-inputs sliding-panel vertical open"
     >
       <div
-        class="title"
-      >
-        User inputs
-      </div>
-      <div
-        className="step-inputs-container items"
+        className="view_item"
       >
         <div
-          className="view_item"
+          className="item_view"
         >
           <div
-            className="item_name"
+            className="input-help"
           >
-            third
-          </div>
-          <div
-            className="item_view"
-          >
-            <div
-              className="input-help"
-            >
-              <div>
-                <input
-                  onChange={[Function]}
-                  type="text"
-                  value=""
-                />
-              </div>
+            <div>
+              <input
+                onChange={[Function]}
+                type="text"
+                value=""
+              />
             </div>
           </div>
         </div>
@@ -156,7 +136,8 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
       className="text-wrapper"
     >
       <textarea
-        rows={1}
+        readonly={true}
+        rows={2}
       >
         oops!
       </textarea>
