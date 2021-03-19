@@ -80,31 +80,31 @@ steps:
       i: Regress__regress_pct_ribo
       j: UMAP_Calculation__max_pc
       k: UMAP_Calculation__leiden_resolution
-    out: [options]
-  pickSelectionOption:
-    run: ui-queries/select-autocomplete.cwl
-    label: 'Select initial filters'
-    in:
-      a: queryMagma/options
-    out: [options]
-  generateOptions:
-    run: scripts/generate_filter_options_from_type.cwl
-    label: 'Generate filter options'
-    in:
-      type: pickSelectionOption/options
-    out: [options]
-  pickOptions:
+    out: [experiments, tissues, color_options]
+  pickExperiments:
     run: ui-queries/multiselect-string.cwl
-    label: 'Select records'
+    label: 'Select Experiments'
     in:
-      a: generateOptions/options
-    out: [selectedOptions]
+      a: queryMagma/experiments
+    out: [names]
+  pickTissues:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select Tissues (AND logic)'
+    in:
+      a: queryMagma/tissues
+    out: [names]
+  select_color_by_option:
+    run: ui-queries/nested-select-autocomplete.cwl
+    label: 'Color Options'
+    in:
+      a: queryMagma/color_options
+    out: [color_by]
   parseRecordSelections:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
     in:
-      options:  pickOptions/selectedOptions
-      optionType: pickSelectionOption/options
+      experiments:  pickExperiments/names
+      tissues:  pickTissues/names
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
@@ -172,6 +172,7 @@ steps:
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden.json: calc_leiden/leiden.json
       max_pc: UMAP_Calculation__max_pc
+      color_selection: select_color_by_option/color_by
     out: [umap.plotly.json]
   show_umap_plot:
     run: ui-outputs/plotly.cwl

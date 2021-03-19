@@ -15,7 +15,8 @@ export const TYPE = {
   FILE: 'File',
   MULTISELECT_STRING: 'multiselect-string',
   SELECT_AUTOCOMPLETE: 'select-autocomplete',
-  CHECKBOXES: 'checkboxes'
+  CHECKBOXES: 'checkboxes',
+  NESTED_SELECT_AUTOCOMPLETE: 'nested-select-autocomplete'
 };
 
 // CWL Step RUN Sentinels
