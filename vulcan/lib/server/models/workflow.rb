@@ -46,6 +46,7 @@ module Etna
             type: @attributes['type'],
             format: @attributes['format'],
             default: @attributes['default'],
+            doc: @attributes['doc']
         }]
       end
     end
