@@ -63,7 +63,7 @@ steps:
       h: regress_pct_mito
       i: regress_pct_ribo
       j: max_pc
-    out: [experiments, tissues, pools, records]
+    out: [experiments, tissues]
   pickExperiments:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Experiments'
@@ -75,18 +75,6 @@ steps:
     label: 'Select Tissues (AND logic)'
     in:
       a: queryMagma/tissues
-    out: [names]
-  pickPools:
-    run: ui-queries/multiselect-string.cwl
-    label: 'Select pool records'
-    in:
-      a: queryMagma/pools
-    out: [names]
-  pickTubes:
-    run: ui-queries/multiselect-string.cwl
-    label: 'Select individual tube records'
-    in:
-      a: queryMagma/records
     out: [names]
   parse_record_selections:
     run: scripts/parse_record_selections.cwl

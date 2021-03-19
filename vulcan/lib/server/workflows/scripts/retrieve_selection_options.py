@@ -17,7 +17,7 @@ experiments = magma.query(
         seq_model_name, "::all", '::has', 'raw_counts_h5'],
         "::all", '::identifier'])['answer']
 # add "all" and flatten/unique
-experiments = ["all"] + unique(flatten(experiments))
+experiments = ["No Selection"] + unique(flatten(experiments))
 
 tissues = magma.query(
     project_name,
@@ -25,27 +25,7 @@ tissues = magma.query(
         "biospecimen",
         [seq_model_name, "::all", '::has', 'raw_counts_h5'],
         "::all", 'biospecimen_type'])['answer']
-tissues = ["all"] + unique(flatten(tissues))
-
-pools = magma.query(
-    project_name,
-    queryTerms=[
-        seq_pool_model_name,
-        [seq_model_name, "::all",
-        '::has', 'raw_counts_h5'],
-        "::all", '::identifier'])['answer']
-# Add "" and flatten/unique
-pools = ["NO DIRECT SELECTIONS"] + unique(flatten(pools))
-
-recs = magma.query(
-    project_name,
-    queryTerms=[
-        seq_model_name,
-        ['::has', 'raw_counts_h5'],
-        "::all", '::identifier'])['answer']
-recs = ["NO DIRECT SELECTIONS"] + unique(flatten(recs))
+tissues = ["No Selection"] + unique(flatten(tissues))
 
 output_json(experiments, 'experiments')
 output_json(tissues, 'tissues')
-output_json(pools, 'pools')
-output_json(recs, 'records')
