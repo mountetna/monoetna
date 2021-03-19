@@ -20,7 +20,7 @@ export default function ContextManager({params, children}) {
       })
       .catch((e) => {
         console.error(e);
-        invoke(showMessages([e]));
+        invoke(showMessages(e));
       });
   }, []);
 

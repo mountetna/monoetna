@@ -8,6 +8,7 @@ import IntegerInput from './integer';
 import MultiselectStringInput from './multiselect_string';
 import SelectAutocompleteInput from './select_autocomplete';
 import StringInput from './string';
+import CheckboxesInput from './checkboxes';
 
 export default function UserInput({input, onChange}) {
   const INPUTS = {
@@ -16,7 +17,8 @@ export default function UserInput({input, onChange}) {
     [TYPE.FLOAT]: FloatInput,
     [TYPE.BOOL]: BooleanInput,
     [TYPE.MULTISELECT_STRING]: MultiselectStringInput,
-    [TYPE.SELECT_AUTOCOMPLETE]: SelectAutocompleteInput
+    [TYPE.SELECT_AUTOCOMPLETE]: SelectAutocompleteInput,
+    [TYPE.CHECKBOXES]: CheckboxesInput
   };
 
   let inputType =

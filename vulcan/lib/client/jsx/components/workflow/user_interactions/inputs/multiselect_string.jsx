@@ -10,7 +10,13 @@ export default function MultiselectStringInput({input, onChange}) {
     <ListInput
       placeholder='Select items from the list'
       className='link_text'
-      values={input.default || []}
+      values={
+        input.default
+          ? Array.isArray(input.default)
+            ? input.default
+            : [input.default]
+          : []
+      }
       itemInput={DropdownInput}
       list={input.options || []}
       onChange={(e) => {

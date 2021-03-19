@@ -14,7 +14,8 @@ export const TYPE = {
   ARRAY: 'array',
   FILE: 'File',
   MULTISELECT_STRING: 'multiselect-string',
-  SELECT_AUTOCOMPLETE: 'select-autocomplete'
+  SELECT_AUTOCOMPLETE: 'select-autocomplete',
+  CHECKBOXES: 'checkboxes'
 };
 
 // CWL Step RUN Sentinels

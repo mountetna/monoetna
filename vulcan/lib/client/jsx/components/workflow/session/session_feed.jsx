@@ -8,7 +8,7 @@ import {
 } from '../../../utils/workflow';
 import {
   completedUiStepsSelector,
-  nextUiStepIndexSelector,
+  nextUiStepsSelector,
   errorStepsSelector,
   completedUiOutputsSelector
 } from '../../../selectors/workflow';
@@ -27,24 +27,23 @@ export default function SessionFeed() {
     return null;
 
   let uiSteps = completedUiStepsSelector(context);
-  let nextInputStepIndex = nextUiStepIndexSelector(context);
-  let nextInputStep;
+  let nextUiSteps = nextUiStepsSelector(context);
 
   // We inject a `null` input into the session,
   //   to indicate that we're waiting for a user input value
   //   to return to the server.
-  if (-1 !== nextInputStepIndex) {
-    nextInputStep = workflow.steps[pathIndex][nextInputStepIndex];
+  if (nextUiSteps.length > 0) {
+    nextUiSteps.forEach((nextInputStep) => {
+      let missingInputs = missingUiInputs(nextInputStep, session);
 
-    let missingInputs = missingUiInputs(nextInputStep, session);
+      if (missingInputs.length > 0) {
+        setInputs(inputNamesToHashStub(missingInputs));
+      }
 
-    if (missingInputs.length > 0) {
-      setInputs(inputNamesToHashStub(missingInputs));
-    }
-
-    uiSteps.push({
-      step: nextInputStep,
-      index: nextInputStepIndex
+      uiSteps.push({
+        step: nextInputStep,
+        index: nextInputStep.index
+      });
     });
   }
 
