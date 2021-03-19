@@ -1,6 +1,6 @@
 import {
   completedUiStepsSelector,
-  nextUiStepIndexSelector,
+  nextUiStepsSelector,
   errorStepsSelector
 } from '../workflow';
 
@@ -48,21 +48,24 @@ describe('Workflow Selectors', () => {
     });
   });
 
-  describe('nextUiStepIndexSelector', () => {
+  describe('nextUiStepsSelector', () => {
     const context = {
       status: [
         [
           {
             name: 'step1',
-            status: 'pending'
+            status: 'complete',
+            downloads: {
+              output: 'https://foo'
+            }
           },
           {
             name: 'step2',
-            status: 'complete'
+            status: 'pending'
           },
           {
             name: 'step3',
-            status: 'complete'
+            status: 'pending'
           },
           {
             name: 'step4',
@@ -74,17 +77,38 @@ describe('Workflow Selectors', () => {
       workflow: {
         steps: [
           [
-            {name: 'step1', run: 'ui-queries/something.cwl'},
-            {name: 'step2', run: 'scripts/real.cwl'},
-            {name: 'step3', run: 'ui-queries/other.cwl'},
+            {name: 'step1', run: 'scripts/real.cwl', out: ['output']},
+            {
+              name: 'step2',
+              run: 'ui-queries/something.cwl',
+              in: [{source: ['step1', 'output']}]
+            },
+            {
+              name: 'step3',
+              run: 'ui-queries/other.cwl',
+              in: [{source: ['step1', 'output']}]
+            },
             {name: 'step4', run: 'ui-queries/final.cwl'}
           ]
         ]
       }
     };
 
-    let result = nextUiStepIndexSelector(context);
-    expect(result).toEqual(0);
+    let result = nextUiStepsSelector(context);
+    expect(result).toEqual([
+      {
+        name: 'step2',
+        index: 1,
+        run: 'ui-queries/something.cwl',
+        in: [{source: ['step1', 'output']}]
+      },
+      {
+        name: 'step3',
+        index: 2,
+        run: 'ui-queries/other.cwl',
+        in: [{source: ['step1', 'output']}]
+      }
+    ]);
   });
 
   describe('errorStepsSelector', () => {

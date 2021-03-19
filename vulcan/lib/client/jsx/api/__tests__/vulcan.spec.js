@@ -635,5 +635,23 @@ describe('Vulcan API', () => {
       let result = downloadUrlUpdated(oldStatus, newStatus, 'key');
       expect(result).toEqual(true);
     });
+
+    it('returns true if no downloads for the old step', () => {
+      let oldStatus = {
+        name: 'foo'
+      };
+
+      let newStatus = {
+        downloads: {
+          key: 'URL2'
+        },
+        data: {
+          key: 'blob2'
+        }
+      };
+
+      let result = downloadUrlUpdated(oldStatus, newStatus, 'key');
+      expect(result).toEqual(true);
+    });
   });
 });

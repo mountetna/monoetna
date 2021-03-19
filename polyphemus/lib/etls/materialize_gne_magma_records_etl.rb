@@ -2,7 +2,7 @@ require_relative '../magma_record_etl'
 
 class Polyphemus::MaterializeGneMagmaRecordsEtl < Polyphemus::MagmaRecordEtl
   def initialize
-    super(project_model_pairs: [['mvir1', 'patient']])
+    super(project_model_pairs: [['mvir1', 'patient']], attribute_names: ['name', 'updated_at'])
   end
 
   def process(cursor, records)

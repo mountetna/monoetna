@@ -26,7 +26,7 @@ class WorkflowsController < Vulcan::Controller
               symbolize_names: true) :
               {})
 
-        end.select do |v|
+        end.compact.select do |v|
           # We only want workflows where the user is
           #   authorized for all listed projects,
           #   or projects is null (from the metadata), so
@@ -36,17 +36,8 @@ class WorkflowsController < Vulcan::Controller
         end
     })
   end
-
-  def submit
-    # This is a stub API that will be used for development only.
-    # Submit input data and get the specified output status back.
-
-    raise Etna::NotFound, "No data for workflow #{@params[:workflow_name]}." unless "umap" == @params[:workflow_name]
-
-    success(File.read(File.join(
-      File.dirname(__FILE__),
-      "../data/#{@params[:status]}.json")), 'application/json')
-
-  end
+rescue => e
+  Vulcan.instance.logger.log_error(e)
+  raise Etna::BadRequest.new(e.message)
 end
 

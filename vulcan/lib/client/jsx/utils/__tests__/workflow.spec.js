@@ -12,8 +12,9 @@ import {
   uiStepOptions,
   missingUiInputs,
   inputNamesToHashStub,
-  shouldDownloadStepData
-} from '..//workflow';
+  shouldDownloadStepData,
+  removeDependentInputs
+} from '../workflow';
 
 describe('Workflow Utils', () => {
   describe('XY Plots', () => {
@@ -702,6 +703,108 @@ describe('Workflow Utils', () => {
         stepIndex: 0
       });
       expect(result).toEqual(false);
+    });
+  });
+
+  describe('removeDependentInputs', () => {
+    it('works', () => {
+      const workflow = {
+        inputs: {
+          primaryInput: {
+            type: 'int',
+            default: 1
+          }
+        },
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data1']
+            },
+            {
+              name: 'step2',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data2']
+            },
+            {
+              name: 'step3',
+              run: 'ui-queries/something.cwl',
+              in: [
+                {
+                  source: ['step2', 'data2']
+                }
+              ],
+              out: ['data3']
+            },
+            {
+              name: 'step4',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data4']
+            }
+          ],
+          [
+            {
+              name: 'step1',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data']
+            }
+          ],
+          [
+            {
+              name: 'step2',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data2']
+            },
+            {
+              name: 'step3',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data3']
+            }
+          ],
+          [
+            {
+              name: 'step3',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data3']
+            },
+            {
+              name: 'step4',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data4']
+            }
+          ]
+        ]
+      };
+
+      const userInputs = {
+        primaryInput: 1,
+        'step1/data1': '1',
+        'step2/data2': '2',
+        'step3/data3': '3',
+        'step4/data4': '4'
+      };
+
+      let result = removeDependentInputs({
+        workflow,
+        userInputs,
+        inputName: 'step2'
+      });
+
+      expect(result).toEqual({
+        primaryInput: 1,
+        'step1/data1': '1',
+        'step2/data2': '2',
+        'step4/data4': '4'
+      });
     });
   });
 });

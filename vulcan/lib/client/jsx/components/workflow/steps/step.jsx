@@ -4,14 +4,10 @@ import {VulcanContext} from '../../../contexts/vulcan';
 import StepName from './step_name';
 import {STATUS} from '../../../models/steps';
 
-export default function Step({step, index, onClick}) {
+export default function Step({step, index}) {
   const {status, pathIndex} = useContext(VulcanContext);
 
   if (null == pathIndex) return null;
-
-  function handleOnClick() {
-    onClick(index);
-  }
 
   const stepStatus =
     status && status[pathIndex] && status[pathIndex][index]
@@ -20,11 +16,7 @@ export default function Step({step, index, onClick}) {
 
   return (
     <div className='step'>
-      <StepName
-        step={step}
-        status={stepStatus}
-        onClick={handleOnClick}
-      ></StepName>
+      <StepName step={step} status={stepStatus}></StepName>
     </div>
   );
 }

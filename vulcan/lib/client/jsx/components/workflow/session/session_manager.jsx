@@ -3,15 +3,15 @@ import React, {useState, useContext, useEffect} from 'react';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
 import Icon from 'etna-js/components/icon';
+import Link from 'etna-js/components/link';
 
 import {submit} from '../../../api/vulcan';
 import {VulcanContext} from '../../../contexts/vulcan';
-import {allInputsDefined} from '../../../utils/workflow';
-import SessionFeed from './session_feed';
+import InputFeed from './input_feed';
+import OutputFeed from './output_feed';
+import {allInputsDefined, workflowName} from '../../../utils/workflow';
 
-import PrimaryInputs from './primary_inputs';
-
-export default function SessionManager() {
+export default function SessionManager({name}) {
   const invoke = useActionInvoker();
   const context = useContext(VulcanContext);
   const {workflow, session, calculating, setCalculating} = context;
@@ -51,7 +51,7 @@ export default function SessionManager() {
     }
   }, [workflow, session]);
 
-  function handleOnClick() {
+  function runWorkflow() {
     setCalculating(true);
     submit(context)
       .then(() => {
@@ -65,19 +65,24 @@ export default function SessionManager() {
   }
   return (
     <div className='session-manager'>
-      <div className='start-btn-container'>
-        <button
+      <div className='session-header'>
+        <span className='session-workflow-name'>{workflowName(workflow)}</span>
+        {workflow.vignette && (
+          <Link link={ROUTES.workflow_vignette(workflowName(workflow))}>
+            <Icon className='vignette' icon='book' />
+          </Link>
+        )}
+        <Icon
+          className='run'
           disabled={!complete || calculating}
-          className='start-button'
-          onClick={handleOnClick}
-        >
-          Run
-          <Icon icon='play' className='small'></Icon>
-        </button>
+          title='Run workflow'
+          onClick={runWorkflow}
+          icon='play'
+        />
       </div>
-      <div className='scroll-window'>
-        <PrimaryInputs></PrimaryInputs>
-        <SessionFeed></SessionFeed>
+      <div className='session-feed-container'>
+        <InputFeed></InputFeed>
+        <OutputFeed></OutputFeed>
       </div>
     </div>
   );

@@ -216,12 +216,15 @@ describe('Vulcan Reducer', () => {
 
     const state = reducer({session}, {type: SET_INPUTS, inputs});
 
+    // Note that foo:bar is removed from inputs because
+    //   you have to explicitly copy over existing
+    //   inputs. This is to support "reset" behavior
+    //   for changing user inputs.
     expect(state.session).toEqual({
       key: '123',
       project_name: CONFIG.project_name,
       workflow_name: 'test',
       inputs: {
-        foo: 'bar',
         a: 123,
         b: 321
       }
