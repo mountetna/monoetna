@@ -48,8 +48,16 @@ module Etna
 
               retry
             rescue Etna::Error => e
-              raise e unless e.message.include?('not found')
-              break
+              if e.status === 502
+                if attempts > 5
+                  raise e
+                end
+
+                retry
+              else
+                raise e unless e.message.include?('not found')
+                break
+              end
             end
 
             documents += last_page.models.model(model_name).documents unless block_given?

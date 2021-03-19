@@ -20,7 +20,7 @@ class Polyphemus
   # Abstract base class for an ETL that scans metis for files using the find api.
   class MagmaRecordEtl < Etl
     # Subclasses should provide default values here, since commands are constructed
-    def initialize(project_model_pairs:, magma_client: nil, limit: 20, job_name: self.class.name)
+    def initialize(project_model_pairs:, magma_client: nil, limit: 20, job_name: self.class.name, attribute_names: 'all')
       logger.info("Reading cursors...")
       cursors = project_model_pairs.map do |project_name, model_name|
         MagmaRecordEtlCursor.new(job_name: job_name, project_name: project_name, model_name: model_name).load_from_db
@@ -35,6 +35,7 @@ class Polyphemus
             retrieve_request = Etna::Clients::Magma::RetrievalRequest.new(
                 project_name: cursor[:project_name],
                 model_name: cursor[:model_name],
+                attribute_names: attribute_names,
                 order: 'updated_at',
                 record_names: 'all',
                 page: 1,
