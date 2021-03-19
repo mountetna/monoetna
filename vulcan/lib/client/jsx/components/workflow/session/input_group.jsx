@@ -33,15 +33,16 @@ export default function InputGroup({inputs, onChange}) {
 
   return (
     <div className='inputs-pane'>
-      <div
-        onClick={toggleInputs}
-        className={`inputs-pane-header ${open ? 'open' : 'closed'}`}
-      >
-        <div className='inputs-pane-toggle'></div>
-        <div className='title'>{groupName}</div>
+      <div className='header-wrapper'>
+        <div onClick={toggleInputs} className='inputs-pane-header'>
+          <div className='title'>{groupName}</div>
+        </div>
+        <div className='filler'></div>
       </div>
       <div
-        className={`primary-inputs-container items ${open ? 'open' : 'closed'}`}
+        className={`primary-inputs-container items sliding-panel vertical ${
+          open ? 'open' : 'closed'
+        }`}
       >
         {inputs.map((input, index) => {
           return (

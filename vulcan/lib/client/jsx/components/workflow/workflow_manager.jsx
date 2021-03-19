@@ -19,8 +19,6 @@ export default function WorkflowManager({workflowName}) {
     getLocalSession
   } = useContext(VulcanContext);
 
-  const [hasVignette, setHasVignette] = useState(false);
-
   useEffect(() => {
     if (
       workflows.workflows &&
@@ -34,7 +32,6 @@ export default function WorkflowManager({workflowName}) {
         workflowName
       });
       setWorkflow(selectedWorkflow);
-      setHasVignette(selectedWorkflow.vignette);
 
       getLocalSession(selectedWorkflow).then((session) => {
         if (null == session) {
@@ -52,12 +49,6 @@ export default function WorkflowManager({workflowName}) {
 
   return (
     <div className='workflow-manager'>
-      <div className='workflow-header'>
-        <div className='workflow-name'>{workflowName}</div>
-        {hasVignette ? (
-          <Link link={ROUTES.workflow_vignette(workflowName)}>Vignette</Link>
-        ) : null}
-      </div>
       <div className='step-wrapper'>
         <div className='step-main-pane-wrapper'>
           <SessionManager></SessionManager>

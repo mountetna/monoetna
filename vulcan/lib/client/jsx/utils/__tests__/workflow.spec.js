@@ -13,7 +13,7 @@ import {
   missingUiInputs,
   inputNamesToHashStub,
   shouldDownloadStepData
-} from '..//workflow';
+} from '../workflow';
 
 describe('Workflow Utils', () => {
   describe('XY Plots', () => {

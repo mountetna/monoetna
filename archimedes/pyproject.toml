@@ -18,6 +18,8 @@ docker = "^4.4.1"
 dataclasses-json = "^0.5.2"
 scanpy = "^1.7.0"
 magby = {path = "../magby"}
+plotly = "^4.14.3"
+leidenalg = "^0.8.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

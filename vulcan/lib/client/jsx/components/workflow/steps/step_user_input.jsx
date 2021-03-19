@@ -1,9 +1,10 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 
+import {STATUS} from '../../../models/steps';
 import UserInput from '../user_interactions/inputs/user_input';
-import StepNameToggle from './step_name_toggle';
+import StepName from './step_name';
 
 import {
   validStep,
@@ -35,6 +36,14 @@ export default function StepUserInput({step, stepIndex}) {
     setInputs(userInputs);
   }
 
+  function toggleInputs() {
+    setOpen(!open);
+  }
+
+  useEffect(() => {
+    if (STATUS.COMPLETE === status[pathIndex][stepIndex].status) setOpen(false);
+  }, [status]);
+
   // We need to map the user input step's output to
   //   a set of input items.
   let inputNames = uiStepInputNames(step);
@@ -50,25 +59,29 @@ export default function StepUserInput({step, stepIndex}) {
   }, []);
 
   return (
-    <div
-      className={`step-user-input step toggle-control ${
-        open ? 'open' : 'closed'
-      }`}
-    >
-      <StepNameToggle
-        step={step}
-        status={status[pathIndex][stepIndex].status}
-      ></StepNameToggle>
-      {stepInputs.map((input, index) => {
-        return (
-          <UserInput
-            input={input}
-            hideLabel={true}
-            onChange={handleInputChange}
-            key={index}
-          ></UserInput>
-        );
-      })}
+    <div className='step-user-input step'>
+      <div onClick={toggleInputs}>
+        <StepName
+          step={step}
+          status={status[pathIndex][stepIndex].status}
+        ></StepName>
+      </div>
+      <div
+        className={`step-user-input-inputs sliding-panel vertical ${
+          open ? 'open' : 'closed'
+        }`}
+      >
+        {stepInputs.map((input, index) => {
+          return (
+            <UserInput
+              input={input}
+              hideLabel={true}
+              onChange={handleInputChange}
+              key={index}
+            ></UserInput>
+          );
+        })}
+      </div>
     </div>
   );
 }
