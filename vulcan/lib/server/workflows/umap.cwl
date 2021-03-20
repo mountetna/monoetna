@@ -87,26 +87,32 @@ steps:
     doc: 'Subset  of experiments to use. These selections get combined with Tissue selections with AND logic. If you want to just select tube records directly, pick No Selections for both here.'
     in:
       a: queryMagma/experiments
-    out: [names]
+    out: [options]
   Select_Records__pickTissues:
     run: ui-queries/multiselect-string.cwl
-    label: 'Select Tissues (AND logic)'
+    label: 'Select Tissues'
     doc: 'Subset of biospecimen_types to use. These selections get combined with Experiment selections with AND logic. If you want to just select tube records directly, pick No Selections for both here.'
     in:
       a: queryMagma/tissues
-    out: [names]
+    out: [options]
   parse_record_selections:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
     in:
-      experiments: pickExperiments/names
-      tissues: pickTissues/names
+      experiments: pickExperiments/options
+      tissues: pickTissues/options
     out: [tube_recs]
+  verifyRecordNames:
+    run: ui-queries/checkboxes.cwl
+    label: 'Confirm record names'
+    in:
+      a: parseRecordSelections/tube_recs
+    out: [names]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl
     label: 'Obtain raw data locations'
     in:
-      record_ids: parse_record_selections/tube_recs
+      record_ids: verifyRecordNames/names
     out: [h5_locations]
   merge_anndata_from_raw_h5:
     run: scripts/merge_anndata_from_raw_h5.cwl
