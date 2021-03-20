@@ -67,7 +67,7 @@ outputs:
 steps:
   queryMagma:
     run: scripts/retrieve_selection_options.cwl
-    label: 'Fetch pool record names'
+    label: 'Fetch selection options'
     in:
       a: Cell_Filtering__min_nCounts
       b: Cell_Filtering__max_nCounts
@@ -80,7 +80,7 @@ steps:
       i: Regress__regress_pct_ribo
       j: UMAP_Calculation__max_pc
       k: UMAP_Calculation__leiden_resolution
-    out: [experiments, tissues]
+    out: [experiments, tissues, all_tubes]
   Select_Records__pickExperiments:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Experiments'
@@ -101,6 +101,7 @@ steps:
     in:
       experiments: Select_Records__pickExperiments/options
       tissues: Select_Records__pickTissues/options
+      all_tubes: queryMagma/all_tubes
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
