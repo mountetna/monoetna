@@ -99,14 +99,14 @@ steps:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
     in:
-      experiments: pickExperiments/options
-      tissues: pickTissues/options
+      experiments: Select_Records__pickExperiments/options
+      tissues: Select_Records__pickTissues/options
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
     label: 'Confirm record names'
     in:
-      a: parseRecordSelections/tube_recs
+      a: parse_record_selections/tube_recs
     out: [names]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl
