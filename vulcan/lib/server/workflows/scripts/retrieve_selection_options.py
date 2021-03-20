@@ -27,5 +27,15 @@ tissues = magma.query(
         "::all", 'biospecimen_type'])['answer']
 tissues = ["No Selection"] + unique(flatten(tissues))
 
+all_tubes = magma.query(
+    project_name,
+    queryTerms=[
+        seq_model_name,
+        ['::has', 'raw_counts_h5'],
+        "::all", '::identifier']
+        )['answer']
+all_tubes = unique(flatten(all_tubes))
+
 output_json(experiments, 'experiments')
 output_json(tissues, 'tissues')
+output_json(all_tubes, 'all_tubes')
