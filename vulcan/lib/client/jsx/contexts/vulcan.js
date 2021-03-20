@@ -11,6 +11,7 @@ import {
   SET_CALCULATING
 } from '../actions/vulcan';
 import VulcanReducer from '../reducers/vulcan';
+import {allInputsDefined, localStorageKey} from '../utils/workflow';
 
 export const VulcanContext = createContext();
 
@@ -55,7 +56,7 @@ export const VulcanProvider = (props) => {
   const setSession = (session) => {
     if (state.workflow && state.workflow.name)
       localStorage.setItem(
-        `${state.workflow.name}.session`,
+        localStorageKey(state.workflow),
         JSON.stringify(session)
       );
     dispatch({type: SET_SESSION, session});
@@ -70,8 +71,20 @@ export const VulcanProvider = (props) => {
   };
 
   const getLocalSession = (workflow) => {
-    let storedSession = localStorage.getItem(`${workflow.name}.session`);
-    return Promise.resolve(storedSession ? JSON.parse(storedSession) : null);
+    let storedSession = localStorage.getItem(localStorageKey(workflow));
+    if (!storedSession) return Promise.resolve(null);
+
+    // We now need to check if the input names have changed.
+    // If all the workflow's primary inputs are NOT present
+    //   in the stored session, we'll return `null` and get
+    //   a new session.
+    storedSession = JSON.parse(storedSession);
+    if (!allInputsDefined(workflow, storedSession.inputs)) {
+      localStorage.removeItem(localStorageKey(workflow));
+      return Promise.resolve(null);
+    }
+
+    return Promise.resolve(storedSession);
   };
 
   return (

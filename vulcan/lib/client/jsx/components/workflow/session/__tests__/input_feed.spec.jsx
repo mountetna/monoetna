@@ -1,9 +1,9 @@
 import React from 'react';
 import {VulcanProvider} from '../../../../contexts/vulcan';
 import renderer from 'react-test-renderer';
-import SessionFeed from '../session_feed';
+import InputFeed from '../input_feed';
 
-describe('SessionFeed', () => {
+describe('InputFeed', () => {
   let state;
 
   beforeEach(() => {
@@ -13,8 +13,13 @@ describe('SessionFeed', () => {
         steps: [
           [
             {
+              name: 'zero',
+              run: 'scripts/something-wrong.cwl'
+            },
+            {
               name: 'first',
-              run: 'scripts/something.cwl'
+              run: 'scripts/something.cwl',
+              out: ['output']
             },
             {
               name: 'second',
@@ -46,13 +51,20 @@ describe('SessionFeed', () => {
       status: [
         [
           {
-            name: 'first',
+            name: 'zero',
             status: 'error',
             message: 'oops!'
           },
           {
+            name: 'first',
+            status: 'complete',
+            downloads: {
+              output: 'https://foo'
+            }
+          },
+          {
             name: 'second',
-            status: 'complete'
+            status: 'pending'
           },
           {
             name: 'third',
@@ -71,7 +83,7 @@ describe('SessionFeed', () => {
     // Wrap with Provider here so store gets passed down to child components in Context
     const component = renderer.create(
       <VulcanProvider state={state}>
-        <SessionFeed />
+        <InputFeed />
       </VulcanProvider>
     );
 

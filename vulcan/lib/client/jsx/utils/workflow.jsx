@@ -28,6 +28,8 @@ export const missingUiInputs = (step, session) => {
   );
 };
 
+export const localStorageKey = (workflow) => `${workflow.name}.session`;
+
 export const inputNamesToHashStub = (inputNames) => {
   // Convert a list of input strings to
   //   Hash, where all values are `null`.
@@ -101,7 +103,7 @@ export const inputGroupName = (input) => {
   let groupName = input.name.split('__')[0];
   if (groupName === input.name) groupName = 'Inputs';
 
-  groupName = groupName.replace(/_/g,' ');
+  groupName = groupName.replace(/_/g, ' ');
 
   return groupName;
 };
@@ -169,7 +171,6 @@ const stepDependsOn = (step, otherStep) => {
   return (
     step.in &&
     step.in.filter((input) => {
-      console.log(input);
       return (
         otherStep.name === input.source[0] &&
         otherStep.out[0] === input.source[1]
@@ -191,6 +192,29 @@ export const shouldDownloadStepData = ({workflow, pathIndex, stepIndex}) => {
     );
   });
   return dependentSteps.length > 0;
+};
+
+export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
+  // Search the non-work paths for any UI-query steps that
+  //   follow the given input. For any UI-query steps
+  //   in those paths, return the userInputs without their
+  //   input values.
+  let validInputs = {...userInputs};
+  // Start iterating from index 1, since 0 is work path.
+  for (let i = 1; i < workflow.steps.length; i++) {
+    let path = workflow.steps[i];
+    let stepIndex = path.findIndex((s) => s.name === inputName);
+    if (stepIndex > -1) {
+      for (let j = stepIndex + 1; j < path.length; j++) {
+        let futureStep = path[j];
+        if (hasUiInput(futureStep)) {
+          delete validInputs[uiStepInputNames(futureStep)];
+        }
+      }
+    }
+  }
+
+  return validInputs;
 };
 
 const plotType = (step) => {

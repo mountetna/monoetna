@@ -80,6 +80,7 @@ steps:
       i: Regress__regress_pct_ribo
       j: UMAP_Calculation__max_pc
       k: UMAP_Calculation__leiden_resolution
+
     out: [experiments, tissues, all_tubes]
   Select_Records__pickExperiments:
     run: ui-queries/multiselect-string.cwl
@@ -111,7 +112,7 @@ steps:
     out: [names]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl
-    label: 'Obtain raw data locations'
+    label: 'Query paths to raw counts files'
     in:
       record_ids: verifyRecordNames/names
     out: [h5_locations]

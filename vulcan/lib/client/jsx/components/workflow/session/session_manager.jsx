@@ -7,10 +7,9 @@ import Link from 'etna-js/components/link';
 
 import {submit} from '../../../api/vulcan';
 import {VulcanContext} from '../../../contexts/vulcan';
+import InputFeed from './input_feed';
+import OutputFeed from './output_feed';
 import {allInputsDefined, workflowName} from '../../../utils/workflow';
-import SessionFeed from './session_feed';
-
-import PrimaryInputs from './primary_inputs';
 
 export default function SessionManager({name}) {
   const invoke = useActionInvoker();
@@ -67,24 +66,23 @@ export default function SessionManager({name}) {
   return (
     <div className='session-manager'>
       <div className='session-header'>
-        <span className='session-workflow-name'>
-        { workflowName(workflow) }
-        </span>
-        { workflow.vignette &&
+        <span className='session-workflow-name'>{workflowName(workflow)}</span>
+        {workflow.vignette && (
           <Link link={ROUTES.workflow_vignette(workflowName(workflow))}>
-            <Icon className='vignette' icon='book'/>
+            <Icon className='vignette' icon='book' />
           </Link>
-        }
+        )}
         <Icon
           className='run'
           disabled={!complete || calculating}
           title='Run workflow'
           onClick={runWorkflow}
-          icon='play'/>
+          icon='play'
+        />
       </div>
-      <div className='scroll-window'>
-        <PrimaryInputs></PrimaryInputs>
-        <SessionFeed></SessionFeed>
+      <div className='session-feed-container'>
+        <InputFeed></InputFeed>
+        <OutputFeed></OutputFeed>
       </div>
     </div>
   );

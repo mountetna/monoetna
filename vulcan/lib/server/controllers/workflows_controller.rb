@@ -26,7 +26,7 @@ class WorkflowsController < Vulcan::Controller
               symbolize_names: true) :
               {})
 
-        end.select do |v|
+        end.compact.select do |v|
           # We only want workflows where the user is
           #   authorized for all listed projects,
           #   or projects is null (from the metadata), so
@@ -36,5 +36,8 @@ class WorkflowsController < Vulcan::Controller
         end
     })
   end
+rescue => e
+  Vulcan.instance.logger.log_error(e)
+  raise Etna::BadRequest.new(e.message)
 end
 

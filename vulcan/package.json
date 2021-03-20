@@ -66,6 +66,7 @@
     "fs": "0.0.1-security",
     "isomorphic-fetch": "^2.2.1",
     "jest": "^26.1.0",
+    "jest-canvas-mock": "^2.3.1",
     "nock": "^9.0.16",
     "node-sass": "^4.7.2",
     "path": "^0.12.7",

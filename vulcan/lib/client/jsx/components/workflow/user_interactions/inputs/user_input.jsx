@@ -8,15 +8,17 @@ import IntegerInput from './integer';
 import MultiselectStringInput from './multiselect_string';
 import SelectAutocompleteInput from './select_autocomplete';
 import StringInput from './string';
+import CheckboxesInput from './checkboxes';
 
-export default function UserInput({input, onChange}) {
+export default function UserInput({input, onChange, hideLabel}) {
   const INPUTS = {
     default: StringInput,
     [TYPE.INTEGER]: IntegerInput,
     [TYPE.FLOAT]: FloatInput,
     [TYPE.BOOL]: BooleanInput,
     [TYPE.MULTISELECT_STRING]: MultiselectStringInput,
-    [TYPE.SELECT_AUTOCOMPLETE]: SelectAutocompleteInput
+    [TYPE.SELECT_AUTOCOMPLETE]: SelectAutocompleteInput,
+    [TYPE.CHECKBOXES]: CheckboxesInput
   };
 
   let inputType =
@@ -28,7 +30,9 @@ export default function UserInput({input, onChange}) {
 
   return (
     <div className='view_item'>
-      <div className='item_name'>{input.label || input.name}</div>
+      {!hideLabel ? (
+        <div className='item_name'>{input.label || input.name}</div>
+      ) : null}
       <div className='item_view'>
         <InputHelp input={input}>
           <InputComponent input={input} onChange={onChange}></InputComponent>

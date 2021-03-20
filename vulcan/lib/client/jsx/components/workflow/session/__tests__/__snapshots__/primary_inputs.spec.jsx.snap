@@ -8,12 +8,24 @@ exports[`PrimaryInputs renders each type of input 1`] = `
     className="inputs-pane"
   >
     <div
-      className="title"
+      className="header-wrapper"
     >
-      Inputs
+      <div
+        className="inputs-pane-header"
+        onClick={[Function]}
+      >
+        <div
+          className="title"
+        >
+          Inputs
+        </div>
+      </div>
+      <div
+        className="filler"
+      />
     </div>
     <div
-      className="primary-inputs-container items"
+      className="primary-inputs-container items sliding-panel vertical open"
     >
       <div
         className="view_item"
