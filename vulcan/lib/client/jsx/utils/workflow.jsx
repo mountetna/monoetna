@@ -217,6 +217,55 @@ export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
   return validInputs;
 };
 
+export const groupUiSteps = (uiSteps) => {
+  // Takes an Array of UI steps and checks their names.
+  // If they start with our "group" escape sequence
+  //   (groupName__rest_of_step_name)
+  // this method will group them into a new "step"
+  //   where the name is the given `groupName` and
+  //   inputs are merged into a single step.
+  // NOTE: status, docs, and other things will
+  //   be assumed to be the first one found by
+  //   the code ... so they are assumed in sync.
+  return Object.values(
+    uiSteps.reduce((result, step) => {
+      let groupName = inputGroupName(step.step);
+      if (groupName === 'Inputs') {
+        // Not in a group
+        result[step.step.name] = step;
+      } else {
+        // Will just have to default to the first label.
+        // No way to resolve any conflict between the step labels.
+        if (Object.keys(result).indexOf(groupName) === -1) {
+          result[groupName] = {
+            step: {
+              name: groupName,
+              isGroup: true,
+              label: groupName,
+              run: step.step.run,
+              in: []
+            },
+            index: step.index
+          };
+        }
+
+        let stepInputs = uiStepInputNames(step.step);
+        result[groupName].step.in = result[groupName].step.in.concat(
+          stepInputs.map((i) => {
+            return {
+              source: [i.split('/')[0], i.split('/')[1]],
+              doc: step.step.doc,
+              label: step.step.label || i
+            };
+          })
+        );
+      }
+
+      return result;
+    }, {})
+  );
+};
+
 const plotType = (step) => {
   return step.run.replace(/\.cwl/g, '');
 };

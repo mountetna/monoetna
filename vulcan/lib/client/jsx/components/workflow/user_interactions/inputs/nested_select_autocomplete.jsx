@@ -29,13 +29,37 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
 
   if (!input || !onChange) return null;
 
+  function getPath(options, leaf) {
+    for (let [key, value] of Object.entries(options)) {
+      if (leaf === key && null == value) {
+        // Because this is how we indicate our leaf nodes
+        return [key];
+      } else if (value && typeof value === 'object') {
+        let path = getPath(value, leaf);
+        if (path) return [key, ...path];
+      }
+    }
+  }
+
   useEffect(() => {
     if (!initialized && input.options.length > options.length) {
       // input.options is always an array, as part of
       //   the input component interface, so pull out the
       //   nested hash of options.
-      setOriginalOptions({...input.options[0]});
-      setOptions(Object.keys({...input.options[0]}));
+      let allOptions = input.options[0];
+      setOriginalOptions({...allOptions});
+
+      // If a default value is passed in, we need to
+      //   find it and set it. Will have to assume
+      //   that all leaves are unique, with only
+      //   a singular path that leads to the leaf.
+      if (input.default) {
+        let path = getPath(allOptions, input.default);
+        setPath(path);
+        setOptions(getOptions(path));
+      } else {
+        setOptions(Object.keys({...allOptions}));
+      }
       setInitialized(true);
     }
   }, [input]);
@@ -62,9 +86,8 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
   }
 
   function handleSelect(value, depth) {
-    console.log('value', value);
-    console.log('depth', depth);
-
+    // User has not selected something...perhaps
+    //   still typing?
     if (null == value) return;
 
     let updatedPath;

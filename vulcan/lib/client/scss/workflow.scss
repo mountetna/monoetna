@@ -200,21 +200,8 @@
         }
 
         .item_view {
-          padding-left: 2rem;
-
-          .add_item {
-            cursor: default;
-            color: green;
-          }
-
-          .delete_link {
-            cursor: default;
-
-            &:hover {
-              text-decoration: line-through;
-              opacity: 0.5;
-              color: darkred;
-            }
+          .input-help-children-wrapper {
+            width: 80%;
           }
 
           .list_item {
@@ -274,6 +261,69 @@
   }
 }
 
+.view_item {
+  display: flex;
+  &:not(:last-of-type) {
+    .item_name {
+      border-bottom: $thin_rule;
+    }
+    .item_view {
+      border-bottom: $thin_rule;
+    }
+  }
+  .item_name {
+    cursor: default;
+    color: darkblue;
+    font-family: $body_font;
+    border-right: 1px solid #ccc;
+
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: right;
+    line-height: 30px;
+    padding-right: 10px;
+    padding-top: 4px;
+    text-align: right;
+  }
+  .item_view {
+    padding-left: 9px;
+    padding-bottom: 3px;
+    padding-top: 3px;
+    box-sizing: border-box;
+    flex: 1;
+
+    .add_item {
+      cursor: default;
+      color: green;
+    }
+
+    .delete_link {
+      cursor: default;
+
+      &:hover {
+        text-decoration: line-through;
+        opacity: 0.5;
+        color: darkred;
+      }
+    }
+
+    .input-help {
+      display: flex;
+      align-items: center;
+
+      .help-icon-wrapper {
+        cursor: help;
+
+        .question-circle {
+          font-size: 1em;
+          opacity: 0.5;
+        }
+      }
+    }
+  }
+}
+
 .inputs-pane,
 .outputs-pane {
   display: flex;
@@ -317,71 +367,6 @@
     border: 1px solid #ccc;
     padding-right: 5px;
     overflow: hidden;
-
-    .view_item {
-      display: flex;
-      &:not(:last-of-type) {
-        .item_name {
-          border-bottom: $thin_rule;
-        }
-        .item_view {
-          border-bottom: $thin_rule;
-        }
-      }
-      .item_name {
-        cursor: default;
-        color: darkblue;
-        font-family: $body_font;
-        border-right: 1px solid #ccc;
-
-        flex: 1;
-        display: flex;
-        align-items: flex-start;
-        justify-content: right;
-        line-height: 30px;
-        padding-right: 10px;
-        padding-top: 4px;
-        text-align: right;
-
-        &.revised {
-          background-color: pink;
-        }
-      }
-      .item_view {
-        padding-left: 9px;
-        padding-bottom: 3px;
-        padding-top: 3px;
-        box-sizing: border-box;
-        flex: 1;
-
-        .add_item {
-          cursor: default;
-        }
-
-        .delete_link {
-          cursor: default;
-
-          &:hover {
-            text-decoration: line-through;
-            opacity: 0.5;
-          }
-        }
-
-        .input-help {
-          display: flex;
-          align-items: center;
-
-          .help-icon-wrapper {
-            cursor: help;
-
-            .question-circle {
-              font-size: 1em;
-              opacity: 0.5;
-            }
-          }
-        }
-      }
-    }
   }
 
   .plot-container {

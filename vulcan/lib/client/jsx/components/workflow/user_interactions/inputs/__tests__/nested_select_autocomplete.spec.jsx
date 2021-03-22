@@ -39,7 +39,7 @@ describe('NestedSelectAutocompleteInput', () => {
     onChange = jest.fn();
   });
 
-  it('correctly manages child(ren) selects', async () => {
+  it('correctly manages child(ren) selects', () => {
     const component = mount(
       <NestedSelectAutocompleteInput
         input={input}
@@ -126,5 +126,23 @@ describe('NestedSelectAutocompleteInput', () => {
     clickDropdownOption(component, 'suboption2');
 
     expect(onChange).toBeCalledWith('test-input', null);
+  });
+
+  it('can find an existing path when given a default', () => {
+    input.default = 'stepchild1';
+
+    const component = mount(
+      <NestedSelectAutocompleteInput
+        input={input}
+        onChange={onChange}
+      ></NestedSelectAutocompleteInput>
+    );
+
+    expect(component.find('input').length).toEqual(3);
+    expect(component.find('input').map((i) => i.instance().value)).toEqual([
+      'option2',
+      'another1',
+      'stepchild1'
+    ]);
   });
 });

@@ -81,15 +81,16 @@ steps:
       j: UMAP_Calculation__max_pc
       k: UMAP_Calculation__leiden_resolution
     out: [experiments, tissues, color_options]
-  pickExperiments:
+  Select_Filters_(AND)__pickExperiments:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Experiments'
+    doc: 'some help for picking experiments'
     in:
       a: queryMagma/experiments
     out: [names]
-  pickTissues:
+  Select_Filters_(AND)__pickTissues:
     run: ui-queries/multiselect-string.cwl
-    label: 'Select Tissues (AND logic)'
+    label: 'Select Tissues'
     in:
       a: queryMagma/tissues
     out: [names]
@@ -103,8 +104,8 @@ steps:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
     in:
-      experiments:  pickExperiments/names
-      tissues:  pickTissues/names
+      experiments:  Select_Filters_(AND)__pickExperiments/names
+      tissues:  Select_Filters_(AND)__pickTissues/names
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl

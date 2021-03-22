@@ -4,7 +4,8 @@ import {VulcanContext} from '../../../contexts/vulcan';
 import {
   validPath,
   missingUiInputs,
-  inputNamesToHashStub
+  inputNamesToHashStub,
+  groupUiSteps
 } from '../../../utils/workflow';
 import {
   completedUiStepsSelector,
@@ -13,7 +14,7 @@ import {
 } from '../../../selectors/workflow';
 
 import PrimaryInputs from './primary_inputs';
-import StepUserInput from '../steps/step_user_input';
+import StepUserInputWrapper from '../steps/step_user_input_wrapper';
 import StepError from '../steps/step_error';
 
 export default function InputFeed() {
@@ -53,15 +54,17 @@ export default function InputFeed() {
 
   let errorSteps = errorStepsSelector(context);
 
+  uiSteps = groupUiSteps(uiSteps);
+
   return (
     <div className='session-input-feed'>
       <PrimaryInputs></PrimaryInputs>
       {uiSteps.map((s, index) => (
-        <StepUserInput
+        <StepUserInputWrapper
           key={index}
           step={s.step}
           stepIndex={s.index}
-        ></StepUserInput>
+        ></StepUserInputWrapper>
       ))}
       {errorSteps.map((s, index) => (
         <StepError key={index} step={s.step} stepIndex={s.index}></StepError>

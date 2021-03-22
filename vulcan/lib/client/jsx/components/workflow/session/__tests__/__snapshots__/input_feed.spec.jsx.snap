@@ -46,7 +46,9 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
           <div
             className="input-help"
           >
-            <div>
+            <div
+              className="input-help-children-wrapper"
+            >
               <input
                 onChange={[Function]}
                 type="text"
@@ -97,7 +99,9 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
           <div
             className="input-help"
           >
-            <div>
+            <div
+              className="input-help-children-wrapper"
+            >
               <input
                 onChange={[Function]}
                 type="text"
