@@ -62,6 +62,11 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
   }
 
   function handleSelect(value, depth) {
+    console.log('value', value);
+    console.log('depth', depth);
+
+    if (null == value) return;
+
     let updatedPath;
     if (depth <= currentDepth) {
       updatedPath = path.slice(0, depth);
