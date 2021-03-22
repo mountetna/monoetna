@@ -12,8 +12,7 @@ experiments = magma.query(
     project_name,
     queryTerms=[
         "experiment",
-        ["subject", "::all",
-        "biospecimen", "::all",
+        ["biospecimen_group", "::all",
         seq_model_name, "::all", '::has', 'raw_counts_h5'],
         "::all", '::identifier'])['answer']
 # add "all" and flatten/unique
@@ -22,7 +21,7 @@ experiments = ["No Selection"] + unique(flatten(experiments))
 tissues = magma.query(
     project_name,
     queryTerms=[
-        "biospecimen",
+        "biospecimen_group",
         [seq_model_name, "::all", '::has', 'raw_counts_h5'],
         "::all", 'biospecimen_type'])['answer']
 tissues = ["No Selection"] + unique(flatten(tissues))

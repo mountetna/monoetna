@@ -20,12 +20,12 @@ tissues = defaultOnlyIfThere(input_json('tissues'))
 selection_terms = []
 if experiments!=['No Selection']:
     selection_terms.append(
-        ["biospecimen", "subject", "experiment",
+        ["biospecimen_group", "experiment",
         "::identifier", '::in', experiments])
 #### NEED TO TEST TISSUES BETTER ONCE ADDED
 if tissues!=['No Selection']:
     selection_terms.append(
-        ["biospecimen", "biospecimen_type", '::in', tissues])
+        ["biospecimen_group", "biospecimen_type", '::in', tissues])
 
 if len(selection_terms)!=0:
     if len(selection_terms)==1:
