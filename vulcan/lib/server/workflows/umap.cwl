@@ -67,7 +67,7 @@ outputs:
 steps:
   queryMagma:
     run: scripts/user_filter_options.cwl
-    label: 'Identify selection methods'
+    label: 'Fetch selection options'
     in:
       a: Cell_Filtering__min_nCounts
       b: Cell_Filtering__max_nCounts
@@ -80,38 +80,40 @@ steps:
       i: Regress__regress_pct_ribo
       j: UMAP_Calculation__max_pc
       k: UMAP_Calculation__leiden_resolution
-    out: [experiments, tissues, color_options]
-  Select_Filters_(AND)__pickExperiments:
+    out: [experiments, tissues, all_tubes, color_options]
+  Select_Records__pickExperiments:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Experiments'
-    doc: 'some help for picking experiments'
+    doc: 'Subset  of experiments to use. These selections get combined with Tissue selections with AND logic. If you want to just select tube records directly, pick No Selections for all dropdowns here.'
     in:
       a: queryMagma/experiments
-    out: [names]
-  Select_Filters_(AND)__pickTissues:
+    out: [options]
+  Select_Records__pickTissues:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Tissues'
+    doc: 'Subset of biospecimen_types to use. These selections get combined with Experiment selections with AND logic. If you want to just select tube records directly, pick No Selections for all dropdowns here.'
     in:
       a: queryMagma/tissues
-    out: [names]
+    out: [options]
   select_color_by_option:
     run: ui-queries/nested-select-autocomplete.cwl
     label: 'Color Options'
     in:
       a: queryMagma/color_options
     out: [color_by]
-  parseRecordSelections:
+  parse_record_selections:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
     in:
-      experiments:  Select_Filters_(AND)__pickExperiments/names
-      tissues:  Select_Filters_(AND)__pickTissues/names
+      experiments:  Select_Records__pickExperiments/options
+      tissues:  Select_Records__pickTissues/options
+      all_tubes: queryMagma/all_tubes
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
     label: 'Confirm record names'
     in:
-      a: parseRecordSelections/tube_recs
+      a: parse_record_selections/tube_recs
     out: [names]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl
