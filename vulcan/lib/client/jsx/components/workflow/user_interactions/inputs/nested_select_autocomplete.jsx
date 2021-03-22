@@ -31,10 +31,10 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
 
   function getPath(options, leaf) {
     for (let [key, value] of Object.entries(options)) {
-      if (leaf === key && null == value) {
-        // Because this is how we indicate our leaf nodes
-        return [key];
-      } else if (value && typeof value === 'object') {
+      if (value && typeof value === 'object') {
+        // Look one step ahead for our leaf nodes
+        if (Object.keys(value).includes(leaf) && null == value[leaf])
+          return [key, leaf];
         let path = getPath(value, leaf);
         if (path) return [key, ...path];
       }
@@ -56,7 +56,7 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
       if (input.default) {
         let path = getPath(allOptions, input.default);
         setPath(path);
-        setOptions(getOptions(path));
+        setOptions(getOptions(path, allOptions));
       } else {
         setOptions(Object.keys({...allOptions}));
       }
@@ -74,11 +74,11 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
     }
   }, [options]);
 
-  function getOptions(desiredPath) {
-    if (null == desiredPath) return Object.keys(originalOptions);
+  function getOptions(desiredPath, optionSet = originalOptions) {
+    if (null == desiredPath) return Object.keys(optionSet);
 
     // _.at always returns an array, so unwrap it.
-    let results = _.at(originalOptions, desiredPath.join('.'))[0];
+    let results = _.at(optionSet, desiredPath.join('.'))[0];
 
     if (results) return Object.keys(results);
 

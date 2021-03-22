@@ -128,7 +128,7 @@ describe('NestedSelectAutocompleteInput', () => {
     expect(onChange).toBeCalledWith('test-input', null);
   });
 
-  it('can find an existing path when given a default', () => {
+  fit('can find an existing path when given a default', () => {
     input.default = 'stepchild1';
 
     const component = mount(
