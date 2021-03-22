@@ -1,5 +1,10 @@
 import {STATUS} from '../models/steps';
-import {hasUiInput, hasUiOutput} from '../utils/workflow';
+import {
+  hasUiInput,
+  hasUiOutput,
+  workflowName as workflowNameShortener,
+  uiStepInputDataLink
+} from '../utils/workflow';
 
 export const completedUiStepsSelector = (context) => {
   let {status, workflow, pathIndex} = context;
@@ -31,12 +36,19 @@ export const completedUiOutputsSelector = (context) => {
     .filter((s) => s);
 };
 
-export const nextUiStepIndexSelector = (context) => {
+export const nextUiStepsSelector = (context) => {
   let {status, workflow, pathIndex} = context;
-  return status[pathIndex].findIndex((s, index) => {
-    let workflowStep = workflow.steps[pathIndex][index];
-    return STATUS.PENDING === s.status && hasUiInput(workflowStep);
-  });
+  return status[pathIndex]
+    .map((s, index) => {
+      let workflowStep = workflow.steps[pathIndex][index];
+      if (
+        STATUS.PENDING === s.status &&
+        hasUiInput(workflowStep) &&
+        uiStepInputDataLink({step: workflowStep, status, pathIndex})
+      )
+        return {...workflowStep, index};
+    })
+    .filter((s) => s);
 };
 
 export const errorStepsSelector = (context) => {
@@ -53,3 +65,6 @@ export const errorStepsSelector = (context) => {
     })
     .filter((s) => s);
 };
+
+export const workflowByName = ({workflows, workflowName}) =>
+  workflows.find((w) => workflowNameShortener(w) === workflowName);

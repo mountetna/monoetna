@@ -14,7 +14,8 @@ export const TYPE = {
   ARRAY: 'array',
   FILE: 'File',
   MULTISELECT_STRING: 'multiselect-string',
-  SELECT_AUTOCOMPLETE: 'select-autocomplete'
+  SELECT_AUTOCOMPLETE: 'select-autocomplete',
+  CHECKBOXES: 'checkboxes'
 };
 
 // CWL Step RUN Sentinels
@@ -27,5 +28,6 @@ export const RUN = {
 export const OUTPUT_COMPONENT = {
   LINK: 'link',
   PLOTLY: 'plotly',
-  CONSIGNMENT: 'consignment'
+  CONSIGNMENT: 'consignment',
+  RAW: 'raw'
 };

@@ -37,6 +37,8 @@
 @import "plotter";
 @import "workflow";
 @import "table";
+@import "panel";
+@import "clock";
 
 body {
   padding: 0px;
@@ -60,9 +62,4 @@ a {
 
 #browse {
 	padding-left: 150px;
-}
-
-.vulcan-browser {
-  font-family: "Open Sans", sans-serif;
-  padding: 0.5rem;
 }

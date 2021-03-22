@@ -24,7 +24,7 @@ class SessionsController < Vulcan::Controller
 
   def submit
     orchestration.load_json_inputs!(storage)
-    scheduler.schedule_more!(orchestration: orchestration, token: @user.token, storage: storage)
+    scheduler.schedule_more!(orchestration: orchestration, token: token, storage: storage)
     success_json(status_payload)
   rescue => e
     Vulcan.instance.logger.log_error(e)
@@ -74,6 +74,18 @@ class SessionsController < Vulcan::Controller
     #   defined, only inputs. So there are no downloads.
     return false if ui_output
     bt.is_built?(storage)
+  end
+
+  def token
+    # For development, we can inject a production token
+    #   via config.yml, to talk directly to production services.
+    #   This should reduce duplication of data.
+    # Note: You'll need to configure the Magma host
+    #   in config.yml :development to also point to
+    #   production Magma.
+    return Vulcan.instance.config(:archimedes_token) || @user.token if :development == Vulcan.instance.environment
+
+    @user.token
   end
 end
 

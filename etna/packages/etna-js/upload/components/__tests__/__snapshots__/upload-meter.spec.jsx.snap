@@ -20,10 +20,10 @@ exports[`UploadMeter matches snapshot when upload is completed 1`] = `
     className="upload-meter-status"
   >
     <span
-      className="icon-grp fa-stack fa-fw"
+      className="icon-grp icon-grp-complete  fa-stack fa-fw"
     >
       <i
-        className="icon complete check fa fa-2x fa-check"
+        className="icon complete  check fa fa-2x fa-check"
       />
     </span>
   </div>
@@ -71,10 +71,10 @@ exports[`UploadMeter matches snapshot when upload is in progress 1`] = `
     className="upload-meter-status"
   >
     <span
-      className="icon-grp fa-stack fa-fw"
+      className="icon-grp icon-grp-active  fa-stack fa-fw"
     >
       <i
-        className="icon active upload fa fa-2x fa-upload"
+        className="icon active  upload fa fa-2x fa-upload"
       />
     </span>
   </div>
@@ -122,10 +122,10 @@ exports[`UploadMeter matches snapshot when upload starting 1`] = `
     className="upload-meter-status"
   >
     <span
-      className="icon-grp fa-stack fa-fw"
+      className="icon-grp icon-grp-paused  fa-stack fa-fw"
     >
       <i
-        className="icon paused pause fa fa-2x fa-pause"
+        className="icon paused  pause fa fa-2x fa-pause"
       />
     </span>
   </div>

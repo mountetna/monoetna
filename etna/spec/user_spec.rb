@@ -30,10 +30,20 @@ describe Etna::User do
 
   context "permissions" do
     before(:each) do
-      @overlord = Etna::User.new(
+      @superuser = Etna::User.new(
         email: 'janus@two-faces.org',
         name: 'Janus Bifrons',
         perm: 'a:administration'
+      )
+      @supereditor = Etna::User.new(
+        email: 'portunus@two-faces.org',
+        name: 'Portunus',
+        perm: 'e:administration'
+      )
+      @superviewer = Etna::User.new(
+        email: 'lar@two-faces.org',
+        name: 'Lar Familiaris',
+        perm: 'v:administration'
       )
       @admin = Etna::User.new(
         email: 'polyphemus@etna.org',
@@ -53,37 +63,49 @@ describe Etna::User do
     end
 
     it 'checks if the user can edit a project' do
-      expect(@overlord.can_edit?(:labors)).to be_truthy
+      expect(@superuser.can_edit?(:labors)).to be_truthy
+      expect(@supereditor.can_edit?(:labors)).to be_truthy
+      expect(@superviewer.can_edit?(:labors)).to be_falsy
       expect(@admin.can_edit?(:labors)).to be_truthy
       expect(@editor.can_edit?(:labors)).to be_truthy
       expect(@viewer.can_edit?(:labors)).to be_falsy
     end
     it 'checks if the user can view a project' do
-      expect(@overlord.can_view?(:labors)).to be_truthy
+      expect(@superuser.can_view?(:labors)).to be_truthy
+      expect(@supereditor.can_view?(:labors)).to be_truthy
+      expect(@superviewer.can_view?(:labors)).to be_truthy
       expect(@admin.can_view?(:labors)).to be_truthy
       expect(@editor.can_view?(:labors)).to be_truthy
       expect(@viewer.can_view?(:labors)).to be_truthy
     end
     it 'checks if the user is an admin on the project' do
-      expect(@overlord.is_admin?(:labors)).to be_truthy
+      expect(@superuser.is_admin?(:labors)).to be_truthy
+      expect(@supereditor.is_admin?(:labors)).to be_falsy
+      expect(@superviewer.is_admin?(:labors)).to be_falsy
       expect(@admin.is_admin?(:labors)).to be_truthy
       expect(@editor.is_admin?(:labors)).to be_falsy
       expect(@viewer.is_admin?(:labors)).to be_falsy
     end
     it 'checks if the user can see restricted data' do
-      expect(@overlord.can_see_restricted?(:labors)).to be_falsy
+      expect(@superuser.can_see_restricted?(:labors)).to be_falsy
+      expect(@supereditor.can_see_restricted?(:labors)).to be_falsy
+      expect(@superviewer.can_see_restricted?(:labors)).to be_falsy
       expect(@admin.can_see_restricted?(:labors)).to be_truthy
       expect(@editor.can_see_restricted?(:labors)).to be_truthy
       expect(@viewer.can_see_restricted?(:labors)).to be_falsy
     end
     it 'gives a list of user projects' do
-      expect(@overlord.projects).to eq(['administration'])
+      expect(@superuser.projects).to eq(['administration'])
+      expect(@supereditor.projects).to eq(['administration'])
+      expect(@superviewer.projects).to eq(['administration'])
       expect(@admin.projects).to eq(['labors'])
       expect(@editor.projects).to eq(['labors'])
       expect(@viewer.projects).to eq(['labors'])
     end
     it 'gives a list of user permissions' do
-      expect(@overlord.permissions).to eq( 'administration' => { role: :admin, restricted: false } )
+      expect(@superuser.permissions).to eq( 'administration' => { role: :admin, restricted: false } )
+      expect(@supereditor.permissions).to eq( 'administration' => { role: :editor, restricted: false } )
+      expect(@superviewer.permissions).to eq( 'administration' => { role: :viewer, restricted: false } )
       expect(@admin.permissions).to eq( 'labors' => { role: :admin, restricted: true } )
       expect(@editor.permissions).to eq( 'labors' => { role: :editor, restricted: true } )
       expect(@viewer.permissions).to eq( 'labors' => { role: :viewer, restricted: false } )

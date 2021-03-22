@@ -32,7 +32,7 @@
     font-family: sans-serif;
     color: white;
     font-size: 0.6em;
-    transform: translate(0,-50%);
+    transform: translate(0, -50%);
   }
   &.selected {
     background-color: #bc2612;
@@ -42,6 +42,47 @@
     }
     .slider {
       transform: translate(32px);
+    }
+  }
+}
+
+.toggle-control {
+  .arrow-toggle {
+    margin-top: 5px;
+    margin-right: 20px;
+    margin-left: 10px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid lightgray;
+  }
+
+  &.toggle-left-right {
+    transform: rotate(90deg);
+  }
+
+  &.open {
+    .toggle-up-down {
+      transition: transform 250ms ease-in-out;
+      transform: rotate(0deg);
+    }
+
+    .toggle-left-right {
+      transition: transform 250ms ease-in-out;
+      transform: rotate(90deg);
+    }
+  }
+
+  &.closed {
+    .toggle-up-down {
+      transition: transform 250ms ease-in-out;
+      transform: rotate(180deg);
+    }
+
+    .toggle-left-right {
+      transition: transform 250ms ease-in-out;
+      transform: rotate(270deg);
     }
   }
 }

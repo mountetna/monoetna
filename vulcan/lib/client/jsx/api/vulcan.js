@@ -64,8 +64,12 @@ export const submit = (context) => {
   // Use a deep clone because we need to check if the download URL
   //   changed, later.
   let oldStatus = _.cloneDeep(status);
+  let projectName =
+    workflow.projects && workflow.projects.length > 0
+      ? workflow.projects[0]
+      : 'example';
 
-  return vulcanPost(vulcanPath(ROUTES.submit(workflow.name)), {
+  return vulcanPost(vulcanPath(ROUTES.submit(projectName, workflow.name)), {
     inputs: session.inputs,
     key: session.key
   }).then(handleFetchSuccess)
@@ -152,6 +156,7 @@ export const submit = (context) => {
 export const downloadUrlUpdated = (oldStep, newStep, downloadKey) => {
   return (
     !(newStep.data && newStep.data[downloadKey]) ||
+    !oldStep.downloads ||
     newStep.downloads[downloadKey] !== oldStep.downloads[downloadKey]
   );
 };

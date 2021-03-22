@@ -15,21 +15,29 @@ class WorkflowsController < Vulcan::Controller
             next nil
           end
 
-          workflow.as_steps_json(cwl_name)
-        end.select { |v| v }
+          # Really we should fetch the metadata from a more
+          #   permanent store. Right now storing them in
+          #   JSON files in the workflows folder.
+          metadata_file = Vulcan.instance.config(:workflows_folder) + "/#{cwl_name.gsub('.cwl', '')}.metadata.json"
+
+          workflow.as_steps_json(cwl_name).update(
+            File.exists?(metadata_file) ?
+              JSON.parse(File.read(metadata_file),
+              symbolize_names: true) :
+              {})
+
+        end.compact.select do |v|
+          # We only want workflows where the user is
+          #   authorized for all listed projects,
+          #   or projects is null (from the metadata), so
+          #   it is available to everyone.
+          v[:projects] == nil ||
+          v[:projects]&.all? {|p| @user.can_view?(p)}
+        end
     })
   end
-
-  def submit
-    # This is a stub API that will be used for development only.
-    # Submit input data and get the specified output status back.
-
-    raise Etna::NotFound, "No data for workflow #{@params[:workflow_name]}." unless "umap" == @params[:workflow_name]
-
-    success(File.read(File.join(
-      File.dirname(__FILE__),
-      "../data/#{@params[:status]}.json")), 'application/json')
-
-  end
+rescue => e
+  Vulcan.instance.logger.log_error(e)
+  raise Etna::BadRequest.new(e.message)
 end
 

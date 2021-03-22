@@ -1,10 +1,7 @@
 from io import StringIO
 from typing import Dict, Tuple, Union
 import json
-from requests import RequestException, Session
-
-
-MagmaError = RequestException
+from requests import Session
 
 _session = Session()
 

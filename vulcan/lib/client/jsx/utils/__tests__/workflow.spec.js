@@ -11,8 +11,10 @@ import {
   allInputsDefined,
   uiStepOptions,
   missingUiInputs,
-  inputNamesToHashStub
-} from '..//workflow';
+  inputNamesToHashStub,
+  shouldDownloadStepData,
+  removeDependentInputs
+} from '../workflow';
 
 describe('Workflow Utils', () => {
   describe('XY Plots', () => {
@@ -538,6 +540,270 @@ describe('Workflow Utils', () => {
       expect(result).toEqual({
         'step1/output1': null,
         'step1/output2': null
+      });
+    });
+  });
+
+  describe('shouldDownloadStepData', () => {
+    it('flags plotly output as true', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'ui-outputs/plotly.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(true);
+    });
+
+    it('flags consignment output as true', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'ui-outputs/consignment.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(true);
+    });
+
+    it('flags raw output as true', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'ui-outputs/raw.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(true);
+    });
+
+    it('flags ui query as true', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'ui-queries/ask.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(true);
+    });
+
+    it('flags server-side steps as false', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'scripts/process.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe('removeDependentInputs', () => {
+    it('works', () => {
+      const workflow = {
+        inputs: {
+          primaryInput: {
+            type: 'int',
+            default: 1
+          }
+        },
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data1']
+            },
+            {
+              name: 'step2',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data2']
+            },
+            {
+              name: 'step3',
+              run: 'ui-queries/something.cwl',
+              in: [
+                {
+                  source: ['step2', 'data2']
+                }
+              ],
+              out: ['data3']
+            },
+            {
+              name: 'step4',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data4']
+            }
+          ],
+          [
+            {
+              name: 'step1',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data']
+            }
+          ],
+          [
+            {
+              name: 'step2',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data2']
+            },
+            {
+              name: 'step3',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data3']
+            }
+          ],
+          [
+            {
+              name: 'step3',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data3']
+            },
+            {
+              name: 'step4',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data4']
+            }
+          ]
+        ]
+      };
+
+      const userInputs = {
+        primaryInput: 1,
+        'step1/data1': '1',
+        'step2/data2': '2',
+        'step3/data3': '3',
+        'step4/data4': '4'
+      };
+
+      let result = removeDependentInputs({
+        workflow,
+        userInputs,
+        inputName: 'step2'
+      });
+
+      expect(result).toEqual({
+        primaryInput: 1,
+        'step1/data1': '1',
+        'step2/data2': '2',
+        'step4/data4': '4'
       });
     });
   });

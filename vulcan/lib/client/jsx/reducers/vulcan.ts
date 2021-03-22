@@ -101,7 +101,6 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
         //     return {
         //         ...state,
         //         inputs: {
-        //             ...(state.inputs || {}),
         //             ...action.inputs
         //         },
         //     };

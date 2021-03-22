@@ -18,7 +18,7 @@ describe WorkflowsController do
   context '#fetch' do
     it 'gets a list of workflows' do
       auth_header(:viewer)
-      get("/api/#{PROJECT}/workflows")
+      get("/api/workflows")
 
       expect(last_response.status).to eq(200)
 
@@ -31,12 +31,14 @@ describe WorkflowsController do
               "format" => nil,
               "label" => "it is an int",
               "type" => "int",
+              "doc" => "help tip"
           },
           "someIntWithoutDefault" => {
               "default" => nil,
               "format" => nil,
               "label" => nil,
               "type" => "int",
+              "doc" => "another tip"
           },
       })
 
@@ -156,7 +158,7 @@ describe WorkflowsController do
 
     it 'rejects a non-user' do
       auth_header(:non_user)
-      get("/api/#{PROJECT}/workflows")
+      get("/api/workflows")
 
       expect(last_response.status).to eq(403)
     end

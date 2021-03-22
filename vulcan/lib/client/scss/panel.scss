@@ -1,0 +1,13 @@
+.sliding-panel.vertical {
+  overflow: hidden;
+
+  &.open {
+    height: 100%;
+    transition: height 150ms ease-in-out;
+  }
+
+  &.closed {
+    height: 0;
+    transition: height 150ms ease-in-out;
+  }
+}

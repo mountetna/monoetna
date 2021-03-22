@@ -13,7 +13,8 @@
         window.ROUTES || {},
         {
           workflow: () => (`/${CONFIG.project_name}/workflow`),
-          fetch_workflows: () => (`/api/${CONFIG.project_name}/workflows`),
+          workflow_vignette: (workflow_name) => (`/workflow/${workflow_name}/vignette`),
+          fetch_workflows: () => (`/api/workflows`),
           submit: (workflow_name) => (`/api/${CONFIG.project_name}/session/${workflow_name}`),
           status: (workflow_name) => (`/api/${CONFIG.project_name}/session/${workflow_name}/status`),
         }
