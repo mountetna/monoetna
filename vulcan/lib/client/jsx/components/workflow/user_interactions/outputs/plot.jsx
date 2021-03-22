@@ -4,13 +4,13 @@ import {autoColors} from 'etna-js/utils/colors';
 
 const PlotOutput = ({data: plot}) => {
   if (!plot) return null;
-  let { data, layout } = plot;
-  if (!data ||!layout) return null;
+  let {data, layout} = plot;
+  if (!data || !layout) return null;
 
-  return <Plot
-    data={data}
-    layout={
-      {
+  return (
+    <Plot
+      data={data}
+      layout={{
         ...layout,
         colorway: autoColors(40),
         xaxis: {
@@ -33,10 +33,8 @@ const PlotOutput = ({data: plot}) => {
         height: 800,
         paper_bgcolor: '#fff',
         plot_bgcolor: '#f0f0f0'
-      }
-    }
-    config={
-      {
+      }}
+      config={{
         displaylogo: false,
         toImageButtonOptions: {
           format: 'svg',
@@ -55,9 +53,9 @@ const PlotOutput = ({data: plot}) => {
           'hoverCompareCartesian',
           'toggleSpikelines'
         ]
-      }
-    }
-  />
+      }}
+    />
+  );
 };
 
 export default PlotOutput;

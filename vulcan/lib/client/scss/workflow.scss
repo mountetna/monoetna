@@ -253,6 +253,21 @@
     .session-output-feed {
       flex: 2;
       border-left: 1px solid lightgray;
+
+      .step-name {
+        font-size: 1.3rem;
+
+        .step-status-icon-wrapper {
+          margin-top: -5px;
+        }
+      }
+
+      .modebar-group {
+        svg {
+          width: 1.5em;
+          height: 1.5em;
+        }
+      }
     }
   }
   .session-workflow-name {
