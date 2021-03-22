@@ -37,7 +37,7 @@ const PlotOutput = ({data: plot}) => {
       config={{
         displaylogo: false,
         toImageButtonOptions: {
-          format: 'svg',
+          format: 'png',
           filename: 'plot',
           height: 500,
           width: 700,
