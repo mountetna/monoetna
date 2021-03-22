@@ -1,6 +1,6 @@
 from archimedes.functions.dataflow import input_var, output_json
 from archimedes.functions.environment import token, magma_host, project_name, app_env
-from archimedes.functions.magby import Magby
+from archimedes.functions.magby import Magby, query_extract
 from archimedes.functions.list import unique, flatten
 
 seq_model_name = "sc_seq"
@@ -23,7 +23,8 @@ tissues = magma.query(
     queryTerms=[
         "biospecimen_group",
         [seq_model_name, "::all", '::has', 'raw_counts_h5'],
-        "::all", 'biospecimen_type'])['answer']
+        "::all", 'biospecimen_type'])
+tissues = query_extract(tissues, 'biospecimen_type')
 tissues = ["No Selection"] + unique(flatten(tissues))
 
 all_tubes = magma.query(
