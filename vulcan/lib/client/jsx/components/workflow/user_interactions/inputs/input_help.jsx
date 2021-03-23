@@ -5,11 +5,11 @@ export default function InputHelp({input, children}) {
   return (
     <div className='input-help'>
       <div className='input-help-children-wrapper'>{children}</div>
-      {input.doc ? (
-        <div className='help-icon-wrapper' title={input.doc}>
+      <div className='help-icon-wrapper' title={input.doc}>
+        {input.doc ? (
           <Icon icon='question-circle' className='help-icon'></Icon>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </div>
   );
 }

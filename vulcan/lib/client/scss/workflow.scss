@@ -44,9 +44,7 @@
   padding-right: 0.5rem;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  z-index: 100;
-  position: fixed;
+  height: 99%;
   background: white;
   border: 1px solid lightgray;
   border-radius: 2px;
@@ -54,17 +52,17 @@
 
   .steps-list-toggle {
     margin-right: 20px;
-    margin-left: 10px;
+    margin-left: 5px;
   }
 
   &.open {
-    right: 0px;
-    transition: right 250ms ease-in-out;
+    width: 300px;
+    transition: width 250ms ease-in-out;
   }
 
   &.closed {
-    right: -270px;
-    transition: right 250ms ease-in-out;
+    width: 30px;
+    transition: width 250ms ease-in-out;
   }
 
   .steps-list-header {
@@ -73,6 +71,7 @@
     flex: 0 0 20px;
     border-bottom: 1px solid #f00;
     display: flex;
+    overflow-x: hidden;
 
     .title {
       flex: 1;
@@ -80,7 +79,8 @@
   }
 
   .steps-list-wrapper {
-    flex: 1;
+    position: fixed;
+    width: 300px;
   }
 
   .step {
@@ -350,6 +350,7 @@
 
       .help-icon-wrapper {
         cursor: help;
+        width: 40px;
 
         .question-circle {
           font-size: 1em;
