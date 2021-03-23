@@ -65,7 +65,7 @@ export default function SessionManager({name}) {
   }
 
   let disabled = !complete || calculating;
-  console.log('disabled', disabled);
+
   return (
     <div className='session-manager'>
       <div className='session-header'>
