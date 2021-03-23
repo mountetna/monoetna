@@ -95,6 +95,21 @@ module Etna
         end
       end
 
+      class DeleteFileRequest < Struct.new(:project_name, :bucket_name, :file_path, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+
+        def to_h
+          # The :project_name comes in from Polyphemus as a symbol value,
+          #   we need to make sure it's a string because it's going
+          #   in the URL.
+          super().compact.transform_values(&:to_s)
+        end
+      end
+
       class FindRequest < Struct.new(:project_name, :bucket_name, :limit, :offset, :params, keyword_init: true)
         include JsonSerializableStruct
 
