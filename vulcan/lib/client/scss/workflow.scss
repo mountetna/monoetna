@@ -137,17 +137,18 @@
     height: 30px;
     margin-bottom: 15px;
     padding-right: 50px;
+
     .icon-grp {
       font-family: $body_font;
       font-size: 0.6em;
+      margin-left: 0.25rem;
+      margin-top: -2px;
       cursor: pointer;
+
       .run {
         color: #d66;
       }
 
-      &:hover {
-        opacity: 0.3;
-      }
       .icon.disabled {
         color: grey;
         cursor: not-allowed;
@@ -155,6 +156,26 @@
           color: grey;
         }
       }
+    }
+
+    .header-btn {
+      margin-right: 0.5rem;
+      margin-left: 0.5rem;
+      border-radius: 2px;
+      border: 1px solid lightgray;
+      background: none;
+      padding: 0.25rem 1rem;
+      font-size: 0.6rem;
+      cursor: pointer;
+
+      &:hover {
+        opacity: 0.3;
+      }
+    }
+
+    button:disabled {
+      color: grey;
+      cursor: not-allowed;
     }
   }
 
