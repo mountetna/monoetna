@@ -7,7 +7,7 @@ import WorkflowManager from './workflow/workflow_manager';
 export default function Browser({workflowName}) {
   return (
     <main className='vulcan-browser browser'>
-      <WorkflowManager workflowName={workflowName}></WorkflowManager>
+      <WorkflowManager workflowName={workflowName}/>
     </main>
   );
 }

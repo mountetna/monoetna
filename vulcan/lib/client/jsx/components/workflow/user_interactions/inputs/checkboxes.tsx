@@ -1,6 +1,7 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
+import {InputBackendComponent} from "./types";
 
-function CheckboxInput({onChange, option}) {
+function CheckboxInput({onChange, option}: {onChange: (v: any) => void, option: any}) {
   return (
     <label className='checkbox-input-option'>
       <input
@@ -16,24 +17,29 @@ function CheckboxInput({onChange, option}) {
   );
 }
 
-export default function CheckboxesInput({input, onChange}) {
-  const [selectedOptions, setSelectedOptions] = useState([]);
+const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
+  const [selectedOptions, setSelectedOptions] = useState([] as any[]);
   const [initialized, setInitialized] = useState(false);
-
   if (!input || !onChange) return null;
 
+  const options: any[] = Object.values(input.data).reduce((acc, n) => {
+    if (Array.isArray(n)) return acc.concat(n);
+    return acc.concat([n]);
+  }, [input.data]);
+
   useEffect(() => {
-    if (input.options.length > selectedOptions.length && !initialized) {
-      setSelectedOptions([...input.options]);
+
+    if (options.length > selectedOptions.length && !initialized) {
+      setSelectedOptions([...options]);
       setInitialized(true);
     }
-  }, [input]);
+  }, [options]);
 
   useEffect(() => {
     onChange(input.name, selectedOptions);
   }, [selectedOptions]);
 
-  function handleClickOption(option) {
+  const handleClickOption = useCallback((option: any) => {
     let copy = [...selectedOptions];
     if (!selectedOptions.includes(option)) {
       copy.push(option);
@@ -41,19 +47,21 @@ export default function CheckboxesInput({input, onChange}) {
       copy = selectedOptions.filter((opt) => option !== opt);
     }
     setSelectedOptions(copy);
-  }
+  }, [selectedOptions]);
 
   return (
     <div className='checkbox-input-wrapper'>
-      {input.options.map((option, index) => {
+      {options.map((option, index) => {
         return (
           <CheckboxInput
             option={option}
             key={index}
             onChange={handleClickOption}
-          ></CheckboxInput>
+          />
         );
       })}
     </div>
   );
 }
+
+export default CheckboxesInput;

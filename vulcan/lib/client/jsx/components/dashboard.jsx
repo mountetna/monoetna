@@ -6,7 +6,7 @@ import {pushLocation} from 'etna-js/actions/location_actions';
 
 import {VulcanContext} from '../contexts/vulcan';
 import Card from '../components/dashboard/card';
-import {workflowName} from '../utils/workflow';
+import {workflowName} from '../selectors/vulcan';
 
 export default function Dashboard() {
   const invoke = useActionInvoker();

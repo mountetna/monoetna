@@ -32,7 +32,7 @@ class VulcanApplication {
         <VulcanUI
           environment={environment}
           path={decodeURI(window.location.pathname)}
-        ></VulcanUI>
+        />
       </Provider>,
       document.getElementById(container_id)
     );

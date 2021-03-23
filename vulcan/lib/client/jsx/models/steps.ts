@@ -2,7 +2,8 @@
 export const STATUS = {
   PENDING: 'pending',
   COMPLETE: 'complete',
-  ERROR: 'error'
+  ERROR: 'error',
+  RUNNING: 'running',
 };
 
 // Types

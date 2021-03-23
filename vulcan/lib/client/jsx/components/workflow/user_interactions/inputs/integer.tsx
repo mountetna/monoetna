@@ -1,15 +1,18 @@
 import React from 'react';
 import {IntegerInput as EtnaIntegerInput} from 'etna-js/components/inputs/numeric_input';
+import {InputBackendComponent} from "./types";
 
-export default function IntegerInput({input, onChange}) {
+const IntegerInput: InputBackendComponent = ({input, onChange}) => {
   if (!input || !onChange) return null;
 
   return (
     <EtnaIntegerInput
       defaultValue={input.default}
-      onChange={(e) => {
+      onChange={(e: any) => {
         onChange(input.name, e);
       }}
-    ></EtnaIntegerInput>
+    />
   );
 }
+
+export default IntegerInput;

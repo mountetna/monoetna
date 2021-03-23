@@ -1,12 +1,12 @@
 export type Label = string | null;
 
 export interface WorkflowsResponse {
-    workflows: {[k: string]: Workflow}
+    workflows: Workflow[]
 }
 
 export interface StepInput {
     id: string,
-    source: string,
+    source: [string, string],
 }
 
 export interface WorkflowStep {
@@ -15,6 +15,7 @@ export interface WorkflowStep {
     in: StepInput[],
     out: string[],
     label: Label,
+    doc: string | undefined,
 }
 
 export interface WorkflowOutput {
@@ -37,6 +38,10 @@ export interface Workflow {
     inputs: {[k: string]: WorkflowInput},
     outputs: {[k: string]: WorkflowOutput},
     steps: [WorkflowStep[]],
+    vignette?: string,
+    image?: string,
+    projects?: string[],
+    authors?: string[],
 }
 
 export type StatusString = 'running' | 'pending' | 'complete' | 'error'

@@ -5,13 +5,13 @@ import {showMessages} from 'etna-js/actions/message_actions';
 import Icon from 'etna-js/components/icon';
 import Link from 'etna-js/components/link';
 
-import {submit} from '../../../api/vulcan';
-import {VulcanContext} from '../../../contexts/vulcan';
+import {submit} from '../../../api/vulcan_api';
+import {VulcanContext} from '../../../contexts/vulcan_context';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 import {allInputsDefined, workflowName} from '../../../utils/workflow';
 
-export default function SessionManager({name}) {
+export default function SessionManager() {
   const invoke = useActionInvoker();
   const context = useContext(VulcanContext);
   const {workflow, session} = context;

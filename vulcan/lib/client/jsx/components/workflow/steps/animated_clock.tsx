@@ -4,10 +4,10 @@ export default function AnimatedClock() {
   return (
     <article className='clock'>
       <div className='hours-container'>
-        <div className='hours'></div>
+        <div className='hours'/>
       </div>
       <div className='minutes-container'>
-        <div className='minutes'></div>
+        <div className='minutes'/>
       </div>
     </article>
   );

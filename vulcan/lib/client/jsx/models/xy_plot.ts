@@ -2,9 +2,13 @@ import XYPlot from 'etna-js/plots/components/xy_plot/xy_plot';
 import Plot from './plot';
 import Domain from './domain';
 import Series from './series';
+import {WorkflowStep} from "../api/types";
 
 export default class XYPlotModel extends Plot {
-  constructor(step, consignment, parentWidth) {
+  public type: string = 'xy';
+  public component = XYPlot;
+
+  constructor(step: WorkflowStep, consignment: any, parentWidth: number) {
     super(step, consignment, parentWidth);
     this.type = 'xy';
     this.component = XYPlot;
@@ -63,41 +67,44 @@ export default class XYPlotModel extends Plot {
       let yValues;
       let labels;
       let secondaryData;
+      let inputMatch;
 
-      if (input.match(seriesRegex)) {
-        indexMatch = input.match(seriesRegex).groups.index;
+      if ((inputMatch = input.match(seriesRegex)) && inputMatch.groups) {
+        indexMatch = inputMatch.groups.index;
         name = this.step.in[input].split('/')[1];
 
         let consignmentData = this.consignment[name];
 
         if (consignmentData) {
-          xValues = consignmentData.rows.map((r) => r[0]);
-          yValues = consignmentData.rows.map((r) => r[1]);
+          xValues = consignmentData.rows.map((r: any) => r[0]);
+          yValues = consignmentData.rows.map((r: any) => r[1]);
           labels = consignmentData.row_names;
         }
-      } else if (input.match(groupRegex)) {
-        indexMatch = input.match(groupRegex).groups.index;
+      } else if ((inputMatch = input.match(groupRegex)) && inputMatch.groups) {
+        indexMatch = inputMatch.groups.index;
         const secondaryDataName = this.step.in[input].split('/')[1];
 
         secondaryData = this.consignment[secondaryDataName];
-      } else if (input.match(seriesTypeRegex)) {
-        indexMatch = input.match(seriesTypeRegex).groups.index;
+      } else if ((inputMatch = input.match(seriesTypeRegex)) && inputMatch.groups) {
+        indexMatch = inputMatch.groups.index;
         type = this.step.in[input];
       }
 
       if (!indexMatch) return;
 
-      if (!this.series[indexMatch]) {
-        this.series[indexMatch] = new Series();
+      const indexValue = parseInt(indexMatch, 10);
+
+      if (!this.series[indexValue]) {
+        this.series[indexValue] = new Series();
       }
 
-      if (name) this.series[indexMatch].setName(name);
-      if (type) this.series[indexMatch].setType(type);
-      if (xValues) this.series[indexMatch].setXValues(xValues);
-      if (yValues) this.series[indexMatch].setYValues(yValues);
-      if (labels) this.series[indexMatch].setLabels(labels);
+      if (name) this.series[indexValue].setName(name);
+      if (type) this.series[indexValue].setType(type);
+      if (xValues) this.series[indexValue].setXValues(xValues);
+      if (yValues) this.series[indexValue].setYValues(yValues);
+      if (labels) this.series[indexValue].setLabels(labels);
       if (secondaryData)
-        this.series[indexMatch].setSecondaryData(secondaryData);
+        this.series[indexValue].setSecondaryData(secondaryData);
     });
   }
 
@@ -138,18 +145,19 @@ export default class XYPlotModel extends Plot {
     };
   }
 
-  colorSeriesBy(seriesNumber, colorBy) {
-    if (!this.series[seriesNumber]) return null;
+  colorSeriesBy(seriesNumber: number, colorBy: string) {
+    if (!this.series[seriesNumber]) return;
 
     this.series[seriesNumber].setColorBy(colorBy);
 
     this.updateDataPlotSeries();
   }
 
-  getSeriesColorOptions(seriesNumber) {
+  getSeriesColorOptions(seriesNumber: number) {
     if (!this.series[seriesNumber] || !this.series[seriesNumber].secondaryData)
       return null;
 
-    return this.series[seriesNumber].secondaryData.row_names;
+    const {secondaryData} = this.series[seriesNumber];
+    return secondaryData ? secondaryData.row_names : [];
   }
 }

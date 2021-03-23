@@ -45,5 +45,5 @@ const colors = [
 
 export const autoColors = (number) =>
   Array.from({length: Math.ceil(number / colors.length)}, () => colors)
-    .flat()
+    .reduce((acc, n) => acc.concat(n), [])
     .slice(0, number);

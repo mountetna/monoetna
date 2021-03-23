@@ -2,11 +2,11 @@ import React, {useContext, useState} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
 import Step from './step';
-import {validPath} from '../../../utils/workflow';
 
 export default function StepsList() {
   const [open, setOpen] = useState(false);
-  const {workflow, pathIndex} = useContext(VulcanContext);
+  const {state} = useContext(VulcanContext);
+  const {workflow} = state;
 
   function handleToggle() {
     setOpen(!open);
@@ -19,9 +19,9 @@ export default function StepsList() {
         <div className='title'>Steps</div>
       </div>
       <div className='steps-list-wrapper'>
-        {validPath({workflow, pathIndex})
-          ? workflow.steps[pathIndex].map((step, index) => {
-              return <Step key={index} step={step} index={index}></Step>;
+        { workflow
+          ? workflow.steps[0].map((step) => {
+              return <Step key={step.name} step={step}/>;
             })
           : null}
       </div>

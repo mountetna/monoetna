@@ -3,11 +3,16 @@ import ConsignmentTable from 'etna-js/plots/components/consignment/consignment_t
 import Consignment from 'etna-js/plots/models/consignment';
 
 export default function ConsignmentOutput({data}) {
-  if (!data) return null;
+  return <React.Fragment>
+    {Object.keys(data).map(k => {
+      const d = data[k];
+      if (!d) return null;
 
-  return (
-    <div className='consignment-view'>
-      <ConsignmentTable consignment={new Consignment(data)}></ConsignmentTable>
-    </div>
-  );
+      return (
+        <div className='consignment-view' key={k}>
+          <ConsignmentTable consignment={new Consignment(d)}/>
+        </div>
+      );
+    })}
+  </React.Fragment>
 }

@@ -1,13 +1,13 @@
+import {WorkflowStep} from "../api/types";
+import Series from "./series";
+
 export default class Plot {
-  constructor(step, consignment, parentWidth) {
-    this.step = step;
-    this.consignment = consignment;
-    this.parentWidth = parentWidth;
+  public configObj: any = {};
+  public dataObj: any = {};
+  public series: Series[] = [];
 
-    this.configObj = {};
-    this.dataObj = {};
 
-    this.series = [];
+  constructor(public step: WorkflowStep, public consignment: any, public parentWidth: number) {
   }
 
   get config() {

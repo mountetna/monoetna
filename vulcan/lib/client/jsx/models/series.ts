@@ -1,19 +1,18 @@
 // Series for the data object, not the plot definition
 import Gradient from 'javascript-color-gradient';
-
 import Vector from 'etna-js/plots/models/vector';
 import {autoColors} from 'etna-js/utils/colors';
 
 export default class Series {
-  constructor() {
-    this.name = null;
-    this.type = null;
-    this.xValues = null;
-    this.yValues = null;
-    this.labels = null;
-    this.secondaryData = null;
-    this.colorBy = null;
-  }
+  public name: string | null = null;
+  public type: string | null = null;
+  public xValues: any[] = [];
+  public yValues: any[] = [];
+  public labels: string[] = [];
+  public secondaryData: {rows: number[][], row_names: string[]} | null = null;
+  public colorBy: string | null = null;
+
+  constructor() {}
 
   get asObj() {
     return {
@@ -28,33 +27,33 @@ export default class Series {
     };
   }
 
-  setName(name) {
+  setName(name: string | null) {
     this.name = name;
   }
 
-  setType(type) {
+  setType(type: string | null) {
     this.type = type;
   }
 
-  setXValues(xValues) {
+  setXValues(xValues: any[]) {
     this.xValues = xValues;
   }
 
-  setYValues(yValues) {
+  setYValues(yValues: any[]) {
     this.yValues = yValues;
   }
 
-  setLabels(labels) {
+  setLabels(labels: string[]) {
     this.labels = labels;
   }
 
-  setSecondaryData(dataMatrix) {
+  setSecondaryData(dataMatrix: Series['secondaryData']) {
     // Assumes rows are selectable options and
     //   columns correspond to the x and y values.
     this.secondaryData = dataMatrix;
   }
 
-  vectorize(values) {
+  vectorize(values: any[]) {
     return new Vector(
       values.map((val) => ({
         label: null,
@@ -63,7 +62,7 @@ export default class Series {
     );
   }
 
-  setColorBy(val) {
+  setColorBy(val: string | null) {
     this.colorBy = val ? val : null;
   }
 
@@ -76,9 +75,7 @@ export default class Series {
     )
       return null;
 
-    let colorOptions = autoColors(2);
-    let startColor = colorOptions[0];
-    let endColor = colorOptions[1];
+    let [startColor, endColor] = autoColors(2);
 
     const colorGradient = new Gradient();
 
@@ -86,13 +83,15 @@ export default class Series {
     //   the colors based on percentage.
     const rowIndex = this.secondaryData.row_names.indexOf(this.colorBy);
     const slice = this.secondaryData.rows[rowIndex];
+    if (!slice) return null;
+
     const minValue = Math.min(...slice);
     const maxValue = Math.max(...slice);
 
     colorGradient.setMidpoint(100);
-    colorGradient.setGradient(startColor, endColor);
+    colorGradient.setGradient(startColor || '', endColor || '');
 
-    return slice.map((val) => {
+    return slice.map((val: number) => {
       return colorGradient.getColor(
         Math.round((100 * (val - minValue)) / (maxValue - minValue)) + 1
       );

@@ -2,9 +2,15 @@ import React from 'react';
 
 import ListInput from 'etna-js/components/inputs/list_input';
 import DropdownInput from 'etna-js/components/inputs/dropdown_input';
+import {InputBackendComponent} from "./types";
 
-export default function MultiselectStringInput({input, onChange}) {
+const MultiselectStringInput: InputBackendComponent = ({input, onChange}) => {
   if (!input || !onChange) return null;
+
+  const options: any[] = Object.values(input.data).reduce((acc, n) => {
+     if (Array.isArray(n)) return acc.concat(n);
+     return acc.concat([n]);
+  }, [input.data]);
 
   return (
     <ListInput
@@ -18,10 +24,12 @@ export default function MultiselectStringInput({input, onChange}) {
           : []
       }
       itemInput={DropdownInput}
-      list={input.options || []}
-      onChange={(e) => {
+      list={options}
+      onChange={(e: any) => {
         onChange(input.name, e);
       }}
-    ></ListInput>
+    />
   );
 }
+
+export default MultiselectStringInput;

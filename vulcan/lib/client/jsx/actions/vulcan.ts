@@ -1,14 +1,4 @@
-import {Workflow, WorkflowsResponse} from "../api/types";
-
-export const SET_WORKFLOWS = 'SET_WORKFLOWS';
-export const SET_WORKFLOW = 'SET_WORKFLOW';
-export const SET_STATUS = 'SET_STATUS';
-export const SET_DATA = 'SET_DATA';
-export const SET_PATH = 'SET_PATH';
-export const SET_STEP = 'SET_STEP';
-export const SET_SESSION = 'SET_SESSION';
-export const SET_INPUTS = 'SET_INPUTS';
-export const COMMIT_INPUTS = 'COMMIT_INPUTS';
+import {SessionStatusResponse, Workflow, WorkflowsResponse} from "../api/types";
 
 function actionObject<T extends string, P>(type: T, payload: P): { type: T } & P {
     return { ...payload, type };
@@ -22,4 +12,34 @@ export function setWorkflow(workflow: Workflow) {
     return actionObject('SET_WORKFLOW', {workflow});
 }
 
-export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow>;
+export function setStatus(status: SessionStatusResponse['status']) {
+    return actionObject('SET_STATUS', {status});
+}
+
+export function setDownloadedData(url: string, data: any) {
+    return actionObject('SET_DOWNLOAD', {url, data});
+}
+
+export function releaseDownloadedData(url: string) {
+    return actionObject('RELEASE_DOWNLOAD', {url});
+}
+
+export function setSession(session: SessionStatusResponse['session']) {
+    return actionObject('SET_SESSION', {session});
+}
+
+export function setInputs(inputs: SessionStatusResponse['session']['inputs']) {
+    return actionObject('SET_INPUTS', {inputs});
+}
+
+export function commitInputs() {
+    return actionObject('COMMIT_INPUTS', {});
+}
+
+const actions = {
+    commitInputs,
+}
+
+export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow> | ReturnType<typeof setStatus> |
+    ReturnType<typeof setDownloadedData> | ReturnType<typeof setSession> | ReturnType<typeof setInputs> |
+    ReturnType<typeof commitInputs> | ReturnType<typeof releaseDownloadedData>;

@@ -1,6 +1,8 @@
 import React from 'react';
+import {InputBackendComponent} from "./types";
 
-export default function BooleanInput({input, onChange}) {
+
+const BooleanInput: InputBackendComponent = ({input, onChange}) => {
   if (!input || !onChange) return null;
 
   return (
@@ -14,3 +16,5 @@ export default function BooleanInput({input, onChange}) {
     />
   );
 }
+
+export default BooleanInput;

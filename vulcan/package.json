@@ -10,6 +10,7 @@
     "@babel/preset-typescript": "^7.13.0",
     "@emotion/core": "^10.0.28",
     "@types/lodash": "^4.14.168",
+    "@types/react": "^17.0.3",
     "babel-core": "^6.26.0",
     "codemirror": "^5.39.0",
     "css-loader": "^3.6.0",
