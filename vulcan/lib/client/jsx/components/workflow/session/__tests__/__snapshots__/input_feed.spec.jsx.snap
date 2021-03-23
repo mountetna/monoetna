@@ -55,6 +55,9 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
                 value=""
               />
             </div>
+            <div
+              className="help-icon-wrapper"
+            />
           </div>
         </div>
       </div>
@@ -108,6 +111,9 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
                 value=""
               />
             </div>
+            <div
+              className="help-icon-wrapper"
+            />
           </div>
         </div>
       </div>
