@@ -50,11 +50,6 @@
   border-radius: 2px;
   width: 300px;
 
-  .steps-list-toggle {
-    margin-right: 20px;
-    margin-left: 5px;
-  }
-
   &.open {
     width: 300px;
     transition: width 250ms ease-in-out;
@@ -73,8 +68,13 @@
     display: flex;
     overflow-x: hidden;
 
+    .icon-grp-steps-list-toggle {
+      top: -5px;
+    }
+
     .title {
       flex: 1;
+      padding-left: 10px;
     }
   }
 

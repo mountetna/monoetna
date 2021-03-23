@@ -1,5 +1,6 @@
 import React, {useContext, useState, useEffect} from 'react';
 
+import Icon from 'etna-js/components/icon';
 import {VulcanContext} from '../../../contexts/vulcan';
 import Step from './step';
 import {validPath} from '../../../utils/workflow';
@@ -24,7 +25,10 @@ export default function StepsList() {
   return (
     <div className={`steps-list toggle-control ${open ? 'open' : 'closed'}`}>
       <div className='steps-list-header' onClick={handleToggle}>
-        <div className='steps-list-toggle arrow-toggle toggle-left-right'></div>
+        <Icon
+          icon='angle-up'
+          className='steps-list-toggle toggle-left-right'
+        ></Icon>
         <div className='title'>Steps</div>
       </div>
       <div className='steps-list-positioner'>
