@@ -4,7 +4,11 @@
 \alias{magmaRset}
 \title{Set up your magma environment and authentication}
 \usage{
-magmaRset(token = NULL, url = "https://magma.ucsf.edu", opts = list())
+magmaRset(
+  token = NULL,
+  url = "https://magma.ucsf.edu",
+  opts = list(followlocation = FALSE)
+)
 }
 \arguments{
 \item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 

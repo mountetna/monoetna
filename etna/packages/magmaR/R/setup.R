@@ -42,7 +42,7 @@
 magmaRset <- function(
     token = NULL,
     url = "https://magma.ucsf.edu",
-    opts = list() ) {
+    opts = list(followlocation=FALSE)) {
     
     if (is.null(token)) {
         token <- readline(prompt = "Enter your Janus TOKEN (without quotes):")
