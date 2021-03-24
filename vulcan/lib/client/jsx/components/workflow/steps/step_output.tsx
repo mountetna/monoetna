@@ -1,7 +1,7 @@
 import React, {useContext} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan';
-import {OUTPUT_COMPONENT} from '../../../models/steps';
+import {OUTPUT_COMPONENT} from '../../../steps';
 
 import StepName from './step_name';
 import RawOutput from '../user_interactions/outputs/raw';

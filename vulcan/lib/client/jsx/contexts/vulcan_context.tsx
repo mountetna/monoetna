@@ -22,9 +22,10 @@ export type VulcanContext = typeof VulcanContext;
 export const VulcanProvider = (props: {params: {}, state?: VulcanState, storage?: typeof localStorage}) => {
     const [state, dispatch] = useReducer(VulcanReducer, {...defaultVulcanState, ...(props.state || {})});
     const stateRef = useRef(state);
-    const {getLocalSession} = useLocalSessionStorage(stateRef, props);
-    const {isLoading, scheduleWork} = useApi(stateRef, props);
-    useDataBuffering(state, dispatch, scheduleWork);
+    const localSessionHelpers = useLocalSessionStorage(state, props);
+    const apiHelpers = useApi();
+    const {scheduleWork, getData} = apiHelpers;
+    useDataBuffering(state, dispatch, scheduleWork, getData);
     useWorkflowsLoading(JSON.stringify(props.params), dispatch, scheduleWork);
 
     return (
@@ -32,9 +33,8 @@ export const VulcanProvider = (props: {params: {}, state?: VulcanState, storage?
             state,
             stateRef,
             dispatch,
-            getLocalSession,
-            isLoading,
-            scheduleWork
+            ...localSessionHelpers,
+            ...apiHelpers,
         }}>
         </VulcanContext.Provider>
     );

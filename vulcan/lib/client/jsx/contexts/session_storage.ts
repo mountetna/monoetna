@@ -1,7 +1,6 @@
 import {useEffect, useCallback, MutableRefObject} from "react";
-import {allInputsDefined} from "../utils/workflow";
-import {SessionStatusResponse, Workflow} from "../api/types";
-import {VulcanState} from "../reducers/vulcan";
+import {SessionStatusResponse, Workflow} from "../api_types";
+import {VulcanState} from "../reducers/vulcan_reducer";
 
 const localStorageKey = (workflow: Workflow) => `${workflow.name}.session`;
 
@@ -12,19 +11,19 @@ export const defaultSessionStorageHelpers = {
 }
 
 export function useLocalSessionStorage(
-    state: MutableRefObject<VulcanState>,
+    state: VulcanState,
     props: {storage?: typeof localStorage} = {}): typeof defaultSessionStorageHelpers {
 
     const storage = props.storage || localStorage;
 
     useEffect(() => {
-        const {workflow, session} = state.current;
+        const {workflow, session} = state;
         if (workflow && workflow.name)
             storage.setItem(
                 localStorageKey(workflow),
                 JSON.stringify(session)
             );
-    }, [state.current.session, state.current.workflow])
+    }, [state.session, state.workflow])
 
     const getLocalSession = useCallback((workflow: Workflow) => {
         let storedSession: any = storage.getItem(localStorageKey(workflow));

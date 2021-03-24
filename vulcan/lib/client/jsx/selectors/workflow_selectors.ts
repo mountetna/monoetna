@@ -1,6 +1,5 @@
-import {OUTPUT_COMPONENT, RUN, STATUS} from '../models/steps';
-import {SessionStatusResponse, StepInput, StepStatus, Workflow, WorkflowStep} from "../api/types";
-import {VulcanState} from "../reducers/vulcan_reducer";
+import {OUTPUT_COMPONENT, RUN, STATUS, SessionStatusResponse, StepInput, StepStatus, Workflow, WorkflowStep} from "../api_types";
+import {defaultVulcanState, VulcanState} from "../reducers/vulcan_reducer";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
     workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
@@ -9,8 +8,9 @@ export function workflowByName(name: string, state: VulcanState): Workflow | und
     return state.workflows.find(w => workflowName(w) === name);
 }
 
-export function stepOfStatus(stepStatus: StepStatus, workflow: Workflow): WorkflowStep | undefined {
-    return workflow.steps[0].find(s => s.name === stepStatus.name);
+export function stepOfStatus(stepStatus: StepStatus | string, workflow: Workflow): WorkflowStep | undefined {
+    const stepName = (typeof stepStatus === 'string' ? stepStatus : stepStatus.name);
+    return workflow.steps[0].find(s => s.name === stepName);
 }
 
 export function statusOfStep(step: WorkflowStep | string, status: VulcanState['status']): StepStatus | undefined {
@@ -47,54 +47,108 @@ export const uiStepInputDataLink = (step: WorkflowStep, status: VulcanState['sta
 
 export const shouldDownload = (url: string, workflow: Workflow, step: WorkflowStep | undefined, status: SessionStatusResponse['status']) => {
     if (step == null) return false;
-    return !!findDependentLinks(workflow, step, status).find(({ inputtingStep, outputtingStepStatus, outputName }) => {
+    return !!findDependentLinks(workflow, step, status).find(({ inputtingStep, source }) => {
+        const { outputtingStepStatus, outputName } = source;
         return !!(outputtingStepStatus.downloads && outputtingStepStatus.downloads[outputName] === url) &&
             isDataConsumer(inputtingStep);
     });
 }
 
-interface DependentLink {
+interface StepToStepLink {
     inputtingStep: WorkflowStep,
     stepInput: StepInput,
-    outputtingStepStatus: StepStatus,
-    outputName: string,
+    source: {
+        outputtingStepStatus: StepStatus,
+        outputName: string,
+    };
 }
 
-export const findDependentLinks = (workflow: Workflow, step: WorkflowStep, status: VulcanState['status']): DependentLink[] => {
-    // Only download step data if its output is an input to
-    //   a UI INPUT widget or a UI OUTPUT step that is not a LINK
+interface PrimaryInputToStepLink {
+    inputtingStep: WorkflowStep,
+    stepInput: StepInput,
+    source: string;
+}
+
+type IOLink = StepToStepLink | PrimaryInputToStepLink;
+
+export const findDependentLinks = (workflow: Workflow, step: WorkflowStep, status: VulcanState['status']): StepToStepLink[] => {
     return workflow.steps[0].reduce((acc, otherStep) => {
-        return acc.concat(dependentLinks(otherStep, step, status))
-    }, [] as DependentLink[]);
+        return acc.concat(linksBetweenSteps(otherStep, step, status))
+    }, [] as StepToStepLink[]);
 };
 
-export const findDependentSteps = (workflow: Workflow, step: WorkflowStep, status: VulcanState['status']) => {
-    // Only download step data if its output is an input to
-    //   a UI INPUT widget or a UI OUTPUT step that is not a LINK
-    return workflow.steps[0].filter((s) => {
-        return (dependentLinks(s, step, status).length > 0);
-    });
-};
+export function findDependencyLinks(workflow: Workflow, step: WorkflowStep, status: VulcanState['status']): IOLink[] {
+    return step.in.reduce((acc, stepIn) => {
+        const link = ioLinkOf(step, stepIn.id, status, workflow)
+        if (link) acc.push(link);
+        return acc;
+    }, [] as IOLink[]);
+}
 
-export const dependentLinks = (step: WorkflowStep, dep: WorkflowStep, status: VulcanState['status']): DependentLink[] => {
-    const result: DependentLink[] = [];
-    const depStatus = statusOfStep(dep, status);
+export function findPrimaryInputDependentLinks(workflow: Workflow): PrimaryInputToStepLink[] {
+    return workflow.steps[0].reduce((links, step) => {
+        step.in.forEach(stepIn => {
+            const link = ioLinkOf(step, stepIn.id, defaultVulcanState.status, workflow);
+            if (link) {
+                links.push(link);
+            }
+        });
+
+        return links;
+    }, [] as PrimaryInputToStepLink[]);
+}
+
+export function findFulfilledSteps(workflow: Workflow, step: WorkflowStep, status: VulcanState['status']) {
+    const result: {[k: string]: [StepStatus, IOLink[]]} = {};
+
+    workflow.steps[0].filter(step => {
+        step.in.forEach(stepInput => {
+            // const {outputtingStepStatus} = dependentLink()
+        })
+    })
+
+    return result;
+}
+
+export function ioLinkOf(inStep: WorkflowStep, inputName: string,
+                         status: VulcanState['status'], depSrc: Workflow | WorkflowStep): IOLink | null {
+    const stepInput = inStep.in.find(({id}) => id === inputName);
+    if (stepInput == null) return null;
+    const [depName, depOutput] = stepInput.source;
+
+    if (depName !== "primary_inputs") {
+        const depStatus = statusOfStep(depName, status);
+        const depStep = 'steps' in depSrc ? stepOfStatus(depName, depSrc) : depSrc;
+
+        if (!depStatus || !depStep) return null;
+        if (depStep.out.indexOf(depOutput) === -1) return null;
+
+        return {
+            source: {
+                outputName: depOutput,
+                outputtingStepStatus: depStatus,
+            },
+            inputtingStep: inStep,
+            stepInput,
+        }
+    } else {
+        return {
+            // primary input source names do not include a slash
+            source: depOutput,
+            inputtingStep: inStep,
+            stepInput,
+        }
+    }
+}
+
+export const linksBetweenSteps = (inStep: WorkflowStep, outStep: WorkflowStep, status: VulcanState['status']): StepToStepLink[] => {
+    const result: StepToStepLink[] = [];
+    const depStatus = statusOfStep(outStep, status);
 
     if (depStatus) {
-        step.in.forEach(stepInput => {
-            const [inStepName, inOutputName] = stepInput.source;
-            if (inStepName !== dep.name) return;
-
-            dep.out.forEach(output => {
-                if (inOutputName === output) {
-                    result.push({
-                        outputName: output,
-                        outputtingStepStatus: depStatus,
-                        inputtingStep: step,
-                        stepInput,
-                    });
-                }
-            })
+        inStep.in.forEach(stepInput => {
+            const link = ioLinkOf(inStep, stepInput.id, status, outStep);
+            if (link != null) result.push(link as StepToStepLink);
         });
     }
 
@@ -136,67 +190,67 @@ export const defaultInputValues = (workflow: Workflow) => {
             result[inputName] = workflow.inputs[inputName].default;
         }
         return result;
-    }, {});
+    }, {} as {[k: string]: any});
 };
 
 
-export const completedUiStepsSelector = (context) => {
-  let {status, workflow, pathIndex} = context;
-  return status[pathIndex]
-    .map((step, index) => {
-      let workflowStep = workflow.steps[pathIndex][index];
-      if (STATUS.COMPLETE === step.status && hasUiInput(workflowStep)) {
-        return {
-          step: workflowStep,
-          index
-        };
-      }
-    })
-    .filter((s) => s);
-};
-
-export const completedUiOutputsSelector = (context) => {
-  let {status, workflow, pathIndex} = context;
-  return status[pathIndex]
-    .map((step, index) => {
-      let workflowStep = workflow.steps[pathIndex][index];
-      if (STATUS.COMPLETE === step.status && hasUiOutput(workflowStep)) {
-        return {
-          step: workflowStep,
-          index
-        };
-      }
-    })
-    .filter((s) => s);
-};
-
-export const nextUiStepsSelector = (context) => {
-  let {status, workflow, pathIndex} = context;
-  return status[pathIndex]
-    .map((s, index) => {
-      let workflowStep = workflow.steps[pathIndex][index];
-      if (
-        STATUS.PENDING === s.status &&
-        hasUiInput(workflowStep) &&
-        uiStepInputDataLink({step: workflowStep, status, pathIndex})
-      )
-        return {...workflowStep, index};
-    })
-    .filter((s) => s);
-};
-
-export const errorStepsSelector = (context) => {
-  let {status, workflow, pathIndex} = context;
-  return status[pathIndex]
-    .map((step, index) => {
-      let workflowStep = workflow.steps[pathIndex][index];
-      if (STATUS.ERROR === step.status) {
-        return {
-          step: workflowStep,
-          index
-        };
-      }
-    })
-    .filter((s) => s);
-};
+// export const completedUiStepsSelector = (context) => {
+//   let {status, workflow, pathIndex} = context;
+//   return status[pathIndex]
+//     .map((step, index) => {
+//       let workflowStep = workflow.steps[pathIndex][index];
+//       if (STATUS.COMPLETE === step.status && hasUiInput(workflowStep)) {
+//         return {
+//           step: workflowStep,
+//           index
+//         };
+//       }
+//     })
+//     .filter((s) => s);
+// };
+//
+// export const completedUiOutputsSelector = (context) => {
+//   let {status, workflow, pathIndex} = context;
+//   return status[pathIndex]
+//     .map((step, index) => {
+//       let workflowStep = workflow.steps[pathIndex][index];
+//       if (STATUS.COMPLETE === step.status && hasUiOutput(workflowStep)) {
+//         return {
+//           step: workflowStep,
+//           index
+//         };
+//       }
+//     })
+//     .filter((s) => s);
+// };
+//
+// export const nextUiStepsSelector = (context) => {
+//   let {status, workflow, pathIndex} = context;
+//   return status[pathIndex]
+//     .map((s, index) => {
+//       let workflowStep = workflow.steps[pathIndex][index];
+//       if (
+//         STATUS.PENDING === s.status &&
+//         hasUiInput(workflowStep) &&
+//         uiStepInputDataLink({step: workflowStep, status, pathIndex})
+//       )
+//         return {...workflowStep, index};
+//     })
+//     .filter((s) => s);
+// };
+//
+// export const errorStepsSelector = (context) => {
+//   let {status, workflow, pathIndex} = context;
+//   return status[pathIndex]
+//     .map((step, index) => {
+//       let workflowStep = workflow.steps[pathIndex][index];
+//       if (STATUS.ERROR === step.status) {
+//         return {
+//           step: workflowStep,
+//           index
+//         };
+//       }
+//     })
+//     .filter((s) => s);
+// };
 

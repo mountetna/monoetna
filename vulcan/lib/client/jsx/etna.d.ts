@@ -76,3 +76,7 @@ declare module 'etna-js/components/inputs/dropdown_autocomplete' {
 declare module 'etna-js/components/inputs/slow_text_input' {
     export default function SlowTextInput(...args: any[]): any;
 }
+
+declare module 'etna-js/components/link' {
+    export default function Link(p: {link: string, children?: any}): any;
+};

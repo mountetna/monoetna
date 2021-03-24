@@ -1,46 +1,65 @@
-import {Dispatch, useEffect, useState} from "react";
+import {Dispatch, useEffect, useMemo, useState} from "react";
 import {releaseDownloadedData, setDownloadedData, VulcanAction} from "../actions/vulcan";
 import {defaultApiHelpers} from "./api";
-import {getData} from "../api/vulcan_api";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {shouldDownload, stepOfStatus} from "../selectors/workflow_selectors";
 
 export function useDataBuffering(
     state: VulcanState,
     dispatch: Dispatch<VulcanAction>,
-    scheduleWork: typeof defaultApiHelpers.scheduleWork
+    scheduleWork: typeof defaultApiHelpers.scheduleWork,
+    getData: typeof defaultApiHelpers.getData,
 ) {
-    const [activeDownloads, setActiveDownloads] = useState({} as {[k: string]: boolean});
+    const [activeDownload, setActiveDownload] = useState(null as string | null);
 
-    useEffect(() => {
-        // Downloads we found in a status.
-        const foundDownloads: {[k: string]: boolean} = {};
+    const urlsToBuffer = useMemo(() => {
+        const result: {[k: string]: boolean} = {};
         const {workflow} = state;
-
         if (workflow != null) {
             state.status[0].forEach(stepStatus => {
                 if (!stepStatus.downloads) return;
-
                 Object.values(stepStatus.downloads).forEach(url => {
                     if (!shouldDownload(url, workflow, stepOfStatus(stepStatus, workflow), state.status)) return;
-
-                    foundDownloads[url] = true;
-                    if (activeDownloads[url] || url in state.data) return;
-
-                    // Mark that we are trying to fetch the data already, to prevent duplicate downloads.
-                    setActiveDownloads({...activeDownloads, [url]: true});
-
-                    scheduleWork(getData(url)).then(data => {
-                        dispatch(setDownloadedData(url, data));
-                        setActiveDownloads({...activeDownloads, [url]: false});
-                    });
-                })
+                    result[url] = true;
+                });
             });
         }
 
-        Object.keys(state.data).forEach(url => {
-            if (url in foundDownloads) return;
-            dispatch(releaseDownloadedData(url));
+        return result;
+    }, [state.status, state.workflow])
+
+    const missingDownloads = useMemo(() => {
+        return Object.keys(urlsToBuffer).filter(url => {
+            return !(activeDownload == url || url in state.data);
         });
-    }, [state.data, state.status, state.workflow]);
+    }, [urlsToBuffer, state.data, activeDownload]);
+
+    // Queue up and send out download requests
+    useEffect(() => {
+        const nextDownload = missingDownloads[0];
+        if (!nextDownload) return;
+        if (activeDownload != null) return;
+
+        setActiveDownload(nextDownload);
+
+        scheduleWork(getData(nextDownload).then(data => {
+            dispatch(setDownloadedData(nextDownload, data));
+        })).finally(() => {
+            setActiveDownload(null);
+        });
+    }, [missingDownloads, activeDownload]);
+
+    // Clear out unused downloads, one key at a time.
+    useEffect(() => {
+        const toRelease = Object.keys(state.data).find(url => !(url in urlsToBuffer));
+        if (toRelease != null) {
+            dispatch(releaseDownloadedData(toRelease));
+        }
+    }, [urlsToBuffer, state.data])
+
+    return {
+        urlsToBuffer,
+        missingDownloads,
+        activeDownload,
+    }
 }

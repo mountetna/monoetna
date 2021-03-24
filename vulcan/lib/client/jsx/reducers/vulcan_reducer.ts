@@ -1,7 +1,7 @@
 import {
     VulcanAction
 } from '../actions/vulcan';
-import {SessionStatusResponse, Workflow, WorkflowsResponse} from "../api/types";
+import {SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
 
 
 export type DownloadedData = any; // TODO: improve typing here.

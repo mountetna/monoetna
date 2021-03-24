@@ -2,7 +2,7 @@ import React, {useContext, useState, useEffect, useCallback, useMemo} from 'reac
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
-import {STATUS} from '../../../models/steps';
+import {STATUS} from '../../../steps';
 import UserInput from '../user_interactions/inputs/user_input';
 import StepName from './step_name';
 

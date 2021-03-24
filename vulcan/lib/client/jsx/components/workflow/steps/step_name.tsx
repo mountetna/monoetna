@@ -5,7 +5,7 @@ import Icon from 'etna-js/components/icon';
 import AnimatedClock from './animated_clock';
 import {WorkflowStep} from "../../../api/types";
 import {statusOfStep} from "../../../selectors/workflow";
-import {STATUS} from "../../../models/steps";
+import {STATUS} from "../../../steps";
 
 const icons: {[k: string]: {icon: string, className: string}} = {
   [STATUS.COMPLETE]: { icon: 'check', className: 'light green' },
