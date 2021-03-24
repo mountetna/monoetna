@@ -349,6 +349,10 @@
       display: flex;
       align-items: center;
 
+      .input-help-children-wrapper {
+        flex: 1;
+      }
+
       .help-icon-wrapper {
         cursor: help;
         width: 40px;

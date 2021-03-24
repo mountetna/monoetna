@@ -78,6 +78,7 @@ export default function StepUserInputWrapper({step, stepIndex}) {
         }`}
       >
         <Component
+          key={`${stepIndex}-${status[pathIndex][stepIndex].status}`}
           step={step}
           handleInputChange={handleInputChange}
         ></Component>
