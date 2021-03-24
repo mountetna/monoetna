@@ -194,12 +194,8 @@ export const shouldDownloadStepData = ({workflow, pathIndex, stepIndex}) => {
   return dependentSteps.length > 0;
 };
 
-export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
-  // Search the non-work paths for any UI-query steps that
-  //   follow the given input. For any UI-query steps
-  //   in those paths, return the userInputs without their
-  //   input values.
-  let validInputs = {...userInputs};
+const dependentUiInputNames = ({workflow, inputName}) => {
+  let dependentInputNames = [];
   // Start iterating from index 1, since 0 is work path.
   for (let i = 1; i < workflow.steps.length; i++) {
     let path = workflow.steps[i];
@@ -208,11 +204,30 @@ export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
       for (let j = stepIndex + 1; j < path.length; j++) {
         let futureStep = path[j];
         if (hasUiInput(futureStep)) {
-          delete validInputs[uiStepInputNames(futureStep)];
+          dependentInputNames.push(uiStepInputNames(futureStep));
         }
+
+        // Check other paths for downstream effects
+        dependentInputNames = dependentInputNames.concat(
+          dependentUiInputNames({workflow, inputName: futureStep.name})
+        );
       }
     }
   }
+
+  return dependentInputNames;
+};
+
+export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
+  // Search the non-work paths for any UI-query steps that
+  //   follow the given input. For any UI-query steps
+  //   in those paths, return the userInputs without their
+  //   input values.
+  let validInputs = {...userInputs};
+  // Start iterating from index 1, since 0 is work path.
+  dependentUiInputNames({workflow, inputName}).forEach((inputName) => {
+    delete validInputs[inputName];
+  });
 
   return validInputs;
 };
