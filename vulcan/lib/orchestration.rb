@@ -98,6 +98,8 @@ class Vulcan
           "MAGMA_HOST=#{Vulcan.instance.config(:magma)&.dig(:host)}",
           "-e",
           "TOKEN=#{token}",
+          "-e",
+          "PROJECT_NAME=#{session.project_name}",
           "--image=" + Vulcan.instance.config(:archimedes_run_image),
       ] + output_files.map do |sf|
         "--output=#{sf.to_archimedes_storage_file(storage)}"

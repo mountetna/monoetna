@@ -66,8 +66,8 @@ outputs:
 
 steps:
   queryMagma:
-    run: scripts/user_filter_options.cwl
-    label: 'Identify selection methods'
+    run: scripts/retrieve_selection_options.cwl
+    label: 'Fetch selection options'
     in:
       a: Cell_Filtering__min_nCounts
       b: Cell_Filtering__max_nCounts
@@ -80,37 +80,35 @@ steps:
       i: Regress__regress_pct_ribo
       j: UMAP_Calculation__max_pc
       k: UMAP_Calculation__leiden_resolution
-    out: [options]
-  pickSelectionOption:
-    run: ui-queries/select-autocomplete.cwl
-    label: 'Select initial filters'
-    in:
-      a: queryMagma/options
-    out: [options]
-  generateOptions:
-    run: scripts/generate_filter_options_from_type.cwl
-    label: 'Generate filter options'
-    in:
-      type: pickSelectionOption/options
-    out: [options]
-  pickOptions:
+
+    out: [experiments, tissues, all_tubes]
+  Select_Records__pickExperiments:
     run: ui-queries/multiselect-string.cwl
-    label: 'Select records'
+    label: 'Select Experiments'
+    doc: 'Subset  of experiments to use. These selections get combined with Tissue selections with AND logic. If you want to just select tube records directly, pick No Selections for all dropdowns here.'
     in:
-      a: generateOptions/options
-    out: [selectedOptions]
-  parseRecordSelections:
+      a: queryMagma/experiments
+    out: [options]
+  Select_Records__pickTissues:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select Tissues'
+    doc: 'Subset of biospecimen_types to use. These selections get combined with Experiment selections with AND logic. If you want to just select tube records directly, pick No Selections for all dropdowns here.'
+    in:
+      a: queryMagma/tissues
+    out: [options]
+  parse_record_selections:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
     in:
-      options:  pickOptions/selectedOptions
-      optionType: pickSelectionOption/options
+      experiments: Select_Records__pickExperiments/options
+      tissues: Select_Records__pickTissues/options
+      all_tubes: queryMagma/all_tubes
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
     label: 'Confirm record names'
     in:
-      a: parseRecordSelections/tube_recs
+      a: parse_record_selections/tube_recs
     out: [names]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl
