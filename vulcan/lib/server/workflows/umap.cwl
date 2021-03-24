@@ -66,7 +66,7 @@ outputs:
 
 steps:
   queryMagma:
-    run: scripts/user_filter_options.cwl
+    run: scripts/retrieve_selection_options.cwl
     label: 'Fetch selection options'
     in:
       a: Cell_Filtering__min_nCounts
