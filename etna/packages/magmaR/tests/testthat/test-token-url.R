@@ -1,12 +1,15 @@
 # This code tests the magmaRset function
 # library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-token-url.R")
 
-test_that("token, url, and opts get stored in expected spots", {
+test_that("token, url, and opts get stored in expected spots, & 'followlocation' added when left out by user", {
     
-    targ <- magmaRset(
-        token = Sys.getenv("TOKEN"),
-        url = Sys.getenv("URL"),
-        opts = list(option1 = FALSE))
+    expect_message(
+        targ <- magmaRset(
+            token = Sys.getenv("TOKEN"),
+            url = Sys.getenv("URL"),
+            opts = list(option1 = FALSE)),
+        "'followlocation = FALSE' added",
+        fixed = TRUE)
     
     expect_identical(
         targ$token,
@@ -16,7 +19,7 @@ test_that("token, url, and opts get stored in expected spots", {
         Sys.getenv("URL"))
     expect_identical(
         targ$opts,
-        list(option1 = FALSE))
+        list(option1 = FALSE, followlocation = FALSE))
 })
 
 test_that("default, production, magma link is filled in when not gven", {
