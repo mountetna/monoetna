@@ -9,6 +9,27 @@ module Etna
       class WalkModelTreeWorkflow < Struct.new(:magma_crud, :logger, keyword_init: true)
         def initialize(**args)
           super(**({}.update(args)))
+          @template_for = {}
+        end
+
+        def masked_attributes(template:, model_attributes_mask:, model_name:)
+          attributes_mask = model_attributes_mask[model_name]
+          return ["all", "all"] if attributes_mask.nil?
+          [(attributes_mask + [template.identifier, 'parent']).uniq, attributes_mask]
+        end
+
+        def attribute_included?(mask, attribute_name)
+          return true if mask == "all"
+          mask.include?(attribute_name)
+        end
+
+        def template_for(model_name)
+          @template_for[model_name] ||= magma_crud.magma_client.retrieve(RetrievalRequest.new(
+              project_name: magma_crud.project_name,
+              model_name: model_name,
+              record_names: [],
+              attribute_names: [],
+          )).models.model(model_name).template
         end
 
         def walk_from(
@@ -26,29 +47,30 @@ module Etna
             next if seen.include?([path[:from], model_name])
             seen.add([path[:from], model_name])
 
+            template = template_for(model_name)
+            query_attributes, walk_attributes = masked_attributes(template: template, model_attributes_mask: model_attributes_mask, model_name: model_name)
+
             request = RetrievalRequest.new(
                 project_name: magma_crud.project_name,
                 model_name: model_name,
                 record_names: path[:record_names],
                 filter: model_filters[model_name],
+                attribute_names: query_attributes,
                 page_size: page_size, page: 1
             )
 
             related_models = {}
 
             magma_crud.page_records(model_name, request) do |response|
-              model = response.models.model(model_name)
-              template = model.template
-
               tables = []
               collections = []
               links = []
               attributes = []
 
+              model = response.models.model(model_name)
+
               template.attributes.attribute_keys.each do |attr_name|
-                attributes_mask = model_attributes_mask[model_name]
-                black_listed = !attributes_mask.nil? && !attributes_mask.include?(attr_name)
-                next if black_listed && attr_name != template.identifier && attr_name != 'parent'
+                next unless attribute_included?(query_attributes, attr_name)
                 attributes << attr_name
 
                 attr = template.attributes.attribute(attr_name)
@@ -63,7 +85,7 @@ module Etna
                 elsif attr.attribute_type == AttributeType::CHILD
                   related_models[attr.link_model_name] ||= Set.new
                   links << attr_name
-                elsif attr.attribute_type == AttributeType::PARENT && !black_listed
+                elsif attr.attribute_type == AttributeType::PARENT && attribute_included?(walk_attributes, attr_name)
                   related_models[attr.link_model_name] ||= Set.new
                   links << attr_name
                 end

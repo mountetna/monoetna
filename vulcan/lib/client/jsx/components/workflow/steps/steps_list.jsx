@@ -1,49 +1,45 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 
+import Icon from 'etna-js/components/icon';
 import {VulcanContext} from '../../../contexts/vulcan';
 import Step from './step';
-import StepViewCard from './step_view_card';
 import {validPath} from '../../../utils/workflow';
+import {completedUiOutputsSelector} from '../../../selectors/workflow';
 
 export default function StepsList() {
-  const {workflow, pathIndex} = useContext(VulcanContext);
+  const [open, setOpen] = useState(true);
+  const context = useContext(VulcanContext);
+  let {workflow, pathIndex, status} = context;
 
-  const [cardIndex, setCardIndex] = useState(null);
-  const [cardStep, setCardStep] = useState(null);
-
-  function handleOnClick(index) {
-    setCardIndex(cardIndex === index ? null : index);
+  function handleToggle() {
+    setOpen(!open);
   }
 
   useEffect(() => {
-    if (null === cardIndex) {
-      setCardStep(null);
-    } else {
-      setCardStep(workflow.steps[pathIndex][cardIndex]);
-    }
-  }, [cardIndex]);
+    // Automatically close the drawer when there are
+    //   output steps. Open drawer if the output
+    //   steps are removed...
+    let outputs = completedUiOutputsSelector(context);
+    setOpen(outputs.length === 0);
+  }, [status]);
 
   return (
-    <div className='steps-list'>
-      <div className='title'>Steps</div>
-      <div className='steps-list-wrapper'>
-        {validPath({workflow, pathIndex})
-          ? workflow.steps[pathIndex].map((step, index) => {
-              return (
-                <Step
-                  key={index}
-                  step={step}
-                  index={index}
-                  onClick={handleOnClick}
-                ></Step>
-              );
-            })
-          : null}
+    <div className={`steps-list toggle-control ${open ? 'open' : 'closed'}`}>
+      <div className='steps-list-header' onClick={handleToggle}>
+        <Icon
+          icon='angle-up'
+          className='steps-list-toggle toggle-left-right'
+        ></Icon>
+        <div className='title'>Steps</div>
       </div>
-      <div>
-        {cardStep ? (
-          <StepViewCard step={cardStep} stepIndex={cardIndex}></StepViewCard>
-        ) : null}
+      <div className='steps-list-positioner'>
+        <div className='steps-list-wrapper'>
+          {validPath({workflow, pathIndex})
+            ? workflow.steps[pathIndex].map((step, index) => {
+                return <Step key={index} step={step} index={index}></Step>;
+              })
+            : null}
+        </div>
       </div>
     </div>
   );

@@ -32,7 +32,7 @@
     font-family: sans-serif;
     color: white;
     font-size: 0.6em;
-    transform: translate(0,-50%);
+    transform: translate(0, -50%);
   }
   &.selected {
     background-color: #bc2612;
@@ -42,6 +42,29 @@
     }
     .slider {
       transform: translate(32px);
+    }
+  }
+}
+
+.toggle-control {
+  .toggle-left-right {
+    &.icon {
+      opacity: 0.5;
+      font-size: 1.5rem;
+    }
+  }
+
+  &.open {
+    .toggle-left-right {
+      transition: transform 250ms ease-in-out;
+      transform: rotate(45deg);
+    }
+  }
+
+  &.closed {
+    .toggle-left-right {
+      transition: transform 250ms ease-in-out;
+      transform: rotate(-45deg);
     }
   }
 }

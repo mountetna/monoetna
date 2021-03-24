@@ -7,6 +7,7 @@ import {
   headers,
   isJSON
 } from 'etna-js/utils/fetch';
+import {shouldDownloadStepData} from '../utils/workflow';
 
 const vulcanPath = (endpoint) => `${CONFIG.vulcan_host}${endpoint}`;
 
@@ -63,8 +64,12 @@ export const submit = (context) => {
   // Use a deep clone because we need to check if the download URL
   //   changed, later.
   let oldStatus = _.cloneDeep(status);
+  let projectName =
+    workflow.projects && workflow.projects.length > 0
+      ? workflow.projects[0]
+      : 'example';
 
-  return vulcanPost(vulcanPath(ROUTES.submit(workflow.name)), {
+  return vulcanPost(vulcanPath(ROUTES.submit(projectName, workflow.name)), {
     inputs: session.inputs,
     key: session.key
   })
@@ -72,13 +77,25 @@ export const submit = (context) => {
     .then((response) => {
       setSession(response.session);
       setStatus(response.status);
+
       // Fetch data and update Context
 
       // Calculate this locally because useContext
       //   updates async?
-      let updatedStatus = [...oldStatus].map((oldPath, oldPathIndex) => {
-        return oldPath.map((oldStep, oldStepIndex) => {
-          return {...oldStep, ...response.status[oldPathIndex][oldStepIndex]};
+      let updatedStatus = response.status.map((newPath, newPathIndex) => {
+        return newPath.map((newStep, newStepIndex) => {
+          let oldStep = {};
+          if (
+            oldStatus &&
+            oldStatus[newPathIndex] &&
+            oldStatus[newPathIndex][newStepIndex]
+          )
+            oldStep = oldStatus[newPathIndex][newStepIndex];
+
+          return {
+            ...oldStep,
+            ...newStep
+          };
         });
       });
 
@@ -91,7 +108,8 @@ export const submit = (context) => {
                 oldStatus[pathIndex][stepIndex],
                 step,
                 download
-              )
+              ) &&
+              shouldDownloadStepData({workflow, pathIndex, stepIndex})
             ) {
               let dataUrl = step.downloads[download];
               dataUrls.push(dataUrl);
@@ -119,6 +137,13 @@ export const submit = (context) => {
     })
     .then((extractions) => {
       extractions.forEach((datum, index) => {
+        // We don't currently have accurate Content-Type headers
+        //   from the response, so we'll try here if it's a
+        //   JSON string or not.
+        try {
+          datum = JSON.parse(datum);
+        } catch (e) {}
+
         setData(dataUrls[index], datum);
       });
       return Promise.resolve();
@@ -130,6 +155,7 @@ export const submit = (context) => {
 export const downloadUrlUpdated = (oldStep, newStep, downloadKey) => {
   return (
     !(newStep.data && newStep.data[downloadKey]) ||
+    !oldStep.downloads ||
     newStep.downloads[downloadKey] !== oldStep.downloads[downloadKey]
   );
 };

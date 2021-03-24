@@ -1,4 +1,4 @@
-require 'open3'
+require "open3"
 
 class Vulcan
   # This is the temporary glue for running synchronous workflows from a given session and its inputs.
@@ -13,14 +13,24 @@ class Vulcan
 
     MAX_RUNNABLE = 20
 
-    def run_until_done!(storage)
+    def run_until_done!(storage, token = nil)
       load_json_inputs!(storage)
       [].tap do |ran|
+        errors = RunErrors.new
         i = 0
         until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
-          run!(storage: storage, build_target: runnables.first)
-          ran << runnables.first
+          begin
+            next_runnable = runnables.find { |r| !errors.include?(r) }
+            break if next_runnable.nil?
+
+            run!(storage: storage, build_target: runnables.first, token: token)
+          rescue => e
+            errors << { cell_hash: runnables.first.cell_hash, error: e }
+          ensure
+            ran << runnables.first
+          end
         end
+        raise errors unless errors.empty?
       end
     end
 
@@ -39,7 +49,14 @@ class Vulcan
     # bad inputs.  Validating here would start to conflate potential storage or logic errors with simple user input
     # errors.
     def load_json_payload!(storage, reference)
-      if (payload = reference[:json_payload])
+      if (reference.key?(:json_payload))
+        # We want to write `false` files as well,
+        #   so do not use payload in the if conditional.
+        payload = reference[:json_payload]
+
+        # But we don't want to write `nil` values...
+        return if nil == payload
+
         ms = material_source(reference)
         unless ::File.exists?(ms.build_output&.data_path(storage))
           storage.with_build_transaction(ms) do |build_files|
@@ -50,22 +67,44 @@ class Vulcan
       end
     end
 
-    def command(storage:, input_files:, output_files:)
+    def is_dev?
+      :development == Vulcan.instance.environment
+    end
+
+    # Will go away when we get hmacs for inter service.
+    def dev_options
       [
-          "docker",
-          "run",
-          "-i",
-          "--rm",
-          "-v",
-          "/var/run/docker.sock:/var/run/docker.sock:ro",
-          "-v",
-          "#{Vulcan.instance.config(:archimedes_exec_volume)}:/archimedes-exec",
-          Vulcan.instance.config(:archimedes_run_image),
-          "poetry",
-          "run",
-          "archimedes-run",
-          "--isolator=docker",
-          "--image=" + Vulcan.instance.config(:archimedes_image),
+        "--network=monoetna_edge_net",
+        "--extra-host=magma.development.local:172.16.238.10",
+        "--extra-host=metis.development.local:172.16.238.10",
+        "-e",
+        "ARCHIMEDES_ENV=#{Vulcan.instance.environment}",
+      ]
+    end
+
+    def command(storage:, input_files:, output_files:, token:)
+      [
+        "docker",
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "/var/run/docker.sock:/var/run/docker.sock:ro",
+        "-v",
+        "#{Vulcan.instance.config(:archimedes_exec_volume)}:/archimedes-exec",
+        Vulcan.instance.config(:archimedes_run_image),
+        "poetry",
+        "run",
+        "archimedes-run",
+        "--isolator=docker",
+      ] + (is_dev? ? dev_options : []) + [
+        "-e",
+        "MAGMA_HOST=#{Vulcan.instance.config(:magma)&.dig(:host)}",
+        "-e",
+        "TOKEN=#{token}",
+        "-e",
+        "PROJECT_NAME=#{session.project_name}",
+        "--image=" + Vulcan.instance.config(:archimedes_run_image),
       ] + output_files.map do |sf|
         "--output=#{sf.to_archimedes_storage_file(storage)}"
       end + input_files.map do |sf|
@@ -73,11 +112,26 @@ class Vulcan
       end
     end
 
-    def run_script!(storage:, script:, input_files:, output_files:)
+    def local_package_path(pkg_name, pkg_path)
+      path = pkg_path
+      if (host_dir_map = ENV["HOST_DIR_MAP"])
+        container_path, host_dir = host_dir_map.split("=", 2)
+        path.sub!(/^#{container_path}/, host_dir)
+      end
+
+      "#{pkg_name}:#{path}"
+    end
+
+    def run_script!(storage:, script:, input_files:, output_files:, token:)
       status = nil
       output_str = nil
 
-      cmd = command(storage: storage, input_files: input_files, output_files: output_files)
+      cmd = command(
+        storage: storage,
+        input_files: input_files,
+        output_files: output_files,
+        token: token,
+      )
       Open3.popen2(*cmd) do |input, output, wait_thr|
         input.print(script)
         input.close
@@ -97,7 +151,7 @@ class Vulcan
       Pathname.new(to).relative_path_from(Pathname.new(::File.dirname(from))).to_s
     end
 
-    def run!(storage:, build_target:)
+    def run!(storage:, build_target:, token:)
       storage.with_build_transaction(build_target) do |output_files|
         script = build_target.script
         if script.is_a?(Hash)
@@ -114,11 +168,12 @@ class Vulcan
               ::File.symlink(relative_path, output_path)
             end
           end
-          {'status' => 'done'}
+          { "status" => "done" }
         elsif script
           result = run_script!(
-              storage: storage, input_files: build_target.input_files,
-              output_files: output_files, script: script
+            storage: storage, input_files: build_target.input_files,
+            output_files: output_files, script: script,
+            token: token,
           )
 
           if (error = result["error"])
@@ -155,7 +210,7 @@ class Vulcan
         directed_graph.add_connection(output.outputSource.first, :primary_outputs)
       end
 
-      [ directed_graph.serialized_path_from(:primary_inputs) ] + directed_graph.paths_from(:primary_inputs)
+      [directed_graph.serialized_path_from(:primary_inputs)] + directed_graph.paths_from(:primary_inputs)
     end
 
     def unique_paths
@@ -164,7 +219,9 @@ class Vulcan
 
     def next_runnable_build_targets(storage)
       build_targets_for_paths.map do |path_build_targets|
-        path_build_targets.select { |bt| bt.should_build?(storage) }.last
+        path_build_targets.select { |bt|
+          bt.should_build?(storage)
+        }.last
       end.select { |v| !v.nil? }.uniq { |bt| bt.cell_hash }
     end
 
@@ -185,7 +242,7 @@ class Vulcan
       end
     end
 
-      # Cache is used to save effort in computing common recursive targets within a single calculation session.
+    # Cache is used to save effort in computing common recursive targets within a single calculation session.
     # Do not pass an actual value in for it.
     def build_target_for(step_name, cache = {})
       if cache.include?(step_name)
@@ -193,87 +250,114 @@ class Vulcan
       end
 
       cache[step_name] = begin
-        output_filenames = []
-        input_files = []
-        script = nil
+          output_filenames = []
+          input_files = []
+          script = nil
 
-        if step_name == :primary_inputs
-          script = {}
-          workflow.inputs.zip(primary_input_material_sources).each do |input, source|
-            output_filenames << input.id
-            input_files << source.take_as_input(input.id)
-            script[input.id] = input_files.last
-          end
-        elsif step_name == :primary_outputs
-          script = {}
-          workflow.outputs.each do |output|
-            output_filenames << output.id
-
-            source_step_name, source_output_name = output.outputSource
-            input_file = build_target_for(source_step_name, cache).take_as_input(source_output_name, output.id)
-            script[output.id] = input_file
-            if input_file.nil?
-              raise "Could not find output #{source_output_name.inspect} from step #{source_step_name.inspect} for primary output #{output.id.inspect}"
-            end
-            input_files << input_file
-          end
-        elsif (step = workflow.find_step(step_name))
-          if step.ui_query_name
+          if step_name == :primary_inputs
             script = {}
-          elsif step.script_name
-            script = step.lookup_operation_script
-            raise "Could not find backing script #{step.script_name.inspect} for step #{step.id}" if script.nil?
+            workflow.inputs.zip(primary_input_material_sources).each do |input, source|
+              output_filenames << input.id
+              input_files << source.take_as_input(input.id)
+              script[input.id] = input_files.last
+            end
+          elsif step_name == :primary_outputs
+            script = {}
+            workflow.outputs.each do |output|
+              output_filenames << output.id
+
+              source_step_name, source_output_name = output.outputSource
+              input_file = build_target_for(source_step_name, cache).take_as_input(source_output_name, output.id)
+              script[output.id] = input_file
+              if input_file.nil?
+                raise "Could not find output #{source_output_name.inspect} from step #{source_step_name.inspect} for primary output #{output.id.inspect}"
+              end
+              input_files << input_file
+            end
+          elsif (step = workflow.find_step(step_name))
+            if step.ui_behavior?
+              script = {}
+            elsif step.script_name
+              script = step.lookup_operation_script
+              raise "Could not find backing script #{step.script_name.inspect} for step #{step.id}" if script.nil?
+            else
+              raise "Step #{step.id} has invalid run: #{step.run}.  Must be either a ui-queries/, ui-outputs/, or scripts/ entry." if script.nil?
+            end
+
+            step.out.each do |step_out|
+              output_filenames << step_out.id
+              if step.ui_behavior?
+                ref = session.material_reference_for([step_name, step_out.id])
+                source = material_source(ref)
+                input_files << source.take_as_input(step_out.id)
+                script[step_out.id] = input_files.last
+              end
+            end
+
+            step.in.each do |step_in|
+              source_step_name, source_output_name = step_in.source
+              input_file = build_target_for(source_step_name, cache).take_as_input(source_output_name, step_in.id)
+              if input_file.nil?
+                raise "Could not find output #{source_output_name.inspect} from source #{source_step_name.inspect} while building input #{step_in.id.inspect} for step #{step.id.inspect}"
+              end
+              input_files << input_file
+            end
           else
-            raise "Step #{step.id} has invalid run: #{step.run}.  Must be either a ui-queries/ or scripts/ entry." if script.nil?
+            raise "Step #{step_name} has no backing definition."
           end
 
-          step.out.each do |step_out|
-            output_filenames << step_out.id
-            if step.ui_query_name
-              ref = session.material_reference_for([step_name, step_out.id])
-              source = material_source(ref)
-              input_files << source.take_as_input(step_out.id)
-              script[step_out.id] = input_files.last
-            end
-          end
-
-          step.in.each do |step_in|
-            source_step_name, source_output_name = step_in.source
-            input_file = build_target_for(source_step_name, cache).take_as_input(source_output_name, step_in.id)
-            if input_file.nil?
-              raise "Could not find output #{source_output_name.inspect} from source #{source_step_name.inspect} while building input #{step_in.id.inspect} for step #{step.id.inspect}"
-            end
-            input_files << input_file
-          end
-        else
-          raise "Step #{step_name} has no backing definition."
-        end
-
-        Storage::BuildTarget.new(
+          Storage::BuildTarget.new(
             project_name: session.project_name,
             session_key: session.key,
             input_files: input_files,
             output_filenames: output_filenames,
             script: script,
-        )
-      end
+          )
+        end
     end
 
     # Combines any session given value for a primary input and the potential default that may be defined for it.
     def material_reference_for_user_input(source, input)
       if session.include?(source)
         session.material_reference_for(source)
-      elsif input.default
-        {json_payload: JSON.dump(input.default)}
+      elsif nil != input.default
+        { json_payload: JSON.dump(input.default) }
       else
-        {unfulfilled: source}
+        { unfulfilled: source }
       end
     end
 
     def material_source(material_reference)
       Storage::MaterialSource.new(
-          project_name: session.project_name, session_key: session.key,
-          material_reference: material_reference)
+        project_name: session.project_name, session_key: session.key,
+        material_reference: material_reference,
+      )
+    end
+
+    class RunErrors < StandardError
+      def initialize
+        @errors = {}
+      end
+
+      def <<(value)
+        @errors[value[:cell_hash]] = value[:error]
+      end
+
+      def include?(bt)
+        @errors.key?(bt.cell_hash)
+      end
+
+      def message_for_build_target(bt)
+        @errors[bt.cell_hash].message
+      end
+
+      def message
+        @errors
+      end
+
+      def empty?
+        @errors.keys.empty?
+      end
     end
   end
 end

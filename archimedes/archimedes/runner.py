@@ -52,6 +52,8 @@ class RunRequest:
     environment: List[str] = field(default_factory=list)
     image: str = "archimedes"
     isolator: str = "docker"
+    network: str = None
+    extra_hosts: List[str] = field(default_factory=list)
 
 
 T = TypeVar('T')
@@ -162,12 +164,23 @@ class DockerIsolator(Isolator[Container]):
 
         # Could set options like cpu_quote, mem_limit, restrict network access,
         # etc, to further lockdown the task.
+        params = {
+            "detach": True,
+            "environment": environment,
+            "volumes_from": volumes_from,
+            "mounts": mounts,
+
+        }
+        if request.network is not None:
+            params["network"] = request.network
+        if len(request.extra_hosts) > 0:
+            params["extra_hosts"] = {
+                host.split(':')[0]: host.split(':')[1] for host in request.extra_hosts
+            }
+
         return self.docker_cli.containers.run(
             request.image, cmd,
-            detach=True,
-            environment=environment,
-            volumes_from=volumes_from,
-            mounts=mounts,
+            **params
         )
 
     def reserve_exec_dir(self) -> ContextManager[str]:
@@ -290,6 +303,7 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 5, remove = T
 
     return res
 
+
 def make_storage_file(s: str) -> StorageFile:
     parts = s.split(':', maxsplit=1)
     if len(parts) != 2:
@@ -312,6 +326,8 @@ def main():
     parser.add_argument('--input', dest='inputs', action='append', help="input files of the form name:/path/on/host")
     parser.add_argument('--output', dest='outputs', action='append', help="output files of the form name:/path/on/host")
     parser.add_argument('-e', '--env', dest='env', action='append', help="environment variables of the form ABC=abc")
+    parser.add_argument('--network', dest='network', default=None, help="docker network name")
+    parser.add_argument('--extra-host', dest='extra_hosts', action='append', help="host mappings to add to /etc/hosts, of the form hostname:ip-addr")
 
     args = parser.parse_args()
 
@@ -322,6 +338,8 @@ def main():
         environment=args.env or [],
         script=(args.file and open(args.file, 'r').read()) or sys.stdin.read(),
         image=args.image,
+        network=args.network or None,
+        extra_hosts=args.extra_hosts or [],
     )
 
     result = RunResult(status='done', error=f"Did not run, isolator {request.isolator} unrecognized")

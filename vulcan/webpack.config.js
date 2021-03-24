@@ -51,23 +51,10 @@ module.exports = (env) => ({
         loader: 'file-loader',
         include: [
           path.resolve(__dirname, 'node_modules/etna-js/'),
-          '/etna/packages/etna-js'
+          '/etna/packages/etna-js',
+          path.resolve(__dirname, 'lib/client/img/')
         ],
         test: /\.(jpe?g|png|svg)$/i,
-
-        options: {
-          name: '[name].[ext]',
-          outputPath: 'public/images/',
-          publicPath: '/images'
-        }
-      },
-
-      {
-        test: /\.(jpe?g|png|svg)$/i,
-
-        include: [path.resolve(__dirname, 'lib/client/img')],
-
-        loader: 'file-loader',
 
         options: {
           name: '[name].[ext]',

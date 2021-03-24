@@ -1,4 +1,5 @@
 from pandas import Series
+import pandas as pd
 
 
 def spread(matrix):

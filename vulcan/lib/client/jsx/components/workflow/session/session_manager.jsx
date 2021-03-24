@@ -3,83 +3,98 @@ import React, {useState, useContext, useEffect} from 'react';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from 'etna-js/actions/message_actions';
 import Icon from 'etna-js/components/icon';
+import Link from 'etna-js/components/link';
 
-import {getSession, submit} from '../../../api/vulcan';
+import {submit} from '../../../api/vulcan';
 import {VulcanContext} from '../../../contexts/vulcan';
-import {allInputsDefined, defaultInputValues} from '../../../utils/workflow';
-import SessionFeed from './session_feed';
+import InputFeed from './input_feed';
+import OutputFeed from './output_feed';
+import {allInputsDefined, workflowName} from '../../../utils/workflow';
 
-import PrimaryInputs from './primary_inputs';
-
-export default function SessionManager() {
-  // Placeholder for when user can select a session
-  //   or continue a past session.
+export default function SessionManager({name}) {
   const invoke = useActionInvoker();
   const context = useContext(VulcanContext);
-  const {
-    workflow,
-    session,
-    setSession,
-    setStatus,
-    setInputs,
-    setCalculating
-  } = context;
+  const {workflow, session, calculating, setCalculating} = context;
   const [complete, setComplete] = useState(null);
   const [firstRun, setFirstRun] = useState(true);
 
   useEffect(() => {
-    // Leave this as getSession (without default inputs), since
-    //   we may provide a session key in the future to fetch
-    //   a persisted session.
-    if (workflow && workflow.name) {
-      getSession(workflow.name)
-        .then((response) => {
-          setSession(response.session);
-          setStatus(response.status);
+    if (
+      workflow &&
+      workflow.name &&
+      allInputsDefined(workflow, session.inputs) &&
+      firstRun
+    ) {
+      setCalculating(true);
+      setFirstRun(false);
 
-          // Set the default input values in the session
-          setInputs(defaultInputValues(workflow));
+      // See how much work can be done when the page loads
+      submit(context)
+        .then(() => {
+          setCalculating(false);
         })
         .catch((e) => {
           console.error(e);
-          invoke(showMessages([e]));
+          invoke(showMessages(e));
         });
     }
-  }, [workflow]);
+  }, [session.inputs]);
 
   useEffect(() => {
-    if (workflow && session && session.inputs) {
+    if (
+      workflow &&
+      session &&
+      session.inputs &&
+      Object.keys(session.inputs).length > 0
+    ) {
       setComplete(allInputsDefined(workflow, session.inputs));
     }
   }, [workflow, session]);
 
-  function handleOnClick() {
+  function runWorkflow() {
     setCalculating(true);
-    setFirstRun(false);
     submit(context)
       .then(() => {
         setCalculating(false);
+        setComplete(allInputsDefined(workflow, session.inputs));
       })
       .catch((e) => {
         console.error(e);
-        invoke(showMessages([e]));
+        invoke(showMessages(e));
       });
   }
+
+  let disabled = !complete || calculating;
+
   return (
     <div className='session-manager'>
-      <div className='start-btn-container'>
+      <div className='session-header'>
+        <span className='session-workflow-name'>{workflowName(workflow)}</span>
+        {workflow.vignette && (
+          <div className='header-btn'>
+            <Link link={ROUTES.workflow_vignette(workflowName(workflow))}>
+              Vignette
+              <Icon className='vignette' icon='book' />
+            </Link>
+          </div>
+        )}
         <button
-          disabled={!complete}
-          className='start-button'
-          onClick={handleOnClick}
+          disabled={disabled}
+          onClick={runWorkflow}
+          className='run-workflow-btn header-btn'
         >
           Run
-          <Icon icon='play' className='small'></Icon>
+          <Icon
+            className='run'
+            disabled={disabled}
+            title='Run workflow'
+            icon='play'
+          />
         </button>
       </div>
-      <div className='scroll-window'>
-        <PrimaryInputs></PrimaryInputs>
-        {!firstRun ? <SessionFeed></SessionFeed> : null}
+      <div className='session-feed-container'>
+        <InputFeed></InputFeed>
+        <OutputFeed></OutputFeed>
       </div>
     </div>
   );

@@ -9,8 +9,13 @@ import {
   validStep,
   defaultInputValues,
   allInputsDefined,
-  uiStepOptions
-} from '..//workflow';
+  uiStepOptions,
+  missingUiInputs,
+  inputNamesToHashStub,
+  shouldDownloadStepData,
+  removeDependentInputs,
+  groupUiSteps
+} from '../workflow';
 
 describe('Workflow Utils', () => {
   describe('XY Plots', () => {
@@ -491,6 +496,421 @@ describe('Workflow Utils', () => {
 
       results = uiStepOptions({step, status, pathIndex: 0});
       expect(results).toEqual([]);
+    });
+  });
+
+  describe('missingUiInputs', () => {
+    it('returns input names not in the session inputs', () => {
+      const step = {
+        out: ['output'],
+        name: 'step1'
+      };
+
+      const session = {
+        inputs: {
+          a: 123
+        }
+      };
+
+      let results = missingUiInputs(step, session);
+      expect(results).toEqual(['step1/output']);
+    });
+
+    it('does not return input names already in the session inputs', () => {
+      const step = {
+        out: ['output'],
+        name: 'step1'
+      };
+
+      const session = {
+        inputs: {
+          'step1/output': 123
+        }
+      };
+
+      let results = missingUiInputs(step, session);
+      expect(results).toEqual([]);
+    });
+  });
+
+  describe('inputNamesToHashStub', () => {
+    it('reduces array of names to Hash with null values', () => {
+      const names = ['step1/output1', 'step1/output2'];
+
+      let result = inputNamesToHashStub(names);
+      expect(result).toEqual({
+        'step1/output1': null,
+        'step1/output2': null
+      });
+    });
+  });
+
+  describe('shouldDownloadStepData', () => {
+    it('flags plotly output as true', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'ui-outputs/plotly.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(true);
+    });
+
+    it('flags consignment output as true', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'ui-outputs/consignment.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(true);
+    });
+
+    it('flags raw output as true', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'ui-outputs/raw.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(true);
+    });
+
+    it('flags ui query as true', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'ui-queries/ask.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(true);
+    });
+
+    it('flags server-side steps as false', () => {
+      const workflow = {
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'scripts/query.cwl',
+              in: [],
+              out: ['data']
+            },
+            {
+              name: 'step2',
+              run: 'scripts/process.cwl',
+              in: [
+                {
+                  source: ['step1', 'data']
+                }
+              ],
+              out: ['response']
+            }
+          ]
+        ]
+      };
+
+      let result = shouldDownloadStepData({
+        workflow,
+        pathIndex: 0,
+        stepIndex: 0
+      });
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe('removeDependentInputs', () => {
+    it('works', () => {
+      const workflow = {
+        inputs: {
+          primaryInput: {
+            type: 'int',
+            default: 1
+          }
+        },
+        steps: [
+          [
+            {
+              name: 'step1',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data1']
+            },
+            {
+              name: 'step2',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data2']
+            },
+            {
+              name: 'step3',
+              run: 'ui-queries/something.cwl',
+              in: [
+                {
+                  source: ['step2', 'data2']
+                }
+              ],
+              out: ['data3']
+            },
+            {
+              name: 'step4',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data4']
+            }
+          ],
+          [
+            {
+              name: 'step1',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data']
+            }
+          ],
+          [
+            {
+              name: 'step2',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data2']
+            },
+            {
+              name: 'step3',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data3']
+            }
+          ],
+          [
+            {
+              name: 'step3',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data3']
+            },
+            {
+              name: 'step4',
+              run: 'ui-queries/something.cwl',
+              in: [],
+              out: ['data4']
+            }
+          ]
+        ]
+      };
+
+      const userInputs = {
+        primaryInput: 1,
+        'step1/data1': '1',
+        'step2/data2': '2',
+        'step3/data3': '3',
+        'step4/data4': '4'
+      };
+
+      let result = removeDependentInputs({
+        workflow,
+        userInputs,
+        inputName: 'step2'
+      });
+
+      expect(result).toEqual({
+        primaryInput: 1,
+        'step1/data1': '1',
+        'step2/data2': '2'
+      });
+    });
+  });
+
+  describe('groupUiSteps', () => {
+    it('correctly merges grouped steps', () => {
+      const steps = [
+        {
+          step: {
+            name: 'Group_1__grouped',
+            run: 'ui-queries/int.cwl',
+            in: [
+              {
+                source: ['step1', 'output']
+              }
+            ],
+            out: ['out1'],
+            doc: 'Help for 1',
+            label: 'Label for 1'
+          },
+          index: 0
+        },
+        {
+          step: {
+            name: 'Group_1__grouped_too',
+            run: 'ui-queries/float.cwl',
+            in: [
+              {
+                source: ['step2', 'output']
+              }
+            ],
+            out: ['out2'],
+            doc: 'Help for 2',
+            label: 'Label for 2'
+          },
+          index: 2
+        },
+        {
+          step: {
+            name: 'not_grouped',
+            run: 'ui-queries/float.cwl',
+            in: [],
+            out: []
+          },
+          index: 3
+        }
+      ];
+
+      let result = groupUiSteps(steps);
+      expect(result).toEqual([
+        {
+          step: {
+            name: 'Group 1',
+            label: 'Group 1',
+            run: 'ui-queries/int.cwl',
+            isGroup: true,
+            in: [
+              {
+                source: ['Group_1__grouped', 'out1'],
+                doc: 'Help for 1',
+                label: 'Label for 1'
+              },
+              {
+                source: ['Group_1__grouped_too', 'out2'],
+                doc: 'Help for 2',
+                label: 'Label for 2'
+              }
+            ]
+          },
+          index: 0
+        },
+        {
+          step: {
+            name: 'not_grouped',
+            run: 'ui-queries/float.cwl',
+            in: [],
+            out: []
+          },
+          index: 3
+        }
+      ]);
+    });
+
+    it('leaves ungrouped steps alone', () => {
+      const steps = [
+        {
+          step: {
+            name: 'not_grouped',
+            run: 'ui-queries/int.cwl',
+            in: [],
+            out: []
+          },
+          index: 0
+        },
+        {
+          step: {
+            name: 'not_grouped_either',
+            run: 'ui-queries/float.cwl',
+            in: [],
+            out: []
+          },
+          index: 2
+        }
+      ];
+
+      let result = groupUiSteps(steps);
+      expect(result).toEqual(steps);
     });
   });
 });

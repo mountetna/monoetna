@@ -1,61 +1,54 @@
-import React, {useContext, useEffect} from 'react';
-import Modal from 'react-modal';
-
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {showMessages} from 'etna-js/actions/message_actions';
+import React, {useContext, useEffect, useState} from 'react';
 
 import {VulcanContext} from '../../contexts/vulcan';
-import {getWorkflows} from '../../api/vulcan';
+import {defaultInputValues} from '../../utils/workflow';
+import {workflowByName} from '../../selectors/workflow';
+
+import Link from 'etna-js/components/link';
 
 import SessionManager from './session/session_manager';
-
 import StepsList from './steps/steps_list';
 
-// Hardcode for now, since only one workflow
-const WORKFLOW_SHORT = 'umap';
-const WORKFLOW_NAME = `${WORKFLOW_SHORT}.cwl`;
-
-export default function WorkflowManager() {
-  const invoke = useActionInvoker();
-  const {calculating, setWorkflow, setPathIndex} = useContext(VulcanContext);
-
-  Modal.setAppElement('#root');
-
-  const customStyles = {
-    content: {
-      top: '50%',
-      left: '50%',
-      right: 'auto',
-      bottom: 'auto',
-      marginRight: '-50%',
-      transform: 'translate(-50%, -50%)'
-    }
-  };
+export default function WorkflowManager({workflowName}) {
+  const {
+    workflows,
+    setWorkflow,
+    setPathIndex,
+    setInputs,
+    setSession,
+    getLocalSession
+  } = useContext(VulcanContext);
 
   useEffect(() => {
-    getWorkflows()
-      .then((response) => {
-        let currentWorkflow = response.workflows.find(
-          (w) => WORKFLOW_NAME === w.name
-        );
-        setWorkflow(currentWorkflow);
-
-        // longest step chain == default path for now?
-        setPathIndex(
-          currentWorkflow.steps
-            .map((a) => a.length)
-            .indexOf(Math.max(...currentWorkflow.steps.map((a) => a.length)))
-        );
+    if (
+      workflows.workflows &&
+      workflowByName({
+        workflows: workflows.workflows,
+        workflowName
       })
-      .catch((e) => {
-        console.error(e);
-        invoke(showMessages([e]));
+    ) {
+      let selectedWorkflow = workflowByName({
+        workflows: workflows.workflows,
+        workflowName
       });
-  }, []);
+      setWorkflow(selectedWorkflow);
+
+      getLocalSession(selectedWorkflow).then((session) => {
+        if (null == session) {
+          // Set the default input values
+          setInputs(defaultInputValues(selectedWorkflow));
+        } else {
+          setSession(session);
+        }
+      });
+
+      // first path is always the "work" path
+      setPathIndex(0);
+    }
+  }, [workflows]);
 
   return (
     <div className='workflow-manager'>
-      <div className='workflow-header'>{WORKFLOW_SHORT}</div>
       <div className='step-wrapper'>
         <div className='step-main-pane-wrapper'>
           <SessionManager></SessionManager>
@@ -64,14 +57,6 @@ export default function WorkflowManager() {
           <StepsList></StepsList>
         </div>
       </div>
-      <Modal
-        isOpen={calculating}
-        style={customStyles}
-        contentLabel='Calculating Notice'
-      >
-        <h2>Calculations in progress</h2>
-        <div>Archimedes calculations in progress. Please be patient.</div>
-      </Modal>
     </div>
   );
 }

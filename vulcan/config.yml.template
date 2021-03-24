@@ -8,8 +8,9 @@ default: &default
   :timeout: 5000
 
 :development:
+  :archimedes_token: your-production-token-to-use-in-development
   :magma:
-    :host: https://magma.development.local
+    :host: https://magma.development.local # Change this to production host if you want to use :archimedes_token for development
   :vulcan:
     :host: https://vulcan.development.local
   :timur:
@@ -25,7 +26,6 @@ default: &default
   :token_name: JANUS_DEV_TOKEN
   :log_level: info
   :archimedes_run_image: etnaagent/archimedes
-  :archimedes_image:     etnaagent/archimedes
   :archimedes_exec_volume: archimedes-exec
   :log_file: /dev/stdout
   :rsa_public: |
@@ -56,7 +56,6 @@ default: &default
   :data_folder: /app/spec/data
   :workflows_folder: /app/spec/fixtures
   :archimedes_run_image: etnaagent/archimedes
-  :archimedes_image:     etnaagent/archimedes
   :log_file: /dev/stdout
   :log_level: info
   :archimedes_exec_volume: archimedes-exec

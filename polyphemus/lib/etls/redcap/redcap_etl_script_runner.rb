@@ -55,13 +55,14 @@ class Polyphemus
       logger.write(JSON.pretty_generate(all_records))
       logger.write("\n")
 
-      @update_request = Etna::Clients::Magma::UpdateRequest.new(
-        project_name: @project_name,
-        revisions: all_records)
-
       if commit
         logger.write("Posting revisions.\n")
+
+        update_request = Etna::Clients::Magma::UpdateRequest.new(
+          project_name: @project_name,
+          revisions: all_records)
         magma_client.update_json(update_request)
+
         logger.write("Revisions saved to Magma.\n")
       end
 

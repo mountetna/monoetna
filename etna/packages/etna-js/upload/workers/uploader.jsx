@@ -2,7 +2,7 @@ import 'regenerator-runtime/runtime';
 import SparkMD5 from 'spark-md5';
 import {postUploadStart, postUploadBlob, postUploadCancel} from '../api/upload_api';
 import {setupWorker} from './worker';
-import {checkStatus} from "../../utils/fetch";
+import {checkStatus} from "../../utils/base_fetch";
 
 import {fileKey} from "../../utils/file";
 import {Cancellable} from "../../utils/cancellable";

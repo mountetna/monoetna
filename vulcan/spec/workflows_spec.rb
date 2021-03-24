@@ -18,7 +18,7 @@ describe WorkflowsController do
   context '#fetch' do
     it 'gets a list of workflows' do
       auth_header(:viewer)
-      get("/api/#{PROJECT}/workflows")
+      get("/api/workflows")
 
       expect(last_response.status).to eq(200)
 
@@ -31,12 +31,14 @@ describe WorkflowsController do
               "format" => nil,
               "label" => "it is an int",
               "type" => "int",
+              "doc" => "help tip"
           },
           "someIntWithoutDefault" => {
               "default" => nil,
               "format" => nil,
               "label" => nil,
               "type" => "int",
+              "doc" => "another tip"
           },
       })
 
@@ -53,6 +55,7 @@ describe WorkflowsController do
       expect(response['workflows'].first['steps']).to eql([
           [
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
                       {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
                   "label"=>nil,
@@ -61,6 +64,7 @@ describe WorkflowsController do
                   "run" => "scripts/add.cwl",
               },
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"num", "source"=>["firstAdd", "sum"]}],
                   "label"=>nil,
                   "out" => ["num"],
@@ -68,16 +72,54 @@ describe WorkflowsController do
                   "run" => "ui-queries/pick-a-number.cwl",
               },
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
                       {"id"=>"b", "source"=>["pickANum", "num"]}],
                   "label"=>nil,
                   "out" => ["sum"],
                   "name" => "finalStep",
-                  "run" => "scripts/add.cwl",
-              },
+                  "run"=>"scripts/add.cwl"},
+              {
+                  "doc" => nil,
+                  "in" => [{"id"=>"a", "source"=>["finalStep", "sum"]}],
+                  "label"=>nil,
+                  "name"=>"aPlot",
+                  "out"=>[],
+                  "run"=>"ui-outputs/plotter.cwl"}
           ],
           [
               {
+                  "doc" => nil,
+                  "in" =>
+                    [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
+                        {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
+                  "label"=>nil,
+                  "name"=>"firstAdd",
+                  "out"=>["sum"],
+                  "run"=>"scripts/add.cwl"
+              },
+              {
+                  "doc" => nil,
+                  "in"=>
+                    [{"id"=>"a", "source"=>["firstAdd", "sum"]},
+                        {"id"=>"b", "source"=>["pickANum", "num"]}],
+                  "label"=>nil,
+                  "name"=>"finalStep",
+                  "out"=>["sum"],
+                  "run"=>"scripts/add.cwl"
+              },
+              {
+                  "doc" => nil,
+                  "in"=>[{"id"=>"a", "source"=>["finalStep", "sum"]}],
+                  "label"=>nil,
+                  "name"=>"aPlot",
+                  "out"=>[],
+                  "run"=>"ui-outputs/plotter.cwl"
+              }
+          ],
+          [
+              {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
                            {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
                   "label"=>nil,
@@ -86,6 +128,7 @@ describe WorkflowsController do
                   "run" => "scripts/add.cwl",
               },
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
                            {"id"=>"b", "source"=>["pickANum", "num"]}],
                   "label"=>nil,
@@ -96,6 +139,7 @@ describe WorkflowsController do
           ],
           [
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
                            {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
                   "label"=>nil,
@@ -104,6 +148,7 @@ describe WorkflowsController do
                   "run" => "scripts/add.cwl",
               },
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"num", "source"=>["firstAdd", "sum"]}],
                   "label"=>nil,
                   "out" => ["num"],
@@ -111,6 +156,7 @@ describe WorkflowsController do
                   "run" => "ui-queries/pick-a-number.cwl",
               },
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
                            {"id"=>"b", "source"=>["pickANum", "num"]}],
                   "label"=>nil,
@@ -124,7 +170,7 @@ describe WorkflowsController do
 
     it 'rejects a non-user' do
       auth_header(:non_user)
-      get("/api/#{PROJECT}/workflows")
+      get("/api/workflows")
 
       expect(last_response.status).to eq(403)
     end

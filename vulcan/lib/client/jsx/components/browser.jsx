@@ -2,15 +2,12 @@
 import React from 'react';
 import 'regenerator-runtime/runtime';
 
-import {VulcanProvider} from '../contexts/vulcan';
 import WorkflowManager from './workflow/workflow_manager';
 
-export default function Browser() {
+export default function Browser({workflowName}) {
   return (
     <main className='vulcan-browser browser'>
-      <VulcanProvider>
-        <WorkflowManager></WorkflowManager>
-      </VulcanProvider>
+      <WorkflowManager workflowName={workflowName}></WorkflowManager>
     </main>
   );
 }

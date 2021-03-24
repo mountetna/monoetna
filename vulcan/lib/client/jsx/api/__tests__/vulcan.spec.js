@@ -201,7 +201,7 @@ describe('Vulcan API', () => {
 
     stubUrl({
       verb: 'post',
-      path: ROUTES.submit('test'),
+      path: ROUTES.submit('example', 'test'),
       request: () => ({inputs, key: 'session_key'}),
       response: {
         status,
@@ -228,7 +228,23 @@ describe('Vulcan API', () => {
 
     let context = {
       workflow: {
-        name: 'test'
+        name: 'test',
+        steps: [
+          [
+            {
+              name: 'first_step',
+              out: ['data']
+            },
+            {
+              name: 'ui_pick_subset',
+              run: 'ui-queries/select.cwl',
+              in: [{source: ['first_step', 'data']}]
+            },
+            {
+              name: 'final_step'
+            }
+          ]
+        ]
       },
       session: {
         inputs,
@@ -279,7 +295,7 @@ describe('Vulcan API', () => {
 
     stubUrl({
       verb: 'post',
-      path: ROUTES.submit('test'),
+      path: ROUTES.submit('example', 'test'),
       request: () => ({inputs, key: 'session_key'}),
       response: {
         status: status1,
@@ -297,7 +313,17 @@ describe('Vulcan API', () => {
 
     let context = {
       workflow: {
-        name: 'test'
+        name: 'test',
+        steps: [
+          [
+            {name: 'first_step', out: ['data']},
+            {
+              name: 'second_step',
+              run: 'ui-queries/select.cwl',
+              in: [{source: ['first_step', 'data']}]
+            }
+          ]
+        ]
       },
       session: {
         inputs,
@@ -359,7 +385,7 @@ describe('Vulcan API', () => {
 
     stubUrl({
       verb: 'post',
-      path: ROUTES.submit('test'),
+      path: ROUTES.submit('example', 'test'),
       request: () => ({inputs, key: 'session_key'}),
       response: {
         status: status2,
@@ -386,7 +412,17 @@ describe('Vulcan API', () => {
 
     let context = {
       workflow: {
-        name: 'test'
+        name: 'test',
+        steps: [
+          [
+            {name: 'first_step', out: ['data']},
+            {
+              name: 'second_step',
+              run: 'ui-queries/select.cwl',
+              in: [{source: ['first_step', 'data']}]
+            }
+          ]
+        ]
       },
       session: {
         inputs,
@@ -403,6 +439,105 @@ describe('Vulcan API', () => {
       expect(mockSetSession.mock.calls.length).toBe(1);
       expect(mockSetStatus.mock.calls.length).toBe(1);
       expect(mockSetData.mock.calls.length).toBe(1);
+      done();
+    });
+  });
+
+  it('submit does not fetch data for non-UI related steps', (done) => {
+    const inputs = [
+      [
+        {
+          name: 'first_step'
+        }
+      ]
+    ];
+
+    const url = '/api/workflows/test/file1.txt';
+    const url2 = '/api/workflows/test/file2.txt';
+    const data = [1, 2, 4, 'abc'];
+    const data2 = [5, 6, 7, 'xyz'];
+    const status1 = [
+      [
+        {
+          name: 'first_step',
+          status: 'complete',
+          downloads: {
+            sum: `${CONFIG.vulcan_host}${url}`
+          },
+          data: {
+            sum: data
+          }
+        }
+      ]
+    ];
+    const status2 = [
+      [
+        {
+          name: 'first_step',
+          status: 'complete',
+          downloads: {
+            sum: `${CONFIG.vulcan_host}${url2}`
+          }
+        }
+      ]
+    ];
+
+    stubUrl({
+      verb: 'post',
+      path: ROUTES.submit('example', 'test'),
+      request: () => ({inputs, key: 'session_key'}),
+      response: {
+        status: status2,
+        session: {}
+      },
+      headers: {
+        'Content-type': 'application/json'
+      },
+      host: CONFIG.vulcan_host
+    });
+    stubUrl({
+      verb: 'get',
+      path: url2,
+      response: data2,
+      headers: {
+        'Content-type': 'application/json'
+      },
+      host: CONFIG.vulcan_host
+    });
+
+    const mockSetSession = jest.fn();
+    const mockSetStatus = jest.fn();
+    const mockSetData = jest.fn();
+
+    let context = {
+      workflow: {
+        name: 'test',
+        steps: [
+          [
+            {name: 'first_step', out: ['data']},
+            {
+              name: 'second_step',
+              run: 'scripts/select.cwl',
+              in: [{source: ['first_step', 'data']}]
+            }
+          ]
+        ]
+      },
+      session: {
+        inputs,
+        key: 'session_key'
+      },
+      status: status1,
+      pathIndex: 0,
+      setSession: mockSetSession,
+      setStatus: mockSetStatus,
+      setData: mockSetData
+    };
+
+    return submit(context).then(() => {
+      expect(mockSetSession.mock.calls.length).toBe(1);
+      expect(mockSetStatus.mock.calls.length).toBe(1);
+      expect(mockSetData.mock.calls.length).toBe(0);
       done();
     });
   });
@@ -486,6 +621,24 @@ describe('Vulcan API', () => {
         data: {
           key: 'blob'
         }
+      };
+
+      let newStatus = {
+        downloads: {
+          key: 'URL2'
+        },
+        data: {
+          key: 'blob2'
+        }
+      };
+
+      let result = downloadUrlUpdated(oldStatus, newStatus, 'key');
+      expect(result).toEqual(true);
+    });
+
+    it('returns true if no downloads for the old step', () => {
+      let oldStatus = {
+        name: 'foo'
       };
 
       let newStatus = {

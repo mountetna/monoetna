@@ -1,135 +1,94 @@
-import React from 'react';
-
 import * as _ from 'lodash';
 
 import XYPlotModel from '../models/xy_plot';
 
-import ListInput from 'etna-js/components/inputs/list_input';
-import SelectInput from 'etna-js/components/inputs/select_input';
-import Dropdown from 'etna-js/components/inputs/dropdown';
-import DropdownInput from 'etna-js/components/inputs/dropdown_input';
-import {
-  IntegerInput,
-  FloatInput
-} from 'etna-js/components/inputs/numeric_input';
-import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
+import {RUN, OUTPUT_COMPONENT} from '../models/steps';
 
-import {TYPE} from '../models/steps';
+export const stringify = (text) => {
+  // For previewing data inputs / outputs, we just want a string
+  //   representation. Unsure if input is JSON or a string.
 
-export const wrapPaneItem = (item) => {
-  return (
-    <div className='view_item'>
-      <div className='item_name'>{item.name}</div>
-      <div className='item_view'>{item.value}</div>
-    </div>
-  );
+  try {
+    text = JSON.stringify(text);
+  } catch (e) {}
+
+  return text;
 };
 
-export const wrapEditableInputs = (inputs, handleInputChange) => {
-  return Object.keys(inputs).map((inputName, index) => {
-    let input = inputs[inputName];
-    let name = input.label || inputName;
-    let key = `${inputName}-${index}`;
-
-    switch (input.type) {
-      case TYPE.INTEGER:
-        return wrapPaneItem({
-          name,
-          value: (
-            <IntegerInput
-              key={key}
-              defaultValue={input.default}
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-            ></IntegerInput>
-          )
-        });
-      case TYPE.FLOAT:
-        return wrapPaneItem({
-          name,
-          value: (
-            <FloatInput
-              key={key}
-              defaultValue={input.default}
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-            ></FloatInput>
-          )
-        });
-      case TYPE.BOOL:
-        return wrapPaneItem({
-          name,
-          value: (
-            <input
-              key={key}
-              type='checkbox'
-              className='text_box'
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-              defaultChecked={input.default}
-            />
-          )
-        });
-      case TYPE.MULTISELECT_STRING:
-        return wrapPaneItem({
-          name,
-          value: (
-            <ListInput
-              key={key}
-              placeholder='Select items from the list'
-              className='link_text'
-              values={input.default || []} // Will have to test if this persists
-              itemInput={DropdownInput}
-              list={input.options || []}
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-            />
-          )
-        });
-      default:
-        return wrapPaneItem({
-          name,
-          value: (
-            <SlowTextInput
-              key={key}
-              defaultValue={input.default}
-              onChange={(e) => {
-                handleInputChange(inputName, e);
-              }}
-            ></SlowTextInput>
-          )
-        });
-    }
-  });
-};
+export const workflowName = (workflow) =>
+  workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
 
 export const uiStepInputNames = (step) => {
   return step.out.map((output) => `${step.name}/${output}`);
+};
+
+export const missingUiInputs = (step, session) => {
+  return uiStepInputNames(step).filter(
+    (outputName) => !Object.keys(session.inputs).includes(outputName)
+  );
+};
+
+export const localStorageKey = (workflow) => `${workflow.name}.session`;
+
+export const inputNamesToHashStub = (inputNames) => {
+  // Convert a list of input strings to
+  //   Hash, where all values are `null`.
+  return inputNames.reduce((result, input) => {
+    if (!result.hasOwnProperty(input)) {
+      result[input] = null;
+    }
+
+    return result;
+  }, {});
 };
 
 export const uiStepType = (step) => {
   return step.run.split('/')[1].replace('.cwl', '');
 };
 
-export const uiStepOptions = ({step, pathIndex, status}) => {
+export const uiStepInputDataLink = ({step, pathIndex, status}) => {
+  // Pull out any previous step's output data link that is a required
+  //   input into this UI step.
+  // Assume a single input data link for now.
+  let previousStepName = step.in[0].source[0];
+  let outputKey = step.in[0].source[1];
+
+  let previousStep = status[pathIndex].find((s) => s.name === previousStepName);
+
+  if (
+    !previousStep ||
+    !previousStep.downloads ||
+    !previousStep.downloads[outputKey]
+  )
+    return null;
+
+  return previousStep.downloads[outputKey];
+};
+
+export const uiStepInputDataRaw = ({step, pathIndex, status}) => {
   // Pull out any previous step's output data that is a required
   //   input into this UI step.
   // Assume a single input data file for now.
+  // Provide the raw data object back.
   let previousStepName = step.in[0].source[0];
   let outputKey = step.in[0].source[1];
 
   let previousStep = status[pathIndex].find((s) => s.name === previousStepName);
 
   if (!previousStep || !previousStep.data || !previousStep.data[outputKey])
-    return [];
+    return null;
 
-  let outputData = previousStep.data[outputKey];
+  return previousStep.data[outputKey];
+};
 
-  return Array.isArray(outputData) ? outputData : [outputData];
+export const uiStepOptions = ({step, pathIndex, status}) => {
+  // Pull out any previous step's output data that is a required
+  //   input into this UI step.
+  // Assume a single input data file for now.
+  const rawData = uiStepInputDataRaw({step, pathIndex, status});
+  if (null === rawData) return [];
+
+  return Array.isArray(rawData) ? rawData : [rawData];
 };
 
 export const validStep = ({workflow, pathIndex, stepIndex}) => {
@@ -140,23 +99,30 @@ export const validStep = ({workflow, pathIndex, stepIndex}) => {
   );
 };
 
+export const inputGroupName = (input) => {
+  let groupName = input.name.split('__')[0];
+  if (groupName === input.name) groupName = 'Inputs';
+
+  groupName = groupName.replace(/_/g, ' ');
+
+  return groupName;
+};
+
 export const validPath = ({workflow, pathIndex}) => {
   return !!(workflow.steps && workflow.steps[pathIndex]);
 };
 
-export const inputType = ({workflow, input}) => {
-  // First check the input itself for a locally typed input.
-  // If no type present, check the workflow inputs for
-  //   for type information.
+export const hasUiInput = (step) => {
+  return step.run && step.run.startsWith(RUN.UI_QUERY);
 };
 
-export const hasUiInput = (step) => {
-  return step.run && step.run.startsWith('ui-queries/');
+export const hasUiOutput = (step) => {
+  return step.run && step.run.startsWith(RUN.UI_OUTPUT);
 };
 
 export const defaultInputValues = (workflow) => {
   return Object.keys(workflow.inputs).reduce((result, inputName) => {
-    if (workflow.inputs[inputName].default) {
+    if (null != workflow.inputs[inputName].default) {
       result[inputName] = workflow.inputs[inputName].default;
     }
     return result;
@@ -177,8 +143,7 @@ export const allInputsDefined = (workflow, userInputs) => {
       // For multiselect, need to make sure the inputs are not
       //    [""] or []...
       return !(
-        null === userInput ||
-        undefined === userInput ||
+        null == userInput ||
         userInput !== userInput ||
         _.isEqual([''], userInput) ||
         _.isEqual([], userInput)
@@ -200,6 +165,120 @@ export const stepOutputs = (workflow, pathIndex, stepIndex) => {
     return [];
 
   return workflow.steps[pathIndex][stepIndex].out;
+};
+
+const stepDependsOn = (step, otherStep) => {
+  return (
+    step.in &&
+    step.in.filter((input) => {
+      return (
+        otherStep.name === input.source[0] &&
+        otherStep.out[0] === input.source[1]
+      );
+    }).length > 0
+  );
+};
+
+export const shouldDownloadStepData = ({workflow, pathIndex, stepIndex}) => {
+  // Only download step data if its output is an input to
+  //   a UI INPUT widget or a UI OUTPUT step that is not a LINK
+  let step = workflow.steps[pathIndex][stepIndex];
+  let dependentSteps = workflow.steps[pathIndex].filter((s) => {
+    return (
+      (hasUiInput(s) ||
+        (hasUiOutput(s) &&
+          OUTPUT_COMPONENT.LINK !== s.run.split('/')[1].replace('.cwl', ''))) &&
+      stepDependsOn(s, step)
+    );
+  });
+  return dependentSteps.length > 0;
+};
+
+const dependentUiInputNames = ({workflow, inputName}) => {
+  let dependentInputNames = [];
+  // Start iterating from index 1, since 0 is work path.
+  for (let i = 1; i < workflow.steps.length; i++) {
+    let path = workflow.steps[i];
+    let stepIndex = path.findIndex((s) => s.name === inputName);
+    if (stepIndex > -1) {
+      for (let j = stepIndex + 1; j < path.length; j++) {
+        let futureStep = path[j];
+        if (hasUiInput(futureStep)) {
+          dependentInputNames.push(uiStepInputNames(futureStep));
+        }
+
+        // Check other paths for downstream effects
+        dependentInputNames = dependentInputNames.concat(
+          dependentUiInputNames({workflow, inputName: futureStep.name})
+        );
+      }
+    }
+  }
+
+  return dependentInputNames;
+};
+
+export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
+  // Search the non-work paths for any UI-query steps that
+  //   follow the given input. For any UI-query steps
+  //   in those paths, return the userInputs without their
+  //   input values.
+  let validInputs = {...userInputs};
+  // Start iterating from index 1, since 0 is work path.
+  dependentUiInputNames({workflow, inputName}).forEach((inputName) => {
+    delete validInputs[inputName];
+  });
+
+  return validInputs;
+};
+
+export const groupUiSteps = (uiSteps) => {
+  // Takes an Array of UI steps and checks their names.
+  // If they start with our "group" escape sequence
+  //   (groupName__rest_of_step_name)
+  // this method will group them into a new "step"
+  //   where the name is the given `groupName` and
+  //   inputs are merged into a single step.
+  // NOTE: status, docs, and other things will
+  //   be assumed to be the first one found by
+  //   the code ... so they are assumed in sync.
+  return Object.values(
+    uiSteps.reduce((result, step) => {
+      let groupName = inputGroupName(step.step);
+      if (groupName === 'Inputs') {
+        // Not in a group
+        result[step.step.name] = step;
+      } else {
+        // Will just have to default to the first label.
+        // No way to resolve any conflict between the step labels.
+        if (Object.keys(result).indexOf(groupName) === -1) {
+          result[groupName] = {
+            step: {
+              name: groupName,
+              isGroup: true,
+              label: groupName,
+              run: step.step.run,
+              in: []
+            },
+            index: step.index
+          };
+        }
+
+        let stepInputs = uiStepInputNames(step.step);
+        result[groupName].step.in = result[groupName].step.in.concat(
+          stepInputs.map((i) => {
+            return {
+              source: [i.split('/')[0], i.split('/')[1]],
+              doc: step.step.doc,
+              label: step.step.label || i
+            };
+          })
+        );
+      }
+
+      return result;
+    }, {})
+  );
 };
 
 const plotType = (step) => {
