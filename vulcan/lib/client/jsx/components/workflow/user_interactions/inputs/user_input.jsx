@@ -9,6 +9,7 @@ import MultiselectStringInput from './multiselect_string';
 import SelectAutocompleteInput from './select_autocomplete';
 import StringInput from './string';
 import CheckboxesInput from './checkboxes';
+import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 
 export default function UserInput({input, onChange, hideLabel}) {
   const INPUTS = {
@@ -18,7 +19,8 @@ export default function UserInput({input, onChange, hideLabel}) {
     [TYPE.BOOL]: BooleanInput,
     [TYPE.MULTISELECT_STRING]: MultiselectStringInput,
     [TYPE.SELECT_AUTOCOMPLETE]: SelectAutocompleteInput,
-    [TYPE.CHECKBOXES]: CheckboxesInput
+    [TYPE.CHECKBOXES]: CheckboxesInput,
+    [TYPE.NESTED_SELECT_AUTOCOMPLETE]: NestedSelectAutocompleteInput
   };
 
   let inputType =

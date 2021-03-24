@@ -194,12 +194,8 @@ export const shouldDownloadStepData = ({workflow, pathIndex, stepIndex}) => {
   return dependentSteps.length > 0;
 };
 
-export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
-  // Search the non-work paths for any UI-query steps that
-  //   follow the given input. For any UI-query steps
-  //   in those paths, return the userInputs without their
-  //   input values.
-  let validInputs = {...userInputs};
+const dependentUiInputNames = ({workflow, inputName}) => {
+  let dependentInputNames = [];
   // Start iterating from index 1, since 0 is work path.
   for (let i = 1; i < workflow.steps.length; i++) {
     let path = workflow.steps[i];
@@ -208,13 +204,81 @@ export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
       for (let j = stepIndex + 1; j < path.length; j++) {
         let futureStep = path[j];
         if (hasUiInput(futureStep)) {
-          delete validInputs[uiStepInputNames(futureStep)];
+          dependentInputNames.push(uiStepInputNames(futureStep));
         }
+
+        // Check other paths for downstream effects
+        dependentInputNames = dependentInputNames.concat(
+          dependentUiInputNames({workflow, inputName: futureStep.name})
+        );
       }
     }
   }
 
+  return dependentInputNames;
+};
+
+export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
+  // Search the non-work paths for any UI-query steps that
+  //   follow the given input. For any UI-query steps
+  //   in those paths, return the userInputs without their
+  //   input values.
+  let validInputs = {...userInputs};
+  // Start iterating from index 1, since 0 is work path.
+  dependentUiInputNames({workflow, inputName}).forEach((inputName) => {
+    delete validInputs[inputName];
+  });
+
   return validInputs;
+};
+
+export const groupUiSteps = (uiSteps) => {
+  // Takes an Array of UI steps and checks their names.
+  // If they start with our "group" escape sequence
+  //   (groupName__rest_of_step_name)
+  // this method will group them into a new "step"
+  //   where the name is the given `groupName` and
+  //   inputs are merged into a single step.
+  // NOTE: status, docs, and other things will
+  //   be assumed to be the first one found by
+  //   the code ... so they are assumed in sync.
+  return Object.values(
+    uiSteps.reduce((result, step) => {
+      let groupName = inputGroupName(step.step);
+      if (groupName === 'Inputs') {
+        // Not in a group
+        result[step.step.name] = step;
+      } else {
+        // Will just have to default to the first label.
+        // No way to resolve any conflict between the step labels.
+        if (Object.keys(result).indexOf(groupName) === -1) {
+          result[groupName] = {
+            step: {
+              name: groupName,
+              isGroup: true,
+              label: groupName,
+              run: step.step.run,
+              in: []
+            },
+            index: step.index
+          };
+        }
+
+        let stepInputs = uiStepInputNames(step.step);
+        result[groupName].step.in = result[groupName].step.in.concat(
+          stepInputs.map((i) => {
+            return {
+              source: [i.split('/')[0], i.split('/')[1]],
+              doc: step.step.doc,
+              label: step.step.label || i
+            };
+          })
+        );
+      }
+
+      return result;
+    }, {})
+  );
 };
 
 const plotType = (step) => {

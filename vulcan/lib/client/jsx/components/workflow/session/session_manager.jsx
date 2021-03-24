@@ -63,22 +63,34 @@ export default function SessionManager({name}) {
         invoke(showMessages(e));
       });
   }
+
+  let disabled = !complete || calculating;
+
   return (
     <div className='session-manager'>
       <div className='session-header'>
         <span className='session-workflow-name'>{workflowName(workflow)}</span>
         {workflow.vignette && (
-          <Link link={ROUTES.workflow_vignette(workflowName(workflow))}>
-            <Icon className='vignette' icon='book' />
-          </Link>
+          <div className='header-btn'>
+            <Link link={ROUTES.workflow_vignette(workflowName(workflow))}>
+              Vignette
+              <Icon className='vignette' icon='book' />
+            </Link>
+          </div>
         )}
-        <Icon
-          className='run'
-          disabled={!complete || calculating}
-          title='Run workflow'
+        <button
+          disabled={disabled}
           onClick={runWorkflow}
-          icon='play'
-        />
+          className='run-workflow-btn header-btn'
+        >
+          Run
+          <Icon
+            className='run'
+            disabled={disabled}
+            title='Run workflow'
+            icon='play'
+          />
+        </button>
       </div>
       <div className='session-feed-container'>
         <InputFeed></InputFeed>

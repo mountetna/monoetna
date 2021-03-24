@@ -44,27 +44,20 @@
   padding-right: 0.5rem;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  z-index: 100;
-  position: fixed;
+  height: 99%;
   background: white;
   border: 1px solid lightgray;
   border-radius: 2px;
   width: 300px;
 
-  .steps-list-toggle {
-    margin-right: 20px;
-    margin-left: 10px;
-  }
-
   &.open {
-    right: 0px;
-    transition: right 250ms ease-in-out;
+    width: 300px;
+    transition: width 250ms ease-in-out;
   }
 
   &.closed {
-    right: -270px;
-    transition: right 250ms ease-in-out;
+    width: 30px;
+    transition: width 250ms ease-in-out;
   }
 
   .steps-list-header {
@@ -73,14 +66,22 @@
     flex: 0 0 20px;
     border-bottom: 1px solid #f00;
     display: flex;
+    overflow-x: hidden;
+    cursor: default;
+
+    .icon-grp-steps-list-toggle {
+      top: -5px;
+    }
 
     .title {
       flex: 1;
+      padding-left: 10px;
     }
   }
 
   .steps-list-wrapper {
-    flex: 1;
+    position: fixed;
+    width: 300px;
   }
 
   .step {
@@ -137,17 +138,18 @@
     height: 30px;
     margin-bottom: 15px;
     padding-right: 50px;
+
     .icon-grp {
       font-family: $body_font;
       font-size: 0.6em;
+      margin-left: 0.25rem;
+      margin-top: -2px;
       cursor: pointer;
+
       .run {
         color: #d66;
       }
 
-      &:hover {
-        opacity: 0.3;
-      }
       .icon.disabled {
         color: grey;
         cursor: not-allowed;
@@ -155,6 +157,26 @@
           color: grey;
         }
       }
+    }
+
+    .header-btn {
+      margin-right: 0.5rem;
+      margin-left: 0.5rem;
+      border-radius: 2px;
+      border: 1px solid lightgray;
+      background: none;
+      padding: 0.25rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+
+      &:hover {
+        opacity: 0.3;
+      }
+    }
+
+    button:disabled {
+      color: grey;
+      cursor: not-allowed;
     }
   }
 
@@ -200,21 +222,8 @@
         }
 
         .item_view {
-          padding-left: 2rem;
-
-          .add_item {
-            cursor: default;
-            color: green;
-          }
-
-          .delete_link {
-            cursor: default;
-
-            &:hover {
-              text-decoration: line-through;
-              opacity: 0.5;
-              color: darkred;
-            }
+          .input-help-children-wrapper {
+            width: 80%;
           }
 
           .list_item {
@@ -253,7 +262,7 @@
           width: 100%;
           font-size: large;
           border: none;
-          overflow: hidden;
+          overflow: auto;
         }
         .text-wrapper {
           border: 1px solid darkred;
@@ -266,11 +275,94 @@
     .session-output-feed {
       flex: 2;
       border-left: 1px solid lightgray;
+
+      .step-name {
+        font-size: 1.3rem;
+
+        .step-status-icon-wrapper {
+          margin-top: -5px;
+        }
+      }
+
+      .modebar-group {
+        svg {
+          width: 1.5em;
+          height: 1.5em;
+        }
+      }
     }
   }
   .session-workflow-name {
     flex: 1 1 auto;
     font-size: 1.2em;
+  }
+}
+
+.view_item {
+  display: flex;
+  &:not(:last-of-type) {
+    .item_name {
+      border-bottom: $thin_rule;
+    }
+    .item_view {
+      border-bottom: $thin_rule;
+    }
+  }
+  .item_name {
+    cursor: default;
+    color: darkblue;
+    font-family: $body_font;
+    border-right: 1px solid #ccc;
+
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: right;
+    line-height: 30px;
+    padding-right: 10px;
+    padding-top: 4px;
+    text-align: right;
+  }
+  .item_view {
+    padding-left: 9px;
+    padding-bottom: 3px;
+    padding-top: 3px;
+    box-sizing: border-box;
+    flex: 1;
+
+    .add_item {
+      cursor: default;
+      color: green;
+    }
+
+    .delete_link {
+      cursor: default;
+
+      &:hover {
+        text-decoration: line-through;
+        opacity: 0.5;
+        color: darkred;
+      }
+    }
+
+    .input-help {
+      display: flex;
+      align-items: center;
+
+      .input-help-children-wrapper {
+        flex: 1;
+      }
+
+      .help-icon-wrapper {
+        cursor: help;
+        width: 40px;
+
+        .question-circle {
+          font-size: 1em;
+          opacity: 0.5;
+        }
+      }
+    }
   }
 }
 
@@ -317,71 +409,6 @@
     border: 1px solid #ccc;
     padding-right: 5px;
     overflow: hidden;
-
-    .view_item {
-      display: flex;
-      &:not(:last-of-type) {
-        .item_name {
-          border-bottom: $thin_rule;
-        }
-        .item_view {
-          border-bottom: $thin_rule;
-        }
-      }
-      .item_name {
-        cursor: default;
-        color: darkblue;
-        font-family: $body_font;
-        border-right: 1px solid #ccc;
-
-        flex: 1;
-        display: flex;
-        align-items: flex-start;
-        justify-content: right;
-        line-height: 30px;
-        padding-right: 10px;
-        padding-top: 4px;
-        text-align: right;
-
-        &.revised {
-          background-color: pink;
-        }
-      }
-      .item_view {
-        padding-left: 9px;
-        padding-bottom: 3px;
-        padding-top: 3px;
-        box-sizing: border-box;
-        flex: 1;
-
-        .add_item {
-          cursor: default;
-        }
-
-        .delete_link {
-          cursor: default;
-
-          &:hover {
-            text-decoration: line-through;
-            opacity: 0.5;
-          }
-        }
-
-        .input-help {
-          display: flex;
-          align-items: center;
-
-          .help-icon-wrapper {
-            cursor: help;
-
-            .question-circle {
-              font-size: 1em;
-              opacity: 0.5;
-            }
-          }
-        }
-      }
-    }
   }
 
   .plot-container {
@@ -452,7 +479,6 @@
         display: block;
         width: 150%;
         margin: -25%;
-        opacity: 0.5;
       }
     }
 

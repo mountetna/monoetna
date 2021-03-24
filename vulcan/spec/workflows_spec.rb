@@ -55,6 +55,7 @@ describe WorkflowsController do
       expect(response['workflows'].first['steps']).to eql([
           [
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
                       {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
                   "label"=>nil,
@@ -63,6 +64,7 @@ describe WorkflowsController do
                   "run" => "scripts/add.cwl",
               },
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"num", "source"=>["firstAdd", "sum"]}],
                   "label"=>nil,
                   "out" => ["num"],
@@ -70,6 +72,7 @@ describe WorkflowsController do
                   "run" => "ui-queries/pick-a-number.cwl",
               },
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
                       {"id"=>"b", "source"=>["pickANum", "num"]}],
                   "label"=>nil,
@@ -77,6 +80,7 @@ describe WorkflowsController do
                   "name" => "finalStep",
                   "run"=>"scripts/add.cwl"},
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["finalStep", "sum"]}],
                   "label"=>nil,
                   "name"=>"aPlot",
@@ -85,6 +89,7 @@ describe WorkflowsController do
           ],
           [
               {
+                  "doc" => nil,
                   "in" =>
                     [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
                         {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
@@ -94,6 +99,7 @@ describe WorkflowsController do
                   "run"=>"scripts/add.cwl"
               },
               {
+                  "doc" => nil,
                   "in"=>
                     [{"id"=>"a", "source"=>["firstAdd", "sum"]},
                         {"id"=>"b", "source"=>["pickANum", "num"]}],
@@ -103,6 +109,7 @@ describe WorkflowsController do
                   "run"=>"scripts/add.cwl"
               },
               {
+                  "doc" => nil,
                   "in"=>[{"id"=>"a", "source"=>["finalStep", "sum"]}],
                   "label"=>nil,
                   "name"=>"aPlot",
@@ -112,6 +119,7 @@ describe WorkflowsController do
           ],
           [
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
                            {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
                   "label"=>nil,
@@ -120,6 +128,7 @@ describe WorkflowsController do
                   "run" => "scripts/add.cwl",
               },
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
                            {"id"=>"b", "source"=>["pickANum", "num"]}],
                   "label"=>nil,
@@ -130,6 +139,7 @@ describe WorkflowsController do
           ],
           [
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
                            {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
                   "label"=>nil,
@@ -138,6 +148,7 @@ describe WorkflowsController do
                   "run" => "scripts/add.cwl",
               },
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"num", "source"=>["firstAdd", "sum"]}],
                   "label"=>nil,
                   "out" => ["num"],
@@ -145,6 +156,7 @@ describe WorkflowsController do
                   "run" => "ui-queries/pick-a-number.cwl",
               },
               {
+                  "doc" => nil,
                   "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
                            {"id"=>"b", "source"=>["pickANum", "num"]}],
                   "label"=>nil,

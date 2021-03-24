@@ -80,8 +80,7 @@ steps:
       i: Regress__regress_pct_ribo
       j: UMAP_Calculation__max_pc
       k: UMAP_Calculation__leiden_resolution
-
-    out: [experiments, tissues, all_tubes]
+    out: [experiments, tissues, all_tubes, color_options]
   Select_Records__pickExperiments:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Experiments'
@@ -96,6 +95,12 @@ steps:
     in:
       a: queryMagma/tissues
     out: [options]
+  select_color_by_option:
+    run: ui-queries/nested-select-autocomplete.cwl
+    label: 'Color Options'
+    in:
+      a: queryMagma/color_options
+    out: [color_by]
   parse_record_selections:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
@@ -170,6 +175,7 @@ steps:
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden.json: calc_leiden/leiden.json
       max_pc: UMAP_Calculation__max_pc
+      color_selection: select_color_by_option/color_by
     out: [umap.plotly.json]
   show_umap_plot:
     run: ui-outputs/plotly.cwl

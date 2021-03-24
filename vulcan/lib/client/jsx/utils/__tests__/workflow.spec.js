@@ -13,7 +13,8 @@ import {
   missingUiInputs,
   inputNamesToHashStub,
   shouldDownloadStepData,
-  removeDependentInputs
+  removeDependentInputs,
+  groupUiSteps
 } from '../workflow';
 
 describe('Workflow Utils', () => {
@@ -802,9 +803,114 @@ describe('Workflow Utils', () => {
       expect(result).toEqual({
         primaryInput: 1,
         'step1/data1': '1',
-        'step2/data2': '2',
-        'step4/data4': '4'
+        'step2/data2': '2'
       });
+    });
+  });
+
+  describe('groupUiSteps', () => {
+    it('correctly merges grouped steps', () => {
+      const steps = [
+        {
+          step: {
+            name: 'Group_1__grouped',
+            run: 'ui-queries/int.cwl',
+            in: [
+              {
+                source: ['step1', 'output']
+              }
+            ],
+            out: ['out1'],
+            doc: 'Help for 1',
+            label: 'Label for 1'
+          },
+          index: 0
+        },
+        {
+          step: {
+            name: 'Group_1__grouped_too',
+            run: 'ui-queries/float.cwl',
+            in: [
+              {
+                source: ['step2', 'output']
+              }
+            ],
+            out: ['out2'],
+            doc: 'Help for 2',
+            label: 'Label for 2'
+          },
+          index: 2
+        },
+        {
+          step: {
+            name: 'not_grouped',
+            run: 'ui-queries/float.cwl',
+            in: [],
+            out: []
+          },
+          index: 3
+        }
+      ];
+
+      let result = groupUiSteps(steps);
+      expect(result).toEqual([
+        {
+          step: {
+            name: 'Group 1',
+            label: 'Group 1',
+            run: 'ui-queries/int.cwl',
+            isGroup: true,
+            in: [
+              {
+                source: ['Group_1__grouped', 'out1'],
+                doc: 'Help for 1',
+                label: 'Label for 1'
+              },
+              {
+                source: ['Group_1__grouped_too', 'out2'],
+                doc: 'Help for 2',
+                label: 'Label for 2'
+              }
+            ]
+          },
+          index: 0
+        },
+        {
+          step: {
+            name: 'not_grouped',
+            run: 'ui-queries/float.cwl',
+            in: [],
+            out: []
+          },
+          index: 3
+        }
+      ]);
+    });
+
+    it('leaves ungrouped steps alone', () => {
+      const steps = [
+        {
+          step: {
+            name: 'not_grouped',
+            run: 'ui-queries/int.cwl',
+            in: [],
+            out: []
+          },
+          index: 0
+        },
+        {
+          step: {
+            name: 'not_grouped_either',
+            run: 'ui-queries/float.cwl',
+            in: [],
+            out: []
+          },
+          index: 2
+        }
+      ];
+
+      let result = groupUiSteps(steps);
+      expect(result).toEqual(steps);
     });
   });
 });
