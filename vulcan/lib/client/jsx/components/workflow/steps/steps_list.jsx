@@ -17,9 +17,10 @@ export default function StepsList() {
 
   useEffect(() => {
     // Automatically close the drawer when there are
-    //   output steps.
+    //   output steps. Open drawer if the output
+    //   steps are removed...
     let outputs = completedUiOutputsSelector(context);
-    if (outputs.length > 0) setOpen(false);
+    setOpen(outputs.length === 0);
   }, [status]);
 
   return (
