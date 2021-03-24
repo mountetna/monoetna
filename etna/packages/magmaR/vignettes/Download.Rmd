@@ -121,21 +121,26 @@ In order to access data in magma, a user needs to be authorized to do so. How th
 
 ## Providing a token
 
-Within magmaR, the token can be provided in either of 2 ways:
+Within magmaR, the token is provided as part of the `target` input which can be constructed with the `magmaRset()` function.
 
-**1) Via prompt to the user upon first magmaR function call:**
+To this function, a user's token can be provided in one of two ways.
 
-Recommended when coding interactively: When not provided explicitly, as is the other method, the user will be prompted to provide their token one single time, upon the first call to a magmaR function. The given value will then be stored within the user's global R environment as `.MAGMAR_TOKEN` and any future calls to magmaR functions will automatically fill in their `token` input with this value.
+**1) Via an interactive prompt (Recommended when coding interactively):**
+
+When not provided explicitly, as is the other method, the user will be prompted to provide their token via the interactive console. It is recommended that you store the output of your call to `magmaRset()` as a variable and then to provide this variable within each subsequent call to a magmaR function, as below.
 
 ```{r, hide = TRUE, echo=FALSE}
-prod <- magmaRset(Sys.getenv("TOKEN"))
+prod <- magmaRset(token = Sys.getenv("TOKEN"), url = Sys.getenv("URL"))
 ```
 
-```{r}
-ids_subject <- retrieveIds(
-    target = prod,
-    projectName = "example",
-    modelName = "subject")
+```{r, eval = FALSE}
+# Method1: User will be prompted to give their token in the R console
+prod <- magmaRset()
+
+ids_subject <- retrieveProjects(
+    # Now, we give the output of magmaRset() to the 'target' input of any
+    # other magmaR function.
+    target = prod)
 ```
 
 If you run the above code, you should be prompted to 
@@ -145,67 +150,64 @@ Enter your Janus TOKEN (without quotes):
 
 To fill this in, navigate to https://janus.ucsf.edu (or https://janus-stage.ucsf.edu), click the `Copy Token` button, then paste the value into your console.
 
-**2) Given explicitly**
+**2) Give your token explicitly**
 
-All functions have a `token` input to which a token can be given directly. This is not the generally recommended method because it is not ideal to have authorization values saved within potentially share-able locations, however it can be required when writing scripts or knitting an .Rmd.
+Users can alternatively fill their token in by providing it explicity to the `token` input of `magmaRset()`. This is not the generally recommended method because it is not ideal to have authorization values saved within potentially share-able locations. However the tokens are short-lived and methods of mitigating risk of such token exposure exist, see below.
 
 ```{r, eval = FALSE}
-ids_subject <- retrieveIds(
-    target = prod,
-    projectName = "example",
-    modelName = "subject")
+prod <- magmaRset(token = "<your-token-here>")
+
+ids_subject <- retrieveProjects(
+    # Now, we give the output of magmaRset() to the 'target' input of any
+    # other magmaR function.
+    target = prod)
 ```
 
 **NOTE: Instead of adding your token directly to any file which you might save, it is recommended that you utilize your `.Renviron` file to store your token.** To do so, you can:
 
-1. Utilize the convenient `usethis::edit_r_environ()` function to open your `.Renviron` file. (Install `usethis` with `install.packages("usethis")`.)
-2. Then add this line to this file: `TOKEN="<your_token>"`.
+1. Utilize the convenient `usethis::edit_r_environ()` function to open your `.Renviron` file. (Install `usethis` with `install.packages("usethis")` first.)
+2. Then add this line to the opened file: `TOKEN="<your_token>"`.
 3. Save the file & restart your R session.
-4. Read in your token with `my_token <- Sys.getenv("TOKEN")`
-5. Now you can provide `magmaR_function(..., token = my_token)`, but when you save your script or .Rmd, the token itself will not be included.
+4. Now you can provide `magmaRset(token = Sys.getenv("TOKEN"))`, but when you save your script or .Rmd, the token itself will not be included.
 6. Repeat these steps whenever your token refreshes. Tokens normally refresh every 24 hours, but you'll know when this happens because you will get the error message below.
 
 ## When magma thinks you are unauthorized
 
-If the curl request to magma returns that "You are unauthorized", magmaR will provide extra info so that users can fix this issue:
+If a request to magma returns that "You are unauthorized", magmaR will provide extra info so that users can fix this issue:
 
 ```
 # Error message when magma sends back that user is unauthorized:
-You are unauthorized. If you think this is a mistake, run `rm(.MAGMAR_TOKEN)` or update your 'token' input, then retry. 
+You are unauthorized. If you think this is a mistake, re-run `?magmaRset` to update your 'token' input, then retry. 
 ```
 
 # Controlling which version of magma to target
 
-For advanced users with access to the staging or development versions of magma, switching can be achieved by:
-
-1. Adding `url.base = "production/staging/development-url"` to your function calls, OR
-2. Running `.MAGMAR_URL <- "production/staging/development-url` one time to update the default url utilized in all subsequent magmaR calls.
+For advanced users with access to the staging or development versions of magma, switching can be achieved by adding `url = "production/staging/development-url"` when setting up your `target` with `magmaRset()`.
 
 ```{r, eval = FALSE}
-# Option 1: Given explicitly in every function call:
+dev <- magmaRset(url = "http://magma.development.local")
+
+# When calling to magma...
 ids_subject <- retrieveIds(
-    target = prod,
+    # Now give this to 'target':
+    target = dev,
+    # ^^
     projectName = "example",
     modelName = "subject",
     url.base = "http://magma.development.local")
-
-# Option 2: Run this once
-.MAGMAR_URL <- "http://magma.development.local"
-# Afterwards, all future calls will target this version
-#   (unless they contain an explicit `url.base` input).
-ids_subject <- retrieveIds(
-    target = prod,
-    projectName = "example",
-    modelName = "subject")
 ```
 
 # Helper functions
 
 These functions allow exploration of what data exists within a given project.
 
-Although it is possible to rely on timur.ucsf.edu/<project_name>/map, or on Timur's search functionality, in order **to determine options for `modelName`, `recordNames` or `attributeName(s)` inputs**, magmaR provides these helper functions to allow users to achieve these goals without leaving R.
+Although it is possible to rely on timur.ucsf.edu/<projectName>/map, or on Timur's search functionality, in order **to determine options for `projectName`, `modelName`, `recordNames` or `attributeName(s)` inputs**, magmaR provides these helper functions to allow users to achieve these goals without leaving R.
 
 ```{r}
+# projectName options:
+ids_subject <- retrieveProjects(
+    target = prod)
+
 # modelName options:
 retrieveModels(
     target = prod,
@@ -240,7 +242,7 @@ only a few levels in.  You should see something like this:
 str(temp, max.level = 3)
 ```
 
-Then, followup by looking into the `$template` of individual models further. The start of such output (run as below just without the `head()`), should look like this:
+Then, followup by looking into the `$template` of individual models further, perhaps as below:
 
 ```{r}
 # For the "subject" model:
