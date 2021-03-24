@@ -84,7 +84,7 @@ steps:
   Select_Records__pickExperiments:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Experiments'
-    doc: 'Subset  of experiments to use. These selections get combined with Tissue selections with AND logic. If you want to just select tube records directly, pick No Selections for all dropdowns here.'
+    doc: 'Subset  of experiments to use, based on their `alias`. These selections get combined with Tissue selections with AND logic. If you want to just select tube records directly, pick No Selections for all dropdowns here.'
     in:
       a: queryMagma/experiments
     out: [options]

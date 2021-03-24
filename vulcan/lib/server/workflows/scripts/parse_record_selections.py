@@ -21,7 +21,7 @@ selection_terms = []
 if experiments!=['No Selection']:
     selection_terms.append(
         ["biospecimen_group", "experiment",
-        "::identifier", '::in', experiments])
+        "alias", '::in', experiments])
 #### NEED TO TEST TISSUES BETTER ONCE ADDED
 if tissues!=['No Selection']:
     selection_terms.append(
