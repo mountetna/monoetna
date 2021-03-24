@@ -26,11 +26,6 @@ GEM
       erubi (~> 1.4)
       rails-dom-testing (~> 2.0)
       rails-html-sanitizer (~> 1.1, >= 1.2.0)
-    activemodel (6.1.3)
-      activesupport (= 6.1.3)
-    activerecord (6.1.3)
-      activemodel (= 6.1.3)
-      activesupport (= 6.1.3)
     activesupport (6.1.3)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
@@ -58,12 +53,7 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
-    database_cleaner (2.0.1)
-      database_cleaner-active_record (~> 2.0.0)
-    database_cleaner-active_record (2.0.0)
-      activerecord (>= 5.a)
-      database_cleaner-core (~> 2.0.0)
-    database_cleaner-core (2.0.1)
+    database_cleaner (1.8.0)
     debase (0.2.4.1)
       debase-ruby_core_source (>= 0.10.2)
     debase-ruby_core_source (0.10.12)
@@ -157,7 +147,7 @@ DEPENDENCIES
   actionpack
   aspera-cli
   concurrent-ruby
-  database_cleaner
+  database_cleaner (= 1.8.0)
   debase
   etna!
   pg
