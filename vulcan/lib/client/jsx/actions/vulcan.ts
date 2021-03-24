@@ -1,4 +1,4 @@
-import {SessionStatusResponse, Workflow, WorkflowsResponse} from "../api/types";
+import {SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
 
 function actionObject<T extends string, P>(type: T, payload: P): { type: T } & P {
     return { ...payload, type };

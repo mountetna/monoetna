@@ -1,5 +1,5 @@
 import React from 'react';
-import {VulcanProvider} from '../../../../contexts/vulcan';
+import {VulcanProvider} from '../../../../contexts/vulcan_context';
 import renderer from 'react-test-renderer';
 import PrimaryInputs from '../primary_inputs';
 

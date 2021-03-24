@@ -23,7 +23,10 @@ export const defaultApiHelpers = {
     getData(url: string): Promise<any> {
         return Promise.resolve({});
     },
-    postInputs(workflowName: string, session: VulcanSession): Promise<SessionStatusResponse> {
+    postInputs(session: VulcanSession): Promise<SessionStatusResponse> {
+        return Promise.resolve(defaultSessionStatusResponse);
+    },
+    pollStatus(session: VulcanSession): Promise<SessionStatusResponse> {
         return Promise.resolve(defaultSessionStatusResponse);
     },
     getWorkflows(): Promise<WorkflowsResponse> {
@@ -61,19 +64,20 @@ export function useApi(): typeof defaultApiHelpers {
         return rawVulcanGet(endpoint).then(checkStatus);
     };
 
-    // a
     const getWorkflows = (): Promise<WorkflowsResponse> => {
         return vulcanGet(vulcanPath(ROUTES.fetch_workflows()))
             .then(handleFetchSuccess)
             .catch(handleFetchError);
     };
 
-    // b
-    const postInputs = (workflowName: string, session: VulcanSession): Promise<SessionStatusResponse> => {
-        return vulcanPost(vulcanPath(ROUTES.submit(workflowName)), session);
+    const postInputs = (session: VulcanSession): Promise<SessionStatusResponse> => {
+        return vulcanPost(vulcanPath(ROUTES.submit(session.workflow_name)), session);
     }
 
-    // c
+    const pollStatus = (session: VulcanSession): Promise<SessionStatusResponse> => {
+        return vulcanPost(vulcanPath(ROUTES.status(session.workflow_name)), session);
+    }
+
     const getData = (url: string) => {
         return vulcanGet(url).then(handleFetchSuccess).catch(handleFetchError).then(data => {
             // TODO: In the future, we should set content type headers to inform the client, for now we aggressively
@@ -107,5 +111,6 @@ export function useApi(): typeof defaultApiHelpers {
         getData,
         getWorkflows,
         postInputs,
+        pollStatus,
     }
 }

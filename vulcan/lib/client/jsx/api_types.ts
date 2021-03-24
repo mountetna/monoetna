@@ -90,9 +90,9 @@ export interface StepStatus {
 }
 
 export const defaultVulcanSession = {
-  project_name: "Test Project",
-  workflow_name: "test_workflow",
-  key: "test-session-key",
+  project_name: "",
+  workflow_name: "",
+  key: "",
   inputs: {} as {[k: string]: any},
 };
 

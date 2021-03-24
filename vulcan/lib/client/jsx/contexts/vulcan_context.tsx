@@ -5,6 +5,7 @@ import {defaultSessionStorageHelpers, useLocalSessionStorage} from "./session_st
 import {defaultApiHelpers, useApi} from "./api";
 import {useWorkflowsLoading} from "./workflows_loading";
 import {useDataBuffering} from "./data_buffering";
+import {defaultSessionSyncHelpers, useSessionSync} from "./session_sync";
 
 export const defaultContext = {
     state: defaultVulcanState as VulcanState,
@@ -13,6 +14,7 @@ export const defaultContext = {
     dispatch: (a: VulcanAction) => console.log('action dispatched but not handled', a),
     ...defaultSessionStorageHelpers,
     ...defaultApiHelpers,
+    ...defaultSessionSyncHelpers,
 }
 
 export type VulcanContextData = typeof defaultContext;
@@ -24,9 +26,10 @@ export const VulcanProvider = (props: {params: {}, state?: VulcanState, storage?
     const stateRef = useRef(state);
     const localSessionHelpers = useLocalSessionStorage(state, props);
     const apiHelpers = useApi();
-    const {scheduleWork, getData} = apiHelpers;
+    const {scheduleWork, getData, getWorkflows, pollStatus, postInputs} = apiHelpers;
+    const sessionSyncHelpers = useSessionSync(stateRef, scheduleWork, pollStatus, postInputs, dispatch);
     useDataBuffering(state, dispatch, scheduleWork, getData);
-    useWorkflowsLoading(JSON.stringify(props.params), dispatch, scheduleWork);
+    useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, scheduleWork);
 
     return (
         <VulcanContext.Provider value={{
@@ -35,6 +38,7 @@ export const VulcanProvider = (props: {params: {}, state?: VulcanState, storage?
             dispatch,
             ...localSessionHelpers,
             ...apiHelpers,
+            ...sessionSyncHelpers,
         }}>
         </VulcanContext.Provider>
     );
