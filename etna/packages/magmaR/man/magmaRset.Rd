@@ -12,9 +12,10 @@ magmaRset(token = NULL, url = "https://magma.ucsf.edu", opts = list())
 When not explicitly given, you will be prompted to input it via the console.}
 
 \item{url}{Single string. The url of the production, staging, or development version of magma that you you would like to target.
-See \code{\link{magma-environments}} for more information.}
+See \code{\link{authentication-and-environments}} for more information.}
 
-\item{opts}{A named list of curl options (the names) and the values to give them (the values).}
+\item{opts}{A named list of curl options (the names) and the values to give them (the values).
+Generally not needed, but can be useful for adjusting proxy settings when needed for particular development environment setup.}
 }
 \value{
 A list with three components: token, url, and opts.
@@ -24,7 +25,7 @@ Set up your magma environment and authentication
 }
 \details{
 This function compiles a list, from the given inputs, of the information needed by other \code{magmaR} functions
-to properly route and authenticate authentication a call to magma.
+to properly route and authenticate a call to magma.
 }
 \examples{
 
@@ -42,9 +43,8 @@ if (interactive()) {
     stage <- magmaRset(url = "https://magma-stage.ucsf.edu")
     
     # We can also give additional curl options to the 'opts' input:
-    prod_opts <- magmaRset(
-        token = prod$token,
-        opts = list(proxyport = 1234)) 
+    prod_opts <- magmaRset(token = prod$token,
+        opts = list(proxyport = 1234))
     
     # Now we can retrieve data with...
     retrieve(
