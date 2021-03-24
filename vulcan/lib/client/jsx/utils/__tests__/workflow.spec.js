@@ -803,8 +803,7 @@ describe('Workflow Utils', () => {
       expect(result).toEqual({
         primaryInput: 1,
         'step1/data1': '1',
-        'step2/data2': '2',
-        'step4/data4': '4'
+        'step2/data2': '2'
       });
     });
   });
