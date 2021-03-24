@@ -41,7 +41,7 @@ export type WorkflowsResponse = typeof defaultWorkflowsResponse;
 
 export interface StepInput {
   id: string,
-  source: [string | "primary_input", string],
+  source: string,
 }
 
 export interface WorkflowStep {
@@ -72,6 +72,7 @@ export interface Workflow {
   name: string,
   inputs: {[k: string]: WorkflowInput},
   outputs: {[k: string]: WorkflowOutput},
+  dependencies_of_outputs: {[k: string]: string[]},
   steps: [WorkflowStep[]],
   vignette?: string,
   image?: string,

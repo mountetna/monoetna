@@ -1,7 +1,7 @@
 import {
     VulcanAction
 } from '../actions/vulcan';
-import {SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
+import {defaultSessionStatusResponse, SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
 
 
 export type DownloadedData = any; // TODO: improve typing here.
@@ -26,6 +26,7 @@ export const defaultVulcanState = {
     data: defaultData,
     inputs: defaultInputs,
     session: defaultSession,
+    outputs: defaultSessionStatusResponse.outputs,
 };
 
 export type VulcanState = Readonly<(typeof defaultVulcanState)>;

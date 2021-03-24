@@ -7,6 +7,59 @@ class DirectedGraph
   attr_reader :children
   attr_reader :parents
 
+  def full_parentage(n)
+    [].tap do |result|
+      q = @parents[n].keys.dup
+      seen = Set.new
+
+      until q.empty?
+        n = q.shift
+        next if seen.include?(n)
+        seen.add(n)
+
+        result << n
+        q.push(*@parents[n].keys)
+      end
+
+      result.uniq!
+    end
+  end
+
+  def as_normalized_hash(root, include_root = true)
+    q = [root]
+    {}.tap do |result|
+      if include_root
+        result[root] = []
+      end
+
+      seen = Set.new
+
+      until q.empty?
+        n = q.shift
+        next if seen.include?(n)
+        seen.add(n)
+
+        parentage = full_parentage(n)
+
+        @children[n].keys.each do |child_node|
+          q << child_node
+
+          if result.include?(n)
+            result[n] << child_node
+          end
+
+          parentage.each do |grandparent|
+            result[grandparent] << child_node if result.include?(grandparent)
+          end
+
+          result[child_node] = []
+        end
+      end
+
+      result.values.each(&:uniq!)
+    end
+  end
+
   def add_connection(parent, child)
     children = @children[parent] ||= {}
     child_children = @children[child] ||= {}

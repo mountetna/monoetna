@@ -1,11 +1,11 @@
 import React, {useContext} from 'react';
 
-import {VulcanContext} from '../../../contexts/vulcan';
+import {VulcanContext} from '../../../contexts/vulcan_context';
 import Icon from 'etna-js/components/icon';
 import AnimatedClock from './animated_clock';
-import {WorkflowStep} from "../../../api/types";
-import {statusOfStep} from "../../../selectors/workflow";
-import {STATUS} from "../../../steps";
+import {WorkflowStep} from "../../../api_types";
+import {statusOfStep} from "../../../selectors/workflow_selectors";
+import {STATUS} from "../../../api_types";
 
 const icons: {[k: string]: {icon: string, className: string}} = {
   [STATUS.COMPLETE]: { icon: 'check', className: 'light green' },

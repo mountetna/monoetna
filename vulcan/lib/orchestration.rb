@@ -239,25 +239,7 @@ class Vulcan
     # Each path represents a potential divergent -> convergent ordering that has strict execution ordering.  The
     # first node and last node of each of these paths _may_ be shared with other paths as part of convergence.
     def self.unique_paths(workflow)
-      directed_graph = ::DirectedGraph.new
-
-      directed_graph.add_connection(:root, :primary_inputs)
-
-      workflow.steps.each do |step|
-        if step.in.empty?
-          directed_graph.add_connection(:root, step.id)
-        end
-
-        step.in.each do |step_input|
-          directed_graph.add_connection(step_input.source.first, step.id)
-        end
-      end
-
-      workflow.outputs.each do |output|
-        directed_graph.add_connection(output.outputSource.first, :primary_outputs)
-      end
-
-      [directed_graph.serialized_path_from(:root, false)]
+      [workflow.step_graph.serialized_path_from(:root, false)]
     end
 
     def unique_paths

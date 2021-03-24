@@ -1,6 +1,7 @@
 import {useEffect, useCallback, MutableRefObject} from "react";
 import {SessionStatusResponse, Workflow} from "../api_types";
 import {VulcanState} from "../reducers/vulcan_reducer";
+import {allWorkflowPrimaryInputSources, inputValueNonEmpty} from "../selectors/workflow_selectors";
 
 const localStorageKey = (workflow: Workflow) => `${workflow.name}.session`;
 
@@ -29,17 +30,25 @@ export function useLocalSessionStorage(
         let storedSession: any = storage.getItem(localStorageKey(workflow));
         if (!storedSession) return Promise.resolve(null);
 
-        // We now need to check if the input names have changed.
-        // If all the workflow's primary inputs are NOT present
-        //   in the stored session, we'll return `null` and get
-        //   a new session.
-        storedSession = JSON.parse(storedSession);
-        if (!allInputsDefined(workflow, storedSession.inputs)) {
-            storage.removeItem(localStorageKey(workflow));
+        try {
+            const parsedSession: VulcanState['session'] = JSON.parse(storedSession);
+
+            // We now need to check if the input names have changed.
+            // If all the workflow's primary inputs are NOT present
+            //   in the stored session, we'll return `null` and get
+            //   a new session.
+            if (
+                allWorkflowPrimaryInputSources(workflow).every(source => source in parsedSession.inputs) &&
+                Object.values(parsedSession.inputs).every(inputValueNonEmpty)) {
+                return Promise.resolve(storedSession);
+            }
+
+            return Promise.resolve(null);
+        } catch(e) {
+            // No guarantees that the stored session is really valid, gracefully clear that session in that case.
+            console.error(e);
             return Promise.resolve(null);
         }
-
-        return Promise.resolve(storedSession);
     }, [storage]);
 
     return {

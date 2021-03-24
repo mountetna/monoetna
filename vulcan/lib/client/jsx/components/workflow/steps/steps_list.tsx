@@ -1,6 +1,6 @@
 import React, {useContext, useState} from 'react';
 
-import {VulcanContext} from '../../../contexts/vulcan';
+import {VulcanContext} from '../../../contexts/vulcan_context';
 import Step from './step';
 
 export default function StepsList() {

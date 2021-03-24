@@ -2,16 +2,15 @@ import React, {useContext, useState, useEffect, useCallback, useMemo} from 'reac
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
-import {STATUS} from '../../../steps';
+import {STATUS} from '../../../api_types';
 import UserInput from '../user_interactions/inputs/user_input';
 import StepName from './step_name';
 
-import {WorkflowStep} from "../../../api/types";
+import {WorkflowStep} from "../../../api_types";
 import {
-  inputNamesOfStepOutputs,
+  sourceNamesOfStep,
   statusOfStep,
-  uiQueryOfStep,
-  uiStepInputDataRaw
+  uiQueryOfStep, stepInputDataRaw,
 } from "../../../selectors/workflow_selectors";
 import {setInputs} from "../../../actions/vulcan";
 import {InputSpecification, InputType} from "../user_interactions/inputs/types";
@@ -42,14 +41,14 @@ export default function StepUserInput({step}: {step: WorkflowStep}) {
 
   // We need to map the user input step's output to
   //   a set of input items.
-  const outputRefs = useMemo(() => inputNamesOfStepOutputs(step), [step]);
+  const outputRefs = useMemo(() => sourceNamesOfStep(step), [step]);
   const stepInputs: InputSpecification[] = useMemo(() => outputRefs.map(outputName => ({
     type: uiQuery as InputType,
     label: step.label || step.name,
     // The existing value
     default: state.inputs[outputName],
     name: outputName,
-    data: uiStepInputDataRaw(step, state.status, state.data),
+    data: stepInputDataRaw(step, state.status, state.data, state.session),
     doc: step.doc
   })), [outputRefs, step, state.status, state.data, state.inputs])
 

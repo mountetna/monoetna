@@ -52,107 +52,45 @@ describe WorkflowsController do
           }
       })
 
+      expect(response['workflows'].first['dependencies_of_outputs']).to eql({
+          "finalStep/sum" => [],
+          "firstAdd/sum" => ["finalStep/sum", "pickANum/num"],
+          "pickANum/num" => ["finalStep/sum"],
+          "someInt" => ["firstAdd/sum", "finalStep/sum", "pickANum/num"],
+          "someIntWithoutDefault" => ["firstAdd/sum", "finalStep/sum", "pickANum/num"],
+      })
+
       expect(response['workflows'].first['steps']).to eql([
           [
               {
-                  "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
-                      {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
+                  "in" => [{"id"=>"a", "source"=>"someInt"},
+                      {"id"=>"b", "source"=>"someIntWithoutDefault"}],
                   "label"=>nil,
                   "out" => ["sum"],
                   "name" => "firstAdd",
                   "run" => "scripts/add.cwl",
               },
               {
-                  "in" => [{"id"=>"num", "source"=>["firstAdd", "sum"]}],
+                  "in" => [{"id"=>"num", "source"=>"firstAdd/sum"}],
                   "label"=>nil,
                   "out" => ["num"],
                   "name" => "pickANum",
                   "run" => "ui-queries/pick-a-number.cwl",
               },
               {
-                  "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
-                      {"id"=>"b", "source"=>["pickANum", "num"]}],
+                  "in" => [{"id"=>"a", "source"=>"firstAdd/sum"},
+                      {"id"=>"b", "source"=>"pickANum/num"}],
                   "label"=>nil,
                   "out" => ["sum"],
                   "name" => "finalStep",
                   "run"=>"scripts/add.cwl"},
               {
-                  "in" => [{"id"=>"a", "source"=>["finalStep", "sum"]}],
+                  "in" => [{"id"=>"a", "source"=>"finalStep/sum"}],
                   "label"=>nil,
                   "name"=>"aPlot",
                   "out"=>[],
                   "run"=>"ui-outputs/plotter.cwl"}
           ],
-          [
-              {
-                  "in" =>
-                    [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
-                        {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
-                  "label"=>nil,
-                  "name"=>"firstAdd",
-                  "out"=>["sum"],
-                  "run"=>"scripts/add.cwl"
-              },
-              {
-                  "in"=>
-                    [{"id"=>"a", "source"=>["firstAdd", "sum"]},
-                        {"id"=>"b", "source"=>["pickANum", "num"]}],
-                  "label"=>nil,
-                  "name"=>"finalStep",
-                  "out"=>["sum"],
-                  "run"=>"scripts/add.cwl"
-              },
-              {
-                  "in"=>[{"id"=>"a", "source"=>["finalStep", "sum"]}],
-                  "label"=>nil,
-                  "name"=>"aPlot",
-                  "out"=>[],
-                  "run"=>"ui-outputs/plotter.cwl"
-              }
-          ],
-          [
-              {
-                  "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
-                           {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
-                  "label"=>nil,
-                  "out" => ["sum"],
-                  "name" => "firstAdd",
-                  "run" => "scripts/add.cwl",
-              },
-              {
-                  "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
-                           {"id"=>"b", "source"=>["pickANum", "num"]}],
-                  "label"=>nil,
-                  "out" => ["sum"],
-                  "name" => "finalStep",
-                  "run" => "scripts/add.cwl",
-              },
-          ],
-          [
-              {
-                  "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
-                           {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
-                  "label"=>nil,
-                  "out" => ["sum"],
-                  "name" => "firstAdd",
-                  "run" => "scripts/add.cwl",
-              },
-              {
-                  "in" => [{"id"=>"num", "source"=>["firstAdd", "sum"]}],
-                  "label"=>nil,
-                  "out" => ["num"],
-                  "name" => "pickANum",
-                  "run" => "ui-queries/pick-a-number.cwl",
-              },
-              {
-                  "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
-                           {"id"=>"b", "source"=>["pickANum", "num"]}],
-                  "label"=>nil,
-                  "out" => ["sum"],
-                  "name" => "finalStep",
-                  "run" => "scripts/add.cwl",
-              },
-          ]
       ])
     end
 
