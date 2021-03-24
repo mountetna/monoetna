@@ -46,7 +46,6 @@ Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details.
 for troubleshooting or advanced-user purposes only: \itemize{
 \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
 \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
-\item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 }}
 }
 \value{

@@ -16,7 +16,6 @@
 #' for troubleshooting or advanced-user purposes only: \itemize{
 #' \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
 #' \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
-#' \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 #' }
 #' @return A dataframe
 #' @details This function makes a curl get request to magma/retrieve, with properly reformatted versions of user inputs, plus \code{format = "tsv"}.
