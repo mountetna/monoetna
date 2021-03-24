@@ -105,8 +105,8 @@ steps:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
     in:
-      experiments:  Select_Records__pickExperiments/options
-      tissues:  Select_Records__pickTissues/options
+      experiments: Select_Records__pickExperiments/options
+      tissues: Select_Records__pickTissues/options
       all_tubes: queryMagma/all_tubes
     out: [tube_recs]
   verifyRecordNames:
