@@ -32,8 +32,8 @@
         }
     }
     
-    if (curl$status_code==401) {
-        stop("You are unauthorized. If you think this is a mistake, run `rm(.MAGMAR_TOKEN)` or update your 'token' input, then retry.")
+    if (curl$status_code %in% c(302,401)) {
+        stop("You are unauthorized. Update your 'token' input with 'magmaRset()', then retry.")
     }
     
     # Parse

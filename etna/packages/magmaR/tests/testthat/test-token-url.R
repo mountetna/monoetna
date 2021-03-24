@@ -28,3 +28,16 @@ test_that("default, production, magma link is filled in when not gven", {
         magmaRset("")$url,
         "https://magma.ucsf.edu")
 })
+
+vcr::use_cassette("bad_token", {
+    test_that("Proper error given when a token is improper", {
+        
+        bad_targ <- magmaRset(token = "BAD_TOKEN")
+        
+        expect_error(
+            retrieveProjects(bad_targ),
+            "unauthorized. Update your 'token'",
+            fixed = TRUE
+        )
+    })
+})
