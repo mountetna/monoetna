@@ -10,7 +10,8 @@ export default function DropdownAutocomplete({
   list,
   onSelect,
   defaultValue,
-  waitTime
+  waitTime,
+  maxItems
 }) {
   var collator = new Intl.Collator(undefined, {
     numeric: true,
@@ -93,7 +94,7 @@ export default function DropdownAutocomplete({
       {showList ? (
         <ul className={`dropdown-autocomplete-options`}>
           {filteredList && filteredList.length > 0 ? (
-            filteredList.slice(0, 20).map((item, index) => (
+            filteredList.slice(0, maxItems || 20).map((item, index) => (
               <li
                 onClick={() => {
                   onSelectItem(item);
