@@ -33,7 +33,7 @@ module Etna
             inputs: @attributes['inputs'].map(&:as_steps_inputs_json_pair).to_h,
             outputs: @attributes['outputs'].map(&:as_steps_output_json_pair).to_h,
             dependencies_of_outputs: dependencies_of_output_map.as_normalized_hash(:root, false),
-            steps: Vulcan::Orchestration.unique_paths(self).map do |path|
+            steps: Vulcan::Orchestration.serialize_step_path(self).map do |path|
               path.map { |step_name| self.find_step(step_name)&.as_step_json }.select { |v| v }
             end
         }

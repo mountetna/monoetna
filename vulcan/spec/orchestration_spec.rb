@@ -12,8 +12,8 @@ describe Vulcan::Orchestration do
     orchestration.build_target_for(:primary_outputs)
   end
 
-  def unique_paths
-    orchestration.unique_paths
+  def serialized_step_path
+    orchestration.serialized_step_path
   end
 
   def build_targets
@@ -40,13 +40,10 @@ describe Vulcan::Orchestration do
     end
   end
 
-  describe '#unique_paths' do
+  describe '#serialized_step_path' do
     it 'works' do
-      expect(unique_paths).to eql([
+      expect(serialized_step_path).to eql([
           [:primary_inputs, "firstAdd", "pickANum", "finalStep", "aPlot", :primary_outputs],
-          [:primary_inputs, "firstAdd", "finalStep", "aPlot"],
-          [:primary_inputs, "firstAdd", "finalStep", :primary_outputs],
-          [:primary_inputs, "firstAdd", "pickANum", "finalStep"],
       ])
     end
   end
@@ -58,9 +55,6 @@ describe Vulcan::Orchestration do
 
         expect(should_builds).to eql([
             [false, false, false, false, false, false],
-            [false, false, false, false],
-            [false, false, false, false],
-            [false, false, false, false],
         ])
         expect(orchestration.next_runnable_build_targets(storage)).to eql([])
 
@@ -70,9 +64,6 @@ describe Vulcan::Orchestration do
 
         expect(should_builds).to eql([
             [true, false, false, false, false, false],
-            [true, false, false, false],
-            [true, false, false, false],
-            [true, false, false, false],
         ])
 
         expect(orchestration.next_runnable_build_targets(storage).map(&:cell_hash)).to eql([
@@ -87,9 +78,6 @@ describe Vulcan::Orchestration do
 
         expect(should_builds).to eql([
             [false, true, false, false, false, false],
-            [false, true, false, false],
-            [false, true, false, false],
-            [false, true, false, false],
         ])
       end
     end
@@ -102,9 +90,6 @@ describe Vulcan::Orchestration do
         session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
             [false, false, false, false, false, false],
-            [false, false, false, false],
-            [false, false, false, false],
-            [false, false, false, false]
         ])
 
         # Test verification: check the falsifiable condition that the reason these tests pass is because this function
@@ -112,27 +97,18 @@ describe Vulcan::Orchestration do
         prev_cell_hashes = cell_hashes
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
             [true, true, true, true, true, true],
-            [true, true, true, true],
-            [true, true, true, true],
-            [true, true, true, true]
         ])
 
         prev_cell_hashes = cell_hashes
         session.define_user_input(["primary_inputs", "notARealInput"], 123)
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
             [true, true, true, true, true, true],
-            [true, true, true, true],
-            [true, true, true, true],
-            [true, true, true, true]
         ])
 
         prev_cell_hashes = cell_hashes
         session.define_user_input([:primary_inputs, "alsoNotAnInput"], 123)
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
             [true, true, true, true, true, true],
-            [true, true, true, true],
-            [true, true, true, true],
-            [true, true, true, true]
         ])
 
         # Defining an input only effects downstream cells
@@ -140,9 +116,6 @@ describe Vulcan::Orchestration do
         session.define_user_input(["pickANum", "num"], 543)
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
             [true, true, false, false, false, false],
-            [true, true, false, false],
-            [true, true, false, false],
-            [true, true, false, false]
         ])
       end
     end

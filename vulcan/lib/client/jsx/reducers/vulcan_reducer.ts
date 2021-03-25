@@ -27,6 +27,7 @@ export const defaultVulcanState = {
     inputs: defaultInputs,
     session: defaultSession,
     outputs: defaultSessionStatusResponse.outputs,
+    calculating: false,
 };
 
 export type VulcanState = Readonly<(typeof defaultVulcanState)>;
@@ -48,18 +49,6 @@ export function updateDownloads(state: VulcanState): VulcanState {
     })
 
     return {...state, data: data};
-}
-
-export function allUnresolvedDownloadUrls(state: VulcanState): string[] {
-    const result: {[k: string]: boolean} = {};
-
-    for (let url in state.data) {
-        if (state.data[url] == null) {
-            result[url] = true;
-        }
-    }
-
-    return Object.keys(result);
 }
 
 export default function VulcanReducer(state: VulcanState, action: VulcanAction): VulcanState {
@@ -124,6 +113,11 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
                 }
             }
 
+        case 'SET_CALCULATING':
+            return {
+                ...state,
+                calculating: action.calculating,
+            };
 
         default:
             return state;

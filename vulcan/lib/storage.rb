@@ -238,7 +238,7 @@ class Vulcan
       end
 
       def is_built?(storage)
-        ::File.exists?(storage.cell_data_path(project_name: project_name, cell_hash: cell_hash))
+        build_outputs.values.all? { |output_file| ::File.exists?(output_file.data_path(storage)) }
       end
 
       def should_build?(storage)

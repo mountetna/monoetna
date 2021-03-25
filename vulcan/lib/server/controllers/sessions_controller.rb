@@ -44,7 +44,7 @@ class SessionsController < Vulcan::Controller
   end
 
   def all_steps_status(build_target_cache:)
-    orchestration.unique_paths.map do |paths|
+    orchestration.serialized_step_path.map do |paths|
       paths.map do |step_name|
         step = orchestration.workflow.find_step(step_name)
         next nil if step.nil?

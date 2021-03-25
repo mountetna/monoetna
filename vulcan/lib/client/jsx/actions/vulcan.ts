@@ -36,10 +36,14 @@ export function commitInputs() {
     return actionObject('COMMIT_INPUTS', {});
 }
 
+export function setCalculating(calculating: boolean) {
+    return actionObject('SET_CALCULATING', {calculating});
+}
+
 const actions = {
     commitInputs,
 }
 
 export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow> | ReturnType<typeof setStatus> |
     ReturnType<typeof setDownloadedData> | ReturnType<typeof setSession> | ReturnType<typeof setInputs> |
-    ReturnType<typeof commitInputs> | ReturnType<typeof releaseDownloadedData>;
+    ReturnType<typeof commitInputs> | ReturnType<typeof releaseDownloadedData> | ReturnType<typeof setCalculating>;

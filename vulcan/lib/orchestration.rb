@@ -28,15 +28,16 @@ class Vulcan
         errors = RunErrors.new
         i = 0
         until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
+          next_runnable = runnables.find { |r| !errors.include?(r) }
+
           begin
-            next_runnable = runnables.find { |r| !errors.include?(r) }
             break if next_runnable.nil?
 
-            run!(storage: storage, build_target: runnables.first, token: token)
+            run!(storage: storage, build_target: next_runnable, token: token)
           rescue => e
-            errors << {cell_hash: runnables.first.cell_hash, error: e}
+            errors << {cell_hash: next_runnable.cell_hash, error: e}
           ensure
-            ran << runnables.first
+            ran << next_runnable
           end
         end
         raise errors unless errors.empty?
@@ -228,22 +229,16 @@ class Vulcan
       raise "Build for #{build_target} failed to produce outputs!" unless build_target.is_built?(storage)
     end
 
-    # Returns a list of lists, describing the dependency between steps, primary inputs, and primary outputs.
-    # The first inner list is a serialized path traversing all nodes in a strictly linear fashion.
-    # Note that this ordering is NOT Guaranteed to be the execution order; tasks that exist on divergent paths
-    # might be run in parallel, and thus may complete in a non deterministic ordering.  But this serialized
-    # ordering will, nonetheless, occur in an order such that an strict dependency is always before
-    # convergent nodes.
-    # After the first inner list, each other inner list is a unique path in side of the workflow starting
-    # a primary_inputs and terminating at either a primary_output or a step that is not used as an input the workflow
-    # Each path represents a potential divergent -> convergent ordering that has strict execution ordering.  The
-    # first node and last node of each of these paths _may_ be shared with other paths as part of convergence.
-    def self.unique_paths(workflow)
+    def unique_paths
+      @unique_paths = workflow.step_graph.paths_from(:root, false)
+    end
+
+    def self.serialize_step_path(workflow)
       [workflow.step_graph.serialized_path_from(:root, false)]
     end
 
-    def unique_paths
-      @unique_paths ||= self.class.unique_paths(workflow)
+    def serialized_step_path
+      @serialized_step_path ||= self.class.serialize_step_path(workflow)
     end
 
     def next_runnable_build_targets(storage)

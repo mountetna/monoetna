@@ -2,7 +2,7 @@
 import React, {useContext, useEffect, useState, useCallback} from 'react';
 import {connect} from 'react-redux';
 
-import {VulcanContext} from '../contexts/vulcan';
+import {VulcanContext} from '../contexts/vulcan_context';
 import Nav from 'etna-js/components/Nav';
 import Link from 'etna-js/components/link';
 import {selectUser} from 'etna-js/selectors/user-selector';
@@ -116,7 +116,8 @@ const Halo = ({radius}) => {
 };
 
 function Logo() {
-  let {calculating} = useContext(VulcanContext);
+  let {state} = useContext(VulcanContext);
+  const {calculating} = state;
 
   return (
     <div id='vulcan-logo'>
