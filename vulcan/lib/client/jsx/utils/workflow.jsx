@@ -284,10 +284,8 @@ export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
   let validInputs = {...userInputs};
   // Start iterating from index 1, since 0 is work path.
   dependentUiInputNames({workflow, inputName}).forEach((inputName) => {
-    console.log('inputName', inputName);
     delete validInputs[inputName];
   });
-  console.log('validInputs', validInputs);
   return validInputs;
 };
 
