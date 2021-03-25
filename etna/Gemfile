@@ -12,6 +12,7 @@ gem 'vcr' # For Etna::Client in recording mode.
 gem 'multipart-post'
 gem 'nokogiri'
 gem 'aspera-cli'
+gem 'mimemagic', '0.3.7' # for aspera-cli
 gem 'concurrent-ruby'
 gem 'concurrent-ruby-ext'
 
