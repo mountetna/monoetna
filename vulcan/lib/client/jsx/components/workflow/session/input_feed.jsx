@@ -37,7 +37,6 @@ export default function InputFeed() {
       let missingInputs = missingUiInputs(nextInputStep, session);
 
       if (missingInputs.length > 0) {
-        console.log('with some missing inputs', missingInputs);
         // Make sure to copy over the current inputs, otherwise
         //   they'll get wiped out in the reducer.
         setInputs({
