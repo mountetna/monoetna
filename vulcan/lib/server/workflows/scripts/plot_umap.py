@@ -3,6 +3,8 @@ from archimedes.functions.utils import re
 from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.plotting import px, pio, colors
 from archimedes.functions.magma import connect, question
+from archimedes.functions.list import flatten
+
 
 scdata = sc.read(input_path('umap_anndata.h5ad'))
 
@@ -37,7 +39,7 @@ elif color_by == 'Pool':
 elif color_by == 'Biospecimen Group':
     color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', '::identifier' ])
 elif color_by in scdata.var_names:
-    color = scdata.X[ : , scdata.var_names == color_by ]
+    color = flatten(scdata.X[ : , scdata.var_names == color_by ])
 else:
     color = None
 
