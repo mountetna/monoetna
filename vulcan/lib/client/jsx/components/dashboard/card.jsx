@@ -30,7 +30,9 @@ export default function Card({workflow, onClick}) {
       <div className='workflow-card-description'>
         <div className='row'>
           <div className='label'>Name</div>
-          <div className='value'>{workflowName(workflow)}</div>
+          <div className='value'>
+            {workflow.displayName || workflowName(workflow)}
+          </div>
         </div>
         <div className='row'>
           <div className='label'>Authors</div>

@@ -3,7 +3,12 @@ import React, {useContext, useMemo} from 'react';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import UserInput from '../user_interactions/inputs/user_input';
 import {GroupedInputStep, InputSpecification} from "../user_interactions/inputs/input_types";
-import {stepInputDataRaw, stepOfSource, stepOfStatus, uiQueryOfStep} from "../../../selectors/workflow_selectors";
+import {
+    stepInputDataRaw,
+    stepOfSource,
+    stepOfStatus,
+    uiQueryOfStep
+} from "../../../selectors/workflow_selectors";
 
 export default function StepUserInputDrawer({step, handleInputChange}: {step: GroupedInputStep, handleInputChange: (sourceName: string, val: any) => void}) {
     let {state} = useContext(VulcanContext);

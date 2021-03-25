@@ -82,6 +82,8 @@ export interface Workflow {
   image?: string,
   projects?: string[],
   authors?: string[],
+  displayName?: string,
+  description?: string,
 }
 
 export type StatusString = 'running' | 'pending' | 'complete' | 'error';

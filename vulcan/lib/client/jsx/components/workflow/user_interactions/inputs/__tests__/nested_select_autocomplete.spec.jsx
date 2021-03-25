@@ -128,7 +128,7 @@ describe('NestedSelectAutocompleteInput', () => {
     expect(onChange).toBeCalledWith('test-input', null);
   });
 
-  fit('can find an existing path when given a default', () => {
+  it('can find an existing path when given a default', () => {
     input.default = 'stepchild1';
 
     const component = mount(
@@ -144,5 +144,28 @@ describe('NestedSelectAutocompleteInput', () => {
       'another1',
       'stepchild1'
     ]);
+  });
+
+  it('correctly updates dropdowns when given a default', () => {
+    input.default = 'stepchild1';
+
+    const component = mount(
+      <NestedSelectAutocompleteInput
+        input={input}
+        onChange={onChange}
+      ></NestedSelectAutocompleteInput>
+    );
+
+    expect(component.find('input').length).toEqual(3);
+
+    component.find('.icon-wrapper').first().simulate('click');
+
+    component.update();
+
+    component.find('li').first().simulate('click');
+
+    component.update();
+
+    expect(component.find('input').length).toEqual(2);
   });
 });

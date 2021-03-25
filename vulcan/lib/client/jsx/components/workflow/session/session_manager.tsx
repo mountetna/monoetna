@@ -47,7 +47,9 @@ export default function SessionManager() {
     return (
         <div className='session-manager'>
             <div className='session-header'>
-                <span className='session-workflow-name'>{name}</span>
+                <span className='session-workflow-name'>
+                    {workflow.description || name}
+                </span>
                 {workflow.vignette && (
                     <div className='header-btn'>
                         <Link link={ROUTES.workflow_vignette(name)}>

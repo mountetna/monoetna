@@ -2,17 +2,13 @@ import * as _ from 'lodash';
 import {
     OUTPUT_COMPONENT,
     RUN,
-    STATUS,
-    SessionStatusResponse,
-    StepInput,
+    SessionStatusResponse, StepInput,
     StepStatus,
     Workflow,
     WorkflowStep,
-    WorkflowInput
 } from "../api_types";
-import {defaultVulcanState, VulcanState} from "../reducers/vulcan_reducer";
-import {InputSpecification, InputType, UIStep} from "../components/workflow/user_interactions/inputs/input_types";
-import {useMemo} from "react";
+import {VulcanState} from "../reducers/vulcan_reducer";
+import {GroupedInputStep, UIStep} from "../components/workflow/user_interactions/inputs/input_types";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
     workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
@@ -92,6 +88,25 @@ export function allWorkflowInputSources(workflow: Workflow): string[] {
 
 export function inputValueNonEmpty(val: any) {
     return val != null && !isNaN(val) && !_.isEqual(val, ['']) && !_.isEqual(val, []);
+}
+
+export function allDataNonEmpty(data: ([any] | null)[]) {
+    return data.every(v => v && inputValueNonEmpty(v[0]));
+}
+
+export function dataOfSource(source: string, workflow: Workflow | null, status: VulcanState['status'], data: VulcanState['data'], session: VulcanState['session']): [any] | null {
+    if (!workflow) return null;
+    const [originalStepName, outputName] = splitSource(source);
+    const originalStep = originalStepName ? stepOfStatus(originalStepName, workflow) : null;
+    return originalStep ? [stepInputDataRaw(originalStep, status, data, session)[outputName]] : null;
+}
+
+export function allExpectedOutputSources(step: WorkflowStep | GroupedInputStep): string[] {
+    if ('isGroup' in step) {
+        return step.in.map(({source}) => source);
+    } else {
+        return step.out.map(outputName => sourceNameOfReference([step.name, outputName]));
+    }
 }
 
 export const shouldDownload = (url: string, workflow: Workflow, step: WorkflowStep | undefined, status: SessionStatusResponse['status']) => {
@@ -240,65 +255,3 @@ export function groupUiSteps(uiSteps: UIStep[]): UIStep[] {
 
     return Object.values(result);
 }
-
-
-// export const completedUiStepsSelector = (context) => {
-//   let {status, workflow, pathIndex} = context;
-//   return status[pathIndex]
-//     .map((step, index) => {
-//       let workflowStep = workflow.steps[pathIndex][index];
-//       if (STATUS.COMPLETE === step.status && hasUiInput(workflowStep)) {
-//         return {
-//           step: workflowStep,
-//           index
-//         };
-//       }
-//     })
-//     .filter((s) => s);
-// };
-//
-// export const completedUiOutputsSelector = (context) => {
-//   let {status, workflow, pathIndex} = context;
-//   return status[pathIndex]
-//     .map((step, index) => {
-//       let workflowStep = workflow.steps[pathIndex][index];
-//       if (STATUS.COMPLETE === step.status && hasUiOutput(workflowStep)) {
-//         return {
-//           step: workflowStep,
-//           index
-//         };
-//       }
-//     })
-//     .filter((s) => s);
-// };
-//
-// export const nextUiStepsSelector = (context) => {
-//   let {status, workflow, pathIndex} = context;
-//   return status[pathIndex]
-//     .map((s, index) => {
-//       let workflowStep = workflow.steps[pathIndex][index];
-//       if (
-//         STATUS.PENDING === s.status &&
-//         hasUiInput(workflowStep) &&
-//         uiStepInputDataLink({step: workflowStep, status, pathIndex})
-//       )
-//         return {...workflowStep, index};
-//     })
-//     .filter((s) => s);
-// };
-//
-// export const errorStepsSelector = (context) => {
-//   let {status, workflow, pathIndex} = context;
-//   return status[pathIndex]
-//     .map((step, index) => {
-//       let workflowStep = workflow.steps[pathIndex][index];
-//       if (STATUS.ERROR === step.status) {
-//         return {
-//           step: workflowStep,
-//           index
-//         };
-//       }
-//     })
-//     .filter((s) => s);
-// };
-

@@ -1,54 +1,57 @@
-import React, {useContext, useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useContext, useState, useEffect, useCallback} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import {STATUS} from '../../../api_types';
-import UserInput from '../user_interactions/inputs/user_input';
 import StepName from './step_name';
 
-import {WorkflowStep} from "../../../api_types";
 import {
-    sourceNamesOfStep,
+    allDataNonEmpty, allExpectedOutputSources,
+    dataOfSource,
     statusOfStep,
-    uiQueryOfStep, stepInputDataRaw,
+    uiQueryOfStep,
 } from "../../../selectors/workflow_selectors";
 import {setInputs} from "../../../actions/vulcan";
-import {InputSpecification, InputType, UIStep} from "../user_interactions/inputs/input_types";
+import {UIStep} from "../user_interactions/inputs/input_types";
 import StepUserInputDrawer from "./step_user_input_drawer";
 import StepUserInput from "./step_user_input";
 
-export default function StepUserInputWrapper({step}: {step: UIStep['step']}) {
+export default function StepUserInputWrapper({step}: { step: UIStep['step'] }) {
     const [open, setOpen] = useState(true);
     const {dispatch, state} = useContext(VulcanContext);
 
-    const status = statusOfStep(step, state.status);
+    const {status, workflow, data, session} = state;
+
+    const stepStatus = statusOfStep(step, status);
     const uiQuery = uiQueryOfStep(step);
 
-    if (!status || !uiQuery) return null;
+    if (!stepStatus || !uiQuery) return null;
 
     const handleInputChange = useCallback((inputName: string, value: any) => {
-        dispatch(setInputs({ ...state.inputs, [inputName]: value }));
+        dispatch(setInputs({...state.inputs, [inputName]: value}));
     }, [state, dispatch, setInputs]);
 
     const toggleInputs = useCallback(() => setOpen(!open), [setOpen, open]);
+    const statusStr = stepStatus.status;
 
     useEffect(() => {
-        let stepStatus = status.status;
-        if (STATUS.COMPLETE === stepStatus) {
-            setOpen(false);
-        } else if (STATUS.PENDING === stepStatus) {
+        // A group's "output" is the definition of values for all of its composite inputs.
+        if (allDataNonEmpty(allExpectedOutputSources(step).map(source =>
+            dataOfSource(source, workflow, status, data, session)))) {
             setOpen(true);
+        } else if (STATUS.COMPLETE === statusStr) {
+            setOpen(false);
         }
-    }, [status.status]);
+    }, [status, workflow, data, session, statusStr]);
 
     const inner = 'isGroup' in step ?
         <StepUserInputDrawer
-            key={`${step.name}-${status.status}`}
+            key={`${step.name}-${statusStr}`}
             step={step}
             handleInputChange={handleInputChange}
         /> :
         <StepUserInput
-            key={`${step.name}-${status.status}`}
+            key={`${step.name}-${statusStr}`}
             step={step}
             handleInputChange={handleInputChange}
         />;
