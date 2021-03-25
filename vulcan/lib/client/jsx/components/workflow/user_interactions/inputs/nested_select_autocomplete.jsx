@@ -115,9 +115,7 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
                   onSelect={(e) => {
                     handleSelect(e, index);
                   }}
-                  list={
-                    getOptions(0 === index ? null : path.slice(0, index)) || []
-                  }
+                  list={getOptions(0 === index ? null : path.slice(0, index))}
                   defaultValue={value}
                 ></DropdownAutocomplete>
               );
