@@ -86,7 +86,7 @@ steps:
       j: Regress__regress_tube_id
       k: UMAP_Calculation__max_pc
       l: UMAP_Calculation__leiden_resolution
-    out: [experiments, tissues, all_tubes, color_options]
+    out: [experiments, tissues, color_options]
   Select_Records__pickExperiments:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Experiments'
@@ -107,7 +107,6 @@ steps:
     in:
       experiments: Select_Records__pickExperiments/options
       tissues: Select_Records__pickTissues/options
-      all_tubes: queryMagma/all_tubes
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
