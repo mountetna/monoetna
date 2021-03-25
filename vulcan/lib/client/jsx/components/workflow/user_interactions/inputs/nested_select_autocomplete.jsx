@@ -37,6 +37,8 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
           return [key, leaf];
         let path = getPath(value, leaf);
         if (path) return [key, ...path];
+      } else if (null == value && key == leaf) {
+        return [key];
       }
     }
   }
