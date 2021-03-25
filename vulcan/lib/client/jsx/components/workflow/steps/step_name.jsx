@@ -21,7 +21,7 @@ export default function StepName({step, status}) {
   let icon = icons[stepStatus];
 
   let className = `step-status-icon ${icon.className}`;
-  let IconComponent = <Icon className={className} icon={icon.icon}></Icon>;
+  let IconComponent = <Icon title={ step.label || step.name } className={className} icon={icon.icon}></Icon>;
 
   // If the icon is PENDING and also the app state `calculating` == true,
   //   we'll replace the icon with an animated one!

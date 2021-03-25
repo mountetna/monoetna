@@ -80,6 +80,7 @@ export default function DropdownAutocomplete({
       <div className='dropdown-autocomplete-input-field'>
         <input
           type='text'
+          placeholder='Select option or type to filter'
           onChange={handleChange}
           value={selectedValue}
           onBlur={closeList}
