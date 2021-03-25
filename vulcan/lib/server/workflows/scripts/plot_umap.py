@@ -1,4 +1,5 @@
 from archimedes.functions.dataflow import output_path, input_path, input_var, json, input_json
+from archimedes.functions.utils import re
 from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.plotting import px, pio, colors
 from archimedes.functions.magma import connect, question
@@ -7,7 +8,7 @@ scdata = sc.read(input_path('umap_anndata.h5ad'))
 
 leiden = list(map(str, input_json('leiden.json')))
 
-color_by = input_json('color_by')
+color_by = input_var('color_by')
 
 magma = connect()
 
@@ -21,7 +22,6 @@ def get(ids, value):
     ], strip_identifiers=False))
 
     return [ values.get(id, None) for id in ids ]
-
 
 if color_by == 'Cluster':
     color = leiden
@@ -37,12 +37,15 @@ elif color_by == 'Pool':
 elif color_by == 'Biospecimen Group':
     color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', '::identifier' ])
 elif color_by in scdata.var_names:
-    color = scdata.X[ : , s.var_names = color_by ]
-else
+    color = scdata.X[ : , scdata.var_names == color_by ]
+else:
     color = None
 
 ##### OUTPUT
-fig = px.scatter(scdata.obsm['X_umap'], x=0, y=1, color_discrete_sequence=colors, color=color)
+fig = px.scatter(
+    scdata.obsm['X_umap'], x=0, y=1,
+    color_discrete_sequence=colors,
+    color=color)
 
 with open(output_path('umap.plotly.json'), 'w') as output_file:
     json.dump(json.loads(pio.to_json(fig)), output_file)
