@@ -104,7 +104,6 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
     setOptions(getOptions(updatedPath));
   }
 
-  console.log('path', path);
   return (
     <div>
       <div>
