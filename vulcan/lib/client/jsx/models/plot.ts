@@ -1,4 +1,4 @@
-import {WorkflowStep} from "../api/types";
+import {WorkflowStep} from "../api_types";
 import Series from "./series";
 
 export default class Plot {

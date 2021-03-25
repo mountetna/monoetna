@@ -7,7 +7,7 @@ import {InputBackendComponent} from "./types";
 const MultiselectStringInput: InputBackendComponent = ({input, onChange}) => {
   if (!input || !onChange) return null;
 
-  const options: any[] = Object.values(input.data).reduce((acc, n) => {
+  const options: any[] = Object.values(input.data || {}).reduce((acc, n) => {
      if (Array.isArray(n)) return acc.concat(n);
      return acc.concat([n]);
   }, [input.data]);
