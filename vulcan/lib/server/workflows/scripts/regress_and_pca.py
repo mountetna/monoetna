@@ -21,18 +21,11 @@ if any([regress_nCounts, regress_nFeatures, regress_pct_mito, regress_pct_ribo, 
         regress_on.append('pct_counts_rb')
     if regress_tube_id: 
         regress_on.append('Record_ID')
-    print('No regression is being performed, but the system would otherwise have regressed on:')
-    print(regress_on)
-    # sc.pp.regress_out(scdata, regress_on)
-scdata
-
+    sc.pp.regress_out(scdata, regress_on)
 sc.pp.scale(scdata, max_value=10)
-scdata
 
 # pca
 sc.tl.pca(scdata, svd_solver='arpack')
-
-scdata
 
 ##### OUTPUT
 scdata.write(output_path('pca_anndata.h5ad'))
