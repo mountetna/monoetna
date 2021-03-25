@@ -189,3 +189,10 @@ steps:
       a: plot_umap/umap.plotly.json
     out: []
     label: 'Display UMAP'
+  downloadRawData:
+    run: ui-outputs/link.cwl
+    in:
+      a: calc_umap/umap_anndata.h5ad
+    out: []
+    label: 'Download data as h5ad'
+
