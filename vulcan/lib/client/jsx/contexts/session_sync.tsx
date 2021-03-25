@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 import {SessionStatusResponse} from "../api_types";
 
 export const defaultSessionSyncHelpers = {
-    requestPoll() {
+    requestPoll(post?: boolean) {
     },
 };
 
@@ -39,15 +39,18 @@ export function useSessionSync(
         const {running, rid} = loadingState.current;
 
         if (!running) {
-            loadingState.current.nextPollWithPost = false;
-            loadingState.current.running = true;
-            const baseWork = post ? postInputs(state.current.session) : pollStatus(state.current.session);;
-            scheduleWork(baseWork.then(updateFromSessionResponse)).finally(() => {
-                loadingState.current.running = false;
-                if (rid !== loadingState.current.rid) {
-                    requestPoll(loadingState.current.nextPollWithPost);
-                }
-            });
+            if (state.current.workflow && state.current.session.workflow_name === state.current.workflow.name) {
+                console.log('Requesting poll for session', state.current.session, 'posting inputs?', post);
+                loadingState.current.nextPollWithPost = false;
+                loadingState.current.running = true;
+                const baseWork = post ? postInputs(state.current.session) : pollStatus(state.current.session);
+                scheduleWork(baseWork.then(updateFromSessionResponse)).finally(() => {
+                    loadingState.current.running = false;
+                    if (rid !== loadingState.current.rid) {
+                        requestPoll(loadingState.current.nextPollWithPost);
+                    }
+                });
+            }
         } else {
             loadingState.current.nextPollWithPost ||= post;
             loadingState.current.rid++;
@@ -55,7 +58,7 @@ export function useSessionSync(
     }
 
     useEffect(() => {
-        requestPoll();
+        requestPoll(true);
     }, [state.current.session.inputs, state.current.workflow]);
 
     return {

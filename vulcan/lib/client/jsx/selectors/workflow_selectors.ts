@@ -1,5 +1,15 @@
 import * as _ from 'lodash';
-import {OUTPUT_COMPONENT, RUN, STATUS, SessionStatusResponse, StepInput, StepStatus, Workflow, WorkflowStep} from "../api_types";
+import {
+    OUTPUT_COMPONENT,
+    RUN,
+    STATUS,
+    SessionStatusResponse,
+    StepInput,
+    StepStatus,
+    Workflow,
+    WorkflowStep,
+    WorkflowInput
+} from "../api_types";
 import {defaultVulcanState, VulcanState} from "../reducers/vulcan_reducer";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
@@ -155,6 +165,20 @@ export const defaultInputValues = (workflow: Workflow) => {
         }
         return result;
     }, {} as {[k: string]: any});
+};
+
+export function completedSteps(workflow: Workflow, status: VulcanState['status']) {
+    return workflow.steps[0].map((step, index) => ({ step, index }))
+        .filter(({step}) => statusOfStep(step, status)?.status === 'complete');
+}
+
+export const inputGroupName = (name: string) => {
+  let groupName = name.split('__')[0];
+  if (groupName === name) groupName = 'Inputs';
+
+  groupName = groupName.replace(/_/g, ' ');
+
+  return groupName;
 };
 
 

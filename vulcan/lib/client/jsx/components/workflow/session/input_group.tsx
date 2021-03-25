@@ -1,24 +1,23 @@
-import React, {useState, useContext, useEffect} from 'react';
+import React, {useState, useContext, useEffect, useCallback} from 'react';
 
-import {VulcanContext} from '../../../contexts/vulcan';
+import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import UserInput from '../user_interactions/inputs/user_input';
-import {inputGroupName} from '../../../utils/workflow';
 import {
-  completedUiStepsSelector,
+  inputGroupName,
   nextUiStepsSelector
-} from '../../../selectors/workflow';
+} from '../../../selectors/workflow_selectors';
+import {InputSpecification} from "../user_interactions/inputs/types";
 
-export default function InputGroup({inputs, onChange}) {
-  const context = useContext(VulcanContext);
-  let {session} = context;
-
+export default function InputGroup({inputs, onChange}: {inputs: InputSpecification[], onChange: (name: string, val: any) => void}) {
+  const {state} = useContext(VulcanContext);
+  let {session} = state;
   const [open, setOpen] = useState(true);
-  let groupName = inputGroupName(inputs[0]);
 
-  function toggleInputs() {
-    setOpen(!open);
-  }
+  if (inputs.length === 0) return null;
+  let groupName = inputGroupName(inputs[0].name);
+
+  const toggleInputs = useCallback(() => setOpen(!open), [setOpen, open]);
 
   useEffect(() => {
     if (session && session.inputs) {
@@ -37,7 +36,7 @@ export default function InputGroup({inputs, onChange}) {
         <div onClick={toggleInputs} className='inputs-pane-header'>
           <div className='title'>{groupName}</div>
         </div>
-        <div className='filler'></div>
+        <div className='filler'/>
       </div>
       <div
         className={`primary-inputs-container items sliding-panel vertical ${

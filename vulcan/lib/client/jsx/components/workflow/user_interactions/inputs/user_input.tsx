@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {TYPE} from '../../../../steps';
+import {TYPE} from '../../../../api_types';
 import InputHelp from './input_help';
 import BooleanInput from './boolean';
 import FloatInput from './float';

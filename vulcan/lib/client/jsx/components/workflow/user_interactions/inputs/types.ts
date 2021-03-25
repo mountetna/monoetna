@@ -1,14 +1,14 @@
 import React from 'react';
 
-export type InputType = 'int' | 'float' | 'boolean' | 'string' | 'array' | 'File' | 'multiselect-string' | 'select-autocomplete' | 'checkboxes';
+export type InputType = string;
 
 export interface InputSpecification {
     type: InputType,
     label: string | undefined,
     name: string,
     default: any | null,
-    data: {[k: string]: any},
-    doc: string | undefined,
+    data?: {[k: string]: any} | undefined,
+    doc?: string | undefined,
 }
 
 export type InputOnChange = (inputName: string, val: any) => void

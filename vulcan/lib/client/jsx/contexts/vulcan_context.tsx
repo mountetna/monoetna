@@ -6,6 +6,7 @@ import {defaultApiHelpers, useApi} from "./api";
 import {useWorkflowsLoading} from "./workflows_loading";
 import {useDataBuffering} from "./data_buffering";
 import {defaultSessionSyncHelpers, useSessionSync} from "./session_sync";
+import {useClearObsoleteInputs} from "./clear_obsolete_inputs";
 
 export const defaultContext = {
     state: defaultVulcanState as VulcanState,
@@ -30,6 +31,7 @@ export const VulcanProvider = (props: {params: {}, state?: VulcanState, storage?
     const sessionSyncHelpers = useSessionSync(stateRef, scheduleWork, pollStatus, postInputs, dispatch);
     useDataBuffering(state, dispatch, scheduleWork, getData);
     useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, scheduleWork);
+    useClearObsoleteInputs(state, dispatch);
 
     return (
         <VulcanContext.Provider value={{

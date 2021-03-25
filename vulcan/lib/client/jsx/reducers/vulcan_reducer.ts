@@ -74,7 +74,8 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
         case 'SET_WORKFLOW':
             return {
                 ...state,
-                workflow: action.workflow
+                workflow: action.workflow,
+                session: {...state.session, workflow_name: action.workflow.name, key: ""},
             };
         case 'SET_STATUS':
             state = {...state, status: state.status};
@@ -102,7 +103,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
         case 'SET_SESSION':
             return {
                 ...state,
-                session: action.session
+                session: { ...action.session, project_name: CONFIG.project_name },
             };
 
         case 'SET_INPUTS':

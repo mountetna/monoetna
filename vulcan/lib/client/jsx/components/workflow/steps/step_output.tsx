@@ -32,7 +32,7 @@ export default function StepOutput({step}: {step: WorkflowStep}) {
   if (['default', OUTPUT_COMPONENT.LINK].includes(stepType)) {
     data = stepInputDataUrls(step, state.status);
   } else {
-    data = stepInputDataRaw(step, state.status, state.data);
+    data = stepInputDataRaw(step, state.status, state.data, state.session);
   }
 
   let OutputComponent = OUTPUTS[stepType];

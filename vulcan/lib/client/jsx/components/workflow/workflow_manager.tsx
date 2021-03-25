@@ -25,11 +25,10 @@ export default function WorkflowManager({workflowName}: {workflowName: string}) 
         // TODO: Seems suspect, need to test this deeper.
         if (!session) {
           // Set the default input values
-          dispatch(setSession({ ...defaultVulcanSession, key: "", workflow_name: workflowName, project_name: CONFIG.project_name }));
           dispatch(setInputs(defaultInputValues(workflow)));
           dispatch(commitInputs());
         } else {
-          dispatch(setSession({ ...session, project_name: CONFIG.project_name }));
+          dispatch(setSession(session));
         }
       });
     }
