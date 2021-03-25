@@ -28,6 +28,30 @@ export const missingUiInputs = (step, session) => {
   );
 };
 
+export const isMissingDrawerInputs = (step, session) => {
+  return (
+    step.in.filter((input) => {
+      let inputName = input.source.join('/');
+      return (
+        !Object.keys(session.inputs).includes(inputName) ||
+        !isDefined(session.inputs[inputName])
+      );
+    }).length > 0
+  );
+};
+
+export const isMissingStandardInputs = (step, session) => {
+  return (
+    uiStepInputNames(step).filter((outputName) => {
+      console.log(session.inputs[outputName]);
+      return (
+        !Object.keys(session.inputs).includes(outputName) ||
+        !isDefined(session.inputs[outputName])
+      );
+    }).length > 0
+  );
+};
+
 export const localStorageKey = (workflow) => `${workflow.name}.session`;
 
 export const inputNamesToHashStub = (inputNames) => {
@@ -63,6 +87,19 @@ export const uiStepInputDataLink = ({step, pathIndex, status}) => {
     return null;
 
   return previousStep.downloads[outputKey];
+};
+
+export const uiInputDataReady = ({step, pathIndex, status}) => {
+  // Check if data has been set for a UI Input step
+  let previousStepName = step.in[0].source[0];
+  let outputKey = step.in[0].source[1];
+
+  let previousStep = status[pathIndex].find((s) => s.name === previousStepName);
+
+  if (!previousStep || !previousStep.data || !previousStep.data[outputKey])
+    return null;
+
+  return previousStep.data[outputKey];
 };
 
 export const uiStepInputDataRaw = ({step, pathIndex, status}) => {
@@ -129,6 +166,19 @@ export const defaultInputValues = (workflow) => {
   }, {});
 };
 
+const isDefined = (input) => {
+  // The userInput !== userInput is to check for NaN, because
+  //    NaN !== NaN
+  // For multiselect, need to make sure the inputs are not
+  //    [""] or []...
+  return !(
+    null == input ||
+    input !== input ||
+    _.isEqual([''], input) ||
+    _.isEqual([], input)
+  );
+};
+
 export const allInputsDefined = (workflow, userInputs) => {
   // Session Inputs can also include UI interaction inputs,
   //   so they won't be defined in the workflow inputs.
@@ -138,16 +188,7 @@ export const allInputsDefined = (workflow, userInputs) => {
     ) &&
     Object.keys(userInputs).every((key) => {
       let userInput = userInputs[key];
-      // The userInput !== userInput is to check for NaN, because
-      //    NaN !== NaN
-      // For multiselect, need to make sure the inputs are not
-      //    [""] or []...
-      return !(
-        null == userInput ||
-        userInput !== userInput ||
-        _.isEqual([''], userInput) ||
-        _.isEqual([], userInput)
-      );
+      return isDefined(userInput);
     })
   );
 };
@@ -204,7 +245,9 @@ const dependentUiInputNames = ({workflow, inputName}) => {
       for (let j = stepIndex + 1; j < path.length; j++) {
         let futureStep = path[j];
         if (hasUiInput(futureStep)) {
-          dependentInputNames.push(uiStepInputNames(futureStep));
+          dependentInputNames = dependentInputNames.concat(
+            uiStepInputNames(futureStep)
+          );
         }
 
         // Check other paths for downstream effects
@@ -218,6 +261,21 @@ const dependentUiInputNames = ({workflow, inputName}) => {
   return dependentInputNames;
 };
 
+export const dependentInputsData = ({workflow, inputName, status}) => {
+  let dependentNames = dependentUiInputNames({workflow, inputName});
+
+  return dependentNames.reduce((result, dependentName) => {
+    let step = workflow.steps[0].find(
+      (s) => s.name === dependentName.split('/')[0]
+    );
+    result.push({
+      url: uiStepInputDataLink({step, pathIndex: 0, status}),
+      data: null
+    });
+    return result;
+  }, []);
+};
+
 export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
   // Search the non-work paths for any UI-query steps that
   //   follow the given input. For any UI-query steps
@@ -228,7 +286,6 @@ export const removeDependentInputs = ({workflow, inputName, userInputs}) => {
   dependentUiInputNames({workflow, inputName}).forEach((inputName) => {
     delete validInputs[inputName];
   });
-
   return validInputs;
 };
 
