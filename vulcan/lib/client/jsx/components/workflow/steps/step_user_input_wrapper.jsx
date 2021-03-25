@@ -70,14 +70,6 @@ export default function StepUserInputWrapper({step, stepIndex}) {
   useEffect(() => {
     let stepStatus = status[pathIndex][stepIndex].status;
 
-    if (step.out) {
-      console.log('non-drawer step', step);
-      console.log(isMissingStandardInputs(step, session));
-    } else {
-      console.log('drawer step', step);
-      console.log(isMissingDrawerInputs(step, session));
-    }
-
     if (step.out && isMissingStandardInputs(step, session)) {
       setOpen(true);
     } else if (!step.out && isMissingDrawerInputs(step, session)) {
