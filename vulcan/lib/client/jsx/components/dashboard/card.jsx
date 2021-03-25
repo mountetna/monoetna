@@ -6,9 +6,9 @@ import {workflowName} from '../../selectors/workflow_selectors';
 import ImageMemo from './image_memo';
 
 // To get webpack to pick up the files.
-require('../../../img/umap-thumbnail.png');
-require('../../../img/default-thumbnail.png');
-require('../../../img/add_integers-thumbnail.png');
+require('../../../img/umap.png');
+require('../../../img/default.png');
+require('../../../img/add_integers.png');
 
 function MultiLineOutput(iterator) {
   return iterator.map((item, ind) => (
@@ -23,7 +23,7 @@ export default function Card({workflow, onClick}) {
     <div className='workflow-card' onClick={onClick}>
       <figure className='workflow-card-image'>
         <ImageMemo
-          src={`/images/${workflow.image || 'default-thumbnail.png'}`}
+          src={`/images/${workflow.image || 'default.png'}`}
           alt='Workflow image'
         />
       </figure>

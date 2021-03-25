@@ -20,5 +20,5 @@ export const selectUserProjectRole = Reselect.createSelector(
 
 export const selectIsEditor = Reselect.createSelector(
   selectUser,
-  user => user.permissions && isEditor(user)
+  user => user.permissions && isEditor(user, CONFIG.project_name)
 );

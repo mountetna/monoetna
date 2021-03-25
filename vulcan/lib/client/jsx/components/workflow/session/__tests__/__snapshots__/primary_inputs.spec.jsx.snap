@@ -41,7 +41,9 @@ exports[`PrimaryInputs renders each type of input 1`] = `
           <div
             className="input-help"
           >
-            <div>
+            <div
+              className="input-help-children-wrapper"
+            >
               <input
                 onChange={[Function]}
                 onKeyPress={[Function]}
@@ -78,7 +80,9 @@ exports[`PrimaryInputs renders each type of input 1`] = `
           <div
             className="input-help"
           >
-            <div>
+            <div
+              className="input-help-children-wrapper"
+            >
               <input
                 onChange={[Function]}
                 onKeyPress={[Function]}
@@ -115,7 +119,9 @@ exports[`PrimaryInputs renders each type of input 1`] = `
           <div
             className="input-help"
           >
-            <div>
+            <div
+              className="input-help-children-wrapper"
+            >
               <input
                 className="text_box"
                 defaultChecked={true}
@@ -152,7 +158,9 @@ exports[`PrimaryInputs renders each type of input 1`] = `
           <div
             className="input-help"
           >
-            <div>
+            <div
+              className="input-help-children-wrapper"
+            >
               <input
                 onChange={[Function]}
                 onKeyPress={[Function]}
@@ -189,7 +197,9 @@ exports[`PrimaryInputs renders each type of input 1`] = `
           <div
             className="input-help"
           >
-            <div>
+            <div
+              className="input-help-children-wrapper"
+            >
               <input
                 onChange={[Function]}
                 onKeyPress={[Function]}
@@ -226,7 +236,9 @@ exports[`PrimaryInputs renders each type of input 1`] = `
           <div
             className="input-help"
           >
-            <div>
+            <div
+              className="input-help-children-wrapper"
+            >
               <input
                 className="text_box"
                 defaultChecked={null}

@@ -4,7 +4,7 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import StepOutput from '../steps/step_output';
 import OutputFocus from './output_focus';
-import {completedSteps, uiOutputOfStep} from "../../../selectors/workflow_selectors";
+import {completedUiOutputSteps} from "../../../selectors/workflow_selectors";
 
 export default function OutputFeed() {
   // Shows stream of Output, Plots, etc.,
@@ -14,7 +14,7 @@ export default function OutputFeed() {
   if (!workflow) return null;
 
   let outputs = useMemo(
-      () => completedSteps(workflow, status).filter(({step}) => !!uiOutputOfStep(step)),
+      () => completedUiOutputSteps(workflow, status),
       [workflow, status],
   );
 

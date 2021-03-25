@@ -8,7 +8,7 @@ import {
   inputGroupName, isPendingUiQuery,
   pendingSteps, uiQueryOfStep
 } from '../../../selectors/workflow_selectors';
-import {InputSpecification} from "../user_interactions/inputs/types";
+import {InputSpecification} from "../user_interactions/inputs/input_types";
 
 export default function InputGroup({inputs, onChange}: {inputs: InputSpecification[], onChange: (name: string, val: any) => void}) {
   const {state} = useContext(VulcanContext);

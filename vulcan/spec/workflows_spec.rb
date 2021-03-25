@@ -65,6 +65,7 @@ describe WorkflowsController do
               {
                   "in" => [{"id"=>"a", "source"=>"someInt"},
                       {"id"=>"b", "source"=>"someIntWithoutDefault"}],
+                  "doc" => nil,
                   "label"=>nil,
                   "out" => ["sum"],
                   "name" => "firstAdd",
@@ -72,6 +73,7 @@ describe WorkflowsController do
               },
               {
                   "in" => [{"id"=>"num", "source"=>"firstAdd/sum"}],
+                  "doc" => nil,
                   "label"=>nil,
                   "out" => ["num"],
                   "name" => "pickANum",
@@ -80,12 +82,14 @@ describe WorkflowsController do
               {
                   "in" => [{"id"=>"a", "source"=>"firstAdd/sum"},
                       {"id"=>"b", "source"=>"pickANum/num"}],
+                  "doc" => nil,
                   "label"=>nil,
                   "out" => ["sum"],
                   "name" => "finalStep",
                   "run"=>"scripts/add.cwl"},
               {
                   "in" => [{"id"=>"a", "source"=>"finalStep/sum"}],
+                  "doc" => nil,
                   "label"=>nil,
                   "name"=>"aPlot",
                   "out"=>[],

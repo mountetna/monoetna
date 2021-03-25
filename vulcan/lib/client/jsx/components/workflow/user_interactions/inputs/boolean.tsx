@@ -1,5 +1,5 @@
 import React from 'react';
-import {InputBackendComponent} from "./types";
+import {InputBackendComponent} from "./input_types";
 
 
 const BooleanInput: InputBackendComponent = ({input, onChange}) => {

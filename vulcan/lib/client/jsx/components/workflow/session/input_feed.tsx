@@ -3,16 +3,16 @@ import React, {useContext, useEffect} from 'react';
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import PrimaryInputs from './primary_inputs';
-import StepUserInput from '../steps/step_user_input';
 import StepError from '../steps/step_error';
 import {
-  completedSteps, erroredSteps,
+  completedSteps, erroredSteps, groupUiSteps,
   isPendingUiQuery,
   missingUiQueryOutputs,
   pendingSteps,
   uiQueryOfStep
 } from "../../../selectors/workflow_selectors";
 import {setInputs} from "../../../actions/vulcan";
+import StepUserInputWrapper from "../steps/step_user_input_wrapper";
 
 export default function InputFeed() {
   // Shows stream of Inputs,
@@ -47,7 +47,7 @@ export default function InputFeed() {
     if (newInputs !== inputs) dispatch(setInputs(newInputs));
   }, [nextUiSteps, inputs]);
 
-  const uiSteps = completed.concat(nextUiSteps);
+  const uiSteps = groupUiSteps(completed.concat(nextUiSteps));
 
   let errorSteps = erroredSteps(workflow, status);
 
@@ -55,7 +55,7 @@ export default function InputFeed() {
     <div className='session-input-feed'>
       <PrimaryInputs/>
       {uiSteps.map((s, index) => (
-        <StepUserInput
+        <StepUserInputWrapper
           key={index}
           step={s.step}
         />

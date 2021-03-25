@@ -69,6 +69,11 @@ module Etna
           @etna_client.folder_remove(delete_folder_request.to_h))
       end
 
+      def delete_file(delete_file_request)
+        FilesResponse.new(
+          @etna_client.file_remove(delete_file_request.to_h))
+      end
+
       def find(find_request)
         FoldersAndFilesResponse.new(
           @etna_client.bucket_find(find_request.to_h))

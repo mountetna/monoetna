@@ -49,17 +49,26 @@ export default function SessionManager() {
             <div className='session-header'>
                 <span className='session-workflow-name'>{name}</span>
                 {workflow.vignette && (
-                    <Link link={ROUTES.workflow_vignette(name)}>
-                        <Icon className='vignette' icon='book'/>
-                    </Link>
+                    <div className='header-btn'>
+                        <Link link={ROUTES.workflow_vignette(name)}>
+                            Vignette
+                            <Icon className='vignette' icon='book' />
+                        </Link>
+                    </div>
                 )}
-                <Icon
-                    className='run'
+                <button
                     disabled={complete || running || !primaryInputsReady}
-                    title='Run workflow'
                     onClick={run}
-                    icon='play'
-                />
+                    className='run-workflow-btn header-btn'
+                >
+                    Run
+                    <Icon
+                        className='run'
+                        disabled={complete || running || !primaryInputsReady}
+                        title='Run workflow'
+                        icon='play'
+                    />
+                </button>
             </div>
             <div className='session-feed-container'>
                 <InputFeed/>

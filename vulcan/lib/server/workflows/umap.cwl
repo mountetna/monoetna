@@ -31,22 +31,27 @@ inputs:
     type: boolean
     default: true
     label: 'regress Counts?'
-    doc: 'Controls whether to regress data that correlates with cells UMI counts. Regression of data confounders prior to PCA/UMAP/clustering can improve results of these steps. NOTE: You should only regress by counts or genes, but not both'
+    doc: 'Controls whether to regress data that correlates with cells UMI counts. Regression of data confounders for PCA/UMAP/clustering calculations can improve results of these steps. NOTE: You should only regress by counts or genes, but not both'
   Regress__regress_genes:
     type: boolean
     default: false
     label: 'regress Genes?'
-    doc: 'Controls whether to regress data that correlates with cells genes counts. Regression of data confounders prior to PCA/UMAP/clustering can improve results of these steps. NOTE: You should only regress by counts or genes, but not both'
+    doc: 'Controls whether to regress data that correlates with cells genes counts. Regression of data confounders for PCA/UMAP/clustering calculations can improve results of these steps. NOTE: You should only regress by counts or genes, but not both'
   Regress__regress_pct_mito:
     type: boolean
     default: true
     label: 'regress percent.mitochondrial?'
-    doc: 'Controls whether to regress data that correlates with cells percentage of mitochondrial reads. Regression of data confounders prior to PCA/UMAP/clustering can improve results of these steps.'
+    doc: 'Controls whether to regress data that correlates with cells percentage of mitochondrial reads. Regression of data confounders for PCA/UMAP/clustering calculations can improve results of these steps.'
   Regress__regress_pct_ribo:
     type: boolean
     default: false
     label: 'regress percent.ribosomal?'
-    doc: 'Controls whether to regress data that correlates with cells percentage of ribosomal reads. Regression of data confounders prior to PCA/UMAP/clustering can improve results of these steps.'
+    doc: 'Controls whether to regress data that correlates with cells percentage of ribosomal reads. Regression of data confounders for PCA/UMAP/clustering calculations can improve results of these steps.'
+  Regress__regress_tube_id:
+    type: boolean
+    default: false
+    label: 'regress on tube IDs?'
+    doc: 'Controls whether to regress data that correlates with tube IDs. Regression by this data for PCA/UMAP/clustering can be an effective form of batch correction for these steps. (We do plan to add additional batch correction options in the future!)'
   UMAP_Calculation__max_pc:
     type: int
     default: 15
@@ -66,8 +71,8 @@ outputs:
 
 steps:
   queryMagma:
-    run: scripts/user_filter_options.cwl
-    label: 'Identify selection methods'
+    run: scripts/retrieve_selection_options.cwl
+    label: 'Fetch selection options'
     in:
       a: Cell_Filtering__min_nCounts
       b: Cell_Filtering__max_nCounts
@@ -78,39 +83,43 @@ steps:
       g: Regress__regress_genes
       h: Regress__regress_pct_mito
       i: Regress__regress_pct_ribo
-      j: UMAP_Calculation__max_pc
-      k: UMAP_Calculation__leiden_resolution
-    out: [options]
-  pickSelectionOption:
-    run: ui-queries/select-autocomplete.cwl
-    label: 'Select initial filters'
-    in:
-      a: queryMagma/options
-    out: [options]
-  generateOptions:
-    run: scripts/generate_filter_options_from_type.cwl
-    label: 'Generate filter options'
-    in:
-      type: pickSelectionOption/options
-    out: [options]
-  pickOptions:
+      j: Regress__regress_tube_id
+      k: UMAP_Calculation__max_pc
+      l: UMAP_Calculation__leiden_resolution
+    out: [experiments, tissues, all_tubes, color_options]
+  Select_Records__pickExperiments:
     run: ui-queries/multiselect-string.cwl
-    label: 'Select records'
+    label: 'Select Experiments'
+    doc: 'Subset  of experiments to use, based on their `alias`. These selections get combined with Tissue selections with AND logic. If you want to just select tube records directly, pick No Selections for all dropdowns here.'
     in:
-      a: generateOptions/options
-    out: [selectedOptions]
-  parseRecordSelections:
+      a: queryMagma/experiments
+    out: [options]
+  Select_Records__pickTissues:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select Tissues'
+    doc: 'Subset of biospecimen_types to use. These selections get combined with Experiment selections with AND logic. If you want to just select tube records directly, pick No Selections for all dropdowns here.'
+    in:
+      a: queryMagma/tissues
+    out: [options]
+  select_color_by_option:
+    run: ui-queries/nested-select-autocomplete.cwl
+    label: 'Color Options'
+    in:
+      a: queryMagma/color_options
+    out: [color_by]
+  parse_record_selections:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
     in:
-      options:  pickOptions/selectedOptions
-      optionType: pickSelectionOption/options
+      experiments: Select_Records__pickExperiments/options
+      tissues: Select_Records__pickTissues/options
+      all_tubes: queryMagma/all_tubes
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
     label: 'Confirm record names'
     in:
-      a: parseRecordSelections/tube_recs
+      a: parse_record_selections/tube_recs
     out: [names]
   magma_query_paths:
     run: scripts/magma_query_paths.cwl
@@ -144,6 +153,7 @@ steps:
       regress_genes: Regress__regress_genes
       regress_pct_mito: Regress__regress_pct_mito
       regress_pct_ribo: Regress__regress_pct_ribo
+      regress_tube_id: Regress__regress_tube_id
     out: [pca_anndata.h5ad]
   neighbors:
     run: scripts/neighbors.cwl
@@ -172,6 +182,7 @@ steps:
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden.json: calc_leiden/leiden.json
       max_pc: UMAP_Calculation__max_pc
+      color_selection: select_color_by_option/color_by
     out: [umap.plotly.json]
   show_umap_plot:
     run: ui-outputs/plotly.cwl

@@ -11,6 +11,8 @@ import {
     WorkflowInput
 } from "../api_types";
 import {defaultVulcanState, VulcanState} from "../reducers/vulcan_reducer";
+import {InputSpecification, InputType, UIStep} from "../components/workflow/user_interactions/inputs/input_types";
+import {useMemo} from "react";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
     workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
@@ -174,7 +176,11 @@ export function missingUiQueryOutputs(step: WorkflowStep, inputs: VulcanState['i
     return result;
 }
 
-export function completedSteps(workflow: Workflow, status: VulcanState['status']) {
+export function completedUiOutputSteps(workflow: Workflow, status: VulcanState['status']): UIStep[] {
+    return completedSteps(workflow, status).filter(({step}) => !!uiOutputOfStep(step));
+}
+
+export function completedSteps(workflow: Workflow, status: VulcanState['status']): UIStep[] {
     return workflow.steps[0].map((step, index) => ({ step, index }))
         .filter(({step}) => statusOfStep(step, status)?.status === 'complete');
 }
@@ -184,7 +190,7 @@ export function erroredSteps(workflow: Workflow, status: VulcanState['status']) 
 }
 
 
-export function pendingSteps(workflow: Workflow, status: VulcanState['status']) {
+export function pendingSteps(workflow: Workflow, status: VulcanState['status']): UIStep[] {
     return workflow.steps[0].map((step, index) => ({ step, index }))
         .filter(({step}) => statusOfStep(step, status)?.status === 'pending');
 }
@@ -197,6 +203,43 @@ export const inputGroupName = (name: string) => {
 
   return groupName;
 };
+
+export function groupUiSteps(uiSteps: UIStep[]): UIStep[] {
+    const result: {[k: string]: UIStep} = {};
+
+    uiSteps.forEach(uiStep => {
+        if ('isGroup' in uiStep) {
+            throw new Error('Cannot group a grouped input!' + JSON.stringify(uiStep));
+        }
+
+        const groupName = inputGroupName(uiStep.step.name);
+
+        if (groupName === 'Inputs') {
+            result[uiStep.step.name] = uiStep;
+            return;
+        }
+
+        const group = result[groupName] = result[groupName] || {
+            step: {
+                name: groupName,
+                isGroup: true,
+                label: groupName,
+                run: "", // group steps have no real run
+                in: [],
+            },
+            index: uiStep.index,
+        }
+
+        group.step.in = group.step.in.concat(uiStep.step.out.map(name => ({
+            id: sourceNameOfReference([uiStep.step.name, name]),
+            source: sourceNameOfReference([uiStep.step.name, name]),
+            doc: uiStep.step.doc,
+            label: uiStep.step.label || sourceNameOfReference([uiStep.step.name, name]),
+        })));
+    });
+
+    return Object.values(result);
+}
 
 
 // export const completedUiStepsSelector = (context) => {

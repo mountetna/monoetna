@@ -12,32 +12,18 @@ import {
   statusOfStep,
   uiQueryOfStep, stepInputDataRaw,
 } from "../../../selectors/workflow_selectors";
-import {setInputs} from "../../../actions/vulcan";
-import {InputSpecification, InputType} from "../user_interactions/inputs/types";
+import {InputSpecification, InputType} from "../user_interactions/inputs/input_types";
 
-export default function StepUserInput({step}: {step: WorkflowStep}) {
+export default function StepUserInput({step, handleInputChange}: {step: WorkflowStep, handleInputChange: (source: string, val: any) => void}) {
   const [open, setOpen] = useState(true);
-  const {dispatch, state} = useContext(VulcanContext);
+  const {state} = useContext(VulcanContext);
 
   const status = statusOfStep(step, state.status);
   const uiQuery = uiQueryOfStep(step);
 
   if (!status || !uiQuery) return null;
 
-  const handleInputChange = useCallback((inputName: string, value: any) => {
-    dispatch(setInputs({ ...state.inputs, [inputName]: value }));
-  }, [state, dispatch, setInputs]);
-
   const toggleInputs = useCallback(() => setOpen(!open), [setOpen, open]);
-
-  useEffect(() => {
-    let stepStatus = status.status;
-    if (STATUS.COMPLETE === stepStatus) {
-      setOpen(false);
-    } else if (STATUS.PENDING === stepStatus) {
-      setOpen(true);
-    }
-  }, [status.status]);
 
   // We need to map the user input step's output to
   //   a set of input items.
@@ -51,6 +37,16 @@ export default function StepUserInput({step}: {step: WorkflowStep}) {
     data: stepInputDataRaw(step, state.status, state.data, state.session),
     doc: step.doc
   })), [outputRefs, step, state.status, state.data, state.inputs])
+
+  useEffect(() => {
+    let stepStatus = status.status;
+    if (STATUS.COMPLETE === stepStatus) {
+      if (stepInputs.every(({data}) => !!data))
+        setOpen(false);
+    } else if (STATUS.PENDING === stepStatus) {
+      setOpen(true);
+    }
+  }, [status.status]);
 
   return (
     <div className='step-user-input step'>

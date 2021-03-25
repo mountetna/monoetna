@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {InputBackendComponent} from "./types";
+import {InputBackendComponent} from "./input_types";
 
 function CheckboxInput({onChange, option}: {onChange: (v: any) => void, option: any}) {
   return (

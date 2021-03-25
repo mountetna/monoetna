@@ -16,7 +16,8 @@ export const TYPE = {
   FILE: 'File',
   MULTISELECT_STRING: 'multiselect-string',
   SELECT_AUTOCOMPLETE: 'select-autocomplete',
-  CHECKBOXES: 'checkboxes'
+  CHECKBOXES: 'checkboxes',
+  NESTED_SELECT_AUTOCOMPLETE: 'nested-select-autocomplete',
 };
 
 // CWL Step RUN Sentinels
@@ -42,6 +43,8 @@ export type WorkflowsResponse = typeof defaultWorkflowsResponse;
 export interface StepInput {
   id: string,
   source: string,
+  doc?: string,
+  label?: string,
 }
 
 export interface WorkflowStep {
@@ -62,6 +65,7 @@ export interface WorkflowOutput {
 }
 
 export interface WorkflowInput {
+  doc: string | undefined,
   label: string | undefined,
   type: string,
   format: string | null,

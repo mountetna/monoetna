@@ -43,7 +43,7 @@ const PlotOutput = ({data: plots}) => {
               {
                 displaylogo: false,
                 toImageButtonOptions: {
-                  format: 'svg',
+                  format: 'png',
                   filename: 'plot',
                   height: 500,
                   width: 700,

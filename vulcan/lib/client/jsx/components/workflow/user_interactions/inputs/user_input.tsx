@@ -9,7 +9,8 @@ import MultiselectStringInput from './multiselect_string';
 import SelectAutocompleteInput from './select_autocomplete';
 import StringInput from './string';
 import CheckboxesInput from './checkboxes';
-import {InputBackendComponent, InputOnChange, InputSpecification, InputType} from "./types";
+import {InputBackendComponent, InputOnChange, InputSpecification, InputType} from "./input_types";
+import NestedSelectAutocompleteInput from "./nested_select_autocomplete";
 
 function backendComponentOf(type: InputType): InputBackendComponent {
   switch(type) {
@@ -25,6 +26,8 @@ function backendComponentOf(type: InputType): InputBackendComponent {
       return SelectAutocompleteInput;
     case TYPE.CHECKBOXES:
       return CheckboxesInput;
+    case TYPE.NESTED_SELECT_AUTOCOMPLETE:
+      return NestedSelectAutocompleteInput;
     default:
       return StringInput;
   }

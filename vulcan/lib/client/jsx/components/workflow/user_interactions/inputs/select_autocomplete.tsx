@@ -1,6 +1,6 @@
 import React from 'react';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import {InputBackendComponent} from "./types";
+import {InputBackendComponent} from "./input_types";
 
 const SelectAutocompleteInput: InputBackendComponent = ({input, onChange}) => {
   if (!input || !onChange) return null;

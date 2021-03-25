@@ -1,6 +1,6 @@
 import React from 'react';
 import {FloatInput as EtnaFloatInput} from 'etna-js/components/inputs/numeric_input';
-import {InputBackendComponent} from "./types";
+import {InputBackendComponent} from "./input_types";
 
 const FloatInput: InputBackendComponent = ({input, onChange}) => {
   if (!input || !onChange) return null;

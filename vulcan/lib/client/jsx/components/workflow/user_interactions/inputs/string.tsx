@@ -1,6 +1,6 @@
 import React from 'react';
 import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
-import {InputBackendComponent} from "./types";
+import {InputBackendComponent} from "./input_types";
 
 const StringInput: InputBackendComponent = ({input, onChange}) => {
   if (!input || !onChange) return null;
