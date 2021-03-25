@@ -33,8 +33,8 @@ color_options = {
     'Experiment': None,
     'Tissue': None,
     'Pool': None,
-    'Subject': None,
-    'Gene': dict([ [ i, None ] for j in GRCm38_ensembl93 for i in j ])
+    'Biospecimen Group': None,
+    'Gene': dict([ [ j[1], None ] for j in GRCm38_ensembl93 ])
 }
 
 output_json(color_options, 'color_options')

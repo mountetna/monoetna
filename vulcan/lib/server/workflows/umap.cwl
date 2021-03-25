@@ -182,7 +182,7 @@ steps:
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden.json: calc_leiden/leiden.json
       max_pc: UMAP_Calculation__max_pc
-      color_selection: select_color_by_option/color_by
+      color_by: select_color_by_option/color_by
     out: [umap.plotly.json]
   show_umap_plot:
     run: ui-outputs/plotly.cwl
