@@ -37,6 +37,8 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
           return [key, leaf];
         let path = getPath(value, leaf);
         if (path) return [key, ...path];
+      } else if (null == value && key == leaf) {
+        return [key];
       }
     }
   }
@@ -57,6 +59,7 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
         let path = getPath(allOptions, input.default);
         setPath(path);
         setOptions(getOptions(path, allOptions));
+        setCurrentDepth(path.length - 1);
       } else {
         setOptions(Object.keys({...allOptions}));
       }
@@ -72,7 +75,7 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
       // "unselect" this input
       onChange(input.name, null);
     }
-  }, [options]);
+  }, [path]);
 
   function getOptions(desiredPath, optionSet = originalOptions) {
     if (null == desiredPath) return Object.keys(optionSet);
