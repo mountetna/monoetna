@@ -10,7 +10,7 @@ function LeafOptions({options, depth, handleSelect}) {
   if (!options) return null;
   return (
     <DropdownAutocomplete
-      key={`${depth}-${options.join('-')}`}
+      key={`${depth}-${options.slice(0, 5).join('-')}`}
       onSelect={(e) => {
         handleSelect(e, depth);
       }}

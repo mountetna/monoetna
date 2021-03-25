@@ -25,7 +25,7 @@ export default function DropdownAutocomplete({
 
   function filterTheList(value) {
     let re = new RegExp(value);
-    setFilteredList(sortedList.filter((item) => item.match(re)).slice(0,10));
+    setFilteredList(sortedList.filter((item) => item.match(re)).slice(0, 10));
   }
 
   function onSelectItem(value) {
@@ -93,7 +93,7 @@ export default function DropdownAutocomplete({
       {showList ? (
         <ul className={`dropdown-autocomplete-options`}>
           {filteredList && filteredList.length > 0 ? (
-            filteredList.map((item, index) => (
+            filteredList.slice(0, 20).map((item, index) => (
               <li
                 onClick={() => {
                   onSelectItem(item);
