@@ -1,7 +1,7 @@
 PATH
   remote: /etna
   specs:
-    etna (0.1.30)
+    etna (0.1.31)
       concurrent-ruby
       concurrent-ruby-ext
       jwt
