@@ -60,6 +60,9 @@ describe('InputFeed', () => {
             status: 'complete',
             downloads: {
               output: 'https://foo'
+            },
+            data: {
+              output: [1, 2, 3]
             }
           },
           {

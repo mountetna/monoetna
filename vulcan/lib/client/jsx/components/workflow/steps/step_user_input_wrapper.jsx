@@ -10,12 +10,15 @@ import StepUserInputDrawer from './step_user_input_drawer';
 import {
   validStep,
   hasUiInput,
-  removeDependentInputs
+  removeDependentInputs,
+  dependentInputsData,
+  isMissingDrawerInputs,
+  isMissingStandardInputs
 } from '../../../utils/workflow';
 
 export default function StepUserInputWrapper({step, stepIndex}) {
   const [open, setOpen] = useState(true);
-  const {workflow, pathIndex, session, status, setInputs} = useContext(
+  const {workflow, pathIndex, session, status, setInputs, setData} = useContext(
     VulcanContext
   );
 
@@ -40,6 +43,17 @@ export default function StepUserInputWrapper({step, stepIndex}) {
     // If we leave them in, the workflow will
     //   re-run with potentially invalid inputs
     //   to subsequent steps.
+    // Also have to set the downstream steps' inputs
+    //   data to null, so the items are removed from
+    //   the InputFeed.
+    dependentInputsData({
+      workflow,
+      status,
+      inputName: inputName.split('/')[0]
+    }).forEach((action) => {
+      setData(action.url, action.data);
+    });
+
     setInputs(
       removeDependentInputs({
         userInputs,
@@ -55,12 +69,15 @@ export default function StepUserInputWrapper({step, stepIndex}) {
 
   useEffect(() => {
     let stepStatus = status[pathIndex][stepIndex].status;
-    if (STATUS.COMPLETE === stepStatus) {
-      setOpen(false);
-    } else if (STATUS.PENDING === stepStatus) {
+
+    if (step.out && isMissingStandardInputs(step, session)) {
       setOpen(true);
+    } else if (!step.out && isMissingDrawerInputs(step, session)) {
+      setOpen(true);
+    } else if (STATUS.COMPLETE === stepStatus) {
+      setOpen(false);
     }
-  }, [status]);
+  }, [status, session]);
 
   let Component = step.isGroup ? StepUserInputDrawer : StepUserInput;
 
