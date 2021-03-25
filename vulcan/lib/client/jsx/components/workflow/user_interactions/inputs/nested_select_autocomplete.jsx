@@ -57,6 +57,7 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
         let path = getPath(allOptions, input.default);
         setPath(path);
         setOptions(getOptions(path, allOptions));
+        setCurrentDepth(path.length - 1);
       } else {
         setOptions(Object.keys({...allOptions}));
       }
@@ -72,7 +73,7 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
       // "unselect" this input
       onChange(input.name, null);
     }
-  }, [options]);
+  }, [path]);
 
   function getOptions(desiredPath, optionSet = originalOptions) {
     if (null == desiredPath) return Object.keys(optionSet);
@@ -103,6 +104,7 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
     setOptions(getOptions(updatedPath));
   }
 
+  console.log('path', path);
   return (
     <div>
       <div>
@@ -114,7 +116,9 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
                   onSelect={(e) => {
                     handleSelect(e, index);
                   }}
-                  list={getOptions(0 === index ? null : path.slice(0, index))}
+                  list={
+                    getOptions(0 === index ? null : path.slice(0, index)) || []
+                  }
                   defaultValue={value}
                 ></DropdownAutocomplete>
               );
