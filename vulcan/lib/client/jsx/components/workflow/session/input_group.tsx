@@ -4,31 +4,33 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import UserInput from '../user_interactions/inputs/user_input';
 import {
-  inputGroupName,
-  nextUiStepsSelector
+  completedSteps,
+  inputGroupName, isPendingUiQuery,
+  pendingSteps, uiQueryOfStep
 } from '../../../selectors/workflow_selectors';
 import {InputSpecification} from "../user_interactions/inputs/types";
 
 export default function InputGroup({inputs, onChange}: {inputs: InputSpecification[], onChange: (name: string, val: any) => void}) {
   const {state} = useContext(VulcanContext);
-  let {session} = state;
+  let {session, workflow, status, data} = state;
   const [open, setOpen] = useState(true);
 
-  if (inputs.length === 0) return null;
   let groupName = inputGroupName(inputs[0].name);
 
   const toggleInputs = useCallback(() => setOpen(!open), [setOpen, open]);
 
   useEffect(() => {
-    if (session && session.inputs) {
-      // Automatically collapse the input group if there are
-      //   pending or completed UI input steps.
-      let uiSteps = completedUiStepsSelector(context);
-      let nextUiSteps = nextUiStepsSelector(context);
+    if (workflow == null) return;
+    if (inputs.length === 0) return;
 
-      if (uiSteps.length > 0 || nextUiSteps.length > 0) setOpen(false);
+    if (session && session.inputs) {
+      // Automatically collapse the input group if there are pending or completed UI input steps.
+      let completed = completedSteps(workflow, status).filter(({step}) => !!uiQueryOfStep(step));
+      let nextUiSteps = pendingSteps(workflow, status).filter(({step}) => isPendingUiQuery(step, status, data, session));
+
+      if (completed.length > 0 || nextUiSteps.length > 0) setOpen(false);
     }
-  }, [session]);
+  }, [status, data, session, workflow]);
 
   return (
     <div className='inputs-pane'>
@@ -49,7 +51,7 @@ export default function InputGroup({inputs, onChange}: {inputs: InputSpecificati
               input={input}
               onChange={onChange}
               key={index}
-            ></UserInput>
+            />
           );
         })}
       </div>

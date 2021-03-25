@@ -30,7 +30,7 @@ function backendComponentOf(type: InputType): InputBackendComponent {
   }
 }
 
-export default function UserInput({input, onChange, hideLabel}: {input: InputSpecification, onChange: InputOnChange, hideLabel: boolean}) {
+export default function UserInput({input, onChange, hideLabel}: {input: InputSpecification, onChange: InputOnChange, hideLabel?: boolean}) {
   const InputComponent = backendComponentOf(input.type);
 
   return (

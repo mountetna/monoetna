@@ -113,23 +113,15 @@ export const shouldDownload = (url: string, workflow: Workflow, step: WorkflowSt
     })
 }
 
-interface StepToStepLink {
-    inputtingStep: WorkflowStep,
-    stepInput: StepInput,
-    source: {
-        outputtingStepStatus: StepStatus,
-        outputName: string,
-    };
-}
-
-interface PrimaryInputToStepLink {
-    inputtingStep: WorkflowStep,
-    stepInput: StepInput,
-    source: string;
-}
-
 export const isDataConsumer = (step: WorkflowStep) => uiQueryOfStep(step) != null ||
     ([null, OUTPUT_COMPONENT.LINK].indexOf(uiOutputOfStep(step)) === -1)
+
+export function isPendingUiQuery(step: WorkflowStep, status: VulcanState['status'], data: VulcanState['data'], session: VulcanState['session']) {
+    const bufferedData = stepInputDataRaw(step, status, data, session);
+    return uiQueryOfStep(step)
+        && statusOfStep(step, status)?.status == 'pending'
+        && step.in.every(({id}) => id in bufferedData)
+}
 
 export const stepInputDataRaw = (step: WorkflowStep, status: VulcanState['status'], data: VulcanState['data'], session: VulcanState['session']): {[k: string]: any} => {
     // Pull out any previous step's output data link that is a required
@@ -167,9 +159,34 @@ export const defaultInputValues = (workflow: Workflow) => {
     }, {} as {[k: string]: any});
 };
 
+export function missingUiQueryOutputs(step: WorkflowStep, inputs: VulcanState['inputs']): {[k: string]: null} {
+    const result: {[k: string]: null} = {};
+
+    step.out.forEach(outputName => {
+        const source = sourceNameOfReference([step.name, outputName]);
+        if (source in inputs)  {
+            return;
+        }
+
+        result[source] = null;
+    });
+
+    return result;
+}
+
 export function completedSteps(workflow: Workflow, status: VulcanState['status']) {
     return workflow.steps[0].map((step, index) => ({ step, index }))
         .filter(({step}) => statusOfStep(step, status)?.status === 'complete');
+}
+export function erroredSteps(workflow: Workflow, status: VulcanState['status']) {
+    return workflow.steps[0].map((step, index) => ({ step, index }))
+        .filter(({step}) => statusOfStep(step, status)?.status === 'error');
+}
+
+
+export function pendingSteps(workflow: Workflow, status: VulcanState['status']) {
+    return workflow.steps[0].map((step, index) => ({ step, index }))
+        .filter(({step}) => statusOfStep(step, status)?.status === 'pending');
 }
 
 export const inputGroupName = (name: string) => {
