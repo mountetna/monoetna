@@ -52,7 +52,7 @@ export function useSessionSync(
                 });
             }
         } else {
-            loadingState.current.nextPollWithPost ||= post;
+            loadingState.current.nextPollWithPost = loadingState.current.nextPollWithPost || post;
             loadingState.current.rid++;
         }
     }
