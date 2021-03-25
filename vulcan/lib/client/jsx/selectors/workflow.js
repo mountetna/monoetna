@@ -3,7 +3,7 @@ import {
   hasUiInput,
   hasUiOutput,
   workflowName as workflowNameShortener,
-  uiStepInputDataLink
+  uiInputDataReady
 } from '../utils/workflow';
 
 export const completedUiStepsSelector = (context) => {
@@ -44,7 +44,7 @@ export const nextUiStepsSelector = (context) => {
       if (
         STATUS.PENDING === s.status &&
         hasUiInput(workflowStep) &&
-        uiStepInputDataLink({step: workflowStep, status, pathIndex})
+        uiInputDataReady({step: workflowStep, status, pathIndex})
       )
         return {...workflowStep, index};
     })
