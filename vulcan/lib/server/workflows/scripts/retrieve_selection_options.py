@@ -2,6 +2,7 @@ from archimedes.functions.dataflow import input_var, output_json
 from archimedes.functions.environment import token, magma_host, project_name, app_env
 from archimedes.functions.magma import question, connect
 from archimedes.functions.list import unique, flatten
+from archimedes.functions.genes import GRCm38_ensembl93
 
 def options(list, addDefault=True):
     return (['No Selection'] if addDefault else []) + unique(flatten(list))
@@ -40,17 +41,14 @@ all_tubes = question(
     ]
 )
 
+
 color_options = {
     'Cluster': None,
     'Experiment': None,
     'Tissue': None,
     'Pool': None,
     'Subject': None,
-    'Gene': {
-        'Gene1': None,
-        'Gene2': None,
-        'Gene3': None
-    }
+    'Gene': dict([ [ i, None ] for j in GRCm38_ensembl93 for i in j ])
 }
 
 output_json(color_options, 'color_options')
