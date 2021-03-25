@@ -14,8 +14,9 @@ experiments = magma.query(
         "experiment",
         ["biospecimen_group", "::all",
         seq_model_name, "::all", '::has', 'raw_counts_h5'],
-        "::all", '::identifier'])['answer']
-# add "all" and flatten/unique
+        "::all", 'alias'])
+# flatten/unique
+experiments = query_extract(experiments, 'alias')
 experiments = ["No Selection"] + unique(flatten(experiments))
 
 tissues = magma.query(
