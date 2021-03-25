@@ -7,6 +7,7 @@ gem 'puma', '>=5.0.2'
 gem 'etna', path: '/etna'
 gem 'actionpack' # For streaming the job controller results back...
 gem 'aspera-cli'
+gem 'mimemagic', '0.3.7' # for aspera-cli
 gem 'concurrent-ruby'
 
 group :development, :test do
