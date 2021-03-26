@@ -34,7 +34,7 @@ jobs:
           IMAGES_POSTFIX: :master
         run: |
           ./bin/x-all-images docker pull %
-      - name: Run  ${{ matrix.test-app }} test suite
+      - name: Run ${{ matrix.test-app }} test suite
         id: app_first_test_run
         env:
           IMAGES_PREFIX: etnaagent/
@@ -42,4 +42,4 @@ jobs:
           CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
-          make -C  ${{ matrix.test-app }} release
+          make -C ${{ matrix.test-app }} release
