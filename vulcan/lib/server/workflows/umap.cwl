@@ -86,20 +86,27 @@ steps:
       j: Regress__regress_tube_id
       k: UMAP_Calculation__max_pc
       l: UMAP_Calculation__leiden_resolution
-    out: [experiments, tissues, color_options]
+    out: [experiments, tissues, fractions, color_options]
   Select_Records__pickExperiments:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Experiments'
-    doc: 'Subset  of experiments to use, based on their `alias`. These selections get combined with Tissue selections with AND logic. If you want to just select tube records directly, pick No Selections for all dropdowns here.'
+    doc: 'Picks the set of experiment:alias options to use. These selections get combined with Tissue and Cell Fraction selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
       a: queryMagma/experiments
     out: [options]
   Select_Records__pickTissues:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Tissues'
-    doc: 'Subset of biospecimen_types to use. These selections get combined with Experiment selections with AND logic. If you want to just select tube records directly, pick No Selections for all dropdowns here.'
+    doc: 'Picks the set of biospecimen_group:biospecimen_type options to use. These selections get combined with Experiment and Cell Fraction selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
       a: queryMagma/tissues
+    out: [options]
+  Select_Records__pickFractions:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select Sort Fractions'
+    doc: 'Picks the set of sc_seq:cell_faction options to use. These selections get combined with Experiment and Tissue selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
+    in:
+      a: queryMagma/fractions
     out: [options]
   parse_record_selections:
     run: scripts/parse_record_selections.cwl
@@ -107,6 +114,7 @@ steps:
     in:
       experiments: Select_Records__pickExperiments/options
       tissues: Select_Records__pickTissues/options
+      fractions: Select_Records__pickFractions/options
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl

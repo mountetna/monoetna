@@ -28,6 +28,16 @@ tissues = question(
     ]
 )
 
+fractions = question(
+    magma,
+    [
+        seq_model_name,
+        [ '::has', 'raw_counts_h5'],
+        '::all',
+        'cell_fraction'
+    ]
+)
+
 color_options = {
     'Cluster': None,
     'Experiment': None,
@@ -40,3 +50,4 @@ color_options = {
 output_json(color_options, 'color_options')
 output_json(unique(experiments), 'experiments')
 output_json(unique(tissues), 'tissues')
+output_json(unique(fractions), 'fractions')
