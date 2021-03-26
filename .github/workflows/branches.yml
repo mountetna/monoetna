@@ -35,7 +35,7 @@ jobs:
         run: |
           ./bin/x-all-images docker pull %
       - name: Run  ${{ matrix.test-app }} test suite
-        id: ${{ matrix.test-app }}_first_test_run
+        id: app_first_test_run
         env:
           IMAGES_PREFIX: etnaagent/
           IS_CI: 1
