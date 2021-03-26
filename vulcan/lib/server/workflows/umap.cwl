@@ -101,12 +101,6 @@ steps:
     in:
       a: queryMagma/tissues
     out: [options]
-  select_color_by_option:
-    run: ui-queries/nested-select-autocomplete.cwl
-    label: 'Color Options'
-    in:
-      a: queryMagma/color_options
-    out: [color_by]
   parse_record_selections:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
@@ -175,6 +169,13 @@ steps:
       nn_anndata.h5ad: neighbors/nn_anndata.h5ad
       leiden_resolution: UMAP_Calculation__leiden_resolution
     out: [leiden.json]
+  select_color_by_option:
+    run: ui-queries/nested-select-autocomplete.cwl
+    label: 'Color Options'
+    in:
+      a: queryMagma/color_options
+      b: calc_leiden/leiden.json
+    out: [color_by]
   plot_umap:
     run: scripts/plot_umap.cwl
     label: 'Create UMAP plot'
