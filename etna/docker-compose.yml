@@ -1,5 +1,4 @@
 networks:
-  default:
   edge_net:
     ipam:
       driver: default
