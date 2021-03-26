@@ -91,15 +91,19 @@ export const uiStepInputDataLink = ({step, pathIndex, status}) => {
 
 export const uiInputDataReady = ({step, pathIndex, status}) => {
   // Check if data has been set for a UI Input step
-  let previousStepName = step.in[0].source[0];
-  let outputKey = step.in[0].source[1];
+  return step.in.every((input) => {
+    let previousStepName = input.source[0];
+    let outputKey = input.source[1];
 
-  let previousStep = status[pathIndex].find((s) => s.name === previousStepName);
+    let previousStep = status[pathIndex].find(
+      (s) => s.name === previousStepName
+    );
 
-  if (!previousStep || !previousStep.data || !previousStep.data[outputKey])
-    return null;
+    if (!previousStep || !previousStep.data || !previousStep.data[outputKey])
+      return false;
 
-  return previousStep.data[outputKey];
+    return previousStep.data[outputKey];
+  });
 };
 
 export const uiStepInputDataRaw = ({step, pathIndex, status}) => {
