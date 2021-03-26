@@ -10,7 +10,8 @@ export default function DropdownAutocomplete({
   list,
   onSelect,
   defaultValue,
-  waitTime
+  waitTime,
+  maxItems
 }) {
   var collator = new Intl.Collator(undefined, {
     numeric: true,
@@ -31,7 +32,6 @@ export default function DropdownAutocomplete({
   }
 
   function onSelectItem(value) {
-    console.log('on select', value);
     onSelect(value);
     setSelectedValue(value);
     setShowList(false);
