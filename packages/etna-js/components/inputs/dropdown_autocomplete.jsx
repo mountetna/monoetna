@@ -10,7 +10,8 @@ export default function DropdownAutocomplete({
   list,
   onSelect,
   defaultValue,
-  waitTime
+  waitTime,
+  maxItems
 }) {
   var collator = new Intl.Collator(undefined, {
     numeric: true,
@@ -25,7 +26,9 @@ export default function DropdownAutocomplete({
 
   function filterTheList(value) {
     let re = new RegExp(value);
-    setFilteredList(sortedList.filter((item) => item.match(re)));
+    setFilteredList(
+      sortedList.filter((item) => item.match(re)).slice(0, maxItems || 10)
+    );
   }
 
   function onSelectItem(value) {
@@ -55,11 +58,7 @@ export default function DropdownAutocomplete({
   function onChange(value) {
     filterTheList(value);
     setSelectedValue(value);
-    if (sortedList.indexOf(value) === -1) {
-      onSelect(null);
-    } else {
-      onSelect(value);
-    }
+    setShowList(true);
   }
 
   function handleChange(e) {
@@ -78,13 +77,7 @@ export default function DropdownAutocomplete({
   return (
     <div className='dropdown-autocomplete-input'>
       <div className='dropdown-autocomplete-input-field'>
-        <input
-          type='text'
-          onChange={handleChange}
-          value={selectedValue}
-          onBlur={closeList}
-          onFocus={openList}
-        />
+        <input type='text' onChange={handleChange} value={selectedValue} />
         <div className='icon-wrapper' onClick={toggleList}>
           <Icon icon={`${showList ? 'caret-up' : 'caret-down'}`}></Icon>
         </div>
@@ -92,13 +85,8 @@ export default function DropdownAutocomplete({
       {showList ? (
         <ul className={`dropdown-autocomplete-options`}>
           {filteredList && filteredList.length > 0 ? (
-            filteredList.map((item, index) => (
-              <li
-                onClick={() => {
-                  onSelectItem(item);
-                }}
-                key={index}
-              >
+            filteredList.slice(0, maxItems || 10).map((item, index) => (
+              <li onClick={() => onSelectItem(item)} key={index}>
                 {item}
               </li>
             ))
