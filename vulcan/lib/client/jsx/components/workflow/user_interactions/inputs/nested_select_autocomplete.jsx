@@ -87,10 +87,6 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
   }
 
   function handleSelect(value, depth) {
-    // User has not selected something...perhaps
-    //   still typing?
-    if (null == value) return;
-
     let updatedPath;
     if (depth <= currentDepth) {
       updatedPath = path.slice(0, depth);
@@ -98,7 +94,13 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
       updatedPath = [...path];
     }
 
-    updatedPath.push(value);
+    // User has deselected something if null
+    if (null == value) {
+      depth = depth - 1;
+    } else {
+      updatedPath.push(value);
+    }
+
     setCurrentDepth(depth);
     setPath(updatedPath);
     setOptions(getOptions(updatedPath));
