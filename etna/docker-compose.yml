@@ -1,5 +1,5 @@
-
 networks:
+  default:
   edge_net:
     ipam:
       driver: default
@@ -34,4 +34,3 @@ services:
       - 'janus.development.local:172.16.238.10'
       - 'timur.development.local:172.16.238.10'
       - 'polyphemus.development.local:172.16.238.10'
-
