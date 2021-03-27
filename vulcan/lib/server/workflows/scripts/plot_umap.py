@@ -28,10 +28,7 @@ def get(ids, value):
 if color_by == 'Cluster':
     color = leiden
 elif color_by == 'Experiment':
-    color = [
-        re.sub( 'PT.[0-9]+$', '', v.split('-')[2])
-        for v in scdata.obs[ 'Record_ID']
-    ]
+    color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', 'experiment', 'alias' ])
 elif color_by == 'Tissue':
     color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', 'biospecimen_type' ])
 elif color_by == 'Pool':
