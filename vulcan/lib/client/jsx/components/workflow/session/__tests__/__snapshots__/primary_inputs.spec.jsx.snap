@@ -241,7 +241,6 @@ exports[`PrimaryInputs renders each type of input 1`] = `
             >
               <input
                 className="text_box"
-                defaultChecked={null}
                 onChange={[Function]}
                 type="checkbox"
               />

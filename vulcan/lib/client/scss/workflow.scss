@@ -1,76 +1,73 @@
 .workflow-manager {
   display: flex;
-  margin-left: 10px;
-  flex-direction: column;
   height: 100%;
   font-family: $body_font;
+
 }
 
-.workflow-header {
-  padding: 15px;
-  border-bottom: 2px solid #ccc;
-  display: flex;
-
-  .workflow-name {
-    text-transform: uppercase;
-    margin-right: 2rem;
-  }
-}
-
-.step-wrapper {
-  max-height: 90vh;
-  overflow-y: auto;
-  display: flex;
-  flex: 1 1 auto;
-}
-
-.step-main-pane-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.step-input {
-  border-bottom: 2px solid lightgray;
-}
-
-.scroll-window {
-  max-height: 75vh;
-  overflow-y: auto;
+@mixin input-tab {
+  background: rgba(#d7d3d3,0.5);
+  border: 1px solid #d7d3d3;
+  border-bottom: none;
+  position: relative;
+  font-family: $body_font;
+  color: #480202;
+  width: 300px;
+  padding: 0px 8px;
+  cursor: default;
 }
 
 .steps-list {
   padding-left: 10px;
-  padding-right: 0.5rem;
+  padding-right: 10px;
   display: flex;
   flex-direction: column;
-  height: 99%;
+  height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  overflow-x: hidden;
   background: white;
-  border: 1px solid lightgray;
-  border-radius: 2px;
-  width: 300px;
+  border-left: 1px solid lightgray;
+  margin-left: 10px;
+  margin-right: 10px;
+  flex: 0 0 auto;
 
   &.open {
-    width: 300px;
-    transition: width 250ms ease-in-out;
+    .step {
+      width: 300px;
+      transition: width 250ms ease-in-out;
+    }
   }
 
   &.closed {
-    width: 30px;
-    transition: width 250ms ease-in-out;
+    .step {
+      width: 40px;
+      transition: width 250ms ease-in-out;
+    }
+
+    .steps-list-header {
+      width: 40px;
+      transition: width 250ms ease-in-out;
+      .icon-grp-toggle {
+        margin-left: 15px;
+      }
+    }
+
   }
 
   .steps-list-header {
-    width: calc(100% - 10px);
-    margin: 10px 5px;
-    flex: 0 0 20px;
-    border-bottom: 1px solid #f00;
+    flex: 0 0 40px;
     display: flex;
     overflow-x: hidden;
+    align-items: center;
     cursor: default;
+    border-bottom: 1px solid #f00;
 
-    .icon-grp-steps-list-toggle {
-      top: -5px;
+    .icon-grp-toggle {
+      font-size: 0.75em;
+      margin-right: 11px;
+      margin-left: 7px;
+      color: #ccc;
     }
 
     .title {
@@ -79,26 +76,29 @@
     }
   }
 
-  .steps-list-wrapper {
-    position: fixed;
-    width: 300px;
-  }
-
   .step {
+    position: relative;
     text-overflow: ellipsis;
     overflow: hidden;
+    width: 300px;
+    height: 40px;
     border: 1px solid #ccc;
-    margin: 5px;
+    margin: 5px 0px;
     display: flex;
     flex-direction: row;
     align-items: center;
     cursor: default;
+    .step-name {
+      width: 300px;
+      position: absolute;
+    }
+
   }
 }
 
 .step-name {
   display: flex;
-  width: 100%;
+  align-items: center;
 
   .step-status-icon-wrapper {
     flex: 0 0 40px;
@@ -115,6 +115,11 @@
   }
 }
 
+.step-input {
+  border-bottom: 2px solid lightgray;
+}
+
+
 .light {
   opacity: 0.5;
 }
@@ -128,16 +133,22 @@
 }
 
 .session-manager {
-  height: 95%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 
   .session-header {
     display: flex;
     justify-content: center;
     align-items: center;
     border-bottom: 1px solid red;
-    height: 30px;
-    margin-bottom: 15px;
+    flex: 0 0 40px;
     padding-right: 50px;
+    margin-left: 10px;
+
+    .run-workflow-btn {
+      color: #9f2727;
+    }
 
     .icon-grp {
       font-family: $body_font;
@@ -145,10 +156,6 @@
       margin-left: 0.25rem;
       margin-top: -2px;
       cursor: pointer;
-
-      .run {
-        color: #d66;
-      }
 
       .icon.disabled {
         color: grey;
@@ -164,25 +171,32 @@
       margin-left: 0.5rem;
       border-radius: 2px;
       border: 1px solid lightgray;
-      background: none;
-      padding: 0.25rem 1rem;
+      background: rgba(lightgray,0.5);
       font-size: 1rem;
+      height: 32px;
       cursor: pointer;
+      display: flex;
+      padding: 0px 5px;
+      align-items: center;
 
       &:hover {
-        opacity: 0.3;
+        background: rgba( lightgray, 0.25 );
       }
-    }
 
-    button:disabled {
-      color: grey;
-      cursor: not-allowed;
+      &.disabled {
+        &:hover {
+          background: rgba( lightgray, 0.5 );
+        }
+        color: grey;
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     }
   }
 
   .session-feed-container {
     display: flex;
-    height: 100%;
+    height: calc(100% - 48px);
 
     .session-input-feed,
     .session-output-feed {
@@ -197,15 +211,7 @@
         padding: 10px;
 
         .step-name {
-          background: rgb(251, 248, 244);
-          border: 1px solid #ccc;
-          border-bottom: none;
-          position: relative;
-          font-family: $body_font;
-          color: indianred;
-          width: 300px;
-          padding-right: 8px;
-          cursor: default;
+          @include input-tab;
 
           .step-button {
             text-align: right;
@@ -383,18 +389,12 @@
 
     .inputs-pane-header {
       display: flex;
-      flex: 1;
+      align-items: center;
+      height: 32px;
       margin-right: 17px;
       cursor: default;
 
-      background: rgb(251, 248, 244);
-      border: 1px solid #ccc;
-      border-right: 1px solid #ccc;
-      border-bottom: none;
-      position: relative;
-      font-family: $body_font;
-      color: indianred;
-      padding: 8px;
+      @include input-tab;
 
       .title {
         flex: 1;
@@ -457,11 +457,12 @@
 
 .vulcan-dashboard {
   display: flex;
+  font-family: $body_font;
 
   .workflow-card {
     margin: 2rem;
-    border: 2px solid gray;
-    border-radius: 2px;
+    border: 1px solid lightgray;
+    box-shadow: 0 0 0 15px #eee, 0 0 4px 15px #aaa;
     width: 300px;
     height: 400px;
     cursor: pointer;
@@ -487,11 +488,11 @@
       flex-direction: column;
       font-size: 12px;
       flex: 1;
+      border-top: 1px solid lightgray;
 
       .row {
         flex: 1;
         display: flex;
-        border-top: 1px solid lightgray;
         display: flex;
         &:not(:last-of-type) {
           .item_name {
@@ -510,7 +511,6 @@
           padding-right: 8px;
           padding-top: 4px;
           text-align: right;
-          font-family: $body_font;
           color: darkblue;
 
           .card-tags {
@@ -520,9 +520,7 @@
 
         .value {
           display: inline-block;
-          padding-left: 8px;
-          padding-bottom: 3px;
-          padding-top: 4px;
+          padding: 4px 8px;
           box-sizing: border-box;
           flex: 1;
 

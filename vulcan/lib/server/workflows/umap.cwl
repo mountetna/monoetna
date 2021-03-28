@@ -58,11 +58,36 @@ inputs:
     label: 'Number of PCs to use'
     doc: 'Principal components, from 1 to this number will be carried forward into UMAP and clustering calculations. Commonly, some number 15 or fewer is ideal. Additional tooling is planned to power tuning this parameter.'
     label: 'Maximum number of PCs'
+  UMAP_Calculation__n_neighbors:
+    type: int
+    default: 10
+    label: 'Number of neighbors?'
+    doc: 'The size of the local neighborhood used in manifold approximation. Larger values result in a more global view, smaller values a more local view.'
   UMAP_Calculation__leiden_resolution:
     type: float
     default: 1
     label: 'Resolution of Leiden clustering'
     doc: 'Higher resolution yields more clusters'
+  UMAP_Calculation__leiden_use_weights:
+    type: boolean
+    default: true
+    label: 'use weights in leiden?'
+    doc: 'If true, edge weights in the nearest neighbors graph will be used to calculate clusters.'
+  UMAP_Calculation__umap_spread:
+    type: float
+    default: 1.0
+    label: 'UMAP point spread?'
+    doc: 'The scale of the embedded points - larger values move points further apart.'
+  UMAP_Calculation__umap_min_dist:
+    type: float
+    default: 0.5
+    label: 'Minimum distance?'
+    doc: 'The minimum distance between cluster points - larger values produce less clumping.'
+  UMAP_Calculation__umap_num_iters:
+    type: int
+    label: 'Number of iterations?'
+    default: 0
+    doc: 'The number of iterations for optimization - by default (0) either 200 for small datasets or 500 for large ones.'
 
 outputs:
   the_data:
@@ -86,20 +111,27 @@ steps:
       j: Regress__regress_tube_id
       k: UMAP_Calculation__max_pc
       l: UMAP_Calculation__leiden_resolution
-    out: [experiments, tissues, all_tubes, color_options]
+    out: [experiments, tissues, fractions]
   Select_Records__pickExperiments:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Experiments'
-    doc: 'Subset  of experiments to use, based on their `alias`. These selections get combined with Tissue selections with AND logic. If you want to just select tube records directly, pick No Selections for all dropdowns here.'
+    doc: 'Picks the set of experiment:alias options to use. These selections get combined with Tissue and Cell Fraction selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
       a: queryMagma/experiments
     out: [options]
   Select_Records__pickTissues:
     run: ui-queries/multiselect-string.cwl
     label: 'Select Tissues'
-    doc: 'Subset of biospecimen_types to use. These selections get combined with Experiment selections with AND logic. If you want to just select tube records directly, pick No Selections for all dropdowns here.'
+    doc: 'Picks the set of biospecimen_group:biospecimen_type options to use. These selections get combined with Experiment and Cell Fraction selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
       a: queryMagma/tissues
+    out: [options]
+  Select_Records__pickFractions:
+    run: ui-queries/multiselect-string.cwl
+    label: 'Select Sort Fractions'
+    doc: 'Picks the set of sc_seq:cell_faction options to use. These selections get combined with Experiment and Tissue selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
+    in:
+      a: queryMagma/fractions
     out: [options]
   parse_record_selections:
     run: scripts/parse_record_selections.cwl
@@ -107,7 +139,7 @@ steps:
     in:
       experiments: Select_Records__pickExperiments/options
       tissues: Select_Records__pickTissues/options
-      all_tubes: queryMagma/all_tubes
+      fractions: Select_Records__pickFractions/options
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
@@ -155,13 +187,17 @@ steps:
     in:
       pca_anndata.h5ad: regress_and_pca/pca_anndata.h5ad
       max_pc: UMAP_Calculation__max_pc
+      n_neighbors: UMAP_Calculation__n_neighbors
     out: [nn_anndata.h5ad]
   calc_umap:
     run: scripts/calc_umap.cwl
     label: 'Calculate UMAP'
     in:
+      spread: UMAP_Calculation__umap_spread
+      min_dist: UMAP_Calculation__umap_min_dist
+      num_iters: UMAP_Calculation__umap_num_iters
       nn_anndata.h5ad: neighbors/nn_anndata.h5ad
-    out: [umap_anndata.h5ad]
+    out: [umap_anndata.h5ad,color_options]
   calc_leiden:
     run: scripts/calc_leiden.cwl
     label: 'Calculate Leiden clustering'
@@ -173,8 +209,7 @@ steps:
     run: ui-queries/nested-select-autocomplete.cwl
     label: 'Color Options'
     in:
-      a: queryMagma/color_options
-      b: calc_leiden/leiden.json
+      a: calc_umap/color_options
     out: [color_by]
   plot_umap:
     run: scripts/plot_umap.cwl
@@ -182,8 +217,7 @@ steps:
     in:
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden.json: calc_leiden/leiden.json
-      max_pc: UMAP_Calculation__max_pc
-      color_selection: select_color_by_option/color_by
+      color_by: select_color_by_option/color_by
     out: [umap.plotly.json]
   show_umap_plot:
     run: ui-outputs/plotly.cwl
@@ -191,3 +225,10 @@ steps:
       a: plot_umap/umap.plotly.json
     out: []
     label: 'Display UMAP'
+  downloadRawData:
+    run: ui-outputs/link.cwl
+    in:
+      a: calc_umap/umap_anndata.h5ad
+    out: []
+    label: 'Download data as h5ad'
+

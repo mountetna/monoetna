@@ -28,9 +28,7 @@ export default function PrimaryInputs() {
           name: inputName,
           label: workflowInput.label || inputName,
           default:
-            (session.inputs && session.inputs[inputName]) ||
-            workflowInput.default ||
-            null
+            [ session.inputs && session.inputs[inputName], workflowInput.default ].find(a => a !== null && a !== undefined)
         });
 
         return result;
