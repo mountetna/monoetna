@@ -189,7 +189,7 @@ steps:
       min_dist: UMAP_Calculation__umap_min_dist
       num_iters: UMAP_Calculation__umap_num_iters
       nn_anndata.h5ad: neighbors/nn_anndata.h5ad
-    out: [umap_anndata.h5ad]
+    out: [umap_anndata.h5ad,color_options]
   calc_leiden:
     run: scripts/calc_leiden.cwl
     label: 'Calculate Leiden clustering'
@@ -201,8 +201,7 @@ steps:
     run: ui-queries/nested-select-autocomplete.cwl
     label: 'Color Options'
     in:
-      a: queryMagma/color_options
-      b: calc_leiden/leiden.json
+      b: calc_umap/color_options
     out: [color_by]
   plot_umap:
     run: scripts/plot_umap.cwl
