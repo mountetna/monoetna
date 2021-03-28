@@ -86,11 +86,7 @@ export default function DropdownAutocomplete({
         <ul className={`dropdown-autocomplete-options`}>
           {filteredList && filteredList.length > 0 ? (
             filteredList.slice(0, maxItems || 10).map((item, index) => (
-<<<<<<< HEAD
               <li onClick={() => onSelectItem(item)} key={index}>
-=======
-              <li onClick={() => onSelectItem(item)} key={index} >
->>>>>>> change maxItems for dropdown_autocomplete
                 {item}
               </li>
             ))

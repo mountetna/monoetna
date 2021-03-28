@@ -9,6 +9,7 @@ magma = connect()
 
 experiments = input_json('experiments')
 tissues = input_json('tissues')
+fractions = input_json('fractions')
 
 # Experiment and Tissue (AND logic)
 filters = []
@@ -17,6 +18,9 @@ if len(experiments) > 0:
 #### NEED TO TEST TISSUES BETTER ONCE ADDED
 if len(tissues) > 0:
     filters.append( ['biospecimen_group', 'biospecimen_type', '::in', tissues] )
+
+if len(fractions) > 0:
+    filters.append( ['cell_fraction', '::in', fractions] )
 
 tube_records = unique(question(
     magma,
