@@ -46,5 +46,13 @@ fig = px.scatter(
     color_discrete_sequence=colors,
     color=color)
 
+fig.update_layout(
+    xaxis_title='UMAP0',
+    yaxis_title='UMAP1',
+    legend_title=color_by
+)
+
+fig.update_traces(marker={'size': 5, 'opacity': 0.5})
+
 with open(output_path('umap.plotly.json'), 'w') as output_file:
     json.dump(json.loads(pio.to_json(fig)), output_file)
