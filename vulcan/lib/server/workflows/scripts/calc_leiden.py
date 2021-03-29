@@ -1,4 +1,4 @@
-from archimedes.functions.dataflow import output_path, input_path, input_var, output_json
+from archimedes.functions.dataflow import output_path, input_path, input_var, input_bool, output_json
 from archimedes.functions.scanpy import scanpy as sc
 
 scdata = sc.read(input_path('nn_anndata.h5ad'))
