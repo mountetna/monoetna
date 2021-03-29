@@ -9,7 +9,7 @@ num_iters = int(input_var('num_iters'))
 # umap
 sc.tl.umap(scdata, min_dist = min_dist, spread = spread, maxiter = num_iters)
 
-# Bring pre-ubsetting/regression/scaling expression data back to forefront
+# Bring pre-subsetting/regression/scaling expression data back to forefront
 scdata.raw.to_adata()
 
 # color options
