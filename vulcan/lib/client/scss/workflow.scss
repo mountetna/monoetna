@@ -2,11 +2,10 @@
   display: flex;
   height: 100%;
   font-family: $body_font;
-
 }
 
 @mixin input-tab {
-  background: rgba(#d7d3d3,0.5);
+  background: rgba(#d7d3d3, 0.5);
   border: 1px solid #d7d3d3;
   border-bottom: none;
   position: relative;
@@ -52,7 +51,6 @@
         margin-left: 15px;
       }
     }
-
   }
 
   .steps-list-header {
@@ -92,7 +90,6 @@
       width: 300px;
       position: absolute;
     }
-
   }
 }
 
@@ -118,7 +115,6 @@
 .step-input {
   border-bottom: 2px solid lightgray;
 }
-
 
 .light {
   opacity: 0.5;
@@ -171,7 +167,7 @@
       margin-left: 0.5rem;
       border-radius: 2px;
       border: 1px solid lightgray;
-      background: rgba(lightgray,0.5);
+      background: rgba(lightgray, 0.5);
       font-size: 1rem;
       height: 32px;
       cursor: pointer;
@@ -180,12 +176,12 @@
       align-items: center;
 
       &:hover {
-        background: rgba( lightgray, 0.25 );
+        background: rgba(lightgray, 0.25);
       }
 
       &.disabled {
         &:hover {
-          background: rgba( lightgray, 0.5 );
+          background: rgba(lightgray, 0.5);
         }
         color: grey;
         opacity: 0.5;
@@ -537,5 +533,17 @@
   padding: 2rem;
   p {
     margin: 2px;
+  }
+}
+
+.all-clear-header {
+  display: flex;
+  border-bottom: 1px solid lightgray;
+  .action {
+    flex: 1;
+    text-align: center;
+    font-size: 0.9rem;
+    cursor: default;
+    color: darkblue;
   }
 }
