@@ -14,6 +14,7 @@ export const TYPE = {
   ARRAY: 'array',
   FILE: 'File',
   MULTISELECT_STRING: 'multiselect-string',
+  MULTISELECT_STRING_ALL: 'multiselect-string-all',
   SELECT_AUTOCOMPLETE: 'select-autocomplete',
   CHECKBOXES: 'checkboxes',
   NESTED_SELECT_AUTOCOMPLETE: 'nested-select-autocomplete'
