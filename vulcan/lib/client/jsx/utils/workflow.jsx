@@ -43,7 +43,6 @@ export const isMissingDrawerInputs = (step, session) => {
 export const isMissingStandardInputs = (step, session) => {
   return (
     uiStepInputNames(step).filter((outputName) => {
-      console.log(session.inputs[outputName]);
       return (
         !Object.keys(session.inputs).includes(outputName) ||
         !isDefined(session.inputs[outputName])
@@ -218,7 +217,7 @@ const stepDependsOn = (step, otherStep) => {
     step.in.filter((input) => {
       return (
         otherStep.name === input.source[0] &&
-        otherStep.out[0] === input.source[1]
+        otherStep.out.includes(input.source[1])
       );
     }).length > 0
   );
