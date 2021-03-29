@@ -1,115 +1,91 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import NumericInput from './numeric_input';
 import SlowTextInput from '../inputs/slow_text_input';
 
+const ListItem = ({item, onClick }) => {
+  let className = 'delete_link';
+
+  // Clone item, but could be simple Object or string
+  let display_item = JSON.parse(JSON.stringify(item));
+
+  if (display_item == null || display_item == '') {
+    display_item = 'null';
+    className = 'delete_link empty';
+  } else if (typeof display_item === 'object' &&
+    display_item.hasOwnProperty('original_filename')) {
+    display_item = display_item.original_filename;
+  }
+
+  return(
+    <div className='list_item'>
+      <span className={ className } onClick={ onClick } >
+        { display_item  }
+      </span>
+    </div>
+  );
+}
+
 // This is an input to create and edit a list of items
-export default class ListInput extends Component {
-  constructor() {
-    super();
-    this.state = { edit_link: false };
-  }
+const ListInput = ({ values, itemInput, onChange, onAll, onClear, ...inputProps }) => {
+  let [ editing, setEditing ] = useState(null);
+  let new_value;
 
-  listItem(list_item, pos) {
-    let className = 'delete_link';
+  let ItemInput = itemInput;
 
-    // Clone list_item, but could be simple Object or string
-    let display_item = JSON.parse(JSON.stringify(list_item));
-      
-    if (display_item == null || display_item == '') {
-      display_item = 'null';
-      className = 'delete_link empty';
-    } else if (typeof display_item === 'object' &&
-        display_item.hasOwnProperty('original_filename')) {
-        display_item = display_item.original_filename;
-    }
+  const removeValue = (pos) => onChange(
+    values.slice(0,pos).concat(values.slice(pos+1))
+  );
 
-    return(
-      <div key={ pos } className='list_item'>
-        <span className={ className } onClick={ () => this.removeValue(pos) } >
-          { display_item  }
-        </span>
-      </div>
-    );
-  }
-
-  removeValue(pos) {
-    let { values, onChange } = this.props;
-
-    let new_values = values
-      .slice(0,pos)
-      .concat(values.slice(pos+1));
-
-    onChange(new_values);
-  }
-
-  addValue() {
-    let { values, onChange } = this.props;
-
-    let new_values = values.concat('');
-
-    onChange(new_values);
-  }
-
-  editValue(new_value) {
+  const editValue = (new_value) => {
     if (new_value === null || new_value === undefined || new_value === '') return;
 
-    let { values, onChange } = this.props;
-
     let new_values = values.slice();
-      
+
     new_values.splice(values.length-1,1,new_value);
 
     onChange(new_values);
   }
 
-  addListItem() {
+  const addListItem = () => {
     // add a new value to the list
-    this.addValue();
+    onChange(values.concat(''));
 
     // turn on editing
-    this.setState({ editNewValue: true });
+    setEditing(true);
   }
 
-  renderEdit(value, ItemInput, inputProps) {
-    let blur = () => this.setState({ editNewValue: false });
-
-    return(
+  return(
+    <div className='list_input'>
+      {
+        (editing ? values.slice(0,-1) : values).map(
+          (value,i) => <ListItem
+            key={i}
+            item={value}
+            onClick={ () => removeValue(i) }
+          />
+        )
+      }
+      { editing &&
+        <div className='list_item'>
+          <ItemInput 
+            onChange={ editValue }
+            onBlur={ () => setEditing(null) }
+            defaultValue={ values.slice(-1) }
+            { ...inputProps }
+          />
+        </div>
+      }
       <div className='list_item'>
-        <ItemInput 
-          onChange={ this.editValue.bind(this) }
-          onBlur={ blur }
-          defaultValue={ value }
-          { ...inputProps }
-        />
+        <span className='add_item' onClick={ addListItem }>+</span>
+        { onAll ?
+          <span className='add_item' onClick={onAll}>all</span> : null
+        }
+        { onClear ?
+          <span className='add_item' onClick={onClear}>reset</span> : null
+        }
       </div>
-    );
-  }
-
-  renderAdd() {
-    return(
-      <div className='list_item'>
-        <span className='add_item' onClick={ this.addListItem.bind(this) }>+</span>
-      </div>
-    );
-  }
-
-  render() {
-    let { values, itemInput, onChange, ...inputProps } = this.props;
-    let { editNewValue } = this.state;
-    let new_value;
-
-    if (editNewValue) {
-      new_value = values.slice(-1);
-      values = values.slice(0,-1);
-    }
-
-    return(
-      <div className='list_input'>
-
-        {values.map(this.listItem.bind(this))}
-        {editNewValue ? this.renderEdit(new_value, itemInput, inputProps): null}
-        {this.renderAdd()}
-      </div>
-    );
-  }
+    </div>
+  );
 }
+
+export default ListInput;
