@@ -10,7 +10,7 @@ function LeafOptions({options, depth, handleSelect}) {
   if (!options) return null;
   return (
     <DropdownAutocomplete
-      key={`${depth}-${options.join('-')}`}
+      key={`${depth}-${options.slice(0, 5).join('-')}`}
       onSelect={(e) => {
         handleSelect(e, depth);
       }}
@@ -37,6 +37,8 @@ export default function NestedSelectAutocompleteInput({input, onChange}) {
           return [key, leaf];
         let path = getPath(value, leaf);
         if (path) return [key, ...path];
+      } else if (null == value && key == leaf) {
+        return [key];
       }
     }
   }

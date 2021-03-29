@@ -80,10 +80,9 @@ export default function SessionManager({name}) {
             </Link>
           </div>
         )}
-        <button
-          disabled={disabled}
+        <div
           onClick={runWorkflow}
-          className='run-workflow-btn header-btn'
+          className={ `run-workflow-btn ${disabled ? 'disabled' : ''} header-btn` }
         >
           Run
           <Icon
@@ -92,7 +91,7 @@ export default function SessionManager({name}) {
             title='Run workflow'
             icon='play'
           />
-        </button>
+        </div>
       </div>
       <div className='session-feed-container'>
         <InputFeed></InputFeed>

@@ -16,7 +16,7 @@ def h5_dl_and_scanpy_import(tube_name, raw_counts_h5_mpath):
 
     return adata
 
-data_tube_url = input_json('h5_locations')['answer']
+data_tube_url = input_json('h5_locations')
 
 # Initialize merged data, then loop through
 merged_data = h5_dl_and_scanpy_import(data_tube_url[0][0], data_tube_url[0][1])
