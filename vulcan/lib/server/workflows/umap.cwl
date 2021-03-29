@@ -113,21 +113,21 @@ steps:
       l: 5_Cluster_Calculation__leiden_resolution
     out: [experiments, tissues, fractions]
   Select_Records__pickExperiments:
-    run: ui-queries/multiselect-string.cwl
+    run: ui-queries/multiselect-string-all.cwl
     label: 'Select Experiments'
     doc: 'Picks the set of experiment:alias options to use. These selections get combined with Tissue and Cell Fraction selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
       a: queryMagma/experiments
     out: [options]
   Select_Records__pickTissues:
-    run: ui-queries/multiselect-string.cwl
+    run: ui-queries/multiselect-string-all.cwl
     label: 'Select Tissues'
     doc: 'Picks the set of biospecimen_group:biospecimen_type options to use. These selections get combined with Experiment and Cell Fraction selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
       a: queryMagma/tissues
     out: [options]
   Select_Records__pickFractions:
-    run: ui-queries/multiselect-string.cwl
+    run: ui-queries/multiselect-string-all.cwl
     label: 'Select Sort Fractions'
     doc: 'Picks the set of sc_seq:cell_faction options to use. These selections get combined with Experiment and Tissue selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
