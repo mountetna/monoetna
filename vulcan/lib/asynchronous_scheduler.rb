@@ -42,10 +42,12 @@ class Vulcan
       end
     end
 
-    def status(storage:, build_target:)
+    def status(storage:, build_target:, step: nil)
       hash = build_target.cell_hash
 
-      if build_target.is_built?(storage)
+      requires_inputs = step&.ui_output_name && !build_target.is_buildable?(storage)
+
+      if !requires_inputs && build_target.is_built?(storage)
         return {status: 'complete'}
       end
 

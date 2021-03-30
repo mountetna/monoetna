@@ -43,8 +43,8 @@ export type WorkflowsResponse = typeof defaultWorkflowsResponse;
 export interface StepInput {
   id: string,
   source: string,
-  doc?: string,
-  label?: string,
+  doc?: string | null,
+  label?: string | null,
 }
 
 export interface WorkflowStep {
@@ -52,27 +52,29 @@ export interface WorkflowStep {
   run: string,
   in: StepInput[],
   out: string[],
-  label: string | undefined,
-  doc: string | undefined,
+  label?: string | null,
+  doc?: string | null,
 }
 
 export interface WorkflowOutput {
   outputSource: string,
-  label: string | undefined,
+  label?: string | null,
   type: string,
   default: any | null,
   format: string | null,
 }
 
 export interface WorkflowInput {
-  doc: string | undefined,
-  label: string | undefined,
+  doc?: string | null,
+  label?: string | null,
   type: string,
   format: string | null,
   default: any | null,
 }
 
 export interface Workflow {
+  class: string,
+  cwlVersion: string,
   name: string,
   inputs: {[k: string]: WorkflowInput},
   outputs: {[k: string]: WorkflowOutput},
@@ -91,8 +93,8 @@ export type StatusString = 'running' | 'pending' | 'complete' | 'error';
 export interface StepStatus {
   name: string,
   status: StatusString,
-  downloads: {[k: string]: string} | undefined | null,
-  error: string | undefined | null,
+  downloads?: {[k: string]: string} | null,
+  error?: string | null,
 }
 
 export const defaultVulcanSession = {
@@ -106,7 +108,7 @@ export type VulcanSession = typeof defaultVulcanSession;
 
 
 export const defaultSessionStatusResponse = {
-  outputs: {} as  {[k: string]: {downloads: StepStatus['downloads'], status: StepStatus['status']}},
+  outputs: {downloads: null, status: 'pending'} as {downloads: StepStatus['downloads'], status: StepStatus['status']},
   session: defaultVulcanSession,
   status: [[]] as [StepStatus[]]
 }

@@ -153,3 +153,11 @@ end
 def json_post(endpoint, hash)
   post("/#{endpoint}", hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
 end
+
+def save_last_response_json(fixture_name, type)
+  fixture_path = ::File.join(__dir__, '..', 'lib', 'client', 'jsx', 'test_utils', 'fixtures', "#{fixture_name}.ts")
+  constName = fixture_name.gsub(/[_-](\w)/){$1.upcase}
+  p last_response.body
+
+  ::File.write(fixture_path, "import {#{type}} from \"../../api_types\";\n\nexport const #{constName}: #{type} = #{last_response.body};")
+end

@@ -58,7 +58,7 @@ class SessionsController < Vulcan::Controller
     ui_output = step&.ui_output_name
     bt = orchestration.build_target_for(step_name, build_target_cache)
 
-    scheduler.status(storage: storage, build_target: bt).update({
+    scheduler.status(storage: storage, build_target: bt, step: step).update({
         name: step_name,
         downloads: step_has_downloads?(bt, ui_output) ? bt.build_outputs.map do |output_name, sf|
           [

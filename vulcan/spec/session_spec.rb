@@ -71,7 +71,7 @@ describe SessionsController do
       expect(last_json_response['status'].map { |a| a.map { |v| v['name'] }}).to match_array([
           ['firstAdd', 'pickANum', 'finalStep', 'aPlot'],
       ])
-      expect(last_json_response['status']).to match_array([
+      expect(last_json_response['status']).to eql([
           [
               {'downloads' => nil, 'name' => 'firstAdd',  'status' => 'pending'},
               {'downloads' => nil, 'name' => 'pickANum',  'status' => 'pending'},
@@ -80,6 +80,8 @@ describe SessionsController do
           ],
       ])
       expect(last_json_response['outputs']).to eql({'downloads' => nil, 'status' => 'pending'})
+
+      save_last_response_json('status-without-downloads', 'SessionStatusResponse')
     end
   end
 
@@ -104,6 +106,7 @@ describe SessionsController do
 
       make_request("/status")
       expect(last_response.status).to eql(200)
+      save_last_response_json('status-with-downloads', 'SessionStatusResponse')
       response = last_json_response
 
       check_url_for(response['status'][0][0]['downloads']['sum'], orchestration.build_target_for('firstAdd').build_outputs['sum'])
@@ -140,6 +143,8 @@ describe SessionsController do
       expect(response['session']['inputs']).to eql(inputs)
       expect(response['status'].first[0]['status']).to eq('error')
       expect(response['status'].first[2]['status']).to eq('pending') # Can't run finalStep since firstStep has an error
+
+      save_last_response_json('status-with-error', 'SessionStatusResponse')
     end
   end
 end

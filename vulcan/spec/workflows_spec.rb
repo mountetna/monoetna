@@ -96,6 +96,8 @@ describe WorkflowsController do
                   "run"=>"ui-outputs/plotter.cwl"}
           ],
       ])
+
+      save_last_response_json('workflows-response', 'WorkflowsResponse')
     end
 
     it 'rejects a non-user' do
