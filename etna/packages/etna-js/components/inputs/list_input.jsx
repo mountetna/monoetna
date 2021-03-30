@@ -54,6 +54,18 @@ const ListInput = ({ values, itemInput, onChange, onAll, onClear, ...inputProps 
     setEditing(true);
   }
 
+  const addAllItems = () => {
+    onAll();
+
+    setEditing(false);
+  }
+
+  const removeItems = () => {
+    onClear();
+
+    setEditing(false);
+  }
+
   return(
     <div className='list_input'>
       {
@@ -78,10 +90,10 @@ const ListInput = ({ values, itemInput, onChange, onAll, onClear, ...inputProps 
       <div className='list_item'>
         <span className='add_item' onClick={ addListItem }>+</span>
         { onAll ?
-          <span className='add_item' onClick={onAll}>all</span> : null
+          <span className='add_item' onClick={addAllItems}>all</span> : null
         }
         { onClear ?
-          <span className='add_item' onClick={onClear}>reset</span> : null
+          <span className='add_item' onClick={removeItems}>reset</span> : null
         }
       </div>
     </div>
