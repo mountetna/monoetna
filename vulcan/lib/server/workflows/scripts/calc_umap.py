@@ -16,6 +16,7 @@ color_options = {
     'Tissue': None,
     'Pool': None,
     'Biospecimen Group': None,
+    'Tube': None,
     'Gene': dict([ [ gene_id, None ] for gene_id in scdata.raw.var_names ])
 }
 
