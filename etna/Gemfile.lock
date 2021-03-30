@@ -29,8 +29,9 @@ GEM
     hashdiff (1.0.1)
     jwt (2.2.2)
     method_source (1.0.0)
-    mimemagic (0.3.7)
-      nokogiri (~> 1.11.2)
+    mimemagic (0.3.10)
+      nokogiri (~> 1)
+      rake
     mini_portile2 (2.5.0)
     multipart-post (2.1.1)
     net-ssh (4.2.0)
@@ -80,7 +81,7 @@ GEM
       tty-cursor (~> 0.7)
     unicode-display_width (1.7.0)
     vcr (6.0.0)
-    webmock (3.12.1)
+    webmock (3.12.2)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
@@ -95,7 +96,7 @@ DEPENDENCIES
   concurrent-ruby-ext
   debase
   jwt
-  mimemagic (= 0.3.7)
+  mimemagic (~> 0.3.10)
   multipart-post
   nokogiri
   pry

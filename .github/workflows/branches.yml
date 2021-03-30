@@ -1,4 +1,4 @@
-name: Run tests
+name: Run Ruby app tests
 on:
   push:
     branches:
@@ -10,6 +10,18 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-app:
+          - metis
+          - magma
+          - janus
+          - vulcan
+          - polyphemus
+          - timur
+          - etna
+          - archimedes
+      fail-fast: false
     steps:
       - uses: actions/checkout@v2
       - name: docker login
@@ -23,106 +35,12 @@ jobs:
           IMAGES_POSTFIX: :master
         run: |
           ./bin/x-all-images docker pull %
-      - name: Run metis test suite
-        id: metis_first_test_run
+      - name: Run ${{ matrix.test-app }} test suite
+        id: app_first_test_run
         env:
           IMAGES_PREFIX: etnaagent/
           IS_CI: 1
           CI_SECRET: ${{ secrets.CI_SECRET }}
           IMAGES_POSTFIX: :master
         run: |
-          make -C metis release
-      - name: Run janus test suite
-        id: janus_first_test_run
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          CI_SECRET: ${{ secrets.CI_SECRET }}
-          IMAGES_POSTFIX: :master
-        run: |
-          make -C janus release
-      - name: Run timur test suite
-        id: timur_first_test_run
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          CI_SECRET: ${{ secrets.CI_SECRET }}
-          IMAGES_POSTFIX: :master
-        run: |
-          make -C timur release
-      - name: Run magma test suite
-        id: magma_first_test_run
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          CI_SECRET: ${{ secrets.CI_SECRET }}
-          IMAGES_POSTFIX: :master
-        run: |
-          make -C magma release
-      - name: Run polyphemus tests
-        id: polyphemus_first_test_run
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          CI_SECRET: ${{ secrets.CI_SECRET }}
-          IMAGES_POSTFIX: :master
-        run: |
-          make -C polyphemus release
-      - name: Run etna test suite
-        id: etna_first_test_run
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          CI_SECRET: ${{ secrets.CI_SECRET }}
-          IMAGES_POSTFIX: :master
-        run: |
-          make -C etna release
-      - name: Run archimedes tests
-        id: archimedes_first_test_run
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          CI_SECRET: ${{ secrets.CI_SECRET }}
-          IMAGES_POSTFIX: :master
-        run: |
-          make -C archimedes release
-      - name: Run vulcan tests
-        id: vulcan_first_test_run
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          CI_SECRET: ${{ secrets.CI_SECRET }}
-          IMAGES_POSTFIX: :master
-        run: |
-          make -C vulcan release
-      - name: Setup Python
-        id: magby_setup_py
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.6
-      - name: Run Magby tests
-        id: magby_first_test_run
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          CI_SECRET: ${{ secrets.CI_SECRET }}
-          IMAGES_POSTFIX: :master
-        run: |
-          python -m pip install --upgrade pip
-          pip install etna/packages/magby/
-          python etna/packages/magby/tests/test_Magby.py
-          python etna/packages/magby/tests/test_Magma.py
-      - name: Run geoline tests
-        id: geoline_first_test_run
-        env:
-          IMAGES_PREFIX: etnaagent/
-          IS_CI: 1
-          CI_SECRET: ${{ secrets.CI_SECRET }}
-          IMAGES_POSTFIX: :master
-        run: |
-          python -m pip install --upgrade pip
-          pip install geoline/
-          python geoline/tests/test_Geoline.py
-          python geoline/tests/test_geoUtils.py
-          python geoline/tests/test_TemplateTree.py
-
+          make -C ${{ matrix.test-app }} release
