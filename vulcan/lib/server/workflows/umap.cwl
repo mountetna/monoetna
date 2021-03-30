@@ -204,6 +204,7 @@ steps:
     in:
       nn_anndata.h5ad: neighbors/nn_anndata.h5ad
       leiden_resolution: 5_Cluster_Calculation__leiden_resolution
+      use_weights: 5_Cluster_Calculation__leiden_use_weights
     out: [leiden.json]
   select_color_by_option:
     run: ui-queries/nested-select-autocomplete.cwl

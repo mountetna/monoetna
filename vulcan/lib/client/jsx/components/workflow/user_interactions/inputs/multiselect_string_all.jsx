@@ -30,15 +30,11 @@ export default function MultiselectStringAllInput({input, onChange}) {
 
   return (
     <div>
-      <div className='all-clear-header'>
-        <div className='action' onClick={handleAllInputs}>
-          All
-        </div>
-        <div className='action' onClick={handleClearInputs}>
-          Clear
-        </div>
-      </div>
-      <MultiselectStringInput onChange={onChange} input={patchedInput} />
+      <MultiselectStringInput
+        onAll={handleAllInputs}
+        onClear={handleClearInputs}
+        onChange={onChange}
+        input={patchedInput} />
     </div>
   );
 }

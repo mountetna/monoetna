@@ -12,6 +12,6 @@ def question(magma, question, strip_identifiers=True):
     query_result = magma.query(project_name, queryTerms=question)
 
     if not 'answer' in query_result:
-        raise 'No answer to magma query'
+        raise Exception('No answer to magma query')
 
     return [ v[1] for v in query_result['answer'] ] if strip_identifiers else query_result['answer']
