@@ -13,7 +13,7 @@ gem "multipart-post"
 gem "nokogiri"
 gem "aspera-cli"
 gem "rake" # for mimemagic??
-gem "mimemagic", "0.3.7" # for aspera-cli
+gem "mimemagic", "~>0.3.10" # for aspera-cli
 gem "concurrent-ruby"
 gem "concurrent-ruby-ext"
 

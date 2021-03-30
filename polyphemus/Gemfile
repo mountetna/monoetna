@@ -8,7 +8,7 @@ gem "etna", path: "/etna"
 gem "actionpack" # For streaming the job controller results back...
 gem "aspera-cli"
 gem "rake" # for mimemagic??
-gem "mimemagic", "0.3.7" # for aspera-cli
+gem "mimemagic", "~>0.3.10" # for aspera-cli
 gem "concurrent-ruby"
 
 group :development, :test do

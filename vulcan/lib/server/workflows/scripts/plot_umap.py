@@ -20,7 +20,7 @@ def get(ids, value):
         'sc_seq',
         [ '::identifier', '::in', ids ],
         '::all',
-        value
+        *value
     ], strip_identifiers=False))
 
     return [ values.get(id, None) for id in ids ]
@@ -35,8 +35,10 @@ elif color_by == 'Pool':
     color = get(scdata.obs[ 'Record_ID' ], [ 'sc_seq_pool', '::identifier' ])
 elif color_by == 'Biospecimen Group':
     color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', '::identifier' ])
-elif color_by in scdata.var_names:
-    color = flatten(scdata.X[ : , scdata.var_names == color_by ])
+elif color_by == 'Tube':
+    color = scdata.obs[ 'Record_ID' ]
+elif color_by in scdata.raw.var_names:
+    color = flatten(scdata.raw.X[ : , scdata.raw.var_names == color_by ].toarray())
 else:
     color = None
 
@@ -51,6 +53,7 @@ fig.update_layout(
     yaxis_title='UMAP1',
     legend_title=color_by
 )
+fig.update_coloraxes(colorbar_title_text=color_by)
 
 fig.update_traces(marker={'size': 5, 'opacity': 0.5})
 
