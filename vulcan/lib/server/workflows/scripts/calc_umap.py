@@ -9,9 +9,6 @@ num_iters = int(input_var('num_iters'))
 # umap
 sc.tl.umap(scdata, min_dist = min_dist, spread = spread, maxiter = num_iters)
 
-# Bring pre-subsetting/regression/scaling expression data back to forefront
-scdata.raw.to_adata()
-
 # color options
 color_options = {
     'Cluster': None,
@@ -19,7 +16,8 @@ color_options = {
     'Tissue': None,
     'Pool': None,
     'Biospecimen Group': None,
-    'Gene': dict([ [ gene_id, None ] for gene_id in scdata.var_names ])
+    'Tube': None,
+    'Gene': dict([ [ gene_id, None ] for gene_id in scdata.raw.var_names ])
 }
 
 ##### OUTPUT

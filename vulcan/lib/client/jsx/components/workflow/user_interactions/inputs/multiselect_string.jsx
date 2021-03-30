@@ -3,7 +3,7 @@ import React from 'react';
 import ListInput from 'etna-js/components/inputs/list_input';
 import DropdownInput from 'etna-js/components/inputs/dropdown_input';
 
-export default function MultiselectStringInput({input, onChange}) {
+export default function MultiselectStringInput({input, onChange, onClear, onAll}) {
   if (!input || !onChange) return null;
 
   var collator = new Intl.Collator(undefined, {
@@ -27,6 +27,8 @@ export default function MultiselectStringInput({input, onChange}) {
       onChange={(e) => {
         onChange(input.name, e);
       }}
+      onAll={onAll}
+      onClear={onClear}
     />
   );
 }
