@@ -35,6 +35,8 @@ elif color_by == 'Pool':
     color = get(scdata.obs[ 'Record_ID' ], [ 'sc_seq_pool', '::identifier' ])
 elif color_by == 'Biospecimen Group':
     color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', '::identifier' ])
+elif color_by == 'Tube':
+    color = scdata.obs[ 'Record_ID' ]
 elif color_by in scdata.raw.var_names:
     color = flatten(scdata.raw.X[ : , scdata.raw.var_names == color_by ].toarray())
 else:
