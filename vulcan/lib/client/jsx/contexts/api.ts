@@ -34,9 +34,7 @@ export const defaultApiHelpers = {
     },
 }
 
-export function useApi(): typeof defaultApiHelpers {
-    const invoke = useActionInvoker();
-
+export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHelpers {
     const [workCount, setWorkCount] = useState(0);
     const workRef = useRef(workCount);
 

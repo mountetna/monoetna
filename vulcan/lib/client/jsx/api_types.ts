@@ -47,6 +47,7 @@ export interface StepInput {
   label?: string | null,
 }
 
+
 export interface WorkflowStep {
   name: string,
   run: string,
@@ -54,6 +55,13 @@ export interface WorkflowStep {
   out: string[],
   label?: string | null,
   doc?: string | null,
+}
+
+export const defaultWorkflowStep: WorkflowStep = {
+  name: "",
+  run: "",
+  in: [],
+  out: [],
 }
 
 export interface WorkflowOutput {
@@ -88,6 +96,16 @@ export interface Workflow {
   description?: string,
 }
 
+export const defaultWorkflow: Workflow = {
+  class: "",
+  cwlVersion: "",
+  name: "",
+  inputs: {} as {[k: string]: WorkflowInput},
+  outputs: {} as {[k: string]: WorkflowOutput},
+  dependencies_of_outputs: {} as {[k: string]: string[]},
+  steps: [[]] as [WorkflowStep[]],
+}
+
 export type StatusString = 'running' | 'pending' | 'complete' | 'error';
 
 export interface StepStatus {
@@ -95,6 +113,11 @@ export interface StepStatus {
   status: StatusString,
   downloads?: {[k: string]: string} | null,
   error?: string | null,
+}
+
+export const defaultStepStatus: StepStatus = {
+  name: "",
+  status: "pending",
 }
 
 export const defaultVulcanSession = {

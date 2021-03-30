@@ -67,7 +67,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
                 session: {...state.session, workflow_name: action.workflow.name, key: ""},
             };
         case 'SET_STATUS':
-            state = {...state, status: state.status};
+            state = {...state, status: action.status};
             state = updateDownloads(state);
             return state;
 

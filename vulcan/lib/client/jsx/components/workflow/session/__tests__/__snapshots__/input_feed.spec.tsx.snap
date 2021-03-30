@@ -146,10 +146,10 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
       className="text-wrapper"
     >
       <textarea
-        readonly={true}
+        readOnly={true}
         rows={2}
       >
-        oops!
+        Ooops!
       </textarea>
     </div>
   </div>
