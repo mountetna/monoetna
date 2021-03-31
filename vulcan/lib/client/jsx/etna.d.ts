@@ -79,4 +79,9 @@ declare module 'etna-js/components/inputs/slow_text_input' {
 
 declare module 'etna-js/components/link' {
     export default function Link(p: {link: string, children?: any}): any;
-};
+}
+
+declare module 'etna-js/spec/helpers' {
+    import {Store} from "redux";
+    export function mockStore(state: any): Store;
+}

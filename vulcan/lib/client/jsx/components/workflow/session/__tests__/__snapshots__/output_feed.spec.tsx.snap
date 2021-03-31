@@ -29,16 +29,7 @@ exports[`OutputFeed renders UI output steps 1`] = `
     </div>
     <div
       className="outputs-pane"
-    >
-      <div
-        style={
-          Object {
-            "display": "inline-block",
-            "position": "relative",
-          }
-        }
-      />
-    </div>
+    />
   </div>
   <div
     className="step-output"
@@ -104,7 +95,7 @@ exports[`OutputFeed renders UI output steps 1`] = `
       <div
         className="raw-view"
       >
-        some text!
+        ["Foo data"]
       </div>
     </div>
   </div>

@@ -5,7 +5,8 @@ import InputFeed from '../input_feed';
 import {stateFromActions} from "../../../../test_utils/state";
 import {
     createStatusFixture,
-    createStepFixture, createStepStatusFixture,
+    createStepFixture,
+    createStepStatusFixture,
     createWorkflowFixture,
 } from "../../../../test_utils/fixtures";
 import {setStatus, setWorkflow, setWorkflows} from "../../../../actions/vulcan";

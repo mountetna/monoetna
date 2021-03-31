@@ -76,8 +76,8 @@ export interface WorkflowInput {
   doc?: string | null,
   label?: string | null,
   type: string,
-  format: string | null,
-  default: any | null,
+  format?: string | null,
+  default?: any | null,
 }
 
 export interface Workflow {
