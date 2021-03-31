@@ -5,7 +5,7 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 import {inputGroupName} from '../../../selectors/workflow_selectors';
 import InputGroup from './input_group';
 import {setInputs} from "../../../actions/vulcan";
-import {InputSpecification} from "../user_interactions/inputs/types";
+import {InputSpecification} from "../user_interactions/inputs/input_types";
 
 export default function PrimaryInputs() {
   const {state, dispatch} = useContext(VulcanContext);

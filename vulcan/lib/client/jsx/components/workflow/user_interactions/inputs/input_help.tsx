@@ -6,7 +6,7 @@ export default function InputHelp({input, children}: {input: InputSpecification,
   return (
     <div className='input-help'>
       <div className='input-help-children-wrapper'>{children}</div>
-      <div className='help-icon-wrapper' title={input.doc}>
+      <div className='help-icon-wrapper' title={input.doc || ''}>
         {input.doc ? (
           <Icon icon='question-circle' className='help-icon'></Icon>
         ) : null}

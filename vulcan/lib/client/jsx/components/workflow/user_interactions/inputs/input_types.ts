@@ -5,11 +5,11 @@ export type InputType = string;
 
 export interface InputSpecification {
     type: InputType,
-    label: string | undefined,
+    label: string | null | undefined,
     name: string, // output source
     default: any | null,
-    data?: {[k: string]: any} | undefined,
-    doc?: string | undefined,
+    data?: {[k: string]: any} | null,
+    doc?: string | null,
 }
 
 export interface UIStep {

@@ -54,7 +54,9 @@ describe Vulcan::Orchestration do
         orchestration.load_json_inputs!(storage)
 
         expect(should_builds).to eql([
-            [false, false, false, false, false, false],
+            [false, false, false, false],
+            [false, false, false, false],
+            [false, false, false, false]
         ])
         expect(orchestration.next_runnable_build_targets(storage)).to eql([])
 
@@ -63,7 +65,9 @@ describe Vulcan::Orchestration do
         orchestration.load_json_inputs!(storage)
 
         expect(should_builds).to eql([
-            [true, false, false, false, false, false],
+            [true, false, false, false],
+            [true, false, false, false],
+            [true, false, false, false],
         ])
 
         expect(orchestration.next_runnable_build_targets(storage).map(&:cell_hash)).to eql([
@@ -77,7 +81,9 @@ describe Vulcan::Orchestration do
           token: 'test-token')
 
         expect(should_builds).to eql([
-            [false, true, false, false, false, false],
+            [false, true, false, false],
+            [false, true, false, false],
+            [false, true, false, false],
         ])
       end
     end
@@ -89,33 +95,43 @@ describe Vulcan::Orchestration do
         prev_cell_hashes = cell_hashes
         session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
-            [false, false, false, false, false, false],
+            [false, false, false, false],
+            [false, false, false, false],
+            [false, false, false, false],
         ])
 
         # Test verification: check the falsifiable condition that the reason these tests pass is because this function
         # does not work.
         prev_cell_hashes = cell_hashes
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
-            [true, true, true, true, true, true],
+            [true, true, true, true],
+            [true, true, true, true],
+            [true, true, true, true],
         ])
 
         prev_cell_hashes = cell_hashes
         session.define_user_input(["primary_inputs", "notARealInput"], 123)
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
-            [true, true, true, true, true, true],
+            [true, true, true, true],
+            [true, true, true, true],
+            [true, true, true, true],
         ])
 
         prev_cell_hashes = cell_hashes
         session.define_user_input([:primary_inputs, "alsoNotAnInput"], 123)
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
-            [true, true, true, true, true, true],
+            [true, true, true, true],
+            [true, true, true, true],
+            [true, true, true, true],
         ])
 
         # Defining an input only effects downstream cells
         prev_cell_hashes = cell_hashes
         session.define_user_input(["pickANum", "num"], 543)
         expect(cell_hashes_same(prev_cell_hashes)).to eql([
-            [true, true, false, false, false, false],
+            [true, true, false, false],
+            [true, true, false, false],
+            [true, true, false, false],
         ])
       end
     end
