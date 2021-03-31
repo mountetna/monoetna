@@ -23,9 +23,9 @@ describe WorkflowsController do
       expect(last_response.status).to eq(200)
 
       response = JSON.parse(last_response.body)
-      expect(response['workflows'].first['name']).to eql('test_workflow.cwl')
+      workflow = response['workflows'].find { |w| w['name'] == 'test_workflow.cwl' }
 
-      expect(response['workflows'].first['inputs']).to eql({
+      expect(workflow['inputs']).to eql({
           "someInt" => {
               "default" => 200,
               "format" => nil,
@@ -42,7 +42,7 @@ describe WorkflowsController do
           },
       })
 
-      expect(response['workflows'].first['outputs']).to eql({
+      expect(workflow['outputs']).to eql({
           "the_result" => {
               "default" => nil,
               "format" => nil,
@@ -52,7 +52,7 @@ describe WorkflowsController do
           }
       })
 
-      expect(response['workflows'].first['dependencies_of_outputs']).to eql({
+      expect(workflow['dependencies_of_outputs']).to eql({
           "finalStep/sum" => [],
           "firstAdd/sum" => ["finalStep/sum", "pickANum/num"],
           "pickANum/num" => ["finalStep/sum"],
@@ -60,7 +60,7 @@ describe WorkflowsController do
           "someIntWithoutDefault" => ["firstAdd/sum", "finalStep/sum", "pickANum/num"],
       })
 
-      expect(response['workflows'].first['steps']).to eql([
+      expect(workflow['steps']).to eql([
           [
               {
                   "in" => [{"id"=>"a", "source"=>"someInt"},
