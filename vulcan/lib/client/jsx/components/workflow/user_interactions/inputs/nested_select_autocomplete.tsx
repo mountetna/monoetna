@@ -66,8 +66,6 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({input, onChange})
     }, {} as OptionSet);
   }, [data]);
 
-  console.log({path, allOptions, data});
-
   useEffect(() => {
     if (input.default) {
       setPath(getPath(allOptions, input.default));
@@ -100,7 +98,6 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({input, onChange})
         {path.length > 0
           ? path.map((value, index) => {
             const options = getOptions(path.slice(0, index), allOptions);
-            console.log({value, index, options})
               return (
                 <DropdownAutocomplete
                   key={index}
