@@ -23,6 +23,7 @@ const ViewEditor = ({view_id}) => {
   let [editing, setEditing] = useState(useSelector(state => state.editing));
   const dispatch = useDispatch();
   let [view, setActualView] = useState(null);
+  const [canSave, setCanSave] = useState(true);
   let views = useSelector(state => state.views);
 
   let setView = useCallback(
@@ -85,10 +86,21 @@ const ViewEditor = ({view_id}) => {
 
   const create = () => selectView('new', true);
 
+  const hasLintingErrors = (value) => {
+    window.JSHINT(value);
+
+    return (
+      JSHINT.data().errors &&
+      JSHINT.data().errors.length > 0
+    );
+  }
+
   const updateField = (field_name) => (event) => {
     if (field_name === 'document') {
       // the code editor does not emit an event, just the new value
       view.document = event;
+      
+      setCanSave(!hasLintingErrors(event));
     } else {
       view[field_name] = event.target.value;
     }
@@ -113,7 +125,7 @@ const ViewEditor = ({view_id}) => {
 
   const onDelete = () => {
     if(confirm('Are you sure you want to remove this view?')){
-      deleteView(view, () => selectView(0))(dispatch);
+      deleteView(view, () => selectView(null))(dispatch);
     }
   }
   const toggleEdit = () => {
@@ -134,6 +146,7 @@ const ViewEditor = ({view_id}) => {
       onSave={onSave}
       onRemove={onDelete}
       documentName='model_name'
+      canSave={canSave}
     >
       <ViewScript
         script={view && view.document}
