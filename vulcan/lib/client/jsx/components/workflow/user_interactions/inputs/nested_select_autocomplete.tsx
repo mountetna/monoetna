@@ -15,7 +15,9 @@ function getPath(options: OptionSet, leaf: string): string[] {
       if (Object.keys(value).includes(leaf) && null == value[leaf])
         return [key, leaf];
       let path = getPath(value, leaf);
-      if (path) return [key, ...path];
+      if (path.length > 0) return [key, ...path];
+    } else if (null == value && key == leaf) {
+      return [key];
     }
   }
 
@@ -49,19 +51,22 @@ type OptionSet = {[k: string]: null | OptionSet};
 
 const NestedSelectAutocompleteInput: InputBackendComponent = ({input, onChange}) => {
   const [path, setPath] = useState([] as string[]);
-  const {state} = useContext(VulcanContext);
-  const {data} = state;
+  const {data} = input;
 
   if (!input || !onChange) return null;
 
   const allOptions: OptionSet = useMemo(() => {
-    return Object.keys(data || {}).reduce((dataObj, next) => {
+    return Object.keys(data || {}).reduce((dataObj, k) => {
+      if (!data) return dataObj;
+      const next = data[k];
       return {
           ...dataObj,
           ...(typeof next === "object" && next != null && !Array.isArray(next) ? next : {})
       };
     }, {} as OptionSet);
   }, [data]);
+
+  console.log({path, allOptions, data});
 
   useEffect(() => {
     if (input.default) {
@@ -94,13 +99,15 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({input, onChange})
       <div>
         {path.length > 0
           ? path.map((value, index) => {
+            const options = getOptions(path.slice(0, index), allOptions);
+            console.log({value, index, options})
               return (
                 <DropdownAutocomplete
                   key={index}
                   onSelect={(e: string | null) => {
                     handleSelect(e, index);
                   }}
-                  list={getOptions(path.slice(0, index), allOptions)}
+                  list={options}
                   defaultValue={value}
                 />
               );

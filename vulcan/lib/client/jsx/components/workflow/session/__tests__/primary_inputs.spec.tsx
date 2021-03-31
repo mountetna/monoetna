@@ -14,37 +14,31 @@ describe('PrimaryInputs', () => {
           type: 'int',
           default: 1,
           doc: 'help',
-          // group: 'one'
         },
         aFloat: {
           type: 'float',
           default: 1.2,
           doc: 'help',
-          // group: 'one'
         },
         aBool: {
           type: 'boolean',
           default: true,
           doc: 'help',
-          // group: 'one'
         },
         anIntWithoutDefault: {
           type: 'int',
           default: null,
           doc: 'help',
-          // group: 'two'
         },
         aFloatWithoutDefault: {
           type: 'float',
           default: null,
           doc: 'help',
-          // group: 'two'
         },
         aBoolWithoutDefault: {
           type: 'boolean',
           default: null,
           doc: 'help',
-          // group: 'two'
         }
       }
     });
