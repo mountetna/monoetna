@@ -7,7 +7,7 @@ import {
     defaultWorkflowStep,
     SessionStatusResponse,
     StepStatus,
-    Workflow,
+    Workflow, WorkflowsResponse,
     WorkflowStep
 } from "../api_types";
 
@@ -33,4 +33,10 @@ export function createStatusFixture(workflow: Workflow, ...statusPatches: Partia
 
 export function createStatusResponseFixture(response: Partial<SessionStatusResponse>): SessionStatusResponse {
     return {...defaultSessionStatusResponse, ...response};
+}
+
+export function findWorkflowFromResponse(response: WorkflowsResponse, n: string): Workflow {
+    const result = response.workflows.find(({name}) => name === n);
+    if (!result) throw new Error("Workflow named " + n + " not found on the response");
+    return result;
 }

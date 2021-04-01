@@ -5,7 +5,7 @@ import {setInputs, VulcanAction} from "../actions/vulcan";
 import {SessionStatusResponse} from "../api_types";
 
 export function useClearObsoleteInputs(state: VulcanState, dispatch: Dispatch<VulcanAction>) {
-    const {inputs, status, workflow} = state;
+    const {inputs, workflow} = state;
     const lastInputsRef = useRef({inputs});
 
     useEffect(() => {
@@ -39,5 +39,5 @@ export function useClearObsoleteInputs(state: VulcanState, dispatch: Dispatch<Vu
         }
 
         lastInputsRef.current.inputs = inputs;
-    }, [inputs, status, workflow]);
+    }, [inputs, workflow]);
 }

@@ -66,7 +66,10 @@ class VulcanUI extends React.Component {
     let Component;
     let mode;
 
-    if (!route) {
+    if (this.props.Component) {
+      mode = 'home';
+      Component = this.props.Component;
+    } else if (!route) {
       showMessages(['### You have lost your way: Path Invalid.']);
       mode = 'home';
       Component = Empty;

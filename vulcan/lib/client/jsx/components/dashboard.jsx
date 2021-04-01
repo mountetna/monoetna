@@ -9,9 +9,12 @@ import Card from '../components/dashboard/card';
 
 export default function Dashboard() {
   const invoke = useActionInvoker();
-  let {workflows} = useContext(VulcanContext);
+  let {state} = useContext(VulcanContext);
+  const {workflows} = state;
 
-  if (!workflows.workflows || workflows.workflows.length === 0) return null;
+  console.log({workflows});
+
+  if (!workflows || workflows.length === 0) return null;
 
   function handleOnClick(workflow) {
     invoke(pushLocation(`/workflow/${workflow.name}`));
@@ -19,7 +22,7 @@ export default function Dashboard() {
 
   return (
     <main className='vulcan-dashboard'>
-      {workflows.workflows.map((w, ind) => {
+      {workflows.map((w, ind) => {
         return (
           <Card
             workflow={w}

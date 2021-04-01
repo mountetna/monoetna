@@ -14,7 +14,7 @@ export function useWorkflowsLoading(
 
         scheduleWork(cancellable.race(getWorkflows())
             .then(({result, cancelled}) => {
-                if (result && !cancelled) setWorkflows(result.workflows);
+                if (result && !cancelled) dispatch(setWorkflows(result.workflows));
             }));
 
         return () => cancellable.cancel();
