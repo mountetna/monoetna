@@ -1,5 +1,5 @@
 describe Polyphemus::TimeScanBasedEtlScanner do
-  let(:scanner) do
+  let(:random_scanner) do
     Polyphemus::TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
       { data: data, updated_at: cursor.updated_at }
     end.execute_batch_find do |state, expansion_number|
@@ -16,6 +16,20 @@ describe Polyphemus::TimeScanBasedEtlScanner do
       end
       data.sort { |a, b| a[:updated_at] <=> b[:updated_at] }
       data.select {|r| r[:updated_at] >= Time.at(state[:updated_at].to_i) + 1}.slice(0, limit * expansion_number)
+    end.result_updated_at do |result|
+      result[:updated_at]
+    end.result_id do |result|
+      result[:id]
+    end
+  end
+
+  let(:simple_scanner) do
+    Polyphemus::TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
+      { data: data, updated_at: cursor.updated_at }
+    end.execute_batch_find do |state, expansion_number|
+      data = state[:data]
+      data.sort { |a, b| a[:updated_at] <=> b[:updated_at] }
+      data.select { |r| r[:updated_at] >= Time.at(state[:updated_at].to_i) + 1 }.slice(0, limit * expansion_number)
     end.result_updated_at do |result|
       result[:updated_at]
     end.result_id do |result|
@@ -42,10 +56,10 @@ describe Polyphemus::TimeScanBasedEtlScanner do
     end
   end
 
-  def run_scan(cursor)
+  def run_scan(cursor, random = true)
     all_results = []
     while true
-      result = scanner.find_batch(cursor)
+      result = (random ? random_scanner : simple_scanner).find_batch(cursor)
       all_results.push(*result)
       break if result.empty?
       yield result if block_given?
@@ -68,6 +82,27 @@ describe Polyphemus::TimeScanBasedEtlScanner do
         results = run_scan(Polyphemus::EtlCursor.new('test-cursor'))
         expect(results).to eq(data)
       end
+    end
+
+    it 'finds updated records even if seen in previous batch' do
+      now = Time.now
+      Timecop.freeze(now)
+      data.clear
+      data << {
+        id: 1,
+        updated_at: now,
+      }
+
+      cursor = Polyphemus::EtlCursor.new(
+        'test-cursor',
+        now - 100,
+        { 'seen_ids' => [1] }
+      )
+
+      results = run_scan(cursor, false)
+      expect(results).to eq(data)
+
+      Timecop.return
     end
 
     context 'with concurrent updates' do
