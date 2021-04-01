@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { FloatInput } from '../inputs/numeric_input';
-import SlowTextInput from '../inputs/slow_text_input';
-import DateTimeInput from '../inputs/date_time_input';
-import ListInput from '../inputs/list_input';
-import SelectInput from '../inputs/select_input';
+import { FloatInput } from 'etna-js/components/inputs/numeric_input';
+import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
+import DateTimeInput from 'etna-js/components/inputs/date_time_input';
+import ListInput from 'etna-js/components/inputs/list_input';
+import SelectInput from 'etna-js/components/inputs/select_input';
 
 // This is the base Predicate class which renders a predicate, used by
 // specific-predicate types. Mostly this is responsible for figuring out

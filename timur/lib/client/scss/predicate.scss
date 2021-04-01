@@ -9,13 +9,13 @@
     font-size: 1.2em;
   }
   .chainset {
-    display: inline;
+    display: block;
     .chain {
-      display: inline;
+      display: block;
     }
   }
   .predicate {
-    display: inline;
+    display: block;
     padding: 4px;
     margin-right: 4px;
     font-family: $value_font;
@@ -29,17 +29,9 @@
     }
 
     .filters {
-      display: inline;
+      display: block;
       .chainset {
         font-size: 0.667em;
-        .chain {
-          &:before {
-            content: "[";
-          }
-          &:after {
-            content: "]";
-          }
-        }
       }
       .new {
         cursor: pointer;

@@ -2,10 +2,10 @@ import { connect } from 'react-redux';
 
 import React, { Component } from 'react';
 import { selectVerbs } from '../../selectors/predicate';
-import { selectTemplate } from '../../selectors/magma';
+import { selectTemplate } from 'etna-js/selectors/magma';
 import Predicate from './predicate';
-import { FloatInput } from '../inputs/numeric_input';
-import SlowTextInput from '../inputs/slow_text_input';
+import { FloatInput } from 'etna-js/components/inputs/numeric_input';
+import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
 
 // A Value predicate, mostly sets the terminal type 
 class ValuePredicate extends Component {

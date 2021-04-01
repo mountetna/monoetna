@@ -1,7 +1,7 @@
 import { connect } from 'react-redux';
 
 import React, { Component } from 'react';
-import { selectTemplate } from '../../selectors/magma';
+import { selectTemplate } from 'etna-js/selectors/magma';
 import { selectVerbs } from '../../selectors/predicate';
 import Predicate from './predicate';
 import PredicateChainSet from './predicate_chain_set';

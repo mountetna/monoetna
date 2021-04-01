@@ -12,6 +12,7 @@ import RootView from 'etna-js/components/RootView';
 import TimurNav from './components/timur_nav';
 import Messages from 'etna-js/components/messages';
 import ViewEditor from './components/view_editor/view_editor';
+import QueryBuilder from './components/query_builder';
 
 import {showMessages} from 'etna-js/actions/message_actions';
 import {updateLocation} from 'etna-js/actions/location_actions';
@@ -98,6 +99,12 @@ const ROUTES = [
     template: ':project_name/view/:view_id',
     component: ViewEditor,
     mode: 'view_editor'
+  },
+  {
+    name: 'query_builder',
+    template: ':project_name/query_builder',
+    component: QueryBuilder,
+    mode: 'query_builder'
   }
 ];
 

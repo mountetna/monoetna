@@ -40,12 +40,12 @@ const getTabs = (user) => {
     map: Routes.map_path(CONFIG.project_name),
     manifests: Routes.manifests_path(CONFIG.project_name),
     plots: Routes.plots_path(CONFIG.project_name),
+    query: Routes.query_builder_path(CONFIG.project_name),
+    views: isAdmin(user, CONFIG.project_name) ? Routes.views_path(CONFIG.project_name) : null,
     help: 'https://mountetna.github.io/timur.html'
-  }
+  };
 
-  if (isAdmin(user, CONFIG.project_name)) {
-    tabs['views'] = Routes.views_path(CONFIG.project_name);
-  }
+  Object.keys(tabs).forEach(tab_name => tabs[tab_name] == null && delete tabs[tab_name]);
 
   return tabs;
 };

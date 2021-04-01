@@ -3,9 +3,9 @@ import { connect } from 'react-redux';
 import React, { Component } from 'react';
 import Predicate from './predicate';
 import PredicateChainSet from './predicate_chain_set';
-import { selectModelNames } from '../../selectors/magma';
+import { selectModelNames } from 'etna-js/selectors/magma';
 import { selectVerbs } from '../../selectors/predicate';
-import SelectInput from '../inputs/select_input';
+import SelectInput from 'etna-js/components/inputs/select_input';
 
 class ModelPredicate extends Component {
   updateFilters(filters) {
@@ -31,6 +31,7 @@ class ModelPredicate extends Component {
       terminal_type: 'TrueClass',
       update: this.updateFilters.bind(this)
     };
+
     let span_props = {
       onClick: this.addFilter.bind(this),
       title: 'New filter',
@@ -39,8 +40,9 @@ class ModelPredicate extends Component {
 
     return(
       <div className='filters'>
+        Filtered by
         <PredicateChainSet {...chain_props} />
-        <span  {...span_props} />
+        <span  {...span_props} >New Filter</span>
       </div>
     );
   }
@@ -58,11 +60,14 @@ class ModelPredicate extends Component {
     let { model_names, update } = this.props;
 
     return(
-      <SelectInput defaultValue={ model_name } 
-        showNone='disabled' 
-        values={ model_names }
-        onChange={ (model_name) => update({ model_name, filters: [], args: [] }) }
-      />
+      <div className='start'>
+        Search model
+        <SelectInput defaultValue={ model_name } 
+          showNone='disabled' 
+          values={ model_names }
+          onChange={ (model_name) => update({ model_name, filters: [], args: [] }) }
+        />
+      </div>
     );
   }
 

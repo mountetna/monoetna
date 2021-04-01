@@ -16,7 +16,7 @@ export const ADD_TEMPLATE = 'ADD_TEMPLATE';
 export const ADD_DOCUMENTS = 'ADD_DOCUMENTS';
 export const REVISE_DOCUMENT = 'REVISE_DOCUMENT';
 export const DISCARD_REVISION = 'DISCARD_REVISION';
-export const ADD_PREDICATES = 'ADD_PREDICATES;';
+export const ADD_PREDICATES = 'ADD_PREDICATES';
 
 export const addTemplate = (template) => {
   return {
@@ -398,37 +398,33 @@ export const requestTSV = (params) => (dispatch) => getTSVForm(params);
 
 export const requestAnswer = (question, callback = null) => {
   return (dispatch) => {
-    let localSuccess = (response) => {
-      if ('error' in response) {
-        dispatch(showMessages([`There was a ${response.type} error.`]));
-        console.log(response.error);
-        if (!callback) throw new Error(response.error);
+    getAnswer(
+      question,
+      new Exchange(dispatch, JSON.stringify(question))
+    ).then(
+      response => {
+        if ('error' in response) {
+          dispatch(showMessages([`There was a ${response.type} error.`]));
+          console.log(response.error);
+          if (!callback) throw new Error(response.error);
+        }
+
+        if (callback) callback(response);
+        else return response;
       }
+    ).catch(
+      error => {
+        console.log(error);
+        throw new Error(error);
+      }
+    )
 
-      if (callback) callback(response);
-      else return response;
-    };
-
-    let localError = (error) => {
-      console.log(error);
-      if (!callback) throw new Error(error);
-    };
-
-    let question_name = question;
-    if (Array.isArray(question)) {
-      question_name = [].concat.apply([], question).join('-');
-    }
-    let exchange = new Exchange(dispatch, question_name);
-    return getAnswer(question, exchange).then(localSuccess).catch(localError);
   };
 };
 
-export const requestPredicates = () => {
-  return (dispatch) => {
-    let localCallback = (response) => {
-      dispatch(addPredicates(response.predicates));
-    };
-
-    dispatch(requestAnswer('::predicates', localCallback));
-  };
-};
+export const requestPredicates = () => dispatch => dispatch(
+  requestAnswer(
+    { query: '::predicates'},
+    ({predicates}) => dispatch(addPredicates(predicates))
+  )
+);

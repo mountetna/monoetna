@@ -1,7 +1,8 @@
 import { connect } from 'react-redux';
 
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import { requestPredicates, requestModels } from 'etna-js/actions/magma_actions';
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import PredicateChainSet from './query_builder/predicate_chain_set';
 
 // helper to format the predicate state into an actual query
@@ -56,69 +57,27 @@ const defaultQuery = () => (
 );
 
 // The root component that renders the query builder - this holds the state of the current query
-class QueryBuilder extends Component {
-  constructor() {
-    super();
-    this.state = { 
-      shown: false
-    };
-  }
+const QueryBuilder = () => {
+  let [ query, updateQuery ] = useState(defaultQuery());
+  const invoke = useActionInvoker();
 
-  updateQuery(query) {
-    this.setState({ query });
-  }
+  useEffect( () => {
+    invoke(requestModels());
+    invoke(requestPredicates());
+  });
 
-  componentDidMount() {
-    this.props.requestModels();
-    this.props.requestPredicates();
-  }
+  let predicates = query[0];
 
-  renderQuery() {
-    let { query } = this.state;
-    let predicates = query[0];
-
-    if (!predicates.every(predicateComplete)) return <div className='query'/>;
-
-    let queryArray = chainArray(predicates);
-    let queryString = formatChainArray(queryArray);
-
-    return <div className='query'>
-      { queryString }
-    </div>;
-  }
-
-  toggleShown() {
-    let { shown, query } = this.state;
-    shown = !shown;
-
-    if (shown) query = defaultQuery();
-    else query = null;
-
-    this.setState({ shown, query });
-  }
-
-  render() {
-    let { query, shown } = this.state;
-    return <div id='query'>
-      <div className='visibility'>
-        <button onClick={ this.toggleShown.bind(this) }>
-          { shown ? 'Hide Query' : 'Build Query' }
-        </button>
-      </div>
+  return <div id='query'>
+    <PredicateChainSet chains={ query } update={ updateQuery } />
+    <div className='query'>
       {
-        shown && <PredicateChainSet chains={ query } update={ this.updateQuery.bind(this) } />
+        predicates.every(predicateComplete)
+          ? formatChainArray(chainArray(predicates))
+          : null
       }
-      {
-        shown && this.renderQuery()
-      }
-    </div>;
-  }
+    </div>
+  </div>;
 }
 
-export default connect(
-  null,
-  {
-    requestModels,
-    requestPredicates
-  }
-)(QueryBuilder);
+export default QueryBuilder;
