@@ -1,4 +1,4 @@
-import {MutableRefObject, useEffect, useRef, useState} from "react";
+import {MutableRefObject, useCallback, useEffect, useRef, useState} from "react";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {showMessages} from "etna-js/actions/message_actions";
@@ -38,8 +38,8 @@ export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHel
     const [workCount, setWorkCount] = useState(0);
     const workRef = useRef(workCount);
 
-    const vulcanPath = (endpoint: string) => `${CONFIG.vulcan_host}${endpoint}`;
-    const vulcanPost = (endpoint: string, params: Object) => {
+    const vulcanPath = useCallback((endpoint: string) => `${CONFIG.vulcan_host}${endpoint}`, []);
+    const vulcanPost = useCallback((endpoint: string, params: Object) => {
         return fetch(endpoint, {
             method: 'POST',
             credentials: 'include',
@@ -48,35 +48,35 @@ export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHel
                 ...params
             })
         }).then(checkStatus);
-    };
+    }, []);
 
-    const rawVulcanGet = (endpoint: string) => {
+    const rawVulcanGet = useCallback((endpoint: string) => {
         return fetch(endpoint, {
             method: 'GET',
             credentials: 'include',
             headers: headers('json')
         });
-    };
+    }, []);
 
-    const vulcanGet = (endpoint: string) => {
+    const vulcanGet = useCallback((endpoint: string) => {
         return rawVulcanGet(endpoint).then(checkStatus);
-    };
+    }, []);
 
-    const getWorkflows = (): Promise<WorkflowsResponse> => {
+    const getWorkflows = useCallback((): Promise<WorkflowsResponse> => {
         return vulcanGet(vulcanPath(ROUTES.fetch_workflows()))
             .then(handleFetchSuccess)
             .catch(handleFetchError);
-    };
+    }, []);
 
-    const postInputs = (session: VulcanSession): Promise<SessionStatusResponse> => {
+    const postInputs = useCallback((session: VulcanSession): Promise<SessionStatusResponse> => {
         return vulcanPost(vulcanPath(ROUTES.submit(session.workflow_name)), session);
-    }
+    }, []);
 
-    const pollStatus = (session: VulcanSession): Promise<SessionStatusResponse> => {
+    const pollStatus = useCallback((session: VulcanSession): Promise<SessionStatusResponse> => {
         return vulcanPost(vulcanPath(ROUTES.status(session.workflow_name)), session);
-    }
+    }, [])
 
-    const getData = (url: string) => {
+    const getData = useCallback((url: string) => {
         return vulcanGet(url).then(handleFetchSuccess).catch(handleFetchError).then(data => {
             // TODO: In the future, we should set content type headers to inform the client, for now we aggressively
             // try to parse JSON
@@ -86,26 +86,28 @@ export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHel
                 return data;
             }
         })
-    };
+    }, []);
+
+    const scheduleWork = useCallback(<T>(work: Promise<T>): Promise<T> => {
+        setWorkCount(++workRef.current);
+
+        work.catch(e => {
+            if (!(e instanceof Array)) {
+                e = [`${e}`];
+            }
+
+            console.error(e);
+            invoke(showMessages(e));
+        }).finally(() => {
+            setWorkCount(--workRef.current);
+        });
+
+        return work;
+    }, []);
 
     return {
         isLoading: workCount > 0,
-        scheduleWork<T>(work: Promise<T>): Promise<T> {
-            setWorkCount(++workRef.current);
-
-            work.catch(e => {
-                if (!(e instanceof Array)) {
-                    e = [`${e}`];
-                }
-
-                console.error(e);
-                invoke(showMessages(e));
-            }).finally(() => {
-                setWorkCount(--workRef.current);
-            });
-
-            return work;
-        },
+        scheduleWork,
         getData,
         getWorkflows,
         postInputs,

@@ -1,4 +1,4 @@
-import React, {useReducer, createContext, useRef} from 'react';
+import React, {useReducer, createContext, useRef, useEffect} from 'react';
 import VulcanReducer, {defaultVulcanState, VulcanState} from '../reducers/vulcan_reducer';
 import {VulcanAction} from "../actions/vulcan";
 import {defaultSessionStorageHelpers, useLocalSessionStorage} from "./session_storage";
@@ -41,6 +41,7 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
     useDataBuffering(state, dispatch, scheduleWork, getData);
     useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, scheduleWork);
     useClearObsoleteInputs(state, dispatch);
+
 
     return (
         <VulcanContext.Provider value={{
