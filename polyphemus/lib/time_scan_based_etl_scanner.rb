@@ -52,7 +52,7 @@ class Polyphemus
     # Corresponds with the seen_ids and stability of a scan.
     # Should uniquely identify an update to a record.
     def result_scanned_position(r)
-      [self.result_id(r), self.result_updated_at(r)]
+      [self.result_id(r), self.result_updated_at(r).to_i].freeze
     end
 
     def find_batch(cursor)

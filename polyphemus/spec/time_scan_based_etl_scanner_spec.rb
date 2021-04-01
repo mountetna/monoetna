@@ -96,7 +96,7 @@ describe Polyphemus::TimeScanBasedEtlScanner do
       cursor = Polyphemus::EtlCursor.new(
         'test-cursor',
         now - 100,
-        { 'seen_ids' => [[1, now - 1]] }
+        { 'seen_ids' => [[1, now.to_i - 1]] }
       )
 
       results = run_scan(cursor, false)
