@@ -96,11 +96,15 @@ describe Polyphemus::TimeScanBasedEtlScanner do
       cursor = Polyphemus::EtlCursor.new(
         'test-cursor',
         now - 100,
-        { 'seen_ids' => [1] }
+        { 'seen_ids' => [[1, now - 1]] }
       )
 
       results = run_scan(cursor, false)
       expect(results).to eq(data)
+
+      # Non infinite, the cursor is updated
+      results = run_scan(cursor, false)
+      expect(results).to eq([])
 
       Timecop.return
     end
