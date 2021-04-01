@@ -18,10 +18,10 @@ class Janus
 
     get '/refresh_token', action: 'user#refresh_token', auth: { user: { active?: true } }
 
-    # For validating tokens with 'verify' flag
-    get '/verify_token', action: 'login#verify_token'
+    # For validating tokens with 'task' flag
+    post '/api/tokens/task/validate', action: 'authorization#verify_task'
 
-    post '/long_lived_token', action: 'login#long_lived_token'
+    post '/api/tokens/task/generate', action: 'authorization#generate_task'
 
     # Once we figure out a long-term token strategy, this should probably get
     #   consolidated with /refresh_token so we don't just keep creating

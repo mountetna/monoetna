@@ -94,19 +94,23 @@ class AuthorizationController < Janus::Controller
     return success(user.create_token!)
   end
 
-  # this is meant to be used ONLY to handle the 'verify' flag
-  # It enforces token formatting requirements for that flag.
-  # It should not be used to validate normal tokens
-  def verify_token
+  def validate_task
     @janus_user = User[email: @user.email]
 
     raise Etna::Forbidden, 'User not found' unless @janus_user
+
+    raise Etna::Unauthorized, 'Invalid task token' unless 
+    success_json(success: true)
   end
 
-  def long_lived_token
+  def generate_task
     require_params(:project_name)
 
+    @janus_user = User[email: @user.email]
 
+    raise Etna::Forbidden, 'User not found' unless @janus_user.valid_task_token?
+
+    success_json(token: @janus_user.create_task_token!(@params[:project_name]))
   end
 
   private

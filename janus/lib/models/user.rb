@@ -15,20 +15,22 @@ class User < Sequel::Model
     }.compact
   end
 
-  def jwt_payload(viewer_only: false)
+  def jwt_payload(filters:{})
     {
       email: email,
       name: name,
-      perm:  serialize_permissions(viewer_only: viewer_only),
+      perm:  serialize_permissions(filters: filters),
       flags: flags&.join(';')
     }.compact
   end
 
-  def serialize_permissions(viewer_only: false)
+  def serialize_permissions(filters: {})
     # Encode permissions as a string e.g. "a:p1,p2;e:p3;v:p4"
-    filtered_perms = viewer_only ?
-      permissions.select { |p| p.role == 'viewer' } :
-      permissions
+    filtered_perms = permissions.select do |perm|
+      filters.all? do |k,v|
+        perm.send(k) == v
+      end
+    end
     filtered_perms.map(&:project_role).group_by(&:first)
       .sort_by(&:first).map do |role_key, project_roles|
       [ role_key, project_roles.map(&:last).sort.join(',') ].join(':')
@@ -43,12 +45,39 @@ class User < Sequel::Model
     OpenSSL::Digest::MD5.hexdigest(data_string).scan(/../).join(':')
   end
 
-  def create_token!(viewer_only: false)
+  def create_token!
     # Time is in seconds, nil = no expiration
     expires = Time.now.utc + Janus.instance.config(:token_life)
 
     Janus.instance.sign.jwt_token(
-      jwt_payload(viewer_only: viewer_only).merge(exp: expires.to_i)
+      jwt_payload.merge(exp: expires.to_i)
+    )
+  end
+
+  def create_task_token!(project_name)
+    # Time is in seconds, nil = no expiration
+    expires = Time.now.utc + Janus.instance.config(:task_token_life)
+
+    payload = jwt_payload(filters: { project_name: project_name }).merge(exp: expires.to_i)
+
+    unless payload[:perm] =~ /^[AaEeVv]:#{Project::PROJECT_NAME_MATCH.source}$/
+      raise "Cannot write invalid permission on task token!"
+    end
+
+    # degrade admin permissions
+    payload[:perm] = payload[:perm].tr('Aa', 'Ee') if payload[:perm] =~ /^[Aa]/
+
+    Janus.instance.sign.jwt_token(
+      payload
+    )
+  end
+
+  def create_viewer_token!
+    # Time is in seconds, nil = no expiration
+    expires = Time.now.utc + Janus.instance.config(:token_life)
+
+    Janus.instance.sign.jwt_token(
+      jwt_payload(filters: { role: 'viewer'}).merge(exp: expires.to_i)
     )
   end
 

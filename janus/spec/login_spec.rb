@@ -207,24 +207,50 @@ describe AuthorizationController do
     end
   end
 
-  context 'verify (long-lived) tokens' do
-    it 'creates a long-lived token' do
-      user = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
+  context 'task tokens' do
+    before(:each) do
+      @user = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
       gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
       tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
       mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
 
-      # the JWT will include a string encoding these permissions
-      perm = create(:permission, project: tunnel, user: user, role: 'viewer', privileged: true)
-      perm = create(:permission, project: mirror, user: user, role: 'editor')
-      perm = create(:permission, project: gateway, user: user, role: 'editor')
+      perm = create(:permission, project: tunnel, user: @user, role: 'administrator', privileged: true)
+      perm = create(:permission, project: mirror, user: @user, role: 'editor')
+      perm = create(:permission, project: gateway, user: @user, role: 'editor')
+    end
+
+    it 'creates a task token' do
+      Timecop.freeze
+
       auth_header(:zeus)
 
-      post('/verify_token', project_name: 'tunnel')
+      post('/api/tokens/task/generate', project_name: 'tunnel')
       expect(last_response.status).to eq(200)
 
-      token = json_body[:token]
-      expect{Janus.instance.sign.jwt_decode(token)}.not_to raise_error
+      payload = header = nil
+
+      expect{
+        payload, header = Janus.instance.sign.jwt_decode(json_body[:token])
+      }.not_to raise_error
+
+      # there is only one project on the token, with reduced permissions
+      expect(payload["perm"]).to eq('E:tunnel')
+
+      expect(Time.at(payload["exp"]) - Time.now).to be_within(1).of(Janus.instance.config(:task_token_life))
+
+      Timecop.return
+    end
+
+    it 'validates a task token' do
+      auth_header(:zeus)
+      post('/api/tokens/task/validate', project_name: 'tunnel')
+      expect(last_response.status).to eq(200)
+    end
+
+    it 'rejects a regular token' do
+      auth_header(:zeus)
+      post('/api/tokens/task/validate', project_name: 'tunnel')
+      expect(last_response.status).to eq(401)
     end
   end
 end

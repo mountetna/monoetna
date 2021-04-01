@@ -34,7 +34,7 @@ describe User do
     perm = create(:permission, project: mirror, user: user, role: 'editor')
     perm = create(:permission, project: gateway, user: user, role: 'editor')
 
-    token = user.create_token!(viewer_only: true)
+    token = user.create_viewer_token!
 
     expect(token).to match(%r!^[\w\-,]+\.[\w\-,]+\.[\w\-,]+$!)
 
