@@ -32,31 +32,11 @@ export const defaultVulcanState = {
 
 export type VulcanState = Readonly<(typeof defaultVulcanState)>;
 
-// Copy over any downloaded data that is still referenced in the state.status download maps,
-// freeing resources that are no longer necessary.
-export function updateDownloads(state: VulcanState): VulcanState {
-  let data: Readonly<DownloadedStepDataMap> = {};
-
-  state.status[0].forEach(step => {
-    for (let k in step.downloads) {
-      const url = step.downloads[k];
-      if (url) {
-        data = {...data, [url]: state.data[url]};
-      } else {
-        console.warn('Unexpected empty url for download', k, step.downloads)
-      }
-    }
-  })
-
-  return {...state, data: data};
-}
-
 export default function VulcanReducer(state: VulcanState, action: VulcanAction): VulcanState {
   state = state || defaultVulcanState;
 
   switch (action.type) {
     case 'SET_WORKFLOWS':
-      console.log({action})
       return {
         ...state,
         workflows: action.workflows,
@@ -65,12 +45,10 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       return {
         ...state,
         workflow: action.workflow,
-        session: {...state.session, workflow_name: action.workflow.name, key: ""},
+        session: {...defaultSession, workflow_name: action.workflow.name},
       };
     case 'SET_STATUS':
-      state = {...state, status: action.status};
-      state = updateDownloads(state);
-      return state;
+      return {...state, status: action.status};
 
     case 'SET_DOWNLOAD':
       return {
@@ -91,6 +69,9 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       };
 
     case 'SET_SESSION':
+      // Ignore sessions not for this workflow, safety guard.
+      if (action.session.workflow_name !== state.workflow?.name) return state;
+
       return {
         ...state,
         session: {...action.session, project_name: CONFIG.project_name},

@@ -1,14 +1,20 @@
 import {ReactElement, useContext} from "react";
-import {create} from "react-test-renderer";
-import {defaultContext, VulcanContext, VulcanContextData, VulcanProvider} from "../contexts/vulcan_context";
+import {act, create} from "react-test-renderer";
+import {
+  defaultContext,
+  ProviderProps,
+  VulcanContext,
+  VulcanContextData,
+  VulcanProvider
+} from "../contexts/vulcan_context";
 import {useReduxState} from "etna-js/hooks/useReduxState";
 import {Provider} from "react-redux";
 import {VulcanStore} from "../vulcan_store";
 import * as React from "react";
 import {Store} from "redux";
-import {setInputs} from "../actions/vulcan";
+import {setInputs, VulcanAction} from "../actions/vulcan";
 
-function injectContextAgent(Element: () => ReactElement | null, overrides: Partial<VulcanContextData>) {
+function injectContextAgent(Element: () => ReactElement | null, overrides: Partial<ProviderProps & VulcanContextData>) {
   return <VulcanProvider {...overrides}>
     <Element/>
   </VulcanProvider>
@@ -17,8 +23,8 @@ function injectContextAgent(Element: () => ReactElement | null, overrides: Parti
 export function integrateElement(Element: () => ReactElement | null, {
   store = VulcanStore(),
   wrapper = injectContextAgent,
-  contextOverrides = {},
-}: { store?: Store, wrapper?: typeof injectContextAgent, contextOverrides?: Partial<VulcanContextData> } = {}) {
+  providerOverrides = {},
+}: { store?: Store, wrapper?: typeof injectContextAgent, providerOverrides?: Partial<ProviderProps & VulcanContextData> } = {}) {
   let contextData: VulcanContextData = defaultContext;
   let reduxState: any = {};
   let waiters: Function[] = [];
@@ -43,6 +49,25 @@ export function integrateElement(Element: () => ReactElement | null, {
     })
   }
 
+  const node = create(
+      <Provider store={store}>
+        {wrapper(TestComponent, providerOverrides)}
+      </Provider>
+  )
+
+  return {node, updateMatching, contextData, reduxState, setInput, replaceOverrides, dispatch}
+
+  // Utility functions
+  function setInput(inputName: string, value: any) {
+    contextData.dispatch(setInputs({...contextData.state.inputs, [inputName]: value}));
+  }
+
+  function replaceOverrides(overrides: Partial<ProviderProps & VulcanContextData>) {
+    node.update(<Provider store={store}>
+      {wrapper(TestComponent, overrides)}
+    </Provider>)
+  }
+
   function TestComponent() {
     // Keep the context data inside the shared reference returned back to the called.
     // Because context data's shape never changes, it is safe to simply call assign without
@@ -62,15 +87,9 @@ export function integrateElement(Element: () => ReactElement | null, {
     return <Element/>;
   }
 
-  const node = create(
-      <Provider store={store}>
-        {wrapper(TestComponent, contextOverrides)}
-      </Provider>
-  )
-
-  return {node, updateMatching, contextData, reduxState, setInput}
-
-  function setInput(inputName: string, value: any) {
-    contextData.dispatch(setInputs({...contextData.state.inputs, [inputName]: value}));
+  async function dispatch(action: VulcanAction) {
+    await act(async function() {
+      contextData.dispatch(action);
+    })
   }
 }

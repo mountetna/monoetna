@@ -99,6 +99,8 @@ declare module 'etna-js/hooks/useReduxState' {
 declare module 'etna-js/spec/helpers' {
   import {Store} from "redux";
 
+  export function delay(time: number): Promise<void>;
+
   export function mockStore(state: any): Store;
 
   export function joinedDeferredPromises(...promiseChains: (Promise<(() => Promise<any>)> | (() => Promise<any>))[][]): Promise<Promise[]>;

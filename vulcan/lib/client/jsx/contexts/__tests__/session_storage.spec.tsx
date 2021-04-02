@@ -1,0 +1,49 @@
+import {act} from "react-test-renderer";
+import * as React from "react";
+import {integrateElement} from "../../test_utils/integration";
+import {createFakeStorage} from "../../test_utils/mocks";
+import {setSession, setWorkflow} from "../../actions/vulcan";
+import {statusWithDownloads} from "../../test_utils/fixtures/status-with-downloads";
+import {defaultWorkflow} from "../../api_types";
+
+
+describe('useSessionStorage', () => {
+  it('works', async () => {
+    const storage = createFakeStorage();
+
+    const {contextData, dispatch} = integrateElement(() => null, {
+      providerOverrides: {
+        storage
+      }
+    });
+
+    await dispatch(setSession(statusWithDownloads['session']));
+
+    // Does not save without workflow being set
+    expect(storage.length).toEqual(0);
+    await dispatch(setWorkflow({...defaultWorkflow, name: 'some name'}));
+
+    expect(storage.length).toEqual(1); // Saved it!
+    expect(contextData.state.session.workflow_name).toEqual(contextData.state.workflow?.name)
+    expect(await contextData.getLocalSession(contextData.state.workflow as any)).toEqual(contextData.state.session);
+
+    await dispatch(setSession({
+      ...statusWithDownloads['session'],
+      key: 'anewkey',
+      workflow_name: 'some name',
+    }));
+    expect(contextData.state.session.key).toEqual('anewkey');
+    expect(storage.length).toEqual(1); // Updates it!
+    expect(contextData.state.workflow).not.toBeFalsy();
+
+    expect(await contextData.getLocalSession(contextData.state.workflow as any)).toEqual(contextData.state.session);
+
+    await dispatch(setWorkflow({...defaultWorkflow, name: 'new name'}));
+    await dispatch(setSession({
+      ...statusWithDownloads['session'],
+      workflow_name: 'new name',
+    }));
+
+    expect(storage.length).toEqual(2); // Adds the new work flow session key
+  });
+});

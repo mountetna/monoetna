@@ -19,11 +19,12 @@ export function useLocalSessionStorage(
 
     useEffect(() => {
         const {workflow, session} = state;
-        if (workflow && workflow.name)
+        if (workflow && workflow.name && storage && session.workflow_name === workflow.name) {
             storage.setItem(
                 localStorageKey(workflow),
                 JSON.stringify(session)
             );
+        }
     }, [state.session, state.workflow])
 
     const getLocalSession = useCallback((workflow: Workflow) => {
@@ -32,24 +33,13 @@ export function useLocalSessionStorage(
 
         try {
             const parsedSession: VulcanState['session'] = JSON.parse(storedSession);
-
-            // We now need to check if the input names have changed.
-            // If all the workflow's primary inputs are NOT present
-            //   in the stored session, we'll return `null` and get
-            //   a new session.
-            if (
-                allWorkflowPrimaryInputSources(workflow).every(source => source in parsedSession.inputs) &&
-                Object.values(parsedSession.inputs).every(inputValueNonEmpty)) {
-                return Promise.resolve(storedSession);
-            }
-
-            return Promise.resolve(null);
+            return Promise.resolve(parsedSession);
         } catch(e) {
             // No guarantees that the stored session is really valid, gracefully clear that session in that case.
             console.error(e);
             return Promise.resolve(null);
         }
-    }, [storage]);
+    }, []);
 
     return {
         getLocalSession,
