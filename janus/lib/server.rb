@@ -40,7 +40,7 @@ class Janus
 
     get '/user', action: 'user#info'
 
-    get '/allprojects', action: 'admin#projects', auth: { user: { is_superuser?: true } }
+    get '/allprojects', action: 'admin#projects', auth: { user: { is_superviewer?: true } }
 
     get '/projects', action: 'user#projects', auth: { user: { active?: true } }
 
