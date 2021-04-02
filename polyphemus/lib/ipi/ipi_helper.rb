@@ -49,7 +49,7 @@ class IpiHelper
   end
 
   def patient_name_from_wsp(wsp_file_path)
-    file_name_from_path(wsp_file_path).sub('.wsp', '')
+    file_name_from_path(wsp_file_path).sub('.wsp', '').sub('_ORIGINAL', '')
   end
 
   def stain_from_fcs(fcs_file_path)
