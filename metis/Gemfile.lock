@@ -29,7 +29,7 @@ GEM
       concurrent-ruby (= 1.1.8)
     crack (0.4.5)
       rexml
-    database_cleaner (1.8.0)
+    database_cleaner (1.8.5)
     debase (0.2.4.1)
       debase-ruby_core_source (>= 0.10.2)
     debase-ruby_core_source (0.10.12)
@@ -125,7 +125,7 @@ PLATFORMS
 
 DEPENDENCIES
   concurrent-ruby
-  database_cleaner (= 1.8.0)
+  database_cleaner (= 1.8.5)
   debase
   etna!
   factory_bot
