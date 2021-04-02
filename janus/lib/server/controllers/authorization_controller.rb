@@ -99,7 +99,7 @@ class AuthorizationController < Janus::Controller
 
     raise Etna::Forbidden, 'User not found' unless @janus_user
 
-    raise Etna::Unauthorized, 'Invalid task token' unless Token.valid_task_token?(@user.token, @janus_user)
+    raise Etna::Unauthorized, 'Invalid task token' unless Token::Checker.new(@user.token).valid_task_token?(@janus_user)
 
     success_json(success: true)
   end
@@ -113,7 +113,7 @@ class AuthorizationController < Janus::Controller
 
     begin
       success_json(token: @janus_user.create_task_token!(@params[:project_name]))
-    rescue TokenBuilder::Error
+    rescue Token::Error
       raise Etna::Unauthorized
     end
   end

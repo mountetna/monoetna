@@ -215,7 +215,7 @@ describe AuthorizationController do
       mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
 
       perm = create(:permission, project: tunnel, user: @user, role: 'administrator', privileged: true)
-      perm = create(:permission, project: mirror, user: @user, role: 'editor')
+      perm = create(:permission, project: mirror, user: @user, role: 'viewer')
     end
 
     it 'creates a task token' do
@@ -235,7 +235,7 @@ describe AuthorizationController do
       # there is only one project on the token, with reduced permissions
       expect(payload["perm"]).to eq('E:tunnel')
 
-      expect(payload["task"]).to eq(1)
+      expect(payload["task"]).to be_truthy
 
       expect(Time.at(payload["exp"]) - Time.now).to be_within(1).of(Janus.instance.config(:task_token_life))
 
@@ -249,14 +249,75 @@ describe AuthorizationController do
     end
 
     it 'validates a task token' do
-      auth_header(:zeus)
-      post('/api/tokens/task/validate', project_name: 'tunnel')
+      header('Authorization', "Etna #{@user.create_task_token!('tunnel')}")
+      post('/api/tokens/task/validate')
       expect(last_response.status).to eq(200)
     end
 
     it 'rejects a regular token' do
       auth_header(:zeus)
-      post('/api/tokens/task/validate', project_name: 'tunnel')
+      post('/api/tokens/task/validate')
+      expect(last_response.status).to eq(401)
+    end
+
+    def update_payload(token, update)
+      header, payload, sig = token.split('.')
+
+      payload = payload.yield_self do |p|
+        p = JSON.parse(Base64.decode64(p), symbolize_names: true)
+        Base64.strict_encode64(p.merge(update).to_json)
+      end
+
+      return "#{header}.#{payload}.#{sig}"
+    end
+
+    it 'rejects a task token with admin rights' do
+      token = update_payload(
+        @user.create_task_token!('tunnel'),
+        perm: 'A:tunnel'
+      )
+      header('Authorization', "Etna #{token}")
+      post('/api/tokens/task/validate')
+      expect(last_response.status).to eq(401)
+    end
+
+    it 'rejects a task token for the administrator group' do
+      token = update_payload(
+        @user.create_task_token!('tunnel'),
+        perm: 'E:administration'
+      )
+      header('Authorization', "Etna #{token}")
+      post('/api/tokens/task/validate')
+      expect(last_response.status).to eq(401)
+    end
+
+    it 'rejects a task token for an unauthorized project' do
+      token = update_payload(
+        @user.create_task_token!('tunnel'),
+        perm: 'E:gateway'
+      )
+      header('Authorization', "Etna #{token}")
+      post('/api/tokens/task/validate')
+      expect(last_response.status).to eq(401)
+    end
+
+    it 'rejects a task token with several projects' do
+      token = update_payload(
+        @user.create_task_token!('tunnel'),
+        perm: 'E:tunnel,mirror'
+      )
+      header('Authorization', "Etna #{token}")
+      post('/api/tokens/task/validate')
+      expect(last_response.status).to eq(401)
+    end
+
+    it 'rejects a task token with elevated privileges' do
+      token = update_payload(
+        @user.create_task_token!('mirror'),
+        perm: 'E:mirror'
+      )
+      header('Authorization', "Etna #{token}")
+      post('/api/tokens/task/validate')
       expect(last_response.status).to eq(401)
     end
   end

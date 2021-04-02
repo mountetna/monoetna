@@ -24,7 +24,7 @@ class User < Sequel::Model
   end
 
   def token_builder
-    @token_builder ||= TokenBuilder.new(self)
+    @token_builder ||= Token::Builder.new(self)
   end
 
   def jwt_payload
