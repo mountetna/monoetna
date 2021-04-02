@@ -19,7 +19,7 @@ class Janus
     get '/refresh_token', action: 'user#refresh_token', auth: { user: { active?: true } }
 
     # For validating tokens with 'task' flag
-    post '/api/tokens/task/validate', action: 'authorization#verify_task'
+    post '/api/tokens/task/validate', action: 'authorization#validate_task'
 
     post '/api/tokens/task/generate', action: 'authorization#generate_task'
 

@@ -216,7 +216,6 @@ describe AuthorizationController do
 
       perm = create(:permission, project: tunnel, user: @user, role: 'administrator', privileged: true)
       perm = create(:permission, project: mirror, user: @user, role: 'editor')
-      perm = create(:permission, project: gateway, user: @user, role: 'editor')
     end
 
     it 'creates a task token' do
@@ -236,9 +235,17 @@ describe AuthorizationController do
       # there is only one project on the token, with reduced permissions
       expect(payload["perm"]).to eq('E:tunnel')
 
+      expect(payload["task"]).to eq(1)
+
       expect(Time.at(payload["exp"]) - Time.now).to be_within(1).of(Janus.instance.config(:task_token_life))
 
       Timecop.return
+    end
+
+    it 'refuses to create a task token without project permission' do
+      auth_header(:zeus)
+      post('/api/tokens/task/generate', project_name: 'gateway')
+      expect(last_response.status).to eq(401)
     end
 
     it 'validates a task token' do
