@@ -1,14 +1,26 @@
 import {defaultApiHelpers} from "./api";
-import {Dispatch, MutableRefObject, useEffect, useRef} from "react";
+import {Dispatch, MutableRefObject, useCallback, useEffect, useRef, useState} from "react";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {setSession, setStatus, VulcanAction} from "../actions/vulcan";
 import * as _ from 'lodash';
 import {SessionStatusResponse} from "../api_types";
+import {Cancellable} from "etna-js/utils/cancellable";
 
 export const defaultSessionSyncHelpers = {
     requestPoll(post?: boolean) {
     },
 };
+
+// Note -- this uses
+function updateFromSessionResponse(response: SessionStatusResponse, state: MutableRefObject<VulcanState>, dispatch: Dispatch<VulcanAction>) {
+    // Don't bother changing the state and trigger a bunch of other downstream stuff unless
+    // the net effect is an actual change.
+    if (!_.isEqual(state.current.status, response.status))
+        dispatch(setStatus(response.status));
+    if (!_.isEqual(state.current.session, response.session))
+        dispatch(setSession(response.session));
+}
+
 
 export function useSessionSync(
     state: MutableRefObject<VulcanState>,
@@ -17,49 +29,29 @@ export function useSessionSync(
     postInputs: typeof defaultApiHelpers.postInputs,
     dispatch: Dispatch<VulcanAction>,
 ): typeof defaultSessionSyncHelpers {
-    // 'switch' like mutex that indicates a desire for queueing a future poll/post quickly, while ensuring
-    // only one is running at a given time.
-    const loadingState = useRef({running: false, rid: 0, nextPollWithPost: false});
+    const [lastPollingRequest, setPollingRequest] = useState([false] as [boolean]);
 
     useEffect(() => {
         const timerId = setInterval(() => requestPoll(), 3000);
         return () => clearInterval(timerId);
     }, [])
 
-    function updateFromSessionResponse(response: SessionStatusResponse) {
-        // Don't bother changing the state and trigger a bunch of other downstream stuff unless
-        // the net effect is an actual change.
-        if (!_.isEqual(state.current.status, response.status))
-            dispatch(setStatus(response.status));
-        if (!_.isEqual(state.current.session, response.session))
-            dispatch(setSession(response.session));
-    }
-
-    function requestPoll(post = false) {
-        const {running, rid} = loadingState.current;
-
-        if (!running) {
-            if (state.current.workflow && state.current.session.workflow_name === state.current.workflow.name) {
-                console.log('Requesting poll for session', state.current.session, 'posting inputs?', post);
-                loadingState.current.nextPollWithPost = false;
-                loadingState.current.running = true;
-                const baseWork = post ? postInputs(state.current.session) : pollStatus(state.current.session);
-                scheduleWork(baseWork.then(updateFromSessionResponse)).finally(() => {
-                    loadingState.current.running = false;
-                    if (rid !== loadingState.current.rid) {
-                        requestPoll(loadingState.current.nextPollWithPost);
-                    }
-                });
-            }
-        } else {
-            loadingState.current.nextPollWithPost = loadingState.current.nextPollWithPost || post;
-            loadingState.current.rid++;
-        }
-    }
-
     useEffect(() => {
-        requestPoll(true);
-    }, [state.current.session.inputs, state.current.workflow]);
+        const [doPost] = lastPollingRequest;
+        const cancellable = new Cancellable();
+
+        const baseWork = doPost ? postInputs(state.current.session) : pollStatus(state.current.session);
+        cancellable.race(baseWork).then(({result, cancelled}) => {
+            if (cancelled || !result) return;
+            return updateFromSessionResponse(result, state, dispatch);
+        })
+
+        return () => cancellable.cancel();
+    }, [lastPollingRequest]);
+
+    const requestPoll = useCallback((post = false) => {
+      setPollingRequest([post]);
+    }, []);
 
     return {
         requestPoll,

@@ -22,7 +22,6 @@ export default function WorkflowManager({workflowName}: {workflowName: string}) 
       dispatch(setWorkflow(workflow));
 
       getLocalSession(workflow).then((session) => {
-        // TODO: Seems suspect, need to test this deeper.
         if (!session) {
           // Set the default input values
           dispatch(setInputs(defaultInputValues(workflow)));
