@@ -57,6 +57,11 @@ module Etna
 
         TokenResponse.new(token)
       end
+
+      def validate_task_token(validate_task_token_request = ValidateTaskTokenRequest.new)
+        token = nil
+        @etna_client.post('/api/tokens/task/validate', validate_task_token_request)
+      end
     end
   end
 end

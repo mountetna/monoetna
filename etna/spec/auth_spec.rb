@@ -198,7 +198,6 @@ describe Etna::Auth do
       authenticated_user = nil
       before(:each) do
         authenticated_user = nil
-        stub_request(:any, /janus.test/)
         Arachne::Server.get('/test') { authenticated_user = @user; success(@user.class) }
 
         @public_key = OpenSSL::PKey::RSA.new(@private_key).public_key.to_s
@@ -217,13 +216,16 @@ describe Etna::Auth do
         clear_cookies
       end
 
-      it "calls Janus for a long-lived token" do
+      it "calls Janus for a task token" do
+        stub_request(:any, /janus.test/)
+
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
           first: 'Janus',
           last: 'Bifrons',
-          verify: true,
-          perm: 'a:labors'
+          task: true,
+          perm: 'e:labors',
+          exp: (Time.now + 600).to_i
         )
 
         auth_header(token)
@@ -231,22 +233,46 @@ describe Etna::Auth do
         expect(last_response.status).to eq(200)
         expect(last_response.body).to eq('Etna::User')
         expect(authenticated_user.token).to eq(token)
-        expect(WebMock).to have_requested(:post, /janus/)
+        expect(WebMock).to have_requested(:post, %r!janus.test/api/!)
       end
 
-      it 'accepts a token via cookie' do
+      it "rejects the request if janus rejects the task token" do
+        stub_request(:any, /janus.test/).
+          to_return(status: 401)
+
         token = Arachne.instance.sign.jwt_token(
           email: 'janus@two-faces.org',
           first: 'Janus',
           last: 'Bifrons',
-          perm: 'a:labors;e:olympics,argo;v:constellations'
+          task: true,
+          perm: 'e:labors',
+          exp: (Time.now + 600).to_i
         )
 
-        set_cookie("#{Arachne.instance.config(:token_name)}=#{token}")
+        auth_header(token)
         get('/test')
+        expect(last_response.status).to eq(401)
+        expect(WebMock).to have_requested(:post, %r!janus.test/api/!)
+      end
+
+      it "allows the request if janus is ignored" do
+        stub_request(:any, /janus.test/).to_return(status: 401)
+
+        token = Arachne.instance.sign.jwt_token(
+          email: 'janus@two-faces.org',
+          first: 'Janus',
+          last: 'Bifrons',
+          task: true,
+          perm: 'e:labors',
+          exp: (Time.now + 600).to_i
+        )
+ 
+        Arachne::Server.get('/test2', auth: { ignore_janus: true }) { success(nil) }
+
+        auth_header(token)
+        get('/test2')
         expect(last_response.status).to eq(200)
-        expect(last_response.body).to eq('Etna::User')
-        expect(authenticated_user.token).to eq(token)
+        expect(WebMock).not_to have_requested(:post, %r!janus.test/api/!)
       end
     end
   end
