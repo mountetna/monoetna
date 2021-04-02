@@ -1,4 +1,4 @@
-return unless load_record_flow_jo('flojo_file')
+return unless load_record_flow_jo('flojo_file_processed')
 
 add_stain_name('stain 1', 'treg')
 add_stain_name('stain 2', 'nktb')
