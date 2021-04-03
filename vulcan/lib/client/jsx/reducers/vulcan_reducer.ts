@@ -2,6 +2,7 @@ import {
   VulcanAction
 } from '../actions/vulcan';
 import {defaultSessionStatusResponse, SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
+import {unsetDependentInputs, filterEmptyValues} from "../selectors/workflow_selectors";
 
 
 export type DownloadedData = any; // TODO: improve typing here.
@@ -75,24 +76,34 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       return {
         ...state,
         session: {...action.session, project_name: CONFIG.project_name},
+        inputs: {...state.inputs, ...action.session.inputs},
       };
+
+    case "REMOVE_INPUTS":
+      const removedInputs = {...state.inputs};
+      action.inputs.forEach(source => delete removedInputs[source]);
+
+      return {
+        ...state,
+        inputs: removedInputs,
+        session: {...state.session, inputs: filterEmptyValues(removedInputs)},
+      }
+
 
     case 'SET_INPUTS':
       return {
         ...state,
         inputs: action.inputs,
+        session: {...state.session, inputs: filterEmptyValues(action.inputs)},
       }
 
-    case 'COMMIT_INPUTS':
-      // Ensure the reference is shared, making equality comparison simpler.
-      const newInputs = state.inputs || {};
+    case 'PATCH_INPUTS':
+      const updatedInputs = unsetDependentInputs(action.inputs, {...state.inputs, ...action.inputs}, state.workflow);
+
       return {
         ...state,
-        inputs: newInputs,
-        session: {
-          ...state.session,
-          inputs: newInputs,
-        }
+        inputs: updatedInputs,
+        session: {...state.session, inputs: filterEmptyValues(updatedInputs)},
       }
 
     case 'SET_CALCULATING':

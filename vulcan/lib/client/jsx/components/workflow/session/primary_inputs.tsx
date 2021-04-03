@@ -4,21 +4,20 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import {inputGroupName} from '../../../selectors/workflow_selectors';
 import InputGroup from './input_group';
-import {setInputs} from "../../../actions/vulcan";
+import {patchInputs} from "../../../actions/vulcan";
 import {InputSpecification} from "../user_interactions/inputs/input_types";
 
 export default function PrimaryInputs() {
   const {state, dispatch} = useContext(VulcanContext);
-  const {workflow, session, inputs} = state;
+  const {workflow, session} = state;
   if (!workflow) return null;
   if (!workflow.inputs) return null;
 
   const handleInputChange = useCallback((inputName: string, val: any) => {
-    dispatch(setInputs({
-      ...inputs,
+    dispatch(patchInputs({
       [inputName]: val,
     }));
-  }, [inputs, dispatch, setInputs]);
+  }, []);
 
   let primaryInputs: InputSpecification[] = useMemo(() => {
     return Object.keys(workflow.inputs).map(name => ({

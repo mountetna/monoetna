@@ -6,7 +6,7 @@ import {defaultApiHelpers, useApi} from "./api";
 import {useWorkflowsLoading} from "./workflows_loading";
 import {defaultDataBufferingHelpers, useDataBuffering} from "./data_buffering";
 import {defaultSessionSyncHelpers, useSessionSync} from "./session_sync";
-import {useClearObsoleteInputs} from "./clear_obsolete_inputs";
+import {useInputStateManagement} from "./input_state_management";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 
 export const defaultContext = {
@@ -33,18 +33,20 @@ function withOverrides<A, B extends Partial<A>, K extends keyof A>(base: A, over
 
 export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>) => {
   const actionInvokerHelpers = withOverrides({useActionInvoker}, props);
+  const stateRef = useRef(props.state || defaultContext.state);
   const [state, dispatch] = useReducer(function (state: VulcanState, action: VulcanAction) {
-    // console.log(action);
-    return VulcanReducer(state, action);
-  }, props.state || defaultContext.state);
-  const stateRef = useRef(state);
+    const result = VulcanReducer(state, action);
+    console.log('updating state', action.type);
+    stateRef.current = result;
+    return result;
+  }, stateRef.current);
   const localSessionHelpers = withOverrides(useLocalSessionStorage(state, props), props);
   const apiHelpers = withOverrides(useApi(actionInvokerHelpers.useActionInvoker()), props);
   const {scheduleWork, getData, getWorkflows, pollStatus, postInputs} = apiHelpers;
   const sessionSyncHelpers = withOverrides(useSessionSync(stateRef, scheduleWork, pollStatus, postInputs, dispatch), props);
   const dataBufferingHelpers = useDataBuffering(state, dispatch, scheduleWork, getData);
   useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, scheduleWork);
-  useClearObsoleteInputs(state, dispatch);
+  useInputStateManagement(state, dispatch);
 
 
   return (

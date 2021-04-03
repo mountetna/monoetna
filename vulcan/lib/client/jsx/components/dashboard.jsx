@@ -6,18 +6,17 @@ import {pushLocation} from 'etna-js/actions/location_actions';
 
 import {VulcanContext} from '../contexts/vulcan_context';
 import Card from '../components/dashboard/card';
+import {workflowName} from "../selectors/workflow_selectors";
 
 export default function Dashboard() {
   const invoke = useActionInvoker();
   let {state} = useContext(VulcanContext);
   const {workflows} = state;
 
-  console.log({workflows});
-
   if (!workflows || workflows.length === 0) return null;
 
   function handleOnClick(workflow) {
-    invoke(pushLocation(`/workflow/${workflow.name}`));
+    invoke(pushLocation(`/workflow/${workflowName(workflow)}`));
   }
 
   return (

@@ -28,22 +28,26 @@ export function setSession(session: SessionStatusResponse['session']) {
     return actionObject('SET_SESSION', {session});
 }
 
+// Fully replaces the inputs state.
 export function setInputs(inputs: SessionStatusResponse['session']['inputs']) {
     return actionObject('SET_INPUTS', {inputs});
 }
 
-export function commitInputs() {
-    return actionObject('COMMIT_INPUTS', {});
+// Adds any inputs specified, but does not fully replace inputs.
+export function patchInputs(inputs: SessionStatusResponse['session']['inputs']) {
+    return actionObject('PATCH_INPUTS', {inputs});
+}
+
+// Removes the inputs by the given source name from the inputs and session states
+export function removeInputs(inputs: string[]) {
+    return actionObject('REMOVE_INPUTS', {inputs});
 }
 
 export function setCalculating(calculating: boolean) {
     return actionObject('SET_CALCULATING', {calculating});
 }
 
-const actions = {
-    commitInputs,
-}
-
 export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow> | ReturnType<typeof setStatus> |
     ReturnType<typeof setDownloadedData> | ReturnType<typeof setSession> | ReturnType<typeof setInputs> |
-    ReturnType<typeof commitInputs> | ReturnType<typeof releaseDownloadedData> | ReturnType<typeof setCalculating>;
+    ReturnType<typeof releaseDownloadedData> | ReturnType<typeof setCalculating> | ReturnType<typeof removeInputs> |
+    ReturnType<typeof patchInputs>

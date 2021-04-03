@@ -66,6 +66,8 @@ class VulcanUI extends React.Component {
     let Component;
     let mode;
 
+    console.log(location, ROUTES);
+
     if (this.props.Component) {
       mode = 'home';
       Component = this.props.Component;

@@ -11,7 +11,7 @@ import {
     statusOfStep,
     uiQueryOfStep,
 } from "../../../selectors/workflow_selectors";
-import {setInputs} from "../../../actions/vulcan";
+import {patchInputs, setInputs} from "../../../actions/vulcan";
 import {UIStep} from "../user_interactions/inputs/input_types";
 import StepUserInputDrawer from "./step_user_input_drawer";
 import StepUserInput from "./step_user_input";
@@ -28,8 +28,8 @@ export default function StepUserInputWrapper({step}: { step: UIStep['step'] }) {
     if (!stepStatus || !uiQuery) return null;
 
     const handleInputChange = useCallback((inputName: string, value: any) => {
-        dispatch(setInputs({...state.inputs, [inputName]: value}));
-    }, [state, dispatch, setInputs]);
+        dispatch(patchInputs({[inputName]: value}));
+    }, []);
 
     const toggleInputs = useCallback(() => setOpen(!open), [setOpen, open]);
     const statusStr = stepStatus.status;

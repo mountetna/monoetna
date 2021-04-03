@@ -67,10 +67,18 @@ export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHel
     }, []);
 
     const postInputs = useCallback((session: VulcanSession): Promise<SessionStatusResponse> => {
+        if (!session.workflow_name) {
+            return Promise.reject(new Error("No workflow selected, bug in client."));
+        }
+
         return vulcanPost(vulcanPath(ROUTES.submit(session.workflow_name)), session);
     }, []);
 
     const pollStatus = useCallback((session: VulcanSession): Promise<SessionStatusResponse> => {
+        if (!session.workflow_name) {
+            return Promise.reject(new Error("No workflow selected, bug in client."));
+        }
+
         return vulcanPost(vulcanPath(ROUTES.status(session.workflow_name)), session);
     }, [])
 

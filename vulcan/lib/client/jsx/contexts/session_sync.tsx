@@ -7,20 +7,18 @@ import {SessionStatusResponse} from "../api_types";
 import {Cancellable} from "etna-js/utils/cancellable";
 
 export const defaultSessionSyncHelpers = {
-    requestPoll(post?: boolean) {
-    },
+  requestPoll(post?: boolean) {
+  },
 };
 
-// Note -- this uses
 function updateFromSessionResponse(response: SessionStatusResponse, state: MutableRefObject<VulcanState>, dispatch: Dispatch<VulcanAction>) {
-    // Don't bother changing the state and trigger a bunch of other downstream stuff unless
-    // the net effect is an actual change.
-    if (!_.isEqual(state.current.status, response.status))
-        dispatch(setStatus(response.status));
-    if (!_.isEqual(state.current.session, response.session))
-        dispatch(setSession(response.session));
+  // Don't bother changing the state and trigger a bunch of other downstream stuff unless
+  // the net effect is an actual change.
+  if (!_.isEqual(state.current.status, response.status))
+    dispatch(setStatus(response.status));
+  if (!_.isEqual(state.current.session, response.session))
+    dispatch(setSession(response.session));
 }
-
 
 export function useSessionSync(
     state: MutableRefObject<VulcanState>,
@@ -29,31 +27,42 @@ export function useSessionSync(
     postInputs: typeof defaultApiHelpers.postInputs,
     dispatch: Dispatch<VulcanAction>,
 ): typeof defaultSessionSyncHelpers {
-    const [lastPollingRequest, setPollingRequest] = useState([false] as [boolean]);
+  const [lastPollingRequest, setPollingRequest] = useState([false, state.current.session.inputs] as [boolean, {[k: string]: any}]);
 
-    useEffect(() => {
-        const timerId = setInterval(() => requestPoll(), 3000);
-        return () => clearInterval(timerId);
-    }, [])
+  // Note -- this will 'cancel' processing the result of previous requests when a new polling request is made, but
+  // it does not actually cancel the underlying request.  Posts will thus complete just fine, although the result may
+  // be superceeded by a requests poll.
+  useEffect(() => {
+    const [doPost] = lastPollingRequest;
+    const cancellable = new Cancellable();
 
-    useEffect(() => {
-        const [doPost] = lastPollingRequest;
-        const cancellable = new Cancellable();
+    if (!state.current.session.workflow_name) return;
 
-        const baseWork = doPost ? postInputs(state.current.session) : pollStatus(state.current.session);
-        cancellable.race(baseWork).then(({result, cancelled}) => {
-            if (cancelled || !result) return;
-            return updateFromSessionResponse(result, state, dispatch);
-        })
+    const baseWork = doPost ? postInputs(state.current.session) : pollStatus(state.current.session);
+    cancellable.race(baseWork).then(({result, cancelled}) => {
+      if (cancelled || !result) return;
+      updateFromSessionResponse(result, state, dispatch);
+    })
 
-        return () => cancellable.cancel();
-    }, [lastPollingRequest]);
+    return () => cancellable.cancel();
+  }, [lastPollingRequest]);
 
-    const requestPoll = useCallback((post = false) => {
-      setPollingRequest([post]);
-    }, []);
+  const requestPoll = useCallback((post = false) => {
+    const [lastWasPost, lastInputs] = lastPollingRequest;
 
-    return {
-        requestPoll,
-    };
+    if (lastInputs === state.current.session.inputs && lastWasPost) {
+      return;
+    }
+
+    setPollingRequest([post, state.current.session.inputs]);
+  }, []);
+
+  useEffect(() => {
+    const timerId = setInterval(() => requestPoll(), 1000);
+    return () => clearInterval(timerId);
+  }, [])
+
+  return {
+    requestPoll,
+  };
 }

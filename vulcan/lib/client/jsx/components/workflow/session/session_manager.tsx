@@ -11,11 +11,10 @@ import {
     uiOutputOfStep,
     workflowName
 } from "../../../selectors/workflow_selectors";
-import {commitInputs} from "../../../actions/vulcan";
 
 export default function SessionManager() {
     const context = useContext(VulcanContext);
-    const {state, dispatch} = context;
+    const {state, dispatch, requestPoll} = context;
 
     const workflow = state.workflow;
     if (!workflow) return null;
@@ -41,8 +40,9 @@ export default function SessionManager() {
     const running = !idle;
 
     const run = useCallback(() => {
-        dispatch(commitInputs());
-    }, [dispatch, commitInputs])
+        console.log("hello?")
+        requestPoll(true);
+    }, [requestPoll])
 
     return (
         <div className='session-manager'>

@@ -284,3 +284,44 @@ export function groupUiSteps(uiSteps: UIStep[]): UIStep[] {
 
   return Object.values(result);
 }
+
+export function filterEmptyValues(values: { [k: string]: any }): { [k: string]: any } {
+  const result: { [k: string]: any } = {};
+
+  Object.keys(values).forEach(k => {
+    const val = values[k];
+    if (inputValueNonEmpty(val)) result[k] = val;
+  })
+
+  return result;
+}
+
+// For each key in changes, remove any dependencies_of_outputs for that key (dependents)
+// in the existing object (copy on change), iff that dependent is not also in changes.
+export function unsetDependentInputs(
+    changes: { [k: string]: any },
+    existing: { [k: string]: any },
+    workflow: Workflow | null
+): { [k: string]: any } {
+  let result = existing;
+  if (!workflow) return result;
+
+  Object.keys(changes).forEach(changedSource => {
+    const dependents = workflow.dependencies_of_outputs[changedSource];
+    if (!dependents) return;
+
+    dependents.forEach(dependentSource => {
+      // In the case of forward change propagation, allow specifying two inputs at once that happen to have a dependency
+      if (dependentSource in changes) return;
+      result = {...result};
+      delete result[dependentSource];
+    });
+  });
+
+  return result;
+}
+
+export function findSourceDependencies(source: string, workflow: Workflow | null): string[] {
+  if (!workflow) return [];
+  return Object.keys(workflow.dependencies_of_outputs).filter(k => workflow.dependencies_of_outputs[k].includes(source));
+}

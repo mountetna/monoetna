@@ -9,6 +9,7 @@ import {STATUS} from "../../../api_types";
 
 const icons: {[k: string]: {icon: string, className: string}} = {
   [STATUS.COMPLETE]: { icon: 'check', className: 'light green' },
+  [STATUS.RUNNING]: {icon: 'clock', className: 'light'},
   [STATUS.PENDING]: {icon: 'clock', className: 'light'},
   [STATUS.ERROR]: {icon: 'times-circle', className: 'light red'},
 };
@@ -17,7 +18,7 @@ export default function StepName({step}: {step: WorkflowStep}) {
   let {state, isLoading} = useContext(VulcanContext);
   const stepStatus = statusOfStep(step, state.status);
   const statusStr = stepStatus ? stepStatus.status : STATUS.PENDING;
-  let icon = icons[statusStr];
+  let icon = icons[statusStr] || icons[STATUS.PENDING];
 
   let className = `step-status-icon ${icon.className}`;
   let IconComponent = <Icon className={className} icon={icon.icon}/>;

@@ -12,7 +12,10 @@ import {Provider} from "react-redux";
 import {VulcanStore} from "../vulcan_store";
 import * as React from "react";
 import {Store} from "redux";
-import {setInputs, VulcanAction} from "../actions/vulcan";
+import {patchInputs, setDownloadedData, setStatus, VulcanAction} from "../actions/vulcan";
+import {splitSource, statusOfStep, stepOfSource} from "../selectors/workflow_selectors";
+import {defaultStepStatus, StepStatus} from "../api_types";
+import {createStatusFixture, createStepStatusFixture} from "./fixtures";
 
 function injectContextAgent(Element: () => ReactElement | null, overrides: Partial<ProviderProps & VulcanContextData>) {
   return <VulcanProvider {...overrides}>
@@ -55,11 +58,38 @@ export function integrateElement(Element: () => ReactElement | null, {
       </Provider>
   )
 
-  return {node, updateMatching, contextData, reduxState, setInput, replaceOverrides, dispatch}
+  return {node, updateMatching, contextData, reduxState, setInput, replaceOverrides, dispatch, setData};
 
   // Utility functions
   function setInput(inputName: string, value: any) {
-    contextData.dispatch(setInputs({...contextData.state.inputs, [inputName]: value}));
+    contextData.dispatch(patchInputs({[inputName]: value}));
+  }
+
+  function setData(sourceName: string, value: any) {
+    const workflow = contextData.state.workflow;
+    if (!workflow) throw new Error('Workflow must be set!');
+
+    let url: string | undefined;
+
+    const [stepName, outputName] = splitSource(sourceName);
+    if (!stepName) throw new Error('Cannot setData for primary inputs');
+
+    let status = statusOfStep(stepName, contextData.state.status) || defaultStepStatus;
+    const {downloads} = status;
+    if (downloads) {
+      url = downloads[splitSource(sourceName)[1]]
+    }
+    if (!url) url = "https://" + sourceName;
+
+
+    contextData.dispatch(setStatus(createStatusFixture(workflow, createStepStatusFixture({
+      ...status,
+      name: stepName,
+      status: 'complete',
+      downloads: {...status.downloads, [outputName]: url}
+    }))));
+
+    contextData.dispatch(setDownloadedData(url, value));
   }
 
   function replaceOverrides(overrides: Partial<ProviderProps & VulcanContextData>) {
@@ -88,7 +118,7 @@ export function integrateElement(Element: () => ReactElement | null, {
   }
 
   async function dispatch(action: VulcanAction) {
-    await act(async function() {
+    await act(async function () {
       contextData.dispatch(action);
     })
   }
