@@ -1,14 +1,10 @@
 import {integrateElement} from "../../test_utils/integration";
-import {SessionStatusResponse, VulcanSession, WorkflowsResponse} from "../../api_types";
-import {workflowsResponse} from "../../test_utils/fixtures/workflows-response";
 import {act} from "react-test-renderer";
-import {setInputs, setStatus, setWorkflow} from "../../actions/vulcan";
+import {setStatus, setWorkflow} from "../../actions/vulcan";
 import {
   createStatusFixture,
-  createStatusResponseFixture,
-  createStepFixture, createStepStatusFixture,
+  createStepFixture,
   createWorkflowFixture,
-  findWorkflowFromResponse
 } from "../../test_utils/fixtures";
 import {defaultContext} from "../vulcan_context";
 

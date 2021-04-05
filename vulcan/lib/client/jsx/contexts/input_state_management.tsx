@@ -1,11 +1,11 @@
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {Dispatch, useEffect} from "react";
+import {Dispatch, useEffect, useMemo} from "react";
 import {patchInputs, removeInputs, VulcanAction} from "../actions/vulcan";
 import {
   findSourceDependencies,
   inputValueNonEmpty, isPendingUiQuery,
   missingUiQueryOutputs,
-  pendingSteps
+  pendingSteps, sourceNameOfReference, statusOfStep, stepInputDataRaw, stepOfSource, stepOfStatus, uiQueryOfStep
 } from "../selectors/workflow_selectors";
 
 export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<VulcanAction>) {
@@ -13,27 +13,42 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
 
   useEffect(() => {
     if (workflow == null) return;
-    const deletes: string[] = [];
+    const deletes: {[k: string]: true} = {};
 
-    Object.keys(inputs).forEach(source => {
-      if (!(source in workflow.dependencies_of_outputs)) {
-        deletes.push(source);
-        return;
-      }
+    const droppedSteps = workflow.steps[0].filter(step => {
+      const stepStatus = statusOfStep(step, status);
+      if (step.out.length === 0) return false;
 
-      const unfulfilled = findSourceDependencies(source, workflow).find(dependency => {
-        return inputValueNonEmpty(inputs[dependency]);
+      if (!stepStatus) return true;
+
+      return !step.out.every(outName => {
+        const source = sourceNameOfReference([step.name, outName]);
+        if (source in inputs) {
+          return true;
+        }
+
+        if (uiQueryOfStep(step)) return true;
+
+        console.log({step});
+        if (!stepStatus.downloads) return false;
+
+        return outName in stepStatus.downloads;
+      });
+    })
+
+    droppedSteps.forEach(step => {
+      step.out.forEach(outName => {
+        const source = sourceNameOfReference([step.name, outName]);
+        if (source in inputs) deletes[source] = true;
+        workflow.dependencies_of_outputs[source].forEach(dependent => {
+          if (dependent in inputs) deletes[dependent] = true;
+        });
       })
+    })
 
-      if (unfulfilled) {
-        deletes.push(source);
-      }
-    });
-
-    console.log('deletes', deletes);
-
-    if (deletes.length > 0) dispatch(removeInputs(deletes));
-  }, [inputs, workflow]);
+    const d = Object.keys(deletes);
+    if (d.length > 0) dispatch(removeInputs(d));
+  }, [inputs, workflow, status, data, session]);
 
   // We inject a `null` input into the session,
   //   to indicate that we're waiting for a user input value
@@ -56,8 +71,6 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
         };
       }
     });
-
-    console.log('newInputs', Object.keys(newInputs));
 
     if (Object.keys(newInputs).length > 0) dispatch(patchInputs(newInputs));
   }, [inputs, workflow, status, data, session]);
