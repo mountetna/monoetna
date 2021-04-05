@@ -6,6 +6,42 @@ class User < Sequel::Model
     errors.add(:email, 'must be lowercase') if email =~ /[A-Z]/
   end
 
+  def self.from_signed_nonce(signed_nonce)
+    nonce, email, signature = signed_nonce.split(/\./).map.with_index do |p,i|
+      i == 0 ? p : Base64.decode64(p)
+    end
+
+    # validate the nonce
+    return "invalid nonce #{nonce}" unless Janus::Nonce.valid_nonce?(nonce)
+
+    # validate the email
+    return "invalid email" if email =~ /[^[:print:]]/
+
+    # find the user
+    user = User[email: email]
+
+    return "no user" unless user
+
+    # check the user's signature
+    txt_to_sign = signed_nonce.split('.')[0..1].join('.')
+
+    return "invalid signature" unless user.valid_signature?(txt_to_sign, signature)
+
+    return user
+  end
+
+  def self.from_token(token)
+    payload, header = Janus.instance.sign.jwt_decode(token)
+
+    payload = payload.symbolize_keys.except(:exp)
+
+    user = User[email: payload[:email]]
+
+    return nil unless user and payload == user.jwt_payload
+
+    return user
+  end
+
   def to_hash
     {
       email: email,

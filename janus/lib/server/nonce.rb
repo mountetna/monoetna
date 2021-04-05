@@ -6,7 +6,7 @@ class Janus
       @nonce_key ||= OpenSSL::PKey::RSA.new(2048)
     end
 
-    def self.valid?(nonce)
+    def self.valid_nonce?(nonce)
       timestamp, nonce_sig = Base64.decode64(nonce).split(/\./)
 
       return false unless timestamp && nonce_sig

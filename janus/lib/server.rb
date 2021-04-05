@@ -18,10 +18,9 @@ class Janus
 
     get '/refresh_token', action: 'user#refresh_token', auth: { user: { active?: true } }
 
-    # For validating tokens with 'task' flag
-    post '/api/tokens/task/validate', action: 'authorization#validate_task', auth: { ignore_janus: true }
-
-    post '/api/tokens/task/generate', action: 'authorization#generate_task'
+    get '/api/tokens/nonce', action: 'authorization#time_signature', auth: { noauth: true }
+    post '/api/tokens/generate', action: 'authorization#generate', auth: { noauth: true }
+    post '/api/tokens/validate_task', action: 'authorization#validate_task', auth: { ignore_janus: true }
 
     # Once we figure out a long-term token strategy, this should probably get
     #   consolidated with /refresh_token so we don't just keep creating
