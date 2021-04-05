@@ -21,6 +21,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         >
           <span
             className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
+            title="second"
           >
             <i
               className="icon step-status-icon light  clock fa fa-2x fa-clock"
@@ -78,6 +79,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         >
           <span
             className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
+            title="third"
           >
             <i
               className="icon step-status-icon light  clock fa fa-2x fa-clock"
@@ -132,6 +134,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
       >
         <span
           className="icon-grp icon-grp-step-status-icon light red  fa-stack fa-fw"
+          title="zero"
         >
           <i
             className="icon step-status-icon light red  times-circle fa fa-2x fa-times-circle"

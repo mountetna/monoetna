@@ -15,6 +15,7 @@ exports[`OutputFeed renders UI output steps 1`] = `
       >
         <span
           className="icon-grp icon-grp-step-status-icon light green  fa-stack fa-fw"
+          title="second"
         >
           <i
             className="icon step-status-icon light green  check fa fa-2x fa-check"
@@ -42,6 +43,7 @@ exports[`OutputFeed renders UI output steps 1`] = `
       >
         <span
           className="icon-grp icon-grp-step-status-icon light green  fa-stack fa-fw"
+          title="fourth"
         >
           <i
             className="icon step-status-icon light green  check fa fa-2x fa-check"
@@ -62,7 +64,7 @@ exports[`OutputFeed renders UI output steps 1`] = `
         href="https://foo"
         onClick={null}
       >
-        Download data here
+        foo
       </a>
     </div>
   </div>
@@ -77,6 +79,7 @@ exports[`OutputFeed renders UI output steps 1`] = `
       >
         <span
           className="icon-grp icon-grp-step-status-icon light green  fa-stack fa-fw"
+          title="sixth"
         >
           <i
             className="icon step-status-icon light green  check fa fa-2x fa-check"

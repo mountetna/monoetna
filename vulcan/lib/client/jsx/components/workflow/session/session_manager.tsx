@@ -43,6 +43,8 @@ export default function SessionManager() {
         requestPoll(true);
     }, [requestPoll])
 
+    const disableRunButton = complete || running || !primaryInputsReady;
+
     return (
         <div className='session-manager'>
             <div className='session-header'>
@@ -57,10 +59,9 @@ export default function SessionManager() {
                         </Link>
                     </div>
                 )}
-                <button
-                    disabled={complete || running || !primaryInputsReady}
+                <div
                     onClick={run}
-                    className='run-workflow-btn header-btn'
+                    className={`run-workflow-btn ${disableRunButton ? 'disabled' : ''} header-btn`}
                 >
                     Run
                     <Icon
@@ -69,7 +70,7 @@ export default function SessionManager() {
                         title='Run workflow'
                         icon='play'
                     />
-                </button>
+                </div>
             </div>
             <div className='session-feed-container'>
                 <InputFeed/>

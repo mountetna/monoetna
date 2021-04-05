@@ -1,4 +1,3 @@
-
 networks:
   edge_net:
     ipam:
@@ -35,4 +34,3 @@ services:
       - 'janus.development.local:172.16.238.10'
       - 'timur.development.local:172.16.238.10'
       - 'polyphemus.development.local:172.16.238.10'
-

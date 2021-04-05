@@ -5,7 +5,7 @@ export default function LinkOutput({data}) {
   return <React.Fragment>
     {Object.values(data).map(url =>
         <React.Fragment key={url}>
-          <Link link={url}>Download data here</Link>
+          <Link link={url}>{url.split('/').slice(-1)}</Link>
         </React.Fragment>
     )}
   </React.Fragment>

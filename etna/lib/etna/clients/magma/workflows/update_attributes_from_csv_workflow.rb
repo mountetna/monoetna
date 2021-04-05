@@ -241,7 +241,13 @@ module Etna
                 attribute_name_clean = attribute_name.strip
                 raise "Invalid attribute \"#{attribute_name_clean}\" for model #{@model_name}." unless attribute = @workflow.find_attribute(@model_name, attribute_name_clean)
 
-                attributes[attribute_name_clean] = stripped_value(attribute, @raw[attribute_name])
+                stripped = stripped_value(attribute, @raw[attribute_name])
+                
+                unless @workflow.hole_value.nil?
+                  next if stripped == @workflow.hole_value
+                end
+                
+                attributes[attribute_name_clean] = stripped
               end
             end
           end

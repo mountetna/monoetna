@@ -26,21 +26,14 @@ export default function StepsList() {
   return (
     <div className={`steps-list toggle-control ${open ? 'open' : 'closed'}`}>
       <div className='steps-list-header' onClick={handleToggle}>
-        <Icon
-          icon='angle-up'
-          className='steps-list-toggle toggle-left-right'
-        />
+        <Icon icon={ open ? 'angle-right' : 'angle-left' } className='toggle'/>
         <div className='title'>Steps</div>
       </div>
-
-      <div className='steps-list-positioner'>
-        <div className='steps-list-wrapper'>
-            { workflow
-                ? workflow.steps[0].map((step) => {
-                    return <Step key={step.name} step={step}/>;
-                })
-                : null}
-        </div>
+      <div className='steps-list-wrapper'>
+        {workflow ? workflow.steps[0].map((step, index) => {
+              return <Step key={index} step={step}></Step>;
+            })
+          : null}
       </div>
     </div>
   );

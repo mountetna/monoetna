@@ -6,7 +6,6 @@ import * as _ from 'lodash';
 
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import {InputBackendComponent} from "./input_types";
-import {VulcanContext} from "../../../../contexts/vulcan_context";
 
 function getPath(options: OptionSet, leaf: string): string[] {
   for (let [key, value] of Object.entries(options)) {
@@ -37,11 +36,11 @@ function LeafOptions({options, depth, handleSelect}: {options: string[] | null, 
 
   return (
     <DropdownAutocomplete
-      key={`${depth}-${options.join('-')}`}
+      key={`${depth}-${options.slice(0, 5).join('-')}`}
       onSelect={(e: any) => {
         handleSelect(e, depth);
       }}
-      list={options || []}
+      list={options}
       defaultValue={null}
     />
   );

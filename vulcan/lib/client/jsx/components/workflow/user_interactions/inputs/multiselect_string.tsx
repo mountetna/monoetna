@@ -1,16 +1,28 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 
 import ListInput from 'etna-js/components/inputs/list_input';
 import DropdownInput from 'etna-js/components/inputs/dropdown_input';
-import {InputBackendComponent} from "./input_types";
+import {InputBackendComponent, InputSpecification} from "./input_types";
 
-const MultiselectStringInput: InputBackendComponent = ({input, onChange}) => {
+export function getAllOptions(data: InputSpecification['data']): string[] {
+  return Object.values(data || {}).reduce((acc, n) => {
+    if (Array.isArray(n)) return acc.push(...n);
+    else if (typeof n === "string") acc.push(n);
+    else acc.push(n + "");
+
+    return acc;
+  }, []);
+}
+
+const MultiselectStringInput: InputBackendComponent = ({input, onChange, onClear, onAll}) => {
   if (!input || !onChange) return null;
 
-  const options: any[] = Object.values(input.data || {}).reduce((acc, n) => {
-     if (Array.isArray(n)) return acc.concat(n);
-     return acc.concat([n]);
-  }, [input.data]);
+  var collator = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: 'base'
+  });
+
+  const options = useMemo(() => getAllOptions(input.data), [input.data]);
 
   return (
     <ListInput
@@ -24,10 +36,12 @@ const MultiselectStringInput: InputBackendComponent = ({input, onChange}) => {
           : []
       }
       itemInput={DropdownInput}
-      list={options}
+      list={(options && options.sort(collator.compare)) || []}
       onChange={(e: any) => {
         onChange(input.name, e);
       }}
+      onAll={onAll}
+      onClear={onClear}
     />
   );
 }

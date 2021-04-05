@@ -18,6 +18,7 @@ export const TYPE = {
   SELECT_AUTOCOMPLETE: 'select-autocomplete',
   CHECKBOXES: 'checkboxes',
   NESTED_SELECT_AUTOCOMPLETE: 'nested-select-autocomplete',
+  MULTISELECT_STRING_ALL: 'multiselect-string-all',
 };
 
 // CWL Step RUN Sentinels

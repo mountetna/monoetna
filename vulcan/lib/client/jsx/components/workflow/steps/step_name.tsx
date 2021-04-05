@@ -21,7 +21,7 @@ export default function StepName({step}: {step: WorkflowStep}) {
   let icon = icons[statusStr] || icons[STATUS.PENDING];
 
   let className = `step-status-icon ${icon.className}`;
-  let IconComponent = <Icon className={className} icon={icon.icon}/>;
+  let IconComponent = <Icon title={ step.label || step.name } className={className} icon={icon.icon}/>;
 
   if (STATUS.RUNNING === statusStr && isLoading) {
     IconComponent = <AnimatedClock />;

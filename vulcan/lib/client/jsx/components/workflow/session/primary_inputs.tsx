@@ -24,7 +24,10 @@ export default function PrimaryInputs() {
         ...workflow.inputs[name],
           name,
           label: workflow.inputs[name].label || name,
-          default: session.inputs[name] || workflow.inputs[name].default || null
+          default: [
+              session.inputs[name],
+              workflow.inputs[name].default
+          ].find(a => a != null)
     }))
   }, []);
 

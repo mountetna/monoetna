@@ -1,7 +1,7 @@
 PATH
   remote: /etna
   specs:
-    etna (0.1.30)
+    etna (0.1.32)
       concurrent-ruby
       jwt
       multipart-post
@@ -50,7 +50,7 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
-    database_cleaner (1.8.0)
+    database_cleaner (1.8.5)
     debase (0.2.4.1)
       debase-ruby_core_source (>= 0.10.2)
     debase-ruby_core_source (0.10.12)
@@ -66,8 +66,9 @@ GEM
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
     method_source (1.0.0)
-    mimemagic (0.3.7)
-      nokogiri (~> 1.11.2)
+    mimemagic (0.3.10)
+      nokogiri (~> 1)
+      rake
     mini_portile2 (2.5.0)
     minitest (5.14.4)
     multipart-post (2.1.1)
@@ -131,7 +132,7 @@ GEM
       concurrent-ruby (~> 1.0)
     unicode-display_width (1.7.0)
     vcr (6.0.0)
-    webmock (3.12.1)
+    webmock (3.12.2)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
@@ -146,10 +147,10 @@ DEPENDENCIES
   actionpack
   aspera-cli
   concurrent-ruby
-  database_cleaner (= 1.8.0)
+  database_cleaner (= 1.8.5)
   debase
   etna!
-  mimemagic (= 0.3.7)
+  mimemagic (~> 0.3.10)
   pg
   pry
   pry-byebug
