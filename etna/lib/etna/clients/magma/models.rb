@@ -519,6 +519,18 @@ module Etna
           @raw['desc'] = val
         end
 
+        # description and description= are needed
+        #   to make UpdateAttribute actions
+        #   work in the model_synchronization_workflow for
+        #   desc.
+        def description
+          raw['desc']
+        end
+
+        def description=(val)
+          @raw['desc'] = val
+        end
+
         def display_name
           raw['display_name']
         end
@@ -589,7 +601,7 @@ module Etna
         COPYABLE_ATTRIBUTE_ATTRIBUTES = [
             :attribute_name, :attribute_type, :desc, :display_name, :format_hint,
             :hidden, :link_model_name, :read_only, :attribute_group, :unique, :validation,
-            :restricted
+            :restricted, :description
         ]
 
         EDITABLE_ATTRIBUTE_ATTRIBUTES = UpdateAttributeAction.members & COPYABLE_ATTRIBUTE_ATTRIBUTES

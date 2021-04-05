@@ -1,7 +1,7 @@
 PATH
   remote: /etna
   specs:
-    etna (0.1.31)
+    etna (0.1.32)
       concurrent-ruby
       concurrent-ruby-ext
       jwt
@@ -101,7 +101,7 @@ PLATFORMS
 
 DEPENDENCIES
   concurrent-ruby
-  database_cleaner
+  database_cleaner (= 1.8.5)
   etna!
   factory_bot
   filigree (= 0.3.3)
