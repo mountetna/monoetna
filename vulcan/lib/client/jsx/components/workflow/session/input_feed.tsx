@@ -17,7 +17,7 @@ import StepUserInputWrapper from "../steps/step_user_input_wrapper";
 export default function InputFeed() {
   // Shows stream of Inputs,
   //   as the session object updates.
-  const {state, dispatch} = useContext(VulcanContext);
+  const {state} = useContext(VulcanContext);
   const {workflow, session, status, data, inputs} = state;
 
   if (!workflow) return null;

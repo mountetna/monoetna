@@ -9,7 +9,7 @@ import {
   createStepStatusFixture,
   createWorkflowFixture,
 } from "../../../../test_utils/fixtures";
-import {setStatus, setWorkflow, setWorkflows} from "../../../../actions/vulcan";
+import {setDownloadedData, setStatus, setWorkflow, setWorkflows} from "../../../../actions/vulcan";
 
 describe('InputFeed', () => {
   it('renders complete UI steps and error steps', () => {
@@ -45,6 +45,7 @@ describe('InputFeed', () => {
           createStepStatusFixture({name: 'zero', status: 'error', error: 'Ooops!'}),
           createStepStatusFixture({name: 'first', status: 'complete', downloads: {output: 'https://download1'}}),
       )),
+      setDownloadedData('https://download1', 'abc'),
     ]);
 
     const component = renderer.create(

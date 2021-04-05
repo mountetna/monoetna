@@ -88,7 +88,7 @@ export function allWorkflowInputSources(workflow: Workflow): string[] {
 }
 
 export function inputValueNonEmpty(val: any) {
-  return val != null && !isNaN(val) && !_.isEqual(val, ['']) && !_.isEqual(val, []);
+  return val != null && (typeof val !== "number" || !isNaN(val)) && !_.isEqual(val, ['']) && !_.isEqual(val, []);
 }
 
 export function allDataNonEmpty(data: ([any] | null)[]) {
@@ -112,7 +112,7 @@ export function allExpectedOutputSources(step: WorkflowStep | GroupedInputStep):
 
 export function dependentStepConsumersOf(startingSource: string, workflow: Workflow, shallow = false) {
   const result: WorkflowStep[] = [];
-  const dependents = workflow.dependencies_of_outputs[startingSource];
+  const dependents = workflow.dependencies_of_outputs[startingSource] || [];
 
   if (dependents != null) {
     result.push(...workflow.steps[0].filter(s => !!uiOutputOfStep(s)).filter(
