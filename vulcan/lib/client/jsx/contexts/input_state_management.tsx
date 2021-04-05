@@ -35,7 +35,6 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
       });
     });
 
-
     droppedSteps.forEach(step => {
       step.out.forEach(outName => {
         const source = sourceNameOfReference([step.name, outName]);

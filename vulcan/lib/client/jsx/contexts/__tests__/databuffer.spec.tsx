@@ -1,7 +1,7 @@
 import {createFakeStorage} from "../../test_utils/mocks";
 import {integrateElement} from "../../test_utils/integration";
 import {act} from "react-test-renderer";
-import {setStatus, setWorkflow} from "../../actions/vulcan";
+import {patchInputs, setStatus, setWorkflow} from "../../actions/vulcan";
 import {createStatusFixture, createStepStatusFixture, findWorkflowFromResponse} from "../../test_utils/fixtures";
 import {workflowsResponse} from "../../test_utils/fixtures/workflows-response";
 import {defaultContext} from "../vulcan_context";
@@ -36,6 +36,7 @@ describe('useDataBuffering', () => {
     const {contextData, updateMatching, dispatch} = integrateElement(() => null,
         {
           providerOverrides: {
+            pollStatus: defaultContext.pollStatus,
             getWorkflows: defaultContext.getWorkflows,
             storage, getData(url: string): Promise<any> {
               return new Promise<any>((resolve, reject) => {
@@ -48,6 +49,14 @@ describe('useDataBuffering', () => {
     let workflow = findWorkflowFromResponse(workflowsResponse, "test_concurrent_workflow.cwl");
 
     await dispatch(setWorkflow(workflow));
+    // Load an initial status of the workflow.
+    await dispatch(setStatus(createStatusFixture(workflow)));
+
+    await dispatch(patchInputs({ a: 1 }));
+    await dispatch(patchInputs({ b: 2 }));
+    await dispatch(patchInputs({ 'pickANum/num': 100 }));
+    await dispatch(patchInputs({ 'otherPickANumber/num': 200 }));
+
     await dispatch(setStatus(createStatusFixture(workflow,
         createStepStatusFixture({name: 'firstAdd', downloads: {'sum': 'https://firstAddSum'}}),
         createStepStatusFixture({

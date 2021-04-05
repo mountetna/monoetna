@@ -58,12 +58,7 @@ export function integrateElement(Element: () => ReactElement | null, {
       </Provider>
   )
 
-  return {node, updateMatching, contextData, reduxState, setInput, replaceOverrides, dispatch, setData};
-
-  // Utility functions
-  function setInput(inputName: string, value: any) {
-    contextData.dispatch(patchInputs({[inputName]: value}));
-  }
+  return {node, updateMatching, contextData, reduxState, replaceOverrides, dispatch, setData};
 
   function setData(sourceName: string, value: any) {
     const workflow = contextData.state.workflow;

@@ -12,6 +12,8 @@ describe('vulcanContext/useApiContextData', () => {
   it('works', async () => {
     const {contextData, reduxState, updateMatching} = integrateElement(() => null);
 
+    const session = {...defaultVulcanSession, workflow_name: 'abc'};
+
     await act(async function () {
       // The loading request fails, and results in an error being set.
       await updateMatching(() => reduxState.messages?.find((m: string) => m.indexOf('Our request was refused') !== -1));
@@ -32,21 +34,21 @@ describe('vulcanContext/useApiContextData', () => {
         }
       })).then(() => stubUrl({
         verb: 'post',
-        url: 'https://vulcan.test/api/session//status',
-        request: defaultVulcanSession,
+        url: 'https://vulcan.test/api/session/abc/status',
+        request: session,
         response: statusWithoutDownloads
       })).then(() => stubUrl({
         verb: 'post',
-        url: 'https://vulcan.test/api/session/',
-        request: defaultVulcanSession,
+        url: 'https://vulcan.test/api/session/abc',
+        request: session,
         response: statusWithDownloads
       })));
 
       await contextData.getWorkflows().then(r => expect(r).toEqual(workflowsResponse));
       await contextData.getData('https://download1').then(r => expect(r).toEqual({a: 1}));
       await contextData.getData('https://download2').then(r => expect(r).toEqual('1-23'));
-      await contextData.pollStatus(defaultVulcanSession).then(r => expect(r).toEqual(statusWithoutDownloads));
-      await contextData.postInputs(defaultVulcanSession).then(r => expect(r).toEqual(statusWithDownloads));
+      await contextData.pollStatus(session).then(r => expect(r).toEqual(statusWithoutDownloads));
+      await contextData.postInputs(session).then(r => expect(r).toEqual(statusWithDownloads));
 
       await expectedRequests;
 

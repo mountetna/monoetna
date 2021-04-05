@@ -1,6 +1,6 @@
 import {integrateElement} from "../../test_utils/integration";
 import {act} from "react-test-renderer";
-import {setStatus, setWorkflow} from "../../actions/vulcan";
+import {patchInputs, setStatus, setWorkflow} from "../../actions/vulcan";
 import {
   createStatusFixture,
   createStepFixture,
@@ -10,7 +10,7 @@ import {defaultContext} from "../vulcan_context";
 
 describe('useInputStateManagement', () => {
   it('works', async () => {
-    const {contextData, setInput, setData} = integrateElement(() => null, {
+    const {contextData, dispatch, setData} = integrateElement(() => null, {
       providerOverrides: {
         getWorkflows: defaultContext.getWorkflows,
         pollStatus: defaultContext.pollStatus,
@@ -59,10 +59,7 @@ describe('useInputStateManagement', () => {
       "query1/result": null,
     });
 
-    await act(async function () {
-      setInput('a', 10);
-      setInput('b', 20);
-    });
+    await dispatch(patchInputs({ a: 10, b: 20 }));
 
     expect(contextData.state.inputs).toEqual({
       "a": 10,
@@ -70,9 +67,7 @@ describe('useInputStateManagement', () => {
       "query1/result": null,
     });
 
-    await act(async function () {
-      setInput('query1/result', 30);
-    });
+    await dispatch(patchInputs({ 'query1/result': 30 }));
 
     expect(contextData.state.inputs).toEqual({
       "a": 10,
@@ -97,9 +92,7 @@ describe('useInputStateManagement', () => {
       "query1/result": 30,
     });
 
-    await act(async function() {
-      setInput('query1/result', null);
-    })
+    await dispatch(patchInputs({ 'query1/result': null }));
 
     // query2 is dropped as a result of a dropping the download of process as a result of dropping query1.
     expect(contextData.state.inputs).toEqual({
