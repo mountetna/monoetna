@@ -226,7 +226,7 @@ module Etna
           if renames && (attribute_renames = renames[model_name]) && (new_name = attribute_renames[attribute_name])
             new_name = target_attribute_of_source(model_name, new_name)
 
-            unless target_model.template.attributes.include?(new_name)
+            unless target_model.template.attributes.attribute_keys.include?(new_name)
               if target_original_attribute
                 rename = RenameAttributeAction.new(model_name: target_model_name, attribute_name: target_attribute_name, new_attribute_name: new_name)
                 queue_update(rename)

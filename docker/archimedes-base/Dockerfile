@@ -35,8 +35,8 @@ RUN apt-get update \
     rm -rf /var/lib/apt/lists/*
 
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py > /opt/get-poetry.py
-RUN python /opt/get-poetry.py --version $POETRY_VERSION
+RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py > /opt/install-poetry.py
+RUN python /opt/install-poetry.py --version $POETRY_VERSION
 
 # Install R from CRAN repo, to get latest
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF'

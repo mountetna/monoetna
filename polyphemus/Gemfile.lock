@@ -1,7 +1,7 @@
 PATH
   remote: /etna
   specs:
-    etna (0.1.31)
+    etna (0.1.32)
       concurrent-ruby
       concurrent-ruby-ext
       jwt
@@ -53,7 +53,7 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
-    database_cleaner (1.8.0)
+    database_cleaner (1.8.5)
     debase (0.2.4.1)
       debase-ruby_core_source (>= 0.10.2)
     debase-ruby_core_source (0.10.12)
@@ -150,7 +150,7 @@ DEPENDENCIES
   actionpack
   aspera-cli
   concurrent-ruby
-  database_cleaner (= 1.8.0)
+  database_cleaner (= 1.8.5)
   debase
   etna!
   mimemagic (~> 0.3.10)
