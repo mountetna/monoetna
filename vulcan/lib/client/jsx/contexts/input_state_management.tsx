@@ -4,7 +4,7 @@ import {patchInputs, removeDownloads, removeInputs, VulcanAction} from "../actio
 import {
   isPendingUiQuery,
   missingUiQueryOutputs,
-  pendingSteps, sourceNameOfReference, statusOfStep, stepInputDataRaw, stepOfSource, uiQueryOfStep
+  pendingSteps, sourceNameOfReference, statusOfStep, stepOfSource
 } from "../selectors/workflow_selectors";
 
 export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<VulcanAction>) {

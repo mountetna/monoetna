@@ -40,7 +40,6 @@ export default function SessionManager() {
     const running = !idle;
 
     const run = useCallback(() => {
-        console.log("hello?")
         requestPoll(true);
     }, [requestPoll])
 
