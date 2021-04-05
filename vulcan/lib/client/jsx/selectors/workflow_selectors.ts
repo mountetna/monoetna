@@ -159,7 +159,7 @@ export function isPendingUiQuery(step: WorkflowStep, status: VulcanState['status
   const bufferedData = stepInputDataRaw(step, status, data, session);
   return uiQueryOfStep(step)
       && statusOfStep(step, status)?.status == 'pending'
-      && step.in.every(({id}) => id in bufferedData)
+      && step.in.every(({id}) => inputValueNonEmpty(bufferedData[id]))
 }
 
 export const stepInputDataRaw = (

@@ -13,7 +13,7 @@ export const defaultContext = {
   state: defaultVulcanState as VulcanState,
   stateRef: {current: defaultVulcanState},
   // This would be set with a context dispatch when the provide is actually installed.
-  dispatch: (a: VulcanAction) => console.log('action dispatched but not handled', a),
+  dispatch: (a: VulcanAction) => console.warn('action dispatched but not handled', a),
   useActionInvoker: (() => () => null) as typeof useActionInvoker,
   ...defaultSessionStorageHelpers,
   ...defaultApiHelpers,
@@ -36,7 +36,6 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
   const stateRef = useRef(props.state || defaultContext.state);
   const [state, dispatch] = useReducer(function (state: VulcanState, action: VulcanAction) {
     const result = VulcanReducer(state, action);
-    console.log('updating state', action.type);
     stateRef.current = result;
     return result;
   }, stateRef.current);

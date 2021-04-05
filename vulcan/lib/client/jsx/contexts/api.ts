@@ -22,13 +22,13 @@ export const defaultApiHelpers = {
         return Promise.resolve({});
     },
     postInputs(session: VulcanSession): Promise<SessionStatusResponse> {
-        return Promise.resolve(defaultSessionStatusResponse);
+        return new Promise((resolve, reject) => null);
     },
     pollStatus(session: VulcanSession): Promise<SessionStatusResponse> {
-        return Promise.resolve(defaultSessionStatusResponse);
+        return new Promise((resolve, reject) => null);
     },
     getWorkflows(): Promise<WorkflowsResponse> {
-        return Promise.resolve(defaultWorkflowsResponse);
+        return new Promise((resolve, reject) => null);
     },
 }
 

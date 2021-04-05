@@ -43,6 +43,12 @@ export function removeInputs(inputs: string[]) {
     return actionObject('REMOVE_INPUTS', {inputs});
 }
 
+// Removes the downloads by the given step names from the status.  Usually this happens from server
+// responses anyways, but it is a responsive UX feature.
+export function removeDownloads(stepNames: string[]) {
+    return actionObject('REMOVE_DOWNLOADS', {stepNames});
+}
+
 export function setCalculating(calculating: boolean) {
     return actionObject('SET_CALCULATING', {calculating});
 }
@@ -50,4 +56,4 @@ export function setCalculating(calculating: boolean) {
 export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow> | ReturnType<typeof setStatus> |
     ReturnType<typeof setDownloadedData> | ReturnType<typeof setSession> | ReturnType<typeof setInputs> |
     ReturnType<typeof releaseDownloadedData> | ReturnType<typeof setCalculating> | ReturnType<typeof removeInputs> |
-    ReturnType<typeof patchInputs>
+    ReturnType<typeof patchInputs> | ReturnType<typeof removeDownloads>;

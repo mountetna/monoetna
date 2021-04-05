@@ -79,6 +79,14 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
         inputs: {...state.inputs, ...action.session.inputs},
       };
 
+    case 'REMOVE_DOWNLOADS':
+      return {
+        ...state,
+        status: [
+            state.status[0].map(status => action.stepNames.includes(status.name) ? {...status, downloads: null} : status),
+        ],
+      };
+
     case "REMOVE_INPUTS":
       const removedInputs = {...state.inputs};
       action.inputs.forEach(source => delete removedInputs[source]);

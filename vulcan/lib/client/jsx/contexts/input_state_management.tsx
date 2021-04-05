@@ -1,11 +1,10 @@
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {Dispatch, useEffect, useMemo} from "react";
-import {patchInputs, removeInputs, VulcanAction} from "../actions/vulcan";
+import {patchInputs, removeDownloads, removeInputs, VulcanAction} from "../actions/vulcan";
 import {
-  findSourceDependencies,
-  inputValueNonEmpty, isPendingUiQuery,
+  isPendingUiQuery,
   missingUiQueryOutputs,
-  pendingSteps, sourceNameOfReference, statusOfStep, stepInputDataRaw, stepOfSource, stepOfStatus, uiQueryOfStep
+  pendingSteps, sourceNameOfReference, statusOfStep, stepInputDataRaw, stepOfSource, uiQueryOfStep
 } from "../selectors/workflow_selectors";
 
 export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<VulcanAction>) {
@@ -13,7 +12,9 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
 
   useEffect(() => {
     if (workflow == null) return;
-    const deletes: {[k: string]: true} = {};
+    const inputDeletes: {[k: string]: true} = {};
+    const downloadDeletes: {[k: string]: true} = {};
+    const stepsWithDownloads: {[k: string]: true} = {};
 
     const droppedSteps = workflow.steps[0].filter(step => {
       const stepStatus = statusOfStep(step, status);
@@ -23,32 +24,38 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
 
       return !step.out.every(outName => {
         const source = sourceNameOfReference([step.name, outName]);
-        if (source in inputs) {
+        if (source in session.inputs) {
           return true;
         }
 
-        if (uiQueryOfStep(step)) return true;
-
-        console.log({step});
         if (!stepStatus.downloads) return false;
+        stepsWithDownloads[step.name] = true;
 
         return outName in stepStatus.downloads;
       });
-    })
+    });
+
 
     droppedSteps.forEach(step => {
       step.out.forEach(outName => {
         const source = sourceNameOfReference([step.name, outName]);
-        if (source in inputs) deletes[source] = true;
+        if (source in session.inputs) inputDeletes[source] = true;
+        if (step.name in stepsWithDownloads) downloadDeletes[step.name] = true;
+
         workflow.dependencies_of_outputs[source].forEach(dependent => {
-          if (dependent in inputs) deletes[dependent] = true;
+          const stepName = stepOfSource(dependent);
+          if (dependent in inputs) inputDeletes[dependent] = true;
+          if (stepName && stepName in stepsWithDownloads) downloadDeletes[stepName] = true;
         });
       })
     })
 
-    const d = Object.keys(deletes);
+    let d = Object.keys(inputDeletes);
     if (d.length > 0) dispatch(removeInputs(d));
-  }, [inputs, workflow, status, data, session]);
+
+    d = Object.keys(downloadDeletes);
+    if (d.length > 0) dispatch(removeDownloads(d));
+  }, [inputs, workflow, status, data, session.inputs]);
 
   // We inject a `null` input into the session,
   //   to indicate that we're waiting for a user input value

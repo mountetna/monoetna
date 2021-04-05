@@ -88,6 +88,29 @@ describe('useInputStateManagement', () => {
       "a": 10,
       "b": 20,
       "query1/result": 30,
+      "query2/result": null,
+    });
+
+    expect(contextData.state.session.inputs).toEqual({
+      "a": 10,
+      "b": 20,
+      "query1/result": 30,
+    });
+
+    await act(async function() {
+      setInput('query1/result', null);
+    })
+
+    // query2 is dropped as a result of a dropping the download of process as a result of dropping query1.
+    expect(contextData.state.inputs).toEqual({
+      "a": 10,
+      "b": 20,
+      "query1/result": null,
+    });
+
+    expect(contextData.state.session.inputs).toEqual({
+      "a": 10,
+      "b": 20,
     });
   })
 })
