@@ -1,4 +1,4 @@
-_poetry_b14d5985fca2bc2d_complete()
+_poetry_b892c35f425489c6_complete()
 {
     local cur script coms opts com
     COMPREPLY=()
@@ -136,5 +136,5 @@ _poetry_b14d5985fca2bc2d_complete()
     fi
 }
 
-complete -o default -F _poetry_b14d5985fca2bc2d_complete poetry
-complete -o default -F _poetry_b14d5985fca2bc2d_complete /opt/poetry/bin/poetry
+complete -o default -F _poetry_b892c35f425489c6_complete poetry
+complete -o default -F _poetry_b892c35f425489c6_complete /opt/poetry/venv/bin/poetry
