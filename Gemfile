@@ -19,6 +19,6 @@ group :development, :test do
   gem "pry-byebug"
   gem "webmock"
   gem "debase"
-  gem "database_cleaner", "1.8.0"
+  gem "database_cleaner", "1.8.5"
   gem "vcr"
 end
