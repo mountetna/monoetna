@@ -7,11 +7,12 @@ import {
   pendingSteps, sourceNameOfReference, statusOfStep, stepOfSource
 } from "../selectors/workflow_selectors";
 
-export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<VulcanAction>) {
+export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<VulcanAction>, statusIsFresh: boolean) {
   const {inputs, workflow, status, data, session} = state;
 
   useEffect(() => {
     if (workflow == null) return;
+    if (!statusIsFresh) return;
     const inputDeletes: {[k: string]: true} = {};
     const downloadDeletes: {[k: string]: true} = {};
     const stepsWithDownloads: {[k: string]: true} = {};
@@ -54,7 +55,7 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
 
     d = Object.keys(downloadDeletes);
     if (d.length > 0) dispatch(removeDownloads(d));
-  }, [inputs, workflow, status, data, session.inputs]);
+  }, [inputs, workflow, status, data, session.inputs, statusIsFresh]);
 
   // We inject a `null` input into the session,
   //   to indicate that we're waiting for a user input value

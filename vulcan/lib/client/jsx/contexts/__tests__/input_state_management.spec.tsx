@@ -10,11 +10,14 @@ import {defaultContext} from "../vulcan_context";
 
 describe('useInputStateManagement', () => {
   it('works', async () => {
-    const {contextData, dispatch, setData} = integrateElement(() => null, {
-      providerOverrides: {
-        getWorkflows: defaultContext.getWorkflows,
-        pollStatus: defaultContext.pollStatus,
-      }
+    const overrides = {
+      getWorkflows: defaultContext.getWorkflows,
+      pollStatus: defaultContext.pollStatus,
+      statusIsFresh: true,
+    };
+
+    const {contextData, dispatch, setData, replaceOverrides} = integrateElement(() => null, {
+      providerOverrides: overrides
     });
 
     const workflow = createWorkflowFixture({
@@ -104,6 +107,16 @@ describe('useInputStateManagement', () => {
     expect(contextData.state.session.inputs).toEqual({
       "a": 10,
       "b": 20,
+    });
+
+    // Allow invalid states while status is till being fetched.
+    replaceOverrides({...overrides, statusIsFresh: false});
+
+    await dispatch(patchInputs({ 'query2/result': 33 }));
+    expect(contextData.state.session.inputs).toEqual({
+      "a": 10,
+      "b": 20,
+      "query2/result": 33,
     });
   })
 })

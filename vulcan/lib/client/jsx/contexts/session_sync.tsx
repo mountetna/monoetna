@@ -3,10 +3,11 @@ import {Dispatch, MutableRefObject, useCallback, useEffect, useRef, useState} fr
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {setSession, setStatus, VulcanAction} from "../actions/vulcan";
 import * as _ from 'lodash';
-import {SessionStatusResponse} from "../api_types";
+import {SessionStatusResponse, VulcanSession} from "../api_types";
 import {Cancellable} from "etna-js/utils/cancellable";
 
 export const defaultSessionSyncHelpers = {
+  statusIsFresh: true,
   requestPoll(post?: boolean) {
   },
 };
@@ -28,6 +29,7 @@ export function useSessionSync(
     dispatch: Dispatch<VulcanAction>,
 ): typeof defaultSessionSyncHelpers {
   const [lastPollingRequest, setPollingRequest] = useState([false, state.current.session.inputs] as [boolean, {[k: string]: any}]);
+  const [lastCompletedPollingRequest, setCompletedRequest] = useState(null as null | VulcanSession['inputs']);
 
   // Note -- this will 'cancel' processing the result of previous requests when a new polling request is made, but
   // it does not actually cancel the underlying request.  Posts will thus complete just fine, although the result may
@@ -38,10 +40,12 @@ export function useSessionSync(
 
     if (!state.current.session.workflow_name) return;
 
-    const baseWork = doPost ? postInputs(state.current.session) : pollStatus(state.current.session);
+    const sessionOfWork = state.current.session;
+    const baseWork = doPost ? postInputs(sessionOfWork) : pollStatus(sessionOfWork);
     cancellable.race(baseWork).then(({result, cancelled}) => {
       if (cancelled || !result) return;
       updateFromSessionResponse(result, state, dispatch);
+      setCompletedRequest(sessionOfWork.inputs);
     })
 
     return () => cancellable.cancel();
@@ -50,7 +54,7 @@ export function useSessionSync(
   const requestPoll = useCallback((post = false) => {
     const [lastWasPost, lastInputs] = lastPollingRequest;
 
-    if (lastInputs === state.current.session.inputs && lastWasPost) {
+    if (lastInputs === state.current.session.inputs && (!post || post === lastWasPost)) {
       return;
     }
 
@@ -62,7 +66,10 @@ export function useSessionSync(
     return () => clearInterval(timerId);
   }, [])
 
+  const statusIsFresh = lastCompletedPollingRequest === state.current.session.inputs;
+
   return {
+    statusIsFresh,
     requestPoll,
   };
 }

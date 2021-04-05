@@ -45,7 +45,7 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
   const sessionSyncHelpers = withOverrides(useSessionSync(stateRef, scheduleWork, pollStatus, postInputs, dispatch), props);
   const dataBufferingHelpers = useDataBuffering(state, dispatch, scheduleWork, getData);
   useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, scheduleWork);
-  useInputStateManagement(state, dispatch);
+  useInputStateManagement(state, dispatch, sessionSyncHelpers.statusIsFresh);
 
 
   return (
