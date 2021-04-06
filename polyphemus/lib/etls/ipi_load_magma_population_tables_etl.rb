@@ -53,8 +53,12 @@ class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordEtl
       elsif !cursor_record
         record_name
       else
-        cursor_record_updated_at = Time.at(cursor_record[1])
-        record_name if Time.parse(record_file_updated_at) >= cursor_record_updated_at
+        # Note that in Magma, the patient record is updated
+        #   slightly after the file is updated on Metis,
+        #   so we're conservative and compare against
+        #   the min of the cursor's updated_at or the seen_id record.
+        last_updated_at = [Time.at(cursor_record[1]), cursor.updated_at].min
+        record_name if Time.parse(record_file_updated_at) >= last_updated_at
       end
     end.compact
   end
