@@ -21,4 +21,5 @@ group :development, :test do
   gem "debase"
   gem "database_cleaner", "1.8.5"
   gem "vcr"
+  gem "timecop"
 end

@@ -17,10 +17,17 @@ class IpiFlowWspLinker < Etna::Clients::Magma::FileLinkingWorkflow
         extension: 'wsp'
       ).each do |wsp_file|
         file_path = wsp_file.file_path
-        key = [{
-          ipi_number: @helper.patient_name_from_wsp(file_path),
-          flojo_file: file_path
-        }, :flojo_file]
+        if file_path.include?("_PROCESSED")
+          key = [{
+            ipi_number: @helper.patient_name_from_wsp(file_path),
+            flojo_file_processed: file_path
+          }, :flojo_file_processed]
+        else
+          key = [{
+            ipi_number: @helper.patient_name_from_wsp(file_path),
+            flojo_file_raw: file_path
+          }, :flojo_file_raw]
+        end
         all_matches[key] = [file_path]
       end
     end

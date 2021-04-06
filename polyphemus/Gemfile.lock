@@ -128,6 +128,7 @@ GEM
     simplecov_json_formatter (0.1.2)
     terminal-table (1.8.0)
       unicode-display_width (~> 1.1, >= 1.1.1)
+    timecop (0.9.4)
     tty-cursor (0.7.1)
     tty-spinner (0.9.3)
       tty-cursor (~> 0.7)
@@ -164,6 +165,7 @@ DEPENDENCIES
   rspec
   sequel
   simplecov
+  timecop
   vcr
   webmock
 
