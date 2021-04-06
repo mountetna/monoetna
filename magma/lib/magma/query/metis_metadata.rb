@@ -17,10 +17,6 @@ class MetisMetadata
     def to_json(options = {})
       @set[@file_path].to_json
     end
-
-    def [](key)
-      @set[@file_path] ? @set[@file_path][key] : nil
-    end
   end
 
   def <<(file_path)
@@ -51,7 +47,5 @@ class MetisMetadata
         [file[:file_name], file]
       end.to_h
     end
-
-    @requested_files[file_path]
   end
 end
