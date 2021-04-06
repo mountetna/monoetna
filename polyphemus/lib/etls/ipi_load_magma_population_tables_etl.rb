@@ -55,12 +55,18 @@ class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordEtl
       else
         # Note that in Magma, the patient record is updated
         #   slightly after the file is updated on Metis,
-        #   so we're conservative and compare against
-        #   the min of the cursor's updated_at or the seen_id record.
-        # This lets updated files be identified both for the initial
-        #   run of this ETL as well as subsequent runs.
-        last_updated_at = [Time.at(cursor_record[1]), cursor.updated_at].min
-        record_name if Time.parse(record_file_updated_at) >= last_updated_at
+        #   so as a stupid hack, we subtract 5 seconds from the record
+        #   updated_at and use that as a comparison for if the
+        #   file attribute has been updated....not sure there is
+        #   any other time available that makes sense to use.
+        # The cursor's updated_at is always the "last" record's
+        #   updated_at that it has processed, which is
+        #   always ahead of every other record's updated_at in
+        #   the current batch, and consequently the
+        #   records' files' updated_at values...
+        fuzzy_record_updated_at = Time.at(cursor_record[1]) - 5
+
+        record_name if Time.parse(record_file_updated_at) >= fuzzy_record_updated_at
       end
     end.compact
   end
