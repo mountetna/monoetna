@@ -23,11 +23,17 @@ class Polyphemus
       @magma_client = magma_client
       @update_request = Etna::Clients::Magma::UpdateRequest.new(project_name: project_name)
 
-      run_script(self.__binding__)
+      # In production, seems like we can't pass
+      #   self.__binding__ here -- throws an UndefinedMethod exception.
+      run_script(self.get_binding)
 
       if commit
         magma_client.update_json(update_request)
       end
+    end
+
+    def get_binding
+      binding
     end
   end
 

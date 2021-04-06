@@ -14,6 +14,7 @@ require 'yaml'
 require 'etna/spec/vcr'
 
 require 'fileutils'
+require 'timecop'
 
 require_relative '../lib/server'
 require_relative '../lib/polyphemus'
