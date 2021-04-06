@@ -4,8 +4,9 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 import Icon from 'etna-js/components/icon';
 import AnimatedClock from './animated_clock';
 import {WorkflowStep} from "../../../api_types";
-import {statusOfStep} from "../../../selectors/workflow_selectors";
+import {statusOfStep, statusStringOfStepOrGroupedStep} from "../../../selectors/workflow_selectors";
 import {STATUS} from "../../../api_types";
+import {GroupedInputStep} from "../user_interactions/inputs/input_types";
 
 const icons: {[k: string]: {icon: string, className: string}} = {
   [STATUS.COMPLETE]: { icon: 'check', className: 'light green' },
@@ -14,16 +15,17 @@ const icons: {[k: string]: {icon: string, className: string}} = {
   [STATUS.ERROR]: {icon: 'times-circle', className: 'light red'},
 };
 
-export default function StepName({step}: {step: WorkflowStep}) {
-  let {state, isLoading} = useContext(VulcanContext);
-  const stepStatus = statusOfStep(step, state.status);
-  const statusStr = stepStatus ? stepStatus.status : STATUS.PENDING;
+export default function StepName({step}: {step: WorkflowStep | GroupedInputStep}) {
+  let {state, statusIsFresh} = useContext(VulcanContext);
+  const {workflow, status} = state;
+  if (!workflow) return null;
+  const statusStr = statusStringOfStepOrGroupedStep(step, workflow, status);
   let icon = icons[statusStr] || icons[STATUS.PENDING];
 
   let className = `step-status-icon ${icon.className}`;
   let IconComponent = <Icon title={ step.label || step.name } className={className} icon={icon.icon}/>;
 
-  if (STATUS.RUNNING === statusStr && isLoading) {
+  if (STATUS.RUNNING === statusStr && !statusIsFresh) {
     IconComponent = <AnimatedClock />;
   }
 

@@ -13,6 +13,7 @@ import {patchInputs, setInputs} from "../../../actions/vulcan";
 import {UIStep} from "../user_interactions/inputs/input_types";
 import StepUserInputDrawer from "./step_user_input_drawer";
 import StepUserInput from "./step_user_input";
+import {STATUS} from "../../../api_types";
 
 export default function StepUserInputWrapper({step}: { step: UIStep['step'] }) {
   const [open, setOpen] = useState(true);
@@ -33,9 +34,10 @@ export default function StepUserInputWrapper({step}: { step: UIStep['step'] }) {
   const allInnerStepNames: string[] = useMemo(() => allInnerSources.map(stepOfSource).filter(v => v != null),
       [allInnerSources]) as string[];
   const allInnerStatus = useMemo(() => allInnerStepNames.map(stepName => statusOfStep(stepName, status)), [allInnerStepNames, status])
-  const allStepsComplete = useMemo(() => allInnerStatus.every(s => s && s.status === "complete"), [allInnerStatus]);
-  const allDataIsNonEmpty = useMemo(() => allDataNonEmpty(allInnerSources.map(source =>
-      dataOfSource(source, workflow, status, data, session))), [allInnerSources, workflow, status, data, session]);
+  const allStepsComplete = useMemo(() => allInnerStatus.every(s => s && s.status === STATUS.COMPLETE), [allInnerStatus]);
+  const allDatas = useMemo(() => allInnerSources.map(source =>
+      dataOfSource(source, workflow, status, data, session)), [allInnerSources, workflow, status, data, session]);
+  const allDataIsNonEmpty = useMemo(() => allDataNonEmpty(allDatas), [allDatas]);
 
   useEffect(() => {
     if (!allDataIsNonEmpty) {

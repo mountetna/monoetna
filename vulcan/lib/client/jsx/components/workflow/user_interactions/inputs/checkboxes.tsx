@@ -1,5 +1,6 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InputBackendComponent} from "./input_types";
+import {getAllOptions} from "./multiselect_string";
 
 function CheckboxInput({onChange, option}: {onChange: (v: any) => void, option: any}) {
   return (
@@ -22,10 +23,7 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
   const [initialized, setInitialized] = useState(false);
   if (!input || !onChange) return null;
 
-  const options: any[] = Object.values(input.data || {}).reduce((acc, n) => {
-    if (Array.isArray(n)) return acc.concat(n);
-    return acc.concat([n]);
-  }, [input.data]);
+  const options = useMemo(() => getAllOptions(input.data).sort(), [input.data]);
 
   useEffect(() => {
 

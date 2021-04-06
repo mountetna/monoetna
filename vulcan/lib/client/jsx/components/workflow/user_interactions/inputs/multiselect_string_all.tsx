@@ -5,17 +5,13 @@ import {InputBackendComponent} from "./input_types";
 
 const MultiselectStringAllInput: InputBackendComponent = ({input, onChange}) => {
   const options = useMemo(() => getAllOptions(input.data), [input.data]);
-  const [defaults, setDefaults] = useState(input.default);
-  const patchedInput = useMemo(() => ({ ...input, default: defaults }), [input, defaults]);
 
   const handleAllInputs = useCallback(() => {
-    setDefaults(options);
     onChange(input.name, options);
   }, [input.name, options]);
 
 
   const handleClearInputs = useCallback(() => {
-    setDefaults([]);
     onChange(input.name, null);
   }, [input.name]);
 
@@ -25,7 +21,7 @@ const MultiselectStringAllInput: InputBackendComponent = ({input, onChange}) => 
         onAll={handleAllInputs}
         onClear={handleClearInputs}
         onChange={onChange}
-        input={patchedInput} />
+        input={input} />
     </div>
   );
 }

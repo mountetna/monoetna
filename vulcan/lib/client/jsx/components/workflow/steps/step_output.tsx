@@ -27,7 +27,6 @@ export default function StepOutput({step}: {step: WorkflowStep}) {
 
   if (!stepStatus || !uiOutput) return null;
   const stepType = uiOutput in OUTPUTS ? uiOutput : 'default';
-  // console.log({stepType});
 
   let data;
   if (['default', OUTPUT_COMPONENT.LINK].includes(stepType)) {

@@ -9,7 +9,6 @@ export function getAllOptions(data: InputSpecification['data']): string[] {
     if (Array.isArray(n)) acc.push(...n);
     else if (typeof n === "string") acc.push(n);
     else acc.push(n + "");
-    console.log({acc})
 
     return acc;
   }, []);
@@ -22,7 +21,6 @@ const MultiselectStringInput: InputBackendComponent = ({input, onChange, onClear
   });
 
   const options = useMemo(() => getAllOptions(input.data).sort(collator.compare), [input.data]);
-  console.log({input})
 
   return (
     <ListInput

@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import {
   OUTPUT_COMPONENT,
   RUN,
-  SessionStatusResponse, StepInput,
+  SessionStatusResponse, STATUS, StepInput,
   StepStatus,
   Workflow,
   WorkflowStep,
@@ -25,6 +25,28 @@ export function stepOfStatus(stepStatus: StepStatus | string, workflow: Workflow
 export function statusOfStep(step: WorkflowStep | string, status: VulcanState['status']): StepStatus | undefined {
   const stepName = (typeof step === 'string' ? step : step.name);
   return status[0].find(s => s.name === stepName);
+}
+
+export function statusStringOfStepOrGroupedStep(step: WorkflowStep | GroupedInputStep, workflow: Workflow, status: VulcanState['status']) {
+  if ('isGroup' in step) {
+    let statusStr = null as string | null;
+    for (let input of step.in) {
+      let stepName = stepOfSource(input.source);
+      if (!stepName) continue;
+      let stepStatus = statusOfStep(stepName, status);
+
+      if (!stepStatus) {
+        return STATUS.PENDING;
+      }
+
+      if (statusStr == null) statusStr = stepStatus.status;
+      else if (statusStr !== stepStatus.status) return STATUS.PENDING;
+    }
+
+    return statusStr || STATUS.COMPLETE;
+  }
+
+  return statusOfStep(step, status)?.status || STATUS.PENDING;
 }
 
 const SOURCE_STR_REGEX = /^([^\/]+)\/[^\/]+$/;
@@ -99,7 +121,16 @@ export function dataOfSource(source: string, workflow: Workflow | null, status: 
   if (!workflow) return null;
   const [originalStepName, outputName] = splitSource(source);
   const originalStep = originalStepName ? stepOfStatus(originalStepName, workflow) : null;
-  return originalStep ? [stepInputDataRaw(originalStep, status, data, session)[outputName]] : null;
+  if (!originalStep) return null;
+
+  if (source in session.inputs) return [session.inputs[source]];
+  const stepStatus = statusOfStep(originalStep, status);
+  if (!stepStatus) return null;
+  const {downloads} = stepStatus;
+  if (!downloads) return null;
+  const url = downloads[outputName];
+  if (url in data) return data[url];
+  return null;
 }
 
 export function allExpectedOutputSources(step: WorkflowStep | GroupedInputStep): string[] {
@@ -249,7 +280,8 @@ export const inputGroupName = (name: string) => {
 };
 
 export function groupUiSteps(uiSteps: UIStep[]): UIStep[] {
-  const result: { [k: string]: UIStep } = {};
+  const map: { [k: string]: UIStep } = {};
+  const result: UIStep[] = [];
 
   uiSteps.forEach(uiStep => {
     if ('isGroup' in uiStep) {
@@ -259,20 +291,21 @@ export function groupUiSteps(uiSteps: UIStep[]): UIStep[] {
     const groupName = inputGroupName(uiStep.step.name);
 
     if (groupName === 'Inputs') {
-      result[uiStep.step.name] = uiStep;
+      result.push(map[uiStep.step.name] = uiStep);
       return;
     }
 
-    const group = result[groupName] = result[groupName] || {
+    const group = map[groupName] || result.push(map[groupName] = {
       step: {
         name: groupName,
         isGroup: true,
         label: groupName,
         run: "", // group steps have no real run
         in: [],
+        out: [],
       },
       index: uiStep.index,
-    }
+    }) && map[groupName];
 
     group.step.in = group.step.in.concat(uiStep.step.out.map(name => ({
       id: sourceNameOfReference([uiStep.step.name, name]),
@@ -282,7 +315,7 @@ export function groupUiSteps(uiSteps: UIStep[]): UIStep[] {
     })));
   });
 
-  return Object.values(result);
+  return result;
 }
 
 export function filterEmptyValues(values: { [k: string]: any }): { [k: string]: any } {
