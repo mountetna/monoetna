@@ -28,7 +28,7 @@ export function useSessionSync(
     postInputs: typeof defaultApiHelpers.postInputs,
     dispatch: Dispatch<VulcanAction>,
 ): typeof defaultSessionSyncHelpers {
-  const [lastPollingRequest, setPollingRequest] = useState([false, state.current.session.inputs] as [boolean, {[k: string]: any}]);
+  const [lastPollingRequest, setPollingRequest] = useState([false] as [boolean]);
   const [lastCompletedPollingRequest, setCompletedRequest] = useState(null as null | VulcanSession['inputs']);
 
   // Note -- this will 'cancel' processing the result of previous requests when a new polling request is made, but
@@ -45,26 +45,24 @@ export function useSessionSync(
     cancellable.race(baseWork).then(({result, cancelled}) => {
       if (cancelled || !result) return;
       updateFromSessionResponse(result, state, dispatch);
-      setCompletedRequest(sessionOfWork.inputs);
+      setCompletedRequest(result.session.inputs);
     })
 
     return () => cancellable.cancel();
   }, [lastPollingRequest]);
 
   const requestPoll = useCallback((post = false) => {
-    const [lastWasPost, lastInputs] = lastPollingRequest;
-
-    if (lastInputs === state.current.session.inputs && (!post || post === lastWasPost)) {
+    if (!post && state.current.status[0].every(s => s.status !== "running") && lastCompletedPollingRequest === state.current.session.inputs) {
       return;
     }
 
-    setPollingRequest([post, state.current.session.inputs]);
-  }, []);
+    setPollingRequest([post]);
+  }, [lastCompletedPollingRequest]);
 
   useEffect(() => {
     const timerId = setInterval(() => requestPoll(), 1000);
     return () => clearInterval(timerId);
-  }, [])
+  }, [requestPoll])
 
   const statusIsFresh = lastCompletedPollingRequest === state.current.session.inputs;
 

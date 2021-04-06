@@ -28,7 +28,6 @@ export const defaultVulcanState = {
   inputs: defaultInputs,
   session: defaultSession,
   outputs: defaultSessionStatusResponse.outputs,
-  calculating: false,
 };
 
 export type VulcanState = Readonly<(typeof defaultVulcanState)>;
@@ -113,12 +112,6 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
         inputs: updatedInputs,
         session: {...state.session, inputs: filterEmptyValues(updatedInputs)},
       }
-
-    case 'SET_CALCULATING':
-      return {
-        ...state,
-        calculating: action.calculating,
-      };
 
     default:
       return state;

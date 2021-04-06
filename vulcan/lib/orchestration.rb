@@ -53,6 +53,13 @@ class Vulcan
       session.material_references.each do |reference|
         load_json_payload!(storage, reference)
       end
+
+      # Ensure that the primary inputs, at least, have been loaded so that the status endpoint can report
+      # meaningful steps running.
+      pi = build_target_for(:primary_inputs)
+      unless pi.is_built?(storage)
+        run!(storage: storage, build_target: pi, token: nil)
+      end
     end
 
     # Note: do not validate json payloads here -- do so either at the entry point or simply allow cells to fail with
@@ -260,8 +267,7 @@ class Vulcan
 
       unique_paths.map do |path|
         path.map do |step_name|
-          step = workflow.find_step(step_name)
-          build_target_for(step&.id || step_name, build_target_cache)
+          build_target_for(step_name, build_target_cache)
         end
       end
     end

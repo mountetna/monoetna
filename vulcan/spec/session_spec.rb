@@ -101,6 +101,7 @@ describe SessionsController do
       expect(last_response.status).to eql(200)
       response = last_json_response
 
+      expect(response['status'][0][0]['status']).to eql('running')
       expect(response['session']['inputs']).to eql(inputs)
       orchestration.scheduler.join_all
 

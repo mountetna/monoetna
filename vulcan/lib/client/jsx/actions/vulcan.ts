@@ -49,11 +49,7 @@ export function removeDownloads(stepNames: string[]) {
     return actionObject('REMOVE_DOWNLOADS', {stepNames});
 }
 
-export function setCalculating(calculating: boolean) {
-    return actionObject('SET_CALCULATING', {calculating});
-}
-
 export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow> | ReturnType<typeof setStatus> |
     ReturnType<typeof setDownloadedData> | ReturnType<typeof setSession> | ReturnType<typeof setInputs> |
-    ReturnType<typeof releaseDownloadedData> | ReturnType<typeof setCalculating> | ReturnType<typeof removeInputs> |
+    ReturnType<typeof releaseDownloadedData> | ReturnType<typeof removeInputs> |
     ReturnType<typeof patchInputs> | ReturnType<typeof removeDownloads>;
