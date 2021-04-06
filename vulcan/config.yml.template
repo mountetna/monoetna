@@ -41,6 +41,7 @@ default: &default
   :db:
     <<: *default
     :database: vulcan_development
+  :advisory_lock_file: /app/storage.lock
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -59,3 +60,4 @@ default: &default
   :log_file: /dev/stdout
   :log_level: info
   :archimedes_exec_volume: archimedes-exec
+  :advisory_lock_file: /app/spec/storage.lock

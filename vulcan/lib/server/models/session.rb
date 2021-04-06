@@ -25,7 +25,7 @@ class Session < Etna::Cwl
   FIELD_LOADERS = {
       project_name: Etna::Cwl::PrimitiveLoader::STRING,
       workflow_name: Etna::Cwl::PrimitiveLoader::STRING,
-      key: Etna::Cwl::PrimitiveLoader::STRING.optional.map { |v| v || SecureRandom.uuid.hex.to_s },
+      key: Etna::Cwl::PrimitiveLoader::STRING.optional.map { |v| v.nil? || v.empty? ? SecureRandom.uuid.hex.to_s : v },
       inputs: Etna::Cwl::StrictMapLoader.new(Etna::Cwl::AnyLoader::ANY.map { |v| {json_payload: v}}, Etna::Cwl::SourceLoader.new).optional.map { |v| v || {} },
   }
 

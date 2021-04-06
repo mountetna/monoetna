@@ -10,7 +10,9 @@ global.ROUTES = {
   workflow_vignette: (workflow_name) => `/workflow/${workflow_name}/vignette`,
   fetch_workflows: () => `/api/workflows`,
   submit: (project_name, workflow_name) =>
-    `/api/${project_name}/session/${workflow_name}`
+    `/api/${project_name}/session/${workflow_name}`,
+  status: (project_name, workflow_name) =>
+    `/api/${project_name}/session/${workflow_name}/status`,
 };
 
 // Used by plotly.js

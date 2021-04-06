@@ -2,13 +2,12 @@ import * as React from 'react';
 import {connect} from 'react-redux';
 import {findRoute, setRoutes} from './router';
 
-import {VulcanProvider} from './contexts/vulcan';
+import {VulcanProvider} from './contexts/vulcan_context';
 
 // Components.
 import Browser from './components/browser';
 import Dashboard from './components/dashboard';
 import VulcanNav from './components/vulcan_nav';
-import ContextManager from './components/context_manager';
 import Vignette from './components/workflow/vignette';
 import Messages from 'etna-js/components/messages';
 import {selectUser} from 'etna-js/selectors/user-selector';
@@ -67,7 +66,12 @@ class VulcanUI extends React.Component {
     let Component;
     let mode;
 
-    if (!route) {
+    console.log(location, ROUTES);
+
+    if (this.props.Component) {
+      mode = 'home';
+      Component = this.props.Component;
+    } else if (!route) {
       showMessages(['### You have lost your way: Path Invalid.']);
       mode = 'home';
       Component = Empty;
@@ -85,20 +89,26 @@ class VulcanUI extends React.Component {
     return (
       <React.Fragment>
         <ModalDialogContainer>
-          <VulcanProvider>
+          <VulcanProvider params={params}>
             <div id='ui-container'>
-              <ContextManager params={params}>
+              <RemountOnParamsChange params={params}>
                 <Notifications />
                 <VulcanNav environment={environment} mode={mode} />
                 <Messages />
                 <Component key={key} {...params} />
-              </ContextManager>
+              </RemountOnParamsChange>
             </div>
           </VulcanProvider>
         </ModalDialogContainer>
       </React.Fragment>
     );
   }
+}
+
+// Used To simulate remount whenever router params changes
+// TODO: Can this be removed post refactoring?
+function RemountOnParamsChange({params, children}) {
+  return children;
 }
 
 export default connect(

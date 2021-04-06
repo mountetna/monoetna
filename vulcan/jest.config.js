@@ -14,12 +14,13 @@ module.exports = {
     '^.*[.](css|CSS)$': 'identity-obj-proxy',
     '^react$': '<rootDir>/node_modules/react',
     '^react-redux$': '<rootDir>/node_modules/react-redux',
+    '^etna-js$': '<rootDir>/node_modules/etna-js',
     '^react-dom$': '<rootDir>/node_modules/react-dom',
     '^enzyme$': '<rootDir>/node_modules/enzyme',
     '^enzyme-adapter-react-16$':
       '<rootDir>/node_modules/enzyme-adapter-react-16'
   },
-  testMatch: ['**/__tests__/**/?(*.)(spec|test).js?(x)'],
+  testMatch: ['**/__tests__/**/?(*.)(spec|test).(j|t)s?(x)'],
   collectCoverageFrom: ['**/*.js?(x)'],
   setupFilesAfterEnv: ['./lib/client/jsx/spec/setup.js'],
   setupFiles: ['raf/polyfill']

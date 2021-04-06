@@ -1,0 +1,3 @@
+import {SessionStatusResponse} from "../../api_types";
+
+export const statusWithoutDownloads: SessionStatusResponse = {"session":{"project_name":"labors","workflow_name":"test_workflow.cwl","key":"1376427044","inputs":{}},"status":[[{"status":"pending","name":"firstAdd","downloads":null},{"status":"pending","name":"pickANum","downloads":null},{"status":"pending","name":"finalStep","downloads":null},{"status":"pending","name":"aPlot","downloads":null}]],"outputs":{"status":"pending","downloads":null}};

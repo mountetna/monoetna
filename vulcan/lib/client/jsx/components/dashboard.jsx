@@ -1,18 +1,19 @@
-import React, {useEffect, useContext} from 'react';
+import React, {useContext} from 'react';
 import 'regenerator-runtime/runtime';
 
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 import {pushLocation} from 'etna-js/actions/location_actions';
 
-import {VulcanContext} from '../contexts/vulcan';
+import {VulcanContext} from '../contexts/vulcan_context';
 import Card from '../components/dashboard/card';
-import {workflowName} from '../utils/workflow';
+import {workflowName} from "../selectors/workflow_selectors";
 
 export default function Dashboard() {
   const invoke = useActionInvoker();
-  let {workflows} = useContext(VulcanContext);
+  let {state} = useContext(VulcanContext);
+  const {workflows} = state;
 
-  if (!workflows.workflows || workflows.workflows.length === 0) return null;
+  if (!workflows || workflows.length === 0) return null;
 
   function handleOnClick(workflow) {
     invoke(pushLocation(`/workflow/${workflowName(workflow)}`));
@@ -20,7 +21,7 @@ export default function Dashboard() {
 
   return (
     <main className='vulcan-dashboard'>
-      {workflows.workflows.map((w, ind) => {
+      {workflows.map((w, ind) => {
         return (
           <Card
             workflow={w}
@@ -28,7 +29,7 @@ export default function Dashboard() {
             onClick={() => {
               handleOnClick(w);
             }}
-          ></Card>
+          />
         );
       })}
     </main>
