@@ -57,6 +57,8 @@ class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordEtl
         #   slightly after the file is updated on Metis,
         #   so we're conservative and compare against
         #   the min of the cursor's updated_at or the seen_id record.
+        # This lets updated files be identified both for the initial
+        #   run of this ETL as well as subsequent runs.
         last_updated_at = [Time.at(cursor_record[1]), cursor.updated_at].min
         record_name if Time.parse(record_file_updated_at) >= last_updated_at
       end
