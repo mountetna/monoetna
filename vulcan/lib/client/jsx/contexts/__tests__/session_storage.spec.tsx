@@ -30,6 +30,7 @@ describe('useSessionStorage', () => {
     await dispatch(setSession({
       ...statusWithDownloads['session'],
       key: 'anewkey',
+      project_name: 'a project',
       workflow_name: 'some name',
     }));
     expect(contextData.state.session.key).toEqual('anewkey');
@@ -39,7 +40,7 @@ describe('useSessionStorage', () => {
 
     expect(await contextData.getLocalSession(contextData.state.workflow as any)).toEqual(contextData.state.session);
 
-    await dispatch(setWorkflow({...defaultWorkflow, name: 'new name'}));
+    await dispatch(setWorkflow({...defaultWorkflow, name: 'new name', projects: ['test'] }));
     await dispatch(setSession({
       ...statusWithDownloads['session'],
       workflow_name: 'new name',

@@ -46,7 +46,7 @@ describe('useDataBuffering', () => {
           }
         });
 
-    let workflow = findWorkflowFromResponse(workflowsResponse, "test_concurrent_workflow.cwl");
+    let workflow = { ...findWorkflowFromResponse(workflowsResponse, "test_concurrent_workflow.cwl"), projects: ['test'] };
 
     await dispatch(setWorkflow(workflow));
     // Load an initial status of the workflow.
@@ -110,7 +110,7 @@ describe('useDataBuffering', () => {
     expect(q.length).toEqual(0);
 
     // Clears data when it is not needed
-    await dispatch(setWorkflow(defaultWorkflow));
+    await dispatch(setWorkflow({ ...defaultWorkflow, projects: ['test'] }));
     expect(contextData.urlsToBuffer).toEqual({});
     expect(contextData.state.data).toEqual({});
     expect(contextData.activeDownload).toEqual(null);

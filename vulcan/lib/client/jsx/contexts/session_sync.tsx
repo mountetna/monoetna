@@ -2,7 +2,6 @@ import {defaultApiHelpers} from "./api";
 import {Dispatch, MutableRefObject, useCallback, useEffect, useRef, useState} from "react";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {setSession, setStatus, VulcanAction} from "../actions/vulcan";
-import * as _ from 'lodash';
 import {SessionStatusResponse, VulcanSession} from "../api_types";
 import {Cancellable} from "etna-js/utils/cancellable";
 
@@ -41,7 +40,7 @@ export function useSessionSync(
     cancellable.race(baseWork).then(({result, cancelled}) => {
       if (cancelled || !result) return;
       updateFromSessionResponse(result, state, dispatch);
-      setCompletedRequest(result.session.inputs);
+      setCompletedRequest(state.current.session.inputs);
     })
 
     return () => cancellable.cancel();

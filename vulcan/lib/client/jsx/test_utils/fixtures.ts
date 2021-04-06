@@ -12,7 +12,7 @@ import {
 } from "../api_types";
 
 export function createWorkflowFixture(workflow: Partial<Workflow>): Workflow {
-    return { ...workflowsResponse['workflows'][0], ...workflow };
+    return { ...workflowsResponse['workflows'][0], projects: ['test'], ...workflow };
 }
 
 export function createStepFixture(step: Partial<WorkflowStep>): WorkflowStep {
