@@ -6,23 +6,28 @@ import {workflowsResponse} from "../../test_utils/fixtures/workflows-response";
 import {statusWithDownloads} from "../../test_utils/fixtures/status-with-downloads";
 import {statusWithoutDownloads} from "../../test_utils/fixtures/status-without-downloads";
 import {integrateElement} from "../../test_utils/integration";
+import {defaultContext} from "../vulcan_context";
 
 
 describe('vulcanContext/useApiContextData', () => {
   it('works', async () => {
-    const {contextData, reduxState, updateMatching} = integrateElement(() => null);
+    const {
+      contextData,
+      reduxState,
+      updateMatching
+    } = integrateElement(() => null, {providerOverrides: {requestPoll: defaultContext.requestPoll}});
 
-    const session = {...defaultVulcanSession, workflow_name: 'abc'};
+    const session = {...defaultVulcanSession, workflow_name: 'abc', project_name: 'test'};
 
     await act(async function () {
       // The loading request fails, and results in an error being set.
       await updateMatching(() => reduxState.messages?.find((m: string) => m.indexOf('Our request was refused') !== -1));
 
       const expectedRequests = stubUrl({
-          verb: 'get',
-          url: 'https://vulcan.test/api/workflows',
-          response: workflowsResponse,
-        }).then(() => stubUrl({
+        verb: 'get',
+        url: 'https://vulcan.test/api/workflows',
+        response: workflowsResponse,
+      }).then(() => stubUrl({
         verb: 'get',
         url: 'https://download1',
         response: JSON.stringify({a: 1}),
@@ -34,12 +39,12 @@ describe('vulcanContext/useApiContextData', () => {
         }
       })).then(() => stubUrl({
         verb: 'post',
-        url: 'https://vulcan.test/api/session/abc/status',
+        url: 'https://vulcan.test/api/test/session/abc/status',
         request: session,
         response: statusWithoutDownloads
       })).then(() => stubUrl({
         verb: 'post',
-        url: 'https://vulcan.test/api/session/abc',
+        url: 'https://vulcan.test/api/test/session/abc',
         request: session,
         response: statusWithDownloads
       })));

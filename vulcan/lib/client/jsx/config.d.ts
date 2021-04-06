@@ -13,6 +13,6 @@ declare const ROUTES: {
     workflow(): string,
     fetch_workflows(): string,
     workflow_vignette(workflowName: string): string,
-    submit(workflowName: string): string,
-    status(workflowName: string): string,
+    submit(projectName: string, workflowName: string): string,
+    status(projectName: string, workflowName: string): string,
 }
