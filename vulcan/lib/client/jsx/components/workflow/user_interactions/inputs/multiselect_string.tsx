@@ -6,23 +6,23 @@ import {InputBackendComponent, InputSpecification} from "./input_types";
 
 export function getAllOptions(data: InputSpecification['data']): string[] {
   return Object.values(data || {}).reduce((acc, n) => {
-    if (Array.isArray(n)) return acc.push(...n);
+    if (Array.isArray(n)) acc.push(...n);
     else if (typeof n === "string") acc.push(n);
     else acc.push(n + "");
+    console.log({acc})
 
     return acc;
   }, []);
 }
 
 const MultiselectStringInput: InputBackendComponent = ({input, onChange, onClear, onAll}) => {
-  if (!input || !onChange) return null;
-
   var collator = new Intl.Collator(undefined, {
     numeric: true,
     sensitivity: 'base'
   });
 
-  const options = useMemo(() => getAllOptions(input.data), [input.data]);
+  const options = useMemo(() => getAllOptions(input.data).sort(collator.compare), [input.data]);
+  console.log({input})
 
   return (
     <ListInput
@@ -36,7 +36,7 @@ const MultiselectStringInput: InputBackendComponent = ({input, onChange, onClear
           : []
       }
       itemInput={DropdownInput}
-      list={(options && options.sort(collator.compare)) || []}
+      list={options}
       onChange={(e: any) => {
         onChange(input.name, e);
       }}

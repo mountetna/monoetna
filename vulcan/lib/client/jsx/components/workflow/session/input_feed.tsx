@@ -7,11 +7,9 @@ import StepError from '../steps/step_error';
 import {
   completedSteps, erroredSteps, groupUiSteps,
   isPendingUiQuery,
-  missingUiQueryOutputs,
   pendingSteps,
   uiQueryOfStep
 } from "../../../selectors/workflow_selectors";
-import {patchInputs, setInputs} from "../../../actions/vulcan";
 import StepUserInputWrapper from "../steps/step_user_input_wrapper";
 
 export default function InputFeed() {

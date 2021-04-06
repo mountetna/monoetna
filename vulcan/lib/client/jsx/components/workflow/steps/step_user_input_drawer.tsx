@@ -14,21 +14,18 @@ export default function StepUserInputDrawer({step, handleInputChange}: {step: Gr
     let {state} = useContext(VulcanContext);
     const {workflow, session, status, data, inputs} = state;
 
-    const uiQuery = uiQueryOfStep(step);
-
-    if (!uiQuery) return null;
     if (!workflow) return null;
 
     // We need to unpack the grouped steps and add docs
     let stepInputs: InputSpecification[] = useMemo(() => step.in.map((input) => {
-            // We need to fetch the original step, to see if the options
-            //   data is available.
+            // We need to fetch the original step, to see if the options are available and to unpack the true uiQuery
             const originalStepName = stepOfSource(input.source);
             const originalStep = originalStepName ? stepOfStatus(originalStepName, workflow) : null;
             const inputData = originalStep ? stepInputDataRaw(originalStep, status, data, session) : {};
+            const uiQuery = originalStep ? uiQueryOfStep(originalStep) : null;
 
             return {
-                type: uiQuery,
+                type: uiQuery || 'default',
                 label: input.label || input.source,
                 default: inputs[input.source] || null,
                 data: inputData,
