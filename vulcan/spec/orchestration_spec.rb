@@ -65,25 +65,27 @@ describe Vulcan::Orchestration do
         orchestration.load_json_inputs!(storage)
 
         expect(should_builds).to eql([
-            [true, false, false, false],
-            [true, false, false, false],
-            [true, false, false, false],
+            [false, true, false, false],
+            [false, true, false, false],
+            [false, true, false, false],
         ])
 
         expect(orchestration.next_runnable_build_targets(storage).map(&:cell_hash)).to eql([
-            orchestration.build_target_for(:primary_inputs).cell_hash
+            orchestration.build_target_for('firstAdd').cell_hash
         ])
 
-        expect(next_buildable.script).to be_a(Hash)
         orchestration.run!(
           storage: storage,
           build_target: next_buildable,
           token: 'test-token')
 
+        session.define_user_input(['pickANum', "num"], 456)
+        orchestration.load_json_inputs!(storage)
+
         expect(should_builds).to eql([
-            [false, true, false, false],
-            [false, true, false, false],
-            [false, true, false, false],
+            [false, false, false, false],
+            [false, false, false, false],
+            [false, false, true, false],
         ])
       end
     end
@@ -142,7 +144,7 @@ describe Vulcan::Orchestration do
       expect(orchestration.run_until_done!(storage).length).to eql(0)
       expect(primary_outputs.is_built?(storage)).to eql(false)
       session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
-      expect(orchestration.run_until_done!(storage).length).to eql(2)
+      expect(orchestration.run_until_done!(storage).length).to eql(1)
       expect(primary_outputs.is_built?(storage)).to eql(false)
       session.define_user_input([:primary_inputs, "someIntWithoutDefault"], 123)
       session.define_user_input(["pickANum", "num"], 543)

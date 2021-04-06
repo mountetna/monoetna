@@ -70,11 +70,15 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
 
     case 'SET_SESSION':
       // Ignore sessions not for this workflow, safety guard.
-      if (action.session.workflow_name !== state.workflow?.name) return state;
+      const sessionWorkflow = state.workflow;
+      if (!sessionWorkflow) return state;
+      if (action.session.workflow_name !== sessionWorkflow.name) return state;
+      const projects = sessionWorkflow.projects;
+      if (!projects || projects.length < 1) return state;
 
       return {
         ...state,
-        session: {...action.session, project_name: CONFIG.project_name},
+        session: {...action.session, project_name: projects[0]},
         inputs: {...state.inputs, ...action.session.inputs},
       };
 
@@ -82,7 +86,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       return {
         ...state,
         status: [
-            state.status[0].map(status => action.stepNames.includes(status.name) ? {...status, downloads: null} : status),
+          state.status[0].map(status => action.stepNames.includes(status.name) ? {...status, downloads: null} : status),
         ],
       };
 

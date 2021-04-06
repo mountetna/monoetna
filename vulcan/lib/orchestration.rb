@@ -57,7 +57,7 @@ class Vulcan
       # Ensure that the primary inputs, at least, have been loaded so that the status endpoint can report
       # meaningful steps running.
       pi = build_target_for(:primary_inputs)
-      unless pi.is_built?(storage)
+      if pi.should_build?(storage)
         run!(storage: storage, build_target: pi, token: nil)
       end
     end

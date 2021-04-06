@@ -1,5 +1,5 @@
 declare type ConfigType = {
-    project_name: string;
+    // project_name: string;
     token_name: string;
     janus_host: string;
     timur_host: string;

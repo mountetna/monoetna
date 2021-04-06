@@ -21,7 +21,7 @@ describe('useSessionStorage', () => {
 
     // Does not save without workflow being set
     expect(storage.length).toEqual(0);
-    await dispatch(setWorkflow({...defaultWorkflow, name: 'some name'}));
+    await dispatch(setWorkflow({...defaultWorkflow, name: 'some name', projects: ['a project']}));
 
     expect(storage.length).toEqual(1); // Saved it!
     expect(contextData.state.session.workflow_name).toEqual(contextData.state.workflow?.name)
@@ -33,6 +33,7 @@ describe('useSessionStorage', () => {
       workflow_name: 'some name',
     }));
     expect(contextData.state.session.key).toEqual('anewkey');
+    expect(contextData.state.session.project_name).toEqual('a project');
     expect(storage.length).toEqual(1); // Updates it!
     expect(contextData.state.workflow).not.toBeFalsy();
 
