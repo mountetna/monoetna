@@ -13,12 +13,8 @@ export const defaultSessionSyncHelpers = {
 };
 
 function updateFromSessionResponse(response: SessionStatusResponse, state: MutableRefObject<VulcanState>, dispatch: Dispatch<VulcanAction>) {
-  // Don't bother changing the state and trigger a bunch of other downstream stuff unless
-  // the net effect is an actual change.
-  if (!_.isEqual(state.current.status, response.status))
-    dispatch(setStatus(response.status));
-  if (!_.isEqual(state.current.session, response.session))
-    dispatch(setSession(response.session));
+  dispatch(setStatus(response.status));
+  dispatch(setSession(response.session));
 }
 
 export function useSessionSync(

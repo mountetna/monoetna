@@ -35,9 +35,7 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
   const actionInvokerHelpers = withOverrides({useActionInvoker}, props);
   const stateRef = useRef(props.state || defaultContext.state);
   const [state, dispatch] = useReducer(function (state: VulcanState, action: VulcanAction) {
-    console.log(action.type);
     const result = VulcanReducer(state, action);
-    console.log(action.type, result);
     stateRef.current = result;
     return result;
   }, stateRef.current);
