@@ -1,14 +1,14 @@
-require_relative "../magma_record_etl"
+require_relative "../magma_record_file_etl"
 
-class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordEtl
+class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordFileEtl
   def initialize
-    super(project_model_pairs: [["ipi", "patient"]], attribute_names: ["ipi_number", "updated_at"])
+    super(project_model_pairs: [["ipi", "patient"]], attribute_names: ["ipi_number", "updated_at", "flojo_file_processed"])
   end
 
   def process(cursor, records)
     project_name = "ipi"
     record_names = records.map { |r| r.keys.first }
-    logger.info("Processing population tables for patients #{record_names.join(", ")}...")
+    logger.info("Checking for updated WSPs for patients #{record_names.join(", ")}...")
 
     ipi_flowjo_script = File.join(File.dirname(__FILE__), "magma", "scripts", "ipi+patient+flowjo.rb")
 
@@ -16,13 +16,14 @@ class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordEtl
 
     crud = Etna::Clients::Magma::MagmaCrudWorkflow.new(magma_client: magma_client, project_name: project_name)
 
-    processed_wsp_updated_recently?(cursor, record_names).each do |record_id|
+    processed_wsp_changed?(cursor, record_names).each do |record_id|
       record = crud.lookup_record(runner.model_name, record_id)
       if record.nil?
         raise "Could not find #{runner.model_name} by id #{record_id} in project #{project_name}"
       end
 
       begin
+        logger.info("Processing population table for #{record_id}")
         runner.run(record, magma_client: magma_client, commit: true)
       rescue => e
         logger.error("#{e.message}\n#{e.backtrace}")
@@ -32,41 +33,29 @@ class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordEtl
     logger.info("Done")
   end
 
-  def processed_wsp_updated_recently?(cursor, record_names)
+  def processed_wsp_changed?(cursor, record_names)
     magma_client.query(Etna::Clients::Magma::QueryRequest.new(
       project_name: "ipi",
       query: ["patient", ["ipi_number", "::in", record_names],
-              "::all", "flojo_file_processed", "::updated_at"],
+              "::all", "flojo_file_processed", "::md5"],
     )).answer.map do |result|
       record_name = result[0]
-      record_file_updated_at = result[1]
+      record_file_md5 = result[1]
       cursor_record = cursor[:seen_ids].find { |s|
         s[0] == record_name
       }
 
       # Only run the population loader for the patient
       #   if they weren't in the cursor's
-      #   last batch of seen_ids, or if the file has been updated since
+      #   last batch of seen_ids, or if the file has changed since
       #   the cursor's last recorded updated_at for the given patient.
-      if !record_file_updated_at
+      if !record_file_md5
         nil
       elsif !cursor_record
         record_name
       else
-        # Note that in Magma, the patient record is updated
-        #   slightly after the file is updated on Metis,
-        #   so as a stupid hack, we subtract 5 seconds from the record
-        #   updated_at and use that as a comparison for if the
-        #   file attribute has been updated....not sure there is
-        #   any other time available that makes sense to use.
-        # The cursor's updated_at is always the "last" record's
-        #   updated_at that it has processed, which is
-        #   always ahead of every other record's updated_at in
-        #   the current batch, and consequently the
-        #   records' files' updated_at values...
-        fuzzy_record_updated_at = Time.at(cursor_record[1]) - 5
-
-        record_name if Time.parse(record_file_updated_at) >= fuzzy_record_updated_at
+        last_processed_file_hash = cursor_record[2]["flojo_file_processed"]
+        record_name if record_file_md5 != last_processed_file_hash
       end
     end.compact
   end
