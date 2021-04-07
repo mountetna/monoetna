@@ -36,29 +36,28 @@ class RecordPredicate extends Component {
 
   getAttributeChild(attribute_name) {
     let { terms, attributes } = this.props;
-    let { type, attribute_class, model_name } = attributes[attribute_name];
+    let { type, attribute_type, model_name } = attributes[attribute_name];
 
     // depending on the attribute_class and type we return a child
-    switch(attribute_class) {
-      case 'Magma::ChildAttribute':
-      case 'Magma::ForeignKeyAttribute':
+    switch(attribute_type) {
+      case 'child':
+      case 'parent':
+      case 'link':
         return [ { type: 'record', model_name, args: [ null] } ];
-      case 'Magma::TableAttribute':
-      case 'Magma::CollectionAttribute':
+      case 'table':
+      case 'collection':
         return [ { type: 'model', filters: [], model_name, args: [] } ];
-      case 'Magma::FileAttribute':
-      case 'Magma::ImageAttribute':
+      case 'file':
+      case 'image':
         return [ { type: 'file', model_name: terms.model_name, attribute_name, args: [] } ];
-      case 'Magma::Attribute':
-        return this.getAttributeChild2(type, attribute_name, terms.model_name);
+      case 'float':
+      case 'integer':
+        return [ { type: 'number', model_name: terms.model_name, attribute_name, args: [null], completed: true }, { type: 'terminal', return_type: type } ];
+      case 'string':
+      case 'boolean':
+      case 'date_time':
+        return [ { type: attribute_type, model_name: terms.model_name, attribute_name, args: [ null ], completed: true }, { type: 'terminal', return_type: type } ];
     }
-  }
-
-  getAttributeChild2(type, attribute_name, model_name) {
-    return [
-      { type: TYPE_PREDICATES[type], model_name, attribute_name, args: [ null ], completed: true },
-      { type: 'terminal', return_type: type }
-    ];
   }
 
   updateVectors(vectors) {

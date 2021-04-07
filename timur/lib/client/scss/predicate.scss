@@ -12,6 +12,12 @@
     display: block;
     .chain {
       display: block;
+      .chainset {
+        display: inline;
+        .chain {
+          display: inline;
+        }
+      }
     }
   }
   .predicate {

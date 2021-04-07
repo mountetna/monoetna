@@ -44,6 +44,7 @@ export default class PredicateChain extends Component {
         return <RecordPredicate { ...props }/>;
       case 'file':
       case 'string':
+      case 'boolean':
       case 'number':
       case 'date_time':
         return <ValuePredicate { ...props }/>;
@@ -57,7 +58,6 @@ export default class PredicateChain extends Component {
 
     return(
       <div className='chain'>
-
         {predicates.map(this.renderPredicate.bind(this))}
       </div>
     );
