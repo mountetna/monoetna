@@ -37,8 +37,8 @@ class Polyphemus
     end
 
     # Subclasses should override if they wish to adjust or add to the params of the retrieve request.
-    def prepare_retrieve_request(cursor, retrieve_request)
-      retrieve_request.filter = "updated_at>=#{(cursor.updated_at + 1).iso8601}" unless cursor.updated_at.nil?
+    def prepare_request(cursor, request)
+      request.filter = "updated_at>=#{(cursor.updated_at + 1).iso8601}" unless cursor.updated_at.nil?
     end
 
     def find_batch
@@ -59,7 +59,7 @@ class Polyphemus
             record_names: 'all',
             page: 1,
         )
-        prepare_retrieve_request(cursor, retrieve_request)
+        prepare_request(cursor, retrieve_request)
         retrieve_request
       end.result_updated_at do |record|
         updated_at = record.values.first['updated_at']
