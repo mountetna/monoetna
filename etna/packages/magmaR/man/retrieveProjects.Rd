@@ -24,9 +24,7 @@ It then converts the given url to target janus, and makes a curl request to <jan
 \examples{
 
 if (interactive()) {
-
-    # Running like this will ask for input of your janus token one time.
-    retrieveProjects()
+    retrieveProjects(target = magmaRset())
 }
 
 }

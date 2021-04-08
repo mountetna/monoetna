@@ -4,7 +4,7 @@
 #' When not explicitly given, you will be prompted to input it via the console.
 #' @param url Single string. The url of the production, staging, or development version of magma that you you would like to target.
 #' See \code{\link{authentication-and-environments}} for more information.
-#' @param opts A named list of curl options (the names, ex: \code{followlocation}) and the values to give them (the values, ex: \code{FALSE}).
+#' @param opts A named list of curl options and the values to give them (ex: \code{list(followlocation = FALSE, othersetting = 42)}).
 #' Generally, most users can ignore this input, but it can be useful for adjusting proxy settings for particular development environment setup.
 #' @return A list with three components: token, url, and opts.
 #' @details This function compiles a list, from the given inputs, of the information needed by other \code{magmaR} functions
@@ -18,16 +18,18 @@
 #'     # When run in this way, it will ask you to give your token.
 #'     # And the resulting $url will be the standard, production, magma url.
 #'     prod <- magmaRset()
-#'     prod$url
-#'     
+#'     print(prod)
+#'          
 #'     # TARGET = staging:
 #'     # Give the proper url.
 #'     # Again, because we are not providing our token to the call, it will ask.
 #'     stage <- magmaRset(url = "https://magma-stage.ucsf.edu")
+#'     print(stage)
 #'     
 #'     # We can also give additional curl options to the 'opts' input:
 #'     prod_opts <- magmaRset(token = prod$token,
 #'         opts = list(proxyport = 1234))
+#'     print(prod_opts)
 #'     
 #'     # Now we can retrieve data with...
 #'     retrieve(

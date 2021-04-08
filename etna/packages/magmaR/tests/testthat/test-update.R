@@ -143,7 +143,7 @@ vcr::use_cassette("update_5", {
     WRONG4
     WRONG5
     WRONG6
-WARNING: Check the above carefully. Once created, there is currently no easy way to remove records from magma.
+WARNING: Check the above carefully. Once created, there is no easy way to remove records from magma.
 For model \"rna_seq\", this update() will update 6 records:
     EXAMPLE-HS4-WB1-RSQ1
     EXAMPLE-HS5-WB1-RSQ1
@@ -173,7 +173,7 @@ For model \"rna_seq\", this update() will update 6 records:
     WRONG10
     WRONG11
     WRONG12
-WARNING: Check the above carefully. Once created, there is currently no easy way to remove records from magma.
+WARNING: Check the above carefully. Once created, there is no easy way to remove records from magma.
 For model \"rna_seq\", this update() will update 0 records.", fixed = TRUE
         )
         

@@ -24,24 +24,24 @@ retrieveMatrix(
 \item{modelName}{Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
 For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.}
 
-\item{recordNames}{Single string or string vector. Which particular sample/tube/etc. records to grab data for.
+\item{recordNames}{Single string or string vector indicating which particular sample/tube/etc. records to target.
 Options are "all" or any combination of individual record names. To retrieve individual options, see \code{\link{retrieveIds}}.}
 
-\item{attributeNames}{Single string or string vector. Which features of the data to obtain.
+\item{attributeNames}{Single string or string vector indicating which features of the data to target.
 Options are "all" or any combination of individual attribute names. To retrieve individual options, see \code{\link{retrieveAttributes}}.}
 
-\item{filter}{String. Potential filter of the data.
+\item{filter}{String. Potential filter(s) of the data.
 Example: "<targetAttributeName>~GYN" to filter to records where <targetAttributeName> contains "GYN".
 
-Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details.}
+Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details about options and format.}
 
-\item{page}{Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.}
+\item{page}{Integer. For retrieving just a portion of the data, sets which slice to get.}
 
-\item{pageSize}{Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.}
+\item{pageSize}{Integer. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows.}
 
-\item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
+\item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
-\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which 1) stop the function before its main curl request to magma and 2) returns the values that would have been sent to magma in either of two formats.
 \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
 }}
 }

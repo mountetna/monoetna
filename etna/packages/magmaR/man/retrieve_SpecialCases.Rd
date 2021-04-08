@@ -6,7 +6,7 @@
 \alias{retrieveModels}
 \alias{retrieveIds}
 \alias{retrieveAttributes}
-\title{Helper functions & special cases of magma /retrieve}
+\title{Helper functions that utilize special cases of magma /retrieve}
 \usage{
 retrieveTemplate(target, projectName, ...)
 
@@ -21,9 +21,9 @@ retrieveAttributes(target, projectName, modelName, ...)
 
 \item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
-\item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
+\item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
-\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which 1) stop the function before its main curl request to magma and 2) returns the values that would have been sent to magma in either of two formats.
 \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
 }}
 
@@ -40,7 +40,7 @@ retrieveIds = a string vector of record names/identifiers.
 retrieveAttributes = a string vector of attribute names.
 }
 \description{
-Helper functions & special cases of magma /retrieve
+Helper functions that utilize special cases of magma /retrieve
 }
 \details{
 These functions aim to help users determine acceptable inputs to other magmaR functions without needing to leave R.
@@ -64,20 +64,31 @@ or by returning a targeted portion of a subsequent single-record call to \code{\
 \examples{
 
 if (interactive()) {
-    # Running like this will ask for input of your janus token one time.
+    # First, we use magmaRset to create an object which will tell other magmaR
+    #  functions our authentication token (as well as some other optional bits).
+    # When run in this way, it will ask you to give your token.
+    magma <- magmaRset()
     
-    retrieveTemplate(
+    template <- retrieveTemplate(
+        target = magma,
         projectName = "example")
+    str(template, max.level = 4)
         
-    retrieveModels(
+    models <- retrieveModels(
+        target = magma,
         projectName = "example")
-        
-    retrieveIds(
+    print(models)    
+
+    ids <- retrieveIds(
+        target = magma,
         projectName = "example",
         modelName = "rna_seq")
+    print(ids)
         
-    retrieveAttributes(
+    atts <- retrieveAttributes(
+        target = magma,
         projectName = "example",
         modelName = "subject")
+    print(atts)
 }
 }

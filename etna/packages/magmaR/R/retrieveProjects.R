@@ -9,9 +9,7 @@
 #' @examples
 #' 
 #' if (interactive()) {
-#' 
-#'     # Running like this will ask for input of your janus token one time.
-#'     retrieveProjects()
+#'     retrieveProjects(target = magmaRset())
 #' }
 #' 
 retrieveProjects <- function(

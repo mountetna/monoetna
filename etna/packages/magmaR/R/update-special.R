@@ -1,11 +1,14 @@
 #' A matrix-specific wrapper of \code{\link{updateValues}}
+#' @description A matrix-specific wrapper of \code{\link{updateValues}} which can take in a matrix, data.frame, or file path, directly.
 #' @inheritParams retrieve
 #' @param attributeName String naming the matrix attribute for which to upload data.
 #' @param matrix A matrix or dataframe containing the data to upload to magma.
-#' colnames must be record identifiers, and rownames should match the values of 'validation' associated with the target 'attribute'.
 #' 
-#' Alternatively, the location of a file containing such a data.
-#' @param separator String indicating the field separator to use if providing \code{matrix} as a file location.
+#' Alternatively, a String specifying the file path of a file containing such data.
+#' 
+#' No matter the provision method, colnames must be record identifiers, and rownames should match the values of 'options' associated with the target 'attribute'.
+#' Check the 'See Also' section below for how to determine the needed 'options'.
+#' @param separator String indicating the field separator to use if providing \code{matrix} as a file path.
 #' Default = \code{","}.
 #' @param auto.proceed Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.
 #' @return None directly.
@@ -20,7 +23,7 @@
 #' Data is then validated by ensuring that all row names are among the valid 'options' of the target attribute (See the See Also section below for a note on how to explore these options yourself.).
 #' Rows are reordered to be in the same order as these 'options'.
 #' 
-#' For any missing 'validation' options, NAs are added.
+#' For any missing 'options', rows of NAs are added.
 #' 
 #' The data is then transformed and passed along to \code{\link{updateValues}}.
 #' 
@@ -56,7 +59,7 @@
 #'         projectName = "example",
 #'         modelName = "rna_seq",
 #'         attributeName = "gene_tpm",
-#'         matrix = mat, request.only = TRUE)
+#'         matrix = mat)
 #' }
 #'
 #' @importFrom utils read.csv

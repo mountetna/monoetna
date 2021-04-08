@@ -1,4 +1,4 @@
-#' Helper functions & special cases of magma /retrieve
+#' Helper functions that utilize special cases of magma /retrieve
 #' @name retrieve_SpecialCases
 #' @inheritParams retrieve
 #' @details
@@ -19,21 +19,32 @@
 #' @examples
 #' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token one time.
+#'     # First, we use magmaRset to create an object which will tell other magmaR
+#'     #  functions our authentication token (as well as some other optional bits).
+#'     # When run in this way, it will ask you to give your token.
+#'     magma <- magmaRset()
 #'     
-#'     retrieveTemplate(
+#'     template <- retrieveTemplate(
+#'         target = magma,
 #'         projectName = "example")
+#'     str(template, max.level = 4)
 #'         
-#'     retrieveModels(
+#'     models <- retrieveModels(
+#'         target = magma,
 #'         projectName = "example")
-#'         
-#'     retrieveIds(
+#'     print(models)    
+#'
+#'     ids <- retrieveIds(
+#'         target = magma,
 #'         projectName = "example",
 #'         modelName = "rna_seq")
+#'     print(ids)
 #'         
-#'     retrieveAttributes(
+#'     atts <- retrieveAttributes(
+#'         target = magma,
 #'         projectName = "example",
 #'         modelName = "subject")
+#'     print(atts)
 #' }
 NULL
 

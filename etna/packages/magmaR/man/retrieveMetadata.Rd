@@ -2,7 +2,7 @@
 % Please edit documentation in R/retrieveMetadata.R
 \name{retrieveMetadata}
 \alias{retrieveMetadata}
-\title{Retrieve data from one model ("meta") of a project, for records that are linked to records of data from a different model ("target").}
+\title{Download data from magma of one model, but transformed into the shape of a different model's records.}
 \usage{
 retrieveMetadata(
   target,
@@ -22,15 +22,13 @@ retrieveMetadata(
 \item{meta_modelName, meta_attributeNames}{Strings which indicate the "meta"data to retrieve.
 They work the same as inputs of other functions without the \code{meta_} portion.}
 
-\item{target_modelName, target_recordNames}{Strings which indicate the 'target' data that meta-data is desired to be linked to.
+\item{target_modelName, target_recordNames}{Strings which indicate the "target" data that meta-data is desired to be reshaped into.
 They work the same as inputs of other functions without the \code{target_} portion, and
-these inputs ultimately set which records of "meta" model data to actually obtain.
+these inputs ultimately set which records of "meta" model data to actually obtain.}
 
-\strong{The idea here...} is retrieval of "meta"data, such as patient-level data, to go alongside of a separate download (separate call) of "target" assay data that might be part of a different model.}
-
-\item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
+\item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
-\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which 1) stop the function before its main curl request to magma and 2) returns the values that would have been sent to magma in either of two formats.
 \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
 }}
 }
@@ -38,7 +36,9 @@ for troubleshooting or advanced-user purposes only: \itemize{
 A dataframe with rows = \code{target_recordNames} and columns = model identifiers and either \code{meta_attributeNames} or repeats of \code{meta_attributeNames_#} when there are 1:many mappings of target data records to metadata records.
 }
 \description{
-Retrieve data from one model ("meta") of a project, for records that are linked to records of data from a different model ("target").
+Retrieve data from one model ("meta") transformed into the shape of linked records of a different model ("target").
+For example, one could get subject-level information for an RNAseq counts matrix with this function.
+The output would contain columns of subject-level attributes, and rows that are the RNAseq-model records.
 }
 \details{
 This function retrieves data from one model (the "meta" model) transformed so that rows of the returned dataframe correspond to records of a different model (the "target" model).
@@ -58,8 +58,14 @@ Finally, the dataframe of linkage path identifiers is merged with the metadata d
 \examples{
 
 if (interactive()) {
+    # First, we use magmaRset to create an object which will tell other magmaR
+    #  functions our authentication token (as well as some other optional bits).
+    # When run in this way, it will ask you to give your token.
+    magma <- magmaRset()
+    
     # Running like this will ask for input of your janus token one time.
     retrieveMetadata(
+        target = magma,
         projectName = "example",
         meta_modelName = "subject",
         meta_attributeNames = "group",

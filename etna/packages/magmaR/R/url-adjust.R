@@ -1,4 +1,4 @@
-#' Working with different Etna environments
+#' Starting out and working with different Etna environments
 #' @name authentication-and-environments
 #' 
 #' @section Authorization via 'token's:

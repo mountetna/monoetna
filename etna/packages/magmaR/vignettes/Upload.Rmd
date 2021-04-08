@@ -3,7 +3,7 @@ title: "Uploading data to magma with the R-client magmaR"
 author:
 - name: Daniel Bunis
   affiliation: Data Science CoLab, University of California San Francisco, San Francisco, CA
-date: "Created: December 12, 2020"
+date: "Updated: April 7, 2021"
 output:
   BiocStyle::html_document:
     toc_float: true
@@ -67,9 +67,7 @@ So in this vignette, our singular focus will be on how to input your data so tha
 
 **magma** has just one data input function, **`/update`**.
 
-**magmaR** provides methods for sending data into magma via this function.
-
-In truth, there are many other pathways for sending data to magma. We have plans to expand magmaR's data upload functionality. We will update this vignette when we do. In the meantime, feel free to reach out to me (Dan) or anyone else on the data library engineering team with questions about the best method for uploading your particular data. 
+**magmaR** provides two functions methods for sending data into magma via this function, `updateValues()` and `updateMatrix()`.
 
 ## updateValues()
 
@@ -209,30 +207,26 @@ After a successful `update()` a user should see this message (unless `verbose` h
 /update: successful.
 ```
 
-## Important Considerations
+## Important Consideration
 
-1. Please note that it is not easy, currently, to remove data from records with an incorrect ID, so if you get a message like the one below, please heed the warning!
+**Please note that it is not easy to remove records with an incorrect ID. Only data library engineers have access to such functionality. So if you get a message like the one below, please heed the warning!**
 
 ```
 For model "rna_seq", this update() will create 3 NEW records:
     ID1
     ID2
     ID3
-WARNING: Check the above carefully. Once created, there is currently no way to remove records from magma.
+WARNING: Check the above carefully. Once created, there is no easy way to remove records from magma.
 ```
 
-2. Attributes of types `matrix` and `table` are special cases where data may be especially hard to manually coax into this type of format. They either currently have (matrix) or will eventually have (table) their own dedicated wrapper `update()` functions. See below.
-
-## Type-dedicated update function(s)
-
-### updateMatrix()
+## updateMatrix(), a type-dedicated update function
 
 As the name suggests, `updateMatrix()` is a convenient wrapper function of `updateValues()` that is meant specifically for matrix data. It allows a user to point magmaR to either a file containing matrix data, or to a readily constructed matrix, without needing to perform the manual conversion of such data to the `revisions`-input format. 
 
 Internally, the function performs some necessary validations, adjusts the matrix into the proper `revisions`-input format, then passes it along to `updateValues()`. After this point, functionality is similar to what has already been described above: the targeted models/records will be summarized and the user will be prompted before the actual magma/update will be performed (unless that prompt is turned off with the `auto.proceed` input).
 
 **Usage differences** compared to `updateValues()`:
-Here, all of `projectName`, `modelName`, and `attributeName` must be given as their own separate inputs in addition to the `matrix` input. The matrix must be formatted to have column names equal to the `recordNames` that should be updated, and row names that are among the 'validation' options set for the target attribute.
+Here, all of `projectName`, `modelName`, and `attributeName` must be given as their own separate inputs in addition to the `matrix` input. The matrix must be formatted to have column names equal to the `recordNames` that should be updated, and row names that are among the allowed 'options' for the target attribute.
 
 To update the raw counts of our "rna_seq" model from either a csv, a tsv, or directly from a matrix, we could use the code below:
 

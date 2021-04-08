@@ -2,9 +2,9 @@
 % Please edit documentation in R/url-adjust.R
 \name{authentication-and-environments}
 \alias{authentication-and-environments}
-\title{Working with different Etna environments}
+\title{Starting out and working with different Etna environments}
 \description{
-Working with different Etna environments
+Starting out and working with different Etna environments
 }
 \section{Authorization via 'token's}{
 

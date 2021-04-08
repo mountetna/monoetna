@@ -30,9 +30,9 @@ See \url{https://mountetna.github.io/magma.html#update} for additional formattin
 
 \item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.}
 
-\item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
+\item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
-\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which 1) stop the function before its main curl request to magma and 2) returns the values that would have been sent to magma in either of two formats.
 \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
 }}
 }
@@ -42,7 +42,7 @@ None directly.
 The function sends data to magma, and the only outputs are information reported via the console.
 }
 \description{
-Analogous to the '/update' function of magma
+Analogous to the '/update' function of magma, allows data to be sent to magma (by users with at least "editor" authorization).
 }
 \details{
 This function mimics the activity of the magma/update function, documented here \url{https://mountetna.github.io/magma.html#update},
@@ -59,12 +59,16 @@ Internally, the function:
 \examples{
 
 if (interactive()) {
-    # Running like this will ask for input of your janus token one time.
+    # First, we use magmaRset to create an object which will tell other magmaR
+    #  functions our authentication token (as well as some other optional bits).
+    # When run in this way, it will ask you to give your token.
+    magma <- magmaRset()
     
     # Note that you likely do not have write-permissions for the 'example'
-    # project, so this code can be expected to give and authorization error.
+    # project, so this code can be expected to give an authorization error.
 
     updateValues(
+        target = magma,
         projectName = "example",
         revisions = list(
             # model

@@ -3,7 +3,7 @@ title: "Downloading data from magma with the R-client magmaR"
 author:
 - name: Daniel Bunis
   affiliation: Data Science CoLab, University of California San Francisco, San Francisco, CA
-date: "Updated: December 11, 2020"
+date: "Updated: April 7, 2021"
 output:
   BiocStyle::html_document:
     toc_float: true
@@ -43,7 +43,7 @@ We provide some more detail below, but for an even deeper overview of the struct
 
 Data types within magma ***projects*** are organized into ***models***, and individual data then make up the ***records*** of those models.
 
-For example, information & data for 3 tubes/run on a flow cytometer might make up 3 individual records of a flow cytometry model
+For example, information & data for 3 tubes run on a flow cytometer might make up 3 individual records of a flow cytometry model
 
 Each *record* might have multiple ***attributes***, such as the "gene_counts" matrix, the "cell_number", or sorted cell "fraction" *attributes* of *records* that are part of an "rna_seq" *model*.
 
@@ -83,11 +83,7 @@ There are two main output structures for returns from magma:
 - Tab Separated Value (**tsv**) tables
 - JavaScript Object Notation (**json**) objects
 
-Both formats are received as character strings.
-
-#### magmaR's minor adjustments to these structures
-
-Unless a user provides `raw.return = TRUE` (not recommended, especially for json returns as these seem particularly taxing for R/RStudio):
+Both formats are received as character strings, but then:
 
 - **tsv** format returns are converted to **data.frames**.
 - **json** format returns are converted to a **nested lists**.
@@ -103,13 +99,21 @@ A couple of functions, `retrieveMatrix()` and `retrieveMetadata()`, perform some
 
 # Installation
 
-Currently, magmaR is only available through GitHub, and it will likely remain that way for the foreseeable future.
+magmaR will be submitted to CRAN soon. Once accepted, built, and hosted by CRAN, users will be able to install the package with just...
+
+```{r, eval = FALSE}
+install.packages("magmaR")
+```
+
+Alternatively/currently, development versions of magmaR can be installed via the GitHub with:
 
 ```{r, eval = FALSE}
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
-remotes::install_github("mountetna/etna", subdir = "packages/magmaR")
+remotes::install_github("mountetna/monoetna", subdir = "etna/packages/magmaR")
 ```
+
+After either of the above, one can check proper installation with:
 
 ```{r}
 library(magmaR)
@@ -127,7 +131,7 @@ To this function, a user's token can be provided in one of two ways.
 
 **1) Via an interactive prompt (Recommended when coding interactively):**
 
-When not provided explicitly, as is the other method, the user will be prompted to provide their token via the interactive console. It is recommended that you store the output of your call to `magmaRset()` as a variable and then to provide this variable within each subsequent call to a magmaR function, as below.
+When not provided explicitly, as is the other method, the user will be prompted to provide their token via the interactive console. It is recommended that you store the output of your call to `magmaRset()` as a variable, and then provide this variable within each subsequent call to a magmaR function, as below.
 
 ```{r, hide = TRUE, echo=FALSE}
 prod <- magmaRset(token = Sys.getenv("TOKEN"), url = Sys.getenv("URL"))
@@ -148,7 +152,7 @@ If you run the above code, you should be prompted to
 Enter your Janus TOKEN (without quotes):
 ```
 
-To fill this in, navigate to https://janus.ucsf.edu (or https://janus-stage.ucsf.edu), click the `Copy Token` button, then paste the value into your console.
+To fill this in, navigate to Janus via your favorite browser, click the `Copy Token` button, then paste the value into your console.
 
 **2) Give your token explicitly**
 
@@ -201,11 +205,11 @@ ids_subject <- retrieveIds(
 
 These functions allow exploration of what data exists within a given project.
 
-Although it is possible to rely on timur.ucsf.edu/<projectName>/map, or on Timur's search functionality, in order **to determine options for `projectName`, `modelName`, `recordNames` or `attributeName(s)` inputs**, magmaR provides these helper functions to allow users to achieve these goals without leaving R.
+Although it is possible to rely on timur.ucsf.edu/\<projectName\>/map, or on Timur's search functionality, in order **to determine options for `projectName`, `modelName`, `recordNames` or `attributeName(s)` inputs**, magmaR provides these helper functions to allow users to achieve these goals without leaving R.
 
 ```{r}
 # projectName options:
-ids_subject <- retrieveProjects(
+retrieveProjects(
     target = prod)
 
 # modelName options:
@@ -293,7 +297,7 @@ Unfortunately, certain attribute types, `matrix` and `table`, are not actually o
 
 For such attributes, the `retrieveJSON()` function is required and retrieves such data via a magma/retrieve call with `format = "json"`.
 
-Users should not typically need to make use of this function, as when the desired data is a matrix, `retrieveMatrix()` is recommended instead. More details on that function are further below. Similarly, a `retrieveTable()` function is planned as well. If this text is here, it's not made yet. But if you need that function, let me (Dan) know!
+Users should not typically need to make use of this function, as when the desired data is a matrix, `retrieveMatrix()` is recommended instead. More details on that function are further below.
 
 ```{r retJSON}
 json <- retrieveJSON(
@@ -304,7 +308,7 @@ json <- retrieveJSON(
     attributeNames = "gene_counts")
 ```
 
-Details: The output format for the `retrieveJSON()` function is a nested list conversion of the nest hash json output that is directly given by a call to magma/retrieve with the json equivalent of `format = "json"`.
+Details: The output format for the `retrieveJSON()` function is a nested list conversion of the nested hash json output that is directly given by a call to magma/retrieve with the json equivalent of `format = "json"`.
 
 ### Additional inputs
 
@@ -323,7 +327,7 @@ json <- retrieveJSON(
     )
 ```
 
-For additional details such as how to format filter inputs, refer to https://mountetna.github.io/magma.html#retrieve
+For more details, see the function documentation with `?retrieve` or `?retrieveJSON`. And for even more detail, such as how to format filter inputs, refer to https://mountetna.github.io/magma.html#retrieve.
 
 ## query()
 
@@ -409,7 +413,7 @@ General Details: The function determines how `target_modelName` and `meta_modelN
 
 Specific Details: The function first determines the model -> model path for navigating between the meta and target models. (At the moment, ONLY parent links are used for this purpose, but utilization of link attributes is planned for the future.) Then, `query()`s based on these paths are utilized to obtain how target-model and meta-model recordNames are linked. Data is then `retrieve()`d from the `meta_modelName`-model for `meta_attributeNames`-attributes of records that are linked to `target_recordNames`-records of the `target_modelName`-model. Next, if there is more than 1:1 mapping between meta-model records to target-model records, the metadata is reorganized rightwards in order to have one output row per "target"-record. Finally, this data is output as a dataframe with rows = `target_recordNames` and columns of linkage record identifiers followed by columns of each requested meta-model attribute.
 
-## Putting it all together
+# Putting it all together
 
 In our example code for `retrieveMatrix()` and `retrieveMetadata()`, we obtained RNAseq data from the example project, and the linked metadata from the subject-model level. Now that we have these metadata for our rna_seq records, we could use them to start exploring our rna_seq data:
 
@@ -420,9 +424,6 @@ sce <- importDittoBulk(
   list(tpm = mat), # mat was obtained with retrieveMatrix()
   metadata = meta # meta was obtained with retrieveMetadata()
 )
-
-###### Remember to remove after bug fix!
-sce$group <- paste0("g",sce$group)
 
 dittoBoxPlot(sce, "gene1", group.by = "group")
 ```
