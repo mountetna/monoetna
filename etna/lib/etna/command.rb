@@ -203,6 +203,7 @@ module Etna
       @subcommands ||= self.class.constants.sort.reduce({}) do |acc, n|
         acc.tap do
           c = self.class.const_get(n)
+          next unless c.respond_to?(:instance_methods)
           next unless c.instance_methods.include?(:find_command)
           v = c.new(self)
           acc[v.command_name] = v

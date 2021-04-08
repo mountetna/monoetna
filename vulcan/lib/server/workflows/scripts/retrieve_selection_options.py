@@ -1,59 +1,42 @@
 from archimedes.functions.dataflow import input_var, output_json
-from archimedes.functions.environment import token, magma_host, project_name, app_env
-from archimedes.functions.magby import Magby, query_extract
-from archimedes.functions.list import unique, flatten
+from archimedes.functions.magma import question, connect
+from archimedes.functions.list import unique
 
 seq_model_name = "sc_seq"
 seq_pool_model_name = "sc_seq_pool"
-magma = Magby.Magby(url=magma_host, token=token,
-                    verify=(app_env == 'production'))
 
-experiments = magma.query(
-    project_name,
-    queryTerms=[
-        "experiment",
-        ["biospecimen_group", "::all",
-        seq_model_name, "::all", '::has', 'raw_counts_h5'],
-        "::all", '::identifier'])['answer']
-# add "all" and flatten/unique
-experiments = ["No Selection"] + unique(flatten(experiments))
+magma = connect()
 
-tissues = magma.query(
-    project_name,
-    queryTerms=[
-        "biospecimen_group",
-        [seq_model_name, "::all", '::has', 'raw_counts_h5'],
-        "::all", 'biospecimen_type'])
-tissues = query_extract(tissues, 'biospecimen_type')
-tissues = ["No Selection"] + unique(flatten(tissues))
-
-all_tubes = magma.query(
-    project_name,
-    queryTerms=[
+experiments = question(
+    magma,
+    [
         seq_model_name,
-        ['::has', 'raw_counts_h5'],
-        "::all", '::identifier']
-        )['answer']
-all_tubes = unique(flatten(all_tubes))
+        [ '::has', 'raw_counts_h5'],
+        '::all',
+        'biospecimen_group', 'experiment', 'alias'
+    ]
+)
 
+tissues = question(
+    magma,
+    [
+        seq_model_name,
+        [ '::has', 'raw_counts_h5'],
+        '::all',
+        'biospecimen_group', 'biospecimen_type'
+    ]
+)
 
-color_options = {
-    'Experiment': {
-        'High-fat': None,
-        'Low-fat': None
-    },
-    'Tissue': {
-        'Blood': None,
-        'Tissue': None
-    },
-    'Gene': {
-        'Gene1': None,
-        'Gene2': None,
-        'Gene3': None
-    }
-}
+fractions = question(
+    magma,
+    [
+        seq_model_name,
+        [ '::has', 'raw_counts_h5'],
+        '::all',
+        'cell_fraction'
+    ]
+)
 
-output_json(color_options, 'color_options')
-output_json(experiments, 'experiments')
-output_json(tissues, 'tissues')
-output_json(all_tubes, 'all_tubes')
+output_json(unique(experiments), 'experiments')
+output_json(unique(tissues), 'tissues')
+output_json(unique(fractions), 'fractions')

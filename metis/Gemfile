@@ -17,7 +17,7 @@ group :test do
   gem 'webmock'
   gem 'factory_bot'
   gem 'timecop'
-  gem 'database_cleaner'
+  gem 'database_cleaner', '1.8.5'
   gem 'pry'
   gem 'pry-byebug'
   gem 'debase'

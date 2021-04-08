@@ -1,9 +1,8 @@
 PATH
   remote: /etna
   specs:
-    etna (0.1.30)
+    etna (0.1.32)
       concurrent-ruby
-      concurrent-ruby-ext
       jwt
       multipart-post
       nokogiri
@@ -21,9 +20,7 @@ GEM
       zeitwerk (~> 2.3)
     coderay (1.1.3)
     concurrent-ruby (1.1.8)
-    concurrent-ruby-ext (1.1.8)
-      concurrent-ruby (= 1.1.8)
-    database_cleaner (1.8.0)
+    database_cleaner (1.8.5)
     diff-lcs (1.4.4)
     docile (1.3.5)
     factory_bot (6.1.0)
@@ -86,7 +83,7 @@ PLATFORMS
 
 DEPENDENCIES
   concurrent-ruby
-  database_cleaner (= 1.8.0)
+  database_cleaner (= 1.8.5)
   etna!
   factory_bot
   jwt
@@ -105,4 +102,4 @@ RUBY VERSION
    ruby 2.5.7p206
 
 BUNDLED WITH
-   2.2.13
+   2.2.15

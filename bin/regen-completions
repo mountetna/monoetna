@@ -33,4 +33,5 @@ gen_for "polyphemus_app"  "./bin/polyphemus"
 gen_for "polyphemus_app"  "./bin/etl_tools"
 gen_for "etna_app"  "./bin/etna"
 gen_for "vulcan_app"  "./bin/vulcan"
+gen_for "timur_app"  "./bin/timur"
 

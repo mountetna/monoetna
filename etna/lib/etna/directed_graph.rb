@@ -7,6 +7,59 @@ class DirectedGraph
   attr_reader :children
   attr_reader :parents
 
+  def full_parentage(n)
+    [].tap do |result|
+      q = @parents[n].keys.dup
+      seen = Set.new
+
+      until q.empty?
+        n = q.shift
+        next if seen.include?(n)
+        seen.add(n)
+
+        result << n
+        q.push(*@parents[n].keys)
+      end
+
+      result.uniq!
+    end
+  end
+
+  def as_normalized_hash(root, include_root = true)
+    q = [root]
+    {}.tap do |result|
+      if include_root
+        result[root] = []
+      end
+
+      seen = Set.new
+
+      until q.empty?
+        n = q.shift
+        next if seen.include?(n)
+        seen.add(n)
+
+        parentage = full_parentage(n)
+
+        @children[n].keys.each do |child_node|
+          q << child_node
+
+          if result.include?(n)
+            result[n] << child_node
+          end
+
+          parentage.each do |grandparent|
+            result[grandparent] << child_node if result.include?(grandparent)
+          end
+
+          result[child_node] = []
+        end
+      end
+
+      result.values.each(&:uniq!)
+    end
+  end
+
   def add_connection(parent, child)
     children = @children[parent] ||= {}
     child_children = @children[child] ||= {}
@@ -18,12 +71,13 @@ class DirectedGraph
     parents[parent] = parent_parents
   end
 
-  def serialized_path_from(root)
+  def serialized_path_from(root, include_root = true)
     seen = Set.new
     [].tap do |result|
-      result << root
+      result << root if include_root
       seen.add(root)
-      path_q = paths_from(root)
+      path_q = paths_from(root, include_root)
+      traversables = path_q.flatten
 
       until path_q.empty?
         next_path = path_q.shift
@@ -34,7 +88,7 @@ class DirectedGraph
           next if next_n.nil?
           next if seen.include?(next_n)
 
-          if @parents[next_n].keys.any? { |p| !seen.include?(p) }
+          if @parents[next_n].keys.any? { |p| !seen.include?(p) && traversables.include?(p) }
             next_path.unshift(next_n)
             path_q.push(next_path)
             break
@@ -47,9 +101,9 @@ class DirectedGraph
     end
   end
 
-  def paths_from(root)
+  def paths_from(root, include_root = true)
     [].tap do |result|
-      parents_of_map = descendants(root)
+      parents_of_map = descendants(root, include_root)
       seen = Set.new
 
       parents_of_map.to_a.sort_by { |k, parents| [-parents.length, k.inspect] }.each do |k, parents|
@@ -68,7 +122,7 @@ class DirectedGraph
     end
   end
 
-  def descendants(parent)
+  def descendants(parent, include_root = true)
     seen = Set.new
 
     seen.add(parent)
@@ -90,7 +144,7 @@ class DirectedGraph
     while child = queue.pop
       next if seen.include? child
       seen.add(child)
-      path = (paths[child] ||= [parent])
+      path = (paths[child] ||= (include_root ? [parent] : []))
 
       @children[child].keys.each do |child_child|
         queue.push child_child

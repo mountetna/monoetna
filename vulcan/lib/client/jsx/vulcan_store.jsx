@@ -23,8 +23,8 @@ export const VulcanStore = () => {
 
   let middlewares = [thunk];
 
-  if (process.env.NODE_ENV != 'production')
-    middlewares.push(createLogger({collapsed: true}));
+  // if (process.env.NODE_ENV != 'production')
+  //   middlewares.push(createLogger({collapsed: true}));
 
   return createStore(reducers, {}, applyMiddleware(...middlewares));
 };

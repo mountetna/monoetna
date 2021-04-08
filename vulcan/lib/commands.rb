@@ -128,7 +128,7 @@ class Vulcan
       end
 
       def find_next_input_ui_query
-        orchestration.unique_paths.zip(orchestration.build_targets_for_paths).each do |path, build_targets|
+        orchestration.serialized_step_path.zip(orchestration.build_targets_for_paths).each do |path, build_targets|
           path.zip(build_targets).each do |step_name, build_target|
             step = workflow.find_step(step_name)
             next if step.nil?
@@ -148,7 +148,7 @@ class Vulcan
 
       def find_all_output_ui_queries
         [].tap do |result|
-          orchestration.unique_paths.zip(orchestration.build_targets_for_paths).each do |path, build_targets|
+          orchestration.serialized_step_path.zip(orchestration.build_targets_for_paths).each do |path, build_targets|
             path.zip(build_targets).each do |step_name, build_target|
               step = workflow.find_step(step_name)
 
@@ -212,14 +212,12 @@ class Vulcan
       Sequel.extension(:migration)
       db = Vulcan.instance.db
 
-      puts "Not migrating yet -- we don't have any database models."
-
       if version
-        # puts "Migrating to version #{version}"
-        # Sequel::Migrator.run(db, 'db/migrations', target: version.to_i)
+        puts "Migrating to version #{version}"
+        Sequel::Migrator.run(db, 'db/migrations', target: version.to_i)
       else
-        # puts 'Migrating to latest'
-        # Sequel::Migrator.run(db, 'db/migrations')
+        puts 'Migrating to latest'
+        Sequel::Migrator.run(db, 'db/migrations')
       end
     end
 

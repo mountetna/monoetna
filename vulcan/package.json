@@ -7,7 +7,15 @@
     "url": "https://github.com/mountetna/vulcan.git"
   },
   "dependencies": {
+    "@babel/preset-typescript": "^7.13.0",
     "@emotion/core": "^10.0.28",
+    "@testing-library/react-hooks": "^5.1.1",
+    "@types/enzyme": "^3.10.8",
+    "@types/jest": "^26.0.22",
+    "@types/lodash": "^4.14.168",
+    "@types/react": "^17.0.3",
+    "@types/react-redux": "^7.1.16",
+    "@types/react-test-renderer": "^17.0.1",
     "babel-core": "^6.26.0",
     "codemirror": "^5.39.0",
     "css-loader": "^3.6.0",
@@ -42,6 +50,7 @@
     "reselect": "^3.0.1",
     "spark-md5": "^3.0.0",
     "style-loader": "^1.2.1",
+    "typescript": "^4.2.3",
     "webworkify-webpack": "^2.1.1",
     "yaml": "^1.10.0"
   },
@@ -57,7 +66,7 @@
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-plugin-emotion": "^10.0.33",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "enzyme": "^3.3.0",
+    "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.1.1",
     "eslint": "^3.15.0",
     "eslint-plugin-react": "^6.9.0",
@@ -81,7 +90,7 @@
   "scripts": {
     "lint": "$(npm bin)/eslint --ext .jsx,.js.jsx,.js ./lib/client/jsx/** ",
     "lintfile": "$(npm bin)/eslint --ext .jsx,.js.jsx,.js ",
-    "test": "jest && webpack",
+    "test": "tsc && jest && webpack",
     "build": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production",
     "build-dev": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development",
     "webpack": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production --watch",

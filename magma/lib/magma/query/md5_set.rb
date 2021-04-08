@@ -1,53 +1,9 @@
-require 'set'
+require_relative "metis_metadata"
 
-class MD5Set
-  def initialize(user, model)
-    @user = user
-    @model = model
-
-    @requested_md5_paths = Set.new 
-  end
-
-  class Value
-    def initialize(set, file_path)
-      @set = set
-      @file_path = file_path
-    end
-
-    def to_json(options={})
-      @set[@file_path].to_json
-    end
-  end
-
-  def <<(file_path)
-    @requested_md5_paths << file_path
-    return Value.new(self, file_path)
-  end
-
+class Md5Set < MetisMetadata
   def [](file_path)
-    unless @requested_md5s
-      # make request to metis
-      host = Magma.instance.config(:storage).fetch(:host)
+    super
 
-      client = Etna::Client.new("https://#{host}", @user.token)
-
-      response = client.bucket_find(
-        project_name: @model.project_name.to_s,
-        bucket_name: 'magma',
-        params: [{
-          attribute: 'name',
-          predicate: '=',
-          value: @requested_md5_paths.to_a,
-          type: 'file'
-        }],
-        signatory: Magma.instance
-      )
-
-      @requested_md5s = response[:files].map do |file|
-        file.values_at(:file_name, :file_hash)
-      end.to_h
-    end
-
-    @requested_md5s[file_path]
+    @requested_files[file_path][:file_hash]
   end
 end
