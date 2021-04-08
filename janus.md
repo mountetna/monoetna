@@ -59,9 +59,11 @@ The `/login` endpoint can also be configured as a Shibboleth-protected endpoint 
 
 Machine users who cannot use browsers can use a registered public key to generate a token.
 
-The endpoint `/time-signature` returns a cryptographic nonce. The user signs the nonce, base64-encodes the signature, and concatenates the result to the nonce.
+The endpoint `/api/tokens/nonce` returns a cryptographic nonce. The user signs the nonce, base64-encodes the signature, and concatenates the result to the nonce.
 
-The endpoint `/generate` returns a valid token if the `Authorization` header is set to the appropriate value.
+The endpoint `/api/tokens/generate` returns a valid token if the `Authorization` header is set to the appropriate value.
+
+The token generation api can be accessed via the `etna` gem, using the command `etna administrate tokens generate --email your@email.id`.
 
 Here is a bash script that will successfully generate a Janus token on most systems (you need 'openssl', 'wget' and 'base64' utilities).
 
@@ -75,16 +77,32 @@ PEM=$2
 # Your email address
 EMAIL=$(echo -n $3 | base64 -w 0)
 
-NONCE=$(wget -q -O - $JANUS_URL/time-signature)
+NONCE=$(wget -q -O - $JANUS_URL/api/tokens/nonce)
 
 SIG=$(echo -n $NONCE.$EMAIL | openssl dgst -sha256 -sign $PEM | base64 -w 0)
 
 AUTH=$NONCE.$EMAIL.$SIG
 
-TOKEN=$(wget -q -O - --header="Authorization: Signed-Nonce $AUTH" $JANUS_URL/generate )
+TOKEN=$(wget --post-data='' -q -O - --header="Authorization: Signed-Nonce $AUTH" $JANUS_URL/api/tokens/generate )
 
 echo $TOKEN
 ```
+
+### Task tokens
+
+Janus tokens are usually limited in lifespan as they cannot be easily
+invalidated. However, this makes them unsuitable for many tasks (e.g. uploading
+to Metis) since they may expire before the task can be completed. Therefore
+Janus will also issue a "task" token with a longer lifespan and limited
+permissions for a single project.
+
+To acquire a task token, you may pass the argument `token_type=task` to the
+endpoint `/api/tokens/generate`, along with a `project_name` argument.
+Alternatively, you may use the `etna` gem command `etna administrate token
+generate --email your@email.id --task --project-name your_project`.
+
+Task tokens may be generated either using a signed nonce or using a regular
+token.
 
 # Configuration
 
