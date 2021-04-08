@@ -93,7 +93,7 @@ class Polyphemus
     end
 
     def all_file_attribute_names
-      @all_file_attribute_names ||= all_attribute_names.select { |a|
+      @all_file_attribute_names ||= @template.attributes.all.select { |a|
         [Etna::Clients::Magma::AttributeType::FILE,
          Etna::Clients::Magma::AttributeType::IMAGE,
          Etna::Clients::Magma::AttributeType::FILE_COLLECTION].include?(a.attribute_type)
