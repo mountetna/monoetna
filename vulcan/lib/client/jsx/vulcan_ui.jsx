@@ -35,12 +35,6 @@ const ROUTES = [
     template: 'workflow/:workflowName',
     component: Browser,
     mode: 'workflow'
-  },
-  {
-    name: 'vignette',
-    template: 'workflow/:workflowName/vignette',
-    component: Vignette,
-    mode: 'vignette'
   }
 ];
 
@@ -65,8 +59,6 @@ class VulcanUI extends React.Component {
     let {route, params} = findRoute(location, ROUTES);
     let Component;
     let mode;
-
-    console.log(location, ROUTES);
 
     if (this.props.Component) {
       mode = 'home';

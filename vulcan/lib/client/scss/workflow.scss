@@ -175,6 +175,10 @@
       padding: 0px 5px;
       align-items: center;
 
+      .vignette-btn {
+        color: goldenrod;
+      }
+
       &:hover {
         background: rgba(lightgray, 0.25);
       }
