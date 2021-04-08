@@ -18,6 +18,10 @@ class Janus
 
     get '/refresh_token', action: 'user#refresh_token', auth: { user: { active?: true } }
 
+    get '/api/tokens/nonce', action: 'authorization#time_signature', auth: { noauth: true }
+    post '/api/tokens/generate', action: 'authorization#generate', auth: { noauth: true }
+    post '/api/tokens/validate_task', action: 'authorization#validate_task', auth: { ignore_janus: true }
+
     # Once we figure out a long-term token strategy, this should probably get
     #   consolidated with /refresh_token so we don't just keep creating
     #   small token-related views.
@@ -35,7 +39,7 @@ class Janus
 
     get '/user', action: 'user#info'
 
-    get '/allprojects', action: 'admin#projects', auth: { user: { is_superuser?: true } }
+    get '/allprojects', action: 'admin#projects', auth: { user: { is_superviewer?: true } }
 
     get '/projects', action: 'user#projects', auth: { user: { active?: true } }
 

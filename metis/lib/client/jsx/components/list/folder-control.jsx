@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { copyText } from '../../utils/copy';
+import { copyText } from 'etna-js/utils/copy';
 import { filePath } from 'etna-js/utils/file';
 import MenuControl from '../menu-control';
 
