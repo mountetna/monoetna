@@ -16,7 +16,7 @@ const icons: {[k: string]: {icon: string, className: string}} = {
 };
 
 export default function StepName({step}: {step: WorkflowStep | GroupedInputStep}) {
-  let {state, statusIsFresh} = useContext(VulcanContext);
+  let {state} = useContext(VulcanContext);
   const {workflow, status} = state;
   if (!workflow) return null;
   const statusStr = statusStringOfStepOrGroupedStep(step, workflow, status);
@@ -25,7 +25,7 @@ export default function StepName({step}: {step: WorkflowStep | GroupedInputStep}
   let className = `step-status-icon ${icon.className}`;
   let IconComponent = <Icon title={ step.label || step.name } className={className} icon={icon.icon}/>;
 
-  if (STATUS.RUNNING === statusStr && !statusIsFresh) {
+  if (STATUS.RUNNING === statusStr) {
     IconComponent = <AnimatedClock />;
   }
 
