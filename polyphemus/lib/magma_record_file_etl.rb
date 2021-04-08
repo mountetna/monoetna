@@ -33,7 +33,12 @@ class Polyphemus
             }.to_h }
           end
         rescue Etna::Error => e
-          {} if e.message =~ /Page.*not found/
+          no_results = e.message =~ /Page.*not found/
+          if no_results
+            {}
+          else
+            raise e
+          end
         end
       end.result_file_hashes do |record|
         record.values.first.slice(*file_attributes_to_query)
