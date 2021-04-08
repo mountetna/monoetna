@@ -47,7 +47,7 @@ class Polyphemus
 
       # No time precision worries, so just use cursor's updated_at here
       request.query << ["updated_at", "::>=", (cursor.updated_at).iso8601] unless cursor.updated_at.nil?
-      request.query << has_attribute_filters
+      request.query << file_attribute_filters if has_file_attributes?
       request.query << "::all"
       request.query << attribute_query_terms
     end
@@ -68,8 +68,12 @@ class Polyphemus
       ).template
     end
 
-    def has_attribute_filters
+    def file_attribute_filters
       ["::or"] + file_attributes_to_query.map { |a| ["::has", a] }
+    end
+
+    def has_file_attributes?
+      file_attributes_to_query.length > 0
     end
 
     def attribute_query_terms
