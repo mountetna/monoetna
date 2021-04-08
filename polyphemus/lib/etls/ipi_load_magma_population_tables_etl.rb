@@ -8,7 +8,7 @@ class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordFileE
   def process(cursor, records)
     project_name = "ipi"
     record_names = records.map { |r| r.keys.first }
-    logger.info("Checking for updated WSPs for patients #{record_names.join(", ")}...")
+    logger.info("Processing population tables for patients #{record_names.join(", ")}...")
 
     ipi_flowjo_script = File.join(File.dirname(__FILE__), "magma", "scripts", "ipi+patient+flowjo.rb")
 
@@ -23,7 +23,6 @@ class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordFileE
       end
 
       begin
-        logger.info("Processing population table for #{record_id}")
         runner.run(record, magma_client: magma_client, commit: true)
       rescue => e
         logger.error("#{e.message}\n#{e.backtrace}")

@@ -19,6 +19,8 @@ class Polyphemus
        self.result_file_hashes(r)].freeze
     end
 
+    # Very similar to the time-scan version, except a little simpler since we don't
+    #   have to worry about time precision.
     def find_batch(cursor)
       expansion_number = 1
       cursor[:seen_ids] ||= []
