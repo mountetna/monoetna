@@ -2,7 +2,7 @@ import React from 'react';
 
 import Icon from 'etna-js/components/icon';
 
-import {workflowName} from '../../utils/workflow';
+import {workflowName} from '../../selectors/workflow_selectors';
 import ImageMemo from './image_memo';
 
 // To get webpack to pick up the files.
@@ -44,7 +44,7 @@ export default function Card({workflow, onClick}) {
         </div>
         <div className='row'>
           <div className='label'>
-            <Icon className='card-tags' icon='tags'></Icon> Tags
+            <Icon className='card-tags' icon='tags'/> Tags
           </div>
           <div className='value'>{MultiLineOutput(workflow.tags)}</div>
         </div>

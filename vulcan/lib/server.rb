@@ -3,8 +3,6 @@ require_relative './server/controllers/browse_controller'
 require_relative './server/controllers/workflows_controller'
 require_relative './server/controllers/data_controller'
 require_relative './server/controllers/sessions_controller'
-require_relative './server/models/session'
-require_relative './server/models/workflow'
 
 class Vulcan
   class Server < Etna::Server
@@ -20,6 +18,7 @@ class Vulcan
 
     get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
     get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true, auth: { user: { can_view?: :project_name } }
+    post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true, auth: { user: { can_view?: :project_name } }
     post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true, auth: { user: { can_view?: :project_name } }
 
     with auth: { user: { active?: true } } do
@@ -36,7 +35,7 @@ class Vulcan
 
     def initialize
       super
-      # application.setup_db
+      application.setup_db
     end
   end
 end

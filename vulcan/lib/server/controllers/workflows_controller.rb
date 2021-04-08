@@ -6,7 +6,7 @@ class WorkflowsController < Vulcan::Controller
   # This shares the hard coded projects across all projects from the start.
   def fetch
     success_json({
-        'workflows': Dir.glob(Vulcan.instance.config(:workflows_folder) + "/*.{cwl,yaml,yml}").map do |path|
+        'workflows': Dir.glob(Vulcan.instance.config(:workflows_folder) + "/*.{cwl,yaml,yml}").sort_by { |f| ::File.basename(f) }.map do |path|
           cwl_name = ::File.basename(path)
           begin
             workflow = Etna::Cwl::Workflow.from_yaml_file(cwl_name)

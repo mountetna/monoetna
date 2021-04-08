@@ -27,3 +27,4 @@ spec/examples.txt
 .npm-packages
 .npmrc
 
+storage.lock

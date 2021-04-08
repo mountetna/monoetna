@@ -1,4 +1,5 @@
 // Framework Libraries.
+import 'regenerator-runtime/runtime';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
@@ -32,7 +33,7 @@ class VulcanApplication {
         <VulcanUI
           environment={environment}
           path={decodeURI(window.location.pathname)}
-        ></VulcanUI>
+        />
       </Provider>,
       document.getElementById(container_id)
     );

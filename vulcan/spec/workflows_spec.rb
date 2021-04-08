@@ -23,9 +23,9 @@ describe WorkflowsController do
       expect(last_response.status).to eq(200)
 
       response = JSON.parse(last_response.body)
-      expect(response['workflows'].first['name']).to eql('test_workflow.cwl')
+      workflow = response['workflows'].find { |w| w['name'] == 'test_workflow.cwl' }
 
-      expect(response['workflows'].first['inputs']).to eql({
+      expect(workflow['inputs']).to eql({
           "someInt" => {
               "default" => 200,
               "format" => nil,
@@ -42,7 +42,7 @@ describe WorkflowsController do
           },
       })
 
-      expect(response['workflows'].first['outputs']).to eql({
+      expect(workflow['outputs']).to eql({
           "the_result" => {
               "default" => nil,
               "format" => nil,
@@ -52,120 +52,52 @@ describe WorkflowsController do
           }
       })
 
-      expect(response['workflows'].first['steps']).to eql([
+      expect(workflow['dependencies_of_outputs']).to eql({
+          "finalStep/sum" => [],
+          "firstAdd/sum" => ["finalStep/sum", "pickANum/num"],
+          "pickANum/num" => ["finalStep/sum"],
+          "someInt" => ["firstAdd/sum", "finalStep/sum", "pickANum/num"],
+          "someIntWithoutDefault" => ["firstAdd/sum", "finalStep/sum", "pickANum/num"],
+      })
+
+      expect(workflow['steps']).to eql([
           [
               {
+                  "in" => [{"id"=>"a", "source"=>"someInt"},
+                      {"id"=>"b", "source"=>"someIntWithoutDefault"}],
                   "doc" => nil,
-                  "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
-                      {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
                   "label"=>nil,
                   "out" => ["sum"],
                   "name" => "firstAdd",
                   "run" => "scripts/add.cwl",
               },
               {
+                  "in" => [{"id"=>"num", "source"=>"firstAdd/sum"}],
                   "doc" => nil,
-                  "in" => [{"id"=>"num", "source"=>["firstAdd", "sum"]}],
                   "label"=>nil,
                   "out" => ["num"],
                   "name" => "pickANum",
                   "run" => "ui-queries/pick-a-number.cwl",
               },
               {
+                  "in" => [{"id"=>"a", "source"=>"firstAdd/sum"},
+                      {"id"=>"b", "source"=>"pickANum/num"}],
                   "doc" => nil,
-                  "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
-                      {"id"=>"b", "source"=>["pickANum", "num"]}],
                   "label"=>nil,
                   "out" => ["sum"],
                   "name" => "finalStep",
                   "run"=>"scripts/add.cwl"},
               {
+                  "in" => [{"id"=>"a", "source"=>"finalStep/sum"}],
                   "doc" => nil,
-                  "in" => [{"id"=>"a", "source"=>["finalStep", "sum"]}],
                   "label"=>nil,
                   "name"=>"aPlot",
                   "out"=>[],
                   "run"=>"ui-outputs/plotter.cwl"}
           ],
-          [
-              {
-                  "doc" => nil,
-                  "in" =>
-                    [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
-                        {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
-                  "label"=>nil,
-                  "name"=>"firstAdd",
-                  "out"=>["sum"],
-                  "run"=>"scripts/add.cwl"
-              },
-              {
-                  "doc" => nil,
-                  "in"=>
-                    [{"id"=>"a", "source"=>["firstAdd", "sum"]},
-                        {"id"=>"b", "source"=>["pickANum", "num"]}],
-                  "label"=>nil,
-                  "name"=>"finalStep",
-                  "out"=>["sum"],
-                  "run"=>"scripts/add.cwl"
-              },
-              {
-                  "doc" => nil,
-                  "in"=>[{"id"=>"a", "source"=>["finalStep", "sum"]}],
-                  "label"=>nil,
-                  "name"=>"aPlot",
-                  "out"=>[],
-                  "run"=>"ui-outputs/plotter.cwl"
-              }
-          ],
-          [
-              {
-                  "doc" => nil,
-                  "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
-                           {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
-                  "label"=>nil,
-                  "out" => ["sum"],
-                  "name" => "firstAdd",
-                  "run" => "scripts/add.cwl",
-              },
-              {
-                  "doc" => nil,
-                  "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
-                           {"id"=>"b", "source"=>["pickANum", "num"]}],
-                  "label"=>nil,
-                  "out" => ["sum"],
-                  "name" => "finalStep",
-                  "run" => "scripts/add.cwl",
-              },
-          ],
-          [
-              {
-                  "doc" => nil,
-                  "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
-                           {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
-                  "label"=>nil,
-                  "out" => ["sum"],
-                  "name" => "firstAdd",
-                  "run" => "scripts/add.cwl",
-              },
-              {
-                  "doc" => nil,
-                  "in" => [{"id"=>"num", "source"=>["firstAdd", "sum"]}],
-                  "label"=>nil,
-                  "out" => ["num"],
-                  "name" => "pickANum",
-                  "run" => "ui-queries/pick-a-number.cwl",
-              },
-              {
-                  "doc" => nil,
-                  "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
-                           {"id"=>"b", "source"=>["pickANum", "num"]}],
-                  "label"=>nil,
-                  "out" => ["sum"],
-                  "name" => "finalStep",
-                  "run" => "scripts/add.cwl",
-              },
-          ]
       ])
+
+      save_last_response_json('workflows-response', 'WorkflowsResponse')
     end
 
     it 'rejects a non-user' do

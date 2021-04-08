@@ -1,16 +1,10 @@
 import * as React from 'react';
 import Cookies from 'js-cookie';
+import { copyText } from 'etna-js/utils/copy';
 
 const copyToken = (e) => {
   let token = Cookies.get(CONFIG.token_name);
-  if (token) {
-    let input = document.createElement('input');
-    input.value = token;
-    document.body.appendChild(input);
-    input.select();
-    document.execCommand('copy',false);
-    input.remove();
-  }
+  if (token) copyText(token);
 }
 
 const Identity = ({user}) => 

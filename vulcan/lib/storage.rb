@@ -1,6 +1,6 @@
 require 'digest'
 require 'fileutils'
-
+require 'securerandom'
 
 class Vulcan
   class Storage
@@ -8,10 +8,16 @@ class Vulcan
 
     def initialize(
         data_host: Vulcan.instance.config(:vulcan)[:host],
-        data_root: Vulcan.instance.config(:data_folder)
+        data_root: Vulcan.instance.config(:data_folder),
+        advisory_lock_file: Vulcan.instance.config(:advisory_lock_file)
     )
       @data_host = data_host
       @data_root = data_root
+      @advisory_lock_file = advisory_lock_file
+    end
+
+    # Raised whenever two processes attempt to build and write the same build output
+    class ContentionError < StandardError
     end
 
     # Data is namespaced per project, just like workflows and anything else, to make data access authorization much simpler.
@@ -29,41 +35,78 @@ class Vulcan
       "#{cell_data_path(project_name: project_name, cell_hash: cell_hash, prefix: prefix)}/#{data_filename}"
     end
 
-    # Invoked to initialize temporary output files for a given cell definition, selecting a temporary data
-    # location to place the tentative build files, and creating StorageFile instances to provide to the
-    # build system.  After a successful invocation, places the temporary files into their true output locations.
-    # When we move to a real scheduler, this 'finalization' logic will exist somewhere else (perhaps as a separate
-    # endpoint for jobs to invoke themselves)
-    def with_build_transaction(buildable, &block)
-      project_name = buildable.project_name
-      ch = buildable.cell_hash
-      build_dir = cell_data_path(project_name: project_name, cell_hash: ch, prefix: 'tmp')
-      outputs_dir = cell_data_path(project_name: project_name, cell_hash: ch)
+    def run_cell_for(buildable, uniq_run_id: SecureRandom.uuid)
+      NonSharedTmpRunCell.new(
+          project_name: buildable.project_name, build_cell_hash: buildable.cell_hash,
+          output_names: buildable.build_outputs.keys, uniq_run_id: uniq_run_id
+      )
+    end
 
-      if ::File.exists?(build_dir)
-        ::FileUtils.rm_rf(build_dir)
+    # Provides a context for which to prepare a temporary, non shared run cell to execute some calculation into.
+    # Cleans up the run cell by the end of the block.  Does NOT retain the storage lock, as the run_cell is
+    # intended to be non shared.
+    def with_run_cell_build(run_cell:)
+      build_dir = cell_data_path(project_name: run_cell.project_name, cell_hash: run_cell.cell_hash, prefix: 'tmp')
+
+      unless ::File.exists?(build_dir)
+        ::FileUtils.mkdir_p(build_dir)
       end
 
-      ::FileUtils.mkdir_p(build_dir)
-
-      output_storage_files = buildable.build_outputs.values.map do |sf|
+      output_storage_files = run_cell.build_outputs.values.map do |sf|
         sf = sf.with_prefix('tmp')
         ::FileUtils.touch(sf.data_path(self))
         sf
       end
 
-      result = yield output_storage_files
-
-      ::FileUtils.mkdir_p(::File.dirname(outputs_dir))
-      ::FileUtils.mv(build_dir, outputs_dir, force: true)
-
-      result
+      yield build_dir, output_storage_files
+    ensure
+      ::FileUtils.rm_rf(build_dir) if ::File.exists?(build_dir)
     end
 
+    # Attempts to install sthe given build_dir, usually obtained via with_run_cell_build, into the final
+    # location for the given buildable.  A lock is obtained to ensure an atomic transaction, raising a ContentionError
+    # when multiple concurrent writes contend for access.  Graceful handlers should catch this error and consider wether
+    # there is useful action by the system (reporting?) but likely not bother an end user, as it is an expected result
+    # of system behavior.
+    def install_build_output(buildable:, build_dir:)
+      outputs_dir = cell_data_path(project_name: buildable.project_name, cell_hash: buildable.cell_hash)
+
+      with_lock do
+        if ::File.exists?(outputs_dir)
+          raise ContentionError.new("Contention writing #{outputs_dir}, another process has already built it.")
+        end
+
+        ::FileUtils.mkdir_p(::File.dirname(outputs_dir))
+        ::FileUtils.mv(build_dir, outputs_dir)
+      end
+    end
+
+    # Advisory only level lock that will only be respected by other magma processes, not any other.
+    # Supports re-entry per thread via thread locals
+    # In the future this should be replaced with a proper distributed synchronization primitive, maybe redis or
+    # NFS 4's close to open consistency backing a 2 pass polling lock.
+    def with_lock(&block)
+      if Thread.current[:vulcan_storage_lock_acquired]
+        yield
+      else
+        lock_file = ::File.open(@advisory_lock_file, File::CREAT | File::RDWR)
+        lock_file.flock(::File::LOCK_EX)
+
+        begin
+          Thread.current[:vulcan_storage_lock_acquired] = true
+          yield
+        ensure
+          Thread.current[:vulcan_storage_lock_acquired] = false
+          lock_file.flock(::File::LOCK_UN)
+        end
+      end
+    end
+
+    # An input or output file contained within a cell.
     class StorageFile
-      # Logical name is simply a mapping between the canonical filename and the filename used inside of the cell context
-      # For output files, these are the same
-      # For input files, these are different
+      # The logical name of a file is either the same as the data_filename (in the case of output files), or an alias
+      # name given as the input's name (in that case, the source of the input file is linked from its original data_filename
+      # to the logical_name).
       attr_accessor :project_name, :cell_hash, :data_filename, :logical_name, :prefix
 
       def initialize(project_name:, cell_hash:, data_filename:, logical_name:, prefix: "built")
@@ -111,6 +154,41 @@ class Vulcan
       end
     end
 
+    # While StorageFiles and BuildTargets are shared contexts that must be acted on atomically and carefully,
+    # run cells are non shared, expected to be completely unique to a given scheduled request, and are completely
+    # ephemeral in the strictest sense (could be deleted anytime).  They provide the context of a specific cell's
+    # run which is, if the cell completes successful, installed into the final BuildTarget via install_build_output
+    class NonSharedTmpRunCell
+      attr_reader :project_name, :build_cell_hash, :output_names, :uniq_run_id
+
+      def initialize(project_name:, build_cell_hash:, output_names:, uniq_run_id:)
+        @project_name = project_name
+        @build_cell_hash = build_cell_hash
+        @output_names = output_names
+        @uniq_run_id = uniq_run_id
+      end
+
+      def cell_hash
+        @cell_hash ||= Storage.hash_json_obj({
+            build_cell_hash: build_cell_hash,
+            uniq_run_id: uniq_run_id
+        })
+      end
+
+      def build_outputs
+        @build_outputs ||= output_names.map do |name|
+          [
+              name,
+              StorageFile.new(
+                  project_name: project_name, cell_hash: cell_hash,
+                  data_filename: name, logical_name: name, prefix: 'tmp'
+              )
+          ]
+        end.to_h
+      end
+    end
+
+    # A canonical data result of a cell.
     class BuildTarget
       attr_reader :script, :project_name, :input_files
 
@@ -141,11 +219,13 @@ class Vulcan
 
       def build_outputs
         @build_outputs ||= @output_filenames.map do |output_filename|
-          [output_filename,
+          [
+              output_filename,
               StorageFile.new(
                   project_name: @project_name, cell_hash: cell_hash,
                   data_filename: output_filename, logical_name: output_filename
-              )]
+              ),
+          ]
         end.to_h
       end
 
@@ -188,12 +268,12 @@ class Vulcan
         @build_outputs ||= {
             'material.bin' =>
                 StorageFile.new(
-                  project_name: @project_name,
-                  cell_hash: cell_hash,
-                  data_filename: 'material.bin',
-                  logical_name: 'material.bin',
-              )
-          }
+                    project_name: @project_name,
+                    cell_hash: cell_hash,
+                    data_filename: 'material.bin',
+                    logical_name: 'material.bin',
+                )
+        }
       end
 
       def build_output

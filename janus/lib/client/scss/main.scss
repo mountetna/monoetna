@@ -7,6 +7,15 @@
   @include janus-box;
 }
 
+#task-token-group {
+  @include janus-box;
+  .item {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 1.0em;
+    display: flex;
+  }
+
+}
 #keys-group {
   @include janus-box;
   .item {

@@ -57,9 +57,9 @@ module WithEtnaClients
         **EtnaApp.instance.config(:metis, environment) || {})
   end
 
-  def janus_client
+  def janus_client(opts={})
     @janus_client ||= Etna::Clients::Janus.new(
-        token: token,
+        token: opts.has_key?(:token) ? opts[:token] : token,
         ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
         **EtnaApp.instance.config(:janus, environment) || {})
   end
