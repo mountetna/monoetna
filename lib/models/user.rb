@@ -6,6 +6,42 @@ class User < Sequel::Model
     errors.add(:email, 'must be lowercase') if email =~ /[A-Z]/
   end
 
+  def self.from_signed_nonce(signed_nonce)
+    nonce, email, signature = signed_nonce.split(/\./).map.with_index do |p,i|
+      i == 0 ? p : Base64.decode64(p)
+    end
+
+    # validate the nonce
+    return "invalid nonce #{nonce}" unless Janus::Nonce.valid_nonce?(nonce)
+
+    # validate the email
+    return "invalid email" if email =~ /[^[:print:]]/
+
+    # find the user
+    user = User[email: email]
+
+    return "no user" unless user
+
+    # check the user's signature
+    txt_to_sign = signed_nonce.split('.')[0..1].join('.')
+
+    return "invalid signature" unless user.valid_signature?(txt_to_sign, signature)
+
+    return user
+  end
+
+  def self.from_token(token)
+    payload, header = Janus.instance.sign.jwt_decode(token)
+
+    payload = payload.symbolize_keys.except(:exp)
+
+    user = User[email: payload[:email]]
+
+    return nil unless user and payload == user.jwt_payload
+
+    return user
+  end
+
   def to_hash
     {
       email: email,
@@ -13,26 +49,6 @@ class User < Sequel::Model
       flags: flags,
       public_key: public_key && key_fingerprint
     }.compact
-  end
-
-  def jwt_payload(viewer_only: false)
-    {
-      email: email,
-      name: name,
-      perm:  serialize_permissions(viewer_only: viewer_only),
-      flags: flags&.join(';')
-    }.compact
-  end
-
-  def serialize_permissions(viewer_only: false)
-    # Encode permissions as a string e.g. "a:p1,p2;e:p3;v:p4"
-    filtered_perms = viewer_only ?
-      permissions.select { |p| p.role == 'viewer' } :
-      permissions
-    filtered_perms.map(&:project_role).group_by(&:first)
-      .sort_by(&:first).map do |role_key, project_roles|
-      [ role_key, project_roles.map(&:last).sort.join(',') ].join(':')
-    end.join(';')
   end
 
   def key_fingerprint
@@ -43,13 +59,24 @@ class User < Sequel::Model
     OpenSSL::Digest::MD5.hexdigest(data_string).scan(/../).join(':')
   end
 
-  def create_token!(viewer_only: false)
-    # Time is in seconds, nil = no expiration
-    expires = Time.now.utc + Janus.instance.config(:token_life)
+  def token_builder
+    @token_builder ||= Token::Builder.new(self)
+  end
 
-    Janus.instance.sign.jwt_token(
-      jwt_payload(viewer_only: viewer_only).merge(exp: expires.to_i)
-    )
+  def jwt_payload
+    token_builder.jwt_payload
+  end
+
+  def create_token!
+    token_builder.create_token!
+  end
+
+  def create_task_token!(project_name)
+    token_builder.create_task_token!(project_name)
+  end
+
+  def create_viewer_token!
+    token_builder.create_viewer_token!
   end
 
   def valid_signature?(text, signature)
