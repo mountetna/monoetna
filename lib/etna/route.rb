@@ -91,6 +91,10 @@ module Etna
       @auth && @auth[:noauth]
     end
 
+    def ignore_janus?
+      @auth && @auth[:ignore_janus]
+    end
+
     private
 
     def application
