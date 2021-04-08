@@ -27,6 +27,10 @@ class Permission < Sequel::Model
     role == 'editor' || admin?
   end
 
+  def project_name
+    project.project_name
+  end
+
   def project_role
     [ role_key, project.project_name ]
   end

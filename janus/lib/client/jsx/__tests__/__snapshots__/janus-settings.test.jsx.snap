@@ -34,5 +34,35 @@ exports[`JanusSettings renders 1`] = `
       </button>
     </div>
   </div>
+  <div
+    id="task-token-group"
+  >
+    <div
+      className="title"
+    >
+      Task Tokens
+    </div>
+    <div
+      className="item"
+    >
+      <select
+        onChange={[Function]}
+        value={null}
+      >
+        <option
+          disabled={false}
+          value=""
+        >
+           --- 
+        </option>
+      </select>
+      <button
+        disabled={true}
+        onClick={null}
+      >
+        Copy Task Token
+      </button>
+    </div>
+  </div>
 </div>
 `;
