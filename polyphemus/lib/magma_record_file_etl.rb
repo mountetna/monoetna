@@ -73,7 +73,7 @@ class Polyphemus
     end
 
     def attribute_query_terms
-      return ["::identifier"] if all_attributes?
+      return all_attribute_names if all_attributes?
 
       non_file_attribute_names + file_attributes_to_query.map { |a| [a, "::md5"] }
     end
@@ -83,13 +83,17 @@ class Polyphemus
     end
 
     def non_file_attribute_names
-      return ["::identifier"] if all_attributes?
+      attribute_set = all_attributes? ? all_attribute_names : @attribute_names
 
-      @attribute_names - file_attributes_to_query
+      attribute_set - file_attributes_to_query
+    end
+
+    def all_attribute_names
+      @all_attribute_names ||= @template.attributes.all.map { |a| a.name }
     end
 
     def all_file_attribute_names
-      @all_file_attribute_names ||= @template.attributes.all.select { |a|
+      @all_file_attribute_names ||= all_attribute_names.select { |a|
         [Etna::Clients::Magma::AttributeType::FILE,
          Etna::Clients::Magma::AttributeType::IMAGE,
          Etna::Clients::Magma::AttributeType::FILE_COLLECTION].include?(a.attribute_type)
