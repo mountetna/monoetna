@@ -1,4 +1,5 @@
 #' Analogous to the '/update' function of magma
+#' @description Analogous to the '/update' function of magma, allows data to be sent to magma (by users with at least "editor" authorization).
 #' @inheritParams updateMatrix
 #' @param revisions A list of named lists containing the data to be updated.
 #' 
@@ -33,12 +34,16 @@
 #' @examples
 #' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token one time.
+#'     # First, we use magmaRset to create an object which will tell other magmaR
+#'     #  functions our authentication token (as well as some other optional bits).
+#'     # When run in this way, it will ask you to give your token.
+#'     magma <- magmaRset()
 #'     
 #'     # Note that you likely do not have write-permissions for the 'example'
-#'     # project, so this code can be expected to give and authorization error.
+#'     # project, so this code can be expected to give an authorization error.
 #' 
 #'     updateValues(
+#'         target = magma,
 #'         projectName = "example",
 #'         revisions = list(
 #'             # model
@@ -57,9 +62,9 @@
 #' }
 #'
 updateValues <- function(
+    target,
     projectName,
     revisions = list(),
-    token = .get_TOKEN(),
     auto.proceed = FALSE,
     ...
 ) {
@@ -68,7 +73,7 @@ updateValues <- function(
     lapply(names(revisions), function(model) {
         
         current_ids <- retrieveIds(
-            projectName, model, token, ...)
+            target, projectName, model)
         
         .summarize_model_values(revisions[[model]], model, current_ids)
     })
@@ -80,9 +85,9 @@ updateValues <- function(
     }
     
     .update(
+        target = target,
         projectName = projectName,
         revisions = revisions,
-        token = token,
         ...)
 }
 
@@ -103,7 +108,7 @@ updateValues <- function(
         ### Summarize for NEW records
         cat("For model \"", modelName, "\", this update() will create ", num_new, " NEW records:\n    ",
             paste0(rec_names_new, collapse = "\n    "),
-            "\nWARNING: Check the above carefully. Once created, there is currently no easy way to remove records from magma.\n",
+            "\nWARNING: Check the above carefully. Once created, there is no easy way to remove records from magma.\n",
             sep="")
         
         num_current_recs <- num_recs - num_new
@@ -137,12 +142,11 @@ updateValues <- function(
 }
 
 .update <- function(
+    target,
     projectName,
     revisions,
     request.only = FALSE,
     json.params.only = FALSE,
-    url.base = .get_URL(),
-    token = .get_TOKEN(),
     verbose = TRUE
 ) {
     
@@ -164,6 +168,6 @@ updateValues <- function(
     ### Perform '\update'
     curl_out <- .perform_curl_get(
         fxn = "/update",
-        requestBody, token, url.base,
+        target, requestBody,
         parse = FALSE, verbose = verbose)
 }

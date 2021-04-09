@@ -5,17 +5,19 @@
 \title{A matrix-specific wrapper of \code{\link{updateValues}}}
 \usage{
 updateMatrix(
+  target,
   projectName,
   modelName,
   attributeName,
   matrix,
   separator = ",",
   auto.proceed = FALSE,
-  token = .get_TOKEN(),
   ...
 )
 }
 \arguments{
+\item{target}{A list, which can be created using \code{\link{magmaRset}}, containing your authorization 'token' (a string), a 'url' of magma to target (a string), and optional 'opts' for specifying additions parameters for curl requests (a named list).}
+
 \item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
 \item{modelName}{Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
@@ -24,26 +26,21 @@ For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<project
 \item{attributeName}{String naming the matrix attribute for which to upload data.}
 
 \item{matrix}{A matrix or dataframe containing the data to upload to magma.
-colnames must be record identifiers, and rownames should match the values of 'validation' associated with the target 'attribute'.
 
-Alternatively, the location of a file containing such a data.}
+Alternatively, a String specifying the file path of a file containing such data.
 
-\item{separator}{String indicating the field separator to use if providing \code{matrix} as a file location.
+No matter the provision method, colnames must be record identifiers, and rownames should match the values of 'options' associated with the target 'attribute'.
+Check the 'See Also' section below for how to determine the needed 'options'.}
+
+\item{separator}{String indicating the field separator to use if providing \code{matrix} as a file path.
 Default = \code{","}.}
 
 \item{auto.proceed}{Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.}
 
-\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
-
-When not explicitly given in a function call: you will be prompted to input your token, one time.
-This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
-and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
-
-\item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
+\item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
-\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which 1) stop the function before its main curl request to magma and 2) returns the values that would have been sent to magma in either of two formats.
 \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
-\item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 }}
 }
 \value{
@@ -52,7 +49,7 @@ None directly.
 The function sends data to magma, and the only outputs are information reported via the console.
 }
 \description{
-A matrix-specific wrapper of \code{\link{updateValues}}
+A matrix-specific wrapper of \code{\link{updateValues}} which can take in a matrix, data.frame, or file path, directly.
 }
 \details{
 This function utilizes the magma/query function, documented here \url{https://mountetna.github.io/magma.html#update},
@@ -64,7 +61,7 @@ If given as a file path, the \code{separator} input can be used to adjust for wh
 Data is then validated by ensuring that all row names are among the valid 'options' of the target attribute (See the See Also section below for a note on how to explore these options yourself.).
 Rows are reordered to be in the same order as these 'options'.
 
-For any missing 'validation' options, NAs are added.
+For any missing 'options', rows of NAs are added.
 
 The data is then transformed and passed along to \code{\link{updateValues}}.
 
@@ -77,15 +74,19 @@ Data can be overwritten with NAs or zeros or the like, but improperly named reco
 \examples{
 
 if (interactive()) {
-    # Running like this will ask for input of your janus token one time.
+    # First, we use magmaRset to create an object which will tell other magmaR
+    #  functions our authentication token (as well as some other optional bits).
+    # When run in this way, it will ask you to give your token.
+    magma <- magmaRset()
     
     ### Note that you likely do not have write-permissions for the 'example'
     # project, so this code can be expected to give an authorization error.
     
     ### Retrieve some data from magma, then update that same data.
-    mat <- retrieveMatrix("example", "rna_seq", "all", "gene_tpm")
+    mat <- retrieveMatrix(magma, "example", "rna_seq", "all", "gene_tpm")
 
     updateMatrix(
+        target = magma,
         projectName = "example",
         modelName = "rna_seq",
         attributeName = "gene_tpm",

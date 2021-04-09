@@ -6,7 +6,7 @@ http_interactions:
       encoding: ''
       string: ''
     headers:
-      User-Agent: libcurl/7.64.1 r-curl/4.3 crul/1.0.0
+      User-Agent: libcurl/7.64.1 r-curl/4.3 crul/1.1.0
       Accept-Encoding: gzip, deflate
       Accept: application/json, text/xml, application/xml, */*
       Content-Type: application/json
@@ -18,8 +18,9 @@ http_interactions:
       explanation: Request fulfilled, document follows
     headers:
       status: HTTP/1.1 200 OK
-      date: Fri, 12 Feb 2021 09:15:31 GMT
+      date: Thu, 08 Apr 2021 00:11:17 GMT
       server: Apache
+      strict-transport-security: max-age=31536000; includeSubDomains
       content-type: text/tsv
       content-disposition: inline; filename="results.tsv
       service-worker-allowed: /
@@ -41,5 +42,5 @@ http_interactions:
         EXAMPLE-HS7
         EXAMPLE-HS8
         EXAMPLE-HS9
-  recorded_at: 2021-02-12 09:15:32 GMT
-  recorded_with: vcr/0.6.0, webmockr/0.7.4
+  recorded_at: 2021-04-08 00:11:17 GMT
+  recorded_with: vcr/0.6.0, webmockr/0.8.0
