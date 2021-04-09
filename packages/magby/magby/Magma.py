@@ -17,8 +17,7 @@ class Magma(object):
                  token: str,
                  endpoint: str,
                  fmt: str='json',
-                 session: Session=_session,
-                 verify: bool=True) -> None:
+                 session: Session=_session) -> None:
 
         '''
         Private class to interface with Magma
@@ -27,7 +26,6 @@ class Magma(object):
         :param endpoint: Magma (and janus) endpoints for HTTP requests
         :param fmt: Format of Magma output
         :param session: Instance of requests.Session. Needed to modify proxies and SSL certificate verification
-        :param verify: Verify SSL certificates. Should only be False for dev.
         '''
 
         allowedEndpoints = ['update', 'retrieve', 'query', 'update_model']
@@ -39,7 +37,6 @@ class Magma(object):
         self._session = session
         self._headers = {"Content-Type" : "application/json",
                          "Authorization" : f"Etna {self._token}"}
-        self._verify = verify
 
 
     def getResponseContent(self, response) -> Union[Dict, StringIO]:
@@ -67,8 +64,7 @@ class Magma(object):
         response = self._session.post(
             self._url,
             data=json.dumps(payload),
-            headers=self._headers,
-            verify=self._verify)
+            headers=self._headers)
         content = self.getResponseContent(response)
         return content, response.headers
 
@@ -80,8 +76,7 @@ class Magma(object):
         '''
         response = self._session.get(
             url,
-            headers=self._headers,
-            verify=self._verify)
+            headers=self._headers)
         content = self.getResponseContent(response)
         return content
 

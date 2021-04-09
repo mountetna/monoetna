@@ -7,16 +7,14 @@ from magby.Magma import *
 _session = Session()
 
 class Magby(object):
-    def __init__(self, url: str, token: str, verify: bool = True):
+    def __init__(self, url: str, token: str):
         '''
         Client-facing class to interface with Magma (or Janus - for projects)
         :param url: str. Magma url
         :param token: str. Private token
-        :param verify: boolean. Default True. Verify SSL certificates. Should only be False for dev.
         '''
         self._url = url.strip('/')
         self._token = token
-        self._verify = verify
 
     @property
     def url(self) -> str:
@@ -148,7 +146,7 @@ class Magby(object):
 
     def _recordMagmaObj(self, endpoint: str, fmt: str= 'json', session=_session) -> Magma:
         return Magma(url=self._url, token=self._token, endpoint=endpoint,
-                     fmt=fmt, session=session, verify=self._verify)
+                     fmt=fmt, session=session)
 
 
     def _call_api(self, payload: Dict, magma: Magma):
