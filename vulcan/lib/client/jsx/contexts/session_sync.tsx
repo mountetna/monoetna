@@ -74,7 +74,7 @@ export function useSessionSync(
     if (!post &&
         hasNoRunningSteps(state.current.status) &&
         lastCompletedPollingRequest === state.current.session.inputs &&
-        currentRequestNumber > minimumNumberRequests) {
+        currentRequestNumber >= minimumNumberRequests) {
       setCurrentRequestNumber(0);
       return;
     }
