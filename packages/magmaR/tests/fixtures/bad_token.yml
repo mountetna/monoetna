@@ -1,7 +1,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://magma.ucsf.edu/retrieve
+    uri: https://janus.ucsf.edu/projects
     body:
       encoding: ''
       string: ''
@@ -10,24 +10,23 @@ http_interactions:
       Accept-Encoding: gzip, deflate
       Accept: application/json, text/xml, application/xml, */*
       Content-Type: application/json
-      Authorization: Etna <<<my_token>>>
+      Authorization: Etna BAD_TOKEN
   response:
     status:
-      status_code: '200'
-      message: OK
-      explanation: Request fulfilled, document follows
+      status_code: '302'
+      message: Found
+      explanation: Object moved temporarily -- see URI list
     headers:
-      status: HTTP/1.1 200 OK
-      date: Thu, 08 Apr 2021 00:11:16 GMT
+      status: HTTP/1.1 302 Found
+      date: Thu, 08 Apr 2021 00:11:17 GMT
       server: Apache
       strict-transport-security: max-age=31536000; includeSubDomains
-      content-type: text/tsv
-      content-disposition: inline; filename="results.tsv
+      location: https://janus.ucsf.edu/login?refer=http%3A%2F%2Fjanus.ucsf.edu%2Fprojects
       service-worker-allowed: /
-      transfer-encoding: chunked
+      content-length: '0'
     body:
       encoding: UTF-8
       file: no
-      string: "name\tbiospecimen\tgroup\nEXAMPLE-HS1\tEXAMPLE-HS1-WB1\tg1\n"
-  recorded_at: 2021-04-08 00:11:16 GMT
+      string: ''
+  recorded_at: 2021-04-08 00:11:17 GMT
   recorded_with: vcr/0.6.0, webmockr/0.8.0

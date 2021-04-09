@@ -1,10 +1,11 @@
-#' Retrieve data from one model ("meta") of a project, for records that are linked to records of data from a different model ("target").
+#' Download data from magma of one model, but transformed into the shape of a different model's records.
+#' @description Retrieve data from one model ("meta") transformed into the shape of linked records of a different model ("target").
+#' For example, one could get subject-level information for an RNAseq counts matrix with this function.
+#' The output would contain columns of subject-level attributes, and rows that are the RNAseq-model records.
 #' @inheritParams retrieve
-#' @param target_modelName,target_recordNames Strings which indicate the 'target' data that meta-data is desired to be linked to.
+#' @param target_modelName,target_recordNames Strings which indicate the "target" data that meta-data is desired to be reshaped into.
 #' They work the same as inputs of other functions without the \code{target_} portion, and
 #' these inputs ultimately set which records of "meta" model data to actually obtain.
-#' 
-#' \strong{The idea here...} is retrieval of "meta"data, such as patient-level data, to go alongside of a separate download (separate call) of "target" assay data that might be part of a different model.
 #' @param meta_modelName,meta_attributeNames Strings which indicate the "meta"data to retrieve.
 #' They work the same as inputs of other functions without the \code{meta_} portion.
 #' @details This function retrieves data from one model (the "meta" model) transformed so that rows of the returned dataframe correspond to records of a different model (the "target" model).
@@ -29,8 +30,14 @@
 #' @examples
 #' 
 #' if (interactive()) {
+#'     # First, we use magmaRset to create an object which will tell other magmaR
+#'     #  functions our authentication token (as well as some other optional bits).
+#'     # When run in this way, it will ask you to give your token.
+#'     magma <- magmaRset()
+#'     
 #'     # Running like this will ask for input of your janus token one time.
 #'     retrieveMetadata(
+#'         target = magma,
 #'         projectName = "example",
 #'         meta_modelName = "subject",
 #'         meta_attributeNames = "group",
@@ -39,15 +46,15 @@
 #' }
 #'
 retrieveMetadata <- function(
+    target,
     projectName,
     meta_modelName,
     meta_attributeNames = "all",
     target_modelName,
     target_recordNames = "all",
-    token = .get_TOKEN(),
     ...) {
     
-    temp <- retrieveTemplate(projectName, token = token, ...)
+    temp <- retrieveTemplate(target, projectName)
     
     ### Establish linkage and retrieve identifier mappings
     paths <- .obtain_linkage_paths(target_modelName, meta_modelName, temp)
@@ -55,9 +62,9 @@ retrieveMetadata <- function(
     
     ### Target data
     target_id_map <- .map_identifiers_by_path(
+        target = target,
         path = paths$target_path,
         projectName = projectName,
-        token = token,
         ...)
     
     if (!identical(target_recordNames, "all")) {
@@ -68,10 +75,10 @@ retrieveMetadata <- function(
     # Determine linked records
     if (separate_branches) {
         meta_id_map <- .map_identifiers_by_path(
-        path = paths$meta_path,
-        projectName = projectName,
-        token = token,
-        ...)
+            target = target,
+            path = paths$meta_path,
+            projectName = projectName,
+            ...)
     
         # Subset meta side to matching data
         meta_id_map <- meta_id_map[
@@ -89,11 +96,9 @@ retrieveMetadata <- function(
     
     ### Retrieve metadata
     meta_raw <- retrieve(
-        projectName = projectName, modelName = meta_modelName,
+        target = target, projectName = projectName, modelName = meta_modelName,
         recordNames = meta_record_names,
-        attributeNames = meta_attributeNames,
-        token = token,
-        ...)
+        attributeNames = meta_attributeNames)
     
     ### Ensure metadata has 1 row per linked target data row
     # Find identifier column
@@ -176,7 +181,7 @@ retrieveMetadata <- function(
 }
 
 .map_identifiers_by_path <- function(
-    path, projectName, token = .get_TOKEN(), ...) {
+    target, path, projectName, ...) {
     # Function takes in a vector of model names, 'path', for a given project,
     # then makes query() calls to obtain child-parent identifier linkage for
     # all successive pairs of target models. Output is a data.frame which can
@@ -184,21 +189,22 @@ retrieveMetadata <- function(
     # models named in 'paths'
     
     ids <- query(
-            projectName = projectName,
-            queryTerms = 
-                list(path[1],
-                     '::all',
-                     path[2],
-                     '::identifier'),
-            format = "df",
-            token = token,
-            ...)
+        target = target,
+        projectName = projectName,
+        queryTerms = 
+            list(path[1],
+                 '::all',
+                 path[2],
+                 '::identifier'),
+        format = "df",
+        ...)
     
     ind <- 2
     
     while (ind < length(path)) {
         
         new_id_map <- query(
+            target = target,
             projectName = projectName,
             queryTerms = 
                 list(path[ind],
@@ -206,7 +212,6 @@ retrieveMetadata <- function(
                      path[ind+1],
                      '::identifier'),
             format = "df",
-            token = token,
             ...)
         
         if (any(duplicated(new_id_map[1,]))) {

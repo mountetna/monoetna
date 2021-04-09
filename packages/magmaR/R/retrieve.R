@@ -1,50 +1,51 @@
 #' Download data from magma as a tsv, and convert to a data.frame
-#' @param token Single string. Your personal token from \url{https://janus.ucsf.edu}. 
-#' 
-#' When not explicitly given in a function call: you will be prompted to input your token, one time.
-#' This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
-#' and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.
+#' @description Analogous to the '/retrieve' function of magma, with \code{format = "tsv"}
+#' @param target A list, which can be created using \code{\link{magmaRset}}, containing your authorization 'token' (a string), a 'url' of magma to target (a string), and optional 'opts' for specifying additions parameters for curl requests (a named list).
 #' @param projectName Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.
 #' @param modelName Single string. The name of the subset data structure within the project, which are referred to as 'model's in magma, to interact with.
 #' For options, see \code{\link{retrieveModels}} or https://timur.ucsf.edu/<projectName>/map.
-#' @param recordNames Single string or string vector. Which particular sample/tube/etc. records to grab data for.
+#' @param recordNames Single string or string vector indicating which particular sample/tube/etc. records to target.
 #' Options are "all" or any combination of individual record names. To retrieve individual options, see \code{\link{retrieveIds}}.
-#' @param attributeNames Single string or string vector. Which features of the data to obtain.
+#' @param attributeNames Single string or string vector indicating which features of the data to target.
 #' Options are "all" or any combination of individual attribute names. To retrieve individual options, see \code{\link{retrieveAttributes}}.
-#' @param filter String. Potential filter of the data.
+#' @param filter String. Potential filter(s) of the data.
 #' Example: "<targetAttributeName>~GYN" to filter to records where <targetAttributeName> contains "GYN".
 #' 
-#' Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details.
-#' @param pageSize,page Integers. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows, and which slice to get.
-#' @param ... Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
+#' Refer to \url{https://mountetna.github.io/magma.html#retrieve} for more details about options and format.
+#' @param pageSize Integer. For retrieving just a portion of the data, sets slice/page size, which is equivalent to the a number of rows.
+#' @param page Integer. For retrieving just a portion of the data, sets which slice to get.
+#' @param ... Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 #' for troubleshooting or advanced-user purposes only: \itemize{
-#' \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+#' \item \code{request.only} (Logical) & \code{json.params.only} (Logical) which 1) stop the function before its main curl request to magma and 2) returns the values that would have been sent to magma in either of two formats.
 #' \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
-#' \item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 #' }
 #' @return A dataframe
 #' @details This function makes a curl get request to magma/retrieve, with properly reformatted versions of user inputs, plus \code{format = "tsv"}.
 #' Then, it converts the tsv-string output into a dataframe.
 #' 
 #' Note: When \code{format = "tsv"}, magma/retrieve returns just an identifier for matrix-type attributes.
-#' To retrieve underlying data for such attributes, use \code{\link{retrieveMatrix}} which is a specialized wrapper around \code{\link{retrieveJSON}}.
+#' To retrieve underlying data for such attributes, use the specialized \code{\link{retrieveMatrix}} function.
 #' @seealso
-#' \code{\link{retrieveMatrix}} for retrieving matrix data types.
+#' \code{\link{retrieveMatrix}} for retrieving attributes of type matrix.
 #' 
-#' \code{\link{retrieveJSON}} for similar functionality, but where the call to magma/retrieve is made with \code{format = "json"} and the output is a list.
+#' \code{\link{retrieveJSON}} for similar functionality to \code{retrieve}, but where the call to magma/retrieve is made with \code{format = "json"} and the output is a list.
+#' This output often contains more information, and can retrieve data for attribute types of type matrix, which are not returned by the current function.
+#' But in most cases, the data returned by \code{retrieve} and \code{retrieveMatrix} will suffice.
 #' 
 #' \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
-#' 
-#' \code{\link{retrieveProjects}} for exploring options for the \code{projectName} input.
-#' 
-#' \code{\link{retrieveModels}}, \code{\link{retrieveIds}}, and \code{\link{retrieveAttributes}} for exploring options for the \code{modelName}, \code{recordNames}, and \code{attributeNames} inputs, respectively.
 #' 
 #' @export
 #' @examples
 #' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token one time.
+#'     # First, we use magmaRset to create an object which will tell other magmaR
+#'     #  functions our authentication token (as well as some other optional bits).
+#'     # When run in this way, it will ask you to give your token.
+#'     magma <- magmaRset()
+#'     
+#'     # Now we can retrieve data with...
 #'     retrieve(
+#'         target = magma,
 #'         projectName = "example",
 #'         modelName = "rna_seq",
 #'         recordNames = "all",
@@ -53,6 +54,7 @@
 #' }
 #' 
 retrieve <- function(
+    target,
     projectName,
     modelName,
     recordNames = "all",
@@ -60,10 +62,10 @@ retrieve <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
-    token = .get_TOKEN(),
     ...
 ) {
     .retrieve(
+        target = target,
         projectName = projectName,
         modelName = modelName,
         recordNames = recordNames,
@@ -72,12 +74,13 @@ retrieve <- function(
         format = "tsv",
         page = page,
         pageSize = pageSize,
-        token = token,
         ...)
 }
 
 #' Download data from magma as a json, and convert to a list
+#' @description Analogous to the '/retrieve' function of magma, with \code{format = "json"}
 #' @inheritParams retrieve
+#' @param hideTemplate Logical. Allows to leave out the project template from the return. Often this does not matter much, but the template can be bulky.
 #' @return A list
 #' @details This function makes a call to magma/retrieve with \code{format = "json"}.
 #' Then, it converts the json output into a list which is more compatible with R.
@@ -88,24 +91,42 @@ retrieve <- function(
 #' 
 #' \url{https://mountetna.github.io/magma.html#retrieve} for documentation of the underlying magma/retrieve function.
 #' 
-#' \code{\link{retrieveProjects}} for exploring options for the \code{projectName} input.
-#' 
-#' \code{\link{retrieveModels}}, \code{\link{retrieveIds}}, and \code{\link{retrieveAttributes}} for exploring options for the \code{modelName}, \code{recordNames}, and \code{attributeNames} inputs, respectively.
-#' 
 #' @export
 #' @examples
 #' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token one time.
-#'     retrieveJSON(
+#'     # First, we use magmaRset to create an object which will tell other magmaR
+#'     #  functions our authentication token (as well as some other optional bits).
+#'     # When run in this way, it will ask you to give your token.
+#'     magma <- magmaRset()
+#'     
+#'     # Now we can retrieve data as json (->list) with...
+#'     json_out <- retrieveJSON(
+#'         target = magma,
 #'         projectName = "example",
 #'         modelName = "rna_seq",
 #'         recordNames = "all",
 #'         attributeNames = "all",
 #'         filter = "")
+#'     # The return will be a nested list with data in a 'documents' element and
+#'     #  some extra information about each attribute in a 'template' element.
+#'     str(json_out, max.level = 4)
+#'
+#'     # Often, the 'template' part is bulky but not needed, so its retrieval may
+#'     #  be turned off by giving hideTemplaate = TRUE'
+#'     json_out <- retrieveJSON(
+#'         target = magma,
+#'         projectName = "example",
+#'         modelName = "rna_seq",
+#'         recordNames = "all",
+#'         attributeNames = "all",
+#'         filter = "",
+#'         hideTemplate = TRUE)
+#'     str(json_out, max.level = 4)
 #' }
 #' 
 retrieveJSON <- function(
+    target,
     projectName,
     modelName,
     recordNames = "all",
@@ -113,11 +134,12 @@ retrieveJSON <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
-    token = .get_TOKEN(),
+    hideTemplate = FALSE,
     ...
 ) {
     
     .retrieve(
+        target = target,
         projectName = projectName,
         modelName = modelName,
         recordNames = recordNames,
@@ -126,11 +148,12 @@ retrieveJSON <- function(
         format = "json",
         page = page,
         pageSize = pageSize,
-        token = token,
+        hideTemplate = hideTemplate,
         ...)
 }
 
 .retrieve <- function(
+    target,
     projectName,
     modelName,
     recordNames,
@@ -139,12 +162,11 @@ retrieveJSON <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
+    hideTemplate = FALSE,
     names.only = FALSE,
     request.only = FALSE,
     json.params.only = FALSE,
     raw.return = FALSE,
-    url.base = .get_URL(),
-    token = .get_TOKEN(),
     verbose = FALSE
 ) {
     
@@ -157,6 +179,7 @@ retrieveJSON <- function(
         record_names = .match_expected_recName_structure(recordNames),
         attribute_names = .match_expected_attName_structure(attributeNames),
         filter = filter,
+        hide_templates = hideTemplate,
         format = format)
 
     if (!identical(page, NULL)) {
@@ -177,7 +200,7 @@ retrieveJSON <- function(
     ### Perform '\retrieve'-al
     curl_out <- .perform_curl_get(
         fxn = "/retrieve",
-        requestBody, token, url.base,
+        target, requestBody,
         parse = TRUE, verbose = verbose)
     
     ### Output

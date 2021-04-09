@@ -21,13 +21,12 @@ http_interactions:
       date: Thu, 08 Apr 2021 00:11:16 GMT
       server: Apache
       strict-transport-security: max-age=31536000; includeSubDomains
-      content-type: text/tsv
-      content-disposition: inline; filename="results.tsv
+      content-type: application/json
+      content-length: '109'
       service-worker-allowed: /
-      transfer-encoding: chunked
     body:
       encoding: UTF-8
       file: no
-      string: "name\tbiospecimen\tgroup\nEXAMPLE-HS1\tEXAMPLE-HS1-WB1\tg1\n"
+      string: '{"models":{"subject":{"documents":{"EXAMPLE-HS1":{"name":"EXAMPLE-HS1","biospecimen":["EXAMPLE-HS1-WB1"]}}}}}'
   recorded_at: 2021-04-08 00:11:16 GMT
   recorded_with: vcr/0.6.0, webmockr/0.8.0
