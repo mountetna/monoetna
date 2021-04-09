@@ -44,7 +44,7 @@ magma <- magmaRset()
 ## Note: run as above, you will be prompted in the console to provide your token.
 ## This token can be obtained from Janus.
 
-# Now, you're ready retrieve some data!
+# Now, you're ready to retrieve some data!
 retrieve(
     target = magma,
     projectName  = "example",
