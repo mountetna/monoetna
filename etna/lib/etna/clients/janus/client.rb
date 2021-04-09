@@ -57,6 +57,25 @@ module Etna
 
         TokenResponse.new(token)
       end
+
+      def validate_task_token(validate_task_token_request = ValidateTaskTokenRequest.new)
+        token = nil
+        @etna_client.post('/api/tokens/task/validate', validate_task_token_request)
+      end
+
+      def get_nonce
+        @etna_client.get('/api/tokens/nonce').body
+      end
+
+      def generate_token(token_type, signed_nonce: nil, project_name: nil)
+        response = @etna_client.with_headers(
+          'Authorization' => signed_nonce ? "Signed-Nonce #{signed_nonce}" : nil
+        ) do
+          post('/api/tokens/generate', token_type: token_type, project_name: project_name)
+        end
+
+        response.body
+      end
     end
   end
 end

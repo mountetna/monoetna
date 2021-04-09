@@ -51,6 +51,12 @@ module Etna
         end
       end
 
+      class ValidateTaskTokenRequest
+        def map
+          []
+        end
+      end
+
       class HtmlResponse
         attr_reader :raw
 

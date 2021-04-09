@@ -41,7 +41,7 @@ class UserController < Janus::Controller
 
     raise Etna::Forbidden, 'User not found' unless @janus_user
 
-    success(@janus_user.create_token!(viewer_only: true))
+    success(@janus_user.create_viewer_token!)
   end
 
   def projects
