@@ -27,7 +27,6 @@ export function useSessionSync(
   const [lastPollingRequest, setPollingRequest] = useState([false] as [boolean]);
   const [lastCompletedPollingRequest, setCompletedRequest] = useState(null as null | VulcanSession['inputs']);
   
-
   // We want to guarantee a minimum number of status polls,
   //   to make sure we get accurate status from the server.
   // Sometimes a status or submit POST will receive a response
