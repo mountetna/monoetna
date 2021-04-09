@@ -1,6 +1,6 @@
 from archimedes.functions.dataflow import output_json, input_var, input_json
 from archimedes.functions.magma import connect, question
-from archimedes.functions.environment import token, magma_host, app_env
+from archimedes.functions.environment import token, magma_host
 
 input_records = input_json('record_ids')
 

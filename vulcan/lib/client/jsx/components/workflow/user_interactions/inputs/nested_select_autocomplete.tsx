@@ -68,8 +68,6 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({input, onChange})
   useEffect(() => {
     if (input.default) {
       setPath(getPath(allOptions, input.default));
-    } else {
-      setPath([])
     }
   }, [input, allOptions]);
 

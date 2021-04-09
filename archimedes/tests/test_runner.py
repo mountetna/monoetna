@@ -74,9 +74,7 @@ def test_runner():
             ],
             output_files=[
                 host_storage_file('output_one', out_path)
-            ],
-            network="default",
-            extra_hosts=["hostname:192.168.0.1"]
+            ]
         )
 
         result = run(request, DockerIsolator(), 4, False)
