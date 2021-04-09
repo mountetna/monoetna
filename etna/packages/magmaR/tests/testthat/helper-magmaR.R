@@ -18,7 +18,3 @@ invisible(vcr::vcr_configure(
     dir = "../fixtures"
 ))
 vcr::check_cassette_names()
-
-### General magmaR Setup
-.GlobalEnv$.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
-.GlobalEnv$.MAGMAR_URL <- Sys.getenv("URL")

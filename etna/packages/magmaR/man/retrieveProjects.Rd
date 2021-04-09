@@ -4,18 +4,10 @@
 \alias{retrieveProjects}
 \title{Helper function that retrieves all the projectName options which a user has access to, from janus.}
 \usage{
-retrieveProjects(token = .get_TOKEN(), url.base = .get_URL(), verbose = FALSE)
+retrieveProjects(target, verbose = FALSE)
 }
 \arguments{
-\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
-
-When not explicitly given in a function call: you will be prompted to input your token, one time.
-This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
-and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
-
-\item{url.base}{Single string. A url which directs towards production versus staging versus development etna environments. See \code{\link{magma-environments}}.
-
-Note that here, we actually pull from 'janus' rather than 'magma', but the function will correct any magma-targeting urls to target janus.}
+\item{target}{A list, which can be created using \code{\link{magmaRset}}, containing your authorization 'token' (a string), a 'url' of magma to target (a string), and optional 'opts' for specifying additions parameters for curl requests (a named list).}
 
 \item{verbose}{Logical. Sets whether to report the status of the '/projects' curl request sent to janus.}
 }
@@ -26,15 +18,13 @@ A data.frame where elements of the 'project_name' column reflect what can be giv
 Helper function that retrieves all the projectName options which a user has access to, from janus.
 }
 \details{
-This function takes in a user's authorization token, and a url targetting either magma or janus.
-It then converts that url to target janus, and makes a curl request to <janus-url>/projects in order to return which projects a user can access.
+This function takes in the user's \code{target} containing their authorization token, and a url targeting either magma or janus.
+It then converts the given url to target janus, and makes a curl request to <janus-url>/projects in order to return which projects a user can access.
 }
 \examples{
 
 if (interactive()) {
-
-    # Running like this will ask for input of your janus token one time.
-    retrieveProjects()
+    retrieveProjects(target = magmaRset())
 }
 
 }

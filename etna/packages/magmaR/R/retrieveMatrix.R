@@ -5,9 +5,13 @@
 #' @examples
 #' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token one time.
+#'     # First, we use magmaRset to create an object which will tell other magmaR
+#'     #  functions our authentication token (as well as some other optional bits).
+#'     # When run in this way, it will ask you to give your token.
+#'     magma <- magmaRset()
 #'     
 #'     retrieveMatrix(
+#'         target = magma,
 #'         projectName = "example",
 #'         modelName = "rna_seq",
 #'         recordNames = "all",
@@ -15,6 +19,7 @@
 #' }
 #' 
 retrieveMatrix <- function(
+    target,
     projectName,
     modelName,
     recordNames = "all",
@@ -22,22 +27,22 @@ retrieveMatrix <- function(
     filter = "",
     page = NULL,
     pageSize = 10,
-    token = .get_TOKEN(),
     ...
 ) {
     
     # Break recordNames into chunks of 10 or fewer
     if (identical(recordNames, "all")) {
         recordNames <- retrieveIds(
-            projectName, modelName, token = token, ...)
+            target, projectName, modelName)
     }
     
     sets <- split(recordNames, ceiling(seq_along(recordNames)/10))
     
     # Pull data for each chunk individually, and collate
     chunk_data <- lapply(sets,
-           function(x) {
-               new <- .matrix_retrieval_chunk(
+            function(x) {
+                new <- .matrix_retrieval_chunk(
+                    target,
                     projectName = projectName,
                     modelName = modelName,
                     recordNames = x,
@@ -45,13 +50,12 @@ retrieveMatrix <- function(
                     filter = filter,
                     page = page,
                     pageSize = pageSize,
-                    token = token,
                     ...)
            })
     data <- do.call(cbind, chunk_data)
     
     # Add row names
-    template <- retrieveTemplate(projectName = projectName, token = token)
+    template <- retrieveTemplate(target, projectName = projectName)
     rownames <- template$models[[modelName]]$template$attributes[[attributeNames]]$options
     
     rownames(data) <- rownames
@@ -60,6 +64,7 @@ retrieveMatrix <- function(
 }
 
 .matrix_retrieval_chunk <- function(
+    target,
     projectName,
     modelName,
     recordNames,
@@ -68,7 +73,6 @@ retrieveMatrix <- function(
     page = NULL,
     pageSize = 10,
     request.only = FALSE,
-    token = .get_TOKEN(),
     ...
 ) {
     
@@ -78,6 +82,7 @@ retrieveMatrix <- function(
     
     # Retrieve as json to get the matrix data
     json <- retrieveJSON(
+        target = target,
         projectName = projectName,
         modelName = modelName,
         recordNames = recordNames,
@@ -86,7 +91,7 @@ retrieveMatrix <- function(
         page = page,
         pageSize = pageSize,
         request.only = request.only,
-        token = token,
+        hideTemplate = TRUE,
         ...)
     
     # Extract matrix data as a list of columns
