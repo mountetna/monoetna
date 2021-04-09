@@ -207,9 +207,11 @@ After a successful `update()` a user should see this message (unless `verbose` h
 /update: successful.
 ```
 
-## Important Consideration
+## Important Consideration when added NEW records
 
-**Please note that it is not easy to remove records with an incorrect ID. Only data library engineers have access to such functionality. So if you get a message like the one below, please heed the warning!**
+Contrary to the "update" portion of the function names, these functions can add totally new data to magma records. They are not solely restricted to updating old records.  That said,
+
+**Please note that it is not easy to remove records with an incorrect ID.** Only data library engineers have access to such functionality. **So if you get a message like the one below, which should come whenever new records would be created, please heed the warning!**
 
 ```
 For model "rna_seq", this update() will create 3 NEW records:
