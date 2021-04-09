@@ -285,7 +285,13 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 5, remove = T
 
             if code != 0:
                 res.status = 'failed'
-                res.error = isolator.get_stderr(process)
+                if code == 137:
+                    # When the container exits because of a 137,
+                    #   stderr is an empty string, so not very
+                    #   informative for debugging purposes.
+                    res.error = "Out of memory."
+                else:
+                    res.error = isolator.get_stderr(process)
             else:
                 res.status = 'done'
         finally:
