@@ -1,11 +1,10 @@
-from archimedes.functions.environment import token, magma_host, project_name, app_env
+from archimedes.functions.environment import token, magma_host, project_name
 from archimedes.functions.magby import Magby
 
 def connect():
     return Magby.Magby(
         url=magma_host,
-        token=token,
-        verify=(app_env == 'production')
+        token=token
     )
 
 def question(magma, question, strip_identifiers=True):

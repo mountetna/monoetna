@@ -85,21 +85,6 @@ class Vulcan
       end
     end
 
-    def is_dev?
-      :development == Vulcan.instance.environment
-    end
-
-    # Will go away when we get hmacs for inter service.
-    def dev_options
-      [
-          "--network=monoetna_edge_net",
-          "--extra-host=magma.development.local:172.16.238.10",
-          "--extra-host=metis.development.local:172.16.238.10",
-          "-e",
-          "ARCHIMEDES_ENV=#{Vulcan.instance.environment}",
-      ]
-    end
-
     def command(storage:, input_files:, output_files:, token:, ch:)
       [
           "docker",
@@ -119,8 +104,7 @@ class Vulcan
           "poetry",
           "run",
           "archimedes-run",
-          "--isolator=docker"
-      ] + (is_dev? ? dev_options : []) + [
+          "--isolator=docker",
           "-e",
           "MAGMA_HOST=#{Vulcan.instance.config(:magma)&.dig(:host)}",
           "-e",
