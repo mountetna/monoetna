@@ -162,8 +162,6 @@ const VulcanNav = ({mode, user}) => {
   let {state} = useContext(VulcanContext);
   let {workflow} = state;
 
-  if (!workflow) return null;
-
   return (
     <Nav user={user} logo={Logo} app='vulcan'>
       {mode !== 'home' && <ModeBar mode={mode} workflow={workflow} />}
