@@ -10,7 +10,7 @@ require_relative '../base_client'
 module Etna
   module Clients
     class Magma < Etna::Clients::BaseClient
-      class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, :page, :page_size, :order, :filter, keyword_init: true)
+      class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, :page, :page_size, :order, :filter, :hide_templates, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)
@@ -18,7 +18,7 @@ module Etna
         end
       end
 
-      class QueryRequest < Struct.new(:query, :project_name, keyword_init: true)
+      class QueryRequest < Struct.new(:query, :project_name, :order, :page, :page_size, keyword_init: true)
         include JsonSerializableStruct
       end
 

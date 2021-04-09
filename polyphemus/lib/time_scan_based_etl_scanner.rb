@@ -1,47 +1,10 @@
 # Abstract base class for an etl that processes incoming data that can be sorted by updated at, but for which
 # the precision of the updated_at is not strictly monotonic (multiple entries can belong to the same updated_at) and
 # whose ordering can also change (but only in that entries can move forward in position in the ordering, never backwards).
+require_relative 'etl_scanner'
+
 class Polyphemus
-  class TimeScanBasedEtlScanner
-    def initialize
-    end
-
-    def start_batch_state(*args, &block)
-      if block.nil?
-        @start_batch_state.call(*args)
-      else
-        @start_batch_state = block
-        self
-      end
-    end
-
-    def execute_batch_find(*args, &block)
-      if block.nil?
-        @execute_batch_find.call(*args)
-      else
-        @execute_batch_find = block
-        self
-      end
-    end
-
-    def result_updated_at(*args, &block)
-      if block.nil?
-        @result_updated_at.call(*args)
-      else
-        @result_updated_at = block
-        self
-      end
-    end
-
-    def result_id(*args, &block)
-      if block.nil?
-        @result_id.call(*args)
-      else
-        @result_id = block
-        self
-      end
-    end
-
+  class TimeScanBasedEtlScanner < Polyphemus::EtlScanner
     def normalize_seen_ids(cursor)
       # Upgrade older versions of seen_ids.  This may duplicate work, but not a huge deal.
       unless cursor[:seen_ids].all? { |v| v.is_a?(Array) }
