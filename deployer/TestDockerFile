@@ -1,0 +1,3 @@
+FROM busybox:latest
+ARG FILE
+RUN touch $FILE
