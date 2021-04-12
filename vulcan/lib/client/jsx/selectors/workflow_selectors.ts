@@ -270,6 +270,10 @@ export function pendingSteps(workflow: Workflow, status: VulcanState['status']):
       .filter(({step}) => statusOfStep(step, status)?.status === 'pending');
 }
 
+export function hasNoRunningSteps(status: VulcanState['status']): boolean {
+  return status[0].every(s => s.status !== "running");
+}
+
 export const inputGroupName = (name: string) => {
   let groupName = name.split('__')[0];
   if (groupName === name) groupName = 'Inputs';
