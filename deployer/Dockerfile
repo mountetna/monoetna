@@ -1,5 +1,4 @@
 FROM deployer
 
-COPY deployer.sh /bin/deployer
+COPY src/deployer.sh /bin/deployer
 RUN chmod +x /bin/deployer
-ENTRYPOINT /bin/deployer
