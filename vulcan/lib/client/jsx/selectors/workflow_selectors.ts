@@ -24,7 +24,7 @@ export function stepOfStatus(stepStatus: StepStatus | string, workflow: Workflow
 
 export function statusOfStep(step: WorkflowStep | string, status: VulcanState['status']): StepStatus | undefined {
   const stepName = (typeof step === 'string' ? step : step.name);
-  return status[0].find(s => s.name === stepName);
+  return status[0] ? status[0].find(s => s.name === stepName) : undefined;
 }
 
 export function statusStringOfStepOrGroupedStep(step: WorkflowStep | GroupedInputStep, workflow: Workflow, status: VulcanState['status']) {
