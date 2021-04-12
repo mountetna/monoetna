@@ -8,7 +8,7 @@ import {
   WorkflowStep,
 } from "../api_types";
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {GroupedInputStep, UIStep} from "../components/workflow/user_interactions/inputs/input_types";
+import {GroupedInputStep, UIStep, InputSpecification} from "../components/workflow/user_interactions/inputs/input_types";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
     workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
@@ -357,4 +357,14 @@ export function unsetDependentInputs(
 export function findSourceDependencies(source: string, workflow: Workflow | null): string[] {
   if (!workflow) return [];
   return Object.keys(workflow.dependencies_of_outputs).filter(k => workflow.dependencies_of_outputs[k].includes(source));
+}
+
+export function sortInputsByLabel(inputs: InputSpecification[]): InputSpecification[] {
+  var collator = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: 'base'
+  });
+
+  return inputs.sort((a, b) => collator.compare(a.label || a.name, b.label || b.name))
+
 }
