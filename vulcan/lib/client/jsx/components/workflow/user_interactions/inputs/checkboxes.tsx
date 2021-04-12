@@ -21,7 +21,6 @@ function CheckboxInput({onChange, option, checked}: {onChange: (v: any) => void,
 const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
   const [selectedOptions, setSelectedOptions] = useState([] as any[]);
   const [initialized, setInitialized] = useState(false);
-  console.log('input', input);
   if (!input || !onChange) return null;
 
   const options = useMemo(() => getAllOptions(input.data).sort(), [input.data]);
