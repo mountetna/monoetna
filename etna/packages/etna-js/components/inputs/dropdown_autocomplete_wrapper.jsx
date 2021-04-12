@@ -1,6 +1,6 @@
 // Wraps the DropdownAutocomplete component so it will work with the
 // list_input to act as a multi-select.
-import React from 'react';
+import React, {useCallback} from 'react';
 
 import DropdownAutocomplete from './dropdown_autocomplete';
 
@@ -10,10 +10,10 @@ export default function DropdownAutocompleteInput({
   onBlur,
   ...otherProps
 }) {
-  function onChangeWrapper(value) {
+  const onChangeWrapper = useCallback((value) => {
     onChange(value);
     onBlur();
-  }
+  });
 
   return (
     <DropdownAutocomplete
