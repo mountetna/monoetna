@@ -21,6 +21,7 @@ function CheckboxInput({onChange, option, checked}: {onChange: (v: any) => void,
 const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
   const [selectedOptions, setSelectedOptions] = useState([] as any[]);
   const [initialized, setInitialized] = useState(false);
+  console.log('input', input);
   if (!input || !onChange) return null;
 
   const options = useMemo(() => getAllOptions(input.data).sort(), [input.data]);
@@ -29,7 +30,7 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
     // Setting any previously selected inputs (from storage or
     //   user interactions) takes precedence over setting
     //   all options as checked.
-    if (input.default !== [] && !initialized) {
+    if ((input.default && input.default !== []) && !initialized) {
       setSelectedOptions([...input.default]);
       setInitialized(true);
     } else if (options.length > selectedOptions.length && !initialized) {
