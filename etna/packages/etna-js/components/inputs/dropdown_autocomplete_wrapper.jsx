@@ -1,4 +1,4 @@
-// Wraps the Dropdown component so it will work with the
+// Wraps the DropdownAutocomplete component so it will work with the
 // list_input to act as a multi-select.
 import React from 'react';
 
