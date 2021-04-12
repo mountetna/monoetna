@@ -2,34 +2,23 @@
 % Please edit documentation in R/query.R
 \name{query}
 \alias{query}
-\title{Analogous to the '/query' function of magma}
+\title{Search-like function that can obtain linked data from distinct models.}
 \usage{
-query(
-  projectName,
-  queryTerms = list(),
-  format = c("list", "df"),
-  token = .get_TOKEN(),
-  ...
-)
+query(target, projectName, queryTerms = list(), format = c("list", "df"), ...)
 }
 \arguments{
+\item{target}{A list, which can be created using \code{\link{magmaRset}}, containing your authorization 'token' (a string), a 'url' of magma to target (a string), and optional 'opts' for specifying additions parameters for curl requests (a named list).}
+
 \item{projectName}{Single string. The name of the project you would like to interact with. For options, see \code{\link{retrieveProjects}}.}
 
-\item{queryTerms}{A list of String vector where list elements are query predicates. See \url{https://mountetna.github.io/magma.html#query} for details.}
+\item{queryTerms}{A list of strings where list elements are query predicates and verbs. See \url{https://mountetna.github.io/magma.html#query} for details.}
 
-\item{format}{Either "list" or "df" (=dataframe). This sets the desired output format.}
+\item{format}{Either "list" or "df" (=dataframe). This sets the desired output format. The list option is the more raw form.}
 
-\item{token}{Single string. Your personal token from \url{https://janus.ucsf.edu}. 
-
-When not explicitly given in a function call: you will be prompted to input your token, one time.
-This user provided token will then be stored as a hidden variable, \code{.MAGMAR_TOKEN}, in the global R environment,
-and all future magmaR calls without a \code{token} explicitly provided will turn to this \code{.MAGMAR_TOKEN}.}
-
-\item{...}{Additional parameters passed along to internal `.retrieve()`, `.query()`, or `.update()` functions,
+\item{...}{Additional parameters passed along to the internal `.retrieve()`, `.query()`, or `.update()` functions,
 for troubleshooting or advanced-user purposes only: \itemize{
-\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which stop the function before it performs any curl requests and instead outputs the values that would have been sent to magma in, either of two formats.
+\item \code{request.only} (Logical) & \code{json.params.only} (Logical) which 1) stop the function before its main curl request to magma and 2) returns the values that would have been sent to magma in either of two formats.
 \item \code{verbose} (Logical) sets whether to report the status of the curl request after it is performed.
-\item \code{url.base} (String) used to direct towards production versus staging versus development versions of magma. See \code{\link{magma-environments}}
 }}
 }
 \value{
@@ -38,12 +27,11 @@ A list, default, if \code{format == "list"},
 OR A dataframe conversion if \code{format = "df"}
 }
 \description{
-Analogous to the '/query' function of magma
+Analogous to the '/query' function of magma.
 }
 \details{
-This function initially mimics the activity of the magma/query,
-which is documented here \url{https://mountetna.github.io/magma.html#query},
-by performing a curl get request to the magma/query.
+This function initially mimics the activity of the magma's /query functionality,
+which is documented here \url{https://mountetna.github.io/magma.html#query}.
 
 Afterwards, the json list output of magma/query is converted into an R list, and then the \code{format} input determines whether it should be wrangled further:
 \itemize{
@@ -54,30 +42,39 @@ Afterwards, the json list output of magma/query is converted into an R list, and
 \examples{
 
 if (interactive()) {
-    # Running like this will ask for input of your janus token one time.
+    # First, we use magmaRset to create an object which will tell other magmaR
+    #  functions our authentication token (as well as some other optional bits).
+    # When run in this way, it will ask you to give your token.
+    magma <- magmaRset()
     
-    ### To obtain the sample-model record-identifiers that are linked to
-    #   records of the rna_seq-model:
+    ### To obtain the 'group' attribute, from the subject-model, that are
+    #   associated with records of the rna_seq-model:
 
     # "Raw" output of query:
-    query(
+    query_list <- query(
+        target = magma,
         projectName = "example",
         queryTerms = 
             list('rna_seq',
                  '::all',
                  'biospecimen',
-                 '::identifier'))
+                 'subject',
+                 'group'))
+    print(query_list)
                  
     # Or instead re-formatted to a dataframe, which may be easier for
     #   downstream applications in R:
-    query(
+    query_df <- query(
+        target = magma,
         projectName = "example",
         queryTerms = 
             list('rna_seq',
                  '::all',
                  'biospecimen',
-                 '::identifier'),
+                 'subject',
+                 'group'),
         format = 'df')
+    print(query_df)
 }
 
 }

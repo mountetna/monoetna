@@ -1,13 +1,12 @@
 from archimedes.functions.dataflow import output_path, input_json, curl_data, tempfile, _os_path
 from archimedes.functions.scanpy import scanpy as sc
-from archimedes.functions.environment import app_env
 
 
 def h5_dl_and_scanpy_import(tube_name, raw_counts_h5_mpath):
     with tempfile.TemporaryDirectory() as tmpdirname:
         tmp_path = _os_path.join(tmpdirname,'new.h5')
         with open(tmp_path, 'wb') as tmp_file:
-            tmp_file.write(curl_data(raw_counts_h5_mpath, verify=(app_env == 'production')).content)
+            tmp_file.write(curl_data(raw_counts_h5_mpath).content)
         adata = sc.read_10x_h5(tmp_path, gex_only = True)
 
     # add metadata named Library where it always equals tube_name

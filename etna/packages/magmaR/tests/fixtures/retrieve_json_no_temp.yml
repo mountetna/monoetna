@@ -1,0 +1,32 @@
+http_interactions:
+- request:
+    method: get
+    uri: https://magma.ucsf.edu/retrieve
+    body:
+      encoding: ''
+      string: ''
+    headers:
+      User-Agent: libcurl/7.64.1 r-curl/4.3 crul/1.1.0
+      Accept-Encoding: gzip, deflate
+      Accept: application/json, text/xml, application/xml, */*
+      Content-Type: application/json
+      Authorization: Etna <<<my_token>>>
+  response:
+    status:
+      status_code: '200'
+      message: OK
+      explanation: Request fulfilled, document follows
+    headers:
+      status: HTTP/1.1 200 OK
+      date: Thu, 08 Apr 2021 00:11:16 GMT
+      server: Apache
+      strict-transport-security: max-age=31536000; includeSubDomains
+      content-type: application/json
+      content-length: '109'
+      service-worker-allowed: /
+    body:
+      encoding: UTF-8
+      file: no
+      string: '{"models":{"subject":{"documents":{"EXAMPLE-HS1":{"name":"EXAMPLE-HS1","biospecimen":["EXAMPLE-HS1-WB1"]}}}}}'
+  recorded_at: 2021-04-08 00:11:16 GMT
+  recorded_with: vcr/0.6.0, webmockr/0.8.0

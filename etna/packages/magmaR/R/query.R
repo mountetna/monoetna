@@ -1,13 +1,13 @@
-#' Analogous to the '/query' function of magma
+#' Search-like function that can obtain linked data from distinct models.
+#' @description Analogous to the '/query' function of magma.
 #' @inheritParams retrieve
-#' @param queryTerms A list of String vector where list elements are query predicates. See \url{https://mountetna.github.io/magma.html#query} for details.
-#' @param format Either "list" or "df" (=dataframe). This sets the desired output format.
+#' @param queryTerms A list of strings where list elements are query predicates and verbs. See \url{https://mountetna.github.io/magma.html#query} for details.
+#' @param format Either "list" or "df" (=dataframe). This sets the desired output format. The list option is the more raw form.
 #' @return A list, default, if \code{format == "list"},
 #' 
 #' OR A dataframe conversion if \code{format = "df"}
-#' @details This function initially mimics the activity of the magma/query,
-#' which is documented here \url{https://mountetna.github.io/magma.html#query},
-#' by performing a curl get request to the magma/query.
+#' @details This function initially mimics the activity of the magma's /query functionality,
+#' which is documented here \url{https://mountetna.github.io/magma.html#query}.
 #' 
 #' Afterwards, the json list output of magma/query is converted into an R list, and then the \code{format} input determines whether it should be wrangled further:
 #' \itemize{
@@ -24,47 +24,56 @@
 #' @examples
 #' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token one time.
+#'     # First, we use magmaRset to create an object which will tell other magmaR
+#'     #  functions our authentication token (as well as some other optional bits).
+#'     # When run in this way, it will ask you to give your token.
+#'     magma <- magmaRset()
 #'     
-#'     ### To obtain the sample-model record-identifiers that are linked to
-#'     #   records of the rna_seq-model:
+#'     ### To obtain the 'group' attribute, from the subject-model, that are
+#'     #   associated with records of the rna_seq-model:
 #' 
 #'     # "Raw" output of query:
-#'     query(
+#'     query_list <- query(
+#'         target = magma,
 #'         projectName = "example",
 #'         queryTerms = 
 #'             list('rna_seq',
 #'                  '::all',
 #'                  'biospecimen',
-#'                  '::identifier'))
+#'                  'subject',
+#'                  'group'))
+#'     print(query_list)
 #'                  
 #'     # Or instead re-formatted to a dataframe, which may be easier for
 #'     #   downstream applications in R:
-#'     query(
+#'     query_df <- query(
+#'         target = magma,
 #'         projectName = "example",
 #'         queryTerms = 
 #'             list('rna_seq',
 #'                  '::all',
 #'                  'biospecimen',
-#'                  '::identifier'),
+#'                  'subject',
+#'                  'group'),
 #'         format = 'df')
+#'     print(query_df)
 #' }
 #'
 
 query <- function(
+    target,
     projectName,
     queryTerms = list(),
     format = c("list", "df"),
-    token = .get_TOKEN(),
     ...
 ) {
     
     format <- match.arg(format)
     
     raw <- .query(
+        target = target,
         projectName = projectName,
         queryTerms = queryTerms,
-        token = token,
         ...)
     
     if (format == "list") {
@@ -78,12 +87,11 @@ query <- function(
 }
 
 .query <- function(
+    target,
     projectName,
     queryTerms = list(),
     request.only = FALSE,
     json.params.only = FALSE,
-    url.base = .get_URL(),
-    token = .get_TOKEN(),
     verbose = FALSE
 ) {
     
@@ -106,7 +114,7 @@ query <- function(
     ### Perform '\query'
     curl_out <- .perform_curl_get(
         fxn = "/query",
-        requestBody, token, url.base,
+        target, requestBody,
         parse = TRUE, verbose = verbose)
     
     ### Output

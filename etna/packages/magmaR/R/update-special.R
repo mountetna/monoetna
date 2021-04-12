@@ -1,11 +1,14 @@
 #' A matrix-specific wrapper of \code{\link{updateValues}}
+#' @description A matrix-specific wrapper of \code{\link{updateValues}} which can take in a matrix, data.frame, or file path, directly.
 #' @inheritParams retrieve
 #' @param attributeName String naming the matrix attribute for which to upload data.
 #' @param matrix A matrix or dataframe containing the data to upload to magma.
-#' colnames must be record identifiers, and rownames should match the values of 'validation' associated with the target 'attribute'.
 #' 
-#' Alternatively, the location of a file containing such a data.
-#' @param separator String indicating the field separator to use if providing \code{matrix} as a file location.
+#' Alternatively, a String specifying the file path of a file containing such data.
+#' 
+#' No matter the provision method, colnames must be record identifiers, and rownames should match the values of 'options' associated with the target 'attribute'.
+#' Check the 'See Also' section below for how to determine the needed 'options'.
+#' @param separator String indicating the field separator to use if providing \code{matrix} as a file path.
 #' Default = \code{","}.
 #' @param auto.proceed Logical. When set to TRUE, the function does not ask before proceeding forward with the 'magma/update'.
 #' @return None directly.
@@ -20,7 +23,7 @@
 #' Data is then validated by ensuring that all row names are among the valid 'options' of the target attribute (See the See Also section below for a note on how to explore these options yourself.).
 #' Rows are reordered to be in the same order as these 'options'.
 #' 
-#' For any missing 'validation' options, NAs are added.
+#' For any missing 'options', rows of NAs are added.
 #' 
 #' The data is then transformed and passed along to \code{\link{updateValues}}.
 #' 
@@ -40,15 +43,19 @@
 #' @examples
 #' 
 #' if (interactive()) {
-#'     # Running like this will ask for input of your janus token one time.
+#'     # First, we use magmaRset to create an object which will tell other magmaR
+#'     #  functions our authentication token (as well as some other optional bits).
+#'     # When run in this way, it will ask you to give your token.
+#'     magma <- magmaRset()
 #'     
 #'     ### Note that you likely do not have write-permissions for the 'example'
 #'     # project, so this code can be expected to give an authorization error.
 #'     
 #'     ### Retrieve some data from magma, then update that same data.
-#'     mat <- retrieveMatrix("example", "rna_seq", "all", "gene_tpm")
+#'     mat <- retrieveMatrix(magma, "example", "rna_seq", "all", "gene_tpm")
 #' 
 #'     updateMatrix(
+#'         target = magma,
 #'         projectName = "example",
 #'         modelName = "rna_seq",
 #'         attributeName = "gene_tpm",
@@ -57,13 +64,13 @@
 #'
 #' @importFrom utils read.csv
 updateMatrix <- function(
+    target,
     projectName,
     modelName,
     attributeName,
     matrix,
     separator = ",",
     auto.proceed = FALSE,
-    token = .get_TOKEN(),
     ...) {
     
     ### Read in matrix if passed as a string (file-location)
@@ -81,7 +88,7 @@ updateMatrix <- function(
     
     ### Validate rownames (genes / value names)
     # Obtain 'validation' / rowname options
-    temp <- retrieveTemplate(projectName, token = token, ...)
+    temp <- retrieveTemplate(target, projectName)
     row_options <- 
         temp$models[[modelName]]$template$attributes[[attributeName]]$validation$value
     
@@ -120,9 +127,9 @@ updateMatrix <- function(
     # Check with the user before proceeding
     # Perform upload
     updateValues(
+        target = target,
         projectName = projectName,
         revisions = revs,
-        token = token,
         auto.proceed = auto.proceed,
         ...)
 }
