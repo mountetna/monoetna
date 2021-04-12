@@ -14,21 +14,14 @@ export function getAllOptions(data: InputSpecification['data']): string[] {
   }, []);
 }
 
-const MultiselectStringInput: InputBackendComponent = ({
-  input,
-  onChange,
-  onClear,
-  onAll
+const MultiselectStringInput: InputBackendComponent = ({input, onChange, onClear, onAll
 }) => {
   var collator = new Intl.Collator(undefined, {
     numeric: true,
     sensitivity: 'base'
   });
 
-  const options = useMemo(
-    () => getAllOptions(input.data).sort(collator.compare),
-    [input.data]
-  );
+  const options = useMemo(() => getAllOptions(input.data).sort(collator.compare), [input.data]);
 
   return (
     <ListInput
@@ -50,6 +43,6 @@ const MultiselectStringInput: InputBackendComponent = ({
       onClear={onClear}
     />
   );
-};
+}
 
 export default MultiselectStringInput;
