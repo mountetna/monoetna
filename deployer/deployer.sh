@@ -9,6 +9,8 @@ error() {
 }
 trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
 
+echo "Starting deployer..."
+
 echoRun() {
   echo "$@"
   $@
@@ -27,7 +29,7 @@ findContainers() {
     if echo "$labels" | grep -v "edu.ucsf.mountetna.deployer.disable=true" &>/dev/null; then
       echo "$containerId"
     fi
-  done < <(docker ps --format "table {{.ID}}\t{{.Labels}}" $@ | tail -n+2)
+  done < <(docker ps --format "table {{.Names}}\t{{.Labels}}" $@ | tail -n+2)
 }
 
 findImages() {
@@ -54,9 +56,19 @@ pullImages() {
 }
 
 linksForContainer() {
-  docker inspect  $(docker ps -aq) | jq -r "select(.[].NetworkSettings.Networks | map(.Links[]?) | any(match(\"${1}:\")))"
+  docker inspect  $(docker ps -aq) | jq -r ".[] | select(any(.HostConfig.Links[]?; true)) | .Name | sub(\"^/\"; \"\")"
 }
 
+stopContainer() {
+  echoRun docker stop -t ${DOCKER_STOP_TIMEOUT:-10} $1
+  eval "${_TEST_HOOK:-true}"
+}
+
+# Find containers whose running image does not have a repo tag, and stop them.  Allow systemd to initiate the restart
+# so that it is attached to the fd for logging.
+# Repo tags move between the images that are most recent for that given tag name.
+# Thus, the lack of repo tags indicates being out of date -- the tag has moved to another container.
+# The presence of a repo tag indicates that no more recent form of that tag exists on another image.
 stopNonRepoTaggedImages() {
   while read line; do
     set -- $line
@@ -72,16 +84,20 @@ stopNonRepoTaggedImages() {
         set -- $line
         linkedContainer=$1
         set +e
-        echoRun docker stop $linkedContainer
+        echo "Trying to stop linked container... $containerId"
+        docker ps
+        stopContainer $linkedContainer
         if [[ $? -ne 0 ]]; then
           echo "Stopping $linkedContainer failed, skipping stop for $containerId"
           linkedFailed=1
         fi
+
         set -e
       done < <(linksForContainer $containerId)
 
       if [[ $linkedFailed -eq 0 ]]; then
-        echoRun docker stop $containerId || postToSlack "Could not stop container $containerId, check logs."
+        docker ps
+        stopContainer $containerId || postToSlack "Could not stop container $containerId, check logs."
       else
         postToSlack "Linked containers failed to be stopped, not stopping $containerId."
       fi

@@ -3,13 +3,40 @@
 set -e
 set -o pipefail
 
+export DOCKER_STOP_TIMEOUT=1
+
 error() {
    echo "Whoops!  Looks testing failed at $1:$2"
    exit 1
 }
 trap 'error "${BASH_SOURCE}" "${LINENO}"' ERR
 
-assertRunning() {
+red="\e[0;91m"
+green="\e[0;92m"
+bold="\e[1m"
+reset="\e[0m"
+
+assert() {
+  if $@; then
+    echo -e ${green}${bold}$@${reset}
+    return 0
+  fi
+
+  echo -e ${red}${bold}not $@${reset}
+  return 1;
+}
+
+assertNot() {
+  if ! $@; then
+    echo -e ${green}${bold}not $@${reset}
+    return 0
+  fi
+
+  echo -e ${red}${bold}$@${reset}
+  return 1;
+}
+
+running() {
   if docker ps --filter name=$1 | grep $1 &>/dev/null; then
     return 0
   fi
@@ -17,8 +44,16 @@ assertRunning() {
   return 1
 }
 
-assertNotRunning() {
-  if docker ps --filter name=$1 | grep -v $1 &>/dev/null; then
+imagesOfContainer() {
+  docker inspect $1 | jq '[.[].Image | sub("sha256:"; "")] | unique | .[]' -r
+}
+
+findNonRepoTaggedImages() {
+  docker inspect $(imagesOfContainer $1) | jq '.[] | select(.RepoTags | length == 0) | .Id' -r
+}
+
+usingLatest() {
+  if [[ "$(findNonRepoTaggedImages $1 2>/dev/null | wc -l)" -eq 0 ]]; then
     return 0
   fi
 
@@ -41,44 +76,57 @@ docker run -d --name test_b --rm image_a sleep 100
 docker run -d --name test_c --rm image_b sleep 100
 docker run -d --name test_d --rm image_b sleep 100
 
-assertRunning test_a
-assertRunning test_b
-assertRunning test_c
-assertRunning test_d
+assert usingLatest test_a
+assert usingLatest test_b
+assert usingLatest test_c
+assert usingLatest test_d
+
+assert running test_a
+assert running test_b
+assert running test_c
+assert running test_d
 
 export IS_TEST=1
 deployer
 
 # Does not stop any containers with up to date images.
-assertRunning test_a
-assertRunning test_b
-assertRunning test_c
-assertRunning test_d
+assert running test_a
+assert running test_b
+assert running test_c
+assert running test_d
 
 docker build --rm --force-rm --tag image_a:latest  --build-arg FILE=c -f TestDockerFile /root
+
+assertNot usingLatest test_a
+assertNot usingLatest test_b
+assert usingLatest test_c
+assert usingLatest test_d
 
 deployer
 
 # Does not stop any containers with up to date images.
-assertNotRunning test_a
-assertNotRunning test_b
-assertRunning test_c
-assertRunning test_d
+assertNot running test_a
+assertNot running test_b
+assert running test_c
+assert running test_d
 
-docker run -d --name test_a --rm --link test_c:somename image_a sleep 100
+RESTART_TEST_A="docker run -d --name test_a --rm --volumes-from test_c image_a sleep 100"
+$RESTART_TEST_A
 
 deployer
 
-assertRunning test_a
-assertNotRunning test_b
-assertRunning test_c
-assertRunning test_d
+assert running test_a
+assertNot running test_b
+assert running test_c
+assert running test_d
 
 docker build --rm --force-rm --tag image_b:latest  --build-arg FILE=d -f TestDockerFile /root
 
-deployer
-
-assertNotRunning test_a
-assertNotRunning test_b
-assertNotRunning test_c
-assertNotRunning test_d
+#_TEST_HOOK="$RESTART_TEST_A 2>/dev/null" deployer
+#
+#assert running test_a
+#assertNot running test_b
+#assertNot running test_c
+#assertNot running test_d
+#
+#assert usingLatest test_a
