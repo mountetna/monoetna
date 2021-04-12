@@ -7,8 +7,8 @@ import {InputBackendComponent, InputSpecification} from './input_types';
 export function getAllOptions(data: InputSpecification['data']): string[] {
   return Object.values(data || {}).reduce((acc, n) => {
     if (Array.isArray(n)) acc.push(...n);
-    else if (typeof n === 'string') acc.push(n);
-    else acc.push(n + '');
+    else if (typeof n === "string") acc.push(n);
+    else acc.push(n + "");
 
     return acc;
   }, []);
