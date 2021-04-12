@@ -33,7 +33,7 @@ exports[`PrimaryInputs renders each type of input 1`] = `
         <div
           className="item_name"
         >
-          anInt
+          aBool
         </div>
         <div
           className="item_view"
@@ -45,10 +45,48 @@ exports[`PrimaryInputs renders each type of input 1`] = `
               className="input-help-children-wrapper"
             >
               <input
+                className="text_box"
+                defaultChecked={true}
                 onChange={[Function]}
-                onKeyPress={[Function]}
-                type="text"
-                value={1}
+                type="checkbox"
+              />
+            </div>
+            <div
+              className="help-icon-wrapper"
+              title="help"
+            >
+              <span
+                className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
+              >
+                <i
+                  className="icon help-icon  question-circle fa fa-2x fa-question-circle"
+                />
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        className="view_item"
+      >
+        <div
+          className="item_name"
+        >
+          aBoolWithoutDefault
+        </div>
+        <div
+          className="item_view"
+        >
+          <div
+            className="input-help"
+          >
+            <div
+              className="input-help-children-wrapper"
+            >
+              <input
+                className="text_box"
+                onChange={[Function]}
+                type="checkbox"
               />
             </div>
             <div
@@ -111,84 +149,6 @@ exports[`PrimaryInputs renders each type of input 1`] = `
         <div
           className="item_name"
         >
-          aBool
-        </div>
-        <div
-          className="item_view"
-        >
-          <div
-            className="input-help"
-          >
-            <div
-              className="input-help-children-wrapper"
-            >
-              <input
-                className="text_box"
-                defaultChecked={true}
-                onChange={[Function]}
-                type="checkbox"
-              />
-            </div>
-            <div
-              className="help-icon-wrapper"
-              title="help"
-            >
-              <span
-                className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
-              >
-                <i
-                  className="icon help-icon  question-circle fa fa-2x fa-question-circle"
-                />
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        className="view_item"
-      >
-        <div
-          className="item_name"
-        >
-          anIntWithoutDefault
-        </div>
-        <div
-          className="item_view"
-        >
-          <div
-            className="input-help"
-          >
-            <div
-              className="input-help-children-wrapper"
-            >
-              <input
-                onChange={[Function]}
-                onKeyPress={[Function]}
-                type="text"
-                value=""
-              />
-            </div>
-            <div
-              className="help-icon-wrapper"
-              title="help"
-            >
-              <span
-                className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
-              >
-                <i
-                  className="icon help-icon  question-circle fa fa-2x fa-question-circle"
-                />
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        className="view_item"
-      >
-        <div
-          className="item_name"
-        >
           aFloatWithoutDefault
         </div>
         <div
@@ -228,7 +188,7 @@ exports[`PrimaryInputs renders each type of input 1`] = `
         <div
           className="item_name"
         >
-          aBoolWithoutDefault
+          anInt
         </div>
         <div
           className="item_view"
@@ -240,9 +200,49 @@ exports[`PrimaryInputs renders each type of input 1`] = `
               className="input-help-children-wrapper"
             >
               <input
-                className="text_box"
                 onChange={[Function]}
-                type="checkbox"
+                onKeyPress={[Function]}
+                type="text"
+                value={1}
+              />
+            </div>
+            <div
+              className="help-icon-wrapper"
+              title="help"
+            >
+              <span
+                className="icon-grp icon-grp-help-icon  fa-stack fa-fw"
+              >
+                <i
+                  className="icon help-icon  question-circle fa fa-2x fa-question-circle"
+                />
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        className="view_item"
+      >
+        <div
+          className="item_name"
+        >
+          anIntWithoutDefault
+        </div>
+        <div
+          className="item_view"
+        >
+          <div
+            className="input-help"
+          >
+            <div
+              className="input-help-children-wrapper"
+            >
+              <input
+                onChange={[Function]}
+                onKeyPress={[Function]}
+                type="text"
+                value=""
               />
             </div>
             <div

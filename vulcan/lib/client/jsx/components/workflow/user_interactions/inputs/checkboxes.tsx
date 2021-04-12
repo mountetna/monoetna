@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InputBackendComponent} from "./input_types";
 import {getAllOptions} from "./multiselect_string";
 
-function CheckboxInput({onChange, option}: {onChange: (v: any) => void, option: any}) {
+function CheckboxInput({onChange, option, checked}: {onChange: (v: any) => void, option: any, checked: boolean}) {
   return (
     <label className='checkbox-input-option'>
       <input
@@ -11,7 +11,7 @@ function CheckboxInput({onChange, option}: {onChange: (v: any) => void, option: 
         onChange={() => {
           onChange(option);
         }}
-        defaultChecked={true}
+        checked={checked}
       />
       {option}
     </label>
@@ -26,8 +26,13 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
   const options = useMemo(() => getAllOptions(input.data).sort(), [input.data]);
 
   useEffect(() => {
-
-    if (options.length > selectedOptions.length && !initialized) {
+    // Setting any previously selected inputs (from storage or
+    //   user interactions) takes precedence over setting
+    //   all options as checked.
+    if (input.default && input.default !== [] && !initialized) {
+      setSelectedOptions([...input.default]);
+      setInitialized(true);
+    } else if (options.length > selectedOptions.length && !initialized) {
       setSelectedOptions([...options]);
       setInitialized(true);
     }
@@ -54,6 +59,7 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
           <CheckboxInput
             option={option}
             key={index}
+            checked={selectedOptions.includes(option)}
             onChange={handleClickOption}
           />
         );
