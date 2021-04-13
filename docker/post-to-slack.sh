@@ -14,5 +14,9 @@ MSG=${MSG//^M/\\\r}
 MSG=${MSG//^L/\\\f}
 MSG=${MSG//^H/\\\b}
 
-curl -X POST --data-urlencode "payload={\"channel\": \"#${CHANNEL}\", \"username\": \"$NAME\", \"text\": \"${MSG}\", \"icon_emoji\": \":ghost:\"}" "$SLACK_WEBHOOK_URL"
+if ! [[ -z "$SLACK_WEBHOOK_URL" ]]; then
+  curl -X POST --data-urlencode "payload={\"channel\": \"#${CHANNEL}\", \"username\": \"$NAME\", \"text\": \"${MSG}\", \"icon_emoji\": \":ghost:\"}" "$SLACK_WEBHOOK_URL"
+else
+  echo "$MSG > #${CHANNEL}"
+fi
 
