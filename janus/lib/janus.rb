@@ -1,4 +1,5 @@
 require 'sequel'
+require 'active_support/all'
 
 class Janus
   include Etna::Application

@@ -86,6 +86,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  activesupport (>= 4.2.6)
   concurrent-ruby
   database_cleaner (= 1.8.5)
   etna!
@@ -107,4 +108,4 @@ RUBY VERSION
    ruby 2.5.7p206
 
 BUNDLED WITH
-   2.2.15
+   2.2.16

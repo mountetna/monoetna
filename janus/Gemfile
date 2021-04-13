@@ -10,6 +10,7 @@ gem 'etna', path: '/etna'
 gem 'jwt'
 gem 'puma', '>=5.0.2'
 gem 'concurrent-ruby'
+gem 'activesupport', '>= 4.2.6'
 
 group :test do
   gem 'rspec'

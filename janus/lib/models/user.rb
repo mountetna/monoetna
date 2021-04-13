@@ -33,8 +33,7 @@ class User < Sequel::Model
   def self.from_token(token)
     payload, header = Janus.instance.sign.jwt_decode(token)
 
-    payload = payload.transform_keys(&:to_sym)
-    payload.delete(:exp)
+    payload = payload.symbolize_keys.except(:exp)
 
     user = User[email: payload[:email]]
 
