@@ -104,6 +104,14 @@ function findNewest() {
    fi
 }
 
+function considerNewest() {
+if [ "$1" -nt "$newestFile" ]; then
+    newestFile="$1"
+fi
+}
+
+considerNewest $DIR/post-to-slack.sh
+
 #- Any FROM clause in the given Dockerfile is processed as a potential dependency to be built before this image.
 while read depImage; do
   baseDepImage=$depImage
@@ -163,8 +171,6 @@ $foundMounts"
     [[ -z "$skipLocalRebuild" ]] && findNewest "$mountPath"
     shift
 done
-
-
 
 #- The build process also combines the docker/.dockerignore file with the Dockerfile project's own for a combined
 #- filtering.
