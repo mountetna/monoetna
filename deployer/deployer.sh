@@ -55,8 +55,9 @@ pullImages() {
   done < <(findRepoTags)
 }
 
-linksForContainer() {
-  docker inspect  $(docker ps -aq) | jq -r ".[] | select(any(.HostConfig.Links[]?; true)) | .Name | sub(\"^/\"; \"\")"
+containersUsingOutOfDateVolumesFrom() {
+  local myMounts="$(docker inspect $1 | jq '[.[].Mounts[].Name]')"
+  docker inspect $(docker ps -aq) | jq --argjson mounts "${myMounts}" -r ".[] | select(([.HostConfig.VolumesFrom[]?] | any(. == \"$1\")) and ([.Mounts[].Name] | contains(\$mounts) | not)) | .Name | sub(\"^/\"; \"\")"
 }
 
 stopContainer() {
@@ -79,30 +80,21 @@ stopNonRepoTaggedImages() {
       linkedFailed=0
 
       postToSlack "Newer version found, attempting to stop $containerId"
-
-      while read line; do
-        set -- $line
-        linkedContainer=$1
-        set +e
-        echo "Trying to stop linked container... $containerId"
-        docker ps
-        stopContainer $linkedContainer
-        if [[ $? -ne 0 ]]; then
-          echo "Stopping $linkedContainer failed, skipping stop for $containerId"
-          linkedFailed=1
-        fi
-
-        set -e
-      done < <(linksForContainer $containerId)
-
-      if [[ $linkedFailed -eq 0 ]]; then
-        docker ps
-        stopContainer $containerId || postToSlack "Could not stop container $containerId, check logs."
-      else
-        postToSlack "Linked containers failed to be stopped, not stopping $containerId."
-      fi
+      stopContainer $containerId || postToSlack "Could not stop container $containerId, check logs."
     done < <(findContainers --filter "ancestor=$imageId")
   done < <(findNonRepoTaggedImages)
+
+  while read line; do
+    set -- $line
+    containerId=$1
+    while read line; do
+      set -- $line
+      dependent=$1
+
+      postToSlack "Container $dependent requires updated $containerId data, restarting."
+      stopContainer $dependent || postToSlack "Could not stop container $dependent, check logs."
+    done < <(containersUsingOutOfDateVolumesFrom $containerId)
+  done < <(findContainers)
 }
 
 # no while loop here

@@ -26,6 +26,10 @@ assert() {
   return 1;
 }
 
+containersUsingOutOfDateVolumesFrom() {
+  local myMounts="$(docker inspect $1 | jq '[.[].Mounts[].Name]')"
+  docker inspect $(docker ps -aq) | jq --argjson mounts "${myMounts}" -r ".[] | select(([.HostConfig.VolumesFrom[]?] | any(. == \"$1\")) and ([.Mounts[].Name] | contains(\$mounts) | not)) | .Name | sub(\"^/\"; \"\")"
+}
 assertNot() {
   if ! $@; then
     echo -e ${green}${bold}not $@${reset}
@@ -73,7 +77,7 @@ docker build --rm --force-rm --tag image_b:latest --build-arg FILE=b -f TestDock
 
 docker run -d --name test_a --rm image_a sleep 100
 docker run -d --name test_b --rm image_a sleep 100
-docker run -d --name test_c --rm image_b sleep 100
+docker run -d --name test_c --rm -v /b image_b sleep 100
 docker run -d --name test_d --rm image_b sleep 100
 
 assert usingLatest test_a
@@ -110,8 +114,7 @@ assertNot running test_b
 assert running test_c
 assert running test_d
 
-RESTART_TEST_A="docker run -d --name test_a --rm --volumes-from test_c image_a sleep 100"
-$RESTART_TEST_A
+docker run -d --name test_a --rm --volumes-from test_c image_a sleep 100
 
 deployer
 
@@ -122,11 +125,20 @@ assert running test_d
 
 docker build --rm --force-rm --tag image_b:latest  --build-arg FILE=d -f TestDockerFile /root
 
-#_TEST_HOOK="$RESTART_TEST_A 2>/dev/null" deployer
-#
-#assert running test_a
-#assertNot running test_b
-#assertNot running test_c
-#assertNot running test_d
-#
-#assert usingLatest test_a
+docker stop -t 1 test_c
+docker run -d --name test_c --rm -v /b image_b sleep 100
+
+assertNot  [[ "$(containersUsingOutOfDateVolumesFrom test_c)" -eq "" ]]
+
+TRY_RESTART="docker run -d --name test_a --rm --volumes-from test_c image_a sleep 100; docker run -d --name test_c --rm -v /b image_b sleep 100"
+_TEST_HOOK="$TRY_RESTART 2>/dev/null" deployer
+
+assert running test_a
+assertNot running test_b
+assert running test_c
+assertNot running test_d
+
+assert usingLatest test_a
+assert usingLatest test_c
+
+assert  [[ "$(containersUsingOutOfDateVolumesFrom test_c)" -eq "" ]]
