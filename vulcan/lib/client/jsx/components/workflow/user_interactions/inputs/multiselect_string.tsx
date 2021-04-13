@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
 
 import ListInput from 'etna-js/components/inputs/list_input';
-import DropdownInput from 'etna-js/components/inputs/dropdown_input';
-import {InputBackendComponent, InputSpecification} from "./input_types";
+import DropdownAutocompleteInput from 'etna-js/components/inputs/dropdown_autocomplete_wrapper';
+import {InputBackendComponent, InputSpecification} from './input_types';
 
 export function getAllOptions(data: InputSpecification['data']): string[] {
   return Object.values(data || {}).reduce((acc, n) => {
@@ -33,7 +33,7 @@ const MultiselectStringInput: InputBackendComponent = ({input, onChange, onClear
             : [input.default]
           : []
       }
-      itemInput={DropdownInput}
+      itemInput={DropdownAutocompleteInput}
       list={options}
       onChange={(e: any) => {
         onChange(input.name, e);

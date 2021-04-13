@@ -352,6 +352,18 @@
       }
     }
 
+    .dropdown-autocomplete-input-field {
+      width: inherit;
+
+      input {
+        width: 90%;
+      }
+    }
+
+    .dropdown-autocomplete-options {
+      width: inherit;
+    }
+
     .input-help {
       display: flex;
       align-items: center;

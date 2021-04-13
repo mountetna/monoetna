@@ -7,6 +7,7 @@ import {workflowName} from '../selectors/workflow_selectors';
 import Nav from 'etna-js/components/Nav';
 import Link from 'etna-js/components/link';
 import {selectUser} from 'etna-js/selectors/user-selector';
+import { statusStringOfStepOrGroupedStep } from "../selectors/workflow_selectors";
 
 const {sin, cos, PI, random, max, min, pow, abs, sqrt} = Math;
 
@@ -128,9 +129,12 @@ const Halo = ({radius}) => {
 };
 
 function Logo() {
-  let {state} = useContext(VulcanContext);
-  // TODO: Change this to look for running steps.
-  const {calculating} = state;
+  const {state} = useContext(VulcanContext);
+  const {workflow, status} = state;
+
+  let calculating = workflow ? workflow.steps[0].some(
+    step => statusStringOfStepOrGroupedStep(step, workflow, status) == 'running'
+  ) : null;
 
   return (
     <div id='vulcan-logo'>

@@ -6,7 +6,8 @@ import UserInput from '../user_interactions/inputs/user_input';
 import {
   completedSteps,
   inputGroupName, isPendingUiQuery,
-  pendingSteps, uiQueryOfStep
+  pendingSteps, uiQueryOfStep,
+  sortInputsByLabel
 } from '../../../selectors/workflow_selectors';
 import {InputSpecification} from "../user_interactions/inputs/input_types";
 
@@ -45,7 +46,7 @@ export default function InputGroup({inputs, onChange}: {inputs: InputSpecificati
           open ? 'open' : 'closed'
         }`}
       >
-        {inputs.map((input, index) => {
+        {sortInputsByLabel(inputs).map((input, index) => {
           return (
             <UserInput
               input={input}

@@ -7,7 +7,8 @@ import {
   stepInputDataRaw,
   stepOfSource,
   stepOfStatus,
-  uiQueryOfStep
+  uiQueryOfStep,
+  sortInputsByLabel
 } from "../../../selectors/workflow_selectors";
 
 export default function StepUserInputDrawer({
@@ -40,7 +41,7 @@ export default function StepUserInputDrawer({
 
   return (
       <React.Fragment>
-        {stepInputs.map((input, index) => {
+        {sortInputsByLabel(stepInputs).map((input, index) => {
           return (
               <UserInput
                   input={input}

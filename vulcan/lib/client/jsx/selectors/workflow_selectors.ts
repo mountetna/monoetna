@@ -8,7 +8,7 @@ import {
   WorkflowStep,
 } from "../api_types";
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {GroupedInputStep, UIStep} from "../components/workflow/user_interactions/inputs/input_types";
+import {GroupedInputStep, UIStep, InputSpecification} from "../components/workflow/user_interactions/inputs/input_types";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
     workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
@@ -24,7 +24,7 @@ export function stepOfStatus(stepStatus: StepStatus | string, workflow: Workflow
 
 export function statusOfStep(step: WorkflowStep | string, status: VulcanState['status']): StepStatus | undefined {
   const stepName = (typeof step === 'string' ? step : step.name);
-  return status[0].find(s => s.name === stepName);
+  return status[0] ? status[0].find(s => s.name === stepName) : undefined;
 }
 
 export function statusStringOfStepOrGroupedStep(step: WorkflowStep | GroupedInputStep, workflow: Workflow, status: VulcanState['status']) {
@@ -270,6 +270,10 @@ export function pendingSteps(workflow: Workflow, status: VulcanState['status']):
       .filter(({step}) => statusOfStep(step, status)?.status === 'pending');
 }
 
+export function hasNoRunningSteps(status: VulcanState['status']): boolean {
+  return status[0].every(s => s.status !== "running");
+}
+
 export const inputGroupName = (name: string) => {
   let groupName = name.split('__')[0];
   if (groupName === name) groupName = 'Inputs';
@@ -357,4 +361,14 @@ export function unsetDependentInputs(
 export function findSourceDependencies(source: string, workflow: Workflow | null): string[] {
   if (!workflow) return [];
   return Object.keys(workflow.dependencies_of_outputs).filter(k => workflow.dependencies_of_outputs[k].includes(source));
+}
+
+export function sortInputsByLabel(inputs: InputSpecification[]): InputSpecification[] {
+  var collator = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: 'base'
+  });
+
+  return inputs.sort((a, b) => collator.compare(a.label || a.name, b.label || b.name))
+
 }

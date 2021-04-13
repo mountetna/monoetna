@@ -84,6 +84,10 @@ declare module 'etna-js/components/inputs/dropdown_autocomplete' {
   export default function DropdownAutocomplete(...args: any[]): any;
 }
 
+declare module 'etna-js/components/inputs/dropdown_autocomplete_wrapper' {
+  export default function DropdownAutocompleteInput(...args: any[]): any;
+}
+
 declare module 'etna-js/components/inputs/slow_text_input' {
   export default function SlowTextInput(...args: any[]): any;
 }
