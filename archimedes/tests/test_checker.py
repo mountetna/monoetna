@@ -1,6 +1,5 @@
 from pylint.reporters.text import TextReporter
 import os.path
-from pathlib import Path
 
 
 class PyLintWriter(object):
