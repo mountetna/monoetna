@@ -1,5 +1,6 @@
 from pylint.reporters.text import TextReporter
 import os.path
+from pathlib import Path
 
 
 class PyLintWriter(object):
@@ -22,6 +23,22 @@ def run_checker(fixture_name):
         [os.path.join(os.path.dirname(__file__), "fixtures", fixture_name)],
         reporter=reporter,
     )
+    return writer.read(), success
+
+def run_checker_directory(path):
+    writer = PyLintWriter()
+    reporter = TextReporter(writer)
+    from archimedes.checker import run
+
+    success = True
+
+    for script_path in Path(path).iterdir():
+        if script_path.is_file() and script_path.suffix == ".py":
+            success = success and run(
+                    [script_path],
+                    reporter=reporter,
+            )
+
     return writer.read(), success
 
 
@@ -62,3 +79,10 @@ def test_sad_path():
             in bad_output
     )
     assert not success
+
+
+def test_vulcan_scripts():
+    vulcan_scripts_path = os.path.join(os.path.dirname(__file__), "..", "vulcan_scripts")
+    output, success = run_checker_directory(vulcan_scripts_path)
+    assert [] == output
+    assert success
