@@ -26,25 +26,6 @@ def run_checker(fixture_name):
     return writer.read(), success
 
 
-def run_checker_directory(directory_path):
-    writer = PyLintWriter()
-    reporter = TextReporter(writer)
-    from archimedes.checker import run
-
-    success = None
-
-    for path in Path(directory_path).iterdir():
-        if path.is_file() and path.suffix == ".py":
-            run_success = run(
-                [path],
-                reporter=reporter,
-            )
-            
-            success = success and run_success if success is not None else run_success
-
-    return writer.read(), success
-
-
 def test_happy_path():
     output, success = run_checker("my_test_script.py.donotrun")
     assert output == []
@@ -82,10 +63,3 @@ def test_sad_path():
             in bad_output
     )
     assert not success
-
-
-def test_vulcan_scripts():
-    vulcan_scripts_path = os.path.join(os.path.dirname(__file__), "..", "vulcan_scripts")
-    output, success = run_checker_directory(vulcan_scripts_path)
-    assert [] == output
-    assert success
