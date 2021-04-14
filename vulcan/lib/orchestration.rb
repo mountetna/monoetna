@@ -119,16 +119,6 @@ class Vulcan
       end
     end
 
-    def local_package_path(pkg_name, pkg_path)
-      path = pkg_path
-      if (host_dir_map = ENV['HOST_DIR_MAP'])
-        container_path, host_dir = host_dir_map.split('=', 2)
-        path.sub!(/^#{container_path}/, host_dir)
-      end
-
-      "#{pkg_name}:#{path}"
-    end
-
     def run_script!(storage:, script:, input_files:, output_files:, token:, ch:)
       status = nil
       output_str = nil
