@@ -69,11 +69,17 @@ describe "Vulcan scripts" do
 
   it "all pass Archimedes checker" do
     errors = []
-    ::Dir["#{scripts_path}/*.py"].each do |path|
+    num_scripts_checked = 0
+
+    ::Dir.glob("#{scripts_path}/**/*.py").each do |path|
       output = check_script(path)
       errors << output unless "" == output
+
+      # make sure some work is being done
+      num_scripts_checked += 1
     end
 
     expect(errors).to eq([])
+    expect(num_scripts_checked > 0).to eq(true)
   end
 end
