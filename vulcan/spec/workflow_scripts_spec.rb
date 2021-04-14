@@ -25,7 +25,7 @@ describe "Vulcan scripts" do
     )
   end
 
-  def mount_path
+  def host_mount_path
     path = scripts_path
 
     if (host_dir_map = ENV["HOST_DIR_MAP"])
@@ -44,7 +44,7 @@ describe "Vulcan scripts" do
       "-v",
       "#{Vulcan.instance.config(:archimedes_exec_volume)}:/archimedes-exec",
       "-v",
-      "#{mount_path}:/app/vulcan_scripts",
+      "#{host_mount_path}:/app/vulcan_scripts",
       Vulcan.instance.config(:archimedes_run_image),
       "poetry",
       "run",
