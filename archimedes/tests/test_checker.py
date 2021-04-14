@@ -25,18 +25,18 @@ def run_checker(fixture_name):
     )
     return writer.read(), success
 
-def run_checker_directory(path):
+def run_checker_directory(directory_path):
     writer = PyLintWriter()
     reporter = TextReporter(writer)
     from archimedes.checker import run
 
     success = True
 
-    for script_path in Path(path).iterdir():
-        if script_path.is_file() and script_path.suffix == ".py":
+    for path in Path(directory_path).iterdir():
+        if path.is_file() and path.suffix == ".py":
             success = success and run(
-                    [script_path],
-                    reporter=reporter,
+                [path],
+                reporter=reporter,
             )
 
     return writer.read(), success
