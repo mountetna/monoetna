@@ -25,6 +25,7 @@ def run_checker(fixture_name):
     )
     return writer.read(), success
 
+
 def run_checker_directory(directory_path):
     writer = PyLintWriter()
     reporter = TextReporter(writer)
