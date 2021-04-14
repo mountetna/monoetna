@@ -62,7 +62,7 @@ describe('ProjectView', () => {
     );
 
     await act( async () => {
-        await new Promise((resolve) => setTimeout(resolve, 15));
+        await new Promise((resolve) => setTimeout(resolve, 20));
     });
 
     expect( component.toJSON() ).toMatchSnapshot()
@@ -78,7 +78,7 @@ describe('ProjectView', () => {
     );
 
     await act( async () => {
-        await new Promise((resolve) => setTimeout(resolve, 15));
+        await new Promise((resolve) => setTimeout(resolve, 20));
     });
 
     expect( component.toJSON() ).toMatchSnapshot()
