@@ -31,14 +31,16 @@ def run_checker_directory(directory_path):
     reporter = TextReporter(writer)
     from archimedes.checker import run
 
-    success = True
+    success = None
 
     for path in Path(directory_path).iterdir():
         if path.is_file() and path.suffix == ".py":
-            success = success and run(
+            run_success = run(
                 [path],
                 reporter=reporter,
             )
+            
+            success = success and run_success if success is not None else run_success
 
     return writer.read(), success
 
