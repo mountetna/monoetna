@@ -98,9 +98,7 @@ class Magma
       def add_table_records table_records
         @records.each do |record|
           record_name = record[model_identifier]
-          if (table_records.keys.include?(record_name))
-            record.merge!(table_records[record_name])
-          end
+          record.merge!(table_records[record_name]) if (table_records.keys.include?(record_name))
         end
       end
 
