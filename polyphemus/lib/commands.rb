@@ -558,6 +558,40 @@ class Polyphemus
     end
   end
 
+  class GenerateFakeMvirPatientTables < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+    usage 'generate_fake_mvir_patient_tables'
+
+    def execute
+      @environ = environment("development")
+      @project_name = "mvir1"
+
+      request = Etna::Clients::Magma::UpdateRequest.new(
+        project_name: @project_name
+      )
+
+      (1..200).each do |patient_index|
+        (0..50).each do |test_index|
+          ["admission_lab", "comorbidity", "symptom"].each do |table_model|
+            patient_name = "MVIR1-HS#{patient_index}"
+            request.update_revision("patient", patient_name, project: "COMET")
+            request.append_table(
+              "patient",
+              patient_name,
+              table_model,
+              {
+                name: "Test name #{test_index}",
+                value: "Test value #{test_index}"
+              })
+          end
+        end
+      end
+
+      @environ.magma_client.update_json(request)
+    end
+  end
+
   class Console < Etna::Command
     usage 'Open a console with a connected Polyphemus instance.'
 
