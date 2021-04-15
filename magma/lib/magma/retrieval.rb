@@ -28,6 +28,46 @@ class Magma
       @attribute_names = attributes.map(&:name)
     end
 
+    def materialize(payload = Magma::Payload.new, get_tables = true)
+      payload.add_model(@model, @attribute_names)
+      payload.add_count(@model, self.count) if @page == 1
+
+      return if @record_names.empty?
+
+      records = self.records
+      payload.add_records(@model, records)
+
+      # add the records for any table attributes
+      # This requires a secondary query.
+      return unless get_tables
+
+      table_attributes.each do |att|
+        inner_retrieval = Magma::Retrieval.new(
+          att.link_model,
+          'all',
+          'all',
+          filters: [
+            Magma::Retrieval::ParentFilter.new(
+              att.link_model, @model,
+              records.map{|r| r[@model.identity.column_name.to_sym]}
+            )
+          ],
+          collapse_tables: @collapse_tables,
+          page: nil,
+          page_size: nil,
+          order: nil,
+          show_disconnected: @show_disconnected,
+          user: @user,
+          restrict: @restrict
+        )
+
+        inner_retrieval.materialize(
+          payload,
+          false,
+        )
+      end
+    end
+
     def attributes
       @attributes ||= begin
         attributes = @model.attributes.values.select do |att|

@@ -24,6 +24,7 @@ describe RetrieveController do
       },
       :non_user
     )
+
     expect(last_response.status).to eq(403)
   end
 

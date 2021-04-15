@@ -156,34 +156,6 @@ class RetrieveController < Magma::Controller
       restrict: !@user.can_see_restricted?(@project_name)
     )
 
-    @payload.add_model(model, retrieval.attribute_names)
-    @payload.add_count(model, retrieval.count) if @page == 1
-
-    return if record_names.empty?
-
-    time = Time.now
-    records = retrieval.records
-
-    @payload.add_records( model, records )
-
-    # add the records for any table attributes
-    # This requires a secondary query.
-    return unless get_tables
-
-    retrieval.table_attributes.each do |att|
-      retrieve_model(
-        att.link_model,
-        'all',
-        'all',
-        [
-          Magma::Retrieval::ParentFilter.new(
-            att.link_model, model,
-            records.map{|r| r[model.identity.column_name.to_sym]}
-          )
-        ],
-        false,
-        false
-      )
-    end
+    retrieval.materialize(@payload, get_tables)
   end
 end
