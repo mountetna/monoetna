@@ -17,4 +17,12 @@ describe Magma::Model do
       expect(template[:attributes].keys).to include(:created_at, :updated_at, :labor, :name, :species)
     end
   end
+
+  describe 'table models' do
+    it 'load with identifier attribute' do
+      model = Labors::Prize
+      
+      expect(model.attributes.keys.include?(model.identity.name)).to eq(true)
+    end
+  end
 end

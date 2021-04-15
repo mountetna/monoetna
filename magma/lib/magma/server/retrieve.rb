@@ -140,14 +140,14 @@ class RetrieveController < Magma::Controller
     return [ 200, { 'Content-Type' => 'text/tsv', 'Content-Disposition' => 'inline; filename="results.tsv' }, tsv_stream ]
   end
 
-  def retrieve_model(model, record_names, attribute_names, filters, use_pages, get_tables)
+  def retrieve_model(model, record_names, attribute_names, filters, use_pages, get_tables, parent_model: nil)
     # Extract the attributes from the model.
     retrieval = Magma::Retrieval.new(
       model,
       record_names,
       attribute_names,
       filters: filters,
-      collapse_tables: @collapse_tables,
+      collapse_tables: true, # Always collapse these; append table records only if get_tables
       page: use_pages && @page,
       page_size: use_pages && @page_size,
       order: use_pages && @order,
@@ -165,7 +165,8 @@ class RetrieveController < Magma::Controller
     records = retrieval.records
 
     @payload.add_records( model, records )
-
+    @payload.add_table_records( parent_model, records, model ) if parent_model
+    
     # add the records for any table attributes
     # This requires a secondary query.
     return unless get_tables
@@ -182,7 +183,8 @@ class RetrieveController < Magma::Controller
           )
         ],
         false,
-        false
+        false,
+        parent_model: model
       )
     end
   end
