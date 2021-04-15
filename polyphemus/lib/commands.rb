@@ -574,7 +574,7 @@ class Polyphemus
       (1..200).each do |patient_index|
         (0..50).each do |test_index|
           ["admission_lab", "comorbidity", "symptom"].each do |table_model|
-            patient_name = "MVIR1-HS#{patient_index}"
+            patient_name = "MVIR1-TEST#{patient_index}"
             request.update_revision("patient", patient_name, project: "COMET")
             request.append_table(
               "patient",
