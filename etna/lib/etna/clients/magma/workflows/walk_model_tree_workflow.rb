@@ -12,14 +12,37 @@ module Etna
           @template_for = {}
         end
 
+        def all_attributes(template:)
+          template.attributes.attribute_keys
+        end
+
+        def safe_group_attributes(template:, attributes_mask:)
+          result = []
+
+          template.attributes.attribute_keys.each do |attribute_name|
+            next if template.attributes.attribute(attribute_name).attribute_type == Etna::Clients::Magma::AttributeType::TABLE
+            result << attribute_name if attribute_included?(attributes_mask, attribute_name)
+          end
+
+          result
+        end
+
         def masked_attributes(template:, model_attributes_mask:, model_name:)
           attributes_mask = model_attributes_mask[model_name]
-          return ["all", "all"] if attributes_mask.nil?
-          [(attributes_mask + [template.identifier, 'parent']).uniq, attributes_mask]
+
+          if attributes_mask.nil?
+            return [
+              safe_group_attributes(template: template, attributes_mask: attributes_mask),
+              all_attributes(template: template)
+            ]
+          end
+
+          [(safe_group_attributes(template: template, attributes_mask: attributes_mask) + [template.identifier, 'parent']).uniq,
+            attributes_mask]
         end
 
         def attribute_included?(mask, attribute_name)
-          return true if mask == "all"
+          return true if mask.nil?
           mask.include?(attribute_name)
         end
 
@@ -48,7 +71,11 @@ module Etna
             seen.add([path[:from], model_name])
 
             template = template_for(model_name)
-            query_attributes, walk_attributes = masked_attributes(template: template, model_attributes_mask: model_attributes_mask, model_name: model_name)
+            query_attributes, walk_attributes = masked_attributes(
+              template: template,
+              model_attributes_mask: model_attributes_mask,
+              model_name: model_name
+            )
 
             request = RetrievalRequest.new(
                 project_name: magma_crud.project_name,
@@ -70,13 +97,15 @@ module Etna
               model = response.models.model(model_name)
 
               template.attributes.attribute_keys.each do |attr_name|
+                attr = template.attributes.attribute(attr_name)
+                if attr.attribute_type == AttributeType::TABLE && attribute_included?(walk_attributes, attr_name)
+                  tables << attr_name
+                end
+
                 next unless attribute_included?(query_attributes, attr_name)
                 attributes << attr_name
 
-                attr = template.attributes.attribute(attr_name)
-                if attr.attribute_type == AttributeType::TABLE
-                  tables << attr_name
-                elsif attr.attribute_type == AttributeType::COLLECTION
+                if attr.attribute_type == AttributeType::COLLECTION
                   related_models[attr.link_model_name] ||= Set.new
                   collections << attr_name
                 elsif attr.attribute_type == AttributeType::LINK
