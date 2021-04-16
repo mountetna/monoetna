@@ -17,7 +17,7 @@ gem "mimemagic", "~>0.3.10" # for aspera-cli
 gem "concurrent-ruby"
 
 group :test do
-  gem "pry"
+  gem "pry", "~>0.13.0"
   gem "pry-byebug"
   gem "timecop"
   gem "webmock"

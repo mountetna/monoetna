@@ -454,6 +454,16 @@ module Etna
           @raw = raw
         end
 
+        def is_edited?(other)
+          # Don't just override == in case need to do a full comparison.
+          # Make sure description matches, too
+
+          self_editable = raw.slice(*Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.map(&:to_s))
+          other_editable = other.raw.slice(*Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.map(&:to_s))
+
+          self_editable != other_editable || desc != other.desc
+        end
+
         # Sets certain attribute fields which are implicit, even when not set, to match server behavior.
         def set_field_defaults!
           @raw.replace({
@@ -516,18 +526,6 @@ module Etna
         end
 
         def desc=(val)
-          @raw['desc'] = val
-        end
-
-        # description and description= are needed
-        #   to make UpdateAttribute actions
-        #   work in the model_synchronization_workflow for
-        #   desc.
-        def description
-          raw['desc']
-        end
-
-        def description=(val)
           @raw['desc'] = val
         end
 
@@ -601,7 +599,7 @@ module Etna
         COPYABLE_ATTRIBUTE_ATTRIBUTES = [
             :attribute_name, :attribute_type, :desc, :display_name, :format_hint,
             :hidden, :link_model_name, :read_only, :attribute_group, :unique, :validation,
-            :restricted, :description
+            :restricted
         ]
 
         EDITABLE_ATTRIBUTE_ATTRIBUTES = UpdateAttributeAction.members & COPYABLE_ATTRIBUTE_ATTRIBUTES
