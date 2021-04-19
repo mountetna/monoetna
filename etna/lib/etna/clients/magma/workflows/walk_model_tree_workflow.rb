@@ -89,6 +89,7 @@ module Etna
             related_models = {}
 
             magma_crud.page_records(model_name, request) do |response|
+              logger&.info("Fetched page of #{model_name}")
               tables = []
               collections = []
               links = []
@@ -120,14 +121,32 @@ module Etna
                 end
               end
 
+              table_data = {}
+              # Request tables in an inner chunk.
+              tables.each do |table_attr|
+                request = RetrievalRequest.new(
+                  project_name: magma_crud.project_name,
+                  model_name: model_name,
+                  record_names: model.documents.document_keys,
+                  attribute_names: [table_attr],
+                )
+
+                logger&.info("Fetching inner table #{table_attr}...")
+
+                table_response = magma_crud.magma_client.retrieve(request)
+                d = table_response.models.model(model_name).documents
+                table_d = table_response.models.model(table_attr).documents
+                table_data[table_attr] = d.document_keys.map do |id|
+                  [id, d.document(id)[table_attr].map { |tid| table_d.document(tid) }]
+                end.to_h
+              end
+
               model.documents.document_keys.each do |key|
                 record = model.documents.document(key).slice(*attributes)
 
                 # Inline tables inside the record
                 tables.each do |table_attr|
-                  record[table_attr] = record[table_attr].map do |id|
-                    response.models.model(template.attributes.attribute(table_attr).link_model_name).documents.document(id)
-                  end unless record[table_attr].nil?
+                  record[table_attr] = table_data[table_attr][key] unless table_data[table_attr].nil?
                 end
 
                 collections.each do |collection_attr|
