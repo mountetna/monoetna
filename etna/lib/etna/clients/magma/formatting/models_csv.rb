@@ -138,7 +138,7 @@ module Etna
                 attribute_type: attribute.attribute_type,
                 link_model_name: attribute.link_model_name,
                 reciprocal_link_type: models.find_reciprocal(model: model, attribute: attribute)&.attribute_type,
-                description: attribute.desc,
+                description: attribute.description,
                 display_name: attribute.display_name,
                 match: attribute.match,
                 format_hint: attribute.format_hint,
