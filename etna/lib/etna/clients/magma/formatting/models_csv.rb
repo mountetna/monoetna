@@ -188,7 +188,6 @@ module Etna
 
           def format_row(row)
             replace_row_column(row, :attribute_type) { |s| AttributeType.new(s) }
-            # replace_row_column(row, :desc) { row.delete(:description) }
             replace_row_column(row, :restricted, &COLUMN_AS_BOOLEAN)
             replace_row_column(row, :read_only, &COLUMN_AS_BOOLEAN)
             replace_row_column(row, :options) { |s| {"type" => "Array", "value" => s.split(',').map(&:strip)} }
