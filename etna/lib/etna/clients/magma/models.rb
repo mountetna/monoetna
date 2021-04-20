@@ -613,6 +613,7 @@ module Etna
         # NOTE!  The Attribute class returns description as desc, where as actions take it in as description.
         # There are shortcut methods that try to handle this on the action class side of things.  Ideally we would
         # make this more consistent in the near future.
+        # Include :description here so that it can be copied into UpdateAttributeAction
         COPYABLE_ATTRIBUTE_ATTRIBUTES = [
             :attribute_name, :attribute_type, :desc, :display_name, :format_hint,
             :hidden, :link_model_name, :read_only, :attribute_group, :unique, :validation,
