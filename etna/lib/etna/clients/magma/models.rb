@@ -458,8 +458,14 @@ module Etna
           # Don't just override == in case need to do a full comparison.
           # Make sure description matches, too
 
-          self_editable = raw.slice(*Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.map(&:to_s))
-          other_editable = other.raw.slice(*Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.map(&:to_s))
+          editable_attribute_names = Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.map(&:to_s)
+          
+          # Because we will compare description via the `desc` method to cover
+          #   potential differences in `description` vs `desc`.
+          editable_attribute_names.reject! { |a| "description" == a }
+
+          self_editable = raw.slice(*editable_attribute_names)
+          other_editable = other.raw.slice(*editable_attribute_names)
 
           self_editable != other_editable || desc != other.desc
         end
@@ -526,6 +532,17 @@ module Etna
         end
 
         def desc=(val)
+          @raw['desc'] = val
+        end
+
+        # Because UpdateAttribute uses "description", but the
+        #   Attribute model may only supply "desc", we provide
+        #   both ways to access that attribute value.
+        def description
+          raw['desc']
+        end
+
+        def description=(val)
           @raw['desc'] = val
         end
 
@@ -599,7 +616,7 @@ module Etna
         COPYABLE_ATTRIBUTE_ATTRIBUTES = [
             :attribute_name, :attribute_type, :desc, :display_name, :format_hint,
             :hidden, :link_model_name, :read_only, :attribute_group, :unique, :validation,
-            :restricted
+            :restricted, :description
         ]
 
         EDITABLE_ATTRIBUTE_ATTRIBUTES = UpdateAttributeAction.members & COPYABLE_ATTRIBUTE_ATTRIBUTES
