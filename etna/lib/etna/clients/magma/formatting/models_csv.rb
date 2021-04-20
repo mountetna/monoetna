@@ -175,7 +175,7 @@ module Etna
           # This should line up with the attribute names _on the model itself_.
           ATTRIBUTE_ROW_ENTRIES = [
               :attribute_type,
-              :link_model_name, :desc,
+              :link_model_name, :description,
               :display_name, :format_hint,
               :restricted, :read_only,
               :validation, :attribute_group,
@@ -188,7 +188,7 @@ module Etna
 
           def format_row(row)
             replace_row_column(row, :attribute_type) { |s| AttributeType.new(s) }
-            replace_row_column(row, :desc) { row.delete(:description) }
+            # replace_row_column(row, :desc) { row.delete(:description) }
             replace_row_column(row, :restricted, &COLUMN_AS_BOOLEAN)
             replace_row_column(row, :read_only, &COLUMN_AS_BOOLEAN)
             replace_row_column(row, :options) { |s| {"type" => "Array", "value" => s.split(',').map(&:strip)} }
@@ -250,7 +250,7 @@ module Etna
                 parent_att.name = parent_att.attribute_name = parent_model_name
                 parent_att.attribute_type = Etna::Clients::Magma::AttributeType::PARENT
                 parent_att.link_model_name = parent_model_name
-                parent_att.desc = prettify(parent_model_name)
+                parent_att.description = prettify(parent_model_name)
                 parent_att.display_name = prettify(parent_model_name)
               end
             end
@@ -275,7 +275,7 @@ module Etna
                   attr.attribute_name = attr.name = template.name
                   attr.attribute_type = parent_link_type
                   attr.link_model_name = template.name
-                  attr.desc = prettify(template.name)
+                  attr.description = prettify(template.name)
                   attr.display_name = prettify(template.name)
                 end
               end
@@ -338,7 +338,7 @@ module Etna
                     models.build_model(att.link_model_name).build_template.build_attributes.build_attribute(template.name).tap do |rec_att|
                       rec_att.attribute_name = rec_att.name = template.name
                       rec_att.display_name = prettify(template.name)
-                      rec_att.desc = prettify(template.name)
+                      rec_att.description = prettify(template.name)
                       rec_att.attribute_type = Etna::Clients::Magma::AttributeType::COLLECTION
                       rec_att.link_model_name = template.name
                     end
