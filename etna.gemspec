@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name              = 'etna'
-  spec.version           = '0.1.33'
+  spec.version           = '0.1.34'
   spec.summary           = 'Base classes for Mount Etna applications'
   spec.description       = 'See summary'
   spec.email             = 'Saurabh.Asthana@ucsf.edu'
