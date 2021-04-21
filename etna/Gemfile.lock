@@ -16,8 +16,6 @@ GEM
     byebug (11.1.3)
     coderay (1.1.3)
     concurrent-ruby (1.1.8)
-    concurrent-ruby-ext (1.1.8)
-      concurrent-ruby (= 1.1.8)
     crack (0.4.5)
       rexml
     debase (0.2.4.1)
@@ -35,7 +33,7 @@ GEM
     mini_portile2 (2.5.0)
     multipart-post (2.1.1)
     net-ssh (4.2.0)
-    nokogiri (1.11.2)
+    nokogiri (1.11.3)
       mini_portile2 (~> 2.5.0)
       racc (~> 1.4)
     pry (0.13.1)
@@ -50,7 +48,7 @@ GEM
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
     rake (13.0.3)
-    rexml (3.2.4)
+    rexml (3.2.5)
     rollbar (3.1.2)
     rspec (3.10.0)
       rspec-core (~> 3.10.0)
@@ -93,13 +91,12 @@ PLATFORMS
 DEPENDENCIES
   aspera-cli
   concurrent-ruby
-  concurrent-ruby-ext
   debase
   jwt
   mimemagic (~> 0.3.10)
   multipart-post
   nokogiri
-  pry
+  pry (~> 0.13.0)
   pry-byebug
   rack
   rack-test
@@ -115,4 +112,4 @@ RUBY VERSION
    ruby 2.5.7p206
 
 BUNDLED WITH
-   2.2.14
+   2.2.16
