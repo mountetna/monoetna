@@ -117,14 +117,6 @@ module Etna
           super({action_name: 'update_attribute'}.update(args))
         end
 
-        def desc=(val)
-          self.description = val
-        end
-
-        def desc
-          self.description
-        end
-
         def as_json
           super(keep_nils: true)
         end
