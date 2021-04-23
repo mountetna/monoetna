@@ -339,7 +339,7 @@ class EtnaApp
             request = Etna::Clients::Magma::RetrievalRequest.new(project_name: project_name)
             request.model_name = model_name
             request.attribute_names = 'all'
-            request.record_names = 'all'
+            request.record_names = []
             model = magma_client.retrieve(request).models.model(model_name)
             model_parent_name = model.template.attributes.all.select do |attribute|
               attribute.attribute_type == Etna::Clients::Magma::AttributeType::PARENT
