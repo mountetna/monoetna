@@ -243,6 +243,21 @@
             "hidden": false,
             "validation": null,
             "attribute_type": "boolean"
+          },
+          "contributions": {
+            "name": "contributions",
+            "attribute_name": "contributions",
+            "type": "matrix",
+            "attribute_class": "Magma::MatrixAttribute",
+            "display_name": "Contributions",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": {
+              "type": "Array",
+              "value": ["Athens","Sparta","Sidon","Thebes"]
+            },
+            "attribute_type": "matrix"
           }
         },
         "parent": "parent_model",

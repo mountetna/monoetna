@@ -372,6 +372,38 @@ class EtnaApp
             end
           end
         end
+
+        class LoadMatrix < Etna::Command
+          include WithEtnaClients
+          include WithLogger
+
+          boolean_flags << '--execute'
+          boolean_flags << '--tsv'
+
+          def execute(project_name, model_name, attribute_name, file_path, execute: false, tsv: false)
+
+            if tsv
+              raise "Must be a TSV file" unless ::File.extname(file_path) == ".tsv"
+            else
+              raise "Must be a CSV file" unless ::File.extname(file_path) == ".csv"
+            end
+
+            puts "NOTE: This is a **preview** of what the data loading will look like. Use the --execute flag to load records into Magma." unless execute
+
+            workflow = Etna::Clients::Magma::UpdateMatrixValuesWorkflow.new(
+              magma_client: magma_client,
+              project_name: project_name,
+              model_name: model_name,
+              attribute_name: attribute_name,
+              filepath: file_path,
+              execute: execute,
+              logger: logger,
+              tsv: tsv
+            )
+
+            workflow.upload_values
+          end
+        end
       end
 
       class LoadFromRedcap < Etna::Command
