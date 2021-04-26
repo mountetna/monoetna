@@ -17,7 +17,7 @@ echoRun() {
 }
 
 postToSlack() {
-  post-to-slack "deployer on $(HOST_HOSTNAME)" "watchtower-ping" "$1"
+  post-to-slack "deployer on ${HOST_HOSTNAME}" "watchtower-ping" "$1"
 }
 
 findContainers() {
