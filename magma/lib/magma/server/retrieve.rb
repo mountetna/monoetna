@@ -110,7 +110,7 @@ class RetrieveController < Magma::Controller
         Magma.instance.get_model(@project_name, @model_name),
         @record_names,
         @attribute_names,
-        [ Magma::Retrieval::StringFilter.new(@filter) ],
+        filter,
         true,
         !@collapse_tables
       )
@@ -126,7 +126,7 @@ class RetrieveController < Magma::Controller
       model,
       @record_names,
       @attribute_names,
-      filters: [ Magma::Retrieval::StringFilter.new(@filter) ],
+      filters: filter,
       collapse_tables: true,
       show_disconnected: @show_disconnected,
       user: @user,
@@ -137,7 +137,9 @@ class RetrieveController < Magma::Controller
       Magma::TSVWriter.new(model, retrieval, @payload).write_tsv{ |lines| stream << lines }
     end
 
-    return [ 200, { 'Content-Type' => 'text/tsv', 'Content-Disposition' => 'inline; filename="results.tsv' }, tsv_stream ]
+    filename = "#{@project_name}_#{@model_name}_results_#{DateTime.now.strftime("%Y_%m_%d_%H_%M_%S")}.tsv"
+
+    return [ 200, { 'Content-Type' => 'text/tsv', 'Content-Disposition' => "inline; filename=\"#{filename}\"" }, tsv_stream ]
   end
 
   def retrieve_model(model, record_names, attribute_names, filters, use_pages, get_tables)
@@ -185,5 +187,11 @@ class RetrieveController < Magma::Controller
         false
       )
     end
+  end
+
+  def filter
+    @filter.is_a?(Array) ?
+      [ Magma::Retrieval::JsonFilter.new(@filter) ] :
+      [ Magma::Retrieval::StringFilter.new(@filter) ]
   end
 end

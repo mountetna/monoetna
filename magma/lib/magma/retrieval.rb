@@ -160,17 +160,7 @@ class Magma
       end
     end
 
-    class StringFilter
-      def initialize filter
-        @filter = filter || ""
-      end
-
-      def apply(attributes)
-        @filter.split(/\s/).map do |term|
-          filter_term(term, attributes)
-        end.compact
-      end
-
+    class Filter
       FILTER_TERM = /^
         ([\w]+)
         (=|<|>|>=|<=|~)
@@ -207,6 +197,8 @@ class Magma
           return "::equals"
         when "~"
           return "::matches"
+        when "<=", ">=", ">", "<"
+          return "::#{operator}"
         else
           raise ArgumentError, "Invalid operator #{operator} for string attribute!"
         end
@@ -229,6 +221,30 @@ class Magma
         when "false"
           return "::false"
         end
+      end
+    end
+
+    class StringFilter < Magma::Retrieval::Filter
+      def initialize filter
+        @filter = filter || ""
+      end
+
+      def apply(attributes)
+        @filter.split(/\s/).map do |term|
+          filter_term(term, attributes)
+        end.compact
+      end
+    end
+
+    class JsonFilter < Magma::Retrieval::Filter
+      def initialize filters
+        @filters = filters || []
+      end
+
+      def apply(attributes)
+        @filters.map do |term|
+          filter_term(term, attributes)
+        end.compact
       end
     end
   end
