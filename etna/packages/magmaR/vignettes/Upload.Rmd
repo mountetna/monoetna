@@ -3,13 +3,13 @@ title: "Uploading data to magma with the R-client magmaR"
 author:
 - name: Daniel Bunis
   affiliation: Data Science CoLab, University of California San Francisco, San Francisco, CA
-date: "Updated: April 7, 2021"
+date: "Updated: April 26, 2021"
 output:
   BiocStyle::html_document:
     toc_float: true
 package: magmaR
 vignette: >
-  %\VignetteIndexEntry{Uploading data from magma}
+  %\VignetteIndexEntry{Uploading data to magma}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}    
 ---

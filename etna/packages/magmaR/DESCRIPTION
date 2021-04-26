@@ -1,19 +1,21 @@
 Package: magmaR
 Type: Package
-Title: R-client for Magma
-Version: 0.3.0
+Title: R-Client for Magma of the UCSF Mount Etna Data Library
+Version: 1.0.0
 Authors@R: c(person("Daniel", "Bunis", email = "daniel.bunis@ucsf.edu", role=c("aut", "cre")))
 Description: Provides functions for querying and obtaining data from magma, the
     data warehouse of the UCSF Mount Etna Data Library, to enable working with
     such data in R.
 Imports: crul,
-    jsonlite
+    jsonlite,
+    utils
 Suggests: dittoSeq,
     BiocStyle,
     vcr,
     webmockr,
     testthat,
-    knitr
+    knitr,
+    rmarkdown
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
