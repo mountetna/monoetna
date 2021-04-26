@@ -9,7 +9,7 @@ ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCK
 ENV PATH "/app/bin:/opt/poetry/bin:$PATH"
 ENV POETRY_HOME "/opt/poetry"
 
-ADD certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
+COPY certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
 RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
 
 RUN apt-get update \
