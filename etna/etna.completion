@@ -147,7 +147,7 @@ arg_flag_completion_names="$arg_flag_completion_names  "
 multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names="create_file_linking_csv help load_matrix_from_csv load_table_from_csv update_from_csv"
+all_completion_names="create_file_linking_csv help load_matrix load_table_from_csv update_from_csv"
 all_completion_names="$all_completion_names $all_flag_completion_names"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
@@ -269,7 +269,7 @@ return
 fi
 done
 return
-elif [[ "$1" == "load_matrix_from_csv" ]]; then
+elif [[ "$1" == "load_matrix" ]]; then
 shift
 if [[ "$#" == "1" ]];  then
 all_completion_names="__project_name__"
@@ -307,7 +307,7 @@ COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
-all_flag_completion_names="$all_flag_completion_names --execute "
+all_flag_completion_names="$all_flag_completion_names --execute --tsv "
 arg_flag_completion_names="$arg_flag_completion_names  "
 multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
