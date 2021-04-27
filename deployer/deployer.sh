@@ -17,7 +17,7 @@ echoRun() {
 }
 
 postToSlack() {
-  post-to-slack "deployer on $(hostname)" "watchtower-ping" "$1"
+  post-to-slack "deployer on ${HOST_HOSTNAME}" "watchtower-ping" "$1"
 }
 
 findContainers() {
@@ -84,6 +84,8 @@ stopNonRepoTaggedImages() {
     done < <(findContainers --filter "ancestor=$imageId")
   done < <(findNonRepoTaggedImages)
 
+  # Allow new images to come online.
+  sleep 2
   while read line; do
     set -- $line
     containerId=$1
