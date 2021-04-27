@@ -21,9 +21,9 @@ library(vcr)
 library(magmaR)
 
 TOKEN <- magmaR:::.get_sysenv_or_mock("TOKEN")
-URL <- magmaR::magmaRset("")$url
+URL <- magmaRset("")$url
 
-vcr::vcr_configure(
+vcr_configure(
     filter_sensitive_data = list("<<<my_token>>>" = TOKEN),
     dir = "../tests/fixtures"
 )
