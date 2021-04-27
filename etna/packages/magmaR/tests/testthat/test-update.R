@@ -4,8 +4,8 @@
 ### NOTE: updateValues() is currently used by updateMatrix(), so no direct tests are needed for that fxn.
 
 targ <- magmaRset(
-    token = Sys.getenv("TOKEN"),
-    url = Sys.getenv("URL"))
+    token = TOKEN,
+    url = URL)
 
 vcr::use_cassette("update_1", {
     test_that("updateMatrix can take in data directly", {

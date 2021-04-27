@@ -19,12 +19,14 @@ knitr::opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
 library(BiocStyle)
 library(magmaR)
 library(vcr)
+
+TOKEN <- magmaR:::.get_sysenv_or_mock("TOKEN")
+prod <- magmaRset(TOKEN)
+
 vcr::vcr_configure(
-    filter_sensitive_data = list("<<<my_token>>>" = Sys.getenv('TOKEN')),
+    filter_sensitive_data = list("<<<my_token>>>" = TOKEN),
     dir = "../tests/fixtures"
 )
-prod <- magmaRset(Sys.getenv("TOKEN"))
-
 insert_cassette(name = "Upload-vignette")
 ```
 
