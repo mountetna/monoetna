@@ -62,6 +62,6 @@
 .get_sysenv_or_mock <- function(target) {
     ifelse(
         identical(Sys.getenv(target),""),
-        rep(paste0("fake", tolower(target)), 3),
+        paste0("fake", tolower(target)),
         Sys.getenv(target))
 }
