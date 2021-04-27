@@ -47,35 +47,7 @@ module Redcap
       get_records({ type: 'flat' }.merge(opts))
     end
 
-    def records(form, events=false)
-      eavs = get_record_eavs(form.fields)
-
-      return nil unless eavs
-
-      flat_records = get_record_flat(form.fields).map do |record|
-        [ record[:record_id], record ]
-      end.to_h
-
-      records = eavs.group_by do |eav|
-        events ?
-          [ eav[:record], eav[:redcap_event_name] ]  :
-          eav[:record]
-      end.map do |record_id, record_eavs|
-        [
-          record_id,
-          EavSet.new(
-            record_eavs,
-            form.form_name,
-            flat_records[record_id],
-            form.labels
-          ).record
-        ]
-      end.to_h.compact
-
-      records
-    end
-
-    class EavSet
+    class Record
       def initialize eavs, form_name, flat_record, labels
         @eavs = eavs
         @form_name = form_name

@@ -12,9 +12,11 @@ module Redcap
     end
 
     def fields
-      @fields ||= ([ 'record_id' ] + @redcap_template.select{|f| f[:form_name] == form_name.to_s}.map{|f| f[:field_name]}).map.with_index do |f,i|
-        [ "fields[#{i}]", f ]
-      end.to_h
+      @fields ||= @redcap_template.select do |f|
+        f[:form_name] == form_name.to_s
+      end.map do |f|
+        f[:field_name]
+      end
     end
 
     def labels
@@ -23,8 +25,14 @@ module Redcap
       end.to_h
     end
 
-    def load(project, records)
-      project.records(self, @model.events?).each do |record_name, redcap_record|
+    def records(project)
+      events = @model.events?
+
+      return project.records(fields, events, form_name, labels)
+    end
+
+    def load(project, update)
+      records(project).each do |record_name, redcap_record|
         record_name, event_name = record_name if @model.events?
         next if record_name == "test"
 
@@ -34,11 +42,11 @@ module Redcap
 
         next unless @form.values.all?{|v| v.valid?(redcap_record) }
 
-        records[id] ||= {}
+        update[id] ||= {}
 
         @form.each do |att_name, form_value|
           next unless @model.has_attribute?(att_name)
-          records[id][ att_name ] = @model.cast_type(
+          update[id][ att_name ] = @model.cast_type(
             form_value.to_value(redcap_record, id, project.template),
             att_name, id
           )

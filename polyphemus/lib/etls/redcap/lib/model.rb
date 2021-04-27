@@ -9,6 +9,8 @@ module Redcap
       model_class.new(scripts, magma_template, redcap_template, salt)
     end
 
+    attr_reader :scripts
+
     def initialize(scripts, magma_template, redcap_template, salt)
       @scripts = scripts.map do |script|
         Redcap::Script.new(self, script, redcap_template)
