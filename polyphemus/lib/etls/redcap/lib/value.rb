@@ -1,19 +1,24 @@
 module Redcap
   class Value
-    def initialize(config)
+    def initialize(config, template)
+      @template = template
       @config = config.is_a?(String) ? { redcap_field: config, value: 'value' } : config
     end
 
-    def to_value(redcap_record, id, template)
+    def field_name
+      @config[:redcap_field]
+    end
+
+    def to_value(redcap_record, id)
       case @config[:value]
       when "text"
         return @config[:text]
       when "value"
         return field_value(redcap_record)
       when "label"
-        return (template.find{|t| t[:field_name] == @config[:redcap_field]} || {})[:field_label]
+        return @template.field_label(@config[:redcap_field])
       when "note"
-        return (template.find{|t| t[:field_name] == @config[:redcap_field]} || {})[:field_note]
+        return @template.field_note(@config[:redcap_field])
       else
         raise "Invalid value specified in value config: #{@config}"
       end

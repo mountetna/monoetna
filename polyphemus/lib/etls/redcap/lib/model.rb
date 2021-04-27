@@ -1,18 +1,19 @@
 module Redcap
   class Model
-    def self.create(model_name, scripts, magma_template, redcap_template, salt)
+    def self.create(project, model_name, model_config, magma_template, redcap_template, salt)
       class_name = model_name.to_s.split('_').map(&:capitalize).join
       model_class = Kernel.const_defined?(class_name) ?  Kernel.const_get(class_name) : nil
 
       raise "No model class for #{model_name}" unless model_class
 
-      model_class.new(scripts, magma_template, redcap_template, salt)
+      model_class.new(project, model_config, magma_template, redcap_template, salt)
     end
 
-    attr_reader :scripts
+    attr_reader :scripts, :project
 
-    def initialize(scripts, magma_template, redcap_template, salt)
-      @scripts = scripts.map do |script|
+    def initialize(project, model_config, magma_template, redcap_template, salt)
+      @project = project
+      @scripts = model_config[:scripts].map do |script|
         Redcap::Script.new(self, script, redcap_template)
       end
       @magma_template = magma_template
@@ -20,12 +21,12 @@ module Redcap
       @offset_days = {}
     end
 
-    def load(project)
-      project.logger.write("Attempting to load model #{name}.\n")
+    def load
+      @project.logger.write("Attempting to load model #{name}.\n")
 
       records = {}
       @scripts.each do |script|
-        records.update(script.load(project))
+        records.update(script.load)
       end
 
       records

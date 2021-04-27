@@ -26,54 +26,48 @@ def config
         scripts: [
           {
             each: "entity",
-            forms: {
-              essential_data: {
-                birthday: "date_of_birth",
-                graduation_date: "commencement",
-                name: "name",
-              },
-            },
-          },
-        ],
+            attributes: {
+              birthday: "date_of_birth",
+              graduation_date: "commencement",
+              name: "name"
+            }
+          }
+        ]
       },
       model_two: {
         scripts: [
           {
             each: "record",
-            forms: {
-              calendar: {
-                label: {
-                  redcap_field: "today",
-                  value: "label",
-                },
-                yesterday: {
-                  redcap_field: "today",
-                  value: "value",
-                },
+            attributes: {
+              label: {
+                redcap_field: "today",
+                value: "label"
               },
-            },
-          },
-        ],
+              yesterday: {
+                redcap_field: "today",
+                value: "value"
+              }
+            }
+          }
+        ]
       },
       stats: {
         scripts: [
           {
             each: "record",
-            forms: {
-              statistics: {
-                height: {
-                  redcap_field: "height",
-                  value: "value",
-                },
-                weight: {
-                  redcap_field: "weight",
-                  value: "value",
-                },
+            attributes: {
+              height: {
+                redcap_field: "height",
+                value: "value"
               },
-            },
-          },
-        ],
-      },
-    },
+              weight: {
+                redcap_field: "weight",
+                value: "value"
+              }
+            }
+          }
+        ]
+      }
+    }
   }
 end

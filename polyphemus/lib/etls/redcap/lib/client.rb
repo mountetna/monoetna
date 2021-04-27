@@ -48,11 +48,9 @@ module Redcap
     end
 
     class Record
-      def initialize eavs, form_name, flat_record, labels
+      def initialize eavs, flat_record
         @eavs = eavs
-        @form_name = form_name
         @flat_record = flat_record || {}
-        @labels = labels
       end
 
       def record
@@ -76,8 +74,7 @@ module Redcap
       end
 
       def add_eav?(eav)
-        eav[:field_name] != "#{@form_name}_complete" &&
-          eav[:value] &&
+        eav[:value] &&
           eav[:value] != '' &&
           ![ 'Not Available', 'Not Reported', 'Not reported' ].include?(eav[:value])
       end
