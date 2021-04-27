@@ -1,13 +1,21 @@
 # Define the new classes dynamically
-define_model("ModelOne")
+define_model("ModelOne").class_eval do
+  def identifier(record_name, event_name)
+    # Hardcode a temp id so that the offset is consistent. Makes
+    #   testing less random.
+    "::temp-#{record_name}-xyz"
+  end
+end
+
 define_model("ModelTwo").class_eval do
   def identifier(record_name, event_name)
     record_name
   end
 end
+
 define_model("Stats").class_eval do
   def patch(id, record)
-    record[:model_two] = id.split('-')[1]
+    record[:model_two] = id.split("-")[1]
   end
 end
 
@@ -22,11 +30,11 @@ def config
               essential_data: {
                 birthday: "date_of_birth",
                 graduation_date: "commencement",
-                name: "name"
-              }
-            }
-          }
-        ]
+                name: "name",
+              },
+            },
+          },
+        ],
       },
       model_two: {
         scripts: [
@@ -36,16 +44,16 @@ def config
               calendar: {
                 label: {
                   redcap_field: "today",
-                  value: "label"
+                  value: "label",
                 },
                 yesterday: {
                   redcap_field: "today",
-                  value: "value"
-                }
-              }
-            }
-          }
-        ]
+                  value: "value",
+                },
+              },
+            },
+          },
+        ],
       },
       stats: {
         scripts: [
@@ -55,17 +63,17 @@ def config
               statistics: {
                 height: {
                   redcap_field: "height",
-                  value: "value"
+                  value: "value",
                 },
                 weight: {
                   redcap_field: "weight",
-                  value: "value"
-                }
-              }
-            }
-          }
-        ]
-      }
-    }
+                  value: "value",
+                },
+              },
+            },
+          },
+        ],
+      },
+    },
   }
 end
