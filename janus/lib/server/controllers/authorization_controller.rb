@@ -80,7 +80,7 @@ class AuthorizationController < Janus::Controller
       raise Etna::BadRequest, "No project_name specified!" unless @params[:project_name]
 
       begin
-        return success(user.create_task_token!(@params[:project_name]))
+        return success(user.create_task_token!(@params[:project_name], read_only: @params[:read_only]))
       rescue Token::Error
         raise Etna::Unauthorized
       end
@@ -97,20 +97,6 @@ class AuthorizationController < Janus::Controller
     raise Etna::Unauthorized, 'Invalid task token' unless Token::Checker.new(@user.token).valid_task_token?(@janus_user)
 
     success_json(success: true)
-  end
-
-  def generate_task
-    require_params(:project_name)
-
-    @janus_user = User[email: @user.email]
-
-    raise Etna::Forbidden, 'User not found' unless @janus_user
-
-    begin
-      success_json(token: @janus_user.create_task_token!(@params[:project_name]))
-    rescue Token::Error
-      raise Etna::Unauthorized
-    end
   end
 
   private

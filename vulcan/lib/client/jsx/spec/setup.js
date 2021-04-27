@@ -13,6 +13,8 @@ global.ROUTES = {
     `/api/${project_name}/session/${workflow_name}`,
   status: (project_name, workflow_name) =>
     `/api/${project_name}/session/${workflow_name}/status`,
+  create_session: (project_name, workflow_name) =>
+    `/api/${project_name}/session/${workflow_name}/create`,
 };
 
 // Used by plotly.js

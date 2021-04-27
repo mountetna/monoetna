@@ -62,18 +62,22 @@ module Token
       payload = token.split('.')[1]
     end
 
-    def create_task_token!(project_name)
+    def create_task_token!(project_name, read_only: false)
       # Time is in seconds, nil = no expiration
       expires = Time.now.utc + Janus.instance.config(:task_token_life)
 
       payload = jwt_payload(filters: { project_name: project_name }).merge(exp: expires.to_i)
 
-      unless payload[:perm] =~ /^[AaEeVv]:#{Project::PROJECT_NAME_MATCH.source}$/
-        raise Token::Error, "Cannot write invalid permission on task token!"
-      end
+      # ensure read only
+      payload[:perm] = "v:#{project_name}" if read_only
 
       # degrade admin permissions
       payload[:perm] = payload[:perm].tr('Aa', 'Ee') if payload[:perm] =~ /^[Aa]/
+
+      # Ensure the resulting permission is valid.
+      unless payload[:perm] =~ /^[AaEeVv]:#{Project::PROJECT_NAME_MATCH.source}$/
+        raise Token::Error, "Cannot write invalid permission on task token!"
+      end
 
       # set task flag
       payload[:task] = true

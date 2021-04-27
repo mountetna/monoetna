@@ -22,6 +22,22 @@ class SessionsController < Vulcan::Controller
     orchestration.workflow
   end
 
+  def create
+    begin
+      @the_session = Session.from_json(@params.slice(:project_name, :workflow_name))
+    rescue => e
+      raise Etna::BadRequest.new(e.message)
+    end
+
+    janus_client = Etna::Clients::Janus.new(token: @user.token, host: Vulcan.instance.config(:janus)[:host])
+    token = janus_client.generate_token('task', project_name: @params[:project_name], read_only: true)
+
+    success_json({
+      session: session.as_json,
+      token: token,
+    })
+  end
+
   def submit
     orchestration.load_json_inputs!(storage)
     scheduler.schedule_more!(orchestration: orchestration, token: token, storage: storage)
@@ -59,13 +75,13 @@ class SessionsController < Vulcan::Controller
     bt = orchestration.build_target_for(step_name, build_target_cache)
 
     scheduler.status(storage: storage, build_target: bt, step: step).update({
-        name: step_name,
-        downloads: step_has_downloads?(bt, ui_output) ? bt.build_outputs.map do |output_name, sf|
-          [
-              output_name,
-              storage.data_url(project_name: sf.project_name, cell_hash: sf.cell_hash, data_filename: sf.data_filename),
-          ]
-        end.to_h : nil
+      name: step_name,
+      downloads: step_has_downloads?(bt, ui_output) ? bt.build_outputs.map do |output_name, sf|
+        [
+          output_name,
+          storage.data_url(project_name: sf.project_name, cell_hash: sf.cell_hash, data_filename: sf.data_filename),
+        ]
+      end.to_h : nil
     })
   end
 
@@ -84,6 +100,8 @@ class SessionsController < Vulcan::Controller
     #   in config.yml :development to also point to
     #   production Magma.
     return Vulcan.instance.config(:archimedes_token) || @user.token if :development == Vulcan.instance.environment
+
+    raise Etna::Unauthorized.new("Executing and polling data requires a task token.") unless @user.task?
 
     @user.token
   end

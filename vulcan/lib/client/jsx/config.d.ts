@@ -15,4 +15,5 @@ declare const ROUTES: {
     workflow_vignette(workflowName: string): string,
     submit(projectName: string, workflowName: string): string,
     status(projectName: string, workflowName: string): string,
+    create_session(projectName: string, workflowName: string): string,
 }
