@@ -8,9 +8,9 @@ targ <- magmaRset(
     url = URL)
 
 vcr::use_cassette("update_1", {
+    mat <- retrieveMatrix(targ, "example", "rna_seq", "all", "gene_counts")
+    
     test_that("updateMatrix can take in data directly", {
-        
-        mat <<- retrieveMatrix(targ, "example", "rna_seq", "all", "gene_counts")
         
         expect_output(
             updateMatrix(targ, projectName = "example", modelName = "rna_seq", attributeName = "gene_counts",
@@ -19,7 +19,7 @@ vcr::use_cassette("update_1", {
 "For model \"rna_seq\", this update() will update 12 records",
             fixed = TRUE
         )
-        mat_after <<- retrieveMatrix(targ, "example", "rna_seq", "all", "gene_counts")
+        mat_after <- retrieveMatrix(targ, "example", "rna_seq", "all", "gene_counts")
     
         expect_identical(mat,mat_after)
     })
