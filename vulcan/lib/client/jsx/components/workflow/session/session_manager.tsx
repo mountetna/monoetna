@@ -33,10 +33,6 @@ export default function SessionManager() {
   const name = workflowName(workflow);
   if (!name) return null;
 
-  useEffect(() => {
-    ReactModal.setAppElement('#root');
-  }, []);
-
   const [modalIsOpen, setIsOpen] = React.useState(false);
   function openModal() {
     setIsOpen(true);

@@ -22,25 +22,9 @@ class SessionsController < Vulcan::Controller
     orchestration.workflow
   end
 
-  def create
-    begin
-      @the_session = Session.from_json(@params.slice(:project_name, :workflow_name))
-    rescue => e
-      raise Etna::BadRequest.new(e.message)
-    end
-
-    janus_client = Etna::Clients::Janus.new(token: @user.token, host: Vulcan.instance.config(:janus)[:host])
-    token = janus_client.generate_token('task', project_name: @params[:project_name], read_only: true)
-
-    success_json({
-      session: session.as_json,
-      token: token,
-    })
-  end
-
   def submit
     orchestration.load_json_inputs!(storage)
-    scheduler.schedule_more!(orchestration: orchestration, token: token, storage: storage)
+    scheduler.schedule_more!(orchestration: orchestration, token: create_task_token, storage: storage)
     success_json(status_payload)
   rescue => e
     Vulcan.instance.logger.log_error(e)
@@ -92,7 +76,7 @@ class SessionsController < Vulcan::Controller
     bt.is_built?(storage)
   end
 
-  def token
+  def create_task_token
     # For development, we can inject a production token
     #   via config.yml, to talk directly to production services.
     #   This should reduce duplication of data.
@@ -101,9 +85,8 @@ class SessionsController < Vulcan::Controller
     #   production Magma.
     return Vulcan.instance.config(:archimedes_token) || @user.token if :development == Vulcan.instance.environment
 
-    raise Etna::Unauthorized.new("Executing and polling data requires a task token.") unless @user.task?
-
-    @user.token
+    janus_client = Etna::Clients::Janus.new(token: @user.token, host: Vulcan.instance.config(:janus)[:host])
+    janus_client.generate_token('task', project_name: @params[:project_name], read_only: true)
   end
 end
 

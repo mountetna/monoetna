@@ -14,6 +14,7 @@ describe SessionsController do
     OUTER_APP
   end
 
+  let(:mock_create_task_token) { true }
   let(:storage) { Vulcan::Storage.new }
   before(:each) do
     FileUtils.rm_rf(storage.data_root) if ::File.exist?(storage.data_root)
@@ -47,28 +48,23 @@ describe SessionsController do
     JSON.parse(last_response.body)
   end
 
-  let(:task) { true }
+  before(:each) { auth_header(:viewer) }
 
-  before(:each) { auth_header(:viewer, task: task) }
+  before(:each) do
+    if mock_create_task_token
+      token = Base64.strict_encode64(AUTH_USERS[:viewer].to_json)
+      allow_any_instance_of(SessionsController).to receive(:create_task_token).and_return(token)
+    end
+  end
+
   describe 'creating a new session' do
     let(:body_json) { {} }
     describe 'without viewer permission' do
-      before(:each) do
-        auth_header(:non_user, task: true)
-      end
+      before(:each) { auth_header(:non_user) }
 
       it "returns forbidden" do
         make_request('/status')
         expect(last_response.status).to eql(403)
-      end
-    end
-
-    describe 'without a task token' do
-      let(:task) { false }
-
-      it "returns 422" do
-        make_request('/status')
-        expect(last_response.status).to eql(422)
       end
     end
 
@@ -107,15 +103,6 @@ describe SessionsController do
       expect(last_response['X-Sendfile']).to eql(storage_file.data_path(storage))
     end
 
-    describe 'without a task token' do
-      let(:task) { false }
-
-      it "returns 422" do
-        make_request
-        expect(last_response.status).to eql(422)
-      end
-    end
-
     it 'builds and makes available downloads to those outputs' do
       make_request
       expect(last_response.status).to eql(200)
@@ -138,6 +125,45 @@ describe SessionsController do
           orchestration.build_target_for(:primary_outputs).build_outputs['the_result'])
 
       expect(response['status'][0][3]['status']).to eql('complete')
+    end
+
+    describe "task_token" do
+      describe "e2e" do
+        # Set this to a project you have in your dev enviroment (not test environment) when re-recording
+        let(:project_name) { 'ipi' }
+        let(:mock_create_task_token) { false }
+
+        it "does a thing" do
+          allow(Vulcan.instance).to receive(:config).and_call_original
+          allow(Vulcan.instance).to receive(:config).with(:janus).and_return({
+            host: "https://janus.development.local",
+          })
+
+          expect_any_instance_of(Vulcan::AsynchronousScheduler).to receive(:schedule_more!).and_wrap_original do |m, opts|
+            new_token = opts[:token]
+            payload = JSON.parse(Base64.decode64(new_token.split('.')[1]))
+            # Ensure that the token is always downgraded to viewer in this case.
+            expect(payload['perm']).to eql("v:#{project_name}")
+            expect(payload['task']).to eql(true)
+
+            m.call(opts)
+          end
+
+          # When re-recording, provide a TOKEN into the environment to run against your local development.
+          if (tok = ENV['TOKEN'])
+            header('Authorization', "Etna #{tok}")
+          else
+            # Since the project name will differ from a real project, when running this without a local token,
+            # we need an auth token that still has permission to the project
+            auth_header(:viewer, additional: {perm: "v:#{project_name}"})
+          end
+
+          VCR.use_cassette('create_session.e2e') do
+            make_request
+            expect(last_response.status).to eql(200)
+          end
+        end
+      end
     end
   end
 
@@ -169,44 +195,4 @@ describe SessionsController do
     end
   end
 
-  describe "create" do
-    describe "e2e" do
-      # Set this to a project you have in your dev enviroment (not test environment) when re-recording
-      let(:project_name) { 'ipi' }
-      let(:task) { false }
-      let(:body_json) do
-        {}
-      end
-
-      it "does a thing" do
-        allow(Vulcan.instance).to receive(:config).and_call_original
-        allow(Vulcan.instance).to receive(:config).with(:janus).and_return({
-          host: "https://janus.development.local",
-        })
-
-
-        # When re-recording, provide a TOKEN into the environment to run against your local development.
-        if (tok = ENV['TOKEN'])
-          header('Authorization', "Etna #{tok}")
-        end
-
-        VCR.use_cassette('create_session.e2e') do
-          make_request('/create')
-          expect(last_response.status).to eql(200)
-          result = last_json_response
-          expect(result["session"]["project_name"]).to eql(project_name)
-          expect(result["session"]["workflow_name"]).to eql(workflow_name)
-          expect(result["session"]["key"]).not_to be_empty
-          expect(result["session"]["inputs"]).to eql({})
-
-          new_token = result["token"]
-          payload = JSON.parse(Base64.decode64(new_token.split('.')[1]))
-
-          # Ensure that the token is always downgraded to viewer in this case.
-          expect(payload['perm']).to eql("v:#{project_name}")
-          expect(payload['task']).to eql(true)
-        end
-      end
-    end
-  end
 end

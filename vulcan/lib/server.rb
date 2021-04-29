@@ -19,7 +19,6 @@ class Vulcan
     get 'api/workflows', action: 'workflows#fetch', as: :workflows_view, auth: { user: { active?: true } }
     get 'api/:project_name/data/:cell_hash/:data_filename', action: 'data#fetch', as: :data_view, match_ext: true, auth: { user: { can_view?: :project_name } }
     post 'api/:project_name/session/:workflow_name/status', action: 'sessions#status', as: :status_view, match_ext: true, auth: { user: { can_view?: :project_name } }
-    post 'api/:project_name/session/:workflow_name/create', action: 'sessions#create', as: :create_view, match_ext: true, auth: { user: { can_view?: :project_name } }
     post 'api/:project_name/session/:workflow_name', action: 'sessions#submit', as: :submit_view, match_ext: true, auth: { user: { can_view?: :project_name } }
 
     with auth: { user: { active?: true } } do

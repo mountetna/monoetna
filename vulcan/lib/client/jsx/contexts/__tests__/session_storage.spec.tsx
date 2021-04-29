@@ -4,7 +4,7 @@ import {integrateElement} from "../../test_utils/integration";
 import {createFakeStorage} from "../../test_utils/mocks";
 import {setSession, setWorkflow} from "../../actions/vulcan";
 import {statusWithDownloads} from "../../test_utils/fixtures/status-with-downloads";
-import {defaultWorkflow} from "../../api_types";
+import {defaultWorkflow, Workflow} from "../../api_types";
 
 
 describe('useSessionStorage', () => {
@@ -21,11 +21,11 @@ describe('useSessionStorage', () => {
 
     // Does not save without workflow being set
     expect(storage.length).toEqual(0);
-    await dispatch(setWorkflow({...defaultWorkflow, name: 'some name', projects: ['a project']}));
+    await dispatch(setWorkflow({...defaultWorkflow, name: 'some name', projects: ['a project']}, 'a project'));
 
     expect(storage.length).toEqual(1); // Saved it!
     expect(contextData.state.session.workflow_name).toEqual(contextData.state.workflow?.name)
-    expect(await contextData.getLocalSession(contextData.state.workflow as any)).toEqual(contextData.state.session);
+    expect(await contextData.getLocalSession(contextData.state.workflow as any, 'a project')).toEqual(contextData.state.session);
 
     await dispatch(setSession({
       ...statusWithDownloads['session'],
@@ -38,14 +38,18 @@ describe('useSessionStorage', () => {
     expect(storage.length).toEqual(1); // Updates it!
     expect(contextData.state.workflow).not.toBeFalsy();
 
-    expect(await contextData.getLocalSession(contextData.state.workflow as any)).toEqual(contextData.state.session);
+    expect(await contextData.getLocalSession(contextData.state.workflow as any, 'a project')).toEqual(contextData.state.session);
 
-    await dispatch(setWorkflow({...defaultWorkflow, name: 'new name', projects: ['test'] }));
+    await dispatch(setWorkflow({...defaultWorkflow, name: 'new name', projects: ['test', 'test2'] }, 'test'));
     await dispatch(setSession({
       ...statusWithDownloads['session'],
       workflow_name: 'new name',
     }));
 
     expect(storage.length).toEqual(2); // Adds the new work flow session key
+
+    // Switch projects while retaining the same workflow.
+    await dispatch(setWorkflow(contextData.stateRef.current.workflow as Workflow, 'test2'));
+    expect(storage.length).toEqual(3); // Adds the new work flow session key
   });
 });

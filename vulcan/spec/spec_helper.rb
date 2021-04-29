@@ -46,10 +46,10 @@ AUTH_USERS = {
 
 PROJECT = "labors"
 
-def auth_header(user_type, task: false)
+def auth_header(user_type, task: false, additional: {})
   user = AUTH_USERS[user_type].dup
   user[:task] = task if task
-  header(*Etna::TestAuth.token_header(user))
+  header(*Etna::TestAuth.token_header({}.update(user).update(additional)))
 end
 
 RSpec.configure do |config|
