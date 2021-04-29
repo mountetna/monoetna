@@ -205,6 +205,57 @@
           }
         }
       }
+    },
+    "citation": {
+      "documents": {
+        "citation-abc-1": {
+          "name": "citation-abc-1"
+        },
+        "citation-abc-2": {
+          "name": "citation-abc-2"
+        },
+        "citation-111-1": {
+          "name": "citation-111-1"
+        },
+        "citation-blah-1": {
+          "name": "citation-blah-1"
+        }
+      },
+      "template": {
+        "parent": "model_two",
+        "identifier": "name",
+        "attributes": {
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "date": {
+            "name": "date",
+            "attribute_name": "date",
+            "display_name": "Date",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "model_two": {
+            "name": "model_two",
+            "attribute_name": "model_two",
+            "model_name": "model_two",
+            "link_model_name": "model_two",
+            "display_name": "ModelTwo",
+            "validation": null,
+            "attribute_type": "parent"
+          }
+        }
+      }
     }
   }
 }

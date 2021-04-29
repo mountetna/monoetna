@@ -3,10 +3,9 @@ module Redcap
     def initialize(model, script, template)
       @model = model
       @project = model.project
-      @script = script
       @template = template
-      @attributes ||= @script[:attributes].map do |att_name, att_value|
-        [ att_name, Redcap::Value.new(att_value, template) ]
+      @attributes ||= script.map do |att_name, att_value|
+        [ att_name, Redcap::Value.new(att_name, att_value, template) ]
       end.to_h
     end
 
@@ -36,6 +35,28 @@ module Redcap
       return records
     end
 
+    def inverse_load
+      update = {}
+
+      redcap_records = records
+
+      @model.magma_records.each do |record_name, magma_record|
+        next unless @attributes.values.all?{|v| v.valid?(magma_record) }
+
+        id = record_name
+
+        redcap_record = redcap_records[ @model.redcap_id(*record_name) ]
+
+        next unless redcap_record
+
+        update[id] ||= {}
+
+        update_record(update[id], id, redcap_record)
+      end
+
+      return patched(update)
+    end
+
     def load
       update = {}
 
@@ -51,15 +72,26 @@ module Redcap
 
         update[id] ||= {}
 
-        @attributes.each do |att_name, att_value|
-          next unless @model.has_attribute?(att_name)
-          update[id][ att_name ] = @model.cast_type(
-            att_value.to_value(redcap_record, id),
-            att_name, id
-          )
-        end
+        update_record(update[id], id, redcap_record)
       end
 
+      return patched(update)
+    end
+
+    def update_record(record, id, redcap_record)
+      @attributes.each do |att_name, att_value|
+        next unless @model.has_attribute?(att_name)
+
+        next if att_value.none?
+
+        record[ att_name ] = @model.cast_type(
+          att_value.to_value(redcap_record, id),
+          att_name, id
+        )
+      end
+    end
+
+    def patched(update)
       update.each do |id, record|
         record.compact! unless @project.strict
 

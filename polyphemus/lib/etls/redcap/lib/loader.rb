@@ -1,12 +1,14 @@
 module Redcap
   class Loader
     attr_reader :records, :magma_models_wrapper, :config, :logger
-    def initialize(config, magma_models_wrapper, logger=STDOUT)
+    def initialize(config, project_name, magma_client, logger=STDOUT)
       @config = config
       @records = {}
       @logger = logger
 
-      @magma_models_wrapper = magma_models_wrapper
+      @project_name = project_name
+      @magma_client = magma_client
+      @magma_models_wrapper = Redcap::MagmaModelsWrapper.new(magma_client, project_name)
     end
 
     def run
@@ -21,7 +23,9 @@ module Redcap
 
     def update_records_from_project
       tokens.each do |token|
-        project = Redcap::Project.new(token, config, magma_models_wrapper.models, logger)
+        project = Redcap::Project.new(
+          token, @project_name, config, @magma_client, magma_models_wrapper.models, logger
+        )
 
         project.fetch_records.each do |model_name, model_records|
           records[model_name] = {} unless records.keys.include?(model_name)

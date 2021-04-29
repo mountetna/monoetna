@@ -6,14 +6,16 @@ module Redcap
 
       raise "No model class for #{model_name}" unless model_class
 
-      model_class.new(project, model_config, magma_template, redcap_template, salt)
+      model_class.new(model_name, project, model_config, magma_template, redcap_template, salt)
     end
 
     attr_reader :scripts, :project
 
-    def initialize(project, model_config, magma_template, redcap_template, salt)
+    def initialize(model_name, project, config, magma_template, redcap_template, salt)
+      @model_name = model_name
       @project = project
-      @scripts = model_config[:scripts].map do |script|
+      @config = config
+      @scripts = config[:scripts].map do |script|
         Redcap::Script.new(self, script, redcap_template)
       end
       @magma_template = magma_template
@@ -21,19 +23,36 @@ module Redcap
       @offset_days = {}
     end
 
+    def events?
+      @config[:each] == "event"
+    end
+
+    def invert?
+      @config[:invert]
+    end
+
+    def magma_records
+      @magma_records ||= project.magma_client.retrieve(
+        Etna::Clients::Magma::RetrievalRequest.new(
+          project_name: @project.project_name,
+          model_name: @model_name,
+          attribute_names: "identifier",
+          record_names: "all",
+        )
+      ).models.model(@model_name.to_s).documents.raw
+    end
+
     def load
       @project.logger.write("Attempting to load model #{name}.\n")
 
       records = {}
       @scripts.each do |script|
-        records.update(script.load)
+        records.update(
+          invert? ? script.inverse_load : script.load
+        )
       end
 
       records
-    end
-
-    def events?
-      false
     end
 
     def offset_id(record_id)

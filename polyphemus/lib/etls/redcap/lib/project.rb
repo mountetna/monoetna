@@ -1,10 +1,12 @@
 module Redcap
   class Project
-    attr_reader :config, :client, :magma_models, :logger
-    def initialize(token, config, magma_models, logger)
+    attr_reader :config, :client, :magma_models, :magma_client, :logger, :project_name
+    def initialize(token, project_name, config, magma_client, magma_models, logger)
       @client = Redcap::Client.new(config[:redcap_host], token)
 
       @config = config
+      @project_name = project_name
+      @magma_client = magma_client
       @magma_models = magma_models
       @logger = logger
     end
@@ -48,7 +50,7 @@ module Redcap
 
       all_fields = models.map do |model_name, model|
         model.scripts.map(&:fields)
-      end.flatten.uniq
+      end.flatten.compact.uniq
 
       @valid_fields = all_fields & template.field_names
       invalid_fields = all_fields - template.field_names
