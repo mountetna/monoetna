@@ -163,7 +163,7 @@ class Magma
     class Filter
       FILTER_TERM = /^
         ([\w]+)
-        (=|<|>|>=|<=|~)
+        (=|<|>|>=|<=|~|\[\]|\^@)
         (.*)
         $/x
 
@@ -173,21 +173,45 @@ class Magma
 
         att = attributes.find{|a| a.name == att_name.to_sym}
         raise ArgumentError, "#{att_name} is not an attribute" unless att.is_a?(Magma::Attribute)
+        
+        raise ArgumentError, "Cannot filter on collection attributes" if [ Magma::CollectionAttribute, Magma::TableAttribute ].any? { |a| att.is_a?(a) }
+
+        return [ "::lacks", att_name ] if nil_operator?(operator)
+
         case att
-        when Magma::CollectionAttribute, Magma::TableAttribute
-          raise ArgumentError, "Cannot filter on collection attributes"
         when Magma::ForeignKeyAttribute, Magma::ChildAttribute
-          return [ att_name, '::identifier', string_op(operator), value ]
+          return [ att_name, '::identifier', string_op(operator), array_or_value(operator, value) ]
         when Magma::IntegerAttribute, Magma::FloatAttribute
           return [ att_name, numeric_op(operator), value.to_f ]
         when Magma::DateTimeAttribute
           return [ att_name, numeric_op(operator), value ]
         when Magma::StringAttribute
-          return [ att_name, string_op(operator), value ]
+          return [ att_name, string_op(operator), array_or_value(operator, value) ]
         when Magma::BooleanAttribute
           return [ att_name, boolean_op(operator, value) ]
+        when Magma::FileAttribute, Magma::ImageAttribute
+          return [ att_name, file_op(operator), value ]
         else
           raise ArgumentError, "Cannot query for #{att_name}"
+        end
+      end
+
+      def nil_operator?(operator)
+        "^@" == operator
+      end
+
+      def array_or_value(operator, value)
+        return value.split(",") if "[]" == operator
+        
+        value
+      end
+
+      def file_op operator
+        case operator
+        when "="
+          return "::equals"
+        else
+          raise ArgumentError, "Invalid operator #{operator} for file attribute!"
         end
       end
 
@@ -199,6 +223,8 @@ class Magma
           return "::matches"
         when "<=", ">=", ">", "<"
           return "::#{operator}"
+        when "[]"
+          return "::in"
         else
           raise ArgumentError, "Invalid operator #{operator} for string attribute!"
         end

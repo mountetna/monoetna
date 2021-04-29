@@ -293,8 +293,8 @@ describe QueryController do
 
   context Magma::StringPredicate do
     before(:each) do
-      lion = create(:labor, name: 'Nemean Lion', number: 1, completed: true, project: @project)
-      hydra = create(:labor, name: 'Lernean Hydra', number: 2, completed: false, project: @project)
+      lion = create(:labor, name: 'Nemean Lion', number: 1, completed: true, notes: "tough", project: @project)
+      hydra = create(:labor, name: 'Lernean Hydra', number: 2, completed: false, notes: "fun", project: @project)
       stables = create(:labor, name: 'Augean Stables', number: 5, completed: false, project: @project)
 
       @lion_difficulty = create(:characteristic, labor: lion, name: "difficulty", value: "10" )
@@ -548,6 +548,49 @@ describe QueryController do
 
       expect(json_body[:answer].map(&:last).sort).to eq([ 'alpha-hydra.tsv', 'alpha-lion.tsv', 'alpha-stables.tsv' ])
       expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#stats'])
+    end
+
+    it 'can filter on ::lacks' do
+      practice = create(:labor, name: 'Practice', project: @project)
+      paper_tiger = create(:monster, name: 'Roar!', stats: nil, labor: practice)
+      paper_dragon = create(:monster, name: 'Whoosh!', stats: 'null', labor: practice)
+    
+      query(
+        [ 'monster', ['::lacks', 'stats'], '::all', '::identifier' ]
+      )
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:answer].map(&:last).sort).to eq([ 'Roar!', 'Whoosh!' ])
+      expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#name'])
+    end
+
+    it 'can match on filename with ::equals' do
+      practice = create(:labor, name: 'Practice', project: @project)
+      paper_tiger = create(:monster, name: 'Roar!', stats: '{"filename": "::blank", "original_filename": "::blank"}', labor: practice)
+    
+      query(
+        [ 'monster', ['stats', '::equals', '::blank'], '::all', '::identifier' ]
+      )
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:answer].map(&:last).sort).to eq([ 'Roar!' ])
+      expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#name'])
+    end
+
+    it 'can match on not filename with ::not' do
+      practice = create(:labor, name: 'Practice', project: @project)
+      paper_tiger = create(:monster, name: 'Roar!', stats: '{"filename": "::blank", "original_filename": "::blank"}', labor: practice)
+    
+      query(
+        [ 'monster', ['stats', '::not', '::blank'], '::all', '::identifier' ]
+      )
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:answer].map(&:last).sort).to eq([ 'Augean Stables', 'Lernean Hydra', 'Nemean Lion' ])
+      expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#name'])
     end
 
     it 'returns the md5' do
