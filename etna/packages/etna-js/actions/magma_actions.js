@@ -97,7 +97,8 @@ export const requestDocuments = (args) => {
     page,
     page_size,
     collapse_tables,
-    exchange_name
+    exchange_name,
+    output_predicate
   } = args;
 
   return (dispatch) => {
@@ -138,7 +139,8 @@ export const requestDocuments = (args) => {
         show_disconnected,
         page,
         page_size,
-        collapse_tables
+        collapse_tables,
+        output_predicate
       },
       new Exchange(dispatch, exchange_name)
     ];
