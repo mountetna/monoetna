@@ -28,6 +28,7 @@ GEM
     database_cleaner (1.8.5)
     diff-lcs (1.4.3)
     docile (1.3.2)
+    dry-initializer (3.0.4)
     factory_bot (6.0.2)
       activesupport (>= 5.0.0)
     ffi (1.13.1)
@@ -35,6 +36,7 @@ GEM
     hashdiff (1.0.1)
     i18n (1.8.3)
       concurrent-ruby (~> 1.0)
+    json (2.5.1)
     jwt (2.2.3)
     method_source (1.0.0)
     mini_portile2 (2.5.0)
@@ -47,6 +49,8 @@ GEM
     nokogiri (1.11.3-x86_64-linux)
       racc (~> 1.4)
     pg (0.21.0)
+    prometheus-client (2.1.0)
+    prometheus-client-mmap (0.12.0)
     pry (0.13.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -91,6 +95,20 @@ GEM
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff (>= 0.4.0, < 2.0.0)
+    yabeda (0.8.0)
+      concurrent-ruby
+      dry-initializer
+    yabeda-prometheus (0.6.1)
+      prometheus-client (>= 0.10, < 3.0)
+      rack
+      yabeda (~> 0.5)
+    yabeda-prometheus-mmap (0.1.1)
+      prometheus-client-mmap
+      yabeda (~> 0.5)
+    yabeda-puma-plugin (0.6.0)
+      json
+      puma
+      yabeda (~> 0.5)
     zeitwerk (2.3.1)
 
 PLATFORMS
@@ -114,6 +132,10 @@ DEPENDENCIES
   simplecov
   vcr
   webmock
+  yabeda
+  yabeda-prometheus
+  yabeda-prometheus-mmap
+  yabeda-puma-plugin
 
 BUNDLED WITH
    2.2.16

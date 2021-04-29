@@ -74,6 +74,7 @@ module Etna
     def initialize
       # Setup logging.
       application.setup_logger
+      application.setup_yabeda
     end
 
     private

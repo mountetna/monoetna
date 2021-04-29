@@ -35,7 +35,7 @@ class Vulcan
 
             run!(storage: storage, build_target: next_runnable, token: token)
           rescue => e
-            errors << {cell_hash: next_runnable.cell_hash, error: e}
+            errors << { cell_hash: next_runnable.cell_hash, error: e }
           ensure
             ran << next_runnable
           end
@@ -87,31 +87,31 @@ class Vulcan
 
     def command(storage:, input_files:, output_files:, token:, ch:)
       [
-          "docker",
-          "run",
-          "--rm",
+        "docker",
+        "run",
+        "--rm",
       ] + docker_run_args(storage: storage, input_files: input_files, output_files: output_files, token: token, ch: ch)
     end
 
     def docker_run_args(storage:, input_files:, output_files:, token:, ch:)
       [
-          "-i",
-          "-v",
-          "/var/run/docker.sock:/var/run/docker.sock:ro",
-          "-v",
-          "#{Vulcan.instance.config(:archimedes_exec_volume)}:/archimedes-exec",
-          Vulcan.instance.config(:archimedes_run_image),
-          "poetry",
-          "run",
-          "archimedes-run",
-          "--isolator=docker",
-          "-e",
-          "MAGMA_HOST=#{Vulcan.instance.config(:magma)&.dig(:host)}",
-          "-e",
-          "TOKEN=#{token}",
-          "-e",
-          "PROJECT_NAME=#{session.project_name}",
-          "--image=" + Vulcan.instance.config(:archimedes_run_image),
+        "-i",
+        "-v",
+        "/var/run/docker.sock:/var/run/docker.sock:ro",
+        "-v",
+        "#{Vulcan.instance.config(:archimedes_exec_volume)}:/archimedes-exec",
+        Vulcan.instance.config(:archimedes_run_image),
+        "poetry",
+        "run",
+        "archimedes-run",
+        "--isolator=docker",
+        "-e",
+        "MAGMA_HOST=#{Vulcan.instance.config(:magma)&.dig(:host)}",
+        "-e",
+        "TOKEN=#{token}",
+        "-e",
+        "PROJECT_NAME=#{session.project_name}",
+        "--image=" + Vulcan.instance.config(:archimedes_run_image),
       ] + output_files.map do |sf|
         "--output=#{sf.to_archimedes_storage_file(storage)}"
       end + input_files.map do |sf|
@@ -124,11 +124,11 @@ class Vulcan
       output_str = nil
 
       cmd = command(
-          storage: storage,
-          input_files: input_files,
-          output_files: output_files,
-          token: token,
-          ch: ch,
+        storage: storage,
+        input_files: input_files,
+        output_files: output_files,
+        token: token,
+        ch: ch,
       )
       Open3.popen2(*cmd) do |input, output, wait_thr|
         input.print(script)
@@ -178,12 +178,12 @@ class Vulcan
     def run_script_synchronously(storage:, build_target:, script:, token:)
       storage.with_run_cell_build(run_cell: storage.run_cell_for(build_target)) do |build_dir, output_files|
         result = run_script!(
-            storage: storage,
-            input_files: build_target.input_files,
-            output_files: output_files,
-            script: script,
-            token: token,
-            ch: build_target.cell_hash,
+          storage: storage,
+          input_files: build_target.input_files,
+          output_files: output_files,
+          script: script,
+          token: token,
+          ch: build_target.cell_hash,
         )
 
         if (error = result["error"])
@@ -191,29 +191,31 @@ class Vulcan
         end
 
         storage.install_build_output(
-            buildable: build_target,
-            build_dir: build_dir
+          buildable: build_target,
+          build_dir: build_dir
         )
       end
     end
 
-      # Synchronous runner implementation that expects the transaction to complete.
+    # Synchronous runner implementation that expects the transaction to complete.
     def run!(storage:, build_target:, token:)
-      script = build_target.script
-      if run_as_copy_cell(storage: storage, build_target: build_target, script: script)
-        {'status' => 'done'}
-      elsif script
-        run_script_synchronously(
+      Yabeda.vulcan.job_runtime.measure do
+        script = build_target.script
+        if run_as_copy_cell(storage: storage, build_target: build_target, script: script)
+          { 'status' => 'done' }
+        elsif script
+          run_script_synchronously(
             storage: storage,
             build_target: build_target,
             script: script,
             token: token
-        )
-      else
-        raise "Could not determine or find backing script"
-      end
+          )
+        else
+          raise "Could not determine or find backing script"
+        end
 
-      raise "Build for #{build_target} failed to produce outputs!" unless build_target.is_built?(storage)
+        raise "Build for #{build_target} failed to produce outputs!" unless build_target.is_built?(storage)
+      end
     end
 
     def unique_paths
@@ -317,11 +319,11 @@ class Vulcan
         end
 
         Storage::BuildTarget.new(
-            project_name: session.project_name,
-            session_key: session.key,
-            input_files: input_files,
-            output_filenames: output_filenames,
-            script: script,
+          project_name: session.project_name,
+          session_key: session.key,
+          input_files: input_files,
+          output_filenames: output_filenames,
+          script: script,
         )
       end
     end
@@ -331,16 +333,16 @@ class Vulcan
       if session.include?(source)
         session.material_reference_for(source)
       elsif nil != input.default
-        {json_payload: JSON.dump(input.default)}
+        { json_payload: JSON.dump(input.default) }
       else
-        {unfulfilled: source}
+        { unfulfilled: source }
       end
     end
 
     def material_source(material_reference)
       Storage::MaterialSource.new(
-          project_name: session.project_name, session_key: session.key,
-          material_reference: material_reference)
+        project_name: session.project_name, session_key: session.key,
+        material_reference: material_reference)
     end
 
     class RunErrors < StandardError

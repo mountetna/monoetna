@@ -8,6 +8,7 @@ require_relative './command'
 require_relative './generate_autocompletion_script'
 require 'singleton'
 require 'rollbar'
+require 'yabeda'
 
 module Etna::Application
   def self.included(other)
@@ -51,6 +52,10 @@ module Etna::Application
         config.access_token = rollbar_config[:access_token]
       end
     end
+  end
+
+  def setup_yabeda
+    Yabeda.configure!
   end
 
   def setup_logger
