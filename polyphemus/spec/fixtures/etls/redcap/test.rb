@@ -18,62 +18,71 @@ define_model("Stats").class_eval do
     record[:model_two] = id.split("-")[1]
   end
 end
+define_model("Citation").class_eval do
+  def redcap_id(record_name, record)
+    record_name.split('-')[1..2]
+  end
+end
 
 def config
   {
     models: {
       model_one: {
+        each: "event",
         scripts: [
           {
-            each: "entity",
-            forms: {
-              essential_data: {
-                birthday: "date_of_birth",
-                graduation_date: "commencement",
-                name: "name",
-              },
-            },
-          },
-        ],
+            birthday: "date_of_birth",
+            graduation_date: "commencement",
+            name: "name"
+          }
+        ]
       },
       model_two: {
+        each: "record",
         scripts: [
           {
-            each: "record",
-            forms: {
-              calendar: {
-                label: {
-                  redcap_field: "today",
-                  value: "label",
-                },
-                yesterday: {
-                  redcap_field: "today",
-                  value: "value",
-                },
-              },
+            label: {
+              redcap_field: "today",
+              value: "label"
             },
-          },
-        ],
+            yesterday: {
+              redcap_field: "today",
+              value: "value"
+            }
+          }
+        ]
       },
       stats: {
+        each: "record",
         scripts: [
           {
-            each: "record",
-            forms: {
-              statistics: {
-                height: {
-                  redcap_field: "height",
-                  value: "value",
-                },
-                weight: {
-                  redcap_field: "weight",
-                  value: "value",
-                },
-              },
+            height: {
+              redcap_field: "height",
+              value: "value"
             },
-          },
-        ],
+            weight: {
+              redcap_field: "weight",
+              value: "value"
+            }
+          }
+        ]
       },
-    },
+      citation: {
+        each: "event",
+        invert: true,
+        scripts: [
+          {
+            name: {
+              match: /citation-(111|abc)/,
+              value: "none"
+            },
+            date: {
+              redcap_field: "citation_date",
+              value: "value"
+            }
+          }
+        ]
+      }
+    }
   }
 end

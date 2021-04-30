@@ -4,6 +4,7 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
 
+
   # For each node in the swarm, fetch docker daemon metrics.  This must be enabled on the daemon first.
   - job_name: 'docker'
     dockerswarm_sd_configs:
