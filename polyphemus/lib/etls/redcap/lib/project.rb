@@ -1,57 +1,70 @@
 module Redcap
   class Project
-    attr_reader :config, :client, :magma_models, :logger
-    def initialize(token, config, magma_models, logger)
+    attr_reader :config, :client, :magma_models, :magma_client, :logger, :project_name
+    def initialize(token, project_name, config, magma_client, magma_models, logger)
       @client = Redcap::Client.new(config[:redcap_host], token)
 
       @config = config
+      @project_name = project_name
+      @magma_client = magma_client
       @magma_models = magma_models
       @logger = logger
     end
 
     def template
-      @template ||= client.get_data(content: 'metadata')
+      @template ||= Redcap::Template.new(client.get_data(content: 'metadata'))
     end
 
     def fetch_records
       results = {}
-      models.each do |model_name, model_config|
-        next unless build_model?(model_name.to_s)
+
+      models.each do |model_name, model|
         results[ model_name ] = {}
 
-        results[ model_name ].update(
-          Redcap::Model.create(
-            model_name,
-            model_config[:scripts],
-            magma_models.model(model_name.to_s).template,
-            template,
-            dateshift_salt
-          ).load(self)
-        )
+        results[ model_name ].update(model.load)
       end
 
       results
-    end
-
-    def forms
-      @forms ||= template.map do |field|
-        field[:form_name]
-      end.uniq.map(&:to_sym)
-    end
-
-    def has_form?(form)
-      forms.include?(form.to_sym)
-    end
-
-    def records(form, events)
-      client.records(form, events)
     end
 
     def strict
       "strict" == config[:mode]
     end
 
+    def eav_records
+      @eav_records ||= client.get_record_eavs(field_opts(valid_fields))
+    end
+
+    def flat_records
+      @flat_records ||= client.get_record_flat(
+        field_opts([ 'record_id' ] + valid_fields)
+      ).map do |record|
+        [ record[:record_id], record ]
+      end.to_h
+    end
+
     private
+
+    def valid_fields
+      return @valid_fields if @valid_fields
+
+      all_fields = models.map do |model_name, model|
+        model.scripts.map(&:fields)
+      end.flatten.compact.uniq
+
+      @valid_fields = all_fields & template.field_names
+      invalid_fields = all_fields - template.field_names
+
+      logger.write("The following fields are invalid: #{invalid_fields.join(", ")}") unless invalid_fields.empty?
+
+      return @valid_fields
+    end
+
+    def field_opts(fields)
+      fields.map.with_index do |f,i|
+        ["fields[#{i}]", f ]
+      end.to_h
+    end
 
     def build_model?(model_name)
       'all' == models_to_build ? true : models_to_build.include?(model_name)
@@ -62,7 +75,20 @@ module Redcap
     end
 
     def models
-      config[:models]
+      @models ||= config[:models].map do |model_name, model_config|
+        next unless build_model?(model_name.to_s)
+        [
+          model_name,
+          Redcap::Model.create(
+            self,
+            model_name,
+            model_config,
+            magma_models.model(model_name.to_s).template,
+            template,
+            dateshift_salt
+          )
+        ]
+      end.compact.to_h
     end
 
     def dateshift_salt

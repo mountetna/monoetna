@@ -43,7 +43,7 @@ export default function SessionManager() {
   }
 
   const {steps} = workflow;
-  const {status} = state;
+  const {status, session} = state;
 
   // We are done once every step either has a download or that step is a uiOutput.
   const complete = useMemo(
@@ -84,7 +84,7 @@ export default function SessionManager() {
     <div className='session-manager'>
       <div className='session-header'>
         <span className='session-workflow-name'>
-          {workflow.description || name}
+          {workflow.description || name} - {session.project_name}
         </span>
         {workflow.vignette && (
           <React.Fragment>
