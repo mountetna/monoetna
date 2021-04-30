@@ -40,18 +40,16 @@ module Redcap
     def inverse_load
       update = {}
 
-      @model.existing_records.each do |record_name, magma_record|
+      @model.existing_records.each do |magma_record_name, magma_record|
         next unless @attributes.values.all?{|v| v.valid?(magma_record) }
 
-        id = record_name
-
-        redcap_record = redcap_records[ @model.redcap_id(*record_name) ]
+        redcap_record = redcap_records[ @model.redcap_id(magma_record_name, magma_record) ]
 
         next unless redcap_record
 
-        update[id] ||= {}
-
-        update_record(update[id], id, redcap_record)
+        update.merge!(
+          magma_record_name => update_record(magma_record_name, redcap_record)
+        )
       end
 
       return patched(update)
@@ -64,31 +62,34 @@ module Redcap
         record_name, event_name = record_name if @model.events?
         next if record_name == "test"
 
-        id = @model.identifier(record_name, event_name)
+        magma_record_name = @model.identifier(record_name, event_name)
 
-        next unless id
+        next unless magma_record_name
 
         next unless @attributes.values.all?{|v| v.valid?(redcap_record) }
 
-        update[id] ||= {}
-
-        update_record(update[id], id, redcap_record)
+        update.merge!(
+          magma_record_name => update_record(magma_record_name, redcap_record)
+        )
       end
 
       return patched(update)
     end
 
-    def update_record(record, id, redcap_record)
-      @attributes.each do |att_name, att_value|
+    def update_record(magma_record_name, redcap_record)
+      @attributes.map do |att_name, att_value|
         next unless @model.has_attribute?(att_name)
 
         next if att_value.none?
 
-        record[ att_name ] = @model.cast_type(
-          att_value.to_value(redcap_record, id),
-          att_name, id
-        )
-      end
+        [
+          att_name,
+          @model.cast_type(
+            att_value.to_value(redcap_record, magma_record_name),
+            att_name, magma_record_name
+          )
+        ]
+      end.compact.to_h
     end
 
     def patched(update)

@@ -19,7 +19,7 @@ define_model("Stats").class_eval do
   end
 end
 define_model("Citation").class_eval do
-  def redcap_id(record_name)
+  def redcap_id(record_name, record)
     record_name.split('-')[1..2]
   end
 end

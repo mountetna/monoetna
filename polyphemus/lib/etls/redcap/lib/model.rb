@@ -36,10 +36,14 @@ module Redcap
         Etna::Clients::Magma::RetrievalRequest.new(
           project_name: @project.project_name,
           model_name: @model_name,
-          attribute_names: "identifier",
+          attribute_names: attribute_names,
           record_names: "all",
         )
       ).models.model(@model_name.to_s).documents.raw
+    end
+
+    def attribute_names
+      @config[:attributes] || 'identifier'
     end
 
     def load
@@ -57,6 +61,10 @@ module Redcap
 
     def offset_id(record_id)
       record_id
+    end
+
+    def redcap_id(magma_record_name, magma_record)
+      nil
     end
 
     def offset_days(record_id)
