@@ -144,14 +144,14 @@ function Logo() {
   );
 }
 
-const getTabs = (workflow) => ({
-  workflow: ROUTES.workflow(workflowName(workflow)),
+const getTabs = (workflow, session) => ({
+  [`${session.project_name} ${workflowName(workflow)}`]: ROUTES.workflow(session.project_name, workflowName(workflow)),
   help: 'https://mountetna.github.io/vulcan.html'
 });
 
-const ModeBar = ({mode, workflow}) => (
+const ModeBar = ({mode, workflow, session}) => (
   <div id='nav'>
-    {Object.entries(getTabs(workflow)).map(([tab_name, route]) => (
+    {Object.entries(getTabs(workflow, session)).map(([tab_name, route]) => (
       <div
         key={tab_name}
         className={`nav_tab ${mode == tab_name ? 'selected' : ''}`}
@@ -164,11 +164,11 @@ const ModeBar = ({mode, workflow}) => (
 
 const VulcanNav = ({mode, user}) => {
   let {state} = useContext(VulcanContext);
-  let {workflow} = state;
+  let {workflow, session} = state;
 
   return (
     <Nav user={user} logo={Logo} app='vulcan'>
-      {mode !== 'home' && <ModeBar mode={mode} workflow={workflow} />}
+      {mode !== 'home' && <ModeBar mode={mode} workflow={workflow} session={session} />}
     </Nav>
   );
 };

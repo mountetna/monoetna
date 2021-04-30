@@ -69,10 +69,12 @@ module Token
       payload = jwt_payload(filters: { project_name: project_name }).merge(exp: expires.to_i)
 
       # ensure read only
-      payload[:perm] = "v:#{project_name}" if read_only
-
-      # degrade admin permissions
-      payload[:perm] = payload[:perm].tr('Aa', 'Ee') if payload[:perm] =~ /^[Aa]/
+      if read_only
+        payload[:perm] = "v:#{project_name}" if read_only
+      elsif payload[:perm] =~ /^[Aa]/
+        # degrade admin permissions
+        payload[:perm] = payload[:perm].tr('Aa', 'Ee')
+      end
 
       # Ensure the resulting permission is valid.
       unless payload[:perm] =~ /^[AaEeVv]:#{Project::PROJECT_NAME_MATCH.source}$/
