@@ -213,7 +213,7 @@ def stub_magma_update_json
     .to_return({ status: 200, body: {}.to_json, headers: { 'Content-Type': 'application/json' } })
 end
 
-def stub_redcap_data
+def stub_redcap_data(stub=nil)
   stub_request(:post, "#{REDCAP_HOST}/api/")
     .with(body: hash_including({ content: 'metadata' }))
     .to_return({
@@ -224,30 +224,12 @@ def stub_redcap_data
     })
 
   stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: /today/)
+    .with(body: /fields/)
     .to_return({
       headers: {
         'Content-Type': 'application/json'
       },
-      body: File.read('spec/fixtures/redcap_mock_data_calendar.json')
-    })
-
-  stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: /date_of_birth/)
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_mock_data_essential_data.json')
-    })
-
-  stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: /height/)
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_mock_data_statistics.json')
+      body: File.read('spec/fixtures/redcap_mock_data_all.json')
     })
 end
 
