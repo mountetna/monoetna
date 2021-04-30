@@ -7,7 +7,7 @@ module Etna
     }
 
     def initialize params, token=nil
-      @name, @email, @encoded_permissions, encoded_flags = params.values_at(:name, :email, :perm, :flags)
+      @name, @email, @encoded_permissions, encoded_flags, @task = params.values_at(:name, :email, :perm, :flags, :task)
 
       @flags = encoded_flags&.split(/;/) || []
       @token = token unless !token
@@ -15,6 +15,10 @@ module Etna
     end
 
     attr_reader :name, :email, :token
+
+    def task?
+      !!@task
+    end
 
     def permissions
       @permissions ||= @encoded_permissions.split(/\;/).map do |roles|

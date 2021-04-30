@@ -55,7 +55,7 @@ describe('OutputFeed', () => {
 
     const {state} = stateFromActions([
       setWorkflows([workflow]),
-      setWorkflow(workflow),
+      setWorkflow(workflow, 'test'),
       setStatus(createStatusFixture(workflow,
           createStepStatusFixture({
             name: 'first',

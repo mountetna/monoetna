@@ -8,8 +8,8 @@ export function setWorkflows(workflows: WorkflowsResponse['workflows']) {
     return actionObject('SET_WORKFLOWS', {workflows});
 }
 
-export function setWorkflow(workflow: Workflow) {
-    return actionObject('SET_WORKFLOW', {workflow});
+export function setWorkflow(workflow: Workflow, projectName: string) {
+    return actionObject('SET_WORKFLOW', {workflow, projectName});
 }
 
 export function setStatus(status: SessionStatusResponse['status']) {

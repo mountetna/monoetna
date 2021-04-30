@@ -3,10 +3,10 @@ import {SessionStatusResponse, Workflow} from "../api_types";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {allWorkflowPrimaryInputSources, inputValueNonEmpty} from "../selectors/workflow_selectors";
 
-const localStorageKey = (workflow: Workflow) => `${workflow.name}.session`;
+const localStorageKey = (workflow: Workflow, projectName: string) => `${projectName}/${workflow.name}.session`;
 
 export const defaultSessionStorageHelpers = {
-    getLocalSession(workflow: Workflow): Promise<SessionStatusResponse['session'] | null> {
+    getLocalSession(workflow: Workflow, projectName: string): Promise<SessionStatusResponse['session'] | null> {
         return Promise.resolve(null);
     }
 }
@@ -21,18 +21,19 @@ export function useLocalSessionStorage(
         const {workflow, session} = state;
         if (workflow && workflow.name && storage && session.workflow_name === workflow.name) {
             storage.setItem(
-                localStorageKey(workflow),
+                localStorageKey(workflow, session.project_name),
                 JSON.stringify(session)
             );
         }
     }, [state.session, state.workflow])
 
-    const getLocalSession = useCallback((workflow: Workflow) => {
-        let storedSession: any = storage.getItem(localStorageKey(workflow));
+    const getLocalSession = useCallback((workflow: Workflow, projectName: string) => {
+        let storedSession: any = storage.getItem(localStorageKey(workflow, projectName));
         if (!storedSession) return Promise.resolve(null);
 
         try {
             const parsedSession: VulcanState['session'] = JSON.parse(storedSession);
+            if (parsedSession.project_name !== projectName) return Promise.resolve(null);
             return Promise.resolve(parsedSession);
         } catch(e) {
             // No guarantees that the stored session is really valid, gracefully clear that session in that case.

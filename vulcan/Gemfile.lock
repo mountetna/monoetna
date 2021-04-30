@@ -86,6 +86,7 @@ GEM
     thread_safe (0.3.6)
     tzinfo (1.2.7)
       thread_safe (~> 0.1)
+    vcr (6.0.0)
     webmock (3.8.3)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
@@ -111,6 +112,7 @@ DEPENDENCIES
   rspec
   sequel (= 4.49.0)
   simplecov
+  vcr
   webmock
 
 BUNDLED WITH

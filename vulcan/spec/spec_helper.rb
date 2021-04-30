@@ -15,6 +15,9 @@ require 'rack/test'
 
 require_relative '../lib/server'
 require_relative '../lib/vulcan'
+require 'etna/spec/vcr'
+
+setup_base_vcr(__dir__)
 
 Vulcan.instance.configure(YAML.load(File.read('config.yml')))
 
@@ -28,23 +31,25 @@ end
 
 AUTH_USERS = {
   admin: {
-    email: 'hera@olympus.org', name: 'Hera', perm: 'a:labors'
+    email: 'hera@olympus.org', name: 'Hera', perm: 'a:labors', exp: Time.now.to_i + 6000,
   },
   editor: {
-    email: 'eurystheus@twelve-labors.org', name: 'Eurystheus', perm: 'e:labors'
+    email: 'eurystheus@twelve-labors.org', name: 'Eurystheus', perm: 'e:labors', exp: Time.now.to_i + 6000,
   },
   viewer: {
-    email: 'hercules@twelve-labors.org', name: 'Hercules', perm: 'v:labors'
+    email: 'hercules@twelve-labors.org', name: 'Hercules', perm: 'v:labors', exp: Time.now.to_i + 6000,
   },
   non_user: {
-    email: 'nessus@centaurs.org', name: 'Nessus', perm: ''
+    email: 'nessus@centaurs.org', name: 'Nessus', perm: '', exp: Time.now.to_i + 6000,
   }
 }
 
 PROJECT = "labors"
 
-def auth_header(user_type)
-  header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
+def auth_header(user_type, task: false, additional: {})
+  user = AUTH_USERS[user_type].dup
+  user[:task] = task if task
+  header(*Etna::TestAuth.token_header({}.update(user).update(additional)))
 end
 
 RSpec.configure do |config|

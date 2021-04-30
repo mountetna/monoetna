@@ -14,6 +14,7 @@ import {setDownloadedData, setStatus, setWorkflow, setWorkflows} from "../../../
 describe('InputFeed', () => {
   it('renders complete UI steps and error steps', () => {
     const workflow = createWorkflowFixture({
+      projects: ['test-project'],
       inputs: {}, steps: [
         [
           createStepFixture({name: 'zero'}),
@@ -40,7 +41,7 @@ describe('InputFeed', () => {
 
     const {state} = stateFromActions([
       setWorkflows([workflow]),
-      setWorkflow(workflow),
+      setWorkflow(workflow, 'test-project'),
       setStatus(createStatusFixture(workflow,
           createStepStatusFixture({name: 'zero', status: 'error', error: 'Ooops!'}),
           createStepStatusFixture({name: 'first', status: 'complete', downloads: {output: 'https://download1'}}),

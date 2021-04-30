@@ -45,7 +45,7 @@ describe('PrimaryInputs', () => {
 
     const { state } = stateFromActions([
         setWorkflows([workflow]),
-        setWorkflow(workflow),
+        setWorkflow(workflow, 'test'),
     ])
 
     const component = renderer.create(
