@@ -83,7 +83,7 @@ describe Polyphemus::Server do
 
     expect(last_response.status).to eq(200)
 
-    expect(json_body[:results].keys).to match_array([:model_one, :model_two, :stats])
+    expect(json_body[:results].keys).to match_array([:citation, :model_one, :model_two, :stats])
 
     # Updates all records found in REDCap, by default
     expect(json_body[:results][:model_two].keys).to match_array([:"123", :"321", :abc])
@@ -135,4 +135,3 @@ describe Polyphemus::Server do
     expect(json_body[:results][:model_two][:"123"][:stats]).to eq([])
   end
 end
-
