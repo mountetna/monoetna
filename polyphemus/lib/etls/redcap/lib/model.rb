@@ -31,8 +31,8 @@ module Redcap
       @config[:invert]
     end
 
-    def magma_records
-      @magma_records ||= project.magma_client.retrieve(
+    def existing_records
+      @existing_records ||= project.magma_client.retrieve(
         Etna::Clients::Magma::RetrievalRequest.new(
           project_name: @project.project_name,
           model_name: @model_name,

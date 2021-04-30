@@ -13,14 +13,16 @@ module Redcap
       @fields ||= @attributes.values.map(&:field_name).uniq
     end
 
-    def records
+    def redcap_records
+      return @redcap_records if @redcap_records
+
       eavs = @project.eav_records.select do | eav|
         fields.include?(eav[:field_name])
       end
 
       return {} unless eavs
 
-      records = eavs.group_by do |eav|
+      @redcap_records = eavs.group_by do |eav|
         @model.events? ?  [ eav[:record], eav[:redcap_event_name] ] : eav[:record]
       end.map do |record_id, record_eavs|
         [
@@ -32,15 +34,13 @@ module Redcap
         ]
       end.to_h.compact
 
-      return records
+      return @redcap_records
     end
 
     def inverse_load
       update = {}
 
-      redcap_records = records
-
-      @model.magma_records.each do |record_name, magma_record|
+      @model.existing_records.each do |record_name, magma_record|
         next unless @attributes.values.all?{|v| v.valid?(magma_record) }
 
         id = record_name
@@ -60,7 +60,7 @@ module Redcap
     def load
       update = {}
 
-      records.each do |record_name, redcap_record|
+      redcap_records.each do |record_name, redcap_record|
         record_name, event_name = record_name if @model.events?
         next if record_name == "test"
 
