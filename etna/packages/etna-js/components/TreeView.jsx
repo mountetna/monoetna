@@ -82,10 +82,10 @@ export default function TreeView({
 }
 
 export function TreeViewDefaultItemLabelView({ node, onChange, checked, path, disabled }) {
-  return <span>
+  return <label>
     <CheckBox data-node={node} data-path={path} onChange={onChange} checked={checked} disabled={disabled} />
     {node}
-  </span>
+  </label>
 }
 
 function initializeState(options, parent = undefined, leafValue = true) {
