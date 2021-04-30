@@ -40,15 +40,15 @@ test:: docker-ready
 	@ true
 
 .dockerignore:
-	test -e Dockerfile && cp ../docker/.dockerignore.template ./.dockerignore
+	if [ -e Dockerfile]; then cp ../docker/.dockerignore.template ./.dockerignore; fi
 
 release-build:: .dockerignore
-	test -e Dockerfile && ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS)
+	if [ -e Dockerfile ]; then ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); fi
 
 release::
 	make release-build
 	if ! [ -n "$$NO_TEST" ]; then make release-test; fi
-	test -e Dockerfile && if   [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi
+	if [ -e Dockerfile ]; then if [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi; fi
 
 release-test::
 	true
