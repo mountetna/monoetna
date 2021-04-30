@@ -24,15 +24,15 @@ class WorkflowsController < Vulcan::Controller
             File.exists?(metadata_file) ?
               JSON.parse(File.read(metadata_file),
               symbolize_names: true) :
-              {})
-
+              {}).tap do |workflow_json|
+            # Workflows without specific project restrictions are assumed to be available to all the user's projects.
+            workflow_json[:projects] ||= @user.projects.map(&:to_s)
+            workflow_json[:projects] = workflow_json[:projects].select { |p| @user.can_view?(p) }
+          end
         end.compact.select do |v|
           # We only want workflows where the user is
-          #   authorized for all listed projects,
-          #   or projects is null (from the metadata), so
-          #   it is available to everyone.
-          v[:projects] == nil ||
-          v[:projects]&.all? {|p| @user.can_view?(p)}
+          #   authorized for at least one listed projects
+          !v[:projects].empty?
         end
     })
   end

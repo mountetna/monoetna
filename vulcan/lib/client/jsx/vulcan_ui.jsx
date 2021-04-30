@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import {connect} from 'react-redux';
 import {findRoute, setRoutes} from './router';
 
@@ -17,6 +17,7 @@ import {updateLocation} from 'etna-js/actions/location_actions';
 
 import {ModalDialogContainer} from 'etna-js/components/ModalDialogContainer';
 import {Notifications} from 'etna-js/components/Notifications';
+import ReactModal from "react-modal";
 
 const ROUTES = [
   {
@@ -32,7 +33,7 @@ const ROUTES = [
   },
   {
     name: 'workflow',
-    template: 'workflow/:workflowName',
+    template: 'workflow/:projectName/:workflowName',
     component: Browser,
     mode: 'workflow'
   }
@@ -52,6 +53,10 @@ class VulcanUI extends React.Component {
   updateLocation() {
     let {updateLocation} = this.props;
     updateLocation(location);
+  }
+
+  componentDidMount() {
+    ReactModal.setAppElement('#root');
   }
 
   render() {

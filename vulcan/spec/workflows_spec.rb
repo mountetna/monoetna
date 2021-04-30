@@ -16,6 +16,19 @@ describe WorkflowsController do
   end
 
   context '#fetch' do
+    it 'does not list workflows the user cannot access' do
+      auth_header(:viewer, additional: { perm: "v:not-a-thing"})
+      get("/api/workflows")
+
+      expect(last_response.status).to eq(200)
+      response = JSON.parse(last_response.body)
+
+      workflows = response['workflows'].map { |w| w['name'] }
+      # This workflow didn't have any projects specified, so it still shows up
+      # However, other workflows are not included.
+      expect(workflows).to eql(["test_concurrent_workflow.cwl"])
+    end
+
     it 'gets a list of workflows' do
       auth_header(:viewer)
       get("/api/workflows")
@@ -41,6 +54,9 @@ describe WorkflowsController do
               "doc" => "another tip"
           },
       })
+
+      # does not include the secret project
+      expect(workflow['projects']).to eql(['labors'])
 
       expect(workflow['outputs']).to eql({
           "the_result" => {

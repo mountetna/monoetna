@@ -54,7 +54,7 @@ describe('useInputStateManagement', () => {
     })
 
     await act(async function () {
-      contextData.dispatch(setWorkflow(workflow));
+      contextData.dispatch(setWorkflow(workflow, 'test'));
       contextData.dispatch(setStatus(createStatusFixture(workflow)))
     });
 

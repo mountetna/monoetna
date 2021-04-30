@@ -8,7 +8,7 @@ import StepsList from './steps/steps_list';
 import {setInputs, setSession, setWorkflow} from "../../actions/vulcan";
 import {defaultVulcanSession} from "../../api_types";
 
-export default function WorkflowManager({workflowName}: { workflowName: string }) {
+export default function WorkflowManager({workflowName, projectName}: { workflowName: string, projectName: string }) {
   const {
     state,
     dispatch,
@@ -18,10 +18,10 @@ export default function WorkflowManager({workflowName}: { workflowName: string }
   const workflow = workflowByName(workflowName, state);
 
   useEffect(() => {
-    if (workflow) {
-      dispatch(setWorkflow(workflow));
+    if (workflow && projectName) {
+      dispatch(setWorkflow(workflow, projectName));
 
-      getLocalSession(workflow).then((session) => {
+      getLocalSession(workflow, projectName).then((session) => {
         if (!session) {
           // Set the default input values
           dispatch(setInputs(defaultInputValues(workflow)));

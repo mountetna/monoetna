@@ -24,7 +24,7 @@ class SessionsController < Vulcan::Controller
 
   def submit
     orchestration.load_json_inputs!(storage)
-    scheduler.schedule_more!(orchestration: orchestration, token: token, storage: storage)
+    scheduler.schedule_more!(orchestration: orchestration, token: create_task_token, storage: storage)
     success_json(status_payload)
   rescue => e
     Vulcan.instance.logger.log_error(e)
@@ -59,13 +59,13 @@ class SessionsController < Vulcan::Controller
     bt = orchestration.build_target_for(step_name, build_target_cache)
 
     scheduler.status(storage: storage, build_target: bt, step: step).update({
-        name: step_name,
-        downloads: step_has_downloads?(bt, ui_output) ? bt.build_outputs.map do |output_name, sf|
-          [
-              output_name,
-              storage.data_url(project_name: sf.project_name, cell_hash: sf.cell_hash, data_filename: sf.data_filename),
-          ]
-        end.to_h : nil
+      name: step_name,
+      downloads: step_has_downloads?(bt, ui_output) ? bt.build_outputs.map do |output_name, sf|
+        [
+          output_name,
+          storage.data_url(project_name: sf.project_name, cell_hash: sf.cell_hash, data_filename: sf.data_filename),
+        ]
+      end.to_h : nil
     })
   end
 
@@ -76,7 +76,7 @@ class SessionsController < Vulcan::Controller
     bt.is_built?(storage)
   end
 
-  def token
+  def create_task_token
     # For development, we can inject a production token
     #   via config.yml, to talk directly to production services.
     #   This should reduce duplication of data.
@@ -85,7 +85,8 @@ class SessionsController < Vulcan::Controller
     #   production Magma.
     return Vulcan.instance.config(:archimedes_token) || @user.token if :development == Vulcan.instance.environment
 
-    @user.token
+    janus_client = Etna::Clients::Janus.new(token: @user.token, host: Vulcan.instance.config(:janus)[:host])
+    janus_client.generate_token('task', project_name: @params[:project_name], read_only: true)
   end
 end
 

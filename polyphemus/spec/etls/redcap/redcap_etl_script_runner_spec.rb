@@ -2,7 +2,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
   context 'dateshifts' do
     before do
       stub_magma_models
-      stub_redcap_data
       copy_redcap_project
     end
 
@@ -34,7 +33,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
       expect(system_config[:dateshift_salt]).to eq('123')
     end
   end
-
 
   context 'redcap tokens' do
     before do
@@ -90,6 +88,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
     end
 
     it 'all models' do
+      stub_redcap_data(:essential_data)
       redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
         project_name: 'test',
         model_names: "all",
@@ -134,7 +133,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
       records = redcap_etl.run(magma_client: magma_client)
 
       expect(records.keys.include?(:model_one)).to eq(true)
-      expect(records[:model_one].keys.length).to eq(3)
+      expect(records[:model_one].keys.length).to eq(6)
       expect(records.keys.include?(:model_two)).to eq(false)
     end
 
@@ -312,6 +311,28 @@ describe Polyphemus::RedcapEtlScriptRunner do
         expect(records[:model_two].keys.length).to eq(2)
         expect(records[:model_two]["abc"]["stats"]).not_to eq([])
         expect(records[:model_two]["123"]["stats"]).to eq([])
+      end
+    end
+
+    context 'invert loading' do
+      it 'invert loads redcap data into existing magma records' do
+        redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+          project_name: 'test',
+          model_names: ["citation"],
+          redcap_tokens: ["faketoken"],
+          dateshift_salt: '123',
+          redcap_host: REDCAP_HOST,
+          magma_host: MAGMA_HOST,
+          mode: "strict"
+        )
+
+        magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
+
+        records = redcap_etl.run(magma_client: magma_client)
+
+        expect(records.keys).to match_array([:citation])
+        expect(records[:citation].keys).to match_array(["citation-abc-1", "citation-abc-2", "citation-111-1"])
+        expect(records[:citation].values.map{|r| r[:date]}).to all( match(/20..-..-../))
       end
     end
   end

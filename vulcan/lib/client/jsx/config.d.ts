@@ -10,7 +10,7 @@ declare type ConfigType = {
 declare const CONFIG: ConfigType;
 
 declare const ROUTES: {
-    workflow(workflowName: string): string,
+    workflow(projectName: string, workflowName: string): string,
     fetch_workflows(): string,
     workflow_vignette(workflowName: string): string,
     submit(projectName: string, workflowName: string): string,
