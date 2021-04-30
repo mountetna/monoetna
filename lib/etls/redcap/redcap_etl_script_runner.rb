@@ -2,10 +2,10 @@ require 'json'
 
 require_relative 'lib/client'
 require_relative 'lib/model'
+require_relative 'lib/template'
 require_relative 'lib/loader'
 require_relative 'lib/script'
 require_relative 'lib/value'
-require_relative 'lib/form'
 require_relative 'lib/project'
 require_relative 'lib/magma_models'
 
@@ -47,8 +47,7 @@ class Polyphemus
       #   self.__binding__ here -- throws an UndefinedMethod exception.
       run_script(self.get_binding)
 
-      magma_models_wrapper = Redcap::MagmaModelsWrapper.new(magma_client, @project_name)
-      loader = Redcap::Loader.new(config.update(system_config), magma_models_wrapper, logger)
+      loader = Redcap::Loader.new(config.update(system_config), @project_name, magma_client, logger)
 
       all_records, records_to_blank = loader.run
 
@@ -69,7 +68,6 @@ class Polyphemus
       summarize(
         logger: logger,
         all_records: all_records,
-        magma_models_wrapper: magma_models_wrapper,
         records_to_blank: records_to_blank,
         commit: commit)
 
@@ -97,7 +95,7 @@ class Polyphemus
 
     protected
 
-    def summarize(logger:, all_records:, magma_models_wrapper:, records_to_blank:, commit:)
+    def summarize(logger:, all_records:, records_to_blank:, commit:)
       logger.write(<<-EOM
 ===============================
 Summary of upload
