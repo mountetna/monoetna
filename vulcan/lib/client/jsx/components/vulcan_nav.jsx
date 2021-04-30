@@ -145,7 +145,7 @@ function Logo() {
 }
 
 const getTabs = (workflow, session) => ({
-  [`${session.project_name} ${workflowName(workflow)}`]: ROUTES.workflow(session.project_name, workflowName(workflow)),
+  workflow: ROUTES.workflow(session.project_name, workflowName(workflow)),
   help: 'https://mountetna.github.io/vulcan.html'
 });
 
