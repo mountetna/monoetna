@@ -116,7 +116,11 @@ module Redcap
         # eventually, we hope, magma will do this
         return nil if value.empty?
 
-        return (DateTime.parse(value) - offset_days(id)).iso8601[0..9]
+        begin
+          return (DateTime.parse(value) - offset_days(id)).iso8601[0..9]
+        rescue ArgumentError
+          return nil
+        end
       when "float"
         return value.to_f
       when "integer"
