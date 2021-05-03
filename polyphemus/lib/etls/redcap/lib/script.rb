@@ -1,37 +1,105 @@
 module Redcap
   class Script
-    def initialize(model, script, redcap_template)
+    def initialize(model, script, template)
       @model = model
-      @script = script
-      @redcap_template = redcap_template
-    end
-
-    def forms
-      @forms ||= @script[:forms].map do |form_name, form|
-        [ form_name, Redcap::Form.new(@model, form_name, form, @redcap_template) ]
+      @project = model.project
+      @template = template
+      @attributes ||= script.map do |att_name, att_value|
+        [ att_name, Redcap::Value.new(att_name, att_value, template) ]
       end.to_h
     end
 
-    def load(project)
-      records = {}
+    def fields
+      @fields ||= @attributes.values.map(&:field_name).uniq
+    end
 
-      forms.each do |form_name, form|
-        raise "Missing form #{form_name}" unless project.has_form?(form_name)
+    def redcap_records
+      return @redcap_records if @redcap_records
 
-        project.logger.write("Processing form #{form_name}.\n")
-
-        form.load(project, records)
+      eavs = @project.eav_records.select do | eav|
+        fields.include?(eav[:field_name])
       end
 
-      project.logger.write("Patching unfilled attributes.\n")
+      return {} unless eavs
 
-      records.each do |id, record|
-        record.compact! unless project.strict
+      @redcap_records = eavs.group_by do |eav|
+        @model.events? ?  [ eav[:record], eav[:redcap_event_name] ] : eav[:record]
+      end.map do |record_id, record_eavs|
+        [
+          record_id,
+          Redcap::Client::Record.new(
+            record_eavs,
+            @project.flat_records[record_id]
+          ).record
+        ]
+      end.to_h.compact
+
+      return @redcap_records
+    end
+
+    def inverse_load
+      update = {}
+
+      @model.existing_records.each do |magma_record_name, magma_record|
+        next unless @attributes.values.all?{|v| v.valid?(magma_record) }
+
+        redcap_record = redcap_records[ @model.redcap_id(magma_record_name, magma_record) ]
+
+        next unless redcap_record
+
+        update.merge!(
+          magma_record_name => update_record(magma_record_name, redcap_record)
+        )
+      end
+
+      return patched(update)
+    end
+
+    def load
+      update = {}
+
+      redcap_records.each do |record_name, redcap_record|
+        record_name, event_name = record_name if @model.events?
+        next if record_name == "test"
+
+        magma_record_name = @model.identifier(record_name, event_name)
+
+        next unless magma_record_name
+
+        next unless @attributes.values.all?{|v| v.valid?(redcap_record) }
+
+        update.merge!(
+          magma_record_name => update_record(magma_record_name, redcap_record)
+        )
+      end
+
+      return patched(update)
+    end
+
+    def update_record(magma_record_name, redcap_record)
+      @attributes.map do |att_name, att_value|
+        next unless @model.has_attribute?(att_name)
+
+        next if att_value.none?
+
+        [
+          att_name,
+          @model.cast_type(
+            att_value.to_value(redcap_record, magma_record_name),
+            att_name, magma_record_name
+          )
+        ]
+      end.compact.to_h
+    end
+
+    def patched(update)
+      update.each do |id, record|
+        record.compact! unless @project.strict
 
         @model.patch(id, record) unless record.empty?
       end
 
-      records.select do |id,record|
+      update.select do |id,record|
         !record.empty?
       end.to_h
     end

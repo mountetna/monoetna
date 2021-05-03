@@ -42,7 +42,6 @@ module Etna
       # We do this to support Metis client tests, we pass in tokens with multiple "."-separated parts, so
       #   have to account for that.
       payload = JSON.parse(Base64.decode64(token.split('.')[1]))
-
       request.env['etna.user'] = Etna::User.new(payload.map{|k,v| [k.to_sym, v]}.to_h, token)
     end
 
