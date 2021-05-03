@@ -799,16 +799,30 @@ EOT
   end
 
   class Get < Command
-    usage "get <remote_folder_path> <local_path>"
+    usage "get <remote_path> <local_path>"
 
-    def run(folder_path, local_path)
-      raise ShellError, 'No remote folder selected!' unless @shell.relative_path(folder_path)
+    def run(remote_path, local_path)
+      raise ShellError, 'No remote folder selected!' unless @shell.relative_path(remote_path)
 
       path = local_path =~ %r!^/! ?
         local_path :
         Pathname.new(::File.join(*[Dir.pwd, local_path].compact)).cleanpath.to_s
 
-      download_folder(@shell.relative_path(folder_path), ::File.join(local_path, ::File.basename(folder_path)))
+      begin
+        # Download a folder
+        @shell.client.list_folder(@shell.project_name, @shell.relative_path(remote_path))
+
+        download_folder(@shell.relative_path(remote_path), ::File.join(local_path, ::File.basename(remote_path)))
+      rescue MetisClient::Error
+        # Download a file
+        folder = @shell.client.list_folder(@shell.project_name, ::File.dirname(@shell.relative_path(remote_path)))
+
+        file = folder[:files]&.find { |f| f[:file_name] == ::File.basename(remote_path) }
+
+        raise ShellError, 'No such file!' unless file
+
+        download_file(file, local_path)
+      end
     end
 
     private
