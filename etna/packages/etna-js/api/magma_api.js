@@ -34,7 +34,8 @@ export const getTSVForm = ({
   show_disconnected,
   attribute_names,
   output_predicate,
-  unmelt_matrices
+  expand_matrices,
+  transpose
 }) => {
   let {Authorization} = headers('auth');
   let data = {
@@ -47,7 +48,8 @@ export const getTSVForm = ({
     show_disconnected,
     format: 'tsv',
     output_predicate,
-    unmelt_matrices
+    expand_matrices,
+    transpose
   };
 
   let form = create('form', {
