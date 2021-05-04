@@ -1,9 +1,10 @@
 from functools import partial
+from typing import Dict
 
-from geoline.geoUtils import *
+from .geoUtils import characteristics, addAnother
 
 
-def samplesSection(assay: str) -> Dict:
+def samples_section(assay: str) -> Dict:
     out = {
         'title': f'{assay}:tube_name',
         'source name': f'{assay}:biospecimen',

@@ -4,9 +4,9 @@ from unittest.mock import patch
 from pandas import DataFrame
 
 from magby import Magby
+from ..geoline.Geoline import Geoline
+from .testUtils import *
 
-from testUtils import *
-from geoline.Geoline import *
 
 url = 'https://magma.ucsf.edu'
 token = 'token'
@@ -36,7 +36,7 @@ class TestGeoline(TestCase):
         with patch('builtins.input', side_effect=['y', 'y', 'grishnakh:mordor_orc',
                                                   'y', '1', 'sample:treatment', 'n', # characteristics
                                                   'STOP']):
-            samples = self.geoline._selectWorkflow(samplesSection, 'rna_seq')
+            samples = self.geoline._select_workflow(samplesSection, 'rna_seq')
             self.assertTrue(isinstance(samples, dict))
             self.assertEqual(samples['organism'], 'grishnakh:mordor_orc')
             self.assertEqual(samples['processed data file'], 'rna_seq:gene_expression')
@@ -46,7 +46,7 @@ class TestGeoline(TestCase):
         with patch('builtins.input', side_effect=['y', 'y', 'grishnakh:mordor_orc',
                                                   'y', '1', 'sample:treatment', 'n', # characteristics
                                                   'STOP']):
-            samples = self.geoline._selectWorkflow(samplesSection, 'rna_seq')
+            samples = self.geoline._select_workflow(samplesSection, 'rna_seq')
             modelGroups = self.geoline._grouper(samples)
             self.assertTrue(isinstance(samples, dict))
             self.assertEqual(modelGroups['grishnakh']['organism'], ['grishnakh', 'mordor_orc'])
@@ -57,11 +57,11 @@ class TestGeoline(TestCase):
         with patch('builtins.input', side_effect=['y', 'y', 'y',
                                                   'y', '1', 'rna_seq:fraction', 'n',  # characteristics
                                                   'STOP']):
-            samples = self.geoline._selectWorkflow(samplesSection, 'rna_seq')
+            samples = self.geoline._select_workflow(samplesSection, 'rna_seq')
             modelGroups = self.geoline._grouper(samples)
             with self.vcr as vcr:
                 vcr.use_cassette('Geoline__constructMultiModelQuery')
-                query = self.geoline._constructMultiModelQuery(modelGroups, 'rna_seq', session=self.session)
+                query = self.geoline._construct_multi_model_query(modelGroups, 'rna_seq', session=self.session)
             self.assertTrue(isinstance(query, list))
             self.assertEqual(len(query), 3)
             self.assertEqual(query[2][4], 'gene_expression')
@@ -71,11 +71,11 @@ class TestGeoline(TestCase):
         with patch('builtins.input', side_effect=['y', 'flow:stain', 'subject:group',
                                                   'y', '1', 'rna_seq:fraction', 'n',  # characteristics
                                                   '', '', '']):
-            samples = self.geoline._selectWorkflow(samplesSection, 'rna_seq')
+            samples = self.geoline._select_workflow(samplesSection, 'rna_seq')
             modelGroups = self.geoline._grouper(samples)
             with self.vcr as vcr:
                 vcr.use_cassette('Geoline__walkAnswer')
-                query = self.geoline._constructMultiModelQuery(modelGroups, 'rna_seq', session=self.session)
+                query = self.geoline._construct_multi_model_query(modelGroups, 'rna_seq', session=self.session)
                 mb = Magby(url, token)
                 reply = mb.query(self.geoline._projectName, query, session=self.session)
                 aw = self.geoline._walkAnswer(reply['answer'][0], reply['format'])
@@ -102,7 +102,7 @@ class TestGeoline(TestCase):
         otm = [['Name1', None],
                ['Name2', 'Bread Sample v1'],
                ['Name3', None]]
-        reduced = self.geoline._reduceOneToMany(otm)
+        reduced = self.geoline._reduce_one_to_many(otm)
         self.assertTrue(isinstance(reduced[0], str))
         self.assertEqual(reduced[1], 'None; Bread Sample v1; None')
 
