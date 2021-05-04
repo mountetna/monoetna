@@ -3,7 +3,7 @@ from unittest import TestCase
 from unittest.mock import patch
 
 
-from geoline.geoUtils import *
+from ..geoline.geo_utils import *
 
 testDict = {
     'a': 'lol',
@@ -23,31 +23,31 @@ class Test(TestCase):
 
     def test_askAttribute(self):
         with patch('builtins.input', side_effect=['sample:rna_seq_sample']):
-            aw = askAttribute(field='sample', magmaAttr='sample:magma_sample')
+            aw = ask_attribute(field='sample', magma_attr='sample:magma_sample')
             self.assertTrue(isinstance(aw, str))
             self.assertEqual(aw, 'sample:rna_seq_sample')
         with patch('builtins.input', side_effect=['y']):
-            aw = askAttribute(field='sample', magmaAttr='sample:magma_sample')
+            aw = ask_attribute(field='sample', magma_attr='sample:magma_sample')
             self.assertTrue(isinstance(aw, str))
             self.assertEqual(aw, 'y')
             self.assertNotEqual(aw, 'FFFF')
 
     def test_askCharacteristics(self):
         with patch('builtins.input', side_effect=['3', 'sample:rna_seq']):
-            aw = askCharacteristics()
+            aw = ask_characteristics()
             self.assertTrue(isinstance(aw, tuple))
             self.assertEqual(aw, ('treatment', 'sample:rna_seq'))
 
     def test_addAnother(self):
         with patch('builtins.input', side_effect=['STOP']):
-            aw = addAnother()
+            aw = add_another()
             self.assertTrue(isinstance(aw, str))
             self.assertEqual(aw, 'STOP')
 
 
     def test_characteristics(self):
         with patch('builtins.input', side_effect=['y', '1', 'model:cancer', 'n']):
-            aw = characteristics(addAnother, {})
+            aw = characteristics(add_another, {})
             self.assertTrue(isinstance(aw, dict))
             self.assertEqual(aw, {'tissue': 'model:cancer'})
 

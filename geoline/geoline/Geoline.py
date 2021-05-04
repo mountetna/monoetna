@@ -92,7 +92,7 @@ class Geoline:
         template_tree = TemplateTree(global_template)
         for model in model_group:
             if model != '':
-                path_to_model = template_tree.traverseToModel(primary_model_name, model)
+                path_to_model = template_tree.traverse_to_model(primary_model_name, model)
                 model_ttr_map = self._extract_attributes(model_group[model])
                 #   special treatment of FILE and FILE_COLLECTION attr types
                 model_ttr_map = [[x, '::all'] if self._is_file(x) else x for x in model_ttr_map]
