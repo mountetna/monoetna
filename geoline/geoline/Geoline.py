@@ -131,6 +131,7 @@ class Geoline:
 
         # special treatment of characteristics group
         if attribute_map[0] == 'characteristics':
+            kk=attribute_map[1]
             answer = attribute_map[1](d={})
             return self._updater(dict(section, **{attribute_map[0]: answer}), curr, curr + 1)
 

@@ -9,7 +9,7 @@ def samples_section(assay: str) -> Dict:
         'title': f'{assay}:tube_name',
         'source name': f'{assay}:biospecimen',
         'organism': 'subject:name',
-        'characteristics': partial(characteristics, add_another=add_another),
+        'characteristics': partial(characteristics, add_another_func=add_another),
         'molecule': '',
         'description': f'{assay}:notes',
         'processed data file': f'{assay}:gene_expression',

@@ -21,7 +21,7 @@ class Test(TestCase):
         self.assertEqual(list(flat.keys())[1], 'b_x')
         self.assertEqual(list(flat.values())[2], 'gug')
 
-    def test_askAttribute(self):
+    def test_ask_attribute(self):
         with patch('builtins.input', side_effect=['sample:rna_seq_sample']):
             aw = ask_attribute(field='sample', magma_attr='sample:magma_sample')
             self.assertTrue(isinstance(aw, str))
@@ -32,13 +32,13 @@ class Test(TestCase):
             self.assertEqual(aw, 'y')
             self.assertNotEqual(aw, 'FFFF')
 
-    def test_askCharacteristics(self):
+    def test_ask_characteristics(self):
         with patch('builtins.input', side_effect=['3', 'sample:rna_seq']):
             aw = ask_characteristics()
             self.assertTrue(isinstance(aw, tuple))
             self.assertEqual(aw, ('treatment', 'sample:rna_seq'))
 
-    def test_addAnother(self):
+    def test_add_another(self):
         with patch('builtins.input', side_effect=['STOP']):
             aw = add_another()
             self.assertTrue(isinstance(aw, str))
