@@ -2,7 +2,7 @@ import unittest
 from unittest import TestCase
 from magby import Magby
 
-from testUtils import *
+from test_utils import *
 from geoline.TemplateTree import *
 
 url = 'https://magma.ucsf.edu'
