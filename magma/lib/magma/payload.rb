@@ -1,4 +1,5 @@
 require 'csv'
+require 'json'
 
 class Magma
   class Payload
@@ -50,6 +51,23 @@ class Magma
       @models.first.last.tsv_header
     end
 
+    def set_output_format(output_format)
+      # Because we don't have access to all the records when
+      #   generating the headers or rows, we need some context
+      #   around what data was requested, specifically
+      #   any MatrixAttribute slices. We can extract
+      #   that from the output format.
+      @models.values.each do |model|
+        model.set_output_format(output_format)
+      end
+    end
+
+    def set_options(opts)
+      @models.values.each do |model|
+        model.set_options(opts)
+      end
+    end
+
     private
 
     class ModelPayload
@@ -60,7 +78,7 @@ class Magma
         @records = []
       end
 
-      attr_reader :records, :attribute_names
+      attr_reader :records, :attribute_names, :opts
 
       def add_records records
         @records.concat records
@@ -101,29 +119,90 @@ class Magma
       end
 
       def tsv_header
-        tsv_attributes.join("\t") + "\n"
+        # Need to expand any matrix attributes and generate
+        #   headers from their columns if `expand_matrices` is set.
+        [].tap do |headers|
+          tsv_attributes.each do |att_name|
+            expand_matrix?(att_name) ?
+              headers.concat(matrix_headers(att_name)) :
+              headers << att_name
+          end
+        end.join("\t") + "\n"
       end
 
       def to_tsv
         CSV.generate(col_sep: "\t") do |csv|
           @records.each do |record|
-            csv << tsv_attributes.map do |att_name|
-              if att_name == :id
-                record[att_name]
-              else
-                @model.attributes[att_name].query_to_tsv(record[att_name])
+            # Need to expand any matrix attributes and expand
+            #   their row data into the CSV.
+            csv << [].tap do |new_row|
+              tsv_attributes.each do |att_name|
+                if att_name == :id
+                  new_row << record[att_name]
+                elsif expand_matrix?(att_name)
+                  new_row.concat(attribute(att_name).expand(record[att_name]))
+                else
+                  new_row << attribute(att_name).query_to_tsv(record[att_name])
+                end
               end
             end
           end
         end
       end
 
+      def set_output_format(output_format)
+        @output_format = output_format
+      end
+
+      def set_options(opts)
+        @opts = opts
+      end
+
       private
 
       def tsv_attributes
         @tsv_attributes ||= @attribute_names.select do |att_name|
-          att_name == :id || (@model.attributes[att_name].shown? && !@model.attributes[att_name].is_a?(Magma::TableAttribute))
+          att_name == :id || (attribute(att_name).shown? && !attribute(att_name).is_a?(Magma::TableAttribute))
         end
+      end
+
+      def attribute(att_name)
+        @model.attributes[att_name]
+      end
+
+      def expand_matrix?(att_name)
+        !!opts[:expand_matrices] && is_matrix?(att_name)
+      end
+
+      def is_matrix?(att_name)
+        attribute(att_name).is_a?(Magma::MatrixAttribute)
+      end
+
+      def matrix_headers(att_name)
+        # Output format is a tuple, with index 1
+        #   being an Array of output formats.
+        # Check each item in output_format[1]. If it
+        #   is an Array, check the first item. It
+        #   is a matrix if it matches the
+        #   att_format_key. The selected options
+        #   will appear in the last item of that format tuple.
+        # This method assumes that the matrix attribute
+        #   will be in the output format, or throws
+        #   an exception (because the code should have
+        #   never reached this point).
+        # Use @model.project_name and @model.model_name to force
+        #   the names into snake_case, to match output format.
+        att_format_key = "#{@model.project_name}::#{@model.model_name}##{att_name}"
+
+        @output_format.last.each do |output|
+          next unless output.is_a?(Array) && output.first == att_format_key
+          
+          return output.last.map do |col_name|
+            "#{att_name}.#{col_name}"
+          end
+        end
+
+        raise "Matrix attribute #{att_name} not found in output format."
       end
     end
   end
