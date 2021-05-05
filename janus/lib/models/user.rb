@@ -71,8 +71,8 @@ class User < Sequel::Model
     token_builder.create_token!
   end
 
-  def create_task_token!(project_name)
-    token_builder.create_task_token!(project_name)
+  def create_task_token!(project_name, **kwds)
+    token_builder.create_task_token!(project_name, **kwds)
   end
 
   def create_viewer_token!

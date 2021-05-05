@@ -43,12 +43,12 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       };
     case 'SET_WORKFLOW':
       const workflowProjects = action.workflow.projects;
-      if (!workflowProjects || workflowProjects.length < 1) return state;
+      if (!workflowProjects || !workflowProjects.includes(action.projectName)) return state;
 
       return {
         ...state,
         workflow: action.workflow,
-        session: {...defaultSession, workflow_name: action.workflow.name, project_name: workflowProjects[0]},
+        session: {...defaultSession, workflow_name: action.workflow.name, project_name: action.projectName},
       };
     case 'SET_STATUS':
       return {...state, status: action.status};
@@ -77,9 +77,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       const sessionWorkflow = state.workflow;
       if (!sessionWorkflow) return state;
       if (action.session.workflow_name !== sessionWorkflow.name) return state;
-      const projects = sessionWorkflow.projects;
-      if (!projects || projects.length < 1) return state;
-      if (action.session.project_name !== projects[0]) return state;
+      if (action.session.project_name !== state.session.project_name) return state;
 
       return {
         ...state,
