@@ -76,13 +76,13 @@ const TableViewer = ({ page, pages, page_size, setPage, columns, data, children 
       </div>
 
       <div className="tbody">
-        {rows.map(row => {
+        {rows.map((row, rowIndex) => {
           prepareRow(row)
           return (
-            <div {...row.getRowProps()} className="tr">
-              {row.cells.map(cell => {
+            <div {...row.getRowProps()} className="tr" key={`row-${rowIndex}`}>
+              {row.cells.map((cell, cellIndex) => {
                 return (
-                  <div {...cell.getCellProps(cellProps)} className="td">
+                  <div {...cell.getCellProps(cellProps)} className="td" key={`cell-${rowIndex}-${cellIndex}`}>
                     {cell.render('Cell')}
                   </div>
                 )
