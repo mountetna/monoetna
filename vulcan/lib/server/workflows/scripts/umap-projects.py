@@ -1,4 +1,4 @@
-from archimedes.functions.dataflow output_json
+from archimedes.functions.dataflow import output_json
 
 project_data = {
 	'xcrs1': {
@@ -6,7 +6,7 @@ project_data = {
 		'seq_to_model_paths': {
 			# Path should be what could go between '<model_of_above>' and '<attribute_name>' to magma/query any items from this model!
 			'experiment': ['biospecimen_group', 'experiment'],
-			'biospecimen_group': ['biospecimmen_group'],
+			'biospecimen_group': ['biospecimen_group'],
 			'biospecimen': ['biospecimen_group', 'biospecimen'],
 			'subject': ['biospecimen_group', 'biospecimen', 'subject'],
 			'sc_seq_pool': ['sc_seq_pool'],
