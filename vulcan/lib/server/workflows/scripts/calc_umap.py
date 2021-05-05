@@ -10,15 +10,14 @@ num_iters = int(input_var('num_iters'))
 sc.tl.umap(scdata, min_dist = min_dist, spread = spread, maxiter = num_iters)
 
 # color options
+pdat = input_json("project_data")[project_name]
+
 color_options = {
+    'Gene': dict([ [ gene_id, None ] for gene_id in scdata.raw.var_names ]),
     'Cluster': None,
-    'Experiment': None,
-    'Tissue': None,
-    'Pool': None,
-    'Biospecimen Group': None,
-    'Tube': None,
-    'Gene': dict([ [ gene_id, None ] for gene_id in scdata.raw.var_names ])
+    'Tube': None
 }
+color_options.update([ [ label, None ] for label in pdat['color_options'].keys() ])
 
 ##### OUTPUT
 scdata.write(output_path('umap_anndata.h5ad'))

@@ -25,20 +25,17 @@ def get(ids, value):
 
     return [ values.get(id, None) for id in ids ]
 
+pdat = input_json("project_data")[project_name]
+color_options = pdat['color_options']
+
 if color_by == 'Cluster':
     color = leiden
-elif color_by == 'Experiment':
-    color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', 'experiment', 'alias' ])
-elif color_by == 'Tissue':
-    color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', 'biospecimen_type' ])
-elif color_by == 'Pool':
-    color = get(scdata.obs[ 'Record_ID' ], [ 'sc_seq_pool', '::identifier' ])
-elif color_by == 'Biospecimen Group':
-    color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', '::identifier' ])
 elif color_by == 'Tube':
     color = scdata.obs[ 'Record_ID' ]
 elif color_by in scdata.raw.var_names:
     color = flatten(scdata.raw.X[ : , scdata.raw.var_names == color_by ].toarray())
+elif color_by in color_options.keys():
+    color = get(scdata.obs[ 'Record_ID' ], buildTargetPath(color_options[color_by], pdat))
 else:
     color = None
 

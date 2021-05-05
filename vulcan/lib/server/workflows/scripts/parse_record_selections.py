@@ -1,34 +1,42 @@
 from archimedes.functions.dataflow import output_json, input_json
 from archimedes.functions.magma import connect, question
 from archimedes.functions.list import unique, flatten
+from archimedes.functions.environment import project_name
 
+pdat = input_json("project_data")[project_name]
+selection_options = pdat['selection_options']
 
-seq_model_name = 'sc_seq'
-seq_pool_model_name = 'sc_seq_pool'
 magma = connect()
 
-experiments = input_json('experiments')
-tissues = input_json('tissues')
-fractions = input_json('fractions')
+select1 = input_json('select1')
+select2 = input_json('select2')
+select3 = input_json('select3')
 
 # Experiment and Tissue (AND logic)
 filters = []
-if len(experiments) > 0:
-    filters.append( ['biospecimen_group', 'experiment', 'alias', '::in', experiments])
-#### NEED TO TEST TISSUES BETTER ONCE ADDED
-if len(tissues) > 0:
-    filters.append( ['biospecimen_group', 'biospecimen_type', '::in', tissues] )
+if len(select1) > 0:
+    filters.append(
+        buildTargetPath( selection_options[0], pdat ).extend(['::in', select1])
+    )
+if len(select2) > 0:
+    filters.append(
+        buildTargetPath( selection_options[1], pdat ).extend(['::in', select2])
+    )
+if len(select3) > 0:
+    filters.append(
+        buildTargetPath( selection_options[2], pdat ).extend(['::in', select3])
+    )
 
-if len(fractions) > 0:
-    filters.append( ['cell_fraction', '::in', fractions] )
+seq_target = parseModelAttr(pdat['seq_h5_counts_data'])
 
 tube_records = unique(question(
     magma,
     [
-        seq_model_name,
-        [ '::has', 'raw_counts_h5'],
+    seq_target['model'],
+        [ '::has', seq_target['attribute']],
         *filters,
         '::all', '::identifier'
-    ]))
+    ]
+))
 
 output_json(tube_records, 'tube_recs')
