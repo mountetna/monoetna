@@ -501,6 +501,129 @@ describe RetrieveController do
 
       Timecop.return
     end
+
+    it 'returns an unmelted slice of matrix data using output_predicate' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      # New labors, to avoid caching issues with MatrixAttribute
+      belt = create(:labor, name: 'Belt of Hippolyta', number: 9, contributions: matrix[0], project: @project)
+      cattle = create(:labor, name: 'Cattle of Geryon', number: 10, contributions: matrix[1], project: @project)
+      apples = create(:labor, name: 'Golden Apples of the Hesperides', number: 11, contributions: matrix[2], project: @project)
+      
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: ["name", "contributions"],
+        output_predicate: "contributions[]Athens,Sparta",
+        format: 'tsv'
+      )
+
+      expect(last_response.status).to eq(200)
+      header, *table = CSV.parse(last_response.body, col_sep: "\t")
+      expect(header).to eq(["name", "contributions"])
+      expect(table.length).to eq(3)
+      expect(table.first.first).to eq("Belt of Hippolyta")
+      expect(table.first.length).to eq(2)
+      expect(table.last.first).to eq("Golden Apples of the Hesperides")
+      expect(table.last.length).to eq(2)
+    end
+
+    it 'returns a transposed matrix' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      # New labors, to avoid caching issues with MatrixAttribute
+      another_belt = create(:labor, name: 'Belt of Hippolyta 3', number: 29, contributions: matrix[0], project: @project)
+      another_cattle = create(:labor, name: 'Cattle of Geryon 3', number: 30, contributions: matrix[1], project: @project)
+      another_apples = create(:labor, name: 'Golden Apples of the Hesperides 3', number: 31, contributions: matrix[2], project: @project)
+      
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: ["name", "contributions"],
+        output_predicate: "contributions[]Athens,Sparta",
+        format: 'tsv',
+        transpose: 'true'
+      )
+
+      expect(last_response.status).to eq(200)
+      data = CSV.parse(last_response.body, col_sep: "\t")
+
+      header = data.map { |d| d.first }
+      expect(header).to eq(["name", "contributions"])
+      expect(data.length).to eq(2)
+      expect(data.first[1]).to eq("Belt of Hippolyta 3")
+      expect(data.first.length).to eq(4) # 3 labors + 1 header
+      expect(data.first.last).to eq("Golden Apples of the Hesperides 3")
+      expect(data.last).to eq(["contributions", "[10,11]", "[20,21]", "[30,31]"])
+    end
+
+    it 'returns an unmelted slice of matrix data using string false for expand_matrices' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      # New labors, to avoid caching issues with MatrixAttribute
+      new_belt = create(:labor, name: 'Belt of Hippolyta 2', number: 19, contributions: matrix[0], project: @project)
+      new_cattle = create(:labor, name: 'Cattle of Geryon 2', number: 20, contributions: matrix[1], project: @project)
+      new_apples = create(:labor, name: 'Golden Apples of the Hesperides 2', number: 21, contributions: matrix[2], project: @project)
+      
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: ["name", "contributions"],
+        output_predicate: "contributions[]Athens,Sparta",
+        format: 'tsv',
+        expand_matrices: 'false'
+      )
+
+      expect(last_response.status).to eq(200)
+      header, *table = CSV.parse(last_response.body, col_sep: "\t")
+      expect(header).to eq(["name", "contributions"])
+      expect(table.length).to eq(3)
+      expect(table.first.first).to eq("Belt of Hippolyta 2")
+      expect(table.first.length).to eq(2)
+      expect(table.last.first).to eq("Golden Apples of the Hesperides 2")
+      expect(table.last.length).to eq(2)
+    end
+
+    it 'returns a melted slice of matrix data using output_predicate and expand_matrices' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      # New labors, to avoid caching issues with MatrixAttribute
+      belt = create(:labor, name: 'Belt of Hippolyta', number: 9, contributions: matrix[0], project: @project)
+      cattle = create(:labor, name: 'Cattle of Geryon', number: 10, contributions: matrix[1], project: @project)
+      apples = create(:labor, name: 'Golden Apples of the Hesperides', number: 11, contributions: matrix[2], project: @project)
+      
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: ["name", "contributions"],
+        output_predicate: "contributions[]Athens,Sparta",
+        format: 'tsv',
+        expand_matrices: true
+      )
+
+      expect(last_response.status).to eq(200)
+      header, *table = CSV.parse(last_response.body, col_sep: "\t")
+      expect(header).to eq(["name", "contributions.Athens", "contributions.Sparta"])
+      expect(table.length).to eq(3)
+      expect(table.first).to eq(["Belt of Hippolyta", "10", "11"])
+      expect(table.last).to eq(["Golden Apples of the Hesperides", "30", "31"])
+    end
   end
 
   context 'filtering' do
@@ -902,6 +1025,78 @@ describe RetrieveController do
       expect(
         json_body[:models][:labor][:documents].values.map{|d| d[:name]}
       ).to eq(["Augean Stables"])
+    end
+
+    it 'returns a slice of matrix data using output_predicate' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      # Make these different so we don't run into issues with matrix caching
+      hind = create(:labor, name: 'Ceryneian Hind', number: 3, contributions: matrix[0], project: @project)
+      board = create(:labor, name: 'Erymanthian Boar', number: 4, contributions: matrix[1], project: @project)
+      birds = create(:labor, name: 'Stymphalian birds', number: 6, contributions: matrix[2], project: @project)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        output_predicate: "contributions[]Athens,Sparta"
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(
+        json_body[:models][:labor][:documents].values.map{|d| d[:contributions]}
+      ).to eq(matrix.map{|r| r[0..1]})
+    end
+
+    it 'treats matrix filters as ::has' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      stables = create(:labor, name: 'Augean Stables', number: 5, contributions: matrix[0], project: @project)
+      hydra = create(:labor, name: 'Lernean Hydra', number: 2, contributions: matrix[1], project: @project)
+      lion = create(:labor, name: 'Nemean Lion', number: 1, contributions: matrix[2], project: @project)
+      mares = create(:labor, name: 'Mares of Diomedes', number: 8, contributions: nil, project: @project)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: "contributions[]Athens,Sparta"
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(
+        json_body[:models][:labor][:documents].values.map{|d| d[:name]}
+      ).to eq([ 'Augean Stables', 'Lernean Hydra', 'Nemean Lion' ])
+    end
+
+    it 'complains about invalid slices' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      stables = create(:labor, name: 'Augean Stables', number: 5, contributions: matrix[0], project: @project)
+      hydra = create(:labor, name: 'Lernean Hydra', number: 2, contributions: matrix[1], project: @project)
+      lion = create(:labor, name: 'Nemean Lion', number: 1, contributions: matrix[2], project: @project)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        output_predicate: "contributions[]Bathens,Sporta"
+      )
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(['Invalid verb arguments ::slice, Bathens, Sporta'])
     end
   end
 
