@@ -4,12 +4,31 @@ require 'openssl'
 require 'digest/sha2'
 require 'base64'
 
-def setup_base_vcr(spec_helper_dir)
+def setup_base_vcr(spec_helper_dir, server: nil, application: nil)
   VCR.configure do |c|
     c.hook_into :webmock
     c.cassette_serializers
     c.cassette_library_dir = ::File.join(spec_helper_dir, 'fixtures', 'cassettes')
     c.allow_http_connections_when_no_cassette = true
+
+    c.register_request_matcher :verify_uri_route do |request_1, request_2|
+      next true if server.nil? || application.nil?
+
+      route_match = request_1.uri =~ /https:\/\/#{application.dev_route}(.*)/
+      if route_match && route_match[1]
+        def request_1.request_method
+          method.to_s.upcase
+        end
+
+        def request_1.path
+          URI(uri).path
+        end
+
+        !!server.find_route(request_1)
+      else
+        true
+      end
+    end
 
     c.register_request_matcher :try_body do |request_1, request_2|
       if request_1.headers['Content-Type'].first =~ /application\/json/
@@ -39,7 +58,7 @@ def setup_base_vcr(spec_helper_dir)
         else
           ENV['RERECORD'] ? :all : :once
         end,
-        match_requests_on: [:method, :uri, :try_body]
+        match_requests_on: [:method, :uri, :try_body, :verify_uri_route]
     }
 
     # Filter the authorization headers of any request by replacing any occurrence of that request's
