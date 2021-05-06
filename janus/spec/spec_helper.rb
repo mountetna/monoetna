@@ -17,7 +17,6 @@ require 'etna/spec/vcr'
 
 ENV['JANUS_ENV'] = 'test'
 
-setup_base_vcr(__dir__)
 include Etna::Spec::Auth
 
 AUTH_USERS.update(
@@ -37,6 +36,7 @@ AUTH_USERS.update(
 )
 
 Janus.instance.configure(YAML.load(File.read('config.yml')))
+setup_base_vcr(__dir__, application: Janus.instance, server: Janus::Server)
 
 JANUS_HOST="janus.#{Janus.instance.config(:token_domain)}"
 JANUS_URL="https://#{JANUS_HOST}"

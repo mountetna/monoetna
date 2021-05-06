@@ -31,6 +31,16 @@ module Etna::Application
     raise "Could not find application instance from #{namespace}, and not subclass of Application found."
   end
 
+  # Used to find the application in development recorded vcr tests.
+  # see spec/vcr.rb
+  def dev_route
+    "#{self.class.name.split('::').first.downcase}.development.local"
+  end
+
+  def server
+
+  end
+
   def self.register(app)
     @instance = app
   end
