@@ -2,8 +2,8 @@
 # library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-special.R")
 
 targ <- magmaRset(
-    token = Sys.getenv("TOKEN"),
-    url = Sys.getenv("URL"))
+    token = TOKEN,
+    url = URL)
 
 test_that("retrieveTemplate", {
   vcr::use_cassette("Temp", {

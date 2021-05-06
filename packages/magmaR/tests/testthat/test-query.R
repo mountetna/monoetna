@@ -2,8 +2,8 @@
 # library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-query.R")
 
 targ <- magmaRset(
-    token = Sys.getenv("TOKEN"),
-    url = Sys.getenv("URL"))
+    token = TOKEN,
+    url = URL)
 
 test_that("query_list", {
     vcr::use_cassette("query_list", {

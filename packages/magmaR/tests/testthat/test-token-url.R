@@ -5,18 +5,18 @@ test_that("token, url, and opts get stored in expected spots, & 'followlocation'
     
     expect_message(
         targ <- magmaRset(
-            token = Sys.getenv("TOKEN"),
-            url = Sys.getenv("URL"),
+            token = TOKEN,
+            url = URL,
             opts = list(option1 = FALSE)),
         "'followlocation = FALSE' added",
         fixed = TRUE)
     
     expect_identical(
         targ$token,
-        Sys.getenv("TOKEN"))
+        TOKEN)
     expect_identical(
         targ$url,
-        Sys.getenv("URL"))
+        URL)
     expect_identical(
         targ$opts,
         list(option1 = FALSE, followlocation = FALSE))
