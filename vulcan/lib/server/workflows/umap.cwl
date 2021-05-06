@@ -118,24 +118,24 @@ steps:
     in:
       project_data: projectData/project_data
     out: [select1, select2, select3]
-  Select_Records__pickExperiments:
+  Select_Records__selection1:
     run: ui-queries/multiselect-string-all.cwl
-    label: 'Select Experiments'
-    doc: 'Picks the set of experiment:alias options to use. These selections get combined with Tissue and Cell Fraction selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
+    label: 'Select on feature 1'
+    doc: 'Among the data pointed to, for this project, in the overall documentation, selections here pick the subset of values from Feature1. The union of records indicated for inclusion by ALL selection sets here, Feature1 & Feature2 & Feature3, are what will be presenting for confimation in the next step. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
       a: queryMagma/select1
     out: [options]
-  Select_Records__pickTissues:
+  Select_Records__selection2:
     run: ui-queries/multiselect-string-all.cwl
-    label: 'Select Tissues'
-    doc: 'Picks the set of biospecimen_group:biospecimen_type options to use. These selections get combined with Experiment and Cell Fraction selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
+    label: 'Select on feature 2'
+    doc: 'Among the data pointed to, for this project, in the overall documentation, selections here pick the subset of values from Featur2. The union of records indicated for inclusion by ALL selection sets here, Feature1 & Feature2 & Feature3, are what will be presenting for confimation in the next step. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
       a: queryMagma/select2
     out: [options]
-  Select_Records__pickFractions:
+  Select_Records__selection3:
     run: ui-queries/multiselect-string-all.cwl
-    label: 'Select Sort Fractions'
-    doc: 'Picks the set of sc_seq:cell_faction options to use. These selections get combined with Experiment and Tissue selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
+    label: 'Select on feature 3'
+    doc: 'Among the data pointed to, for this project, in the overall documentation, selections here pick the subset of values from Featur2. The union of records indicated for inclusion by ALL selection sets here, Feature1 & Feature2 & Feature3, are what will be presenting for confimation in the next step. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
       a: queryMagma/select3
     out: [options]
@@ -144,9 +144,9 @@ steps:
     label: 'Interpret record selection inputs.'
     in:
       project_data: projectData/project_data
-      select1: Select_Records__pickExperiments/options
-      select2: Select_Records__pickTissues/options
-      select3: Select_Records__pickFractions/options
+      select1: Select_Records__selection1/options
+      select2: Select_Records__selection2/options
+      select3: Select_Records__selection3/options
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
