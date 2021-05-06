@@ -18,8 +18,13 @@ vignette: >
 knitr::opts_chunk$set(error=FALSE, message=FALSE, warning=FALSE)
 library(BiocStyle)
 library(vcr)
-vcr::vcr_configure(
-    filter_sensitive_data = list("<<<my_token>>>" = Sys.getenv('TOKEN')),
+library(magmaR)
+
+TOKEN <- magmaR:::.get_sysenv_or_mock("TOKEN")
+URL <- magmaRset("")$url
+
+vcr_configure(
+    filter_sensitive_data = list("<<<my_token>>>" = TOKEN),
     dir = "../tests/fixtures"
 )
 insert_cassette(name = "Download-vignette")
@@ -154,7 +159,7 @@ To this function, a user's token can be provided in one of two ways.
 When not provided explicitly, as is the other method, the user will be prompted to provide their token via the interactive console. It is recommended that you store the output of your call to `magmaRset()` as a variable, and then provide this variable within each subsequent call to a magmaR function, as below.
 
 ```{r, hide = TRUE, echo=FALSE}
-prod <- magmaRset(token = Sys.getenv("TOKEN"), url = Sys.getenv("URL"))
+prod <- magmaRset(token = TOKEN, url = URL)
 ```
 
 ```{r, eval = FALSE}
