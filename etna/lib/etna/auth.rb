@@ -15,7 +15,7 @@ module Etna
       # you have an hmac or you have a valid token.
       # Both of these will not validate individual
       # permissions; this is up to the controller
-      unless approve_noauth(request) || approve_hmac(request) || approve_user(request)
+      if [ approve_noauth(request), approve_hmac(request), approve_user(request) ].all?{|approved| !approved}
         return fail_or_redirect(request)
       end
 
