@@ -13,6 +13,8 @@ require_relative '../lib/server'
 require_relative '../lib/server/throttle'
 require_relative '../lib/server/refresh_token'
 
+require 'etna/spec/vcr'
+
 ENV['JANUS_ENV'] = 'test'
 
 include Etna::Spec::Auth
@@ -34,6 +36,7 @@ AUTH_USERS.update(
 )
 
 Janus.instance.configure(YAML.load(File.read('config.yml')))
+setup_base_vcr(__dir__, application: Janus.instance, server: Janus::Server)
 
 JANUS_HOST="janus.#{Janus.instance.config(:token_domain)}"
 JANUS_URL="https://#{JANUS_HOST}"

@@ -4,6 +4,8 @@ WORKDIR /app
 ENV DOCKERIZE_VERSION 0.6.1
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
 
+RUN groupadd -g 1002 runner
+RUN useradd -ms /bin/bash -u 1002 -g 1002 runner
 RUN apt-get update -y
 RUN apt-get install -y libapache2-mod-xsendfile libapache2-mod-shib2 xmlsec1 curl
 RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tmp/dockerize.tgz )

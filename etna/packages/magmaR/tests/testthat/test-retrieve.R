@@ -2,8 +2,8 @@
 # library(magmaR); library(testthat); source("tests/testthat/helper-magmaR.R"); source("tests/testthat/test-retrieve.R")
 
 targ <- magmaRset(
-    token = Sys.getenv("TOKEN"),
-    url = Sys.getenv("URL"))
+    token = TOKEN,
+    url = URL)
 
 test_that("retrieve & retrieveJSON work with minimal input", {
     vcr::use_cassette("retrieve_ALLs", {

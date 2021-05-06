@@ -19,6 +19,8 @@ group :test do
   gem 'factory_bot'
   gem 'simplecov'
   gem 'pry'
+  gem 'webmock'
+  gem 'vcr'
   gem 'pry-byebug'
   gem 'database_cleaner', '1.8.5'
 end

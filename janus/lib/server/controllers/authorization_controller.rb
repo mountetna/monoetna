@@ -81,8 +81,9 @@ class AuthorizationController < Janus::Controller
 
       begin
         return success(user.create_task_token!(@params[:project_name], read_only: @params[:read_only]))
-      rescue Token::Error
-        raise Etna::Unauthorized
+      rescue Token::Error => e
+        Janus.instance.logger.log_error(e)
+        raise Etna::Unauthorized, "failed to create token"
       end
     end
 
