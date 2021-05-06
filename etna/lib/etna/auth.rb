@@ -15,7 +15,7 @@ module Etna
       # you have an hmac or you have a valid token.
       # Both of these will not validate individual
       # permissions; this is up to the controller
-      if [ approve_noauth(request), approve_hmac(request), approve_user(request) ].all?{|approved| !approved}
+      unless approve_noauth(request) || approve_hmac(request) || approve_user(request)
         return fail_or_redirect(request)
       end
 
@@ -86,7 +86,7 @@ module Etna
         host: application.config(:janus)[:host]
       )
 
-      response = janus_client.validate_task_token()
+      response = janus_client.validate_task_token
 
       return false unless response.code == '200'
 

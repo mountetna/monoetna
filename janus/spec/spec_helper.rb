@@ -13,8 +13,11 @@ require_relative '../lib/server'
 require_relative '../lib/server/throttle'
 require_relative '../lib/server/refresh_token'
 
+require 'etna/spec/vcr'
+
 ENV['JANUS_ENV'] = 'test'
 
+setup_base_vcr(__dir__)
 include Etna::Spec::Auth
 
 AUTH_USERS.update(
