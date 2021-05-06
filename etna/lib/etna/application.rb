@@ -37,10 +37,6 @@ module Etna::Application
     "#{self.class.name.split('::').first.downcase}.development.local"
   end
 
-  def server
-
-  end
-
   def self.register(app)
     @instance = app
   end
