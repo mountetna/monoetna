@@ -4,6 +4,7 @@ from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.plotting import px, pio, colors
 from archimedes.functions.magma import connect, question
 from archimedes.functions.list import flatten
+from archimedes.functions.environment import project_name
 
 
 scdata = sc.read(input_path('umap_anndata.h5ad'))

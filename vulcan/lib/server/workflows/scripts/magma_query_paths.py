@@ -13,7 +13,7 @@ h5_locations = question(
     magma, 
     [
         seq_target['model'],
-        ['::identifier', '::in', tube_records],
+        ['::identifier', '::in', input_records],
         '::all', seq_target['attribute'], '::url'
     ],
     strip_identifiers=False)
