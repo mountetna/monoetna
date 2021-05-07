@@ -117,36 +117,20 @@ steps:
     label: 'Fetch selection options'
     in:
       project_data: projectData/project_data
-    out: [select1, select2, select3]
-  Select_Records__selection1:
+    out: [selection_options]
+  Select_Records__selectOnFeatures:
     run: ui-queries/multiselect-string-all.cwl
-    label: 'Select on feature 1'
-    doc: 'Among the data pointed to, for this project, in the overall documentation, selections here pick the subset of values from Feature1. The union of records indicated for inclusion by ALL selection sets here, Feature1 & Feature2 & Feature3, are what will be presenting for confimation in the next step. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
+    label: 'Record Selection (fill out all options)'
+    doc: 'Selections here pick the subset of tube records to process and analyze. Select the values of the given features that you would like to target. The union of single-cell tube records that meet these criteria will be presented for confirmation, in the next step, based on the union of ALL feature selections here. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
-      a: queryMagma/select1
-    out: [options]
-  Select_Records__selection2:
-    run: ui-queries/multiselect-string-all.cwl
-    label: 'Select on feature 2'
-    doc: 'Among the data pointed to, for this project, in the overall documentation, selections here pick the subset of values from Featur2. The union of records indicated for inclusion by ALL selection sets here, Feature1 & Feature2 & Feature3, are what will be presenting for confimation in the next step. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
-    in:
-      a: queryMagma/select2
-    out: [options]
-  Select_Records__selection3:
-    run: ui-queries/multiselect-string-all.cwl
-    label: 'Select on feature 3'
-    doc: 'Among the data pointed to, for this project, in the overall documentation, selections here pick the subset of values from Featur2. The union of records indicated for inclusion by ALL selection sets here, Feature1 & Feature2 & Feature3, are what will be presenting for confimation in the next step. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
-    in:
-      a: queryMagma/select3
-    out: [options]
+      a: queryMagma/selection_options
+    out: [selected_options]
   parse_record_selections:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
     in:
       project_data: projectData/project_data
-      select1: Select_Records__selection1/options
-      select2: Select_Records__selection2/options
-      select3: Select_Records__selection3/options
+      select1: Select_Records__selectOnFeatures/selected_options
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
