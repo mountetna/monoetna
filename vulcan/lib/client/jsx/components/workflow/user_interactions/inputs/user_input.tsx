@@ -62,7 +62,7 @@ export default function UserInput({
       ) : null}
       <div className='item_view'>
         <InputHelp input={input}>
-          <InputComponent input={input} onChange={onChange} />
+          <InputComponent key={input.name} input={input} onChange={onChange} />
         </InputHelp>
       </div>
     </div>

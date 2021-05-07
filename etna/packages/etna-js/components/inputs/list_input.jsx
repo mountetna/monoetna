@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import NumericInput from './numeric_input';
-import SlowTextInput from '../inputs/slow_text_input';
 
 const ListItem = ({item, onClick }) => {
   let className = 'delete_link';
@@ -28,7 +26,6 @@ const ListItem = ({item, onClick }) => {
 // This is an input to create and edit a list of items
 const ListInput = ({ values, itemInput, onChange, onAll, onClear, ...inputProps }) => {
   let [ editing, setEditing ] = useState(null);
-  let new_value;
 
   let ItemInput = itemInput;
 
@@ -79,7 +76,8 @@ const ListInput = ({ values, itemInput, onChange, onAll, onClear, ...inputProps 
       }
       { editing &&
         <div className='list_item'>
-          <ItemInput 
+          <ItemInput
+            key={values.length}
             onChange={ editValue }
             onBlur={ () => setEditing(null) }
             defaultValue={ values.slice(-1) }

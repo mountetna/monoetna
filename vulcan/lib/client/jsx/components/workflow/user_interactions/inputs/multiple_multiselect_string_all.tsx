@@ -1,7 +1,9 @@
-import React, {useCallback, useState, useEffect} from 'react';
+import React, {useCallback, useState, useMemo, useEffect} from 'react';
+import * as _ from 'lodash';
 
-import MultiselectStringAllInput from './multiselect_string_all';
+import {TYPE} from '../../../../api_types';
 import {InputBackendComponent, InputSpecification} from './input_types';
+import UserInput from './user_input';
 
 const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   input,
@@ -14,58 +16,143 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   // 2) Create a "onChangeSingleInput" callback to only call
   //      onChange when all input keys have valid selections.
   const [selectedValues, setSelectedValues] = useState(
-    {} as {[key: string]: string | null}
+    {} as {[key: string]: {[key: string]: string[] | null}}
   );
-  const [mockInputs, setMockInputs] = useState([] as InputSpecification[]);
+  const [mockInputs, setMockInputs] = useState(
+    {} as {[key: string]: InputSpecification[]}
+  );
 
-  const onChangeSingleInput = (inputName: string, value: string) => {
-    setSelectedValues({...selectedValues, [inputName]: value});
-  };
+  const options = useMemo(() => {
+    return input.data;
+  }, [input.data]);
 
-  const generateMockInputs = useCallback((): InputSpecification[] => {
-    return Object.keys(input.data || {}).map(
-      (key: string): InputSpecification => {
-        return {
-          type: 'multiselect_string_all',
-          name: key,
-          label: key,
-          data: {[key]: input.data ? input.data[key] : []},
-          default: null
-        };
-      }
+  // Helper methods to check if all inputs have values
+  const allInputsPresent: boolean = useMemo(
+    () => _.isEqual(Object.keys(options || {}), Object.keys(selectedValues)),
+    [options, selectedValues]
+  );
+  const allNestedInputsPresent: boolean = useMemo(() => {
+    if (!options) return false;
+    return (
+      allInputsPresent &&
+      Object.keys(options).every((cwlInputName) => {
+        let nestedOption = options[cwlInputName];
+        return _.isEqual(
+          Object.keys(nestedOption),
+          Object.keys(selectedValues[cwlInputName])
+        );
+      })
     );
-  }, [input]);
+  }, [options, selectedValues, allInputsPresent]);
+  const allInputsPopulated: boolean = useMemo(() => {
+    if (!options) return false;
+    return (
+      allNestedInputsPresent &&
+      Object.keys(options).every((cwlInputName) => {
+        return Object.values(selectedValues[cwlInputName]).every(
+          (selectedValue) => null != selectedValue
+        );
+      })
+    );
+  }, [options, selectedValues, allNestedInputsPresent]);
+
+  const onChangeSingleInput = useCallback(
+    (cwlInputName: string, inputName: string, value: string[] | null) => {
+      console.log('changing single input');
+      console.log(
+        'cwlInputName',
+        cwlInputName,
+        'inputName',
+        inputName,
+        'value',
+        value
+      );
+      console.log('selectedValues', selectedValues);
+      console.log({
+        ...selectedValues,
+        [cwlInputName]: {
+          ...selectedValues[cwlInputName],
+          [inputName]: value
+        }
+      });
+      setSelectedValues({
+        ...selectedValues,
+        [cwlInputName]: {
+          ...selectedValues[cwlInputName],
+          [inputName]: value
+        }
+      });
+    },
+    [selectedValues]
+  );
 
   useEffect(() => {
-    setSelectedValues(
-      Object.keys(input.data || {}).reduce(
-        (acc: {[key: string]: null}, key: string) => {
-          acc[key] = null;
+    if (!options) return;
+
+    setMockInputs(
+      Object.keys(options).reduce(
+        (
+          acc: {[key: string]: InputSpecification[]},
+          cwlInputName: string
+        ): {[key: string]: InputSpecification[]} => {
+          let subInputs: {[key: string]: string[]} = options[cwlInputName];
+
+          acc[cwlInputName] = Object.keys(subInputs).map(
+            (key: string): InputSpecification => {
+              return {
+                type: TYPE.MULTISELECT_STRING_ALL,
+                name: key,
+                label: key,
+                data: {[key]: subInputs[key]},
+                default:
+                  selectedValues[cwlInputName] &&
+                  selectedValues[cwlInputName][key]
+                    ? selectedValues[cwlInputName][key]
+                    : null
+              };
+            }
+          );
           return acc;
         },
         {}
       )
     );
-    setMockInputs(generateMockInputs());
-  }, [input.data]);
-
-  useEffect(() => {
-    if (
-      Object.values(selectedValues).filter((value) => null == value).length ===
-      0
-    ) {
+    console.log('allInputsPopulated', allInputsPopulated);
+    if (allInputsPopulated) {
       onChange(input.name, selectedValues);
+    } else {
+      console.log('sending up the stack null');
+      onChange(input.name, null);
     }
   }, [selectedValues]);
 
+  useEffect(() => {
+    console.log('options changed', selectedValues);
+    if (options && input.default) {
+      console.log('setting to default');
+      setSelectedValues(input.default);
+    }
+  }, [options]);
+
+  //   console.log('selectedValues', selectedValues);
   return (
     <div>
-      {mockInputs.map((mockInput) => {
+      {Object.keys(mockInputs).map((cwlInputName: string) => {
+        let groupedInputs: InputSpecification[] = mockInputs[cwlInputName];
         return (
-          <MultiselectStringAllInput
-            onChange={onChangeSingleInput}
-            input={mockInput}
-          />
+          <div>
+            {groupedInputs.map((mockInput) => {
+              return (
+                <UserInput
+                  key={`${cwlInputName}-${mockInput.name}`}
+                  onChange={(inputName, newValue) => {
+                    onChangeSingleInput(cwlInputName, inputName, newValue);
+                  }}
+                  input={mockInput}
+                />
+              );
+            })}
+          </div>
         );
       })}
     </div>
