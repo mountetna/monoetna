@@ -2,12 +2,12 @@
 # library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-meta.R")
 
 targ <- magmaRset(
-    token = Sys.getenv("TOKEN"),
-    url = Sys.getenv("URL"))
+    token = TOKEN,
+    url = URL)
 
 test_that("retrieveMetadata, same branch", {
     vcr::use_cassette("metadata_same_branch", {
-        atts <<- retrieveAttributes(targ, "example", "biospecimen")
+        atts <- retrieveAttributes(targ, "example", "biospecimen")
         
         # metadata from distinct branch of project tree
         meta <-  retrieveMetadata(

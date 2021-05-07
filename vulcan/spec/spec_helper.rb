@@ -17,9 +17,8 @@ require_relative '../lib/server'
 require_relative '../lib/vulcan'
 require 'etna/spec/vcr'
 
-setup_base_vcr(__dir__)
-
 Vulcan.instance.configure(YAML.load(File.read('config.yml')))
+setup_base_vcr(__dir__)
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
