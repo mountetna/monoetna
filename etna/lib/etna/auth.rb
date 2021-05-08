@@ -86,7 +86,7 @@ module Etna
         host: application.config(:janus)[:host]
       )
 
-      response = janus_client.validate_task_token()
+      response = janus_client.validate_task_token
 
       return false unless response.code == '200'
 

@@ -2,8 +2,8 @@
 # library(magmaR); library(testthat); source("tests/testthat/helper-magmaR.R"); source("tests/testthat/test-matrix.R")
 
 targ <- magmaRset(
-    token = Sys.getenv("TOKEN"),
-    url = Sys.getenv("URL"))
+    token = TOKEN,
+    url = URL)
 
 vcr::use_cassette("matrix", {
     
