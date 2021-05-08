@@ -60,7 +60,6 @@ module Redcap
     end
 
     def offset_id(record_id)
-      puts record_id
       record_id
     end
 
