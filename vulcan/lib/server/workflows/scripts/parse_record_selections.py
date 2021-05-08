@@ -4,28 +4,19 @@ from archimedes.functions.list import unique, flatten
 from archimedes.functions.environment import project_name
 
 pdat = input_json("project_data")[project_name]
-selection_options = list(pdat['selection_options'].values())
+selection_atts = pdat['selection_options']
+
+selected = input_json('selected_options')
 
 magma = connect()
 
-select1 = input_json('select1')
-select2 = input_json('select2')
-select3 = input_json('select3')
-
 # Experiment and Tissue (AND logic)
 filters = []
-if len(select1) > 0:
-    filters.append(
-        buildTargetPath( selection_options[0], pdat ) + ['::in', select1]
-    )
-if len(select2) > 0:
-    filters.append(
-        buildTargetPath( selection_options[1], pdat ) + ['::in', select2]
-    )
-if len(select3) > 0:
-    filters.append(
-        buildTargetPath( selection_options[2], pdat ) + ['::in', select3]
-    )
+for set in list(selected.keys()):
+    if len(selected[set]) > 0:
+        filters.append(
+            buildTargetPath( selection_atts[set], pdat ) + ['::in', selected[set]]
+        )
 
 seq_target = parseModelAttr(pdat['seq_h5_counts_data'])
 

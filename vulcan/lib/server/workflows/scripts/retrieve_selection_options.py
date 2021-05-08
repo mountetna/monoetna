@@ -4,7 +4,7 @@ from archimedes.functions.list import unique, flatten
 from archimedes.functions.environment import project_name
 
 pdat = input_json("project_data")[project_name]
-selection_options = list(pdat['selection_options'].values())
+selection_options = pdat['selection_options']
 
 seq_target = parseModelAttr(pdat['seq_h5_counts_data'])
 q_start = [
@@ -15,21 +15,13 @@ q_start = [
 
 magma = connect()
 
-select1 = question(
-    magma,
-    q_start + buildTargetPath( selection_options[0], pdat )
-)
+options = dict([
+    [ 
+        key,
+        unique(flatten(question(
+            magma,
+            q_start + buildTargetPath( selection_options[key], pdat )
+        )))
+    ] for key in list(selection_options.keys()) ])
 
-select2 = question(
-    magma,
-    q_start + buildTargetPath( selection_options[1], pdat )
-)
-
-select3 = question(
-    magma,
-    q_start + buildTargetPath( selection_options[2], pdat )
-)
-
-output_json(unique(select1), 'select1')
-output_json(unique(select2), 'select2')
-output_json(unique(select3), 'select3')
+output_json(options, 'selection_options')
