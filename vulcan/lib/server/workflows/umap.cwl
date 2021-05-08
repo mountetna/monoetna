@@ -120,8 +120,8 @@ steps:
     out: [selection_options]
   Select_Records__selectOnFeatures:
     run: ui-queries/multiselect-string-all.cwl
-    label: 'Record Selection (fill out all options)'
-    doc: 'Selections here pick the subset of tube records to process and analyze. Select the values of the given features that you would like to target. The union of single-cell tube records that meet these criteria will be presented for confirmation, in the next step, based on the union of ALL feature selections here. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
+    label: 'Record Selection (Select for all features)'
+    doc: 'Selections here pick the subset of tube records to process and analyze. Select the values of the given features that you would like to target. The union of single-cell tube records that meet these criteria will be presented for confirmation, in the next step, based on the union of ALL feature selections here. Selections must be made for each in order to proceed, but if you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
       a: queryMagma/selection_options
     out: [selected_options]
@@ -130,7 +130,7 @@ steps:
     label: 'Interpret record selection inputs.'
     in:
       project_data: projectData/project_data
-      select1: Select_Records__selectOnFeatures/selected_options
+      selected_options: Select_Records__selectOnFeatures/selected_options
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
