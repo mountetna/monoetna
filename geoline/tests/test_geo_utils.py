@@ -51,4 +51,5 @@ class Test(TestCase):
             self.assertEqual(aw, {'tissue': 'model:cancer'})
 
 
-unittest.main()
+if __name__ == '__main__':
+    unittest.main()

@@ -117,4 +117,5 @@ class TestGeoline(TestCase):
         self.assertEqual(samples.title[0], 'EXAMPLE-HS10-WB1-RSQ1')
 
 
-unittest.main()
+if __name__ == '__main__':
+    unittest.main()
