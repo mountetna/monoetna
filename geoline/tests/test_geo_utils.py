@@ -16,7 +16,7 @@ testDict = {
 
 class Test(TestCase):
     def test_flatten(self):
-        flat = flatten(testDict, '_')
+        flat = flatten_nested_dict(testDict, '_')
         self.assertTrue(isinstance(flat, dict))
         self.assertEqual(list(flat.keys())[1], 'b_x')
         self.assertEqual(list(flat.values())[2], 'gug')

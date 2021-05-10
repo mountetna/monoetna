@@ -1,12 +1,12 @@
 from typing import Dict, Tuple, List, Callable
 
 
-def flatten(dictionary, sep='', parent_key=''):
+def flatten_nested_dict(dictionary, sep='', parent_key=''):
     items = []
     for curr_key, curr_val in dictionary.items():
         new_key = parent_key + sep + curr_key if parent_key else curr_key
         if isinstance(curr_val, dict):
-            items.extend(flatten(curr_val, sep=sep, parent_key=new_key).items())
+            items.extend(flatten_nested_dict(curr_val, sep=sep, parent_key=new_key).items())
         else:
             items.append((new_key, curr_val))
     return dict(items)

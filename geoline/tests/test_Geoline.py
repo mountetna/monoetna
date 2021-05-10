@@ -82,26 +82,28 @@ class TestGeoline(TestCase):
             self.assertEqual(len(aw), 5)
 
     def test__walk_answer_with_one_to_many(self):
-        aw_elem = ['SAMPLE1-RSQ1',
-                  ['Lembas Bread',
-                   [['Bread Sort 1', None],
-                    ['Bread Sort 3', 'Honey'],
-                    ['Bread Sort 5', None]]]]
+        aw_elem = ['Round Pastry',
+                   ['Lembas Bread',
+                    [['Bread Sort 1', [None, 'other']],
+                     ['Bread Sort 3', ['Honey', 'two']],
+                     ['Bread Sort 5', [None]]]]]
         aw_format = ['proj::elven_bread#shape',
-                    ['proj::elven_bread#texture',
-                     ['proj::elven_bread#pool_name', 'proj::bread#panel']]]
+                     ['proj::elven_bread#type',
+                      ['proj::elven_bread#sort',
+                       ['proj::elven_bread#pool_name', 'proj::bread#panel']]]]
 
         aw = self.geoline._walk_answer(aw_elem, aw_format)
         self.assertTrue(isinstance(aw, dict))
-        self.assertEqual(aw['elven_bread:pool_name'], 'Bread Sort 1; Bread Sort 3; Bread Sort 5')
+        self.assertEqual(aw['elven_bread:sort'], 'Bread Sort 1;Bread Sort 3;Bread Sort 5')
+        self.assertEqual(aw['elven_bread:pool_name'], 'None;Honey;None')
 
     def test__reduce_one_to_many(self):
-        otm = [['Name1', None],
-               ['Name2', 'Bread Sample v1'],
-               ['Name3', None]]
+        otm = [['Name1', [None, 'other']],
+               ['Name2', ['Bread Sample v1', None]],
+               ['Name3', [None, 'Bread_2']]]
         reduced = self.geoline._reduce_one_to_many(otm)
         self.assertTrue(isinstance(reduced[0], str))
-        self.assertEqual(reduced[1], 'None; Bread Sample v1; None')
+        self.assertEqual(reduced[1][0], 'None;Bread Sample v1;None')
 
     def test_seq_workflows(self):
         with patch('builtins.input', side_effect=['y', 'flow:stain', 'subject:group',

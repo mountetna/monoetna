@@ -1,4 +1,4 @@
-from typing import List, Dict, Callable
+from typing import List, Dict, Callable, Any
 import functools
 from functools import partial
 from pandas import DataFrame
@@ -8,7 +8,7 @@ from magby.Magby import Magby
 
 from .seq_template import samples_section
 from .TemplateTree import TemplateTree
-from .geo_utils import flatten, ask_attribute
+from .geo_utils import flatten_nested_dict, ask_attribute
 
 """
 TODO 
@@ -116,7 +116,7 @@ class Geoline:
                                f'allowed assays are {allowed_assays}')
         workflow = template(assay)
         updated = self._updater(workflow)
-        return flatten(updated, sep=' ')
+        return flatten_nested_dict(updated, sep=' ')
 
     # TODO refactor
     def _updater(self, section: Dict, prev: int = 0, curr: int = 0) -> Dict:
@@ -131,7 +131,6 @@ class Geoline:
 
         # special treatment of characteristics group
         if attribute_map[0] == 'characteristics':
-            kk=attribute_map[1]
             answer = attribute_map[1](d={})
             return self._updater(dict(section, **{attribute_map[0]: answer}), curr, curr + 1)
 
@@ -148,7 +147,8 @@ class Geoline:
     def _grouper(self, section: Dict) -> Dict:
         unique_models = set([self._split_model_map(x)[0] for x in section.values()])
         grouped_models = {x:
-                              {y: self._split_model_map(section[y]) for y in section if self._split_model_map(section[y])[0] == x}
+                              {y: self._split_model_map(section[y]) for y in section if
+                               self._split_model_map(section[y])[0] == x}
                           for x in unique_models}
         return grouped_models
 
@@ -193,12 +193,28 @@ class Geoline:
         drop_project = model_attr.split("::")[1]
         return drop_project.replace("#", ":")
 
-    @staticmethod
-    def _reduce_one_to_many(multi_answer: List) -> List:
-        reshaped = [list(x) for x in zip(*multi_answer)]
-        stringed = ['; '.join([str(word) for word in x]) for x in reshaped]
-        return stringed
+    def _reduce_one_to_many(self, multi_answer: List) -> List:
+        if multi_answer == [None, []]:
+            return ["None", "None"]
+        reshaped = {x[0]: x[1] for x in multi_answer}
+        multi_values = []
+        while any([len(x) > 0 for x in reshaped.values()]):
+            multi_values.append([self._robust_popper(x) for x in reshaped.values()])
+        stringed = [self._any_list_to_string(x) for x in multi_values]
+        multi_id = [self._any_list_to_string(list(reshaped.keys())), stringed]
+        return multi_id
 
     def _query_wrapper(self, answer: List, fmt: List) -> List:
-        out = [self._walk_answer(answerElement, fmt) for answerElement in answer]
+        out = [self._walk_answer(answer_element, fmt) for answer_element in answer]
         return out
+
+    @staticmethod
+    def _robust_popper(collection: List):
+        try:
+            return collection.pop(0)
+        except IndexError:
+            return None
+
+    @staticmethod
+    def _any_list_to_string(collection: List[Any], sep: str = ';') -> str:
+        return sep.join([str(element) for element in collection])
