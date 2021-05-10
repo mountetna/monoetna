@@ -2,8 +2,7 @@ import unittest
 from unittest import TestCase
 from unittest.mock import patch
 
-
-from ..geoline.geo_utils import *
+from geoline.geoline.geo_utils import *
 
 testDict = {
     'a': 'lol',
@@ -13,6 +12,7 @@ testDict = {
     },
     'c': 'bab'
 }
+
 
 class Test(TestCase):
     def test_flatten(self):
@@ -44,13 +44,11 @@ class Test(TestCase):
             self.assertTrue(isinstance(aw, str))
             self.assertEqual(aw, 'STOP')
 
-
     def test_characteristics(self):
         with patch('builtins.input', side_effect=['y', '1', 'model:cancer', 'n']):
             aw = characteristics(add_another, {})
             self.assertTrue(isinstance(aw, dict))
             self.assertEqual(aw, {'tissue': 'model:cancer'})
-
 
 
 if __name__ == '__main__':

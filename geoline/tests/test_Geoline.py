@@ -4,8 +4,8 @@ from unittest.mock import patch
 from pandas import DataFrame
 
 from magby.Magby import Magby
-from ..geoline.Geoline import Geoline
-from ..geoline.seq_template import samples_section
+from geoline.geoline.Geoline import Geoline
+from geoline.geoline.seq_template import samples_section
 from .test_utils import *
 
 url = 'https://magma.ucsf.edu'
