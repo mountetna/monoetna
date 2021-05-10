@@ -1,4 +1,5 @@
 require 'set'
+require 'json'
 
 class Magma
   class MatrixAttribute < Attribute
@@ -9,6 +10,7 @@ class Magma
     def entry(value, loader)
       [ column_name, value.to_json ]
     end
+
     class Validation < Magma::Validation::Attribute::BaseAttributeValidation
       def validate(value, &block)
         # nil is a valid value
@@ -29,6 +31,18 @@ class Magma
 
     def revision_to_payload(record_name, new_value, loader)
       [ name, new_value ]
+    end
+
+    def expand(matrix_value)
+      # Provide an embedded data frame inside of the TSV
+      #   that includes the selected columns names + values.
+
+      # matrix_value.to_json is actually a JSON string.
+      JSON.parse(matrix_value.to_json)
+    end
+
+    def query_to_tsv(value)
+      value.to_json
     end
 
     def reset_cache

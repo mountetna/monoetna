@@ -58,3 +58,10 @@
     
     table
 }
+
+.get_sysenv_or_mock <- function(target) {
+    ifelse(
+        identical(Sys.getenv(target),""),
+        paste0("fake", tolower(target)),
+        Sys.getenv(target))
+}

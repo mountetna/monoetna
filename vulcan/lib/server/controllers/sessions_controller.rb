@@ -83,7 +83,10 @@ class SessionsController < Vulcan::Controller
     # Note: You'll need to configure the Magma host
     #   in config.yml :development to also point to
     #   production Magma.
-    return Vulcan.instance.config(:archimedes_token) || @user.token if :development == Vulcan.instance.environment
+    if :development == Vulcan.instance.environment
+      archimedes_token = Vulcan.instance.config(:archimedes_token)
+      return archimedes_token unless archimedes_token.nil?
+    end
 
     janus_client = Etna::Clients::Janus.new(token: @user.token, host: Vulcan.instance.config(:janus)[:host])
     janus_client.generate_token('task', project_name: @params[:project_name], read_only: true)
