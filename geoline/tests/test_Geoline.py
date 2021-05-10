@@ -4,8 +4,8 @@ from unittest.mock import patch
 from pandas import DataFrame
 
 from magby.Magby import Magby
-from geoline.geoline.Geoline import Geoline
-from geoline.geoline.seq_template import samples_section
+from ..geoline.Geoline import Geoline
+from ..geoline.seq_template import samples_section
 from .test_utils import *
 
 url = 'https://magma.ucsf.edu'
@@ -117,5 +117,4 @@ class TestGeoline(TestCase):
         self.assertEqual(samples.title[0], 'EXAMPLE-HS10-WB1-RSQ1')
 
 
-if __name__ == '__main__':
-    unittest.main()
+unittest.main()

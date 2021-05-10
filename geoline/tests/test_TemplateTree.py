@@ -39,5 +39,4 @@ class TestTemplateTree(TestCase):
         self.assertEqual(new_path, ['biospecimen', 'flow', '::all'])
 
 
-if __name__ == '__main__':
-    unittest.main()
+unittest.main()
