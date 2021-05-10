@@ -51,5 +51,5 @@ jobs:
           python -m pip install --upgrade pip
           pip install geoline/
           python -m unittest geoline/tests/test_Geoline.py
-          python -m unittest geoline/tests/test_geoUtils.py
+          python -m unittest geoline/tests/test_geo_utils.py
           python -m unittest geoline/tests/test_TemplateTree.py
