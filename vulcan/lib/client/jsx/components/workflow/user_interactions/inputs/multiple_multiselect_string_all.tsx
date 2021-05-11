@@ -60,23 +60,6 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
 
     if (!cwlInputName || !inputName) return;
 
-    console.log('changing single input');
-    console.log(
-      'cwlInputName',
-      cwlInputName,
-      'inputName',
-      inputName,
-      'newValue',
-      newValue
-    );
-    console.log('selectedValues', selectedValues);
-    console.log({
-      ...selectedValues,
-      [cwlInputName]: {
-        ...selectedValues[cwlInputName],
-        [inputName]: newValue
-      }
-    });
     setSelectedValues({
       ...selectedValues,
       [cwlInputName]: {
@@ -117,24 +100,20 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
         {}
       )
     );
-    console.log('allInputsPopulated', allInputsPopulated);
+    
     if (allInputsPopulated) {
       onChange(input.name, selectedValues);
     } else {
-      console.log('sending up the stack null');
       onChange(input.name, null);
     }
   }, [selectedValues]);
 
   useEffect(() => {
-    console.log('options changed', selectedValues);
     if (options && input.default) {
-      console.log('setting to default');
       setSelectedValues(input.default);
     }
   }, [options]);
 
-  //   console.log('selectedValues', selectedValues);
   return (
     <div>
       {Object.keys(mockInputs).map((cwlInputName: string) => {
