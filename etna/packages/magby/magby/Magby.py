@@ -2,7 +2,7 @@ from typing import List
 import pandas as pd
 from functools import partial
 
-from magby.Magma import *
+from .Magma import *
 
 _session = Session()
 

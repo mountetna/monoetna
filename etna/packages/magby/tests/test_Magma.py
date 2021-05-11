@@ -1,7 +1,7 @@
 import unittest
 from unittest import TestCase
-from magby.Magma import *
-from testUtils import *
+from ..magby.Magma import *
+from .testUtils import *
 
 url = 'https://magma.ucsf.edu'
 token = 'token'

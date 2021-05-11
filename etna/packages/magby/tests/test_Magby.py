@@ -1,9 +1,7 @@
 import unittest
 from unittest import TestCase
-import configparser
-from requests import Session
-from magby.Magby import *
-from testUtils import *
+from ..magby.Magby import *
+from .testUtils import *
 
 
 url = 'https://magma.ucsf.edu'

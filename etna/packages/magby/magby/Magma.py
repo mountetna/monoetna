@@ -5,7 +5,6 @@ from requests import Session
 
 _session = Session()
 
-
 class MagmaError(Exception):
     """
     errors corresponding to misuse of Magma
