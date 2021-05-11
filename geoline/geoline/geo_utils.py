@@ -21,7 +21,8 @@ def ask_attribute(field: str, magma_attr: str = '') -> str:
     }
     answer_options = format_options(answer_options_pre)
     question = f'\nIs {magma_attr} correct for {field}?\n' \
-               f'ANSWER OPTIONS:\n{answer_options}'
+               f'ANSWER OPTIONS:\n{answer_options}\n' \
+               f'Leave blank if there is no appropriate "model:attribute" mapping in your project'
     answer = input(question)
     while not verify_map_format(answer) and answer not in answer_options_pre.keys():
         verification = f'\nThe answer {answer} is not in format model:attribute\n' \
