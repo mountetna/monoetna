@@ -21,7 +21,6 @@ project_data = {
 			'Biospecimen Group': 'biospecimen_group#::identifier',
 		},
 		'selection_options': {
-			# The workflow is currently built for 3, but I could imagine that number actually being determined based on this section!
 			# Format = <Label of this selection item>: '<model>#<attribute>'
 			'Experiment': 'experiment#alias',
 			'Tissue': 'biospecimen_group#biospecimen_type',
