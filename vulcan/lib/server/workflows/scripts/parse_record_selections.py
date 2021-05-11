@@ -13,10 +13,10 @@ magma = connect()
 
 # Experiment and Tissue (AND logic)
 filters = []
-for set in list(selected.keys()):
-    if len(selected[set]) > 0:
+for selected_model in list(selected.keys()):
+    if len(selected[selected_model]) > 0:
         filters.append(
-            buildTargetPath( selection_atts[set], pdat ) + ['::in', selected[set]]
+            buildTargetPath( selection_atts[selected_model], pdat ) + ['::in', selected[selected_model]]
         )
 
 seq_target = parseModelAttr(pdat['seq_h5_counts_data'])
