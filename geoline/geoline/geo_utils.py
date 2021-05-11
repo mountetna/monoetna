@@ -22,11 +22,11 @@ def ask_attribute(field: str, magma_attr: str = '') -> str:
     answer_options = format_options(answer_options_pre)
     question = f'\nIs {magma_attr} correct for {field}?\n' \
                f'ANSWER OPTIONS:\n{answer_options}\n' \
-               f'Leave blank if there is no appropriate "model:attribute" mapping in your project'
+               f'Leave blank if there is no appropriate "model:attribute" mapping in your project\n'
     answer = input(question)
     while not verify_map_format(answer) and answer not in answer_options_pre.keys():
         verification = f'\nThe answer {answer} is not in format model:attribute\n' \
-                       f'Provide a correctly formatted answer'
+                       f'Provide a correctly formatted answer\n'
         answer = input(verification)
     return answer
 
@@ -43,12 +43,12 @@ def ask_characteristics() -> Tuple:
     answer_key = input(answer_options)
     while answer_key not in answer_options_pre.keys():
         verification = f'\nThe answer {answer_key} is not in allowed answers\n' \
-                       f'Provide an allowed answer'
+                       f'Provide an allowed answer\n'
         answer_key = input(verification)
     answer_value = input('Enter attribute name for this characteristic')
     while not verify_map_format(answer_value):
         verification = f'\nThe answer {answer_value} is not in format model:attribute\n' \
-                       f'Provide a correctly formatted answer'
+                       f'Provide a correctly formatted answer\n'
         answer_value = input(verification)
     return answer_options_pre[answer_key], answer_value
 
@@ -62,11 +62,11 @@ def add_another() -> str:
     }
     answer_options = format_options(answer_options_pre)
     question = f'\nDo you want to add a sample characteristic?\n' \
-               f'ANSWER OPTIONS:\n{answer_options}'
+               f'ANSWER OPTIONS:\n{answer_options}\n'
     answer = input(question)
     while answer not in answer_options_pre.keys():
         verification = f'\nThe answer {answer} is not in allowed answers\n' \
-                       f'Provide an allowed answer'
+                       f'Provide an allowed answer\n'
         answer = input(verification)
     return answer
 
