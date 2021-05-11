@@ -32,7 +32,7 @@ class TestMagby(TestCase):
                                                modelName='subject',
                                                recordNames=["EXAMPLE-HS1"],
                                                attributeNames=["group"],
-                                               format='json')
+                                               formatBy='json')
         self.assertTrue(isinstance(payload, dict))
 
 
