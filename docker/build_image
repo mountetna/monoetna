@@ -104,6 +104,14 @@ function findNewest() {
    fi
 }
 
+function considerNewest() {
+if [ "$1" -nt "$newestFile" ]; then
+    newestFile="$1"
+fi
+}
+
+considerNewest $DIR/post-to-slack.sh
+
 #- Any FROM clause in the given Dockerfile is processed as a potential dependency to be built before this image.
 while read depImage; do
   baseDepImage=$depImage
@@ -164,8 +172,6 @@ $foundMounts"
     shift
 done
 
-
-
 #- The build process also combines the docker/.dockerignore file with the Dockerfile project's own for a combined
 #- filtering.
 # Add in the built-from-sha here, too.
@@ -174,19 +180,27 @@ $DIR/find-parent-pr-merge.sh > $DIR/built-from-sha
 
 BUILD_CMD="
 cat src/.dockerignore /assist/.dockerignore | grep -v '#' | awk '{print \"src/\"\$0}' > .dockerignore ; \\
-cp src/$(basename $Dockerfile) /tmp/Dockerfile && \\
-cp /assist/built-from-sha ./ && \\
-cp /assist/deploy.sh ./ && \\
-cp /assist/post-to-slack.sh ./ && \\
-chmod +x ./post-to-slack.sh && \\
-echo 'COPY built-from-sha /built-from-sha' >> /tmp/Dockerfile && \\
-echo 'COPY deploy.sh /bin/deploy' >> /tmp/Dockerfile && \\
-echo 'COPY post-to-slack.sh /bin/post-to-slack' >> /tmp/Dockerfile && \\
+cp src/$(basename $Dockerfile) /tmp/Dockerfile"
+
+# TODO -- I want to find a clever way to only run certain build steps iff the previous run steps were not previously
+# cached.  For now, these build steps cause too much noise in edge-apache and are not necessary.
+if [[ "$baseTag" != "edge-apache" ]]; then
+  BUILD_CMD="${BUILD_CMD} && \\
+  cp /assist/built-from-sha ./ && \\
+  cp /assist/deploy.sh ./ && \\
+  cp /assist/post-to-slack.sh ./ && \\
+  chmod +x ./post-to-slack.sh && \\
+  echo 'COPY built-from-sha /built-from-sha' >> /tmp/Dockerfile && \\
+  echo 'COPY deploy.sh /bin/deploy' >> /tmp/Dockerfile && \\
+  echo 'COPY post-to-slack.sh /bin/post-to-slack' >> /tmp/Dockerfile"
+fi
+
+BUILD_CMD="${BUILD_CMD} && \\
 docker build --rm --force-rm \\
   --tag $baseTag --cache-from $tag $* -f /tmp/Dockerfile ."
 
 if [[ "$baseTag" != "$tag" ]]; then
-  BUILD_CMD="$BUILD_CMD
+  BUILD_CMD="$BUILD_CMD && \\
 docker tag $baseTag $tag"
 fi
 
@@ -216,6 +230,6 @@ sleep 1
 set -x
 # Docker can 'leak' intermediate build images from different runs, unfortunately, even with --rm and --force-rm.
 # This will atleast prune between runs to keep it minimal
-docker image prune -f
+[[ -z "$IS_CI" ]] && docker image prune -f
 docker run --rm -w /build -v "${DIR}:/assist:ro" $mounts docker:19.03.12 sh -c "$BUILD_CMD"
 touch $marker

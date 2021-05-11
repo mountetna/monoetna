@@ -10,13 +10,9 @@ class AuthorizationController < Janus::Controller
     token = @request.cookies[Janus.instance.config(:token_name)]
 
     begin
-      payload, header = Janus.instance.sign.jwt_decode(token)
+      user = User.from_token(token)
 
-      payload = payload.symbolize_keys.except(:exp)
-
-      user = User[email: payload[:email]]
-
-      raise 'Invalid payload!' if !user || payload != user.jwt_payload
+      raise unless user
 
       # they have a valid token
       @response.redirect(@params[:refer], 302)
@@ -66,32 +62,42 @@ class AuthorizationController < Janus::Controller
   end
 
   def generate
-    # The user must authorize the request with
-    # their signature
+    # The user must authorize the request either
+    # 1. with their signature
 
-    auth_token = (@request.env['HTTP_AUTHORIZATION'] || '')[ /\ASigned-Nonce (.*)\z/, 1 ]
+    signed_nonce = (@request.env['HTTP_AUTHORIZATION'] || '')[ /\ASigned-Nonce (.*)\z/, 1 ]
 
-    return noauth unless auth_token
+    # 2. with their token
+    token = (@request.env['HTTP_AUTHORIZATION'] || '')[ /\AEtna (.*)\z/, 1 ]
 
-    timesig64, email64, signature64 = auth_token.split(/\./)
+    token_type = @params[:token_type] || 'login'
 
-    # validate the timesig
-    return noauth unless Janus::Nonce.valid?(timesig64)
+    user = signed_nonce ? User.from_signed_nonce(signed_nonce) : User.from_token(token)
 
-    # validate the email
-    email = Base64.decode64(email64)
-    return noauth if email =~ /[^[:print:]]/
+    raise Etna::Unauthorized, user if user.is_a?(String)
 
-    # find the user
-    user = User[email: email]
-    return noauth unless user
+    if token_type == 'task'
+      raise Etna::BadRequest, "No project_name specified!" unless @params[:project_name]
 
-    # check the user's signature
-    unless user.valid_signature?("#{timesig64}.#{email64}", Base64.decode64(signature64))
-      return noauth
+      begin
+        return success(user.create_task_token!(@params[:project_name], read_only: @params[:read_only]))
+      rescue Token::Error => e
+        Janus.instance.logger.log_error(e)
+        raise Etna::Unauthorized, "failed to create token"
+      end
     end
 
     return success(user.create_token!)
+  end
+
+  def validate_task
+    @janus_user = User[email: @user.email]
+
+    raise Etna::Forbidden, 'User not found' unless @janus_user
+
+    raise Etna::Unauthorized, 'Invalid task token' unless Token::Checker.new(@user.token).valid_task_token?(@janus_user)
+
+    success_json(success: true)
   end
 
   private

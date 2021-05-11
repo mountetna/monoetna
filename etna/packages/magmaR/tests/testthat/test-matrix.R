@@ -1,13 +1,18 @@
 # This code tests the retrieveMatrix function
 # library(magmaR); library(testthat); source("tests/testthat/helper-magmaR.R"); source("tests/testthat/test-matrix.R")
 
+targ <- magmaRset(
+    token = TOKEN,
+    url = URL)
+
 vcr::use_cassette("matrix", {
     
-    ids <- retrieveIds("example", "rna_seq")
+    ids <- retrieveIds(targ, "example", "rna_seq")
     
     test_that("retrieveMatrix", {
     
         mat <- retrieveMatrix(
+            targ,
             "example",
             "rna_seq",
             attributeNames = "gene_counts")
@@ -25,6 +30,7 @@ vcr::use_cassette("matrix", {
         
         expect_warning(
             mat <- retrieveMatrix(
+                targ,
                 "example",
                 "rna_seq",
                 recordNames = c(ids, "not_a_record"),
@@ -34,18 +40,5 @@ vcr::use_cassette("matrix", {
         
         expect_type(mat, "integer")
         expect_equal(dim(mat), c(40,12))
-    })
-    
-    test_that("retrieveMatrix 'token' is separate from .MAGMAR_TOKEN", {
-        
-        rm(.MAGMAR_TOKEN, envir = .GlobalEnv)
-        
-        expect_type(
-            retrieveMatrix(
-                "example", "rna_seq", attributeNames = "gene_counts", ids[1],
-                token = Sys.getenv("TOKEN")),
-            "integer")
-        
-        .GlobalEnv$.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
     })
 })

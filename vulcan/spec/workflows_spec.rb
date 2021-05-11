@@ -16,31 +16,49 @@ describe WorkflowsController do
   end
 
   context '#fetch' do
+    it 'does not list workflows the user cannot access' do
+      auth_header(:viewer, additional: { perm: "v:not-a-thing"})
+      get("/api/workflows")
+
+      expect(last_response.status).to eq(200)
+      response = JSON.parse(last_response.body)
+
+      workflows = response['workflows'].map { |w| w['name'] }
+      # This workflow didn't have any projects specified, so it still shows up
+      # However, other workflows are not included.
+      expect(workflows).to eql(["test_concurrent_workflow.cwl"])
+    end
+
     it 'gets a list of workflows' do
       auth_header(:viewer)
-      get("/api/#{PROJECT}/workflows")
+      get("/api/workflows")
 
       expect(last_response.status).to eq(200)
 
       response = JSON.parse(last_response.body)
-      expect(response['workflows'].first['name']).to eql('test_workflow.cwl')
+      workflow = response['workflows'].find { |w| w['name'] == 'test_workflow.cwl' }
 
-      expect(response['workflows'].first['inputs']).to eql({
+      expect(workflow['inputs']).to eql({
           "someInt" => {
               "default" => 200,
               "format" => nil,
               "label" => "it is an int",
               "type" => "int",
+              "doc" => "help tip"
           },
           "someIntWithoutDefault" => {
               "default" => nil,
               "format" => nil,
               "label" => nil,
               "type" => "int",
+              "doc" => "another tip"
           },
       })
 
-      expect(response['workflows'].first['outputs']).to eql({
+      # does not include the secret project
+      expect(workflow['projects']).to eql(['labors'])
+
+      expect(workflow['outputs']).to eql({
           "the_result" => {
               "default" => nil,
               "format" => nil,
@@ -50,113 +68,57 @@ describe WorkflowsController do
           }
       })
 
-      expect(response['workflows'].first['steps']).to eql([
+      expect(workflow['dependencies_of_outputs']).to eql({
+          "finalStep/sum" => [],
+          "firstAdd/sum" => ["finalStep/sum", "pickANum/num"],
+          "pickANum/num" => ["finalStep/sum"],
+          "someInt" => ["firstAdd/sum", "finalStep/sum", "pickANum/num"],
+          "someIntWithoutDefault" => ["firstAdd/sum", "finalStep/sum", "pickANum/num"],
+      })
+
+      expect(workflow['steps']).to eql([
           [
               {
-                  "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
-                      {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
+                  "in" => [{"id"=>"a", "source"=>"someInt"},
+                      {"id"=>"b", "source"=>"someIntWithoutDefault"}],
+                  "doc" => nil,
                   "label"=>nil,
                   "out" => ["sum"],
                   "name" => "firstAdd",
                   "run" => "scripts/add.cwl",
               },
               {
-                  "in" => [{"id"=>"num", "source"=>["firstAdd", "sum"]}],
+                  "in" => [{"id"=>"num", "source"=>"firstAdd/sum"}],
+                  "doc" => nil,
                   "label"=>nil,
                   "out" => ["num"],
                   "name" => "pickANum",
                   "run" => "ui-queries/pick-a-number.cwl",
               },
               {
-                  "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
-                      {"id"=>"b", "source"=>["pickANum", "num"]}],
+                  "in" => [{"id"=>"a", "source"=>"firstAdd/sum"},
+                      {"id"=>"b", "source"=>"pickANum/num"}],
+                  "doc" => nil,
                   "label"=>nil,
                   "out" => ["sum"],
                   "name" => "finalStep",
                   "run"=>"scripts/add.cwl"},
               {
-                  "in" => [{"id"=>"a", "source"=>["finalStep", "sum"]}],
+                  "in" => [{"id"=>"a", "source"=>"finalStep/sum"}],
+                  "doc" => nil,
                   "label"=>nil,
                   "name"=>"aPlot",
                   "out"=>[],
                   "run"=>"ui-outputs/plotter.cwl"}
           ],
-          [
-              {
-                  "in" =>
-                    [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
-                        {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
-                  "label"=>nil,
-                  "name"=>"firstAdd",
-                  "out"=>["sum"],
-                  "run"=>"scripts/add.cwl"
-              },
-              {
-                  "in"=>
-                    [{"id"=>"a", "source"=>["firstAdd", "sum"]},
-                        {"id"=>"b", "source"=>["pickANum", "num"]}],
-                  "label"=>nil,
-                  "name"=>"finalStep",
-                  "out"=>["sum"],
-                  "run"=>"scripts/add.cwl"
-              },
-              {
-                  "in"=>[{"id"=>"a", "source"=>["finalStep", "sum"]}],
-                  "label"=>nil,
-                  "name"=>"aPlot",
-                  "out"=>[],
-                  "run"=>"ui-outputs/plotter.cwl"
-              }
-          ],
-          [
-              {
-                  "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
-                           {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
-                  "label"=>nil,
-                  "out" => ["sum"],
-                  "name" => "firstAdd",
-                  "run" => "scripts/add.cwl",
-              },
-              {
-                  "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
-                           {"id"=>"b", "source"=>["pickANum", "num"]}],
-                  "label"=>nil,
-                  "out" => ["sum"],
-                  "name" => "finalStep",
-                  "run" => "scripts/add.cwl",
-              },
-          ],
-          [
-              {
-                  "in" => [{"id"=>"a", "source"=>["primary_inputs", "someInt"]},
-                           {"id"=>"b", "source"=>["primary_inputs", "someIntWithoutDefault"]}],
-                  "label"=>nil,
-                  "out" => ["sum"],
-                  "name" => "firstAdd",
-                  "run" => "scripts/add.cwl",
-              },
-              {
-                  "in" => [{"id"=>"num", "source"=>["firstAdd", "sum"]}],
-                  "label"=>nil,
-                  "out" => ["num"],
-                  "name" => "pickANum",
-                  "run" => "ui-queries/pick-a-number.cwl",
-              },
-              {
-                  "in" => [{"id"=>"a", "source"=>["firstAdd", "sum"]},
-                           {"id"=>"b", "source"=>["pickANum", "num"]}],
-                  "label"=>nil,
-                  "out" => ["sum"],
-                  "name" => "finalStep",
-                  "run" => "scripts/add.cwl",
-              },
-          ]
       ])
+
+      save_last_response_json('workflows-response', 'WorkflowsResponse')
     end
 
     it 'rejects a non-user' do
       auth_header(:non_user)
-      get("/api/#{PROJECT}/workflows")
+      get("/api/workflows")
 
       expect(last_response.status).to eq(403)
     end

@@ -32,10 +32,57 @@ module Etna
             name: name,
             inputs: @attributes['inputs'].map(&:as_steps_inputs_json_pair).to_h,
             outputs: @attributes['outputs'].map(&:as_steps_output_json_pair).to_h,
-            steps: Vulcan::Orchestration.unique_paths(self).map do |path|
+            dependencies_of_outputs: dependencies_of_output_map.as_normalized_hash(:root, false),
+            steps: Vulcan::Orchestration.serialize_step_path(self).map do |path|
               path.map { |step_name| self.find_step(step_name)&.as_step_json }.select { |v| v }
             end
         }
+      end
+
+      def step_graph
+        ::DirectedGraph.new.tap do |directed_graph|
+          directed_graph.add_connection(:root, :primary_inputs)
+
+          steps.each do |step|
+            if step.in.empty?
+              directed_graph.add_connection(:root, step.id)
+            end
+
+            step.in.each do |step_input|
+              directed_graph.add_connection(step_input.source.first, step.id)
+            end
+          end
+
+          outputs.each do |output|
+            directed_graph.add_connection(output.outputSource.first, :primary_outputs)
+          end
+        end
+      end
+
+      def source_as_string(source)
+        Etna::Cwl.source_as_string(source)
+      end
+
+      def dependencies_of_output_map
+        ::DirectedGraph.new.tap do |directed_graph|
+          inputs.each do |input|
+            directed_graph.add_connection(:root, source_as_string([:primary_inputs, input.id]))
+          end
+
+          steps.each do |step|
+            step.out.each do |step_out|
+              output_key = source_as_string([step.id, step_out.id])
+
+              if step.in.empty?
+                directed_graph.add_connection(:root, output_key)
+              end
+
+              step.in.each do |step_input|
+                directed_graph.add_connection(source_as_string(step_input.source), output_key)
+              end
+            end
+          end
+        end
       end
     end
 
@@ -46,6 +93,7 @@ module Etna
             type: @attributes['type'],
             format: @attributes['format'],
             default: @attributes['default'],
+            doc: @attributes['doc']
         }]
       end
     end
@@ -79,14 +127,15 @@ module Etna
             run: @attributes['run'].id,
             in: @attributes['in'].map { |i| input_as_json(i) },
             out: @attributes['out'].map(&:id),
-            label: @attributes['label']
+            label: @attributes['label'],
+            doc: @attributes['doc']
         }
       end
 
       def input_as_json(input)
         {
-          id: input.id,
-          source: input.source
+            id: input.id,
+            source: Etna::Cwl.source_as_string(input.source),
         }
       end
 

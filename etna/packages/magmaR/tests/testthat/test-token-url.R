@@ -1,36 +1,43 @@
-# This code tests the .get_TOKEN & .get_URL functions
+# This code tests the magmaRset function
 # library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-token-url.R")
 
-test_that("automated token setting gives error in non-interactive mode", {
+test_that("token, url, and opts get stored in expected spots, & 'followlocation' added when left out by user", {
     
-    rm(.MAGMAR_TOKEN, envir = .GlobalEnv)
-    skip_if(interactive())
+    expect_message(
+        targ <- magmaRset(
+            token = TOKEN,
+            url = URL,
+            opts = list(option1 = FALSE)),
+        "'followlocation = FALSE' added",
+        fixed = TRUE)
     
-    expect_error(
-        magmaR:::.get_TOKEN(),
-        "Please provide", fixed = TRUE)
+    expect_identical(
+        targ$token,
+        TOKEN)
+    expect_identical(
+        targ$url,
+        URL)
+    expect_identical(
+        targ$opts,
+        list(option1 = FALSE, followlocation = FALSE))
 })
 
-test_that("automated token setting retrieves .MAGMAR_TOKEN", {
-    
-    .GlobalEnv$.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
+test_that("default, production, magma link is filled in when not gven", {
     
     expect_identical(
-        magmaR:::.get_TOKEN(),
-        Sys.getenv("TOKEN"))
-})
-
-test_that("automated token setting creates & retrieves .MAGMAR_TOKEN", {
-    rm(.MAGMAR_URL, envir = .GlobalEnv)
-    
-    expect_identical(
-        magmaR:::.get_URL(),
-        "https://magma.ucsf.edu")
-    expect_identical(
-        .MAGMAR_URL,
+        magmaRset("")$url,
         "https://magma.ucsf.edu")
 })
 
-# Ensure these are put back...
-.GlobalEnv$.MAGMAR_TOKEN <- Sys.getenv("TOKEN")
-.GlobalEnv$.MAGMAR_URL <- Sys.getenv("URL")
+vcr::use_cassette("bad_token", {
+    test_that("Proper error given when a token is improper", {
+        
+        bad_targ <- magmaRset(token = "BAD_TOKEN")
+        
+        expect_error(
+            retrieveProjects(bad_targ),
+            "unauthorized. Update your 'token'",
+            fixed = TRUE
+        )
+    })
+})

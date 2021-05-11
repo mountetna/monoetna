@@ -15,8 +15,10 @@ require 'rack/test'
 
 require_relative '../lib/server'
 require_relative '../lib/vulcan'
+require 'etna/spec/vcr'
 
 Vulcan.instance.configure(YAML.load(File.read('config.yml')))
+setup_base_vcr(__dir__)
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
@@ -28,23 +30,25 @@ end
 
 AUTH_USERS = {
   admin: {
-    email: 'hera@olympus.org', name: 'Hera', perm: 'a:labors'
+    email: 'hera@olympus.org', name: 'Hera', perm: 'a:labors', exp: Time.now.to_i + 6000,
   },
   editor: {
-    email: 'eurystheus@twelve-labors.org', name: 'Eurystheus', perm: 'e:labors'
+    email: 'eurystheus@twelve-labors.org', name: 'Eurystheus', perm: 'e:labors', exp: Time.now.to_i + 6000,
   },
   viewer: {
-    email: 'hercules@twelve-labors.org', name: 'Hercules', perm: 'v:labors'
+    email: 'hercules@twelve-labors.org', name: 'Hercules', perm: 'v:labors', exp: Time.now.to_i + 6000,
   },
   non_user: {
-    email: 'nessus@centaurs.org', name: 'Nessus', perm: ''
+    email: 'nessus@centaurs.org', name: 'Nessus', perm: '', exp: Time.now.to_i + 6000,
   }
 }
 
 PROJECT = "labors"
 
-def auth_header(user_type)
-  header(*Etna::TestAuth.token_header(AUTH_USERS[user_type]))
+def auth_header(user_type, task: false, additional: {})
+  user = AUTH_USERS[user_type].dup
+  user[:task] = task if task
+  header(*Etna::TestAuth.token_header({}.update(user).update(additional)))
 end
 
 RSpec.configure do |config|
@@ -61,14 +65,17 @@ RSpec.configure do |config|
   config.before(:suite) do
     FactoryBot.find_definitions
     # DatabaseCleaner.strategy = :transaction
-    # DatabaseCleaner.clean_with(:truncation)
+    DatabaseCleaner.clean_with(:truncation)
   end
 
-  # config.around(:each) do |example|
-  #   DatabaseCleaner.cleaning do
-  #     example.run
-  #   end
-  # end
+  config.around(:each) do |example|
+    # Unfortunately, DatabaseCleaner + Sequel does not properly handle the auto_savepointing, which means that
+    # exceptions handled in rescue blocks do not behave correctly in tests (where as they would be fine outside of
+    # tests).  Thus, we are forced to manually handle the transaction wrapping of examples manually to set this option.
+    # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
+    #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
+    Vulcan.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
+  end
 end
 
 
@@ -149,4 +156,12 @@ end
 
 def json_post(endpoint, hash)
   post("/#{endpoint}", hash.to_json, {'CONTENT_TYPE'=> 'application/json'})
+end
+
+def save_last_response_json(fixture_name, type)
+  fixture_path = ::File.join(__dir__, '..', 'lib', 'client', 'jsx', 'test_utils', 'fixtures', "#{fixture_name}.ts")
+  constName = fixture_name.gsub(/[_-](\w)/){$1.upcase}
+  p last_response.body
+
+  ::File.write(fixture_path, "import {#{type}} from \"../../api_types\";\n\nexport const #{constName}: #{type} = #{last_response.body};")
 end

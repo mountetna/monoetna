@@ -17,9 +17,13 @@ describe QueryController do
     @project = create(:project, name: 'The Twelve Labors of Hercules')
   end
 
-  def query(question,user_type=:viewer)
+  def query(question,user_type=:viewer,opts={})
     auth_header(user_type)
-    json_post(:query, {project_name: 'labors', query: question})
+    json_post(:query, {project_name: 'labors', query: question}.update(opts))
+  end
+
+  def query_opts(question,opts={})
+    query(question, :viewer, opts)
   end
 
   def update(revisions, user_type=:editor)
@@ -289,9 +293,17 @@ describe QueryController do
 
   context Magma::StringPredicate do
     before(:each) do
-      lion = create(:labor, name: 'Nemean Lion', number: 1, completed: true, project: @project)
-      hydra = create(:labor, name: 'Lernean Hydra', number: 2, completed: false, project: @project)
+      lion = create(:labor, name: 'Nemean Lion', number: 1, completed: true, notes: "tough", project: @project)
+      hydra = create(:labor, name: 'Lernean Hydra', number: 2, completed: false, notes: "fun", project: @project)
       stables = create(:labor, name: 'Augean Stables', number: 5, completed: false, project: @project)
+
+      @lion_difficulty = create(:characteristic, labor: lion, name: "difficulty", value: "10" )
+      @hydra_difficulty = create(:characteristic, labor: hydra, name: "difficulty", value: "2" )
+      @stables_difficulty = create(:characteristic, labor: stables, name: "difficulty", value: "5.1" )
+    
+      lion_stance = create(:characteristic, labor: lion, name: "stance", value: "wrestling" )
+      hydra_stance = create(:characteristic, labor: hydra, name: "stance", value: "hacking" )
+      stables_stance = create(:characteristic, labor: stables, name: "stance", value: "shoveling" )
     end
 
     it 'supports ::matches' do
@@ -337,6 +349,92 @@ describe QueryController do
 
       expect(json_body[:answer].first.last).to eq('Augean Stables')
       expect(json_body[:format]).to eq(['labors::labor#name', 'labors::labor#name'])
+    end
+
+    it 'supports ::> for numeric strings' do
+      query(
+        [ 'characteristic', [ "name", "::matches", "difficulty" ], ["value", "::>", "5.1"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer].map { |a| a.last }).to eq([@lion_difficulty.id])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+
+      query(
+        [ 'characteristic', [ "name", "::matches", "difficulty" ], ["value", "::>", "5"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer].map { |a| a.last }).to eq([@lion_difficulty.id, @stables_difficulty.id])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+    end
+
+    it 'ignores ::> for non-numeric strings' do
+      query(
+        [ 'characteristic', [ "name", "::matches", "stance" ], ["value", "::>", "5"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer]).to eq([])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+    end
+
+    it 'supports ::>= for numeric strings' do
+      query(
+        [ 'characteristic', [ "name", "::matches", "difficulty" ], ["value", "::>=", "5.1"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer].map { |a| a.last }).to eq([@lion_difficulty.id, @stables_difficulty.id])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+    end
+
+    it 'ignores ::>= for non-numeric strings' do
+      query(
+        [ 'characteristic', [ "name", "::matches", "stance" ], ["value", "::>=", "5"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer]).to eq([])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+    end
+
+    it 'supports ::< for numeric strings' do
+      query(
+        [ 'characteristic', [ "name", "::matches", "difficulty" ], ["value", "::<", "5.1"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer].map { |a| a.last }).to eq([@hydra_difficulty.id])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+
+      query(
+        [ 'characteristic', [ "name", "::matches", "difficulty" ], ["value", "::<", "5.2"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer].map { |a| a.last }).to eq([@hydra_difficulty.id, @stables_difficulty.id])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+    end
+
+    it 'ignores ::< for non-numeric strings' do
+      query(
+        [ 'characteristic', [ "name", "::matches", "stance" ], ["value", "::<", "5"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer]).to eq([])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+    end
+
+    it 'supports ::<= for numeric strings' do
+      query(
+        [ 'characteristic', [ "name", "::matches", "difficulty" ], ["value", "::<=", "5.1"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer].map { |a| a.last }).to eq([@hydra_difficulty.id, @stables_difficulty.id])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
+    end
+
+    it 'ignores ::<= for non-numeric strings' do
+      query(
+        [ 'characteristic', [ "name", "::matches", "stance" ], ["value", "::<=", "5"], '::all', '::identifier' ]
+      )
+
+      expect(json_body[:answer]).to eq([])
+      expect(json_body[:format]).to eq(['labors::characteristic#id', 'labors::characteristic#id'])
     end
   end
 
@@ -452,6 +550,49 @@ describe QueryController do
       expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#stats'])
     end
 
+    it 'can filter on ::lacks' do
+      practice = create(:labor, name: 'Practice', project: @project)
+      paper_tiger = create(:monster, name: 'Roar!', stats: nil, labor: practice)
+      paper_dragon = create(:monster, name: 'Whoosh!', stats: 'null', labor: practice)
+    
+      query(
+        [ 'monster', ['::lacks', 'stats'], '::all', '::identifier' ]
+      )
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:answer].map(&:last).sort).to eq([ 'Roar!', 'Whoosh!' ])
+      expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#name'])
+    end
+
+    it 'can match on filename with ::equals' do
+      practice = create(:labor, name: 'Practice', project: @project)
+      paper_tiger = create(:monster, name: 'Roar!', stats: '{"filename": "::blank", "original_filename": "::blank"}', labor: practice)
+    
+      query(
+        [ 'monster', ['stats', '::equals', '::blank'], '::all', '::identifier' ]
+      )
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:answer].map(&:last).sort).to eq([ 'Roar!' ])
+      expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#name'])
+    end
+
+    it 'can match on not filename with ::not' do
+      practice = create(:labor, name: 'Practice', project: @project)
+      paper_tiger = create(:monster, name: 'Roar!', stats: '{"filename": "::blank", "original_filename": "::blank"}', labor: practice)
+    
+      query(
+        [ 'monster', ['stats', '::not', '::blank'], '::all', '::identifier' ]
+      )
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:answer].map(&:last).sort).to eq([ 'Augean Stables', 'Lernean Hydra', 'Nemean Lion' ])
+      expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#name'])
+    end
+
     it 'returns the md5' do
       route_payload = JSON.generate({
         files: Labors::Monster.all.map do |monster|
@@ -476,6 +617,34 @@ describe QueryController do
 
       expect(json_body[:answer].map(&:last).sort).to eq([
         'hashforhydra-stats.tsv', 'hashforlion-stats.tsv', 'hashforstables-stats.tsv'
+      ])
+      expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#stats'])
+    end
+
+    it 'returns the updated_at' do
+      route_payload = JSON.generate({
+        files: Labors::Monster.all.map do |monster|
+          {
+            file_name: monster.stats["filename"],
+            project_name: "labors",
+            bucket_name: "magma",
+            updated_at: "updatedatfor#{monster.stats["filename"]}"
+          }
+        end,
+        folders: []
+      })
+
+      stub_request(:post, %r!https://metis.test/labors/find/magma!).
+        to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
+
+      query(
+        [ 'monster', '::all', 'stats', '::updated_at' ]
+      )
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:answer].map(&:last).sort).to eq([
+        'updatedatforhydra-stats.tsv', 'updatedatforlion-stats.tsv', 'updatedatforstables-stats.tsv'
       ])
       expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#stats'])
     end
@@ -600,6 +769,39 @@ describe QueryController do
         ["hashformonster-Augean Stables-certificates-0.txt", "hashformonster-Augean Stables-certificates-1.txt"],
         ["hashformonster-Lernean Hydra-certificates-0.txt", "hashformonster-Lernean Hydra-certificates-1.txt"],
         ["hashformonster-Nemean Lion-certificates-0.txt", "hashformonster-Nemean Lion-certificates-1.txt"]
+      ])
+      expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#certificates'])
+    end
+
+    it 'returns file updated_at' do
+      route_payload = JSON.generate({
+        files: Labors::Monster.all.map do |monster|
+          monster.certificates.map do |f|
+            {
+              file_name: f["filename"],
+              project_name: "labors",
+              bucket_name: "magma",
+              updated_at: "updatedatfor#{f["filename"]}"
+            }
+          end
+        end.flatten,
+        folders: []
+      })
+
+      stub_request(:post, %r!https://metis.test/labors/find/magma!).
+        to_return(status: 200, body: route_payload, headers: {'Content-Type': 'application/json'})
+
+
+      query(
+        [ 'monster', '::all', 'certificates', '::updated_at' ]
+      )
+
+      expect(last_response.status).to eq(200)
+
+      expect(json_body[:answer].map(&:last).sort).to eq([
+        ["updatedatformonster-Augean Stables-certificates-0.txt", "updatedatformonster-Augean Stables-certificates-1.txt"],
+        ["updatedatformonster-Lernean Hydra-certificates-0.txt", "updatedatformonster-Lernean Hydra-certificates-1.txt"],
+        ["updatedatformonster-Nemean Lion-certificates-0.txt", "updatedatformonster-Nemean Lion-certificates-1.txt"]
       ])
       expect(json_body[:format]).to eq(['labors::monster#name', 'labors::monster#certificates'])
     end
@@ -883,6 +1085,104 @@ describe QueryController do
           'labors::prize#worth'
         ]
       ])
+    end
+  end
+
+  context 'pagination' do
+    it 'can order by an additional parameter across pages' do
+      labor_list = []
+      labor_list << create(:labor, name: "d", project: @project)
+      labor_list << create(:labor, name: "a", project: @project)
+      labor_list << create(:labor, name: "c", project: @project)
+      labor_list << create(:labor, name: "b", project: @project)
+
+      query_opts(
+        [ 'labor', '::all', '::identifier'],
+        order: 'updated_at',
+        page: 1,
+        page_size: 2
+      )
+
+      expect(json_body[:answer].map {|a| a.first }).to eq(["d", "a"])
+    end
+
+    it 'can order results for a total query' do
+      labor_list = []
+      labor_list << create(:labor, name: "a", updated_at: Time.now + 5, project: @project)
+      labor_list << create(:labor, name: "c", updated_at: Time.now - 3, project: @project)
+      labor_list << create(:labor, name: "b", updated_at: Time.now - 2, project: @project)
+
+      labor_list_by_identifier = labor_list.sort_by { |n| n.name.to_s }
+
+      query(
+        [ 'labor', '::all', 'name']
+      )
+
+      names_by_identifier = labor_list_by_identifier.map(&:name)
+      expect(last_response.status).to eq(200)
+      expect(json_body[:answer].map { |a| a.last }).to eq(names_by_identifier)
+
+      labor_list_by_updated_at = labor_list.sort_by(&:updated_at)
+      query_opts(
+        [ 'labor', '::all', 'name'],
+        order: 'updated_at'
+      )
+
+      names_by_updated_at = labor_list_by_updated_at.map(&:name)
+      expect(last_response.status).to eq(200)
+      expect(json_body[:answer].map { |a| a.last }).to eq(names_by_updated_at)
+
+      expect(names_by_updated_at).to_not eql(names_by_identifier)
+    end
+
+    it 'can page results' do
+      labor_list = create_list(:labor, 9, project: @project)
+      third_page_labors = labor_list.sort_by(&:name)[6..8]
+
+      query_opts(
+        [ 'labor', '::all', 'name'],
+        page: 3,
+        page_size: 3
+      )
+
+      names = third_page_labors.map(&:name)
+      
+      expect(last_response.status).to eq(200)
+      expect(json_body[:answer].map { |a| a.last }).to eq(names)
+    end
+
+    it 'can page results with joined collections' do
+      labor = create(:labor, :lion, project: @project)
+      monster_list = create_list(:monster, 9, labor: labor)
+      victim_list = monster_list.map do |monster|
+        create_list(:victim, 2, monster: monster)
+      end.flatten
+
+      names = monster_list.sort_by(&:name)[6..8].map(&:name)
+
+      query_opts(
+        [ 'monster', '::all', 'name'],
+        order: 'reference_monster',
+        page: 3,
+        page_size: 3
+      )
+
+      expect(json_body[:answer].map { |a| a.last }).to eq(names)
+    end
+
+    it 'returns a descriptive error when no results are retrieved on paginated query' do
+      lion = create(:labor, :lion)
+      hydra = create(:labor, :hydra)
+      stables = create(:labor, :stables)
+
+      query_opts(
+        [ 'labor', '::all', 'name'],
+        page: 3,
+        page_size: 3
+      )
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(["Page 3 not found"])
     end
   end
 

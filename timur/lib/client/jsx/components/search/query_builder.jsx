@@ -5,22 +5,34 @@ import {
   selectSearchShowDisconnected,
   selectSortedAttributeNames
 } from "../../selectors/search";
-import {setFilterString, setShowDisconnected, setSearchAttributeNames} from "../../actions/search_actions";
+import {
+  setFilterString,
+  setShowDisconnected,
+  setSearchAttributeNames,
+  setOutputPredicate
+} from "../../actions/search_actions";
 import {useModal} from "etna-js/components/ModalDialogContainer";
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import TreeView, {getSelectedLeaves} from 'etna-js/components/TreeView';
 import SelectInput from "etna-js/components/inputs/select_input";
 import {selectIsEditor} from 'etna-js/selectors/user-selector';
-
 function escapeRegExp(string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }
 
-export function QueryBuilder({ display_attributes, setFilterString, selectedModel, attribute_names, setShowAdvanced }) {
+export function QueryBuilder({
+  display_attributes,
+  setFilterString,
+  selectedModel,
+  attribute_names,
+  setShowAdvanced,
+  setOutputPredicate,
+  magma_state }) {
+
   const { openModal } = useModal();
   const [filtersState, setFiltersState] = useState([]);
-
   const show_disconnected = useReduxState(state => selectSearchShowDisconnected(state));
+
   useEffect(() => {
     setFiltersState([]);
   }, [selectedModel]);
@@ -30,6 +42,17 @@ export function QueryBuilder({ display_attributes, setFilterString, selectedMode
   }, [attribute_names]);
 
   useEffect(() => {
+    // Matrix filters need to also be translated into output_predicates, too,
+    //   because in Magma they have to be sliced after leaving the
+    //   database. We leave them as input filters so that only records
+    //   with matrix data are returned.
+    let outputPredicates = filtersState.filter(({attribute}) => {
+      if (!attribute) return false;
+      let template = magma_state.models[selectedModel].template;      
+
+      return "matrix" === template.attributes[attribute].attribute_type;
+    });
+    
     setFilterString(filtersState.map(({attribute, operator, operand}) => {
       switch (operator) {
         case 'Greater than':
@@ -53,11 +76,31 @@ export function QueryBuilder({ display_attributes, setFilterString, selectedMode
           operand = `.*${escapeRegExp(operand)}`;
           operator = '~';
           break;
+        case 'In':
+          operator = '[]';
+          break;
+        case 'Is null':
+          operand = null;
+          operator = '^@';
+          break;
       }
 
       return `${attribute}${operator}${operand}`;
-    }).join(" "))
-  }, [setFilterString, filtersState]);
+    }))
+    
+    if (outputPredicates) {
+      // Set any matrix attributes to slices
+      setOutputPredicate(outputPredicates.map(({attribute, operator, operand}) => {
+        switch (operator) {
+          case 'In':
+            operator = '[]';
+            break;
+        }
+
+        return `${attribute}${operator}${operand}`;
+      }))
+    }
+  }, [setFilterString, setOutputPredicate, filtersState]);
 
   const onOpenAttributeFilter = () => {
     openModal(<FilterAttributesModal display_attributes={display_attributes} selectedModel={selectedModel} />);
@@ -134,6 +177,8 @@ const operators = [
   'Contains',
   'Starts with',
   'Ends with',
+  'In',
+  'Is null',
 ];
 
 const defaultFilterRowState = {
@@ -198,12 +243,19 @@ function QueryFilterModal({
           className='filter operator'
         />
 
-        <input
-          type='text'
-          className='filter operand'
-          defaultValue={operand}
-          onBlur={(e) => onFilterOperandChange(idx)(e.target.value)}
-        />
+        { "Is null" !== operator ? 
+          <input
+            type='text'
+            className='filter operand'
+            defaultValue={operand}
+            onBlur={(e) => onFilterOperandChange(idx)(e.target.value)}
+          /> : 
+          <input
+            type='text'
+            readOnly={true}
+            className='filter operand'
+            defaultValue="null"
+          /> }
 
         <a className='pointer delete' onClick={() => onFilterOperandChange(idx)('')}>
           <i className='fas fa-times'/>
@@ -219,12 +271,13 @@ function QueryFilterModal({
         />
       </div>
       <div className='tray'>
-        { can_edit && <div className='show-disconnected'>
-          <input
-            checked={ !!show_disconnected }
-            onChange={ () => setShowDisconnected(!show_disconnected) }
-            type="checkbox"/> Show only disconnected records
-        </div> }
+        { can_edit && 
+          <label className='show-disconnected'>
+            <input
+              checked={ !!show_disconnected }
+              onChange={ () => setShowDisconnected(!show_disconnected) }
+              type="checkbox"/> Show only disconnected records
+          </label> }
         <div className='actions'>
           <button onClick={dismissModal}>Ok</button>
         </div>
@@ -251,8 +304,12 @@ function attributeNamesToDisabled(attributeNames) {
 }
 
 export default connect(
-  (state) => ({ attribute_names: selectSortedAttributeNames(state), }),
+  (state) => ({
+    attribute_names: selectSortedAttributeNames(state),
+    magma_state: state.magma
+  }),
   {
     setFilterString,
+    setOutputPredicate
  }
 )(QueryBuilder);

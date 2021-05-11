@@ -47,6 +47,10 @@ class RetrieveController < Magma::Controller
     @order = @params[:order]
     @show_disconnected = @params[:show_disconnected]
     @hide_templates = !!@params[:hide_templates]
+    @output_predicate = @params[:output_predicate]
+
+    @expand_matrices = boolean(@params[:expand_matrices])
+    @transpose = boolean(@params[:transpose])
 
     @attribute_names = @params[:attribute_names]
 
@@ -102,7 +106,8 @@ class RetrieveController < Magma::Controller
         next if @attribute_names == 'identifier' && !model.has_identifier?
         retrieve_model(
           model, @record_names, @attribute_names,
-          [], true, false
+          [], true, false,
+          output_predicates
         )
       end
     else
@@ -110,9 +115,10 @@ class RetrieveController < Magma::Controller
         Magma.instance.get_model(@project_name, @model_name),
         @record_names,
         @attribute_names,
-        [ Magma::Retrieval::StringFilter.new(@filter) ],
+        filter,
         true,
-        !@collapse_tables
+        !@collapse_tables,
+        output_predicates
       )
     end
 
@@ -126,21 +132,31 @@ class RetrieveController < Magma::Controller
       model,
       @record_names,
       @attribute_names,
-      filters: [ Magma::Retrieval::StringFilter.new(@filter) ],
+      filters: filter,
       collapse_tables: true,
       show_disconnected: @show_disconnected,
       user: @user,
-      restrict: !@user.can_see_restricted?(@project_name)
+      restrict: !@user.can_see_restricted?(@project_name),
+      output_predicates: output_predicates,
+      expand_matrices: @expand_matrices,
+      transpose: @transpose
     )
 
     tsv_stream = Enumerator.new do |stream|
-      Magma::TSVWriter.new(model, retrieval, @payload).write_tsv{ |lines| stream << lines }
+      Magma::TSVWriter.new(
+        model,
+        retrieval,
+        @payload,
+        expand_matrices: @expand_matrices,
+        transpose: @transpose).write_tsv{ |lines| stream << lines }
     end
 
-    return [ 200, { 'Content-Type' => 'text/tsv', 'Content-Disposition' => 'inline; filename="results.tsv' }, tsv_stream ]
+    filename = "#{@project_name}_#{@model_name}_results_#{DateTime.now.strftime("%Y_%m_%d_%H_%M_%S")}.tsv"
+
+    return [ 200, { 'Content-Type' => 'text/tsv', 'Content-Disposition' => "inline; filename=\"#{filename}\"" }, tsv_stream ]
   end
 
-  def retrieve_model(model, record_names, attribute_names, filters, use_pages, get_tables)
+  def retrieve_model(model, record_names, attribute_names, filters, use_pages, get_tables, predicates)
     # Extract the attributes from the model.
     retrieval = Magma::Retrieval.new(
       model,
@@ -153,7 +169,8 @@ class RetrieveController < Magma::Controller
       order: use_pages && @order,
       show_disconnected: @show_disconnected,
       user: @user,
-      restrict: !@user.can_see_restricted?(@project_name)
+      restrict: !@user.can_see_restricted?(@project_name),
+      output_predicates: predicates
     )
 
     @payload.add_model(model, retrieval.attribute_names)
@@ -161,7 +178,6 @@ class RetrieveController < Magma::Controller
 
     return if record_names.empty?
 
-    time = Time.now
     records = retrieval.records
 
     @payload.add_records( model, records )
@@ -182,8 +198,30 @@ class RetrieveController < Magma::Controller
           )
         ],
         false,
-        false
+        false,
+        []
       )
     end
+  end
+
+  def filter
+    @filter.is_a?(Array) ?
+      [ Magma::Retrieval::JsonFilter.new(@filter) ] :
+      [ Magma::Retrieval::StringFilter.new(@filter) ]
+  end
+
+  def output_predicates
+    @output_predicate.is_a?(Array) ?
+      [ Magma::Retrieval::JsonOutputPredicate.new(@output_predicate) ] :
+      [ Magma::Retrieval::StringOutputPredicate.new(@output_predicate) ]
+  end
+
+  def boolean(param)
+    # Because TSV requests are passed in as forms,
+    #   true / false become strings and always evaluate as
+    #   `true`. We convert it to an actual boolean here.
+    !!(param&.is_a?(String) ?
+      JSON.parse(param) :
+      param)
   end
 end

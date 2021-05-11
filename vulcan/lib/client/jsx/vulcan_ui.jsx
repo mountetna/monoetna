@@ -1,13 +1,14 @@
-import * as React from 'react';
+import React from 'react';
 import {connect} from 'react-redux';
 import {findRoute, setRoutes} from './router';
 
-import {VulcanProvider} from './contexts/vulcan';
+import {VulcanProvider} from './contexts/vulcan_context';
 
 // Components.
 import Browser from './components/browser';
-import RootView from 'etna-js/components/RootView';
+import Dashboard from './components/dashboard';
 import VulcanNav from './components/vulcan_nav';
+import Vignette from './components/workflow/vignette';
 import Messages from 'etna-js/components/messages';
 import {selectUser} from 'etna-js/selectors/user-selector';
 
@@ -16,21 +17,23 @@ import {updateLocation} from 'etna-js/actions/location_actions';
 
 import {ModalDialogContainer} from 'etna-js/components/ModalDialogContainer';
 import {Notifications} from 'etna-js/components/Notifications';
+import ReactModal from "react-modal";
 
 const ROUTES = [
   {
     template: '',
-    component: RootView,
+    component: Dashboard,
     mode: 'home'
   },
   {
-    template: ':project_name/',
+    name: 'workflows',
+    template: 'workflow',
     component: Browser,
     mode: 'workflow'
   },
   {
     name: 'workflow',
-    template: ':project_name/workflow/',
+    template: 'workflow/:projectName/:workflowName',
     component: Browser,
     mode: 'workflow'
   }
@@ -52,14 +55,20 @@ class VulcanUI extends React.Component {
     updateLocation(location);
   }
 
+  componentDidMount() {
+    ReactModal.setAppElement('#root');
+  }
+
   render() {
     let {location, showMessages, environment, user} = this.props;
-
     let {route, params} = findRoute(location, ROUTES);
     let Component;
     let mode;
 
-    if (!route) {
+    if (this.props.Component) {
+      mode = 'home';
+      Component = this.props.Component;
+    } else if (!route) {
       showMessages(['### You have lost your way: Path Invalid.']);
       mode = 'home';
       Component = Empty;
@@ -77,18 +86,26 @@ class VulcanUI extends React.Component {
     return (
       <React.Fragment>
         <ModalDialogContainer>
-          <VulcanProvider>
+          <VulcanProvider params={params}>
             <div id='ui-container'>
-              <Notifications />
-              <VulcanNav environment={environment} mode={mode} />
-              <Messages />
-              <Component key={key} {...params} />
+              <RemountOnParamsChange params={params}>
+                <Notifications />
+                <VulcanNav environment={environment} mode={mode} />
+                <Messages />
+                <Component key={key} {...params} />
+              </RemountOnParamsChange>
             </div>
           </VulcanProvider>
         </ModalDialogContainer>
       </React.Fragment>
     );
   }
+}
+
+// Used To simulate remount whenever router params changes
+// TODO: Can this be removed post refactoring?
+function RemountOnParamsChange({params, children}) {
+  return children;
 }
 
 export default connect(

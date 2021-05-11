@@ -23,7 +23,7 @@ set -x
 docker-compose run janus_app ./bin/janus add_project 'test-project' 'TestProject'
 docker-compose run janus_app ./bin/janus add_project 'administration' 'Admin'
 docker-compose run janus_app ./bin/janus add_project ipi 'ImmunoProfilerProject'
-docker-compose run janus_app ./bin/janus add_user developer@ucsf.edu 'Developer Person' password
+docker-compose run janus_app ./bin/janus add_user developer@ucsf.edu DeveloperPerson password
 docker-compose run janus_app ./bin/janus permit developer@ucsf.edu test-project administrator
 docker-compose run janus_app ./bin/janus permit developer@ucsf.edu administration administrator
 docker-compose run janus_app ./bin/janus permit developer@ucsf.edu ipi administrator

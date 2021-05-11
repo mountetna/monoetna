@@ -9,6 +9,50 @@ module Etna
       class WalkModelTreeWorkflow < Struct.new(:magma_crud, :logger, keyword_init: true)
         def initialize(**args)
           super(**({}.update(args)))
+          @template_for = {}
+        end
+
+        def all_attributes(template:)
+          template.attributes.attribute_keys
+        end
+
+        def safe_group_attributes(template:, attributes_mask:)
+          result = []
+
+          template.attributes.attribute_keys.each do |attribute_name|
+            next if template.attributes.attribute(attribute_name).attribute_type == Etna::Clients::Magma::AttributeType::TABLE
+            result << attribute_name if attribute_included?(attributes_mask, attribute_name)
+          end
+
+          result
+        end
+
+        def masked_attributes(template:, model_attributes_mask:, model_name:)
+          attributes_mask = model_attributes_mask[model_name]
+
+          if attributes_mask.nil?
+            return [
+              safe_group_attributes(template: template, attributes_mask: attributes_mask),
+              all_attributes(template: template)
+            ]
+          end
+
+          [(safe_group_attributes(template: template, attributes_mask: attributes_mask) + [template.identifier, 'parent']).uniq,
+            attributes_mask]
+        end
+
+        def attribute_included?(mask, attribute_name)
+          return true if mask.nil?
+          mask.include?(attribute_name)
+        end
+
+        def template_for(model_name)
+          @template_for[model_name] ||= magma_crud.magma_client.retrieve(RetrievalRequest.new(
+              project_name: magma_crud.project_name,
+              model_name: model_name,
+              record_names: [],
+              attribute_names: [],
+          )).models.model(model_name).template
         end
 
         def walk_from(
@@ -26,35 +70,43 @@ module Etna
             next if seen.include?([path[:from], model_name])
             seen.add([path[:from], model_name])
 
+            template = template_for(model_name)
+            query_attributes, walk_attributes = masked_attributes(
+              template: template,
+              model_attributes_mask: model_attributes_mask,
+              model_name: model_name
+            )
+
             request = RetrievalRequest.new(
                 project_name: magma_crud.project_name,
                 model_name: model_name,
                 record_names: path[:record_names],
                 filter: model_filters[model_name],
+                attribute_names: query_attributes,
                 page_size: page_size, page: 1
             )
 
             related_models = {}
 
             magma_crud.page_records(model_name, request) do |response|
-              model = response.models.model(model_name)
-              template = model.template
-
+              logger&.info("Fetched page of #{model_name}")
               tables = []
               collections = []
               links = []
               attributes = []
 
+              model = response.models.model(model_name)
+
               template.attributes.attribute_keys.each do |attr_name|
-                attributes_mask = model_attributes_mask[model_name]
-                black_listed = !attributes_mask.nil? && !attributes_mask.include?(attr_name)
-                next if black_listed && attr_name != template.identifier && attr_name != 'parent'
+                attr = template.attributes.attribute(attr_name)
+                if attr.attribute_type == AttributeType::TABLE && attribute_included?(walk_attributes, attr_name)
+                  tables << attr_name
+                end
+
+                next unless attribute_included?(query_attributes, attr_name)
                 attributes << attr_name
 
-                attr = template.attributes.attribute(attr_name)
-                if attr.attribute_type == AttributeType::TABLE
-                  tables << attr_name
-                elsif attr.attribute_type == AttributeType::COLLECTION
+                if attr.attribute_type == AttributeType::COLLECTION
                   related_models[attr.link_model_name] ||= Set.new
                   collections << attr_name
                 elsif attr.attribute_type == AttributeType::LINK
@@ -63,10 +115,30 @@ module Etna
                 elsif attr.attribute_type == AttributeType::CHILD
                   related_models[attr.link_model_name] ||= Set.new
                   links << attr_name
-                elsif attr.attribute_type == AttributeType::PARENT && !black_listed
+                elsif attr.attribute_type == AttributeType::PARENT && attribute_included?(walk_attributes, attr_name)
                   related_models[attr.link_model_name] ||= Set.new
                   links << attr_name
                 end
+              end
+
+              table_data = {}
+              # Request tables in an inner chunk.
+              tables.each do |table_attr|
+                request = RetrievalRequest.new(
+                  project_name: magma_crud.project_name,
+                  model_name: model_name,
+                  record_names: model.documents.document_keys,
+                  attribute_names: [table_attr],
+                )
+
+                logger&.info("Fetching inner table #{table_attr}...")
+
+                table_response = magma_crud.magma_client.retrieve(request)
+                d = table_response.models.model(model_name).documents
+                table_d = table_response.models.model(table_attr).documents
+                table_data[table_attr] = d.document_keys.map do |id|
+                  [id, d.document(id)[table_attr].map { |tid| table_d.document(tid) }]
+                end.to_h
               end
 
               model.documents.document_keys.each do |key|
@@ -74,9 +146,7 @@ module Etna
 
                 # Inline tables inside the record
                 tables.each do |table_attr|
-                  record[table_attr] = record[table_attr].map do |id|
-                    response.models.model(template.attributes.attribute(table_attr).link_model_name).documents.document(id)
-                  end unless record[table_attr].nil?
+                  record[table_attr] = table_data[table_attr][key] unless table_data[table_attr].nil?
                 end
 
                 collections.each do |collection_attr|

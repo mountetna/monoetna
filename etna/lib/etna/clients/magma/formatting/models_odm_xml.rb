@@ -246,7 +246,7 @@ module Etna
               }
 
               params['redcap:TextValidationType'] = redcap_text_validation_map[attribute_type] if redcap_text_validation_map[attribute_type]
-              params['redcap:FieldNote'] = attribute.desc if attribute.desc
+              params['redcap:FieldNote'] = attribute.description if attribute.description
               xml.ItemDef(params) do
                 xml.Question do
                   xml.send('TranslatedText', attribute_name.capitalize)

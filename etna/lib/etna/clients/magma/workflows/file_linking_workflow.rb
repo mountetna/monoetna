@@ -95,7 +95,9 @@ module Etna
             file_path = ::File.dirname(file_path)
             {attribute_name => "https://metis.ucsf.edu/#{project_name}/browse/#{bucket_name}/#{file_path}"}
           else
-            {attribute_name => {path: "metis://#{project_name}/#{bucket_name}/#{file_path}"}}
+            {attribute_name => {
+              path: "metis://#{project_name}/#{bucket_name}/#{file_path}",
+              original_filename: File.basename(file_path)}}
           end
         end
 

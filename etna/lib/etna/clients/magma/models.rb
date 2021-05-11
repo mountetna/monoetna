@@ -10,7 +10,7 @@ require_relative '../base_client'
 module Etna
   module Clients
     class Magma < Etna::Clients::BaseClient
-      class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, :page, :page_size, :order, :filter, keyword_init: true)
+      class RetrievalRequest < Struct.new(:model_name, :attribute_names, :record_names, :project_name, :page, :page_size, :order, :filter, :hide_templates, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**params)
@@ -18,7 +18,7 @@ module Etna
         end
       end
 
-      class QueryRequest < Struct.new(:query, :project_name, keyword_init: true)
+      class QueryRequest < Struct.new(:query, :project_name, :order, :page, :page_size, keyword_init: true)
         include JsonSerializableStruct
       end
 
@@ -115,14 +115,6 @@ module Etna
 
         def initialize(**args)
           super({action_name: 'update_attribute'}.update(args))
-        end
-
-        def desc=(val)
-          self.description = val
-        end
-
-        def desc
-          self.description
         end
 
         def as_json
@@ -454,6 +446,16 @@ module Etna
           @raw = raw
         end
 
+        def is_edited?(other)
+          # Don't just override == in case need to do a full comparison.
+          editable_attribute_names = Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.map(&:to_s)
+          
+          self_editable = raw.slice(*editable_attribute_names)
+          other_editable = other.raw.slice(*editable_attribute_names)
+
+          self_editable != other_editable
+        end
+
         # Sets certain attribute fields which are implicit, even when not set, to match server behavior.
         def set_field_defaults!
           @raw.replace({
@@ -511,12 +513,12 @@ module Etna
           raw['unique'] = val
         end
 
-        def desc
-          raw['desc']
+        def description
+          raw['description']
         end
 
-        def desc=(val)
-          @raw['desc'] = val
+        def description=(val)
+          @raw['description'] = val
         end
 
         def display_name
@@ -583,13 +585,10 @@ module Etna
           raw['options']
         end
 
-        # NOTE!  The Attribute class returns description as desc, where as actions take it in as description.
-        # There are shortcut methods that try to handle this on the action class side of things.  Ideally we would
-        # make this more consistent in the near future.
         COPYABLE_ATTRIBUTE_ATTRIBUTES = [
-            :attribute_name, :attribute_type, :desc, :display_name, :format_hint,
+            :attribute_name, :attribute_type, :display_name, :format_hint,
             :hidden, :link_model_name, :read_only, :attribute_group, :unique, :validation,
-            :restricted
+            :restricted, :description
         ]
 
         EDITABLE_ATTRIBUTE_ATTRIBUTES = UpdateAttributeAction.members & COPYABLE_ATTRIBUTE_ATTRIBUTES

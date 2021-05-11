@@ -10,7 +10,7 @@ ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCK
 ENV RACK_ENV development
 ENV PATH "/app/bin:/app/node_modules/.bin:/app/vendor/bundle/$RUBY_VERSION/bin:$PATH:/home/aspera/.aspera/connect/bin"
 
-ADD certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
+COPY certs/rootCA.pem /usr/local/share/ca-certificates/devRoot.crt
 RUN chmod 644 /usr/local/share/ca-certificates/devRoot.crt && update-ca-certificates
 
 # add postgres 10 repo for debian stretch

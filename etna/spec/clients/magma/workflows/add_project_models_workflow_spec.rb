@@ -193,7 +193,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
 
       VCR.use_cassette('add_project_models_workflow-timepoint-project.e2e') do
         # Change this name when re-recording the cassette file to ensure a new project is synced
-        test_project = "test_add_project_models_workflow_full_ezdc"
+        test_project = "test_add_project_models_workflow_full_ezdj"
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
             token: ENV['TOKEN'] || TEST_TOKEN, ignore_ssl: true,
@@ -231,19 +231,22 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
         sync_workflow.execute_planned!
 
         resulting_models = magma_client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(project_name: test_project)).models
+
         expect(resulting_models.model_keys.sort).to eql([
-            "clinical_lab", "cytof", "cytof_pool", "cytokine", "document", "history", "patient", "project",
-            "rna_seq", "rna_seq_plate", "sc_rna_seq", "sc_rna_seq_pool", "status", "symptom", "testing",
+            "admission_lab", "analyte", "clinical_lab", "comorbidity",
+            "cytof", "cytof_pool", "cytokine", "document", "immunoassay",
+            "olink", "patient", "project",
+            "rna_seq", "rna_seq_plate", "sc_rna_seq", "sc_rna_seq_pool", "symptom",
             "timepoint", "treatment"
         ])
 
         # Ensure, however, that linked and non parent models do not have attributes filled out.  It only includes skeleton, identifier, and parent.
-        expect(resulting_models.model('history').template.attributes.attribute_keys.sort).to eql(['created_at', 'id', 'patient', 'updated_at'])
+        expect(resulting_models.model('symptom').template.attributes.attribute_keys.sort).to eql(['created_at', 'id', 'patient', 'updated_at'])
         expect(resulting_models.model('cytof_pool').template.attributes.attribute_keys.sort).to eql(["created_at", "cytof", "pool_name", "project", "updated_at"])
 
         # Ensure, however, that the core model and its tree fill out
-        expect(resulting_models.model('timepoint').template.attributes.attribute_keys.length).to eql(13)
-        expect(resulting_models.model('rna_seq').template.attributes.attribute_keys.length).to eql(70)
+        expect(resulting_models.model('timepoint').template.attributes.attribute_keys.length).to eql(40)
+        expect(resulting_models.model('rna_seq').template.attributes.attribute_keys.length).to eql(72)
         expect(resulting_models.model('rna_seq').template.attributes.attribute('gene_tpm').options).to eql(["this", "is", "matrix", "constant"])
       end
     end
@@ -253,7 +256,7 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
 
       VCR.use_cassette('add_project_models_workflow-full-project.e2e') do
         # Change this name when re-recording the cassette file to ensure a new project is synced
-        test_project = "test_add_project_models_workflow_full_tzi"
+        test_project = "test_add_project_models_workflow_full_tzg"
         magma_client = Etna::Clients::Magma.new(
             host: 'https://magma.development.local',
             token: ENV['TOKEN'] || TEST_TOKEN, ignore_ssl: true,
@@ -291,16 +294,18 @@ describe Etna::Clients::Magma::AddProjectModelsWorkflow do
 
         resulting_models = magma_client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(project_name: test_project)).models
         expect(resulting_models.model_keys.sort).to eql([
-            "clinical_lab", "cytof", "cytof_pool", "cytokine", "document", "history", "patient", "project",
-            "rna_seq", "rna_seq_plate", "sc_rna_seq", "sc_rna_seq_pool", "status", "symptom", "testing",
-            "timepoint", "treatment"
+          "admission_lab", "analyte", "clinical_lab", "comorbidity",
+          "cytof", "cytof_pool", "cytokine", "document", "immunoassay",
+          "olink", "patient", "project",
+          "rna_seq", "rna_seq_plate", "sc_rna_seq", "sc_rna_seq_pool", "symptom",
+          "timepoint", "treatment"
         ])
 
         # Ensure, unlike the above partial sync test, that the entire tree and all attributes are synced.
-        expect(resulting_models.model('history').template.attributes.attribute_keys.sort).to eql(['created_at', 'id', 'name', 'patient', 'present', 'updated_at'])
-        expect(resulting_models.model('cytof_pool').template.attributes.attribute_keys.length).to eql(16)
-        expect(resulting_models.model('timepoint').template.attributes.attribute_keys.length).to eql(13)
-        expect(resulting_models.model('rna_seq').template.attributes.attribute_keys.length).to eql(70)
+        expect(resulting_models.model('symptom').template.attributes.attribute_keys.sort).to eql(["bleeding_site", "created_at", "id", "name", "other_name", "patient", "present", "symptom_date", "symptom_reported_by", "updated_at"])
+        expect(resulting_models.model('cytof_pool').template.attributes.attribute_keys.length).to eql(17)
+        expect(resulting_models.model('timepoint').template.attributes.attribute_keys.length).to eql(40)
+        expect(resulting_models.model('rna_seq').template.attributes.attribute_keys.length).to eql(72)
         expect(resulting_models.model('rna_seq').template.attributes.attribute('gene_tpm').options).to eql(["this", "is", "matrix", "constant"])
       end
     end

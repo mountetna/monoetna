@@ -1,13 +1,17 @@
 # This code tests the retrieve and retrieveJSON functions
-# library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-retrieve.R")
+# library(magmaR); library(testthat); source("tests/testthat/helper-magmaR.R"); source("tests/testthat/test-retrieve.R")
+
+targ <- magmaRset(
+    token = TOKEN,
+    url = URL)
 
 test_that("retrieve & retrieveJSON work with minimal input", {
     vcr::use_cassette("retrieve_ALLs", {
         json <- retrieveJSON(
-            "example", "subject")
+            targ, "example", "subject")
         
         df <- retrieve(
-            "example", "subject")
+            targ, "example", "subject")
     })
     
     expect_s3_class(df, "data.frame")
@@ -21,12 +25,15 @@ test_that("retrieve & retrieveJSON work with minimal input", {
     
     # Attributes per record is many per record for the json method
     expect_gt(length(json$models$subject$documents[[1]]), 3)
+    
+    # Template returned for json method
+    expect_true("template" %in% names(json[[1]][[1]]))
 })
 
 test_that("retrieve works with targetted input, 1att", {
     vcr::use_cassette("retrieve_rec3_att1", {
         ret <- retrieve(
-            "example", "subject",
+            targ, "example", "subject",
             recordNames = c("EXAMPLE-HS1", "EXAMPLE-HS2"),
             attributeNames = c("group"))
     })
@@ -41,7 +48,7 @@ test_that("retrieve works with targetted input, 1att", {
 test_that("retrieve works with targetted input, 1rec", {
     vcr::use_cassette("retrieve_rec1_att3", {
         ret <- retrieve(
-            "example", "subject",
+            targ, "example", "subject",
             recordNames = c("EXAMPLE-HS1"),
             attributeNames = c("biospecimen", "name", "group"))
     })
@@ -51,4 +58,17 @@ test_that("retrieve works with targetted input, 1rec", {
     # Proper numbers retrieved?
     # Id attribute is targeted, no +1 to columns
     expect_equal(dim(ret), c(1,3))
+})
+
+test_that("retrieveJSON can hide templates", {
+    vcr::use_cassette("retrieve_json_no_temp", {
+        ret <- retrieveJSON(
+            targ, "example", "subject",
+            recordNames = c("EXAMPLE-HS1"),
+            attributeNames = c("biospecimen"),
+            hideTemplate = TRUE)
+    })
+    
+    expect_type(ret, "list")
+    expect_false("template" %in% names(ret[[1]][[1]]))
 })

@@ -14,6 +14,7 @@ require 'yaml'
 require 'etna/spec/vcr'
 
 require 'fileutils'
+require 'timecop'
 
 require_relative '../lib/server'
 require_relative '../lib/polyphemus'
@@ -73,6 +74,8 @@ RSpec.configure do |config|
   config.shared_context_metadata_behavior = :apply_to_host_groups
   config.example_status_persistence_file_path = 'spec/examples.txt'
   #config.warnings = true
+
+  config.order = :random
 
   config.before(:suite) do
     # DatabaseCleaner.strategy = :transaction
@@ -210,7 +213,7 @@ def stub_magma_update_json
     .to_return({ status: 200, body: {}.to_json, headers: { 'Content-Type': 'application/json' } })
 end
 
-def stub_redcap_data
+def stub_redcap_data(stub=nil)
   stub_request(:post, "#{REDCAP_HOST}/api/")
     .with(body: hash_including({ content: 'metadata' }))
     .to_return({
@@ -221,30 +224,12 @@ def stub_redcap_data
     })
 
   stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: /today/)
+    .with(body: /fields/)
     .to_return({
       headers: {
         'Content-Type': 'application/json'
       },
-      body: File.read('spec/fixtures/redcap_mock_data_calendar.json')
-    })
-
-  stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: /date_of_birth/)
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_mock_data_essential_data.json')
-    })
-
-  stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: /height/)
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_mock_data_statistics.json')
+      body: File.read('spec/fixtures/redcap_mock_data_all.json')
     })
 end
 

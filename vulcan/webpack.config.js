@@ -5,7 +5,7 @@ var webpack = require('webpack');
 module.exports = (env) => ({
   context: path.resolve(__dirname),
   resolve: {
-    extensions: ['.js', '.jsx', '.scss', '.png', '.jpg', '.jpeg', '.svg'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx', '.scss', '.png', '.jpg', '.jpeg', '.svg'],
     alias: {
       'code-mirror': path.join(__dirname, 'node_modules/codemirror/lib'),
       react: path.join(__dirname, 'node_modules/react'),
@@ -33,7 +33,7 @@ module.exports = (env) => ({
         ],
 
         // Only run `.js` and `.jsx` files through Babel
-        test: /\.jsx?$/
+        test: /\.(js|ts)x?$/
       },
 
       {
@@ -51,23 +51,10 @@ module.exports = (env) => ({
         loader: 'file-loader',
         include: [
           path.resolve(__dirname, 'node_modules/etna-js/'),
-          '/etna/packages/etna-js'
+          '/etna/packages/etna-js',
+          path.resolve(__dirname, 'lib/client/img/')
         ],
         test: /\.(jpe?g|png|svg)$/i,
-
-        options: {
-          name: '[name].[ext]',
-          outputPath: 'public/images/',
-          publicPath: '/images'
-        }
-      },
-
-      {
-        test: /\.(jpe?g|png|svg)$/i,
-
-        include: [path.resolve(__dirname, 'lib/client/img')],
-
-        loader: 'file-loader',
 
         options: {
           name: '[name].[ext]',

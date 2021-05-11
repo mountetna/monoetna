@@ -81,52 +81,5 @@ exports[`JanusAdmin renders 1`] = `
       </div>
     </div>
   </div>
-  <div
-    id="new-project"
-  >
-    <div
-      className="title"
-    >
-      New Project
-    </div>
-    <div
-      className="item"
-    >
-      <div
-        className="cell"
-      >
-        <input
-          name="project_name_full"
-          onChange={[Function]}
-          placeholder="Project Full Name"
-          type="text"
-          value=""
-        />
-      </div>
-      <div
-        className="cell"
-      >
-        <input
-          name="project_name"
-          onChange={[Function]}
-          placeholder="project_short_name"
-          type="text"
-          value=""
-        />
-      </div>
-      <div
-        className="cell submit"
-      >
-        <span
-          className="icon-grp fa-stack fa-fw"
-          onClick={[Function]}
-        >
-          <i
-            className="icon approve magic fa fa-2x fa-magic"
-          />
-        </span>
-      </div>
-    </div>
-  </div>
 </div>
 `;

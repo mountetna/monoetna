@@ -17,6 +17,13 @@ module Etna
 
     attr_reader :routes
 
+    def with_headers(headers, &block)
+      @request_headers = headers.compact
+      result = instance_eval(&block)
+      @request_headers = nil
+      return result
+    end
+
     def signed_route_path(route, params)
       path = route_path(route,params)
 
@@ -111,7 +118,7 @@ module Etna
 
     def body_request(type, endpoint, params = {}, &block)
       uri = request_uri(endpoint)
-      req = type.new(uri.request_uri, request_params)
+      req = type.new(uri.request_uri, request_headers)
       req.body = params.to_json
       request(uri, req, &block)
     end
@@ -124,7 +131,7 @@ module Etna
       else
         uri.query = URI.encode_www_form(params)
       end
-      req = type.new(uri.request_uri, request_params)
+      req = type.new(uri.request_uri, request_headers)
       request(uri, req, &block)
     end
 
@@ -132,12 +139,14 @@ module Etna
       URI("#{@host}#{endpoint}")
     end
 
-    def request_params
+    def request_headers
       {
           'Content-Type' => 'application/json',
           'Accept' => 'application/json, text/*',
           'Authorization' => "Etna #{@token}"
-      }
+      }.update(
+        @request_headers || {}
+      )
     end
 
     def status_check!(response)
@@ -164,7 +173,7 @@ module Etna
         verify_mode = @ignore_ssl ?
           OpenSSL::SSL::VERIFY_NONE :
           OpenSSL::SSL::VERIFY_PEER
-        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode) do |http|
+        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
           http.request(data) do |response|
             status_check!(response)
             yield response
@@ -174,7 +183,7 @@ module Etna
         verify_mode = @ignore_ssl ?
           OpenSSL::SSL::VERIFY_NONE :
           OpenSSL::SSL::VERIFY_PEER
-        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode) do |http|
+        Net::HTTP.start(uri.host, uri.port, use_ssl: true, verify_mode: verify_mode, read_timeout: 300) do |http|
           response = http.request(data)
           status_check!(response)
           return response

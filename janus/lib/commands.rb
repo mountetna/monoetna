@@ -15,7 +15,6 @@ class Janus
   end
 
   class AddUser < Etna::Command
-    usage '<email> <name> [<password>]'
     def execute(email, name, password=nil)
       user = User.find_or_create(email: email) do |user|
         user.name = name.strip
@@ -84,8 +83,9 @@ class Janus
   end
 
   class Permit < Etna::Command
-    usage '<email> <project_name> <role> [<privileged>]'
-    def execute(email, project_name, role, privileged=:false)
+    boolean_flags << '--privileged'
+
+    def execute(email, project_name, role, privileged: false)
       user = User[email: email]
       project = Project[project_name: project_name]
       if !user
@@ -97,8 +97,6 @@ class Janus
         puts 'Project not found.'
         exit
       end
-
-      privileged = !!(privileged.to_sym == :true)
 
       attributes = { project: project, user: user, privileged: privileged }
 

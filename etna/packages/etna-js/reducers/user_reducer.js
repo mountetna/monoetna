@@ -1,4 +1,4 @@
-import {parseToken} from 'etna-js/utils/janus'
+import {parseToken} from '../utils/janus'
 
 const userReducer = function(user, action) {
   if (!user) user = { }

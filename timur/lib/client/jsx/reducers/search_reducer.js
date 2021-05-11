@@ -10,6 +10,8 @@ import {
   SET_SHOW_DISCONNECTED,
   CLEAR_FILTER_STRING,
   SET_SELECTED_MODEL,
+  SET_OUTPUT_PREDICATE,
+  CLEAR_OUTPUT_PREDICATE,
 } from '../actions/search_actions';
 
 const pages = (pages, action) => {
@@ -62,24 +64,29 @@ const searchReducer = (search, action) => {
         attribute_names: action.attribute_names
       };
     case SET_SHOW_DISCONNECTED:
-      // User is using advanced filtering, so make sure to clear out
-      //   any (basic) filter_params
       return {
         ...search,
         show_disconnected: action.show_disconnected
       };
     case SET_FILTER_STRING:
-      // User is using advanced filtering, so make sure to clear out
-      //   any (basic) filter_params
       return {
         ...search,
-        filter_string: action.filter_string,
-        filter_params: null
+        filter_string: action.filter_string
       };
     case CLEAR_FILTER_STRING:
       return {
         ...search,
         filter_string: null
+      };
+    case SET_OUTPUT_PREDICATE:
+      return {
+        ...search,
+        output_predicate: action.output_predicate
+      };
+    case CLEAR_OUTPUT_PREDICATE:
+      return {
+        ...search,
+        output_predicate: null
       };
     default:
       return search;

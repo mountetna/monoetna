@@ -34,7 +34,7 @@ module Etna
               record_names,
               model_attributes_mask: model_attributes_mask,
               model_filters: model_filters,
-              page_size: 500,
+              page_size: 20,
           ) do |template, document|
             logger&.info("Materializing #{template.name}##{document[template.identifier]}")
             templates[template.name] = template

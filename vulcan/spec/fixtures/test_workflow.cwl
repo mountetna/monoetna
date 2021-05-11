@@ -6,8 +6,10 @@ inputs:
     type: int
     default: 200
     label: 'it is an int'
+    doc: 'help tip'
   someIntWithoutDefault:
     type: int
+    doc: 'another tip'
 
 outputs:
   the_result:

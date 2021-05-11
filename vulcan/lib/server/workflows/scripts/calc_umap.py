@@ -1,12 +1,27 @@
-from archimedes.functions.dataflow import output_path, input_path, input_var
+from archimedes.functions.dataflow import output_path, output_json, input_path, input_var
 from archimedes.functions.scanpy import scanpy as sc
 
-scdata = sc.read(input_path('pca_anndata.h5ad'))
-max_pc = int(input_var('max_pc'))
+scdata = sc.read(input_path('nn_anndata.h5ad'))
+min_dist = float(input_var('min_dist'))
+spread = float(input_var('spread'))
+num_iters = int(input_var('num_iters'))
 
-# Neighborhood and umap
-sc.pp.neighbors(scdata, n_neighbors=10, n_pcs= max_pc)
-sc.tl.umap(scdata)
+# umap
+sc.tl.umap(scdata, min_dist = min_dist, spread = spread, maxiter = num_iters)
+
+# color options
+color_options = {
+    'Cluster': None,
+    'Experiment': None,
+    'Tissue': None,
+    'Pool': None,
+    'Biospecimen Group': None,
+    'Tube': None,
+    'Gene': dict([ [ gene_id, None ] for gene_id in scdata.raw.var_names ])
+}
 
 ##### OUTPUT
 scdata.write(output_path('umap_anndata.h5ad'))
+
+output_json(color_options, 'color_options')
+

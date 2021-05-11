@@ -137,10 +137,10 @@ exports[`JanusMain renders 1`] = `
         className="privileged"
       >
         <span
-          className="icon-grp fa-stack fa-fw"
+          className="icon-grp   fa-stack fa-fw"
         >
           <i
-            className="icon undefined check fa fa-2x fa-check"
+            className="icon undefined  check fa fa-2x fa-check"
           />
         </span>
       </div>

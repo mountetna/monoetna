@@ -1,16 +1,21 @@
 module Redcap
   class Model
-    def self.create(model_name, scripts, magma_template, redcap_template, salt)
+    def self.create(project, model_name, model_config, magma_template, redcap_template, salt)
       class_name = model_name.to_s.split('_').map(&:capitalize).join
       model_class = Kernel.const_defined?(class_name) ?  Kernel.const_get(class_name) : nil
 
       raise "No model class for #{model_name}" unless model_class
 
-      model_class.new(scripts, magma_template, redcap_template, salt)
+      model_class.new(model_name, project, model_config, magma_template, redcap_template, salt)
     end
 
-    def initialize(scripts, magma_template, redcap_template, salt)
-      @scripts = scripts.map do |script|
+    attr_reader :scripts, :project
+
+    def initialize(model_name, project, config, magma_template, redcap_template, salt)
+      @model_name = model_name
+      @project = project
+      @config = config
+      @scripts = config[:scripts].map do |script|
         Redcap::Script.new(self, script, redcap_template)
       end
       @magma_template = magma_template
@@ -18,23 +23,48 @@ module Redcap
       @offset_days = {}
     end
 
-    def load(project)
-      project.logger.write("Attempting to load model #{name}.\n")
+    def events?
+      @config[:each] == "event"
+    end
+
+    def invert?
+      @config[:invert]
+    end
+
+    def existing_records
+      @existing_records ||= project.magma_client.retrieve(
+        Etna::Clients::Magma::RetrievalRequest.new(
+          project_name: @project.project_name,
+          model_name: @model_name,
+          attribute_names: attribute_names,
+          record_names: "all",
+        )
+      ).models.model(@model_name.to_s).documents.raw
+    end
+
+    def attribute_names
+      @config[:attributes] || 'identifier'
+    end
+
+    def load
+      @project.logger.write("Attempting to load model #{name}.\n")
 
       records = {}
       @scripts.each do |script|
-        records.update(script.load(project))
+        records.update(
+          invert? ? script.inverse_load : script.load
+        )
       end
 
       records
     end
 
-    def events?
-      false
-    end
-
     def offset_id(record_id)
       record_id
+    end
+
+    def redcap_id(magma_record_name, magma_record)
+      nil
     end
 
     def offset_days(record_id)
@@ -86,7 +116,11 @@ module Redcap
         # eventually, we hope, magma will do this
         return nil if value.empty?
 
-        return (DateTime.parse(value) - offset_days(id)).iso8601[0..9]
+        begin
+          return (DateTime.parse(value) - offset_days(id)).iso8601[0..9]
+        rescue ArgumentError
+          return nil
+        end
       when "float"
         return value.to_f
       when "integer"

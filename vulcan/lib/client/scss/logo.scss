@@ -1,3 +1,8 @@
+
+@keyframes fade { 
+  0% { opacity: 0; } 
+  100% { opacity: 1; } 
+}
 #vulcan-logo {
   $color: #630606;
   $image: '~etna-js/images/vulcan.svg';
@@ -47,35 +52,18 @@
     }
   }
 
-  &.throb {
-    .halo {
-      animation: flicker 6s infinite alternate, spin 10s linear infinite;
-      opacity: 1;
-      transition: opacity 1s, animation 1s;
-    }
-  }
   .halo {
     pointer-events: none;
     position: absolute;
-    opacity: 0;
-    transition: opacity 1s;
-
-    svg {
-      overflow: visible;
-      circle {
-        stroke-width: 1px;
-        stroke: goldenrod;
-        fill: none;
-      }
-      path {
-        stroke-width: 1px;
-        &.long {
-          stroke: goldenrod;
-        }
-        &.short {
-          stroke: indianred;
-        }
-      }
+    opacity: 1;
+    circle.glow {
+      animation: fade ease 10s;
     }
+    path {
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+    z-index: 2;
   }
 }

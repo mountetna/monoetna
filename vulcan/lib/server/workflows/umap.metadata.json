@@ -1,0 +1,10 @@
+{
+  "projects": ["xcrs1"],
+  "authors": ["Dan Bunis", "Saurabh Asthana"],
+  "lastModified": "March 15, 2021",
+  "vignette": "# Single-cell Pre-processing & Visualization Workflow\n\nThis workflow performs merging and pre-processing of single-cell data using scanpy.\n\n## The Workflow\n\n After selecting a set of samples, data is retrieved, cells are filtered based on QC inputs, and the data is normalized and scaled (with regression of parameters based on user-input) prior to PCA calculation. Next, the neightborhood graph is calculated and used to power UMAP & clustering (again with tunable user inputs). Finally, users can download their processed data, and visualize their UMAP colored by clustering, gene expression, or other features.\n\n#### Note: Refer to in-line (?) icons for additional information about specific inputs.",
+  "tags": ["single-cell", "umap", "genes"],
+  "image": "umap.png",
+  "displayName": "UMAP",
+  "description": "UMAP workflow: single-cell data explorer"
+}

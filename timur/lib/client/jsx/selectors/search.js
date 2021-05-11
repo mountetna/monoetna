@@ -102,7 +102,7 @@ export const selectSearchShowDisconnected = createSelector(
   (search) => search.show_disconnected
 );
 
-export const selectSearchFilterParams = createSelector(
+export const selectSearchOutputPredicate = createSelector(
   selectSearchData,
-  (search) => search.filter_params
+  (search) => search.output_predicate
 );

@@ -5,4 +5,3 @@ token = os.getenv('TOKEN', None)
 
 magma_host = os.getenv('MAGMA_HOST', None)
 project_name = os.getenv('PROJECT_NAME', None)
-app_env = os.getenv('ARCHIMEDES_ENV', 'production')

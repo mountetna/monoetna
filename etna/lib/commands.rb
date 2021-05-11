@@ -91,6 +91,36 @@ class EtnaApp
   class Administrate
     include Etna::CommandExecutor
 
+    class Token
+      include Etna::CommandExecutor
+
+      class Generate < Etna::Command
+        include WithLogger
+
+        boolean_flags << "--task"
+        string_flags << "--project-name"
+        string_flags << "--email"
+
+        def execute(email:, task: false, project_name: nil)
+          # the token is not required, but can be used if available
+          # to generate a task token, so we pass it in here
+          janus_client = Etna::Clients::Janus.new(
+            token: ENV['TOKEN'],
+            ignore_ssl: EtnaApp.instance.config(:ignore_ssl),
+            **EtnaApp.instance.config(:janus, EtnaApp.instance.environment))
+
+          generate_token_workflow = Etna::Clients::Janus::GenerateTokenWorkflow.new(
+            janus_client: janus_client,
+            token_type: task ? 'task' : 'login',
+            email: email,
+            project_name: project_name,
+            private_key_file: EtnaApp.instance.config(:private_key, EtnaApp.instance.environment)
+          )
+          generate_token_workflow.generate!
+        end
+      end
+    end
+
     class Project
       include Etna::CommandExecutor
 
@@ -309,7 +339,7 @@ class EtnaApp
             request = Etna::Clients::Magma::RetrievalRequest.new(project_name: project_name)
             request.model_name = model_name
             request.attribute_names = 'all'
-            request.record_names = 'all'
+            request.record_names = []
             model = magma_client.retrieve(request).models.model(model_name)
             model_parent_name = model.template.attributes.all.select do |attribute|
               attribute.attribute_type == Etna::Clients::Magma::AttributeType::PARENT

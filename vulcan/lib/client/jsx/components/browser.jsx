@@ -4,10 +4,10 @@ import 'regenerator-runtime/runtime';
 
 import WorkflowManager from './workflow/workflow_manager';
 
-export default function Browser() {
+export default function Browser({workflowName, projectName}) {
   return (
     <main className='vulcan-browser browser'>
-      <WorkflowManager></WorkflowManager>
+      <WorkflowManager workflowName={workflowName} projectName={projectName}/>
     </main>
   );
 }

@@ -13,13 +13,13 @@ import {
 import {
   selectSearchCache,
   selectSearchAttributeNames,
-  selectSearchFilterParams,
   selectSearchFilterString,
   selectSearchShowDisconnected,
   selectSelectedModel,
   selectSortedAttributeNames,
   selectExpandedDisplayAttributeNames,
-  selectSortedDisplayAttributeNames
+  selectSortedDisplayAttributeNames,
+  selectSearchOutputPredicate
 } from '../../selectors/search';
 import {
   cacheSearchPage,
@@ -41,7 +41,8 @@ export function Search({
   queryableAttributes, cache, setSearchPageSize, cacheSearchPage,
   setSearchPage, selectedModel, requestModels, emptySearchCache,
   setSearchAttributeNames, filter_string, show_disconnected,
-  setSelectedModel, display_attributes, attributesNamesState, showMessages
+  setSelectedModel, display_attributes, attributesNamesState, showMessages,
+  output_predicate
 }) {
   const [pageSize, setPageSize] = useState(10);
   const [results, setResults] = useState(0);
@@ -74,7 +75,8 @@ export function Search({
       page: page,
       page_size: pageSize,
       collapse_tables: true,
-      exchange_name: `request-${selectedModel}`
+      exchange_name: `request-${selectedModel}`,
+      output_predicate: output_predicate
     });
 
     if (newSearch) emptySearchCache();
@@ -163,8 +165,8 @@ export default connect(
     display_attributes: selectSortedDisplayAttributeNames(state),
     filter_string: selectSearchFilterString(state),
     show_disconnected: selectSearchShowDisconnected(state),
-    filter_params: selectSearchFilterParams(state),
-    magma_state: state.magma
+    magma_state: state.magma,
+    output_predicate: selectSearchOutputPredicate(state)
   }),
   {
     requestModels,

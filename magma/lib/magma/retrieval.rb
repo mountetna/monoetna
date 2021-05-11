@@ -19,6 +19,7 @@ class Magma
       @user = @user
       @order = opts[:order]
       @show_disconnected = opts[:show_disconnected]
+      @output_predicates = opts[:output_predicates] || []
 
       @model = model
       @record_names = record_names
@@ -67,6 +68,17 @@ class Magma
       question.each_page_answer do |answer|
         yield to_records(answer)
       end
+    end
+
+    def predicate_manager
+      @predicate_manager ||= OutputPredicatesManager.new(
+        @output_predicates,
+        attributes
+      )
+    end
+
+    def output_format
+      question.format
     end
 
     private
@@ -139,6 +151,11 @@ class Magma
           [ att.name.to_s, '::all' ]
         when Magma::MatchAttribute
           [ att.name.to_s ]
+        when Magma::MatrixAttribute
+          # Only return if a ::slice ([]) predicate was passed in
+          predicate_manager.exists_for?(att) ?
+            predicate_manager.predicate_for(att) :
+            [ att.name.to_s ]
         else
           [ att.name.to_s ]
         end
@@ -160,20 +177,18 @@ class Magma
       end
     end
 
-    class StringFilter
-      def initialize filter
-        @filter = filter || ""
+    class FilterPredicateBase
+      def array_or_value(operator, value)
+        return value.split(",") if "[]" == operator
+        
+        value
       end
+    end
 
-      def apply(attributes)
-        @filter.split(/\s/).map do |term|
-          filter_term(term, attributes)
-        end.compact
-      end
-
+    class Filter < Magma::Retrieval::FilterPredicateBase
       FILTER_TERM = /^
         ([\w]+)
-        (=|<|>|>=|<=|~)
+        (=|<|>|>=|<=|~|\[\]|\^@)
         (.*)
         $/x
 
@@ -183,21 +198,45 @@ class Magma
 
         att = attributes.find{|a| a.name == att_name.to_sym}
         raise ArgumentError, "#{att_name} is not an attribute" unless att.is_a?(Magma::Attribute)
+        
+        raise ArgumentError, "Cannot filter on collection attributes" if [ Magma::CollectionAttribute, Magma::TableAttribute ].any? { |a| att.is_a?(a) }
+
+        return [ "::lacks", att_name ] if nil_operator?(operator)
+
         case att
-        when Magma::CollectionAttribute, Magma::TableAttribute
-          raise ArgumentError, "Cannot filter on collection attributes"
         when Magma::ForeignKeyAttribute, Magma::ChildAttribute
-          return [ att_name, '::identifier', string_op(operator), value ]
+          return [ att_name, '::identifier', string_op(operator), array_or_value(operator, value) ]
         when Magma::IntegerAttribute, Magma::FloatAttribute
           return [ att_name, numeric_op(operator), value.to_f ]
         when Magma::DateTimeAttribute
           return [ att_name, numeric_op(operator), value ]
         when Magma::StringAttribute
-          return [ att_name, string_op(operator), value ]
+          return [ att_name, string_op(operator), array_or_value(operator, value) ]
         when Magma::BooleanAttribute
           return [ att_name, boolean_op(operator, value) ]
+        when Magma::FileAttribute, Magma::ImageAttribute
+          return [ att_name, file_op(operator), value ]
+        when Magma::MatrixAttribute
+          # Since there are no MatrixAttribute filters, we'll
+          #   treat anything passed in as a "::has" filter
+          #   on the matrix attribute. Any slices have to
+          #   be sent as output_predicate values.
+          return [ '::has', att_name ]
         else
           raise ArgumentError, "Cannot query for #{att_name}"
+        end
+      end
+
+      def nil_operator?(operator)
+        "^@" == operator
+      end
+
+      def file_op operator
+        case operator
+        when "="
+          return "::equals"
+        else
+          raise ArgumentError, "Invalid operator #{operator} for file attribute!"
         end
       end
 
@@ -207,6 +246,10 @@ class Magma
           return "::equals"
         when "~"
           return "::matches"
+        when "<=", ">=", ">", "<"
+          return "::#{operator}"
+        when "[]"
+          return "::in"
         else
           raise ArgumentError, "Invalid operator #{operator} for string attribute!"
         end
@@ -229,6 +272,111 @@ class Magma
         when "false"
           return "::false"
         end
+      end
+    end
+
+    class StringFilter < Magma::Retrieval::Filter
+      def initialize filter
+        @filter = filter || ""
+      end
+
+      def apply(attributes)
+        @filter.split(/\s/).map do |term|
+          filter_term(term, attributes)
+        end.compact
+      end
+    end
+
+    class JsonFilter < Magma::Retrieval::Filter
+      def initialize filters
+        @filters = filters || []
+      end
+
+      def apply(attributes)
+        @filters.map do |term|
+          filter_term(term, attributes)
+        end.compact
+      end
+    end
+
+    class OutputPredicate < Magma::Retrieval::FilterPredicateBase
+      PREDICATE_TERM = /^
+        ([\w]+)
+        (\[\])
+        (.*)
+        $/x
+
+      def predicate_term term, attributes
+        match, att_name, operator, value = term.match(PREDICATE_TERM).to_a
+        raise ArgumentError, "Predicate term '#{term}' does not parse" if match.nil?
+
+        att = attributes.find{|a| a.name == att_name.to_sym}
+        raise ArgumentError, "#{att_name} is not an attribute" unless att.is_a?(Magma::Attribute)
+
+        case att
+        when Magma::MatrixAttribute
+          return [ att_name, matrix_op(operator), array_or_value(operator, value) ]
+        else
+          raise ArgumentError, "Cannot submit output predicate for #{att_name}"
+        end
+      end
+
+      def matrix_op operator
+        case operator
+        when "[]"
+          return "::slice"
+        else
+          raise ArgumentError, "Invalid operator #{operator} for matrix attribute!"
+        end
+      end
+    end
+
+    class StringOutputPredicate < Magma::Retrieval::OutputPredicate
+      def initialize output_predicates
+        @output_predicates = output_predicates || ""
+      end
+
+      def apply(attributes)
+        @output_predicates.split(/\s/).map do |term|
+          predicate_term(term, attributes)
+        end.compact
+      end
+    end
+
+    class JsonOutputPredicate < Magma::Retrieval::OutputPredicate
+      def initialize output_predicates
+        @output_predicates = output_predicates || []
+      end
+
+      def apply(attributes)
+        @output_predicates.map do |term|
+          predicate_term(term, attributes)
+        end.compact
+      end
+    end
+
+    class OutputPredicatesManager
+      def initialize (output_predicates, attributes)
+        @output_predicates = output_predicates
+        @attributes = attributes
+      end
+
+      def exists_for?(att)
+        !!predicate_for(att)
+      end
+
+      def predicate_for(att)
+        predicates_list&.find do |predicate|
+          predicate.first == att.name.to_s
+        end
+      end
+
+      private
+
+      def predicates_list
+        @predicates_list ||= @output_predicates.map do |output_predicate|
+          output_predicate.apply(@attributes)
+        end.flatten(1) # Flatten all predicates together into a list of output predicates
       end
     end
   end

@@ -7,7 +7,7 @@ module Etna
     }
 
     def initialize params, token=nil
-      @name, @email, @encoded_permissions, encoded_flags = params.values_at(:name, :email, :perm, :flags)
+      @name, @email, @encoded_permissions, encoded_flags, @task = params.values_at(:name, :email, :perm, :flags, :task)
 
       @flags = encoded_flags&.split(/;/) || []
       @token = token unless !token
@@ -15,6 +15,10 @@ module Etna
     end
 
     attr_reader :name, :email, :token
+
+    def task?
+      !!@task
+    end
 
     def permissions
       @permissions ||= @encoded_permissions.split(/\;/).map do |roles|
@@ -46,7 +50,7 @@ module Etna
       viewer: /[Vv]/,
       restricted: /[AEV]/,
     }
-    def has_roles(project, *roles)
+    def has_any_role?(project, *roles)
       perm = permissions[project.to_s]
 
       return false unless perm
@@ -55,15 +59,23 @@ module Etna
     end
 
     def is_superuser? project=nil
-      has_roles(:administration, :admin)
+      has_any_role?(:administration, :admin)
+    end
+
+    def is_supereditor? project=nil
+      has_any_role?(:administration, :admin, :editor)
+    end
+
+    def is_superviewer? project=nil
+      has_any_role?(:administration, :admin, :editor, :viewer)
     end
 
     def can_edit? project
-      is_superuser? || has_roles(project, :admin, :editor)
+      is_supereditor? || has_any_role?(project, :admin, :editor)
     end
 
     def can_view? project
-      is_superuser? || has_roles(project, :admin, :editor, :viewer)
+      is_superviewer? || has_any_role?(project, :admin, :editor, :viewer)
     end
 
     # superusers - administrators of the Administration group - cannot
@@ -75,7 +87,7 @@ module Etna
     end
 
     def is_admin? project
-      is_superuser? || has_roles(project, :admin)
+      is_superuser? || has_any_role?(project, :admin)
     end
 
     def active? project=nil

@@ -430,7 +430,7 @@ describe RetrieveController do
       )
 
       header, *table = CSV.parse(last_response.body, col_sep: "\t")
-      expect(table).to match_array([ [ "The Twelve Labors of Hercules", labors.map(&:identifier).join(', ') ] ])
+      expect(table).to match_array([ [ "The Twelve Labors of Hercules", labors.sort_by(&:name).map(&:identifier).join(', ') ] ])
     end
 
     it 'retrieves a TSV with file attributes as urls' do
@@ -501,6 +501,129 @@ describe RetrieveController do
 
       Timecop.return
     end
+
+    it 'returns an unmelted slice of matrix data using output_predicate' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      # New labors, to avoid caching issues with MatrixAttribute
+      belt = create(:labor, name: 'Belt of Hippolyta', number: 9, contributions: matrix[0], project: @project)
+      cattle = create(:labor, name: 'Cattle of Geryon', number: 10, contributions: matrix[1], project: @project)
+      apples = create(:labor, name: 'Golden Apples of the Hesperides', number: 11, contributions: matrix[2], project: @project)
+      
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: ["name", "contributions"],
+        output_predicate: "contributions[]Athens,Sparta",
+        format: 'tsv'
+      )
+
+      expect(last_response.status).to eq(200)
+      header, *table = CSV.parse(last_response.body, col_sep: "\t")
+      expect(header).to eq(["name", "contributions"])
+      expect(table.length).to eq(3)
+      expect(table.first.first).to eq("Belt of Hippolyta")
+      expect(table.first.length).to eq(2)
+      expect(table.last.first).to eq("Golden Apples of the Hesperides")
+      expect(table.last.length).to eq(2)
+    end
+
+    it 'returns a transposed matrix' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      # New labors, to avoid caching issues with MatrixAttribute
+      another_belt = create(:labor, name: 'Belt of Hippolyta 3', number: 29, contributions: matrix[0], project: @project)
+      another_cattle = create(:labor, name: 'Cattle of Geryon 3', number: 30, contributions: matrix[1], project: @project)
+      another_apples = create(:labor, name: 'Golden Apples of the Hesperides 3', number: 31, contributions: matrix[2], project: @project)
+      
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: ["name", "contributions"],
+        output_predicate: "contributions[]Athens,Sparta",
+        format: 'tsv',
+        transpose: 'true'
+      )
+
+      expect(last_response.status).to eq(200)
+      data = CSV.parse(last_response.body, col_sep: "\t")
+
+      header = data.map { |d| d.first }
+      expect(header).to eq(["name", "contributions"])
+      expect(data.length).to eq(2)
+      expect(data.first[1]).to eq("Belt of Hippolyta 3")
+      expect(data.first.length).to eq(4) # 3 labors + 1 header
+      expect(data.first.last).to eq("Golden Apples of the Hesperides 3")
+      expect(data.last).to eq(["contributions", "[10,11]", "[20,21]", "[30,31]"])
+    end
+
+    it 'returns an unmelted slice of matrix data using string false for expand_matrices' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      # New labors, to avoid caching issues with MatrixAttribute
+      new_belt = create(:labor, name: 'Belt of Hippolyta 2', number: 19, contributions: matrix[0], project: @project)
+      new_cattle = create(:labor, name: 'Cattle of Geryon 2', number: 20, contributions: matrix[1], project: @project)
+      new_apples = create(:labor, name: 'Golden Apples of the Hesperides 2', number: 21, contributions: matrix[2], project: @project)
+      
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: ["name", "contributions"],
+        output_predicate: "contributions[]Athens,Sparta",
+        format: 'tsv',
+        expand_matrices: 'false'
+      )
+
+      expect(last_response.status).to eq(200)
+      header, *table = CSV.parse(last_response.body, col_sep: "\t")
+      expect(header).to eq(["name", "contributions"])
+      expect(table.length).to eq(3)
+      expect(table.first.first).to eq("Belt of Hippolyta 2")
+      expect(table.first.length).to eq(2)
+      expect(table.last.first).to eq("Golden Apples of the Hesperides 2")
+      expect(table.last.length).to eq(2)
+    end
+
+    it 'returns a melted slice of matrix data using output_predicate and expand_matrices' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      # New labors, to avoid caching issues with MatrixAttribute
+      belt = create(:labor, name: 'Belt of Hippolyta', number: 9, contributions: matrix[0], project: @project)
+      cattle = create(:labor, name: 'Cattle of Geryon', number: 10, contributions: matrix[1], project: @project)
+      apples = create(:labor, name: 'Golden Apples of the Hesperides', number: 11, contributions: matrix[2], project: @project)
+      
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: ["name", "contributions"],
+        output_predicate: "contributions[]Athens,Sparta",
+        format: 'tsv',
+        expand_matrices: true
+      )
+
+      expect(last_response.status).to eq(200)
+      header, *table = CSV.parse(last_response.body, col_sep: "\t")
+      expect(header).to eq(["name", "contributions.Athens", "contributions.Sparta"])
+      expect(table.length).to eq(3)
+      expect(table.first).to eq(["Belt of Hippolyta", "10", "11"])
+      expect(table.last).to eq(["Golden Apples of the Hesperides", "30", "31"])
+    end
   end
 
   context 'filtering' do
@@ -518,6 +641,201 @@ describe RetrieveController do
 
       expect(last_response.status).to eq(200)
       expect(json_body[:models][:labor][:documents].count).to eq(2)
+    end
+    
+    it 'can filter on a string list using JSON' do
+      lion = create(:labor, :lion, completed: true, project: @project)
+      hydra = create(:labor, :hydra, completed: false, project: @project)
+      stables = create(:labor, :stables, completed: true, project: @project)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: ['name[]Lernean Hydra,Nemean Lion']
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:models][:labor][:documents].count).to eq(2)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: ['name[]Lernean Hydra,Nemean L']
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:models][:labor][:documents].count).to eq(1)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: ["project[]none,#{@project.name}"]
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:models][:labor][:documents].count).to eq(3)
+    end
+
+    it 'can use an "in" filter for a string' do
+      lion = create(:labor, :lion, notes: "hard", project: @project)
+      hydra = create(:labor, :hydra, notes: "easy", project: @project)
+      stables = create(:labor, :stables, notes: "no sweat", project: @project)
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'notes[]hard,easy'
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:models][:labor][:documents].count).to eq(2)
+    end
+
+    it 'can use a "lacks" filter for a string' do
+      lion = create(:labor, :lion, notes: "hard", project: @project)
+      hydra = create(:labor, :hydra, notes: "easy", project: @project)
+      stables = create(:labor, :stables, notes: nil, project: @project)
+      
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'notes^@'
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:models][:labor][:documents].count).to eq(1)
+    end
+
+    it 'can use a "lacks" filter for a foreign key' do
+      labor = create(:labor, :lion, project: @project)
+      lion = create(:monster, name: 'Nemean Lion', labor: labor)
+
+      labor = create(:labor, :hydra, project: @project)
+      hydra = create(:monster, name: 'Lernean Hydra', reference_monster: lion, labor: labor)
+
+      labor = create(:labor, :stables, project: @project)
+      stables = create(:monster, name: 'Augean Stables', reference_monster: hydra, labor: labor)
+          
+      retrieve(
+        project_name: 'labors',
+        model_name: 'monster',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'reference_monster^@'
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:models][:monster][:documents].count).to eq(1)
+    end
+
+    it 'can use a JSON filter' do
+      lion = create(:labor, :lion, completed: true, project: @project)
+      hydra = create(:labor, :hydra, completed: false, project: @project)
+      stables = create(:labor, :stables, completed: true, project: @project)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: ['name~L']
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:models][:labor][:documents].count).to eq(2)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: ['name~L', 'completed=true']
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:models][:labor][:documents].count).to eq(1)
+    end
+
+    it 'can have spaces when using a JSON filter' do
+      lion = create(:labor, :lion, completed: true, project: @project)
+      hydra = create(:labor, :hydra, completed: false, project: @project)
+      stables = create(:labor, :stables, completed: true, project: @project)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: ['name=Lernean Hydra']
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:models][:labor][:documents].count).to eq(1)
+    end
+
+    it 'can filter numeric strings' do
+      lion = create(:labor, :lion, project: @project)
+      hydra = create(:labor, :hydra, project: @project)
+      stables = create(:labor, :stables, project: @project)
+
+      lion_difficulty = create(:characteristic, labor: lion, name: "difficulty", value: "10" )
+      hydra_difficulty = create(:characteristic, labor: hydra, name: "difficulty", value: "2" )
+      stables_difficulty = create(:characteristic, labor: stables, name: "difficulty", value: "5" )
+    
+      lion_stance = create(:characteristic, labor: lion, name: "stance", value: "wrestling" )
+      hydra_stance = create(:characteristic, labor: hydra, name: "stance", value: "hacking" )
+      stables_stance = create(:characteristic, labor: stables, name: "stance", value: "shoveling" )
+    
+      retrieve(
+        project_name: 'labors',
+        model_name: 'characteristic',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'name~difficulty value>5'
+      )
+      expect(last_response.status).to eq(200)
+      expect(json_body[:models][:characteristic][:documents].count).to eq(1)
+
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'characteristic',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'name~stance value>5'
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:models][:characteristic][:documents].count).to eq(0)
+    end
+
+    it 'can filter numbers with "lacks"' do
+      stables = create(:labor, :stables, project: @project)
+      poison = create(:prize, name: 'poison', worth: 5, labor: stables)
+      poop = create(:prize, name: 'poop', worth: nil, labor: stables)
+      iou = create(:prize, name: 'iou', worth: 2, labor: stables)
+      skin = create(:prize, name: 'skin', worth: nil, labor: stables)
+      retrieve(
+        project_name: 'labors',
+        model_name: 'prize',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'worth^@'
+      )
+
+      expect(last_response.status).to eq(200)
+
+      prize_names = json_body[:models][:prize][:documents].values.map{|d| d[:name]}
+      expect(prize_names).to eq(['poop', 'skin'])
     end
 
     it 'can filter on numbers' do
@@ -540,6 +858,23 @@ describe RetrieveController do
       expect(prize_names).to eq(['poison', 'skin'])
     end
 
+    it 'cannot filter on tables' do
+      stables = create(:labor, :stables, project: @project)
+      poison = create(:prize, name: 'poison', worth: 5, labor: stables)
+      poop = create(:prize, name: 'poop', worth: 0, labor: stables)
+      iou = create(:prize, name: 'iou', worth: 2, labor: stables)
+      skin = create(:prize, name: 'skin', worth: 6, labor: stables)
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'prize>2'
+      )
+
+      expect(last_response.status).to eq(422)
+    end
+
     it 'can filter on dates' do
       old_labors = create_list(:labor, 3, year: DateTime.new(500), project: @project)
       new_labors = create_list(:labor, 3, year: DateTime.new(2000), project: @project)
@@ -550,6 +885,24 @@ describe RetrieveController do
         record_names: 'all',
         attribute_names: 'all',
         filter: 'year>1999-01-01'
+      )
+
+      expect(last_response.status).to eq(200)
+
+      labor_names = json_body[:models][:labor][:documents].values.map{|d| d[:name]}
+      expect(labor_names).to match_array(new_labors.map(&:name))
+    end
+
+    it 'can filter on dates with "lacks"' do
+      old_labors = create_list(:labor, 3, year: DateTime.new(500), project: @project)
+      new_labors = create_list(:labor, 3, year: nil, project: @project)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'year^@'
       )
 
       expect(last_response.status).to eq(200)
@@ -579,6 +932,171 @@ describe RetrieveController do
       expect(labor_names).to match_array(new_labors.map(&:name))
 
       Timecop.return
+    end
+
+    it 'can filter files with "lacks"' do
+      labor = create(:labor, :lion, project: @project)
+      lion = create(:monster, name: 'Nemean Lion', stats: '{"filename": "lion-stats.tsv", "original_filename": "alpha-lion.tsv"}', labor: labor)
+
+      labor = create(:labor, :hydra, project: @project)
+      hydra = create(:monster, name: 'Lernean Hydra', stats: nil, labor: labor)
+
+      labor = create(:labor, :stables, project: @project)
+      stables = create(:monster, name: 'Augean Stables', stats: '{"filename": "stables-stats.tsv", "original_filename": "alpha-stables.tsv"}', labor: labor)
+    
+      retrieve(
+        project_name: 'labors',
+        model_name: 'monster',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'stats^@'
+      )
+
+      expect(last_response.status).to eq(200)
+
+      monster_names = json_body[:models][:monster][:documents].values.map{|d| d[:name]}
+      expect(monster_names).to eq(['Lernean Hydra'])
+    end
+
+    it 'can filter files with "equals"' do
+      labor = create(:labor, :lion, project: @project)
+      lion = create(:monster, name: 'Nemean Lion', stats: '{"filename": "lion-stats.tsv", "original_filename": "alpha-lion.tsv"}', labor: labor)
+
+      labor = create(:labor, :hydra, project: @project)
+      hydra = create(:monster, name: 'Lernean Hydra', stats: nil, labor: labor)
+
+      labor = create(:labor, :stables, project: @project)
+      stables = create(:monster, name: 'Augean Stables', stats: '{"filename": "stables-stats.tsv", "original_filename": "alpha-stables.tsv"}', labor: labor)
+    
+      retrieve(
+        project_name: 'labors',
+        model_name: 'monster',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'stats=stables-stats.tsv'
+      )
+
+      expect(last_response.status).to eq(200)
+
+      monster_names = json_body[:models][:monster][:documents].values.map{|d| d[:name]}
+      expect(monster_names).to eq(['Augean Stables'])
+    end
+
+    it 'can filter booleans' do
+      lion = create(:labor, :lion, completed: true, project: @project)
+      hydra = create(:labor, :hydra, completed: false, project: @project)
+      stables = create(:labor, :stables, completed: nil, project: @project)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'completed=true'
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(
+        json_body[:models][:labor][:documents].values.map{|d| d[:name]}
+      ).to eq(["Nemean Lion"])
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: 'completed=false'
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(
+        json_body[:models][:labor][:documents].values.map{|d| d[:name]}
+      ).to eq(["Lernean Hydra"])
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: "completed^@"
+      )
+      
+      expect(last_response.status).to eq(200)
+      expect(
+        json_body[:models][:labor][:documents].values.map{|d| d[:name]}
+      ).to eq(["Augean Stables"])
+    end
+
+    it 'returns a slice of matrix data using output_predicate' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      # Make these different so we don't run into issues with matrix caching
+      hind = create(:labor, name: 'Ceryneian Hind', number: 3, contributions: matrix[0], project: @project)
+      board = create(:labor, name: 'Erymanthian Boar', number: 4, contributions: matrix[1], project: @project)
+      birds = create(:labor, name: 'Stymphalian birds', number: 6, contributions: matrix[2], project: @project)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        output_predicate: "contributions[]Athens,Sparta"
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(
+        json_body[:models][:labor][:documents].values.map{|d| d[:contributions]}
+      ).to eq(matrix.map{|r| r[0..1]})
+    end
+
+    it 'treats matrix filters as ::has' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      stables = create(:labor, name: 'Augean Stables', number: 5, contributions: matrix[0], project: @project)
+      hydra = create(:labor, name: 'Lernean Hydra', number: 2, contributions: matrix[1], project: @project)
+      lion = create(:labor, name: 'Nemean Lion', number: 1, contributions: matrix[2], project: @project)
+      mares = create(:labor, name: 'Mares of Diomedes', number: 8, contributions: nil, project: @project)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        filter: "contributions[]Athens,Sparta"
+      )
+
+      expect(last_response.status).to eq(200)
+      expect(
+        json_body[:models][:labor][:documents].values.map{|d| d[:name]}
+      ).to eq([ 'Augean Stables', 'Lernean Hydra', 'Nemean Lion' ])
+    end
+
+    it 'complains about invalid slices' do
+      matrix = [
+        [ 10, 11, 12, 13 ],
+        [ 20, 21, 22, 23 ],
+        [ 30, 31, 32, 33 ]
+      ]
+      stables = create(:labor, name: 'Augean Stables', number: 5, contributions: matrix[0], project: @project)
+      hydra = create(:labor, name: 'Lernean Hydra', number: 2, contributions: matrix[1], project: @project)
+      lion = create(:labor, name: 'Nemean Lion', number: 1, contributions: matrix[2], project: @project)
+
+      retrieve(
+        project_name: 'labors',
+        model_name: 'labor',
+        record_names: 'all',
+        attribute_names: 'all',
+        output_predicate: "contributions[]Bathens,Sporta"
+      )
+
+      expect(last_response.status).to eq(422)
+      expect(json_body[:errors]).to eq(['Invalid verb arguments ::slice, Bathens, Sporta'])
     end
   end
 

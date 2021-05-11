@@ -1,3 +1,11 @@
+.select-project-modal {
+  margin-top: 10px;
+  text-align: center;
+  .modal-button {
+    @include vulcan-button;
+  }
+}
+
 .root-view {
   padding: 10px 0px;
   font-family: $body_font;

@@ -1,4 +1,5 @@
 import * as Reselect from 'reselect';
+import { isEditor } from '../utils/janus';
 
 export const selectUser = ({user})=>( user || {} );
 
@@ -18,6 +19,6 @@ export const selectUserProjectRole = Reselect.createSelector(
 );
 
 export const selectIsEditor = Reselect.createSelector(
-  selectUserProjectRole,
-  role => role && (role === 'administrator' || role === 'editor')
+  selectUser,
+  user => user.permissions && isEditor(user, CONFIG.project_name)
 );

@@ -1,10 +1,14 @@
 require 'open3'
+require_relative './asynchronous_scheduler'
 
 class Vulcan
   # This is the temporary glue for running synchronous workflows from a given session and its inputs.
   # Most of this logic will evolve outside of vulcan depending on where we land on orchestration.
   class Orchestration
     attr_reader :workflow, :session
+
+    # Global threaded scheduler
+    @@scheduler = AsynchronousScheduler.new
 
     def initialize(workflow, session)
       @workflow = workflow
@@ -13,21 +17,27 @@ class Vulcan
 
     MAX_RUNNABLE = 20
 
-    def run_until_done!(storage, token=nil)
+    def scheduler
+      @@scheduler
+    end
+
+    # Synchronous scheduler that runs all the processes inline.
+    def run_until_done!(storage, token = nil)
       load_json_inputs!(storage)
       [].tap do |ran|
         errors = RunErrors.new
         i = 0
         until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
+          next_runnable = runnables.find { |r| !errors.include?(r) }
+
           begin
-            next_runnable = runnables.find { |r| !errors.include?(r) }
             break if next_runnable.nil?
 
-            run!(storage: storage, build_target: runnables.first, token: token)
+            run!(storage: storage, build_target: next_runnable, token: token)
           rescue => e
-            errors << {cell_hash: runnables.first.cell_hash, error: e}
+            errors << {cell_hash: next_runnable.cell_hash, error: e}
           ensure
-            ran << runnables.first
+            ran << next_runnable
           end
         end
         raise errors unless errors.empty?
@@ -43,6 +53,13 @@ class Vulcan
       session.material_references.each do |reference|
         load_json_payload!(storage, reference)
       end
+
+      # Ensure that the primary inputs, at least, have been loaded so that the status endpoint can report
+      # meaningful steps running.
+      pi = build_target_for(:primary_inputs)
+      if pi.should_build?(storage)
+        run!(storage: storage, build_target: pi, token: nil)
+      end
     end
 
     # Note: do not validate json payloads here -- do so either at the entry point or simply allow cells to fail with
@@ -53,37 +70,32 @@ class Vulcan
         # We want to write `false` files as well,
         #   so do not use payload in the if conditional.
         payload = reference[:json_payload]
+
+        # But we don't want to write `nil` values...
+        return if nil == payload
+
         ms = material_source(reference)
         unless ::File.exists?(ms.build_output&.data_path(storage))
-          storage.with_build_transaction(ms) do |build_files|
+          storage.with_run_cell_build(run_cell: storage.run_cell_for(ms)) do |build_dir, build_files|
             path = build_files.first.data_path(storage)
             ::File.write(path, payload)
+            storage.install_build_output(buildable: ms, build_dir: build_dir)
           end
         end
       end
     end
 
-    def is_dev?
-      :development == Vulcan.instance.environment
-    end
-
-    # Will go away when we get hmacs for inter service.
-    def dev_options
-      [
-        "--network=monoetna_edge_net",
-        "--extra-host=magma.development.local:172.16.238.10",
-        "--extra-host=metis.development.local:172.16.238.10",
-        "-e",
-        "ARCHIMEDES_ENV=#{Vulcan.instance.environment}",
-      ]
-    end
-
-    def command(storage:, input_files:, output_files:, token:)
+    def command(storage:, input_files:, output_files:, token:, ch:)
       [
           "docker",
           "run",
-          "-i",
           "--rm",
+      ] + docker_run_args(storage: storage, input_files: input_files, output_files: output_files, token: token, ch: ch)
+    end
+
+    def docker_run_args(storage:, input_files:, output_files:, token:, ch:)
+      [
+          "-i",
           "-v",
           "/var/run/docker.sock:/var/run/docker.sock:ro",
           "-v",
@@ -92,12 +104,13 @@ class Vulcan
           "poetry",
           "run",
           "archimedes-run",
-          "--isolator=docker"
-      ] + (is_dev? ? dev_options : []) + [
+          "--isolator=docker",
           "-e",
           "MAGMA_HOST=#{Vulcan.instance.config(:magma)&.dig(:host)}",
           "-e",
           "TOKEN=#{token}",
+          "-e",
+          "PROJECT_NAME=#{session.project_name}",
           "--image=" + Vulcan.instance.config(:archimedes_run_image),
       ] + output_files.map do |sf|
         "--output=#{sf.to_archimedes_storage_file(storage)}"
@@ -106,25 +119,17 @@ class Vulcan
       end
     end
 
-    def local_package_path(pkg_name, pkg_path)
-      path = pkg_path
-      if (host_dir_map = ENV['HOST_DIR_MAP'])
-        container_path, host_dir = host_dir_map.split('=', 2)
-        path.sub!(/^#{container_path}/, host_dir)
-      end
-
-      "#{pkg_name}:#{path}"
-    end
-
-    def run_script!(storage:, script:, input_files:, output_files:, token:)
+    def run_script!(storage:, script:, input_files:, output_files:, token:, ch:)
       status = nil
       output_str = nil
 
       cmd = command(
-        storage: storage,
-        input_files: input_files,
-        output_files: output_files,
-        token: token)
+          storage: storage,
+          input_files: input_files,
+          output_files: output_files,
+          token: token,
+          ch: ch,
+      )
       Open3.popen2(*cmd) do |input, output, wait_thr|
         input.print(script)
         input.close
@@ -144,70 +149,83 @@ class Vulcan
       Pathname.new(to).relative_path_from(Pathname.new(::File.dirname(from))).to_s
     end
 
-    def run!(storage:, build_target:, token:)
-      storage.with_build_transaction(build_target) do |output_files|
-        script = build_target.script
-        if script.is_a?(Hash)
+    def run_as_copy_cell(storage:, build_target:, script:)
+      if script.is_a?(Hash)
+        storage.with_run_cell_build(run_cell: storage.run_cell_for(build_target)) do |build_dir, output_files|
           # This is a copy cell.  Find inputs, link them.
           output_files.each do |of|
             output_path = of.data_path(storage)
             input_file = script[of.logical_name]
+
             unless input_file.nil?
               input_path = input_file.data_path(storage)
               relative_path = relative_path(output_path, input_path)
-              # puts("coping for #{of}")
-              # puts(output_path, input_path, relative_path)
               ::File.unlink(output_path)
               ::File.symlink(relative_path, output_path)
             end
           end
-          {'status' => 'done'}
-        elsif script
-          result = run_script!(
-              storage: storage, input_files: build_target.input_files,
-              output_files: output_files, script: script,
-              token: token
-          )
 
-          if (error = result["error"])
-            raise "Python error while executing script: #{error}"
-          end
-        else
-          raise "Could not determine or find backing script"
+          storage.install_build_output(buildable: build_target, build_dir: build_dir)
         end
+
+        return true
+      end
+
+      false
+    end
+
+    # This version keeps a lock on the storage for the entire duration of the script.
+    def run_script_synchronously(storage:, build_target:, script:, token:)
+      storage.with_run_cell_build(run_cell: storage.run_cell_for(build_target)) do |build_dir, output_files|
+        result = run_script!(
+            storage: storage,
+            input_files: build_target.input_files,
+            output_files: output_files,
+            script: script,
+            token: token,
+            ch: build_target.cell_hash,
+        )
+
+        if (error = result["error"])
+          raise "Python error while executing script: #{error}"
+        end
+
+        storage.install_build_output(
+            buildable: build_target,
+            build_dir: build_dir
+        )
+      end
+    end
+
+      # Synchronous runner implementation that expects the transaction to complete.
+    def run!(storage:, build_target:, token:)
+      script = build_target.script
+      if run_as_copy_cell(storage: storage, build_target: build_target, script: script)
+        {'status' => 'done'}
+      elsif script
+        run_script_synchronously(
+            storage: storage,
+            build_target: build_target,
+            script: script,
+            token: token
+        )
+      else
+        raise "Could not determine or find backing script"
       end
 
       raise "Build for #{build_target} failed to produce outputs!" unless build_target.is_built?(storage)
     end
 
-    # Returns a list of lists, describing the dependency between steps, primary inputs, and primary outputs.
-    # The first inner list is a serialized path traversing all nodes in a strictly linear fashion.
-    # Note that this ordering is NOT Guaranteed to be the execution order; tasks that exist on divergent paths
-    # might be run in parallel, and thus may complete in a non deterministic ordering.  But this serialized
-    # ordering will, nonetheless, occur in an order such that an strict dependency is always before
-    # convergent nodes.
-    # After the first inner list, each other inner list is a unique path in side of the workflow starting
-    # a primary_inputs and terminating at either a primary_output or a step that is not used as an input the workflow
-    # Each path represents a potential divergent -> convergent ordering that has strict execution ordering.  The
-    # first node and last node of each of these paths _may_ be shared with other paths as part of convergence.
-    def self.unique_paths(workflow)
-      directed_graph = ::DirectedGraph.new
-
-      workflow.steps.each do |step|
-        step.in.each do |step_input|
-          directed_graph.add_connection(step_input.source.first, step.id)
-        end
-      end
-
-      workflow.outputs.each do |output|
-        directed_graph.add_connection(output.outputSource.first, :primary_outputs)
-      end
-
-      [ directed_graph.serialized_path_from(:primary_inputs) ] + directed_graph.paths_from(:primary_inputs)
+    def unique_paths
+      @unique_paths = workflow.step_graph.paths_from(:root, false)
     end
 
-    def unique_paths
-      @unique_paths ||= self.class.unique_paths(workflow)
+    def self.serialize_step_path(workflow)
+      [workflow.step_graph.serialized_path_from(:root, false)]
+    end
+
+    def serialized_step_path
+      @serialized_step_path ||= self.class.serialize_step_path(workflow)
     end
 
     def next_runnable_build_targets(storage)
@@ -223,8 +241,7 @@ class Vulcan
 
       unique_paths.map do |path|
         path.map do |step_name|
-          step = workflow.find_step(step_name)
-          build_target_for(step&.id || step_name, build_target_cache)
+          build_target_for(step_name, build_target_cache)
         end
       end
     end
@@ -235,7 +252,7 @@ class Vulcan
       end
     end
 
-      # Cache is used to save effort in computing common recursive targets within a single calculation session.
+    # Cache is used to save effort in computing common recursive targets within a single calculation session.
     # Do not pass an actual value in for it.
     def build_target_for(step_name, cache = {})
       if cache.include?(step_name)

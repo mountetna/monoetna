@@ -190,10 +190,7 @@ module Etna
             source_attribute = Attribute.new(source_attribute.raw)
             source_attribute.set_field_defaults!
 
-            source_editable = source_attribute.raw.slice(*Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.map(&:to_s))
-            target_editable = target_attribute.raw.slice(*Attribute::EDITABLE_ATTRIBUTE_ATTRIBUTES.map(&:to_s))
-
-            if source_editable == target_editable
+            if !source_attribute.is_edited?(target_attribute)
               return
             end
 
@@ -226,7 +223,7 @@ module Etna
           if renames && (attribute_renames = renames[model_name]) && (new_name = attribute_renames[attribute_name])
             new_name = target_attribute_of_source(model_name, new_name)
 
-            unless target_model.template.attributes.include?(new_name)
+            unless target_model.template.attributes.attribute_keys.include?(new_name)
               if target_original_attribute
                 rename = RenameAttributeAction.new(model_name: target_model_name, attribute_name: target_attribute_name, new_attribute_name: new_name)
                 queue_update(rename)

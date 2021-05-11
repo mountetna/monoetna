@@ -1,10 +1,15 @@
 # This code tests the query function
 # library(magmaR); library(testthat); source("tests/testthat/setup.R"); source("tests/testthat/test-query.R")
 
+targ <- magmaRset(
+    token = TOKEN,
+    url = URL)
+
 test_that("query_list", {
     vcr::use_cassette("query_list", {
         # query obtains sample ids for records with rna_seq data
         qry <- query(
+            targ,
             "example",
             queryTerms = 
                 list('rna_seq',
@@ -21,10 +26,11 @@ test_that("query_list", {
 test_that("query_df", {
     vcr::use_cassette("query_df", {
         
-        ids <- retrieveIds("example", "subject")
+        ids <- retrieveIds(targ, "example", "subject")
         
         # query obtains sample ids for records with rna_seq data
         qry <- query(
+            targ,
             "example",
             queryTerms = 
                 list('rna_seq',

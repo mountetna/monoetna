@@ -1,60 +1,22 @@
-.get_TOKEN <- function() {
-    # This function asks the user to provide their janus token, one time, and 
-    # then stores the response as a hidden variable in the workspace. For that
-    # and future calls, it then provides this hidden variable as its response.
-    #
-    # Vignettes and error messages make this behavior clear.
-    
-    if (!exists(".MAGMAR_TOKEN", envir = .GlobalEnv)) {
-        
-        if (interactive()) {
-            assign(
-                ".MAGMAR_TOKEN",
-                readline(prompt = "Enter your Janus TOKEN (without quotes):"),
-                envir = .GlobalEnv)
-        } else {
-            stop("Please provide your janus token to the 'token' input or assign it to '.MAGMAR_TOKEN'.")
-        }
-    }
-    
-    .MAGMAR_TOKEN
-}
-
-.get_URL <- function() {
-    # This function sets up the default magma url as a hidden variable in the
-    # workspace. This method of defaulting allows users to adjust their default
-    # url by manually setting .MAGMAR_URL <- <different_url> to bypass the
-    # behvaior below.
-    #
-    # Vignettes and error messages make this behavior clear.
-    
-    if (!exists(".MAGMAR_URL", envir = .GlobalEnv)) {
-        assign(
-            ".MAGMAR_URL",
-            "https://magma.ucsf.edu",
-            envir = .GlobalEnv)
-    }
-    
-    .MAGMAR_URL
-}
-
 .perform_curl_get <- function(
     fxn = c("/retrieve", "/query", "/update", "/projects"),
+    target,
     requestBody,
-    token,
-    url.base,
     parse = TRUE,
     verbose = FALSE) {
     
     fxn <- match.arg(fxn)
     
+    opts <- target$opts
+    opts$postfields <- requestBody
+    
     # Set
     curl <- crul::HttpClient$new(
-        url = paste0(url.base),
+        url = target$url,
         headers = list(
             'Content-Type' = "application/json",
-            'Authorization' = paste0('Etna ', token)),
-        opts = list(postfields = requestBody)
+            'Authorization' = paste0('Etna ', target$token)),
+        opts = opts
         )
     
     # Perform
@@ -70,8 +32,8 @@
         }
     }
     
-    if (curl$status_code==401) {
-        stop("You are unauthorized. If you think this is a mistake, run `rm(.MAGMAR_TOKEN)` or update your 'token' input, then retry.")
+    if (curl$status_code %in% c(302,401)) {
+        stop("You are unauthorized. Update your 'token' input with 'magmaRset()', then retry.")
     }
     
     # Parse
@@ -95,4 +57,11 @@
     }
     
     table
+}
+
+.get_sysenv_or_mock <- function(target) {
+    ifelse(
+        identical(Sys.getenv(target),""),
+        paste0("fake", tolower(target)),
+        Sys.getenv(target))
 }
