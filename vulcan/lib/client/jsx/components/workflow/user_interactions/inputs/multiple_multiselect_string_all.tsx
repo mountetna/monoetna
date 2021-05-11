@@ -21,6 +21,9 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   const [mockInputs, setMockInputs] = useState(
     {} as {[key: string]: InputSpecification[]}
   );
+  const [lastInputValue, setLastInputValue] = useState(
+    {} as {[key: string]: any} // really any should be string | string[] | null
+  );
 
   const options = useMemo(() => {
     return input.data;
@@ -31,60 +34,57 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
     () => _.isEqual(Object.keys(options || {}), Object.keys(selectedValues)),
     [options, selectedValues]
   );
+
   const allNestedInputsPresent: boolean = useMemo(() => {
-    if (!options) return false;
-    return (
-      allInputsPresent &&
-      Object.keys(options).every((cwlInputName) => {
-        let nestedOption = options[cwlInputName];
-        return _.isEqual(
-          Object.keys(nestedOption),
-          Object.keys(selectedValues[cwlInputName])
-        );
-      })
-    );
+    if (!options || !allInputsPresent) return false;
+    return Object.keys(options).every((cwlInputName) => {
+      let nestedOption = options[cwlInputName];
+      return _.isEqual(
+        Object.keys(nestedOption),
+        Object.keys(selectedValues[cwlInputName])
+      );
+    });
   }, [options, selectedValues, allInputsPresent]);
+
   const allInputsPopulated: boolean = useMemo(() => {
-    if (!options) return false;
-    return (
-      allNestedInputsPresent &&
-      Object.keys(options).every((cwlInputName) => {
-        return Object.values(selectedValues[cwlInputName]).every(
-          (selectedValue) => null != selectedValue
-        );
-      })
-    );
+    if (!options || !allNestedInputsPresent) return false;
+    return Object.keys(options).every((cwlInputName) => {
+      return Object.values(selectedValues[cwlInputName]).every(
+        (selectedValue) => null != selectedValue
+      );
+    });
   }, [options, selectedValues, allNestedInputsPresent]);
 
-  const onChangeSingleInput = useCallback(
-    (cwlInputName: string, inputName: string, value: string[] | null) => {
-      console.log('changing single input');
-      console.log(
-        'cwlInputName',
-        cwlInputName,
-        'inputName',
-        inputName,
-        'value',
-        value
-      );
-      console.log('selectedValues', selectedValues);
-      console.log({
-        ...selectedValues,
-        [cwlInputName]: {
-          ...selectedValues[cwlInputName],
-          [inputName]: value
-        }
-      });
-      setSelectedValues({
-        ...selectedValues,
-        [cwlInputName]: {
-          ...selectedValues[cwlInputName],
-          [inputName]: value
-        }
-      });
-    },
-    [selectedValues]
-  );
+  useEffect(() => {
+    let {cwlInputName, inputName, newValue} = lastInputValue;
+
+    if (!cwlInputName || !inputName) return;
+
+    console.log('changing single input');
+    console.log(
+      'cwlInputName',
+      cwlInputName,
+      'inputName',
+      inputName,
+      'newValue',
+      newValue
+    );
+    console.log('selectedValues', selectedValues);
+    console.log({
+      ...selectedValues,
+      [cwlInputName]: {
+        ...selectedValues[cwlInputName],
+        [inputName]: newValue
+      }
+    });
+    setSelectedValues({
+      ...selectedValues,
+      [cwlInputName]: {
+        ...selectedValues[cwlInputName],
+        [inputName]: newValue
+      }
+    });
+  }, [lastInputValue]);
 
   useEffect(() => {
     if (!options) return;
@@ -146,7 +146,11 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
                 <UserInput
                   key={`${cwlInputName}-${mockInput.name}`}
                   onChange={(inputName, newValue) => {
-                    onChangeSingleInput(cwlInputName, inputName, newValue);
+                    setLastInputValue({
+                      cwlInputName,
+                      inputName,
+                      newValue
+                    });
                   }}
                   input={mockInput}
                 />
