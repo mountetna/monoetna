@@ -2,7 +2,7 @@ import unittest
 from unittest import TestCase
 from unittest.mock import patch
 
-from geoline.geoline.geo_utils import *
+from ..geoline.geo_utils import *
 
 testDict = {
     'a': 'lol',
