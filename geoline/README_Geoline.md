@@ -20,7 +20,7 @@ gl = Geoline.Geoline(url, token, project)
 
 assay = 'ASSAY_NAME_HERE'  # accepted assays 'rna_seq', 'dna_seq', 'sc_seq'
 primary_model = 'MODEL_NAME_HERE'  # name of a model that has most of the data (e.g. rna_seq) 
-geo_meta = gl.seq_workflow('rna_seq', 'rna_seq')
+geo_meta = gl.seq_workflow(assay, primary_model)
 ```
 
 You will be prompted with a series of interactive questions. Please follow the instructions in these questions.  
