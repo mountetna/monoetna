@@ -237,5 +237,5 @@ steps:
     label: 'Diff. Exp.: Cluster Markers'
     in:
       leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
-    out: [diffexp,top5.json]
+    out: [diffexp,top10.json]
 
