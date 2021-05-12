@@ -86,24 +86,51 @@ class Geoline:
         if primary_model_name not in model_group.keys():
             raise GeolineError(f'TemplateTree.multiModelQuery(): {primary_model_name} is not in the list of models '
                                f'{list(model_group.keys())}')
+        template_tree = TemplateTree(global_template=self._get_global_template(**kwargs))
         primary_model = model_group.pop(primary_model_name)
-        primary_model_attributes = list(self._extract_attributes(primary_model))
-        global_template = self._get_global_template(**kwargs)
-        template_tree = TemplateTree(global_template)
+        primary_model_attributes_raw = self._extract_attributes(primary_model)
+        primary_model_attributes = self._complex_model_predicates(
+            global_template=template_tree.global_template,
+            attributes=primary_model_attributes_raw,
+            model_name=primary_model_name
+        )
         for model in model_group:
             if model != '':
                 path_to_model = template_tree.traverse_to_model(primary_model_name, model)
-                model_ttr_map = self._extract_attributes(model_group[model])
-                #   special treatment of FILE and FILE_COLLECTION attr types
-                model_ttr_map = [[x, '::all'] if self._is_file(x) else x for x in model_ttr_map]
-                path_to_model.append(model_ttr_map)
+                model_attributes_raw = self._extract_attributes(model_group[model])
+                model_attributes = self._complex_model_predicates(
+                    global_template=template_tree.global_template,
+                    attributes=model_attributes_raw,
+                    model_name=model
+                )
+                path_to_model.append(model_attributes)
                 primary_model_attributes.append(path_to_model)
         primary_query = [primary_model_name, '::all', primary_model_attributes]
         return primary_query
 
+    def _complex_model_predicates(
+            self,
+            global_template: Dict,
+            attributes: List[str],
+            model_name: str
+    ) -> List[str]:
+        attr_types = [self._get_attr_type(
+            global_template=global_template,
+            model=model_name,
+            attribute=x
+        ) for x in attributes]
+        corrected_predicates = [
+            [x[0], '::all'] if self._is_file(x[1]) else x[0] for x in zip(attributes, attr_types)
+        ]
+        return corrected_predicates
+
     @staticmethod
     def _get_attr_type(global_template: Dict, model: str, attribute: str) -> str:
         return global_template['models'][model]['template']['attributes'][attribute]['attribute_type']
+
+    @staticmethod
+    def _extract_attributes(attr_map: Dict) -> List:
+        return [x[1] for x in attr_map.values()]
 
     @staticmethod
     def _is_file(attr_type: str) -> bool:
@@ -158,10 +185,6 @@ class Geoline:
             return ['', '']
         else:
             return attr_map.split(':')
-
-    @staticmethod
-    def _extract_attributes(attr_map: Dict) -> List:
-        return [x[1] for x in attr_map.values()]
 
     def _get_global_template(self, **kwargs) -> Dict:
         global_template = self._magby_instance.retrieve(self._project_name, 'all', [], 'all', dataType='json', **kwargs)
