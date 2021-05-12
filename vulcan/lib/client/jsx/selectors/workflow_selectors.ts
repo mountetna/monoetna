@@ -180,6 +180,7 @@ export const shouldDownload = (url: string, workflow: Workflow, step: WorkflowSt
     const source = sourceNameOfReference([step.name, outName]);
     console.log('source', source);
     if (downloads[outName] !== url) return false;
+    console.log('workflow', workflow);
     const deps = dependentStepConsumersOf(source, workflow, true);
     console.log('deps', deps);
     return !!deps.find(dep => isDataConsumer(dep));
