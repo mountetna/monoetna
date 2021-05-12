@@ -205,7 +205,7 @@ steps:
       nn_anndata.h5ad: neighbors/nn_anndata.h5ad
       leiden_resolution: 5_Cluster_Calculation__leiden_resolution
       use_weights: 5_Cluster_Calculation__leiden_use_weights
-    out: [leiden.json]
+    out: [leiden.json,leiden_anndata.h5ad]
   select_color_by_option:
     run: ui-queries/nested-select-autocomplete.cwl
     label: 'Color Options'
@@ -229,14 +229,13 @@ steps:
   downloadRawData:
     run: ui-outputs/link.cwl
     in:
-      a: calc_umap/umap_anndata.h5ad
+      a: leiden_umap/leiden_anndata.h5ad
     out: []
     label: 'Download data as h5ad'
   Differential_Expression__between_clusters:
     run: scripts/DE_btwn_clusters.cwl
     label: 'Diff. Exp.: Cluster Markers'
     in:
-      umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
-      leiden.json: calc_leiden/leiden.json
-    out: [diffexp]
+      leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
+    out: [diffexp,top5.json]
 
