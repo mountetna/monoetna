@@ -6,6 +6,38 @@ import {InputBackendComponent, InputSpecification} from './input_types';
 import UserInput from './user_input';
 import {inputValueNonEmpty} from '../../../../selectors/workflow_selectors';
 
+interface MultiselectGroup {
+  cwlInputName: string;
+  groupedInputs: InputSpecification[];
+  setUserSelection: Function;
+}
+
+function GroupOfMultiselects({
+  cwlInputName,
+  groupedInputs,
+  setUserSelection
+}: MultiselectGroup) {
+  return (
+    <div key={cwlInputName}>
+      {groupedInputs.map((mockInput: InputSpecification) => {
+        return (
+          <UserInput
+            key={`${cwlInputName}-${mockInput.name}`}
+            onChange={(inputName, value) => {
+              setUserSelection({
+                cwlInputName,
+                inputName,
+                value
+              });
+            }}
+            input={mockInput}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   input,
   onChange
@@ -73,9 +105,10 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
     );
   }, [options, selectedValues, allNestedInputsPresent]);
 
-  function selectedValuesChanged() {
-    return !_.isEqual(selectedValues, lastSelectedValues);
-  }
+  const selectedValuesChanged: boolean = useMemo(
+    () => !_.isEqual(selectedValues, lastSelectedValues),
+    [selectedValues, lastSelectedValues]
+  );
 
   useEffect(() => {
     let {cwlInputName, inputName, value} = userSelection;
@@ -92,9 +125,12 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   }, [userSelection]);
 
   useEffect(() => {
-    if (Object.keys(options || {}).length > 0 && selectedValuesChanged()) {
+    if (Object.keys(options || {}).length > 0 && selectedValuesChanged) {
       if (allInputsPopulated) {
         if (noEmptyStrings) onChange(input.name, selectedValues);
+        // If allInputsPopulated but some have empty strings, that
+        //   means the UI has a dropdown box waiting for user interaction.
+        // In that case, we do nothing.
       } else {
         onChange(input.name, null);
       }
@@ -144,28 +180,17 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
 
   return (
     <div>
-      {Object.keys(mockInputs).map((cwlInputName: string) => {
-        let groupedInputs: InputSpecification[] = mockInputs[cwlInputName];
-        return (
-          <div key={cwlInputName}>
-            {groupedInputs.map((mockInput) => {
-              return (
-                <UserInput
-                  key={`${cwlInputName}-${mockInput.name}`}
-                  onChange={(inputName, value) => {
-                    setUserSelection({
-                      cwlInputName,
-                      inputName,
-                      value
-                    });
-                  }}
-                  input={mockInput}
-                />
-              );
-            })}
-          </div>
-        );
-      })}
+      {Object.entries(mockInputs).map(
+        ([cwlInputName, groupedInputs]: [string, InputSpecification[]]) => {
+          return (
+            <GroupOfMultiselects
+              cwlInputName={cwlInputName}
+              groupedInputs={groupedInputs}
+              setUserSelection={setUserSelection}
+            />
+          );
+        }
+      )}
     </div>
   );
 };
