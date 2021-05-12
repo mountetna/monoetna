@@ -31,9 +31,21 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
     return _.isEqual(Object.keys(hash1), Object.keys(hash2));
   }
 
-  function allHashValuesNonEmpty(hash: {}): boolean {
+  function allSelectedValuesNonEmpty(hash: {}): boolean {
     return Object.values(hash).every((value) => inputValueNonEmpty(value));
   }
+
+  const noEmptyStrings: boolean = useMemo(
+    () =>
+      Object.values(
+        selectedValues
+      ).every((nestedInput: {[key: string]: string[] | null}) =>
+        Object.values(nestedInput).every((value) =>
+          value?.every((val) => '' !== val)
+        )
+      ),
+    [selectedValues]
+  );
 
   // Helper methods to check if all inputs have values
   const allInputsPresent: boolean = useMemo(
@@ -53,7 +65,7 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
     if (!options || !allNestedInputsPresent) return false;
 
     return Object.keys(options).every((cwlInputName) =>
-      allHashValuesNonEmpty(selectedValues[cwlInputName])
+      allSelectedValuesNonEmpty(selectedValues[cwlInputName])
     );
   }, [options, selectedValues, allNestedInputsPresent]);
 
@@ -77,9 +89,11 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
 
   useEffect(() => {
     if (Object.keys(options || {}).length > 0 && selectedValuesChanged()) {
-      allInputsPopulated
-        ? onChange(input.name, selectedValues)
-        : onChange(input.name, null);
+      if (allInputsPopulated) {
+        if (noEmptyStrings) onChange(input.name, selectedValues);
+      } else {
+        onChange(input.name, null);
+      }
     }
 
     setLastSelectedValues(selectedValues);
