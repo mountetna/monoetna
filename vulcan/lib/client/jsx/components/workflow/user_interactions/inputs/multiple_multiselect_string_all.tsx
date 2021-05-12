@@ -10,6 +10,12 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   input,
   onChange
 }) => {
+  interface Selection {
+    cwlInputName: string;
+    inputName: string;
+    value: string[] | null;
+  }
+
   const [selectedValues, setSelectedValues] = useState(
     {} as {[key: string]: {[key: string]: string[] | null}}
   );
@@ -19,9 +25,7 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   const [mockInputs, setMockInputs] = useState(
     {} as {[key: string]: InputSpecification[]}
   );
-  const [userSelection, setUserSelection] = useState(
-    {} as {[key: string]: any} // really any should be string | string[] | null
-  );
+  const [userSelection, setUserSelection] = useState({} as Selection);
 
   const options = useMemo(() => {
     return input.data;
@@ -74,7 +78,7 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   }
 
   useEffect(() => {
-    let {cwlInputName, inputName, newValue} = userSelection;
+    let {cwlInputName, inputName, value} = userSelection;
 
     if (!cwlInputName || !inputName) return;
 
@@ -82,7 +86,7 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
       ...selectedValues,
       [cwlInputName]: {
         ...selectedValues[cwlInputName],
-        [inputName]: newValue
+        [inputName]: value
       }
     });
   }, [userSelection]);
@@ -148,11 +152,11 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
               return (
                 <UserInput
                   key={`${cwlInputName}-${mockInput.name}`}
-                  onChange={(inputName, newValue) => {
+                  onChange={(inputName, value) => {
                     setUserSelection({
                       cwlInputName,
                       inputName,
-                      newValue
+                      value
                     });
                   }}
                   input={mockInput}

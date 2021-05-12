@@ -33,7 +33,6 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
       setSelectedOptions([...input.default]);
       setInitialized(true);
     } else if (options.length > selectedOptions.length && !initialized) {
-      console.log('setting to all options')
       setSelectedOptions([...options]);
       setInitialized(true);
     }
