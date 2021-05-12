@@ -232,4 +232,11 @@ steps:
       a: calc_umap/umap_anndata.h5ad
     out: []
     label: 'Download data as h5ad'
+  Differential_Expression__between_clusters:
+    run: scripts/DE_btwn_clusters.cwl
+    label: 'Diff. Exp.: Cluster Markers'
+    in:
+      umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
+      leiden.json: calc_leiden/leiden.json
+    out: [diffexp]
 
