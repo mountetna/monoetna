@@ -119,13 +119,13 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
             acc: {[key: string]: InputSpecification[]},
             [cwlInputName, nestedInputs]: [string, {[key: string]: string[]}]
           ): {[key: string]: InputSpecification[]} => {
-            acc[cwlInputName] = Object.keys(nestedInputs).map(
-              (label: string): InputSpecification => {
+            acc[cwlInputName] = Object.entries(nestedInputs).map(
+              ([label, values]: [string, string[]]): InputSpecification => {
                 return {
                   type: TYPE.MULTISELECT_STRING_ALL,
                   name: label,
                   label: label,
-                  data: {[label]: nestedInputs[label]},
+                  data: {[label]: values},
                   default:
                     selectedValues[cwlInputName] &&
                     selectedValues[cwlInputName][label]
