@@ -113,8 +113,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
 
     case 'PATCH_INPUTS':
       const updatedInputs = unsetDependentInputs(action.inputs, {...state.inputs, ...action.inputs}, state.workflow);
-      console.log('state inputs', state.inputs);
-      console.log('updatedInputs', updatedInputs);
+
       return {
         ...state,
         inputs: updatedInputs,

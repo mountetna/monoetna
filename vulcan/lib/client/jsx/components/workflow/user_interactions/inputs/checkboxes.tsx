@@ -26,10 +26,6 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
   const options = useMemo(() => getAllOptions(input.data).sort(), [input.data]);
 
   useEffect(() => {
-    console.log('options', options);
-    console.log('initialized', initialized);
-    console.log('input', input);
-    console.log('selectedOptions', selectedOptions)
     // Setting any previously selected inputs (from storage or
     //   user interactions) takes precedence over setting
     //   all options as checked.
@@ -44,7 +40,6 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
   }, [options]);
 
   useEffect(() => {
-    console.log('calling onChange', selectedOptions, input.name)
     onChange(input.name, selectedOptions);
   }, [selectedOptions]);
 

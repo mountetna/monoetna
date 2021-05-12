@@ -22,7 +22,6 @@ export default function StepUserInputWrapper({step}: { step: UIStep['step'] }) {
   const {status, workflow, data, session} = state;
 
   const handleInputChange = useCallback((inputName: string, value: any) => {
-    console.log('patching inputs', inputName, value)
     dispatch(patchInputs({[inputName]: value}));
   }, []);
 
