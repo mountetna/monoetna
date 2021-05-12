@@ -125,7 +125,9 @@ EOM
       # Set some default methods for each model
       Kernel.const_set(model_name, Class.new(Redcap::Model) {
         def identifier(record_name, event_name)
-          "::temp-#{record_name}-#{rand(36**8).to_s(36)}"
+          [
+              "::temp", record_name, event_name, rand(36**8).to_s(36)
+          ].compact.join('-')
         end
 
         def patch(id, record)
