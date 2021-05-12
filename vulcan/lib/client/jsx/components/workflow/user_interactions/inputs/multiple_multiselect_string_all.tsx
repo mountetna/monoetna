@@ -18,6 +18,9 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   const [selectedValues, setSelectedValues] = useState(
     {} as {[key: string]: {[key: string]: string[] | null}}
   );
+  const [lastSelectedValues, setLastSelectedValues] = useState(
+    {} as {[key: string]: {[key: string]: string[] | null}}
+  );
   const [mockInputs, setMockInputs] = useState(
     {} as {[key: string]: InputSpecification[]}
   );
@@ -100,12 +103,14 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
         {}
       )
     );
-    
-    if (allInputsPopulated) {
+
+    if (allInputsPopulated && !_.isEqual(selectedValues, lastSelectedValues)) {
+      console.log('on change in multi multi select');
       onChange(input.name, selectedValues);
-    } else {
+    } else if (!_.isEqual(selectedValues, lastSelectedValues)) {
       onChange(input.name, null);
     }
+    setLastSelectedValues(selectedValues);
   }, [selectedValues]);
 
   useEffect(() => {

@@ -169,20 +169,15 @@ export function dependentStepConsumersOf(startingSource: string, workflow: Workf
 }
 
 export const shouldDownload = (url: string, workflow: Workflow, step: WorkflowStep | undefined, status: SessionStatusResponse['status']) => {
-  console.log('url', url, 'step', step)
   if (step == null) return false;
   const stepStatus = statusOfStep(step, status);
   if (stepStatus == null) return false;
   const {downloads} = stepStatus;
   if (downloads == null) return false;
-  console.log('stepStatus', stepStatus, 'downloads', downloads)
   return !!step.out.find(outName => {
     const source = sourceNameOfReference([step.name, outName]);
-    console.log('source', source);
     if (downloads[outName] !== url) return false;
-    console.log('workflow', workflow);
     const deps = dependentStepConsumersOf(source, workflow, true);
-    console.log('deps', deps);
     return !!deps.find(dep => isDataConsumer(dep));
   })
 }
