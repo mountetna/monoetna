@@ -55,7 +55,7 @@ class TestGeoline(TestCase):
     def test__construct_multi_model_query(self):
         with patch('builtins.input', side_effect=['y', 'y', 'y',
                                                   'y', '1', 'rna_seq:fraction', 'n',  # characteristics
-                                                  'STOP']):
+                                                  '', '', '', '']):
             samples = self.geoline._select_workflow(samples_section, 'rna_seq')
             model_groups = self.geoline._grouper(samples)
             with self.vcr as vcr:
@@ -63,7 +63,7 @@ class TestGeoline(TestCase):
                 query = self.geoline._construct_multi_model_query(model_groups, 'rna_seq', session=self.session)
             self.assertTrue(isinstance(query, list))
             self.assertEqual(len(query), 3)
-            self.assertEqual(query[2][4], 'gene_expression')
+            self.assertEqual(query[2][1], 'biospecimen')
 
     def test__walk_answer(self):
         with patch('builtins.input', side_effect=['y', 'flow:stain', 'subject:group',
