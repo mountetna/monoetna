@@ -11,7 +11,8 @@ selected = input_json('selected_options')["a"]
 
 magma = connect()
 
-# Experiment and Tissue (AND logic)
+# Create filters for all the 'select-bys' that the value for this attribute
+# must be among the options selected in the previous step.
 filters = []
 for selected_model in list(selected.keys()):
     if len(selected[selected_model]) > 0:
@@ -30,5 +31,8 @@ tube_records = unique(question(
         '::all', '::identifier'
     ]
 ))
+
+if len(tube_records) < 1:
+    raise RuntimeError('No records with data meet the selected criteria.')
 
 output_json(tube_records, 'tube_recs')
