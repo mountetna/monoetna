@@ -1,4 +1,4 @@
-from archimedes.functions.dataflow import output_path, input_path, input_var, json, input_json
+from archimedes.functions.dataflow import output_path, input_path, input_var, json, input_json, buildTargetPath
 from archimedes.functions.utils import re
 from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.plotting import px, pio, colors
