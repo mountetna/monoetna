@@ -9,22 +9,22 @@ import {inputValueNonEmpty} from '../../../../selectors/workflow_selectors';
 interface MultiselectGroup {
   cwlInputName: string;
   groupedInputs: InputSpecification[];
-  setUserSelection: Function;
+  updateSingleInput: Function;
 }
 
 function GroupOfMultiselects({
   cwlInputName,
   groupedInputs,
-  setUserSelection
+  updateSingleInput
 }: MultiselectGroup) {
   return (
-    <div key={cwlInputName}>
+    <div>
       {groupedInputs.map((mockInput: InputSpecification) => {
         return (
           <UserInput
             key={`${cwlInputName}-${mockInput.name}`}
             onChange={(inputName, value) => {
-              setUserSelection({
+              updateSingleInput({
                 cwlInputName,
                 inputName,
                 value
@@ -67,7 +67,7 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
     return _.isEqual(Object.keys(hash1), Object.keys(hash2));
   }
 
-  function allSelectedValuesNonEmpty(hash: {}): boolean {
+  function inputArrayHasSelection(hash: {}): boolean {
     return Object.values(hash).every((value) => inputValueNonEmpty(value));
   }
 
@@ -100,8 +100,8 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   const allInputsPopulated: boolean = useMemo(() => {
     if (!options || !allNestedInputsPresent) return false;
 
-    return Object.keys(options).every((cwlInputName) =>
-      allSelectedValuesNonEmpty(selectedValues[cwlInputName])
+    return Object.values(selectedValues).every((nestedInputArray) =>
+      inputArrayHasSelection(nestedInputArray)
     );
   }, [options, selectedValues, allNestedInputsPresent]);
 
@@ -126,21 +126,17 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
 
   useEffect(() => {
     if (Object.keys(options || {}).length > 0 && selectedValuesChanged) {
-      if (allInputsPopulated) {
-        if (noEmptyStrings) onChange(input.name, selectedValues);
-        // If allInputsPopulated but some have empty strings, that
-        //   means the UI has a dropdown box waiting for user interaction.
-        // In that case, we do nothing.
-      } else {
+      if (allInputsPopulated && noEmptyStrings) {
+        onChange(input.name, selectedValues);
+      } else if (!allInputsPopulated) {
         onChange(input.name, null);
       }
+      setLastSelectedValues(selectedValues);
     }
-
-    setLastSelectedValues(selectedValues);
   }, [selectedValues]);
 
   useEffect(() => {
-    if (options && input.default) {
+    if (options && null != input.default) {
       setSelectedValues(input.default);
     }
   }, [options]);
@@ -184,9 +180,10 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
         ([cwlInputName, groupedInputs]: [string, InputSpecification[]]) => {
           return (
             <GroupOfMultiselects
+              key={cwlInputName}
               cwlInputName={cwlInputName}
               groupedInputs={groupedInputs}
-              setUserSelection={setUserSelection}
+              updateSingleInput={setUserSelection}
             />
           );
         }

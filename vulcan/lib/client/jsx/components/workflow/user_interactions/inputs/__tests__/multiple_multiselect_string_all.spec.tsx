@@ -29,6 +29,14 @@ describe('MultipleMultiselectStringAllInput', () => {
       .update();
   }
 
+  function renderedItemsList(component: ReactWrapper) {
+    return component.find('.delete_link').map((n) => n.text());
+  }
+
+  function renderedlabels(component: ReactWrapper) {
+    return component.find('.item_name').map((n) => n.text());
+  }
+
   beforeEach(() => {
     input = {
       type: 'doesnotmatter',
@@ -55,7 +63,7 @@ describe('MultipleMultiselectStringAllInput', () => {
       <MultipleMultiselectStringAllInput input={input} onChange={onChange} />
     );
     expect(component.find('.view_item').length).toEqual(4);
-    expect(component.find('.item_name').map((n) => n.text())).toEqual([
+    expect(renderedlabels(component)).toEqual([
       'option1',
       'option2',
       'option3',
@@ -64,21 +72,21 @@ describe('MultipleMultiselectStringAllInput', () => {
     addItem(component, 0, 0);
 
     expect(component.find('.delete_link').first().text()).toEqual('1');
-    expect(onChange).toHaveBeenCalledWith('test-input', null);
+    expect(onChange).not.toHaveBeenCalled();
 
     addItem(component, 0, 1);
-    expect(onChange).toHaveBeenCalledWith('test-input', null);
+    expect(onChange).not.toHaveBeenCalled();
 
     addItem(component, 1, 2);
-    expect(onChange).toHaveBeenCalledWith('test-input', null);
+    expect(onChange).not.toHaveBeenCalled();
 
     addItem(component, 2, 1);
-    expect(onChange).toHaveBeenCalledWith('test-input', null);
+    expect(onChange).not.toHaveBeenCalled();
+
     addItem(component, 3, 2);
+    expect(onChange).toHaveBeenCalled();
 
-    expect(onChange).toHaveBeenCalledWith('test-input', null);
     addItem(component, 3, 0);
-
     expect(component.find('.delete_link').last().text()).toEqual('a');
     expect(onChange).toHaveBeenCalledWith('test-input', {
       'options-a': {
@@ -90,6 +98,38 @@ describe('MultipleMultiselectStringAllInput', () => {
         option4: ['c', 'a']
       }
     });
+  });
+
+  it('resets the input in state when not all nested inputs populated', () => {
+    const component = mount(
+      <MultipleMultiselectStringAllInput input={input} onChange={onChange} />
+    );
+    expect(component.find('.view_item').length).toEqual(4);
+    expect(renderedlabels(component)).toEqual([
+      'option1',
+      'option2',
+      'option3',
+      'option4'
+    ]);
+    addItem(component, 0, 0);
+
+    expect(component.find('.delete_link').first().text()).toEqual('1');
+    expect(onChange).not.toHaveBeenCalled();
+
+    addItem(component, 0, 1);
+    expect(onChange).not.toHaveBeenCalled();
+
+    addItem(component, 1, 2);
+    expect(onChange).not.toHaveBeenCalled();
+
+    addItem(component, 2, 1);
+    expect(onChange).not.toHaveBeenCalled();
+
+    addItem(component, 3, 2);
+    expect(onChange).toHaveBeenCalled();
+
+    component.find('.delete_link').last().simulate('click');
+    expect(onChange).toHaveBeenCalledWith('test-input', null);
   });
 
   it('correctly sets the lists when given a default', () => {
@@ -108,13 +148,13 @@ describe('MultipleMultiselectStringAllInput', () => {
     );
 
     expect(component.find('.view_item').length).toEqual(4);
-    expect(component.find('.item_name').map((n) => n.text())).toEqual([
+    expect(renderedlabels(component)).toEqual([
       'option1',
       'option2',
       'option3',
       'option4'
     ]);
-    expect(component.find('.delete_link').map((val) => val.text())).toEqual([
+    expect(renderedItemsList(component)).toEqual([
       '1',
       '2',
       'y',
@@ -123,5 +163,55 @@ describe('MultipleMultiselectStringAllInput', () => {
       '7',
       'c'
     ]);
+  });
+
+  fit('can remove a single entry with a default', (done) => {
+    input.default = {
+      'options-a': {
+        option1: ['1', '2'],
+        option2: ['y']
+      },
+      'options-b': {
+        option3: ['8', '9', '7'],
+        option4: ['c']
+      }
+    };
+    const component = mount(
+      <MultipleMultiselectStringAllInput input={input} onChange={onChange} />
+    );
+
+    expect(component.find('.view_item').length).toEqual(4);
+    expect(renderedlabels(component)).toEqual([
+      'option1',
+      'option2',
+      'option3',
+      'option4'
+    ]);
+
+    expect(renderedItemsList(component)).toEqual([
+      '1',
+      '2',
+      'y',
+      '8',
+      '9',
+      '7',
+      'c'
+    ]);
+
+    component.find('.delete_link').last().simulate('click');
+    expect(onChange).toHaveBeenCalledWith('test-input', null);
+
+    input.default = null;
+    component.setProps({input});
+    component.update();
+    expect(renderedItemsList(component)).toEqual([
+      '1',
+      '2',
+      'y',
+      '8',
+      '9',
+      '7'
+    ]);
+    done();
   });
 });
