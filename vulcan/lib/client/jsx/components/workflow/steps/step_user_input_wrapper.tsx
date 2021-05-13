@@ -47,14 +47,30 @@ export default function StepUserInputWrapper({step}: { step: UIStep['step'] }) {
     }
   }, [allDataIsNonEmpty, allStepsComplete]);
 
+  // Keeping the component `key` as just the step.name
+  //   (without allStepsComplete)
+  //   makes sure the components don't unmount / remount
+  //   when they move from the Completed list to Pending.
+  // This could happen if a user goes back to change
+  //   a previous input step.
+  // Allowing the component to unmount / remount means that
+  //   the input values could reset to initial state and
+  //   wipe out other elements of the user selection.
+  // For example, in a multi-multiselect-string-all,
+  //   removing one of three choices could force the other
+  //   two to also reset if the component re-mounts.
+  // This does also mean that the steps may not automatically
+  //   hide their contents (i.e. the drawer close effect)
+  //   if edited and Run is clicked, but that seems more minor
+  //   compared to resetting user input values.
   const inner = 'isGroup' in step ?
       <StepUserInputDrawer
-          key={`${step.name}-${allStepsComplete}`}
+          key={`${step.name}`}
           step={step}
           handleInputChange={handleInputChange}
       /> :
       <StepUserInput
-          key={`${step.name}-${allStepsComplete}`}
+          key={`${step.name}`}
           step={step}
           handleInputChange={handleInputChange}
       />;

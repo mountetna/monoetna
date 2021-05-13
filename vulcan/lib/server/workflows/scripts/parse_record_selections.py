@@ -6,17 +6,18 @@ from archimedes.functions.environment import project_name
 pdat = input_json("project_data")[project_name]
 selection_atts = pdat['selection_options']
 
-selected = input_json('selected_options')
+# because a is the input name from the previous CWL input step
+selected = input_json('selected_options')["a"]
 
 magma = connect()
 
 # Create filters for all the 'select-bys' that the value for this attribute
 # must be among the options selected in the previous step.
 filters = []
-for set in list(selection_atts.keys()):
-    if len(selected[set]) > 0:
+for target in list(selection_atts.keys()):
+    if len(selected[target]) > 0:
         filters.append(
-            buildTargetPath( selection_atts[set], pdat ) + ['::in', selected[set]]
+            buildTargetPath( selection_atts[target], pdat ) + ['::in', selected[target]]
         )
 
 seq_target = parseModelAttr(pdat['seq_h5_counts_data'])
