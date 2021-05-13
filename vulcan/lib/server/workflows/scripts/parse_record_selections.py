@@ -14,7 +14,7 @@ magma = connect()
 # Create filters for all the 'select-bys' that the value for this attribute
 # must be among the options selected in the previous step.
 filters = []
-for selected_model in list(selected.keys()):
+for selected_model in list(selection_atts.keys()):
     if len(selected[selected_model]) > 0:
         filters.append(
             buildTargetPath( selection_atts[selected_model], pdat ) + ['::in', selected[selected_model]]
