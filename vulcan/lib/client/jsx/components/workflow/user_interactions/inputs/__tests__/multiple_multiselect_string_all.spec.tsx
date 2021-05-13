@@ -72,16 +72,16 @@ describe('MultipleMultiselectStringAllInput', () => {
     addItem(component, 0, 0);
 
     expect(component.find('.delete_link').first().text()).toEqual('1');
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith('test-input', null);
 
     addItem(component, 0, 1);
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith('test-input', null);
 
     addItem(component, 1, 2);
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith('test-input', null);
 
     addItem(component, 2, 1);
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith('test-input', null);
 
     addItem(component, 3, 2);
     expect(onChange).toHaveBeenCalled();
@@ -114,16 +114,16 @@ describe('MultipleMultiselectStringAllInput', () => {
     addItem(component, 0, 0);
 
     expect(component.find('.delete_link').first().text()).toEqual('1');
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith('test-input', null);
 
     addItem(component, 0, 1);
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith('test-input', null);
 
     addItem(component, 1, 2);
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith('test-input', null);
 
     addItem(component, 2, 1);
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith('test-input', null);
 
     addItem(component, 3, 2);
     expect(onChange).toHaveBeenCalled();
