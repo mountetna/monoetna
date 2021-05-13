@@ -174,7 +174,6 @@ export const shouldDownload = (url: string, workflow: Workflow, step: WorkflowSt
   if (stepStatus == null) return false;
   const {downloads} = stepStatus;
   if (downloads == null) return false;
-
   return !!step.out.find(outName => {
     const source = sourceNameOfReference([step.name, outName]);
     if (downloads[outName] !== url) return false;
