@@ -1,42 +1,27 @@
-from archimedes.functions.dataflow import input_var, output_json
+from archimedes.functions.dataflow import input_var, input_json, output_json, parseModelAttr, buildTargetPath
 from archimedes.functions.magma import question, connect
-from archimedes.functions.list import unique
+from archimedes.functions.list import unique, flatten
+from archimedes.functions.environment import project_name
 
-seq_model_name = "sc_seq"
-seq_pool_model_name = "sc_seq_pool"
+pdat = input_json("project_data")[project_name]
+selection_options = pdat['selection_options']
+
+seq_target = parseModelAttr(pdat['seq_h5_counts_data'])
+q_start = [
+    seq_target['model'],
+    [ '::has', seq_target['attribute']],
+    '::all'
+]
 
 magma = connect()
 
-experiments = question(
-    magma,
-    [
-        seq_model_name,
-        [ '::has', 'raw_counts_h5'],
-        '::all',
-        'biospecimen_group', 'experiment', 'alias'
-    ]
-)
+options = dict([
+    [ 
+        key,
+        unique(flatten(question(
+            magma,
+            q_start + buildTargetPath( selection_options[key], pdat )
+        )))
+    ] for key in list(selection_options.keys()) ])
 
-tissues = question(
-    magma,
-    [
-        seq_model_name,
-        [ '::has', 'raw_counts_h5'],
-        '::all',
-        'biospecimen_group', 'biospecimen_type'
-    ]
-)
-
-fractions = question(
-    magma,
-    [
-        seq_model_name,
-        [ '::has', 'raw_counts_h5'],
-        '::all',
-        'cell_fraction'
-    ]
-)
-
-output_json(unique(experiments), 'experiments')
-output_json(unique(tissues), 'tissues')
-output_json(unique(fractions), 'fractions')
+output_json(options, 'selection_options')

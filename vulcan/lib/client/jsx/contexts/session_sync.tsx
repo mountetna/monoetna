@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import {defaultApiHelpers} from "./api";
 import {Dispatch, MutableRefObject, useCallback, useEffect, useRef, useState} from "react";
 import {VulcanState} from "../reducers/vulcan_reducer";
@@ -72,7 +73,7 @@ export function useSessionSync(
 
     if (!post &&
         hasNoRunningSteps(state.current.status) &&
-        lastCompletedPollingRequest === state.current.session.inputs &&
+        _.isEqual(lastCompletedPollingRequest, state.current.session.inputs) &&
         currentRequestNumber >= minimumNumberRequests) {
       setCurrentRequestNumber(0);
       return;
