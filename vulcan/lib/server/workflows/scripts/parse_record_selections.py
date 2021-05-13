@@ -14,10 +14,10 @@ magma = connect()
 # Create filters for all the 'select-bys' that the value for this attribute
 # must be among the options selected in the previous step.
 filters = []
-for selected_model in list(selection_atts.keys()):
-    if len(selected[selected_model]) > 0:
+for target in list(selection_atts.keys()):
+    if len(selected[target]) > 0:
         filters.append(
-            buildTargetPath( selection_atts[selected_model], pdat ) + ['::in', selected[selected_model]]
+            buildTargetPath( selection_atts[target], pdat ) + ['::in', selected[target]]
         )
 
 seq_target = parseModelAttr(pdat['seq_h5_counts_data'])
