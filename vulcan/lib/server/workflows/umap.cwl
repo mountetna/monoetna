@@ -92,7 +92,7 @@ inputs:
     type: string
     default: 'mt-,Rpl,Rps'
     label: 'Gene prefixes to ignore'
-    doc: 'A set of strings, separated by commas, for which gene symbols starting with these strings should NOT be shown in the umap overlay. Note: this does not affect the full differential expression table that can be downloaded.'
+    doc: 'A set of strings, separated by commas, for which gene symbols starting with these strings should NOT be shown in the umap overlay. For human equivalent of default mouse mito and ribo removal, use MT-,RPL,RPS. Note: this does not affect the full differential expression table that can be downloaded.'
 
 outputs:
   the_data:
@@ -238,5 +238,11 @@ steps:
     in:
       leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
       ignore_prefixes: 6_Cluster_Differential_Expression__ignore_prefixes
-    out: [diffexp,top10.json]
+    out: [diffexp.csv,top10.json]
+  downloadDEData:
+    run: ui-outputs/link.cwl
+    in:
+      a: Differential_Expression__between_clusters/diffexp.csv
+    out: []
+    label: 'Download per-cluster Differential Experession data as csv'
 
