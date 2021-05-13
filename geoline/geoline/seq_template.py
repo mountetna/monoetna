@@ -1,20 +1,18 @@
 from functools import partial
+from typing import Dict
 
-from geoline.geoUtils import *
+from .geo_utils import characteristics, add_another
 
 
-def samplesSection(assay: str) -> Dict:
+def samples_section(assay: str) -> Dict:
     out = {
         'title': f'{assay}:tube_name',
         'source name': f'{assay}:biospecimen',
         'organism': 'subject:name',
-        'characteristics': partial(characteristics, addAnother=addAnother),
+        'characteristics': partial(characteristics, add_another_func=add_another),
         'molecule': '',
         'description': f'{assay}:notes',
         'processed data file': f'{assay}:gene_expression',
         'raw': f'{assay}:raw_fastqs'
     }
     return out
-
-
-

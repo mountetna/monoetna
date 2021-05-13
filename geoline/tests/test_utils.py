@@ -5,6 +5,7 @@ import os
 from typing import Dict
 from requests import Session
 
+
 def prepCassette(session: Session, cassette_dir: str):
     vcr = Betamax(session)
     vcr.register_serializer(pretty_json.PrettyJSONSerializer)
