@@ -59,6 +59,10 @@ export default function StepUserInputWrapper({step}: { step: UIStep['step'] }) {
   // For example, in a multi-multiselect-string-all,
   //   removing one of three choices could force the other
   //   two to also reset if the component re-mounts.
+  // This does also mean that the steps may not automatically
+  //   hide their contents (i.e. the drawer close effect)
+  //   if edited and Run is clicked, but that seems more minor
+  //   compared to resetting user input values.
   const inner = 'isGroup' in step ?
       <StepUserInputDrawer
           key={`${step.name}`}
