@@ -200,7 +200,7 @@ steps:
     run: scripts/calc_leiden.cwl
     label: 'Calculate Leiden clustering'
     in:
-      nn_anndata.h5ad: neighbors/nn_anndata.h5ad
+      nn_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden_resolution: 5_Cluster_Calculation__leiden_resolution
       use_weights: 5_Cluster_Calculation__leiden_use_weights
     out: [leiden.json,leiden_anndata.h5ad]
@@ -229,7 +229,7 @@ steps:
   downloadRawData:
     run: ui-outputs/link.cwl
     in:
-      a: leiden_umap/leiden_anndata.h5ad
+      a: calc_leiden/leiden_anndata.h5ad
     out: []
     label: 'Download data as h5ad'
   Differential_Expression__between_clusters:
@@ -244,5 +244,5 @@ steps:
     in:
       a: Differential_Expression__between_clusters/diffexp.csv
     out: []
-    label: 'Download per-cluster Differential Experession data as csv'
+    label: 'Download cluster DiffExp as csv'
 
