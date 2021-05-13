@@ -26,6 +26,18 @@ describe DirectedGraph do
     graph
   end
 
+  let(:graph_three) do
+    graph = DirectedGraph.new
+    graph.add_connection('a', 'b')
+    graph.add_connection('a', 'c')
+    graph.add_connection('c', 'd')
+    graph.add_connection('d', 'b')
+    graph.add_connection('b', 'e')
+    graph.add_connection('a', 'f')
+    graph.add_connection('e', 'f')
+    graph
+  end
+
   describe '#paths_from' do
     describe 'divergent paths' do
       it 'works' do
@@ -89,6 +101,14 @@ describe DirectedGraph do
             "h" => [],
             "i" => [],
         })
+        expect(graph_three.as_normalized_hash('a')).to eql({
+          "a" => ["b", "c", "f", "e", "d"],
+          "b" => ["e", "f"],
+          "c" => ["e", "d", "f", "b"],
+          "d" => ["f", "b", "e"],
+          "e" => ["f"],
+          "f" => [],
+      })
       end
     end
   end
