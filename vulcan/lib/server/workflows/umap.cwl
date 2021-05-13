@@ -219,6 +219,7 @@ steps:
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden.json: calc_leiden/leiden.json
       color_by: select_color_by_option/color_by
+      top10.json: Differential_Expression__between_clusters/top10.json
     out: [umap.plotly.json]
   show_umap_plot:
     run: ui-outputs/plotly.cwl

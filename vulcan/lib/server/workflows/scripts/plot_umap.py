@@ -4,6 +4,7 @@ from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.plotting import px, pio, colors
 from archimedes.functions.magma import connect, question
 from archimedes.functions.list import flatten
+from archimedes.functions.utils import pandas as pd
 
 
 scdata = sc.read(input_path('umap_anndata.h5ad'))
@@ -27,6 +28,15 @@ def get(ids, value):
 
 if color_by == 'Cluster':
     color = leiden
+    custom_tooltip = True
+    sets = input_json('top10.json')
+    texts = dict([
+        [
+            str(clust),
+            ' ' + ', '.join(sets[clust])
+        ] for clust in list(sets.keys()) ])
+    hover_name = 'top10 markers'
+    hover_text = [texts[str(val)] for val in leiden]
 elif color_by == 'Experiment':
     color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', 'experiment', 'alias' ])
 elif color_by == 'Tissue':
@@ -43,10 +53,20 @@ else:
     color = None
 
 ##### OUTPUT
-fig = px.scatter(
-    scdata.obsm['X_umap'], x=0, y=1,
-    color_discrete_sequence=colors,
-    color=color)
+if custom_tooltip:
+    dat = pd.DataFrame(scdata.obsm['X_umap'])
+    dat[hover_name] = hover_text
+    fig = px.scatter(
+        dat, x=0, y=1,
+        color_discrete_sequence=colors,
+        color=color,
+        hover_data=[hover_name]
+        )
+else:
+    fig = px.scatter(
+        scdata.obsm['X_umap'], x=0, y=1,
+        color_discrete_sequence=colors,
+        color=color)
 
 fig.update_layout(
     xaxis_title='UMAP0',
