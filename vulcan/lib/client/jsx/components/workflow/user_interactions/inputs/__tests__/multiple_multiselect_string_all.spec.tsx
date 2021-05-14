@@ -165,7 +165,7 @@ describe('MultipleMultiselectStringAllInput', () => {
     ]);
   });
 
-  it('can remove a single entry with a default', (done) => {
+  it('can remove a single entry with a default', () => {
     input.default = {
       'options-a': {
         option1: ['1', '2'],
@@ -212,6 +212,5 @@ describe('MultipleMultiselectStringAllInput', () => {
       '9',
       '7'
     ]);
-    done();
   });
 });
