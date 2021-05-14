@@ -329,8 +329,8 @@ def main():
 
     request: RunRequest = RunRequest(
         isolator=args.isolator,
-        input_files=[make_storage_file(s) for s in args.inputs],
-        output_files=[make_storage_file(s) for s in args.outputs],
+        input_files=[make_storage_file(s) for s in args.inputs] if args.inputs else [],
+        output_files=[make_storage_file(s) for s in args.outputs] if args.outputs else [],
         environment=args.env or [],
         script=(args.file and open(args.file, 'r').read()) or sys.stdin.read(),
         image=args.image
