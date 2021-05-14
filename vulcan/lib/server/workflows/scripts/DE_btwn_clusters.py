@@ -28,11 +28,11 @@ pd.concat(
 names = DEdat['names']
 out_len = 10
 
-filters = input_var('ignore_prefixes')
+filters = input_var('ignore_prefixes').lower()
 if len(filters) > 0:
     def trim_prefix(list, prefix):
         for item in list[:]:
-            if item.startswith(prefix):
+            if item.lower().startswith(prefix):
                 list.remove(item)
         return list
     def trim_prefixes(list, prefixes):

@@ -90,9 +90,9 @@ inputs:
     doc: 'The number of iterations for optimization - by default (0) either 200 for small datasets or 500 for large ones.'
   6_Cluster_Differential_Expression__ignore_prefixes:
     type: string
-    default: 'mt-,Rpl,Rps'
+    default: 'MT-,RPL,RPS'
     label: 'Gene prefixes to ignore'
-    doc: 'A set of strings, separated by commas, for which gene symbols starting with these strings should NOT be shown in the umap overlay. For human equivalent of default mouse mito and ribo removal, use MT-,RPL,RPS. Note: this does not affect the full differential expression table that can be downloaded.'
+    doc: 'A set of strings, separated by commas, for which gene symbols starting with these strings should NOT be shown in the umap overlay. Not case-sensitive, so the same strings will work for both human and mouse ribo & mito genes. Note: this does not affect the full differential expression table that can be downloaded.'
 
 outputs:
   the_data:
