@@ -321,8 +321,8 @@ def main():
     parser.add_argument('--file', help="The script file to run")
     parser.add_argument('--isolator', default='local', choices=['docker', 'local'])
     parser.add_argument('--image', default='etnaagent/archimedes:latest')
-    parser.add_argument('--input', dest='inputs', action='append', help="input files of the form name:/path/on/host")
-    parser.add_argument('--output', dest='outputs', action='append', help="output files of the form name:/path/on/host")
+    parser.add_argument('--input', dest='inputs', default=[], action='append', help="input files of the form name:/path/on/host")
+    parser.add_argument('--output', dest='outputs', default=[], action='append', help="output files of the form name:/path/on/host")
     parser.add_argument('-e', '--env', dest='env', action='append', help="environment variables of the form ABC=abc")
     
     args = parser.parse_args()
