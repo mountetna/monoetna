@@ -52,7 +52,12 @@ class DirectedGraph
             result[grandparent] << child_node if result.include?(grandparent)
           end
 
-          result[child_node] = []
+          # Depending on the graph shape, diamonds could lead to
+          #   resetting of previously calculated dependencies.
+          # Here we avoid resetting existing entries in `result`
+          #   and instead concatenate them if they already exist.
+          result[child_node] = [] unless result.include?(child_node)
+          result[n].concat(result[child_node]) if result.include?(child_node) && result.include?(n)
         end
       end
 

@@ -1,34 +1,38 @@
-from archimedes.functions.dataflow import output_json, input_json
+from archimedes.functions.dataflow import output_json, input_json, parseModelAttr, buildTargetPath
 from archimedes.functions.magma import connect, question
 from archimedes.functions.list import unique, flatten
+from archimedes.functions.environment import project_name
 
+pdat = input_json("project_data")[project_name]
+selection_atts = pdat['selection_options']
 
-seq_model_name = 'sc_seq'
-seq_pool_model_name = 'sc_seq_pool'
+# because a is the input name from the previous CWL input step
+selected = input_json('selected_options')["a"]
+
 magma = connect()
 
-experiments = input_json('experiments')
-tissues = input_json('tissues')
-fractions = input_json('fractions')
-
-# Experiment and Tissue (AND logic)
+# Create filters for all the 'select-bys' that the value for this attribute
+# must be among the options selected in the previous step.
 filters = []
-if len(experiments) > 0:
-    filters.append( ['biospecimen_group', 'experiment', 'alias', '::in', experiments])
-#### NEED TO TEST TISSUES BETTER ONCE ADDED
-if len(tissues) > 0:
-    filters.append( ['biospecimen_group', 'biospecimen_type', '::in', tissues] )
+for target in list(selection_atts.keys()):
+    if len(selected[target]) > 0:
+        filters.append(
+            buildTargetPath( selection_atts[target], pdat ) + ['::in', selected[target]]
+        )
 
-if len(fractions) > 0:
-    filters.append( ['cell_fraction', '::in', fractions] )
+seq_target = parseModelAttr(pdat['seq_h5_counts_data'])
 
 tube_records = unique(question(
     magma,
     [
-        seq_model_name,
-        [ '::has', 'raw_counts_h5'],
+    seq_target['model'],
+        [ '::has', seq_target['attribute']],
         *filters,
         '::all', '::identifier'
-    ]))
+    ]
+))
+
+if len(tube_records) < 1:
+    raise RuntimeError('No records with data meet the selected criteria.')
 
 output_json(tube_records, 'tube_recs')

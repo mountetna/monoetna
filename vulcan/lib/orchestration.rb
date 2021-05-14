@@ -78,7 +78,9 @@ class Vulcan
         unless ::File.exists?(ms.build_output&.data_path(storage))
           storage.with_run_cell_build(run_cell: storage.run_cell_for(ms)) do |build_dir, build_files|
             path = build_files.first.data_path(storage)
-            ::File.write(path, payload)
+            # If the payload is a Hash, we need to save it as a standard JSON
+            #   string, not a Ruby Hash with symbolized keys.
+            ::File.write(path, payload.is_a?(Hash) ? payload.to_json : payload)
             storage.install_build_output(buildable: ms, build_dir: build_dir)
           end
         end

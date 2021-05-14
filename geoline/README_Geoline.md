@@ -8,17 +8,19 @@ Also requires `magby` to be installed (https://github.com/mountetna/monoetna/tre
 
 
 ## Usage
-In a `jupyter` notebook  
+In a `jupyter` notebook
+
 ```python
 from geoline import Geoline
+
 url = 'https://magma.ucsf.edu'
 token = 'YOUR_JANUS_TOKEN_HERE'
-project = 'PROJECT_NAME_HERE' # name of a project you want to submit data from. It should exist in magma
+project = 'PROJECT_NAME_HERE'  # name of a project you want to submit data from. It should exist in magma
 gl = Geoline.Geoline(url, token, project)
 
-assay = 'ASSAY_NAME_HERE' # accepted assays 'rna_seq', 'dna_seq', 'sc_seq'
-primary_model = 'MODEL_NAME_HERE' # name of a model that has most of the data (e.g. rna_seq) 
-geo_meta = gl.seqWorkflow('rna_seq', 'rna_seq')
+assay = 'ASSAY_NAME_HERE'  # accepted assays 'rna_seq', 'dna_seq', 'sc_seq'
+primary_model = 'MODEL_NAME_HERE'  # name of a model that has most of the data (e.g. rna_seq) 
+geo_meta = gl.seq_workflow(assay, primary_model)
 ```
 
 You will be prompted with a series of interactive questions. Please follow the instructions in these questions.  
