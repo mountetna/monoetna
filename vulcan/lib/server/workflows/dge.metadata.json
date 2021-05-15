@@ -1,0 +1,10 @@
+{
+  "projects": ["xcrs1"],
+  "authors": ["Dan Bunis", "Gvaihir"],
+  "lastModified": "TODO",
+  "vignette": "TODO",
+  "tags": ["single-cell", "umap", "genes"],
+  "image": "dge_umap.png",
+  "displayName": "Single Cell DGE",
+  "description": "TODO"
+}
