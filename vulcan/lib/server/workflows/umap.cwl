@@ -108,19 +108,7 @@ steps:
   projectData:
     run: scripts/umap-projects.cwl
     label: 'Fetch project settings'
-    in:
-      a: 1_Cell_Filtering__min_nCounts
-      b: 1_Cell_Filtering__max_nCounts
-      c: 1_Cell_Filtering__min_nFeatures
-      d: 1_Cell_Filtering__max_per_mito
-      e: 1_Cell_Filtering__max_per_ribo
-      f: 2_Regress_by__regress_counts
-      g: 2_Regress_by__regress_genes
-      h: 2_Regress_by__regress_pct_mito
-      i: 2_Regress_by__regress_pct_ribo
-      j: 2_Regress_by__regress_tube_id
-      k: 3_For_UMAP_and_Clustering__max_pc
-      l: 5_Cluster_Calculation__leiden_resolution
+    in: []
     out: [project_data]
   queryMagma:
     run: scripts/retrieve_selection_options.cwl
