@@ -93,6 +93,11 @@ inputs:
     default: 'MT-,RPL,RPS'
     label: 'Gene prefixes to ignore'
     doc: 'A set of strings, separated by commas, for which gene symbols starting with these strings should NOT be shown in the umap overlay. Not case-sensitive, so the same strings will work for both human and mouse ribo & mito genes. Note: this does not affect the full differential expression table that can be downloaded.'
+  6_Cluster_Differential_Expression__dge_method:
+    type: string
+    default: 'wilcoxon'
+    label: 'testing method'
+    doc: 'A string indicating what scanpy method option to use for calculating differential expression. Options are: "logreg", "t-test", "wilcoxon", "t-test_overestim_var". See documentation for "scanpy.tl.rank_genes_groups" for further details.'
 
 outputs:
   the_data:
@@ -229,7 +234,7 @@ steps:
   downloadRawData:
     run: ui-outputs/link.cwl
     in:
-      a: calc_leiden/leiden_anndata.h5ad
+      a: Differential_Expression__between_clusters/umap_workflow_anndata.h5ad
     out: []
     label: 'Download data as h5ad'
   Differential_Expression__between_clusters:
@@ -238,7 +243,7 @@ steps:
     in:
       leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
       ignore_prefixes: 6_Cluster_Differential_Expression__ignore_prefixes
-    out: [diffexp.csv,top10.json]
+    out: [umap_workflow_anndata.h5ad, diffexp.csv,top10.json]
   downloadDEData:
     run: ui-outputs/link.cwl
     in:

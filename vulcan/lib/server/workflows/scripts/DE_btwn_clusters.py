@@ -6,8 +6,12 @@ from archimedes.functions.list import unique
 scdata = sc.read(input_path('leiden_anndata.h5ad'))
 
 # Run differential expression between clusters
-sc.tl.rank_genes_groups(scdata, 'leiden', method='wilcoxon')
+dge_method = input_var('dge_method')
+sc.tl.rank_genes_groups(scdata, 'leiden', method=dge_method)
 DEdat = scdata.uns['rank_genes_groups']
+
+# Output the anndata object
+scdata.write(output_path('umap_workflow_anndata.h5ad'))
 
 # Output target "columns" of the dict output as csv
 def DF_per_cluster(DEdat, cluster):
