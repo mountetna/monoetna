@@ -1,27 +1,20 @@
-from archimedes.functions.dataflow import output_json, input_var, input_json
+from archimedes.functions.dataflow import output_json, input_var, input_json, parseModelAttr, buildTargetPath
 from archimedes.functions.magma import connect, question
-from archimedes.functions.environment import token, magma_host
+from archimedes.functions.environment import token, magma_host, project_name
 
 input_records = input_json('record_ids')
 
-# Improve these with magby.getModels or similar in future
-seq_pool_model_name = 'sc_seq_pool'
-seq_model_name = 'sc_seq'
-h5_attr_name = 'raw_counts_h5'
-project_name = "xcrs1"  # <-- should be some sort of environment variable in future
-# <-- <-- same as above comment
+pdat = input_json("project_data")[project_name]
+seq_target = parseModelAttr(pdat['seq_h5_counts_data'])
+
 magma = connect()
 
-pool_records = [rec for rec in input_records if rec.find('POOL') != -1]
-tube_records = [rec for rec in input_records if rec.find('POOL') == -1]
-
-h5_locations = question(magma, [
-    seq_model_name,
+h5_locations = question(
+    magma, 
     [
-        '::or',
-        [ seq_pool_model_name, '::identifier', '::in', pool_records ],
-        ['::identifier', '::in', tube_records]
+        seq_target['model'],
+        ['::identifier', '::in', input_records],
+        '::all', seq_target['attribute'], '::url'
     ],
-    '::all', h5_attr_name, '::url'
-], strip_identifiers=False)
+    strip_identifiers=False)
 output_json(h5_locations, 'h5_locations')

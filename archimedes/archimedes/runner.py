@@ -277,8 +277,10 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 5, remove = T
             while isolator.is_running(process) and time.time() < done:
                 time.sleep(1)
 
+            timeout_reached = False
             if isolator.is_running(process):
                 print("Timeout reached, forcing stop", file=sys.stderr)
+                timeout_reached = True
                 isolator.stop(process)
 
             code = isolator.wait(process)
@@ -289,7 +291,10 @@ def run(request: RunRequest, isolator: Isolator[T], timeout = 60 * 5, remove = T
                     # When the container exits because of a 137,
                     #   stderr is an empty string, so not very
                     #   informative for debugging purposes.
-                    res.error = "Out of memory."
+                    if timeout_reached:
+                        res.error = "Timeout reached, script stopped."
+                    else:
+                        res.error = "Out of memory."
                 else:
                     res.error = isolator.get_stderr(process)
             else:
@@ -321,8 +326,8 @@ def main():
     parser.add_argument('--file', help="The script file to run")
     parser.add_argument('--isolator', default='local', choices=['docker', 'local'])
     parser.add_argument('--image', default='etnaagent/archimedes:latest')
-    parser.add_argument('--input', dest='inputs', action='append', help="input files of the form name:/path/on/host")
-    parser.add_argument('--output', dest='outputs', action='append', help="output files of the form name:/path/on/host")
+    parser.add_argument('--input', dest='inputs', default=[], action='append', help="input files of the form name:/path/on/host")
+    parser.add_argument('--output', dest='outputs', default=[], action='append', help="output files of the form name:/path/on/host")
     parser.add_argument('-e', '--env', dest='env', action='append', help="environment variables of the form ABC=abc")
     
     args = parser.parse_args()

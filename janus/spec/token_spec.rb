@@ -1,3 +1,5 @@
+
+
 describe "Token Generation" do
   include Rack::Test::Methods
 
@@ -11,9 +13,9 @@ describe "Token Generation" do
 
   def request_token rsa_key, nonce, email
     payload = [
-      nonce,
-      Base64.strict_encode64(email)
-    ].join('.')
+                nonce,
+                Base64.strict_encode64(email)
+              ].join('.')
 
     # sign it and base64 encode
     my_sig = Base64.strict_encode64(
@@ -23,10 +25,10 @@ describe "Token Generation" do
       )
     )
 
-    return [ payload, my_sig ].join('.')
+    return [payload, my_sig].join('.')
   end
 
-  before(:each) do 
+  before(:each) do
     @rsa_key = OpenSSL::PKey::RSA.generate 1024
 
     @user = create(
@@ -55,7 +57,7 @@ describe "Token Generation" do
     get('/api/tokens/nonce')
 
     # Encode your authorization request
-    request = request_token(@rsa_key, last_response.body,@user.email)
+    request = request_token(@rsa_key, last_response.body, @user.email)
 
     auth_header(request)
     post('/api/tokens/generate')
@@ -65,7 +67,7 @@ describe "Token Generation" do
     # A new token was returned
     token = last_response.body
 
-    expect{Janus.instance.sign.jwt_decode(token)}.not_to raise_error
+    expect { Janus.instance.sign.jwt_decode(token) }.not_to raise_error
   end
 
   it "rejects token generation with an invalid nonce" do
@@ -78,7 +80,7 @@ describe "Token Generation" do
     )
 
     # We sign it correctly as ourselves
-    request = request_token(@rsa_key, fake_nonce,@user.email)
+    request = request_token(@rsa_key, fake_nonce, @user.email)
 
     header 'Authorization', "Signed-Nonce #{request}"
     post('/api/tokens/generate')
@@ -92,7 +94,7 @@ describe "Token Generation" do
     get('/api/tokens/nonce')
 
     # But we ask for the wrong identity
-    request = request_token(@rsa_key, last_response.body,'polyphemus@mount.etna')
+    request = request_token(@rsa_key, last_response.body, 'polyphemus@mount.etna')
 
     header 'Authorization', "Signed-Nonce #{request}"
     post('/api/tokens/generate')
@@ -155,6 +157,30 @@ describe "Token Generation" do
       perm = create(:permission, project: mirror, user: @user, role: 'viewer')
     end
 
+    describe 'e2e' do
+      it 'works' do
+        # When re-recording, provide a TOKEN into the environment to run against your local development.
+        if (tok = ENV['TOKEN'])
+          header('Authorization', "Etna #{tok}")
+        else
+          auth_header(:viewer)
+        end
+
+        # When re-recording, you'll also have to enter the date you created the cassette
+        #   to avoid token expiration on future tests.
+        Timecop.freeze(DateTime.strptime("2021-05-06", "%Y-%m-%d"))
+
+        VCR.use_cassette('task_token.e2e') do
+          janus_client = Etna::Clients::Janus.new(host: 'https://janus.development.local', token: tok)
+          token = janus_client.generate_token('task', project_name: 'ipi')
+          janus_client = Etna::Clients::Janus.new(host: 'https://janus.development.local', token: token)
+          janus_client.validate_task_token
+        end
+
+        Timecop.return
+      end
+    end
+
     it 'creates a task token' do
       Timecop.freeze
 
@@ -164,7 +190,7 @@ describe "Token Generation" do
 
       payload = header = nil
 
-      expect{
+      expect {
         payload, header = Janus.instance.sign.jwt_decode(last_response.body)
       }.not_to raise_error
 
@@ -190,7 +216,7 @@ describe "Token Generation" do
 
       payload = header = nil
 
-      expect{
+      expect {
         payload, header = Janus.instance.sign.jwt_decode(last_response.body)
       }.not_to raise_error
 
