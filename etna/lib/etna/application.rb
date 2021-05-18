@@ -9,6 +9,7 @@ require_relative './generate_autocompletion_script'
 require 'singleton'
 require 'rollbar'
 require 'yabeda'
+require 'fileutils'
 
 module Etna::Application
   def self.included(other)
@@ -66,6 +67,8 @@ module Etna::Application
 
   def write_job_metrics(name)
     node_metrics_dir = config(:node_metrics_dir) || "/tmp/metrics.prom"
+    ::FileUtils.mkdir_p(node_metrics_dir)
+
     tmp_file = ::File.join(node_metrics_dir, "#{name}.prom.$$")
     ::File.open(tmp_file, "w") do |f|
       f.write(Prometheus::Client::Formats::Text.marshal(Prometheus::Client.registry))
