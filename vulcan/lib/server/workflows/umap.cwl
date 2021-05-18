@@ -231,6 +231,7 @@ steps:
     in:
       leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
       ignore_prefixes: 6_Cluster_Differential_Expression__ignore_prefixes
+      dge_method: 6_Cluster_Differential_Expression__dge_method
     out: [umap_workflow_anndata.h5ad, diffexp.csv,top10.json]
   downloadDEData:
     run: ui-outputs/link.cwl
