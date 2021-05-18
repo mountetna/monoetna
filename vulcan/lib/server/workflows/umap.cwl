@@ -102,7 +102,7 @@ inputs:
 outputs:
   the_data:
     type: File
-    outputSource: calc_umap/umap_anndata.h5ad
+    outputSource: Differential_Expression__between_clusters/umap_workflow_anndata.h5ad
 
 steps:
   projectData:
