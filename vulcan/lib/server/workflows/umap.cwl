@@ -88,6 +88,16 @@ inputs:
     label: 'Number of iterations?'
     default: 0
     doc: 'The number of iterations for optimization - by default (0) either 200 for small datasets or 500 for large ones.'
+  6_Cluster_Differential_Expression__ignore_prefixes:
+    type: string
+    default: 'MT-,RPL,RPS'
+    label: 'Gene prefixes to ignore'
+    doc: 'A set of strings, separated by commas, for which gene symbols starting with these strings should NOT be shown in the umap overlay. Not case-sensitive, so the same strings will work for both human and mouse ribo & mito genes. Note: this does not affect the full differential expression table that can be downloaded.'
+  6_Cluster_Differential_Expression__dge_method:
+    type: string
+    default: 'wilcoxon'
+    label: 'testing method'
+    doc: 'A string indicating what scanpy method option to use for calculating differential expression. Options are: "logreg", "t-test", "wilcoxon", "t-test_overestim_var". See documentation for "scanpy.tl.rank_genes_groups" for further details.'
 
 outputs:
   the_data:
@@ -183,10 +193,10 @@ steps:
     run: scripts/calc_leiden.cwl
     label: 'Calculate Leiden clustering'
     in:
-      nn_anndata.h5ad: neighbors/nn_anndata.h5ad
+      nn_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden_resolution: 5_Cluster_Calculation__leiden_resolution
       use_weights: 5_Cluster_Calculation__leiden_use_weights
-    out: [leiden.json]
+    out: [leiden.json,leiden_anndata.h5ad]
   select_color_by_option:
     run: ui-queries/nested-select-autocomplete.cwl
     label: 'Color Options'
@@ -201,6 +211,7 @@ steps:
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden.json: calc_leiden/leiden.json
       color_by: select_color_by_option/color_by
+      top10.json: Differential_Expression__between_clusters/top10.json
     out: [umap.plotly.json]
   show_umap_plot:
     run: ui-outputs/plotly.cwl
@@ -211,7 +222,21 @@ steps:
   downloadRawData:
     run: ui-outputs/link.cwl
     in:
-      a: calc_umap/umap_anndata.h5ad
+      a: Differential_Expression__between_clusters/umap_workflow_anndata.h5ad
     out: []
     label: 'Download data as h5ad'
+  Differential_Expression__between_clusters:
+    run: scripts/DE_btwn_clusters.cwl
+    label: 'Diff. Exp.: Cluster Markers'
+    in:
+      leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
+      ignore_prefixes: 6_Cluster_Differential_Expression__ignore_prefixes
+      dge_method: 6_Cluster_Differential_Expression__dge_method
+    out: [umap_workflow_anndata.h5ad, diffexp.csv,top10.json]
+  downloadDEData:
+    run: ui-outputs/link.cwl
+    in:
+      a: Differential_Expression__between_clusters/diffexp.csv
+    out: []
+    label: 'Download cluster DiffExp as csv'
 
