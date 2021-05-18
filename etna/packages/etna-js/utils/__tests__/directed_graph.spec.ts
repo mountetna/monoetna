@@ -1,5 +1,4 @@
 import {DirectedGraph} from '../directed_graph';
-import {delay} from '../../spec/helpers';
 
 describe('DirectedGraph', () => {
   let graphOne: any;

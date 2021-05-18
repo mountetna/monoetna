@@ -1,3 +1,5 @@
+// A port of directed_graph.rb to TypeScript
+
 export class DirectedGraph {
   children: {[key: string]: any};
   parents: {[key: string]: any};
