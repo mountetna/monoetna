@@ -417,9 +417,13 @@ Specific Details: The function first determines the model -> model path for navi
 
 In our example code for `retrieveMatrix()` and `retrieveMetadata()`, we obtained RNAseq data from the example project, and the linked metadata from the subject-model level. Now that we have these metadata for our rna_seq records, we could use them to start exploring our rna_seq data:
 
-```{r}
+```{r, eval=TRUE, include=FALSE}
+ditto_available <- requireNamespace("dittoSeq")
+```
+
+```{r, eval = ditto_available}
 library(dittoSeq)
-# Make plot with dittoSeq
+# Explore RNAseq data with dittoSeq
 sce <- importDittoBulk(
   list(tpm = mat), # mat was obtained with retrieveMatrix()
   metadata = meta # meta was obtained with retrieveMetadata()
