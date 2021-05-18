@@ -1,52 +1,37 @@
 # Prometheus
 
-Scrapping (pull) based monitoring and alerting service from google.
+Scrapping (pull) based _sample_ monitoring and alerting service from google.
 
-## So... not push?
+## But I need realtime streams of data.
 
-Right.  We don't _push_ metrics in real time into prometheus.  We collect and buffer metrics in our services and then have
-prometheus collect them over time.
+We can decrease the scrapping interval if it is needed.  That said, Prometheus is not going to provide real time data.  
+It is focused on easy maintenance and reliability first and foremost.  Many of its decisions are counterintuitive at
+first glance, but actually guarantee the least systems impact even as you scale the number of metrics we collect
+over time.  It is efficient, reliable, and low maintenance.
 
-This has some downsides to keep in mind
+# But I need non sampled data!
 
-1.  No guarantee of delivery.  Most metrics are just buffered in memory and thus process restart or bug can lose them.
-2.  Not real time.  Prometheus is configured with a collection target which aims for efficiency of the system, not real time collection.
-3.  Routing.  Prometheus needs access to each target, which means configuration involves things like service discovery and networking configuration.
-4.  Sample-oriented.  Prometheus is focused on gauges, windows, histograms, and sample based approaches to data.  This means by default most data is not perfectly accurate to infinite granularity.
+Prometheus *IS LOSEFUL*.  It doesn't collect discrete data points, but rather aggregatable samples.  
+Most of our collectors exist in memory and will drop data on process restart.
+Most collectors uses histograms to approximate percentile distributions.  
+That is because prometheus's primary object is maintainability and low systems impact.  
+That said, if you need high fidelity, loseless data, all you need to do is buffer that
+data somewhere and then provide it as a scrapping target to prometheus.  Or, not use prometheus.
 
-So, why?  Why not use something like statsd?
-
-1.  Higher guarantee of delivery, including retry and file system buffering.
-2.  Real time -- send metrics and show it immediately!
-3.  Only concerned about routing to the central system, service discovery only necessary for one system.
-4.  No need to buffer or sample, collect every metric always!
-
-This sounds heavily in favor of push systems, but there is one.  major.  flaw.  with that approach.
-
-Reliability.
-
-A systems monitoring tool has ONE job.  To be up, and alerting, when the rest of the system is having issues.
-There is no point to having real time, highly granular data that is experiencing network congestion, latency, 
-and storage issues in unpredictable ways.  Real time push systems must always constantly scale above and beyond the
-system it is responsible for or risk not having the most important data available at the moment the system is failing.
-
-PULLing buffered, sampled data on regular intervals is systematically more reliable.  There is no unpredictable growth.
-If data grows, sampling simply squashes that data into consistent bucketed sizes.  If the system's network is unreliable,
-pulling ensures that only a small amount of reliability is required to deliver consistently small payloads.  Pulling
-allows the system to prioritize some metrics over others.  Pulling allows the controller to estimate data lag by distance
-from last known pull, no matter the network conditions.
+Overtime, I can provide examples of alternative strategies, but I highly recommend considering wether a sampled
+approach is sufficient, due to its low impact and easy of implementation.
 
 ## Ok, how do I setup prometheus locally?
 
 It will run as part of `make up` just fine.  But you'll likely need to make some network changes to enable access.
 
-First, ensure you have a hosts entry for `prometheus.development.local`.  Secondly, you'll need to put your local docker
+First, ensure you have a hosts entry for `prometheus.development.local` and `grafana.development.local` if you intend  
+to use those UIs.  Secondly, you'll need to put your local docker
 into swarm mode.  Thirdly, you'll need to enable docker metrics in the daemon.json file.
 
-To do all of this correctly, you need to decide on which network you want to make this available to prometheus.  Remember,
+To do all of this correctly, you need to decide on which network you want to make available to your swarm.  Remember,
 prometheus is connecting inside docker and does not have access to the host's loopback interface.  This network is likely
 the one your ethernet or wireless card is connected to, since docker does expose those networks to inner containers.
-
 
 
 ```
@@ -77,7 +62,7 @@ sudo vim /etc/docker/daemon.json
   3   "experimental" : true
   4 }
   
-systemctl restart docker
+systemctl restart docker # Restart docker!
 ```
 
 Ok cool, remember to `make up` to bring up your services once docker has finished starting.

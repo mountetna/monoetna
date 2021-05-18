@@ -13,6 +13,7 @@ services:
     image: prom/prometheus:v2.26.0
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./rules.yml:/etc/prometheus/rules.yml:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
     entrypoint: /bin/sh -c
     user: 0:0
@@ -29,6 +30,14 @@ services:
       - 'rtemis.development.local:172.16.238.10'
       - 'archimedes.development.local:172.16.238.10'
       - 'polyphemus.development.local:172.16.238.10'
+
+  alertmanager:
+    image: prom/alertmanager:v0.21.0
+    container_name: alertmanager
+    volumes:
+      - ./alertmanager.yml:/alertmanager.yml
+    command:
+      - '--config.file=/alertmanager.yml'
 
   grafana:
     image: grafana/grafana:7.5.1
