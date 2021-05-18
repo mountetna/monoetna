@@ -1,4 +1,5 @@
 require 'open3'
+require 'benchmark'
 require_relative './asynchronous_scheduler'
 
 class Vulcan
@@ -201,7 +202,7 @@ class Vulcan
 
     # Synchronous runner implementation that expects the transaction to complete.
     def run!(storage:, build_target:, token:)
-      Yabeda.vulcan.job_runtime.measure do
+      Yabeda.vulcan.job_runtime.measure({script_hash: Storage.hash_json_obj(build_target.script)}, Benchmark.realtime do
         script = build_target.script
         if run_as_copy_cell(storage: storage, build_target: build_target, script: script)
           { 'status' => 'done' }
@@ -217,7 +218,7 @@ class Vulcan
         end
 
         raise "Build for #{build_target} failed to produce outputs!" unless build_target.is_built?(storage)
-      end
+      end)
     end
 
     def unique_paths

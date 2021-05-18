@@ -21,7 +21,8 @@ class Vulcan
         histogram :job_runtime do
           comment "Time spent by each cell, including storage and docker execution."
           unit :seconds
-          buckets [5, 15, 60, 150, 300]
+          tags [:script_hash]
+          buckets [1, 5, 15, 60, 150, 300]
         end
 
         gauge :storage_disk_usage do
