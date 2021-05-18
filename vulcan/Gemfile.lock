@@ -50,7 +50,6 @@ GEM
       racc (~> 1.4)
     pg (0.21.0)
     prometheus-client (2.1.0)
-    prometheus-client-mmap (0.12.0)
     pry (0.13.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
@@ -102,9 +101,6 @@ GEM
       prometheus-client (>= 0.10, < 3.0)
       rack
       yabeda (~> 0.5)
-    yabeda-prometheus-mmap (0.1.1)
-      prometheus-client-mmap
-      yabeda (~> 0.5)
     yabeda-puma-plugin (0.6.0)
       json
       puma
@@ -134,7 +130,6 @@ DEPENDENCIES
   webmock
   yabeda
   yabeda-prometheus
-  yabeda-prometheus-mmap
   yabeda-puma-plugin
 
 BUNDLED WITH

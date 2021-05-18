@@ -11,7 +11,6 @@ gem 'etna', path: '/etna'
 gem 'concurrent-ruby'
 gem "yabeda"
 gem "yabeda-prometheus"
-gem "yabeda-prometheus-mmap"
 gem "yabeda-puma-plugin"
 
 group :test do

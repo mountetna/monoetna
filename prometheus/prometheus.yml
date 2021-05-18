@@ -1,9 +1,19 @@
 scrape_configs:
+  - job_name: 'puma'
+    static_configs:
+      - targets: ['janus_app:9394', 'metis_app:9394', 'timur_app:9394', 'magma_app:9394']
+
+  - job_name: 'etna'
+    static_configs:
+      - targets: ['vulcan_app:3000']
+    basic_auth:
+      username: prometheus
+      password: metrics_pw
+
   # Make Prometheus scrape itself for metrics.
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
-
 
   # For each node in the swarm, fetch docker daemon metrics.  This must be enabled on the daemon first.
   - job_name: 'docker'

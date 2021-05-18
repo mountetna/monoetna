@@ -19,7 +19,6 @@ gem "prometheus-client"
 
 gem "yabeda"
 gem "yabeda-prometheus"
-gem "yabeda-prometheus-mmap"
 gem "yabeda-puma-plugin"
 
 group :test do

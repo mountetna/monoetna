@@ -98,9 +98,6 @@ GEM
       prometheus-client (>= 0.10, < 3.0)
       rack
       yabeda (~> 0.5)
-    yabeda-prometheus-mmap (0.1.1)
-      prometheus-client-mmap
-      yabeda (~> 0.5)
     yabeda-puma-plugin (0.6.0)
       json
       puma
@@ -131,7 +128,6 @@ DEPENDENCIES
   webmock
   yabeda
   yabeda-prometheus
-  yabeda-prometheus-mmap
   yabeda-puma-plugin
 
 RUBY VERSION

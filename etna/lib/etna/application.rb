@@ -64,6 +64,17 @@ module Etna::Application
     Yabeda.configure!
   end
 
+  def write_job_metrics(name)
+    node_metrics_dir = config(:node_metrics_dir) || "/tmp/metrics.prom"
+    tmp_file = ::File.join(node_metrics_dir, "#{name}.prom.$$")
+    ::File.open(tmp_file, "w") do |f|
+      f.write(Prometheus::Client::Formats::Text.marshal(Prometheus::Client.registry))
+    end
+
+    require 'fileutils'
+    ::FileUtils.mv(tmp_file, ::File.join(node_metrics_dir, "#{name}.prom"))
+  end
+
   def setup_logger
     @logger = Etna::Logger.new(
       # The name of the log_file, required.

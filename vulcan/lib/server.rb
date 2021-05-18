@@ -37,16 +37,5 @@ class Vulcan
       super
       application.setup_db
     end
-
-    def setup_yabeda
-      Yabeda.configure do
-        group :vulcan do
-          histogram :job_runtime do
-            comment "Time spent by each cell, including storage and docker execution."
-            unit :seconds
-          end
-        end
-      end
-    end
   end
 end

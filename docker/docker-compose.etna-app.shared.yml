@@ -29,6 +29,7 @@ x-base-etna-service:
   environment: &base-etna-env
     '${APP_ENV_PREFIX}ENV': 'development'
     APP_NAME: '${APP_NAME}'
+    METRICS_PW: 'metrics_pw'
   entrypoint: /entrypoints/development.sh
 
   networks:

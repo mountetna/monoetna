@@ -30,6 +30,15 @@ services:
       - 'archimedes.development.local:172.16.238.10'
       - 'polyphemus.development.local:172.16.238.10'
 
+  grafana:
+    image: grafana/grafana:7.5.1
+    container_name: grafana
+    volumes:
+      - ./datasources:/etc/grafana/provisioning/datasources
+    networks:
+      default:
+      edge_net:
+
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
