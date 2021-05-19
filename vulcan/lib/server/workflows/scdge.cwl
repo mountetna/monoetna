@@ -27,7 +27,7 @@ steps:
     in: []
     out: [project_data]
   queryMagma:
-    run: scripts/retrieve_analysis_options.cwl
+    run: scripts/retrieve_aattribute_options.cwl
     label: 'Fetch data options'
     in:
       project_data: projectData/project_data
@@ -44,8 +44,9 @@ steps:
     run: scripts/parse_attribute_selections.cwl
     label: 'Parse Subset Targets-1'
     in:
+      project_data: projectData/project_data
       selected_atts: selectSubsetAttributes/selected_atts
-      scdata: HOLDER_umap_anndata_output
+      scdata: queryMagma/scData
     out: [selection_values]
   selectSubsetValues:
     run: ui-queries/multiple-multiselect-string-all.cwl
