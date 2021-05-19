@@ -41,7 +41,7 @@ if color_by == 'Cluster':
         ] for clust in list(sets.keys()) ])
     hover_name = 'top10 markers'
     hover_text = [texts[str(val)] for val in leiden]
-elif color_by == 'Manual Annotations'
+elif color_by == 'Manual Annotations':
     annots = input_json('annots.json')
     color = [annots[x] for x in leiden]
 elif color_by == 'Tube':

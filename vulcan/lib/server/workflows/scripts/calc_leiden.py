@@ -20,7 +20,7 @@ output_json(
             str(clust),
             str(clust)
         ] for clust in range(max(clusts)+1)
-    )
+    ),
     'blank_annots.json'
 )
 
