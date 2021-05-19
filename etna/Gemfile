@@ -15,6 +15,11 @@ gem "aspera-cli"
 gem "rake" # for mimemagic??
 gem "mimemagic", "~>0.3.10" # for aspera-cli
 gem "concurrent-ruby"
+gem "prometheus-client"
+
+gem "yabeda"
+gem "yabeda-prometheus"
+gem "yabeda-puma-plugin"
 
 group :test do
   gem "pry", "~>0.13.0"

@@ -16,6 +16,8 @@ x-base-etna-service:
     'VULCAN_ENV': 'development'
     APP_NAME: 'vulcan'
     HOST_DIR_MAP: '/app=${PWD}/../vulcan'
+    METRICS_PW: 'metrics_pw'
+
   entrypoint: /entrypoints/development.sh
 
   networks:

@@ -21,7 +21,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 PATH="$DIR/../bin:$PATH"
 
 yq() {
-  docker run --rm -i -v /tmp:/workdir mikefarah/yq yq $@
+  docker run --rm -i -v /tmp:/workdir mikefarah/yq:3 yq $@
 }
 
 if [[ -e $1 ]]; then
@@ -80,37 +80,38 @@ $replacement
 $tail" > $1
 }
 
-set -f
-idx=0
-for mergeTarget in $COMPOSE_MIXINS; do
-  echo "Applying $mergeTarget to $1"
-  cp $DIR/$mergeTarget /tmp/
-  sed 's@${APP_NAME}@'"$APP_NAME"'@g' -i /tmp/$mergeTarget
-  sed 's@${APP_DASH_PREFIX}@'"$APP_DASH_PREFIX"'@g' -i /tmp/$mergeTarget
-  sed 's@${APP_ENV_PREFIX}@'"$APP_ENV_PREFIX"'@g' -i /tmp/$mergeTarget
-
-  IFS=$'\n'
-  for key in $(yq r -p p $mergeTarget "*" | tac); do
-    idx=$((idx + 1))
-    echo "Applying key $key"
-    if [[ $key =~ x-.* ]]; then
-      # Anchored extension keys
-      replaceKey /tmp/composed.yml $key "$(getKey /tmp/$mergeTarget $key)"
-    else
-      # Top level keys
-      yq r -D ' ' -p pv composed.yml "$key" > /tmp/a
-      yq r -D ' ' -p pv $mergeTarget "$key" > /tmp/b
-      yq m a b > /tmp/c
-      echo >> /tmp/c
-
-
-      IFS= replaceKey /tmp/composed.yml $key "$(getKey /tmp/c $key)"
-    fi
-    cp /tmp/composed.yml /tmp/composed.yml.${idx}
-    echo $key >> /tmp/composed.yml.${idx}
-  done
-  unset IFS
-done
-
-cat -s /tmp/composed.yml > /tmp/composed.yml.a
-mv /tmp/composed.yml.a $1
+# TODO: reimplement with yq v4 and better merging behaviors.
+#set -f
+#idx=0
+#for mergeTarget in $COMPOSE_MIXINS; do
+#  echo "Applying $mergeTarget to $1"
+#  cp $DIR/$mergeTarget /tmp/
+#  sed 's@${APP_NAME}@'"$APP_NAME"'@g' -i /tmp/$mergeTarget
+#  sed 's@${APP_DASH_PREFIX}@'"$APP_DASH_PREFIX"'@g' -i /tmp/$mergeTarget
+#  sed 's@${APP_ENV_PREFIX}@'"$APP_ENV_PREFIX"'@g' -i /tmp/$mergeTarget
+#
+#  IFS=$'\n'
+#  for key in $(yq r -p p $mergeTarget "*" | tac); do
+#    idx=$((idx + 1))
+#    echo "Applying key $key"
+#    if [[ $key =~ x-.* ]]; then
+#      # Anchored extension keys
+#      replaceKey /tmp/composed.yml $key "$(getKey /tmp/$mergeTarget $key)"
+#    else
+#      # Top level keys
+#      yq r -D ' ' -p pv composed.yml "$key" > /tmp/a
+#      yq r -D ' ' -p pv $mergeTarget "$key" > /tmp/b
+#      yq m a b > /tmp/c
+#      echo >> /tmp/c
+#
+#
+#      IFS= replaceKey /tmp/composed.yml $key "$(getKey /tmp/c $key)"
+#    fi
+#    cp /tmp/composed.yml /tmp/composed.yml.${idx}
+#    echo $key >> /tmp/composed.yml.${idx}
+#  done
+#  unset IFS
+#done
+#
+#cat -s /tmp/composed.yml > /tmp/composed.yml.a
+#mv /tmp/composed.yml.a $1

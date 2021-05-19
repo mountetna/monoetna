@@ -1,0 +1,13 @@
+#global:
+#  slack_api_url: 'https://api.slack.com/apps/A90S3Q753'
+route:
+  receiver: 'slack'
+
+receivers:
+  - name: 'slack'
+    slack_configs:
+      - send_resolved: true
+        username: 'dangerbot'
+        channel: '#bioinformatics-ping'
+        api_url: '-inject-secret-here-'
+        title_link: 'https://prometheus.development.local/#/alerts?receiver=slack'

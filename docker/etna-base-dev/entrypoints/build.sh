@@ -34,6 +34,10 @@ mkdir -p /usr/opt/httpd.conf.d
 echo "@app_name = '${APP_NAME}'" > /usr/opt/vars.rb
 rm -rf /usr/opt/httpd.conf.d/*.include
 
+# Prepare the puma.sh into the /app/bin directory.
+ln -sf /entrypoints/puma.sh /app/bin/
+chmod +x /app/bin/puma.sh
+
 if [ -e /app/build ]; then
   for hook in /app/build/*; do
     if stat -c  %A $hook | grep x &>/dev/null; then
