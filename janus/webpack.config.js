@@ -32,8 +32,8 @@ module.exports = (env) => ({
           '/etna/packages/etna-js',
         ],
 
-        // Only run `.js` and `.jsx` files through Babel
-        test: /\.jsx?$/
+        // Only run `.js`, `.jsx`, `.ts`, and `.tsx` files through Babel
+        test: /\.(js|ts)x?$/
       },
 
       {

@@ -322,4 +322,40 @@ describe UserController do
       )
     end
   end
+
+  context '#fetch_all' do
+    it 'returns all users for superusers' do
+      user = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org', flags: ['inside', 'outside'])
+
+      auth_header(:zeus)
+
+      get('/users')
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:users]).to match_array([
+        {
+          email: "janus@two-faces.org",                                  
+          name: "Janus Bifrons",
+          flags: ['inside', 'outside']
+        },
+        {
+          email: "zeus@olympus.org",                                  
+          name: "Zeus Almighty",
+          flags: nil
+        }
+      ])
+    end
+
+    it 'rejects non-superusers' do
+      user = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org', flags: ['inside', 'outside'])
+
+      auth_header(:janus)
+
+      get('/users')
+
+      expect(last_response.status).to eq(403)
+    end
+  end
 end
