@@ -102,7 +102,7 @@ inputs:
 outputs:
   the_data:
     type: File
-    outputSource: calc_umap/umap_anndata.h5ad
+    outputSource: Differential_Expression__between_clusters/umap_workflow_anndata.h5ad
 
 steps:
   projectData:
@@ -183,25 +183,31 @@ steps:
     run: scripts/calc_umap.cwl
     label: 'Calculate UMAP'
     in:
-      project_data: projectData/project_data
       spread: 4_UMAP_Calculation__umap_spread
       min_dist: 4_UMAP_Calculation__umap_min_dist
       num_iters: 4_UMAP_Calculation__umap_num_iters
       nn_anndata.h5ad: neighbors/nn_anndata.h5ad
-    out: [umap_anndata.h5ad,color_options]
+    out: [umap_anndata.h5ad]
   calc_leiden:
     run: scripts/calc_leiden.cwl
     label: 'Calculate Leiden clustering'
     in:
+      project_data: projectData/project_data
       nn_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden_resolution: 5_Cluster_Calculation__leiden_resolution
       use_weights: 5_Cluster_Calculation__leiden_use_weights
-    out: [leiden.json,leiden_anndata.h5ad]
+    out: [leiden.json,leiden_anndata.h5ad,blank_annots.json,color_options]
+  cluster_annotation:
+    run: ui-queries/multiinput-string.cwl
+    label: 'Manually Annotate Clusters'
+    in:
+      a: calc_leiden/blank_annots.json
+    out: [annots.json]
   select_color_by_option:
     run: ui-queries/nested-select-autocomplete.cwl
     label: 'Color Options'
     in:
-      a: calc_umap/color_options
+      a: calc_leiden/color_options
     out: [color_by]
   plot_umap:
     run: scripts/plot_umap.cwl
@@ -210,6 +216,7 @@ steps:
       project_data: projectData/project_data
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden.json: calc_leiden/leiden.json
+      annots.json: cluster_annotation/annots.json
       color_by: select_color_by_option/color_by
       top10.json: Differential_Expression__between_clusters/top10.json
     out: [umap.plotly.json]
