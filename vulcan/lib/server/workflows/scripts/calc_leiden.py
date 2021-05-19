@@ -1,5 +1,6 @@
-from archimedes.functions.dataflow import output_path, input_path, input_var, input_bool, output_json
+from archimedes.functions.dataflow import output_path, input_path, input_var, input_bool, output_json, input_json
 from archimedes.functions.scanpy import scanpy as sc
+from archimedes.functions.environment import project_name
 
 scdata = sc.read(input_path('nn_anndata.h5ad'))
 use_weights = input_bool('use_weights')
@@ -19,7 +20,9 @@ output_json(
         [
             str(clust),
             str(clust)
-        ] for clust in range(max(clusts)+1)
+        ] for clust in range(max(
+            [int(str) for str in clusts]
+            )+1)
     ),
     'blank_annots.json'
 )
