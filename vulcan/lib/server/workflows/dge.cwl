@@ -3,7 +3,7 @@ class: Workflow
 
 inputs:
   1_Processed_data__link:
-    type: str
+    type: string
     default: ''
     label: 'Provide a link?'
     doc: 'TODO'
