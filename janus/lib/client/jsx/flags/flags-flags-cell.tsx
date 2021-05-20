@@ -26,11 +26,11 @@ const FlagsCell = ({
       {flags?.map((flag) => (
         <Flag flag={flag} />
       ))}
-      <Tooltip title='Add'>
+      {/* <Tooltip title='Add'>
         <IconButton aria-label='add flag'>
           <AddIcon />
         </IconButton>
-      </Tooltip>
+      </Tooltip> */}
     </React.Fragment>
   );
 };
