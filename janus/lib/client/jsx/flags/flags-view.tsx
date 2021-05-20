@@ -1,14 +1,10 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import ScopedCssBaseline from '@material-ui/core/ScopedCssBaseline';
-import Grid from '@material-ui/core/Grid';
 import {makeStyles} from '@material-ui/core/styles';
-import TextField from '@material-ui/core/TextField';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import Search from '@material-ui/icons/Search';
 
 import {fetchUsers} from '../api/janus_api';
 
-import {UserFlagsInterface} from '../models/user_models';
+import {UserFlagsInterface} from '../types/janus_types';
 import UserTable from './flags-user-table';
 
 const useStyles = makeStyles((theme) => ({
@@ -18,6 +14,9 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const FlagsView = () => {
+  // Really, this should go into a Context.
+  //   And then we wouldn't have to pass users down through
+  //   props, and trigger data-fetching up via props.
   const [allUsers, setAllUsers] = useState([] as UserFlagsInterface[]);
 
   const classes = useStyles();
@@ -30,7 +29,14 @@ const FlagsView = () => {
 
   return (
     <ScopedCssBaseline>
-      <UserTable users={allUsers} />
+      <UserTable
+        users={allUsers}
+        onChange={() => {
+          fetchUsers().then(({users}) => {
+            setAllUsers(users);
+          });
+        }}
+      />
     </ScopedCssBaseline>
   );
 };

@@ -1,20 +1,10 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect} from 'react';
 import Grid from '@material-ui/core/Grid';
-import Button from '@material-ui/core/Button';
 import {makeStyles} from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import Search from '@material-ui/icons/Search';
-import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
-import Select from '@material-ui/core/Select';
-import Chip from '@material-ui/core/Chip';
-import AddIcon from '@material-ui/icons/Add';
-import RemoveIcon from '@material-ui/icons/Remove';
-import IconButton from '@material-ui/core/IconButton';
-import Tooltip from '@material-ui/core/Tooltip';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
 import {fetchProjects} from '../api/janus_api';
@@ -155,24 +145,6 @@ const TableControls = ({
           onChange={onChangeFlags}
           label='Flags'
         />
-      </Grid>
-      <Grid item xs={3}>
-        <Button
-          variant='contained'
-          color='primary'
-          className={classes.button}
-          startIcon={<AddIcon />}
-        >
-          Add Flag
-        </Button>
-        <Button
-          variant='contained'
-          color='secondary'
-          className={classes.button}
-          startIcon={<RemoveIcon />}
-        >
-          Remove Flag
-        </Button>
       </Grid>
     </Grid>
   );

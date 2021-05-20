@@ -14,6 +14,7 @@ import Paper from '@material-ui/core/Paper';
 import {UserFlagsInterface} from '../types/janus_types';
 import UserRow from './flags-user-row';
 import TableControls from './flags-table-controls';
+import AddRemove from './flags-add-remove';
 
 const useStyles = makeStyles((theme) => ({
   table: {
@@ -27,7 +28,13 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const UserTable = ({users}: {users: UserFlagsInterface[]}) => {
+const UserTable = ({
+  users,
+  onChange
+}: {
+  users: UserFlagsInterface[];
+  onChange: () => void;
+}) => {
   const [filteredUsers, setFilteredUsers] = useState(
     [] as UserFlagsInterface[]
   );
@@ -84,14 +91,25 @@ const UserTable = ({users}: {users: UserFlagsInterface[]}) => {
 
   return (
     <Grid container xs={12} direction='column' className={classes.margin}>
-      <Grid item>
-        <TableControls
-          onChangeSearch={setSearchTerm}
-          onChangeProjects={setSearchProjects}
-          onChangeFlags={setSearchFlags}
-          projectOptions={[...new Set(users.map((u) => u.projects).flat())]}
-          flagOptions={[...new Set(users.map((u) => u.flags || []).flat())]}
-        />
+      <Grid container item>
+        <Grid item xs={9}>
+          <TableControls
+            onChangeSearch={setSearchTerm}
+            onChangeProjects={setSearchProjects}
+            onChangeFlags={setSearchFlags}
+            projectOptions={[...new Set(users.map((u) => u.projects).flat())]}
+            flagOptions={[...new Set(users.map((u) => u.flags || []).flat())]}
+          />
+        </Grid>
+        <Grid item xs={3}>
+          <AddRemove
+            selectedUsers={selected}
+            onUpdateComplete={() => {
+              setSelected([]);
+              onChange();
+            }}
+          />
+        </Grid>
       </Grid>
       <Grid item>
         <TableContainer component={Paper}>
