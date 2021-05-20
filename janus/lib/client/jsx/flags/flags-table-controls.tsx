@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import Grid from '@material-ui/core/Grid';
+import Button from '@material-ui/core/Button';
 import {makeStyles} from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -8,11 +9,10 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControl from '@material-ui/core/FormControl';
-import ListItemText from '@material-ui/core/ListItemText';
 import Select from '@material-ui/core/Select';
-import Checkbox from '@material-ui/core/Checkbox';
 import Chip from '@material-ui/core/Chip';
 import AddIcon from '@material-ui/icons/Add';
+import RemoveIcon from '@material-ui/icons/Remove';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 
@@ -28,6 +28,9 @@ const useStyles = makeStyles((theme) => ({
   },
   chip: {
     margin: 2
+  },
+  button: {
+    margin: theme.spacing(1)
   }
 }));
 
@@ -136,12 +139,24 @@ const TableControls = ({
           label='Flags'
         />
       </Grid>
-
-      {/* <Tooltip title='Add'>
-        <IconButton aria-label='add flag'>
-          <AddIcon />
-        </IconButton>
-      </Tooltip> */}
+      <Grid item xs={3}>
+        <Button
+          variant='contained'
+          color='primary'
+          className={classes.button}
+          startIcon={<AddIcon />}
+        >
+          Add Flag
+        </Button>
+        <Button
+          variant='contained'
+          color='secondary'
+          className={classes.button}
+          startIcon={<RemoveIcon />}
+        >
+          Remove Flag
+        </Button>
+      </Grid>
     </Grid>
   );
 };
