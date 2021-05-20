@@ -30,7 +30,7 @@ class RemoteData(object):
 
 class LocalData(object):
     def __init__(self, data_location: str) -> None:
-        self._dir = data_location
+        self.dir = data_location
 
     def io_wrapper(self, inner_func: Callable, output_name: str, **kwargs) -> None:
         """
@@ -39,7 +39,7 @@ class LocalData(object):
         :param kwargs: dict. For inner_func
         :return: None
         """
-        scdata = sc.read(input_path(self._dir))
+        scdata = sc.read_h5ad(input_path(self.dir))
         scdata = inner_func(scdata, **kwargs)
         scdata.write(output_path(output_name))
 
