@@ -39,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 // Assumes this won't be in any project or flag string...
-const DELIMITER = '--';
+const DELIMITER = ' -- ';
 
 function MultiSelector({
   options,
@@ -53,7 +53,6 @@ function MultiSelector({
   const classes = useStyles();
 
   function onSelect(selection: string[]) {
-    console.log(selection.map((s) => unpackOption(s)));
     onChange(selection.map((s) => unpackOption(s)));
   }
 
@@ -77,11 +76,7 @@ function MultiSelector({
             placeholder={label}
           />
         )}
-        renderOption={(option, state) => (
-          <React.Fragment>
-            <span>{option}</span>
-          </React.Fragment>
-        )}
+        renderOption={(option, state) => <span>{option}</span>}
         filterOptions={(options, state) => {
           let regex = new RegExp(state.inputValue);
           return options.filter((o) => regex.test(o));
@@ -122,7 +117,7 @@ const TableControls = ({
         );
 
         return fullProject
-          ? `${p} ${DELIMITER} ${fullProject.project_name_full}`
+          ? `${p}${DELIMITER}${fullProject.project_name_full}`
           : p;
       })
     );

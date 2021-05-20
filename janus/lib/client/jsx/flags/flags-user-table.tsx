@@ -11,7 +11,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 
-import {UserFlagsInterface} from '../models/user_models';
+import {UserFlagsInterface} from '../types/janus_types';
 import UserRow from './flags-user-row';
 import TableControls from './flags-table-controls';
 
@@ -67,7 +67,7 @@ const UserTable = ({users}: {users: UserFlagsInterface[]}) => {
   }, [searchTerm, searchProjects, searchFlags]);
 
   function onSelectAllClick() {
-    setSelected(selected.length > 0 ? [] : users);
+    setSelected(selected.length > 0 ? [] : filteredUsers);
   }
 
   function onClickUser(user: UserFlagsInterface) {
