@@ -25,7 +25,7 @@ const UserRow = ({
 }: {
   user: UserFlagsInterface;
   isSelected: boolean;
-  onClick: (event: any, user: UserFlagsInterface) => void;
+  onClick: (user: UserFlagsInterface) => void;
 }) => {
   const [updatedFlags, setUpdatedFlags] = useState([] as string[] | null);
   const [allowSave, setAllowSave] = useState(false as boolean);
@@ -43,7 +43,7 @@ const UserRow = ({
   return (
     <TableRow
       hover
-      onClick={(event) => onClick(event, user)}
+      onClick={() => onClick(user)}
       role='checkbox'
       aria-checked={isSelected}
       tabIndex={-1}

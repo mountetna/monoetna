@@ -30,8 +30,8 @@ const UserTable = ({users}: {users: UserFlagsInterface[]}) => {
     setSelected(selected.length > 0 ? [] : users);
   }
 
-  function onClickUser(event: any, user: UserFlagsInterface) {
-    if (event.target.checked) {
+  function onClickUser(user: UserFlagsInterface) {
+    if (!isSelected(user)) {
       setSelected([...selected].concat([user]));
     } else {
       setSelected([...selected].filter((u) => u.email !== user.email));
