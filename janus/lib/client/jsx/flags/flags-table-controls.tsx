@@ -15,6 +15,10 @@ import AddIcon from '@material-ui/icons/Add';
 import RemoveIcon from '@material-ui/icons/Remove';
 import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+
+import {fetchProjects} from '../api/janus_api';
+import {Project} from '../types/janus_types';
 
 const useStyles = makeStyles((theme) => ({
   chips: {
@@ -23,8 +27,8 @@ const useStyles = makeStyles((theme) => ({
   },
   formControl: {
     margin: theme.spacing(1),
-    minWidth: 120,
-    maxWidth: 300
+    minWidth: 300,
+    maxWidth: 400
   },
   chip: {
     margin: 2
@@ -34,18 +38,10 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250
-    }
-  }
-};
+// Assumes this won't be in any project or flag string...
+const DELIMITER = '--';
 
-function ChipSelector({
+function MultiSelector({
   options,
   label,
   onChange
@@ -54,39 +50,43 @@ function ChipSelector({
   label: string;
   onChange: (selection: string[]) => void;
 }) {
-  const [selected, setSelected] = useState([] as string[]);
   const classes = useStyles();
 
   function onSelect(selection: string[]) {
-    setSelected(selection);
-    onChange(selection);
+    console.log(selection.map((s) => unpackOption(s)));
+    onChange(selection.map((s) => unpackOption(s)));
+  }
+
+  function unpackOption(opt: string) {
+    return opt.split(DELIMITER)[0].trim();
   }
 
   return (
     <FormControl className={classes.formControl}>
-      <InputLabel id={`${label}-filter-label`}>{label}</InputLabel>
-      <Select
-        labelId={`${label}-filter-label`}
-        id={`${label}-filter`}
+      <Autocomplete
         multiple
-        value={selected}
-        onChange={(e) => onSelect(e.target.value as string[])}
-        input={<Input id={`select-multiple-${label}`} />}
-        renderValue={(selectedItems: any) => (
-          <div className={classes.chips}>
-            {selectedItems.map((value: string) => (
-              <Chip key={value} label={value} className={classes.chip} />
-            ))}
-          </div>
+        id={`${label}-filter`}
+        options={options}
+        getOptionLabel={(option) => unpackOption(option)} // This shows up in the chip
+        onChange={(e, value) => onSelect(value as string[])}
+        renderInput={(params: any) => (
+          <TextField
+            {...params}
+            variant='outlined'
+            label={label}
+            placeholder={label}
+          />
         )}
-        MenuProps={MenuProps}
-      >
-        {options.sort().map((option) => (
-          <MenuItem key={option} value={option}>
-            {option}
-          </MenuItem>
-        ))}
-      </Select>
+        renderOption={(option, state) => (
+          <React.Fragment>
+            <span>{option}</span>
+          </React.Fragment>
+        )}
+        filterOptions={(options, state) => {
+          let regex = new RegExp(state.inputValue);
+          return options.filter((o) => regex.test(o));
+        }}
+      />
     </FormControl>
   );
 }
@@ -104,7 +104,29 @@ const TableControls = ({
   onChangeProjects: (projects: string[]) => void;
   onChangeFlags: (flags: string[]) => void;
 }) => {
+  const [projects, setProjects] = useState([] as Project[]);
+  const [prettyProjectOptions, setPrettyProjectOptions] = useState(
+    [] as string[]
+  );
   const classes = useStyles();
+
+  useEffect(() => {
+    fetchProjects().then(({projects}) => setProjects(projects));
+  }, []);
+
+  useEffect(() => {
+    setPrettyProjectOptions(
+      projectOptions.map((p: string): string => {
+        let fullProject = projects.find(
+          (project) => project.project_name === p
+        );
+
+        return fullProject
+          ? `${p} ${DELIMITER} ${fullProject.project_name_full}`
+          : p;
+      })
+    );
+  }, [projectOptions, projects]);
 
   return (
     <Grid container xs={12}>
@@ -126,14 +148,14 @@ const TableControls = ({
         />
       </Grid>
       <Grid item xs={3}>
-        <ChipSelector
-          options={projectOptions}
+        <MultiSelector
+          options={prettyProjectOptions}
           onChange={onChangeProjects}
           label='Projects'
         />
       </Grid>
       <Grid item xs={3}>
-        <ChipSelector
+        <MultiSelector
           options={flagOptions}
           onChange={onChangeFlags}
           label='Flags'

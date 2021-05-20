@@ -17,6 +17,7 @@
     "@babel/preset-typescript": "^7.13.0",
     "@material-ui/core": "^4.11.4",
     "@material-ui/icons": "^4.11.2",
+    "@material-ui/lab": "^4.0.0-alpha.58",
     "css-loader": "^3.6.0",
     "downloadjs": "^1.4.7",
     "etna-js": "file:/etna/packages/etna-js",

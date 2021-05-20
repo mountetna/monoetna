@@ -8,4 +8,6 @@ export const updateUserFlags = ({
 }: {
   email: string;
   flags: string[];
-}) => json_post('/flag_user', {email, flags});
+}): Promise<any> => json_post('/flag_user', {email, flags});
+
+export const fetchProjects = (): Promise<any> => json_get('/projects');
