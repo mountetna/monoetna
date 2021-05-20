@@ -1,5 +1,5 @@
 from archimedes.functions.dataflow import curl_data, input_json, input_var, output_json
-from .DataIO import RemoteData
+from DataIO import RemoteData
 
 if __name__ == '__main__':
     url = str(input_var('url'))

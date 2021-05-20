@@ -1,3 +1,3 @@
-from .DataIO import LocalData
+from DataIO import LocalData
 
 pass
