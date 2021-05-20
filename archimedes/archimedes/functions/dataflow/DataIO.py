@@ -1,7 +1,7 @@
 from archimedes.functions.dataflow import curl_data, input_path, output_path
 from archimedes.functions.scanpy import scanpy as sc
 
-from typing import Callable
+from typing import Callable, Dict
 from io import BytesIO
 import json
 
