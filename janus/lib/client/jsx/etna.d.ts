@@ -15,6 +15,8 @@ declare module 'etna-js/utils/fetch' {
   export function isJSON(response: Response): boolean;
 
   export function json_get(url: string): Promise<any>;
+
+  export function json_post(url: string, params: {}): Promise<any>;
 }
 
 declare module 'etna-js/hooks/useActionInvoker' {

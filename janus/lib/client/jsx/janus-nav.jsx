@@ -9,6 +9,7 @@ const Logo = () => <div id='logo'/>;
 const NavBar = ({user}) => <div id='nav'>
   <div className='nav_item'><a href='/settings'>Settings</a></div>
   { isSuperViewer(user) && <div className='nav_item'><a href='/admin'>Admin</a></div> }
+  { isSuperViewer(user) && <div className='nav_item'><a href='/flags'>Flags</a></div> }
 </div>
 
 const JanusNav = () => {

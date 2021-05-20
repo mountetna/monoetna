@@ -69,7 +69,8 @@ class UserController < Janus::Controller
         {
           email: u.email,
           name: u.name,
-          flags: u.flags
+          flags: u.flags,
+          projects: u.permissions.map { |p| p.project.project_name }
         }
       end
     })

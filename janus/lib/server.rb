@@ -51,6 +51,8 @@ class Janus
 
     get '/settings' do erb_view(:client) end
 
+    get '/flags' do erb_view(:client) end
+
     get '/:project_name', auth: { user: { can_edit?: :project_name } } do erb_view(:client) end
 
     get '/' do erb_view(:client) end
