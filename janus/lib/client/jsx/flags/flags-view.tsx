@@ -9,7 +9,7 @@ import {fetchUsers} from '../api/janus_api';
 
 import {UserFlagsInterface} from '../models/user_models';
 import UserTable from './flags-user-table';
-import TableFilters from './flags-table-filters';
+import TableControls from './flags-table-controls';
 
 const useStyles = makeStyles((theme) => ({
   margin: {
@@ -39,7 +39,7 @@ const FlagsView = () => {
   }, [allUsers]);
 
   useEffect(() => {
-    // (searchTerm across user.name && user.email) &&
+    // (searchTerm across user.name || user.email) &&
     //  (searchProjects OR'd) && (searchFlags OR'd)
     setFilteredUsers(
       allUsers
@@ -65,7 +65,7 @@ const FlagsView = () => {
   return (
     <Grid container xs={12} direction='column' className={classes.margin}>
       <Grid item>
-        <TableFilters
+        <TableControls
           onChangeSearch={setSearchTerm}
           onChangeProjects={setSearchProjects}
           onChangeFlags={setSearchFlags}

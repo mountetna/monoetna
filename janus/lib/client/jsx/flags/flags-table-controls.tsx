@@ -12,6 +12,9 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Select from '@material-ui/core/Select';
 import Checkbox from '@material-ui/core/Checkbox';
 import Chip from '@material-ui/core/Chip';
+import AddIcon from '@material-ui/icons/Add';
+import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
 
 const useStyles = makeStyles((theme) => ({
   chips: {
@@ -85,7 +88,7 @@ function ChipSelector({
   );
 }
 
-const TableFilters = ({
+const TableControls = ({
   onChangeSearch,
   onChangeProjects,
   onChangeFlags,
@@ -102,7 +105,7 @@ const TableFilters = ({
 
   return (
     <Grid container xs={12}>
-      <Grid item xs={4}>
+      <Grid item xs={3}>
         <TextField
           label='Search'
           variant='outlined'
@@ -119,22 +122,28 @@ const TableFilters = ({
           }}
         />
       </Grid>
-      <Grid item xs={4}>
+      <Grid item xs={3}>
         <ChipSelector
           options={projectOptions}
           onChange={onChangeProjects}
           label='Projects'
         />
       </Grid>
-      <Grid item xs={4}>
+      <Grid item xs={3}>
         <ChipSelector
           options={flagOptions}
           onChange={onChangeFlags}
           label='Flags'
         />
       </Grid>
+
+      {/* <Tooltip title='Add'>
+        <IconButton aria-label='add flag'>
+          <AddIcon />
+        </IconButton>
+      </Tooltip> */}
     </Grid>
   );
 };
 
-export default TableFilters;
+export default TableControls;

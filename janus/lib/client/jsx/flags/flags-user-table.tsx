@@ -1,10 +1,7 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import Grid from '@material-ui/core/Grid';
-import {makeStyles} from '@material-ui/core/styles';
-import TextField from '@material-ui/core/TextField';
-import InputAdornment from '@material-ui/core/InputAdornment';
-import Search from '@material-ui/icons/Search';
 
+import {makeStyles} from '@material-ui/core/styles';
+import Checkbox from '@material-ui/core/Checkbox';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -26,13 +23,42 @@ const useStyles = makeStyles({
 });
 
 const UserTable = ({users}: {users: UserFlagsInterface[]}) => {
+  const [selected, setSelected] = useState([] as UserFlagsInterface[]);
   const classes = useStyles();
+
+  function onSelectAllClick() {
+    setSelected(selected.length > 0 ? [] : users);
+  }
+
+  function onClickUser(event: any, user: UserFlagsInterface) {
+    if (event.target.checked) {
+      setSelected([...selected].concat([user]));
+    } else {
+      setSelected([...selected].filter((u) => u.email !== user.email));
+    }
+  }
+
+  function isSelected(user: UserFlagsInterface) {
+    return selected.filter((u) => u.email === user.email).length > 0;
+  }
 
   return (
     <TableContainer component={Paper}>
       <Table className={classes.table} aria-label='user flags'>
         <TableHead>
           <TableRow>
+            <TableCell padding='checkbox'>
+              <Checkbox
+                indeterminate={
+                  selected.length > 0 && selected.length < users.length
+                }
+                checked={
+                  selected.length > 0 && selected.length === users.length
+                }
+                onChange={onSelectAllClick}
+                inputProps={{'aria-label': 'select all users'}}
+              />
+            </TableCell>
             <TableCell className={classes.header}>Name</TableCell>
             <TableCell className={classes.header}>Email</TableCell>
             <TableCell className={classes.header}>Projects</TableCell>
@@ -42,7 +68,12 @@ const UserTable = ({users}: {users: UserFlagsInterface[]}) => {
         </TableHead>
         <TableBody>
           {users.map((user) => (
-            <UserRow user={user} key={user.email} />
+            <UserRow
+              user={user}
+              key={user.email}
+              onClick={onClickUser}
+              isSelected={isSelected(user)}
+            />
           ))}
         </TableBody>
       </Table>

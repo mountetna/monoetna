@@ -1,9 +1,9 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import * as _ from 'lodash';
+import Checkbox from '@material-ui/core/Checkbox';
 
 import {makeStyles} from '@material-ui/core/styles';
 import {UserFlagsInterface} from '../models/user_models';
-import {updateUserFlags} from '../api/janus_api';
 import {TableCell} from '@material-ui/core';
 import TableRow from '@material-ui/core/TableRow';
 
@@ -18,7 +18,15 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const UserRow = ({user}: {user: UserFlagsInterface}) => {
+const UserRow = ({
+  user,
+  isSelected,
+  onClick
+}: {
+  user: UserFlagsInterface;
+  isSelected: boolean;
+  onClick: (event: any, user: UserFlagsInterface) => void;
+}) => {
   const [updatedFlags, setUpdatedFlags] = useState([] as string[] | null);
   const [allowSave, setAllowSave] = useState(false as boolean);
 
@@ -33,12 +41,25 @@ const UserRow = ({user}: {user: UserFlagsInterface}) => {
   }, [updatedFlags]);
 
   return (
-    <TableRow>
+    <TableRow
+      hover
+      onClick={(event) => onClick(event, user)}
+      role='checkbox'
+      aria-checked={isSelected}
+      tabIndex={-1}
+      selected={isSelected}
+    >
+      <TableCell padding='checkbox'>
+        <Checkbox
+          checked={isSelected}
+          inputProps={{'aria-labelledby': user.email}}
+        />
+      </TableCell>
       <TableCell className={classes.cell}>{user.name}</TableCell>
       <TableCell className={classes.cell}>{user.email}</TableCell>
       <TableCell className={classes.cell}>{user.projects.join(',')}</TableCell>
       <TableCell className={classes.cell}>
-        <FlagsCell flags={updatedFlags} onChange={setUpdatedFlags} />
+        <FlagsCell flags={updatedFlags} />
       </TableCell>
       <TableCell className={classes.cell}>
         {allowSave ? <div> Save buttn </div> : null}
