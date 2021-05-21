@@ -26,13 +26,9 @@ export type ProviderProps = {
 export const FlagsProvider = (
   props: ProviderProps & Partial<FlagsContextData>
 ) => {
-  const [state, setState] = useState(defaultFlagsState);
+  const [state, setState] = useState(props.state || defaultFlagsState);
   const [projects, setProjects] = useState([] as Project[]);
   const [users, setUsers] = useState([] as UserFlagsInterface[]);
-
-  useEffect(() => {
-    setState(props.state || defaultFlagsState);
-  }, []);
 
   useEffect(() => {
     setState({...state, users, projects});
