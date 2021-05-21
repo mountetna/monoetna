@@ -27,12 +27,13 @@ steps:
     doc: 'TODO'
     in:
       opts: get_data/covariates.json
-    out: [selected_options]
+    out: [selected_options.json]
   perform_dge:
     run: scripts/dge.cwl
     label: 'Start actual DGE'
     doc: 'TODO'
     in:
+      selected_covariates: select_covariates/selected_options.json
       data: get_data/processed_data.h5ad
     out: [dge_data.h5ad]
   select_download_types:
