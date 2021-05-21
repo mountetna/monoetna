@@ -30,6 +30,7 @@ def get(ids, value):
 pdat = input_json("project_data")[project_name]
 color_options = pdat['color_options']
 
+custom_tooltip = False
 if color_by == 'Cluster':
     color = leiden
     custom_tooltip = True
