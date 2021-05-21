@@ -1,20 +1,12 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React from 'react';
 
-import {makeStyles} from '@material-ui/core/styles';
-
-import Flag from './flags-flag';
-
-const useStyles = makeStyles((theme) => ({
-  margin: {
-    margin: theme.spacing(3)
-  }
-}));
+import Chip from '@material-ui/core/Chip';
 
 const FlagsCell = ({flags}: {flags: string[] | null}) => {
   return (
     <React.Fragment>
-      {flags?.map((flag) => (
-        <Flag flag={flag} />
+      {flags?.map((flag, index) => (
+        <Chip label={flag} key={index} />
       ))}
     </React.Fragment>
   );

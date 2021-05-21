@@ -39,7 +39,8 @@ const AddRemoveFlag = ({
 }) => {
   const [inputFlag, setInputFlag] = useState('' as string);
   const [payloads, setPayloads] = useState([] as UpdatePayload[]);
-  const [errors, setErrors] = useState('' as string);
+  const [message, setMessage] = useState('' as string);
+  const [hasError, setHasError] = useState(false);
   let {setUsers} = useContext(FlagsContext);
   const classes = useStyles();
 
@@ -50,7 +51,8 @@ const AddRemoveFlag = ({
   }, [payloads]);
 
   function reset() {
-    setErrors('');
+    setHasError(false);
+    setMessage('');
     setPayloads([]);
     setInputFlag('');
   }
@@ -88,10 +90,14 @@ const AddRemoveFlag = ({
         return fetchUsers();
       })
       .then(({users}) => {
+        setMessage('Saved!');
         setUsers(users);
       })
       .catch((error) => {
-        error.then((err: {error: string}) => setErrors(err.error));
+        error.then((err: {error: string}) => {
+          setMessage(err.error);
+          setHasError(true);
+        });
       });
   }
 
@@ -105,11 +111,11 @@ const AddRemoveFlag = ({
       />
       <CardContent>
         <TextField
-          error={'' !== errors}
+          error={hasError}
           label='Flag text'
           variant='outlined'
           value={inputFlag}
-          helperText={errors ? errors : ''}
+          helperText={message ? message : ''}
           onChange={(e) => setInputFlag(e.target.value as string)}
         />
       </CardContent>

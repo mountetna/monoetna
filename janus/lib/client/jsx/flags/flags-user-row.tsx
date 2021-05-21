@@ -1,5 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
-import * as _ from 'lodash';
+import React from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
 
 import {makeStyles} from '@material-ui/core/styles';
@@ -27,18 +26,7 @@ const UserRow = ({
   isSelected: boolean;
   onClick: (user: UserFlagsInterface) => void;
 }) => {
-  const [updatedFlags, setUpdatedFlags] = useState([] as string[] | null);
-  const [allowSave, setAllowSave] = useState(false as boolean);
-
   const classes = useStyles();
-
-  useEffect(() => {
-    setUpdatedFlags(user.flags);
-  }, [user.flags]);
-
-  useEffect(() => {
-    setAllowSave(!_.isEqual(updatedFlags, user.flags));
-  }, [updatedFlags]);
 
   return (
     <TableRow
@@ -59,7 +47,7 @@ const UserRow = ({
       <TableCell className={classes.cell}>{user.email}</TableCell>
       <TableCell className={classes.cell}>{user.projects.join(',')}</TableCell>
       <TableCell className={classes.cell}>
-        <FlagsCell flags={updatedFlags} />
+        <FlagsCell flags={user.flags} />
       </TableCell>
     </TableRow>
   );

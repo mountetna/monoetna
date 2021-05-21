@@ -104,6 +104,7 @@ const TableControls = ({
 
   useEffect(() => {
     if (projects) {
+      console.log('projects', projects);
       setPrettyProjectOptions(
         projectOptions.map((p: string): string => {
           let fullProject = projects.find(
@@ -118,8 +119,10 @@ const TableControls = ({
     }
   }, [projectOptions, projects]);
 
+  console.log('pretty projects', prettyProjectOptions);
+
   return (
-    <Grid container xs={12}>
+    <Grid container>
       <Grid item xs={3}>
         <TextField
           label='Search'

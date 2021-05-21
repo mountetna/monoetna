@@ -1,4 +1,4 @@
-import React, {useState, createContext} from 'react';
+import React, {useState, useEffect, createContext} from 'react';
 
 import {UserFlagsInterface, Project} from '../types/janus_types';
 
@@ -26,15 +26,17 @@ export type ProviderProps = {
 export const FlagsProvider = (
   props: ProviderProps & Partial<FlagsContextData>
 ) => {
-  const [state, setState] = useState({} as FlagsState);
+  const [state, setState] = useState(defaultFlagsState);
+  const [projects, setProjects] = useState([] as Project[]);
+  const [users, setUsers] = useState([] as UserFlagsInterface[]);
 
-  function setUsers(users: UserFlagsInterface[]) {
-    setState({...state, users});
-  }
+  useEffect(() => {
+    setState(props.state || defaultFlagsState);
+  }, []);
 
-  function setProjects(projects: Project[]) {
-    setState({...state, projects});
-  }
+  useEffect(() => {
+    setState({...state, users, projects});
+  }, [users, projects]);
 
   return (
     <FlagsContext.Provider

@@ -42,8 +42,7 @@ const UserTable = () => {
 
   let {
     state: {users},
-    setUsers,
-    setProjects
+    setUsers
   } = useContext(FlagsContext);
 
   useEffect(() => {
@@ -100,8 +99,8 @@ const UserTable = () => {
   }
 
   return (
-    <Grid container xs={12} direction='column' className={classes.margin}>
-      <Grid container item>
+    <Grid container direction='column' className={classes.margin}>
+      <Grid container item xs={12}>
         <Grid item xs={9}>
           <TableControls
             onChangeSearch={setSearchTerm}
@@ -115,7 +114,7 @@ const UserTable = () => {
           {selected.length > 0 ? <AddRemove selectedUsers={selected} /> : null}
         </Grid>
       </Grid>
-      <Grid item>
+      <Grid item xs={12}>
         <TableContainer component={Paper}>
           <Table className={classes.table} aria-label='user flags'>
             <TableHead>
