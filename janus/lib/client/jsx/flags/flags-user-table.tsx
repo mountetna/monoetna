@@ -102,13 +102,15 @@ const UserTable = ({
           />
         </Grid>
         <Grid item xs={3}>
-          <AddRemove
-            selectedUsers={selected}
-            onUpdateComplete={() => {
-              setSelected([]);
-              onChange();
-            }}
-          />
+          {selected.length > 0 ? (
+            <AddRemove
+              selectedUsers={selected}
+              onUpdateComplete={() => {
+                setSelected([]);
+                onChange();
+              }}
+            />
+          ) : null}
         </Grid>
       </Grid>
       <Grid item>

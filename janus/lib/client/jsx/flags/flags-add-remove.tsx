@@ -50,7 +50,11 @@ const AddRemoveFlag = ({
     }
   }, [payloads]);
 
-  if (selectedUsers.length === 0) return null;
+  function reset() {
+    setErrors('');
+    setPayloads([]);
+    setInputFlag('');
+  }
 
   function onAddFlag() {
     if ('' === inputFlag) return;
@@ -74,20 +78,21 @@ const AddRemoveFlag = ({
     );
   }
 
-  async function executeUpdate(payloads: UpdatePayload[]) {
+  function executeUpdate(payloads: UpdatePayload[]) {
     let promises: Promise<any>[] = payloads.map((payload) =>
       updateUserFlags(payload)
     );
 
-    await Promise.all(promises)
+    Promise.all(promises)
       .then(() => {
-        setInputFlag('');
-        setPayloads([]);
+        reset();
         onUpdateComplete();
       })
       .catch((error) => {
-        console.error(error);
-        //   setErrors(error.message);
+        return error;
+      })
+      .then((err) => {
+        setErrors(err.error);
       });
   }
 
@@ -101,12 +106,13 @@ const AddRemoveFlag = ({
       />
       <CardContent>
         <TextField
+          error={'' !== errors}
           label='Flag text'
           variant='outlined'
           value={inputFlag}
+          helperText={errors ? errors : ''}
           onChange={(e) => setInputFlag(e.target.value as string)}
         />
-        {errors ? <Typography gutterBottom>{errors}</Typography> : null}
       </CardContent>
       <CardActions disableSpacing>
         <Button
