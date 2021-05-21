@@ -4,7 +4,7 @@ class: Workflow
 inputs:
 <<<<<<< HEAD
   1_Processed_data__link:
-    type: string
+    type: str
     default: ''
     label: 'Provide a link?'
 =======
