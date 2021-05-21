@@ -9,6 +9,9 @@ gem 'fog-aws'
 gem 'puma', '>=5.0.2'
 gem 'etna', path: '/etna'
 gem 'concurrent-ruby'
+gem "yabeda"
+gem "yabeda-prometheus"
+gem "yabeda-puma-plugin"
 
 group :test do
   gem 'rspec'

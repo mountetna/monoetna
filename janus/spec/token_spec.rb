@@ -166,12 +166,18 @@ describe "Token Generation" do
           auth_header(:viewer)
         end
 
+        # When re-recording, you'll also have to enter the date you created the cassette
+        #   to avoid token expiration on future tests.
+        Timecop.freeze(DateTime.strptime("2021-05-06", "%Y-%m-%d"))
+
         VCR.use_cassette('task_token.e2e') do
           janus_client = Etna::Clients::Janus.new(host: 'https://janus.development.local', token: tok)
           token = janus_client.generate_token('task', project_name: 'ipi')
           janus_client = Etna::Clients::Janus.new(host: 'https://janus.development.local', token: token)
           janus_client.validate_task_token
         end
+
+        Timecop.return
       end
     end
 

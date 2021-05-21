@@ -1,9 +1,11 @@
-from archimedes.functions.dataflow import output_path, input_path, input_var, json, input_json
+from archimedes.functions.dataflow import output_path, input_path, input_var, json, input_json, buildTargetPath
 from archimedes.functions.utils import re
 from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.plotting import px, pio, colors
 from archimedes.functions.magma import connect, question
 from archimedes.functions.list import flatten
+from archimedes.functions.environment import project_name
+from archimedes.functions.utils import pandas as pd
 
 
 scdata = sc.read(input_path('umap_anndata.h5ad'))
@@ -25,28 +27,44 @@ def get(ids, value):
 
     return [ values.get(id, None) for id in ids ]
 
+pdat = input_json("project_data")[project_name]
+color_options = pdat['color_options']
+
 if color_by == 'Cluster':
     color = leiden
-elif color_by == 'Experiment':
-    color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', 'experiment', 'alias' ])
-elif color_by == 'Tissue':
-    color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', 'biospecimen_type' ])
-elif color_by == 'Pool':
-    color = get(scdata.obs[ 'Record_ID' ], [ 'sc_seq_pool', '::identifier' ])
-elif color_by == 'Biospecimen Group':
-    color = get(scdata.obs[ 'Record_ID' ], [ 'biospecimen_group', '::identifier' ])
+    custom_tooltip = True
+    sets = input_json('top10.json')
+    texts = dict([
+        [
+            str(clust),
+            ' ' + ', '.join(sets[clust])
+        ] for clust in list(sets.keys()) ])
+    hover_name = 'top10 markers'
+    hover_text = [texts[str(val)] for val in leiden]
 elif color_by == 'Tube':
     color = scdata.obs[ 'Record_ID' ]
 elif color_by in scdata.raw.var_names:
     color = flatten(scdata.raw.X[ : , scdata.raw.var_names == color_by ].toarray())
+elif color_by in color_options.keys():
+    color = get(scdata.obs[ 'Record_ID' ], buildTargetPath(color_options[color_by], pdat))
 else:
     color = None
 
 ##### OUTPUT
-fig = px.scatter(
-    scdata.obsm['X_umap'], x=0, y=1,
-    color_discrete_sequence=colors,
-    color=color)
+if custom_tooltip:
+    dat = pd.DataFrame(scdata.obsm['X_umap'])
+    dat[hover_name] = hover_text
+    fig = px.scatter(
+        dat, x=0, y=1,
+        color_discrete_sequence=colors,
+        color=color,
+        hover_data=[hover_name]
+        )
+else:
+    fig = px.scatter(
+        scdata.obsm['X_umap'], x=0, y=1,
+        color_discrete_sequence=colors,
+        color=color)
 
 fig.update_layout(
     xaxis_title='UMAP0',

@@ -88,6 +88,16 @@ inputs:
     label: 'Number of iterations?'
     default: 0
     doc: 'The number of iterations for optimization - by default (0) either 200 for small datasets or 500 for large ones.'
+  6_Cluster_Differential_Expression__ignore_prefixes:
+    type: string
+    default: 'MT-,RPL,RPS'
+    label: 'Gene prefixes to ignore'
+    doc: 'A set of strings, separated by commas, for which gene symbols starting with these strings should NOT be shown in the umap overlay. Not case-sensitive, so the same strings will work for both human and mouse ribo & mito genes. Note: this does not affect the full differential expression table that can be downloaded.'
+  6_Cluster_Differential_Expression__dge_method:
+    type: string
+    default: 'wilcoxon'
+    label: 'testing method'
+    doc: 'A string indicating what scanpy method option to use for calculating differential expression. Options are: "logreg", "t-test", "wilcoxon", "t-test_overestim_var". See documentation for "scanpy.tl.rank_genes_groups" for further details.'
 
 outputs:
   the_data:
@@ -95,51 +105,30 @@ outputs:
     outputSource: calc_umap/umap_anndata.h5ad
 
 steps:
+  projectData:
+    run: scripts/umap-projects.cwl
+    label: 'Fetch project settings'
+    in: []
+    out: [project_data]
   queryMagma:
     run: scripts/retrieve_selection_options.cwl
     label: 'Fetch selection options'
     in:
-      a: 1_Cell_Filtering__min_nCounts
-      b: 1_Cell_Filtering__max_nCounts
-      c: 1_Cell_Filtering__min_nFeatures
-      d: 1_Cell_Filtering__max_per_mito
-      e: 1_Cell_Filtering__max_per_ribo
-      f: 2_Regress_by__regress_counts
-      g: 2_Regress_by__regress_genes
-      h: 2_Regress_by__regress_pct_mito
-      i: 2_Regress_by__regress_pct_ribo
-      j: 2_Regress_by__regress_tube_id
-      k: 3_For_UMAP_and_Clustering__max_pc
-      l: 5_Cluster_Calculation__leiden_resolution
-    out: [experiments, tissues, fractions]
-  Select_Records__pickExperiments:
-    run: ui-queries/multiselect-string-all.cwl
-    label: 'Select Experiments'
-    doc: 'Picks the set of experiment:alias options to use. These selections get combined with Tissue and Cell Fraction selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
+      project_data: projectData/project_data
+    out: [selection_options]
+  selectOnFeatures:
+    run: ui-queries/multiple-multiselect-string-all.cwl
+    label: 'Record Selection'
+    doc: 'Selections here pick the subset of tube records to process and analyze. Select the values of the given features that you would like to target. The union of single-cell tube records that meet these criteria will be presented for confirmation, in the next step, based on the union of ALL feature selections here. Selections must be made for each in order to proceed, but if you want to just select tube records directly, pick the `All` option for all dropdowns here.'
     in:
-      a: queryMagma/experiments
-    out: [options]
-  Select_Records__pickTissues:
-    run: ui-queries/multiselect-string-all.cwl
-    label: 'Select Tissues'
-    doc: 'Picks the set of biospecimen_group:biospecimen_type options to use. These selections get combined with Experiment and Cell Fraction selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
-    in:
-      a: queryMagma/tissues
-    out: [options]
-  Select_Records__pickFractions:
-    run: ui-queries/multiselect-string-all.cwl
-    label: 'Select Sort Fractions'
-    doc: 'Picks the set of sc_seq:cell_faction options to use. These selections get combined with Experiment and Tissue selections with AND logic. If you want to just select tube records directly, pick the `All` option for all dropdowns here.'
-    in:
-      a: queryMagma/fractions
-    out: [options]
+      a: queryMagma/selection_options
+    out: [selected_options]
   parse_record_selections:
     run: scripts/parse_record_selections.cwl
     label: 'Interpret record selection inputs.'
     in:
-      experiments: Select_Records__pickExperiments/options
-      tissues: Select_Records__pickTissues/options
-      fractions: Select_Records__pickFractions/options
+      project_data: projectData/project_data
+      selected_options: selectOnFeatures/selected_options
     out: [tube_recs]
   verifyRecordNames:
     run: ui-queries/checkboxes.cwl
@@ -151,6 +140,7 @@ steps:
     run: scripts/magma_query_paths.cwl
     label: 'Query paths to raw counts files'
     in:
+      project_data: projectData/project_data
       record_ids: verifyRecordNames/names
     out: [h5_locations]
   merge_anndata_from_raw_h5:
@@ -193,6 +183,7 @@ steps:
     run: scripts/calc_umap.cwl
     label: 'Calculate UMAP'
     in:
+      project_data: projectData/project_data
       spread: 4_UMAP_Calculation__umap_spread
       min_dist: 4_UMAP_Calculation__umap_min_dist
       num_iters: 4_UMAP_Calculation__umap_num_iters
@@ -202,10 +193,10 @@ steps:
     run: scripts/calc_leiden.cwl
     label: 'Calculate Leiden clustering'
     in:
-      nn_anndata.h5ad: neighbors/nn_anndata.h5ad
+      nn_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden_resolution: 5_Cluster_Calculation__leiden_resolution
       use_weights: 5_Cluster_Calculation__leiden_use_weights
-    out: [leiden.json]
+    out: [leiden.json,leiden_anndata.h5ad]
   select_color_by_option:
     run: ui-queries/nested-select-autocomplete.cwl
     label: 'Color Options'
@@ -216,9 +207,11 @@ steps:
     run: scripts/plot_umap.cwl
     label: 'Create UMAP plot'
     in:
+      project_data: projectData/project_data
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden.json: calc_leiden/leiden.json
       color_by: select_color_by_option/color_by
+      top10.json: Differential_Expression__between_clusters/top10.json
     out: [umap.plotly.json]
   show_umap_plot:
     run: ui-outputs/plotly.cwl
@@ -229,7 +222,21 @@ steps:
   downloadRawData:
     run: ui-outputs/link.cwl
     in:
-      a: calc_umap/umap_anndata.h5ad
+      a: Differential_Expression__between_clusters/umap_workflow_anndata.h5ad
     out: []
     label: 'Download data as h5ad'
+  Differential_Expression__between_clusters:
+    run: scripts/DE_btwn_clusters.cwl
+    label: 'Diff. Exp.: Cluster Markers'
+    in:
+      leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
+      ignore_prefixes: 6_Cluster_Differential_Expression__ignore_prefixes
+      dge_method: 6_Cluster_Differential_Expression__dge_method
+    out: [umap_workflow_anndata.h5ad, diffexp.csv,top10.json]
+  downloadDEData:
+    run: ui-outputs/link.cwl
+    in:
+      a: Differential_Expression__between_clusters/diffexp.csv
+    out: []
+    label: 'Download cluster DiffExp as csv'
 
