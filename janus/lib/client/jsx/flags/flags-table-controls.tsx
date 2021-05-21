@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import Grid from '@material-ui/core/Grid';
 import {makeStyles} from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
@@ -7,8 +7,8 @@ import Search from '@material-ui/icons/Search';
 import FormControl from '@material-ui/core/FormControl';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 
+import {FlagsContext} from './flags-context';
 import {fetchProjects} from '../api/janus_api';
-import {Project} from '../types/janus_types';
 
 const useStyles = makeStyles((theme) => ({
   chips: {
@@ -55,7 +55,7 @@ function MultiSelector({
       <Autocomplete
         multiple
         id={`${label}-filter`}
-        options={options}
+        options={options.sort()}
         getOptionLabel={(option) => unpackOption(option)} // This shows up in the chip
         onChange={(e, value) => onSelect(value as string[])}
         renderInput={(params: any) => (
@@ -89,10 +89,13 @@ const TableControls = ({
   onChangeProjects: (projects: string[]) => void;
   onChangeFlags: (flags: string[]) => void;
 }) => {
-  const [projects, setProjects] = useState([] as Project[]);
   const [prettyProjectOptions, setPrettyProjectOptions] = useState(
     [] as string[]
   );
+  let {
+    state: {projects},
+    setProjects
+  } = useContext(FlagsContext);
   const classes = useStyles();
 
   useEffect(() => {
@@ -100,17 +103,19 @@ const TableControls = ({
   }, []);
 
   useEffect(() => {
-    setPrettyProjectOptions(
-      projectOptions.map((p: string): string => {
-        let fullProject = projects.find(
-          (project) => project.project_name === p
-        );
+    if (projects) {
+      setPrettyProjectOptions(
+        projectOptions.map((p: string): string => {
+          let fullProject = projects.find(
+            (project) => project.project_name === p
+          );
 
-        return fullProject
-          ? `${p}${DELIMITER}${fullProject.project_name_full}`
-          : p;
-      })
-    );
+          return fullProject
+            ? `${p}${DELIMITER}${fullProject.project_name_full}`
+            : p;
+        })
+      );
+    }
   }, [projectOptions, projects]);
 
   return (

@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 
 import {makeStyles} from '@material-ui/core/styles';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -11,6 +11,8 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 
+import {fetchUsers} from '../api/janus_api';
+import {FlagsContext} from './flags-context';
 import {UserFlagsInterface} from '../types/janus_types';
 import UserRow from './flags-user-row';
 import TableControls from './flags-table-controls';
@@ -28,13 +30,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const UserTable = ({
-  users,
-  onChange
-}: {
-  users: UserFlagsInterface[];
-  onChange: () => void;
-}) => {
+const UserTable = () => {
   const [filteredUsers, setFilteredUsers] = useState(
     [] as UserFlagsInterface[]
   );
@@ -44,34 +40,48 @@ const UserTable = ({
   const [selected, setSelected] = useState([] as UserFlagsInterface[]);
   const classes = useStyles();
 
+  let {
+    state: {users},
+    setUsers,
+    setProjects
+  } = useContext(FlagsContext);
+
   useEffect(() => {
-    setFilteredUsers(users);
+    fetchUsers().then(({users}) => setUsers(users));
+  }, []);
+
+  useEffect(() => {
+    if (users) setFilteredUsers(users);
   }, [users]);
 
   useEffect(() => {
     // (searchTerm across user.name || user.email) &&
     //  (searchProjects OR'd) && (searchFlags OR'd)
-    setFilteredUsers(
-      users
-        .filter((user) => {
-          let regex = new RegExp(searchTerm);
+    if (users) {
+      setFilteredUsers(
+        users
+          .filter((user) => {
+            let regex = new RegExp(searchTerm);
 
-          return regex.test(user.name) || regex.test(user.email);
-        })
-        .filter((user) => {
-          if (searchProjects.length === 0) return true;
+            return regex.test(user.name) || regex.test(user.email);
+          })
+          .filter((user) => {
+            if (searchProjects.length === 0) return true;
 
-          return user.projects.some((p) => searchProjects.includes(p));
-        })
-        .filter((user) => {
-          if (searchFlags.length === 0) return true;
-          if (null == user.flags) return false;
+            return user.projects.some((p) => searchProjects.includes(p));
+          })
+          .filter((user) => {
+            if (searchFlags.length === 0) return true;
+            if (null == user.flags) return false;
 
-          return user.flags.some((f) => searchFlags.includes(f));
-        })
-    );
-    setSelected([]);
+            return user.flags.some((f) => searchFlags.includes(f));
+          })
+      );
+      setSelected([]);
+    }
   }, [searchTerm, searchProjects, searchFlags]);
+
+  if (!users) return null;
 
   function onSelectAllClick() {
     setSelected(selected.length > 0 ? [] : filteredUsers);
@@ -102,15 +112,7 @@ const UserTable = ({
           />
         </Grid>
         <Grid item xs={3}>
-          {selected.length > 0 ? (
-            <AddRemove
-              selectedUsers={selected}
-              onUpdateComplete={() => {
-                setSelected([]);
-                onChange();
-              }}
-            />
-          ) : null}
+          {selected.length > 0 ? <AddRemove selectedUsers={selected} /> : null}
         </Grid>
       </Grid>
       <Grid item>

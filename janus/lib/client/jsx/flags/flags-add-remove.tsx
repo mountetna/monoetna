@@ -1,8 +1,7 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useContext} from 'react';
 import Button from '@material-ui/core/Button';
 import {makeStyles} from '@material-ui/core/styles';
 import Card from '@material-ui/core/Card';
-import Typography from '@material-ui/core/Typography';
 import CardHeader from '@material-ui/core/CardHeader';
 import TextField from '@material-ui/core/TextField';
 import CardContent from '@material-ui/core/CardContent';
@@ -10,8 +9,9 @@ import CardActions from '@material-ui/core/CardActions';
 import AddIcon from '@material-ui/icons/Add';
 import RemoveIcon from '@material-ui/icons/Remove';
 
+import {FlagsContext} from './flags-context';
 import {UserFlagsInterface} from '../types/janus_types';
-import {updateUserFlags} from '../api/janus_api';
+import {updateUserFlags, fetchUsers} from '../api/janus_api';
 
 const useStyles = makeStyles((theme) => ({
   button: {
@@ -33,15 +33,14 @@ interface UpdatePayload {
 }
 
 const AddRemoveFlag = ({
-  selectedUsers,
-  onUpdateComplete
+  selectedUsers
 }: {
   selectedUsers: UserFlagsInterface[];
-  onUpdateComplete: () => void;
 }) => {
   const [inputFlag, setInputFlag] = useState('' as string);
   const [payloads, setPayloads] = useState([] as UpdatePayload[]);
   const [errors, setErrors] = useState('' as string);
+  let {setUsers} = useContext(FlagsContext);
   const classes = useStyles();
 
   useEffect(() => {
@@ -86,7 +85,10 @@ const AddRemoveFlag = ({
     Promise.all(promises)
       .then(() => {
         reset();
-        onUpdateComplete();
+        return fetchUsers();
+      })
+      .then(({users}) => {
+        setUsers(users);
       })
       .catch((error) => {
         return error;
