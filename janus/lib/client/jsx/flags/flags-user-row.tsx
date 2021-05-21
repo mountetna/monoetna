@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import Checkbox from '@material-ui/core/Checkbox';
 
 import {makeStyles} from '@material-ui/core/styles';
-import {UserFlagsInterface} from '../models/user_models';
+import {UserFlagsInterface} from '../types/janus_types';
 import {TableCell} from '@material-ui/core';
 import TableRow from '@material-ui/core/TableRow';
 
@@ -60,9 +60,6 @@ const UserRow = ({
       <TableCell className={classes.cell}>{user.projects.join(',')}</TableCell>
       <TableCell className={classes.cell}>
         <FlagsCell flags={updatedFlags} />
-      </TableCell>
-      <TableCell className={classes.cell}>
-        {allowSave ? <div> Save buttn </div> : null}
       </TableCell>
     </TableRow>
   );

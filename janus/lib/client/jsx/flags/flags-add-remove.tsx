@@ -91,10 +91,7 @@ const AddRemoveFlag = ({
         setUsers(users);
       })
       .catch((error) => {
-        return error;
-      })
-      .then((err) => {
-        setErrors(err.error);
+        error.then((err: {error: string}) => setErrors(err.error));
       });
   }
 

@@ -38,6 +38,7 @@
     "webworkify-webpack": "^2.1.5"
   },
   "devDependencies": {
+    "@types/enzyme": "^3.10.8",
     "@types/jest": "^26.0.23",
     "@types/lodash": "^4.14.169",
     "babel-eslint": "^7.1.1",

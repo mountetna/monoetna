@@ -7,7 +7,7 @@ const defaultFlagsState = {
   projects: [] as Project[]
 };
 
-type FlagsState = Readonly<typeof defaultFlagsState>;
+export type FlagsState = Readonly<typeof defaultFlagsState>;
 
 export const defaultContext = {
   state: defaultFlagsState as FlagsState,

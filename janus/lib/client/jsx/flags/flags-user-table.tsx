@@ -138,7 +138,6 @@ const UserTable = () => {
                 <TableCell className={classes.header}>Email</TableCell>
                 <TableCell className={classes.header}>Projects</TableCell>
                 <TableCell className={classes.header}>Flags</TableCell>
-                <TableCell className={classes.header}></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
