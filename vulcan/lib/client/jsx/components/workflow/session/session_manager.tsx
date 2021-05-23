@@ -3,6 +3,7 @@ import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
+import {setSession} from "../../../actions/vulcan";
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 import Vignette from '../vignette';
@@ -12,6 +13,7 @@ import {
   uiOutputOfStep,
   workflowName
 } from '../../../selectors/workflow_selectors';
+import { readTextFile, downloadBlob } from 'etna-js/utils/blob';
 
 const modalStyles = {
   content: {
@@ -26,7 +28,7 @@ const modalStyles = {
 
 export default function SessionManager() {
   const context = useContext(VulcanContext);
-  const {state, requestPoll} = context;
+  const {state, dispatch, requestPoll} = context;
 
   const workflow = state.workflow;
   if (!workflow) return null;
@@ -44,6 +46,23 @@ export default function SessionManager() {
 
   const {steps} = workflow;
   const {status, session} = state;
+
+  const saveSession = useCallback(
+    () => {
+      downloadBlob({
+      data: JSON.stringify(session, null, 2),
+      filename: `${name}.json`,
+      contentType: 'text/json'})
+    }, [session]
+  );
+
+  const openSession = () => {
+    readTextFile('*.json').then(
+      session_json => {
+        dispatch(setSession(JSON.parse(session_json)))
+      }
+    )
+  }
 
   // We are done once every step either has a download or that step is a uiOutput.
   const complete = useMemo(
