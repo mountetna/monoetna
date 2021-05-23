@@ -1,6 +1,6 @@
 import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 import ReactModal from 'react-modal';
-import Icon from 'etna-js/components/icon';
+import FlatButton from 'etna-js/components/flat-button';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import InputFeed from './input_feed';
@@ -88,12 +88,7 @@ export default function SessionManager() {
         </span>
         {workflow.vignette && (
           <React.Fragment>
-            <div className='header-btn' onClick={openModal}>
-              <div className='vignette-btn'>
-                Vignette
-                <Icon className='vignette' icon='book' />
-              </div>
-            </div>
+            <FlatButton icon='book' className='header-btn vignette' label='Vignette' onClick={openModal}/>
             <ReactModal
               isOpen={modalIsOpen}
               onRequestClose={closeModal}
@@ -104,20 +99,9 @@ export default function SessionManager() {
             </ReactModal>
           </React.Fragment>
         )}
-        <div
-          onClick={run}
-          className={`run-workflow-btn ${
-            disableRunButton ? 'disabled' : ''
-          } header-btn`}
-        >
-          Run
-          <Icon
-            className='run'
-            disabled={complete || running || !primaryInputsReady}
-            title='Run workflow'
-            icon='play'
-          />
-        </div>
+        <FlatButton className='header-btn run' icon='play' label='Run' title='Run workflow' onClick={run} disabled={disableRunButton} />
+        <FlatButton className='header-btn save' icon='save' label='Save' title='Save workflow parameters to file' onClick={saveSession}/>
+        <FlatButton className='header-btn open' icon='folder-open' label='Open' title='Load workflow parameters from file' onClick={openSession}/>
       </div>
       <div className='session-feed-container'>
         <InputFeed />
