@@ -10,6 +10,7 @@ import {InputSpecification} from "../user_interactions/inputs/input_types";
 export default function PrimaryInputs() {
   const {state, dispatch} = useContext(VulcanContext);
   const {workflow, session} = state;
+
   if (!workflow) return null;
   if (!workflow.inputs) return null;
 
@@ -29,7 +30,7 @@ export default function PrimaryInputs() {
               workflow.inputs[name].default
           ].find(a => a != null)
     }))
-  }, []);
+  }, [session]);
 
   let groupedInputs = primaryInputs.reduce((result, input) => {
     let groupName = inputGroupName(input.name);
