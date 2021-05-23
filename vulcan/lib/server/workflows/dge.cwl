@@ -22,7 +22,7 @@ steps:
       url: 1_Processed_data__link
     out: [processed_data.h5ad,covariates.json]
   select_covariates:
-    run: ui-queries/single_dropdown_multicheckbox.cwl
+    run: ui-queries/single-dropdown-multicheckbox.cwl
     label: 'Covariate selection'
     doc: 'TODO'
     in:

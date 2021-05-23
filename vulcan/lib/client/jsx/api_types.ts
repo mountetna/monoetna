@@ -20,6 +20,7 @@ export const TYPE = {
   NESTED_SELECT_AUTOCOMPLETE: 'nested-select-autocomplete',
   MULTISELECT_STRING_ALL: 'multiselect-string-all',
   MULTIPLE_MULTISELECT_STRING_ALL: 'multiple-multiselect-string-all',
+  SINGLE_DROPDOWN_MULTICHECKBOX: 'single-dropdown-multicheckbox',
 };
 
 // CWL Step RUN Sentinels

@@ -9,6 +9,7 @@ import MultiselectStringInput from './multiselect_string';
 import SelectAutocompleteInput from './select_autocomplete';
 import StringInput from './string';
 import CheckboxesInput from './checkboxes';
+import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox'
 import {
   InputBackendComponent,
   InputOnChange,
@@ -39,6 +40,8 @@ function backendComponentOf(type: InputType): InputBackendComponent {
       return MultiselectStringAllInput;
     case TYPE.MULTIPLE_MULTISELECT_STRING_ALL:
       return MultipleMultiselectStringAllInput;
+    case TYPE.SINGLE_DROPDOWN_MULTICHECKBOX:
+      return SingleDropdownMulticheckbox;
     default:
       return StringInput;
   }
