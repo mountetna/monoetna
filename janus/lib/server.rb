@@ -39,6 +39,8 @@ class Janus
 
     get '/user', action: 'user#info'
 
+    get '/users', action: 'user#fetch_all', auth: { user: { is_superuser?: true } }
+
     get '/allprojects', action: 'admin#projects', auth: { user: { is_superviewer?: true } }
 
     get '/projects', action: 'user#projects', auth: { user: { active?: true } }
@@ -48,6 +50,8 @@ class Janus
     get '/admin' do erb_view(:client) end
 
     get '/settings' do erb_view(:client) end
+
+    get '/flags' do erb_view(:client) end
 
     get '/:project_name', auth: { user: { can_edit?: :project_name } } do erb_view(:client) end
 
