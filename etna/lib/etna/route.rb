@@ -149,7 +149,7 @@ module Etna
 
       @auth[:user].all? do |constraint, param_name|
         user.respond_to?(constraint) && (
-          params.has_key?(param_name) ?
+          param_name.is_a?(Symbol) ?
             user.send(constraint, params[param_name]) :
             user.send(constraint, param_name))
       end
