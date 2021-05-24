@@ -1,0 +1,16 @@
+#! /usr/bin/env bash
+
+set -e
+set -o pipefail
+
+url=$(echo "https://github.com/prometheus/node_exporter/releases/download/v1.1.2/node_exporter-1.1.2.$(uname -s)-amd64.tar.gz" | tr '[:upper:]' '[:lower:]')
+
+rm -rf /tmp/node_exporter*
+cd $(mktemp -d /tmp/node_exporterXXXX)
+wget "$url"
+tar -xvzf node_exporter*
+rm node_exporter*.gz
+cd node_exporter*
+mkdir -p /tmp/metrics.prom/
+exec sudo ./node_exporter --collector.textfile.directory=/tmp/metrics.prom/
+
