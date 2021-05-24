@@ -148,7 +148,10 @@ module Etna
       params = request.env['rack.request.params']
 
       @auth[:user].all? do |constraint, param_name|
-        user.respond_to?(constraint) && user.send(constraint, params[param_name])
+        user.respond_to?(constraint) && (
+          params.has_key?(param_name) ?
+            user.send(constraint, params[param_name]) :
+            user.send(constraint, param_name))
       end
     end
 
