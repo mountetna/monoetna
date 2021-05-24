@@ -5,6 +5,7 @@ import JanusMain from './janus-main';
 import JanusAdmin from './janus-admin';
 import JanusSettings from './janus-settings';
 import ProjectView from './project-view';
+import FlagsView from './flags/flags-view';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 
@@ -23,6 +24,11 @@ const ROUTES = [
     name: 'settings',
     template: 'settings',
     component: JanusSettings
+  },
+  {
+    name: 'flags',
+    template: 'flags',
+    component: FlagsView
   },
   {
     name: 'projects',

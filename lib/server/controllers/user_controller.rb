@@ -62,4 +62,17 @@ class UserController < Janus::Controller
 
     success_json({projects: projects})
   end
+
+  def fetch_all
+    success_json({
+      users: User.all.map do |u|
+        {
+          email: u.email,
+          name: u.name,
+          flags: u.flags,
+          projects: u.permissions.map { |p| p.project.project_name }
+        }
+      end
+    })
+  end
 end
