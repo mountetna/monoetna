@@ -27,7 +27,7 @@ exports[`AddRemove appends flags to existing flags 1`] = `
       class="MuiCardContent-root"
     >
       <div
-        class="MuiFormControl-root MuiTextField-root"
+        class="MuiFormControl-root MuiTextField-root makeStyles-textInput"
       >
         <label
           class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-outlined"
@@ -118,6 +118,29 @@ exports[`AddRemove appends flags to existing flags 1`] = `
             </svg>
           </span>
           Remove Flag
+        </span>
+        <span
+          class="MuiTouchRipple-root"
+        />
+      </button>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-text"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+            />
+          </svg>
         </span>
         <span
           class="MuiTouchRipple-root"
@@ -155,7 +178,7 @@ exports[`AddRemove removes flags from users 1`] = `
       class="MuiCardContent-root"
     >
       <div
-        class="MuiFormControl-root MuiTextField-root"
+        class="MuiFormControl-root MuiTextField-root makeStyles-textInput"
       >
         <label
           class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-outlined"
@@ -251,6 +274,29 @@ exports[`AddRemove removes flags from users 1`] = `
           class="MuiTouchRipple-root"
         />
       </button>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-text"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+            />
+          </svg>
+        </span>
+        <span
+          class="MuiTouchRipple-root"
+        />
+      </button>
     </div>
   </div>
 </DocumentFragment>
@@ -283,7 +329,7 @@ exports[`AddRemove renders correctly 1`] = `
       class="MuiCardContent-root"
     >
       <div
-        class="MuiFormControl-root MuiTextField-root"
+        class="MuiFormControl-root MuiTextField-root makeStyles-textInput"
       >
         <label
           class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-outlined"
@@ -374,6 +420,29 @@ exports[`AddRemove renders correctly 1`] = `
           class="MuiTouchRipple-root"
         />
       </button>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-text"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+            />
+          </svg>
+        </span>
+        <span
+          class="MuiTouchRipple-root"
+        />
+      </button>
     </div>
   </div>
 </DocumentFragment>
@@ -406,7 +475,7 @@ exports[`AddRemove reports errors to the user 1`] = `
       class="MuiCardContent-root"
     >
       <div
-        class="MuiFormControl-root MuiTextField-root"
+        class="MuiFormControl-root MuiTextField-root makeStyles-textInput"
       >
         <label
           class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-shrink MuiInputLabel-outlined MuiFormLabel-error MuiInputLabel-error MuiFormLabel-filled"
@@ -497,6 +566,29 @@ exports[`AddRemove reports errors to the user 1`] = `
             </svg>
           </span>
           Remove Flag
+        </span>
+        <span
+          class="MuiTouchRipple-root"
+        />
+      </button>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-text"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-label"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+            />
+          </svg>
         </span>
         <span
           class="MuiTouchRipple-root"

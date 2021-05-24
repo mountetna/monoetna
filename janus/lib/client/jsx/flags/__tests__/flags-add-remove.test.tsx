@@ -49,7 +49,7 @@ afterAll(() => server.close());
 describe('AddRemove', () => {
   it('renders correctly', async () => {
     let {asFragment} = render(
-      <AddRemove selectedUsers={mockUsers.slice(0, 1)} />,
+      <AddRemove selectedUsers={mockUsers.slice(0, 1)} onClose={() => {}} />,
       {wrapper: flagsSpecWrapper(mockState)}
     );
 
@@ -63,7 +63,7 @@ describe('AddRemove', () => {
 
   it('appends flags to existing flags', async () => {
     let {asFragment} = render(
-      <AddRemove selectedUsers={mockUsers.slice(0, 1)} />,
+      <AddRemove selectedUsers={mockUsers.slice(0, 1)} onClose={() => {}} />,
       {wrapper: flagsSpecWrapper(mockState)}
     );
 
@@ -83,7 +83,7 @@ describe('AddRemove', () => {
 
   it('removes flags from users', async () => {
     let {asFragment} = render(
-      <AddRemove selectedUsers={mockUsers.slice(0, 1)} />,
+      <AddRemove selectedUsers={mockUsers.slice(0, 1)} onClose={() => {}} />,
       {wrapper: flagsSpecWrapper(mockState)}
     );
 
@@ -113,7 +113,7 @@ describe('AddRemove', () => {
     );
 
     let {asFragment} = render(
-      <AddRemove selectedUsers={mockUsers.slice(0, 1)} />,
+      <AddRemove selectedUsers={mockUsers.slice(0, 1)} onClose={() => {}} />,
       {wrapper: flagsSpecWrapper(mockState)}
     );
 

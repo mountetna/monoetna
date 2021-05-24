@@ -69,7 +69,7 @@ describe('UserTable', () => {
     expect(asFragment()).toMatchSnapshot();
   });
 
-  it('shows Add/Remove card when users are selected', async () => {
+  it('shows Add/Remove card when users are selected and Manage button clicked', async () => {
     let {asFragment} = render(<UserTable />, {
       wrapper: flagsSpecWrapper(mockState)
     });
@@ -77,6 +77,7 @@ describe('UserTable', () => {
     await waitFor(() => screen.getByText(/Janus/));
 
     fireEvent.click(screen.getByText(/Janus/));
+    fireEvent.click(screen.getByText(/manage flags/i));
 
     await waitFor(() => {
       expect(screen.queryByText('Add Flag')).toBeTruthy();

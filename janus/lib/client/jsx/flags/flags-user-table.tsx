@@ -2,6 +2,7 @@ import React, {useState, useEffect, useContext} from 'react';
 
 import {makeStyles} from '@material-ui/core/styles';
 import Checkbox from '@material-ui/core/Checkbox';
+import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -38,6 +39,7 @@ const UserTable = () => {
   const [searchProjects, setSearchProjects] = useState([] as string[]);
   const [searchFlags, setSearchFlags] = useState([] as string[]);
   const [selected, setSelected] = useState([] as UserFlagsInterface[]);
+  const [addRemoveOpen, setAddRemoveOpen] = useState(false);
   const classes = useStyles();
 
   let {
@@ -98,6 +100,14 @@ const UserTable = () => {
     return selected.filter((u) => u.email === user.email).length > 0;
   }
 
+  function openAddRemoveFlags() {
+    setAddRemoveOpen(!addRemoveOpen);
+  }
+
+  function closeAddRemoveFlags() {
+    setAddRemoveOpen(false);
+  }
+
   return (
     <Grid container direction='column' className={classes.margin}>
       <Grid container item xs={12}>
@@ -111,7 +121,18 @@ const UserTable = () => {
           />
         </Grid>
         <Grid item xs={3}>
-          {selected.length > 0 ? <AddRemove selectedUsers={selected} /> : null}
+          {selected.length > 0 ? (
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={openAddRemoveFlags}
+            >
+              Manage Flags
+            </Button>
+          ) : null}
+          {addRemoveOpen && selected.length > 0 ? (
+            <AddRemove selectedUsers={selected} onClose={closeAddRemoveFlags} />
+          ) : null}
         </Grid>
       </Grid>
       <Grid item xs={12}>

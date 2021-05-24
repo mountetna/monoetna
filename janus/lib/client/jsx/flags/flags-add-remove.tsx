@@ -8,6 +8,7 @@ import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
 import AddIcon from '@material-ui/icons/Add';
 import RemoveIcon from '@material-ui/icons/Remove';
+import ClearIcon from '@material-ui/icons/Clear';
 
 import {FlagsContext} from './flags-context';
 import {UserFlagsInterface} from '../types/janus_types';
@@ -24,6 +25,9 @@ const useStyles = makeStyles((theme) => ({
   error: {
     color: 'red',
     fontWeight: 'bolder'
+  },
+  textInput: {
+    width: '100%'
   }
 }));
 
@@ -33,9 +37,11 @@ interface UpdatePayload {
 }
 
 const AddRemoveFlag = ({
-  selectedUsers
+  selectedUsers,
+  onClose
 }: {
   selectedUsers: UserFlagsInterface[];
+  onClose: () => void;
 }) => {
   const [inputFlag, setInputFlag] = useState('' as string);
   const [payloads, setPayloads] = useState([] as UpdatePayload[]);
@@ -116,6 +122,7 @@ const AddRemoveFlag = ({
           variant='outlined'
           value={inputFlag}
           helperText={message ? message : ''}
+          className={classes.textInput}
           onChange={(e) => setInputFlag(e.target.value as string)}
         />
       </CardContent>
@@ -137,6 +144,9 @@ const AddRemoveFlag = ({
           onClick={onRemoveFlag}
         >
           Remove Flag
+        </Button>
+        <Button onClick={onClose}>
+          <ClearIcon />
         </Button>
       </CardActions>
     </Card>
