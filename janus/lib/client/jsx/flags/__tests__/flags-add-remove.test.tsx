@@ -1,16 +1,10 @@
 import React from 'react';
 import {rest} from 'msw';
 import {setupServer} from 'msw/node';
-import {
-  render,
-  fireEvent,
-  waitFor,
-  screen,
-  within
-} from '@testing-library/react';
+import {render, fireEvent, waitFor, screen} from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import AddRemove from '../flags-add-remove';
-import {FlagsProvider} from '../flags-context';
+import {flagsSpecWrapper} from '../../spec/flags-helpers';
 
 const mockUsers = [
   {
@@ -54,13 +48,9 @@ afterAll(() => server.close());
 
 describe('AddRemove', () => {
   it('renders correctly', async () => {
-    const wrapper = ({children}: any) => (
-      <FlagsProvider state={mockState}>{children}</FlagsProvider>
-    );
-
     let {asFragment} = render(
       <AddRemove selectedUsers={mockUsers.slice(0, 1)} />,
-      {wrapper}
+      {wrapper: flagsSpecWrapper(mockState)}
     );
 
     await waitFor(() => screen.getByText(/1 user/));
@@ -72,13 +62,9 @@ describe('AddRemove', () => {
   });
 
   it('appends flags to existing flags', async () => {
-    const wrapper = ({children}: any) => (
-      <FlagsProvider state={mockState}>{children}</FlagsProvider>
-    );
-
     let {asFragment} = render(
       <AddRemove selectedUsers={mockUsers.slice(0, 1)} />,
-      {wrapper}
+      {wrapper: flagsSpecWrapper(mockState)}
     );
 
     await waitFor(() => screen.getByText(/1 user/));
@@ -96,13 +82,9 @@ describe('AddRemove', () => {
   });
 
   it('removes flags from users', async () => {
-    const wrapper = ({children}: any) => (
-      <FlagsProvider state={mockState}>{children}</FlagsProvider>
-    );
-
     let {asFragment} = render(
       <AddRemove selectedUsers={mockUsers.slice(0, 1)} />,
-      {wrapper}
+      {wrapper: flagsSpecWrapper(mockState)}
     );
 
     await waitFor(() => screen.getByText(/1 user/));
@@ -130,13 +112,9 @@ describe('AddRemove', () => {
       })
     );
 
-    const wrapper = ({children}: any) => (
-      <FlagsProvider state={mockState}>{children}</FlagsProvider>
-    );
-
     let {asFragment} = render(
       <AddRemove selectedUsers={mockUsers.slice(0, 1)} />,
-      {wrapper}
+      {wrapper: flagsSpecWrapper(mockState)}
     );
 
     await waitFor(() => screen.getByText(/1 user/));

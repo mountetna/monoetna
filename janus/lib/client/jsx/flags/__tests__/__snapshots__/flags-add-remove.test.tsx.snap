@@ -3,7 +3,7 @@
 exports[`AddRemove appends flags to existing flags 1`] = `
 <DocumentFragment>
   <div
-    class="MuiPaper-root MuiCard-root makeStyles-card-9 MuiPaper-elevation1 MuiPaper-rounded"
+    class="MuiPaper-root MuiCard-root makeStyles-card MuiPaper-elevation1 MuiPaper-rounded"
   >
     <div
       class="MuiCardHeader-root"
@@ -46,10 +46,10 @@ exports[`AddRemove appends flags to existing flags 1`] = `
           />
           <fieldset
             aria-hidden="true"
-            class="PrivateNotchedOutline-root-11 MuiOutlinedInput-notchedOutline"
+            class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
           >
             <legend
-              class="PrivateNotchedOutline-legendLabelled-13"
+              class="PrivateNotchedOutline-legendLabelled"
             >
               <span>
                 Flag text
@@ -68,7 +68,7 @@ exports[`AddRemove appends flags to existing flags 1`] = `
       class="MuiCardActions-root"
     >
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-8 MuiButton-containedPrimary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedPrimary"
         tabindex="0"
         type="button"
       >
@@ -96,7 +96,7 @@ exports[`AddRemove appends flags to existing flags 1`] = `
         />
       </button>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-8 MuiButton-containedSecondary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedSecondary"
         tabindex="0"
         type="button"
       >
@@ -131,7 +131,7 @@ exports[`AddRemove appends flags to existing flags 1`] = `
 exports[`AddRemove removes flags from users 1`] = `
 <DocumentFragment>
   <div
-    class="MuiPaper-root MuiCard-root makeStyles-card-16 MuiPaper-elevation1 MuiPaper-rounded"
+    class="MuiPaper-root MuiCard-root makeStyles-card MuiPaper-elevation1 MuiPaper-rounded"
   >
     <div
       class="MuiCardHeader-root"
@@ -174,10 +174,10 @@ exports[`AddRemove removes flags from users 1`] = `
           />
           <fieldset
             aria-hidden="true"
-            class="PrivateNotchedOutline-root-18 MuiOutlinedInput-notchedOutline"
+            class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
           >
             <legend
-              class="PrivateNotchedOutline-legendLabelled-20"
+              class="PrivateNotchedOutline-legendLabelled"
             >
               <span>
                 Flag text
@@ -196,7 +196,7 @@ exports[`AddRemove removes flags from users 1`] = `
       class="MuiCardActions-root"
     >
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-15 MuiButton-containedPrimary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedPrimary"
         tabindex="0"
         type="button"
       >
@@ -224,7 +224,7 @@ exports[`AddRemove removes flags from users 1`] = `
         />
       </button>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-15 MuiButton-containedSecondary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedSecondary"
         tabindex="0"
         type="button"
       >
@@ -259,7 +259,7 @@ exports[`AddRemove removes flags from users 1`] = `
 exports[`AddRemove renders correctly 1`] = `
 <DocumentFragment>
   <div
-    class="MuiPaper-root MuiCard-root makeStyles-card-2 MuiPaper-elevation1 MuiPaper-rounded"
+    class="MuiPaper-root MuiCard-root makeStyles-card MuiPaper-elevation1 MuiPaper-rounded"
   >
     <div
       class="MuiCardHeader-root"
@@ -302,10 +302,10 @@ exports[`AddRemove renders correctly 1`] = `
           />
           <fieldset
             aria-hidden="true"
-            class="PrivateNotchedOutline-root-4 MuiOutlinedInput-notchedOutline"
+            class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
           >
             <legend
-              class="PrivateNotchedOutline-legendLabelled-6"
+              class="PrivateNotchedOutline-legendLabelled"
             >
               <span>
                 Flag text
@@ -319,7 +319,7 @@ exports[`AddRemove renders correctly 1`] = `
       class="MuiCardActions-root"
     >
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-1 MuiButton-containedPrimary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedPrimary"
         tabindex="0"
         type="button"
       >
@@ -347,7 +347,7 @@ exports[`AddRemove renders correctly 1`] = `
         />
       </button>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-1 MuiButton-containedSecondary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedSecondary"
         tabindex="0"
         type="button"
       >
@@ -382,7 +382,7 @@ exports[`AddRemove renders correctly 1`] = `
 exports[`AddRemove reports errors to the user 1`] = `
 <DocumentFragment>
   <div
-    class="MuiPaper-root MuiCard-root makeStyles-card-23 MuiPaper-elevation1 MuiPaper-rounded"
+    class="MuiPaper-root MuiCard-root makeStyles-card MuiPaper-elevation1 MuiPaper-rounded"
   >
     <div
       class="MuiCardHeader-root"
@@ -409,13 +409,13 @@ exports[`AddRemove reports errors to the user 1`] = `
         class="MuiFormControl-root MuiTextField-root"
       >
         <label
-          class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-shrink MuiInputLabel-outlined Mui-error Mui-error MuiFormLabel-filled"
+          class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-shrink MuiInputLabel-outlined MuiFormLabel-error MuiInputLabel-error MuiFormLabel-filled"
           data-shrink="true"
         >
           Flag text
         </label>
         <div
-          class="MuiInputBase-root MuiOutlinedInput-root Mui-error Mui-error MuiInputBase-formControl"
+          class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-error MuiOutlinedInput-error MuiInputBase-formControl"
         >
           <input
             aria-invalid="true"
@@ -425,10 +425,10 @@ exports[`AddRemove reports errors to the user 1`] = `
           />
           <fieldset
             aria-hidden="true"
-            class="PrivateNotchedOutline-root-25 MuiOutlinedInput-notchedOutline"
+            class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
           >
             <legend
-              class="PrivateNotchedOutline-legendLabelled-27 PrivateNotchedOutline-legendNotched-28"
+              class="PrivateNotchedOutline-legendLabelled PrivateNotchedOutline-legendNotched"
             >
               <span>
                 Flag text
@@ -437,7 +437,7 @@ exports[`AddRemove reports errors to the user 1`] = `
           </fieldset>
         </div>
         <p
-          class="MuiFormHelperText-root MuiFormHelperText-contained Mui-error MuiFormHelperText-filled"
+          class="MuiFormHelperText-root MuiFormHelperText-contained MuiFormHelperText-error MuiFormHelperText-filled"
         >
           Must be an array of strings
         </p>
@@ -447,7 +447,7 @@ exports[`AddRemove reports errors to the user 1`] = `
       class="MuiCardActions-root"
     >
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-22 MuiButton-containedPrimary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedPrimary"
         tabindex="0"
         type="button"
       >
@@ -475,7 +475,7 @@ exports[`AddRemove reports errors to the user 1`] = `
         />
       </button>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-22 MuiButton-containedSecondary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedSecondary"
         tabindex="0"
         type="button"
       >

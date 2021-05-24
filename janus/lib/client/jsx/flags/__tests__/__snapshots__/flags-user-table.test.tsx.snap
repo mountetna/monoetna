@@ -3,7 +3,7 @@
 exports[`UserTable filters users based on all 3 search params 1`] = `
 <DocumentFragment>
   <div
-    class="MuiGrid-root makeStyles-margin-86 MuiGrid-container MuiGrid-direction-xs-column"
+    class="MuiGrid-root makeStyles-margin MuiGrid-container MuiGrid-direction-xs-column"
   >
     <div
       class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
@@ -51,10 +51,10 @@ exports[`UserTable filters users based on all 3 search params 1`] = `
                 />
                 <fieldset
                   aria-hidden="true"
-                  class="PrivateNotchedOutline-root-91 MuiOutlinedInput-notchedOutline"
+                  class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                 >
                   <legend
-                    class="PrivateNotchedOutline-legendLabelled-93 PrivateNotchedOutline-legendNotched-94"
+                    class="PrivateNotchedOutline-legendLabelled PrivateNotchedOutline-legendNotched"
                   >
                     <span>
                       Search
@@ -68,7 +68,7 @@ exports[`UserTable filters users based on all 3 search params 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl-88"
+              class="MuiFormControl-root makeStyles-formControl"
             >
               <div
                 aria-expanded="false"
@@ -179,10 +179,10 @@ exports[`UserTable filters users based on all 3 search params 1`] = `
                     </div>
                     <fieldset
                       aria-hidden="true"
-                      class="PrivateNotchedOutline-root-91 MuiOutlinedInput-notchedOutline"
+                      class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                     >
                       <legend
-                        class="PrivateNotchedOutline-legendLabelled-93 PrivateNotchedOutline-legendNotched-94"
+                        class="PrivateNotchedOutline-legendLabelled PrivateNotchedOutline-legendNotched"
                       >
                         <span>
                           Projects
@@ -198,7 +198,7 @@ exports[`UserTable filters users based on all 3 search params 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl-88"
+              class="MuiFormControl-root makeStyles-formControl"
             >
               <div
                 aria-expanded="false"
@@ -309,10 +309,10 @@ exports[`UserTable filters users based on all 3 search params 1`] = `
                     </div>
                     <fieldset
                       aria-hidden="true"
-                      class="PrivateNotchedOutline-root-91 MuiOutlinedInput-notchedOutline"
+                      class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                     >
                       <legend
-                        class="PrivateNotchedOutline-legendLabelled-93 PrivateNotchedOutline-legendNotched-94"
+                        class="PrivateNotchedOutline-legendLabelled PrivateNotchedOutline-legendNotched"
                       >
                         <span>
                           Flags
@@ -338,7 +338,7 @@ exports[`UserTable filters users based on all 3 search params 1`] = `
       >
         <table
           aria-label="user flags"
-          class="MuiTable-root makeStyles-table-84"
+          class="MuiTable-root makeStyles-table"
         >
           <thead
             class="MuiTableHead-root"
@@ -352,14 +352,14 @@ exports[`UserTable filters users based on all 3 search params 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-95 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-label="select all users"
-                      class="PrivateSwitchBase-input-98"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -381,25 +381,25 @@ exports[`UserTable filters users based on all 3 search params 1`] = `
                 </span>
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-85"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Name
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-85"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Email
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-85"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Projects
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-85"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Flags
@@ -419,7 +419,7 @@ exports[`UserTable filters users based on all 3 search params 1`] = `
 exports[`UserTable filters users based on flag search 1`] = `
 <DocumentFragment>
   <div
-    class="MuiGrid-root makeStyles-margin-70 MuiGrid-container MuiGrid-direction-xs-column"
+    class="MuiGrid-root makeStyles-margin MuiGrid-container MuiGrid-direction-xs-column"
   >
     <div
       class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
@@ -467,10 +467,10 @@ exports[`UserTable filters users based on flag search 1`] = `
                 />
                 <fieldset
                   aria-hidden="true"
-                  class="PrivateNotchedOutline-root-75 MuiOutlinedInput-notchedOutline"
+                  class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                 >
                   <legend
-                    class="PrivateNotchedOutline-legendLabelled-77 PrivateNotchedOutline-legendNotched-78"
+                    class="PrivateNotchedOutline-legendLabelled PrivateNotchedOutline-legendNotched"
                   >
                     <span>
                       Search
@@ -484,7 +484,7 @@ exports[`UserTable filters users based on flag search 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl-72"
+              class="MuiFormControl-root makeStyles-formControl"
             >
               <div
                 aria-expanded="false"
@@ -573,10 +573,10 @@ exports[`UserTable filters users based on flag search 1`] = `
                     </div>
                     <fieldset
                       aria-hidden="true"
-                      class="PrivateNotchedOutline-root-75 MuiOutlinedInput-notchedOutline"
+                      class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                     >
                       <legend
-                        class="PrivateNotchedOutline-legendLabelled-77"
+                        class="PrivateNotchedOutline-legendLabelled"
                       >
                         <span>
                           Projects
@@ -592,7 +592,7 @@ exports[`UserTable filters users based on flag search 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl-72"
+              class="MuiFormControl-root makeStyles-formControl"
             >
               <div
                 aria-expanded="false"
@@ -703,10 +703,10 @@ exports[`UserTable filters users based on flag search 1`] = `
                     </div>
                     <fieldset
                       aria-hidden="true"
-                      class="PrivateNotchedOutline-root-75 MuiOutlinedInput-notchedOutline"
+                      class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                     >
                       <legend
-                        class="PrivateNotchedOutline-legendLabelled-77 PrivateNotchedOutline-legendNotched-78"
+                        class="PrivateNotchedOutline-legendLabelled PrivateNotchedOutline-legendNotched"
                       >
                         <span>
                           Flags
@@ -732,7 +732,7 @@ exports[`UserTable filters users based on flag search 1`] = `
       >
         <table
           aria-label="user flags"
-          class="MuiTable-root makeStyles-table-68"
+          class="MuiTable-root makeStyles-table"
         >
           <thead
             class="MuiTableHead-root"
@@ -746,14 +746,14 @@ exports[`UserTable filters users based on flag search 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-79 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-label="select all users"
-                      class="PrivateSwitchBase-input-82"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -775,25 +775,25 @@ exports[`UserTable filters users based on flag search 1`] = `
                 </span>
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-69"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Name
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-69"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Email
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-69"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Projects
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-69"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Flags
@@ -814,14 +814,14 @@ exports[`UserTable filters users based on flag search 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-79 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-labelledby="janus@two-faces.org"
-                      class="PrivateSwitchBase-input-82"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -843,22 +843,22 @@ exports[`UserTable filters users based on flag search 1`] = `
                 </span>
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-83"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 Janus Bifrons
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-83"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 janus@two-faces.org
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-83"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 doors,portals
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-83"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 <div
                   class="MuiChip-root"
@@ -891,7 +891,7 @@ exports[`UserTable filters users based on flag search 1`] = `
 exports[`UserTable filters users based on project search 1`] = `
 <DocumentFragment>
   <div
-    class="MuiGrid-root makeStyles-margin-54 MuiGrid-container MuiGrid-direction-xs-column"
+    class="MuiGrid-root makeStyles-margin MuiGrid-container MuiGrid-direction-xs-column"
   >
     <div
       class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
@@ -939,10 +939,10 @@ exports[`UserTable filters users based on project search 1`] = `
                 />
                 <fieldset
                   aria-hidden="true"
-                  class="PrivateNotchedOutline-root-59 MuiOutlinedInput-notchedOutline"
+                  class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                 >
                   <legend
-                    class="PrivateNotchedOutline-legendLabelled-61 PrivateNotchedOutline-legendNotched-62"
+                    class="PrivateNotchedOutline-legendLabelled PrivateNotchedOutline-legendNotched"
                   >
                     <span>
                       Search
@@ -956,7 +956,7 @@ exports[`UserTable filters users based on project search 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl-56"
+              class="MuiFormControl-root makeStyles-formControl"
             >
               <div
                 aria-expanded="false"
@@ -1067,10 +1067,10 @@ exports[`UserTable filters users based on project search 1`] = `
                     </div>
                     <fieldset
                       aria-hidden="true"
-                      class="PrivateNotchedOutline-root-59 MuiOutlinedInput-notchedOutline"
+                      class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                     >
                       <legend
-                        class="PrivateNotchedOutline-legendLabelled-61 PrivateNotchedOutline-legendNotched-62"
+                        class="PrivateNotchedOutline-legendLabelled PrivateNotchedOutline-legendNotched"
                       >
                         <span>
                           Projects
@@ -1086,7 +1086,7 @@ exports[`UserTable filters users based on project search 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl-56"
+              class="MuiFormControl-root makeStyles-formControl"
             >
               <div
                 aria-expanded="false"
@@ -1175,10 +1175,10 @@ exports[`UserTable filters users based on project search 1`] = `
                     </div>
                     <fieldset
                       aria-hidden="true"
-                      class="PrivateNotchedOutline-root-59 MuiOutlinedInput-notchedOutline"
+                      class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                     >
                       <legend
-                        class="PrivateNotchedOutline-legendLabelled-61"
+                        class="PrivateNotchedOutline-legendLabelled"
                       >
                         <span>
                           Flags
@@ -1204,7 +1204,7 @@ exports[`UserTable filters users based on project search 1`] = `
       >
         <table
           aria-label="user flags"
-          class="MuiTable-root makeStyles-table-52"
+          class="MuiTable-root makeStyles-table"
         >
           <thead
             class="MuiTableHead-root"
@@ -1218,14 +1218,14 @@ exports[`UserTable filters users based on project search 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-63 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-label="select all users"
-                      class="PrivateSwitchBase-input-66"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -1247,25 +1247,25 @@ exports[`UserTable filters users based on project search 1`] = `
                 </span>
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-53"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Name
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-53"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Email
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-53"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Projects
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-53"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Flags
@@ -1286,14 +1286,14 @@ exports[`UserTable filters users based on project search 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-63 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-labelledby="janus@two-faces.org"
-                      class="PrivateSwitchBase-input-66"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -1315,22 +1315,22 @@ exports[`UserTable filters users based on project search 1`] = `
                 </span>
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-67"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 Janus Bifrons
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-67"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 janus@two-faces.org
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-67"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 doors,portals
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-67"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 <div
                   class="MuiChip-root"
@@ -1363,7 +1363,7 @@ exports[`UserTable filters users based on project search 1`] = `
 exports[`UserTable filters users based on text search 1`] = `
 <DocumentFragment>
   <div
-    class="MuiGrid-root makeStyles-margin-38 MuiGrid-container MuiGrid-direction-xs-column"
+    class="MuiGrid-root makeStyles-margin MuiGrid-container MuiGrid-direction-xs-column"
   >
     <div
       class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
@@ -1411,10 +1411,10 @@ exports[`UserTable filters users based on text search 1`] = `
                 />
                 <fieldset
                   aria-hidden="true"
-                  class="PrivateNotchedOutline-root-43 MuiOutlinedInput-notchedOutline"
+                  class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                 >
                   <legend
-                    class="PrivateNotchedOutline-legendLabelled-45 PrivateNotchedOutline-legendNotched-46"
+                    class="PrivateNotchedOutline-legendLabelled PrivateNotchedOutline-legendNotched"
                   >
                     <span>
                       Search
@@ -1428,7 +1428,7 @@ exports[`UserTable filters users based on text search 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl-40"
+              class="MuiFormControl-root makeStyles-formControl"
             >
               <div
                 aria-expanded="false"
@@ -1517,10 +1517,10 @@ exports[`UserTable filters users based on text search 1`] = `
                     </div>
                     <fieldset
                       aria-hidden="true"
-                      class="PrivateNotchedOutline-root-43 MuiOutlinedInput-notchedOutline"
+                      class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                     >
                       <legend
-                        class="PrivateNotchedOutline-legendLabelled-45"
+                        class="PrivateNotchedOutline-legendLabelled"
                       >
                         <span>
                           Projects
@@ -1536,7 +1536,7 @@ exports[`UserTable filters users based on text search 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl-40"
+              class="MuiFormControl-root makeStyles-formControl"
             >
               <div
                 aria-expanded="false"
@@ -1625,10 +1625,10 @@ exports[`UserTable filters users based on text search 1`] = `
                     </div>
                     <fieldset
                       aria-hidden="true"
-                      class="PrivateNotchedOutline-root-43 MuiOutlinedInput-notchedOutline"
+                      class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                     >
                       <legend
-                        class="PrivateNotchedOutline-legendLabelled-45"
+                        class="PrivateNotchedOutline-legendLabelled"
                       >
                         <span>
                           Flags
@@ -1654,7 +1654,7 @@ exports[`UserTable filters users based on text search 1`] = `
       >
         <table
           aria-label="user flags"
-          class="MuiTable-root makeStyles-table-36"
+          class="MuiTable-root makeStyles-table"
         >
           <thead
             class="MuiTableHead-root"
@@ -1668,14 +1668,14 @@ exports[`UserTable filters users based on text search 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-47 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-label="select all users"
-                      class="PrivateSwitchBase-input-50"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -1697,25 +1697,25 @@ exports[`UserTable filters users based on text search 1`] = `
                 </span>
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-37"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Name
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-37"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Email
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-37"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Projects
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-37"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Flags
@@ -1736,14 +1736,14 @@ exports[`UserTable filters users based on text search 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-47 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-labelledby="portunus@two-faces.org"
-                      class="PrivateSwitchBase-input-50"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -1765,22 +1765,22 @@ exports[`UserTable filters users based on text search 1`] = `
                 </span>
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-51"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 Portunus
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-51"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 portunus@two-faces.org
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-51"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 doors
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-51"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 <div
                   class="MuiChip-root"
@@ -1804,7 +1804,7 @@ exports[`UserTable filters users based on text search 1`] = `
 exports[`UserTable renders correctly 1`] = `
 <DocumentFragment>
   <div
-    class="MuiGrid-root makeStyles-margin-3 MuiGrid-container MuiGrid-direction-xs-column"
+    class="MuiGrid-root makeStyles-margin MuiGrid-container MuiGrid-direction-xs-column"
   >
     <div
       class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
@@ -1852,10 +1852,10 @@ exports[`UserTable renders correctly 1`] = `
                 />
                 <fieldset
                   aria-hidden="true"
-                  class="PrivateNotchedOutline-root-8 MuiOutlinedInput-notchedOutline"
+                  class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                 >
                   <legend
-                    class="PrivateNotchedOutline-legendLabelled-10 PrivateNotchedOutline-legendNotched-11"
+                    class="PrivateNotchedOutline-legendLabelled PrivateNotchedOutline-legendNotched"
                   >
                     <span>
                       Search
@@ -1869,7 +1869,7 @@ exports[`UserTable renders correctly 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl-5"
+              class="MuiFormControl-root makeStyles-formControl"
             >
               <div
                 aria-expanded="false"
@@ -1958,10 +1958,10 @@ exports[`UserTable renders correctly 1`] = `
                     </div>
                     <fieldset
                       aria-hidden="true"
-                      class="PrivateNotchedOutline-root-8 MuiOutlinedInput-notchedOutline"
+                      class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                     >
                       <legend
-                        class="PrivateNotchedOutline-legendLabelled-10"
+                        class="PrivateNotchedOutline-legendLabelled"
                       >
                         <span>
                           Projects
@@ -1977,7 +1977,7 @@ exports[`UserTable renders correctly 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl-5"
+              class="MuiFormControl-root makeStyles-formControl"
             >
               <div
                 aria-expanded="false"
@@ -2066,10 +2066,10 @@ exports[`UserTable renders correctly 1`] = `
                     </div>
                     <fieldset
                       aria-hidden="true"
-                      class="PrivateNotchedOutline-root-8 MuiOutlinedInput-notchedOutline"
+                      class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                     >
                       <legend
-                        class="PrivateNotchedOutline-legendLabelled-10"
+                        class="PrivateNotchedOutline-legendLabelled"
                       >
                         <span>
                           Flags
@@ -2095,7 +2095,7 @@ exports[`UserTable renders correctly 1`] = `
       >
         <table
           aria-label="user flags"
-          class="MuiTable-root makeStyles-table-1"
+          class="MuiTable-root makeStyles-table"
         >
           <thead
             class="MuiTableHead-root"
@@ -2109,14 +2109,14 @@ exports[`UserTable renders correctly 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-12 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-label="select all users"
-                      class="PrivateSwitchBase-input-15"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -2138,25 +2138,25 @@ exports[`UserTable renders correctly 1`] = `
                 </span>
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-2"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Name
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-2"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Email
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-2"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Projects
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-2"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Flags
@@ -2177,14 +2177,14 @@ exports[`UserTable renders correctly 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-12 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-labelledby="janus@two-faces.org"
-                      class="PrivateSwitchBase-input-15"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -2206,22 +2206,22 @@ exports[`UserTable renders correctly 1`] = `
                 </span>
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-16"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 Janus Bifrons
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-16"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 janus@two-faces.org
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-16"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 doors,portals
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-16"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 <div
                   class="MuiChip-root"
@@ -2254,14 +2254,14 @@ exports[`UserTable renders correctly 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-12 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-labelledby="portunus@two-faces.org"
-                      class="PrivateSwitchBase-input-15"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -2283,22 +2283,22 @@ exports[`UserTable renders correctly 1`] = `
                 </span>
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-16"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 Portunus
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-16"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 portunus@two-faces.org
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-16"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 doors
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-16"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 <div
                   class="MuiChip-root"
@@ -2322,7 +2322,7 @@ exports[`UserTable renders correctly 1`] = `
 exports[`UserTable shows Add/Remove card when users are selected 1`] = `
 <DocumentFragment>
   <div
-    class="MuiGrid-root makeStyles-margin-19 MuiGrid-container MuiGrid-direction-xs-column"
+    class="MuiGrid-root makeStyles-margin MuiGrid-container MuiGrid-direction-xs-column"
   >
     <div
       class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-12"
@@ -2370,10 +2370,10 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
                 />
                 <fieldset
                   aria-hidden="true"
-                  class="PrivateNotchedOutline-root-24 MuiOutlinedInput-notchedOutline"
+                  class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                 >
                   <legend
-                    class="PrivateNotchedOutline-legendLabelled-26 PrivateNotchedOutline-legendNotched-27"
+                    class="PrivateNotchedOutline-legendLabelled PrivateNotchedOutline-legendNotched"
                   >
                     <span>
                       Search
@@ -2387,7 +2387,7 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl-21"
+              class="MuiFormControl-root makeStyles-formControl"
             >
               <div
                 aria-expanded="false"
@@ -2476,10 +2476,10 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
                     </div>
                     <fieldset
                       aria-hidden="true"
-                      class="PrivateNotchedOutline-root-24 MuiOutlinedInput-notchedOutline"
+                      class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                     >
                       <legend
-                        class="PrivateNotchedOutline-legendLabelled-26"
+                        class="PrivateNotchedOutline-legendLabelled"
                       >
                         <span>
                           Projects
@@ -2495,7 +2495,7 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
             class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
           >
             <div
-              class="MuiFormControl-root makeStyles-formControl-21"
+              class="MuiFormControl-root makeStyles-formControl"
             >
               <div
                 aria-expanded="false"
@@ -2584,10 +2584,10 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
                     </div>
                     <fieldset
                       aria-hidden="true"
-                      class="PrivateNotchedOutline-root-24 MuiOutlinedInput-notchedOutline"
+                      class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                     >
                       <legend
-                        class="PrivateNotchedOutline-legendLabelled-26"
+                        class="PrivateNotchedOutline-legendLabelled"
                       >
                         <span>
                           Flags
@@ -2605,7 +2605,7 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
         class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-3"
       >
         <div
-          class="MuiPaper-root MuiCard-root makeStyles-card-34 MuiPaper-elevation1 MuiPaper-rounded"
+          class="MuiPaper-root MuiCard-root makeStyles-card MuiPaper-elevation1 MuiPaper-rounded"
         >
           <div
             class="MuiCardHeader-root"
@@ -2648,10 +2648,10 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
                 />
                 <fieldset
                   aria-hidden="true"
-                  class="PrivateNotchedOutline-root-24 MuiOutlinedInput-notchedOutline"
+                  class="PrivateNotchedOutline-root MuiOutlinedInput-notchedOutline"
                 >
                   <legend
-                    class="PrivateNotchedOutline-legendLabelled-26"
+                    class="PrivateNotchedOutline-legendLabelled"
                   >
                     <span>
                       Flag text
@@ -2665,7 +2665,7 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
             class="MuiCardActions-root"
           >
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-33 MuiButton-containedPrimary"
+              class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedPrimary"
               tabindex="0"
               type="button"
             >
@@ -2693,7 +2693,7 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
               />
             </button>
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button-33 MuiButton-containedSecondary"
+              class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedSecondary"
               tabindex="0"
               type="button"
             >
@@ -2732,7 +2732,7 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
       >
         <table
           aria-label="user flags"
-          class="MuiTable-root makeStyles-table-17"
+          class="MuiTable-root makeStyles-table"
         >
           <thead
             class="MuiTableHead-root"
@@ -2746,14 +2746,14 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-28 MuiCheckbox-root MuiCheckbox-colorSecondary MuiCheckbox-indeterminate MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary MuiCheckbox-indeterminate MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-label="select all users"
-                      class="PrivateSwitchBase-input-31"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="true"
                       type="checkbox"
                       value=""
@@ -2775,25 +2775,25 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
                 </span>
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-18"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Name
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-18"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Email
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-18"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Projects
               </th>
               <th
-                class="MuiTableCell-root MuiTableCell-head makeStyles-header-18"
+                class="MuiTableCell-root MuiTableCell-head makeStyles-header"
                 scope="col"
               >
                 Flags
@@ -2805,7 +2805,7 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
           >
             <tr
               aria-checked="true"
-              class="MuiTableRow-root MuiTableRow-hover Mui-selected"
+              class="MuiTableRow-root MuiTableRow-hover MuiTableRow-selected"
               role="checkbox"
               tabindex="-1"
             >
@@ -2814,14 +2814,14 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-28 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-checked-29 Mui-checked MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-checked MuiCheckbox-checked MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-labelledby="janus@two-faces.org"
-                      class="PrivateSwitchBase-input-31"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -2843,22 +2843,22 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
                 </span>
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-32"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 Janus Bifrons
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-32"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 janus@two-faces.org
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-32"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 doors,portals
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-32"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 <div
                   class="MuiChip-root"
@@ -2891,14 +2891,14 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
               >
                 <span
                   aria-disabled="false"
-                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-28 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                 >
                   <span
                     class="MuiIconButton-label"
                   >
                     <input
                       aria-labelledby="portunus@two-faces.org"
-                      class="PrivateSwitchBase-input-31"
+                      class="PrivateSwitchBase-input"
                       data-indeterminate="false"
                       type="checkbox"
                       value=""
@@ -2920,22 +2920,22 @@ exports[`UserTable shows Add/Remove card when users are selected 1`] = `
                 </span>
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-32"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 Portunus
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-32"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 portunus@two-faces.org
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-32"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 doors
               </td>
               <td
-                class="MuiTableCell-root MuiTableCell-body makeStyles-cell-32"
+                class="MuiTableCell-root MuiTableCell-body makeStyles-cell"
               >
                 <div
                   class="MuiChip-root"

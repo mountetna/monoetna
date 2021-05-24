@@ -10,7 +10,7 @@ import {
 } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import UserTable from '../flags-user-table';
-import {FlagsProvider} from '../flags-context';
+import {flagsSpecWrapper} from '../../spec/flags-helpers';
 
 const mockUsers = [
   {
@@ -54,11 +54,9 @@ afterAll(() => server.close());
 
 describe('UserTable', () => {
   it('renders correctly', async () => {
-    const wrapper = ({children}: any) => (
-      <FlagsProvider state={mockState}>{children}</FlagsProvider>
-    );
-
-    let {asFragment} = render(<UserTable />, {wrapper});
+    let {asFragment} = render(<UserTable />, {
+      wrapper: flagsSpecWrapper(mockState)
+    });
 
     await waitFor(() => screen.getByText(/Janus/));
 
@@ -72,11 +70,9 @@ describe('UserTable', () => {
   });
 
   it('shows Add/Remove card when users are selected', async () => {
-    const wrapper = ({children}: any) => (
-      <FlagsProvider state={mockState}>{children}</FlagsProvider>
-    );
-
-    let {asFragment} = render(<UserTable />, {wrapper});
+    let {asFragment} = render(<UserTable />, {
+      wrapper: flagsSpecWrapper(mockState)
+    });
 
     await waitFor(() => screen.getByText(/Janus/));
 
@@ -91,11 +87,9 @@ describe('UserTable', () => {
   });
 
   it('filters users based on text search', async () => {
-    const wrapper = ({children}: any) => (
-      <FlagsProvider state={mockState}>{children}</FlagsProvider>
-    );
-
-    let {asFragment} = render(<UserTable />, {wrapper});
+    let {asFragment} = render(<UserTable />, {
+      wrapper: flagsSpecWrapper(mockState)
+    });
 
     await waitFor(() => screen.getByText(/Janus/));
 
@@ -112,11 +106,9 @@ describe('UserTable', () => {
   });
 
   it('filters users based on project search', async () => {
-    const wrapper = ({children}: any) => (
-      <FlagsProvider state={mockState}>{children}</FlagsProvider>
-    );
-
-    let {asFragment} = render(<UserTable />, {wrapper});
+    let {asFragment} = render(<UserTable />, {
+      wrapper: flagsSpecWrapper(mockState)
+    });
 
     await waitFor(() => screen.getByText(/Janus/));
 
@@ -133,11 +125,9 @@ describe('UserTable', () => {
   });
 
   it('filters users based on flag search', async () => {
-    const wrapper = ({children}: any) => (
-      <FlagsProvider state={mockState}>{children}</FlagsProvider>
-    );
-
-    let {asFragment} = render(<UserTable />, {wrapper});
+    let {asFragment} = render(<UserTable />, {
+      wrapper: flagsSpecWrapper(mockState)
+    });
 
     await waitFor(() => screen.getByText(/Janus/));
 
@@ -154,11 +144,9 @@ describe('UserTable', () => {
   });
 
   it('filters users based on all 3 search params', async () => {
-    const wrapper = ({children}: any) => (
-      <FlagsProvider state={mockState}>{children}</FlagsProvider>
-    );
-
-    let {asFragment} = render(<UserTable />, {wrapper});
+    let {asFragment} = render(<UserTable />, {
+      wrapper: flagsSpecWrapper(mockState)
+    });
 
     await waitFor(() => screen.getByText(/Janus/));
 
