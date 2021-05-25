@@ -20,9 +20,11 @@ const SingleDropdownMulticheckbox: InputBackendComponent = ({
   const [dropdownValues, setDropdownValues] = useState(
     {} as {[key: string]: string}
   );
+  const [initialized, setInitialized] = useState(false);
   const {data} = input;
 
   const dropdownOptions: {[key: string]: string[]} = useMemo(() => {
+    console.log('here', data);
     return Object.keys(data || {}).reduce(
       (
         acc: {[key: string]: string[]},
@@ -36,6 +38,7 @@ const SingleDropdownMulticheckbox: InputBackendComponent = ({
   }, [data]);
 
   useEffect(() => {
+    console.log('dropdownOptions', dropdownOptions);
     // By default set the first option as selected for each CWL input.
     setDropdownValues(
       Object.entries(dropdownOptions).reduce(
@@ -50,23 +53,30 @@ const SingleDropdownMulticheckbox: InputBackendComponent = ({
       )
     );
 
-    // by default all boxes are selected
-    setSelected(
-      Object.entries(dropdownOptions).reduce(
-        (
-          acc: {[key: string]: {[key: string]: string[]}},
-          [nextCwlInput, options]: [string, string[]]
-        ): {[key: string]: {[key: string]: string[]}} => {
-          acc[nextCwlInput] = {};
-          options.forEach((option) => {
-            acc[nextCwlInput][option] = data ? data[nextCwlInput][option] : [];
-          });
-          return acc;
-        },
-        {}
-      )
-    );
-  }, []);
+    if (input.default) {
+      // Set the boxes to any previous selection
+      setSelected(input.default);
+    } else {
+      // by default all boxes are selected
+      setSelected(
+        Object.entries(dropdownOptions).reduce(
+          (
+            acc: {[key: string]: {[key: string]: string[]}},
+            [nextCwlInput, options]: [string, string[]]
+          ): {[key: string]: {[key: string]: string[]}} => {
+            acc[nextCwlInput] = {};
+            options.forEach((option) => {
+              acc[nextCwlInput][option] = data
+                ? data[nextCwlInput][option]
+                : [];
+            });
+            return acc;
+          },
+          {}
+        )
+      );
+    }
+  }, [data]);
 
   useEffect(() => {
     // when options change for the dropdown menu,
@@ -82,7 +92,10 @@ const SingleDropdownMulticheckbox: InputBackendComponent = ({
             ...input,
             name: `${cwlInputName}-${dropdownValue}`,
             data: data ? data[cwlInputName][dropdownValue] : [],
-            default: selected[cwlInputName][dropdownValue]
+            default:
+              selected && selected[cwlInputName]
+                ? selected[cwlInputName][dropdownValue]
+                : []
           };
           return acc;
         },
@@ -123,7 +136,7 @@ const SingleDropdownMulticheckbox: InputBackendComponent = ({
   );
 
   if (!input || !onChange) return null;
-
+  console.log('dropdownOptions2', dropdownOptions);
   return (
     <div>
       {Object.keys(dropdownValues).map((cwlInputName: string) => {
