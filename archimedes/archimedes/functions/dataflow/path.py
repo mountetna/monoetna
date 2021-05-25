@@ -45,7 +45,5 @@ def output_tsv(data, name, outputs_env=_os.environ, outputs_dir=None):
     return data.to_csv( output_path(name, outputs_env, outputs_dir) , sep='\t')
 
 def output_json(data, name, outputs_env=_os.environ, outputs_dir=None):
-    if not isinstance(data, dict):
-        raise TypeError(f"output_json(): data is of type {type(data)} must be of type dict")
     with open(output_path(name, outputs_env, outputs_dir), 'w') as output_file:
         output_file.write(json.dumps(data))
