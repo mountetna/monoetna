@@ -123,7 +123,7 @@ class AdminController < Janus::Controller
     if @params[:flags] &&
         !(@params[:flags].is_a?(Array) &&
             @params[:flags].all? { |f| f.is_a?(String) && f =~ /^\w+$/ })
-      raise Etna::BadRequest, "Flags should be an array of words"
+      raise Etna::BadRequest, "Flags should be an array of words per /^\w+$/"
     end
 
     raise Etna::BadRequest, "No such user #{@params[:email]}" unless user
