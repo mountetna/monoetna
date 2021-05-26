@@ -161,7 +161,19 @@ const SingleDropdownMulticheckbox: InputBackendComponent = ({
     // Update state whenever a new selection comes in.
     if (!_.isEqual(lastSelected, selected)) {
       setLastSelected(selected);
-      onChange(input.name, selected);
+      if (
+        Object.values(
+          selected
+        ).every((nestedInput: {[key: string]: string[]}) =>
+          Object.values(nestedInput).every(
+            (selection: string[]) => selection.length > 0
+          )
+        )
+      ) {
+        onChange(input.name, selected);
+      } else {
+        onChange(input.name, null);
+      }
     }
   }, [selected]);
 
