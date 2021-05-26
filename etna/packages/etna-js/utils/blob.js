@@ -3,7 +3,7 @@ import downloadjs from 'downloadjs'
 export const downloadBlob = ({ data, filename = 'file.dat', contentType = 'application/octet-stream' }) => {
   let blob = new Blob([data], {type: contentType});
 
-  return downloadjs(blob, filename, blob.type);
+  downloadjs(blob, filename, blob.type);
 }
 
 export const readTextFile = (accept) => (

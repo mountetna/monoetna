@@ -119,8 +119,8 @@ export default function SessionManager() {
           </React.Fragment>
         )}
         <FlatButton className='header-btn run' icon='play' label='Run' title='Run workflow' onClick={run} disabled={disableRunButton} />
-        <FlatButton className='header-btn save' icon='save' label='Save' title='Save workflow parameters to file' onClick={saveSession}/>
-        <FlatButton className='header-btn open' icon='folder-open' label='Open' title='Load workflow parameters from file' onClick={openSession}/>
+        <FlatButton className='header-btn save' icon='save' label='Save' title='Save workflow parameters to file' onClick={saveSession} disabled={running}/>
+        <FlatButton className='header-btn open' icon='folder-open' label='Open' title='Load workflow parameters from file' onClick={openSession} disabled={running}/>
       </div>
       <div className='session-feed-container'>
         <InputFeed />
