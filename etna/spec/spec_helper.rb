@@ -7,6 +7,7 @@ require 'securerandom'
 require 'timecop'
 require 'webmock/rspec'
 require 'base64'
+require 'yabeda'
 
 Bundler.setup(:default, :test)
 
