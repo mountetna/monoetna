@@ -69,6 +69,7 @@ module Token
       payload = jwt_payload(filters: { project_name: project_name }).merge(exp: expires.to_i)
 
       # ensure read only
+
       if read_only
         payload[:perm] = "v:#{project_name}" if read_only
       elsif payload[:perm] =~ /^[Aa]/

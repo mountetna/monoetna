@@ -10,3 +10,4 @@ sc.tl.leiden(scdata, resolution = leiden_resolution, key_added = "leiden", use_w
 
 ##### OUTPUT
 output_json(scdata.obs['leiden'].tolist(), 'leiden.json')
+scdata.write(output_path('leiden_anndata.h5ad'))

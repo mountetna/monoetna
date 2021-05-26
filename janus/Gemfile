@@ -12,6 +12,10 @@ gem 'puma', '>=5.0.2'
 gem 'concurrent-ruby'
 gem 'activesupport', '>= 4.2.6'
 
+gem "yabeda"
+gem "yabeda-prometheus"
+gem "yabeda-puma-plugin"
+
 group :test do
   gem 'rspec'
   gem 'timecop'

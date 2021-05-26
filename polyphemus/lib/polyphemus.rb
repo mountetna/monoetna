@@ -17,4 +17,31 @@ class Polyphemus
     @db.extension :pg_json
     @db.pool.connection_validation_timeout = -1
   end
+
+  def setup_yabeda
+    Yabeda.configure do
+      group :polyphemus do
+        gauge :last_command_completion do
+          comment "Unix time of last time command was completed"
+          tags [:command, :status]
+        end
+      end
+    end
+
+    super
+  end
+
+  def run_command(config, *args, &block)
+    cmd, cmd_args, cmd_kwds = find_command(*args)
+
+    begin
+      super
+      Yabeda.polyphemus.last_command_completion.set({ command: cmd.class.name, status: 'success' }, Time.now.to_i)
+    rescue
+      Yabeda.polyphemus.last_command_completion.set({ command: cmd.class.name, status: 'failed' }, Time.now.to_i)
+      raise
+    ensure
+      write_job_metrics("#{cmd.class.name}.last_run")
+    end
+  end
 end

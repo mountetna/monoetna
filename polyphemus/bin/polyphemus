@@ -8,4 +8,5 @@ require 'yaml'
 
 config = YAML.load(File.read(File.expand_path("../../config.yml",__FILE__)))
 
+Polyphemus.instance.setup_yabeda
 Polyphemus.instance.run_command(config, *ARGV)

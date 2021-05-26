@@ -27,6 +27,7 @@ x-base-etna-service:
     - polyphemus-data-dir:/app/data:rw
     - polyphemus-opt-dir:/usr/opt:rw
     - ../etna:/etna:delegated
+    - /tmp/metrics.prom:/tmp/metrics.prom
   environment: &base-etna-env
     'POLYPHEMUS_ENV': 'development'
     APP_NAME: 'polyphemus'
