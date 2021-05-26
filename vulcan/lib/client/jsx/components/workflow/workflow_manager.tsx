@@ -7,7 +7,6 @@ import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
 import {setInputs, setSession, setWorkflow} from "../../actions/vulcan";
 import {defaultVulcanSession} from "../../api_types";
-import {WorkflowContext} from "../../contexts/workflow_context";
 
 export default function WorkflowManager({workflowName, projectName}: { workflowName: string, projectName: string }) {
   const {
@@ -38,11 +37,9 @@ export default function WorkflowManager({workflowName, projectName}: { workflowN
   }
 
   return (
-    <WorkflowContext.Provider value={state.workflow}>
-      <div className='workflow-manager'>
-        <SessionManager/>
-        <StepsList/>
-      </div>
-    </WorkflowContext.Provider>
+    <div className='workflow-manager'>
+      <SessionManager/>
+      <StepsList/>
+    </div>
   );
 }

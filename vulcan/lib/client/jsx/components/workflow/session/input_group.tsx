@@ -10,11 +10,11 @@ import {
   sortInputsByLabel
 } from '../../../selectors/workflow_selectors';
 import {InputSpecification} from "../user_interactions/inputs/input_types";
-import {WorkflowContext} from "../../../contexts/workflow_context";
+import {useWorkflow} from "../../../contexts/workflow_context";
 
 export default function InputGroup({inputs, onChange}: {inputs: InputSpecification[], onChange: (name: string, val: any) => void}) {
   const {state} = useContext(VulcanContext);
-  const workflow = useContext(WorkflowContext);
+  const workflow = useWorkflow();
   let {session, status, data} = state;
   const [open, setOpen] = useState(true);
 

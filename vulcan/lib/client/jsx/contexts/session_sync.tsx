@@ -1,11 +1,9 @@
-import * as _ from 'lodash';
 import {defaultApiHelpers} from "./api";
 import {Dispatch, MutableRefObject, useCallback, useEffect, useRef, useState} from "react";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {setSession, setStatus, VulcanAction} from "../actions/vulcan";
 import {SessionStatusResponse, VulcanSession} from "../api_types";
 import {Cancellable} from "etna-js/utils/cancellable";
-import {hasNoRunningSteps} from '../selectors/workflow_selectors';
 
 export const defaultSessionSyncHelpers = {
   statusIsFresh: true,

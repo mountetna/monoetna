@@ -6,12 +6,12 @@ import {inputGroupName} from '../../../selectors/workflow_selectors';
 import InputGroup from './input_group';
 import {patchInputs} from "../../../actions/vulcan";
 import {InputSpecification} from "../user_interactions/inputs/input_types";
-import {WorkflowContext} from "../../../contexts/workflow_context";
+import {useWorkflow} from "../../../contexts/workflow_context";
 
 export default function PrimaryInputs() {
   const {state, dispatch} = useContext(VulcanContext);
   const {session} = state;
-  const workflow = useContext(WorkflowContext);
+  const workflow = useWorkflow();
 
   const handleInputChange = useCallback((inputName: string, val: any) => {
     dispatch(patchInputs({

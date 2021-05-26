@@ -1,5 +1,8 @@
-import React, {createContext} from 'react';
-import {Workflow} from "../api_types";
+import React, {useContext} from 'react';
+import {VulcanContext} from "./vulcan_context";
+import {defaultWorkflow, Workflow} from "../api_types";
 
-const defaultWorkflowContext = {} as Workflow;
-export const WorkflowContext = createContext(defaultWorkflowContext);
+export function useWorkflow(): Workflow {
+  const {state} = useContext(VulcanContext);
+  return state.workflow || defaultWorkflow;
+}

@@ -13,7 +13,7 @@ import {
   uiOutputOfStep,
   workflowName
 } from '../../../selectors/workflow_selectors';
-import {WorkflowContext} from "../../../contexts/workflow_context";
+import {useWorkflow} from "../../../contexts/workflow_context";
 import { readTextFile, downloadBlob } from 'etna-js/utils/blob';
 
 const modalStyles = {
@@ -29,7 +29,7 @@ const modalStyles = {
 
 export default function SessionManager() {
   const {state, dispatch, requestPoll} = useContext(VulcanContext);
-  const workflow = useContext(WorkflowContext);
+  const workflow = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
   const {steps} = workflow;
