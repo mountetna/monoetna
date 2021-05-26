@@ -194,7 +194,9 @@ export function isPendingUiQuery(step: WorkflowStep, status: VulcanState['status
 
 export const stepInputDataRaw = (
     step: WorkflowStep,
-    status: VulcanState['status'], data: VulcanState['data'], session: VulcanState['session'],
+    status: VulcanState['status'],
+    data: VulcanState['data'],
+    session: VulcanState['session'],
 ): { [k: string]: any } => {
   // Pull out any previous step's output data link that is a required
   //   input into this UI step.
