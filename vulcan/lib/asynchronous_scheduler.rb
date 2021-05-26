@@ -45,16 +45,21 @@ class Vulcan
     def status(storage:, build_target:, step: nil)
       hash = build_target.cell_hash
 
-      requires_inputs = step&.ui_output_name && !build_target.is_buildable?(storage)
-
-      if !requires_inputs && build_target.is_built?(storage)
-        return {status: 'complete'}
-      end
-
+      # Report the running status for a hash while it remains in the running dictionary
+      # EVEN if it is complete by the build_target.is_built? question.  This is a timing issue --
+      # a process may have finished building, but not yet executed the schedule_more! task to prepare
+      # follow up tasks.  LEAVE the status running until we guarantee this happened.  See schedule! in the
+      # inner thread block.
       @running_semaphore.synchronize do
         if @running.include?(hash)
           return {status: 'running'}
         end
+      end
+
+      requires_inputs = step&.ui_output_name && !build_target.is_buildable?(storage)
+
+      if !requires_inputs && build_target.is_built?(storage)
+        return {status: 'complete'}
       end
 
       if (err = WorkflowError.find_error(hash: hash))
@@ -94,6 +99,9 @@ class Vulcan
             Vulcan.instance.logger.error "Error #{e.to_s}"
             WorkflowError.mark_error!(hash: hash, message: e.to_s)
           ensure
+            # Remove this hash from the running state ONLY after we ensure either
+            #   1.  the step failed in the rescue block, and will full stop at that point.
+            #   2. this hash completed a schedule_more! and has added other dependent jobs.
             s.synchronize do
               Vulcan.instance.logger.info "Removing #{hash} from running"
               @running.delete(hash)

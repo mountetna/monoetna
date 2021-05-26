@@ -12,6 +12,7 @@ import {
   uiOutputOfStep,
   workflowName
 } from '../../../selectors/workflow_selectors';
+import {WorkflowContext} from "../../../contexts/workflow_context";
 
 const modalStyles = {
   content: {
@@ -25,25 +26,14 @@ const modalStyles = {
 };
 
 export default function SessionManager() {
-  const context = useContext(VulcanContext);
-  const {state, requestPoll} = context;
-
-  const workflow = state.workflow;
-  if (!workflow) return null;
-  const name = workflowName(workflow);
-  if (!name) return null;
-
+  const {state, requestPoll} = useContext(VulcanContext);
+  const workflow = useContext(WorkflowContext);
   const [modalIsOpen, setIsOpen] = React.useState(false);
-  function openModal() {
-    setIsOpen(true);
-  }
-
-  function closeModal() {
-    setIsOpen(false);
-  }
-
   const {steps} = workflow;
   const {status, session} = state;
+
+  const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
+  const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   // We are done once every step either has a download or that step is a uiOutput.
   const complete = useMemo(
@@ -79,6 +69,9 @@ export default function SessionManager() {
   }, [requestPoll]);
 
   const disableRunButton = complete || running || !primaryInputsReady;
+
+  const name = workflowName(workflow);
+  if (!name) return null;
 
   return (
     <div className='session-manager'>

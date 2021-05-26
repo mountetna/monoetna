@@ -369,5 +369,4 @@ export function sortInputsByLabel(inputs: InputSpecification[]): InputSpecificat
   });
 
   return inputs.sort((a, b) => collator.compare(a.label || a.name, b.label || b.name))
-
 }

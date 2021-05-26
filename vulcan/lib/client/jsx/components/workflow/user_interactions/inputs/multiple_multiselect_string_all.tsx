@@ -122,8 +122,9 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
         [inputName]: value
       }
     });
-  }, [userSelection]);
+  }, [selectedValues, userSelection]);
 
+  // Perhaps this logic should be moved into a useCallback that wraps setSelectedValues?
   useEffect(() => {
     if (Object.keys(options || {}).length > 0 && selectedValuesChanged) {
       if (allInputsPopulated && noEmptyStrings) {
@@ -133,13 +134,13 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
       }
       setLastSelectedValues(selectedValues);
     }
-  }, [selectedValues]);
+  }, [allInputsPopulated, input.name, noEmptyStrings, onChange, options, selectedValues, selectedValuesChanged]);
 
   useEffect(() => {
     if (options && null != input.default) {
       setSelectedValues(input.default);
     }
-  }, [options]);
+  }, [input.default, options]);
 
   useEffect(() => {
     if (options && selectedValues) {

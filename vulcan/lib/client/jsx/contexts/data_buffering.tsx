@@ -17,28 +17,28 @@ export function useDataBuffering(
     getData: typeof defaultApiHelpers.getData,
 ): typeof defaultDataBufferingHelpers {
   const [activeDownload, setActiveDownload] = useState(null as string | null);
+  const {status, workflow, data} = state;
 
   const urlsToBuffer = useMemo(() => {
     const result: { [k: string]: boolean } = {};
-    const {workflow} = state;
     if (workflow != null) {
-      state.status[0].forEach(stepStatus => {
+      status[0].forEach(stepStatus => {
         if (!stepStatus.downloads) return;
         Object.values(stepStatus.downloads).forEach(url => {
-          if (!shouldDownload(url, workflow, stepOfStatus(stepStatus, workflow), state.status)) return;
+          if (!shouldDownload(url, workflow, stepOfStatus(stepStatus, workflow), status)) return;
           result[url] = true;
         });
       });
     }
 
     return result;
-  }, [state.status, state.workflow])
+  }, [status, workflow])
 
   const missingDownloads = useMemo(() => {
     return Object.keys(urlsToBuffer).filter(url => {
-      return !(activeDownload == url || url in state.data);
+      return !(activeDownload == url || url in data);
     });
-  }, [urlsToBuffer, state.data, activeDownload]);
+  }, [urlsToBuffer, data, activeDownload]);
 
   // Queue up and send out download requests
   useEffect(() => {
@@ -53,15 +53,15 @@ export function useDataBuffering(
     })).catch(e => { console.error(e); }).finally(() => {
       setActiveDownload(null);
     });
-  }, [missingDownloads, activeDownload]);
+  }, [missingDownloads, activeDownload, scheduleWork, getData, dispatch]);
 
   // Clear out unused downloads, one key at a time.
   useEffect(() => {
-    const toRelease = Object.keys(state.data).find(url => !(url in urlsToBuffer));
+    const toRelease = Object.keys(data).find(url => !(url in urlsToBuffer));
     if (toRelease != null) {
       dispatch(releaseDownloadedData(toRelease));
     }
-  }, [urlsToBuffer, state.data])
+  }, [urlsToBuffer, data, dispatch])
 
   return {
     urlsToBuffer,
