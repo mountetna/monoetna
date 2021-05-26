@@ -28,7 +28,7 @@ export default function StepUserInput({step, handleInputChange}: {step: Workflow
     name: outputName,
     data: stepInputDataRaw(step, state.status, state.data, state.session),
     doc: step.doc
-  })), [outputRefs, step, state.status, state.data, state.inputs])
+  })), [outputRefs, step, state.status, state.data, state.inputs, state.session ])
 
   return (
     <React.Fragment>
