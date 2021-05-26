@@ -47,7 +47,6 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
   useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, scheduleWork);
   useInputStateManagement(state, dispatch, sessionSyncHelpers.statusIsFresh);
 
-
   return (
       <VulcanContext.Provider value={{
         state,

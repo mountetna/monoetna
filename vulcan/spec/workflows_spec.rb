@@ -32,7 +32,6 @@ describe WorkflowsController do
     it 'gets a list of workflows' do
       auth_header(:viewer)
       get("/api/workflows")
-
       expect(last_response.status).to eq(200)
 
       response = JSON.parse(last_response.body)
@@ -118,6 +117,13 @@ describe WorkflowsController do
 
     it 'rejects a non-user' do
       auth_header(:non_user)
+      get("/api/workflows")
+
+      expect(last_response.status).to eq(403)
+    end
+
+    it 'rejects a user without the right flag' do
+      auth_header(:no_flag)
       get("/api/workflows")
 
       expect(last_response.status).to eq(403)

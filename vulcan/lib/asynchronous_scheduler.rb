@@ -121,7 +121,7 @@ class Vulcan
 
         started = []
 
-        runnables.each do |build_target|
+        runnables.each do |step_name,build_target|
           if schedule!(orchestration: orchestration, build_target: build_target, token: token, storage: storage)
             started << build_target.cell_hash
           end

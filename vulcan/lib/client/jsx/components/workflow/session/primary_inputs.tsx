@@ -29,7 +29,7 @@ export default function PrimaryInputs() {
               workflow.inputs[name].default
           ].find(a => a != null)
     }))
-  }, [session.inputs, workflow?.inputs]);
+  }, [session.inputs, workflow.inputs]);
 
   let groupedInputs = primaryInputs.reduce((result, input) => {
     let groupName = inputGroupName(input.name);

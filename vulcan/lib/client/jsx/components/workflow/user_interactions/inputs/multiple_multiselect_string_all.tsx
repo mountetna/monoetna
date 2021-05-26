@@ -137,8 +137,9 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   }, [allInputsPopulated, input.name, noEmptyStrings, onChange, options, selectedValues, selectedValuesChanged]);
 
   useEffect(() => {
-    if (options && null != input.default) {
-      setSelectedValues(input.default);
+    if (options) {
+      if (null != input.default) setSelectedValues(input.default);
+      else setSelectedValues({});
     }
   }, [input.default, options]);
 
