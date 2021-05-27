@@ -29,7 +29,7 @@ class Vulcan
         errors = RunErrors.new
         i = 0
         until (runnables = next_runnable_build_targets(storage)).empty? || (i += 1) > MAX_RUNNABLE
-          next_runnable = runnables.find { |r| !errors.include?(r) }
+          next_runnable = runnables.find { |(step_name, r)| !errors.include?(r) }&.last
 
           begin
             break if next_runnable.nil?
@@ -235,10 +235,10 @@ class Vulcan
 
     def next_runnable_build_targets(storage)
       build_targets_for_paths.map do |path_build_targets|
-        path_build_targets.select { |bt|
+        path_build_targets.select { |step_name,bt|
           bt.should_build?(storage)
-        }.last
-      end.select { |v| !v.nil? }.uniq { |bt| bt.cell_hash }
+        }.to_a.last
+      end.compact.uniq { |step_name,bt| bt.cell_hash }
     end
 
     def build_targets_for_paths
@@ -246,8 +246,8 @@ class Vulcan
 
       unique_paths.map do |path|
         path.map do |step_name|
-          build_target_for(step_name, build_target_cache)
-        end
+          [ step_name, build_target_for(step_name, build_target_cache) ]
+        end.to_h
       end
     end
 

@@ -8,7 +8,6 @@ require_relative './command'
 require_relative './generate_autocompletion_script'
 require 'singleton'
 require 'rollbar'
-require 'yabeda'
 require 'fileutils'
 
 module Etna::Application

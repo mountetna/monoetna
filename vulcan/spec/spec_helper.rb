@@ -30,15 +30,18 @@ end
 
 AUTH_USERS = {
   admin: {
-    email: 'hera@olympus.org', name: 'Hera', perm: 'a:labors', exp: Time.now.to_i + 6000,
+    email: 'hera@olympus.org', name: 'Hera', perm: 'a:labors', exp: Time.now.to_i + 6000, flags: 'vulcan'
   },
   editor: {
-    email: 'eurystheus@twelve-labors.org', name: 'Eurystheus', perm: 'e:labors', exp: Time.now.to_i + 6000,
+    email: 'eurystheus@twelve-labors.org', name: 'Eurystheus', perm: 'e:labors', exp: Time.now.to_i + 6000, flags: 'vulcan'
   },
   viewer: {
-    email: 'hercules@twelve-labors.org', name: 'Hercules', perm: 'v:labors', exp: Time.now.to_i + 6000,
+    email: 'hercules@twelve-labors.org', name: 'Hercules', perm: 'v:labors', exp: Time.now.to_i + 6000, flags: 'vulcan'
   },
   non_user: {
+    email: 'nessus@centaurs.org', name: 'Nessus', perm: '', exp: Time.now.to_i + 6000, flags: 'vulcan'
+  },
+  no_flag: {
     email: 'nessus@centaurs.org', name: 'Nessus', perm: '', exp: Time.now.to_i + 6000,
   }
 }
