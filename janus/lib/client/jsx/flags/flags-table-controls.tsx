@@ -11,20 +11,9 @@ import {FlagsContext} from './flags-context';
 import {fetchProjects} from '../api/janus_api';
 
 const useStyles = makeStyles((theme) => ({
-  chips: {
-    display: 'flex',
-    flexWrap: 'wrap'
-  },
   formControl: {
-    margin: theme.spacing(1),
     minWidth: 300,
     maxWidth: 400
-  },
-  chip: {
-    margin: 2
-  },
-  button: {
-    margin: theme.spacing(1)
   }
 }));
 
@@ -61,9 +50,7 @@ function MultiSelector({
         renderInput={(params: any) => (
           <TextField
             {...params}
-            variant='outlined'
             label={label}
-            placeholder={label}
           />
         )}
         renderOption={(option, state) => <span>{option}</span>}
@@ -119,11 +106,10 @@ const TableControls = ({
   }, [projectOptions, projects]);
 
   return (
-    <Grid container>
+    <React.Fragment>
       <Grid item xs={3}>
         <TextField
           label='Search'
-          variant='outlined'
           onChange={(e) => onChangeSearch(e.target.value as string)}
           InputLabelProps={{
             shrink: true
@@ -151,7 +137,7 @@ const TableControls = ({
           label='Flags'
         />
       </Grid>
-    </Grid>
+    </React.Fragment>
   );
 };
 

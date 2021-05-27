@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 
 import JanusNav from './janus-nav';
 import JanusMain from './janus-main';
@@ -8,6 +9,81 @@ import ProjectView from './project-view';
 import FlagsView from './flags/flags-view';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
+
+
+const theme = createMuiTheme({
+  typography: {
+    fontFamily: 'Open Sans,sans-serif'
+  },
+  shape: {
+    borderRadius: "2px"
+  },
+  palette: {
+    primary: {
+      main: "#3684fd"
+    },
+    secondary: {
+      main: "#77c"
+    }
+  },
+  overrides: {
+    MuiButton: {
+      root: {
+        textTransform: "none"
+      }
+    },
+    MuiChip: {
+      root: {
+        borderRadius: "4px",
+        boxShadow: "0 0 3px #ccc",
+        margin: "0px 2px"
+      }
+    },
+    MuiTableCell: {
+      root: {
+        fontSize: "1rem"
+      }
+    },
+    MuiIconButton: {
+      root: {
+        borderRadius: "2px"
+      }
+    },
+    MuiScopedCssBaseline: {
+      root: {
+        backgroundColor: "none"
+      }
+    },
+    MuiTableRow: {
+      head: {
+        fontFamily: 'Cousine, monospace',
+        color: '#333',
+        background: '#eee'
+      }
+    }
+  },
+  props: {
+    MuiButton: {
+      size: "small",
+      disableElevation: true,
+      disableRipple: true
+    },
+    MuiGrid: {
+      disableElevation: true
+    },
+    MuiChip: {
+      color: "secondary",
+      size: "small"
+    },
+    MuiTableContainer: {
+      disableElevation: true,
+      variant: "outlined"
+    },
+    MuiTable: {
+      size: "small"
+    }
+  }
+});
 
 const ROUTES = [
   {
@@ -46,10 +122,12 @@ const JanusUI = () => {
   let Component = route ? route.component : Invalid;
 
   return (
-    <div id='janus-group'>
-      <JanusNav/>
-      <Component {...params}/>
-    </div>
+    <ThemeProvider theme={theme}>
+      <div id='janus-group'>
+        <JanusNav/>
+        <Component {...params}/>
+      </div>
+    </ThemeProvider>
   );
 }
 

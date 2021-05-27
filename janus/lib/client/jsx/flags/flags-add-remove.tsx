@@ -8,8 +8,6 @@ import CardContent from '@material-ui/core/CardContent';
 import CardActions from '@material-ui/core/CardActions';
 import AddIcon from '@material-ui/icons/Add';
 import RemoveIcon from '@material-ui/icons/Remove';
-import ClearIcon from '@material-ui/icons/Clear';
-
 import {FlagsContext} from './flags-context';
 import {UserFlagsInterface} from '../types/janus_types';
 import {updateUserFlags, fetchUsers} from '../api/janus_api';
@@ -19,7 +17,8 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(1)
   },
   card: {
-    position: 'fixed',
+    position: 'absolute',
+    top: '50px',
     zIndex: 10
   },
   error: {
@@ -37,11 +36,9 @@ interface UpdatePayload {
 }
 
 const AddRemoveFlag = ({
-  selectedUsers,
-  onClose
+  selectedUsers
 }: {
   selectedUsers: UserFlagsInterface[];
-  onClose: () => void;
 }) => {
   const [inputFlag, setInputFlag] = useState('' as string);
   const [payloads, setPayloads] = useState([] as UpdatePayload[]);
@@ -128,25 +125,18 @@ const AddRemoveFlag = ({
       </CardContent>
       <CardActions disableSpacing>
         <Button
-          variant='contained'
-          color='primary'
           className={classes.button}
           startIcon={<AddIcon />}
           onClick={onAddFlag}
         >
           Add Flag
         </Button>
-        <Button
-          variant='contained'
-          color='secondary'
+        <Button color='secondary'
           className={classes.button}
           startIcon={<RemoveIcon />}
           onClick={onRemoveFlag}
         >
           Remove Flag
-        </Button>
-        <Button onClick={onClose}>
-          <ClearIcon />
         </Button>
       </CardActions>
     </Card>
