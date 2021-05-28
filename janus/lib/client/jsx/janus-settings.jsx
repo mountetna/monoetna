@@ -52,10 +52,10 @@ const TaskTokenSettings = ({user}) => {
 
   let generateToken = useCallback(
     () => json_post(
-      '/api/tokens/task/generate',
-      { project_name }
+      '/api/tokens/generate',
+      { project_name, token_type: 'task' }
     ).then(
-      ({token}) => copyText(token)
+      (token) => copyText(token)
     ), [project_name]
   );
 
