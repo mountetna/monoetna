@@ -191,7 +191,6 @@ describe('MultipleMultiselectStringAllInput', () => {
 
     input.default = null;
     component.setProps({input});
-    console.log('update with', {input})
     component.update();
     expect(renderedItemsList(component)).toEqual([
       '1',

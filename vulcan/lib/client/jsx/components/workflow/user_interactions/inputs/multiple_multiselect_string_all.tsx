@@ -54,12 +54,9 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
 
     setSelectedValues(update);
 
-    console.log('update to', update);
     if (allInputsPopulated && noEmptyStrings) {
-      console.log('onChange', name, update);
       onChange(name, update);
     } else if (!allInputsPopulated) {
-      console.log('onChange', name, null);
       onChange(name, null);
     }
   }, [selectedValues, options, setSelectedValues, name, onChange]);
