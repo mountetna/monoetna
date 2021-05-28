@@ -183,6 +183,13 @@ const ProjectView = ({project_name}) => {
           </TableHead>
           <TableBody>
           {
+            permissions.length > 2 && <TableRow>
+              <TableCell colspan='6'>
+                <TextField placeholder='Filter rows' onChange={ e => setFilter(e.target.value) }/>
+              </TableCell>
+            </TableRow>
+          }
+          {
             displayPermissions(permissions, filter).map(
               p => <Permission
                 key={p.user_email}
