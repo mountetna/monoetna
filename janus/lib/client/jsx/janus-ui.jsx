@@ -85,6 +85,9 @@ const theme = createMuiTheme({
     },
     MuiTable: {
       size: "small"
+    },
+    MuiAutocomplete: {
+      size: "small"
     }
   }
 });
