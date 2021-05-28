@@ -160,7 +160,7 @@ describe('MultipleMultiselectStringAllInput', () => {
   it('can remove a single entry with a default', () => {
     input.default = {
         option1: ['1', '2'],
-        option2: ['y']
+        option2: ['y'],
         option3: ['8', '9', '7'],
         option4: ['c']
     };
@@ -191,6 +191,7 @@ describe('MultipleMultiselectStringAllInput', () => {
 
     input.default = null;
     component.setProps({input});
+    console.log('update with', {input})
     component.update();
     expect(renderedItemsList(component)).toEqual([
       '1',

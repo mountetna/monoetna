@@ -1,10 +1,11 @@
-import React, {useState, useMemo, useEffect, useCallback} from 'react';
+import React, {useState, useMemo, useEffect, useCallback, useRef} from 'react';
 import * as _ from 'lodash';
 
 import {TYPE} from '../../../../api_types';
 import {InputBackendComponent, InputSpecification} from './input_types';
 import UserInput from './user_input';
 import {inputValueNonEmpty} from '../../../../selectors/workflow_selectors';
+import {useBufferedInputState} from "./buffered_input_state";
 
 function equalKeys(hash1: {}, hash2: {}): boolean {
   return _.isEqual(Object.keys(hash1), Object.keys(hash2));
@@ -16,9 +17,7 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
 }) => {
   const {data, name} = input;
 
-  const [selectedValues, setSelectedValues] = useState(
-    input.default || {} as {[key: string]: string[] | null}
-  );
+  const [selectedValues, setSelectedValues] = useBufferedInputState<{[k: string]: string[] | null}>(input, {});
 
   const options: {[k: string]: string[]} = useMemo(() => {
     if (data) {
@@ -39,14 +38,14 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
         name: label,
         data: {[label]: innerValues},
         default: selectedValues[label] || null,
-      })
+      });
     });
 
     return result;
   }, [options, selectedValues]);
 
   const onSelectInnerInput = useCallback(({label, value}: {label: string, value: string[]}) => {
-    const update: {[k: string]: string[]} = {...selectedValues, [label]: value};
+    const update: {[k: string]: string[] | null} = {...selectedValues, [label]: value};
 
     const allInputsPresent = !!options && equalKeys(options, selectedValues);
     const noEmptyStrings = Object.values(update).every(selected => selected?.every(val => '' !== val));
@@ -55,6 +54,7 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
 
     setSelectedValues(update);
 
+    console.log('update to', update);
     if (allInputsPopulated && noEmptyStrings) {
       console.log('onChange', name, update);
       onChange(name, update);
@@ -62,12 +62,7 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
       console.log('onChange', name, null);
       onChange(name, null);
     }
-  }, [selectedValues, options, onChange, name]);
-
-  // Anytime the
-  useEffect(() => {
-    if (null != input.default && input.default !== selectedValues) setSelectedValues(input.default);
-  }, [input.default, selectedValues]);
+  }, [selectedValues, options, setSelectedValues, name, onChange]);
 
   return (
     <div>
