@@ -1,6 +1,5 @@
 import React from 'react';
-import {InputBackendComponent} from "./input_types";
-
+import {InputBackendComponent} from './input_types';
 
 const BooleanInput: InputBackendComponent = ({input, onChange}) => {
   if (!input || !onChange) return null;
@@ -12,9 +11,9 @@ const BooleanInput: InputBackendComponent = ({input, onChange}) => {
       onChange={(e) => {
         onChange(input.name, e);
       }}
-      defaultChecked={input.default}
+      defaultChecked={input.value}
     />
   );
-}
+};
 
 export default BooleanInput;

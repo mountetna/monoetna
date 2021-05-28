@@ -1,14 +1,17 @@
 import React from 'react';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import {InputBackendComponent} from "./input_types";
+import {InputBackendComponent} from './input_types';
 
 const SelectAutocompleteInput: InputBackendComponent = ({input, onChange}) => {
   if (!input || !onChange) return null;
 
-    const options: any[] = Object.values(input.data || {}).reduce((acc, n) => {
-        if (Array.isArray(n)) return acc.concat(n);
-        return acc.concat([n]);
-    }, [input.data]);
+  const options: any[] = Object.values(input.data || {}).reduce(
+    (acc, n) => {
+      if (Array.isArray(n)) return acc.concat(n);
+      return acc.concat([n]);
+    },
+    [input.data]
+  );
 
   return (
     <DropdownAutocomplete
@@ -16,9 +19,9 @@ const SelectAutocompleteInput: InputBackendComponent = ({input, onChange}) => {
         onChange(input.name, e);
       }}
       list={options}
-      defaultValue={input.default || null}
+      defaultValue={input.value || null}
     />
   );
-}
+};
 
 export default SelectAutocompleteInput;

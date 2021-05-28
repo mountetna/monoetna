@@ -7,7 +7,7 @@ export interface InputSpecification {
   type: InputType,
   label: string | null | undefined,
   name: string, // output source
-  default: any | null,
+  value: any | null,
   data?: { [k: string]: any } | null,
   doc?: string | null,
 }

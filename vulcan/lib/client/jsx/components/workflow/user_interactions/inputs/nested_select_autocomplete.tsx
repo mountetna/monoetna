@@ -1,11 +1,17 @@
 // Input component that takes nested object
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
-import React, {useState, useEffect, useMemo, useContext, useCallback} from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useContext,
+  useCallback
+} from 'react';
 import * as _ from 'lodash';
 
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import {InputBackendComponent} from "./input_types";
+import {InputBackendComponent} from './input_types';
 
 function getPath(options: OptionSet, leaf: string): string[] {
   for (let [key, value] of Object.entries(options)) {
@@ -23,15 +29,27 @@ function getPath(options: OptionSet, leaf: string): string[] {
   return [];
 }
 
-function getOptions(desiredPath: string[], optionSet: OptionSet): string[] | null {
-  if (null == desiredPath || desiredPath.length === 0) return Object.keys(optionSet);
+function getOptions(
+  desiredPath: string[],
+  optionSet: OptionSet
+): string[] | null {
+  if (null == desiredPath || desiredPath.length === 0)
+    return Object.keys(optionSet);
   // _.at always returns an array, so unwrap it.
   let results = _.at(optionSet, desiredPath.join('.'))[0];
   if (results) return Object.keys(results);
   return null;
 }
 
-function LeafOptions({options, depth, handleSelect}: {options: string[] | null, depth: number, handleSelect: (value: string | null, depth: number) => void}) {
+function LeafOptions({
+  options,
+  depth,
+  handleSelect
+}: {
+  options: string[] | null;
+  depth: number;
+  handleSelect: (value: string | null, depth: number) => void;
+}) {
   if (!options) return null;
 
   return (
@@ -48,7 +66,10 @@ function LeafOptions({options, depth, handleSelect}: {options: string[] | null, 
 
 type OptionSet = {[k: string]: null | OptionSet};
 
-const NestedSelectAutocompleteInput: InputBackendComponent = ({input, onChange}) => {
+const NestedSelectAutocompleteInput: InputBackendComponent = ({
+  input,
+  onChange
+}) => {
   const [path, setPath] = useState([] as string[]);
   const {data} = input;
 
@@ -57,35 +78,40 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({input, onChange})
       if (!data) return dataObj;
       const next = data[k];
       return {
-          ...dataObj,
-          ...(typeof next === "object" && next != null && !Array.isArray(next) ? next : {})
+        ...dataObj,
+        ...(typeof next === 'object' && next != null && !Array.isArray(next)
+          ? next
+          : {})
       };
     }, {} as OptionSet);
   }, [data]);
 
   useEffect(() => {
-    if (input.default) {
-      setPath(getPath(allOptions, input.default));
+    if (input.value) {
+      setPath(getPath(allOptions, input.value));
     }
   }, [input, allOptions]);
 
-  const handleSelect = useCallback((value: string | null, depth: number) => {
-    // User has not selected something...perhaps
-    //   still typing?
-    if (null == value) return;
+  const handleSelect = useCallback(
+    (value: string | null, depth: number) => {
+      // User has not selected something...perhaps
+      //   still typing?
+      if (null == value) return;
 
-    const updatedPath = path.slice(0, depth);
-    updatedPath.push(value);
-    setPath(updatedPath);
+      const updatedPath = path.slice(0, depth);
+      updatedPath.push(value);
+      setPath(updatedPath);
 
-    if (getOptions(updatedPath, allOptions) == null) {
-      // If we are updating a leaf
-      onChange(input.name, value);
-    } else {
-      // Otherwise a leaf has not been selected.
-      onChange(input.name, null);
-    }
-  }, [input, allOptions, path, setPath, onChange]);
+      if (getOptions(updatedPath, allOptions) == null) {
+        // If we are updating a leaf
+        onChange(input.name, value);
+      } else {
+        // Otherwise a leaf has not been selected.
+        onChange(input.name, null);
+      }
+    },
+    [input, allOptions, path, setPath, onChange]
+  );
 
   if (!input || !onChange) return null;
 
@@ -94,7 +120,7 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({input, onChange})
       <div>
         {path.length > 0
           ? path.map((value, index) => {
-            const options = getOptions(path.slice(0, index), allOptions);
+              const options = getOptions(path.slice(0, index), allOptions);
               return (
                 <DropdownAutocomplete
                   key={index}
@@ -117,6 +143,6 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({input, onChange})
       </div>
     </div>
   );
-}
+};
 
 export default NestedSelectAutocompleteInput;
