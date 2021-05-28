@@ -95,7 +95,7 @@
   "scripts": {
     "lint": "eslint --ext .jsx,.js.jsx,.js,ts,tsx ./lib/client/jsx",
     "lintfile": "$(npm bin)/eslint --ext .jsx,.js.jsx,.js ",
-    "test": "tsc && jest && webpack",
+    "test": "tsc && eslint && jest && webpack",
     "build": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production",
     "build-dev": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=development",
     "webpack": "./node_modules/webpack/bin/webpack.js --env.NODE_ENV=production --watch",

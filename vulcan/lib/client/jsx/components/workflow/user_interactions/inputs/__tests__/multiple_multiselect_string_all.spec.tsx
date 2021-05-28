@@ -89,14 +89,10 @@ describe('MultipleMultiselectStringAllInput', () => {
     addItem(component, 3, 0);
     expect(component.find('.delete_link').last().text()).toEqual('a');
     expect(onChange).toHaveBeenCalledWith('test-input', {
-      'options-a': {
         option1: ['1', '2'],
-        option2: ['z']
-      },
-      'options-b': {
+        option2: ['z'],
         option3: ['8'],
         option4: ['c', 'a']
-      }
     });
   });
 
