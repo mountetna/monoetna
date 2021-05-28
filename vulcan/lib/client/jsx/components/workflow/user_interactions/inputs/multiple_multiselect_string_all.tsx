@@ -46,7 +46,7 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   }, [options, selectedValues]);
 
   const onSelectInnerInput = useCallback(({label, value}: {label: string, value: string[]}) => {
-    const update = {...selectedValues, [label]: value};
+    const update: {[k: string]: string[]} = {...selectedValues, [label]: value};
 
     const allInputsPresent = !!options && equalKeys(options, selectedValues);
     const noEmptyStrings = Object.values(update).every(selected => selected?.every(val => '' !== val));
