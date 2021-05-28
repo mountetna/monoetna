@@ -10,7 +10,6 @@ import FlagsView from './flags/flags-view';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 
-
 const theme = createMuiTheme({
   typography: {
     fontFamily: 'Open Sans,sans-serif'
@@ -65,6 +64,8 @@ const theme = createMuiTheme({
   props: {
     MuiButton: {
       size: "small",
+      variant: "contained",
+      color: "primary",
       disableElevation: true,
       disableRipple: true
     },
@@ -78,6 +79,9 @@ const theme = createMuiTheme({
     MuiTableContainer: {
       disableElevation: true,
       variant: "outlined"
+    },
+    MuiPaper: {
+      square: true
     },
     MuiTable: {
       size: "small"
