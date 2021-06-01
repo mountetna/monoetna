@@ -23,7 +23,7 @@ export default function StepUserInputWrapper({step}: { step: UIStep['step'] }) {
 
   const handleInputChange = useCallback((inputName: string, value: any) => {
     dispatch(patchInputs({[inputName]: value}));
-  }, []);
+  }, [dispatch]);
 
   const toggleInputs = useCallback(() => setOpen(!open), [setOpen, open]);
 

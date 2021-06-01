@@ -8,12 +8,12 @@ const MultiselectStringAllInput: InputBackendComponent = ({input, onChange}) => 
 
   const handleAllInputs = useCallback(() => {
     onChange(input.name, options);
-  }, [input.name, options]);
+  }, [input.name, onChange, options]);
 
 
   const handleClearInputs = useCallback(() => {
     onChange(input.name, null);
-  }, [input.name]);
+  }, [input.name, onChange]);
 
   return (
     <div>

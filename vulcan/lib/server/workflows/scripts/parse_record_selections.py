@@ -6,8 +6,7 @@ from archimedes.functions.environment import project_name
 pdat = input_json("project_data")[project_name]
 selection_atts = pdat['selection_options']
 
-# because a is the input name from the previous CWL input step
-selected = input_json('selected_options')["a"]
+selected = input_json('selected_options')
 
 magma = connect()
 

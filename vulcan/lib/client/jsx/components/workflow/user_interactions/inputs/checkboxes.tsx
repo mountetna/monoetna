@@ -21,7 +21,6 @@ function CheckboxInput({onChange, option, checked}: {onChange: (v: any) => void,
 const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
   const [selectedOptions, setSelectedOptions] = useState([] as any[]);
   const [initialized, setInitialized] = useState(false);
-  if (!input || !onChange) return null;
 
   const options = useMemo(() => getAllOptions(input.data).sort(), [input.data]);
 
@@ -36,11 +35,11 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
       setSelectedOptions([...options]);
       setInitialized(true);
     }
-  }, [options]);
+  }, [initialized, input.default, options, selectedOptions.length]);
 
   useEffect(() => {
     onChange(input.name, selectedOptions);
-  }, [selectedOptions]);
+  }, [input.name, onChange, selectedOptions]);
 
   const handleClickOption = useCallback((option: any) => {
     let copy = [...selectedOptions];
@@ -51,6 +50,8 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
     }
     setSelectedOptions(copy);
   }, [selectedOptions]);
+
+  if (!input || !onChange) return null;
 
   return (
     <div className='checkbox-input-wrapper'>

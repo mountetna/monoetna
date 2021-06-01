@@ -52,8 +52,6 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({input, onChange})
   const [path, setPath] = useState([] as string[]);
   const {data} = input;
 
-  if (!input || !onChange) return null;
-
   const allOptions: OptionSet = useMemo(() => {
     return Object.keys(data || {}).reduce((dataObj, k) => {
       if (!data) return dataObj;
@@ -88,6 +86,8 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({input, onChange})
       onChange(input.name, null);
     }
   }, [input, allOptions, path, setPath, onChange]);
+
+  if (!input || !onChange) return null;
 
   return (
     <div>

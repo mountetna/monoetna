@@ -89,14 +89,10 @@ describe('MultipleMultiselectStringAllInput', () => {
     addItem(component, 3, 0);
     expect(component.find('.delete_link').last().text()).toEqual('a');
     expect(onChange).toHaveBeenCalledWith('test-input', {
-      'options-a': {
         option1: ['1', '2'],
-        option2: ['z']
-      },
-      'options-b': {
+        option2: ['z'],
         option3: ['8'],
         option4: ['c', 'a']
-      }
     });
   });
 
@@ -134,14 +130,10 @@ describe('MultipleMultiselectStringAllInput', () => {
 
   it('correctly sets the lists when given a default', () => {
     input.default = {
-      'options-a': {
-        option1: ['1', '2'],
-        option2: ['y']
-      },
-      'options-b': {
-        option3: ['8', '9', '7'],
-        option4: ['c']
-      }
+      option1: ['1', '2'],
+      option2: ['y'],
+      option3: ['8', '9', '7'],
+      option4: ['c'],
     };
     const component = mount(
       <MultipleMultiselectStringAllInput input={input} onChange={onChange} />
@@ -167,14 +159,10 @@ describe('MultipleMultiselectStringAllInput', () => {
 
   it('can remove a single entry with a default', () => {
     input.default = {
-      'options-a': {
         option1: ['1', '2'],
-        option2: ['y']
-      },
-      'options-b': {
+        option2: ['y'],
         option3: ['8', '9', '7'],
         option4: ['c']
-      }
     };
     const component = mount(
       <MultipleMultiselectStringAllInput input={input} onChange={onChange} />

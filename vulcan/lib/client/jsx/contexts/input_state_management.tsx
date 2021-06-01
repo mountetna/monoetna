@@ -9,6 +9,7 @@ import {
 
 export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<VulcanAction>, statusIsFresh: boolean) {
   const {inputs, workflow, status, data, session} = state;
+  const {inputs: sessionInputs} = session;
 
   useEffect(() => {
     if (workflow == null) return;
@@ -25,7 +26,7 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
 
       return !step.out.every(outName => {
         const source = sourceNameOfReference([step.name, outName]);
-        if (source in session.inputs) {
+        if (source in sessionInputs) {
           return true;
         }
 
@@ -39,7 +40,7 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
     droppedSteps.forEach(step => {
       step.out.forEach(outName => {
         const source = sourceNameOfReference([step.name, outName]);
-        if (source in session.inputs) inputDeletes[source] = true;
+        if (source in sessionInputs) inputDeletes[source] = true;
         if (step.name in stepsWithDownloads) downloadDeletes[step.name] = true;
 
         workflow.dependencies_of_outputs[source].forEach(dependent => {
@@ -55,7 +56,7 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
 
     d = Object.keys(downloadDeletes);
     if (d.length > 0) dispatch(removeDownloads(d));
-  }, [inputs, workflow, status, data, session.inputs, statusIsFresh]);
+  }, [inputs, workflow, status, data, sessionInputs, statusIsFresh, dispatch]);
 
   // We inject a `null` input into the session,
   //   to indicate that we're waiting for a user input value
@@ -80,5 +81,5 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
     });
 
     if (Object.keys(newInputs).length > 0) dispatch(patchInputs(newInputs));
-  }, [inputs, workflow, status, data, session]);
+  }, [inputs, workflow, status, data, session, dispatch]);
 }
