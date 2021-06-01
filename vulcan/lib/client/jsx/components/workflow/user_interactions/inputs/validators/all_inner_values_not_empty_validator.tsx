@@ -5,7 +5,8 @@ const AllInnerValuesNotEmptyValidator: InputValidator = (
   input: InputSpecification
 ): string[] => {
   const msg = 'All inner values must be selected.';
-  if (null == input.value) return [msg];
+  if (null == input.value || Object.values(input.value).length === 0)
+    return [msg];
 
   if (
     // input.value should be nested hash, like
