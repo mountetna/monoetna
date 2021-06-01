@@ -10,13 +10,6 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import {FlagsContext} from './flags-context';
 import {fetchProjects} from '../api/janus_api';
 
-const useStyles = makeStyles((theme) => ({
-  formControl: {
-    minWidth: 300,
-    maxWidth: 400
-  }
-}));
-
 // Assumes this won't be in any project or flag string...
 const DELIMITER = ' -- ';
 
@@ -29,7 +22,6 @@ function MultiSelector({
   label: string;
   onChange: (selection: string[]) => void;
 }) {
-  const classes = useStyles();
 
   function onSelect(selection: string[]) {
     onChange(selection.map((s) => unpackOption(s)));
@@ -40,7 +32,7 @@ function MultiSelector({
   }
 
   return (
-    <FormControl className={classes.formControl}>
+    <FormControl fullWidth={true}>
       <Autocomplete
         multiple
         id={`${label}-filter`}
@@ -83,7 +75,6 @@ const TableControls = ({
     state: {projects},
     setProjects
   } = useContext(FlagsContext);
-  const classes = useStyles();
 
   useEffect(() => {
     fetchProjects().then(({projects}) => setProjects(projects));

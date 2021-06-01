@@ -107,7 +107,7 @@ const UserTable = () => {
   return (
     <Grid container direction='column'>
       <Grid container item xs={12} className={classes.controls}>
-        <Grid container item xs={9} alignItems='flex-end' justify='flex-start'>
+        <Grid container spacing={1} item xs={9} alignItems='flex-end' justify='flex-start'>
           <TableControls
             onChangeSearch={setSearchTerm}
             onChangeProjects={setSearchProjects}
@@ -144,10 +144,10 @@ const UserTable = () => {
                     inputProps={{'aria-label': 'select all users'}}
                   />
                 </TableCell>
-                <TableCell className={classes.header}>Name</TableCell>
-                <TableCell className={classes.header}>Email</TableCell>
-                <TableCell className={classes.header}>Projects</TableCell>
-                <TableCell className={classes.header}>Flags</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Projects</TableCell>
+                <TableCell>Flags</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

@@ -68,7 +68,7 @@ exports[`AddRemove appends flags to existing flags 1`] = `
       class="MuiCardActions-root"
     >
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedPrimary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button"
         tabindex="0"
         type="button"
       >
@@ -96,7 +96,7 @@ exports[`AddRemove appends flags to existing flags 1`] = `
         />
       </button>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedSecondary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button MuiButton-textSecondary"
         tabindex="0"
         type="button"
       >
@@ -118,29 +118,6 @@ exports[`AddRemove appends flags to existing flags 1`] = `
             </svg>
           </span>
           Remove Flag
-        </span>
-        <span
-          class="MuiTouchRipple-root"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-text"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-            />
-          </svg>
         </span>
         <span
           class="MuiTouchRipple-root"
@@ -219,7 +196,7 @@ exports[`AddRemove removes flags from users 1`] = `
       class="MuiCardActions-root"
     >
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedPrimary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button"
         tabindex="0"
         type="button"
       >
@@ -247,7 +224,7 @@ exports[`AddRemove removes flags from users 1`] = `
         />
       </button>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedSecondary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button MuiButton-textSecondary"
         tabindex="0"
         type="button"
       >
@@ -269,29 +246,6 @@ exports[`AddRemove removes flags from users 1`] = `
             </svg>
           </span>
           Remove Flag
-        </span>
-        <span
-          class="MuiTouchRipple-root"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-text"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-            />
-          </svg>
         </span>
         <span
           class="MuiTouchRipple-root"
@@ -365,7 +319,7 @@ exports[`AddRemove renders correctly 1`] = `
       class="MuiCardActions-root"
     >
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedPrimary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button"
         tabindex="0"
         type="button"
       >
@@ -393,7 +347,7 @@ exports[`AddRemove renders correctly 1`] = `
         />
       </button>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedSecondary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button MuiButton-textSecondary"
         tabindex="0"
         type="button"
       >
@@ -415,29 +369,6 @@ exports[`AddRemove renders correctly 1`] = `
             </svg>
           </span>
           Remove Flag
-        </span>
-        <span
-          class="MuiTouchRipple-root"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-text"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-            />
-          </svg>
         </span>
         <span
           class="MuiTouchRipple-root"
@@ -516,7 +447,7 @@ exports[`AddRemove reports errors to the user 1`] = `
       class="MuiCardActions-root"
     >
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedPrimary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button"
         tabindex="0"
         type="button"
       >
@@ -544,7 +475,7 @@ exports[`AddRemove reports errors to the user 1`] = `
         />
       </button>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained makeStyles-button MuiButton-containedSecondary"
+        class="MuiButtonBase-root MuiButton-root MuiButton-text makeStyles-button MuiButton-textSecondary"
         tabindex="0"
         type="button"
       >
@@ -566,29 +497,6 @@ exports[`AddRemove reports errors to the user 1`] = `
             </svg>
           </span>
           Remove Flag
-        </span>
-        <span
-          class="MuiTouchRipple-root"
-        />
-      </button>
-      <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-text"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiButton-label"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-            />
-          </svg>
         </span>
         <span
           class="MuiTouchRipple-root"
