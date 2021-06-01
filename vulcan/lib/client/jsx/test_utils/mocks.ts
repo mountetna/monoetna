@@ -23,3 +23,18 @@ export function createFakeStorage(): Storage {
     }
   }
 }
+
+export type PromiseArgs<R> = [(r: R) => void, (e: any) => void];
+export type AsyncMock<R> = [jest.Mock, PromiseArgs<R>[]];
+export function asyncFn<R>(): AsyncMock<R> {
+  const mock = jest.fn();
+  const promiseArgs: PromiseArgs<R>[] = [];
+
+  mock.mockImplementation((...args: any[]) => {
+    return new Promise<R>((resolve, reject) => {
+      promiseArgs.push([resolve, reject]);
+    })
+  });
+
+  return [mock, promiseArgs];
+}

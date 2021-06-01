@@ -13,6 +13,7 @@ import {
   uiOutputOfStep,
   workflowName
 } from '../../../selectors/workflow_selectors';
+import {useWorkflow} from "../../../contexts/workflow_context";
 import { readTextFile, downloadBlob } from 'etna-js/utils/blob';
 
 const modalStyles = {
@@ -27,25 +28,15 @@ const modalStyles = {
 };
 
 export default function SessionManager() {
-  const context = useContext(VulcanContext);
-  const {state, dispatch, requestPoll} = context;
-
-  const workflow = state.workflow;
-  if (!workflow) return null;
-  const name = workflowName(workflow);
-  if (!name) return null;
+  const {state, dispatch, requestPoll} = useContext(VulcanContext);
+  const workflow = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
-  function openModal() {
-    setIsOpen(true);
-  }
-
-  function closeModal() {
-    setIsOpen(false);
-  }
-
   const {steps} = workflow;
   const {status, session} = state;
+
+  const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
+  const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   const saveSession = useCallback(
     () => {
@@ -98,6 +89,9 @@ export default function SessionManager() {
   }, [requestPoll]);
 
   const disableRunButton = complete || running || !primaryInputsReady;
+
+  const name = workflowName(workflow);
+  if (!name) return null;
 
   return (
     <div className='session-manager'>

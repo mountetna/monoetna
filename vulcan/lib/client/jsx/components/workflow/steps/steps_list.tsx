@@ -21,7 +21,7 @@ export default function StepsList() {
     if (!workflow) return;
     let outputs = completedUiOutputSteps(workflow, status);
     setOpen(outputs.length === 0);
-  }, [status]);
+  }, [status, workflow]);
 
   return (
     <div className={`steps-list toggle-control ${open ? 'open' : 'closed'}`}>

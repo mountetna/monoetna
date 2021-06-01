@@ -58,13 +58,13 @@ export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHel
 
     const vulcanGet = useCallback((endpoint: string) => {
         return rawVulcanGet(endpoint).then(checkStatus);
-    }, []);
+    }, [rawVulcanGet]);
 
     const getWorkflows = useCallback((): Promise<WorkflowsResponse> => {
         return vulcanGet(vulcanPath(ROUTES.fetch_workflows()))
             .then(handleFetchSuccess)
             .catch(handleFetchError);
-    }, []);
+    }, [vulcanGet, vulcanPath]);
 
     const postInputs = useCallback((session: VulcanSession): Promise<SessionStatusResponse> => {
         if (!session.workflow_name) {
@@ -72,7 +72,7 @@ export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHel
         }
 
         return vulcanPost(vulcanPath(ROUTES.submit(session.project_name, session.workflow_name)), session);
-    }, []);
+    }, [vulcanPath, vulcanPost]);
 
     const pollStatus = useCallback((session: VulcanSession): Promise<SessionStatusResponse> => {
         if (!session.workflow_name) {
@@ -80,7 +80,7 @@ export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHel
         }
 
         return vulcanPost(vulcanPath(ROUTES.status(session.project_name, session.workflow_name)), session);
-    }, [])
+    }, [vulcanPath, vulcanPost])
 
     const getData = useCallback((url: string) => {
         return vulcanGet(url).then(handleFetchSuccess).catch(handleFetchError).then(data => {
@@ -92,7 +92,7 @@ export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHel
                 return data;
             }
         })
-    }, []);
+    }, [vulcanGet]);
 
     const scheduleWork = useCallback(<T>(work: Promise<T>): Promise<T> => {
         setWorkCount(++workRef.current);
@@ -109,7 +109,7 @@ export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHel
         });
 
         return work;
-    }, []);
+    }, [invoke]);
 
     return {
         isLoading: workCount > 0,

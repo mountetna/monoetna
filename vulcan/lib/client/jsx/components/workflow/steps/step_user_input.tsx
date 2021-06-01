@@ -15,8 +15,6 @@ export default function StepUserInput({step, handleInputChange}: {step: Workflow
   const {state} = useContext(VulcanContext);
   const uiQuery = uiQueryOfStep(step);
 
-  if (!uiQuery) return null;
-
   // We need to map the user input step's output to
   //   a set of input items.
   const outputRefs = useMemo(() => sourceNamesOfStep(step), [step]);
@@ -28,7 +26,9 @@ export default function StepUserInput({step, handleInputChange}: {step: Workflow
     name: outputName,
     data: stepInputDataRaw(step, state.status, state.data, state.session),
     doc: step.doc
-  })), [outputRefs, step, state.status, state.data, state.inputs, state.session ])
+  })), [outputRefs, uiQuery, step, state.inputs, state.status, state.data, state.session])
+
+  if (!uiQuery) return null;
 
   return (
     <React.Fragment>

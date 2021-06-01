@@ -33,7 +33,7 @@ export default function Dashboard() {
   const visitWorkflow = useCallback(() => {
     if (!selectedProject || !selectedWorkflow) return;
     invoke(pushLocation(`/workflow/${selectedProject}/${workflowName(selectedWorkflow)}`));
-  }, [selectedWorkflow, selectedProject])
+  }, [selectedProject, selectedWorkflow, invoke])
 
   const openProjectModal = useCallback((workflow) => {
     setSelectedWorkflow(workflow);
