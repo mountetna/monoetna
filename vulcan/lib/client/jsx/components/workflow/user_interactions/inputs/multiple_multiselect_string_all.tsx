@@ -1,27 +1,14 @@
-import React, {useMemo, useCallback} from 'react';
-import * as _ from 'lodash';
+import React, {useMemo, useCallback, useState, useEffect} from 'react';
 
 import {TYPE} from '../../../../api_types';
 import {InputBackendComponent, InputSpecification} from './input_types';
 import UserInput from './user_input';
-import {inputValueNonEmpty} from '../../../../selectors/workflow_selectors';
-import {useBufferedInputState} from './buffered_input_state';
-
-function equalKeys(hash1: {}, hash2: {}): boolean {
-  if (!hash1 || !hash2) return false;
-
-  return _.isEqual(Object.keys(hash1), Object.keys(hash2));
-}
 
 const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   input,
   onChange
 }) => {
-  const {data, name} = input;
-
-  const [selectedValues, setSelectedValues] = useBufferedInputState<{
-    [k: string]: string[] | null;
-  }>(input, {});
+  const {data, name, value: inputValue} = input;
 
   const options: {[k: string]: string[]} = useMemo(() => {
     if (data) {
@@ -41,42 +28,23 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
         label,
         name: label,
         data: {[label]: innerValues},
-        value: selectedValues ? selectedValues[label] : null
+        value: inputValue ? inputValue[label] : null
       });
     });
 
     return result;
-  }, [options, selectedValues]);
+  }, [options, inputValue]);
 
   const onSelectInnerInput = useCallback(
     ({label, value}: {label: string; value: string[]}) => {
       const update: {[k: string]: string[] | null} = {
-        ...selectedValues,
+        ...inputValue,
         [label]: value
       };
 
-      const allInputsPresent = !!options && equalKeys(options, selectedValues);
-      const noEmptyStrings = Object.values(update).every((selected) =>
-        selected?.every((val) => '' !== val)
-      );
-      const allNestedInputsPresent =
-        allInputsPresent &&
-        Object.entries(options).every(([label]) => label in update);
-      const allInputsPopulated =
-        allNestedInputsPresent &&
-        Object.values(update).every((nestedInputArray) =>
-          inputValueNonEmpty(nestedInputArray)
-        );
-
-      setSelectedValues(update);
-
-      if (allInputsPopulated && noEmptyStrings) {
-        onChange(name, update);
-      } else if (!allInputsPopulated) {
-        onChange(name, null);
-      }
+      onChange(name, update);
     },
-    [selectedValues, options, setSelectedValues, name, onChange]
+    [inputValue, name, onChange]
   );
 
   return (

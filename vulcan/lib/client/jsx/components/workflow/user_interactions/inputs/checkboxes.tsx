@@ -27,27 +27,20 @@ function CheckboxInput({
 }
 
 const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
-  const [selectedOptions, setSelectedOptions] = useState([] as any[]);
-  const [initialized, setInitialized] = useState(false);
+  // because we want to load the widget as all inputs are
+  //   checked, we'll still use local state here.
+  const [selectedOptions, setSelectedOptions] = useState(input.value || []);
 
   const options = useMemo(() => getAllOptions(input.data).sort(), [input.data]);
 
   useEffect(() => {
-    // Setting any previously selected inputs (from storage or
-    //   user interactions) takes precedence over setting
-    //   all options as checked.
-    if (input.value && input.value !== [] && !initialized) {
-      setSelectedOptions([...input.value]);
-      setInitialized(true);
-    } else if (options.length > selectedOptions.length && !initialized) {
-      setSelectedOptions([...options]);
-      setInitialized(true);
-    }
-  }, [initialized, input.value, options, selectedOptions.length]);
+    // on mount, set all options as checked
+    setSelectedOptions([...options]);
+  }, []);
 
   useEffect(() => {
-    onChange(input.name, selectedOptions);
-  }, [input.name, onChange, selectedOptions]);
+    if (null != input.value) setSelectedOptions([...input.value]);
+  }, [input.value]);
 
   const handleClickOption = useCallback(
     (option: any) => {
@@ -55,9 +48,9 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
       if (!selectedOptions.includes(option)) {
         copy.push(option);
       } else {
-        copy = selectedOptions.filter((opt) => option !== opt);
+        copy = selectedOptions.filter((opt: string) => option !== opt);
       }
-      setSelectedOptions(copy);
+      onChange(input.name, copy);
     },
     [selectedOptions]
   );
