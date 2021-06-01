@@ -9,7 +9,7 @@ import {
   dataOfSource,
   statusOfStep, stepOfSource,
 } from "../../../selectors/workflow_selectors";
-import {patchInputs, setInputs} from "../../../actions/vulcan";
+import {patchInputs} from "../../../actions/vulcan";
 import {UIStep} from "../user_interactions/inputs/input_types";
 import StepUserInputDrawer from "./step_user_input_drawer";
 import StepUserInput from "./step_user_input";
