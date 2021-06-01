@@ -40,7 +40,7 @@ describe('MultipleMultiselectStringAllInput', () => {
   beforeEach(() => {
     input = {
       type: 'doesnotmatter',
-      default: null,
+      value: null,
       label: 'Abcdef',
       name: 'test-input',
       data: {
@@ -89,10 +89,10 @@ describe('MultipleMultiselectStringAllInput', () => {
     addItem(component, 3, 0);
     expect(component.find('.delete_link').last().text()).toEqual('a');
     expect(onChange).toHaveBeenCalledWith('test-input', {
-        option1: ['1', '2'],
-        option2: ['z'],
-        option3: ['8'],
-        option4: ['c', 'a']
+      option1: ['1', '2'],
+      option2: ['z'],
+      option3: ['8'],
+      option4: ['c', 'a']
     });
   });
 
@@ -128,12 +128,12 @@ describe('MultipleMultiselectStringAllInput', () => {
     expect(onChange).toHaveBeenCalledWith('test-input', null);
   });
 
-  it('correctly sets the lists when given a default', () => {
-    input.default = {
+  it('correctly sets the lists when given a value', () => {
+    input.value = {
       option1: ['1', '2'],
       option2: ['y'],
       option3: ['8', '9', '7'],
-      option4: ['c'],
+      option4: ['c']
     };
     const component = mount(
       <MultipleMultiselectStringAllInput input={input} onChange={onChange} />
@@ -157,12 +157,12 @@ describe('MultipleMultiselectStringAllInput', () => {
     ]);
   });
 
-  it('can remove a single entry with a default', () => {
-    input.default = {
-        option1: ['1', '2'],
-        option2: ['y'],
-        option3: ['8', '9', '7'],
-        option4: ['c']
+  it('can remove a single entry with a value', () => {
+    input.value = {
+      option1: ['1', '2'],
+      option2: ['y'],
+      option3: ['8', '9', '7'],
+      option4: ['c']
     };
     const component = mount(
       <MultipleMultiselectStringAllInput input={input} onChange={onChange} />
@@ -189,7 +189,7 @@ describe('MultipleMultiselectStringAllInput', () => {
     component.find('.delete_link').last().simulate('click');
     expect(onChange).toHaveBeenCalledWith('test-input', null);
 
-    input.default = null;
+    input.value = null;
     component.setProps({input});
     component.update();
     expect(renderedItemsList(component)).toEqual([

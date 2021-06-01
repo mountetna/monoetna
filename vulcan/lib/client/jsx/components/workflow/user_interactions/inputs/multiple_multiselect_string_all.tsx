@@ -39,7 +39,7 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
         label,
         name: label,
         data: {[label]: innerValues},
-        value: selectedValues[label] || null
+        value: (selectedValues && selectedValues[label]) || null
       });
     });
 

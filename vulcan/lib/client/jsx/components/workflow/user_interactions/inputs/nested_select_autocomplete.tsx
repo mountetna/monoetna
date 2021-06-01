@@ -1,13 +1,7 @@
 // Input component that takes nested object
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
-import React, {
-  useState,
-  useEffect,
-  useMemo,
-  useContext,
-  useCallback
-} from 'react';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import * as _ from 'lodash';
 
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';

@@ -3,7 +3,7 @@ import {
 } from '../actions/vulcan';
 import {defaultSessionStatusResponse, SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
 import {unsetDependentInputs, filterEmptyValues} from "../selectors/workflow_selectors";
-
+import {InputValidator} from '../components/workflow/user_interactions/inputs/input_types';
 
 export type DownloadedData = any; // TODO: improve typing here.
 export type DownloadedStepDataMap = { [k: string]: DownloadedData };
@@ -19,6 +19,7 @@ const defaultSession: SessionStatusResponse['session'] = {
   key: '',
   inputs: {},
 }
+const defaultValidationErrors: {[key: string]: string[]} = {};
 
 export const defaultVulcanState = {
   workflows: defaultWorkflows,
@@ -28,6 +29,7 @@ export const defaultVulcanState = {
   inputs: defaultInputs,
   session: defaultSession,
   outputs: defaultSessionStatusResponse.outputs,
+  validationErrors: defaultValidationErrors
 };
 
 export type VulcanState = Readonly<(typeof defaultVulcanState)>;
@@ -118,6 +120,24 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
         ...state,
         inputs: updatedInputs,
         session: {...state.session, inputs: filterEmptyValues(updatedInputs)},
+      }
+
+    case 'ADD_VALIDATION_ERRORS':
+      return {
+        ...state,
+        validationErrors: {
+          ...state.validationErrors,
+          [action.inputName]: action.errors
+        }
+      }
+
+    case 'REMOVE_VALIDATION_ERRORS':
+      let updatedValidationErrors = {...state.validationErrors};
+      delete updatedValidationErrors[action.inputName];
+
+      return {
+        ...state,
+        validationErrors: updatedValidationErrors
       }
 
     default:

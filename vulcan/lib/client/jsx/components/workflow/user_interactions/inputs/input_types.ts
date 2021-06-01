@@ -1,27 +1,34 @@
 import * as React from 'react';
-import {WorkflowStep} from "../../../../api_types";
+import {WorkflowStep} from '../../../../api_types';
 
 export type InputType = string;
 
 export interface InputSpecification {
-  type: InputType,
-  label: string | null | undefined,
-  name: string, // output source
-  value: any | null,
-  data?: { [k: string]: any } | null,
-  doc?: string | null,
+  type: InputType;
+  label: string | null | undefined;
+  name: string; // output source
+  value: any | null;
+  data?: {[k: string]: any} | null;
+  doc?: string | null;
 }
 
 export interface UIStep {
-  step: WorkflowStep | GroupedInputStep,
+  step: WorkflowStep | GroupedInputStep;
   // Index in the original workflow
-  index: number,
+  index: number;
 }
 
 export type GroupedInputStep = WorkflowStep & {
-  isGroup: true
-}
+  isGroup: true;
+};
 
-export type InputOnChange = (inputName: string, val: any) => void
+export type InputOnChange = (inputName: string, val: any) => void;
 
-export type InputBackendComponent = (p: { input: InputSpecification, onChange: InputOnChange, onClear?: () => void, onAll?: () => void }) => React.ReactElement | null;
+export type InputBackendComponent = (p: {
+  input: InputSpecification;
+  onChange: InputOnChange;
+  onClear?: () => void;
+  onAll?: () => void;
+}) => React.ReactElement | null;
+
+export type InputValidator = (input: InputSpecification) => string[];
