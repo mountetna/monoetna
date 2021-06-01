@@ -5,139 +5,175 @@ exports[`ProjectView renders statically for an editor 1`] = `
   id="project-view"
 >
   <div
-    className="title"
-  >
-     
-    Ports
-  </div>
-  <div
-    className="item summary"
-  >
-    2 editors, 1 privileged user
-  </div>
-  <div
-    className="item header"
+    className="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-column"
   >
     <div
-      className="cell"
+      className="title"
     >
-      Name
+       
+      Ports
     </div>
     <div
-      className="cell"
+      className="summary"
     >
-      Email
+      2 editors, 1 privileged user
     </div>
     <div
-      className="cell"
+      className="MuiPaper-root MuiTableContainer-root makeStyles-table-1 MuiPaper-elevation1 MuiPaper-rounded"
     >
-      Role
-    </div>
-    <div
-      className="cell"
-    >
-      Affiliation
-    </div>
-    <div
-      className="cell"
-    >
-      Privileged
-    </div>
-    <div
-      className="cell submit"
-    />
-  </div>
-  <div
-    className="item permission"
-  >
-    <div
-      className="cell"
-    >
-      <span
-        className="name"
+      <table
+        aria-label="project users"
+        className="MuiTable-root"
+        role={null}
       >
-        Janus Bifrons
-      </span>
+        <thead
+          className="MuiTableHead-root"
+          role={null}
+        >
+          <tr
+            className="MuiTableRow-root MuiTableRow-head"
+            role={null}
+          >
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Name
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Email
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Role
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Affiliation
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox"
+              scope="col"
+            >
+              Privileged
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+              width="80"
+            />
+          </tr>
+        </thead>
+        <tbody
+          className="MuiTableBody-root"
+          role={null}
+        >
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Janus Bifrons
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              janus@two-faces.org
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="role"
+              >
+                editor
+              </span>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="affiliation"
+              />
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingCheckbox"
+            >
+              Yes
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            />
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Portunus
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              portunus@two-faces.org
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="role"
+              >
+                editor
+              </span>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <span
+                className="affiliation"
+              >
+                ILWU Local 34
+              </span>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingCheckbox"
+            />
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            />
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div
-      className="cell"
-    >
-      <span
-        className="email"
-      >
-        janus@two-faces.org
-      </span>
-    </div>
-    <div
-      className="cell"
-    >
-      <span
-        className="role"
-      >
-        editor
-      </span>
-    </div>
-    <div
-      className="cell"
-    >
-      <span
-        className="affiliation"
-      />
-    </div>
-    <div
-      className="cell"
-    >
-      Yes
-    </div>
-    <div
-      className="cell submit"
-    />
-  </div>
-  <div
-    className="item permission"
-  >
-    <div
-      className="cell"
-    >
-      <span
-        className="name"
-      >
-        Portunus
-      </span>
-    </div>
-    <div
-      className="cell"
-    >
-      <span
-        className="email"
-      >
-        portunus@two-faces.org
-      </span>
-    </div>
-    <div
-      className="cell"
-    >
-      <span
-        className="role"
-      >
-        editor
-      </span>
-    </div>
-    <div
-      className="cell"
-    >
-      <span
-        className="affiliation"
-      >
-        ILWU Local 34
-      </span>
-    </div>
-    <div
-      className="cell"
-    />
-    <div
-      className="cell submit"
-    />
   </div>
 </div>
 `;
@@ -147,265 +183,503 @@ exports[`ProjectView renders with inputs for an administrator 1`] = `
   id="project-view"
 >
   <div
-    className="title"
-  >
-     
-    Ports
-  </div>
-  <div
-    className="item summary"
-  >
-    1 administrator, 1 editor, 1 privileged user
-  </div>
-  <div
-    className="item header"
+    className="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-column"
   >
     <div
-      className="cell"
+      className="title"
     >
-      Name
+       
+      Ports
     </div>
     <div
-      className="cell"
+      className="summary"
     >
-      Email
+      1 administrator, 1 editor, 1 privileged user
     </div>
     <div
-      className="cell"
+      className="MuiPaper-root MuiTableContainer-root makeStyles-table-1 MuiPaper-elevation1 MuiPaper-rounded"
     >
-      Role
-    </div>
-    <div
-      className="cell"
-    >
-      Affiliation
-    </div>
-    <div
-      className="cell"
-    >
-      Privileged
-    </div>
-    <div
-      className="cell submit"
-    />
-  </div>
-  <div
-    className="item permission"
-  >
-    <div
-      className="cell"
-    >
-      <span
-        className="name"
+      <table
+        aria-label="project users"
+        className="MuiTable-root"
+        role={null}
       >
-        Janus Bifrons
-      </span>
-    </div>
-    <div
-      className="cell"
-    >
-      <span
-        className="email"
-      >
-        janus@two-faces.org
-      </span>
-    </div>
-    <div
-      className="cell"
-    >
-      <select
-        className="role"
-        name="role"
-        onChange={[Function]}
-        value="administrator"
-      >
-        <option
-          value="editor"
+        <thead
+          className="MuiTableHead-root"
+          role={null}
         >
-          editor
-        </option>
-        <option
-          value="viewer"
+          <tr
+            className="MuiTableRow-root MuiTableRow-head"
+            role={null}
+          >
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Name
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Email
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Role
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Affiliation
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox"
+              scope="col"
+            >
+              Privileged
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+              width="80"
+            />
+          </tr>
+        </thead>
+        <tbody
+          className="MuiTableBody-root"
+          role={null}
         >
-          viewer
-        </option>
-        <option
-          value="disabled"
-        >
-          disabled
-        </option>
-      </select>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Janus Bifrons
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              janus@two-faces.org
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <div
+                className="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-role-2"
+                onClick={[Function]}
+              >
+                <div
+                  aria-haspopup="listbox"
+                  className="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input"
+                  onBlur={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onMouseDown={[Function]}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <span
+                    dangerouslySetInnerHTML={
+                      Object {
+                        "__html": "&#8203;",
+                      }
+                    }
+                  />
+                </div>
+                <input
+                  aria-hidden={true}
+                  className="MuiSelect-nativeInput"
+                  onAnimationStart={[Function]}
+                  onChange={[Function]}
+                  tabIndex={-1}
+                  value="administrator"
+                />
+                <svg
+                  aria-hidden={true}
+                  className="MuiSvgIcon-root MuiSelect-icon"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M7 10l5 5 5-5z"
+                  />
+                </svg>
+              </div>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <div
+                className="MuiFormControl-root MuiTextField-root"
+              >
+                <div
+                  className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+                  onClick={[Function]}
+                >
+                  <input
+                    aria-invalid={false}
+                    autoFocus={false}
+                    className="MuiInputBase-input MuiInput-input"
+                    disabled={false}
+                    onAnimationStart={[Function]}
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    required={false}
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingCheckbox"
+            >
+              <span
+                aria-disabled={false}
+                className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-3 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-checked-4 Mui-checked MuiIconButton-colorSecondary"
+                onBlur={[Function]}
+                onDragLeave={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex={null}
+              >
+                <span
+                  className="MuiIconButton-label"
+                >
+                  <input
+                    aria-label="privileged user"
+                    checked={true}
+                    className="PrivateSwitchBase-input-6"
+                    data-indeterminate={false}
+                    onChange={[Function]}
+                    type="checkbox"
+                  />
+                  <svg
+                    aria-hidden={true}
+                    className="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                    />
+                  </svg>
+                </span>
+                <span
+                  className="MuiTouchRipple-root"
+                />
+              </span>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            />
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Portunus
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              portunus@two-faces.org
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <div
+                className="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-role-2"
+                onClick={[Function]}
+              >
+                <div
+                  aria-haspopup="listbox"
+                  className="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input"
+                  onBlur={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onMouseDown={[Function]}
+                  role="button"
+                  tabIndex={0}
+                >
+                  editor
+                </div>
+                <input
+                  aria-hidden={true}
+                  className="MuiSelect-nativeInput"
+                  onAnimationStart={[Function]}
+                  onChange={[Function]}
+                  tabIndex={-1}
+                  value="editor"
+                />
+                <svg
+                  aria-hidden={true}
+                  className="MuiSvgIcon-root MuiSelect-icon"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M7 10l5 5 5-5z"
+                  />
+                </svg>
+              </div>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <div
+                className="MuiFormControl-root MuiTextField-root"
+              >
+                <div
+                  className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+                  onClick={[Function]}
+                >
+                  <input
+                    aria-invalid={false}
+                    autoFocus={false}
+                    className="MuiInputBase-input MuiInput-input"
+                    disabled={false}
+                    onAnimationStart={[Function]}
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    required={false}
+                    type="text"
+                    value="ILWU Local 34"
+                  />
+                </div>
+              </div>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingCheckbox"
+            >
+              <span
+                aria-disabled={false}
+                className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-3 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                onBlur={[Function]}
+                onDragLeave={[Function]}
+                onFocus={[Function]}
+                onKeyDown={[Function]}
+                onKeyUp={[Function]}
+                onMouseDown={[Function]}
+                onMouseLeave={[Function]}
+                onMouseUp={[Function]}
+                onTouchEnd={[Function]}
+                onTouchMove={[Function]}
+                onTouchStart={[Function]}
+                tabIndex={null}
+              >
+                <span
+                  className="MuiIconButton-label"
+                >
+                  <input
+                    aria-label="privileged user"
+                    checked={null}
+                    className="PrivateSwitchBase-input-6"
+                    data-indeterminate={false}
+                    onChange={[Function]}
+                    type="checkbox"
+                  />
+                  <svg
+                    aria-hidden={true}
+                    className="MuiSvgIcon-root"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"
+                    />
+                  </svg>
+                </span>
+                <span
+                  className="MuiTouchRipple-root"
+                />
+              </span>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            />
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <div
+                className="MuiFormControl-root MuiTextField-root"
+              >
+                <div
+                  className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+                  onClick={[Function]}
+                >
+                  <input
+                    aria-invalid={false}
+                    autoFocus={false}
+                    className="MuiInputBase-input MuiInput-input"
+                    disabled={false}
+                    onAnimationStart={[Function]}
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    placeholder="New User Name"
+                    required={false}
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <div
+                className="MuiFormControl-root MuiTextField-root"
+              >
+                <div
+                  className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+                  onClick={[Function]}
+                >
+                  <input
+                    aria-invalid={false}
+                    autoFocus={false}
+                    className="MuiInputBase-input MuiInput-input"
+                    disabled={false}
+                    onAnimationStart={[Function]}
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    placeholder="Email"
+                    required={false}
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <div
+                className="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-role-2"
+                onClick={[Function]}
+              >
+                <div
+                  aria-haspopup="listbox"
+                  className="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input"
+                  onBlur={[Function]}
+                  onFocus={[Function]}
+                  onKeyDown={[Function]}
+                  onMouseDown={[Function]}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <span
+                    dangerouslySetInnerHTML={
+                      Object {
+                        "__html": "&#8203;",
+                      }
+                    }
+                  />
+                </div>
+                <input
+                  aria-hidden={true}
+                  className="MuiSelect-nativeInput"
+                  onAnimationStart={[Function]}
+                  onChange={[Function]}
+                  tabIndex={-1}
+                  value=""
+                />
+                <svg
+                  aria-hidden={true}
+                  className="MuiSvgIcon-root MuiSelect-icon"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M7 10l5 5 5-5z"
+                  />
+                </svg>
+              </div>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <div
+                className="MuiFormControl-root MuiTextField-root"
+              >
+                <div
+                  className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+                  onClick={[Function]}
+                >
+                  <input
+                    aria-invalid={false}
+                    autoFocus={false}
+                    className="MuiInputBase-input MuiInput-input"
+                    disabled={false}
+                    onAnimationStart={[Function]}
+                    onBlur={[Function]}
+                    onChange={[Function]}
+                    onFocus={[Function]}
+                    required={false}
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body MuiTableCell-paddingCheckbox"
+            />
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            />
+          </tr>
+        </tbody>
+      </table>
     </div>
-    <div
-      className="cell"
-    >
-      <input
-        className="affiliation"
-        name="affiliation"
-        onChange={[Function]}
-        type="text"
-        value=""
-      />
-    </div>
-    <div
-      className="cell"
-    >
-      <input
-        checked={true}
-        name="privileged"
-        onChange={[Function]}
-        type="checkbox"
-      />
-    </div>
-    <div
-      className="cell submit"
-    />
-  </div>
-  <div
-    className="item permission"
-  >
-    <div
-      className="cell"
-    >
-      <span
-        className="name"
-      >
-        Portunus
-      </span>
-    </div>
-    <div
-      className="cell"
-    >
-      <span
-        className="email"
-      >
-        portunus@two-faces.org
-      </span>
-    </div>
-    <div
-      className="cell"
-    >
-      <select
-        className="role"
-        name="role"
-        onChange={[Function]}
-        value="editor"
-      >
-        <option
-          value="editor"
-        >
-          editor
-        </option>
-        <option
-          value="viewer"
-        >
-          viewer
-        </option>
-        <option
-          value="disabled"
-        >
-          disabled
-        </option>
-      </select>
-    </div>
-    <div
-      className="cell"
-    >
-      <input
-        className="affiliation"
-        name="affiliation"
-        onChange={[Function]}
-        type="text"
-        value="ILWU Local 34"
-      />
-    </div>
-    <div
-      className="cell"
-    >
-      <input
-        checked={null}
-        name="privileged"
-        onChange={[Function]}
-        type="checkbox"
-      />
-    </div>
-    <div
-      className="cell submit"
-    />
-  </div>
-  <div
-    className="new"
-  >
-    New User
-  </div>
-  <div
-    className="item permission"
-  >
-    <div
-      className="cell"
-    >
-      <input
-        name="name"
-        onChange={[Function]}
-        placeholder="Name"
-        type="text"
-        value=""
-      />
-    </div>
-    <div
-      className="cell"
-    >
-      <input
-        name="email"
-        onChange={[Function]}
-        placeholder="Email"
-        type="text"
-        value=""
-      />
-    </div>
-    <div
-      className="cell"
-    >
-      <select
-        className="role"
-        name="role"
-        onChange={[Function]}
-        value=""
-      >
-        <option
-          value="Select role"
-        >
-          Select role
-        </option>
-        <option
-          value="viewer"
-        >
-          viewer
-        </option>
-        <option
-          value="editor"
-        >
-          editor
-        </option>
-      </select>
-    </div>
-    <div
-      className="cell"
-    >
-      <input
-        className="affiliation"
-        name="affiliation"
-        onChange={[Function]}
-        type="text"
-        value=""
-      />
-    </div>
-    <div
-      className="cell"
-    />
-    <div
-      className="cell submit"
-    />
   </div>
 </div>
 `;
