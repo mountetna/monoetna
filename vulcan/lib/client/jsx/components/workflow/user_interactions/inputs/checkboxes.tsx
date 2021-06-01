@@ -2,8 +2,6 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {InputBackendComponent} from './input_types';
 import {getAllOptions} from './multiselect_string';
 
-import {useBufferedInputState} from './buffered_input_state';
-
 function CheckboxInput({
   onChange,
   option,
@@ -29,12 +27,27 @@ function CheckboxInput({
 }
 
 const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
-  const [selectedOptions, setSelectedOptions] = useBufferedInputState<string[]>(
-    input,
-    []
-  );
+  const [selectedOptions, setSelectedOptions] = useState([] as any[]);
+  const [initialized, setInitialized] = useState(false);
 
   const options = useMemo(() => getAllOptions(input.data).sort(), [input.data]);
+
+  useEffect(() => {
+    // Setting any previously selected inputs (from storage or
+    //   user interactions) takes precedence over setting
+    //   all options as checked.
+    if (input.value && input.value !== [] && !initialized) {
+      setSelectedOptions([...input.value]);
+      setInitialized(true);
+    } else if (options.length > selectedOptions.length && !initialized) {
+      setSelectedOptions([...options]);
+      setInitialized(true);
+    }
+  }, [initialized, input.value, options, selectedOptions.length]);
+
+  useEffect(() => {
+    onChange(input.name, selectedOptions);
+  }, [input.name, onChange, selectedOptions]);
 
   const handleClickOption = useCallback(
     (option: any) => {
@@ -45,9 +58,8 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
         copy = selectedOptions.filter((opt) => option !== opt);
       }
       setSelectedOptions(copy);
-      onChange(input.name, copy);
     },
-    [selectedOptions, onChange]
+    [selectedOptions]
   );
 
   if (!input || !onChange) return null;

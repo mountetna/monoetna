@@ -4,6 +4,7 @@ import {VulcanState} from "../reducers/vulcan_reducer";
 import {setSession, setStatus, VulcanAction} from "../actions/vulcan";
 import {SessionStatusResponse, VulcanSession} from "../api_types";
 import {Cancellable} from "etna-js/utils/cancellable";
+import {hasNoRunningSteps} from "../selectors/workflow_selectors";
 
 export const defaultSessionSyncHelpers = {
   statusIsFresh: true,
@@ -46,16 +47,24 @@ export function useSessionSync(
     return () => cancellable.cancel();
   }, [lastPollingRequest, dispatch, pollStatus, postInputs, state]);
 
+  const statusIsFresh = lastCompletedPollingRequest === state.current.session.inputs;
   const requestPoll = useCallback((post = false) => {
+    if (!post && (hasNoRunningSteps(state.current.status) || statusIsFresh)) {
+      return;
+    }
+
     setPollingRequest([post, { ...state.current }]);
-  }, [state]);
+  }, [state, statusIsFresh]);
 
   useEffect(() => {
     const timerId = setInterval(() => requestPoll(), 1000);
     return () => clearInterval(timerId);
   }, [requestPoll])
 
-  const statusIsFresh = lastCompletedPollingRequest === state.current.session.inputs;
+  // Kind, of silly.  Just want this useEffect to run once on first mount.  But the linter will complain unless we
+  // wrap the callback in a ref.  we do not want to fire this for every single change to the callback.
+  const requestPollRef = useRef(requestPoll);
+  useEffect(() => requestPollRef.current(), []);
 
   return {
     statusIsFresh,

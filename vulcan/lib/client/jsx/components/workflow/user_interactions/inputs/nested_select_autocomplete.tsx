@@ -109,6 +109,8 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({
 
   if (!input || !onChange) return null;
 
+  if (!input || !onChange) return null;
+
   return (
     <div>
       <div>

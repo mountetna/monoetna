@@ -25,20 +25,12 @@ export default function StepUserInputDrawer({
   const {workflow, session, status, data, inputs} = state;
 
   // We need to unpack the grouped steps and add docs
-  let stepInputs: InputSpecification[] = useMemo(
-    () =>
-      !workflow
-        ? []
-        : step.in.map((input) => {
-            // We need to fetch the original step, to see if the options are available and to unpack the true uiQuery
-            const originalStepName = stepOfSource(input.source);
-            const originalStep = originalStepName
-              ? stepOfStatus(originalStepName, workflow)
-              : null;
-            const inputData = originalStep
-              ? stepInputDataRaw(originalStep, status, data, session)
-              : {};
-            const uiQuery = originalStep ? uiQueryOfStep(originalStep) : null;
+  let stepInputs: InputSpecification[] = useMemo(() => !workflow ? [] : step.in.map((input) => {
+        // We need to fetch the original step, to see if the options are available and to unpack the true uiQuery
+        const originalStepName = stepOfSource(input.source);
+        const originalStep = originalStepName ? stepOfStatus(originalStepName, workflow) : null;
+        const inputData = originalStep ? stepInputDataRaw(originalStep, status, data, session) : {};
+        const uiQuery = originalStep ? uiQueryOfStep(originalStep) : null;
 
             return {
               type: uiQuery || 'default',
@@ -51,6 +43,8 @@ export default function StepUserInputDrawer({
           }),
     [step, workflow, status, data, session, inputs]
   );
+
+  if (!workflow) return null;
 
   if (!workflow) return null;
 

@@ -34,27 +34,15 @@ export default function StepUserInput({
   // We need to map the user input step's output to
   //   a set of input items.
   const outputRefs = useMemo(() => sourceNamesOfStep(step), [step]);
-  const stepInputs: InputSpecification[] = useMemo(
-    () =>
-      outputRefs.map((outputName) => ({
-        type: uiQuery as InputType,
-        label: step.label || step.name,
-        // The existing value
-        value: state.inputs[outputName],
-        name: outputName,
-        data: stepInputDataRaw(step, state.status, state.data, state.session),
-        doc: step.doc
-      })),
-    [
-      outputRefs,
-      uiQuery,
-      step,
-      state.inputs,
-      state.status,
-      state.data,
-      state.session
-    ]
-  );
+  const stepInputs: InputSpecification[] = useMemo(() => outputRefs.map(outputName => ({
+    type: uiQuery as InputType,
+    label: step.label || step.name,
+    // The existing value
+    value: state.inputs[outputName],
+    name: outputName,
+    data: stepInputDataRaw(step, state.status, state.data, state.session),
+    doc: step.doc
+  })), [outputRefs, uiQuery, step, state.inputs, state.status, state.data, state.session])
 
   if (!uiQuery) return null;
 
