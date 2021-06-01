@@ -41,9 +41,9 @@ function backendComponentOf(
     case TYPE.MULTISELECT_STRING:
       return [MultiselectStringInput, ValidChoicesValidator];
     case TYPE.SELECT_AUTOCOMPLETE:
-      return [SelectAutocompleteInput, NotEmptyValidator];
+      return [SelectAutocompleteInput, ValidChoicesValidator];
     case TYPE.CHECKBOXES:
-      return [CheckboxesInput, NotEmptyValidator];
+      return [CheckboxesInput, ValidChoicesValidator];
     case TYPE.NESTED_SELECT_AUTOCOMPLETE:
       return [NestedSelectAutocompleteInput, NotEmptyValidator];
     case TYPE.MULTISELECT_STRING_ALL:
