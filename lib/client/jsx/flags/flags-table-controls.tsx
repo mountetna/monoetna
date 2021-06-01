@@ -10,24 +10,6 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import {FlagsContext} from './flags-context';
 import {fetchProjects} from '../api/janus_api';
 
-const useStyles = makeStyles((theme) => ({
-  chips: {
-    display: 'flex',
-    flexWrap: 'wrap'
-  },
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 300,
-    maxWidth: 400
-  },
-  chip: {
-    margin: 2
-  },
-  button: {
-    margin: theme.spacing(1)
-  }
-}));
-
 // Assumes this won't be in any project or flag string...
 const DELIMITER = ' -- ';
 
@@ -40,7 +22,6 @@ function MultiSelector({
   label: string;
   onChange: (selection: string[]) => void;
 }) {
-  const classes = useStyles();
 
   function onSelect(selection: string[]) {
     onChange(selection.map((s) => unpackOption(s)));
@@ -51,7 +32,7 @@ function MultiSelector({
   }
 
   return (
-    <FormControl className={classes.formControl}>
+    <FormControl fullWidth={true}>
       <Autocomplete
         multiple
         id={`${label}-filter`}
@@ -61,9 +42,7 @@ function MultiSelector({
         renderInput={(params: any) => (
           <TextField
             {...params}
-            variant='outlined'
             label={label}
-            placeholder={label}
           />
         )}
         renderOption={(option, state) => <span>{option}</span>}
@@ -96,7 +75,6 @@ const TableControls = ({
     state: {projects},
     setProjects
   } = useContext(FlagsContext);
-  const classes = useStyles();
 
   useEffect(() => {
     fetchProjects().then(({projects}) => setProjects(projects));
@@ -119,11 +97,10 @@ const TableControls = ({
   }, [projectOptions, projects]);
 
   return (
-    <Grid container>
+    <React.Fragment>
       <Grid item xs={3}>
         <TextField
           label='Search'
-          variant='outlined'
           onChange={(e) => onChangeSearch(e.target.value as string)}
           InputLabelProps={{
             shrink: true
@@ -151,7 +128,7 @@ const TableControls = ({
           label='Flags'
         />
       </Grid>
-    </Grid>
+    </React.Fragment>
   );
 };
 

@@ -20,14 +20,14 @@ import TableControls from './flags-table-controls';
 import AddRemove from './flags-add-remove';
 
 const useStyles = makeStyles((theme) => ({
+  controls: {
+    padding: "15px"
+  },
+  manage: {
+    position: 'relative'
+  },
   table: {
     minWidth: 650
-  },
-  header: {
-    fontWeight: 'bolder'
-  },
-  margin: {
-    margin: theme.spacing(3)
   }
 }));
 
@@ -104,14 +104,10 @@ const UserTable = () => {
     setAddRemoveOpen(!addRemoveOpen);
   }
 
-  function closeAddRemoveFlags() {
-    setAddRemoveOpen(false);
-  }
-
   return (
-    <Grid container direction='column' className={classes.margin}>
-      <Grid container item xs={12}>
-        <Grid item xs={9}>
+    <Grid container direction='column'>
+      <Grid container item xs={12} className={classes.controls}>
+        <Grid container spacing={1} item xs={9} alignItems='flex-end' justify='flex-start'>
           <TableControls
             onChangeSearch={setSearchTerm}
             onChangeProjects={setSearchProjects}
@@ -120,18 +116,12 @@ const UserTable = () => {
             flagOptions={[...new Set(users.map((u) => u.flags || []).flat())]}
           />
         </Grid>
-        <Grid item xs={3}>
+        <Grid container className={classes.manage} item xs={3} alignItems='flex-end' justify='flex-start'>
           {selected.length > 0 ? (
-            <Button
-              variant='contained'
-              color='primary'
-              onClick={openAddRemoveFlags}
-            >
-              Manage Flags
-            </Button>
+            <Button onClick={openAddRemoveFlags}>Manage Flags</Button>
           ) : null}
           {addRemoveOpen && selected.length > 0 ? (
-            <AddRemove selectedUsers={selected} onClose={closeAddRemoveFlags} />
+            <AddRemove selectedUsers={selected}/>
           ) : null}
         </Grid>
       </Grid>
@@ -154,10 +144,10 @@ const UserTable = () => {
                     inputProps={{'aria-label': 'select all users'}}
                   />
                 </TableCell>
-                <TableCell className={classes.header}>Name</TableCell>
-                <TableCell className={classes.header}>Email</TableCell>
-                <TableCell className={classes.header}>Projects</TableCell>
-                <TableCell className={classes.header}>Flags</TableCell>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Projects</TableCell>
+                <TableCell>Flags</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
