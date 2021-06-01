@@ -24,32 +24,36 @@ import {
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 import MultiselectStringAllInput from './multiselect_string_all';
 import MultipleMultiselectStringAllInput from './multiple_multiselect_string_all';
-import SimpleNullValidator from './validators/simple_null_validator';
+import NotEmptyValidator from './validators/not_empty_validator';
+import AllInnerValuesNotEmptyValidator from './validators/all_inner_values_not_empty_validator';
 
 function backendComponentOf(
   type: InputType
 ): [InputBackendComponent, InputValidator] {
   switch (type) {
     case TYPE.FLOAT:
-      return [FloatInput, SimpleNullValidator];
+      return [FloatInput, NotEmptyValidator];
     case TYPE.INTEGER:
-      return [IntegerInput, SimpleNullValidator];
+      return [IntegerInput, NotEmptyValidator];
     case TYPE.BOOL:
-      return [BooleanInput, SimpleNullValidator];
+      return [BooleanInput, NotEmptyValidator];
     case TYPE.MULTISELECT_STRING:
-      return [MultiselectStringInput, SimpleNullValidator];
+      return [MultiselectStringInput, NotEmptyValidator];
     case TYPE.SELECT_AUTOCOMPLETE:
-      return [SelectAutocompleteInput, SimpleNullValidator];
+      return [SelectAutocompleteInput, NotEmptyValidator];
     case TYPE.CHECKBOXES:
-      return [CheckboxesInput, SimpleNullValidator];
+      return [CheckboxesInput, NotEmptyValidator];
     case TYPE.NESTED_SELECT_AUTOCOMPLETE:
-      return [NestedSelectAutocompleteInput, SimpleNullValidator];
+      return [NestedSelectAutocompleteInput, NotEmptyValidator];
     case TYPE.MULTISELECT_STRING_ALL:
-      return [MultiselectStringAllInput, SimpleNullValidator];
+      return [MultiselectStringAllInput, NotEmptyValidator];
     case TYPE.MULTIPLE_MULTISELECT_STRING_ALL:
-      return [MultipleMultiselectStringAllInput, SimpleNullValidator];
+      return [
+        MultipleMultiselectStringAllInput,
+        AllInnerValuesNotEmptyValidator
+      ];
     default:
-      return [StringInput, SimpleNullValidator];
+      return [StringInput, NotEmptyValidator];
   }
 }
 
