@@ -3,7 +3,6 @@ import {
 } from '../actions/vulcan';
 import {defaultSessionStatusResponse, SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
 import {unsetDependentInputs, filterEmptyValues} from "../selectors/workflow_selectors";
-import {InputValidator} from '../components/workflow/user_interactions/inputs/input_types';
 
 export type DownloadedData = any; // TODO: improve typing here.
 export type DownloadedStepDataMap = { [k: string]: DownloadedData };
