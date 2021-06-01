@@ -25,7 +25,7 @@ describe('useSessionSync', () => {
       const storage = createFakeStorage();
       workflow = createWorkflowFixture({
         steps: [
-          [createStepFixture({ name: "a" })],
+          [createStepFixture({ name: "testStep" })],
         ]
       });
 
@@ -41,13 +41,13 @@ describe('useSessionSync', () => {
       const {dispatch} = setup;
       await act(async () => {
         await dispatch(setWorkflow(workflow, 'test'));
-        await dispatch(setStatus(createStatusFixture(workflow, createStepStatusFixture({name: "a", status: "running"}))));
+        await dispatch(setStatus(createStatusFixture(workflow, createStepStatusFixture({name: "testStep", status: "running"}))));
       })
+
     })
 
     it('polls for a status update', async () => {
       const {contextData} = setup;
-      expect(pollStatusMock[0]).toHaveBeenCalledWith(contextData.stateRef.current.session)
       pollStatusMock[0].mockClear();
 
       await act(async () => {
