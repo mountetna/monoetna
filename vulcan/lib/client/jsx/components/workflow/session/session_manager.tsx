@@ -10,7 +10,6 @@ import OutputFeed from './output_feed';
 import Vignette from '../vignette';
 import {
   allWorkflowPrimaryInputSources,
-  erroredSteps,
   statusOfStep,
   uiOutputOfStep,
   workflowName
@@ -38,7 +37,9 @@ export default function SessionManager() {
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
   const {steps} = workflow;
-  const {status, session} = state;
+  const {status, session, inputs} = state;
+
+  const name = workflowName(workflow);
 
   const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
   const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
@@ -49,11 +50,11 @@ export default function SessionManager() {
       filename: `${name}.json`,
       contentType: 'text/json'
     });
-  }, [session]);
+  }, [session, name]);
 
   const openSession = () => {
-    readTextFile('*.json').then((session_json) => {
-      dispatch(setSession(JSON.parse(session_json)));
+    readTextFile('*.json').then((sessionJson) => {
+      dispatch(setSession(JSON.parse(sessionJson)));
     });
   };
 
@@ -109,7 +110,6 @@ export default function SessionManager() {
 
   const disableRunButton = complete || running || !primaryInputsReady;
 
-  const name = workflowName(workflow);
   if (!name) return null;
 
   return (
