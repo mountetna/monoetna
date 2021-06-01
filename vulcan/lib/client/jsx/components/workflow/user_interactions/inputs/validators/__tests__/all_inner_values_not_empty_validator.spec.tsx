@@ -11,7 +11,12 @@ describe('AllInnerValuesNotEmptyValidator', () => {
       value: null,
       label: 'Abcdef',
       name: 'test-input',
-      data: ['1', '2', 'a', 'b']
+      data: {
+        a: {
+          experiment: ['1', '2'],
+          tissue: ['a', 'b']
+        }
+      }
     };
   });
 
@@ -26,6 +31,11 @@ describe('AllInnerValuesNotEmptyValidator', () => {
 
   it('reports errors for hashes with null values', () => {
     input.value = {experiment: null, tissue: null};
+    expect(AllInnerValuesNotEmptyValidator(input).length > 0).toEqual(true);
+  });
+
+  it('reports errors for hashes with missing keys', () => {
+    input.value = {experiment: ['1']};
     expect(AllInnerValuesNotEmptyValidator(input).length > 0).toEqual(true);
   });
 

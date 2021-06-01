@@ -4,19 +4,25 @@ import {TYPE} from '../../../../api_types';
 import {InputBackendComponent, InputSpecification} from './input_types';
 import UserInput from './user_input';
 
+export const flattenOptions = (
+  data: {[key: string]: {[key: string]: string[]}} | null | undefined
+) => {
+  if (data) {
+    return Object.values(data).reduce((a, b) => ({...a, ...b}), {});
+  }
+
+  return {};
+};
+
 const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   input,
   onChange
 }) => {
   const {data, name, value: inputValue} = input;
 
-  const options: {[k: string]: string[]} = useMemo(() => {
-    if (data) {
-      return Object.values(data).reduce((a, b) => ({...a, ...b}), {});
-    }
-
-    return {};
-  }, [data]);
+  const options: {[k: string]: string[]} = useMemo(() => flattenOptions(data), [
+    data
+  ]);
 
   const innerInputs: InputSpecification[] = useMemo(() => {
     const result: InputSpecification[] = [];
