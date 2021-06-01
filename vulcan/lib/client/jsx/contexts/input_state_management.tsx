@@ -16,7 +16,6 @@ export function useInputStateManagement(
   const {inputs: sessionInputs} = session;
 
   useEffect(() => {
-    console.log('in effect', statusIsFresh, inputs);
     if (workflow == null) return;
     if (!statusIsFresh) return;
     const inputDeletes: {[k: string]: true} = {};
@@ -41,8 +40,6 @@ export function useInputStateManagement(
         return outName in stepStatus.downloads;
       });
     });
-
-    console.log('droppedSteps', droppedSteps);
 
     droppedSteps.forEach((step) => {
       step.out.forEach((outName) => {

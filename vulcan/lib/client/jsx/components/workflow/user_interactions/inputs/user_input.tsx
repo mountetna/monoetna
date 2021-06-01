@@ -26,6 +26,7 @@ import MultiselectStringAllInput from './multiselect_string_all';
 import MultipleMultiselectStringAllInput from './multiple_multiselect_string_all';
 import NotEmptyValidator from './validators/not_empty_validator';
 import AllInnerValuesNotEmptyValidator from './validators/all_inner_values_not_empty_validator';
+import ValidChoicesValidator from './validators/valid_choices_validator';
 
 function backendComponentOf(
   type: InputType
@@ -38,7 +39,7 @@ function backendComponentOf(
     case TYPE.BOOL:
       return [BooleanInput, NotEmptyValidator];
     case TYPE.MULTISELECT_STRING:
-      return [MultiselectStringInput, NotEmptyValidator];
+      return [MultiselectStringInput, ValidChoicesValidator];
     case TYPE.SELECT_AUTOCOMPLETE:
       return [SelectAutocompleteInput, NotEmptyValidator];
     case TYPE.CHECKBOXES:
@@ -46,7 +47,7 @@ function backendComponentOf(
     case TYPE.NESTED_SELECT_AUTOCOMPLETE:
       return [NestedSelectAutocompleteInput, NotEmptyValidator];
     case TYPE.MULTISELECT_STRING_ALL:
-      return [MultiselectStringAllInput, NotEmptyValidator];
+      return [MultiselectStringAllInput, ValidChoicesValidator];
     case TYPE.MULTIPLE_MULTISELECT_STRING_ALL:
       return [
         MultipleMultiselectStringAllInput,
