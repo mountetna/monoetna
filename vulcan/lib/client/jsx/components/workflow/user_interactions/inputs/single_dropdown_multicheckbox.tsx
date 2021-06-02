@@ -1,215 +1,148 @@
-// // Input component that takes a simple object and
-// // shows values based on a selected key
+// Input component that takes a simple object and
+// shows values based on a selected key
 
-// import React, {useState, useEffect, useCallback} from 'react';
-// import * as _ from 'lodash';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useContext,
+  useMemo
+} from 'react';
+import * as _ from 'lodash';
 
-// import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
+import {VulcanContext} from '../../../../contexts/vulcan_context';
+import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
+import CheckboxesInput from './checkboxes';
+import {InputBackendComponent, InputSpecification} from './input_types';
+import {flattenOptions} from './multiple_multiselect_string_all';
 
-// import {useBufferedInputState} from './buffered_input_state';
-// import CheckboxesInput from './checkboxes';
-// import {InputBackendComponent, InputSpecification} from './input_types';
+function DropdownCheckboxCombo({
+  dropdownValue,
+  handleSelect,
+  handleClickOption,
+  dropdownOptions,
+  checkboxInput
+}: {
+  dropdownValue: string;
+  dropdownOptions: string[];
+  handleSelect: (value: string) => void;
+  handleClickOption: (options: string[]) => void;
+  checkboxInput: InputSpecification;
+}) {
+  if (!checkboxInput) return null;
 
-// function DropdownCheckboxCombo({
-//   dropdownValue,
-//   handleSelect,
-//   handleClickOption,
-//   cwlInputName,
-//   dropdownOptions,
-//   checkboxInput
-// }: {
-//   dropdownValue: string;
-//   dropdownOptions: string[];
-//   cwlInputName: string;
-//   handleSelect: (cwlInputName: string, value: string) => void;
-//   handleClickOption: (cwlInputName: string, options: string[]) => void;
-//   checkboxInput: InputSpecification;
-// }) {
-//   if (!checkboxInput) return null;
+  return (
+    <React.Fragment>
+      <div>
+        <DropdownAutocomplete
+          defaultValue={dropdownValue}
+          onSelect={handleSelect}
+          list={dropdownOptions}
+        />
+      </div>
+      <div className='checkbox-input-wrapper'>
+        <CheckboxesInput
+          input={checkboxInput}
+          onChange={(inputName: string, checkedOptions: string[]) =>
+            handleClickOption(checkedOptions)
+          }
+        />
+      </div>
+    </React.Fragment>
+  );
+}
 
-//   return (
-//     <React.Fragment>
-//       <div>
-//         <DropdownAutocomplete
-//           defaultValue={dropdownValue}
-//           onSelect={(value: string) => handleSelect(cwlInputName, value)}
-//           list={dropdownOptions}
-//         />
-//       </div>
-//       <div className='checkbox-input-wrapper'>
-//         <CheckboxesInput
-//           input={checkboxInput}
-//           onChange={(inputName: string, checkedOptions: string[]) =>
-//             handleClickOption(cwlInputName, checkedOptions)
-//           }
-//         />
-//       </div>
-//     </React.Fragment>
-//   );
-// }
+const SingleDropdownMulticheckbox: InputBackendComponent = ({
+  input,
+  onChange
+}) => {
+  // input.data for this component should be
+  // {'a': {experiment: ['1', '2'], tissue: ['a', 'b']}}
+  const [checkboxInput, setCheckboxInput] = useState({} as InputSpecification);
 
-// const SingleDropdownMulticheckbox: InputBackendComponent = ({
-//   input,
-//   onChange
-// }) => {
-//   const [checkboxInputs, setCheckboxInputs] = useState(
-//     {} as {[key: string]: InputSpecification | null}
-//   );
+  const [dropdownOptions, setDropdownOptions] = useState([] as string[]);
 
-//   const [selected, setSelected] = useBufferedInputState<{
-//     [key: string]: {[key: string]: string[]};
-//   }>(input, {});
+  const {data} = input;
 
-//   const [currentDropdownValues, setCurrentDropdownValues] = useState(
-//     {} as {[key: string]: string}
-//   );
+  const allOptions: {[k: string]: string[]} = useMemo(
+    () => flattenOptions(data),
+    [data]
+  );
 
-//   const [dropdownOptions, setDropdownOptions] = useState(
-//     {} as {[key: string]: string[]}
-//   );
-//   const {data} = input;
+  // We use VulcanContext here to store a temporary "selected dropdown value"
+  //   input state, which is never used by the server.
+  const {
+    state: {inputs: stateInputs}
+  } = useContext(VulcanContext);
 
-//   useEffect(() => {
-//     if (!data) return;
+  const internalDropdownParameter = `${input.name}__dropdownValue`;
+  const currentDropdownValue = useMemo(() => {
+    if (stateInputs.hasOwnProperty(internalDropdownParameter)) {
+      return stateInputs[internalDropdownParameter];
+    }
 
-//     setDropdownOptions(
-//       Object.keys(data).reduce(
-//         (
-//           acc: {[key: string]: string[]},
-//           nextCwlInput: string
-//         ): {[key: string]: string[]} => {
-//           acc[nextCwlInput] = Object.keys(data[nextCwlInput]);
-//           return acc;
-//         },
-//         {}
-//       )
-//     );
-//   }, [data]);
+    return dropdownOptions[0];
+  }, [stateInputs, dropdownOptions, internalDropdownParameter]);
 
-//   useEffect(() => {
-//     // By default set the first option as selected for each CWL input.
-//     setCurrentDropdownValues(
-//       Object.entries(dropdownOptions).reduce(
-//         (
-//           acc: {[key: string]: string},
-//           [nextCwlInput, options]: [string, string[]]
-//         ) => {
-//           acc[nextCwlInput] = options[0];
-//           return acc;
-//         },
-//         {}
-//       )
-//     );
-//   }, [dropdownOptions]);
+  useEffect(() => {
+    if (!data) return;
 
-//   useEffect(() => {
-//     if (!initialized && !_.isEqual(dropdownOptions, {})) {
-//       setInitialized(true);
-//       if (input.value) {
-//         // Set the boxes to any previous selection
-//         setSelected(input.value);
-//       }
-//     }
-//   }, [input.value, input.data, dropdownOptions]);
+    setDropdownOptions(
+      Object.values(data).reduce(
+        (acc: string[], inputOptions: {[key: string]: string[]}): string[] => {
+          acc.concat(Object.keys(inputOptions));
+          return acc;
+        },
+        []
+      )
+    );
+  }, [data]);
 
-//   useEffect(() => {
-//     // when options change for the dropdown menu,
-//     //   set the checkboxes to the options
-//     //   for the selected dropdownOption.
-//     setCheckboxInputs(
-//       Object.entries(currentDropdownValues).reduce(
-//         (
-//           acc: {[key: string]: InputSpecification},
-//           [cwlInputName, dropdownValue]: [string, string]
-//         ): {[key: string]: InputSpecification} => {
-//           acc[cwlInputName] = {
-//             ...input,
-//             name: `${cwlInputName}-${dropdownValue}`,
-//             data: data ? data[cwlInputName][dropdownValue] : [],
-//             value:
-//               selected && selected[cwlInputName]
-//                 ? selected[cwlInputName][dropdownValue]
-//                 : []
-//           };
-//           return acc;
-//         },
-//         {}
-//       )
-//     );
-//   }, [currentDropdownValues, selected]);
+  useEffect(() => {
+    // when options change for the dropdown menu,
+    //   set the checkboxes to the options
+    //   for the selected dropdownOption.
+    setCheckboxInput({
+      ...input,
+      name: currentDropdownValue,
+      data: data ? data[currentDropdownValue] : [],
+      value:
+        input.value && input.value[currentDropdownValue]
+          ? input.value[currentDropdownValue]
+          : null
+    });
+  }, [currentDropdownValue, input.value, allOptions, data, input]);
 
-//   useEffect(() => {
-//     // Update state whenever a new selection comes in.
-//     if (!_.isEqual(lastSelected, selected)) {
-//       setLastSelected(selected);
-//       if (
-//         Object.values(
-//           selected
-//         ).every((nestedInput: {[key: string]: string[]}) =>
-//           Object.values(nestedInput).every(
-//             (selection: string[]) => selection.length > 0
-//           )
-//         )
-//       ) {
-//         onChange(input.name, selected);
-//       } else {
-//         onChange(input.name, null);
-//       }
-//     }
-//   }, [selected]);
+  const handleSelect = useCallback(
+    (value: string) => {
+      onChange(internalDropdownParameter, value);
+    },
+    [internalDropdownParameter, onChange]
+  );
 
-//   const handleSelect = useCallback(
-//     (cwlInputName: string, value: string) => {
-//       // Set the checkbox input to `null` first, to clear
-//       //   out the component.
-//       setCheckboxInputs({
-//         ...checkboxInputs,
-//         [cwlInputName]: null
-//       });
-//       setCurrentDropdownValues({
-//         ...currentDropdownValues,
-//         [cwlInputName]: value
-//       });
-//     },
-//     [currentDropdownValues]
-//   );
+  const handleClickOption = useCallback(
+    (options: string[]) => {
+      onChange(input.name, {
+        ...input.value,
+        [currentDropdownValue]: [...options]
+      });
+    },
+    [input, onChange, currentDropdownValue]
+  );
 
-//   const handleClickOption = useCallback(
-//     (cwlInputName: string, options: string[]) => {
-//       setSelected({
-//         ...selected,
-//         [cwlInputName]: {
-//           ...selected[cwlInputName],
-//           [currentDropdownValues[cwlInputName]]: [...options]
-//         }
-//       });
-//     },
-//     [currentDropdownValues]
-//   );
+  if (!input || !onChange) return null;
 
-//   if (!input || !onChange) return null;
+  return (
+    <div>
+      <DropdownCheckboxCombo
+        checkboxInput={checkboxInput}
+        handleSelect={handleSelect}
+        handleClickOption={handleClickOption}
+        dropdownValue={currentDropdownValue}
+        dropdownOptions={dropdownOptions}
+      />
+    </div>
+  );
+};
 
-//   return (
-//     <div>
-//       {Object.keys(currentDropdownValues).map((cwlInputName: string) => {
-//         let checkboxInput = checkboxInputs[cwlInputName];
-
-//         if (!checkboxInput) return null;
-
-//         return (
-//           <DropdownCheckboxCombo
-//             key={`${cwlInputName}-${checkboxInput.name}`}
-//             cwlInputName={cwlInputName}
-//             checkboxInput={checkboxInput}
-//             handleSelect={handleSelect}
-//             handleClickOption={handleClickOption}
-//             dropdownValue={currentDropdownValues[cwlInputName]}
-//             dropdownOptions={dropdownOptions[cwlInputName]}
-//           />
-//         );
-//       })}
-//     </div>
-//   );
-// };
-
-// export default SingleDropdownMulticheckbox;
+export default SingleDropdownMulticheckbox;

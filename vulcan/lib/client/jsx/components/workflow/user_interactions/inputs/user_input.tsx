@@ -24,6 +24,7 @@ import {
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 import MultiselectStringAllInput from './multiselect_string_all';
 import MultipleMultiselectStringAllInput from './multiple_multiselect_string_all';
+import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox';
 import NotEmptyValidator from './validators/not_empty_validator';
 import AllInnerValuesNotEmptyValidator from './validators/all_inner_values_not_empty_validator';
 import ValidChoicesValidator from './validators/valid_choices_validator';
@@ -53,6 +54,8 @@ function backendComponentOf(
         MultipleMultiselectStringAllInput,
         AllInnerValuesNotEmptyValidator
       ];
+    case TYPE.SINGLE_DROPDOWN_MULTICHECKBOX:
+      return [SingleDropdownMulticheckbox, AllInnerValuesNotEmptyValidator];
     default:
       return [StringInput, NotEmptyValidator];
   }
