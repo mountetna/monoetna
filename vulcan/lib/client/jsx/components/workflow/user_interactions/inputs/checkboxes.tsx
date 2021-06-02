@@ -27,32 +27,27 @@ function CheckboxInput({
 }
 
 const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
-  // because we want to load the widget as all inputs are
-  //   checked, we'll still use local state here.
-  const [selectedOptions, setSelectedOptions] = useState(input.value || []);
-
   const options = useMemo(() => getAllOptions(input.data).sort(), [input.data]);
 
   useEffect(() => {
-    // on mount, set all options as checked
-    setSelectedOptions([...options]);
-  }, []);
-
-  useEffect(() => {
-    if (null != input.value) setSelectedOptions([...input.value]);
-  }, [input.value]);
+    // Set all options as checked, only if no input.value provided.
+    // Otherwise set checked options to mirror input.value
+    if (null == input.value && options.length > 0) {
+      onChange(input.name, [...options]);
+    }
+  }, [options, input.value, input.name, onChange]);
 
   const handleClickOption = useCallback(
     (option: any) => {
-      let copy = [...selectedOptions];
-      if (!selectedOptions.includes(option)) {
+      let copy = [...(input.value || [])];
+      if (!input.value.includes(option)) {
         copy.push(option);
       } else {
-        copy = selectedOptions.filter((opt: string) => option !== opt);
+        copy = input.value.filter((opt: string) => option !== opt);
       }
       onChange(input.name, copy);
     },
-    [selectedOptions]
+    [input.value, onChange, input.name]
   );
 
   if (!input || !onChange) return null;
@@ -64,7 +59,7 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
           <CheckboxInput
             option={option}
             key={index}
-            checked={selectedOptions.includes(option)}
+            checked={input.value ? input.value.includes(option) : false}
             onChange={handleClickOption}
           />
         );

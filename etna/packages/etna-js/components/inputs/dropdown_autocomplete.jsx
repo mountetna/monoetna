@@ -10,6 +10,7 @@ export default function DropdownAutocomplete({
   list,
   onSelect,
   defaultValue,
+  value,
   waitTime,
   maxItems
 }) {
@@ -67,8 +68,12 @@ export default function DropdownAutocomplete({
 
   useEffect(() => {
     onChange = debounce(onChange, waitTime || 500);
-    setSelectedValue(defaultValue ? defaultValue : '');
+    setSelectedValue(defaultValue ? defaultValue : null);
   }, []);
+
+  useEffect(() => {
+    if (null != value && selectedValue !== value) setSelectedValue(value);
+  }, [value]);
 
   useEffect(() => {
     setFilteredList(sortedList || []);

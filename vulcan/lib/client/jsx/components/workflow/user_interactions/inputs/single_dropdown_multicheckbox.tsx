@@ -35,7 +35,7 @@ function DropdownCheckboxCombo({
     <React.Fragment>
       <div>
         <DropdownAutocomplete
-          defaultValue={dropdownValue}
+          value={dropdownValue}
           onSelect={handleSelect}
           list={dropdownOptions}
         />
@@ -75,9 +75,12 @@ const SingleDropdownMulticheckbox: InputBackendComponent = ({
     state: {inputs: stateInputs}
   } = useContext(VulcanContext);
 
-  const internalDropdownParameter = `${input.name}__dropdownValue`;
+  const internalDropdownParameter = `__${input.name}__dropdownValue`;
   const currentDropdownValue = useMemo(() => {
-    if (stateInputs.hasOwnProperty(internalDropdownParameter)) {
+    if (
+      stateInputs.hasOwnProperty(internalDropdownParameter) &&
+      null != stateInputs[internalDropdownParameter]
+    ) {
       return stateInputs[internalDropdownParameter];
     }
 
@@ -85,18 +88,26 @@ const SingleDropdownMulticheckbox: InputBackendComponent = ({
   }, [stateInputs, dropdownOptions, internalDropdownParameter]);
 
   useEffect(() => {
-    if (!data) return;
+    if (!allOptions) return;
 
-    setDropdownOptions(
-      Object.values(data).reduce(
-        (acc: string[], inputOptions: {[key: string]: string[]}): string[] => {
-          acc.concat(Object.keys(inputOptions));
-          return acc;
-        },
-        []
-      )
-    );
-  }, [data]);
+    setDropdownOptions(Object.keys(allOptions));
+
+    if (null == input.value) {
+      onChange(
+        input.name,
+        Object.entries(allOptions).reduce(
+          (
+            acc: {[key: string]: string[]},
+            [label, options]: [string, string[]]
+          ) => {
+            acc[label] = options;
+            return acc;
+          },
+          {}
+        )
+      );
+    }
+  }, [allOptions, input.name, onChange, input.value]);
 
   useEffect(() => {
     // when options change for the dropdown menu,
@@ -105,13 +116,13 @@ const SingleDropdownMulticheckbox: InputBackendComponent = ({
     setCheckboxInput({
       ...input,
       name: currentDropdownValue,
-      data: data ? data[currentDropdownValue] : [],
+      data: allOptions ? allOptions[currentDropdownValue] : [],
       value:
         input.value && input.value[currentDropdownValue]
           ? input.value[currentDropdownValue]
           : null
     });
-  }, [currentDropdownValue, input.value, allOptions, data, input]);
+  }, [currentDropdownValue, input.value, allOptions, input]);
 
   const handleSelect = useCallback(
     (value: string) => {

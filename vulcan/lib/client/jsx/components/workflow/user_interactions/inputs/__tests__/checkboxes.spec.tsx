@@ -37,7 +37,18 @@ describe('CheckboxesInput', () => {
 
     expect(component.find('.checkbox-input-option').length).toEqual(4);
     expect(renderedlabels(component)).toEqual(['1', '2', 'a', 'b']);
+    expect(onChange).toHaveBeenCalledWith('test-input', ['1', '2', 'a', 'b']);
+  });
 
-    expect(checkedCheckboxesText(component)).toEqual(['1', '2', 'a', 'b']);
+  it('reflects input.value when provided', () => {
+    input.value = ['2', 'b'];
+    const component = mount(
+      <CheckboxesInput input={input} onChange={onChange} />
+    );
+
+    expect(component.find('.checkbox-input-option').length).toEqual(4);
+    expect(renderedlabels(component)).toEqual(['1', '2', 'a', 'b']);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(checkedCheckboxesText(component)).toEqual(['2', 'b']);
   });
 });
