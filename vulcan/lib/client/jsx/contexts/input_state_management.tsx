@@ -1,7 +1,15 @@
 import {VulcanState} from '../reducers/vulcan_reducer';
 import {Dispatch, useEffect} from 'react';
-import {removeDownloads, removeInputs, VulcanAction} from '../actions/vulcan';
 import {
+  patchInputs,
+  removeDownloads,
+  removeInputs,
+  VulcanAction
+} from '../actions/vulcan';
+import {
+  isPendingUiQuery,
+  missingUiQueryOutputs,
+  pendingSteps,
   sourceNameOfReference,
   statusOfStep,
   stepOfSource
@@ -62,4 +70,31 @@ export function useInputStateManagement(
     d = Object.keys(downloadDeletes);
     if (d.length > 0) dispatch(removeDownloads(d));
   }, [inputs, workflow, status, data, sessionInputs, statusIsFresh, dispatch]);
+
+  // We inject a `null` input into state.inputs,
+  //   to indicate that we're waiting for a user input value
+  //   to return to the server.
+  useEffect(() => {
+    if (!workflow) return;
+
+    let newInputs = {};
+    let nextUiSteps = pendingSteps(workflow, status).filter(({step}) =>
+      isPendingUiQuery(step, status, data, session)
+    );
+
+    nextUiSteps.forEach((nextInputStep) => {
+      let missingInputs = missingUiQueryOutputs(nextInputStep.step, inputs);
+
+      if (Object.keys(missingInputs).length > 0) {
+        // Make sure to copy over the current inputs, otherwise
+        //   they'll get wiped out in the reducer.
+        newInputs = {
+          ...newInputs,
+          ...missingInputs
+        };
+      }
+    });
+
+    if (Object.keys(newInputs).length > 0) dispatch(patchInputs(newInputs));
+  }, [inputs, workflow, status, data, session, dispatch]);
 }
