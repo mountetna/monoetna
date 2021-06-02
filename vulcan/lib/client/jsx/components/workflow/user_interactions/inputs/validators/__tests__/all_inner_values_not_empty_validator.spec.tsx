@@ -49,6 +49,11 @@ describe('AllInnerValuesNotEmptyValidator', () => {
     expect(AllInnerValuesNotEmptyValidator(input).length > 0).toEqual(true);
   });
 
+  it('reports errors for hashes with array values with invalid selections', () => {
+    input.value = {experiment: ['3'], tissue: ['a']};
+    expect(AllInnerValuesNotEmptyValidator(input).length > 0).toEqual(true);
+  });
+
   it('reports no errors for well-formed hash', () => {
     input.value = {experiment: ['1'], tissue: ['a']};
     expect(AllInnerValuesNotEmptyValidator(input).length === 0).toEqual(true);
