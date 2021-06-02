@@ -49,7 +49,7 @@ export function useSessionSync(
 
   const statusIsFresh = lastCompletedPollingRequest === state.current.session.inputs;
   const requestPoll = useCallback((post = false) => {
-    if (!post && (hasNoRunningSteps(state.current.status) || statusIsFresh)) {
+    if (!post && hasNoRunningSteps(state.current.status) && statusIsFresh) {
       return;
     }
 
