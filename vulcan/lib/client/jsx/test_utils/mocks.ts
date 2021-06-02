@@ -25,7 +25,34 @@ export function createFakeStorage(): Storage {
 }
 
 export type PromiseArgs<R> = [(r: R) => void, (e: any) => void];
-export type AsyncMock<R> = [jest.Mock, PromiseArgs<R>[]];
+export class AsyncMock<R> {
+  constructor(public jestMock: jest.Mock, private promiseArgs: PromiseArgs<R>[]) {
+  }
+
+  hasPendingRequest() {
+    return this.promiseArgs.length > 0;
+  }
+
+  async awaitCall(reset: boolean): Promise<[PromiseArgs<R>, any[]]> {
+    if (reset) {
+      this.promiseArgs.length = 0;
+      this.jestMock.mockClear();
+    }
+
+    while (!this.hasPendingRequest()) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
+    const next = this.promiseArgs.shift();
+    const call = this.jestMock.mock.calls.shift();
+    if (next && call) {
+      return [next, call];
+    }
+
+    throw new Error('Should never have been reached');
+  }
+}
+
 export function asyncFn<R>(): AsyncMock<R> {
   const mock = jest.fn();
   const promiseArgs: PromiseArgs<R>[] = [];
@@ -36,5 +63,5 @@ export function asyncFn<R>(): AsyncMock<R> {
     })
   });
 
-  return [mock, promiseArgs];
+  return new AsyncMock<R>(mock, promiseArgs);
 }
