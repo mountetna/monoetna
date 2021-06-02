@@ -72,7 +72,7 @@ class AuthorizationController < Janus::Controller
 
     token_type = @params[:token_type] || 'login'
 
-    user = signed_nonce ? User.from_signed_nonce(signed_nonce) : User.from_token(token)
+    user = @user ? User[email: @user.email] : signed_nonce ? User.from_signed_nonce(signed_nonce) : User.from_token(token)
 
     raise Etna::Unauthorized, user if user.is_a?(String)
 

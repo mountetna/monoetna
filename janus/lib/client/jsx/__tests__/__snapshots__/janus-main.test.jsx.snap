@@ -26,9 +26,31 @@ exports[`JanusMain renders 1`] = `
       className="item"
     >
       <button
+        className="MuiButtonBase-root MuiButton-root MuiButton-text"
+        disabled={false}
+        onBlur={[Function]}
         onClick={[Function]}
+        onDragLeave={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex={0}
+        type="button"
       >
-        Copy Token
+        <span
+          className="MuiButton-label"
+        >
+          Copy Token
+        </span>
+        <span
+          className="MuiTouchRipple-root"
+        />
       </button>
     </div>
   </div>
@@ -41,109 +63,146 @@ exports[`JanusMain renders 1`] = `
       Your Projects
     </div>
     <div
-      className="project header"
+      className="MuiPaper-root MuiTableContainer-root MuiPaper-elevation1 MuiPaper-rounded"
     >
-      <div
-        className="project_name"
+      <table
+        aria-label="project users"
+        className="MuiTable-root"
+        role={null}
       >
-         Project Name 
-      </div>
-      <div
-        className="full_name"
-      >
-         Title 
-      </div>
-      <div
-        className="role"
-      >
-         Role 
-      </div>
-      <div
-        className="privileged"
-        title="can see restricted data"
-      >
-         Privileged 
-      </div>
-    </div>
-    <div
-      className="project"
-    >
-      <div
-        className="project_name"
-      >
-        <span>
-          gateway
-        </span>
-      </div>
-      <div
-        className="full_name"
-      >
-        Gateway
-      </div>
-      <div
-        className="role"
-      >
-        editor
-      </div>
-      <div
-        className="privileged"
-      />
-    </div>
-    <div
-      className="project"
-    >
-      <div
-        className="project_name"
-      >
-        <span>
-          mirror
-        </span>
-      </div>
-      <div
-        className="full_name"
-      >
-        Mirror
-      </div>
-      <div
-        className="role"
-      >
-        editor
-      </div>
-      <div
-        className="privileged"
-      />
-    </div>
-    <div
-      className="project"
-    >
-      <div
-        className="project_name"
-      >
-        <span>
-          tunnel
-        </span>
-      </div>
-      <div
-        className="full_name"
-      >
-        Tunnel
-      </div>
-      <div
-        className="role"
-      >
-        viewer
-      </div>
-      <div
-        className="privileged"
-      >
-        <span
-          className="icon-grp   fa-stack fa-fw"
+        <thead
+          className="MuiTableHead-root"
+          role={null}
         >
-          <i
-            className="icon undefined  check fa fa-2x fa-check"
-          />
-        </span>
-      </div>
+          <tr
+            className="MuiTableRow-root MuiTableRow-head"
+            role={null}
+          >
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Project Name
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Title
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Role
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head MuiTableCell-paddingCheckbox"
+              scope="col"
+            >
+              Privileged
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          className="MuiTableBody-root"
+          role={null}
+        >
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              gateway
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Gateway
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              editor
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body privileged"
+            />
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              mirror
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Mirror
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              editor
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body privileged"
+            />
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              tunnel
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Tunnel
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              viewer
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body privileged"
+            >
+              <span
+                className="icon-grp   fa-stack fa-fw"
+              >
+                <i
+                  className="icon undefined  check fa fa-2x fa-check"
+                />
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
