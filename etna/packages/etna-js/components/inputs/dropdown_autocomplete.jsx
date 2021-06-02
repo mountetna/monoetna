@@ -77,7 +77,11 @@ export default function DropdownAutocomplete({
   return (
     <div className='dropdown-autocomplete-input'>
       <div className='dropdown-autocomplete-input-field'>
-        <input type='text' onChange={handleChange} value={selectedValue} />
+        <input
+          type='text'
+          onChange={handleChange}
+          value={selectedValue || undefined}
+        />
         <div className='icon-wrapper' onClick={toggleList}>
           <Icon icon={`${showList ? 'caret-up' : 'caret-down'}`}></Icon>
         </div>

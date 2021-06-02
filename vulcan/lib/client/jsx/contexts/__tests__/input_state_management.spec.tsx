@@ -58,9 +58,7 @@ describe('useInputStateManagement', () => {
       contextData.dispatch(setStatus(createStatusFixture(workflow)))
     });
 
-    expect(contextData.state.inputs).toEqual({
-      "query1/result": null,
-    });
+    expect(contextData.state.inputs).toEqual({});
 
     await dispatch(patchInputs({ a: 10, b: 20 }));
 
