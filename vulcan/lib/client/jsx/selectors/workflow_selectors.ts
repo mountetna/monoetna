@@ -113,11 +113,7 @@ export function inputValueNonEmpty(val: any): boolean {
   return val != null &&
     (typeof val !== "number" || !isNaN(val)) &&
     !_.isEqual(val, ['']) &&
-    !_.isEqual(val, []) &&
-    (_.isPlainObject(val) ?
-      Object.values(val).every((innerValue) =>
-        inputValueNonEmpty(innerValue)) :
-      true);
+    !_.isEqual(val, []);
 }
 
 export function allDataNonEmpty(data: ([any] | null)[]) {

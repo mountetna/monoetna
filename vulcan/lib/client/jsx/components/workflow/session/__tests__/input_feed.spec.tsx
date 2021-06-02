@@ -46,7 +46,7 @@ describe('InputFeed', () => {
           createStepStatusFixture({name: 'zero', status: 'error', error: 'Ooops!'}),
           createStepStatusFixture({name: 'first', status: 'complete', downloads: {output: 'https://download1'}}),
       )),
-      setDownloadedData('https://download1', 'abc'),
+      setDownloadedData('https://download1', {'abc': null, '123': null}),
     ]);
 
     const component = renderer.create(
