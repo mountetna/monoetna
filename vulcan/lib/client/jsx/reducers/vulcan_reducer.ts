@@ -83,7 +83,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       return {
         ...state,
         session: action.session,
-        inputs: {...action.session.inputs},
+        inputs: {...state.inputs, ...action.session.inputs},
       };
 
     case 'REMOVE_DOWNLOADS':
