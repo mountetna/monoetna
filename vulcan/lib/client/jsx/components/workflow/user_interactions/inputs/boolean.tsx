@@ -9,7 +9,7 @@ const BooleanInput: InputBackendComponent = ({input, onChange}) => {
       type='checkbox'
       className='text_box'
       onChange={(e) => {
-        onChange(input.name, e);
+        onChange(input.name, e.target.checked);
       }}
       defaultChecked={input.value}
     />
