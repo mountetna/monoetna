@@ -26,9 +26,11 @@ const AllInnerValuesNotEmptyValidator: InputValidator = (
   }
 
   function findEmptyKeys() {
-    return Object.values(input.value).filter(
-      (selections) => !inputValueNonEmpty(selections)
-    );
+    return Object.entries(input.value)
+      .filter(
+        ([key, selections]: [string, any]) => !inputValueNonEmpty(selections)
+      )
+      .map(([key, selection]) => key);
   }
 
   function findMissingKeys() {

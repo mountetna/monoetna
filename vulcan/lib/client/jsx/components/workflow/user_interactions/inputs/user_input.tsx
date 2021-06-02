@@ -76,7 +76,9 @@ export default function UserInput({
   useEffect(() => {
     let errors = Validator(input);
     if (errors.length > 0) {
-      dispatch(addValidationErrors(input.name, errors));
+      dispatch(
+        addValidationErrors(input.name, input.label || input.name, errors)
+      );
     } else {
       dispatch(removeValidationErrors(input.name));
     }

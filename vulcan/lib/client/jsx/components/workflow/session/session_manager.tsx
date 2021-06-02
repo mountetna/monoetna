@@ -97,9 +97,13 @@ export default function SessionManager() {
       invoke(
         showMessages(
           Object.entries(state.validationErrors)
-            .map(([inputName, errors]: [string, string[]]) =>
-              errors.map((e: string) => `${inputName}: ${e}`)
-            )
+            .map(([inputName, validation]: [string, any]) => {
+              let {
+                inputLabel,
+                errors
+              }: {inputLabel: string; errors: string[]} = validation;
+              return errors.map((e: string) => `${inputLabel}: ${e}`);
+            })
             .flat()
         )
       );

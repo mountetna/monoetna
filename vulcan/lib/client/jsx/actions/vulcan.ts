@@ -50,8 +50,8 @@ export function removeDownloads(stepNames: string[]) {
     return actionObject('REMOVE_DOWNLOADS', {stepNames});
 }
 
-export function addValidationErrors(inputName: string, errors: string[]) {
-    return actionObject('ADD_VALIDATION_ERRORS', {inputName, errors});
+export function addValidationErrors(inputName: string, inputLabel: string, errors: string[]) {
+    return actionObject('ADD_VALIDATION_ERRORS', {inputName, inputLabel, errors});
 }
 
 export function removeValidationErrors(inputName: string) {
