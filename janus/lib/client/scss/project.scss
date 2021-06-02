@@ -1,10 +1,6 @@
 #project-view {
   @include janus-box;
 
-  select, input {
-    @include janus-input;
-  }
-
   .approve {
     @include janus-icon(dodgerblue);
   }
@@ -24,30 +20,15 @@
     max-height: 410px;
     overflow: auto;
   }
+  .summary {
+    font-size: 0.8em;
+    color: #1d6a86;
+    font-style: italic;
+    padding: 10px 15px;
+  }
   .item {
-    display: flex;
-    align-items: center;
     &.header {
       @include janus-header;
-    }
-    &.summary {
-      font-size: 0.8em;
-      color: #1d6a86;
-      font-style: italic;
-      border-bottom: $thin-rule;
-    }
-    &.permission {
-      border-bottom: 1px solid rgba(#6d9eb0,0.1);
-    }
-    .cell {
-      flex: 1 0 0;
-      &.submit {
-        flex: 0 0 90px;
-        .icon-grp {
-          line-height: 1.4em;
-          height: 1.4em;
-        }
-      }
     }
   }
 }
