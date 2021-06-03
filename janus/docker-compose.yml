@@ -12,6 +12,7 @@ x-base-etna-service:
     - janus-public-dir:/app/public:rw
     - janus-data-dir:/app/data:rw
     - janus-opt-dir:/usr/opt:rw
+    - janus-node-modules:/app/node_modules
     - ../etna:/etna:delegated
   environment: &base-etna-env
     'JANUS_ENV': 'development'
@@ -105,6 +106,9 @@ volumes:
     driver: local
   janus-opt-dir:
     driver: local
+  janus-node-modules:
+    driver: local
+    name: "janus-node-modules"
 
 services:
   <<: *base-etna-services

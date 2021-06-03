@@ -13,72 +13,106 @@ exports[`JanusAdmin renders 1`] = `
       Projects
     </div>
     <div
-      className="project header"
+      className="MuiPaper-root MuiTableContainer-root MuiPaper-elevation1 MuiPaper-rounded"
     >
-      <div
-        className="project_name"
+      <table
+        aria-label="all projects"
+        className="MuiTable-root"
+        role={null}
       >
-         project_name 
-      </div>
-      <div
-        className="full_name"
-      >
-         title 
-      </div>
-    </div>
-    <div
-      className="project"
-    >
-      <div
-        className="project_name"
-      >
-        <a
-          href="/gateway"
+        <thead
+          className="MuiTableHead-root"
+          role={null}
         >
-          gateway
-        </a>
-      </div>
-      <div
-        className="full_name"
-      >
-        Gateway
-      </div>
-    </div>
-    <div
-      className="project"
-    >
-      <div
-        className="project_name"
-      >
-        <a
-          href="/mirror"
+          <tr
+            className="MuiTableRow-root MuiTableRow-head"
+            role={null}
+          >
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Project Name
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              scope="col"
+            >
+              Title
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          className="MuiTableBody-root"
+          role={null}
         >
-          mirror
-        </a>
-      </div>
-      <div
-        className="full_name"
-      >
-        Mirror
-      </div>
-    </div>
-    <div
-      className="project"
-    >
-      <div
-        className="project_name"
-      >
-        <a
-          href="/tunnel"
-        >
-          tunnel
-        </a>
-      </div>
-      <div
-        className="full_name"
-      >
-        Tunnel
-      </div>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <a
+                href="/gateway"
+              >
+                gateway
+              </a>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Gateway
+            </td>
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <a
+                href="/mirror"
+              >
+                mirror
+              </a>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Mirror
+            </td>
+          </tr>
+          <tr
+            className="MuiTableRow-root"
+            role={null}
+          >
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              <a
+                href="/tunnel"
+              >
+                tunnel
+              </a>
+            </td>
+            <td
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-body"
+            >
+              Tunnel
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

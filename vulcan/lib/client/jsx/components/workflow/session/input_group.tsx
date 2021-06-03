@@ -10,10 +10,12 @@ import {
   sortInputsByLabel
 } from '../../../selectors/workflow_selectors';
 import {InputSpecification} from "../user_interactions/inputs/input_types";
+import {useWorkflow} from "../../../contexts/workflow_context";
 
 export default function InputGroup({inputs, onChange}: {inputs: InputSpecification[], onChange: (name: string, val: any) => void}) {
   const {state} = useContext(VulcanContext);
-  let {session, workflow, status, data} = state;
+  const workflow = useWorkflow();
+  let {session, status, data} = state;
   const [open, setOpen] = useState(true);
 
   let groupName = inputGroupName(inputs[0].name);
@@ -21,7 +23,6 @@ export default function InputGroup({inputs, onChange}: {inputs: InputSpecificati
   const toggleInputs = useCallback(() => setOpen(!open), [setOpen, open]);
 
   useEffect(() => {
-    if (workflow == null) return;
     if (inputs.length === 0) return;
 
     if (session && session.inputs) {
@@ -31,7 +32,7 @@ export default function InputGroup({inputs, onChange}: {inputs: InputSpecificati
 
       if (completed.length > 0 || nextUiSteps.length > 0) setOpen(false);
     }
-  }, [status, data, session, workflow]);
+  }, [status, data, session, workflow, inputs.length]);
 
   return (
     <div className='inputs-pane'>

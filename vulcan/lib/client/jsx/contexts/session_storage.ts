@@ -16,16 +16,16 @@ export function useLocalSessionStorage(
     props: {storage?: typeof localStorage} = {}): typeof defaultSessionStorageHelpers {
 
     const storage = props.storage || localStorage;
+    const {session, workflow} = state;
 
     useEffect(() => {
-        const {workflow, session} = state;
         if (workflow && workflow.name && storage && session.workflow_name === workflow.name) {
             storage.setItem(
                 localStorageKey(workflow, session.project_name),
                 JSON.stringify(session)
             );
         }
-    }, [state.session, state.workflow])
+    }, [session, workflow, storage])
 
     const getLocalSession = useCallback((workflow: Workflow, projectName: string) => {
         let storedSession: any = storage.getItem(localStorageKey(workflow, projectName));
@@ -40,7 +40,7 @@ export function useLocalSessionStorage(
             console.error(e);
             return Promise.resolve(null);
         }
-    }, []);
+    }, [storage]);
 
     return {
         getLocalSession,

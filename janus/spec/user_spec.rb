@@ -322,4 +322,48 @@ describe UserController do
       )
     end
   end
+
+  context '#fetch_all' do
+    it 'returns all users for superusers' do
+      zeus = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org', flags: ['inside', 'outside'])
+
+      gateway = create(:project, project_name: 'gateway', project_name_full: 'Gateway')
+      tunnel = create(:project, project_name: 'tunnel', project_name_full: 'Tunnel')
+      mirror = create(:project, project_name: 'mirror', project_name_full: 'Mirror')
+      door = create(:project, project_name: 'door', project_name_full: 'Door')
+
+      # the JWT will include a string encoding these permissions
+      perm = create(:permission, project: tunnel, user: user, role: 'viewer', privileged: true)
+      perm = create(:permission, project: mirror, user: user, role: 'editor')
+      perm = create(:permission, project: gateway, user: user, role: 'editor')
+
+      auth_header(:zeus)
+
+      get('/users')
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:users].length).to eq(2)
+
+      janus = json_body[:users].select { |u| u[:email] == 'janus@two-faces.org' }.first
+      zeus = json_body[:users].select { |u| u[:email] == 'zeus@olympus.org' }.first
+
+      expect(janus[:flags]).to match_array(['inside', 'outside'])
+      expect(janus[:projects]).to match_array(['gateway', 'tunnel', 'mirror'])
+
+      expect(zeus[:flags]).to eq(nil)
+      expect(zeus[:projects]).to eq([])
+    end
+
+    it 'rejects non-superusers' do
+      user = create(:user, name: 'Zeus Almighty', email: 'zeus@olympus.org')
+      user = create(:user, name: 'Janus Bifrons', email: 'janus@two-faces.org', flags: ['inside', 'outside'])
+
+      auth_header(:janus)
+
+      get('/users')
+
+      expect(last_response.status).to eq(403)
+    end
+  end
 end

@@ -5,6 +5,29 @@ import {useReduxState} from 'etna-js/hooks/useReduxState';
 import { isAdmin, isSuperuser } from 'etna-js/utils/janus';
 import Icon from 'etna-js/components/icon';
 
+import {makeStyles} from '@material-ui/core/styles';
+import Grid from '@material-ui/core/Grid';
+import Checkbox from '@material-ui/core/Checkbox';
+import TextField from '@material-ui/core/TextField';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+
+const useStyles = makeStyles((theme) => ({
+  table: {
+    minWidth: 650
+  },
+  role: {
+    width: '300px'
+  }
+}));
+
 const postUpdatePermission = (project_name, email, revision) => json_post(`/update_permission/${project_name}`, {email, ...revision});
 const postAddUser = (project_name, {email, name, role}) => json_post(`/add_user/${project_name}`, {email, name, role});
 
@@ -22,58 +45,75 @@ const Permission = ({roles, editable, onSave, permission={}, create}) => {
     updateRevision(newRevision);
   }, [ permission, revision ]);
 
-  return <div className='item permission'>
-    <div className='cell'>
+  const classes = useStyles();
+
+  return <TableRow>
+    <TableCell>
       {
         create
-          ? <input type='text' placeholder='Name' name='name' onChange={ e => update('name', e.target.value) } value={ revision.name  || ''} />
-          : <span className='name'>{ user_name }</span>
+          ? <TextField
+            placeholder='New User Name'
+            value={ revision.name  || ''}
+            onChange={ e => update('name', e.target.value) }/>
+          : user_name
       }
-    </div>
-    <div className='cell'>
+    </TableCell>
+    <TableCell>
       {
         create
-          ? <input type='text' placeholder='Email' name='email' onChange={ e => update('email', e.target.value) } value={ revision.email || '' } />
-          : <span className='email'>{ user_email }</span>
+          ? <TextField
+            placeholder='Email'
+            value={ revision.email  || ''}
+            onChange={ e => update('email', e.target.value) }/>
+          : user_email
       }
-    </div>
-    <div className='cell'>
+    </TableCell>
+    <TableCell>
       {
         editable
-          ? <select className='role' name='role' value={revision.role || role || ''} onChange={ (e) => update('role', e.target.value) }>
+          ? <Select
+            className={classes.role}
+            value={revision.role || role || ''}
+            onChange={ (e) => update('role', e.target.value) }>
              {
                roles.map(
-                 r => <option key={r} value={ r }>{ r }</option>
+                 r => <MenuItem key={r} value={ r }>{ r }</MenuItem>
                )
              }
-           </select>
+           </Select>
          : <span className='role'>{ role }</span>
       }
-    </div>
-    <div className='cell'>
+    </TableCell>
+    <TableCell>
       {
         editable
-          ? <input className='affiliation' type='text' name='affiliation' value={ revision.affiliation || affiliation || ''}
-              onChange={ (e) => update( 'affiliation', e.target.value ) } />
+          ? <TextField
+            value={ revision.affiliation || affiliation || ''}
+            onChange={ (e) => update( 'affiliation', e.target.value ) }
+          />
           : <span className='affiliation'>{ affiliation }</span>
       }
-    </div>
-    <div className='cell'>
+    </TableCell>
+    <TableCell padding='checkbox'>
       {
         editable && !create
-          ? <input type='checkbox' name='privileged' checked={ 'privileged' in revision ? revision.privileged : privileged } onChange={ e => update('privileged', e.target.checked) } />
+          ? <Checkbox
+            checked={ 'privileged' in revision ? revision.privileged : privileged }
+            onChange={ e => update('privileged', e.target.checked) }
+            inputProps={{'aria-label': 'privileged user'}}
+          />
           : (privileged && 'Yes')
       }
-    </div>
-    <div className='cell submit'>
+    </TableCell>
+    <TableCell>
       {
         Object.keys(revision).length > 0 && <React.Fragment>
           <Icon className='approve' icon='save' onClick={ () => { onSave({revision,user_email}); updateRevision({}); } } />
           <Icon className='cancel' icon='ban' onClick={ () => updateRevision({}) }/>
         </React.Fragment>
       }
-    </div>
-  </div>
+    </TableCell>
+  </TableRow>
 }
 
 const userCount = (count, txt) => count == 0 ? null : `${count} ${txt}${ count === 1 ? '' : 's' }`;
@@ -111,53 +151,71 @@ const ProjectView = ({project_name}) => {
     : isAdmin(user, project_name)
       ? [ 'editor', 'viewer', 'disabled' ]
       : [ ];
+  const classes = useStyles();
 
-  return <div id='project-view'>
-    <div className='title'> { project_name_full }</div>
-    <div className='item summary'>
-      {
-        [ 'administrator', 'editor', 'viewer' ].map(
-          role => {
-            let ps = permissions.filter(p => p.role == role);
-            return userCount(ps.length, role)
-          }
-        ).concat(
-          userCount(privileged.length, 'privileged user')
-        ).filter(_=>_).join(', ')
-      }
-    </div>
-    <div className='item header'>
-      <div className='cell'>Name</div>
-      <div className='cell'>Email</div>
-      <div className='cell'>Role</div>
-      <div className='cell'>Affiliation</div>
-      <div className='cell'>Privileged</div>
-      <div className='cell submit'></div>
-    </div>
-    {
-      permissions.length > 10 && <div className='item'>
-        <input className='filter' type='text' placeholder='Filter rows' name='filter' onChange={ e => setFilter(e.target.value) }/>
+  return <div id='project-view'> 
+    <Grid container direction='column'>
+      <div className='title'> { project_name_full }</div>
+      <div className='summary'>
+        {
+          [ 'administrator', 'editor', 'viewer' ].map(
+            role => {
+              let ps = permissions.filter(p => p.role == role);
+              return userCount(ps.length, role)
+            }
+          ).concat(
+            userCount(privileged.length, 'privileged user')
+          ).filter(_=>_).join(', ')
+        }
       </div>
-    }
-    {
-      displayPermissions(permissions, filter).map(
-        p => <Permission
-          key={p.user_email}
-          permission={p}
-          editable={editable}
-          roles={roles}
-          onSave={({revision, user_email}) => postUpdatePermission(project_name, user_email, revision).then(() => retrieveProject())}
-        />
-      )
-    }
-    {
-      editable && <React.Fragment>
-        <div className='new'>New User</div>
-        <Permission create={true} editable={true} roles={['Select role', 'viewer', 'editor']} 
-          onSave={({revision}) => postAddUser(project_name, revision).then(() => retrieveProject()).catch()} />
-      </React.Fragment>
 
-    }
+      <TableContainer className={classes.table} component={Paper}>
+        <Table aria-label='project users'>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Role</TableCell>
+              <TableCell>Affiliation</TableCell>
+              <TableCell padding='checkbox'>Privileged</TableCell>
+              <TableCell width="80"></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+          {
+            permissions.length > 2 && <TableRow>
+              <TableCell colspan='6'>
+                <TextField placeholder='Filter rows' onChange={ e => setFilter(e.target.value) }/>
+              </TableCell>
+            </TableRow>
+          }
+          {
+            displayPermissions(permissions, filter).map(
+              p => <Permission
+                key={p.user_email}
+                permission={p}
+                editable={editable}
+                roles={roles}
+                onSave={({revision, user_email}) => postUpdatePermission(project_name, user_email, revision).then(() => retrieveProject())}
+              />
+            )
+          }
+          {
+            editable && <Permission
+              create={true}
+              editable={true}
+              roles={['viewer', 'editor']} 
+              onSave={({revision}) => postAddUser(project_name, revision).then(() => retrieveProject()).catch()} />
+          }
+          </TableBody>
+        </Table>
+      </TableContainer>
+      {
+        permissions.length > 10 && <div className='item'>
+          <input className='filter' type='text' placeholder='Filter rows' name='filter' onChange={ e => setFilter(e.target.value) }/>
+        </div>
+      }
+    </Grid>
   </div>
 }
 export default ProjectView;

@@ -7,6 +7,7 @@ require 'securerandom'
 require 'timecop'
 require 'webmock/rspec'
 require 'base64'
+require 'yabeda'
 
 Bundler.setup(:default, :test)
 
@@ -21,6 +22,7 @@ require_relative '../lib/etna/spec/vcr'
 setup_base_vcr(__dir__)
 
 def setup_app(server, layer=nil, config={ test: {} })
+  Yabeda.reset!
   Etna::Application.find(server).configure(config)
   Rack::Builder.new do
     use Etna::ParseBody

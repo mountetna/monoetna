@@ -1,193 +1,82 @@
-import React, {useState, useMemo, useEffect} from 'react';
+import React, {useState, useMemo, useEffect, useCallback, useRef} from 'react';
 import * as _ from 'lodash';
 
 import {TYPE} from '../../../../api_types';
 import {InputBackendComponent, InputSpecification} from './input_types';
 import UserInput from './user_input';
 import {inputValueNonEmpty} from '../../../../selectors/workflow_selectors';
+import {useBufferedInputState} from "./buffered_input_state";
 
-interface MultiselectGroup {
-  cwlInputName: string;
-  groupedInputs: InputSpecification[];
-  updateSingleInput: Function;
-}
-
-function GroupOfMultiselects({
-  cwlInputName,
-  groupedInputs,
-  updateSingleInput
-}: MultiselectGroup) {
-  return (
-    <div>
-      {groupedInputs.map((mockInput: InputSpecification) => {
-        return (
-          <UserInput
-            key={`${cwlInputName}-${mockInput.name}`}
-            onChange={(inputName, value) => {
-              updateSingleInput({
-                cwlInputName,
-                inputName,
-                value
-              });
-            }}
-            input={mockInput}
-          />
-        );
-      })}
-    </div>
-  );
+function equalKeys(hash1: {}, hash2: {}): boolean {
+  return _.isEqual(Object.keys(hash1), Object.keys(hash2));
 }
 
 const MultipleMultiselectStringAllInput: InputBackendComponent = ({
   input,
   onChange
 }) => {
-  interface Selection {
-    cwlInputName: string;
-    inputName: string;
-    value: string[] | null;
-  }
+  const {data, name} = input;
 
-  const [selectedValues, setSelectedValues] = useState(
-    {} as {[key: string]: {[key: string]: string[] | null}}
-  );
-  const [lastSelectedValues, setLastSelectedValues] = useState(
-    {} as {[key: string]: {[key: string]: string[] | null}}
-  );
-  const [mockInputs, setMockInputs] = useState(
-    {} as {[key: string]: InputSpecification[]}
-  );
-  const [userSelection, setUserSelection] = useState({} as Selection);
+  const [selectedValues, setSelectedValues] = useBufferedInputState<{[k: string]: string[] | null}>(input, {});
 
-  const options = useMemo(() => {
-    return input.data;
-  }, [input.data]);
+  const options: {[k: string]: string[]} = useMemo(() => {
+    if (data) {
+      return Object.values(data).reduce((a, b) => ({...a, ...b}), {});
+    }
 
-  function equalKeys(hash1: {}, hash2: {}): boolean {
-    return _.isEqual(Object.keys(hash1), Object.keys(hash2));
-  }
+    return {};
+  }, [data]);
 
-  function inputArrayHasSelection(hash: {}): boolean {
-    return Object.values(hash).every((value) => inputValueNonEmpty(value));
-  }
+  const innerInputs: InputSpecification[] = useMemo(() => {
+    const result: InputSpecification[] = [];
 
-  const noEmptyStrings: boolean = useMemo(
-    () =>
-      Object.values(
-        selectedValues
-      ).every((nestedInput: {[key: string]: string[] | null}) =>
-        Object.values(nestedInput).every((value) =>
-          value?.every((val) => '' !== val)
-        )
-      ),
-    [selectedValues]
-  );
-
-  // Helper methods to check if all inputs have values
-  const allInputsPresent: boolean = useMemo(
-    () => equalKeys(options || {}, selectedValues),
-    [options, selectedValues]
-  );
-
-  const allNestedInputsPresent: boolean = useMemo(() => {
-    if (!options || !allInputsPresent) return false;
-
-    return Object.entries(options).every(([cwlInputName, nestedInput]) =>
-      equalKeys(nestedInput, selectedValues[cwlInputName])
-    );
-  }, [options, selectedValues, allInputsPresent]);
-
-  const allInputsPopulated: boolean = useMemo(() => {
-    if (!options || !allNestedInputsPresent) return false;
-
-    return Object.values(selectedValues).every((nestedInputArray) =>
-      inputArrayHasSelection(nestedInputArray)
-    );
-  }, [options, selectedValues, allNestedInputsPresent]);
-
-  const selectedValuesChanged: boolean = useMemo(
-    () => !_.isEqual(selectedValues, lastSelectedValues),
-    [selectedValues, lastSelectedValues]
-  );
-
-  useEffect(() => {
-    let {cwlInputName, inputName, value} = userSelection;
-
-    if (!cwlInputName || !inputName) return;
-
-    setSelectedValues({
-      ...selectedValues,
-      [cwlInputName]: {
-        ...selectedValues[cwlInputName],
-        [inputName]: value
-      }
+    Object.keys(options).forEach(label => {
+      const innerValues = options[label];
+      result.push({
+        type: TYPE.MULTISELECT_STRING_ALL,
+        label,
+        name: label,
+        data: {[label]: innerValues},
+        default: selectedValues[label] || null,
+      });
     });
-  }, [userSelection]);
 
-  useEffect(() => {
-    if (Object.keys(options || {}).length > 0 && selectedValuesChanged) {
-      if (allInputsPopulated && noEmptyStrings) {
-        onChange(input.name, selectedValues);
-      } else if (!allInputsPopulated) {
-        onChange(input.name, null);
-      }
-      setLastSelectedValues(selectedValues);
-    }
-  }, [selectedValues]);
-
-  useEffect(() => {
-    if (options && null != input.default) {
-      setSelectedValues(input.default);
-    }
-  }, [options]);
-
-  useEffect(() => {
-    if (options && selectedValues) {
-      // We need to create "dummy" inputs with only a subset of the data,
-      //      and the data key as the label.
-      setMockInputs(
-        Object.entries(options).reduce(
-          (
-            acc: {[key: string]: InputSpecification[]},
-            [cwlInputName, nestedInputs]: [string, {[key: string]: string[]}]
-          ): {[key: string]: InputSpecification[]} => {
-            acc[cwlInputName] = Object.entries(nestedInputs).map(
-              ([label, values]: [string, string[]]): InputSpecification => {
-                return {
-                  type: TYPE.MULTISELECT_STRING_ALL,
-                  name: label,
-                  label: label,
-                  data: {[label]: values},
-                  default:
-                    selectedValues[cwlInputName] &&
-                    selectedValues[cwlInputName][label]
-                      ? selectedValues[cwlInputName][label]
-                      : null
-                };
-              }
-            );
-            return acc;
-          },
-          {}
-        )
-      );
-    }
+    return result;
   }, [options, selectedValues]);
+
+  const onSelectInnerInput = useCallback(({label, value}: {label: string, value: string[]}) => {
+    const update: {[k: string]: string[] | null} = {...selectedValues, [label]: value};
+
+    const allInputsPresent = !!options && equalKeys(options, selectedValues);
+    const noEmptyStrings = Object.values(update).every(selected => selected?.every(val => '' !== val));
+    const allNestedInputsPresent =  allInputsPresent && Object.entries(options).every(([label]) => label in update);
+    const allInputsPopulated = allNestedInputsPresent && Object.values(update).every((nestedInputArray) => inputValueNonEmpty(nestedInputArray));
+
+    setSelectedValues(update);
+
+    if (allInputsPopulated && noEmptyStrings) {
+      onChange(name, update);
+    } else if (!allInputsPopulated) {
+      onChange(name, null);
+    }
+  }, [selectedValues, options, setSelectedValues, name, onChange]);
 
   return (
     <div>
-      {Object.entries(mockInputs).map(
-        ([cwlInputName, groupedInputs]: [string, InputSpecification[]]) => {
-          return (
-            <GroupOfMultiselects
-              key={cwlInputName}
-              cwlInputName={cwlInputName}
-              groupedInputs={groupedInputs}
-              updateSingleInput={setUserSelection}
-            />
-          );
-        }
-      )}
+      {innerInputs.map((innerInput: InputSpecification) => {
+        return (
+          <UserInput
+            key={innerInput.name}
+            onChange={(label, value) => {
+              onSelectInnerInput({
+                label,
+                value
+              });
+            }}
+            input={innerInput}
+          />
+        );
+      })}
     </div>
   );
 };

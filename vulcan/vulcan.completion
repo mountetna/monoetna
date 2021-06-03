@@ -325,10 +325,11 @@ COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
-all_flag_completion_names="$all_flag_completion_names --session-key "
-arg_flag_completion_names="$arg_flag_completion_names --session-key "
+all_flag_completion_names="$all_flag_completion_names --session-key --output-params-file "
+arg_flag_completion_names="$arg_flag_completion_names --session-key --output-params-file "
 multi_flags="$multi_flags  "
 declare _completions_for_session_key="__session_key__"
+declare _completions_for_output_params_file="__output_params_file__"
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
 all_completion_names=""

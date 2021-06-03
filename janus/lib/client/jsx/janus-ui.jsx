@@ -1,12 +1,18 @@
 import * as React from 'react';
+import { ThemeProvider } from '@material-ui/core/styles';
 
 import JanusNav from './janus-nav';
 import JanusMain from './janus-main';
 import JanusAdmin from './janus-admin';
 import JanusSettings from './janus-settings';
 import ProjectView from './project-view';
+import FlagsView from './flags/flags-view';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
+
+import { createEtnaTheme } from 'etna-js/style/theme';
+
+const theme = createEtnaTheme("#3684fd","#77c");
 
 const ROUTES = [
   {
@@ -25,6 +31,11 @@ const ROUTES = [
     component: JanusSettings
   },
   {
+    name: 'flags',
+    template: 'flags',
+    component: FlagsView
+  },
+  {
     name: 'projects',
     template: ':project_name',
     component: ProjectView
@@ -40,10 +51,12 @@ const JanusUI = () => {
   let Component = route ? route.component : Invalid;
 
   return (
-    <div id='janus-group'>
-      <JanusNav/>
-      <Component {...params}/>
-    </div>
+    <ThemeProvider theme={theme}>
+      <div id='janus-group'>
+        <JanusNav/>
+        <Component {...params}/>
+      </div>
+    </ThemeProvider>
   );
 }
 

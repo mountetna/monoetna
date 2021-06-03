@@ -18,6 +18,7 @@ import {
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 import MultiselectStringAllInput from './multiselect_string_all';
 import MultipleMultiselectStringAllInput from './multiple_multiselect_string_all';
+import MultipleStringInput from './multiple_string';
 
 function backendComponentOf(type: InputType): InputBackendComponent {
   switch (type) {
@@ -39,6 +40,8 @@ function backendComponentOf(type: InputType): InputBackendComponent {
       return MultiselectStringAllInput;
     case TYPE.MULTIPLE_MULTISELECT_STRING_ALL:
       return MultipleMultiselectStringAllInput;
+    case TYPE.MULTIPLE_STRING:
+      return MultipleStringInput;
     default:
       return StringInput;
   }

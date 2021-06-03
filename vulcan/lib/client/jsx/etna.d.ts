@@ -31,6 +31,11 @@ declare module 'etna-js/utils/cancellable' {
   }
 }
 
+declare module 'etna-js/utils/blob' {
+  export function readTextFile(accept: string): Promise<string>;
+  export function downloadBlob(params: { data: string, filename?: string, contentType?: string}): void;
+}
+
 declare module 'javascript-color-gradient' {
   export = class Gradient {
     setMidpoint(point: number): void
@@ -58,6 +63,11 @@ declare module 'etna-js/utils/colors' {
 
 declare module 'etna-js/utils/markdown' {
   export = function (md: string): string {
+  };
+}
+
+declare module 'etna-js/components/flat-button' {
+  export = function FlatButton(params: { className?: string, icon?: string, disabled?: boolean, title?: string, label?: string, onClick?: () => void }): any {
   };
 }
 

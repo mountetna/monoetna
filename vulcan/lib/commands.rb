@@ -24,14 +24,18 @@ class Vulcan
 
     class Run < Etna::Command
       string_flags << '--session-key'
+      string_flags << '--output-file'
+      string_flags << '--input-file'
 
-      def execute(project_name, workflow_name, session_key: SecureRandom.uuid.hex.to_s)
+      def execute(project_name, workflow_name, input_file: nil, output_file: nil, session_key: SecureRandom.uuid.hex.to_s)
         @project_name = project_name
         @workflow_name = workflow_name
         @key = session_key
+        @input_json = input_file&.yield_self do |f| JSON.parse(File.read(f)) end
 
         while true
           orchestration.run_until_done!(storage)
+
           find_all_output_ui_queries.each do |query_name, source, path|
             run_ui_query(query_name, :show_data, source, path)
           end
@@ -52,6 +56,13 @@ class Vulcan
           end
 
           break unless found_needed_input
+        end
+
+        if output_file
+          puts "Saving session to #{output_file}"
+          File.open(output_file,"w") do |f|
+            f.puts session.as_json.to_json
+          end
         end
       end
 
@@ -128,18 +139,16 @@ class Vulcan
       end
 
       def find_next_input_ui_query
-        orchestration.serialized_step_path.zip(orchestration.build_targets_for_paths).each do |path, build_targets|
-          path.zip(build_targets).each do |step_name, build_target|
-            step = workflow.find_step(step_name)
-            next if step.nil?
+        orchestration.next_runnable_build_targets(storage).each do |step_name, build_target|
+          step = workflow.find_step(step_name)
+          next if step.nil?
 
-            query_name = step.ui_query_name
-            next if query_name.nil?
+          query_name = step.ui_query_name
+          next if query_name.nil?
 
-            build_target.build_outputs.keys.each do |build_output_name|
-              source = [step_name, build_output_name]
-              return [query_name, source, build_target.input_files] unless session.include?(source)
-            end
+          build_target.build_outputs.keys.each do |build_output_name|
+            source = [step_name, build_output_name]
+            return [query_name, source, build_target.input_files] unless session.include?(source)
           end
         end
 
@@ -148,25 +157,23 @@ class Vulcan
 
       def find_all_output_ui_queries
         [].tap do |result|
-          orchestration.serialized_step_path.zip(orchestration.build_targets_for_paths).each do |path, build_targets|
-            path.zip(build_targets).each do |step_name, build_target|
-              step = workflow.find_step(step_name)
+          orchestration.next_runnable_build_targets(storage).each do |step_name, build_target|
+            step = workflow.find_step(step_name)
 
-              if step
-                query_name = step.ui_query_name
-                next if query_name.nil?
-                # "output" ui steps, other than primary outputs, are steps that lack any output
-                next unless build_target.build_outputs.length == 0
-              elsif step_name == :primary_outputs
-                query_name = 'show_data'
-              else
-                next
-              end
+            if step
+              query_name = step.ui_query_name
+              next if query_name.nil?
+              # "output" ui steps, other than primary outputs, are steps that lack any output
+              next unless build_target.build_outputs.length == 0
+            elsif step_name == :primary_outputs
+              query_name = 'show_data'
+            else
+              next
+            end
 
-              if build_target.is_buildable?(storage) && build_target.is_built?(storage)
-                build_target.input_files.each do |sf|
-                  result << [query_name, [step_name, sf.logical_name], sf.data_path(storage)]
-                end
+            if build_target.is_buildable?(storage) && build_target.is_built?(storage)
+              build_target.input_files.each do |sf|
+                result << [query_name, [step_name, sf.logical_name], sf.data_path(storage)]
               end
             end
           end
@@ -182,7 +189,13 @@ class Vulcan
       end
 
       def session
-        @session ||= Session.from_json({'project_name' => @project_name, 'workflow_name' => @workflow_name, 'key' => @key})
+        @session ||= Session.from_json(
+          @input_json || {
+            'project_name' => @project_name,
+            'workflow_name' => @workflow_name,
+            'key' => @key
+          }
+        )
       end
 
       def orchestration
