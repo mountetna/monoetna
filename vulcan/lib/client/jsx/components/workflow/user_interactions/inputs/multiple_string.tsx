@@ -17,23 +17,22 @@ const MultipleStringInput: InputBackendComponent = ({
   input,
   onChange
 }) => {
-  const {data, name} = input;
+  const {data} = input;
 
   const options: {[k: string]: string} = useMemo(() => {
     if (data) {
       return Object.values(data).reduce((a, b) => ({...a, ...b}), {});
-    }
+    };
 
     return {};
   }, [data]);
 
-  const [labels, setLabels] = useState(options);
+  const [labels, setLabels] = useState<{[k: string]: string}>(options);
 
-  const updateLabel = (prevLabels, newValue, key) => {
+  const updateLabel = (newValue: string, key: string, prevLabels = labels) => {
     prevLabels[key] = newValue;
-    console.log({prevLabels})
-    setLabels(prevLabels)
-  }
+    setLabels(prevLabels);
+  };
 
   return (
     <div>
@@ -42,8 +41,7 @@ const MultipleStringInput: InputBackendComponent = ({
           <TextInput
             header={k}
             value={val || ''}
-            /*onChange={updateLabel(val,key)}*/
-            onChange={(newValue) => updateLabel(labels, newValue, k)}
+            onChange={(newValue: string) => updateLabel(newValue, k)}
           />
         );
       })}
