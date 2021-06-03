@@ -25,6 +25,14 @@ describe('SessionManager', () => {
     projects: ['test-project'],
     inputs: {},
     name: 'test.cwl',
+    dependencies_of_outputs: {
+      zero: [],
+      'first/output': ['third'],
+      'second/output': ['fourth'],
+      'third/response': [],
+      'fourth/response': [],
+      fifth: []
+    },
     steps: [
       [
         createStepFixture({name: 'zero'}),
@@ -50,11 +58,41 @@ describe('SessionManager', () => {
     ]
   });
 
+  const {state} = stateFromActions([
+    setWorkflows([workflow]),
+    setWorkflow(workflow, 'test-project'),
+    setStatus(
+      createStatusFixture(
+        workflow,
+        createStepStatusFixture({
+          name: 'zero',
+          status: 'error',
+          error: 'Ooops!'
+        }),
+        createStepStatusFixture({
+          name: 'first',
+          status: 'complete',
+          downloads: {output: 'https://download1'}
+        }),
+        createStepStatusFixture({
+          name: 'second',
+          status: 'complete',
+          downloads: {output: 'https://download2'}
+        })
+      )
+    ),
+    setDownloadedData('https://download1', {abc: null, '123': {xyz: null}}),
+    setDownloadedData('https://download2', {
+      abc: ['1', '2'],
+      '123': ['a', 'b']
+    })
+  ]);
+
   const handlers = [
     rest.post(
       'https://vulcan.test/api/test-project/session/test.cwl/status',
       (req, res, ctx) => {
-        return res(ctx.json({success: true}));
+        return res(ctx.json({status: state.status, session: state.session}));
       }
     ),
     rest.get('https://vulcan.test/api/workflows', (req, res, ctx) => {
@@ -79,36 +117,6 @@ describe('SessionManager', () => {
       )
     );
 
-    const {state} = stateFromActions([
-      setWorkflows([workflow]),
-      setWorkflow(workflow, 'test-project'),
-      setStatus(
-        createStatusFixture(
-          workflow,
-          createStepStatusFixture({
-            name: 'zero',
-            status: 'error',
-            error: 'Ooops!'
-          }),
-          createStepStatusFixture({
-            name: 'first',
-            status: 'complete',
-            downloads: {output: 'https://download1'}
-          }),
-          createStepStatusFixture({
-            name: 'second',
-            status: 'complete',
-            downloads: {output: 'https://download2'}
-          })
-        )
-      ),
-      setDownloadedData('https://download1', {abc: null, '123': {xyz: null}}),
-      setDownloadedData('https://download2', {
-        abc: ['1', '2'],
-        '123': ['a', 'b']
-      })
-    ]);
-
     render(
       <VulcanProvider state={state} useActionInvoker={() => invoke}>
         <SessionManager />
@@ -125,7 +133,7 @@ describe('SessionManager', () => {
   });
 
   it('shows Validation errors on click Run button', async () => {
-    const {state} = stateFromActions([
+    const {state: stateWithErrors} = stateFromActions([
       setWorkflows([workflow]),
       setWorkflow(workflow, 'test-project'),
       setStatus(
@@ -153,11 +161,11 @@ describe('SessionManager', () => {
         abc: ['1', '2'],
         '123': ['a', 'b']
       }),
-      addValidationErrors('third', 'third', ['Oops!'])
+      addValidationErrors('third', 'third', ['Bad input!'])
     ]);
 
     render(
-      <VulcanProvider state={state} useActionInvoker={() => invoke}>
+      <VulcanProvider state={stateWithErrors} useActionInvoker={() => invoke}>
         <SessionManager />
       </VulcanProvider>
     );
@@ -168,6 +176,9 @@ describe('SessionManager', () => {
 
     fireEvent.click(screen.getByText('Run'));
 
-    expect(invoke).toHaveBeenCalled();
+    expect(invoke).toHaveBeenCalledWith({
+      type: 'SHOW_MESSAGES',
+      messages: ['third: Bad input!']
+    });
   });
 });
