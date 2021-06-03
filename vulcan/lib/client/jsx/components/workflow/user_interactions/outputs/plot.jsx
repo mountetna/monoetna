@@ -52,6 +52,9 @@ const PlotOutput = ({data: plots}) => {
                 modeBarButtonsToRemove: [
                   'pan2d',
                   'select2d',
+                  'lasso2d',
+                  'zoom2d',
+                  'resetScale2d',
                   'zoomIn2d',
                   'zoomOut2d',
                   'autoScale2d',
