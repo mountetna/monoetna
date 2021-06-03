@@ -198,7 +198,7 @@ steps:
       use_weights: 5_Cluster_Calculation__leiden_use_weights
     out: [leiden.json,leiden_anndata.h5ad,blank_annots.json,color_options]
   cluster_annotation:
-    run: ui-queries/multiinput-string.cwl
+    run: ui-queries/multiple-string.cwl
     label: 'Manually Annotate Clusters'
     in:
       a: calc_leiden/blank_annots.json
