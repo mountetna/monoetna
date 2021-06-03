@@ -69,7 +69,7 @@ describe('SessionManager', () => {
   afterEach(() => server.resetHandlers());
   afterAll(() => server.close());
 
-  it('submits the session if no validation errors', async () => {
+  it('Runs if no validation errors', async () => {
     server.use(
       rest.post(
         'https://vulcan.test/api/test-project/session/test.cwl',
