@@ -29,29 +29,21 @@ const MultipleStringInput: InputBackendComponent = ({
 
   const [labels, setLabels] = useState(options);
 
-  const updateLabel = (newValue, key) => {
-    const newLabels = labels;
-    newLabels[key] = newValue;
-    console.log({newLabels})
-    setLabels(newLabels)
+  const updateLabel = (prevLabels, newValue, key) => {
+    prevLabels[key] = newValue;
+    console.log({prevLabels})
+    setLabels(prevLabels)
   }
-
-  const objectMap = (obj, fn) =>
-    Object.fromEntries(
-      Object.entries(obj).map(
-        ([k, v], i) => [k, fn(v, k, i)]
-      )
-    )
 
   return (
     <div>
-      {Object.entries(labels).map(([key, val]) => {
+      {Object.entries(labels).map(([k, val]) => {
         return (
           <TextInput
-            header={key}
-            placeholder={''}
+            header={k}
             value={val || ''}
             /*onChange={updateLabel(val,key)}*/
+            onChange={(newValue) => updateLabel(labels, newValue, k)}
           />
         );
       })}
