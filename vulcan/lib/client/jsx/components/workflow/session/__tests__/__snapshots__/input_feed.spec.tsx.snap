@@ -11,6 +11,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
     className="step-user-input step"
   >
     <div
+      className="toggle open"
       onClick={[Function]}
     >
       <div
@@ -33,6 +34,16 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         >
           second
         </div>
+        <svg
+          aria-hidden={true}
+          className="MuiSvgIcon-root"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"
+          />
+        </svg>
       </div>
     </div>
     <div
@@ -69,6 +80,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
     className="step-user-input step"
   >
     <div
+      className="toggle open"
       onClick={[Function]}
     >
       <div
@@ -91,6 +103,16 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         >
           third
         </div>
+        <svg
+          aria-hidden={true}
+          className="MuiSvgIcon-root"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"
+          />
+        </svg>
       </div>
     </div>
     <div
