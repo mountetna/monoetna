@@ -16,12 +16,7 @@ import {
 import {stateFromActions} from '../../test_utils/state';
 
 describe('Workflow Selectors', () => {
-  let status: VulcanState['status'];
-  let data: VulcanState['data'];
-  let session: VulcanState['session'];
-  let step: WorkflowStep;
   let workflow: Workflow;
-  let state: VulcanState;
 
   describe('isPendingUiQuery', () => {
     beforeEach(() => {
@@ -51,8 +46,10 @@ describe('Workflow Selectors', () => {
           ]
         ]
       });
+    });
 
-      state = stateFromActions([
+    it('returns true for ui-query with simple list input', () => {
+      let state = stateFromActions([
         setWorkflows([workflow]),
         setWorkflow(workflow, 'test-project'),
         setStatus(
@@ -70,16 +67,140 @@ describe('Workflow Selectors', () => {
             })
           )
         ),
-        setDownloadedData('https://download1', {abc: null, '123': null})
-      ]);
+        setDownloadedData('https://download1', ['1', '2', '3'])
+      ])['state'];
+
+      expect(
+        isPendingUiQuery(
+          workflow.steps[0][2],
+          state.status,
+          state.data,
+          state.session
+        )
+      ).toEqual(true);
+      expect(
+        isPendingUiQuery(
+          workflow.steps[0][3],
+          state.status,
+          state.data,
+          state.session
+        )
+      ).toEqual(true);
     });
 
-    it('returns true for ui-query with simple list input', () => {});
+    it('return true for ui-query with nested hash input', () => {
+      let state = stateFromActions([
+        setWorkflows([workflow]),
+        setWorkflow(workflow, 'test-project'),
+        setStatus(
+          createStatusFixture(
+            workflow,
+            createStepStatusFixture({
+              name: 'zero',
+              status: 'error',
+              error: 'Ooops!'
+            }),
+            createStepStatusFixture({
+              name: 'first',
+              status: 'complete',
+              downloads: {output: 'https://download1'}
+            })
+          )
+        ),
+        setDownloadedData('https://download1', {abc: null, '123': {xyz: null}})
+      ])['state'];
 
-    it('return true for ui-query with nested hash input', () => {});
+      expect(
+        isPendingUiQuery(
+          workflow.steps[0][2],
+          state.status,
+          state.data,
+          state.session
+        )
+      ).toEqual(true);
+      expect(
+        isPendingUiQuery(
+          workflow.steps[0][3],
+          state.status,
+          state.data,
+          state.session
+        )
+      ).toEqual(true);
+    });
 
-    it('returns false if data dependency not available yet', () => {});
+    it('returns false if data dependency not available yet', () => {
+      let state = stateFromActions([
+        setWorkflows([workflow]),
+        setWorkflow(workflow, 'test-project'),
+        setStatus(
+          createStatusFixture(
+            workflow,
+            createStepStatusFixture({
+              name: 'zero',
+              status: 'error',
+              error: 'Ooops!'
+            }),
+            createStepStatusFixture({
+              name: 'first',
+              status: 'complete',
+              downloads: {output: 'https://download1'}
+            })
+          )
+        )
+      ])['state'];
 
-    it('returns false if status is not pending', () => {});
+      expect(
+        isPendingUiQuery(
+          workflow.steps[0][2],
+          state.status,
+          state.data,
+          state.session
+        )
+      ).toEqual(false);
+      expect(
+        isPendingUiQuery(
+          workflow.steps[0][3],
+          state.status,
+          state.data,
+          state.session
+        )
+      ).toEqual(false);
+    });
+
+    it('returns false if status is not pending', () => {
+      let state = stateFromActions([
+        setWorkflows([workflow]),
+        setWorkflow(workflow, 'test-project'),
+        setStatus(
+          createStatusFixture(
+            workflow,
+            createStepStatusFixture({
+              name: 'zero',
+              status: 'error',
+              error: 'Ooops!'
+            }),
+            createStepStatusFixture({
+              name: 'first',
+              status: 'complete',
+              downloads: {output: 'https://download1'}
+            }),
+            createStepStatusFixture({
+              name: 'second',
+              status: 'complete',
+              downloads: {output: 'https://download2'}
+            })
+          )
+        )
+      ])['state'];
+
+      expect(
+        isPendingUiQuery(
+          workflow.steps[0][2],
+          state.status,
+          state.data,
+          state.session
+        )
+      ).toEqual(false);
+    });
   });
 });

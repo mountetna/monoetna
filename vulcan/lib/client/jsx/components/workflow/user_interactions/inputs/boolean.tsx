@@ -11,7 +11,7 @@ const BooleanInput: InputBackendComponent = ({input, onChange}) => {
       onChange={(e) => {
         onChange(input.name, e.target.checked);
       }}
-      defaultChecked={input.value}
+      checked={input.value || false}
     />
   );
 };
