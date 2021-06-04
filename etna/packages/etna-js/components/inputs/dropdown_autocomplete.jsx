@@ -68,7 +68,7 @@ export default function DropdownAutocomplete({
 
   useEffect(() => {
     onChange = debounce(onChange, waitTime || 500);
-    setSelectedValue(defaultValue ? defaultValue : null);
+    setSelectedValue(defaultValue ? defaultValue : '');
   }, []);
 
   useEffect(() => {
