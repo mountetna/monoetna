@@ -85,10 +85,7 @@ export default function SessionManager() {
     [state.inputs, workflow]
   );
 
-  const hasValidationErrors = useMemo(
-    () => Object.keys(state.validationErrors).length > 0,
-    [state.validationErrors]
-  );
+  const hasValidationErrors = Object.keys(state.validationErrors).length > 0;
 
   const running = !idle;
 
@@ -141,7 +138,9 @@ export default function SessionManager() {
           </React.Fragment>
         )}
         <FlatButton
-          className='header-btn run'
+          className={`header-btn run ${
+            hasValidationErrors ? 'validation-errors' : ''
+          }`}
           icon='play'
           label='Run'
           title='Run workflow'

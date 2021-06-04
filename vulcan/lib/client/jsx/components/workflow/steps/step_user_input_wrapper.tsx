@@ -15,7 +15,12 @@ import {
   allExpectedOutputSources,
   dataOfSource,
   statusOfStep,
+<<<<<<< HEAD
   stepOfSource
+=======
+  stepOfSource,
+  sourceNamesOfStep
+>>>>>>> cs/vulcan-validation-context
 } from '../../../selectors/workflow_selectors';
 import {patchInputs} from '../../../actions/vulcan';
 import {UIStep} from '../user_interactions/inputs/input_types';
@@ -37,6 +42,29 @@ export default function StepUserInputWrapper({step}: {step: UIStep['step']}) {
   );
 
   const toggleInputs = useCallback(() => setOpen(!open), [setOpen, open]);
+
+  let inner;
+  let inputNames: string[] = [];
+
+  if ('isGroup' in step) {
+    inner = (
+      <StepUserInputDrawer
+        key={`${step.name}`}
+        step={step}
+        handleInputChange={handleInputChange}
+      />
+    );
+    inputNames = step.in.map((i) => i.source);
+  } else {
+    inner = (
+      <StepUserInput
+        key={`${step.name}`}
+        step={step}
+        handleInputChange={handleInputChange}
+      />
+    );
+    inputNames = sourceNamesOfStep(step).map((outputName) => outputName);
+  }
 
   // Memoize this so that we can close or open the group when its effective value changes, rather than
   // also closing it every time any incidental change to data or session happens that doesn't result in
@@ -64,53 +92,24 @@ export default function StepUserInputWrapper({step}: {step: UIStep['step']}) {
   const allDataIsNonEmpty = useMemo(() => allDataNonEmpty(allDatas), [
     allDatas
   ]);
+  const hasValidationErrors = inputNames.some((inputName) =>
+    state.validationErrors.hasOwnProperty(inputName)
+  );
 
   useEffect(() => {
-    if (!allDataIsNonEmpty) {
+    if (!allDataIsNonEmpty || hasValidationErrors) {
       setOpen(true);
-    } else if (allStepsComplete) {
+    } else if (allStepsComplete && !hasValidationErrors) {
       setOpen(false);
     }
-  }, [allDataIsNonEmpty, allStepsComplete]);
-
-  // Keeping the component `key` as just the step.name
-  //   (without allStepsComplete)
-  //   makes sure the components don't unmount / remount
-  //   when they move from the Completed list to Pending.
-  // This could happen if a user goes back to change
-  //   a previous input step.
-  // Allowing the component to unmount / remount means that
-  //   the input values could reset to initial state and
-  //   wipe out other elements of the user selection.
-  // For example, in a multi-multiselect-string-all,
-  //   removing one of three choices could force the other
-  //   two to also reset if the component re-mounts.
-  // This does also mean that the steps may not automatically
-  //   hide their contents (i.e. the drawer close effect)
-  //   if edited and Run is clicked, but that seems more minor
-  //   compared to resetting user input values.
-  const inner =
-    'isGroup' in step ? (
-      <StepUserInputDrawer
-        key={`${step.name}`}
-        step={step}
-        handleInputChange={handleInputChange}
-      />
-    ) : (
-      <StepUserInput
-        key={`${step.name}`}
-        step={step}
-        handleInputChange={handleInputChange}
-      />
-    );
+  }, [allDataIsNonEmpty, allStepsComplete, hasValidationErrors]);
 
   return (
-    <div className='step-user-input step'>
-      <div
-        onClick={toggleInputs}
-        className={`toggle ${open ? 'open' : 'closed'}`}
-      >
-        <StepName step={step} showToggle={true} open={open} />
+    <div
+      className={`step-user-input step ${hasValidationErrors ? 'error' : ''}`}
+    >
+      <div onClick={toggleInputs}>
+        <StepName step={step} />
       </div>
       <div
         className={`step-user-input-inputs sliding-panel vertical ${
