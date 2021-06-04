@@ -82,7 +82,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
 
       return {
         ...state,
-        session: action.session,
+        session: {...state.session, ...action.session},
         inputs: {...state.inputs, ...action.session.inputs},
       };
 
