@@ -149,6 +149,20 @@
       }
       &.run {
         color: #9f2727;
+
+        &.validation-errors {
+          background: repeating-linear-gradient(
+            45deg,
+            #ffaaaa,
+            #ecc4c4 10px,
+            #ffaaaa 10px,
+            #ecc4c4 20px
+          );
+          cursor: not-allowed;
+          &:hover {
+            opacity: 0.5;
+          }
+        }
       }
       &.save {
         color: green;
@@ -189,6 +203,10 @@
           .step-button {
             text-align: right;
           }
+        }
+
+        &.error {
+          border: 3px solid darkgray;
         }
 
         .step-user-input-inputs {

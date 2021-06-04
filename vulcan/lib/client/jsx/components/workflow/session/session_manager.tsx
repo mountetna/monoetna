@@ -138,7 +138,9 @@ export default function SessionManager() {
           </React.Fragment>
         )}
         <FlatButton
-          className='header-btn run'
+          className={`header-btn run ${
+            hasValidationErrors ? 'validation-errors' : ''
+          }`}
           icon='play'
           label='Run'
           title='Run workflow'
