@@ -2,19 +2,25 @@ import React, {useContext, useMemo} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import UserInput from '../user_interactions/inputs/user_input';
-import {GroupedInputStep, InputSpecification} from "../user_interactions/inputs/input_types";
+import {
+  GroupedInputStep,
+  InputSpecification
+} from '../user_interactions/inputs/input_types';
 import {
   stepInputDataRaw,
   stepOfSource,
   stepOfStatus,
   uiQueryOfStep,
   sortInputsByLabel
-} from "../../../selectors/workflow_selectors";
+} from '../../../selectors/workflow_selectors';
 
 export default function StepUserInputDrawer({
-                                              step,
-                                              handleInputChange
-                                            }: { step: GroupedInputStep, handleInputChange: (sourceName: string, val: any) => void }) {
+  step,
+  handleInputChange
+}: {
+  step: GroupedInputStep;
+  handleInputChange: (sourceName: string, val: any) => void;
+}) {
   let {state} = useContext(VulcanContext);
   const {workflow, session, status, data, inputs} = state;
 
@@ -26,31 +32,34 @@ export default function StepUserInputDrawer({
         const inputData = originalStep ? stepInputDataRaw(originalStep, status, data, session) : {};
         const uiQuery = originalStep ? uiQueryOfStep(originalStep) : null;
 
-        return {
-          type: uiQuery || 'default',
-          label: input.label || input.source,
-          default: inputs[input.source] || null,
-          data: inputData,
-          name: input.source,
-          doc: input.doc,
-        };
-      }),
-      [step, workflow, status, data, session, inputs]);
+            return {
+              type: uiQuery || 'default',
+              label: input.label || input.source,
+              value: inputs[input.source] || null,
+              data: inputData,
+              name: input.source,
+              doc: input.doc
+            };
+          }),
+    [step, workflow, status, data, session, inputs]
+  );
+
+  if (!workflow) return null;
 
   if (!workflow) return null;
 
   return (
-      <React.Fragment>
-        {sortInputsByLabel(stepInputs).map((input, index) => {
-          return (
-              <UserInput
-                  input={input}
-                  hideLabel={false}
-                  onChange={handleInputChange}
-                  key={index}
-              />
-          );
-        })}
-      </React.Fragment>
+    <React.Fragment>
+      {sortInputsByLabel(stepInputs).map((input, index) => {
+        return (
+          <UserInput
+            input={input}
+            hideLabel={false}
+            onChange={handleInputChange}
+            key={index}
+          />
+        );
+      })}
+    </React.Fragment>
   );
 }

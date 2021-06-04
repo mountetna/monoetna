@@ -1,6 +1,5 @@
 import React from 'react';
-import {InputBackendComponent} from "./input_types";
-
+import {InputBackendComponent} from './input_types';
 
 const BooleanInput: InputBackendComponent = ({input, onChange}) => {
   if (!input || !onChange) return null;
@@ -10,11 +9,11 @@ const BooleanInput: InputBackendComponent = ({input, onChange}) => {
       type='checkbox'
       className='text_box'
       onChange={(e) => {
-        onChange(input.name, e);
+        onChange(input.name, e.target.checked);
       }}
-      defaultChecked={input.default}
+      checked={input.value || false}
     />
   );
-}
+};
 
 export default BooleanInput;
