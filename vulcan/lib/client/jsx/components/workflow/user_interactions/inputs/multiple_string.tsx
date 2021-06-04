@@ -17,7 +17,7 @@ const MultipleStringInput: InputBackendComponent = ({
   input,
   onChange
 }) => {
-  const {data} = input;
+  const {data, name} = input;
 
   const options: {[k: string]: string} = useMemo(() => {
     if (data) {
@@ -27,16 +27,25 @@ const MultipleStringInput: InputBackendComponent = ({
     return {};
   }, [data]);
 
-  const [labels, setLabels] = useState<{[k: string]: string}>(options);
+  useEffect(() => {
+    // Set all key's values as the initially given values, only if no input.value provided. (Initialization)
+    // Otherwise set to mirror input.value
+    if (null == input.value) {
+      onChange(name, options);
+    }
+  }, [options, input.value, name, onChange]);
 
-  const updateLabel = (newValue: string, key: string, prevLabels = labels) => {
+  const updateLabel = (newValue: string, key: string, prevLabels = input.value) => {
     prevLabels[key] = newValue;
-    setLabels(prevLabels);
+    onChange(name, prevLabels);
+    console.log(input.value);
   };
+
+  if (!input || !onChange) return null;
 
   return (
     <div>
-      {Object.entries(labels).map(([k, val]) => {
+      {Object.entries(input.value).map(([k, val]) => {
         return (
           <TextInput
             header={k}
