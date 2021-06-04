@@ -55,7 +55,7 @@ function backendComponentOf(
         AllInnerValuesNotEmptyValidator
       ];
     case TYPE.MULTIPLE_STRING:
-      return MultipleStringInput;
+      return [MultipleStringInput, AllInnerValuesNotEmptyValidator];
     case TYPE.SINGLE_DROPDOWN_MULTICHECKBOX:
       return [SingleDropdownMulticheckbox, AllInnerValuesNotEmptyValidator];
     default:
