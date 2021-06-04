@@ -1,12 +1,7 @@
 import React, {useState, useMemo, useEffect, useCallback, useRef} from 'react';
 import * as _ from 'lodash';
 
-import {TYPE} from '../../../../api_types';
 import {InputBackendComponent} from './input_types';
-import UserInput from './user_input';
-import {inputValueNonEmpty} from '../../../../selectors/workflow_selectors';
-import {useBufferedInputState} from "./buffered_input_state";
-import StringInput from './string';
 import TextInput from 'etna-js/components/inputs/text_input';
 
 function equalKeys(hash1: {}, hash2: {}): boolean {
@@ -41,7 +36,7 @@ const MultipleStringInput: InputBackendComponent = ({
     console.log(input.value);
   };
 
-  if (!input || !onChange) return null;
+  if (null == input.value) return null;
 
   return (
     <div>
