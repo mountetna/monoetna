@@ -1,5 +1,10 @@
-import React from 'react';
+import React, {useContext, useEffect} from 'react';
 
+import {VulcanContext} from '../../../../contexts/vulcan_context';
+import {
+  addValidationErrors,
+  removeValidationErrors
+} from '../../../../actions/vulcan';
 import {TYPE} from '../../../../api_types';
 import InputHelp from './input_help';
 import BooleanInput from './boolean';
@@ -13,34 +18,45 @@ import {
   InputBackendComponent,
   InputOnChange,
   InputSpecification,
-  InputType
+  InputType,
+  InputValidator
 } from './input_types';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 import MultiselectStringAllInput from './multiselect_string_all';
 import MultipleMultiselectStringAllInput from './multiple_multiselect_string_all';
+import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox';
+import NotEmptyValidator from './validators/not_empty_validator';
+import AllInnerValuesNotEmptyValidator from './validators/all_inner_values_not_empty_validator';
 
-function backendComponentOf(type: InputType): InputBackendComponent {
+function backendComponentOf(
+  type: InputType
+): [InputBackendComponent, InputValidator] {
   switch (type) {
     case TYPE.FLOAT:
-      return FloatInput;
+      return [FloatInput, NotEmptyValidator];
     case TYPE.INTEGER:
-      return IntegerInput;
+      return [IntegerInput, NotEmptyValidator];
     case TYPE.BOOL:
-      return BooleanInput;
+      return [BooleanInput, NotEmptyValidator];
     case TYPE.MULTISELECT_STRING:
-      return MultiselectStringInput;
+      return [MultiselectStringInput, NotEmptyValidator];
     case TYPE.SELECT_AUTOCOMPLETE:
-      return SelectAutocompleteInput;
+      return [SelectAutocompleteInput, NotEmptyValidator];
     case TYPE.CHECKBOXES:
-      return CheckboxesInput;
+      return [CheckboxesInput, NotEmptyValidator];
     case TYPE.NESTED_SELECT_AUTOCOMPLETE:
-      return NestedSelectAutocompleteInput;
+      return [NestedSelectAutocompleteInput, NotEmptyValidator];
     case TYPE.MULTISELECT_STRING_ALL:
-      return MultiselectStringAllInput;
+      return [MultiselectStringAllInput, NotEmptyValidator];
     case TYPE.MULTIPLE_MULTISELECT_STRING_ALL:
-      return MultipleMultiselectStringAllInput;
+      return [
+        MultipleMultiselectStringAllInput,
+        AllInnerValuesNotEmptyValidator
+      ];
+    case TYPE.SINGLE_DROPDOWN_MULTICHECKBOX:
+      return [SingleDropdownMulticheckbox, AllInnerValuesNotEmptyValidator];
     default:
-      return StringInput;
+      return [StringInput, NotEmptyValidator];
   }
 }
 
@@ -53,7 +69,21 @@ export default function UserInput({
   onChange: InputOnChange;
   hideLabel?: boolean;
 }) {
-  const InputComponent = backendComponentOf(input.type);
+  const [InputComponent, Validator] = backendComponentOf(input.type);
+  const {dispatch} = useContext(VulcanContext);
+
+  useEffect(() => {
+    let errors = Validator(input);
+    if (errors.length > 0) {
+      dispatch(
+        addValidationErrors(input.name, input.label || input.name, errors)
+      );
+    } else {
+      dispatch(removeValidationErrors(input.name));
+    }
+    // On unmount, remove all errors associated with the input
+    return () => dispatch(removeValidationErrors(input.name));
+  }, [input.value, input, dispatch, Validator]);
 
   return (
     <div className='view_item'>

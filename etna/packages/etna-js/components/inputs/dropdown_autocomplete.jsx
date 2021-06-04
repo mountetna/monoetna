@@ -10,6 +10,7 @@ export default function DropdownAutocomplete({
   list,
   onSelect,
   defaultValue,
+  value,
   waitTime,
   maxItems
 }) {
@@ -71,13 +72,21 @@ export default function DropdownAutocomplete({
   }, []);
 
   useEffect(() => {
+    if (null != value && selectedValue !== value) setSelectedValue(value);
+  }, [value]);
+
+  useEffect(() => {
     setFilteredList(sortedList || []);
   }, [showList]);
 
   return (
     <div className='dropdown-autocomplete-input'>
       <div className='dropdown-autocomplete-input-field'>
-        <input type='text' onChange={handleChange} value={selectedValue} />
+        <input
+          type='text'
+          onChange={handleChange}
+          value={selectedValue || undefined}
+        />
         <div className='icon-wrapper' onClick={toggleList}>
           <Icon icon={`${showList ? 'caret-up' : 'caret-down'}`}></Icon>
         </div>

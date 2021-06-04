@@ -1,3 +1,5 @@
+import * as _ from 'lodash';
+
 import {defaultApiHelpers} from "./api";
 import {Dispatch, MutableRefObject, useCallback, useEffect, useRef, useState} from "react";
 import {VulcanState} from "../reducers/vulcan_reducer";
@@ -47,7 +49,7 @@ export function useSessionSync(
     return () => cancellable.cancel();
   }, [lastPollingRequest, dispatch, pollStatus, postInputs, state]);
 
-  const statusIsFresh = lastCompletedPollingRequest === state.current.session.inputs;
+  const statusIsFresh = _.isEqual(lastCompletedPollingRequest, state.current.session.inputs);
   const requestPoll = useCallback((post = false) => {
     if (!post && hasNoRunningSteps(state.current.status) && statusIsFresh) {
       return;
