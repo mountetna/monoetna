@@ -14,17 +14,6 @@ const AllInnerValuesNotEmptyValidator: InputValidator = (
 
   const allOptions = flattenOptions(input.data);
 
-  function findInvalidSelections() {
-    return Object.entries(input.value).filter(
-      ([key, selections]: [string, any]) => {
-        let validOptions = allOptions[key];
-        if (!validOptions) return true;
-
-        return !selections.every((s: string) => validOptions.includes(s));
-      }
-    );
-  }
-
   function findEmptyKeys() {
     return Object.entries(input.value)
       .filter(
@@ -62,18 +51,6 @@ const AllInnerValuesNotEmptyValidator: InputValidator = (
 
     return [
       `Inner key ${verb} empty: ${emptyKeys.map((k: any) => k).join(',')}`
-    ];
-  } else if (findInvalidSelections().length > 0) {
-    let invalidSelections = findInvalidSelections();
-    return [
-      `Invalid selection${
-        invalidSelections.length > 1 ? 's' : ''
-      } present: ${invalidSelections
-        .map(
-          ([key, selections]: [string, any]) =>
-            `${key} -- ${selections.join(',')}`
-        )
-        .join(',')}`
     ];
   }
 
