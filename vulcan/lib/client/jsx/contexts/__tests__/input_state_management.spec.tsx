@@ -59,7 +59,7 @@ describe('useInputStateManagement', () => {
     });
 
     expect(contextData.state.inputs).toEqual({
-      "query1/result": null,
+      'query1/result': null
     });
 
     await dispatch(patchInputs({ a: 10, b: 20 }));

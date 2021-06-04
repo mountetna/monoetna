@@ -1,13 +1,25 @@
-import {VulcanState} from "../reducers/vulcan_reducer";
-import {Dispatch, useEffect, useMemo} from "react";
-import {patchInputs, removeDownloads, removeInputs, VulcanAction} from "../actions/vulcan";
+import {VulcanState} from '../reducers/vulcan_reducer';
+import {Dispatch, useEffect} from 'react';
+import {
+  patchInputs,
+  removeDownloads,
+  removeInputs,
+  VulcanAction
+} from '../actions/vulcan';
 import {
   isPendingUiQuery,
   missingUiQueryOutputs,
-  pendingSteps, sourceNameOfReference, statusOfStep, stepOfSource
-} from "../selectors/workflow_selectors";
+  pendingSteps,
+  sourceNameOfReference,
+  statusOfStep,
+  stepOfSource
+} from '../selectors/workflow_selectors';
 
-export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<VulcanAction>, statusIsFresh: boolean) {
+export function useInputStateManagement(
+  state: VulcanState,
+  dispatch: Dispatch<VulcanAction>,
+  statusIsFresh: boolean
+) {
   const {inputs, workflow, status, data, session} = state;
   const {inputs: sessionInputs} = session;
 
@@ -18,13 +30,13 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
     const downloadDeletes: {[k: string]: true} = {};
     const stepsWithDownloads: {[k: string]: true} = {};
 
-    const droppedSteps = workflow.steps[0].filter(step => {
+    const droppedSteps = workflow.steps[0].filter((step) => {
       const stepStatus = statusOfStep(step, status);
       if (step.out.length === 0) return false;
 
       if (!stepStatus) return true;
 
-      return !step.out.every(outName => {
+      return !step.out.every((outName) => {
         const source = sourceNameOfReference([step.name, outName]);
         if (source in sessionInputs) {
           return true;
@@ -37,19 +49,20 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
       });
     });
 
-    droppedSteps.forEach(step => {
-      step.out.forEach(outName => {
+    droppedSteps.forEach((step) => {
+      step.out.forEach((outName) => {
         const source = sourceNameOfReference([step.name, outName]);
         if (source in sessionInputs) inputDeletes[source] = true;
         if (step.name in stepsWithDownloads) downloadDeletes[step.name] = true;
 
-        workflow.dependencies_of_outputs[source].forEach(dependent => {
+        workflow.dependencies_of_outputs[source].forEach((dependent) => {
           const stepName = stepOfSource(dependent);
           if (dependent in inputs) inputDeletes[dependent] = true;
-          if (stepName && stepName in stepsWithDownloads) downloadDeletes[stepName] = true;
+          if (stepName && stepName in stepsWithDownloads)
+            downloadDeletes[stepName] = true;
         });
-      })
-    })
+      });
+    });
 
     let d = Object.keys(inputDeletes);
     if (d.length > 0) dispatch(removeInputs(d));
@@ -58,14 +71,16 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
     if (d.length > 0) dispatch(removeDownloads(d));
   }, [inputs, workflow, status, data, sessionInputs, statusIsFresh, dispatch]);
 
-  // We inject a `null` input into the session,
+  // We inject a `null` input into state.inputs,
   //   to indicate that we're waiting for a user input value
   //   to return to the server.
   useEffect(() => {
     if (!workflow) return;
 
     let newInputs = {};
-    let nextUiSteps = pendingSteps(workflow, status).filter(({step}) => isPendingUiQuery(step, status, data, session));
+    let nextUiSteps = pendingSteps(workflow, status).filter(({step}) =>
+      isPendingUiQuery(step, status, data, session)
+    );
 
     nextUiSteps.forEach((nextInputStep) => {
       let missingInputs = missingUiQueryOutputs(nextInputStep.step, inputs);
@@ -75,7 +90,7 @@ export function useInputStateManagement(state: VulcanState, dispatch: Dispatch<V
         //   they'll get wiped out in the reducer.
         newInputs = {
           ...newInputs,
-          ...missingInputs,
+          ...missingInputs
         };
       }
     });

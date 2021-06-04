@@ -1,8 +1,16 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InputBackendComponent} from "./input_types";
-import {getAllOptions} from "./multiselect_string";
+import {InputBackendComponent} from './input_types';
+import {getAllOptions} from './multiselect_string';
 
-function CheckboxInput({onChange, option, checked}: {onChange: (v: any) => void, option: any, checked: boolean}) {
+function CheckboxInput({
+  onChange,
+  option,
+  checked
+}: {
+  onChange: (v: any) => void;
+  option: any;
+  checked: boolean;
+}) {
   return (
     <label className='checkbox-input-option'>
       <input
@@ -19,37 +27,28 @@ function CheckboxInput({onChange, option, checked}: {onChange: (v: any) => void,
 }
 
 const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
-  const [selectedOptions, setSelectedOptions] = useState([] as any[]);
-  const [initialized, setInitialized] = useState(false);
-
   const options = useMemo(() => getAllOptions(input.data).sort(), [input.data]);
 
   useEffect(() => {
-    // Setting any previously selected inputs (from storage or
-    //   user interactions) takes precedence over setting
-    //   all options as checked.
-    if (input.default && input.default !== [] && !initialized) {
-      setSelectedOptions([...input.default]);
-      setInitialized(true);
-    } else if (options.length > selectedOptions.length && !initialized) {
-      setSelectedOptions([...options]);
-      setInitialized(true);
+    // Set all options as checked, only if no input.value provided.
+    // Otherwise set checked options to mirror input.value
+    if (null == input.value && options.length > 0) {
+      onChange(input.name, [...options]);
     }
-  }, [initialized, input.default, options, selectedOptions.length]);
+  }, [options, input.value, input.name, onChange]);
 
-  useEffect(() => {
-    onChange(input.name, selectedOptions);
-  }, [input.name, onChange, selectedOptions]);
-
-  const handleClickOption = useCallback((option: any) => {
-    let copy = [...selectedOptions];
-    if (!selectedOptions.includes(option)) {
-      copy.push(option);
-    } else {
-      copy = selectedOptions.filter((opt) => option !== opt);
-    }
-    setSelectedOptions(copy);
-  }, [selectedOptions]);
+  const handleClickOption = useCallback(
+    (option: any) => {
+      let copy = [...(input.value || [])];
+      if (!input.value.includes(option)) {
+        copy.push(option);
+      } else {
+        copy = input.value.filter((opt: string) => option !== opt);
+      }
+      onChange(input.name, copy);
+    },
+    [input.value, onChange, input.name]
+  );
 
   if (!input || !onChange) return null;
 
@@ -60,13 +59,13 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
           <CheckboxInput
             option={option}
             key={index}
-            checked={selectedOptions.includes(option)}
+            checked={input.value ? input.value.includes(option) : false}
             onChange={handleClickOption}
           />
         );
       })}
     </div>
   );
-}
+};
 
 export default CheckboxesInput;

@@ -1,21 +1,30 @@
 import React from 'react';
-import {defaultContext, VulcanProvider} from '../../../../contexts/vulcan_context';
+import {
+  defaultContext,
+  VulcanProvider
+} from '../../../../contexts/vulcan_context';
 import renderer from 'react-test-renderer';
 import InputFeed from '../input_feed';
-import {stateFromActions} from "../../../../test_utils/state";
+import {stateFromActions} from '../../../../test_utils/state';
 import {
   createStatusFixture,
   createStepFixture,
   createStepStatusFixture,
-  createWorkflowFixture,
-} from "../../../../test_utils/fixtures";
-import {setDownloadedData, setStatus, setWorkflow, setWorkflows} from "../../../../actions/vulcan";
+  createWorkflowFixture
+} from '../../../../test_utils/fixtures';
+import {
+  setDownloadedData,
+  setStatus,
+  setWorkflow,
+  setWorkflows
+} from '../../../../actions/vulcan';
 
 describe('InputFeed', () => {
-  it('renders complete UI steps and error steps', () => {
+  fit('renders complete UI steps and error steps', () => {
     const workflow = createWorkflowFixture({
       projects: ['test-project'],
-      inputs: {}, steps: [
+      inputs: {},
+      steps: [
         [
           createStepFixture({name: 'zero'}),
           createStepFixture({name: 'first', out: ['output']}),
@@ -33,8 +42,8 @@ describe('InputFeed', () => {
           }),
           createStepFixture({
             name: 'fourth',
-            run: 'ui-outputs/show-the-user.cwl',
-          }),
+            run: 'ui-outputs/show-the-user.cwl'
+          })
         ]
       ]
     });
@@ -42,27 +51,41 @@ describe('InputFeed', () => {
     const {state} = stateFromActions([
       setWorkflows([workflow]),
       setWorkflow(workflow, 'test-project'),
-      setStatus(createStatusFixture(workflow,
-          createStepStatusFixture({name: 'zero', status: 'error', error: 'Ooops!'}),
-          createStepStatusFixture({name: 'first', status: 'complete', downloads: {output: 'https://download1'}}),
-      )),
-      setDownloadedData('https://download1', 'abc'),
+      setStatus(
+        createStatusFixture(
+          workflow,
+          createStepStatusFixture({
+            name: 'zero',
+            status: 'error',
+            error: 'Ooops!'
+          }),
+          createStepStatusFixture({
+            name: 'first',
+            status: 'complete',
+            downloads: {output: 'https://download1'}
+          })
+        )
+      ),
+      setDownloadedData('https://download1', {abc: null, '123': null})
     ]);
 
     const component = renderer.create(
-        <VulcanProvider state={state} useActionInvoker={defaultContext.useActionInvoker}>
-          <InputFeed/>
-        </VulcanProvider>
+      <VulcanProvider
+        state={state}
+        useActionInvoker={defaultContext.useActionInvoker}
+      >
+        <InputFeed />
+      </VulcanProvider>
     );
 
     let instance = component.root;
 
     expect(instance.findAllByProps({className: 'step-error'}).length).toEqual(
-        1
+      1
     );
 
     expect(
-        instance.findAllByProps({className: 'step-user-input step'}).length
+      instance.findAllByProps({className: 'step-user-input step '}).length
     ).toEqual(2);
 
     expect(component.toJSON()).toMatchSnapshot();

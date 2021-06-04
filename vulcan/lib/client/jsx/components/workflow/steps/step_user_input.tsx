@@ -1,17 +1,33 @@
-import React, {useContext, useState, useEffect, useCallback, useMemo} from 'react';
+import React, {
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo
+} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import UserInput from '../user_interactions/inputs/user_input';
 
-import {WorkflowStep} from "../../../api_types";
+import {WorkflowStep} from '../../../api_types';
 import {
   sourceNamesOfStep,
-  uiQueryOfStep, stepInputDataRaw,
-} from "../../../selectors/workflow_selectors";
-import {InputSpecification, InputType} from "../user_interactions/inputs/input_types";
+  uiQueryOfStep,
+  stepInputDataRaw
+} from '../../../selectors/workflow_selectors';
+import {
+  InputSpecification,
+  InputType
+} from '../user_interactions/inputs/input_types';
 
-export default function StepUserInput({step, handleInputChange}: {step: WorkflowStep, handleInputChange: (source: string, val: any) => void}) {
+export default function StepUserInput({
+  step,
+  handleInputChange
+}: {
+  step: WorkflowStep;
+  handleInputChange: (source: string, val: any) => void;
+}) {
   const {state} = useContext(VulcanContext);
   const uiQuery = uiQueryOfStep(step);
 
@@ -22,7 +38,7 @@ export default function StepUserInput({step, handleInputChange}: {step: Workflow
     type: uiQuery as InputType,
     label: step.label || step.name,
     // The existing value
-    default: state.inputs[outputName],
+    value: state.inputs[outputName],
     name: outputName,
     data: stepInputDataRaw(step, state.status, state.data, state.session),
     doc: step.doc
@@ -32,16 +48,16 @@ export default function StepUserInput({step, handleInputChange}: {step: Workflow
 
   return (
     <React.Fragment>
-        {stepInputs.map((input, index) => {
-          return (
-            <UserInput
-              input={input}
-              hideLabel={true}
-              onChange={handleInputChange}
-              key={index}
-            />
-          );
-        })}
+      {stepInputs.map((input, index) => {
+        return (
+          <UserInput
+            input={input}
+            hideLabel={true}
+            onChange={handleInputChange}
+            key={index}
+          />
+        );
+      })}
     </React.Fragment>
   );
 }

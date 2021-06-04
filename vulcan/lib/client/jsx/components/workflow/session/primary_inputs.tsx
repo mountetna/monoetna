@@ -24,7 +24,7 @@ export default function PrimaryInputs() {
         ...workflow.inputs[name],
           name,
           label: workflow.inputs[name].label || name,
-          default: [
+          value: [
               session.inputs[name],
               workflow.inputs[name].default
           ].find(a => a != null)
