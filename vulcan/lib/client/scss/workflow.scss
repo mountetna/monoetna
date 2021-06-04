@@ -206,7 +206,9 @@
         }
 
         &.error {
-          border: 3px solid darkgray;
+          .step-user-input-inputs {
+            border: 1px solid red;
+          }
         }
 
         .step-user-input-inputs {
@@ -328,7 +330,7 @@
     flex: 1;
 
     .add_item {
-      cursor: default;
+      cursor: pointer;
       color: green;
       padding-right: 10px;
     }
