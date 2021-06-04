@@ -13,7 +13,7 @@ const PlotWithEffects = ({
 }) => {
   const plotRef = useRef<HTMLDivElement>(null);
 
-  useLegendHover(plotRef);
+  useLegendHover(plotRef.current);
 
   return (
     <div ref={plotRef}>

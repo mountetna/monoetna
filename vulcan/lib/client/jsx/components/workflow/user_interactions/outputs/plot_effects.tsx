@@ -1,17 +1,40 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 
-export function useLegendHover(plotRef: React.RefObject<HTMLDivElement>) {
+export function useLegendHover(plot: HTMLDivElement | null) {
   const elements = useMemo(() => {
-    if (plotRef.current) {
-      return plotRef.current.getElementsByClassName('legendtoggle');
+    if (plot) {
+      return plot.getElementsByClassName('legendtoggle');
     }
 
     return [];
-  }, [plotRef]);
+  }, [plot]);
+
+  const dimOtherTraces = useCallback(
+    (element) => {
+      // Set opacity of the other traces to 0.5
+      for (var i = 0; i < elements.length; i++) {
+        if (elements[i] === element) continue;
+
+        console.log('dimming i', i);
+      }
+    },
+    [elements]
+  );
+
+  const onHoverLegendToggle = useCallback(
+    (e: any) => {
+      console.log(e);
+      console.log('hovering over a toggle');
+      dimOtherTraces(e.target);
+    },
+    [dimOtherTraces]
+  );
 
   useEffect(() => {
-    for (var i = 0; i < elements.length; i++) {
-      elements[i].addEventListener('mouseover', onHoverLegendToggle);
+    if (elements) {
+      for (var i = 0; i < elements.length; i++) {
+        elements[i].addEventListener('mouseover', onHoverLegendToggle);
+      }
     }
 
     return () => {
@@ -19,10 +42,7 @@ export function useLegendHover(plotRef: React.RefObject<HTMLDivElement>) {
         elements[i].removeEventListener('mouseover', onHoverLegendToggle);
       }
     };
-  }, [elements]);
+  }, [elements, onHoverLegendToggle]);
 
-  function onHoverLegendToggle(e: any) {
-    console.log(e);
-    console.log('hovering over a toggle');
-  }
+  if (!plot) return;
 }
