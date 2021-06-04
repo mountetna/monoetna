@@ -8,7 +8,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
     className="primary-inputs"
   />
   <div
-    className="step-user-input step"
+    className="step-user-input step "
   >
     <div
       className="toggle open"
@@ -77,7 +77,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
     </div>
   </div>
   <div
-    className="step-user-input step"
+    className="step-user-input step "
   >
     <div
       className="toggle open"
