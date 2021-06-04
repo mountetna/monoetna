@@ -15,12 +15,8 @@ import {
   allExpectedOutputSources,
   dataOfSource,
   statusOfStep,
-<<<<<<< HEAD
-  stepOfSource
-=======
   stepOfSource,
   sourceNamesOfStep
->>>>>>> cs/vulcan-validation-context
 } from '../../../selectors/workflow_selectors';
 import {patchInputs} from '../../../actions/vulcan';
 import {UIStep} from '../user_interactions/inputs/input_types';
