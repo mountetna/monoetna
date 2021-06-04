@@ -2,7 +2,7 @@ import React, {useState, useMemo, useEffect, useCallback, useRef} from 'react';
 import * as _ from 'lodash';
 
 import {InputBackendComponent} from './input_types';
-import TextInput from 'etna-js/components/inputs/text_input';
+import TextInput from 'etna-js/components/inputs/text_input.jsx';
 
 function equalKeys(hash1: {}, hash2: {}): boolean {
   return _.isEqual(Object.keys(hash1), Object.keys(hash2));
