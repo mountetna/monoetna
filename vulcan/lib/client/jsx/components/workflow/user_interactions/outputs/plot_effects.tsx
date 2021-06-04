@@ -11,17 +11,18 @@ export function useLegendHover(plotRef: React.RefObject<HTMLDivElement>) {
 
   useEffect(() => {
     for (var i = 0; i < elements.length; i++) {
-      elements[9].addEventListener('hover', onHoverLegendToggle);
+      elements[i].addEventListener('mouseover', onHoverLegendToggle);
     }
 
     return () => {
       for (var i = 0; i < elements.length; i++) {
-        elements[i].removeEventListener('hover', onHoverLegendToggle);
+        elements[i].removeEventListener('mouseover', onHoverLegendToggle);
       }
     };
   }, [elements]);
 
-  function onHoverLegendToggle() {
+  function onHoverLegendToggle(e: any) {
+    console.log(e);
     console.log('hovering over a toggle');
   }
 }
