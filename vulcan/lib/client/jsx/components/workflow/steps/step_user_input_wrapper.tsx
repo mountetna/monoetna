@@ -100,7 +100,6 @@ export default function StepUserInputWrapper({step}: {step: UIStep['step']}) {
     }
   }, [allDataIsNonEmpty, allStepsComplete, hasValidationErrors]);
 
-  console.log('inputNames', inputNames, state.validationErrors);
   return (
     <div
       className={`step-user-input step ${hasValidationErrors ? 'error' : ''}`}
