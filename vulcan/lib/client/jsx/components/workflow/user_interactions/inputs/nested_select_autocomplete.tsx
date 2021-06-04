@@ -124,7 +124,7 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({
                     handleSelect(e, index);
                   }}
                   list={options}
-                  defaultValue={value}
+                  value={value}
                 />
               );
             })
