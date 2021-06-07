@@ -1,3 +1,4 @@
+import {useMemo} from 'react';
 import * as _ from 'lodash';
 
 import {defaultApiHelpers} from "./api";
@@ -49,7 +50,14 @@ export function useSessionSync(
     return () => cancellable.cancel();
   }, [lastPollingRequest, dispatch, pollStatus, postInputs, state]);
 
-  const statusIsFresh = _.isEqual(lastCompletedPollingRequest, state.current.session.inputs);
+  // Unpack the session inputs so the useMemo dependency
+  //   correctly updates statusIsFresh and eslint won't
+  //   complain.
+  const {current: {session: {inputs: sessionInputs}}} = state;
+  const statusIsFresh = useMemo(() =>
+    _.isEqual(lastCompletedPollingRequest, sessionInputs),
+    [lastCompletedPollingRequest, sessionInputs]);
+
   const requestPoll = useCallback((post = false) => {
     if (!post && hasNoRunningSteps(state.current.status) && statusIsFresh) {
       return;
