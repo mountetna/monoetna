@@ -9,7 +9,7 @@ import {Cancellable} from "etna-js/utils/cancellable";
 import {hasNoRunningSteps} from "../selectors/workflow_selectors";
 
 export const defaultSessionSyncHelpers = {
-  statusIsFresh: true,
+  isPolling: false,
   requestPoll(post?: boolean) {
   },
 };
@@ -26,42 +26,42 @@ export function useSessionSync(
     postInputs: typeof defaultApiHelpers.postInputs,
     dispatch: Dispatch<VulcanAction>,
 ): typeof defaultSessionSyncHelpers {
-  const [lastPollingRequest, setPollingRequest] = useState([false, state.current] as [boolean, VulcanState]);
-  const [lastCompletedPollingRequest, setCompletedRequest] = useState(null as null | VulcanSession['inputs']);
+  const [curPolling, setCurPolling] = useState(0);
+  const [_, setCancellable] = useState(new Cancellable());
 
-  // Note -- this will 'cancel' processing the result of previous requests when a new polling request is made, but
-  // it does not actually cancel the underlying request.  Posts will thus complete just fine, although the result may
-  // be superceeded by a requests poll.
-  useEffect(() => {
-    const [doPost, state] = lastPollingRequest;
-    const cancellable = new Cancellable();
-
-    if (!state.session.workflow_name) return;
-
-    const sessionOfWork = state.session;
-    const baseWork = doPost ? postInputs(sessionOfWork) : pollStatus(sessionOfWork);
-    cancellable.race(baseWork).then(({result, cancelled}) => {
-      if (cancelled || !result) return;
-      updateFromSessionResponse(result, dispatch);
-      setCompletedRequest(state.session.inputs);
-    })
-
-    return () => cancellable.cancel();
-  }, [lastPollingRequest, dispatch, pollStatus, postInputs, state]);
-
-  const statusIsFresh = _.isEqual(lastCompletedPollingRequest, state.current.session.inputs);
   const requestPoll = useCallback((post = false) => {
-    if (!post && hasNoRunningSteps(state.current.status) && statusIsFresh) {
+    if (!post && hasNoRunningSteps(state.current.status)) {
       return;
     }
 
-    setPollingRequest([post, { ...state.current }]);
-  }, [state, statusIsFresh]);
+    if (!state.current.session.workflow_name) return;
 
-  useEffect(() => {
-    const timerId = setInterval(() => requestPoll(), 1000);
-    return () => clearInterval(timerId);
-  }, [requestPoll])
+    const cancellable = new Cancellable();
+    setCancellable(c => {
+      c.cancel();
+      return cancellable;
+    })
+
+    const sessionOfWork = state.current.session;
+    const baseWork = post ? postInputs(sessionOfWork) : pollStatus(sessionOfWork);
+
+    function sync(work: Promise<SessionStatusResponse>): Promise<void> {
+      return cancellable.race(work).then(({result, cancelled}) => {
+        if (cancelled || !result) return;
+        updateFromSessionResponse(result, dispatch);
+
+        if (hasNoRunningSteps(state.current.status)) {
+          return Promise.resolve();
+        }
+
+        return new Promise((resolve) => setTimeout(resolve, 1000))
+          .then(() => sync(pollStatus(state.current.session)));
+      });
+    }
+
+    setCurPolling(v => v + 1);
+    sync(baseWork).then(r => console.log('finished polling')).finally(() => setCurPolling(v => v - 1));
+  }, [dispatch, pollStatus, postInputs, state]);
 
   // Kind, of silly.  Just want this useEffect to run once on first mount.  But the linter will complain unless we
   // wrap the callback in a ref.  we do not want to fire this for every single change to the callback.
@@ -69,7 +69,7 @@ export function useSessionSync(
   useEffect(() => requestPollRef.current(), []);
 
   return {
-    statusIsFresh,
+    isPolling: curPolling > 0,
     requestPoll,
   };
 }
