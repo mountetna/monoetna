@@ -11,7 +11,6 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
     className="step-user-input step "
   >
     <div
-      className="toggle open"
       onClick={[Function]}
     >
       <div
@@ -80,7 +79,6 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
     className="step-user-input step "
   >
     <div
-      className="toggle open"
       onClick={[Function]}
     >
       <div
