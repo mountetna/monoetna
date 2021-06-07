@@ -183,6 +183,12 @@ class UploadController < Metis::Controller
   private
 
   def metis_uid
-    @request.cookies[Metis.instance.config(:metis_uid_name)] || @params[:metis_uid]
+    id = @request.cookies[Metis.instance.config(:metis_uid_name)] || @params[:metis_uid]
+
+    if id.nil?
+      raise Etna::BadRequest("metis_uid not set, did you forget to configure metis_uid to #{Metis.instance.config(:metis_uid_name)}?")
+    end
+
+    id
   end
 end
