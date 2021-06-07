@@ -4,10 +4,6 @@ import * as _ from 'lodash';
 import {InputBackendComponent} from './input_types';
 import TextInput from 'etna-js/components/inputs/text_input';
 
-function equalKeys(hash1: {}, hash2: {}): boolean {
-  return _.isEqual(Object.keys(hash1), Object.keys(hash2));
-}
-
 const MultipleStringInput: InputBackendComponent = ({
   input,
   onChange
