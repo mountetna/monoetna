@@ -2,7 +2,8 @@ import React, {useMemo, useCallback, useState, useEffect} from 'react';
 
 import {TYPE} from '../../../../api_types';
 import {InputBackendComponent, InputSpecification} from './input_types';
-import UserInput from './user_input';
+import InputHelp from './input_help';
+import MultiselectStringAllInput from './multiselect_string_all';
 
 export const flattenOptions = (
   data: {[key: string]: {[key: string]: string[]}} | null | undefined
@@ -55,20 +56,25 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
 
   return (
     <div>
-      {innerInputs.map((innerInput: InputSpecification) => {
-        return (
-          <UserInput
-            key={innerInput.name}
-            onChange={(label, value) => {
-              onSelectInnerInput({
-                label,
-                value
-              });
-            }}
-            input={innerInput}
-          />
-        );
-      })}
+      {innerInputs.map((innerInput: InputSpecification) => (
+        <div className='view_item'>
+          <div className='item_name'>{innerInput.label || innerInput.name}</div>
+          <div className='item_view'>
+            <InputHelp input={innerInput}>
+              <MultiselectStringAllInput
+                key={innerInput.name}
+                onChange={(label, value) => {
+                  onSelectInnerInput({
+                    label,
+                    value
+                  });
+                }}
+                input={innerInput}
+              />
+            </InputHelp>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
