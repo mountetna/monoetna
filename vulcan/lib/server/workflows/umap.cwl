@@ -193,21 +193,28 @@ steps:
     label: 'Calculate Leiden clustering'
     in:
       project_data: projectData/project_data
-      nn_anndata.h5ad: calc_umap/umap_anndata.h5ad
+      umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden_resolution: 5_Cluster_Calculation__leiden_resolution
       use_weights: 5_Cluster_Calculation__leiden_use_weights
-    out: [leiden.json,leiden_anndata.h5ad,blank_annots.json,color_options]
+    out: [leiden.json,leiden_anndata.h5ad,blank_annots.json]
   cluster_annotation:
     run: ui-queries/multiple-string.cwl
     label: 'Manually Annotate Clusters'
     in:
       a: calc_leiden/blank_annots.json
     out: [annots.json]
+  determine_color_by_options:
+    run: scripts/determine_color_by_options.cwl
+    label: 'Determine coloring options'
+    in:
+      project_data: projectData/project_data
+      leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
+    out: [color_options]
   select_color_by_option:
     run: ui-queries/nested-select-autocomplete.cwl
     label: 'Color Options'
     in:
-      a: calc_leiden/color_options
+      a: determine_color_by_options/color_options
     out: [color_by]
   plot_umap:
     run: scripts/plot_umap.cwl
