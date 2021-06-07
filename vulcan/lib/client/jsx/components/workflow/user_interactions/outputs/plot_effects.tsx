@@ -1,45 +1,59 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 
 export function useLegendHover(
   plot: HTMLDivElement | null,
-  onHover: (index: number | undefined) => void
-) {
-  const elements = useMemo(() => {
-    if (plot) {
-      return plot.getElementsByClassName('legendtoggle');
-    }
+  onHover: React.Dispatch<React.SetStateAction<number>>
+): {attachEventListeners: () => void; removeEventListeners: () => void} {
+  const [listenersAttached, setListenersAttached] = useState(false);
 
-    return [];
-  }, [plot]);
+  const elements = useMemo(
+    () => (plot ? plot.getElementsByClassName('legendtoggle') : []),
+    [plot]
+  );
 
   const onHoverLegendToggle = useCallback(
     (e: any) => {
-      let index;
-
+      // Re-find the element to grab the
+      //   trace number
       for (var i = 0; i < elements.length; i++) {
-        if (elements[i] !== e.target) continue;
+        if (e.target !== elements[i]) continue;
 
-        index = i;
+        onHover(i);
         break;
       }
-      onHover(index);
     },
     [onHover, elements]
   );
 
-  useEffect(() => {
-    if (elements) {
-      for (var i = 0; i < elements.length; i++) {
-        elements[i].addEventListener('mouseover', onHoverLegendToggle);
-      }
+  const resetHoverLegendToggle = useCallback(() => {
+    onHover(-1);
+  }, [onHover]);
+
+  const attachEventListeners = useCallback(() => {
+    if (listenersAttached) return;
+
+    for (var i = 0; i < elements.length; i++) {
+      elements[i].addEventListener('mouseover', onHoverLegendToggle);
+      elements[i].addEventListener('mouseout', resetHoverLegendToggle);
     }
 
-    return () => {
-      for (var i = 0; i < elements.length; i++) {
-        elements[i].removeEventListener('mouseover', onHoverLegendToggle);
-      }
-    };
-  }, [elements, onHoverLegendToggle]);
+    setListenersAttached(true);
+  }, [
+    elements,
+    onHoverLegendToggle,
+    resetHoverLegendToggle,
+    listenersAttached
+  ]);
 
-  if (!plot) return;
+  const removeEventListeners = useCallback(() => {
+    for (var i = 0; i < elements.length; i++) {
+      elements[i].removeEventListener('mouseover', onHoverLegendToggle);
+      elements[i].removeEventListener('mouseout', resetHoverLegendToggle);
+    }
+  }, [elements, onHoverLegendToggle, resetHoverLegendToggle]);
+
+  return {
+    attachEventListeners,
+    removeEventListeners
+  };
 }

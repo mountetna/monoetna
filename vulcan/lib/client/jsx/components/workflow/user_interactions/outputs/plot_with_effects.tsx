@@ -11,19 +11,57 @@ const PlotWithEffects = ({
   layout: any;
   config: any;
 }) => {
-  const [hoverData, setHoverData] = useState({} as any);
-  const [legendHoverIndex, setLegendHoverIndex] = useState(-1);
+  const [updatedData, setUpdatedData] = useState({} as any);
+  const [highlightedTrace, setHighlightedTrace] = useState(-1);
   const plotRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setHoverData(data);
-  }, [data]);
+  const emphasizeTrace = (trace: any): any => {
+    return {...trace};
+  };
 
-  useLegendHover(plotRef.current, setLegendHoverIndex);
+  const deemphasizeTrace = (trace: any): any => {
+    return {
+      ...trace,
+      marker: {
+        ...trace.marker,
+        opacity: 0.1
+      }
+    };
+  };
+
+  useEffect(() => {
+    if (-1 !== highlightedTrace) {
+      let copy = [...data];
+      for (var i = 0; i < copy.length; i++) {
+        if (i === highlightedTrace) {
+          copy[i] = emphasizeTrace(copy[i]);
+        } else {
+          copy[i] = deemphasizeTrace(copy[i]);
+        }
+      }
+      setUpdatedData(copy);
+    } else {
+      setUpdatedData(data);
+    }
+  }, [data, highlightedTrace]);
+
+  let {attachEventListeners, removeEventListeners} = useLegendHover(
+    plotRef.current,
+    setHighlightedTrace
+  );
+
+  useEffect(() => {
+    return () => removeEventListeners();
+  }, [removeEventListeners]);
 
   return (
     <div ref={plotRef}>
-      <Plot data={hoverData} layout={layout} config={config} />
+      <Plot
+        data={updatedData}
+        layout={layout}
+        config={config}
+        onAfterPlot={attachEventListeners}
+      />
     </div>
   );
 };
