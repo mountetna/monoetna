@@ -1,6 +1,9 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
 
-export function useLegendHover(plot: HTMLDivElement | null) {
+export function useLegendHover(
+  plot: HTMLDivElement | null,
+  onHover: (index: number | undefined) => void
+) {
   const elements = useMemo(() => {
     if (plot) {
       return plot.getElementsByClassName('legendtoggle');
@@ -9,25 +12,19 @@ export function useLegendHover(plot: HTMLDivElement | null) {
     return [];
   }, [plot]);
 
-  const dimOtherTraces = useCallback(
-    (element) => {
-      // Set opacity of the other traces to 0.5
-      for (var i = 0; i < elements.length; i++) {
-        if (elements[i] === element) continue;
-
-        console.log('dimming i', i);
-      }
-    },
-    [elements]
-  );
-
   const onHoverLegendToggle = useCallback(
     (e: any) => {
-      console.log(e);
-      console.log('hovering over a toggle');
-      dimOtherTraces(e.target);
+      let index;
+
+      for (var i = 0; i < elements.length; i++) {
+        if (elements[i] !== e.target) continue;
+
+        index = i;
+        break;
+      }
+      onHover(index);
     },
-    [dimOtherTraces]
+    [onHover, elements]
   );
 
   useEffect(() => {

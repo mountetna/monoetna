@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import Plot from 'react-plotly.js';
 import {useLegendHover} from './plot_effects';
 
@@ -11,13 +11,19 @@ const PlotWithEffects = ({
   layout: any;
   config: any;
 }) => {
+  const [hoverData, setHoverData] = useState({} as any);
+  const [legendHoverIndex, setLegendHoverIndex] = useState(-1);
   const plotRef = useRef<HTMLDivElement>(null);
 
-  useLegendHover(plotRef.current);
+  useEffect(() => {
+    setHoverData(data);
+  }, [data]);
+
+  useLegendHover(plotRef.current, setLegendHoverIndex);
 
   return (
     <div ref={plotRef}>
-      <Plot data={data} layout={layout} config={config} />
+      <Plot data={hoverData} layout={layout} config={config} />
     </div>
   );
 };
