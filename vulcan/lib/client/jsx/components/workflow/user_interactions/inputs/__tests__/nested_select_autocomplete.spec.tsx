@@ -1,7 +1,7 @@
 import React from 'react';
 import {mount, ReactWrapper} from 'enzyme';
 import NestedSelectAutocompleteInput from '../nested_select_autocomplete';
-import {InputSpecification} from "../input_types";
+import {InputSpecification} from '../input_types';
 
 describe('NestedSelectAutocompleteInput', () => {
   let input: InputSpecification;
@@ -9,16 +9,16 @@ describe('NestedSelectAutocompleteInput', () => {
 
   function clickDropdownOption(component: ReactWrapper, optionText: string) {
     component
-        .findWhere((n) => n.text() == optionText)
-        .first()
-        .simulate('click');
+      .findWhere((n) => n.text() == optionText)
+      .first()
+      .simulate('click');
   }
 
   beforeEach(() => {
     input = {
       type: 'doesnotmatter',
-      default: null,
-      label: "Abcdef",
+      value: null,
+      label: 'Abcdef',
       name: 'test-input',
       data: {
         'options-a': {
@@ -28,27 +28,26 @@ describe('NestedSelectAutocompleteInput', () => {
               grandchild1: null,
               grandchild2: null
             }
-          },
+          }
         },
         'options-b': {
           option2: {
             another1: {
               stepchild1: null,
               stepchild2: null
-            },
-          },
+            }
+          }
         }
-      },
+      }
     };
 
     onChange = jest.fn();
   });
 
   it('correctly manages child(ren) selects', () => {
-    const component = mount(<NestedSelectAutocompleteInput
-        input={input}
-        onChange={onChange}
-    />);
+    const component = mount(
+      <NestedSelectAutocompleteInput input={input} onChange={onChange} />
+    );
 
     expect(component.find('input').length).toEqual(1);
     component.find('.icon-wrapper').first().simulate('click');
@@ -86,10 +85,7 @@ describe('NestedSelectAutocompleteInput', () => {
 
   it('returns leaf value or null if not leaf', () => {
     const component = mount(
-        <NestedSelectAutocompleteInput
-            input={input}
-            onChange={onChange}
-        />
+      <NestedSelectAutocompleteInput input={input} onChange={onChange} />
     );
 
     expect(component.find('input').length).toEqual(1);
@@ -121,14 +117,11 @@ describe('NestedSelectAutocompleteInput', () => {
     expect(onChange).toBeCalledWith('test-input', null);
   });
 
-  it('can find an existing path when given a default', () => {
-    input.default = 'stepchild1';
+  it('can find an existing path when given a value', () => {
+    input.value = 'stepchild1';
 
     const component = mount(
-        <NestedSelectAutocompleteInput
-            input={input}
-            onChange={onChange}
-        />
+      <NestedSelectAutocompleteInput input={input} onChange={onChange} />
     );
 
     expect(component.find('input').length).toEqual(3);
@@ -139,14 +132,11 @@ describe('NestedSelectAutocompleteInput', () => {
     ]);
   });
 
-  it('correctly updates dropdowns when given a default', () => {
-    input.default = 'stepchild1';
+  it('correctly updates dropdowns when given a value', () => {
+    input.value = 'stepchild1';
 
     const component = mount(
-        <NestedSelectAutocompleteInput
-            input={input}
-            onChange={onChange}
-        />
+      <NestedSelectAutocompleteInput input={input} onChange={onChange} />
     );
 
     expect(component.find('input').length).toEqual(3);

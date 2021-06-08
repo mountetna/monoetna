@@ -109,8 +109,11 @@ export function allWorkflowInputSources(workflow: Workflow): string[] {
   }, [] as string[]));
 }
 
-export function inputValueNonEmpty(val: any) {
-  return val != null && (typeof val !== "number" || !isNaN(val)) && !_.isEqual(val, ['']) && !_.isEqual(val, []);
+export function inputValueNonEmpty(val: any): boolean {
+  return val != null &&
+    (typeof val !== "number" || !isNaN(val)) &&
+    !_.isEqual(val, ['']) &&
+    !_.isEqual(val, []);
 }
 
 export function allDataNonEmpty(data: ([any] | null)[]) {
@@ -194,7 +197,9 @@ export function isPendingUiQuery(step: WorkflowStep, status: VulcanState['status
 
 export const stepInputDataRaw = (
     step: WorkflowStep,
-    status: VulcanState['status'], data: VulcanState['data'], session: VulcanState['session'],
+    status: VulcanState['status'],
+    data: VulcanState['data'],
+    session: VulcanState['session'],
 ): { [k: string]: any } => {
   // Pull out any previous step's output data link that is a required
   //   input into this UI step.
@@ -369,5 +374,4 @@ export function sortInputsByLabel(inputs: InputSpecification[]): InputSpecificat
   });
 
   return inputs.sort((a, b) => collator.compare(a.label || a.name, b.label || b.name))
-
 }

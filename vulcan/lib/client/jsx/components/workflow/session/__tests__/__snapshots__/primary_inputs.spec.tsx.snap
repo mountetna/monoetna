@@ -45,8 +45,8 @@ exports[`PrimaryInputs renders each type of input 1`] = `
               className="input-help-children-wrapper"
             >
               <input
+                checked={true}
                 className="text_box"
-                defaultChecked={true}
                 onChange={[Function]}
                 type="checkbox"
               />
@@ -84,6 +84,7 @@ exports[`PrimaryInputs renders each type of input 1`] = `
               className="input-help-children-wrapper"
             >
               <input
+                checked={false}
                 className="text_box"
                 onChange={[Function]}
                 type="checkbox"

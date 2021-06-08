@@ -63,9 +63,7 @@ const Segment = function ({sx, sy, radius}) {
           let iy = tween(sy, oy, i / numsegs);
 
           let jitter =
-            1 *
-              // ease
-              (-(cos(PI * (1 - 2 * abs(i / numsegs - 0.5))) - 1) / 2) *
+            (-(cos(PI * (1 - 2 * abs(i / numsegs - 0.5))) - 1) / 2) *
               // basic sin
               sin(counter * pulse + (freq * PI * i) / numsegs) *
               amp +
@@ -95,12 +93,12 @@ const Halo = ({radius}) => {
       ...runningSegments,
       ...(needsSegment ? [new Segment({sx, sy, radius})] : [])
     ]);
-  }, [segments]);
+  }, [radius, segments, sx, sy]);
 
   useEffect(() => {
     const timer = setInterval(updatePath, 50);
     return () => clearInterval(timer);
-  }, [segments]);
+  }, [segments, updatePath]);
 
   return (
     <div className='halo'>

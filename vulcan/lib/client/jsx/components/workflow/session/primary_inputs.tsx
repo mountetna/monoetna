@@ -6,30 +6,30 @@ import {inputGroupName} from '../../../selectors/workflow_selectors';
 import InputGroup from './input_group';
 import {patchInputs} from "../../../actions/vulcan";
 import {InputSpecification} from "../user_interactions/inputs/input_types";
+import {useWorkflow} from "../../../contexts/workflow_context";
 
 export default function PrimaryInputs() {
   const {state, dispatch} = useContext(VulcanContext);
-  const {workflow, session} = state;
-  if (!workflow) return null;
-  if (!workflow.inputs) return null;
+  const {session} = state;
+  const workflow = useWorkflow();
 
   const handleInputChange = useCallback((inputName: string, val: any) => {
     dispatch(patchInputs({
       [inputName]: val,
     }));
-  }, []);
+  }, [dispatch]);
 
   let primaryInputs: InputSpecification[] = useMemo(() => {
     return Object.keys(workflow.inputs).map(name => ({
         ...workflow.inputs[name],
           name,
           label: workflow.inputs[name].label || name,
-          default: [
+          value: [
               session.inputs[name],
               workflow.inputs[name].default
           ].find(a => a != null)
     }))
-  }, []);
+  }, [session.inputs, workflow.inputs]);
 
   let groupedInputs = primaryInputs.reduce((result, input) => {
     let groupName = inputGroupName(input.name);

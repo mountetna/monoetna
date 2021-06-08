@@ -1,4 +1,5 @@
 import {SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
+import {InputValidator} from '../components/workflow/user_interactions/inputs/input_types';
 
 function actionObject<T extends string, P>(type: T, payload: P): { type: T } & P {
     return { ...payload, type };
@@ -49,7 +50,16 @@ export function removeDownloads(stepNames: string[]) {
     return actionObject('REMOVE_DOWNLOADS', {stepNames});
 }
 
+export function addValidationErrors(inputName: string, inputLabel: string, errors: string[]) {
+    return actionObject('ADD_VALIDATION_ERRORS', {inputName, inputLabel, errors});
+}
+
+export function removeValidationErrors(inputName: string) {
+    return actionObject('REMOVE_VALIDATION_ERRORS', {inputName});
+}
+
 export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow> | ReturnType<typeof setStatus> |
     ReturnType<typeof setDownloadedData> | ReturnType<typeof setSession> | ReturnType<typeof setInputs> |
     ReturnType<typeof releaseDownloadedData> | ReturnType<typeof removeInputs> |
-    ReturnType<typeof patchInputs> | ReturnType<typeof removeDownloads>;
+    ReturnType<typeof patchInputs> | ReturnType<typeof removeDownloads> |
+    ReturnType<typeof addValidationErrors> | ReturnType<typeof removeValidationErrors>;

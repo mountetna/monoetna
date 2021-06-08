@@ -24,13 +24,54 @@ exports[`JanusSettings renders 1`] = `
     <div
       className="item"
     >
-      <textarea
-        placeholder="Paste 2048+ bit RSA key in PEM format"
-      />
-      <button
-        onClick={[Function]}
+      <div
+        className="MuiFormControl-root MuiTextField-root makeStyles-text-1"
       >
-        Upload Key
+        <div
+          className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+          onClick={[Function]}
+        >
+          <input
+            aria-invalid={false}
+            autoFocus={false}
+            className="MuiInputBase-input MuiInput-input"
+            disabled={false}
+            onAnimationStart={[Function]}
+            onBlur={[Function]}
+            onChange={[Function]}
+            onFocus={[Function]}
+            placeholder="Paste 2048+ bit RSA key in PEM format"
+            required={false}
+            type="text"
+          />
+        </div>
+      </div>
+      <button
+        className="MuiButtonBase-root MuiButton-root MuiButton-text"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onDragLeave={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex={0}
+        type="button"
+      >
+        <span
+          className="MuiButton-label"
+        >
+          Upload Key
+        </span>
+        <span
+          className="MuiTouchRipple-root"
+        />
       </button>
     </div>
   </div>
@@ -45,22 +86,70 @@ exports[`JanusSettings renders 1`] = `
     <div
       className="item"
     >
-      <select
-        onChange={[Function]}
-        value={null}
+      <div
+        className="MuiInputBase-root MuiInput-root MuiInput-underline makeStyles-text-1"
+        onClick={[Function]}
       >
-        <option
-          disabled={false}
-          value=""
+        <div
+          aria-haspopup="listbox"
+          className="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input"
+          onBlur={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onMouseDown={[Function]}
+          role="button"
+          tabIndex={0}
         >
-           --- 
-        </option>
-      </select>
+          <span
+            dangerouslySetInnerHTML={
+              Object {
+                "__html": "&#8203;",
+              }
+            }
+          />
+        </div>
+        <input
+          aria-hidden={true}
+          className="MuiSelect-nativeInput"
+          onAnimationStart={[Function]}
+          onChange={[Function]}
+          tabIndex={-1}
+          value={null}
+        />
+        <svg
+          aria-hidden={true}
+          className="MuiSvgIcon-root MuiSelect-icon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M7 10l5 5 5-5z"
+          />
+        </svg>
+      </div>
       <button
+        className="MuiButtonBase-root MuiButton-root MuiButton-text Mui-disabled Mui-disabled"
         disabled={true}
+        onBlur={[Function]}
         onClick={null}
+        onDragLeave={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex={-1}
+        type="button"
       >
-        Copy Task Token
+        <span
+          className="MuiButton-label"
+        >
+          Copy Task Token
+        </span>
       </button>
     </div>
   </div>

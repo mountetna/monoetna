@@ -30,12 +30,16 @@ export default function WorkflowManager({workflowName, projectName}: { workflowN
         }
       });
     }
-  }, [workflow]);
+  }, [dispatch, getLocalSession, projectName, workflow]);
+
+  if (!state.workflow) {
+    return null;
+  }
 
   return (
-      <div className='workflow-manager'>
-        <SessionManager/>
-        <StepsList/>
-      </div>
+    <div className='workflow-manager'>
+      <SessionManager/>
+      <StepsList/>
+    </div>
   );
 }

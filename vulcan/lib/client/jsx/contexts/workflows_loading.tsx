@@ -18,5 +18,5 @@ export function useWorkflowsLoading(
             }));
 
         return () => cancellable.cancel();
-    }, [key]);
+    }, [key, dispatch, scheduleWork, getWorkflows]);
 }
