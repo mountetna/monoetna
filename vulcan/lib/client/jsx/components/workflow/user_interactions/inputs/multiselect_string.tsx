@@ -40,6 +40,7 @@ const MultiselectStringInput: InputBackendComponent = ({input, onChange, onClear
       }}
       onAll={onAll}
       onClear={onClear}
+      maxItems={25}
     />
   );
 }

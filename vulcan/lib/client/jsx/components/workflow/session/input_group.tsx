@@ -1,5 +1,8 @@
 import React, {useState, useContext, useEffect, useCallback} from 'react';
 
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import UserInput from '../user_interactions/inputs/user_input';
@@ -37,8 +40,9 @@ export default function InputGroup({inputs, onChange}: {inputs: InputSpecificati
   return (
     <div className='inputs-pane'>
       <div className='header-wrapper'>
-        <div onClick={toggleInputs} className='inputs-pane-header'>
+        <div onClick={toggleInputs} className={`inputs-pane-header toggle ${open ? 'open' : 'closed'}`}>
           <div className='title'>{groupName}</div>
+          {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </div>
         <div className='filler'/>
       </div>
