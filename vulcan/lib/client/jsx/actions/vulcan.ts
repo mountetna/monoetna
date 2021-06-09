@@ -58,8 +58,26 @@ export function removeValidationErrors(inputName: string) {
     return actionObject('REMOVE_VALIDATION_ERRORS', {inputName});
 }
 
+export function startPolling() {
+    return actionObject('MODIFY_POLLING', {delta: 1})
+}
+
+export function finishPolling() {
+    return actionObject('MODIFY_POLLING', {delta: -1})
+}
+
+export function setEdited(source: string) {
+    return actionObject('SET_EDITED', {source});
+}
+
+export function clearEdited(source: string) {
+    return actionObject('CLEAR_EDITED', {});
+}
+
 export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow> | ReturnType<typeof setStatus> |
     ReturnType<typeof setDownloadedData> | ReturnType<typeof setSession> | ReturnType<typeof setInputs> |
     ReturnType<typeof releaseDownloadedData> | ReturnType<typeof removeInputs> |
     ReturnType<typeof patchInputs> | ReturnType<typeof removeDownloads> |
+    ReturnType<typeof setEdited> | ReturnType<typeof clearEdited> |
+    ReturnType<typeof startPolling> | ReturnType<typeof finishPolling> |
     ReturnType<typeof addValidationErrors> | ReturnType<typeof removeValidationErrors>;

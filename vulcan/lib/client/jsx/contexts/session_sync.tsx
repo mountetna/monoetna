@@ -3,13 +3,12 @@ import * as _ from 'lodash';
 import {defaultApiHelpers} from "./api";
 import {Dispatch, MutableRefObject, useCallback, useEffect, useRef, useState} from "react";
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {setSession, setStatus, VulcanAction} from "../actions/vulcan";
+import {finishPolling, setSession, setStatus, startPolling, VulcanAction} from "../actions/vulcan";
 import {SessionStatusResponse, VulcanSession} from "../api_types";
 import {Cancellable} from "etna-js/utils/cancellable";
 import {hasNoRunningSteps} from "../selectors/workflow_selectors";
 
 export const defaultSessionSyncHelpers = {
-  isPolling: false,
   requestPoll(post?: boolean) {
   },
 };
@@ -26,15 +25,18 @@ export function useSessionSync(
     postInputs: typeof defaultApiHelpers.postInputs,
     dispatch: Dispatch<VulcanAction>,
 ): typeof defaultSessionSyncHelpers {
-  const [curPolling, setCurPolling] = useState(0);
   const [_, setCancellable] = useState(new Cancellable());
 
   const requestPoll = useCallback((post = false) => {
     if (!post && hasNoRunningSteps(state.current.status)) {
+      console.log('request to poll ignored, no running steps and not a post');
       return;
     }
 
-    if (!state.current.session.workflow_name) return;
+    if (!state.current.session.workflow_name) {
+      console.log('current session does not have workflow_name set');
+      return;
+    }
 
     const cancellable = new Cancellable();
     setCancellable(c => {
@@ -51,6 +53,7 @@ export function useSessionSync(
         updateFromSessionResponse(result, dispatch);
 
         if (hasNoRunningSteps(state.current.status)) {
+          console.log('running steps have completed, stopping polling');
           return Promise.resolve();
         }
 
@@ -59,17 +62,11 @@ export function useSessionSync(
       });
     }
 
-    setCurPolling(v => v + 1);
-    sync(baseWork).then(r => console.log('finished polling')).finally(() => setCurPolling(v => v - 1));
+    dispatch(startPolling());
+    sync(baseWork).then(r => console.log('finished polling')).finally(() => dispatch(finishPolling()));
   }, [dispatch, pollStatus, postInputs, state]);
 
-  // Kind, of silly.  Just want this useEffect to run once on first mount.  But the linter will complain unless we
-  // wrap the callback in a ref.  we do not want to fire this for every single change to the callback.
-  const requestPollRef = useRef(requestPoll);
-  useEffect(() => requestPollRef.current(), []);
-
   return {
-    isPolling: curPolling > 0,
     requestPoll,
   };
 }

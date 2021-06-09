@@ -28,7 +28,9 @@ export const defaultVulcanState = {
   inputs: defaultInputs,
   session: defaultSession,
   outputs: defaultSessionStatusResponse.outputs,
-  validationErrors: defaultValidationErrors
+  validationErrors: defaultValidationErrors,
+  pollingState: 0,
+  editedSource: null as null | string,
 };
 
 export type VulcanState = Readonly<(typeof defaultVulcanState)>;
@@ -41,6 +43,11 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       return {
         ...state,
         workflows: action.workflows,
+      };
+    case 'MODIFY_POLLING':
+      return {
+        ...state,
+        pollingState: Math.max(state.pollingState + action.delta, 0)
       };
     case 'SET_WORKFLOW':
       const workflowProjects = action.workflow.projects;
@@ -95,6 +102,11 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       };
 
     case "REMOVE_INPUTS":
+      if (state.pollingState) {
+        console.error('cannot change inputs while polling...')
+        return state;
+      }
+
       const removedInputs = {...state.inputs};
       action.inputs.forEach(source => delete removedInputs[source]);
 
@@ -106,6 +118,11 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
 
 
     case 'SET_INPUTS':
+      if (state.pollingState) {
+        console.error('cannot change inputs while polling...')
+        return state;
+      }
+
       return {
         ...state,
         inputs: action.inputs,
@@ -113,6 +130,11 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       }
 
     case 'PATCH_INPUTS':
+      if (state.pollingState) {
+        console.error('cannot change inputs while polling...')
+        return state;
+      }
+
       const updatedInputs = unsetDependentInputs(action.inputs, {...state.inputs, ...action.inputs}, state.workflow);
 
       return {

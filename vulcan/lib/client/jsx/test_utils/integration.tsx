@@ -32,6 +32,11 @@ export function integrateElement(Element: () => ReactElement | null, {
   let reduxState: any = {};
   let waiters: Function[] = [];
 
+  providerOverrides = {
+    ...providerOverrides,
+    getWorkflows: defaultContext.getWorkflows,
+  }
+
   function updateMatching(pred: () => boolean): Promise<void> {
     return new Promise((resolve, reject) => {
       let timedOut = false;

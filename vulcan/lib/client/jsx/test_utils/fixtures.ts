@@ -10,6 +10,7 @@ import {
     Workflow, WorkflowsResponse,
     WorkflowStep
 } from "../api_types";
+import {VulcanState} from "../reducers/vulcan_reducer";
 
 export function createWorkflowFixture(workflow: Partial<Workflow>): Workflow {
     return { ...workflowsResponse['workflows'][0], projects: ['test'], ...workflow };
@@ -30,6 +31,16 @@ export function createStatusFixture(workflow: Workflow, ...statusPatches: Partia
       return {...defaultStepStatus, name: step.name };
     })];
 }
+export function createUpdatedStatusFixture(workflow: Workflow, status: VulcanState['status'], ...statusPatches: Partial<StepStatus>[]): [StepStatus[]] {
+    return [workflow.steps[0].map(step => {
+        const patch = statusPatches.find(({name}) => name === step.name);
+        if (patch) return {...defaultStepStatus, ...patch};
+        const original = status[0].find(({name}) => name === step.name);
+        if (original) return original;
+        return {...defaultStepStatus, name: step.name };
+    })];
+}
+
 
 export function createStatusResponseFixture(response: Partial<SessionStatusResponse>): SessionStatusResponse {
     return {...defaultSessionStatusResponse, ...response};

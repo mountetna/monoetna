@@ -18,14 +18,14 @@ import {
 export function useInputStateManagement(
   state: VulcanState,
   dispatch: Dispatch<VulcanAction>,
-  statusIsFresh: boolean
+  isPolling: boolean
 ) {
   const {inputs, workflow, status, data, session} = state;
   const {inputs: sessionInputs} = session;
 
   useEffect(() => {
     if (workflow == null) return;
-    if (!statusIsFresh) return;
+    if (isPolling) return;
     const inputDeletes: {[k: string]: true} = {};
     const downloadDeletes: {[k: string]: true} = {};
     const stepsWithDownloads: {[k: string]: true} = {};
@@ -69,7 +69,7 @@ export function useInputStateManagement(
 
     d = Object.keys(downloadDeletes);
     if (d.length > 0) dispatch(removeDownloads(d));
-  }, [inputs, workflow, status, data, sessionInputs, statusIsFresh, dispatch]);
+  }, [inputs, workflow, status, data, sessionInputs, isPolling, dispatch]);
 
   // We inject a `null` input into state.inputs,
   //   to indicate that we're waiting for a user input value

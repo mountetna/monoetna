@@ -20,7 +20,7 @@ export const defaultContext = {
 export type VulcanContextData = typeof defaultContext;
 export const VulcanContext = createContext(defaultContext);
 export type VulcanContext = typeof VulcanContext;
-export type ProviderProps = { params?: {}, storage?: typeof localStorage, wrapper?: [Function, Function], children: any };
+export type ProviderProps = { params?: {}, storage?: typeof localStorage, logActions?: boolean, wrapper?: [Function, Function], children: any };
 
 // Existing mostly to down type the return result into A from potentially inferring A & B
 function withOverrides<A, B extends Partial<A>, K extends keyof A>(base: A, overrides: B): A {
@@ -35,7 +35,12 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
     const actionInvokerHelpers = withOverrides({useActionInvoker}, props);
     const stateRef = useRef(props.state || defaultContext.state);
     const [state, dispatch] = useReducer(function (state: VulcanState, action: VulcanAction) {
+      if (props.logActions) {
+        console.log(action.type, action);
+      }
+
       const result = VulcanReducer(state, action);
+
       stateRef.current = result;
       return result;
     }, stateRef.current);
@@ -47,10 +52,11 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
     );
     const dataBufferingHelpers = useDataBuffering(state, dispatch, scheduleWork, getData);
     useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, scheduleWork);
-    useInputStateManagement(state, dispatch, sessionSyncHelpers.statusIsFresh);
+    useInputStateManagement(state, dispatch, state.pollingState > 0);
 
     return (<VulcanContext.Provider value={{
       state,
+
       stateRef,
       dispatch, ...actionInvokerHelpers, ...localSessionHelpers, ...apiHelpers, ...sessionSyncHelpers, ...dataBufferingHelpers,
     }}>

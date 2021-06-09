@@ -1,6 +1,6 @@
 import {integrateElement} from "../../test_utils/integration";
 import {act} from "react-test-renderer";
-import {patchInputs, setStatus, setWorkflow} from "../../actions/vulcan";
+import {patchInputs, setStatus, setWorkflow, startPolling} from "../../actions/vulcan";
 import {
   createStatusFixture,
   createStepFixture,
@@ -13,7 +13,6 @@ describe('useInputStateManagement', () => {
     const overrides = {
       getWorkflows: defaultContext.getWorkflows,
       pollStatus: defaultContext.pollStatus,
-      statusIsFresh: true,
     };
 
     const {contextData, dispatch, setData, replaceOverrides} = integrateElement(() => null, {
@@ -107,16 +106,6 @@ describe('useInputStateManagement', () => {
     expect(contextData.state.session.inputs).toEqual({
       "a": 10,
       "b": 20,
-    });
-
-    // Allow invalid states while status is till being fetched.
-    replaceOverrides({...overrides, statusIsFresh: false});
-
-    await dispatch(patchInputs({ 'query2/result': 33 }));
-    expect(contextData.state.session.inputs).toEqual({
-      "a": 10,
-      "b": 20,
-      "query2/result": 33,
     });
   })
 })
