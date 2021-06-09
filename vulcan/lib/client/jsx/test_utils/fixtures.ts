@@ -41,9 +41,16 @@ export function createUpdatedStatusFixture(workflow: Workflow, status: VulcanSta
     })];
 }
 
-
 export function createStatusResponseFixture(response: Partial<SessionStatusResponse>): SessionStatusResponse {
     return {...defaultSessionStatusResponse, ...response};
+}
+
+export function createUpdatedStatusResponseFixture(state: VulcanState, response: Partial<SessionStatusResponse>): SessionStatusResponse {
+    return {
+        ...defaultSessionStatusResponse,
+        session: {...state.session, ...(response.session || {})},
+        status: response.status || state.status,
+    };
 }
 
 export function findWorkflowFromResponse(response: WorkflowsResponse, n: string): Workflow {

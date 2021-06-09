@@ -5,7 +5,7 @@ import {createStatusFixture, createStepStatusFixture, createUpdatedStatusFixture
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {VulcanContextData} from "../contexts/vulcan_context";
 
-export class WorkflowBuilder {
+export class WorkflowUtils {
   public workflow: Readonly<Workflow> = defaultWorkflow;
   public steps: { [k: string]: WorkflowStep } = {};
 
@@ -14,7 +14,11 @@ export class WorkflowBuilder {
 
   // combine with the result of integrateElement.
   static fromSetup({dispatch, contextData}: { dispatch: (action: VulcanAction) => Promise<void>, contextData: VulcanContextData }) {
-    return new WorkflowBuilder(dispatch, contextData.stateRef);
+    return new WorkflowUtils(dispatch, contextData.stateRef);
+  }
+
+  get status() {
+    return this.stateRef.current.status;
   }
 
   async setWorkflow(name: string, workflow: Partial<Workflow> = {},

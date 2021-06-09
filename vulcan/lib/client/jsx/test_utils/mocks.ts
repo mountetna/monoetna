@@ -1,3 +1,5 @@
+import {act} from "react-test-renderer";
+
 export function createFakeStorage(): Storage {
   const storage: { [k: string]: string } = {};
 
@@ -24,7 +26,7 @@ export function createFakeStorage(): Storage {
   }
 }
 
-export type PromiseArgs<R> = [(r: R) => void, (e: any) => void];
+export type PromiseArgs<R> = [(r: R) => Promise<void>, (e: any) => Promise<void>];
 export class AsyncMock<R> {
   constructor(public jestMock: jest.Mock, private promiseArgs: PromiseArgs<R>[]) {
   }
@@ -59,7 +61,7 @@ export function asyncFn<R>(): AsyncMock<R> {
 
   mock.mockImplementation((...args: any[]) => {
     return new Promise<R>((resolve, reject) => {
-      promiseArgs.push([resolve, reject]);
+      promiseArgs.push([(v) => act(async () => resolve(v)), (e) => act(async () => reject(e))]);
     })
   });
 
