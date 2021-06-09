@@ -4,8 +4,8 @@ import {InputValidator, InputSpecification} from '../input_types';
 import {inputValueNonEmpty} from '../../../../../selectors/workflow_selectors';
 import {flattenOptions} from '../multiple_multiselect_string_all';
 
-const _AllInnerValuesNotEmptyValidator: InputValidator = (
-  input: InputSpecification, strong = false
+const _AllInnerValuesNotEmptyValidator = (
+  input: InputSpecification, strong = false 
 ): string[] => {
   // input.value should be nested hash, like
   // {experiment: [list,of,options], tissue: [other,choices]}
