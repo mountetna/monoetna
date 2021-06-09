@@ -1,5 +1,8 @@
 import React from 'react';
-import AllInnerValuesNotEmptyValidator from '../all_inner_values_not_empty_validator';
+import {
+  AllInnerValuesNotEmptyValidator,
+  AllInnerValuesNotEmptyValidatorStrong
+} from '../all_inner_values_not_empty_validator';
 import {InputSpecification} from '../../input_types';
 
 describe('AllInnerValuesNotEmptyValidator', () => {
@@ -47,6 +50,16 @@ describe('AllInnerValuesNotEmptyValidator', () => {
   it('reports errors for hashes with array values with empty strings', () => {
     input.value = {experiment: [''], tissue: ['']};
     expect(AllInnerValuesNotEmptyValidator(input).length > 0).toEqual(true);
+  });
+
+  it('reports no errors for hashes with empty strings normally', () => {
+    input.value = {experiment: '', tissue: '1'};
+    expect(AllInnerValuesNotEmptyValidator(input).length === 0).toEqual(true);
+  });
+
+    it('reports errors for hashes with empty strings when Strong', () => {
+    input.value = {experiment: '', tissue: '1'};
+    expect(AllInnerValuesNotEmptyValidatorStrong(input).length > 0).toEqual(true);
   });
 
   it('reports no errors for well-formed hash', () => {
