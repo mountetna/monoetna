@@ -4,8 +4,8 @@ import {InputValidator, InputSpecification} from '../input_types';
 import {inputValueNonEmpty} from '../../../../../selectors/workflow_selectors';
 import {flattenOptions} from '../multiple_multiselect_string_all';
 
-const AllInnerValuesNotEmptyValidator: InputValidator = (
-  input: InputSpecification
+const _AllInnerValuesNotEmptyValidator: InputValidator = (
+  input: InputSpecification, strong = false
 ): string[] => {
   // input.value should be nested hash, like
   // {experiment: [list,of,options], tissue: [other,choices]}
@@ -18,7 +18,7 @@ const AllInnerValuesNotEmptyValidator: InputValidator = (
 
     return Object.keys(allOptions)
       .filter(
-        (o: string) => !(o in input.value) || !inputValueNonEmpty(input.value[o])
+        (o: string) => !(o in input.value) || !inputValueNonEmpty(input.value[o], strong)
       ).sort()
   }
 
@@ -33,6 +33,18 @@ const AllInnerValuesNotEmptyValidator: InputValidator = (
   }
 
   return [];
+};
+
+export const AllInnerValuesNotEmptyValidator: InputValidator = (
+  input: InputSpecification
+): string[] => {
+  return _AllInnerValuesNotEmptyValidator(input, false);
+};
+
+export const AllInnerValuesNotEmptyValidatorStrong: InputValidator = (
+  input: InputSpecification
+): string[] => {
+  return _AllInnerValuesNotEmptyValidator(input, true);
 };
 
 export default AllInnerValuesNotEmptyValidator;
