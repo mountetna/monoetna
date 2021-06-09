@@ -44,15 +44,21 @@ describe('useSessionSync', () => {
         contextData.requestPoll();
       });
 
-      console.log('ok, awaiting call...')
       const [_, args] = await call;
       expect(args[0]).toBe(contextData.stateRef.current.session)
     })
 
+    describe('ongoing polling', () => {
+
+    });
+
     describe('when there is no running step status', () => {
+      beforeEach(async () => {
+        await workflowBuilder.setStatus('testStep', 'error');
+      })
+
       it('does not continue to poll', async () => {
         const {contextData} = setup;
-        const call = pollStatusMock.awaitCall(true);
 
         await act(async () => {
           contextData.requestPoll();
@@ -65,7 +71,6 @@ describe('useSessionSync', () => {
       describe('but the request is a post', () => {
         it('does post', async () => {
           const {contextData} = setup;
-          const call = pollStatusMock.awaitCall(true);
 
           await act(async () => {
             contextData.requestPoll(true);
