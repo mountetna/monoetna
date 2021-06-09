@@ -12,8 +12,10 @@ describe UploadController do
 
     @metis_uid = Metis.instance.sign.uid
 
-    set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}"
+    set_cookie "#{Metis.instance.config(:metis_uid_name)}=#{@metis_uid}" if set_metis_uid
   end
+
+  let(:set_metis_uid) { true }
 
   after(:each) do
     stubs.clear
@@ -251,6 +253,27 @@ describe UploadController do
         project_name: 'athena',
         file_name: 'wisdom.txt'
       )
+    end
+
+    describe 'when a metis_uid is not set' do
+      let(:set_metis_uid) { false }
+
+      it 'gracefully handles a lack of a metis_uid' do
+        # we attempt to initiate a new upload
+        hmac_header
+        json_post(
+          upload_path('athena', 'wisdom.txt'),
+          action: 'start',
+          file_size: WISDOM.length,
+          next_blob_size: 10,
+          next_blob_hash: 'defabc'
+        )
+
+        expect(last_response.status).to eq(422)
+        expect(json_body).to eq({
+          error: "metis_uid not set, did you forget to configure metis_uid to METIS_TEST_UID?"
+        })
+      end
     end
 
     context 'when reset=true and the upload exists' do

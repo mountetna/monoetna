@@ -11,7 +11,7 @@ exports[`PrimaryInputs renders each type of input 1`] = `
       className="header-wrapper"
     >
       <div
-        className="inputs-pane-header"
+        className="inputs-pane-header toggle open"
         onClick={[Function]}
       >
         <div
@@ -19,6 +19,16 @@ exports[`PrimaryInputs renders each type of input 1`] = `
         >
           Inputs
         </div>
+        <svg
+          aria-hidden={true}
+          className="MuiSvgIcon-root"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"
+          />
+        </svg>
       </div>
       <div
         className="filler"
