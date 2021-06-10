@@ -29,7 +29,6 @@ const MultipleStringInput: InputBackendComponent = ({
   const updateLabel = (newValue: string, key: string, prevLabels = input.value) => {
     prevLabels[key] = newValue;
     onChange(name, prevLabels);
-    console.log(input.value);
   };
 
   if (null == input.value) return null;
@@ -39,6 +38,7 @@ const MultipleStringInput: InputBackendComponent = ({
       {Object.entries(input.value).map(([k, val]) => {
         return (
           <TextInput
+            key={k}
             header={k}
             value={val || ''}
             onChange={(newValue: string) => updateLabel(newValue, k)}
