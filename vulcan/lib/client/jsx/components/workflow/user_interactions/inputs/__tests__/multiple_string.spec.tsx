@@ -80,9 +80,10 @@ describe('MultipleStringInput', () => {
       <MultipleStringInput input={input} onChange={onChange} />
     );
 
-    component.find('TextInput').first().simulate('change', {
-      target: { value: 'T-thing' }
-    })
+    component
+      .find('.ti-input')
+      .first()
+      .simulate('change', { target : { value: 'T-thing' } } )
     expect(onChange).toHaveBeenCalledWith('test-input', {
       1: 'T-thing',
       2: '2',
