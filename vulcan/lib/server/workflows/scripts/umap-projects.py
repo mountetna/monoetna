@@ -24,6 +24,7 @@ project_data = {
 			#   Cluster, Tube, and Gene are standard options that do not need to be added here!
 			'Experiment': 'experiment#alias',
 			'Tissue': 'biospecimen_group#biospecimen_type',
+			'Fraction': 'sc_seq#cell_fraction',
 			'Pool': 'sc_seq_pool#::identifier',
 			'Biospecimen Group': 'biospecimen_group#::identifier',
 		},
