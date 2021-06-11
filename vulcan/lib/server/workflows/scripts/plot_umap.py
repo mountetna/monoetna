@@ -1,9 +1,9 @@
 from archimedes.functions.dataflow import output_path, input_path, input_var, json, input_json, buildTargetPath
-from archimedes.functions.utils import re
+from archimedes.functions.utils import do_call
 from archimedes.functions.scanpy import scanpy as sc
 from archimedes.functions.plotting import px, pio, colors
 from archimedes.functions.magma import connect, question
-from archimedes.functions.list import flatten
+from archimedes.functions.list import flatten, unique, order
 from archimedes.functions.environment import project_name
 from archimedes.functions.utils import pandas as pd
 
@@ -55,29 +55,32 @@ else:
     color = None
 
 ##### OUTPUT
+plot_args = {
+    'data_frame': scdata.obsm['X_umap'],
+    'x':0, 'y':1,
+    'color_discrete_sequence': colors,
+    'color': color
+    }
+
+# if 'color is dicrete'
+plot_args['category_orders'] = {'color': order(unique(color)) }
+
 if custom_tooltip:
     dat = pd.DataFrame(scdata.obsm['X_umap'])
     dat[hover_name] = hover_text
-    fig = px.scatter(
-        dat, x=0, y=1,
-        color_discrete_sequence=colors,
-        color=color,
-        hover_data=[hover_name]
-        )
-else:
-    fig = px.scatter(
-        scdata.obsm['X_umap'], x=0, y=1,
-        color_discrete_sequence=colors,
-        color=color)
+    plot_args['data_frame'] = dat
+    plot_args['hover_data'] = [hover_name]
+
+fig = do_call(px.scatter, plot_args)
 
 fig.update_layout(
-    xaxis_title='UMAP0',
-    yaxis_title='UMAP1',
+    xaxis_title='UMAP1',
+    yaxis_title='UMAP2',
     legend_title=color_by
 )
 fig.update_coloraxes(colorbar_title_text=color_by)
 
-fig.update_traces(marker={'size': 5, 'opacity': 0.5})
+fig.update_traces(marker={'size': 5})
 
 with open(output_path('umap.plotly.json'), 'w') as output_file:
     json.dump(json.loads(pio.to_json(fig)), output_file)
