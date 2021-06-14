@@ -266,6 +266,8 @@ class MetisClient < Client
       raise e
     rescue Errno::ECONNREFUSED => e
       return retry_blob(upload_path, upload, blob, retries)
+    rescue Net::OpenTimeout => e
+      return retry_blob(upload_path, upload, blob, retries)
     end
 
     if response.code == '503' || response.code == '502'
