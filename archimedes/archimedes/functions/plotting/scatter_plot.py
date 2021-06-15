@@ -39,13 +39,15 @@ def scatter_plotly(
     px_args['color'] = color_by
     px_args['color_discrete_sequence'] = color_panel
 
+    # Set legend key order.
     # FUTURE! Make this work for bool too.  And maybe other types
     if not all(map(lambda x: isinstance(x, str), data_frame[color_by])):
         color_order_legend = 'unordered'
-    if (color_order_legend == 'increasing'):
-        px_args['category_orders'] = {color_by: order(unique(data_frame[color_by])) }
-    elif (color_order_legend == 'decreasing'):
-        px_args['category_orders'] = {color_by: order(unique(data_frame[color_by]).reverse()) }
+    if (color_order_legend == 'increasing' or 'decreasing'):
+        categories = order(unique(data_frame[color_by]))
+        px_args['category_orders'] = { color_by: categories }
+    if (color_order_legend == 'decreasing'):
+        px_args['category_orders'] = { color_by: list(reversed(categories)) }
     
     # Make plot
     fig = do_call(px.scatter, px_args)
