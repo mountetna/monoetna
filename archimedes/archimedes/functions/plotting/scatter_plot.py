@@ -1,6 +1,6 @@
 import plotly.express as px
 
-from .utils import *
+from .utils import _default_to_if_None_and_logic
 from .colors import colors
 from ..utils import do_call
 from ..list import unique, order
