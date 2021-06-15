@@ -1,5 +1,6 @@
 import plotly.express as px
 
+from .utils import *
 from .colors import colors
 from ..utils import do_call
 from ..list import unique, order
@@ -23,14 +24,10 @@ def scatter_plotly(
     """
 
     # Parse dependent defaults (given 'None' b/c python)
-    def fill_by_if_None_and_logic(this, fill, logic = True):
-        if (this == None and logic):
-            return fill
-        return this
-    xlab = fill_by_if_None_and_logic(xlab, x_by)
-    ylab = fill_by_if_None_and_logic(ylab, y_by)
-    plot_title = fill_by_if_None_and_logic(plot_title, color_by)
-    legend_title = fill_by_if_None_and_logic(legend_title, color_by)
+    xlab = _default_to_if_None_and_logic(xlab, x_by)
+    ylab = _default_to_if_None_and_logic(ylab, y_by)
+    plot_title = _default_to_if_None_and_logic(plot_title, color_by)
+    legend_title = _default_to_if_None_and_logic(legend_title, color_by)
 
     # Add to px_args (Can probably remove this section once I learn python syntax better!)
     px_args['data_frame'] = data_frame
