@@ -264,7 +264,7 @@ class MetisClient < Client
         return retry_blob(upload_path, upload, blob, retries)
       end
       raise e
-    rescue Errno::ECONNREFUSED => e
+    rescue Errno::ECONNREFUSED, Errno::ECONNRESET, Net::OpenTimeout  => e
       return retry_blob(upload_path, upload, blob, retries)
     end
 
