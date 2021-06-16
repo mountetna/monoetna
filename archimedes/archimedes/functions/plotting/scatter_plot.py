@@ -9,7 +9,8 @@ def scatter_plotly(
     data_frame, x_by: str, y_by: str, color_by: str,
     px_args: dict = {},
     size = 5, color_panel: list = colors,
-    color_order_legend: str = 'increasing',
+    color_order: str = 'increasing',
+    order_when_continuous_color: bool = False,
     plot_title: str = None, legend_title: str = None,
     xlab: str = None, ylab: str = None
     ):
@@ -19,7 +20,8 @@ def scatter_plotly(
     'px_args' should be a dictionary of additional bits to send in the 'plotly.express.scatter' call.
     'size' sets the size of points.  Can be either a number directly or the name of a column of 'data_frame'.
     'color_panel' (string list) sets the colors when 'color_by' references discrete data
-    'color_order_legend' ('increasing', 'decreasing', or 'unordered') sets the ordering of keys in the legend, when 'color_by' references discrete data
+    'order_when_continuous_color'  sets the ordering of data points from back to front.
+    'color_order' ('increasing', 'decreasing', or 'unordered') sets the ordering of keys in the legend, when 'color_by' references discrete data
     'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
     """
 
@@ -37,14 +39,17 @@ def scatter_plotly(
     px_args['color_discrete_sequence'] = color_panel
 
     # Set legend key order.
-    # FUTURE! Make this work for bool too.  And maybe other types
-    if not all(map(lambda x: isinstance(x, str), data_frame[color_by])):
-        color_order_legend = 'unordered'
-    if (color_order_legend == 'increasing' or 'decreasing'):
+    discrete_color = any(map(lambda x: isinstance(x, (str, bool)), data_frame[color_by]))
+    if (color_order == 'increasing' or 'decreasing'):
         categories = order(unique(data_frame[color_by]))
-        px_args['category_orders'] = { color_by: categories }
-    if (color_order_legend == 'decreasing'):
-        px_args['category_orders'] = { color_by: list(reversed(categories)) }
+        if (color_order == 'increasing'):
+            px_args['category_orders'] = { color_by: categories }
+            if order_when_continuous_color and not discrete_color:
+                px_args['data_frame'] = data_frame.iloc[ order(data_frame[color_by], return_indexes=True) ]
+        else:
+            px_args['category_orders'] = { color_by: list(reversed( categories )) }
+            if order_when_continuous_color and not discrete_color:
+                px_args['data_frame'] = data_frame.iloc[ list(reversed( order(data_frame[color_by], return_indexes=True) )) ]
     
     # Make plot
     fig = do_call(px.scatter, px_args)

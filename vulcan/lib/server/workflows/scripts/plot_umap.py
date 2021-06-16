@@ -70,6 +70,8 @@ fig = scatter_plotly(
     px_args = px_args,
     xlab = 'UMAP1',
     ylab = 'UMAP2',
+    color_order = 'increasing',
+    order_when_continuous_color = True,
     size = 5)
 
 with open(output_path('umap.plotly.json'), 'w') as output_file:
