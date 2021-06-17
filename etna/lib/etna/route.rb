@@ -1,4 +1,5 @@
 require 'digest'
+require 'date'
 
 module Etna
   class Route
@@ -80,7 +81,7 @@ module Etna
       return "unknown" unless @action
       secret = Etna::Application.instance.config(:user_hash_secret) || 'notsosecret'
       controller, action = @action.split('#')
-      Digest::MD5.hexdigest(email + secret + controller + action)
+      Digest::MD5.hexdigest(email + secret + controller + action + Date.today.to_s)
     end
 
     def try_yabeda(request, &block)
