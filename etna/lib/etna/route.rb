@@ -77,8 +77,10 @@ module Etna
     end
 
     def hash_user_email(email)
+      return "unknown" unless @action
       secret = Etna::Application.instance.config(:user_hash_secret) || 'notsosecret'
-      Digest::MD5.hexdigest(email + secret)
+      controller, action = @action.split('#')
+      Digest::MD5.hexdigest(email + secret + controller + action)
     end
 
     def try_yabeda(request, &block)
