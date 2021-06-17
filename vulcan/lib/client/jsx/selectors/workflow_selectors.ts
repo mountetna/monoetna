@@ -109,11 +109,12 @@ export function allWorkflowInputSources(workflow: Workflow): string[] {
   }, [] as string[]));
 }
 
-export function inputValueNonEmpty(val: any): boolean {
+export function inputValueNonEmpty(val: any, disallow_empty_string = false): boolean {
   return val != null &&
     (typeof val !== "number" || !isNaN(val)) &&
     !_.isEqual(val, ['']) &&
-    !_.isEqual(val, []);
+    !_.isEqual(val, []) &&
+    (!disallow_empty_string || !_.isEqual(val, ''));
 }
 
 export function allDataNonEmpty(data: ([any] | null)[]) {

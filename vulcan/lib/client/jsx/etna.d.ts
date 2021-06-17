@@ -102,6 +102,10 @@ declare module 'etna-js/components/inputs/slow_text_input' {
   export default function SlowTextInput(...args: any[]): any;
 }
 
+declare module 'etna-js/components/inputs/text_input' {
+  export default function TextInput(...args: any[]): any;
+}
+
 declare module 'etna-js/components/inputs/select_input' {
   type Value = string | { text: string, value: any }
   export default function SelectInput(props: { showNone?: 'disabled' | boolean, defaultValue?: any, values: Value[], onChange: (v: any) => void }): any;

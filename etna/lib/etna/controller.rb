@@ -19,25 +19,30 @@ module Etna
       @logger.warn(request_msg(line))
     end
 
+    def handle_error(e)
+      case e
+      when Etna::Error
+        Rollbar.error(e)
+        @logger.error(request_msg("Exiting with #{e.status}, #{e.message}"))
+        return failure(e.status, error: e.message)
+      else
+        Rollbar.error(e)
+        @logger.error(request_msg('Caught unspecified error'))
+        @logger.error(request_msg(e.message))
+        e.backtrace.each do |trace|
+          @logger.error(request_msg(trace))
+        end
+        return failure(500, error: 'Server error.')
+      end
+    end
+
     def response(&block)
       return instance_eval(&block) if block_given?
-
       return send(@action) if @action
 
-
       [501, {}, ['This controller is not implemented.']]
-    rescue Etna::Error => e
-      Rollbar.error(e)
-      @logger.error(request_msg("Exiting with #{e.status}, #{e.message}"))
-      return failure(e.status, error: e.message)
     rescue Exception => e
-      Rollbar.error(e)
-      @logger.error(request_msg('Caught unspecified error'))
-      @logger.error(request_msg(e.message))
-      e.backtrace.each do |trace|
-        @logger.error(request_msg(trace))
-      end
-      return failure(500, error: 'Server error.')
+      handle_error(e)
     end
 
     def require_params(*params)
