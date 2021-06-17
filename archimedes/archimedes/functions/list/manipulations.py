@@ -1,10 +1,11 @@
 from collections.abc import Iterable
+from typing import List, Union
 import re 
 
-def unique(ls):
+def unique(ls: list):
     return list(dict.fromkeys(ls))
 
-def flatten(ls):
+def flatten(ls: list):
     def _flatten(l):
         for el in l:
             if isinstance(el, Iterable) and not isinstance(el, (str, bytes)):
@@ -13,14 +14,14 @@ def flatten(ls):
                 yield el
     return list(_flatten(ls))
 
-def order_num(ls: list, return_indexes: bool = False):
+def order_num(ls: List[Union[int, float]], return_indexes: bool = False):
     if return_indexes:
         ret = 0
     else:
         ret = 1
     return list(i[ret] for i in sorted(enumerate(ls), key = lambda x:x[1]))
 
-def order_str(ls: list, return_indexes: bool = False): 
+def order_str(ls: List[str], return_indexes: bool = False): 
     """ Sort a string iterable in the way that humans expect.""" 
     convert = lambda text: int(text) if text.isdigit() else text 
     alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key[1].lower()) ]

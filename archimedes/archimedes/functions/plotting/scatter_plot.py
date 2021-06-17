@@ -2,7 +2,6 @@ import plotly.express as px
 
 from .utils import _default_to_if_None_and_logic
 from .colors import colors
-from ..utils import do_call
 from ..list import unique, order
 
 def scatter_plotly(
@@ -52,7 +51,7 @@ def scatter_plotly(
                 px_args['data_frame'] = data_frame.iloc[ list(reversed( order(data_frame[color_by], return_indexes=True) )) ]
     
     # Make plot
-    fig = do_call(px.scatter, px_args)
+    fig = px.scatter(**px_args)
 
     fig.update_layout(
         title_text=plot_title,
