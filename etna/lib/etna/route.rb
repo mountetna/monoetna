@@ -83,6 +83,8 @@ module Etna
 
       if @name
         digest += @name
+      else
+        digest += @route
       end
 
       Digest::MD5.hexdigest(digest)
@@ -94,6 +96,9 @@ module Etna
       elsif @name
         controller = "none"
         action = @name
+      else
+        controller = "none"
+        action = @route
       end
 
       user = request.env['etna.user']
