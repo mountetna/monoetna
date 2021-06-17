@@ -1,3 +1,5 @@
+require 'digest'
+
 module Etna
   class Route
     attr_reader :name
@@ -58,6 +60,41 @@ module Etna
     end
 
     def call(app, request)
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+
+      try_yabeda(request)  do |tags|
+        Yabeda.etna.visits.increment(tags)
+      end
+
+      begin
+        process_call(app, request)
+      ensure
+        try_yabeda(request) do |tags|
+          dur = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+          Yabeda.etna.response_time.measure(tags, dur)
+        end
+      end
+    end
+
+    def hash_user_email(email)
+      secret = Etna::Application.instance.config(:user_hash_secret) || 'notsosecret'
+      Digest::MD5.hexdigest(email + secret)
+    end
+
+    def try_yabeda(request, &block)
+      return unless @action
+      controller, action = @action.split('#')
+      user = request.env['etna.user']
+      user_hash = user ? hash_user_email(user.email) : 'unknown'
+
+      begin
+        block.call({ controller: controller, action: action, user_hash: user_hash })
+      rescue => e
+        raise e unless Etna::Application.instance.environment == :production
+      end
+    end
+
+    def process_call(app, request)
       update_params(request)
 
       unless authorized?(request)
