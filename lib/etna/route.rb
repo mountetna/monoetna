@@ -78,20 +78,40 @@ module Etna
     end
 
     def hash_user_email(email)
-      return "unknown" unless @action
       secret = Etna::Application.instance.config(:user_hash_secret) || 'notsosecret'
-      controller, action = @action.split('#')
-      Digest::MD5.hexdigest(email + secret + controller + action + Date.today.to_s)
+      digest = email + secret + Date.today.to_s
+
+      if @name
+        digest += @name.to_s
+      else
+        digest += @route.to_s
+      end
+
+      Digest::MD5.hexdigest(digest)
     end
 
     def try_yabeda(request, &block)
-      return unless @action
-      controller, action = @action.split('#')
+      if @action
+        controller, action = @action.split('#')
+      elsif @name
+        controller = "none"
+        action = @name
+      else
+        controller = "none"
+        action = @route
+      end
+
+      params = request.env['rack.request.params']
       user = request.env['etna.user']
       user_hash = user ? hash_user_email(user.email) : 'unknown'
+      project_name = "unknown"
+
+      if params && (params.include?(:project_name) || params.include?('project_name'))
+        project_name = params[:project_name] || params['project_name']
+      end
 
       begin
-        block.call({ controller: controller, action: action, user_hash: user_hash })
+        block.call({ controller: controller, action: action, user_hash: user_hash, project_name: project_name })
       rescue => e
         raise e unless Etna::Application.instance.environment == :production
       end

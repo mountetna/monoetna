@@ -80,13 +80,13 @@ module Etna::Application
         histogram :response_time do
           comment "Time spent by a controller returning a response"
           unit :seconds
-          tags [:controller, :action, :user_hash]
+          tags [:controller, :action, :user_hash, :project_name]
           buckets [0.01, 0.1, 0.3, 0.5, 1, 5]
         end
 
         counter :visits do
           comment "Counts visits to the controller"
-          tags [:controller, :action, :user_hash]
+          tags [:controller, :action, :user_hash, :project_name]
         end
 
         counter :rollbar_errors do
