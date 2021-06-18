@@ -60,12 +60,61 @@ module Etna::Application
     end
   end
 
+  # This will cause metrics to persist to a file.
+  # NOTE -- /tmp/metrics.bin should be a persistent mount when using this.
+  # You will still need to export metrics in the text format for the node_exporter on the host machine to
+  # export them to prometheus.  Ensure that the /tmp/metrics.bin is on a named volume or a bind mount, either is fine.
+  def enable_job_metrics!
+    require 'prometheus'
+    Prometheus::Client.config.data_store = Prometheus::Client::DataStores::DirectFileStore.new({
+      dir: "/tmp/metrics.bin"
+    })
+  end
+
   def setup_yabeda
+    application = self.id
+    Yabeda.configure do
+      default_tag :application, application
+
+      group :etna do
+        histogram :response_time do
+          comment "Time spent by a controller returning a response"
+          unit :seconds
+          tags [:controller, :action, :user_hash, :project_name]
+          buckets [0.01, 0.1, 0.3, 0.5, 1, 5]
+        end
+
+        counter :visits do
+          comment "Counts visits to the controller"
+          tags [:controller, :action, :user_hash, :project_name]
+        end
+
+        counter :rollbar_errors do
+          comment "Counts errors detected by and sent to rollbar"
+        end
+
+        gauge :last_command_completion do
+          comment "Unix time of last time command was completed"
+          tags [:command, :status, :application]
+        end
+
+        histogram :command_runtime do
+          comment "Time spent processing a given command"
+          tags [:command, :status, :application]
+          unit :seconds
+          buckets [0.1, 1, 5, 60, 300, 1500]
+        end
+      end
+    end
+
     Yabeda.configure!
   end
 
+  # Writes all metrics currently gathered to a text format prometheus file.  If /tmp/metrics.prom is bind mounted
+  # to the host directed bound to the node_exporter's file exporter directory, these will be exported to
+  # prometheus.  Combine this enable_job_metrics! for maximum effect.
   def write_job_metrics(name)
-    node_metrics_dir = config(:node_metrics_dir) || "/tmp/metrics.prom"
+    node_metrics_dir = "/tmp/metrics.prom"
     ::FileUtils.mkdir_p(node_metrics_dir)
 
     tmp_file = ::File.join(node_metrics_dir, "#{name}.prom.$$")
@@ -126,17 +175,32 @@ module Etna::Application
   end
 
   def run_command(config, *args, &block)
+    application = self.id
+    status = 'success'
+    start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
     cmd, cmd_args, cmd_kwds = find_command(*args)
-    cmd.setup(config)
 
-    if block_given?
-      return unless yield [cmd, cmd_args]
+    begin
+      cmd.setup(config)
+      if block_given?
+        return unless yield [cmd, cmd_args]
+      end
+
+      cmd.execute(*cmd.fill_in_missing_params(cmd_args), **cmd_kwds)
+    rescue => e
+      Rollbar.error(e)
+      status = 'failed'
+      raise
+    ensure
+      if Yabeda.configured?
+        tags = { command: cmd.class.name, status: status, application: application }
+        dur = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+
+        Yabeda.etna.last_command_completion.set(tags, Time.now.to_i)
+        Yabeda.etna.command_runtime.measure(tags, dur)
+        write_job_metrics("run_command")
+      end
     end
-
-    cmd.execute(*cmd.fill_in_missing_params(cmd_args), **cmd_kwds)
-  rescue => e
-    Rollbar.error(e)
-    raise
   end
 end
 
