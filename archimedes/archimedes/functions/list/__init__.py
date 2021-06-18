@@ -1,1 +1,1 @@
-from .manipulations import unique, flatten
+from .manipulations import unique, flatten, order

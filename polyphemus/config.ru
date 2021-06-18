@@ -8,6 +8,7 @@ require_relative './lib/server'
 Polyphemus.instance.configure(YAML.load(File.read("config.yml")))
 
 use Etna::CrossOrigin
+use Etna::MetricsExporter
 use Etna::ParseBody
 use Etna::SymbolizeParams
 use Etna::Auth
