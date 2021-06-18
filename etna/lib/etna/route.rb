@@ -82,9 +82,9 @@ module Etna
       digest = email + secret + Date.today.to_s
 
       if @name
-        digest += @name
+        digest += @name.to_s
       else
-        digest += @route
+        digest += @route.to_s
       end
 
       Digest::MD5.hexdigest(digest)
