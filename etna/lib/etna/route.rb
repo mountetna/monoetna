@@ -101,11 +101,17 @@ module Etna
         action = @route
       end
 
+      params = request.env['rack.request.params']
       user = request.env['etna.user']
       user_hash = user ? hash_user_email(user.email) : 'unknown'
+      project_name = "unknown"
+
+      if params && (params.include?(:project_name) || params.include?('project_name'))
+        project_name = params[:project_name] || params['project_name']
+      end
 
       begin
-        block.call({ controller: controller, action: action, user_hash: user_hash })
+        block.call({ controller: controller, action: action, user_hash: user_hash, project_name: project_name })
       rescue => e
         raise e unless Etna::Application.instance.environment == :production
       end
