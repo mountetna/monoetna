@@ -13,6 +13,7 @@ require_relative './lib/server/refresh_token'
 Janus.instance.configure(YAML.load(File.read('config.yml')))
 
 use Etna::CrossOrigin
+use Etna::MetricsExporter
 use Etna::ParseBody
 use Etna::SymbolizeParams
 use Rack::Static, urls: ['/css', '/js', '/fonts', '/img'], root: 'lib/client'
