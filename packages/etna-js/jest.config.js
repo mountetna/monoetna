@@ -10,7 +10,7 @@ module.exports = {
     "\\.(css|scss)$": "identity-obj-proxy"
   },
   testMatch: [
-    "**/__tests__/**/?(*.)(spec|test).js?(x)"
+    '**/__tests__/**/?(*.)(spec|test).(j|t)s?(x)'
   ],
   collectCoverageFrom: [
     "**/*.js?(x)"
