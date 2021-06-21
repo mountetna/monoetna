@@ -210,6 +210,7 @@ class MetisClient < Client
       Errno::EHOSTUNREACH,
       Net::ReadTimeout,
       IOError,
+      EOFError,
       Timeout::Error,
       Net::OpenTimeout
     ]
