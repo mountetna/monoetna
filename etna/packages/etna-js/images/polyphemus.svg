@@ -6,11 +6,35 @@
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="93.697617mm"
    height="93.697617mm"
    viewBox="0 0 93.697617 93.697617"
    version="1.1"
-   id="svg8">
+   id="svg8"
+   sodipodi:docname="polyphemus.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1011"
+     id="namedview347"
+     showgrid="false"
+     inkscape:zoom="0.088388348"
+     inkscape:cx="-2959.6338"
+     inkscape:cy="-213.32876"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg8" />
   <defs
      id="defs2">
     <linearGradient
@@ -60,25 +84,25 @@
       <stop
          id="stop5049"
          offset="0.63866663"
-         style="stop-color:#3593d8;stop-opacity:1" />
+         style="stop-color:#a0d835;stop-opacity:1" />
       <stop
          id="stop5047"
          offset="0.73346829"
-         style="stop-color:#3ddbda;stop-opacity:1" />
+         style="stop-color:#42b321;stop-opacity:1" />
       <stop
          id="stop5041"
          offset="0.76506895"
-         style="stop-color:#4481dc;stop-opacity:1;" />
+         style="stop-color:#c0dc44;stop-opacity:1" />
       <stop
          id="stop17547"
          offset="0.89612859"
-         style="stop-color:#4be7de;stop-opacity:1" />
+         style="stop-color:#a9e74b;stop-opacity:1" />
       <stop
-         style="stop-color:#509ddf;stop-opacity:1;"
+         style="stop-color:#65df50;stop-opacity:1"
          offset="0.91253823"
          id="stop5045" />
       <stop
-         style="stop-color:#5fe2e4"
+         style="stop-color:#115e10;stop-opacity:1"
          offset="1"
          id="stop17541" />
     </linearGradient>
@@ -291,7 +315,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
