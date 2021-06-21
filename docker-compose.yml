@@ -104,10 +104,4 @@ networks:
         - subnet: '2001:3984:3989::/64'
 
 services:
-  "polyphemus_app":
-    <<: *base-etna-app
-  "polyphemus_db":
-    <<: *base-etna-db
-  "polyphemus_app_fe":
-    <<: *base-etna-fe
-
+  <<: *base-etna-services
