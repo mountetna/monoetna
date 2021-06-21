@@ -11,7 +11,7 @@ export const displayAttributes = (template) =>
 export const selectModelNames = (state) =>
   Object.keys(state.magma.models).sort();
 
-const selectModels = (state) => state.magma.models;
+export const selectModels = (state) => state.magma.models;
 
 const selectModel = (state, model_name) =>
   selectModels(state)[model_name] || null;

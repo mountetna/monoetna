@@ -16,6 +16,7 @@ import {
 } from '../../../selectors/workflow_selectors';
 import {useWorkflow} from '../../../contexts/workflow_context';
 import {readTextFile, downloadBlob} from 'etna-js/utils/blob';
+import { defaultSession } from '../../../reducers/vulcan_reducer';
 
 const modalStyles = {
   content: {
@@ -57,6 +58,18 @@ export default function SessionManager() {
       dispatch(setSession(JSON.parse(sessionJson)));
     });
   };
+
+  const resetSession = useCallback(
+    () => {
+      let newSession = {
+        ...defaultSession,
+        workflow_name: session.workflow_name,
+        project_name: session.project_name
+      }
+      console.log({newSession});
+      dispatch(setSession(newSession));
+    }, [ session, name ]
+  );
 
   // We are done once every step either has a download or that step is a uiOutput.
   const complete = useMemo(
@@ -161,6 +174,14 @@ export default function SessionManager() {
           label='Open'
           title='Load workflow parameters from file'
           onClick={openSession}
+          disabled={running}
+        />
+        <FlatButton
+          className='header-btn reset'
+          icon='undo'
+          label='Reset'
+          title='Reset to the default workflow parameters'
+          onClick={resetSession}
           disabled={running}
         />
       </div>
