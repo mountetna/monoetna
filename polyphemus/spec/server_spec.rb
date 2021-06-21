@@ -20,12 +20,12 @@ describe Polyphemus::Server do
     expect(json_body[:test].keys.sort).to eq([:magma, :metis, :janus, :timur, :polyphemus, :auth_redirect, :docker].sort)
   end
 
-  it 'shows polyphemus is available for users' do
+  it 'returns the polyphemus client' do
     auth_header(:viewer)
     get('/')
 
     expect(last_response.status).to eq(200)
-    expect(last_response.body).to eq('Polyphemus is available.')
+    expect(last_response.body).to match('var CONFIG = ')
   end
 end
 
