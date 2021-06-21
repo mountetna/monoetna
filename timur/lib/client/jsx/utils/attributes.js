@@ -1,5 +1,3 @@
-import {sortedIndexOf} from 'lodash';
-
 const order = (attribute, identifierFirst) => {
   let {attribute_type} = attribute;
   let map = identifierFirst
@@ -42,4 +40,22 @@ export const sortAttributes = (attributes, identifierFirst = false) => {
   });
 
   return finalAttributes;
+};
+
+export const visibleSortedAttributes = (
+  attributes,
+  identifierFirst = false
+) => {
+  return Object.values(sortAttributes(attributes, identifierFirst)).filter(
+    (attr) => !attr.hidden
+  );
+};
+
+export const visibleSortedAttributesWithUpdatedAt = (
+  attributes,
+  identifierFirst = false
+) => {
+  return Object.values(sortAttributes(attributes, identifierFirst)).filter(
+    (attr) => !attr.hidden || attr.attribute_name === 'updated_at'
+  );
 };

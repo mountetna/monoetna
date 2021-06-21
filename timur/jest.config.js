@@ -18,9 +18,13 @@ module.exports = {
     '^react-modal$': '<rootDir>/node_modules/react-modal',
     '^enzyme$': '<rootDir>/node_modules/enzyme',
     '^enzyme-adapter-react-16$':
-      '<rootDir>/node_modules/enzyme-adapter-react-16'
+      '<rootDir>/node_modules/enzyme-adapter-react-16',
+    '^@material-ui/core/styles':
+      '<rootDir>/node_modules/@material-ui/core/styles',
+    '^color$': '<rootDir>/node_modules/color',
+    '^color-string$': '<rootDir>/node_modules/color-string'
   },
-  testMatch: ['**/test/**/?(*.)(spec|test).js?(x)'],
+  testMatch: ['**/test/**/?(*.)(spec|test).(j|t)s?(x)'],
   collectCoverageFrom: ['**/*.js?(x)'],
   setupFilesAfterEnv: ['./test/setup.js'],
   setupFiles: ['raf/polyfill']
