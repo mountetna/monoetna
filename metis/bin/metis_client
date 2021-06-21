@@ -249,6 +249,19 @@ class MetisClient < Client
   end
 
   def blob_upload(upload_path, upload, blob, retries=0)
+    exceptions_for_retry = [
+      Errno::ECONNREFUSED,
+      Errno::ECONNRESET,
+      Errno::ENETRESET,
+      Errno::EPIPE,
+      Errno::ECONNABORTED,
+      Errno::EHOSTDOWN,
+      Errno::EHOSTUNREACH,
+      Net::ReadTimeout,
+      IOError,
+      Timeout::Error,
+      Net::OpenTimeout
+    ]
     begin
       response = multipart_post(
         upload_path, [
@@ -264,7 +277,7 @@ class MetisClient < Client
         return retry_blob(upload_path, upload, blob, retries)
       end
       raise e
-    rescue Errno::ECONNREFUSED, Errno::ECONNRESET, Net::OpenTimeout  => e
+    rescue *exceptions_for_retry  => e
       return retry_blob(upload_path, upload, blob, retries)
     end
 
