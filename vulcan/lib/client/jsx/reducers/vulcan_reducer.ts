@@ -12,7 +12,7 @@ const defaultWorkflow: Workflow | null = null;
 const defaultStatus: SessionStatusResponse['status'] = [[]];
 const defaultData: DownloadedStepDataMap = {};
 const defaultInputs: SessionStatusResponse['session']['inputs'] = {};
-const defaultSession: SessionStatusResponse['session'] = {
+export const defaultSession: SessionStatusResponse['session'] = {
   project_name: '',
   workflow_name: '',
   key: '',
