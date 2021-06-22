@@ -26,26 +26,18 @@ export const createEtnaTheme = (p,s) => {
         },
         containedPrimary: {
           backgroundColor: primary.alpha(0.3).string(),
-          border: `1px solid ${primary.string()}`,
           color: primary.darken(0.5).string(),
           '&:hover': {
             backgroundColor: primary.alpha(0.5).string()
-          },
-          '&.Mui-disabled': {
-            border: `1px solid #aaa`
           }
         },
         containedSecondary: {
           backgroundColor: secondary.alpha(0.3).string(),
-          border: `1px solid ${secondary.string()}`,
           color: secondary.darken(0.5).string(),
           '&:hover': {
             backgroundColor: secondary.alpha(0.5).string()
-          },
-          '&.Mui-disabled': {
-            border: `1px solid #aaa`
           }
-        }
+        },
       },
       MuiChip: {
         root: {
@@ -83,6 +75,9 @@ export const createEtnaTheme = (p,s) => {
         variant: "contained",
         color: "primary",
         disableElevation: true,
+        disableRipple: true
+      },
+      MuiCheckbox: {
         disableRipple: true
       },
       MuiGrid: {
