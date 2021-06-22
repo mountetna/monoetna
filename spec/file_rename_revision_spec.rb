@@ -241,6 +241,7 @@ end
 
   it 'executes the revision' do
       expect(Metis::File.count).to eq(1)
+      expect(Metis::File.first.author).to eq('metis|Metis')
       revision = Metis::FileRenameRevision.new({
           source: 'metis://athena/files/wisdom.txt',
           dest: 'metis://athena/files/learn-wisdom.txt',
@@ -251,8 +252,30 @@ end
       revision.validate
       learn_wisdom = revision.revise!
       expect(Metis::File.count).to eq(1)
+      expect(Metis::File.first.author).to eq(Metis::File.author(@user))
       expect(learn_wisdom.data_block).to eq(@wisdom_file.data_block)
   end
+
+  it 'executes the revision with a new bucket' do
+    new_bucket_name = 'new_bucket'
+    stubs.create_bucket(new_bucket_name, 'files')
+    new_bucket = create( :bucket, project_name: new_bucket_name, name: 'files', owner: 'metis', access: 'viewer')
+    
+    expect(Metis::File.count).to eq(1)
+    expect(Metis::File.first.author).to eq('metis|Metis')
+    revision = Metis::FileRenameRevision.new({
+        source: 'metis://athena/files/wisdom.txt',
+        dest: "metis://#{new_bucket_name}/files/learn-wisdom.txt",
+        user: @user
+    })
+    revision.source.bucket = default_bucket('athena')
+    revision.dest.bucket = new_bucket
+    revision.validate
+    learn_wisdom = revision.revise!
+    expect(Metis::File.count).to eq(1)
+    expect(Metis::File.first.author).to eq(Metis::File.author(@user))
+    expect(learn_wisdom.data_block).to eq(@wisdom_file.data_block)
+end
 
   it 'throws exception if you try to revise without setting user' do
       expect(Metis::File.count).to eq(1)
