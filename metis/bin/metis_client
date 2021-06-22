@@ -216,10 +216,20 @@ class MetisClient < Client
       Net::HTTPHeaderSyntaxError,
       Net::HTTPServerException,
       Net::ProtocolError,
+      Net::HTTPRequestTimeOut,
+      Net::HTTPGatewayTimeOut,
+      Net::HTTPBadRequest,
+      Net::HTTPBadGateway,
+      Net::HTTPError,
+      Net::HTTPInternalServerError,
+      Net::HTTPRetriableError,
+      Net::HTTPServerError,
+      Net::HTTPServiceUnavailable,
+      Net::HTTPUnprocessableEntity,
+      Net::OpenTimeout,
       IOError,
       EOFError,
-      Timeout::Error,
-      Net::OpenTimeout
+      Timeout::Error
     ]
   end
 
