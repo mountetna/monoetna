@@ -19,8 +19,6 @@ class Polyphemus
     # Submit a job for a project
     post '/:project_name/job', action: 'job#submit', auth: { user: { is_admin?: :project_name } }
 
-    get '/' do
-      [ 200, {}, [ 'Polyphemus is available.' ] ]
-    end
+    get '/' do erb_view(:client) end
   end
 end
