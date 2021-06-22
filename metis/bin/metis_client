@@ -208,7 +208,14 @@ class MetisClient < Client
       Errno::ECONNABORTED,
       Errno::EHOSTDOWN,
       Errno::EHOSTUNREACH,
+      Errno::EINVAL,
+      Errno::ETIMEDOUT,
       Net::ReadTimeout,
+      Net::HTTPFatalError,
+      Net::HTTPBadResponse,
+      Net::HTTPHeaderSyntaxError,
+      Net::HTTPServerException,
+      Net::ProtocolError,
       IOError,
       EOFError,
       Timeout::Error,
@@ -329,7 +336,6 @@ class MetisClient < Client
   def get_file(path, &block)
     https.request(get(path)) do |response|
       response.read_body do |chunk|
-        puts chunk
         yield chunk
       end
     end
