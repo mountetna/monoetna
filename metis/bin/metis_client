@@ -329,7 +329,6 @@ class MetisClient < Client
   def get_file(path, &block)
     https.request(get(path)) do |response|
       response.read_body do |chunk|
-        puts chunk
         yield chunk
       end
     end
