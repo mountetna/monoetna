@@ -885,7 +885,7 @@ EOT
             puts
             download_successful = true
           end
-        rescue => e
+        rescue MetisClient::DownloadError => e
           puts "#{e.message}"
           current_attempt_number += 1
           MetisShell.log_error(e)
@@ -895,7 +895,7 @@ EOT
             sleep(30)
           else
             puts "DownloadError -- max retries reached. Giving up."
-            raise MetisClient::DownloadError, e.message
+            raise ShellError, e.message
           end  
         end
       end
