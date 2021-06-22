@@ -14,10 +14,10 @@ class Metis
         @source.bucket, full_folder_path(@source)).last
 
       if @source.mpath.bucket_name == @dest.mpath.bucket_name
-        source_folder.rename!(@dest.folder, @dest.mpath.file_name)
+        source_folder.rename!(@dest.folder, @dest.mpath.file_name, @user)
       else
         source_folder.update_bucket_and_rename!(
-          @dest.folder, @dest.mpath.file_name, @dest.bucket)
+          @dest.folder, @dest.mpath.file_name, @dest.bucket, @user)
       end
 
       return source_folder
