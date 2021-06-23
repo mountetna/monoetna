@@ -9,7 +9,8 @@ class Metis
       @source.file.update_bucket_and_rename!(
         @dest.folder,
         @dest.mpath.file_name,
-        @dest.bucket)
+        @dest.bucket,
+        @user)
     end
 
     def validate_file(mpath_w_objs, file_check_type='source')

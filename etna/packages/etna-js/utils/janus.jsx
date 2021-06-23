@@ -21,7 +21,7 @@ const parsePermissions = (perms) => {
   }, {});
 }
 
-const parseFlags = (flags) => flags.split(';')
+const parseFlags = (flags) => flags ? flags.split(';') : []
 
 export function parseToken(token) {
   let [header, params, signature] = token.split(/\./);
