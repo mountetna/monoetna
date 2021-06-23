@@ -208,11 +208,30 @@ class MetisClient < Client
       Errno::ECONNABORTED,
       Errno::EHOSTDOWN,
       Errno::EHOSTUNREACH,
+      Errno::EINVAL,
+      Errno::ETIMEDOUT,
       Net::ReadTimeout,
+      Net::HTTPFatalError,
+      Net::HTTPBadResponse,
+      Net::HTTPHeaderSyntaxError,
+      Net::ProtocolError,
+      Net::HTTPRequestTimeOut,
+      Net::HTTPRequestTimeout,
+      Net::HTTPGatewayTimeout,
+      Net::HTTPGatewayTimeOut,
+      Net::HTTPBadRequest,
+      Net::HTTPBadGateway,
+      Net::HTTPError,
+      Net::HTTPInternalServerError,
+      Net::HTTPRetriableError,
+      Net::HTTPServerError,
+      Net::HTTPServiceUnavailable,
+      Net::HTTPUnprocessableEntity,
+      Net::OpenTimeout,
+      Net::WriteTimeout,
       IOError,
       EOFError,
-      Timeout::Error,
-      Net::OpenTimeout
+      Timeout::Error
     ]
   end
 
@@ -281,14 +300,18 @@ class MetisClient < Client
       )
     rescue OpenSSL::SSL::SSLError => e
       if e.message =~ /write client hello/
+        puts "SSL error, retrying"
         return retry_blob(upload_path, upload, blob, retries)
       end
       raise e
     rescue *net_exceptions  => e
+      puts "Received #{e.class.name}, retrying"
       return retry_blob(upload_path, upload, blob, retries)
     end
 
-    if response.code == '503' || response.code == '502'
+    retry_codes = ['503', '502', '504', '408']
+    if retry_codes.include?(response.code)
+      puts "Received response with code #{response.code}, retrying"
       retry_blob(upload_path, upload, blob, retries)
       return
     end
@@ -329,7 +352,6 @@ class MetisClient < Client
   def get_file(path, &block)
     https.request(get(path)) do |response|
       response.read_body do |chunk|
-        puts chunk
         yield chunk
       end
     end
@@ -868,7 +890,7 @@ EOT
           download_path = file[:download_url].sub(%r!^https://[^/]*?/!, '/')
           completed = 0.0
           size = file[:size]
-            
+
           open(actual_file,"w") do |io|
             start = Time.now
             @shell.client.get_file(download_path) do |chunk|
@@ -896,7 +918,7 @@ EOT
           else
             puts "DownloadError -- max retries reached. Giving up."
             raise ShellError, e.message
-          end  
+          end
         end
       end
     end
