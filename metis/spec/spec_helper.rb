@@ -191,6 +191,14 @@ def stub_glacier_method(method, path, response={})
     }.merge(response))
 end
 
+def stub_metis_download(path, file_data)
+  stub_request(:get, /#{path}/)
+    .to_return({
+      status: 200,
+      body: file_data
+    })
+end
+
 class Stubs
   def initialize
     @stubs = []

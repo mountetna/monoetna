@@ -191,9 +191,48 @@ class MetisClient < Client
   class UploadError < StandardError
   end
 
+  class DownloadError < StandardError
+  end
+
   def initialize(host, token)
     @host = host
     @token = token
+  end
+
+  def net_exceptions
+    [
+      Errno::ECONNREFUSED,
+      Errno::ECONNRESET,
+      Errno::ENETRESET,
+      Errno::EPIPE,
+      Errno::ECONNABORTED,
+      Errno::EHOSTDOWN,
+      Errno::EHOSTUNREACH,
+      Errno::EINVAL,
+      Errno::ETIMEDOUT,
+      Net::ReadTimeout,
+      Net::HTTPFatalError,
+      Net::HTTPBadResponse,
+      Net::HTTPHeaderSyntaxError,
+      Net::ProtocolError,
+      Net::HTTPRequestTimeOut,
+      Net::HTTPRequestTimeout,
+      Net::HTTPGatewayTimeout,
+      Net::HTTPGatewayTimeOut,
+      Net::HTTPBadRequest,
+      Net::HTTPBadGateway,
+      Net::HTTPError,
+      Net::HTTPInternalServerError,
+      Net::HTTPRetriableError,
+      Net::HTTPServerError,
+      Net::HTTPServiceUnavailable,
+      Net::HTTPUnprocessableEntity,
+      Net::OpenTimeout,
+      Net::WriteTimeout,
+      IOError,
+      EOFError,
+      Timeout::Error
+    ]
   end
 
   def authorize_upload(project_name, bucket_name, file_path)
@@ -261,14 +300,18 @@ class MetisClient < Client
       )
     rescue OpenSSL::SSL::SSLError => e
       if e.message =~ /write client hello/
+        puts "SSL error, retrying"
         return retry_blob(upload_path, upload, blob, retries)
       end
       raise e
-    rescue Errno::ECONNREFUSED, Errno::ECONNRESET, Net::OpenTimeout  => e
+    rescue *net_exceptions  => e
+      puts "Received #{e.class.name}, retrying"
       return retry_blob(upload_path, upload, blob, retries)
     end
 
-    if response.code == '503' || response.code == '502'
+    retry_codes = ['503', '502', '504', '408']
+    if retry_codes.include?(response.code)
+      puts "Received response with code #{response.code}, retrying"
       retry_blob(upload_path, upload, blob, retries)
       return
     end
@@ -835,22 +878,48 @@ EOT
 
       FileUtils::mkdir_p(output_path)
 
-      open(actual_file,"w") do |io|
-        download_path = file[:download_url].sub(%r!^https://[^/]*?/!, '/')
-        completed = 0.0
-        size = file[:size]
-        start = Time.now
-        @shell.client.get_file(download_path) do |chunk|
-          io.write chunk
+      # Because we're not specifying the chunk size or range to
+      #   the Metis API, when rescuing for retry, we'll just
+      #   restart the download from scratch..
+      max_number_attempts = MetisConfig[:max_attempts] || 2
+      current_attempt_number = 1
+      download_successful = false
 
-          completed += chunk.size
-          print progress(
-            size == 0 ? 1 : completed / size,
-            (completed / (Time.now - start)).round(2),
-            file[:file_path]
-          )
+      while current_attempt_number <= max_number_attempts && !download_successful do
+        begin
+          download_path = file[:download_url].sub(%r!^https://[^/]*?/!, '/')
+          completed = 0.0
+          size = file[:size]
+
+          open(actual_file,"w") do |io|
+            start = Time.now
+            @shell.client.get_file(download_path) do |chunk|
+              io.write chunk
+
+              completed += chunk.size
+              print progress(
+                size == 0 ? 1 : completed / size,
+                (completed / (Time.now - start)).round(2),
+                file[:file_path]
+              )
+            end
+            raise MetisClient::DownloadError, "Incomplete download" unless completed == size
+            puts
+            download_successful = true
+          end
+        rescue MetisClient::DownloadError => e
+          puts "#{e.message}"
+          current_attempt_number += 1
+          MetisShell.log_error(e)
+
+          if current_attempt_number <= max_number_attempts && completed != size
+            puts "DownloadError -- waiting for server to restart the download"
+            sleep(30)
+          else
+            puts "DownloadError -- max retries reached. Giving up."
+            raise ShellError, e.message
+          end
         end
-        puts
       end
     end
 
