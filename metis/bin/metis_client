@@ -214,7 +214,6 @@ class MetisClient < Client
       Net::HTTPFatalError,
       Net::HTTPBadResponse,
       Net::HTTPHeaderSyntaxError,
-      Net::HTTPServerException,
       Net::ProtocolError,
       Net::HTTPRequestTimeOut,
       Net::HTTPRequestTimeout,
@@ -229,6 +228,7 @@ class MetisClient < Client
       Net::HTTPServiceUnavailable,
       Net::HTTPUnprocessableEntity,
       Net::OpenTimeout,
+      Net::WriteTimeout,
       IOError,
       EOFError,
       Timeout::Error
@@ -890,7 +890,7 @@ EOT
           download_path = file[:download_url].sub(%r!^https://[^/]*?/!, '/')
           completed = 0.0
           size = file[:size]
-            
+
           open(actual_file,"w") do |io|
             start = Time.now
             @shell.client.get_file(download_path) do |chunk|
@@ -918,7 +918,7 @@ EOT
           else
             puts "DownloadError -- max retries reached. Giving up."
             raise ShellError, e.message
-          end  
+          end
         end
       end
     end
