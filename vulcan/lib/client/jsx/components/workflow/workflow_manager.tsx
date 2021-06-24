@@ -12,7 +12,8 @@ export default function WorkflowManager({workflowName, projectName}: { workflowN
   const {
     state,
     dispatch,
-    getLocalSession
+    getLocalSession,
+    cancelPolling,
   } = useContext(VulcanContext);
 
   const workflow = workflowByName(workflowName, state);
@@ -22,6 +23,8 @@ export default function WorkflowManager({workflowName, projectName}: { workflowN
       dispatch(setWorkflow(workflow, projectName));
 
       getLocalSession(workflow, projectName).then((session) => {
+        cancelPolling();
+
         if (!session) {
           // Set the default input values
           dispatch(setInputs(defaultInputValues(workflow)));

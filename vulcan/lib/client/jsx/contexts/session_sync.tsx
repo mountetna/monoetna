@@ -9,6 +9,7 @@ import {hasNoRunningSteps} from "../selectors/workflow_selectors";
 export const defaultSessionSyncHelpers = {
   requestPoll(post?: boolean) {
   },
+  cancelPolling() {}
 };
 
 function updateFromSessionResponse(response: SessionStatusResponse, dispatch: Dispatch<VulcanAction>) {
@@ -64,7 +65,15 @@ export function useSessionSync(
     sync(baseWork).finally(() => dispatch(finishPolling()));
   }, [dispatch, pollStatus, postInputs, state]);
 
+  const cancelPolling = useCallback(() => {
+    setCancellable(c => {
+      c.cancel();
+      return new Cancellable();
+    })
+  }, [setCancellable]);
+
   return {
     requestPoll,
+    cancelPolling,
   };
 }

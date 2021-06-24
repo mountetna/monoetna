@@ -25,7 +25,10 @@ export const defaultVulcanState = {
   workflow: defaultWorkflow as Workflow | null,
   status: defaultStatus,
   data: defaultData,
-  inputs: defaultInputs,
+
+  curEditingInput: null as string | null,
+  bufferedInputValue: null as any,
+
   session: defaultSession,
   outputs: defaultSessionStatusResponse.outputs,
   validationErrors: defaultValidationErrors,
@@ -83,14 +86,14 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       // Ignore sessions not for this workflow, project combination. safety guard.
       // The project name and workflow names are locked in via the set workflow action.
       const sessionWorkflow = state.workflow;
-      if (!sessionWorkflow) return state;
-      if (action.session.workflow_name !== sessionWorkflow.name) return state;
-      if (action.session.project_name !== state.session.project_name) return state;
+      if (!sessionWorkflow || action.session.workflow_name !== sessionWorkflow.name || action.session.project_name !== state.session.project_name) {
+        console.error('Cannot set session, project name / workflow name does not match.')
+        return state;
+      }
 
       return {
         ...state,
         session: {...state.session, ...action.session},
-        inputs: {...state.inputs, ...action.session.inputs},
       };
 
     case 'REMOVE_DOWNLOADS':
@@ -107,12 +110,11 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
         return state;
       }
 
-      const removedInputs = {...state.inputs};
+      const removedInputs = {...state.session.inputs};
       action.inputs.forEach(source => delete removedInputs[source]);
 
       return {
         ...state,
-        inputs: removedInputs,
         session: {...state.session, inputs: filterEmptyValues(removedInputs)},
       }
 
@@ -125,7 +127,6 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
 
       return {
         ...state,
-        inputs: action.inputs,
         session: {...state.session, inputs: filterEmptyValues(action.inputs)},
       }
 
@@ -135,11 +136,11 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
         return state;
       }
 
-      const updatedInputs = unsetDependentInputs(action.inputs, {...state.inputs, ...action.inputs}, state.workflow);
+      // THIS WILL GO AWAY OR ELSE DO NOT MERGE.
+      const updatedInputs = unsetDependentInputs(action.inputs, {...state.session.inputs, ...action.inputs}, state.workflow);
 
       return {
         ...state,
-        inputs: updatedInputs,
         session: {...state.session, inputs: filterEmptyValues(updatedInputs)},
       }
 
