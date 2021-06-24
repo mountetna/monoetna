@@ -18,7 +18,7 @@ import {
   setWorkflow,
   setWorkflows,
   addValidationErrors
-} from '../../../../actions/vulcan';
+} from '../../../../actions/vulcan_actions';
 
 describe('SessionManager', () => {
   const workflow = createWorkflowFixture({

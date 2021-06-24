@@ -12,7 +12,7 @@ import {
   setStatus,
   setWorkflow,
   setWorkflows
-} from '../../actions/vulcan';
+} from '../../actions/vulcan_actions';
 import {stateFromActions} from '../../test_utils/state';
 
 describe('Workflow Selectors', () => {

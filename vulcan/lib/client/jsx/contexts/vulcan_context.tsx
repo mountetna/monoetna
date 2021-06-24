@@ -1,6 +1,6 @@
 import React, {useReducer, createContext, useRef, useEffect} from 'react';
 import VulcanReducer, {defaultVulcanState, VulcanState} from '../reducers/vulcan_reducer';
-import {VulcanAction} from "../actions/vulcan";
+import {VulcanAction} from "../actions/vulcan_actions";
 import {defaultSessionStorageHelpers, useLocalSessionStorage} from "./session_storage";
 import {defaultApiHelpers, useApi} from "./api";
 import {useWorkflowsLoading} from "./workflows_loading";

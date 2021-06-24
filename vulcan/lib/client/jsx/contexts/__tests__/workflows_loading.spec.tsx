@@ -1,36 +1,46 @@
 import {act} from "react-test-renderer";
 import * as React from "react";
 import {delay} from "etna-js/spec/helpers";
-import {WorkflowsResponse} from "../../api_types";
+import {Workflow, WorkflowsResponse} from "../../api_types";
 import {workflowsResponse} from "../../test_utils/fixtures/workflows-response";
-import {integrateElement} from "../../test_utils/integration";
+import {integrateElement, IntegrateElementParams} from "../../test_utils/integration";
+import {asyncFn, AsyncMock} from "../../test_utils/mocks";
 
 
 describe('useWorkflowsLoading', () => {
-  it('works', async () => {
-    let numCalls = 0;
-    const overrides = {
-        getWorkflows(): Promise<WorkflowsResponse> {
-          numCalls += 1;
-          return Promise.resolve(workflowsResponse);
-        }
+  let setup: ReturnType<typeof integrateElement>;
+  let getWorkflowsMock: AsyncMock<WorkflowsResponse>;
+  let overrides: IntegrateElementParams['providerOverrides'];
+
+  beforeEach(() => {
+    getWorkflowsMock = asyncFn();
+    overrides = {
+      getWorkflows: getWorkflowsMock.jestMock,
     };
 
-    const {contextData, updateMatching, replaceOverrides} = integrateElement(() => null, { providerOverrides: overrides });
+    setup = integrateElement(() => null, { providerOverrides: overrides });
+  })
+
+  it('works', async () => {
+    const {updateMatching, contextData, replaceOverrides} = setup;
 
     await act(async function () {
-      await updateMatching(() => contextData.state.workflows === workflowsResponse.workflows);
-      expect(numCalls).toEqual(1);
+      await getWorkflowsMock.awaitCall(false);
       await delay(100); // Ensure there isn't some nasty loop
-      expect(numCalls).toEqual(1);
+      expect(getWorkflowsMock.hasPendingRequest()).toBeFalsy()
 
-      replaceOverrides({});
+      getWorkflowsMock.reset();
+      // Trigger an empty update.
+      replaceOverrides({...overrides});
       await delay(100); // Shouldn't cause any further calls
-      expect(numCalls).toEqual(1);
+      expect(getWorkflowsMock.hasPendingRequest()).toBeFalsy()
 
       // Substantive updates to params does reload.
+      getWorkflowsMock.reset();
       replaceOverrides({ ...overrides, params: {a: 2} })
-      await updateMatching(() => numCalls == 2);
+      const [[resolve]] = await getWorkflowsMock.awaitCall(false);
+      expect(contextData.state.workflows).not.toBe(workflowsResponse);
+      resolve(workflowsResponse);
       await updateMatching(() => contextData.state.workflows === workflowsResponse.workflows);
     });
   });

@@ -1,6 +1,6 @@
 import {
   VulcanAction
-} from '../actions/vulcan';
+} from '../actions/vulcan_actions';
 import {defaultSessionStatusResponse, SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
 import {unsetDependentInputs, filterEmptyValues} from "../selectors/workflow_selectors";
 

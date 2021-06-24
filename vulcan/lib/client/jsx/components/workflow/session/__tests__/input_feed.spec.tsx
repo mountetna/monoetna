@@ -17,7 +17,7 @@ import {
   setStatus,
   setWorkflow,
   setWorkflows
-} from '../../../../actions/vulcan';
+} from '../../../../actions/vulcan_actions';
 
 describe('InputFeed', () => {
   fit('renders complete UI steps and error steps', () => {

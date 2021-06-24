@@ -1,5 +1,5 @@
 import {Dispatch, useEffect, useMemo, useState} from "react";
-import {releaseDownloadedData, setDownloadedData, VulcanAction} from "../actions/vulcan";
+import {releaseDownloadedData, setDownloadedData, VulcanAction} from "../actions/vulcan_actions";
 import {defaultApiHelpers} from "./api";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {shouldDownload, stepOfStatus} from "../selectors/workflow_selectors";

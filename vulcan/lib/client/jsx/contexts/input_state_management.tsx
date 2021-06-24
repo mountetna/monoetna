@@ -5,7 +5,7 @@ import {
   removeDownloads,
   removeInputs,
   VulcanAction
-} from '../actions/vulcan';
+} from '../actions/vulcan_actions';
 import {
   isPendingUiQuery,
   missingUiQueryOutputs,

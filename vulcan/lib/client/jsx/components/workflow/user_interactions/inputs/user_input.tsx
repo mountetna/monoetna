@@ -4,7 +4,7 @@ import {VulcanContext} from '../../../../contexts/vulcan_context';
 import {
   addValidationErrors,
   removeValidationErrors
-} from '../../../../actions/vulcan';
+} from '../../../../actions/vulcan_actions';
 import {TYPE} from '../../../../api_types';
 import InputHelp from './input_help';
 import BooleanInput from './boolean';

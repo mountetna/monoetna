@@ -35,10 +35,14 @@ export class AsyncMock<R> {
     return this.promiseArgs.length > 0;
   }
 
+  reset() {
+    this.promiseArgs.length = 0;
+    this.jestMock.mockClear();
+  }
+
   async awaitCall(reset: boolean): Promise<[PromiseArgs<R>, any[]]> {
     if (reset) {
-      this.promiseArgs.length = 0;
-      this.jestMock.mockClear();
+      this.reset();
     }
 
     while (!this.hasPendingRequest()) {

@@ -1,5 +1,5 @@
 import {Dispatch} from "react";
-import {setStatus, setWorkflow, VulcanAction} from "../actions/vulcan";
+import {setStatus, setWorkflow, VulcanAction} from "../actions/vulcan_actions";
 import {defaultWorkflow, defaultWorkflowStep, StatusString, StepStatus, Workflow, WorkflowStep} from "../api_types";
 import {createStatusFixture, createStepStatusFixture, createUpdatedStatusFixture} from "./fixtures";
 import {VulcanState} from "../reducers/vulcan_reducer";

@@ -2,7 +2,7 @@ import {act} from "react-test-renderer";
 import * as React from "react";
 import {integrateElement} from "../../test_utils/integration";
 import {createFakeStorage} from "../../test_utils/mocks";
-import {setSession, setWorkflow} from "../../actions/vulcan";
+import {setSession, setWorkflow} from "../../actions/vulcan_actions";
 import {statusWithDownloads} from "../../test_utils/fixtures/status-with-downloads";
 import {defaultWorkflow, Workflow} from "../../api_types";
 

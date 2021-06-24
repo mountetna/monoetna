@@ -8,7 +8,7 @@ import {Provider} from "react-redux";
 import {VulcanStore} from "../vulcan_store";
 import * as React from "react";
 import {Store} from "redux";
-import {patchInputs, setDownloadedData, setStatus, VulcanAction} from "../actions/vulcan";
+import {patchInputs, setDownloadedData, setStatus, VulcanAction} from "../actions/vulcan_actions";
 import {splitSource, statusOfStep, stepOfSource} from "../selectors/workflow_selectors";
 import {defaultStepStatus, StepStatus} from "../api_types";
 import {createStatusFixture, createStepStatusFixture} from "./fixtures";
@@ -19,7 +19,7 @@ function injectContextAgent(Element: () => ReactElement | null, overrides: Parti
   </VulcanProvider>
 }
 
-interface IntegrateElementParams {
+export interface IntegrateElementParams {
   store?: Store,
   wrapper?: typeof injectContextAgent,
   providerOverrides?: Partial<ProviderProps & VulcanContextData>
@@ -33,7 +33,7 @@ export function integrateElement(Element: () => ReactElement | null, {
   let waiters: Function[] = [];
 
   providerOverrides = {
-    ...providerOverrides, getWorkflows: defaultContext.getWorkflows,
+     getWorkflows: defaultContext.getWorkflows, ...providerOverrides,
   }
 
   function updateMatching(pred: () => boolean): Promise<void> {

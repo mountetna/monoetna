@@ -1,7 +1,7 @@
 import {createFakeStorage} from "../../test_utils/mocks";
 import {integrateElement} from "../../test_utils/integration";
 import {act} from "react-test-renderer";
-import {patchInputs, setStatus, setWorkflow} from "../../actions/vulcan";
+import {patchInputs, setStatus, setWorkflow} from "../../actions/vulcan_actions";
 import {createStatusFixture, createStepStatusFixture, findWorkflowFromResponse} from "../../test_utils/fixtures";
 import {workflowsResponse} from "../../test_utils/fixtures/workflows-response";
 import {defaultContext} from "../vulcan_context";

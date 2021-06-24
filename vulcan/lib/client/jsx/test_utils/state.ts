@@ -1,4 +1,4 @@
-import {VulcanAction} from "../actions/vulcan";
+import {VulcanAction} from "../actions/vulcan_actions";
 import VulcanReducer, {defaultVulcanState, VulcanState} from "../reducers/vulcan_reducer";
 import {renderHook, act} from "@testing-library/react-hooks";
 import {Dispatch} from "react";

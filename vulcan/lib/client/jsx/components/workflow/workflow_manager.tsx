@@ -5,7 +5,7 @@ import {defaultInputValues, workflowByName} from '../../selectors/workflow_selec
 
 import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
-import {setInputs, setSession, setWorkflow} from "../../actions/vulcan";
+import {setInputs, setSession, setWorkflow} from "../../actions/vulcan_actions";
 import {defaultVulcanSession} from "../../api_types";
 
 export default function WorkflowManager({workflowName, projectName}: { workflowName: string, projectName: string }) {

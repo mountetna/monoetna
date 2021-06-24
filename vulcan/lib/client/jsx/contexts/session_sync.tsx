@@ -1,9 +1,7 @@
-import * as _ from 'lodash';
-
 import {defaultApiHelpers} from "./api";
 import {Dispatch, MutableRefObject, useCallback, useEffect, useRef, useState} from "react";
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {finishPolling, setSession, setStatus, startPolling, VulcanAction} from "../actions/vulcan";
+import {finishPolling, setSession, setStatus, startPolling, VulcanAction} from "../actions/vulcan_actions";
 import {SessionStatusResponse, VulcanSession} from "../api_types";
 import {Cancellable} from "etna-js/utils/cancellable";
 import {hasNoRunningSteps} from "../selectors/workflow_selectors";
@@ -63,7 +61,7 @@ export function useSessionSync(
     }
 
     dispatch(startPolling());
-    sync(baseWork).then(r => console.log('finished polling')).finally(() => dispatch(finishPolling()));
+    sync(baseWork).finally(() => dispatch(finishPolling()));
   }, [dispatch, pollStatus, postInputs, state]);
 
   return {

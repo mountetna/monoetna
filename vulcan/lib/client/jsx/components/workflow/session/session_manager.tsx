@@ -4,7 +4,7 @@ import FlatButton from 'etna-js/components/flat-button';
 import {showMessages} from 'etna-js/actions/message_actions';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {setSession} from '../../../actions/vulcan';
+import {setSession} from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 import Vignette from '../vignette';

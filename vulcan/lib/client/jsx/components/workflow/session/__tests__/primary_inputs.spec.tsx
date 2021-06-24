@@ -4,7 +4,7 @@ import renderer from 'react-test-renderer';
 import PrimaryInputs from '../primary_inputs';
 import {stateFromActions} from "../../../../test_utils/state";
 import {createWorkflowFixture} from "../../../../test_utils/fixtures";
-import {setWorkflow, setWorkflows} from "../../../../actions/vulcan";
+import {setWorkflow, setWorkflows} from "../../../../actions/vulcan_actions";
 
 describe('PrimaryInputs', () => {
   it('renders each type of input', () => {

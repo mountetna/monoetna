@@ -1,6 +1,6 @@
 import {integrateElement} from "../../test_utils/integration";
 import {act} from "react-test-renderer";
-import {patchInputs, setStatus, setWorkflow, startPolling} from "../../actions/vulcan";
+import {patchInputs, setStatus, setWorkflow, startPolling} from "../../actions/vulcan_actions";
 import {
   createStatusFixture,
   createStepFixture,
