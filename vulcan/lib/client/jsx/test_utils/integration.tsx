@@ -1,11 +1,7 @@
 import {ReactElement, useContext} from "react";
 import {act, create} from "react-test-renderer";
 import {
-  defaultContext,
-  ProviderProps,
-  VulcanContext,
-  VulcanContextData,
-  VulcanProvider
+  defaultContext, ProviderProps, VulcanContext, VulcanContextData, VulcanProvider
 } from "../contexts/vulcan_context";
 import {useReduxState} from "etna-js/hooks/useReduxState";
 import {Provider} from "react-redux";
@@ -23,18 +19,21 @@ function injectContextAgent(Element: () => ReactElement | null, overrides: Parti
   </VulcanProvider>
 }
 
+interface IntegrateElementParams {
+  store?: Store,
+  wrapper?: typeof injectContextAgent,
+  providerOverrides?: Partial<ProviderProps & VulcanContextData>
+}
+
 export function integrateElement(Element: () => ReactElement | null, {
-  store = VulcanStore(),
-  wrapper = injectContextAgent,
-  providerOverrides = {},
-}: { store?: Store, wrapper?: typeof injectContextAgent, providerOverrides?: Partial<ProviderProps & VulcanContextData> } = {}) {
-  let contextData: VulcanContextData = defaultContext;
+  store = VulcanStore(), wrapper = injectContextAgent, providerOverrides = {},
+}: IntegrateElementParams = {}) {
+  let contextData: VulcanContextData = { ...defaultContext };
   let reduxState: any = {};
   let waiters: Function[] = [];
 
   providerOverrides = {
-    ...providerOverrides,
-    getWorkflows: defaultContext.getWorkflows,
+    ...providerOverrides, getWorkflows: defaultContext.getWorkflows,
   }
 
   function updateMatching(pred: () => boolean): Promise<void> {
@@ -57,11 +56,9 @@ export function integrateElement(Element: () => ReactElement | null, {
     })
   }
 
-  const node = create(
-      <Provider store={store}>
-        {wrapper(TestComponent, providerOverrides)}
-      </Provider>
-  )
+  const node = create(<Provider store={store}>
+    {wrapper(TestComponent, providerOverrides)}
+  </Provider>)
 
   return {node, updateMatching, contextData, reduxState, replaceOverrides, dispatch, setData};
 
@@ -83,10 +80,7 @@ export function integrateElement(Element: () => ReactElement | null, {
 
 
     contextData.dispatch(setStatus(createStatusFixture(workflow, createStepStatusFixture({
-      ...status,
-      name: stepName,
-      status: 'complete',
-      downloads: {...status.downloads, [outputName]: url}
+      ...status, name: stepName, status: 'complete', downloads: {...status.downloads, [outputName]: url}
     }))));
 
     contextData.dispatch(setDownloadedData(url, value));

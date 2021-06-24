@@ -1,17 +1,12 @@
 import * as React from "react";
 import {integrateElement} from "../../test_utils/integration";
-import {asyncFn, AsyncMock, createFakeStorage} from "../../test_utils/mocks";
-import {setStatus, setWorkflow} from "../../actions/vulcan";
+import {asyncFn, AsyncMock} from "../../test_utils/mocks";
 import {SessionStatusResponse, Workflow} from "../../api_types";
 import {
-  createStatusFixture,
-  createStepFixture,
   createStepStatusFixture, createUpdatedStatusFixture,
   createUpdatedStatusResponseFixture,
-  createWorkflowFixture
 } from "../../test_utils/fixtures";
 import {act} from "react-test-renderer";
-import {defaultContext} from "../vulcan_context";
 import {WorkflowUtils} from "../../test_utils/workflow_utils";
 
 describe('useSessionSync', () => {
@@ -29,7 +24,7 @@ describe('useSessionSync', () => {
         providerOverrides: {
           pollStatus: pollStatusMock.jestMock,
           postInputs: postInputsMock.jestMock,
-        }
+        },
       });
 
       workflowUtils = WorkflowUtils.fromSetup(setup);
