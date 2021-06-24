@@ -42,6 +42,7 @@
 @import "list";
 @import "view_editor";
 @import "matrix";
+@import "query";
 
 body {
   padding: 0px;
@@ -55,6 +56,7 @@ body {
   #ui-container {
     height: 100%;
     width: 100%;
+    font-family: $body_font;
   }
 }
 

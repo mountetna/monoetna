@@ -40,6 +40,10 @@ module Etna
         error(trace)
       end
 
+      if defined? Yabeda
+        Yabeda.etna.rollbar_errors.increment({}, 1) rescue nil
+      end
+
       Rollbar.error(e)
     end
 

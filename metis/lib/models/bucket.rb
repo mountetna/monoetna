@@ -70,7 +70,7 @@ class Metis
         project_name: project_name,
         access: access,
         description: description,
-        count: files.count
+        count: Metis::File.where(bucket: self).count
       }
     end
   end

@@ -105,7 +105,7 @@ export default function StepUserInputWrapper({step}: {step: UIStep['step']}) {
       className={`step-user-input step ${hasValidationErrors ? 'error' : ''}`}
     >
       <div onClick={toggleInputs}>
-        <StepName step={step} />
+        <StepName step={step} showToggle={true} open={open} />
       </div>
       <div
         className={`step-user-input-inputs sliding-panel vertical ${

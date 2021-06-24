@@ -216,11 +216,15 @@ class Metis
       update(read_only: false)
     end
 
-    def rename!(new_folder, new_file_name)
-      update(
+    def rename!(new_folder, new_file_name, user=nil)
+      new_params = {
         file_name: new_file_name,
         folder_id: new_folder ? new_folder.id : nil
-      )
+      }
+
+      new_params[:author] = Metis::File.author(user) if user
+
+      update(**new_params)
     end
 
     def update_bucket!(new_bucket)
@@ -229,12 +233,17 @@ class Metis
       refresh
     end
 
-    def update_bucket_and_rename!(folder, new_file_name, new_bucket)
+    def update_bucket_and_rename!(folder, new_file_name, new_bucket, user=nil)
       raise 'Bucket does not match folder bucket' if folder != nil && folder.bucket_id != new_bucket.id
-      update(
+      new_params = {
         folder_id: folder ? folder.id : nil,
         file_name: new_file_name,
-        bucket: new_bucket)
+        bucket: new_bucket
+      }
+
+      new_params[:author] = Metis::File.author(user) if user
+
+      update(**new_params)
       refresh
     end
   end
