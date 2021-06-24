@@ -23,17 +23,21 @@ export interface IntegrateElementParams {
   store?: Store,
   wrapper?: typeof injectContextAgent,
   providerOverrides?: Partial<ProviderProps & VulcanContextData>
+  defaultOverrides?: boolean,
 }
 
 export function integrateElement(Element: () => ReactElement | null, {
   store = VulcanStore(), wrapper = injectContextAgent, providerOverrides = {},
+  defaultOverrides = true,
 }: IntegrateElementParams = {}) {
   let contextData: VulcanContextData = { ...defaultContext };
   let reduxState: any = {};
   let waiters: Function[] = [];
 
-  providerOverrides = {
-     getWorkflows: defaultContext.getWorkflows, ...providerOverrides,
+  if (defaultOverrides) {
+    providerOverrides = {
+      getWorkflows: defaultContext.getWorkflows, ...providerOverrides,
+    }
   }
 
   function updateMatching(pred: () => boolean): Promise<void> {
