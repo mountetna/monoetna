@@ -240,7 +240,7 @@ export const defaultInputValues = (workflow: Workflow) => {
   }, {} as { [k: string]: any });
 };
 
-export function missingUiQueryOutputs(step: WorkflowStep, inputs: VulcanState['inputs']): { [k: string]: null } {
+export function missingOutputsForStep(step: WorkflowStep, inputs: VulcanState['session']['inputs']): { [k: string]: null } {
   const result: { [k: string]: null } = {};
 
   step.out.forEach(outputName => {

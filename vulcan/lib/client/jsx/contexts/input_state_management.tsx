@@ -8,7 +8,7 @@ import {
 } from '../actions/vulcan_actions';
 import {
   isPendingUiQuery,
-  missingUiQueryOutputs,
+  missingOutputsForStep,
   pendingSteps,
   sourceNameOfReference,
   statusOfStep,
@@ -20,81 +20,4 @@ export function useInputStateManagement(
   dispatch: Dispatch<VulcanAction>,
   isPolling: boolean
 ) {
-  const {inputs, workflow, status, data, session} = state;
-  const {inputs: sessionInputs} = session;
-
-  useEffect(() => {
-    if (workflow == null) return;
-    if (isPolling) return;
-    const inputDeletes: {[k: string]: true} = {};
-    const downloadDeletes: {[k: string]: true} = {};
-    const stepsWithDownloads: {[k: string]: true} = {};
-
-    const droppedSteps = workflow.steps[0].filter((step) => {
-      const stepStatus = statusOfStep(step, status);
-      if (step.out.length === 0) return false;
-
-      if (!stepStatus) return true;
-
-      return !step.out.every((outName) => {
-        const source = sourceNameOfReference([step.name, outName]);
-        if (source in sessionInputs) {
-          return true;
-        }
-
-        if (!stepStatus.downloads) return false;
-        stepsWithDownloads[step.name] = true;
-
-        return outName in stepStatus.downloads;
-      });
-    });
-
-    droppedSteps.forEach((step) => {
-      step.out.forEach((outName) => {
-        const source = sourceNameOfReference([step.name, outName]);
-        if (source in sessionInputs) inputDeletes[source] = true;
-        if (step.name in stepsWithDownloads) downloadDeletes[step.name] = true;
-
-        workflow.dependencies_of_outputs[source].forEach((dependent) => {
-          const stepName = stepOfSource(dependent);
-          if (dependent in inputs) inputDeletes[dependent] = true;
-          if (stepName && stepName in stepsWithDownloads)
-            downloadDeletes[stepName] = true;
-        });
-      });
-    });
-
-    let d = Object.keys(inputDeletes);
-    if (d.length > 0) dispatch(removeInputs(d));
-
-    d = Object.keys(downloadDeletes);
-    if (d.length > 0) dispatch(removeDownloads(d));
-  }, [inputs, workflow, status, data, sessionInputs, isPolling, dispatch]);
-
-  // We inject a `null` input into state.inputs,
-  //   to indicate that we're waiting for a user input value
-  //   to return to the server.
-  useEffect(() => {
-    if (!workflow) return;
-
-    let newInputs = {};
-    let nextUiSteps = pendingSteps(workflow, status).filter(({step}) =>
-      isPendingUiQuery(step, status, data, session)
-    );
-
-    nextUiSteps.forEach((nextInputStep) => {
-      let missingInputs = missingUiQueryOutputs(nextInputStep.step, inputs);
-
-      if (Object.keys(missingInputs).length > 0) {
-        // Make sure to copy over the current inputs, otherwise
-        //   they'll get wiped out in the reducer.
-        newInputs = {
-          ...newInputs,
-          ...missingInputs
-        };
-      }
-    });
-
-    if (Object.keys(newInputs).length > 0) dispatch(patchInputs(newInputs));
-  }, [inputs, workflow, status, data, session, dispatch]);
 }

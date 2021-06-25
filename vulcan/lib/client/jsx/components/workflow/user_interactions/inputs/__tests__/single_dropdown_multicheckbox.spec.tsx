@@ -166,7 +166,7 @@ describe('SingleDropdownMulticheckbox', () => {
     expect(renderedDropdownValue(component)).toEqual('option4');
     expect(onChange).toHaveBeenCalledWith(dropdownInput, 'option4');
 
-    state.inputs[dropdownInput] = 'option4';
+    state = { ...state, bufferedInputValue: 'option4' };
     // Super hokey, but can't setState on functional components,
     //   to verify behavior. So we'll remount with the new state
     //   and check that the render is different
