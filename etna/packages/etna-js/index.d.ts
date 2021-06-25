@@ -22,9 +22,10 @@ declare module 'etna-js/hooks/useActionInvoker' {
 }
 
 declare module 'etna-js/actions/message_actions' {
-  export function showMessages(
-    messages: string[]
-  ): {type: 'SHOW_MESSAGES'; messages: string[]};
+  export function showMessages(messages: string[]): {
+    type: 'SHOW_MESSAGES';
+    messages: string[];
+  };
 }
 
 declare module 'etna-js/utils/cancellable' {
