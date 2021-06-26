@@ -1,7 +1,6 @@
-import React, {useCallback, useContext, useEffect, useMemo} from 'react';
+import React, {useCallback, useContext} from 'react';
 import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
-import {showMessages} from 'etna-js/actions/message_actions';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 import {setSession} from '../../../actions/vulcan_actions';
@@ -9,14 +8,12 @@ import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 import Vignette from '../vignette';
 import {
-  allWorkflowPrimaryInputSources,
-  statusOfStep,
-  uiOutputOfStep,
   workflowName
 } from '../../../selectors/workflow_selectors';
 import {useWorkflow} from '../../../contexts/workflow_context';
 import {readTextFile, downloadBlob} from 'etna-js/utils/blob';
 import { defaultSession } from '../../../reducers/vulcan_reducer';
+import {VulcanSession} from "../../../api_types";
 
 const modalStyles = {
   content: {
@@ -30,18 +27,13 @@ const modalStyles = {
 };
 
 export default function SessionManager() {
-  const {state, dispatch, requestPoll, useActionInvoker} = useContext(
-    VulcanContext
-  );
-  const workflow = useWorkflow();
-  const invoke = useActionInvoker();
+  const {state, dispatch, run, scheduleWork} = useContext(VulcanContext);
+  const {workflow, primaryInputsReady, complete, idle} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
-  const {steps} = workflow;
-  const {status, session, inputs} = state;
+  const {session} = state;
 
   const name = workflowName(workflow);
-
   const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
   const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
@@ -54,9 +46,15 @@ export default function SessionManager() {
   }, [session, name]);
 
   const openSession = () => {
-    readTextFile('*.json').then((sessionJson) => {
-      dispatch(setSession(JSON.parse(sessionJson)));
-    });
+    scheduleWork(readTextFile('*.json').then((sessionJson) => {
+      const session: VulcanSession = JSON.parse(sessionJson);
+      if (session.workflow_name !== state.session.project_name || session.project_name !== state.session.project_name) {
+        // TODO: Maybe navigate the user automatically to the correct project / workflow??
+        // But we'd need to check and then enforce permissions here, too, which is kind of a chunky refactor.
+        throw new Error('This file')
+      }
+      dispatch(setSession(session));
+    }));
   };
 
   const resetSession = useCallback(
@@ -66,62 +64,12 @@ export default function SessionManager() {
         workflow_name: session.workflow_name,
         project_name: session.project_name
       }
-      console.log({newSession});
       dispatch(setSession(newSession));
-    }, [ session, name ]
-  );
-
-  // We are done once every step either has a download or that step is a uiOutput.
-  const complete = useMemo(
-    () =>
-      steps[0].every(
-        (step) => uiOutputOfStep(step) || statusOfStep(step, status)?.downloads
-      ),
-    [steps, status]
-  );
-
-  const idle = useMemo(
-    () =>
-      steps[0].every(
-        (step) =>
-          uiOutputOfStep(step) ||
-          statusOfStep(step, status)?.status !== 'running'
-      ),
-    [steps, status]
-  );
-
-  const primaryInputsReady = useMemo(
-    () =>
-      allWorkflowPrimaryInputSources(workflow).every(
-        (source) => source in state.inputs
-      ),
-    [state.inputs, workflow]
+    }, [session, dispatch]
   );
 
   const hasValidationErrors = Object.keys(state.validationErrors).length > 0;
-
   const running = !idle;
-
-  const run = useCallback(() => {
-    if (hasValidationErrors) {
-      invoke(
-        showMessages(
-          Object.entries(state.validationErrors)
-            .map(([inputName, validation]: [string, any]) => {
-              let {
-                inputLabel,
-                errors
-              }: {inputLabel: string; errors: string[]} = validation;
-              return errors.map((e: string) => `${inputLabel}: ${e}`);
-            })
-            .flat()
-        )
-      );
-    } else {
-      requestPoll(true);
-    }
-  }, [requestPoll, hasValidationErrors, invoke, state.validationErrors]);
-
   const disableRunButton = complete || running || !primaryInputsReady;
 
   if (!name) return null;

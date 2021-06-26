@@ -11,7 +11,7 @@ import {useWorkflow} from "../../../contexts/workflow_context";
 export default function PrimaryInputs() {
   const {state, dispatch} = useContext(VulcanContext);
   const {session} = state;
-  const workflow = useWorkflow();
+  const {workflow} = useWorkflow();
 
   const handleInputChange = useCallback((inputName: string, val: any) => {
     dispatch(patchInputs({

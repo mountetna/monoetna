@@ -6,7 +6,7 @@ import {WorkflowStep} from "../../../api_types";
 export default function Step({step}: {step: WorkflowStep}) {
   return (
     <div className='step'>
-      <StepName step={step}></StepName>
+      <StepName step={step}/>
     </div>
   );
 }

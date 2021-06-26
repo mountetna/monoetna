@@ -17,7 +17,7 @@ import {useWorkflow} from "../../../contexts/workflow_context";
 
 export default function InputGroup({inputs, onChange}: {inputs: InputSpecification[], onChange: (name: string, val: any) => void}) {
   const {state} = useContext(VulcanContext);
-  const workflow = useWorkflow();
+  const {workflow} = useWorkflow();
   let {session, status, data} = state;
   const [open, setOpen] = useState(true);
 

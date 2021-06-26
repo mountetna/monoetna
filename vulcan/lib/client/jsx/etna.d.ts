@@ -26,9 +26,10 @@ declare module 'etna-js/actions/message_actions' {
 declare module 'etna-js/utils/cancellable' {
   export class Cancellable {
     race<T>(p: Promise<T>): Promise<{ result?: T, cancelled?: true }>;
-
     cancel(): void;
   }
+
+  export function useCancelledOnDismount(): Cancellable;
 }
 
 declare module 'etna-js/utils/blob' {

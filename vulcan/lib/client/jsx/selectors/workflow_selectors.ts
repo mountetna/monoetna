@@ -9,6 +9,7 @@ import {
 } from "../api_types";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {GroupedInputStep, UIStep, InputSpecification} from "../components/workflow/user_interactions/inputs/input_types";
+import {useMemo} from "react";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
     workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
@@ -375,4 +376,21 @@ export function sortInputsByLabel(inputs: InputSpecification[]): InputSpecificat
   });
 
   return inputs.sort((a, b) => collator.compare(a.label || a.name, b.label || b.name))
+}
+
+export function useMemoized<P1, R>(f: (p1: P1) => R, p1: P1): R {
+  return useMemo(() => f(p1), [f, p1]);
+}
+
+export function useMemoized2<P1, P2, R>(f: (p1: P1, p2: P2) => R, p1: P1, p2: P2): R {
+  return useMemo(() => f(p1, p2), [f, p1, p2]);
+}
+
+export function useMemoized3<P1, P2, P3, R>(f: (p1: P1, p2: P2, p3: P3) => R, p1: P1, p2: P2, p3: P3): R {
+  return useMemo(() => f(p1, p2, p3), [f, p1, p2, p3]);
+}
+
+
+export function altFactory<P, R>(f: (p: P) => R, p: P | null | undefined, alt: R) {
+
 }

@@ -1,4 +1,8 @@
-import {Schedule} from "./schedule";
+export function useCancelledOnDismount() {
+  const [cancellable, _] = useState(() => new Cancellable());
+  useEffect(() => cancellable.cancel());
+  return cancellable;
+}
 
 export class Cancellable {
   constructor() {

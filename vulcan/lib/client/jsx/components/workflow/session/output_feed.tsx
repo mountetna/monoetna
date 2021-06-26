@@ -10,7 +10,7 @@ export default function OutputFeed() {
   // Shows stream of Output, Plots, etc.,
   //   as the session object updates.
   const {state} = useContext(VulcanContext);
-  const workflow = useWorkflow();
+  const {workflow} = useWorkflow();
   const {status} = state;
 
   let outputs = useMemo(

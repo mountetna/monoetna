@@ -12,7 +12,6 @@ export function useWorkflowsLoading(
     useEffect(() => {
         const cancellable = new Cancellable();
 
-        console.log('refetching workflows', getWorkflows);
         scheduleWork(cancellable.race(getWorkflows())
             .then(({result, cancelled}) => {
                 if (result && !cancelled) dispatch(setWorkflows(result.workflows));

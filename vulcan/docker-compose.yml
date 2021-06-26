@@ -118,5 +118,4 @@ services:
     command: webpack-dev-server --config devserver.js
     ports:
     - 9700:9000
-    - 9701:9000
 
