@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
 
 import {makeStyles} from '@material-ui/core/styles';
 
@@ -19,25 +18,26 @@ import {showMessages} from 'etna-js/actions/message_actions';
 import {getAnswer} from 'etna-js/api/magma_api';
 import {selectModels} from 'etna-js/selectors/magma';
 import {Exchange} from 'etna-js/actions/exchange_actions';
+import {downloadTSV, MatrixDatum} from 'etna-js/utils/tsv';
 import {ReactReduxContext} from 'react-redux';
 
 import {QueryContext} from '../../contexts/query/query_context';
 import {QueryBuilder} from '../../utils/query_builder';
 import {QueryResponse} from '../../contexts/query/query_types';
 import QueryTable from './query_table';
-import QueryClause from './query_clause';
 import AntSwitch from './ant_switch';
+import useTableEffects from './query_use_table_effects';
 
 const useStyles = makeStyles((theme) => ({
   button: {
-    marginRight: "5px"
+    marginRight: '5px'
   },
   result: {
     padding: 10,
     margin: 10,
     border: '1px solid #0f0',
     borderRadius: 2,
-    backgroundColor: 'rgba(0,255,0,0.1)',
+    backgroundColor: 'rgba(0,255,0,0.1)'
   },
   config: {
     padding: 5,
@@ -59,6 +59,7 @@ const QueryResults = () => {
   let {store} = useContext(ReactReduxContext);
   const invoke = useActionInvoker();
   let reduxState = useReduxState();
+  const classes = useStyles();
 
   const builder = useMemo(() => {
     if (state.rootIdentifier && state.graph && state.graph.initialized) {
@@ -90,7 +91,7 @@ const QueryResults = () => {
     if (!builder) return '';
 
     return builder.query();
-  }, [builder, flattenQuery]);
+  }, [builder]);
 
   const count = useMemo(() => {
     if (!builder) return '';
@@ -112,7 +113,7 @@ const QueryResults = () => {
       })
       .then((answerData) => {
         setData(answerData);
-        // setQueries([...queries].splice(0, 0, query as string[]));
+        // setQueries([...queries].splice(0, 0, builder));
       })
       .catch((e) => {
         e.then((error: {[key: string]: string[]}) => {
@@ -120,7 +121,7 @@ const QueryResults = () => {
           invoke(showMessages(error.errors || [error.error] || error));
         });
       });
-  }, [query, count, queries, store.dispatch, pageSize, page]);
+  }, [query, count, store.dispatch, pageSize, page, invoke]);
 
   useEffect(() => {
     // At some point, we can probably cache data and only
@@ -130,9 +131,7 @@ const QueryResults = () => {
       setLastPage(page);
       setLastPageSize(pageSize);
     }
-  }, [page, pageSize, lastPage, lastPageSize]);
-
-  if (!state.rootModel || !state.rootIdentifier) return null;
+  }, [page, pageSize, lastPage, lastPageSize, runQuery]);
 
   function handlePageSizeChange(
     e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
@@ -147,7 +146,36 @@ const QueryResults = () => {
     setPage(newPage);
   }
 
-  const classes = useStyles();
+  const {columns, rows, formatRowData} = useTableEffects(data, expandMatrices);
+
+  const downloadData = useCallback(() => {
+    if ('' === query) return;
+
+    let exchange = new Exchange(store.dispatch, 'query-download-tsv-magma');
+    getAnswer({query}, exchange)
+      .then((allData) => {
+        let rowData = formatRowData(allData, columns);
+        let matrixMap = rowData.map((row: any) => {
+          return columns.reduce((acc: MatrixDatum, {label}, i: number) => {
+            return {...acc, [label]: row[i]};
+          }, {});
+        }, []);
+
+        downloadTSV(
+          matrixMap,
+          columns.map(({label}) => label),
+          `${state.rootModel}-${new Date().toISOString()}` // at some point include the builder hash?
+        );
+      })
+      .catch((e) => {
+        e.then((error: {[key: string]: string[]}) => {
+          console.error(error);
+          invoke(showMessages(error.errors || [error.error] || error));
+        });
+      });
+  }, [query, store.dispatch, columns, formatRowData, invoke, state.rootModel]);
+
+  if (!state.rootModel || !state.rootIdentifier) return null;
 
   return (
     <Grid container xs={12}>
@@ -159,7 +187,7 @@ const QueryResults = () => {
             mode: 'application/json',
             autoCloseBrackets: true,
             lint: false,
-            background: "none",
+            background: 'none',
             tabSize: 2
           }}
           value={JSON.stringify(query)}
@@ -188,14 +216,20 @@ const QueryResults = () => {
             leftOption='Nested'
             rightOption='Flattened'
           />
-          <Button className={classes.button} disabled>Previous Queries</Button>
-          <Button className={classes.button} onClick={runQuery}>Query</Button>
-          <Button className={classes.button} disabled>{'\u21af TSV'}</Button>
+          <Button className={classes.button} disabled>
+            Previous Queries
+          </Button>
+          <Button className={classes.button} onClick={runQuery}>
+            Query
+          </Button>
+          <Button className={classes.button} onClick={downloadData}>
+            {'\u21af TSV'}
+          </Button>
         </Grid>
         <Grid item>
           <QueryTable
-            data={data}
-            expandMatrices={expandMatrices}
+            columns={columns}
+            rows={rows}
             pageSize={pageSize}
             numRecords={numRecords}
             page={page}
