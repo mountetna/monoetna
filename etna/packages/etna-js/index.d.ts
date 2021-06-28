@@ -22,9 +22,10 @@ declare module 'etna-js/hooks/useActionInvoker' {
 }
 
 declare module 'etna-js/actions/message_actions' {
-  export function showMessages(
-    messages: string[]
-  ): {type: 'SHOW_MESSAGES'; messages: string[]};
+  export function showMessages(messages: string[]): {
+    type: 'SHOW_MESSAGES';
+    messages: string[];
+  };
 }
 
 declare module 'etna-js/utils/cancellable' {
@@ -176,4 +177,15 @@ declare module 'etna-js/actions/exchange_actions' {
 
     constructor(dispatch: any, exchange_name: string);
   }
+}
+
+declare module 'etna-js/utils/tsv' {
+  export type MatrixDatum = {[key: string]: any};
+  export type MatrixData = MatrixDatum[];
+
+  export function downloadTSV(
+    data: MatrixData,
+    fields: string[],
+    fileName: string
+  ): void;
 }
