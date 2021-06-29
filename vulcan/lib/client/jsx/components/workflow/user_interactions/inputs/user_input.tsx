@@ -1,6 +1,6 @@
 import React, {useContext, useEffect} from 'react';
 
-import {VulcanContext} from '../../../../contexts/vulcan_context';
+import {defaultContext, VulcanContext} from '../../../../contexts/vulcan_context';
 import {
   addValidationErrors,
   removeValidationErrors
@@ -98,7 +98,16 @@ export default function UserInput({
       ) : null}
       <div className='item_view'>
         <InputHelp input={input}>
-          <InputComponent key={input.name} input={input} onChange={onChange} />
+          {/* Input components should absolutely never have access to the top level context,
+              as inputs are frequently nested in unpredictable ways and have no guarantee
+              of their own association with the top level context.  Better to make input
+              behavior stable by locking out the possibility of access to the greater context
+              and ensuring the InputComponent interface is sufficiently detailed to capture
+              its interface correctly in all cases.
+           */}
+          <VulcanContext.Provider value={defaultContext}>
+            <InputComponent key={input.name} input={input} onChange={onChange} />
+          </VulcanContext.Provider>
         </InputHelp>
       </div>
     </div>

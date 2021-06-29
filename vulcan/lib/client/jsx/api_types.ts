@@ -117,11 +117,13 @@ export interface StepStatus {
   status: StatusString,
   downloads?: {[k: string]: string} | null,
   error?: string | null,
+  hash: string,
 }
 
 export const defaultStepStatus: StepStatus = {
   name: "",
   status: "pending",
+  hash: "",
 }
 
 export const defaultVulcanSession = {

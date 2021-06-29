@@ -35,10 +35,6 @@ export function setInputs(inputs: SessionStatusResponse['session']['inputs']) {
 }
 
 // Adds any inputs specified, but does not fully replace inputs.
-export function patchInputs(inputs: SessionStatusResponse['session']['inputs']) {
-    return actionObject('PATCH_INPUTS', {inputs});
-}
-
 // Removes the inputs by the given source name from the inputs and session states
 export function removeInputs(inputs: string[]) {
     return actionObject('REMOVE_INPUTS', {inputs});
@@ -66,18 +62,17 @@ export function finishPolling() {
     return actionObject('MODIFY_POLLING', {delta: -1})
 }
 
-export function setEdited(source: string) {
-    return actionObject('SET_EDITED', {source});
+// value = null => no value is set, value = [null] => the value null has been set.
+export function setBufferedInput(source: string, value: null | [any]) {
+    return actionObject('SET_BUFFERED_INPUT', {source, value});
 }
 
-export function clearEdited(source: string) {
-    return actionObject('CLEAR_EDITED', {});
-}
+export const clearBufferedInput = actionObject('CLEAR_BUFFERED_INPUT', {});
 
 export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow> | ReturnType<typeof setStatus> |
     ReturnType<typeof setDownloadedData> | ReturnType<typeof setSession> | ReturnType<typeof setInputs> |
     ReturnType<typeof releaseDownloadedData> | ReturnType<typeof removeInputs> |
-    ReturnType<typeof patchInputs> | ReturnType<typeof removeDownloads> |
-    ReturnType<typeof setEdited> | ReturnType<typeof clearEdited> |
+    ReturnType<typeof removeDownloads> |
     ReturnType<typeof startPolling> | ReturnType<typeof finishPolling> |
-    ReturnType<typeof addValidationErrors> | ReturnType<typeof removeValidationErrors>;
+    ReturnType<typeof addValidationErrors> | ReturnType<typeof removeValidationErrors> |
+    ReturnType<typeof setBufferedInput> | typeof clearBufferedInput;

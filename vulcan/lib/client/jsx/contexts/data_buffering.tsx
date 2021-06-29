@@ -3,6 +3,7 @@ import {releaseDownloadedData, setDownloadedData, VulcanAction} from "../actions
 import {defaultApiHelpers} from "./api";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {shouldDownload, stepOfStatus} from "../selectors/workflow_selectors";
+import {delay} from "etna-js/spec/helpers";
 
 export const defaultDataBufferingHelpers = {
   urlsToBuffer: {} as { [k: string]: boolean },
@@ -17,6 +18,7 @@ export function useDataBuffering(
     getData: typeof defaultApiHelpers.getData,
 ): typeof defaultDataBufferingHelpers {
   const [activeDownload, setActiveDownload] = useState(null as string | null);
+  const [numDownloadAttempts, setDownloadAttempts] = useState(0);
   const {status, workflow, data} = state;
 
   const urlsToBuffer = useMemo(() => {
@@ -40,7 +42,8 @@ export function useDataBuffering(
     });
   }, [urlsToBuffer, data, activeDownload]);
 
-  // Queue up and send out download requests
+  // There is a race condition in which we are stuck downloading data we no longer need due to the lack of cancellability
+  // of the underlying fetch api.
   useEffect(() => {
     const nextDownload = missingDownloads[0];
     if (!nextDownload) return;
@@ -48,12 +51,13 @@ export function useDataBuffering(
 
     setActiveDownload(nextDownload);
 
-    scheduleWork(getData(nextDownload).then(data => {
+    scheduleWork(delay(numDownloadAttempts ** 2 * 1000).then(() => getData(nextDownload).then(data => {
+      setDownloadAttempts(0);
       dispatch(setDownloadedData(nextDownload, data));
-    })).catch(e => { console.error(e); }).finally(() => {
+    })).catch(e => { console.error(e); setDownloadAttempts(i => i + 1); }).finally(() => {
       setActiveDownload(null);
-    });
-  }, [missingDownloads, activeDownload, scheduleWork, getData, dispatch]);
+    }));
+  }, [missingDownloads, activeDownload, scheduleWork, getData, dispatch, numDownloadAttempts]);
 
   // Clear out unused downloads, one key at a time.
   useEffect(() => {

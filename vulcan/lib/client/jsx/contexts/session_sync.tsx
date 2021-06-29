@@ -2,18 +2,15 @@ import {defaultApiHelpers} from "./api";
 import {Dispatch, MutableRefObject, useCallback, useEffect, useRef, useState} from "react";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {finishPolling, setSession, setStatus, startPolling, VulcanAction} from "../actions/vulcan_actions";
-import {SessionStatusResponse, VulcanSession} from "../api_types";
-import {Cancellable} from "etna-js/utils/cancellable";
+import {SessionStatusResponse} from "../api_types";
+import {Cancellable, CancelOrResult} from "etna-js/utils/cancellable";
 import {hasNoRunningSteps} from "../selectors/workflow_selectors";
-import {showMessages} from "etna-js/actions/message_actions";
-import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 
 export const defaultSessionSyncHelpers = {
-  requestPoll(post?: boolean) {
-    return Promise.resolve();
-  },
-  cancelPolling() {},
-  run() { return Promise.resolve(true); },
+  requestPoll(post?: boolean): [Promise<CancelOrResult<SessionStatusResponse>>, Promise<boolean>] {
+    return [Promise.resolve({cancelled: true}), Promise.resolve(false)];
+  }, cancelPolling() {
+  }
 };
 
 function updateFromSessionResponse(response: SessionStatusResponse, dispatch: Dispatch<VulcanAction>) {
@@ -22,59 +19,70 @@ function updateFromSessionResponse(response: SessionStatusResponse, dispatch: Di
 }
 
 export function useSessionSync(
-    state: MutableRefObject<VulcanState>,
-    scheduleWork: typeof defaultApiHelpers.scheduleWork,
-    pollStatus: typeof defaultApiHelpers.pollStatus,
-    postInputs: typeof defaultApiHelpers.postInputs,
-    invoke: ReturnType<typeof useActionInvoker>,
-    validationErrors: VulcanState['validationErrors'],
-    dispatch: Dispatch<VulcanAction>,
+  state: MutableRefObject<VulcanState>,
+  scheduleWork: typeof defaultApiHelpers.scheduleWork,
+  pollStatus: typeof defaultApiHelpers.pollStatus,
+  postInputs: typeof defaultApiHelpers.postInputs,
+  dispatch: Dispatch<VulcanAction>,
 ): typeof defaultSessionSyncHelpers {
   const [_, setCancellable] = useState(new Cancellable());
 
-  const requestPoll = useCallback((post = false) => {
-    // Guarantee that any call to requestPoll immediately cancels any existing one.
-    const cancellable = new Cancellable();
-    setCancellable(c => {
-      c.cancel();
-      return cancellable;
-    })
+  /*
+     Begins the process of exchanging the current session with the server and updating our state based on this.
+     1.  Cancels any existing polling process, ensuring that no race condition allows for an existing polling process
+         to update state after a call to requestPoll.
+     2.  post=true => the server should begin to process any runnable steps, where as false will only report back the status.
+     3.  Returns two promises -- the first, results from the first syncing of the session to the server, containing updated
+         hashes based on those inputs.  The second is a continuous (retry enabled) process to poll the server so long as
+         any status='running' process exists.
+   */
+  const requestPoll = useCallback<(post: boolean) => [Promise<CancelOrResult<SessionStatusResponse>>, Promise<boolean>]>(
+    (post = false) => {
+      // Guarantee that any call to requestPoll immediately cancels any existing one.
+      const cancellable = new Cancellable();
+      setCancellable(c => {
+        c.cancel();
+        return cancellable;
+      })
 
-    if (!post && hasNoRunningSteps(state.current.status)) {
-      console.log('request to poll ignored, no running steps and not a post');
-      return Promise.resolve();
-    }
+      if (!state.current.session.workflow_name) {
+        console.log('current session does not have workflow_name set');
+        return [Promise.resolve({cancelled: true}), Promise.resolve(true)];
+      }
 
-    if (!state.current.session.workflow_name) {
-      console.log('current session does not have workflow_name set');
-      return Promise.resolve();
-    }
+      const sessionOfWork = state.current.session;
+      const baseWork = post ? postInputs(sessionOfWork) : pollStatus(sessionOfWork);
 
-    const sessionOfWork = state.current.session;
-    const baseWork = post ? postInputs(sessionOfWork) : pollStatus(sessionOfWork);
+      function sync(work: Promise<SessionStatusResponse>, attempt = 1): Promise<CancelOrResult<SessionStatusResponse>> {
+        return cancellable.race(work).then(({result, cancelled}) => {
+          if (!cancelled && result) updateFromSessionResponse(result, dispatch);
+          return {result, cancelled};
+        }, (e) => {
+          // On failure, retry after a longer period of time.
+          return new Promise((resolve) => setTimeout(resolve, Math.min(attempt + 1, 6) ** 2 * 1000))
+            .then(() => sync(pollStatus(state.current.session), attempt + 1));
+        });
+      }
 
-    function sync(work: Promise<SessionStatusResponse>, attempt=1): Promise<void> {
-      return cancellable.race(work).then(({result, cancelled}) => {
-        if (cancelled || !result) return;
-        updateFromSessionResponse(result, dispatch);
+      function continuePolling({result, cancelled}: CancelOrResult<SessionStatusResponse>): Promise<boolean> {
+        if (cancelled || !result) return Promise.resolve(false);
 
-        if (hasNoRunningSteps(state.current.status)) {
+        if (hasNoRunningSteps(result.status)) {
           console.log('running steps have completed, stopping polling');
-          return Promise.resolve();
+          return Promise.resolve(true);
         }
 
         return new Promise((resolve) => setTimeout(resolve, 1000))
-          .then(() => sync(pollStatus(state.current.session)));
-      }, (e) => {
-        // On failure, retry after a longer period of time.
-        return new Promise((resolve) => setTimeout(resolve, Math.min(attempt + 1, 6) ** 2 * 1000))
-          .then(() => sync(pollStatus(state.current.session), attempt + 1));
-      });
-    }
+          .then(() => sync(pollStatus(result.session)).then(continuePolling));
+      }
 
-    dispatch(startPolling());
-    return sync(baseWork).finally(() => dispatch(finishPolling()));
-  }, [dispatch, pollStatus, postInputs, state]);
+      dispatch(startPolling());
+      const firstSync = sync(baseWork);
+
+      return [firstSync, firstSync.then(continuePolling).finally(() => dispatch(finishPolling()))];
+    },
+    [dispatch, pollStatus, postInputs, state]
+  );
 
   const cancelPolling = useCallback(() => {
     setCancellable(c => {
@@ -83,31 +91,7 @@ export function useSessionSync(
     })
   }, [setCancellable]);
 
-  const run = useCallback(() => {
-    if (Object.keys(validationErrors).length > 0) {
-      invoke(
-        showMessages(
-          Object.entries(validationErrors)
-            .map(([inputName, validation]: [string, any]) => {
-              let {
-                inputLabel,
-                errors
-              }: {inputLabel: string; errors: string[]} = validation;
-              return errors.map((e: string) => `${inputLabel}: ${e}`);
-            })
-            .flat()
-        )
-      );
-
-      return Promise.resolve(false);
-    } else {
-      return requestPoll(true).then(() => true);
-    }
-  }, [requestPoll, invoke, validationErrors]);
-
   return {
-    requestPoll,
-    cancelPolling,
-    run,
+    requestPoll, cancelPolling
   };
 }

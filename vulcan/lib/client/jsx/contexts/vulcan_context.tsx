@@ -43,7 +43,7 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
     return {
       confirm(message: string, context: Cancellable) {
         return context.race(Promise.resolve(window.confirm(message)))
-          .then(({ cancelled, result }) => !cancelled && result)
+          .then(({ cancelled, result }) => !cancelled && !!result)
       }
     };
   }, [])
@@ -71,14 +71,12 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
       scheduleWork,
       pollStatus,
       postInputs,
-      invoker,
-      state.validationErrors,
       dispatch
     ), props);
     const dataBufferingHelpers = withOverrides(useDataBuffering(state, dispatch, scheduleWork, getData), props);
     useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, scheduleWork);
-    useInputStateManagement(state, dispatch, state.pollingState > 0);
     const confirmationHelpers = withOverrides(useConfirmation(), props);
+    const inputHelpers = useInputStateManagement(stateRef, invoker, dispatch, sessionSyncHelpers.requestPoll, confirmationHelpers.confirm);
 
     return (<VulcanContext.Provider value={{
       state,
@@ -90,6 +88,7 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
       ...apiHelpers,
       ...sessionSyncHelpers,
       ...dataBufferingHelpers,
+      ...inputHelpers,
     }}>
       {props.children}
     </VulcanContext.Provider>);

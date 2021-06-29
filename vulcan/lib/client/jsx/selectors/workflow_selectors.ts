@@ -100,10 +100,14 @@ export function allWorkflowPrimaryInputSources(workflow: Workflow): string[] {
   return Object.keys(workflow.inputs);
 }
 
+export function inputSourcesOfStep(step: WorkflowStep) {
+  return step.out.map(outputName => sourceNameOfReference([step.name, outputName]));
+}
+
 export function allWorkflowInputSources(workflow: Workflow): string[] {
   return allWorkflowPrimaryInputSources(workflow).concat(workflow.steps[0].reduce((acc, step) => {
     if (uiQueryOfStep(step)) {
-      acc.push(...step.out.map(outputName => sourceNameOfReference([step.name, outputName])));
+      acc.push(...inputSourcesOfStep(step));
     }
 
     return acc;

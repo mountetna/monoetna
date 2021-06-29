@@ -5,9 +5,8 @@ export type InputType = string;
 
 export interface InputSpecification {
   type: InputType;
-  label: string | null | undefined;
-  name: string; // output source
-  value: any | null;
+  label: string;
+  value: null | [any];
   data?: {[k: string]: any} | null;
   doc?: string | null;
 }

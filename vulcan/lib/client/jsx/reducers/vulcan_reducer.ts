@@ -27,7 +27,7 @@ export const defaultVulcanState = {
   data: defaultData,
 
   curEditingInput: null as string | null,
-  bufferedInputValue: null as any,
+  bufferedInputValue: null as null | [any], // to distinguish between the state of having been set to null, or having not been set.
 
   session: defaultSession,
   outputs: defaultSessionStatusResponse.outputs,
@@ -63,6 +63,12 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       };
     case 'SET_STATUS':
       return {...state, status: action.status};
+
+    case 'SET_BUFFERED_INPUT':
+      return {...state, bufferedInputValue: action.value, curEditingInput: action.source};
+
+    case 'CLEAR_BUFFERED_INPUT':
+      return {...state, bufferedInputValue: null, curEditingInput: null};
 
     case 'SET_DOWNLOAD':
       return {
@@ -128,20 +134,6 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       return {
         ...state,
         session: {...state.session, inputs: filterEmptyValues(action.inputs)},
-      }
-
-    case 'PATCH_INPUTS':
-      if (state.pollingState) {
-        console.error('cannot change inputs while polling...')
-        return state;
-      }
-
-      // THIS WILL GO AWAY OR ELSE DO NOT MERGE.
-      const updatedInputs = unsetDependentInputs(action.inputs, {...state.session.inputs, ...action.inputs}, state.workflow);
-
-      return {
-        ...state,
-        session: {...state.session, inputs: filterEmptyValues(updatedInputs)},
       }
 
     case 'ADD_VALIDATION_ERRORS':
