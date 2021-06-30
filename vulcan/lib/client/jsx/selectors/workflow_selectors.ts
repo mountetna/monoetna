@@ -5,6 +5,7 @@ import {
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {GroupedInputStep, UIStep, InputSpecification} from "../components/workflow/user_interactions/inputs/input_types";
 import {useMemo} from "react";
+import {alternate, maybeOfNullable} from "./maybe";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
     workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
@@ -95,14 +96,12 @@ export function allWorkflowPrimaryInputSources(workflow: Workflow): string[] {
   return Object.keys(workflow.inputs);
 }
 
-export function inputSpecificationOfInput(input: WorkflowInput): InputSpecification {
-  return {
-
-  };
-}
-
 export function inputSourcesOfStep(step: WorkflowStep) {
   return step.out.map(outputName => sourceNameOfReference([step.name, outputName]));
+}
+
+export function inputSourcesOfPrimaryInputs(workflow: Workflow) {
+  return Object.keys(workflow.inputs);
 }
 
 export function allWorkflowInputSources(workflow: Workflow): string[] {
@@ -374,16 +373,14 @@ export function findSourceDependencies(source: string, workflow: Workflow | null
   return Object.keys(workflow.dependencies_of_outputs).filter(k => workflow.dependencies_of_outputs[k].includes(source));
 }
 
+const collator = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: 'base'
+});
 export function sortInputsByLabel(inputs: InputSpecification[]): InputSpecification[] {
-  var collator = new Intl.Collator(undefined, {
-    numeric: true,
-    sensitivity: 'base'
-  });
-
   return inputs.sort((a, b) => collator.compare(a.label, b.label))
 }
 
-export function input
 
 export function useMemoized<P1, R>(f: (p1: P1) => R, p1: P1): R {
   return useMemo(() => f(p1), [f, p1]);

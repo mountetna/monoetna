@@ -68,11 +68,9 @@ function backendComponentOf(
 
 export default function UserInput({
   input,
-  onChange,
   hideLabel
 }: {
   input: InputSpecification;
-  onChange: Dispatch<Maybe<any>>;
   hideLabel?: boolean;
 }) {
   const [InputComponent, Validator] = backendComponentOf(input.type);

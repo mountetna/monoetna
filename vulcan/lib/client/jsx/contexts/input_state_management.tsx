@@ -4,23 +4,24 @@ import {defaultSessionSyncHelpers} from "./session_sync";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 import {showMessages} from "etna-js/actions/message_actions";
 import {clearBufferedInput, removeInputs, setBufferedInput, setInputs, VulcanAction} from "../actions/vulcan_actions";
-import {inputSourcesOfStep, stepOfStatus} from "../selectors/workflow_selectors";
+import {inputSourcesOfStep, sourceNameOfReference, stepOfStatus} from "../selectors/workflow_selectors";
 import {Cancellable} from "etna-js/utils/cancellable";
 import {defaultConfirmationHelpers} from "./confirmation";
+import {isSome, Maybe, withDefault} from "../selectors/maybe";
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges() {
     return Promise.resolve(true);
   },
 
-  startInputChange(source: string, context: Cancellable) {
+  startInputChange(stepName: string | null, context: Cancellable) {
     return Promise.resolve(true);
   },
 
   cancelInputChange() {
   },
 
-  onInputChange(source: string, value: any) {
+  onInputChange(stepName: string | null, value: {[k: string]: Maybe<any>}) {
   }
 }
 
@@ -32,12 +33,14 @@ export function useInputStateManagement(
   confirm: typeof defaultConfirmationHelpers.confirm,
 ): typeof defaultInputStateManagement {
   const commitSessionInputChanges = useCallback(() => {
-    const {curEditingInput, bufferedInputValue, session} = state.current;
+    const {curEditingInputStep, bufferedInputValues, session} = state.current;
     const {inputs} = session;
 
-    if (curEditingInput == null || bufferedInputValue == null) {
+    if (curEditingInputStep == null) {
       return Promise.resolve(false);
     }
+
+    const stepName = curEditingInputStep[0];
 
     if (Object.keys(state.current.validationErrors).length > 0) {
       invoke(showMessages(Object.entries(state.current.validationErrors)
@@ -53,7 +56,16 @@ export function useInputStateManagement(
     }
 
     // This should update the state.current synchronously as well.
-    dispatch(setInputs({...inputs, [curEditingInput]: bufferedInputValue[0]}));
+    let updatedInputs = {...inputs};
+    if (stepName == null) {
+      Object.assign(updatedInputs, bufferedInputValues);
+    } else {
+      Object.entries(bufferedInputValues).forEach(([k, v]) => {
+        updatedInputs[sourceNameOfReference([stepName, k])] = withDefault(v, undefined);
+      });
+    }
+
+    dispatch(setInputs(updatedInputs));
 
     const preCommitStepStatuses = state.current.status[0];
     const [refreshWithInputs] = requestPoll();
@@ -69,6 +81,7 @@ export function useInputStateManagement(
       preCommitStepStatuses.forEach(({name, hash}) => {
         statusHashes[name] = hash;
       })
+
       result.status[0].forEach(({name, hash}) => {
         if (name in statusHashes && statusHashes[name] === hash) delete statusHashes[name];
       })
@@ -84,11 +97,11 @@ export function useInputStateManagement(
     });
   }, [dispatch, invoke, requestPoll, state]);
 
-  const startInputChange = useCallback((source: string, context: Cancellable) => {
-    if (state.current.curEditingInput != null) {
+  const startInputChange = useCallback((stepName: string | null, context: Cancellable) => {
+    if (state.current.curEditingInputStep != null) {
       return confirm("You have uncommitted changes to another input, but you may only change one input at a time.  Proceed to reset that input, or cancel these changes?", context).then(confirmed => {
         if (confirmed) {
-          dispatch(setBufferedInput(source, null));
+          dispatch(setBufferedInput(stepName, {}));
           return true;
         }
 
@@ -96,7 +109,7 @@ export function useInputStateManagement(
       });
     }
 
-    dispatch(setBufferedInput(source, null));
+    dispatch(setBufferedInput(stepName, {}));
     return Promise.resolve(true);
   }, [confirm, state, dispatch]);
 
@@ -104,12 +117,12 @@ export function useInputStateManagement(
     dispatch(clearBufferedInput);
   }, [dispatch]);
 
-  const onInputChange = useCallback((source: string, value: any) => {
-    if (state.current.curEditingInput !== source) {
-      throw new Error(`Concurrent edit to ${source}, a call to startInputChange is necessary.`)
+  const onInputChange = useCallback((stepName: string, value: {[k: string]: Maybe<any>}) => {
+    if (withDefault(state.current.curEditingInputStep, undefined) !== stepName) {
+      throw new Error(`Concurrent edit to ${stepName}, a call to startInputChange is necessary.`)
     }
 
-    setBufferedInput(source, [value]);
+    setBufferedInput(stepName, value);
   }, [state]);
 
   return {

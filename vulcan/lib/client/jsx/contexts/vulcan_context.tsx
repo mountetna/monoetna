@@ -6,7 +6,7 @@ import {defaultApiHelpers, useApi} from "./api";
 import {useWorkflowsLoading} from "./workflows_loading";
 import {defaultDataBufferingHelpers, useDataBuffering} from "./data_buffering";
 import {defaultSessionSyncHelpers, useSessionSync} from "./session_sync";
-import {useInputStateManagement} from "./input_state_management";
+import {defaultInputStateManagement, useInputStateManagement} from "./input_state_management";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 import {Cancellable} from "etna-js/utils/cancellable";
 import {defaultConfirmationHelpers, useConfirmation} from "./confirmation";
@@ -22,6 +22,7 @@ export const defaultContext = {
   ...defaultApiHelpers,
   ...defaultSessionSyncHelpers,
   ...defaultDataBufferingHelpers,
+  ...defaultInputStateManagement,
 }
 
 export type VulcanContextData = typeof defaultContext;

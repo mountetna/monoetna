@@ -3,7 +3,7 @@ import {
 } from '../actions/vulcan_actions';
 import {defaultSessionStatusResponse, SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
 import {unsetDependentInputs, filterEmptyValues} from "../selectors/workflow_selectors";
-import {Maybe} from "../selectors/maybe";
+import {Maybe, some} from "../selectors/maybe";
 
 export type DownloadedData = any; // TODO: improve typing here.
 export type DownloadedStepDataMap = { [k: string]: DownloadedData };
@@ -27,8 +27,12 @@ export const defaultVulcanState = {
   status: defaultStatus,
   data: defaultData,
 
-  curEditingInput: null as string | null,
-  bufferedInputValue: null as Maybe<any>,
+  // When null, no step is being edited.
+  // when some => null, the primary inputs are being edited.
+  curEditingInputStep: null as Maybe<string | null>,
+
+  // Maps output names to possibly values.
+  bufferedInputValues: {} as {[k: string]: Maybe<any>},
 
   session: defaultSession,
   outputs: defaultSessionStatusResponse.outputs,
@@ -66,10 +70,10 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       return {...state, status: action.status};
 
     case 'SET_BUFFERED_INPUT':
-      return {...state, bufferedInputValue: action.value, curEditingInput: action.source};
+      return {...state, bufferedInputValues: action.value, curEditingInputStep: some(action.step)};
 
     case 'CLEAR_BUFFERED_INPUT':
-      return {...state, bufferedInputValue: null, curEditingInput: null};
+      return {...state, bufferedInputValues: {}, curEditingInputStep: null};
 
     case 'SET_DOWNLOAD':
       return {

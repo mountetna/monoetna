@@ -7,7 +7,7 @@ import {VulcanContext} from '../../../contexts/vulcan_context';
 
 import UserInput from '../user_interactions/inputs/user_input';
 import {
-  completedSteps, inputGroupName, isPendingUiQuery, pendingSteps, uiQueryOfStep, sortInputsByLabel
+  completedSteps, inputGroupName, isPendingUiQuery, pendingSteps, uiQueryOfStep, sortInputsByLabel, useMemoized
 } from '../../../selectors/workflow_selectors';
 import {InputSpecification} from "../user_interactions/inputs/input_types";
 import {useWorkflow} from "../../../contexts/workflow_context";
@@ -16,11 +16,10 @@ import {Input} from "@material-ui/core";
 
 interface Props {
   inputs: InputSpecification[],
-  onChange: (idx: number, val: Maybe<any>) => void,
   groupName: string,
 }
 
-export default function InputGroup({inputs, onChange, groupName}: Props) {
+export default function InputGroup({inputs, groupName}: Props) {
   const {state} = useContext(VulcanContext);
   const {workflow} = useWorkflow();
   let {session, status, data} = state;
@@ -43,9 +42,7 @@ export default function InputGroup({inputs, onChange, groupName}: Props) {
     }
   }, [status, data, session, workflow, inputs.length]);
 
-  const inputsAndHandlers = useMemo<[InputSpecification, Dispatch<Maybe<any>>][]>(() => {
-    return sortInputsByLabel(inputs).map((input, idx) => [input, (v: Maybe<any>) => onChange(idx, v)]);
-  }, [inputs, onChange])
+  const sortedInputs = useMemoized(sortInputsByLabel, inputs);
 
   return (<div className='inputs-pane'>
       <div className='header-wrapper'>
@@ -58,10 +55,9 @@ export default function InputGroup({inputs, onChange, groupName}: Props) {
       <div
         className={`primary-inputs-container items sliding-panel vertical ${open ? 'open' : 'closed'}`}
       >
-        {inputsAndHandlers.map(([input, onChange], index) => {
+        {sortedInputs.map((input, index) => {
           return (<UserInput
               input={input}
-              onChange={onChange}
               key={index}
             />);
         })}

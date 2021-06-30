@@ -64,9 +64,8 @@ export function finishPolling() {
     return actionObject('MODIFY_POLLING', {delta: -1})
 }
 
-// value = null => no value is set, value = [null] => the value null has been set.
-export function setBufferedInput(source: string, value: Maybe<any>) {
-    return actionObject('SET_BUFFERED_INPUT', {source, value});
+export function setBufferedInput(step: string | null, value: {[k: string]: Maybe<any>}) {
+    return actionObject('SET_BUFFERED_INPUT', {step, value});
 }
 
 export const clearBufferedInput = actionObject('CLEAR_BUFFERED_INPUT', {});

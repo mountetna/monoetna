@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useMemo} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
@@ -6,46 +6,63 @@ import {allWorkflowPrimaryInputSources, inputGroupName, useMemoized} from '../..
 import InputGroup from './input_group';
 import {InputSpecification} from "../user_interactions/inputs/input_types";
 import {useWorkflow} from "../../../contexts/workflow_context";
+import {useCancelledOnDismount} from "etna-js/utils/cancellable";
+import {Maybe, some, withDefault} from "../../../selectors/maybe";
 
 export default function PrimaryInputs() {
-  const {state, dispatch} = useContext(VulcanContext);
-  const {session} = state;
+  const {state, dispatch, startInputChange, onInputChange} = useContext(VulcanContext);
+  const {session, bufferedInputValues} = state;
   const {workflow} = useWorkflow();
 
-  const handleInputChange = useCallback((inputName: string, val: any) => {
-    dispatch(patchInputs({
-      [inputName]: val,
-    }));
-  }, [dispatch]);
+  const context = useCancelledOnDismount();
 
-  let primaryInputs: InputSpecification[] = useMemo(() => {
-    return Object.keys(workflow.inputs).map(name => ({
-        ...workflow.inputs[name],
-          label: workflow.inputs[name].label || name,
-          value: [
-              session.inputs[name],
-              workflow.inputs[name].default
-          ].find(a => a != null)
-    }))
-  }, [session.inputs, workflow.inputs]);
+  const onStartInputChange = useCallback(() => {
+    startInputChange(null, context);
+  }, [context, startInputChange])
 
-  let groupedInputs = primaryInputs.reduce((result, input) => {
-    let groupName = inputGroupName(input.name);
+  const handlePrimaryInputChange = useCallback((inputName: string, val: any) => {
+    onInputChange(null, {...bufferedInputValues, [inputName]: some(val)});
+  }, [bufferedInputValues, onInputChange]);
+
+  // Ensure defaults are set.
+  useEffect(() => {
+    let updatedInputs = bufferedInputValues;
+    Object.keys(workflow.inputs).forEach(inputName => {
+      if (!(inputName in bufferedInputValues)) {
+        if (updatedInputs === bufferedInputValues) updatedInputs = {...updatedInputs};
+        updatedInputs[inputName] = some(workflow.inputs[inputName].default);
+      }
+    })
+
+    if (updatedInputs !== bufferedInputValues) {
+      onInputChange(null, updatedInputs);
+    }
+  }, [bufferedInputValues, onInputChange, workflow.inputs])
+
+  let groupedInputs = Object.entries(workflow.inputs).reduce((result, [inputName, input]) => {
+    const inputSpecification: InputSpecification = {
+      ...input,
+      label: input.label || inputName,
+      value: withDefault(bufferedInputValues[inputName], input.default),
+      onChange: (v: Maybe<any>) => handlePrimaryInputChange(inputName, v),
+    };
+
+    let groupName = inputGroupName(inputName);
     result[groupName] = result[groupName] || [];
-    result[groupName].push(input);
+    result[groupName].push(inputSpecification);
     return result;
   }, {} as {[k: string]: InputSpecification[]});
 
   return (
-    <div className='primary-inputs'>
+    <div className='primary-inputs' onFocus={}>
       {Object.keys(groupedInputs)
         .sort()
         .map((groupName, index) => {
           return (
             <InputGroup
+              groupName={groupName}
               key={index}
               inputs={groupedInputs[groupName]}
-              onChange={handleInputChange}
             />
           );
         })}

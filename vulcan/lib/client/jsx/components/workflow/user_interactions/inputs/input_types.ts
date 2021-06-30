@@ -9,6 +9,7 @@ export interface InputSpecification {
   type: InputType;
   label: string;
   value: Maybe<any>;
+  onChange(v: Maybe<any>): void;
   data?: {[k: string]: any} | null;
   doc?: string | null;
 }

@@ -23,6 +23,11 @@ export function alternate<T>(a: Maybe<T>, ...alts: Maybe<T>[]): Maybe<T> {
   return null;
 }
 
+export function maybeOfNullable<T>(v: T | null | undefined): Maybe<T> {
+  if (v == null) return null;
+  return [v];
+}
+
 export function mapSome<A, B>(a: Maybe<A>, f: (a: A) => B): Maybe<B> {
   if (isSome(a)) {
     return [f(a[0])];
