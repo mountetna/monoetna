@@ -26,6 +26,7 @@ import MultiselectStringAllInput from './multiselect_string_all';
 import MultipleMultiselectStringAllInput from './multiple_multiselect_string_all';
 import MultipleStringInput from './multiple_string';
 import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox';
+import ScatterPlotlyInput from './scatter_plotly';
 import NotEmptyValidator from './validators/not_empty_validator';
 import {
   AllInnerValuesNotEmptyValidator,
@@ -59,6 +60,8 @@ function backendComponentOf(
       ];
     case TYPE.MULTIPLE_STRING:
       return [MultipleStringInput, AllInnerValuesNotEmptyValidatorStrong];
+    case TYPE.SCATTER_PLOTLY:
+      return [ScatterPlotlyInput, AllInnerValuesNotEmptyValidator];
     case TYPE.SINGLE_DROPDOWN_MULTICHECKBOX:
       return [SingleDropdownMulticheckbox, AllInnerValuesNotEmptyValidator];
     default:

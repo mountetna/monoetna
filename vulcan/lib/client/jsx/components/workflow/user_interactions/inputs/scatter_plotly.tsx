@@ -7,6 +7,7 @@ import * as _ from 'lodash';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import {InputBackendComponent} from './input_types';
 import TextInput from 'etna-js/components/inputs/text_input';
+import { JsxElement } from 'typescript';
 
 /*
 This input is closely tied to archimedes/functions/plotting/scatter_plotly.
@@ -31,38 +32,28 @@ const ScatterPlotlyInput: InputBackendComponent = ({
 
   const options: {[k: string]: string} = useMemo(() => {
     if (data) {
-      return Object.values(data['data-options']);
+      return Object.values(data['data_options']);
     };
 
     return {};
   }, [data]);
 
-  const defaults: {[k: string]: any} = {
-    //'x_by': null,
-    //'y_by': null,
-    //'color_by': null,
-    //'size': 5,
-    //'color_order': 'increasing',
-    //'order_when_continuous_color': false,
-    'plot_title': 'make',
-    'legend_title': 'make',
-    'xlab': 'make',
-    'ylab': 'make'
-  }
-
-  const updateValue = (newValue: string | number |  boolean, key: string, prevValues = input.value) => {
+  const updateValue = (newValue: string | number | boolean, key: string, prevValues = input.value) => {
     prevValues[key] = newValue;
+    console.log(prevValues);
     onChange(name, prevValues);
   };
 
-  const string_input = (key: string, label: string) => {
-    <TextInput
-      key={key}
-      header={label}
-      value={input.value[key]}
-      onChange={(newValue: string) => updateValue(newValue, key)}
-    />
-  }
+  const string_input = (key: string, value: string | number | boolean, label: string = 'hello') => {
+    return (
+      <TextInput
+        key={key}
+        header={label}
+        value={value}
+        onChange={(newValue: string) => updateValue(newValue, key)}
+      />
+    )
+  };
 
   /*
   const dropdown_input
@@ -70,22 +61,42 @@ const ScatterPlotlyInput: InputBackendComponent = ({
   const checkbox_input
 
   const slider_input
-  
-  const component_use: (key: string, value: any) = {
-    //'x_by': dropdown_input('X by', options),
-    //'y_by': dropdown_input('Y by', options),
-    //'color_by': dropdown_input('Color by', options),
-    //'size': slider_input('Point Size', 0.1, 20),
-    //'color_order': dropdown_input('Color Order', ['increasing', 'decreasing', 'unordered']),
-    //'order_when_continuous_color': checkbox_input('Order point plotting when color is continuous?'),
-    'plot_title': string_input('Plot Title', value),
-    'legend_title': string_input('Legend Title', value),
-    'xlab': string_input('X-Axis Title', value),
-    'ylab': string_input('Y-Axis Title', value)
-  }
   */
-  const remove_hidden = (values: {[k: string]: any}, hide: [] | null) => {
-    if (hide == null) {
+
+  type fxn = (...args: any[]) => any;
+
+  const defaults: {[k: string]: any} = {
+    'plot_title': 'make',
+    'legend_title': 'make',
+    'xlab': 'make',
+    'ylab': 'make'
+  };
+  
+  const component_use = (key: string, value: any, extra_inputs: any) => {
+    const comps: {[k: string]: fxn} = {
+      'plot_title': string_input,
+      'legend_title': string_input,
+      'xlab': string_input,
+      'ylab': string_input}
+    
+    const comp_use: fxn = comps[key]
+    
+    return(
+      comp_use(key, value, ...extra_inputs)
+    )
+  };
+
+  const extra_inputs: {[k: string]: any} = {
+    // label, any extras
+    'plot_title': ['Plot Title'],
+    'legend_title': ['Legend Title'],
+    'xlab': ['X-Axis Title'],
+    'ylab': ['Y-Axis Title']
+  };
+
+  /*
+  const remove_hidden = (values: {[k: string]: any}, hide: []) => {
+    if (hide == null || hide === []) {
       return values;
     };
     
@@ -97,23 +108,39 @@ const ScatterPlotlyInput: InputBackendComponent = ({
     };
     return values;
   };
+  */
 
   useEffect(() => {
-    // Set all key's values as the initially given values, only if no input.value provided. (Initialization)
-    // Otherwise set to mirror input.value
-    if (null == input.value) {
-      onChange(name, remove_hidden(defaults, data['hidden']));
+    /*
+    let hide;
+    if (data != null) {
+      hide = data['hidden'];
+    } else {
+      hide = [];
     }
-  }, [data, input.value, name, onChange]);
+
+    values = defaults;
+
+    if (null == input.value) {
+      onChange(name, remove_hidden(defaults, hide));
+    }
+    */
+    console.log(input.value);
+    if (null == input.value) {
+      onChange(name, defaults);
+    };
+
+  }, [defaults, input.value, name, onChange]);
 
   if (null == input.value) return null;
 
   return (
     <div>
-      {string_input('plot_title', 'Plot Title')}
-      {string_input('legend_title', 'Legend Title')}
-      {string_input('xlab', 'X-Axis Title')}
-      {string_input('ylab', 'Y-Axis Title')}
+      {Object.entries(input.value).map(([key, val]) => {
+        return (
+          component_use(key, val, extra_inputs[key])
+        );
+      })}
     </div>
   );
 
