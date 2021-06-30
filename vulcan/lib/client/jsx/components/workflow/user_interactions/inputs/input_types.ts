@@ -1,12 +1,14 @@
 import * as React from 'react';
 import {WorkflowStep} from '../../../../api_types';
+import {Maybe} from "../../../../selectors/maybe";
+import {Dispatch} from "react";
 
 export type InputType = string;
 
 export interface InputSpecification {
   type: InputType;
   label: string;
-  value: null | [any];
+  value: Maybe<any>;
   data?: {[k: string]: any} | null;
   doc?: string | null;
 }
@@ -21,13 +23,10 @@ export type GroupedInputStep = WorkflowStep & {
   isGroup: true;
 };
 
-export type InputOnChange = (inputName: string, val: any) => void;
-
-export type InputBackendComponent = (p: {
+export type InputBackendComponent = (p: WithInputParams<{}>) => React.ReactElement | null;
+export type WithInputParams<T extends {}> = T & {
   input: InputSpecification;
-  onChange: InputOnChange;
-  onClear?: () => void;
-  onAll?: () => void;
-}) => React.ReactElement | null;
+  onChange: Dispatch<Maybe<any>>;
+}
 
 export type InputValidator = (input: InputSpecification) => string[];

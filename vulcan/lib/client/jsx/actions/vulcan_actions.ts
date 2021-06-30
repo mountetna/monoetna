@@ -1,5 +1,6 @@
 import {SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
 import {InputValidator} from '../components/workflow/user_interactions/inputs/input_types';
+import {Maybe} from "../selectors/maybe";
 
 function actionObject<T extends string, P>(type: T, payload: P): { type: T } & P {
     return { ...payload, type };
@@ -46,12 +47,13 @@ export function removeDownloads(stepNames: string[]) {
     return actionObject('REMOVE_DOWNLOADS', {stepNames});
 }
 
-export function addValidationErrors(inputName: string, inputLabel: string, errors: string[]) {
-    return actionObject('ADD_VALIDATION_ERRORS', {inputName, inputLabel, errors});
+export function addValidationErrors(inputLabel: string, errors: string[]) {
+    return actionObject('ADD_VALIDATION_ERRORS', {inputLabel, errors});
 }
 
-export function removeValidationErrors(inputName: string) {
-    return actionObject('REMOVE_VALIDATION_ERRORS', {inputName});
+// Relies on the object identity of the errors string, but loosens the necessary uniqueness of inputLabel
+export function removeValidationErrors(errors: string[]) {
+    return actionObject('REMOVE_VALIDATION_ERRORS', {errors});
 }
 
 export function startPolling() {
@@ -63,7 +65,7 @@ export function finishPolling() {
 }
 
 // value = null => no value is set, value = [null] => the value null has been set.
-export function setBufferedInput(source: string, value: null | [any]) {
+export function setBufferedInput(source: string, value: Maybe<any>) {
     return actionObject('SET_BUFFERED_INPUT', {source, value});
 }
 

@@ -3,6 +3,7 @@ import {
 } from '../actions/vulcan_actions';
 import {defaultSessionStatusResponse, SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
 import {unsetDependentInputs, filterEmptyValues} from "../selectors/workflow_selectors";
+import {Maybe} from "../selectors/maybe";
 
 export type DownloadedData = any; // TODO: improve typing here.
 export type DownloadedStepDataMap = { [k: string]: DownloadedData };
@@ -18,7 +19,7 @@ export const defaultSession: SessionStatusResponse['session'] = {
   key: '',
   inputs: {},
 }
-const defaultValidationErrors: {[key: string]: {[key: string]: string | string[]}} = {};
+const defaultValidationErrors: [string, string[]][] = [];
 
 export const defaultVulcanState = {
   workflows: defaultWorkflows,
@@ -27,7 +28,7 @@ export const defaultVulcanState = {
   data: defaultData,
 
   curEditingInput: null as string | null,
-  bufferedInputValue: null as null | [any], // to distinguish between the state of having been set to null, or having not been set.
+  bufferedInputValue: null as Maybe<any>,
 
   session: defaultSession,
   outputs: defaultSessionStatusResponse.outputs,
@@ -139,22 +140,16 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
     case 'ADD_VALIDATION_ERRORS':
       return {
         ...state,
-        validationErrors: {
+        validationErrors: [
           ...state.validationErrors,
-          [action.inputName]: {
-            errors: action.errors,
-            inputLabel: action.inputLabel
-          }
-        }
+          [action.inputLabel, action.errors]
+        ]
       }
 
     case 'REMOVE_VALIDATION_ERRORS':
-      let updatedValidationErrors = {...state.validationErrors};
-      delete updatedValidationErrors[action.inputName];
-
       return {
         ...state,
-        validationErrors: updatedValidationErrors
+        validationErrors: state.validationErrors.filter(([_, e]) => e !== action.errors)
       }
 
     default:

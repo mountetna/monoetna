@@ -1,4 +1,4 @@
-import React, {useContext, useEffect} from 'react';
+import React, {Dispatch, useContext, useEffect} from 'react';
 
 import {defaultContext, VulcanContext} from '../../../../contexts/vulcan_context';
 import {
@@ -16,7 +16,6 @@ import StringInput from './string';
 import CheckboxesInput from './checkboxes';
 import {
   InputBackendComponent,
-  InputOnChange,
   InputSpecification,
   InputType,
   InputValidator
@@ -31,6 +30,7 @@ import {
   AllInnerValuesNotEmptyValidator,
   AllInnerValuesNotEmptyValidatorStrong
 } from './validators/all_inner_values_not_empty_validator';
+import {Maybe} from "../../../../selectors/maybe";
 
 function backendComponentOf(
   type: InputType
@@ -72,29 +72,29 @@ export default function UserInput({
   hideLabel
 }: {
   input: InputSpecification;
-  onChange: InputOnChange;
+  onChange: Dispatch<Maybe<any>>;
   hideLabel?: boolean;
 }) {
   const [InputComponent, Validator] = backendComponentOf(input.type);
   const {dispatch} = useContext(VulcanContext);
 
   useEffect(() => {
-    let errors = Validator(input);
+    const errors = Validator(input);
     if (errors.length > 0) {
       dispatch(
-        addValidationErrors(input.name, input.label || input.name, errors)
+        addValidationErrors(input.label, errors)
       );
     } else {
-      dispatch(removeValidationErrors(input.name));
+      dispatch(removeValidationErrors(errors));
     }
     // On unmount, remove all errors associated with the input
-    return () => dispatch(removeValidationErrors(input.name));
+    return () => dispatch(removeValidationErrors(errors));
   }, [input.value, input, dispatch, Validator]);
 
   return (
     <div className='view_item'>
       {!hideLabel ? (
-        <div className='item_name'>{input.label || input.name}</div>
+        <div className='item_name'>{input.label}</div>
       ) : null}
       <div className='item_view'>
         <InputHelp input={input}>
@@ -106,7 +106,7 @@ export default function UserInput({
               its interface correctly in all cases.
            */}
           <VulcanContext.Provider value={defaultContext}>
-            <InputComponent key={input.name} input={input} onChange={onChange} />
+            <InputComponent key={input.label} input={input} onChange={onChange} />
           </VulcanContext.Provider>
         </InputHelp>
       </div>

@@ -1,19 +1,16 @@
 import React from 'react';
-import {InputBackendComponent} from './input_types';
+import {InputBackendComponent, WithInputParams} from './input_types';
+import {some, withDefault} from "../../../../selectors/maybe";
 
-const BooleanInput: InputBackendComponent = ({input, onChange}) => {
-  if (!input || !onChange) return null;
-
+export default function BooleanInput({input, onChange}: WithInputParams<{}>) {
   return (
     <input
       type='checkbox'
       className='text_box'
       onChange={(e) => {
-        onChange(input.name, e.target.checked);
+        onChange(some(e.target.checked));
       }}
-      checked={input.value || false}
+      checked={!!withDefault(input.value, false)}
     />
   );
-};
-
-export default BooleanInput;
+}

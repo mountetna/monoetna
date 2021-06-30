@@ -1,11 +1,6 @@
 import * as _ from 'lodash';
 import {
-  OUTPUT_COMPONENT,
-  RUN,
-  SessionStatusResponse, STATUS, StepInput,
-  StepStatus,
-  Workflow,
-  WorkflowStep,
+  OUTPUT_COMPONENT, RUN, SessionStatusResponse, STATUS, StepInput, StepStatus, Workflow, WorkflowInput, WorkflowStep,
 } from "../api_types";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {GroupedInputStep, UIStep, InputSpecification} from "../components/workflow/user_interactions/inputs/input_types";
@@ -98,6 +93,12 @@ export const stepInputDataUrls = (step: WorkflowStep, status: VulcanState['statu
 
 export function allWorkflowPrimaryInputSources(workflow: Workflow): string[] {
   return Object.keys(workflow.inputs);
+}
+
+export function inputSpecificationOfInput(input: WorkflowInput): InputSpecification {
+  return {
+
+  };
 }
 
 export function inputSourcesOfStep(step: WorkflowStep) {
@@ -379,8 +380,10 @@ export function sortInputsByLabel(inputs: InputSpecification[]): InputSpecificat
     sensitivity: 'base'
   });
 
-  return inputs.sort((a, b) => collator.compare(a.label || a.name, b.label || b.name))
+  return inputs.sort((a, b) => collator.compare(a.label, b.label))
 }
+
+export function input
 
 export function useMemoized<P1, R>(f: (p1: P1) => R, p1: P1): R {
   return useMemo(() => f(p1), [f, p1]);

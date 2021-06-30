@@ -2,7 +2,7 @@ import React, {useCallback, useContext, useMemo} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
-import {inputGroupName} from '../../../selectors/workflow_selectors';
+import {allWorkflowPrimaryInputSources, inputGroupName, useMemoized} from '../../../selectors/workflow_selectors';
 import InputGroup from './input_group';
 import {InputSpecification} from "../user_interactions/inputs/input_types";
 import {useWorkflow} from "../../../contexts/workflow_context";
@@ -21,7 +21,6 @@ export default function PrimaryInputs() {
   let primaryInputs: InputSpecification[] = useMemo(() => {
     return Object.keys(workflow.inputs).map(name => ({
         ...workflow.inputs[name],
-          name,
           label: workflow.inputs[name].label || name,
           value: [
               session.inputs[name],
