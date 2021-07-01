@@ -239,61 +239,81 @@ describe MetisShell do
   end
 
   describe MetisShell::Get do
+    before(:each) do
+      # cleanup
+      FileUtils.rm_rf('spec/data/helmet')
+    end
+
+    after(:each) do
+      # cleanup
+      FileUtils.rm_rf('spec/data/helmet')
+    end
+
     it 'downloads a folder from a bucket' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
 
+      stub_metis_download("/athena/download/armor/helmet/helmet.jpg", HELMET)
+
       # it shows download progress
-      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg/ }
-
-      # This ideally would equal HELMET, but because we don't use Apache X-Sendfile
-      #   while testing, no bits are sent by Metis and the local file has no data.
-      # expect(::File.read("spec/data/helmet/helmet.jpg")).to eq(HELMET)
-
-      expect(::File.read("spec/data/helmet/helmet.jpg")).to eq('')
-
-      # cleanup
-      FileUtils.rm_rf('spec/data/helmet')
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg.*k?B\/s/ }
     end
 
-    # We aren't able to test this because Metis uses Apache's X-Sendfile module
-    #   to send the actual bits. So we require a 'production' environment.
-    xit 'does not download data twice' do
+    it 'does not download data if local file size matches' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
 
+      stub_metis_download("/athena/download/armor/helmet/helmet.jpg", HELMET)
+
       # first time it shows download progress
-      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg/ }
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg.*k?B\/s/ }
 
       # second time it shows no progress
-      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { "" }
-
-      # cleanup
-      FileUtils.rm_rf('spec/data/helmet')
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /(?!k?B\/s).*/ }
     end
 
-    it 'will re-download data if the file size does not match' do
+    it 'will re-download data if the local file size does not match' do
       bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
       helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
       helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
       stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
 
-      # first time it shows download progress
-      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg/ }
+      stub_metis_download("/athena/download/armor/helmet/helmet.jpg", HELMET)
 
-      # At this point there will be a file created locally, but it will be 0 bytes
-      #   because no bits are sent. So the file size will not be matched with remote
-      #   and calling the command again should result in a re-download.
+      # first time it shows download progress
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg.*k?B\/s/ }
+
+      # At this point there will be a file created locally, so we'll tweak the
+      #   server contents to be a different size.
+      helmet_file = create_file('athena', 'helmet.jpg', SHINY_HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', SHINY_HELMET)
+      stub_metis_download("/athena/download/armor/helmet/helmet.jpg", SHINY_HELMET)
 
       # second time it still shows download progress
-      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg/ }
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg.*k?B\/s/ }
+      expect(::File.read("spec/data/helmet/helmet.jpg")).to eq(SHINY_HELMET)
+    end
 
-      # cleanup
-      FileUtils.rm_rf('spec/data/helmet')
+    it 'will re-start a download if it is incomplete' do
+      allow_any_instance_of(MetisShell::Get).to receive(:sleep)
+      
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket, folder: helmet_folder)
+      stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
+
+      # Should get Incomplete message
+      expect_error("metis://athena/armor", "get", "helmet", "spec/data") { /Incomplete download/ }
+
+      stub_metis_download("/athena/download/armor/helmet/helmet.jpg", HELMET)
+
+      # second time it will finish the download
+      expect_output("metis://athena/armor", "get", "helmet", "spec/data") { /helmet.jpg.*k?B\/s/ }
+      expect(::File.read("spec/data/helmet/helmet.jpg")).to eq(HELMET)
     end
   end
 
@@ -305,7 +325,6 @@ describe MetisShell do
       stubs.create_file('athena', 'files', 'armor/helmet/helmet.jpg', HELMET)
 
       expect(Metis::Folder.count).to eq(1)
-
       expect_error("metis://athena/armor", "mkdir", "helmet") { /Folder already exists/ }
 
       expect(Metis::Folder.count).to eq(1)
