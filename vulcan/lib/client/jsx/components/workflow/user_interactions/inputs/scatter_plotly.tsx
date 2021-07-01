@@ -24,27 +24,32 @@ Output Structure:
   dictionary of scatter_plotly inputs-name (key) + value pairs.
 */
 
-const ScatterPlotlyInput: InputBackendComponent = ({
+const ScatterPlotly: InputBackendComponent = ({
   input,
   onChange
 }) => {
   const {data, name} = input;
 
   const options: {[k: string]: string} = useMemo(() => {
-    if (data) {
-      return Object.values(data['data_options']);
-    };
+    if (data == null) return {};
+    
+    let given = Object.values(data['data_options']);
+    let cols = Object.keys(data['data_frame'])
 
-    return {};
+    if (given == null && cols != null) {
+      return cols
+    }
+
+    return given;
   }, [data]);
 
   const updateValue = (newValue: string | number | boolean, key: string, prevValues = input.value) => {
     prevValues[key] = newValue;
-    console.log(prevValues);
+    console.log(input);
     onChange(name, prevValues);
   };
 
-  const string_input = (key: string, value: string | number | boolean, label: string = 'hello') => {
+  const string_input = (key: string = "filler", value: string | number | boolean = "filler", label: string = 'hello') => {
     return (
       <TextInput
         key={key}
@@ -109,9 +114,8 @@ const ScatterPlotlyInput: InputBackendComponent = ({
     return values;
   };
   */
-
-  useEffect(() => {
-    /*
+  
+      /*
     let hide;
     if (data != null) {
       hide = data['hidden'];
@@ -125,11 +129,10 @@ const ScatterPlotlyInput: InputBackendComponent = ({
       onChange(name, remove_hidden(defaults, hide));
     }
     */
-    console.log(input.value);
+  useEffect(() => {
     if (null == input.value) {
       onChange(name, defaults);
-    };
-
+    }
   }, [defaults, input.value, name, onChange]);
 
   if (null == input.value) return null;
@@ -146,4 +149,4 @@ const ScatterPlotlyInput: InputBackendComponent = ({
 
 };
 
-export default ScatterPlotlyInput;
+export default ScatterPlotly;

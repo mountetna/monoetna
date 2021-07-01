@@ -20,18 +20,18 @@ steps:
     in: []
     out: [data_frame, data_options]
   fill_plot_options:
-    run: ui-outputs/scatter-plotly.cwl
+    run: ui-queries/scatter-plotly.cwl
     label: 'Set plot options'
     in:
-      df: get_data/data_frame
-      options: get_data/data_options
-    out: [plot_settings]
+      data_options: get_data/data_options
+      data_frame: get_data/data_frame
+    out: [data_options]
   plot_scatter:
-    run: ui-queries/scatter_make_scatter.cwl
+    run: scripts/scatter_make_scatter.cwl
     label: 'Create Scatter Plot'
     in:
-      a: fill_plot_options/plot_settings
-      df: get_data/data_frame
+      plot_settings: fill_plot_options/data_options
+      data_frame: get_data/data_frame
     out: [scatter_plot.json]
   show_scatter_plot:
     run: ui-outputs/plotly.cwl

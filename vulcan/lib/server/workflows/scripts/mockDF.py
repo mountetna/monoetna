@@ -313,4 +313,7 @@ raw_data = {
 df = pd.DataFrame.from_dict(raw_data)
 
 output_tsv(df, "data_frame")
-output_json(list(df.columns), "data_options")
+
+output_json(
+   dict([key, None] for key in list(df.columns)),
+   "data_options")
