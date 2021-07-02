@@ -54,51 +54,29 @@ module Redcap
       end
 
       def record
-        if @eavs.first[:redcap_repeat_instance]
-          records = @eavs.group_by do |eav|
-            eav[:redcap_repeat_instance].to_s
-          end.map do |repeat_id, record_eavs|
-            next if empty?(repeat_id)
-            make_record(record_eavs, false)
-          end.compact
-          records.empty? ? nil : records
-        else
-          make_record(@eavs)
-        end
+        make_record(@eavs)
       end
 
       private
 
       def empty?(value)
-        value.nil? || value == ''
-      end
-
-      def add_eav?(eav)
-        eav[:value] &&
-          eav[:value] != '' &&
-          ![ 'Not Available', 'Not Reported', 'Not reported' ].include?(eav[:value])
+        value.nil? || value.empty?
       end
 
       def field_name(eav)
         eav[:field_name].to_s.gsub(/_?+[0-9]+$/,'').to_sym
       end
 
-      def make_record(record_eavs, use_flat=true)
+      def make_record(record_eavs)
         record = record_eavs.reduce({}) do |rec,eav|
-          if add_eav?(eav)
-            rec[eav[:field_name].to_sym] = best_value(
-              eav, use_flat
-            )
+          if !empty?(eav[:value])
+            rec[eav[:field_name].to_sym] = @flat_record[ eav[:field_name].to_sym ].yield_self do |flat_value|
+              empty?(flat_value) ? eav[:value] : flat_value
+            end
           end
           rec
         end
         record.empty? ? nil : record
-      end
-
-      def best_value(eav, use_flat)
-        value = @flat_record[ eav[:field_name].to_sym ]
-
-        !use_flat || empty?(value) ? eav[:value] : value
       end
     end
   end
