@@ -19,9 +19,16 @@ define_model("Year").class_eval do
     [ record_name, event_name, repeat_id ].join(' ')
   end
 end
+
 define_model("Feature").class_eval do
   def patch(magma_record_name, record)
     record[:year] = magma_record_name.split('-').values_at(1,2,4).join(' ')
+  end
+end
+
+define_model("Award").class_eval do
+  def patch(magma_record_name, record)
+    record[:model] = magma_record_name.split('-')[2]
   end
 end
 
@@ -68,6 +75,16 @@ def config
                 "value": "select_choice"
               },
               value: "feature"
+            }
+          }
+        ]
+      },
+      award: {
+        each: [ "record", "event", { repeat: /awards/  } ],
+        scripts: [
+          {
+            attributes: {
+              name: "award_name"
             }
           }
         ]

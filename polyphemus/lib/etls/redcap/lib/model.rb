@@ -28,7 +28,7 @@ module Redcap
     end
 
     def each_entities
-      @config[:each].map(&:to_sym)
+      @config[:each]
     end
 
     def existing_records

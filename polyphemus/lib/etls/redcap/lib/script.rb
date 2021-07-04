@@ -17,7 +17,7 @@ module Redcap
     def group_by_iter(eavs)
       eavs.group_by do |eav|
         (@each_entities || @model.each_entities).map do |ent|
-          case ent
+          key = case (ent.is_a?(Hash) ? ent.keys.first.to_sym : ent.to_sym)
           when :record
             eav[:record]
           when :event
@@ -27,7 +27,13 @@ module Redcap
           when :value
             eav[:value]
           end
-        end.compact
+
+          next nil if ent.is_a?(Hash) && (key.is_a?(Array) ? key.first : key) !~ ent.values.first
+
+          key
+        end
+      end.reject do |record_id, record_eavs|
+        record_id.any?(&:nil?)
       end
     end
 

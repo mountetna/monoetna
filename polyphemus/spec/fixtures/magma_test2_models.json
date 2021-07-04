@@ -81,6 +81,45 @@
             "hidden": false,
             "validation": null,
             "attribute_type": "collection"
+          },
+          "award": {
+            "name": "award",
+            "attribute_name": "award",
+            "link_model_name": "award",
+            "display_name": "Awards",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "table"
+          }
+        }
+      }
+    },
+    "award": {
+      "template": {
+        "parent": "model",
+        "attributes": {
+          "model": {
+            "name": "model",
+            "attribute_name": "model",
+            "display_name": "Model",
+            "link_model_name": "model",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
           }
         }
       }

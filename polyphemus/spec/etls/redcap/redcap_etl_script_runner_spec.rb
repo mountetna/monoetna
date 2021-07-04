@@ -419,5 +419,25 @@ describe Polyphemus::RedcapEtlScriptRunner do
         {name: "Wheels", value: "6", year: "ToyoT CorolloroC 1"}
       ])
     end
+
+    it 'iterates with restrictions' do
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test2',
+        model_names: ["award"],
+        redcap_tokens: ["faketoken"],
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      expect(records.keys).to match_array([:award, :model])
+      expect(records[:award].values).to match_array([
+        {model: "CorolloroC", name: "Car of the Year 1977"}
+      ])
+    end
   end
 end

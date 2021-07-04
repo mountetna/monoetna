@@ -87,5 +87,23 @@
     "redcap_repeat_instance": 1,
     "field_name": "feature",
     "value": "6"
+  },
+  {
+    "record": "ToyoT",
+    "record_id": "ToyoT",
+    "redcap_event_name": "CorolloroC",
+    "redcap_repeat_instrument": "awards",
+    "redcap_repeat_instance": 1,
+    "field_name": "award_name",
+    "value": "Car of the Year 1977"
+  },
+  {
+    "record": "ToyoT",
+    "record_id": "ToyoT",
+    "redcap_event_name": "CorolloroC",
+    "redcap_repeat_instrument": "rejected",
+    "redcap_repeat_instance": 1,
+    "field_name": "award_name",
+    "value": "Car of the Year 1978"
   }
 ]
