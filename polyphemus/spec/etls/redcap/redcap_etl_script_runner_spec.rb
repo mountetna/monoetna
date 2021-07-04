@@ -395,7 +395,7 @@ describe Polyphemus::RedcapEtlScriptRunner do
       records = redcap_etl.run(magma_client: magma_client)
 
       expect(records.keys).to match_array([:year])
-      expect(records[:year].keys).to match_array(["Jatsun Thunderer 1", "Jatsun Thunderer 2", "ToyoT CorolloroC 1"])
+      expect(records[:year].keys).to match_array(["Jatsun Thunderer 1", "Jatsun Thunderer 2", "ToyoT CorolloroC 1", "ToyoT CorolloroC 2"])
     end
 
     it 'iterates across values' do
@@ -414,9 +414,10 @@ describe Polyphemus::RedcapEtlScriptRunner do
 
       expect(records.keys).to match_array([:feature, :year])
       expect(records[:feature].values).to match_array([
-        {name: "Door", value: "1", year: "ToyoT CorolloroC 1"},
-        {name: "Engine", value: "4", year: "ToyoT CorolloroC 1"},
-        {name: "Wheels", value: "6", year: "ToyoT CorolloroC 1"}
+        {:name=>"Radio", :value=>"1969", :year=>"Jatsun Thunderer 2"},
+        {:name=>"Door", :value=>"1979", :year=>"ToyoT CorolloroC 1"},
+        {:name=>"Engine", :value=>"1979", :year=>"ToyoT CorolloroC 1"},
+        {:name=>"Wheels", :value=>"1980", :year=>"ToyoT CorolloroC 2"}
       ])
     end
 

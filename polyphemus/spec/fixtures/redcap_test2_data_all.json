@@ -66,6 +66,24 @@
     "record_id": "ToyoT",
     "redcap_event_name": "CorolloroC",
     "redcap_repeat_instrument": "model_versions",
+    "redcap_repeat_instance": 2,
+    "field_name": "year",
+    "value": "1980"
+  },
+  {
+    "record": "Jatsun",
+    "record_id": "Jatsun",
+    "redcap_event_name": "Thunderer",
+    "redcap_repeat_instrument": "model_versions",
+    "redcap_repeat_instance": 2,
+    "field_name": "feature",
+    "value": "3"
+  },
+  {
+    "record": "ToyoT",
+    "record_id": "ToyoT",
+    "redcap_event_name": "CorolloroC",
+    "redcap_repeat_instrument": "model_versions",
     "redcap_repeat_instance": 1,
     "field_name": "feature",
     "value": "1"
@@ -84,7 +102,7 @@
     "record_id": "ToyoT",
     "redcap_event_name": "CorolloroC",
     "redcap_repeat_instrument": "model_versions",
-    "redcap_repeat_instance": 1,
+    "redcap_repeat_instance": 2,
     "field_name": "feature",
     "value": "6"
   },

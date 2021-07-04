@@ -7,34 +7,40 @@ module Redcap
       @attributes ||= script[:attributes].map do |att_name, att_value|
         [ att_name, Redcap::Value.new(att_name, att_value, template) ]
       end.to_h
-      @each_entities = script[:each]
+      @each_entities = script[:each]&.map do |ent|
+        Redcap::Entity.create(ent)
+      end
     end
 
     def fields
       @fields ||= @attributes.values.map(&:field_name).uniq
     end
 
+    def each_entities
+      @each_entities || @model.each_entities
+    end
+
     def group_by_iter(eavs)
-      eavs.group_by do |eav|
-        (@each_entities || @model.each_entities).map do |ent|
-          key = case (ent.is_a?(Hash) ? ent.keys.first.to_sym : ent.to_sym)
-          when :record
-            eav[:record]
-          when :event
-            eav[:redcap_event_name]
-          when :repeat
-            [ eav[:redcap_repeat_instrument], eav[:redcap_repeat_instance] ]
-          when :value
-            eav[:value]
-          end
-
-          next nil if ent.is_a?(Hash) && (key.is_a?(Array) ? key.first : key) !~ ent.values.first
-
-          key
+      fields, groups = eavs.group_by do |eav|
+        each_entities.map do |ent|
+          ent.key(eav)
         end
       end.reject do |record_id, record_eavs|
         record_id.any?(&:nil?)
+      end.partition do |record_id, record_eavs|
+        record_id.any?{|i| i == :field }
+      end.map(&:to_h)
+
+      unless fields.empty?
+        groups.each do |record_id, record_eavs|
+          masked_record_id = record_id.map.with_index do |id, i|
+            each_entities[i].is_a?(Redcap::Entity::Field) ? :field : id
+          end
+          record_eavs.concat(fields[masked_record_id]) if fields[masked_record_id]
+        end
       end
+
+      groups
     end
 
     def redcap_records

@@ -28,7 +28,9 @@ module Redcap
     end
 
     def each_entities
-      @config[:each]
+      @entities = @config[:each].map do |ent|
+        Redcap::Entity.create(ent)
+      end
     end
 
     def existing_records

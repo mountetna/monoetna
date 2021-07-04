@@ -66,7 +66,7 @@ def config
         ]
       },
       feature: {
-        each: [ "record", "event", "repeat", "value" ],
+        each: [ "record", "event", "repeat", { "field" => "feature" } ],
         scripts: [
           {
             attributes: {
@@ -74,7 +74,7 @@ def config
                 "redcap_field": "feature",
                 "value": "select_choice"
               },
-              value: "feature"
+              value: "year"
             }
           }
         ]
