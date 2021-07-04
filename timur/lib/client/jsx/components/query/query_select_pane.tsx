@@ -20,7 +20,7 @@ const QuerySelectPane = () => {
       );
       setIntersectionModels(nonRootModels);
     }
-  }, [state.attributes, state.rootModel]);
+  }, [state.attributes, state.rootModel, intersectionModels.length]);
 
   const updateIntersectionModels = useCallback(
     (modelName: string, index: number) => {
@@ -44,11 +44,13 @@ const QuerySelectPane = () => {
   if (!state.rootModel) return null;
 
   let choiceSet = [
-    ...new Set(state.graph.allPaths(state.rootModel).flat().concat(state.rootModel))
+    ...new Set(
+      state.graph.allPaths(state.rootModel).flat().concat(state.rootModel)
+    )
   ];
 
   return (
-    <QueryClause title='Select'>
+    <QueryClause title='Columns'>
       {intersectionModels.map((modelName: string, index: number) => {
         if (!state.rootModel) return;
 
@@ -74,10 +76,9 @@ const QuerySelectPane = () => {
       })}
       {state.rootModel ? (
         <Button
-          onClick={() =>
-            setIntersectionModels(intersectionModels.concat(['']))
-          }
-          startIcon={ <AddIcon /> }>
+          onClick={() => setIntersectionModels(intersectionModels.concat(['']))}
+          startIcon={<AddIcon />}
+        >
           Attribute
         </Button>
       ) : null}
