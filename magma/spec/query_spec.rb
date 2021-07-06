@@ -1229,6 +1229,58 @@ describe QueryController do
       expect(last_response.status).to eq(422)
       expect(json_body[:errors]).to eq(["Page 3 not found"])
     end
+
+    it 'can paginate with one-to-many relationships' do 
+      lion = create(:labor, project: @project, name: 'Nemean Lion')
+      hydra = create(:labor, project: @project, name: 'Lernean Hydra')
+      stables = create(:labor, project: @project, name: 'Augean Stables')
+      poison = create(:prize, labor: hydra, name: 'poison', worth: 0)
+      poop = create(:prize, labor: stables, name: 'poop', worth: 4)
+      iou = create(:prize, labor: stables, name: 'iou', worth: 3)
+      skin = create(:prize, labor: lion, name: 'skin', worth: 5)
+
+      query_opts(
+        ['labor', ['prize', [ '::has', 'worth' ], '::any'], '::all', 'name' ],
+        page: 1,
+        page_size: 2
+      )
+      
+      expect(json_body[:answer].map { |a| a.last }).to eq(
+        ['Augean Stables', 'Lernean Hydra'])
+    end
+
+    it 'can paginate and order with one-to-many relationships' do 
+      now = DateTime.now
+      
+      Timecop.freeze(now - 1000)
+
+      lion = create(:labor, project: @project, name: 'Nemean Lion')
+      
+      Timecop.freeze(now - 500)
+      
+      hydra = create(:labor, project: @project, name: 'Lernean Hydra')
+      
+      Timecop.freeze(now - 250)
+      
+      stables = create(:labor, project: @project, name: 'Augean Stables')
+
+      Timecop.return
+
+      poison = create(:prize, labor: hydra, name: 'poison', worth: 0)
+      poop = create(:prize, labor: stables, name: 'poop', worth: 4)
+      iou = create(:prize, labor: stables, name: 'iou', worth: 3)
+      skin = create(:prize, labor: lion, name: 'skin', worth: 5)
+
+      query_opts(
+        ['labor', ['prize', [ '::has', 'worth' ], '::any'], '::all', 'name' ],
+        page: 1,
+        page_size: 2,
+        order: 'updated_at'
+      )
+
+      expect(json_body[:answer].map { |a| a.last }).to eq(
+        ['Nemean Lion', 'Lernean Hydra'])
+    end
   end
 
   context 'restriction' do
