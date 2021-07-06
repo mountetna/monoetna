@@ -194,7 +194,7 @@ class Magma
         query = constraint.apply(query)
       end
 
-      query.select(
+      query.distinct.select(
           *order_by_column_names.zip(order_by_aliases).map { |c, a| c.as(a) }
       )
     end
