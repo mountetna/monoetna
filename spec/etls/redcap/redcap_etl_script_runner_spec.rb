@@ -336,4 +336,109 @@ describe Polyphemus::RedcapEtlScriptRunner do
       end
     end
   end
+
+  context 'entity iteration' do
+    before(:each) do
+      stub_magma_models(fixture: 'spec/fixtures/magma_test2_models.json')
+      stub_redcap_test2_data
+      copy_redcap_project('test2')
+    end
+
+    it 'iterates across records' do
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test2',
+        model_names: ["make"],
+        redcap_tokens: ["faketoken"],
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      expect(records.keys).to match_array([:make])
+      expect(records[:make].keys).to match_array(["Jatsun", "ToyoT", "Caudillac"])
+    end
+
+    it 'iterates across events' do
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test2',
+        model_names: ["model"],
+        redcap_tokens: ["faketoken"],
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      expect(records.keys).to match_array([:model])
+      expect(records[:model].keys).to match_array(["Thunderer", "El Corazon"])
+    end
+
+    it 'iterates across repeating instruments' do
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test2',
+        model_names: ["year"],
+        redcap_tokens: ["faketoken"],
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      expect(records.keys).to match_array([:year])
+      expect(records[:year].keys).to match_array(["Jatsun Thunderer 1", "Jatsun Thunderer 2", "ToyoT CorolloroC 1", "ToyoT CorolloroC 2"])
+    end
+
+    it 'iterates across values' do
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test2',
+        model_names: ["feature"],
+        redcap_tokens: ["faketoken"],
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      expect(records.keys).to match_array([:feature, :year])
+      expect(records[:feature].values).to match_array([
+        {:name=>"Radio", :value=>"1969", :year=>"Jatsun Thunderer 2"},
+        {:name=>"Door", :value=>"1979", :year=>"ToyoT CorolloroC 1"},
+        {:name=>"Engine", :value=>"1979", :year=>"ToyoT CorolloroC 1"},
+        {:name=>"Wheels", :value=>"1980", :year=>"ToyoT CorolloroC 2"}
+      ])
+    end
+
+    it 'iterates with restrictions' do
+      redcap_etl = Polyphemus::RedcapEtlScriptRunner.new(
+        project_name: 'test2',
+        model_names: ["award"],
+        redcap_tokens: ["faketoken"],
+        dateshift_salt: '123',
+        redcap_host: REDCAP_HOST,
+        magma_host: MAGMA_HOST
+      )
+
+      magma_client = Etna::Clients::Magma.new(host: MAGMA_HOST, token: TEST_TOKEN)
+
+      records = redcap_etl.run(magma_client: magma_client)
+
+      expect(records.keys).to match_array([:award, :model])
+      expect(records[:award].values).to match_array([
+        {model: "CorolloroC", name: "Car of the Year 1977"}
+      ])
+    end
+  end
 end

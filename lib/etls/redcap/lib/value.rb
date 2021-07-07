@@ -24,6 +24,8 @@ module Redcap
         return @template.field_label(field_name)
       when "note"
         return @template.field_note(field_name)
+      when "select_choice"
+        return @template.select_choice(field_name, field_value(redcap_record))
       else
         raise "Invalid value specified in value config: #{@config}"
       end

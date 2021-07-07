@@ -5,6 +5,7 @@ require_relative 'lib/model'
 require_relative 'lib/template'
 require_relative 'lib/loader'
 require_relative 'lib/script'
+require_relative 'lib/entity'
 require_relative 'lib/value'
 require_relative 'lib/project'
 require_relative 'lib/magma_models'
@@ -124,9 +125,9 @@ EOM
 
       # Set some default methods for each model
       Kernel.const_set(model_name, Class.new(Redcap::Model) {
-        def identifier(record_name, event_name)
+        def identifier(*record_id)
           [
-              "::temp", record_name, event_name, rand(36**8).to_s(36)
+              "::temp", *record_id, rand(36**8).to_s(36)
           ].compact.join('-')
         end
 
