@@ -1,0 +1,205 @@
+{
+  "models": {
+    "make": {
+      "template": {
+        "identifier": "name",
+        "attributes": {
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "date_of_founding": {
+            "name": "date_of_founding",
+            "attribute_name": "date_of_founding",
+            "display_name": "Date of Founding",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "date_time"
+          },
+          "model": {
+            "name": "model",
+            "attribute_name": "model",
+            "display_name": "Car Models",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
+          }
+        }
+      }
+    },
+    "model": {
+      "template": {
+        "identifier": "name",
+        "parent": "make",
+        "attributes": {
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "make": {
+            "name": "make",
+            "attribute_name": "make",
+            "display_name": "make",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "type": {
+            "name": "type",
+            "attribute_name": "type",
+            "display_name": "Car Class",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "string"
+          },
+          "year": {
+            "name": "year",
+            "attribute_name": "year",
+            "display_name": "Years",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
+          },
+          "award": {
+            "name": "award",
+            "attribute_name": "award",
+            "link_model_name": "award",
+            "display_name": "Awards",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "table"
+          }
+        }
+      }
+    },
+    "award": {
+      "template": {
+        "parent": "model",
+        "attributes": {
+          "model": {
+            "name": "model",
+            "attribute_name": "model",
+            "display_name": "Model",
+            "link_model_name": "model",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          }
+        }
+      }
+    },
+    "year": {
+      "template": {
+        "identifier": "calendar_year",
+        "parent": "model",
+        "attributes": {
+          "calendar_year": {
+            "name": "calendar_year",
+            "attribute_name": "calendar_year",
+            "display_name": "Calendar Year",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "model": {
+            "name": "model",
+            "attribute_name": "model",
+            "display_name": "Model",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "feature": {
+            "name": "feature",
+            "attribute_name": "feature",
+            "display_name": "Features",
+            "link_model_name": "feature",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "table"
+          }
+        }
+      }
+    },
+    "feature": {
+      "template": {
+        "parent": "year",
+        "attributes": {
+          "year": {
+            "name": "year",
+            "attribute_name": "year",
+            "link_model_name": "year",
+            "display_name": "Year",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "string"
+          },
+          "value": {
+            "name": "value",
+            "attribute_name": "value",
+            "display_name": "value",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -4,13 +4,43 @@ module Redcap
       @model = model
       @project = model.project
       @template = template
-      @attributes ||= script.map do |att_name, att_value|
+      @attributes ||= script[:attributes].map do |att_name, att_value|
         [ att_name, Redcap::Value.new(att_name, att_value, template) ]
       end.to_h
+      @each_entities = script[:each]&.map do |ent|
+        Redcap::Entity.create(ent)
+      end
     end
 
     def fields
       @fields ||= @attributes.values.map(&:field_name).uniq
+    end
+
+    def each_entities
+      @each_entities || @model.each_entities
+    end
+
+    def group_by_iter(eavs)
+      fields, groups = eavs.group_by do |eav|
+        each_entities.map do |ent|
+          ent.key(eav)
+        end
+      end.reject do |record_id, record_eavs|
+        record_id.any?(&:nil?)
+      end.partition do |record_id, record_eavs|
+        record_id.any?{|i| i == :field }
+      end.map(&:to_h)
+
+      unless fields.empty?
+        groups.each do |record_id, record_eavs|
+          masked_record_id = record_id.map.with_index do |id, i|
+            each_entities[i].is_a?(Redcap::Entity::Field) ? :field : id
+          end
+          record_eavs.concat(fields[masked_record_id]) if fields[masked_record_id]
+        end
+      end
+
+      groups
     end
 
     def redcap_records
@@ -22,9 +52,7 @@ module Redcap
 
       return {} unless eavs
 
-      @redcap_records = eavs.group_by do |eav|
-        @model.events? ?  [ eav[:record], eav[:redcap_event_name] ] : eav[:record]
-      end.map do |record_id, record_eavs|
+      @redcap_records = group_by_iter(eavs).map do |record_id, record_eavs|
         [
           record_id,
           Redcap::Client::Record.new(
@@ -58,11 +86,8 @@ module Redcap
     def load
       update = {}
 
-      redcap_records.each do |record_name, redcap_record|
-        record_name, event_name = record_name if @model.events?
-        next if record_name == "test"
-
-        magma_record_name = @model.identifier(record_name, event_name)
+      redcap_records.each do |record_id, redcap_record|
+        magma_record_name = @model.identifier(*record_id)
 
         next unless magma_record_name
 

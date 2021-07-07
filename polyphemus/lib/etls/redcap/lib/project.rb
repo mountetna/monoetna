@@ -32,7 +32,9 @@ module Redcap
     end
 
     def eav_records
-      @eav_records ||= client.get_record_eavs(field_opts(valid_fields))
+      @eav_records ||= client.get_record_eavs(field_opts(valid_fields)).reject do |record|
+        record[:record] == 'test'
+      end
     end
 
     def flat_records
