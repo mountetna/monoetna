@@ -23,12 +23,14 @@ module Redcap
       @offset_days = {}
     end
 
-    def events?
-      @config[:each] == "event"
-    end
-
     def invert?
       @config[:invert]
+    end
+
+    def each_entities
+      @entities = @config[:each].map do |ent|
+        Redcap::Entity.create(ent)
+      end
     end
 
     def existing_records

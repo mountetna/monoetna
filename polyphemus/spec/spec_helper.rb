@@ -31,7 +31,7 @@ REDCAP_HOST = Polyphemus.instance.config(:redcap)[:host]
 TEST_TOKEN = Polyphemus.instance.config(:polyphemus)[:token]
 
 PROJECT = 'mvir1'
-REDCAP_PROJECT_CONFIG_PATH = 'lib/etls/redcap/projects/test.rb'
+REDCAP_PROJECT_CONFIG_DIR = 'lib/etls/redcap/projects'
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
@@ -69,6 +69,10 @@ end
 RSpec.configure do |config|
   config.mock_with :rspec do |mocks|
     mocks.verify_partial_doubles = true
+  end
+
+  config.expect_with :rspec do |exp|
+    exp.max_formatted_output_length = nil
   end
 
   config.shared_context_metadata_behavior = :apply_to_host_groups
@@ -203,9 +207,9 @@ def stub_metis_setup
     })
 end
 
-def stub_magma_models
+def stub_magma_models(fixture: 'spec/fixtures/magma_test_models.json')
   stub_request(:post, "#{MAGMA_HOST}/retrieve")
-    .to_return({ body: File.read('spec/fixtures/magma_test_models.json') })
+    .to_return({ body: File.read(fixture) })
 end
 
 def stub_magma_update_json
@@ -230,6 +234,26 @@ def stub_redcap_data(stub=nil)
         'Content-Type': 'application/json'
       },
       body: File.read('spec/fixtures/redcap_mock_data_all.json')
+    })
+end
+
+def stub_redcap_test2_data(stub=nil)
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: hash_including({ content: 'metadata' }))
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_test2_metadata.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /fields/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_test2_data_all.json')
     })
 end
 
@@ -274,16 +298,16 @@ def stub_redcap_multi_project_records
     })
 end
 
-def copy_redcap_project
+def copy_redcap_project(project_name='test')
   # Make sure the test project is in the right location so the
   # REDCap ETL can find it.
-  redcap_projects_dir = File.dirname(REDCAP_PROJECT_CONFIG_PATH)
-  test_fixture_path = "spec/fixtures/etls/redcap/#{File.basename(REDCAP_PROJECT_CONFIG_PATH)}"
-  FileUtils.mkdir_p(redcap_projects_dir) unless Dir.exist?(redcap_projects_dir)
+  test_fixture_path = "spec/fixtures/etls/redcap/#{project_name}.rb"
+  test_output_path = "#{REDCAP_PROJECT_CONFIG_DIR}/#{project_name}.rb"
+  FileUtils.mkdir_p(REDCAP_PROJECT_CONFIG_DIR) unless Dir.exist?(REDCAP_PROJECT_CONFIG_DIR)
 
   # Make sure we have the newest test project.
-  File.delete(REDCAP_PROJECT_CONFIG_PATH) if File.file?(REDCAP_PROJECT_CONFIG_PATH)
-  FileUtils.cp(test_fixture_path, REDCAP_PROJECT_CONFIG_PATH)
+  File.delete(test_output_path) if File.file?(test_output_path)
+  FileUtils.cp(test_fixture_path, test_output_path)
 end
 
 def temp_id(records, id)
