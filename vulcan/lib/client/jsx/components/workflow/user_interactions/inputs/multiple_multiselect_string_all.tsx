@@ -1,9 +1,8 @@
-import React, {useMemo, useCallback, useState, useEffect} from 'react';
-
-import {TYPE} from '../../../../api_types';
-import {InputBackendComponent, InputSpecification} from './input_types';
+import React, {useMemo, useCallback} from 'react';
+import {WithInputParams} from './input_types';
 import InputHelp from './input_help';
-import MultiselectStringAllInput from './multiselect_string_all';
+import MultiselectStringInput from "./multiselect_string";
+import {Maybe, maybeOfNullable, some, withDefault} from "../../../../selectors/maybe";
 
 export const flattenOptions = (
   data: {[key: string]: {[key: string]: string[]}} | null | undefined
@@ -11,65 +10,42 @@ export const flattenOptions = (
   if (data) {
     return Object.values(data).reduce((a, b) => ({...a, ...b}), {});
   }
-
   return {};
 };
 
-const MultipleMultiselectStringAllInput: InputBackendComponent = ({
-  input,
+export default function MultipleMultiselectStringAllInput({
+  value,
+  data,
   onChange
-}) => {
-  const {data, name, value: inputValue} = input;
-
+}: WithInputParams<{}>) {
   const options: {[k: string]: string[]} = useMemo(() => flattenOptions(data), [
     data
   ]);
+  const values: {[k: string]: string} = useMemo(() => withDefault(value, {}), [value]);
+  const onChangeValue = useCallback((label: string, v: Maybe<string>) => {
+    // this does not work, come back to it.
+    const newValues: {[k: string]: string} = {...values};
+    if (v) {
+      newValues[label] = v[0];
+    } else {
+      delete newValues[label]
+    }
 
-  const innerInputs: InputSpecification[] = useMemo(() => {
-    const result: InputSpecification[] = [];
-
-    Object.keys(options).forEach((label) => {
-      const innerValues = options[label];
-      result.push({
-        type: TYPE.MULTISELECT_STRING_ALL,
-        label,
-        name: label,
-        data: {[label]: innerValues},
-        value: inputValue ? inputValue[label] : null
-      });
-    });
-
-    return result;
-  }, [options, inputValue]);
-
-  const onSelectInnerInput = useCallback(
-    ({label, value}: {label: string; value: string[]}) => {
-      const update: {[k: string]: string[] | null} = {
-        ...inputValue,
-        [label]: value
-      };
-
-      onChange(name, update);
-    },
-    [inputValue, name, onChange]
-  );
+    onChange(some(newValues));
+  }, [onChange, values])
 
   return (
     <div>
-      {innerInputs.map((innerInput: InputSpecification) => (
+      {Object.keys(options).map(label => (
         <div className='view_item'>
-          <div className='item_name'>{innerInput.label || innerInput.name}</div>
+          <div className='item_name'>{label}</div>
           <div className='item_view'>
-            <InputHelp input={innerInput}>
-              <MultiselectStringAllInput
-                key={innerInput.name}
-                onChange={(label, value) => {
-                  onSelectInnerInput({
-                    label,
-                    value
-                  });
-                }}
-                input={innerInput}
+            <InputHelp doc={label}>
+              <MultiselectStringInput
+                key={label}
+                data={{options}}
+                value={maybeOfNullable(values[label])}
+                onChange={(value) => onChangeValue(label, value)}
               />
             </InputHelp>
           </div>
@@ -78,5 +54,3 @@ const MultipleMultiselectStringAllInput: InputBackendComponent = ({
     </div>
   );
 };
-
-export default MultipleMultiselectStringAllInput;

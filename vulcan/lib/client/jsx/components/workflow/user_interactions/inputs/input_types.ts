@@ -26,8 +26,9 @@ export type GroupedInputStep = WorkflowStep & {
 
 export type InputBackendComponent = (p: WithInputParams<{}>) => React.ReactElement | null;
 export type WithInputParams<T extends {}> = T & {
-  input: InputSpecification;
-  onChange: Dispatch<Maybe<any>>;
+  onChange: InputSpecification['onChange'];
+  value: InputSpecification['value'];
+  data: InputSpecification['data'];
 }
 
 export type InputValidator = (input: InputSpecification) => string[];

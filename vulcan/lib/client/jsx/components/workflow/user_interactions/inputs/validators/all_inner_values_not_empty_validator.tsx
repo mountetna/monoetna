@@ -3,6 +3,7 @@ import * as _ from 'lodash';
 import {InputValidator, InputSpecification} from '../input_types';
 import {inputValueNonEmpty} from '../../../../../selectors/workflow_selectors';
 import {flattenOptions} from '../multiple_multiselect_string_all';
+import {mapSome, maybeOfNullable, withDefault} from "../../../../../selectors/maybe";
 
 const _AllInnerValuesNotEmptyValidator = (
   input: InputSpecification, strong = false 
@@ -11,18 +12,9 @@ const _AllInnerValuesNotEmptyValidator = (
   // {experiment: [list,of,options], tissue: [other,choices]}
   const allOptions = flattenOptions(input.data);
 
-  function findEmptyKeys() {
-    if (null == input.value || Object.values(input.value).length === 0) {
-      return Object.keys(allOptions).sort();
-    }
-
-    return Object.keys(allOptions)
-      .filter(
-        (o: string) => !(o in input.value) || !inputValueNonEmpty(input.value[o], strong)
-      ).sort()
-  }
-
-  let emptyKeys = findEmptyKeys();
+  const emptyKeys = withDefault(mapSome(input.value, value =>
+    Object.keys(allOptions).filter(o => inputValueNonEmpty(maybeOfNullable(o), strong))), Object.keys(allOptions));
+  emptyKeys.sort();
 
   if (emptyKeys.length > 0) {
     let verb = (emptyKeys.length > 1) ? 'Values are' : 'Value is';

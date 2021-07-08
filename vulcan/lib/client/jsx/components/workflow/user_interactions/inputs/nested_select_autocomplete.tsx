@@ -5,7 +5,8 @@ import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import * as _ from 'lodash';
 
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import {InputBackendComponent} from './input_types';
+import {WithInputParams} from "./input_types";
+import {mapSome, withDefault} from "../../../../selectors/maybe";
 
 function getPath(options: OptionSet, leaf: string): string[] {
   for (let [key, value] of Object.entries(options)) {
@@ -60,13 +61,7 @@ function LeafOptions({
 
 type OptionSet = {[k: string]: null | OptionSet};
 
-const NestedSelectAutocompleteInput: InputBackendComponent = ({
-  input,
-  onChange
-}) => {
-  const [path, setPath] = useState([] as string[]);
-  const {data} = input;
-
+export default function NestedSelectAutocompleteInput({ data, onChange, value, ...props }: WithInputParams<{}>) {
   const allOptions: OptionSet = useMemo(() => {
     return Object.keys(data || {}).reduce((dataObj, k) => {
       if (!data) return dataObj;
@@ -80,11 +75,9 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({
     }, {} as OptionSet);
   }, [data]);
 
-  useEffect(() => {
-    if (input.value) {
-      setPath(getPath(allOptions, input.value));
-    }
-  }, [input, allOptions]);
+  const path: string[] = useMemo(() => {
+    return withDefault(mapSome(value, inner => getPath(allOptions, inner)), []);
+  }, [allOptions, value]);
 
   const handleSelect = useCallback(
     (value: string | null, depth: number) => {
@@ -107,15 +100,10 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({
     [input, allOptions, path, setPath, onChange]
   );
 
-  if (!input || !onChange) return null;
-
-  if (!input || !onChange) return null;
-
   return (
     <div>
       <div>
-        {path.length > 0
-          ? path.map((value, index) => {
+        {path.map((value, index) => {
               const options = getOptions(path.slice(0, index), allOptions);
               return (
                 <DropdownAutocomplete
@@ -128,7 +116,7 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({
                 />
               );
             })
-          : null}
+        }
       </div>
       <div>
         <LeafOptions
@@ -140,5 +128,3 @@ const NestedSelectAutocompleteInput: InputBackendComponent = ({
     </div>
   );
 };
-
-export default NestedSelectAutocompleteInput;

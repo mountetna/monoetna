@@ -1,65 +1,42 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InputBackendComponent} from './input_types';
+import {InputBackendComponent, WithInputParams} from './input_types';
 import {getAllOptions} from './multiselect_string';
+import {some, withDefault} from "../../../../selectors/maybe";
+import BooleanInput from "./boolean";
 
-function CheckboxInput({
-  onChange,
-  option,
-  checked
-}: {
-  onChange: (v: any) => void;
-  option: any;
-  checked: boolean;
-}) {
-  return (
-    <label className='checkbox-input-option'>
-      <input
-        type='checkbox'
-        className='text_box'
-        onChange={() => {
-          onChange(option);
-        }}
-        checked={checked}
-      />
-      {option}
-    </label>
-  );
-}
-
-const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
-  const options = useMemo(() => getAllOptions(input.data).sort(), [input.data]);
+export default function CheckboxesInput({data, onChange, ...props}: WithInputParams<{}>) {
+  const options = useMemo(() => getAllOptions(data).sort(), [data]);
+  const value = useMemo(() => withDefault(props.value, []), [props.value]);
 
   useEffect(() => {
     // Set all options as checked, only if no input.value provided.
     // Otherwise set checked options to mirror input.value
-    if (null == input.value && options.length > 0) {
-      onChange(input.name, [...options]);
+    if (!value && options.length > 0) {
+      onChange(some([...options]));
     }
-  }, [options, input.value, input.name, onChange]);
+  }, [options, onChange, value]);
 
   const handleClickOption = useCallback(
     (option: any) => {
-      let copy = [...(input.value || [])];
-      if (!input.value.includes(option)) {
-        copy.push(option);
-      } else {
-        copy = input.value.filter((opt: string) => option !== opt);
-      }
-      onChange(input.name, copy);
-    },
-    [input.value, onChange, input.name]
-  );
+      const newValue = [...value];
+      const existingIndex = newValue.indexOf(option);
+      if (existingIndex >= 0) newValue.splice(existingIndex, 1);
+      else newValue.push(option);
 
-  if (!input || !onChange) return null;
+      onChange(some(newValue));
+    },
+    [value, onChange]
+  );
 
   return (
     <div className='checkbox-input-wrapper'>
       {options.map((option, index) => {
         return (
-          <CheckboxInput
-            option={option}
+          <BooleanInput
+            label={option}
+            data={null}
             key={index}
-            checked={input.value ? input.value.includes(option) : false}
+            value={some(value.includes(option))}
             onChange={handleClickOption}
           />
         );
@@ -67,5 +44,3 @@ const CheckboxesInput: InputBackendComponent = ({input, onChange}) => {
     </div>
   );
 };
-
-export default CheckboxesInput;

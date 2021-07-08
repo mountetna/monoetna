@@ -16,7 +16,7 @@ export default function InputFeed() {
   // Shows stream of Inputs,
   //   as the session object updates.
   const {state} = useContext(VulcanContext);
-  const {workflow, session, status, data, inputs} = state;
+  const {workflow, session, status, data} = state;
 
   if (!workflow) return null;
 

@@ -1,16 +1,15 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {IntegerInput as EtnaIntegerInput} from 'etna-js/components/inputs/numeric_input';
 import {InputBackendComponent} from './input_types';
+import {some, withDefault} from "../../../../selectors/maybe";
 
-const IntegerInput: InputBackendComponent = ({input, onChange}) => {
-  if (!input || !onChange) return null;
+const IntegerInput: InputBackendComponent = ({value, onChange}) => {
+  const onNewInt = useCallback((f: number) => onChange(some(f)), [onChange])
 
   return (
     <EtnaIntegerInput
-      defaultValue={input.value}
-      onChange={(e: any) => {
-        onChange(input.name, e);
-      }}
+      defaultValue={withDefault(value, 0)}
+      onChange={onNewInt}
     />
   );
 };

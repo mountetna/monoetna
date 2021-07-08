@@ -5,7 +5,7 @@ import {
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {GroupedInputStep, UIStep, InputSpecification} from "../components/workflow/user_interactions/inputs/input_types";
 import {useMemo} from "react";
-import {alternate, maybeOfNullable} from "./maybe";
+import {alternate, mapSome, Maybe, maybeOfNullable, withDefault} from "./maybe";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
     workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
@@ -114,12 +114,13 @@ export function allWorkflowInputSources(workflow: Workflow): string[] {
   }, [] as string[]));
 }
 
-export function inputValueNonEmpty(val: any, disallow_empty_string = false): boolean {
-  return val != null &&
-    (typeof val !== "number" || !isNaN(val)) &&
-    !_.isEqual(val, ['']) &&
-    !_.isEqual(val, []) &&
-    (!disallow_empty_string || !_.isEqual(val, ''));
+export function inputValueNonEmpty(val: Maybe<any>, disallow_empty_string = false): boolean {
+  return withDefault(mapSome(val, inner =>
+    (typeof inner !== "number" || !isNaN(inner)) &&
+      !_.isEqual(inner, ['']) &&
+      !_.isEqual(inner, []) &&
+      (!disallow_empty_string || !_.isEqual(inner, ''))
+    ), false);
 }
 
 export function allDataNonEmpty(data: ([any] | null)[]) {

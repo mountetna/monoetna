@@ -30,7 +30,6 @@ import {
   AllInnerValuesNotEmptyValidator,
   AllInnerValuesNotEmptyValidatorStrong
 } from './validators/all_inner_values_not_empty_validator';
-import {Maybe} from "../../../../selectors/maybe";
 
 function backendComponentOf(
   type: InputType
@@ -89,6 +88,8 @@ export default function UserInput({
     return () => dispatch(removeValidationErrors(errors));
   }, [input.value, input, dispatch, Validator]);
 
+  const {onChange, data, value} = input;
+
   return (
     <div className='view_item'>
       {!hideLabel ? (
@@ -104,7 +105,7 @@ export default function UserInput({
               its interface correctly in all cases.
            */}
           <VulcanContext.Provider value={defaultContext}>
-            <InputComponent key={input.label} input={input} onChange={onChange} />
+            <InputComponent key={input.label} onChange={onChange} data={data} value={value} />
           </VulcanContext.Provider>
         </InputHelp>
       </div>

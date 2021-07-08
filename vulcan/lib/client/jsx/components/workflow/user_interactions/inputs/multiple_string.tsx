@@ -1,41 +1,28 @@
-import React, {useState, useMemo, useEffect, useCallback, useRef} from 'react';
-import * as _ from 'lodash';
+import React, {useMemo, useCallback} from 'react';
 
-import {InputBackendComponent} from './input_types';
+import {WithInputParams} from './input_types';
 import TextInput from 'etna-js/components/inputs/text_input';
+import {withDefault} from "../../../../selectors/maybe";
 
-const MultipleStringInput: InputBackendComponent = ({
-  input,
-  onChange
-}) => {
-  const {data, name} = input;
-
-  const options: {[k: string]: string} = useMemo(() => {
+export default function MultipleStringInput({ onChange, data, ...props }: WithInputParams<{}>) {
+  const defaults: {[k: string]: string} = useMemo(() => {
     if (data) {
       return Object.values(data).reduce((a, b) => ({...a, ...b}), {});
-    };
+    }
 
     return {};
   }, [data]);
 
-  useEffect(() => {
-    // Set all key's values as the initially given values, only if no input.value provided. (Initialization)
-    // Otherwise set to mirror input.value
-    if (null == input.value) {
-      onChange(name, options);
-    }
-  }, [options, input.value, name, onChange]);
+  const value = withDefault(props.value, defaults);
 
-  const updateLabel = (newValue: string, key: string, prevLabels = input.value) => {
-    prevLabels[key] = newValue;
-    onChange(name, prevLabels);
-  };
-
-  if (null == input.value) return null;
+  const updateLabel = useCallback((v: string, key: string) => {
+    const newValue = {...value, [key]: v};
+    onChange(newValue);
+  }, [onChange, value])
 
   return (
     <div>
-      {Object.entries(input.value).map(([k, val]) => {
+      {Object.entries(value).map(([k, val]) => {
         return (
           <TextInput
             key={k}
@@ -49,5 +36,3 @@ const MultipleStringInput: InputBackendComponent = ({
   );
 
 };
-
-export default MultipleStringInput;

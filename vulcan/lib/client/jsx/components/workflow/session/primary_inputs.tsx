@@ -16,7 +16,7 @@ export default function PrimaryInputs() {
 
   const context = useCancelledOnDismount();
 
-  const onStartInputChange = useCallback(() => {
+  const onStartPrimaryInputChanges = useCallback(() => {
     startInputChange(null, context);
   }, [context, startInputChange])
 
@@ -54,7 +54,7 @@ export default function PrimaryInputs() {
   }, {} as {[k: string]: InputSpecification[]});
 
   return (
-    <div className='primary-inputs' onFocus={}>
+    <div className='primary-inputs' onFocus={onStartPrimaryInputChanges}>
       {Object.keys(groupedInputs)
         .sort()
         .map((groupName, index) => {

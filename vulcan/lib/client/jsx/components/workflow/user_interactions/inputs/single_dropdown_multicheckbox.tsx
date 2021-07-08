@@ -8,7 +8,6 @@ import React, {
   useContext,
   useMemo
 } from 'react';
-import * as _ from 'lodash';
 
 import {VulcanContext} from '../../../../contexts/vulcan_context';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
