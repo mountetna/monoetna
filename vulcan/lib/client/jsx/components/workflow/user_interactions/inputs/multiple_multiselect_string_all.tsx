@@ -4,14 +4,14 @@ import InputHelp from './input_help';
 import MultiselectStringInput from "./multiselect_string";
 import {Maybe, maybeOfNullable, some, withDefault} from "../../../../selectors/maybe";
 
-export const flattenOptions = (
+export function flattenOptions (
   data: {[key: string]: {[key: string]: string[]}} | null | undefined
-) => {
+): {[k: string]: string[]} {
   if (data) {
     return Object.values(data).reduce((a, b) => ({...a, ...b}), {});
   }
   return {};
-};
+}
 
 export default function MultipleMultiselectStringAllInput({
   value,

@@ -6,7 +6,7 @@ import * as _ from 'lodash';
 
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import {WithInputParams} from "./input_types";
-import {mapSome, withDefault} from "../../../../selectors/maybe";
+import {mapSome, some, withDefault} from "../../../../selectors/maybe";
 
 function getPath(options: OptionSet, leaf: string): string[] {
   for (let [key, value] of Object.entries(options)) {
@@ -14,8 +14,7 @@ function getPath(options: OptionSet, leaf: string): string[] {
       // Look one step ahead for our leaf nodes
       if (Object.keys(value).includes(leaf) && null == value[leaf])
         return [key, leaf];
-      let path = getPath(value, leaf);
-      if (path.length > 0) return [key, ...path];
+      return [key, ...getPath(value, leaf)];
     } else if (null == value && key == leaf) {
       return [key];
     }
@@ -75,9 +74,11 @@ export default function NestedSelectAutocompleteInput({ data, onChange, value, .
     }, {} as OptionSet);
   }, [data]);
 
-  const path: string[] = useMemo(() => {
-    return withDefault(mapSome(value, inner => getPath(allOptions, inner)), []);
-  }, [allOptions, value]);
+  const [path, setPath] = useState([] as string[]);
+
+  useEffect(() => {
+    if (value) setPath(withDefault(mapSome(value, inner => getPath(allOptions, inner)), []));
+  }, [allOptions, value])
 
   const handleSelect = useCallback(
     (value: string | null, depth: number) => {
@@ -85,19 +86,20 @@ export default function NestedSelectAutocompleteInput({ data, onChange, value, .
       //   still typing?
       if (null == value) return;
 
+      // figure out where the next selection comes from, check if we're picking a leaf node.
       const updatedPath = path.slice(0, depth);
       updatedPath.push(value);
       setPath(updatedPath);
 
       if (getOptions(updatedPath, allOptions) == null) {
         // If we are updating a leaf
-        onChange(input.name, value);
+        onChange(some(value));
       } else {
         // Otherwise a leaf has not been selected.
-        onChange(input.name, null);
+        onChange(null);
       }
     },
-    [input, allOptions, path, setPath, onChange]
+    [allOptions, path, onChange]
   );
 
   return (

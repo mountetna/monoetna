@@ -21,10 +21,9 @@ import {
   InputValidator
 } from './input_types';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
-import MultiselectStringAllInput from './multiselect_string_all';
 import MultipleMultiselectStringAllInput from './multiple_multiselect_string_all';
 import MultipleStringInput from './multiple_string';
-import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox';
+// import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox';
 import NotEmptyValidator from './validators/not_empty_validator';
 import {
   AllInnerValuesNotEmptyValidator,
@@ -41,25 +40,18 @@ function backendComponentOf(
       return [IntegerInput, NotEmptyValidator];
     case TYPE.BOOL:
       return [BooleanInput, NotEmptyValidator];
-    case TYPE.MULTISELECT_STRING:
-      return [MultiselectStringInput, NotEmptyValidator];
     case TYPE.SELECT_AUTOCOMPLETE:
       return [SelectAutocompleteInput, NotEmptyValidator];
     case TYPE.CHECKBOXES:
       return [CheckboxesInput, NotEmptyValidator];
     case TYPE.NESTED_SELECT_AUTOCOMPLETE:
       return [NestedSelectAutocompleteInput, NotEmptyValidator];
-    case TYPE.MULTISELECT_STRING_ALL:
-      return [MultiselectStringAllInput, NotEmptyValidator];
-    case TYPE.MULTIPLE_MULTISELECT_STRING_ALL:
-      return [
-        MultipleMultiselectStringAllInput,
-        AllInnerValuesNotEmptyValidator
-      ];
+    case TYPE.MULTISELECT_STRING:
+      return [MultiselectStringInput, AllInnerValuesNotEmptyValidator];
     case TYPE.MULTIPLE_STRING:
       return [MultipleStringInput, AllInnerValuesNotEmptyValidatorStrong];
-    case TYPE.SINGLE_DROPDOWN_MULTICHECKBOX:
-      return [SingleDropdownMulticheckbox, AllInnerValuesNotEmptyValidator];
+    // case TYPE.SINGLE_DROPDOWN_MULTICHECKBOX:
+    //   return [SingleDropdownMulticheckbox, AllInnerValuesNotEmptyValidator];
     default:
       return [StringInput, NotEmptyValidator];
   }
@@ -96,7 +88,7 @@ export default function UserInput({
         <div className='item_name'>{input.label}</div>
       ) : null}
       <div className='item_view'>
-        <InputHelp input={input}>
+        <InputHelp doc={input.doc || ''}>
           {/* Input components should absolutely never have access to the top level context,
               as inputs are frequently nested in unpredictable ways and have no guarantee
               of their own association with the top level context.  Better to make input

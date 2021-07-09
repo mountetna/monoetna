@@ -8,9 +8,9 @@ import {Provider} from "react-redux";
 import {VulcanStore} from "../vulcan_store";
 import * as React from "react";
 import {Store} from "redux";
-import {patchInputs, setDownloadedData, setStatus, VulcanAction} from "../actions/vulcan_actions";
-import {splitSource, statusOfStep, stepOfSource} from "../selectors/workflow_selectors";
-import {defaultStepStatus, StepStatus} from "../api_types";
+import {setDownloadedData, setStatus, VulcanAction} from "../actions/vulcan_actions";
+import {splitSource, statusOfStep} from "../selectors/workflow_selectors";
+import {defaultStepStatus} from "../api_types";
 import {createStatusFixture, createStepStatusFixture} from "./fixtures";
 
 function injectContextAgent(Element: () => ReactElement | null, overrides: Partial<ProviderProps & VulcanContextData>) {
