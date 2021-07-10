@@ -3,6 +3,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 
 import PolyphemusNav from './polyphemus-nav';
 import PolyphemusMain from './polyphemus-main';
+import RootView from 'etna-js/components/RootView';
 
 import { findRoute, setRoutes } from 'etna-js/dispatchers/router';
 
@@ -12,8 +13,11 @@ const theme = createEtnaTheme("#3684fd","#77c");
 
 const ROUTES = [
   {
-    name: 'main',
     template: '',
+    component: RootView
+  },
+  {
+    template: ':project_name/',
     component: PolyphemusMain
   }
 ];

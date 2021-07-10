@@ -27,5 +27,13 @@ describe Polyphemus::Server do
     expect(last_response.status).to eq(200)
     expect(last_response.body).to match('var CONFIG = ')
   end
+
+  it 'returns a list of etls for a project' do
+    auth_header(:editor)
+    get('/api/labors/etls')
+
+    expect(last_response.status).to eq(200)
+    expect(json_body).to eq([project_name: 'labors', etl: 'redcap', name: 'Redcap Loader', config: { }])
+  end
 end
 
