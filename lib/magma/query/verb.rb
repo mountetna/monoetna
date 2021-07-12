@@ -75,6 +75,7 @@ class Magma
         raise "Cannot determine constraint for #{@predicate}"
       end
     end
+
     def extract(*args, &block)
       @extract = block_given? ? block : args
     end
@@ -99,6 +100,22 @@ class Magma
 
     def get_format(*args)
       @predicate.instance_exec(*args, &@format)
+    end
+
+    def subquery(*args, &block)
+      @subquery = block_given? ? block : args
+    end
+
+    def get_subquery(*args)
+      @predicate.instance_exec(*args, &@subquery)
+    end
+
+    def subquery_config(*args, &block)
+      @subquery_config = block_given? ? block : args.first
+    end
+
+    def get_subquery_config(*args)
+      @subquery_config
     end
   end
 end
