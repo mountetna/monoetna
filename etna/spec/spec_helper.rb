@@ -82,6 +82,9 @@ params = {
 }
 TEST_TOKEN = "something.#{Base64.strict_encode64(params.to_json)}"
 
+# post '/authorize/upload', action: 'upload#authorize', auth: { user: { can_edit?: :project_name } }
+# post '/:project_name/upload/:bucket_name/*file_path', action: 'upload#upload', auth: { hmac: true }, as: :upload
+
 def stub_metis_setup
   route_payload = JSON.generate([
     {:method=>"GET", :route=>"/:project_name/list_all_folders/:bucket_name", :name=>"folder_list_all_folders", :params=>["project_name", "bucket_name"]},
@@ -91,7 +94,9 @@ def stub_metis_setup
     {:method=>"DELETE", :route=>"/:project_name/folder/remove/:bucket_name/*folder_path", :name=>"folder_remove", :params=>["project_name", "bucket_name", "folder_path"]},
     {:method=>"POST", :route=>"/:project_name/find/:bucket_name", :name=>"bucket_find", :params=>["project_name", "bucket_name"]},
     {:method=>"POST", :route=>"/:project_name/files/copy", :name=>"file_bulk_copy", :params=>["project_name"]},
-    {:method=>"POST", :route=>"/:project_name/file/rename/:bucket_name/*file_path", :name=>"file_rename", :params=>["project_name", "bucket_name", "file_path"]}
+    {:method=>"POST", :route=>"/:project_name/file/rename/:bucket_name/*file_path", :name=>"file_rename", :params=>["project_name", "bucket_name", "file_path"]},
+    {:method=>"POST", :route=>"/authorize/upload", :name=>"upload_authorize", :params=>["project_name", "bucket_name", "file_path"]},
+    {:method=>"POST", :route=>"/:project_name/upload/:bucket_name/*file_path", :name=>"upload_upload", :params=>["project_name", "bucket_name", "file_path"]}
   ])
 
   stub_request(:options, METIS_HOST).
@@ -167,6 +172,19 @@ def stub_copy(params={})
   stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/files\/copy/)
   .to_return({
     status: params[:status] || 200
+  })
+end
+
+def stub_upload_file(params={})
+  stub_request(:post, /#{METIS_HOST}\/authorize\/upload/)
+  .to_return({
+    status: params[:status] || 200,
+    body: params[:authorize_body] || JSON.generate({})
+  })
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/upload/)
+  .to_return({
+    status: params[:status] || 200,
+    body: params[:upload_body] || JSON.generate({})
   })
 end
 

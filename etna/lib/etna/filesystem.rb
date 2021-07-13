@@ -488,6 +488,10 @@ module Etna
       def exist?(src)
         @files.include?(src) || @dirs.include?(src)
       end
+
+      def stat(src)
+        @files[src].stat
+      end
     end
   end
 end
