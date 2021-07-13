@@ -13,7 +13,7 @@ module Etna
           srcs.each do |src|
             next unless ingest_filesystem.exist?(src)
 
-            logger&.info("Copying file #{src} (#{Etna::Formatting.as_size(ingest_filesystem.state(src).size)})")
+            logger&.info("Copying file #{src} (#{Etna::Formatting.as_size(ingest_filesystem.stat(src).size)})")
 
             # For ingestion triage, just copy over the exact path + filename.
             copy_file(dest: src, src: src)
