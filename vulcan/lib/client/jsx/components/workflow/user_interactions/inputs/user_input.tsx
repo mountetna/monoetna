@@ -21,7 +21,6 @@ import {
   InputValidator
 } from './input_types';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
-import MultipleStringInput from './multiple_string';
 // import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox';
 import NotEmptyValidator from './validators/not_empty_validator';
 import {
@@ -48,10 +47,10 @@ configureComponent(TYPE.SELECT_AUTOCOMPLETE, SelectAutocompleteInput, NotEmptyVa
 configureComponent(TYPE.CHECKBOXES, CheckboxesInput, NotEmptyValidator);
 configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, NotEmptyValidator);
 configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
-configureComponent(TYPE.MULTIPLE_STRING, MultipleStringInput, NotEmptyValidator);
+configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
 
 // TODO
-configureComponent(TYPE.SINGLE_DROPDOWN_MULTICHECKBOX, MultipleStringInput, NotEmptyValidator);
+// configureComponent(TYPE.SINGLE_DROPDOWN_MULTICHECKBOX, MultipleStringInput, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_MULTISELECT_STRING_ALL, MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator)
 
 

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import {WorkflowStep} from '../../../../api_types';
 import {Maybe} from "../../../../selectors/maybe";
-import {Dispatch} from "react";
 
 export type InputType = string;
 
