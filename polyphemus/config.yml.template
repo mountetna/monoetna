@@ -41,9 +41,9 @@
     :host: https://redcap.development.local
   :ingest:
     :sftp:
-      :host: sftp://example.com
-      :username: user
-      :password: pass
+      - :host: sftp://example.com
+        :username: user
+        :password: pass
 
 :production:
   :magma:

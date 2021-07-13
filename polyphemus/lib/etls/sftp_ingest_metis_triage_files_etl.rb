@@ -7,45 +7,40 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
     super(
       project_bucket_pairs: [[@project_name, @bucket_name]],
       limit: 20,
-      table_name: "metis_ingest_triage",
+      table_name: "ingest_files",
     )
   end
 
   def process(cursor, records)
-    workflow = Etna::Clients::Metis::IngestMetisDataWorkflow.new(
-      metis_filesystem: metis_filesystem,
-      ingest_filesystem: ingest_filesystem,
-      logger: logger,
-    )
+    sftp_configs.each do |conf|
+      host_matches = records.select do |record|
+        conf[:host] == record[:host]
+      end
 
-    host_matches = records.select do |record|
-      host == record[:host]
+      logger.info("Ingesting files from #{conf[:host]}: #{host_matches.map { |r| r[:name] }.join(", ")}...")
+
+      workflow = Etna::Clients::Metis::IngestMetisDataWorkflow.new(
+        metis_filesystem: metis_filesystem,
+        ingest_filesystem: ingest_filesystem(conf),
+        logger: logger,
+      )
+      workflow.copy_files(host_matches.map { |m| m[:name] })
     end
-
-    logger.warn("#{records.length - host_matches.length} triage file(s) are from a different SFTP host than the current configuration: #{host}") if host_matches.length != records.length
-
-    logger.info("Ingesting files from #{host}: #{host_matches.map { |r| r[:name] }.join(", ")}...")
-
-    workflow.ingest_files(host_matches.map { |m| m[:name] })
 
     logger.info("Done")
   end
 
   private
 
-  def config
+  def sftp_configs
     Polyphemus.instance.config(:ingest)[:sftp]
   end
 
-  def host
-    config[:host]
-  end
-
-  def ingest_filesystem
+  def ingest_filesystem(configuration)
     Etna::Filesystem::SftpFilesystem.new(
-      host: host,
-      username: config[:username],
-      password: config[:password],
+      host: configuration[:host],
+      username: configuration[:username],
+      password: configuration[:password],
     )
   end
 
