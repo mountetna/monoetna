@@ -1,41 +1,49 @@
 import React from 'react';
 import NotEmptyValidator from '../not_empty_validator';
-import {InputSpecification} from '../../input_types';
+import {ValidationInputSpecification} from '../../input_types';
+import {some} from "../../../../../../selectors/maybe";
 
 describe('NotEmptyValidator', () => {
-  let input: InputSpecification;
+  let input: ValidationInputSpecification<any>;
 
   beforeEach(() => {
     input = {
-      type: 'doesnotmatter',
       value: null,
-      label: 'Abcdef',
-      name: 'test-input',
-      data: ['1', '2', 'a', 'b']
+      data: {},
     };
   });
 
+  it('reports errors for unset values', () => {
+    expect(NotEmptyValidator(input).length > 0).toEqual(true);
+  });
+
   it('reports errors for null values', () => {
+    input.value = some(null);
     expect(NotEmptyValidator(input).length > 0).toEqual(true);
   });
 
   it('reports errors for empty arrays', () => {
-    input.value = [];
+    input.value = some([]);
+    expect(NotEmptyValidator(input).length > 0).toEqual(true);
+  });
+
+  it('reports errors for arrays only containing an empty string', () => {
+    input.value = some(['']);
     expect(NotEmptyValidator(input).length > 0).toEqual(true);
   });
 
   it('reports errors for arrays with empty string only', () => {
-    input.value = [''];
+    input.value = some('');
     expect(NotEmptyValidator(input).length > 0).toEqual(true);
   });
 
   it('reports no errors for populated arrays', () => {
-    input.value = ['choice 1'];
+    input.value = some(['choice 1']);
     expect(NotEmptyValidator(input).length === 0).toEqual(true);
   });
 
   it('reports no errors for non-null values', () => {
-    input.value = 'something!';
+    input.value = some('something!');
     expect(NotEmptyValidator(input).length === 0).toEqual(true);
   });
 });

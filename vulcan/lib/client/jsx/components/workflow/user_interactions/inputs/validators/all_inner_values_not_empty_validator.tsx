@@ -1,12 +1,10 @@
-import * as _ from 'lodash';
-
-import {InputValidator, InputSpecification} from '../input_types';
+import {InputValidator, ValidationInputSpecification} from '../input_types';
 import {inputValueNonEmpty} from '../../../../../selectors/workflow_selectors';
 import {flattenOptions} from '../multiple_multiselect_string_all';
 import {mapSome, maybeOfNullable, withDefault} from "../../../../../selectors/maybe";
 
 const _AllInnerValuesNotEmptyValidator = (
-  input: InputSpecification, strong = false 
+  input: ValidationInputSpecification, strong = false
 ): string[] => {
   // input.value should be nested hash, like
   // {experiment: [list,of,options], tissue: [other,choices]}
@@ -27,15 +25,11 @@ const _AllInnerValuesNotEmptyValidator = (
   return [];
 };
 
-export const AllInnerValuesNotEmptyValidator: InputValidator = (
-  input: InputSpecification
-): string[] => {
+export const AllInnerValuesNotEmptyValidator: InputValidator = (input) => {
   return _AllInnerValuesNotEmptyValidator(input, false);
 };
 
-export const AllInnerValuesNotEmptyValidatorStrong: InputValidator = (
-  input: InputSpecification
-): string[] => {
+export const AllInnerValuesNotEmptyValidatorStrong: InputValidator = (input) => {
   return _AllInnerValuesNotEmptyValidator(input, true);
 };
 

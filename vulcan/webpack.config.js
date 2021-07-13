@@ -1,8 +1,9 @@
 var path = require('path');
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var MiniCssExtractPlugin = require('mini-css-extract-plugin');
 var webpack = require('webpack');
 
 module.exports = (env) => ({
+  mode: env.NODE_ENV || 'development',
   context: path.resolve(__dirname),
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.scss', '.png', '.jpg', '.jpeg', '.svg'],
@@ -74,15 +75,19 @@ module.exports = (env) => ({
           path.resolve(__dirname, 'lib/client/scss')
         ],
 
-        loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader'])
+        // loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader']),
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       }
     ]
   },
   plugins: [
-    new ExtractTextPlugin({
-      // define where to save the file
+    // new ExtractTextPlugin({
+    //   // define where to save the file
+    //   filename: 'public/css/vulcan.bundle.css',
+    //   allChunks: true
+    // }),
+    new MiniCssExtractPlugin({
       filename: 'public/css/vulcan.bundle.css',
-      allChunks: true
     }),
     new webpack.DefinePlugin({
       'process.env': {

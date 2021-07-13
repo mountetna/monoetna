@@ -28,10 +28,58 @@ declare module 'etna-js/utils/cancellable' {
   export class Cancellable {
     race<T>(p: Promise<T>): Promise<{ result?: T, cancelled?: true }>;
     cancel(): void;
+    async run<Result, P>(gen: AsyncGenerator<Result, P>): Promise<{result?: Result, cancelled?: true}>
+  }
+  export function cancelledAsMaybe<T>(cancelled: { result?: T, cancelled?: true }): [T] | null;
+  export type AsyncGenerator<Result, P> = Generator<Promise<P>, Result, P>;
+}
+
+declare module 'etna-js/utils/cancellable_helpers' {
+  import {Cancellable, AsyncGenerator} from "etna-js/utils/cancellable";
+
+  export function useWithContext(fn: (context: Cancellable) => void, deps: any[] = []);
+  export function useAsync<Result>(fn: () => AsyncGenerator<Result, any>, deps: any[] = [], cleanup: () => void = () => null): [[Result] | null, [any] | null];
+  export function useAsyncCallback<Result, Args extends any[]>(fn: (...args: Args) => AsyncGenerator<Result, any>, deps: any[] = [], cleanup: () => void = () => null): [(...args: Args) => Promise<{ result?: Result, cancelled?: true }>, () => void];
+
+  export function* runAsync<T>(fn: () => Promise<T>): AsyncGenerator<T, T>;
+  export function* runPromise<T>(v: Promise<T>): AsyncGenerator<T, T>;
+}
+
+declare module 'etna-js/utils/retryable' {
+  import {AsyncGenerator} from "etna-js/utils/cancellable";
+
+  export async function withRetries<T>(
+    b: () => Promise<T>,
+    isRetryable?: (e: any) => number,
+    maxRetries?: number
+  ): Promise<T>;
+  export function runAttempts<T>(
+    b: () => Promise<T>,
+    isRetryable?: (e: any) => number,
+    maxRetries?: number
+  ): AsyncGenerator<T, any>;
+}
+
+declare module 'etna-js/utils/semaphore' {
+  export class Trigger<T = void> {
+    public resolve(v: T): void;
+    public reject(e: any): void;
+    public promise: Promise<T>;
   }
 
-  export function useCancelledOnDismount(): Cancellable;
+  export class UnbufferedChannel<T = void> {
+    closed: boolean;
+    public send(v: T): void;
+    public reject(e: any): void;
+    receive(): Promise<T>;
+    close(v: T): void;
+  }
+
+  export class Semaphore {
+    async ready<T>(work: () => Promise<T>): Promise<T>;
+  }
 }
+
 
 declare module 'etna-js/utils/blob' {
   export function readTextFile(accept: string): Promise<string>;

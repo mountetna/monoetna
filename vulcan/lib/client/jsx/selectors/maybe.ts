@@ -36,6 +36,15 @@ export function mapSome<A, B>(a: Maybe<A>, f: (a: A) => B): Maybe<B> {
   return null;
 }
 
+export function mapSomeAsync<A, B>(a: Maybe<A>, f: (a: A) => Promise<B>): Promise<Maybe<B>> {
+  if (isSome(a)) {
+    return Promise.resolve(a[0]).then(a => f(a).then(some));
+  }
+
+  return Promise.resolve(null);
+}
+
+
 export function bindSome<A, B>(a: Maybe<A>, f: (a: A) => Maybe<B>): Maybe<B> {
   if (isSome(a)) {
     return f(a[0]);

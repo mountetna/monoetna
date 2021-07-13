@@ -25,14 +25,6 @@ describe('SessionManager', () => {
     projects: ['test-project'],
     inputs: {},
     name: 'test.cwl',
-    dependencies_of_outputs: {
-      zero: [],
-      'first/output': ['third'],
-      'second/output': ['fourth'],
-      'third/response': [],
-      'fourth/response': [],
-      fifth: []
-    },
     steps: [
       [
         createStepFixture({name: 'zero'}),

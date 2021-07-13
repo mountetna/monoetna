@@ -2,19 +2,16 @@ import React, {useCallback, useContext, useEffect, useMemo} from 'react';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
 
-import {allWorkflowPrimaryInputSources, inputGroupName, useMemoized} from '../../../selectors/workflow_selectors';
+import {inputGroupName} from '../../../selectors/workflow_selectors';
 import InputGroup from './input_group';
 import {InputSpecification} from "../user_interactions/inputs/input_types";
 import {useWorkflow} from "../../../contexts/workflow_context";
-import {useCancelledOnDismount} from "etna-js/utils/cancellable";
 import {Maybe, some, withDefault} from "../../../selectors/maybe";
 
 export default function PrimaryInputs() {
-  const {state, dispatch, startInputChange, onInputChange} = useContext(VulcanContext);
-  const {session, bufferedInputValues} = state;
+  const {state, startInputChange, onInputChange} = useContext(VulcanContext);
+  const {bufferedInputValues} = state;
   const {workflow} = useWorkflow();
-
-  const context = useCancelledOnDismount();
 
   const onStartPrimaryInputChanges = useCallback(() => {
     startInputChange(null, context);

@@ -5,7 +5,7 @@ import {
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {GroupedInputStep, UIStep, InputSpecification} from "../components/workflow/user_interactions/inputs/input_types";
 import {useMemo} from "react";
-import {alternate, mapSome, Maybe, maybeOfNullable, withDefault} from "./maybe";
+import {mapSome, Maybe, withDefault} from "./maybe";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
     workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
@@ -151,44 +151,18 @@ export function allExpectedOutputSources(step: WorkflowStep | GroupedInputStep):
   }
 }
 
-export function dependentStepConsumersOf(startingSource: string, workflow: Workflow, shallow = false) {
-  const result: WorkflowStep[] = [];
-  const dependents = workflow.dependencies_of_outputs[startingSource] || [];
-
-  if (dependents != null) {
-    result.push(...workflow.steps[0].filter(s => !!uiOutputOfStep(s)).filter(
-        s => !!s.in.find(({source}) => source === startingSource || dependents.indexOf(source) !== -1)));
-  }
-
-  dependents.map(s => stepOfSource(s)).forEach(stepName => {
-    if (!stepName) return;
-    const step = stepOfStatus(stepName, workflow);
-
-    if (step) {
-      if (result.indexOf(step) === -1) result.push(step);
-    }
-  });
-
-  if (shallow) {
-    return result.filter(step => {
-      return step.in.find(({source}) => stepOfSource(source) == stepOfSource(startingSource));
-    })
-  }
-
-  return result;
+export function allSourcesForStepName(name: string | null, workflow: Workflow | null): string[] {
+  if (!workflow) return [];
+  if (!name) return allWorkflowPrimaryInputSources(workflow);
+  const step = stepOfStatus(name, workflow);
+  if (!step) return [];
+  return allExpectedOutputSources(step);
 }
 
-export const shouldDownload = (url: string, workflow: Workflow, step: WorkflowStep | undefined, status: SessionStatusResponse['status']) => {
-  if (step == null) return false;
-  const stepStatus = statusOfStep(step, status);
-  if (stepStatus == null) return false;
-  const {downloads} = stepStatus;
-  if (downloads == null) return false;
-  return !!step.out.find(outName => {
-    const source = sourceNameOfReference([step.name, outName]);
-    if (downloads[outName] !== url) return false;
-    const deps = dependentStepConsumersOf(source, workflow, true);
-    return !!deps.find(dep => isDataConsumer(dep));
+export function shouldDownloadStep(stepName: string, workflow: Workflow) {
+  return !!workflow.steps[0].find(step => {
+    if (!isDataConsumer(step)) return false;
+    return !!step.in.find(({source}) => stepOfSource(source) === stepName);
   })
 }
 
@@ -344,36 +318,6 @@ export function filterEmptyValues(values: { [k: string]: any }): { [k: string]: 
   return result;
 }
 
-// For each key in changes, remove any dependencies_of_outputs for that key (dependents)
-// in the existing object (copy on change), iff that dependent is not also in changes.
-export function unsetDependentInputs(
-    changes: { [k: string]: any },
-    existing: { [k: string]: any },
-    workflow: Workflow | null
-): { [k: string]: any } {
-  let result = existing;
-  if (!workflow) return result;
-
-  Object.keys(changes).forEach(changedSource => {
-    const dependents = workflow.dependencies_of_outputs[changedSource];
-    if (!dependents) return;
-
-    dependents.forEach(dependentSource => {
-      // In the case of forward change propagation, allow specifying two inputs at once that happen to have a dependency
-      if (dependentSource in changes) return;
-      result = {...result};
-      delete result[dependentSource];
-    });
-  });
-
-  return result;
-}
-
-export function findSourceDependencies(source: string, workflow: Workflow | null): string[] {
-  if (!workflow) return [];
-  return Object.keys(workflow.dependencies_of_outputs).filter(k => workflow.dependencies_of_outputs[k].includes(source));
-}
-
 const collator = new Intl.Collator(undefined, {
   numeric: true,
   sensitivity: 'base'
@@ -382,20 +326,6 @@ export function sortInputsByLabel(inputs: InputSpecification[]): InputSpecificat
   return inputs.sort((a, b) => collator.compare(a.label, b.label))
 }
 
-
 export function useMemoized<P1, R>(f: (p1: P1) => R, p1: P1): R {
   return useMemo(() => f(p1), [f, p1]);
-}
-
-export function useMemoized2<P1, P2, R>(f: (p1: P1, p2: P2) => R, p1: P1, p2: P2): R {
-  return useMemo(() => f(p1, p2), [f, p1, p2]);
-}
-
-export function useMemoized3<P1, P2, P3, R>(f: (p1: P1, p2: P2, p3: P3) => R, p1: P1, p2: P2, p3: P3): R {
-  return useMemo(() => f(p1, p2, p3), [f, p1, p2, p3]);
-}
-
-
-export function altFactory<P, R>(f: (p: P) => R, p: P | null | undefined, alt: R) {
-
 }

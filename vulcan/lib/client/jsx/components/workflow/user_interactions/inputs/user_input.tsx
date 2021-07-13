@@ -21,7 +21,6 @@ import {
   InputValidator
 } from './input_types';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
-import MultipleMultiselectStringAllInput from './multiple_multiselect_string_all';
 import MultipleStringInput from './multiple_string';
 // import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox';
 import NotEmptyValidator from './validators/not_empty_validator';
@@ -29,32 +28,39 @@ import {
   AllInnerValuesNotEmptyValidator,
   AllInnerValuesNotEmptyValidatorStrong
 } from './validators/all_inner_values_not_empty_validator';
+import MultipleInput from "./multiple_input";
+
+const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
+function configureComponent<Value, DataElement>(
+  type: InputType,
+  Input: InputBackendComponent<any, Value, DataElement>,
+  validator: InputValidator<Value, DataElement>,
+) {
+  if (type in components) throw new Error(`Duplicate definition for ${type}`)
+  components[type] = [Input, validator];
+}
+
+configureComponent(TYPE.STRING, StringInput, NotEmptyValidator);
+configureComponent(TYPE.FLOAT, FloatInput, NotEmptyValidator);
+configureComponent(TYPE.INTEGER, IntegerInput, NotEmptyValidator);
+configureComponent(TYPE.BOOL, BooleanInput, NotEmptyValidator);
+configureComponent(TYPE.SELECT_AUTOCOMPLETE, SelectAutocompleteInput, NotEmptyValidator);
+configureComponent(TYPE.CHECKBOXES, CheckboxesInput, NotEmptyValidator);
+configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, NotEmptyValidator);
+configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
+configureComponent(TYPE.MULTIPLE_STRING, MultipleStringInput, NotEmptyValidator);
+
+// TODO
+configureComponent(TYPE.SINGLE_DROPDOWN_MULTICHECKBOX, MultipleStringInput, NotEmptyValidator);
+configureComponent(TYPE.MULTIPLE_MULTISELECT_STRING_ALL, MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator)
+
 
 function backendComponentOf(
   type: InputType
 ): [InputBackendComponent, InputValidator] {
-  switch (type) {
-    case TYPE.FLOAT:
-      return [FloatInput, NotEmptyValidator];
-    case TYPE.INTEGER:
-      return [IntegerInput, NotEmptyValidator];
-    case TYPE.BOOL:
-      return [BooleanInput, NotEmptyValidator];
-    case TYPE.SELECT_AUTOCOMPLETE:
-      return [SelectAutocompleteInput, NotEmptyValidator];
-    case TYPE.CHECKBOXES:
-      return [CheckboxesInput, NotEmptyValidator];
-    case TYPE.NESTED_SELECT_AUTOCOMPLETE:
-      return [NestedSelectAutocompleteInput, NotEmptyValidator];
-    case TYPE.MULTISELECT_STRING:
-      return [MultiselectStringInput, AllInnerValuesNotEmptyValidator];
-    case TYPE.MULTIPLE_STRING:
-      return [MultipleStringInput, AllInnerValuesNotEmptyValidatorStrong];
-    // case TYPE.SINGLE_DROPDOWN_MULTICHECKBOX:
-    //   return [SingleDropdownMulticheckbox, AllInnerValuesNotEmptyValidator];
-    default:
-      return [StringInput, NotEmptyValidator];
-  }
+  const result = components[type];
+  if (!result) return components[TYPE.STRING];
+  return result;
 }
 
 export default function UserInput({

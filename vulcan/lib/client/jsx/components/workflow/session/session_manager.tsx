@@ -27,7 +27,7 @@ const modalStyles = {
 };
 
 export default function SessionManager() {
-  const {state, dispatch, run, scheduleWork} = useContext(VulcanContext);
+  const {state, dispatch, run, showErrors} = useContext(VulcanContext);
   const {workflow, primaryInputsReady, complete, idle} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
@@ -46,7 +46,7 @@ export default function SessionManager() {
   }, [session, name]);
 
   const openSession = () => {
-    scheduleWork(readTextFile('*.json').then((sessionJson) => {
+    showErrors(readTextFile('*.json').then((sessionJson) => {
       const session: VulcanSession = JSON.parse(sessionJson);
       if (session.workflow_name !== state.session.project_name || session.project_name !== state.session.project_name) {
         // TODO: Maybe navigate the user automatically to the correct project / workflow??

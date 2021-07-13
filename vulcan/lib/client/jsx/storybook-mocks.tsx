@@ -1,28 +1,15 @@
-import * as ReactDOM from "react-dom";
 import {Provider} from "react-redux";
 import * as React from "react";
 import 'regenerator-runtime';
 import {VulcanStore} from "./vulcan_store";
 import {defaultContext, VulcanContextData, VulcanProvider} from "./contexts/vulcan_context";
-import SessionManager from "./components/workflow/session/session_manager";
 import {
   defaultSessionStatusResponse,
   defaultWorkflow,
 } from "./api_types";
 import {workflowsResponse} from "./test_utils/fixtures/workflows-response";
 import {defaultSession, defaultVulcanState} from "./reducers/vulcan_reducer";
-
-const store = VulcanStore();
-
-function DevApp() {
-  return <div>
-    <VulcanProvider {...mocks}>
-      <div id='ui-container'>
-        <SessionManager/>
-      </div>
-    </VulcanProvider>
-  </div>
-}
+import {ReactElement} from "react";
 
 type PromiseInner<T extends Promise<any>> = T extends Promise<infer R> ? R : any;
 function ioc<F extends (...p: any[]) => Promise<any>, R = PromiseInner<ReturnType<F>>>(
@@ -41,14 +28,14 @@ function handle<R, P extends any[]>(request: [P, (v: R) => void, (e: any) => voi
   f(...params).then(resolve, reject);
 }
 
-window.onload = () => {
-  ReactDOM.render(
-    <Provider store={store}>
-      <DevApp />
-    </Provider>,
+export const StorybookMockDecorator = (Story: () => ReactElement) => {
+  const store = VulcanStore();
 
-    document.getElementById("main")
-  );
+  return <Provider store={store}>
+    <VulcanProvider {...mocks}>
+      <Story/>
+    </VulcanProvider>
+  </Provider>;
 }
 
 

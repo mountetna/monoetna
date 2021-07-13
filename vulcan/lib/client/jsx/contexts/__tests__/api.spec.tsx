@@ -12,7 +12,6 @@ describe('contexts/api', () => {
     const {
       contextData,
       reduxState,
-      updateMatching
     } = integrateElement(() => null, {defaultOverrides: false});
 
     const session = {...defaultVulcanSession, workflow_name: 'abc', project_name: 'test'};
@@ -52,22 +51,11 @@ describe('contexts/api', () => {
 
       await expectedRequests;
 
-      expect(contextData.isLoading).toEqual(false);
+      await contextData.showErrors(Promise.resolve());
+      expect(reduxState.messages).toEqual([]);
 
-      await Promise.all([
-        updateMatching(() => contextData.isLoading),
-        contextData.scheduleWork(Promise.resolve()),
-      ])
-
-      expect(contextData.isLoading).toEqual(false);
-
-      await Promise.all([
-        updateMatching(() => contextData.isLoading),
-        await contextData.scheduleWork(Promise.reject(new Error('Oh snap!'))).catch(() => 0),
-      ]);
-
+      await contextData.showErrors(Promise.reject(new Error('Oh snap!'))).catch(() => 0);
       expect(reduxState.messages).toEqual(["Error: Oh snap!"]);
-      expect(contextData.isLoading).toEqual(false);
     });
 
   })

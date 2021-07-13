@@ -1,14 +1,13 @@
-import React, {useReducer, createContext, useRef, useEffect, useMemo} from 'react';
+import React, {useReducer, createContext, useRef} from 'react';
 import VulcanReducer, {defaultVulcanState, VulcanState} from '../reducers/vulcan_reducer';
 import {VulcanAction} from "../actions/vulcan_actions";
 import {defaultSessionStorageHelpers, useLocalSessionStorage} from "./session_storage";
 import {defaultApiHelpers, useApi} from "./api";
 import {useWorkflowsLoading} from "./workflows_loading";
-import {defaultDataBufferingHelpers, useDataBuffering} from "./data_buffering";
+import {useDataBuffering} from "./data_buffering";
 import {defaultSessionSyncHelpers, useSessionSync} from "./session_sync";
 import {defaultInputStateManagement, useInputStateManagement} from "./input_state_management";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
-import {Cancellable} from "etna-js/utils/cancellable";
 import {defaultConfirmationHelpers, useConfirmation} from "./confirmation";
 
 export const defaultContext = {
@@ -21,7 +20,6 @@ export const defaultContext = {
   ...defaultSessionStorageHelpers,
   ...defaultApiHelpers,
   ...defaultSessionSyncHelpers,
-  ...defaultDataBufferingHelpers,
   ...defaultInputStateManagement,
 }
 
@@ -39,17 +37,6 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
   const [start, end] = props.wrapper || [() => null, () => null];
   start();
 
-  // TODO: Implement a proper confirmation modal?  Confirm isn't so bad...
-  const defaultConfirmImpl = useMemo(() => {
-    return {
-      confirm(message: string, context: Cancellable) {
-        return context.race(Promise.resolve(window.confirm(message)))
-          .then(({ cancelled, result }) => !cancelled && !!result)
-      }
-    };
-  }, [])
-  const {confirm} = withOverrides(defaultConfirmImpl, props);
-
   try {
     const actionInvokerHelpers = withOverrides({useActionInvoker}, props);
     const invoker = actionInvokerHelpers.useActionInvoker();
@@ -66,18 +53,18 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
     }, stateRef.current);
     const localSessionHelpers = withOverrides(useLocalSessionStorage(state, props), props);
     const apiHelpers = withOverrides(useApi(invoker), props);
-    const {scheduleWork, getData, getWorkflows, pollStatus, postInputs} = apiHelpers;
+    const {showErrors, getData, getWorkflows, pollStatus, postInputs} = apiHelpers;
     const sessionSyncHelpers = withOverrides(useSessionSync(
       stateRef,
-      scheduleWork,
+      showErrors,
       pollStatus,
       postInputs,
       dispatch
     ), props);
-    const dataBufferingHelpers = withOverrides(useDataBuffering(state, dispatch, scheduleWork, getData), props);
-    useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, scheduleWork);
+    useDataBuffering(state, dispatch, showErrors, getData);
+    useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, showErrors);
     const confirmationHelpers = withOverrides(useConfirmation(), props);
-    const inputHelpers = useInputStateManagement(stateRef, invoker, dispatch, sessionSyncHelpers.requestPoll, confirmationHelpers.confirm);
+    const inputHelpers = useInputStateManagement(invoker, dispatch, sessionSyncHelpers.requestPoll, stateRef);
 
     return (<VulcanContext.Provider value={{
       state,
@@ -88,7 +75,6 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
       ...localSessionHelpers,
       ...apiHelpers,
       ...sessionSyncHelpers,
-      ...dataBufferingHelpers,
       ...inputHelpers,
     }}>
       {props.children}

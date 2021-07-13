@@ -22,10 +22,6 @@ export function setDownloadedData(url: string, data: any) {
     return actionObject('SET_DOWNLOAD', {url, data});
 }
 
-export function releaseDownloadedData(url: string) {
-    return actionObject('RELEASE_DOWNLOAD', {url});
-}
-
 export function setSession(session: SessionStatusResponse['session']) {
     return actionObject('SET_SESSION', {session});
 }
@@ -64,15 +60,16 @@ export function finishPolling() {
     return actionObject('MODIFY_POLLING', {delta: -1})
 }
 
-export function setBufferedInput(step: string | null, value: {[k: string]: Maybe<any>}) {
-    return actionObject('SET_BUFFERED_INPUT', {step, value});
+// Fully, replaces the buffered inputs with those given.
+export function setBufferedInput(inputs: {[k: string]: Maybe<any>}) {
+    return actionObject('SET_BUFFERED_INPUT', {inputs});
 }
 
 export const clearBufferedInput = actionObject('CLEAR_BUFFERED_INPUT', {});
 
 export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow> | ReturnType<typeof setStatus> |
     ReturnType<typeof setDownloadedData> | ReturnType<typeof setSession> | ReturnType<typeof setInputs> |
-    ReturnType<typeof releaseDownloadedData> | ReturnType<typeof removeInputs> |
+    ReturnType<typeof removeInputs> |
     ReturnType<typeof removeDownloads> |
     ReturnType<typeof startPolling> | ReturnType<typeof finishPolling> |
     ReturnType<typeof addValidationErrors> | ReturnType<typeof removeValidationErrors> |

@@ -18,7 +18,6 @@ import {
   stepOfSource,
   sourceNamesOfStep
 } from '../../../selectors/workflow_selectors';
-import {patchInputs} from '../../../actions/vulcan_actions';
 import {UIStep} from '../user_interactions/inputs/input_types';
 import StepUserInputDrawer from './step_user_input_drawer';
 import StepUserInput from './step_user_input';
@@ -32,7 +31,7 @@ export default function StepUserInputWrapper({step}: {step: UIStep['step']}) {
 
   const handleInputChange = useCallback(
     (inputName: string, value: any) => {
-      dispatch(patchInputs({[inputName]: value}));
+      // dispatch(patchInputs({[inputName]: value}));
     },
     [dispatch]
   );

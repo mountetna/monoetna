@@ -89,7 +89,6 @@ export interface Workflow {
   name: string,
   inputs: {[k: string]: WorkflowInput},
   outputs: {[k: string]: WorkflowOutput},
-  dependencies_of_outputs: {[k: string]: string[]},
   steps: [WorkflowStep[]],
   vignette?: string,
   image?: string,
@@ -105,7 +104,6 @@ export const defaultWorkflow: Workflow = {
   name: "",
   inputs: {} as {[k: string]: WorkflowInput},
   outputs: {} as {[k: string]: WorkflowOutput},
-  dependencies_of_outputs: {} as {[k: string]: string[]},
   steps: [[]] as [WorkflowStep[]],
 }
 
