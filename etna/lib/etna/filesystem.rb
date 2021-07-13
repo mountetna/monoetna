@@ -3,6 +3,8 @@ require 'fileutils'
 require 'open3'
 require 'securerandom'
 require 'concurrent-ruby'
+require 'net/sftp'
+require 'net/ssh'
 
 module Etna
   # A class that encapsulates opening / reading file system entries that abstracts normal file access in order
@@ -48,6 +50,11 @@ module Etna
     def mv(src, dest)
       raise "mv not supported by #{self.class.name}" unless self.class == Filesystem
       ::FileUtils.mv(src, dest)
+    end
+
+    def stat(src)
+      raise "stat not supported by #{self.class.name}" unless self.class == Filesystem
+      ::File.stat(src)
     end
 
     class EmptyIO < StringIO
@@ -366,6 +373,49 @@ module Etna
 
         response.files.all.any? { |f| f.file_name == ::File.basename(src) } ||
             response.folders.all.any? { |f| f.folder_name == ::File.basename(src) }
+      end
+    end
+
+    class SftpFilesystem < Filesystem
+      def initialize(host:, username:, password: nil, port: 22)
+        @username = username
+        @password = password
+        @host = host
+        @port = port
+      end
+
+      def ssh
+        @ssh ||= Net::SSH.start(@host, @username, password: @password)
+      end
+
+      def sftp
+        @sftp ||= begin
+          conn = Net::SFTP::Session.new(ssh)
+          conn.loop { conn.opening? }
+
+          conn
+        end
+      end
+
+      def with_readable(src, opts = 'r', &block)
+        sftp.file.open(src, opts, &block)
+      end
+
+      def ls(dir)
+        sftp.dir.entries(dir)
+      end
+
+      def exist?(src)
+        begin
+          sftp.file.open(src)
+        rescue Net::SFTP::StatusException
+          return false
+        end
+        return true
+      end
+
+      def stat(src)
+        sftp.file.open(src).stat
       end
     end
 
