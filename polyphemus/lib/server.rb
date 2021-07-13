@@ -11,6 +11,7 @@ class Polyphemus
       super
       # application.load_models
       application.setup_db
+      application.setup_sequel
     end
 
     # Return the app host configuration values

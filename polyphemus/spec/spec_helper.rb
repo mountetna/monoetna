@@ -7,6 +7,7 @@ ENV['POLYPHEMUS_ENV'] = 'test'
 
 require 'webmock/rspec'
 require 'database_cleaner'
+require 'factory_bot'
 require 'simplecov'
 SimpleCov.start
 
@@ -81,7 +82,10 @@ RSpec.configure do |config|
 
   config.order = :random
 
+  config.include FactoryBot::Syntax::Methods
+
   config.before(:suite) do
+    FactoryBot.find_definitions
     # DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
@@ -93,6 +97,12 @@ RSpec.configure do |config|
     # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
     #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
     Polyphemus.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
+  end
+end
+
+FactoryBot.define do
+  factory :ingest_file, class: Polyphemus::IngestFile do
+    to_create(&:save)
   end
 end
 

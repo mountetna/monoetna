@@ -39,6 +39,11 @@
   :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.development.local
+  :ingest:
+    :sftp:
+      :host: sftp://example.com
+      :username: user
+      :password: pass
 
 :production:
   :magma:
