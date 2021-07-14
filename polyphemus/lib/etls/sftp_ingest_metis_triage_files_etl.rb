@@ -27,7 +27,7 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
       )
       workflow.copy_files(host_matches.map { |file| file[:name] })
 
-      mark_files_as_ingested(host_matches)
+      remove_ingested_files(host_matches)
     end
 
     logger.info("Done")
@@ -39,11 +39,11 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
     Polyphemus.instance.config(:ingest)[:sftp]
   end
 
-  def mark_files_as_ingested(file_records)
+  def remove_ingested_files(file_records)
     require_relative "../models/ingest_file"
     Polyphemus::IngestFile.where(id: file_records.map { |f| f[:id] })
       .all do |file|
-      file.update(ingest_complete: true)
+      file.delete
     end
   end
 
