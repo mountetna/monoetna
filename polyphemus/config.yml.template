@@ -44,6 +44,8 @@
       - :host: sftp://example.com
         :username: user
         :password: pass
+        :alias: testing
+        :root: /root/directory/to/scan
 
 :production:
   :magma:

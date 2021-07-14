@@ -124,6 +124,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.10.0)
     rspec-support (3.10.2)
+    rsync (1.0.9)
     ruby-progressbar (1.11.0)
     rubyzip (2.3.2)
     sequel (5.42.0)
@@ -186,6 +187,7 @@ DEPENDENCIES
   rack-test
   rake
   rspec
+  rsync (~> 1.0, >= 1.0.9)
   sequel
   simplecov
   timecop

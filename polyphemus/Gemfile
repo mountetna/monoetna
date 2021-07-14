@@ -13,6 +13,7 @@ gem "concurrent-ruby"
 gem "yabeda"
 gem "yabeda-prometheus"
 gem "yabeda-puma-plugin"
+gem "rsync", "~> 1.0", ">= 1.0.9"
 
 group :development, :test do
   gem "rack-test", require: "rack/test"
