@@ -16,18 +16,17 @@ import StringInput from './string';
 import CheckboxesInput from './checkboxes';
 import {
   InputBackendComponent,
-  InputSpecification,
+  BoundInputSpecification,
   InputType,
   InputValidator
 } from './input_types';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
-// import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox';
 import NotEmptyValidator from './validators/not_empty_validator';
 import {
   AllInnerValuesNotEmptyValidator,
-  AllInnerValuesNotEmptyValidatorStrong
 } from './validators/all_inner_values_not_empty_validator';
 import MultipleInput from "./multiple_input";
+import SingleDropdownMulticheckbox from "./single_dropdown_multicheckbox";
 
 const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
 function configureComponent<Value, DataElement>(
@@ -49,8 +48,7 @@ configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInpu
 configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
 
-// TODO
-// configureComponent(TYPE.SINGLE_DROPDOWN_MULTICHECKBOX, MultipleStringInput, NotEmptyValidator);
+configureComponent(TYPE.SINGLE_DROPDOWN_MULTICHECKBOX, SingleDropdownMulticheckbox, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_MULTISELECT_STRING_ALL, MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator)
 
 
@@ -66,7 +64,7 @@ export default function UserInput({
   input,
   hideLabel
 }: {
-  input: InputSpecification;
+  input: BoundInputSpecification;
   hideLabel?: boolean;
 }) {
   const [InputComponent, Validator] = backendComponentOf(input.type);

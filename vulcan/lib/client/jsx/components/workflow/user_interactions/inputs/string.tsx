@@ -2,12 +2,16 @@ import React from 'react';
 import SlowTextInput from 'etna-js/components/inputs/slow_text_input';
 import {WithInputParams} from './input_types';
 import {some, withDefault} from "../../../../selectors/maybe";
+import {useSetsDefault} from "./useSetsDefault";
+import {selectDefaultString} from "./monoids";
 
-export default function StringInput({onChange, value}: WithInputParams<{}>) {
+export default function StringInput({onChange, data, ...props}: WithInputParams<{}, string, string>) {
+  const value = useSetsDefault(selectDefaultString(data), props.value, onChange);
+
   return (
     <SlowTextInput
-      defaultValue={withDefault(value, "")}
-      onChange={(e: any) => {
+      defaultValue={value}
+      onChange={(e: string) => {
         onChange(some(e));
       }}
     />

@@ -1,14 +1,14 @@
-import {InputValidator, ValidationInputSpecification} from '../input_types';
+import {DataEnvelope, InputValidator, ValidationInputSpecification} from '../input_types';
 import {inputValueNonEmpty} from '../../../../../selectors/workflow_selectors';
-import {flattenOptions} from '../multiple_multiselect_string_all';
 import {mapSome, maybeOfNullable, withDefault} from "../../../../../selectors/maybe";
+import {joinNesting} from "../monoids";
 
 const _AllInnerValuesNotEmptyValidator = (
-  input: ValidationInputSpecification, strong = false
+  input: ValidationInputSpecification<DataEnvelope<any>, DataEnvelope<any>>, strong = false
 ): string[] => {
   // input.value should be nested hash, like
   // {experiment: [list,of,options], tissue: [other,choices]}
-  const allOptions = flattenOptions(input.data);
+  const allOptions = joinNesting(input.data);
 
   const emptyKeys = withDefault(mapSome(input.value, value =>
     Object.keys(allOptions).filter(o => inputValueNonEmpty(maybeOfNullable(o), strong))), Object.keys(allOptions));
@@ -25,11 +25,11 @@ const _AllInnerValuesNotEmptyValidator = (
   return [];
 };
 
-export const AllInnerValuesNotEmptyValidator: InputValidator = (input) => {
+export const AllInnerValuesNotEmptyValidator: InputValidator<DataEnvelope<any>, DataEnvelope<any>> = (input) => {
   return _AllInnerValuesNotEmptyValidator(input, false);
 };
 
-export const AllInnerValuesNotEmptyValidatorStrong: InputValidator = (input) => {
+export const AllInnerValuesNotEmptyValidatorStrong: InputValidator<DataEnvelope<any>, DataEnvelope<any>> = (input) => {
   return _AllInnerValuesNotEmptyValidator(input, true);
 };
 

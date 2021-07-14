@@ -3,7 +3,7 @@ import {
   OUTPUT_COMPONENT, RUN, SessionStatusResponse, STATUS, StepInput, StepStatus, Workflow, WorkflowInput, WorkflowStep,
 } from "../api_types";
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {GroupedInputStep, UIStep, InputSpecification} from "../components/workflow/user_interactions/inputs/input_types";
+import {GroupedInputStep, UIStep, BoundInputSpecification} from "../components/workflow/user_interactions/inputs/input_types";
 import {useMemo} from "react";
 import {mapSome, Maybe, withDefault} from "./maybe";
 
@@ -322,7 +322,7 @@ const collator = new Intl.Collator(undefined, {
   numeric: true,
   sensitivity: 'base'
 });
-export function sortInputsByLabel(inputs: InputSpecification[]): InputSpecification[] {
+export function sortInputsByLabel(inputs: BoundInputSpecification[]): BoundInputSpecification[] {
   return inputs.sort((a, b) => collator.compare(a.label, b.label))
 }
 

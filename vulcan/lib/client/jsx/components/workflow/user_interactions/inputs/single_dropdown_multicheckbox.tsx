@@ -6,7 +6,7 @@ import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplet
 import CheckboxesInput from './checkboxes';
 import {DataEnvelope, WithInputParams} from './input_types';
 import {Maybe, some} from "../../../../selectors/maybe";
-import {flattenStringOptions, joinNesting} from "./monoids";
+import {joinNesting} from "./monoids";
 import {useMemoized} from "../../../../selectors/workflow_selectors";
 import {useSetsDefault} from "./useSetsDefault";
 

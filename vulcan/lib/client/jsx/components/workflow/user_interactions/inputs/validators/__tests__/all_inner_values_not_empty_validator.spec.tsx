@@ -3,11 +3,11 @@ import {
   AllInnerValuesNotEmptyValidator,
   AllInnerValuesNotEmptyValidatorStrong
 } from '../all_inner_values_not_empty_validator';
-import {ValidationInputSpecification} from '../../input_types';
+import {DataEnvelope, ValidationInputSpecification} from '../../input_types';
 import {some} from "../../../../../../selectors/maybe";
 
 describe('AllInnerValuesNotEmptyValidator', () => {
-  let input: ValidationInputSpecification;
+  let input: ValidationInputSpecification<DataEnvelope<any>, DataEnvelope<any>>;
 
   beforeEach(() => {
     input = {

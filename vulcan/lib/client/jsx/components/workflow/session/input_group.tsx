@@ -9,13 +9,13 @@ import UserInput from '../user_interactions/inputs/user_input';
 import {
   completedSteps, inputGroupName, isPendingUiQuery, pendingSteps, uiQueryOfStep, sortInputsByLabel, useMemoized
 } from '../../../selectors/workflow_selectors';
-import {InputSpecification} from "../user_interactions/inputs/input_types";
+import {BoundInputSpecification} from "../user_interactions/inputs/input_types";
 import {useWorkflow} from "../../../contexts/workflow_context";
 import {Maybe} from "../../../selectors/maybe";
 import {Input} from "@material-ui/core";
 
 interface Props {
-  inputs: InputSpecification[],
+  inputs: BoundInputSpecification[],
   groupName: string,
 }
 

@@ -1,4 +1,4 @@
-import {InputValidator, InputSpecification} from '../input_types';
+import {InputValidator, BoundInputSpecification} from '../input_types';
 import {inputValueNonEmpty} from '../../../../../selectors/workflow_selectors';
 
 const NotEmptyValidator: InputValidator = (input) => {

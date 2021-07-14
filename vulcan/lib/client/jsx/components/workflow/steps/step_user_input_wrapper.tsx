@@ -29,13 +29,6 @@ export default function StepUserInputWrapper({step}: {step: UIStep['step']}) {
 
   const {status, workflow, data, session} = state;
 
-  const handleInputChange = useCallback(
-    (inputName: string, value: any) => {
-      // dispatch(patchInputs({[inputName]: value}));
-    },
-    [dispatch]
-  );
-
   const toggleInputs = useCallback(() => setOpen(!open), [setOpen, open]);
 
   let inner;
@@ -46,7 +39,6 @@ export default function StepUserInputWrapper({step}: {step: UIStep['step']}) {
       <StepUserInputDrawer
         key={`${step.name}`}
         step={step}
-        handleInputChange={handleInputChange}
       />
     );
     inputNames = step.in.map((i) => i.source);
@@ -55,7 +47,6 @@ export default function StepUserInputWrapper({step}: {step: UIStep['step']}) {
       <StepUserInput
         key={`${step.name}`}
         step={step}
-        handleInputChange={handleInputChange}
       />
     );
     inputNames = sourceNamesOfStep(step).map((outputName) => outputName);

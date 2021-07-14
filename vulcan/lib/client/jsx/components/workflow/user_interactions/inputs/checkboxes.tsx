@@ -1,6 +1,6 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {InputBackendComponent, WithInputParams} from './input_types';
-import {Maybe, some, withDefault} from "../../../../selectors/maybe";
+import React, {useCallback} from 'react';
+import {WithInputParams} from './input_types';
+import {some} from "../../../../selectors/maybe";
 import BooleanInput from "./boolean";
 import {flattenStringOptions, StringOptions} from "./monoids";
 import {useMemoized} from "../../../../selectors/workflow_selectors";

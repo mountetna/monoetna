@@ -4,7 +4,7 @@ import {some, withDefault} from "../../../../selectors/maybe";
 import {useSetsDefault} from "./useSetsDefault";
 import {selectDefaultBoolean} from "./monoids";
 
-export default function BooleanInput({onChange, label, data, ...props}: WithInputParams<{label?: string, d?: boolean}, boolean, boolean>) {
+export default function BooleanInput({onChange, label, data, ...props}: WithInputParams<{label?: string}, boolean, boolean>) {
   const onCheck = useCallback((e: ChangeEvent<HTMLInputElement>) => onChange(some(e.target.checked)), [onChange]);
   const value = useSetsDefault(selectDefaultBoolean(data), props.value, onChange);
 
