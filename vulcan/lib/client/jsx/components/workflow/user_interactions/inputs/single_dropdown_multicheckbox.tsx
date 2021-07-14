@@ -1,13 +1,12 @@
 // Input component that takes a simple object and
 // shows values based on a selected key
-
-import React, { useState, } from 'react';
+import React, {useCallback, useState,} from 'react';
 
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import CheckboxesInput from './checkboxes';
 import {DataEnvelope, WithInputParams} from './input_types';
 import {Maybe, some} from "../../../../selectors/maybe";
-import {flattenStringOptions, joinNesting, StringOptions} from "./monoids";
+import {flattenStringOptions, joinNesting} from "./monoids";
 import {useMemoized} from "../../../../selectors/workflow_selectors";
 import {useSetsDefault} from "./useSetsDefault";
 
@@ -44,14 +43,21 @@ function DropdownCheckboxCombo({
   );
 }
 
-export default function SingleDropdownMulticheckbox({ data, onChange, ...props }: WithInputParams<{}, string[], DataEnvelope<string[]>>) {
+export default function SingleDropdownMulticheckbox({ data, onChange, ...props }: WithInputParams<{}, DataEnvelope<string[]>, DataEnvelope<string[]>>) {
   // input.data for this component should be
   // {'a': {experiment: ['1', '2'], tissue: ['a', 'b']}}
   const [dropdownValue, setDropdownValue] = useState(null as string | null);
   const allOptions = useMemoized(joinNesting, data);
-  const allValues = useMemoized(flattenStringOptions, allOptions);
-  const value = useSetsDefault(allValues, props.value, onChange);
+  const value = useSetsDefault(allOptions, props.value, onChange);
   const dropdownOptions = dropdownValue == null ? [] : allOptions[dropdownValue];
+  const selectedValue = dropdownValue == null ? [] : value[dropdownValue] || [];
+  const onChangeInner = useCallback((values: Maybe<string[]>) => {
+    if (!dropdownValue || values == null) return;
+    onChange(some({
+      ...value,
+      [dropdownValue]: [...values[0]],
+    }))
+  }, [dropdownValue, onChange, value]);
 
   return (
     <div>
@@ -59,8 +65,8 @@ export default function SingleDropdownMulticheckbox({ data, onChange, ...props }
         dropdownOptions={dropdownOptions}
         dropdownValue={dropdownValue}
         handleSelect={setDropdownValue}
-        value={value}
-        onChange={onChange}
+        value={selectedValue}
+        onChange={onChangeInner}
       />
     </div>
   );

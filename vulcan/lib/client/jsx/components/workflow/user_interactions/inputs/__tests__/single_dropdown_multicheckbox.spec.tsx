@@ -49,7 +49,6 @@ describe('SingleDropdownMulticheckbox', () => {
       type: 'doesnotmatter',
       value: null,
       label: 'Abcdef',
-      name: 'test-input',
       data: {
         'options-a': {
           option1: ['1', '2', '3'],
