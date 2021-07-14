@@ -23,7 +23,7 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
       logger.info("Ingesting files from #{host}: #{file_names.join(", ")}...")
 
       workflow = Etna::Clients::Metis::IngestMetisDataWorkflow.new(
-        metis_filesystem: metis_filesystem,
+        metis_filesystem: metis_filesystem(conf),
         ingest_filesystem: ingest_filesystem(conf),
         logger: logger,
       )
@@ -52,11 +52,14 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
     Etna::Filesystem::SftpFilesystem.new(**configuration)
   end
 
-  def metis_filesystem
-    @metis_filesystem ||= Etna::Filesystem::Metis.new(
+  def metis_filesystem(configuration)
+    # Set up the root to be the host, so that
+    #   files will be name-spaced on Metis.
+    Etna::Filesystem::Metis.new(
       metis_client: metis_client,
       project_name: @project_name,
       bucket_name: @bucket_name,
+      root: configuration[:host],
     )
   end
 end
