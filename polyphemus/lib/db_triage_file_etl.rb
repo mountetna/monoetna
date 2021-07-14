@@ -34,6 +34,7 @@ class Polyphemus
         scanner: TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
           Polyphemus::IngestFile.where(
             should_ingest: true,
+            ingested_at: nil,
           )
         end.result_updated_at do |file|
           file[:updated_at]

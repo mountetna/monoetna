@@ -29,7 +29,7 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
       )
       workflow.copy_files(file_names)
 
-      remove_ingested_files(files_for_host)
+      update_ingested_timestamp(files_for_host)
     end
 
     logger.info("Done")
@@ -41,10 +41,10 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
     Polyphemus.instance.config(:ingest)[:sftp]
   end
 
-  def remove_ingested_files(file_records)
+  def update_ingested_timestamp(file_records)
     Polyphemus::IngestFile.where(id: file_records.map { |f| f[:id] })
       .all do |file|
-      file.delete
+      file.update(ingested_at: DateTime.now)
     end
   end
 
