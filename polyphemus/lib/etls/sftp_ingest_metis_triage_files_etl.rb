@@ -4,11 +4,9 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
   def initialize
     @project_name = "triage"
     @bucket_name = "waiting_room"
-    @table_name = :ingest_files
     super(
       project_bucket_pairs: [[@project_name, @bucket_name]],
       limit: 20,
-      table_name: @table_name,
     )
   end
 
@@ -40,7 +38,6 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
   end
 
   def remove_ingested_files(file_records)
-    require_relative "../models/ingest_file"
     Polyphemus::IngestFile.where(id: file_records.map { |f| f[:id] })
       .all do |file|
       file.delete
