@@ -377,7 +377,7 @@ module Etna
     end
 
     class SftpFilesystem < Filesystem
-      def initialize(host:, username:, password: nil, port: 22)
+      def initialize(host:, username:, password: nil, port: 22, **args)
         @username = username
         @password = password
         @host = host
