@@ -5,6 +5,7 @@ PATH
       concurrent-ruby
       jwt
       multipart-post
+      net-sftp (>= 3.0.0)
       nokogiri
       rack
       rollbar
@@ -177,7 +178,6 @@ DEPENDENCIES
   etna!
   factory_bot
   mimemagic (~> 0.3.10)
-  net-sftp (>= 3.0.0)
   pg
   pry
   pry-byebug
