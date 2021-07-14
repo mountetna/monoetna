@@ -4,10 +4,11 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
   def initialize
     @project_name = "triage"
     @bucket_name = "waiting_room"
+    @table_name = :ingest_files
     super(
       project_bucket_pairs: [[@project_name, @bucket_name]],
       limit: 20,
-      table_name: "ingest_files",
+      table_name: @table_name,
     )
   end
 
@@ -17,14 +18,16 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
         conf[:host] == record[:host]
       end
 
-      logger.info("Ingesting files from #{conf[:host]}: #{host_matches.map { |r| r[:name] }.join(", ")}...")
+      logger.info("Ingesting files from #{conf[:host]}: #{host_matches.map { |file| file[:name] }.join(", ")}...")
 
       workflow = Etna::Clients::Metis::IngestMetisDataWorkflow.new(
         metis_filesystem: metis_filesystem,
         ingest_filesystem: ingest_filesystem(conf),
         logger: logger,
       )
-      workflow.copy_files(host_matches.map { |m| m[:name] })
+      workflow.copy_files(host_matches.map { |file| file[:name] })
+
+      mark_files_as_ingested(host_matches)
     end
 
     logger.info("Done")
@@ -34,6 +37,14 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
 
   def sftp_configs
     Polyphemus.instance.config(:ingest)[:sftp]
+  end
+
+  def mark_files_as_ingested(file_records)
+    require_relative "../models/ingest_file"
+    Polyphemus::IngestFile.where(id: file_records.map { |f| f[:id] })
+      .all do |file|
+      file.update(ingest_complete: true)
+    end
   end
 
   def ingest_filesystem(configuration)

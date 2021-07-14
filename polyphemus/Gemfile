@@ -13,7 +13,6 @@ gem "concurrent-ruby"
 gem "yabeda"
 gem "yabeda-prometheus"
 gem "yabeda-puma-plugin"
-gem "net-sftp", ">=3.0.0"
 
 group :development, :test do
   gem "rack-test", require: "rack/test"

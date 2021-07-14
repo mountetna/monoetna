@@ -33,7 +33,10 @@ class Polyphemus
       super(
         cursor_group: EtlCursorGroup.new(file_cursors),
         scanner: TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
-          Polyphemus.instance.db[@table_name.to_sym].where(should_ingest: true)
+          Polyphemus.instance.db[@table_name.to_sym].where(
+            should_ingest: true,
+            ingest_complete: false,
+          )
         end.result_updated_at do |file|
           file[:updated_at]
         end.result_id do |file|
