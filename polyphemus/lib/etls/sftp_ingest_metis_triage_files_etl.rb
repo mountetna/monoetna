@@ -11,21 +11,25 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
   end
 
   def process(cursor, records)
-    sftp_configs.each do |conf|
-      host_matches = records.select do |record|
-        conf[:host] == record[:host]
-      end
+    records_by_host = records.group_by do |record|
+      record[:host]
+    end
 
-      logger.info("Ingesting files from #{conf[:host]}: #{host_matches.map { |file| file[:name] }.join(", ")}...")
+    sftp_configs.each do |conf|
+      host = conf[:host]
+      files_for_host = records_by_host[host]
+      file_names = files_for_host.map { |file| file[:name] }
+
+      logger.info("Ingesting files from #{host}: #{file_names.join(", ")}...")
 
       workflow = Etna::Clients::Metis::IngestMetisDataWorkflow.new(
         metis_filesystem: metis_filesystem,
         ingest_filesystem: ingest_filesystem(conf),
         logger: logger,
       )
-      workflow.copy_files(host_matches.map { |file| file[:name] })
+      workflow.copy_files(file_names)
 
-      remove_ingested_files(host_matches)
+      remove_ingested_files(files_for_host)
     end
 
     logger.info("Done")
@@ -49,7 +53,7 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
   end
 
   def metis_filesystem
-    Etna::Filesystem::Metis.new(
+    @metis_filesystem ||= Etna::Filesystem::Metis.new(
       metis_client: metis_client,
       project_name: @project_name,
       bucket_name: @bucket_name,
