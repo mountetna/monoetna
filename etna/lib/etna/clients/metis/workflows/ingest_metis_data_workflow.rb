@@ -20,7 +20,7 @@ module Etna
           end
         end
 
-        def copy_file(dest:, src:, stub: false)
+        def copy_file(dest:, src:)
           ingest_filesystem.with_readable(src, "r") do |file|
             metis_filesystem.do_streaming_upload(file, dest, file.size)
           end
