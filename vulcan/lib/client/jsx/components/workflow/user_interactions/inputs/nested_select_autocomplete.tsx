@@ -7,6 +7,9 @@ import * as _ from 'lodash';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import {WithInputParams} from "./input_types";
 import {mapSome, some, withDefault} from "../../../../selectors/maybe";
+import {useMemoized} from "../../../../selectors/workflow_selectors";
+import {joinNesting} from "./monoids";
+import {useSetsDefault} from "./useSetsDefault";
 
 function getPath(options: OptionSet, leaf: string): string[] {
   for (let [key, value] of Object.entries(options)) {
@@ -60,24 +63,14 @@ function LeafOptions({
 
 type OptionSet = {[k: string]: null | OptionSet};
 
-export default function NestedSelectAutocompleteInput({ data, onChange, value, ...props }: WithInputParams<{}>) {
-  const allOptions: OptionSet = useMemo(() => {
-    return Object.keys(data || {}).reduce((dataObj, k) => {
-      if (!data) return dataObj;
-      const next = data[k];
-      return {
-        ...dataObj,
-        ...(typeof next === 'object' && next != null && !Array.isArray(next)
-          ? next
-          : {})
-      };
-    }, {} as OptionSet);
-  }, [data]);
-
+export default function NestedSelectAutocompleteInput({ data, onChange, value }: WithInputParams<{}, string, OptionSet>) {
+  const allOptions = useMemoized(joinNesting, data);
   const [path, setPath] = useState([] as string[]);
 
   useEffect(() => {
-    if (value) setPath(withDefault(mapSome(value, inner => getPath(allOptions, inner)), []));
+    mapSome(value, value => {
+      setPath(getPath(allOptions, value));
+    })
   }, [allOptions, value])
 
   const handleSelect = useCallback(

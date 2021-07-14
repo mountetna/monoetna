@@ -43,7 +43,7 @@ export const selectDefaultNumber = defaultSelector(0);
 export const selectDefaultString = defaultSelector("");
 export const selectDefaultBoolean = defaultSelector(false);
 
-export function flattenNesting<T>(data: DataEnvelope<DataEnvelope<T>> | undefined | null): DataEnvelope<T> {
+export function joinNesting<T>(data: DataEnvelope<DataEnvelope<T>> | undefined | null): DataEnvelope<T> {
   if (!data) return {};
   return Object.values(data).reduce<DataEnvelope<T>>((a, b) => ({...a, ...b}), {} as DataEnvelope<T>);
 }

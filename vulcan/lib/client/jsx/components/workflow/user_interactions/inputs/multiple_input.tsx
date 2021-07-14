@@ -1,19 +1,10 @@
-import React, {useMemo, useCallback} from 'react';
+import React, {useCallback} from 'react';
 import {DataEnvelope, InputBackendComponent, WithInputParams} from './input_types';
 import InputHelp from './input_help';
-import MultiselectStringInput from "./multiselect_string";
-import {Maybe, maybeOfNullable, some, withDefault} from "../../../../selectors/maybe";
-import {flattenNesting} from "./monoids";
+import {Maybe, some} from "../../../../selectors/maybe";
+import {joinNesting} from "./monoids";
 import {useMemoized} from "../../../../selectors/workflow_selectors";
-
-export function flattenOptions (
-  data: {[key: string]: {[key: string]: string[]}} | null | undefined
-): DataEnvelope<string[]> {
-  if (data) {
-    return Object.values(data).reduce((a, b) => ({...a, ...b}), {});
-  }
-  return {};
-}
+import {useSetsDefault} from "./useSetsDefault";
 
 // Constructs a backend component by composing a dictionary of homogenous inner inputs, accepting each of their
 // individual inner data payloads and setting a value mapping each inner input's value.
@@ -21,12 +12,12 @@ export default function MultipleInput<Value, Values>(InnerInput: InputBackendCom
   return MultiInput;
 
   function MultiInput({
-    value,
     data,
-    onChange
+    onChange,
+    ...props
   }: WithInputParams<{}, DataEnvelope<Value>, DataEnvelope<Values>>) {
-    const options = useMemoized(flattenNesting, data);
-    const values = useMemo(() => withDefault(value, {}), [value]);
+    const options = useMemoized(joinNesting, data);
+    const values = useSetsDefault({}, props.value, onChange);
 
     const onChangeValue = useCallback((label: string, v: Maybe<Value>) => {
       const newValues = {...values};

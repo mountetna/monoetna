@@ -4,17 +4,11 @@ import {Maybe, some, withDefault} from "../../../../selectors/maybe";
 import BooleanInput from "./boolean";
 import {flattenStringOptions, StringOptions} from "./monoids";
 import {useMemoized} from "../../../../selectors/workflow_selectors";
+import {useSetsDefault} from "./useSetsDefault";
 
 export default function CheckboxesInput({data, onChange, ...props}: WithInputParams<{}, string[], StringOptions>) {
   const options = useMemoized(flattenStringOptions, data);
-  const value = useMemo(() => withDefault(props.value, []), [props.value]);
-
-  useEffect(() => {
-    // Default to all options selected
-    if (!value) {
-      onChange(some([...options]));
-    }
-  }, [options, onChange, value]);
+  const value = useSetsDefault(options, props.value, onChange);
 
   const handleClickOption = useCallback(
     (option: string) => {
