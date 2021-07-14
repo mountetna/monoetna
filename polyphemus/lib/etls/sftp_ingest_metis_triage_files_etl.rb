@@ -53,8 +53,8 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
   end
 
   def metis_filesystem(configuration)
-    # Set up the root to be the host, so that
-    #   files will be name-spaced on Metis.
+    # Set up the root to be the configured host, so that
+    #   files will be in a name-spaced directory on Metis.
     Etna::Filesystem::Metis.new(
       metis_client: metis_client,
       project_name: @project_name,
