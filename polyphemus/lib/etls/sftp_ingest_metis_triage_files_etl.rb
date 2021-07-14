@@ -45,11 +45,7 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
   end
 
   def ingest_filesystem(configuration)
-    Etna::Filesystem::SftpFilesystem.new(
-      host: configuration[:host],
-      username: configuration[:username],
-      password: configuration[:password],
-    )
+    Etna::Filesystem::SftpFilesystem.new(**configuration)
   end
 
   def metis_filesystem
