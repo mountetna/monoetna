@@ -27,7 +27,7 @@ const modalStyles = {
 };
 
 export default function SessionManager() {
-  const {state, dispatch, run, showErrors} = useContext(VulcanContext);
+  const {state, dispatch, showErrors, requestPoll} = useContext(VulcanContext);
   const {workflow, primaryInputsReady, complete, idle} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
@@ -36,6 +36,8 @@ export default function SessionManager() {
   const name = workflowName(workflow);
   const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
   const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
+
+  const run = useCallback(() => requestPoll(true), [requestPoll]);
 
   const saveSession = useCallback(() => {
     downloadBlob({
@@ -49,8 +51,10 @@ export default function SessionManager() {
     showErrors(readTextFile('*.json').then((sessionJson) => {
       const session: VulcanSession = JSON.parse(sessionJson);
       if (session.workflow_name !== state.session.project_name || session.project_name !== state.session.project_name) {
-        // TODO: Maybe navigate the user automatically to the correct project / workflow??
-        // But we'd need to check and then enforce permissions here, too, which is kind of a chunky refactor.
+        // TODO: Confirm the user has project and workflow access before doing the navigation?
+        if (confirm('This session file belongs to a different project / workflow combination, navigate to that page?')) {
+          location.href = location.origin + ROUTES.workflow(session.project_name, session.workflow_name);
+        }
         throw new Error('This file')
       }
       dispatch(setSession(session));
@@ -59,7 +63,7 @@ export default function SessionManager() {
 
   const resetSession = useCallback(
     () => {
-      let newSession = {
+      const newSession = {
         ...defaultSession,
         workflow_name: session.workflow_name,
         project_name: session.project_name
