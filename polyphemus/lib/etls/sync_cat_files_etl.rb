@@ -42,7 +42,9 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
   end
 
   def update_ingest_files(records)
-    # First, we filter out any files that have already been ingested
+    # First, we filter out any files that have already been ingested.
+    # This way they don't get re-ingested, and we'll also have
+    #   a log of when stuff made it to Metis.
     records = uningested_records(records)
 
     # Next, we add new files that do not have a record in Polyphemus::IngestFiles
