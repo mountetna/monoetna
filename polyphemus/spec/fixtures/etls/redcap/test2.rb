@@ -72,7 +72,7 @@ def config
             attributes: {
               name: {
                 "redcap_field": "feature",
-                "value": "select_choice"
+                "value": "value"
               },
               value: "year"
             }
