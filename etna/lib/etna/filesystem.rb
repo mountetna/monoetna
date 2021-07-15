@@ -420,6 +420,15 @@ module Etna
     end
 
     class Mock < Filesystem
+      class MockStat
+        def initialize
+        end
+
+        def size
+          0
+        end
+      end
+
       def initialize(&new_io)
         @files = {}
         @dirs = {}
@@ -490,7 +499,7 @@ module Etna
       end
 
       def stat(src)
-        @files[src].stat
+        @files[src].respond_to?(:stat) ? @files[src].stat : MockStat.new
       end
     end
   end
