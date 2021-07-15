@@ -311,7 +311,7 @@ arg_flag_completion_names="$arg_flag_completion_names  "
 multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names="help ipi_load_magma_population_tables_etl ipi_patient_flowjo materialize_gne_magma_records_etl sftp_ingest_metis_triage_files_etl stub_magma_record_etl stub_metis_file_etl sync_cat_sftp_files_etl sync_gne_metis_files_etl"
+all_completion_names="help ipi_load_magma_population_tables_etl ipi_patient_flowjo materialize_gne_magma_records_etl sftp_ingest_metis_triage_files_etl stub_magma_record_etl stub_metis_file_etl sync_cat_files_etl sync_gne_metis_files_etl"
 all_completion_names="$all_completion_names $all_flag_completion_names"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
@@ -1262,7 +1262,7 @@ else
 return
 fi
 done
-elif [[ "$1" == "sync_cat_sftp_files_etl" ]]; then
+elif [[ "$1" == "sync_cat_files_etl" ]]; then
 shift
 all_flag_completion_names="$all_flag_completion_names  "
 arg_flag_completion_names="$arg_flag_completion_names  "

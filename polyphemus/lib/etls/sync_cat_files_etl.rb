@@ -1,13 +1,11 @@
 # Insert and remove file pointers to / from the ingestion table
-#    based on a scan of an SFTP server.
+#    based on an rsync scan of the CAT SFTP server.
 require_relative "../rsync_files_etl"
 
-class Polyphemus::SyncCatSftpFilesEtl < Polyphemus::RsyncFilesEtl
+class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
   def initialize
-    @project_name = "triage"
-    @bucket_name = "waiting_room"
     super(
-      project_bucket_pairs: [[@project_name, @bucket_name]],
+      project_bucket_pairs: [["triage", "waiting_room"]],
       host: sftp_conf[:host],
       username: sftp_conf[:username],
       root: sftp_conf[:root],
