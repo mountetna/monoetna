@@ -4,7 +4,7 @@ describe Polyphemus::SftpIngestMetisTriageFilesEtl do
   }
 
   before(:each) do
-    stub_data
+    stub_ingest_files
     stub_metis_setup
     stub_create_folder({
       project: "triage",
@@ -40,7 +40,7 @@ describe Polyphemus::SftpIngestMetisTriageFilesEtl do
     expect(Polyphemus::IngestFile.exclude(name: /test3.txt/).map { |f| f[:ingested_at] }).to eq([nil, nil])
   end
 
-  def stub_data
+  def stub_ingest_files
     create(:ingest_file, name: "foo/bar/test1.txt", host: "sftp.example.com", updated_at: "2021-01-01 00:00:00", should_ingest: false)
     create(:ingest_file, name: "foo/bar/test2.txt", host: "sftp.example.com", updated_at: "2015-01-01 00:00:00", should_ingest: false)
     create(:ingest_file, name: "foo/bar/test3.txt", host: "sftp.example.com", updated_at: "1999-01-01 00:00:00", should_ingest: true)
