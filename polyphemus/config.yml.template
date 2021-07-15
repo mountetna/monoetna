@@ -85,3 +85,10 @@
   :dateshift_salt: 123456
   :redcap:
     :host: https://redcap.test
+  :ingest:
+    :sftp:
+      - :host: sftp.example.com
+        :username: user
+        :password: pass
+        :alias: cat
+        :root: /

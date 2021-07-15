@@ -21,7 +21,6 @@ describe Polyphemus::DbTriageFileEtl do
       super(
         project_bucket_pairs: [["triage", "waiting_room"]],
         limit: 2,
-        table_name: "ingest_files",
         **args,
       )
     end
