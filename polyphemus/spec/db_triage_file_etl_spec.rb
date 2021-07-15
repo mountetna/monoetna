@@ -34,7 +34,7 @@ describe Polyphemus::DbTriageFileEtl do
   end
 
   it "should process files from the given triage table" do
-    stub_data
+    stub_ingest_files
 
     etl = etl_executor.subcommands["run"].etl
 
@@ -50,11 +50,5 @@ describe Polyphemus::DbTriageFileEtl do
     etl.process_calls.clear
     run_etl_command("test_db_triage_file_etl", "run")
     expect(etl.process_calls.length).to eq(1)
-  end
-
-  def stub_data
-    create(:ingest_file, name: "foo/bar/test1.txt", host: "sftp.example.com", updated_at: "2021-01-01 00:00:00", should_ingest: false)
-    create(:ingest_file, name: "foo/bar/test2.txt", host: "sftp.example.com", updated_at: "2015-01-01 00:00:00", should_ingest: false)
-    create(:ingest_file, name: "foo/bar/test3.txt", host: "sftp.example.com", updated_at: "1999-01-01 00:00:00", should_ingest: true)
   end
 end

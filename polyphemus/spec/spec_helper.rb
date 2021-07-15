@@ -352,3 +352,15 @@ def temp_id(records, id)
     return key if key =~ /::temp-#{id}-.*/
   end
 end
+
+def stub_ingest_files(file_data = nil)
+  file_data ?
+    file_data.each do |data|
+      create(:ingest_file, **data)
+    end
+    : begin
+      create(:ingest_file, name: "foo/bar/test1.txt", host: "sftp.example.com", updated_at: "2021-01-01 00:00:00", should_ingest: false)
+      create(:ingest_file, name: "foo/bar/test2.txt", host: "sftp.example.com", updated_at: "2015-01-01 00:00:00", should_ingest: false)
+      create(:ingest_file, name: "foo/bar/test3.txt", host: "sftp.example.com", updated_at: "1999-01-01 00:00:00", should_ingest: true)
+    end
+end

@@ -1,6 +1,6 @@
 describe Polyphemus::SyncCatFilesEtl do
   before(:each) do
-    stub_ingest_files
+    stub_data
   end
 
   it "should add new, uningested records" do
@@ -55,10 +55,24 @@ describe Polyphemus::SyncCatFilesEtl do
     expect(test3[:should_ingest]).to eq(true)
   end
 
-  def stub_ingest_files
-    create(:ingest_file, name: "foo/bar/test1.txt", host: "sftp.example.com", updated_at: "2021-01-01 00:00:00", should_ingest: false)
-    create(:ingest_file, name: "foo/bar/test2.txt", host: "sftp.example.com", updated_at: "2015-01-01 00:00:00", should_ingest: false)
-    create(:ingest_file, name: "foo/bar/test3.txt", host: "sftp.example.com", updated_at: "1999-01-01 00:00:00", should_ingest: true, ingested_at: "2021-01-01 00:00:00")
+  def stub_data
+    stub_ingest_files([{
+      name: "foo/bar/test1.txt",
+      host: "sftp.example.com",
+      updated_at: "2021-01-01 00:00:00",
+      should_ingest: false,
+    }, {
+      name: "foo/bar/test2.txt",
+      host: "sftp.example.com",
+      updated_at: "2015-01-01 00:00:00",
+      should_ingest: false,
+    }, {
+      name: "foo/bar/test3.txt",
+      host: "sftp.example.com",
+      updated_at: "1999-01-01 00:00:00",
+      should_ingest: true,
+      ingested_at: "2021-01-01 00:00:00",
+    }])
   end
 
   def stub_rsync_data(change_list)
