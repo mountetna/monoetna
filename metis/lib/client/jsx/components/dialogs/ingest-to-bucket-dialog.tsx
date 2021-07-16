@@ -33,10 +33,10 @@ const IngestToBucketDialog = ({}) => {
   const fetchFiles = useCallback(() => {
     setFetchError('');
     listDirectory(host, directory)
-      .then((data) => {
+      .then((data: {[key: string]: IngestFile[]}) => {
         setFiles(data.files);
       })
-      .catch((e) => {
+      .catch((e: Promise<string>) => {
         e.then((err: string) => setFetchError(err));
       });
   }, [host, directory]);
@@ -47,7 +47,7 @@ const IngestToBucketDialog = ({}) => {
       .then(() => {
         invoke({type: 'DISMISS_DIALOG'});
       })
-      .catch((e) => {
+      .catch((e: Promise<string>) => {
         e.then((err: string) => setEnqueueError(err));
       });
   }, [host, directory]);
