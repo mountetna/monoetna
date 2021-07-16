@@ -82,9 +82,6 @@ params = {
 }
 TEST_TOKEN = "something.#{Base64.strict_encode64(params.to_json)}"
 
-# post '/authorize/upload', action: 'upload#authorize', auth: { user: { can_edit?: :project_name } }
-# post '/:project_name/upload/:bucket_name/*file_path', action: 'upload#upload', auth: { hmac: true }, as: :upload
-
 def stub_metis_setup
   route_payload = JSON.generate([
     {:method=>"GET", :route=>"/:project_name/list_all_folders/:bucket_name", :name=>"folder_list_all_folders", :params=>["project_name", "bucket_name"]},
