@@ -159,6 +159,16 @@
             "hidden": false,
             "validation": null,
             "attribute_type": "table"
+          },
+          "feature_list": {
+            "name": "feature_list",
+            "attribute_name": "feature_list",
+            "display_name": "Features",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "string"
           }
         }
       }
