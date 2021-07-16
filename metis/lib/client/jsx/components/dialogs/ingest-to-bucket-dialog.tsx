@@ -14,7 +14,7 @@ import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
 
 import {
   listDirectory,
-  queueDirectoryFiles
+  enqueueDirectoryFiles
 } from '../../api/polyphemus/ingest_api';
 
 type IngestFile = {
@@ -24,21 +24,49 @@ type IngestFile = {
 
 const IngestToBucketDialog = ({}) => {
   const [files, setFiles] = useState([] as IngestFile[]);
+  const [fetchError, setFetchError] = useState('');
+  const [enqueueError, setEnqueueError] = useState('');
   const [host, setHost] = useState('');
   const [directory, setDirectory] = useState('');
   const invoke = useActionInvoker();
 
   const fetchFiles = useCallback(() => {
-    listDirectory(host, directory).then((data) => {
-      setFiles(data.files);
-    });
+    setFetchError('');
+    listDirectory(host, directory)
+      .then((data) => {
+        setFiles(data.files);
+      })
+      .catch((e) => {
+        e.then((err: string) => setFetchError(err));
+      });
   }, [host, directory]);
 
-  const queueFiles = useCallback(() => {
-    queueDirectoryFiles(host, directory).then(() => {
-      invoke({type: 'DISMISS_DIALOG'});
-    });
+  const enqueueFiles = useCallback(() => {
+    setEnqueueError('');
+    enqueueDirectoryFiles(host, directory)
+      .then(() => {
+        invoke({type: 'DISMISS_DIALOG'});
+      })
+      .catch((e) => {
+        e.then((err: string) => setEnqueueError(err));
+      });
   }, [host, directory]);
+
+  const onChangeHost = useCallback(
+    (newValue) => {
+      setHost(newValue);
+      if (files.length > 0) setFiles([]);
+    },
+    [files]
+  );
+
+  const onChangeDirectory = useCallback(
+    (newValue) => {
+      setDirectory(newValue);
+      if (files.length > 0) setFiles([]);
+    },
+    [files]
+  );
 
   return (
     <Grid container direction='column' className='ingest-dialog'>
@@ -52,7 +80,7 @@ const IngestToBucketDialog = ({}) => {
                   fullWidth
                   id='ingest-host'
                   label='Ingest host'
-                  onChange={(e) => setHost(e.target.value)}
+                  onChange={(e) => onChangeHost(e.target.value)}
                 />
               </Grid>
               <Grid item>
@@ -61,9 +89,14 @@ const IngestToBucketDialog = ({}) => {
                   fullWidth
                   id='ingest-directory'
                   label='Directory path'
-                  onChange={(e) => setDirectory(e.target.value)}
+                  onChange={(e) => onChangeDirectory(e.target.value)}
                 />
               </Grid>
+              {fetchError && (
+                <Grid item>
+                  <Typography color='error'>{fetchError}</Typography>
+                </Grid>
+              )}
             </Grid>
           </CardContent>
           <CardActions>
@@ -92,13 +125,20 @@ const IngestToBucketDialog = ({}) => {
                 {file.name}
               </Typography>
             ))}
+            {enqueueError && (
+              <Grid item>
+                <Typography color='error'>{enqueueError}</Typography>
+              </Grid>
+            )}
           </CardContent>
           <CardActions>
             <Button
               variant='contained'
               color='primary'
-              onClick={() => queueFiles()}
-              disabled={!host || !directory || 0 === files.length}
+              onClick={() => enqueueFiles()}
+              disabled={
+                !host || !directory || 0 === files.length || '' !== fetchError
+              }
             >
               Queue files for ingestion!
             </Button>
