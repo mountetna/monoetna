@@ -22,7 +22,7 @@ describe Etna::Clients::Metis::IngestMetisDataWorkflow do
     before(:each) do
       file_contents = "simple-file-contents"
       stub_metis_setup
-      stub_create_folder(bucket_name: "triage")
+      stub_create_folder(bucket_name: "waiting_room")
       stub_upload_file(
         authorize_body: JSON.generate({
           url: "#{METIS_HOST}\/#{PROJECT}\/upload/test.txt",
