@@ -116,7 +116,7 @@ describe Polyphemus::Server do
                                    host: "sftp.example.com",
                                  }])
 
-    post("/test/ingest/queue/sftp.example.com/foo/bar")
+    post("/test/ingest/enqueue/sftp.example.com/foo/bar")
 
     expect(last_response.status).to eq(200)
 

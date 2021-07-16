@@ -18,7 +18,7 @@ class IngestController < Polyphemus::Controller
     return failure(422, e.message)
   end
 
-  def queue
+  def enqueue
     require_params(:project_name, :folder_path, :ingest_host)
     require_valid_host
 
