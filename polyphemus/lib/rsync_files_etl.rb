@@ -17,7 +17,8 @@ class Polyphemus
     end
   end
 
-  # Abstract base class for an ETL that scans an SFTP server
+  # Abstract base class for an ETL that scans a remote
+  #   server directory via rsync
   #   and synchronizes the list of available files with
   #   the Polyphemus database.
   class RsyncFilesEtl < Etl
