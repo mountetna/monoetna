@@ -1,7 +1,7 @@
 import {defaultApiHelpers} from "./api";
 import {Dispatch, MutableRefObject} from "react";
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {setSession, setStatus, startPolling, VulcanAction} from "../actions/vulcan_actions";
+import {finishPolling, setSession, setStatus, startPolling, VulcanAction} from "../actions/vulcan_actions";
 import {SessionStatusResponse} from "../api_types";
 import {hasNoRunningSteps} from "../selectors/workflow_selectors";
 import {runPromise, useAsyncCallback} from "etna-js/utils/cancellable_helpers";
@@ -22,8 +22,7 @@ function updateFromSessionResponse(response: SessionStatusResponse, dispatch: Di
   dispatch(setSession(response.session));
 }
 
-export function useSessionSync(
-  state: MutableRefObject<VulcanState>,
+export function useSessionSync(state: MutableRefObject<VulcanState>,
   showErrors: typeof defaultApiHelpers.showErrors,
   pollStatus: typeof defaultApiHelpers.pollStatus,
   postInputs: typeof defaultApiHelpers.postInputs,
@@ -36,25 +35,29 @@ export function useSessionSync(
      After that, it continues to poll until all steps are not running.
    */
   const [requestPoll, cancelPolling] = useAsyncCallback(function* (post = false) {
-      dispatch(startPolling());
-      if (!state.current.session.workflow_name) {
-        console.warn('current session does not have workflow_name set');
-        return;
-      }
+    console.log('requestPoll in here');
+    dispatch(startPolling());
+    if (!state.current.session.workflow_name) {
+      console.warn('current session does not have workflow_name set');
+      return;
+    }
 
-      const baseWork = post ? postInputs(state.current.session) : pollStatus(state.current.session);
-      const response = yield* runPromise(showErrors(baseWork));
+    const baseWork = post ? postInputs(state.current.session) : pollStatus(state.current.session);
+    console.log('ok, going for the runPromise showErrors');
+    const response = yield* runPromise(showErrors(baseWork));
+    console.log('through that hole');
+    updateFromSessionResponse(response, dispatch);
+    yield delay(3000);
+
+    while (!hasNoRunningSteps(state.current.status)) {
+      const response = yield* runPromise(showErrors(pollStatus(state.current.session)));
       updateFromSessionResponse(response, dispatch);
-      yield delay(1000);
-
-      while (!hasNoRunningSteps(state.current.status)) {
-        const response = yield* runPromise(showErrors(pollStatus(state.current.session)));
-        updateFromSessionResponse(response, dispatch);
-        yield delay(1000);
-      }
-    },
-    [dispatch, pollStatus, postInputs, state]
-  );
+      yield delay(3000);
+    }
+  }, [dispatch, pollStatus, postInputs, state], () => {
+    console.log('cleaning up?');
+    dispatch(finishPolling())
+  });
 
   return {
     requestPoll, cancelPolling

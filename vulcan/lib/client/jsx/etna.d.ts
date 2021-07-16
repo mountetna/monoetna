@@ -75,6 +75,10 @@ declare module 'etna-js/utils/semaphore' {
     close(v: T): void;
   }
 
+  export class BufferedChannel<T = void> extends UnbufferedChannel<T> {
+    pending(): Iterable<Promise<T>>
+  }
+
   export class Semaphore {
     async ready<T>(work: () => Promise<T>): Promise<T>;
   }

@@ -30,9 +30,50 @@ export class UnbufferedChannel {
         return await this.trigger.promise;
     }
 
-    close(v) {
-        this.trigger.resolve(v);
+    close() {
+        this.trigger.reject(new Error('Channel was closed'));
         this.closed = true;
+    }
+}
+
+export class BufferedChannel extends UnbufferedChannel {
+    sendSemaphore = new Semaphore();
+    receiveSemaphore = new Semaphore();
+
+    close() {
+        this.sendSemaphore.close();
+        this.receiveSemaphore.close();
+        return super.close();
+    }
+
+    async send(v) {
+        const {release} = await this.sendSemaphore.acquire();
+        try {
+            await this.receiveSemaphore.closed();
+            return super.send(v);
+        } finally {
+            release();
+        }
+    }
+
+    async receive() {
+        const {release} = await this.receiveSemaphore.acquire();
+        try {
+            return super.receive();
+        } finally {
+            release();
+        }
+    }
+
+    pending() {
+        const self = this;
+        function* genPending() {
+            while (!self.sendSemaphore.open && self.receiveSemaphore.open) {
+                yield self.receive();
+            }
+        }
+
+        return genPending();
     }
 }
 
@@ -48,6 +89,10 @@ export class Semaphore {
     channel = new UnbufferedChannel();
     open = true;
 
+    close() {
+        this.channel.close();
+    }
+
     async ready(work) {
           const {release} = this.acquire();
           try {
@@ -58,7 +103,7 @@ export class Semaphore {
     }
 
     async closed() {
-        while (true) {
+        while (!this.channel.closed) {
             if (!this.open) return;
             await this.channel.receive();
         }
@@ -66,7 +111,7 @@ export class Semaphore {
 
     // Probably could be more efficient.
     async acquire() {
-        while (true) {
+        while (!this.channel.closed) {
             const acquired = this.maybeAcquire();
             if (acquired) return acquired[0];
             await this.channel.receive();

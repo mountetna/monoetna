@@ -2,9 +2,7 @@ import {useCallback, useRef, useState} from "react";
 import {showMessages} from "etna-js/actions/message_actions";
 import {checkStatus, handleFetchError, handleFetchSuccess, headers} from "etna-js/utils/fetch";
 import {
-    SessionStatusResponse,
-    VulcanSession,
-    WorkflowsResponse
+    defaultSessionStatusResponse, defaultWorkflowsResponse, SessionStatusResponse, VulcanSession, WorkflowsResponse
 } from "../api_types";
 
 export const defaultApiHelpers = {
@@ -16,16 +14,16 @@ export const defaultApiHelpers = {
         return work;
     },
     getData(url: string): Promise<any> {
-        return Promise.resolve({});
+        return new Promise(() => null);
     },
     postInputs(session: VulcanSession): Promise<SessionStatusResponse> {
-        return new Promise((resolve, reject) => null);
+        return new Promise(() => null);
     },
     pollStatus(session: VulcanSession): Promise<SessionStatusResponse> {
-        return new Promise((resolve, reject) => null);
+        return new Promise(() => null);
     },
     getWorkflows(): Promise<WorkflowsResponse> {
-        return new Promise((resolve, reject) => null);
+        return new Promise(() => null);
     },
 }
 

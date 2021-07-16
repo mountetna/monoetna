@@ -1,35 +1,48 @@
-import {Dispatch} from "react";
-import {setStatus, setWorkflow, VulcanAction} from "../actions/vulcan_actions";
-import {defaultWorkflow, defaultWorkflowStep, StatusString, StepStatus, Workflow, WorkflowStep} from "../api_types";
-import {createStatusFixture, createStepStatusFixture, createUpdatedStatusFixture} from "./fixtures";
+import {setDownloadedData, setStatus, setWorkflow, VulcanAction} from "../actions/vulcan_actions";
+import {
+  defaultStepStatus,
+  defaultWorkflow,
+  defaultWorkflowInput,
+  defaultWorkflowStep,
+  StatusString,
+  Workflow,
+  WorkflowInput,
+  WorkflowStep
+} from "../api_types";
+import {createStepStatusFixture, createUpdatedStatusFixture} from "./fixtures";
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {VulcanContextData} from "../contexts/vulcan_context";
+import {VulcanContext} from "../contexts/vulcan_context";
+import {useContext} from "react";
+import {splitSource, statusOfStep} from "../selectors/workflow_selectors";
+
+// Usage:
+// const utils = yield* runHook(useWorkflowUtils)
+export function useWorkflowUtils(): WorkflowUtils {
+  const {dispatch, stateRef} = useContext(VulcanContext);
+  return new WorkflowUtils(dispatch, stateRef);
+}
 
 export class WorkflowUtils {
   public workflow: Readonly<Workflow> = defaultWorkflow;
   public steps: { [k: string]: WorkflowStep } = {};
 
-  constructor(private dispatch: (action: VulcanAction) => Promise<void>, private stateRef: { current: VulcanState },) {
-  }
-
-  // combine with the result of integrateElement.
-  static fromSetup({dispatch, contextData}: { dispatch: (action: VulcanAction) => Promise<void>, contextData: VulcanContextData }) {
-    return new WorkflowUtils(dispatch, contextData.stateRef);
+  constructor(private dispatch: (action: VulcanAction) => void, private stateRef: { current: VulcanState },) {
   }
 
   get status() {
     return this.stateRef.current.status;
   }
 
-  async setWorkflow(name: string, workflow: Partial<Workflow> = {},
+  setWorkflow(name: string,
+    workflow: Partial<Workflow> = {},
     projects = workflow.projects || this.workflow.projects || [],
     projectName = projects[0] || "test"
   ) {
     this.workflow = {...this.workflow, ...workflow, name, projects: workflow.projects || [name]};
-    await this.dispatch(setWorkflow(this.workflow, projectName));
+    this.dispatch(setWorkflow(this.workflow, projectName));
   }
 
-  async addStep(name: string, attributes: Partial<WorkflowStep> = {}) {
+  addStep(name: string, attributes: Partial<WorkflowStep> = {}) {
     const step = {...defaultWorkflowStep, name, ...attributes};
     ({name} = step);
 
@@ -40,17 +53,51 @@ export class WorkflowUtils {
     }
 
     this.steps[name] = step;
-    workflow = {...workflow, steps: [workflow.steps[0].map(s => s.name !== name ? s : step)] };
-    await this.setWorkflow(workflow.name, workflow);
+    workflow = {...workflow, steps: [workflow.steps[0].map(s => s.name !== name ? s : step)]};
+    this.setWorkflow(workflow.name, workflow);
     return step;
   }
 
-  async setStatus(step: WorkflowStep | string, status: StatusString) {
+  setStatus(step: WorkflowStep | string, status: StatusString) {
     const stepName = typeof step !== "string" ? step.name : step;
-    await this.dispatch(setStatus(createUpdatedStatusFixture(
-      this.workflow,
+    this.dispatch(setStatus(createUpdatedStatusFixture(this.workflow,
       this.stateRef.current.status,
       createStepStatusFixture({name: stepName, status})
     )));
+  }
+
+  addPrimaryInput(name: string, options: Partial<WorkflowInput>) {
+    let workflow = {...this.workflow};
+    let input = {...defaultWorkflowInput, ...options};
+    workflow.inputs[name] = input;
+    this.setWorkflow(workflow.name, workflow);
+    return input;
+  }
+
+
+  /*
+     Note -- this method will force a setStatus update to a 'complete' status with either the existing or a new
+     url constructed for the purpose of this sourceName.
+   */
+  forceDownloadedData(sourceName: string | [string, string], value: any) {
+    const workflow = this.workflow;
+    let url: string | undefined;
+    const [stepName, outputName] = typeof sourceName === "string" ? splitSource(sourceName) : sourceName;
+    if (!stepName) throw new Error('Cannot setData for primary inputs');
+
+    let status = statusOfStep(stepName, this.stateRef.current.status) || defaultStepStatus;
+    const {downloads} = status;
+    if (downloads) {
+      url = downloads[outputName]
+    }
+    if (!url) url = "https://" + sourceName;
+
+    // TODO: Set the inputs hash thingy.
+
+    this.dispatch(setStatus(createUpdatedStatusFixture(workflow, this.stateRef.current.status, createStepStatusFixture({
+      ...status, name: stepName, status: 'complete', downloads: {...status.downloads, [outputName]: url}
+    }))));
+
+    this.dispatch(setDownloadedData(url, value));
   }
 }

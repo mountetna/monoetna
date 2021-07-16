@@ -4,14 +4,22 @@ import {useState, useEffect, useCallback} from 'react';
 
 export function useAsyncCallback(fn, deps, cleanup = () => null) {
   const [_, setContext] = useState(() => new Cancellable());
-  const cancel = useCallback(() => setContext(running => {
-    running.cancel();
-    return new Cancellable();
-  }), []);
+  const cancel = useCallback(() => {
+    const newCancellable = new Cancellable();
+    setContext(running => {
+      running.cancel();
+      return newCancellable;
+    })
+
+    return newCancellable;
+  }, []);
 
   useEffect(() => {
-    cancel();
-  }, [...deps, cancel]);
+    return () => {
+      console.log('cancelling from efect')
+      cancel();
+    }
+  }, deps);
 
   const start = useCallback(function (...args) {
     const next = cancel();

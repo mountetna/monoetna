@@ -22,7 +22,9 @@ export class Cancellable {
   async run(gen) {
     if (gen instanceof Function) gen = gen();
 
+    console.log('pausing here...')
     let {result, cancelled} = await this.race(Promise.resolve());
+    console.log('going in')
     let done = false;
     let value = null;
     let error = null;
@@ -31,23 +33,30 @@ export class Cancellable {
       if (error) {
         const innerError = error[0];
         error = null;
+        console.log('gen.error');
         ({done, value} = gen.error(innerError));
       } else {
+        console.log('gen.next', result);
         ({done, value} = gen.next(result));
       }
 
       if (done) {
+        console.log('done')
         return {result: value};
       }
 
       try {
+        console.log('racing...', value);
         ({ result, cancelled } = await this.race(value));
+        console.log('got', result);
       } catch (e) {
         error = [e];
+        console.log('errrrr')
       }
     }
 
     if (cancelled) {
+      console.log('cancelled')
       return {cancelled};
     }
 

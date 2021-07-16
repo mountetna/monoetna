@@ -1,4 +1,4 @@
-import {act} from "react-test-renderer";
+import {BufferedChannel, Trigger} from "etna-js/utils/semaphore";
 
 export function createFakeStorage(): Storage {
   const storage: { [k: string]: string } = {};
@@ -26,48 +26,30 @@ export function createFakeStorage(): Storage {
   }
 }
 
-export type PromiseArgs<R> = [(r: R) => Promise<void>, (e: any) => Promise<void>];
-export class AsyncMock<R> {
-  constructor(public jestMock: jest.Mock, private promiseArgs: PromiseArgs<R>[]) {
-  }
+export function makeBlockingAsyncMock<A extends any[], T>(f: (...a: A) => Promise<T>): {
+  channel: BufferedChannel<[A, Trigger<T>]>
+  mock: (...a: A) => Promise<T>,
+} {
 
-  hasPendingRequest() {
-    return this.promiseArgs.length > 0;
-  }
+  const channel = new BufferedChannel<[A, Trigger<T>]>();
 
-  reset() {
-    this.promiseArgs.length = 0;
-    this.jestMock.mockClear();
-  }
-
-  async awaitCall(reset: boolean): Promise<[PromiseArgs<R>, any[]]> {
-    if (reset) {
-      this.reset();
+  return {
+    channel,
+    async mock(...a: A) {
+      const trigger = new Trigger<T>();
+      console.log('awaiting to send through the mock')
+      await channel.send([a, trigger]);
+      console.log('awaiting the response')
+      return await trigger.promise;
     }
-
-    while (!this.hasPendingRequest()) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-
-    const next = this.promiseArgs.shift();
-    const call = this.jestMock.mock.calls.shift();
-    if (next && call) {
-      return [next, call];
-    }
-
-    throw new Error('Should never have been reached');
   }
 }
 
-export function asyncFn<R>(): AsyncMock<R> {
-  const mock = jest.fn();
-  const promiseArgs: PromiseArgs<R>[] = [];
+export function countIter(iter: Iterable<any>): number {
+  let i = 0;
+  for (let elem of iter) {
+    i++;
+  }
 
-  mock.mockImplementation((...args: any[]) => {
-    return new Promise<R>((resolve, reject) => {
-      promiseArgs.push([(v) => act(async () => resolve(v)), (e) => act(async () => reject(e))]);
-    })
-  });
-
-  return new AsyncMock<R>(mock, promiseArgs);
+  return i;
 }

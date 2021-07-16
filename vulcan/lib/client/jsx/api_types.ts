@@ -75,6 +75,10 @@ export interface WorkflowOutput {
   format: string | null,
 }
 
+export const defaultWorkflowInput: WorkflowInput = {
+  type: TYPE.STRING
+}
+
 export interface WorkflowInput {
   doc?: string | null,
   label?: string | null,

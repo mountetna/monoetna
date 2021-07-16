@@ -6,7 +6,6 @@ import {setSession, setWorkflow} from "../../actions/vulcan_actions";
 import {statusWithDownloads} from "../../test_utils/fixtures/status-with-downloads";
 import {defaultWorkflow, Workflow} from "../../api_types";
 
-
 describe('useSessionStorage', () => {
   it('works', async () => {
     const storage = createFakeStorage();
