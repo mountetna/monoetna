@@ -8,8 +8,14 @@ import CardActions from '@material-ui/core/CardActions';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
+import DescriptionIcon from '@material-ui/icons/Description';
 
-import {listDirectory} from '../../api/polyphemus/ingest_api';
+import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+
+import {
+  listDirectory,
+  queueDirectoryFiles
+} from '../../api/polyphemus/ingest_api';
 
 type IngestFile = {
   name: string;
@@ -20,6 +26,7 @@ const IngestToBucketDialog = ({}) => {
   const [files, setFiles] = useState([] as IngestFile[]);
   const [host, setHost] = useState('');
   const [directory, setDirectory] = useState('');
+  const invoke = useActionInvoker();
 
   const fetchFiles = useCallback(() => {
     listDirectory(host, directory).then((data) => {
@@ -27,23 +34,37 @@ const IngestToBucketDialog = ({}) => {
     });
   }, [host, directory]);
 
+  const queueFiles = useCallback(() => {
+    queueDirectoryFiles(host, directory).then(() => {
+      invoke({type: 'DISMISS_DIALOG'});
+    });
+  }, [host, directory]);
+
   return (
-    <Grid container direction='column'>
+    <Grid container direction='column' className='ingest-dialog'>
       <Grid item>
         <Card>
           <CardContent>
-            <TextField
-              required
-              id='ingest-host'
-              label='Ingest host'
-              onChange={(e) => setHost(e.target.value)}
-            />
-            <TextField
-              required
-              id='ingest-directory'
-              label='Directory path'
-              onChange={(e) => setDirectory(e.target.value)}
-            />
+            <Grid container direction='column'>
+              <Grid item>
+                <TextField
+                  required
+                  fullWidth
+                  id='ingest-host'
+                  label='Ingest host'
+                  onChange={(e) => setHost(e.target.value)}
+                />
+              </Grid>
+              <Grid item>
+                <TextField
+                  required
+                  fullWidth
+                  id='ingest-directory'
+                  label='Directory path'
+                  onChange={(e) => setDirectory(e.target.value)}
+                />
+              </Grid>
+            </Grid>
           </CardContent>
           <CardActions>
             <Button
@@ -59,14 +80,29 @@ const IngestToBucketDialog = ({}) => {
       </Grid>
       <Grid item>
         <Card>
-          <CardHeader>
-            <Typography>{files.length} files found</Typography>
-          </CardHeader>
-          <CardContent>
-            {files.map((file: IngestFile) => {
-              <Typography>{file.name}</Typography>;
-            })}
+          <CardHeader
+            subheader={`${files.length} file${
+              1 === files.length ? '' : 's'
+            } found`}
+          />
+          <CardContent className='ingest-files-list'>
+            {files.map((file: IngestFile) => (
+              <Typography>
+                <DescriptionIcon />
+                {file.name}
+              </Typography>
+            ))}
           </CardContent>
+          <CardActions>
+            <Button
+              variant='contained'
+              color='primary'
+              onClick={() => queueFiles()}
+              disabled={!host || !directory || 0 === files.length}
+            >
+              Queue files for ingestion!
+            </Button>
+          </CardActions>
         </Card>
       </Grid>
     </Grid>

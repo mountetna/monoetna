@@ -121,5 +121,14 @@
 
       background: white;
     }
+
+    .ingest-dialog {
+      width: 800px;
+
+      .ingest-files-list {
+        overflow-y: auto;
+        max-height: 500px;  
+      }
+    }
   }
 }
