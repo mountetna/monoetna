@@ -1,5 +1,21 @@
 module Redcap
   class Model
+    def self.define(model_name, &block)
+      return Kernel.const_get(model_name) if Kernel.const_defined?(model_name)
+
+      # Set some default methods for each model
+      Kernel.const_set(model_name, Class.new(Redcap::Model) {
+        def identifier(*record_id)
+          [
+              "::temp", *record_id, rand(36**8).to_s(36)
+          ].compact.join('-')
+        end
+
+        def patch(id, record)
+        end
+      })
+    end
+
     def self.create(project, model_name, model_config, magma_template, redcap_template, salt)
       class_name = model_name.to_s.split('_').map(&:capitalize).join
       model_class = Kernel.const_defined?(class_name) ?  Kernel.const_get(class_name) : nil
