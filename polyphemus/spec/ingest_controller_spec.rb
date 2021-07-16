@@ -21,7 +21,7 @@ describe Polyphemus::Server do
     expect(last_response.status).to eq(403)
   end
 
-  it "returns list of files" do
+  it "returns list of uningested / un-queued files, including subdirectories" do
     stub_ingest_files([{
       name: "foo/bar/test1.txt",
       host: "sftp.example.com",
@@ -38,20 +38,91 @@ describe Polyphemus::Server do
       updated_at: "1999-01-01 00:00:00",
       should_ingest: true,
       ingested_at: "2021-01-01 00:00:00",
+    }, {
+      name: "foo/bar2/test4.txt",
+      host: "sftp.example.com",
+      updated_at: "1999-01-01 00:00:00",
+      should_ingest: false,
+    }, {
+      name: "foo/bar/test3/test5.txt",
+      host: "sftp.example.com",
+      updated_at: "1999-01-01 00:00:00",
+      should_ingest: false,
     }])
 
     auth_header(:administrator)
     get("/test/ingest/list/sftp.example.com/foo/bar")
 
     expect(last_response.status).to eq(200)
-    expect(json_body[:results]).to eq([
+    expect(json_body[:files]).to eq([
       {
         name: "foo/bar/test1.txt",
+        host: "sftp.example.com",
+      }, {
+        name: "foo/bar/test3/test5.txt",
+        host: "sftp.example.com",
+      },
+    ])
+
+    get("/test/ingest/list/sftp.example.com/foo/bar/")
+
+    expect(last_response.status).to eq(200)
+    expect(json_body[:files]).to eq([
+      {
+        name: "foo/bar/test1.txt",
+        host: "sftp.example.com",
+      }, {
+        name: "foo/bar/test3/test5.txt",
         host: "sftp.example.com",
       },
     ])
   end
 
-  xit "can update should_ingest" do
+  it "can queue up files for ingestion" do
+    stub_ingest_files([{
+      name: "foo/bar/test1.txt",
+      host: "sftp.example.com",
+      updated_at: "2021-01-01 00:00:00",
+      should_ingest: false,
+    }, {
+      name: "foo2/bar/test2.txt",
+      host: "sftp.example.com",
+      updated_at: "2015-01-01 00:00:00",
+      should_ingest: false,
+    }, {
+      name: "foo/bar/test3.txt",
+      host: "sftp.example.com",
+      updated_at: "1999-01-01 00:00:00",
+      should_ingest: true,
+      ingested_at: "2021-01-01 00:00:00",
+    }, {
+      name: "foo/bar2/test4.txt",
+      host: "sftp.example.com",
+      updated_at: "1999-01-01 00:00:00",
+      should_ingest: false,
+    }, {
+      name: "foo/bar/test3/test5.txt",
+      host: "sftp.example.com",
+      updated_at: "1999-01-01 00:00:00",
+      should_ingest: true,
+    }])
+
+    auth_header(:administrator)
+    get("/test/ingest/list/sftp.example.com/foo/bar")
+
+    expect(last_response.status).to eq(200)
+    expect(json_body[:files]).to eq([{
+                                   name: "foo/bar/test1.txt",
+                                   host: "sftp.example.com",
+                                 }])
+
+    post("/test/ingest/queue/sftp.example.com/foo/bar")
+
+    expect(last_response.status).to eq(200)
+
+    get("/test/ingest/list/sftp.example.com/foo/bar")
+
+    expect(last_response.status).to eq(200)
+    expect(json_body[:files]).to eq([])
   end
 end

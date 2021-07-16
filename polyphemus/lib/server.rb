@@ -23,8 +23,8 @@ class Polyphemus
 
     # Get files associated with a directory, for ingest
     get '/:project_name/ingest/list/:ingest_host/*folder_path', action: 'ingest#list_dir', auth: { user: { is_admin?: :project_name } }, match_ext: true
-    # Update the status of ingest files associated with the directory
-    post '/:project_name/ingest/update/:ingest_host/*folder_path', action: 'ingest#update', auth: { user: { is_admin?: :project_name } }, match_ext: true
+    # Add files in the folder to the ingest queue
+    post '/:project_name/ingest/queue/:ingest_host/*folder_path', action: 'ingest#queue', auth: { user: { is_admin?: :project_name } }, match_ext: true
 
     get '/' do erb_view(:client) end
   end
