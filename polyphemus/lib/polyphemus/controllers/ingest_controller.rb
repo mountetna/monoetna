@@ -7,7 +7,7 @@ class IngestController < Polyphemus::Controller
 
     files = Polyphemus::IngestFile.where(
       host: host,
-      name: /^#{folder_path}/,
+      name: folder_regex,
       ingested_at: nil,
       should_ingest: false,
     ).all
@@ -24,7 +24,7 @@ class IngestController < Polyphemus::Controller
 
     files = Polyphemus::IngestFile.where(
       host: host,
-      name: /^#{folder_path}/,
+      name: folder_regex,
       ingested_at: nil,
       should_ingest: false,
     ).all do |file|
@@ -42,6 +42,10 @@ class IngestController < Polyphemus::Controller
 
   def host
     @params[:ingest_host]
+  end
+
+  def folder_regex
+    /^#{folder_path}/
   end
 
   def folder_path
