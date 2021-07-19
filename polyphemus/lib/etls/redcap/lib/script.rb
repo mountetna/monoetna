@@ -55,7 +55,7 @@ module Redcap
       @redcap_records = group_by_iter(eavs).map do |record_id, record_eavs|
         [
           record_id,
-          Redcap::Client::Record.new(
+          Redcap::Record.new(
             record_eavs,
             @project.flat_records[record_id]
           ).record
@@ -69,8 +69,8 @@ module Redcap
       update = {}
 
       @model.existing_records.each do |magma_record_name, magma_record|
-        next unless @attributes.values.all?{|v| v.valid?(magma_record) }
 
+        next unless @attributes.values.all?{|v| v.valid_magma?(magma_record) }
         redcap_record = redcap_records[ @model.redcap_id(magma_record_name, magma_record) ]
 
         next unless redcap_record
@@ -91,7 +91,7 @@ module Redcap
 
         next unless magma_record_name
 
-        next unless @attributes.values.all?{|v| v.valid?(redcap_record) }
+        next unless @attributes.values.all?{|v| v.valid_redcap?(redcap_record) }
 
         update.merge!(
           magma_record_name => update_record(magma_record_name, redcap_record)
