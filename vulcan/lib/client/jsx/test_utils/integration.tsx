@@ -120,9 +120,7 @@ export function runInActs(work: () => Generator<any, any, any>) {
                 (resolved = value())
               });
             } else {
-              console.log('integration going...')
               yield act(() => Promise.resolve(value).then(v => {
-                console.log('resolved', resolved);
                 resolved = v
               }));
             }
@@ -139,10 +137,8 @@ export function runInActs(work: () => Generator<any, any, any>) {
         return;
       }());
     } catch (e) {
-      console.error('Exception in generator', e)
       throw e;
     } finally {
-      console.log('ok cancelling from integration')
       context.cancel();
     }
   }

@@ -35,27 +35,21 @@ export function useSessionSync(state: MutableRefObject<VulcanState>,
      After that, it continues to poll until all steps are not running.
    */
   const [requestPoll, cancelPolling] = useAsyncCallback(function* (post = false) {
-    console.log('requestPoll in here');
     dispatch(startPolling());
     if (!state.current.session.workflow_name) {
-      console.warn('current session does not have workflow_name set');
       return;
     }
 
     const baseWork = post ? postInputs(state.current.session) : pollStatus(state.current.session);
-    console.log('ok, going for the runPromise showErrors');
     const response = yield* runPromise(showErrors(baseWork));
-    console.log('through that hole');
     updateFromSessionResponse(response, dispatch);
-    yield delay(3000);
 
     while (!hasNoRunningSteps(state.current.status)) {
+      yield delay(3000);
       const response = yield* runPromise(showErrors(pollStatus(state.current.session)));
       updateFromSessionResponse(response, dispatch);
-      yield delay(3000);
     }
   }, [dispatch, pollStatus, postInputs, state], () => {
-    console.log('cleaning up?');
     dispatch(finishPolling())
   });
 

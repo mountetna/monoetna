@@ -30,16 +30,13 @@ export function makeBlockingAsyncMock<A extends any[], T>(f: (...a: A) => Promis
   channel: BufferedChannel<[A, Trigger<T>]>
   mock: (...a: A) => Promise<T>,
 } {
-
   const channel = new BufferedChannel<[A, Trigger<T>]>();
 
   return {
     channel,
     async mock(...a: A) {
       const trigger = new Trigger<T>();
-      console.log('awaiting to send through the mock')
       await channel.send([a, trigger]);
-      console.log('awaiting the response')
       return await trigger.promise;
     }
   }

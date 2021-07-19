@@ -16,7 +16,6 @@ export function useAsyncCallback(fn, deps, cleanup = () => null) {
 
   useEffect(() => {
     return () => {
-      console.log('cancelling from efect')
       cancel();
     }
   }, deps);

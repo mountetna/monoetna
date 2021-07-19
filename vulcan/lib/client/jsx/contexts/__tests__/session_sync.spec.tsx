@@ -5,7 +5,6 @@ import {
   createStepStatusFixture, createUpdatedStatusFixture,
   createUpdatedStatusResponseFixture,
 } from "../../test_utils/fixtures";
-import {act} from "react-test-renderer";
 import {defaultContext} from "../vulcan_context";
 import {runPromise} from "etna-js/utils/cancellable_helpers";
 import {useWorkflowUtils} from "../../test_utils/workflow_utils";
@@ -29,11 +28,13 @@ describe('useSessionSync', () => {
     const postInputsMock = makeBlockingAsyncMock(defaultContext.postInputs);
     const workflowHelpers = yield* runHook(() => useWorkflowUtils());
     workflowHelpers.setWorkflow('test');
+    workflowHelpers.addStep('astep');
+    workflowHelpers.setStatus('astep', 'complete');
 
     const {requestPoll, stateRef} = yield* update({ updateOverrides: curOverrides => ({
       ...curOverrides, pollStatus: pollStatusMock.mock, postInputs: postInputsMock.mock
     })});
-    return {pollStatusMock, requestPoll, stateRef, workflowHelpers};
+    return {pollStatusMock, postInputsMock, requestPoll, stateRef, workflowHelpers};
   }
 
   describe('requestPoll', () => {
@@ -41,9 +42,7 @@ describe('useSessionSync', () => {
       const {pollStatusMock, requestPoll, stateRef} = yield* runGen(setupPollingTest());
 
       requestPoll();
-      console.log('running promise...')
-      const [args, respond] = yield* runPromise(pollStatusMock.channel.receive());
-      console.log('ok')
+      const [args] = yield* runPromise(pollStatusMock.channel.receive());
       expect(args[0]).toBe(stateRef.current.session)
 
       yield jest.advanceTimersByTime(50000);
@@ -52,76 +51,42 @@ describe('useSessionSync', () => {
 
     describe('ongoing polling', () => {
       it('polls every 3 seconds until there remain no running steps', runInActs(function* () {
-        const {getContext, replaceOverrides} = integrateElement();
-        const pollStatusMock = makeBlockingAsyncMock(defaultContext.pollStatus);
-        const postInputsMock = makeBlockingAsyncMock(defaultContext.postInputs);
-        const {requestPoll, stateRef} = yield* getContext();
-
-        yield;
+        const {workflowHelpers, pollStatusMock, postInputsMock, requestPoll, stateRef} = yield* runGen(setupPollingTest());
         requestPoll(true);
 
-        const [_, respond] = yield* runPromise(postInputsMock.channel.receive());
-        respond.resolve(createUpdatedStatusResponseFixture(stateRef.current, {}));
+        yield
+        expect(stateRef.current.pollingState).toBeGreaterThan(0);
+        let [_, respond] = yield* runPromise(postInputsMock.channel.receive());
+        yield respond.resolve(createUpdatedStatusResponseFixture(stateRef.current, {
+          status: createUpdatedStatusFixture(workflowHelpers.workflow, workflowHelpers.status, createStepStatusFixture(
+            {name: 'astep', status: 'running'}
+          ))
+        }));
 
         yield jest.advanceTimersByTime(100);
 
         expect(stateRef.current.pollingState).toBeTruthy();
-        expect(pollStatusMock.hasPendingRequest()).toBeFalsy();
+        expect(countIter(pollStatusMock.channel.pending())).toEqual(0);
+        yield jest.advanceTimersByTime(3000);
 
-        yield jest.advanceTimersByTime(1000);
+        ([_, respond] = yield* runPromise(pollStatusMock.channel.receive()));
+        yield respond.resolve(createUpdatedStatusResponseFixture(stateRef.current, {}));
 
-        // ([[resolve]] = await pollStatusMock.awaitCall(false));
-        //
-        // await resolve(createUpdatedStatusResponseFixture(contextData.state, {}));
-        // await act(async () => { jest.advanceTimersByTime(1000); });
-        //
-        // expect(contextData.state.pollingState).toBeTruthy();
-        //
-        // ([[resolve]] = await pollStatusMock.awaitCall(false));
-        // await resolve(createUpdatedStatusResponseFixture(contextData.state, {
-        //   status: createUpdatedStatusFixture(workflowUtils.workflow, workflowUtils.status,
-        //     createStepStatusFixture({ name: 'testStep', status: 'complete' }))
-        // }));
-        //
-        // expect(pollStatusMock.hasPendingRequest()).toBeFalsy();
-        //
-        // await act(async () => {
-        //   jest.advanceTimersByTime(1000);
-        // });
-        //
-        // expect(pollStatusMock.hasPendingRequest()).toBeFalsy();
-        // expect(contextData.state.pollingState).toBeFalsy();
+        yield jest.advanceTimersByTime(3000);
+        ([_, respond] = yield* runPromise(pollStatusMock.channel.receive()));
+        expect(stateRef.current.pollingState).toBeGreaterThan(0);
+        yield respond.resolve(createUpdatedStatusResponseFixture(stateRef.current, {
+          status: createUpdatedStatusFixture(workflowHelpers.workflow, workflowHelpers.status, createStepStatusFixture(
+            {name: 'astep', status: 'complete'}
+          ))
+        }));
+
+        expect(countIter(pollStatusMock.channel.pending())).toEqual(0);
+        expect(stateRef.current.pollingState).toEqual(0);
+
+        yield jest.advanceTimersByTime(5000);
+        expect(countIter(pollStatusMock.channel.pending())).toEqual(0);
       }))
     });
-
-    describe('when there is no running step status', () => {
-      beforeEach(async () => {
-        await workflowUtils.setStatus('testStep', 'error');
-      })
-
-      it('does not continue to poll', async () => {
-        const {contextData} = setup;
-
-        await act(async () => {
-          contextData.requestPoll();
-        });
-
-        expect(pollStatusMock.hasPendingRequest()).toBeFalsy();
-        expect(postInputsMock.hasPendingRequest()).toBeFalsy();
-      });
-
-      describe('but the request is a post', () => {
-        it('does post', async () => {
-          const {contextData} = setup;
-
-          await act(async () => {
-            contextData.requestPoll(true);
-          });
-
-          expect(pollStatusMock.hasPendingRequest()).toBeFalsy();
-          expect(postInputsMock.hasPendingRequest()).toBeTruthy();
-        })
-      })
-    })
   })
 })
