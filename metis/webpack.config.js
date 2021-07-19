@@ -34,7 +34,8 @@ module.exports = {
         include: [
           path.resolve(__dirname, 'node_modules/etna-js/'),
           path.resolve(__dirname, 'node_modules/downzip/'),
-          path.resolve(__dirname, 'lib/client/jsx')
+          path.resolve(__dirname, 'lib/client/jsx'),
+          '/etna/packages/etna-js'
         ],
         test: /\.(js|ts)x?$/
       },
