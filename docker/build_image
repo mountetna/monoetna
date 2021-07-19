@@ -230,6 +230,6 @@ sleep 1
 set -x
 # Docker can 'leak' intermediate build images from different runs, unfortunately, even with --rm and --force-rm.
 # This will atleast prune between runs to keep it minimal
-[[ -z "$IS_CI" ]] && docker image prune -f
+[[ -z "$IS_CI" ]] && docker image prune -f --volumes
 docker run --rm -w /build -v "${DIR}:/assist:ro" $mounts docker:19.03.12 sh -c "$BUILD_CMD"
 touch $marker
