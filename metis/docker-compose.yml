@@ -13,7 +13,7 @@ x-base-etna-service:
     - public-dir:/app/public:rw
     - data-dir:/app/data:rw
     - opt-dir:/usr/opt:rw
-    - ../etna:/etna:delegated
+    - ../etna:/etna:cached
   environment: &base-etna-env
     'METIS_ENV': 'development'
     APP_NAME: 'metis'
