@@ -41,10 +41,10 @@
     :host: https://redcap.development.local
   :ingest:
     :sftp:
-      - :host: sftp://example.com
+      - :host: sftp.example.com
         :username: user
         :password: pass
-        :alias: testing
+        :alias: cat
         :root: /root/directory/to/scan
 
 :production:
