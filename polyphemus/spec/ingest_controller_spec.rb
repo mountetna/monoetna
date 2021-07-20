@@ -21,6 +21,19 @@ describe Polyphemus::Server do
     expect(last_response.status).to eq(403)
   end
 
+  it "can fetch available hosts with directory options" do
+    stub_ingest_files
+    auth_header(:administrator)
+    get("/test/ingest/hosts")
+
+    expect(last_response.status).to eq(200)
+    expect(json_body[:hosts]).to eq([{
+      alias: "cat",
+      host: "sftp.example.com",
+      directories: ["foo/bar"],
+    }])
+  end
+
   it "returns list of uningested / un-queued files, including subdirectories" do
     stub_ingest_files([{
       name: "foo/bar/test1.txt",
