@@ -27,11 +27,13 @@ describe Polyphemus::Server do
     get("/test/ingest/hosts")
 
     expect(last_response.status).to eq(200)
-    expect(json_body[:hosts]).to eq([{
-      alias: "cat",
-      host: "sftp.example.com",
-      directories: ["foo/bar"],
-    }])
+    expect(json_body[:hosts]).to eq({
+                                   :"sftp.example.com" => {
+                                     alias: "cat",
+                                     host: "sftp.example.com",
+                                     directories: ["foo/bar"],
+                                   },
+                                 })
   end
 
   it "returns list of uningested / un-queued files, including subdirectories" do

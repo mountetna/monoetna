@@ -39,12 +39,12 @@ class IngestController < Polyphemus::Controller
 
   def host_configs
     Polyphemus.instance.config(:ingest).values.flatten.map do |config|
-      {
+      [config[:host], {
         alias: config[:alias],
         host: config[:host],
         directories: directories(config[:host]),
-      }
-    end
+      }]
+    end.to_h
   end
 
   def directories(host)
