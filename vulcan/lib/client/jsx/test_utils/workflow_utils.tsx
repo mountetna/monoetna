@@ -34,10 +34,10 @@ export class WorkflowUtils {
 
   setWorkflow(name: string,
     workflow: Partial<Workflow> = {},
-    projects = workflow.projects || this.workflow.projects || [],
+    projects = workflow.projects || this.workflow.projects || [name],
     projectName = projects[0] || "test"
   ) {
-    this.workflow = {...this.workflow, ...workflow, name, projects: workflow.projects || [name]};
+    this.workflow = {...this.workflow, ...workflow, name, projects};
     this.dispatch(setWorkflow(this.workflow, projectName));
   }
 

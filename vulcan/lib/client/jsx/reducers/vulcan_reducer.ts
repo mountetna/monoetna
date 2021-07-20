@@ -105,7 +105,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       // The project name and workflow names are locked in via the set workflow action.
       const sessionWorkflow = state.workflow;
       if (!sessionWorkflow || action.session.workflow_name !== sessionWorkflow.name || action.session.project_name !== state.session.project_name) {
-        console.error('Cannot set session, project name / workflow name does not match.')
+        console.warn('Cannot set session, project name / workflow name does not match.')
         return state;
       }
 

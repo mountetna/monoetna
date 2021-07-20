@@ -5,14 +5,22 @@ import {defaultVulcanSession} from "../../api_types";
 import {workflowsResponse} from "../../test_utils/fixtures/workflows-response";
 import {statusWithDownloads} from "../../test_utils/fixtures/status-with-downloads";
 import {statusWithoutDownloads} from "../../test_utils/fixtures/status-without-downloads";
-import {integrateElement} from "../../test_utils/integration";
+import {integrateElement, setupBefore} from "../../test_utils/integration";
+import {useContext} from "react";
+import {VulcanContext} from "../vulcan_context";
 
 describe('contexts/api', () => {
+  const integrated = setupBefore(() => integrateElement(null, {
+    getWorkflows: undefined,
+    getData: undefined,
+    pollStatus: undefined,
+    postInputs: undefined,
+    showErrors: undefined,
+  }));
+  const contextData = setupBefore(() => integrated.value.runHook(() => useContext(VulcanContext)));
+
   it('works', async () => {
-    const {
-      contextData,
-      reduxState,
-    } = integrateElement(() => null, {defaultOverrides: false});
+    const { getWorkflows, getData, pollStatus, postInputs, showErrors } = contextData.value;
 
     const session = {...defaultVulcanSession, workflow_name: 'abc', project_name: 'test'};
 
@@ -43,19 +51,15 @@ describe('contexts/api', () => {
         response: statusWithDownloads
       })));
 
-      await contextData.getWorkflows().then(r => expect(r).toEqual(workflowsResponse));
-      await contextData.getData('https://download1').then(r => expect(r).toEqual({a: 1}));
-      await contextData.getData('https://download2').then(r => expect(r).toEqual('1-23'));
-      await contextData.pollStatus(session).then(r => expect(r).toEqual(statusWithoutDownloads));
-      await contextData.postInputs(session).then(r => expect(r).toEqual(statusWithDownloads));
+      await getWorkflows().then(r => expect(r).toEqual(workflowsResponse));
+      await getData('https://download1').then(r => expect(r).toEqual({a: 1}));
+      await getData('https://download2').then(r => expect(r).toEqual('1-23'));
+      await pollStatus(session).then(r => expect(r).toEqual(statusWithoutDownloads));
+      await postInputs(session).then(r => expect(r).toEqual(statusWithDownloads));
 
       await expectedRequests;
 
-      await contextData.showErrors(Promise.resolve());
-      expect(reduxState.messages).toEqual([]);
-
-      await contextData.showErrors(Promise.reject(new Error('Oh snap!'))).catch(() => 0);
-      expect(reduxState.messages).toEqual(["Error: Oh snap!"]);
+      await showErrors(Promise.reject(new Error('Oh snap!'))).catch(() => 0);
     });
 
   })

@@ -29,8 +29,16 @@ export type VulcanContext = typeof VulcanContext;
 export type ProviderProps = { params?: {}, storage?: typeof localStorage, logActions?: boolean, wrapper?: [Function, Function], children: any };
 
 // Existing mostly to down type the return result into A from potentially inferring A & B
-function withOverrides<A, B extends Partial<A>, K extends keyof A>(base: A, overrides: B): A {
-  return {...base, ...overrides};
+function withOverrides<A, B extends Partial<A>>(base: A, overrides: B): A {
+  const result: A = {...base};
+  for (let k in overrides) {
+    const v = overrides[k];
+    if (v !== undefined) { // @ts-ignore
+      result[k] = v;
+    }
+  }
+
+  return result;
 }
 
 export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>) => {
