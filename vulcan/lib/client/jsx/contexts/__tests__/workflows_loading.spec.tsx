@@ -1,47 +1,22 @@
-import {act} from "react-test-renderer";
-import * as React from "react";
-import {delay} from "etna-js/spec/helpers";
-import {Workflow, WorkflowsResponse} from "../../api_types";
 import {workflowsResponse} from "../../test_utils/fixtures/workflows-response";
-import {integrateElement, IntegrateElementParams} from "../../test_utils/integration";
-import {asyncFn, AsyncMock} from "../../test_utils/mocks";
+import {integrateElement, setupBefore} from "../../test_utils/integration";
+import {useContext} from "react";
+import {VulcanContext} from "../vulcan_context";
 
 
 describe('useWorkflowsLoading', () => {
-  let setup: ReturnType<typeof integrateElement>;
-  let getWorkflowsMock: AsyncMock<WorkflowsResponse>;
-  let overrides: IntegrateElementParams['providerOverrides'];
-
-  beforeEach(() => {
-    getWorkflowsMock = asyncFn();
-    overrides = {
-      getWorkflows: getWorkflowsMock.jestMock,
-    };
-
-    setup = integrateElement(() => null, { providerOverrides: overrides });
-  })
+  const integrated = setupBefore(integrateElement);
+  const getWorkflowsMock = setupBefore(() => integrated.value.blockingAsyncMock('getWorkflows'));
+  const contextData = setupBefore(() => integrated.value.runHook(() => useContext(VulcanContext)));
 
   it('works', async () => {
-    const {updateMatching, contextData, replaceOverrides} = setup;
-
-    await act(async function () {
-      await getWorkflowsMock.awaitCall(false);
-      await delay(100); // Ensure there isn't some nasty loop
-      expect(getWorkflowsMock.hasPendingRequest()).toBeFalsy()
-
-      getWorkflowsMock.reset();
-      // Trigger an empty update.
-      replaceOverrides({...overrides});
-      await delay(100); // Shouldn't cause any further calls
-      expect(getWorkflowsMock.hasPendingRequest()).toBeFalsy()
-
-      // Substantive updates to params does reload.
-      getWorkflowsMock.reset();
-      replaceOverrides({ ...overrides, params: {a: 2} })
-      const [[resolve]] = await getWorkflowsMock.awaitCall(false);
-      expect(contextData.state.workflows).not.toBe(workflowsResponse);
-      resolve(workflowsResponse);
-      await updateMatching(() => contextData.state.workflows === workflowsResponse.workflows);
+    const {stateRef} = contextData.value;
+    expect(stateRef.current.workflows).toEqual([]);
+    await getWorkflowsMock.value.respond(() => {
+      return Promise.resolve(workflowsResponse)
     });
+
+    expect(stateRef.current.workflows).toEqual(workflowsResponse.workflows);
+    expect(getWorkflowsMock.value.pendingCount()).toEqual(0);
   });
 });
