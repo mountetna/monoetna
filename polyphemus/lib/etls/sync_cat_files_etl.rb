@@ -101,7 +101,7 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
     ingest_files_for_host_query.where(ingested_at: nil)
       .exclude(name: current_cat_filenames)
       .all do |file|
-      file.delete
+      file.update(removed_from_source: true)
     end
   end
 end

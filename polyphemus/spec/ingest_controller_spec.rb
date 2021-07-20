@@ -27,27 +27,38 @@ describe Polyphemus::Server do
       host: "sftp.example.com",
       updated_at: "2021-01-01 00:00:00",
       should_ingest: false,
+      removed_from_source: false,
     }, {
       name: "foo2/bar/test2.txt",
       host: "sftp.example.com",
       updated_at: "2015-01-01 00:00:00",
       should_ingest: false,
+      removed_from_source: false,
     }, {
       name: "foo/bar/test3.txt",
       host: "sftp.example.com",
       updated_at: "1999-01-01 00:00:00",
       should_ingest: true,
       ingested_at: "2021-01-01 00:00:00",
+      removed_from_source: false,
     }, {
       name: "foo/bar2/test4.txt",
       host: "sftp.example.com",
       updated_at: "1999-01-01 00:00:00",
       should_ingest: false,
+      removed_from_source: false,
     }, {
       name: "foo/bar/test3/test5.txt",
       host: "sftp.example.com",
       updated_at: "1999-01-01 00:00:00",
       should_ingest: false,
+      removed_from_source: false,
+    }, {
+      name: "foo/bar/test3/test6.txt",
+      host: "sftp.example.com",
+      updated_at: "1999-01-01 00:00:00",
+      should_ingest: false,
+      removed_from_source: true,
     }])
 
     auth_header(:administrator)
@@ -84,27 +95,32 @@ describe Polyphemus::Server do
       host: "sftp.example.com",
       updated_at: "2021-01-01 00:00:00",
       should_ingest: false,
+      removed_from_source: false,
     }, {
       name: "foo2/bar/test2.txt",
       host: "sftp.example.com",
       updated_at: "2015-01-01 00:00:00",
       should_ingest: false,
+      removed_from_source: false,
     }, {
       name: "foo/bar/test3.txt",
       host: "sftp.example.com",
       updated_at: "1999-01-01 00:00:00",
       should_ingest: true,
       ingested_at: "2021-01-01 00:00:00",
+      removed_from_source: false,
     }, {
       name: "foo/bar2/test4.txt",
       host: "sftp.example.com",
       updated_at: "1999-01-01 00:00:00",
       should_ingest: false,
+      removed_from_source: false,
     }, {
       name: "foo/bar/test3/test5.txt",
       host: "sftp.example.com",
       updated_at: "1999-01-01 00:00:00",
       should_ingest: true,
+      removed_from_source: false,
     }])
 
     auth_header(:administrator)

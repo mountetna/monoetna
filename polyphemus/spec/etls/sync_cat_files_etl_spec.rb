@@ -28,10 +28,12 @@ describe Polyphemus::SyncCatFilesEtl do
     sync_etl = Polyphemus::SyncCatFilesEtl.new
 
     expect(Polyphemus::IngestFile.count).to eq(3)
+    expect(Polyphemus::IngestFile.where(removed_from_source: false).count).to eq(3)
 
     sync_etl.run_once
 
-    expect(Polyphemus::IngestFile.count).to eq(2)
+    expect(Polyphemus::IngestFile.count).to eq(3)
+    expect(Polyphemus::IngestFile.where(removed_from_source: false).count).to eq(2)
   end
 
   it "should not change ingested records" do

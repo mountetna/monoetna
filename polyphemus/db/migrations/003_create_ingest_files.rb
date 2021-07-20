@@ -8,6 +8,7 @@ Sequel.migration do
       DateTime :ingested_at
       Boolean :should_ingest, null: false
       String :host, null: false
+      Boolean :removed_from_source, default: false
     end
 
     alter_table(:ingest_files) do
