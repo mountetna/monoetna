@@ -1,4 +1,4 @@
-import {BufferedChannel, Trigger} from "etna-js/utils/semaphore";
+import {BufferedChannel, Trigger, UnbufferedChannel} from "etna-js/utils/semaphore";
 
 export function createFakeStorage(): Storage {
   const storage: { [k: string]: string } = {};
@@ -26,19 +26,80 @@ export function createFakeStorage(): Storage {
   }
 }
 
-export function makeBlockingAsyncMock<A extends any[], T>(f: (...a: A) => Promise<T>): {
-  channel: BufferedChannel<[A, Trigger<T>]>
-  mock: (...a: A) => Promise<T>,
-} {
-  const channel = new BufferedChannel<[A, Trigger<T>]>();
+class AsyncMock<A extends any[], T, C extends UnbufferedChannel<[A, Trigger<T>]>> {
+  constructor(f: (...a: A) => Promise<T>,
+    public channel: C,
+    protected scheduler: (f: () => Promise<void>) => Promise<void> = async f => await f()) {
+  }
 
-  return {
-    channel,
-    async mock(...a: A) {
-      const trigger = new Trigger<T>();
-      await channel.send([a, trigger]);
-      return await trigger.promise;
-    }
+  mock = async (...a: A) => {
+    const trigger = new Trigger<T>();
+    await this.channel.send([a, trigger]);
+    return await trigger.promise;
+  }
+
+  async respond(f: (...a: A) => Promise<T> | T, q: Iterable<Promise<[A, Trigger<T>]>> = [this.channel.receive()]): Promise<void> {
+    await this.scheduler(async () => {
+      for (let request of q) {
+        const [a, trigger] = await request;
+        await Promise.resolve(f(...a)).then(trigger.resolve);
+      }
+    });
+  }
+
+  async reject(f: (...a: A) => never, q: Iterable<Promise<[A, Trigger<T>]>> = [this.channel.receive()]): Promise<void> {
+    await this.scheduler(async () => {
+      for (let request of q) {
+        const [a, trigger] = await request;
+        try {
+          await Promise.resolve(f(...a)).catch(trigger.reject);
+        } catch (e) {
+          trigger.reject(e);
+        }
+      }
+    });
+  }
+}
+
+export class BlockingAsyncMock<A extends any[], T> extends AsyncMock<A, T, BufferedChannel<[A, Trigger<T>]>> {
+  constructor(f: (...a: A) => Promise<T>, scheduler: (f: () => Promise<void>) => Promise<void> = async f => await f()) {
+    super(f, new BufferedChannel(Infinity), scheduler);
+  }
+
+  pendingCount() {
+    return this.channel.buffer.length;
+  }
+
+  async respond(f: (...a: A) => Promise<T> | T): Promise<void> {
+    const {channel} = this;
+    await super.respond(f, function* () {
+      let found = false;
+      for (let request of channel.drainPending()) {
+        yield request;
+        found = true;
+      }
+
+      if (!found) yield channel.receive();
+    }());
+  }
+
+  async reject(f: (...a: A) => never): Promise<void> {
+    const {channel} = this;
+    await super.reject(f, function* () {
+      let found = false;
+      for (let request of channel.drainPending()) {
+        yield request;
+        found = true;
+      }
+
+      if (!found) yield channel.receive();
+    }());
+  }
+}
+
+export class UnbufferedAsyncMock<A extends any[], T> extends AsyncMock<A, T, UnbufferedChannel<[A, Trigger<T>]>> {
+  constructor(f: (...a: A) => Promise<T>, scheduler: (f: () => Promise<void>) => Promise<void> = async f => await f()) {
+    super(f, new UnbufferedChannel(), scheduler);
   }
 }
 

@@ -39,6 +39,12 @@ export class UnbufferedChannel {
 export class BufferedChannel extends UnbufferedChannel {
   sendSemaphore = new Semaphore();
   receiveSemaphore = new Semaphore();
+  buffer = [];
+
+  constructor(bufferSize = 0) {
+    super();
+    this.bufferSize = bufferSize;
+  }
 
   close() {
     this.sendSemaphore.close();
@@ -49,8 +55,15 @@ export class BufferedChannel extends UnbufferedChannel {
   async send(v) {
     const { release } = await this.sendSemaphore.acquire();
     try {
+      if (this.receiveSemaphore.open) {
+        if (this.buffer.length < this.bufferSize) {
+          this.buffer.push(v)
+          return;
+        }
+      }
+
       await this.receiveSemaphore.closed();
-      return await super.send(v);
+      await super.send(v);
     } finally {
       release();
     }
@@ -60,18 +73,27 @@ export class BufferedChannel extends UnbufferedChannel {
     const { release } = await this.receiveSemaphore.acquire();
 
     try {
+      if (this.buffer.length) {
+        return this.buffer.shift();
+      }
       return await super.receive();
     } finally {
       release();
     }
   }
 
-  pending() {
+  drainPending() {
     const self = this;
 
     function* genPending() {
-      while (!self.sendSemaphore.open && self.receiveSemaphore.open) {
-        yield self.receive();
+      while (true) {
+        if (self.receiveSemaphore.open && self.buffer.length > 0) {
+          yield Promise.resolve(self.buffer.shift());
+        } else if (!self.sendSemaphore.open && self.receiveSemaphore.open && !self.buffer.length) {
+          yield self.receive();
+        } else {
+          break;
+        }
       }
     }
 

@@ -43,6 +43,7 @@ declare module 'etna-js/utils/cancellable_helpers' {
 
   export function* runAsync<T>(fn: () => Promise<T>): AsyncGenerator<T, T>;
   export function* runPromise<T>(v: Promise<T>): AsyncGenerator<T, T>;
+  export function* runGen<T>(v: Generator<unknown, T, unknown>): AsyncGenerator<T, T>;
 }
 
 declare module 'etna-js/utils/retryable' {
@@ -76,7 +77,9 @@ declare module 'etna-js/utils/semaphore' {
   }
 
   export class BufferedChannel<T = void> extends UnbufferedChannel<T> {
-    pending(): Iterable<Promise<T>>
+    constructor(bufferSize = 0);
+    drainPending(): Iterable<Promise<T>>
+    buffer: V[]
   }
 
   export class Semaphore {

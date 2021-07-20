@@ -31,7 +31,7 @@ export class Cancellable {
       if (error) {
         const innerError = error[0];
         error = null;
-        ({done, value} = gen.error(innerError));
+        ({done, value} = gen.throw(innerError));
       } else {
         ({done, value} = gen.next(result));
       }

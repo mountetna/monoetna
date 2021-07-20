@@ -4,7 +4,7 @@ import {
   defaultWorkflow,
   defaultWorkflowInput,
   defaultWorkflowStep,
-  StatusString,
+  StatusString, StepStatus,
   Workflow,
   WorkflowInput,
   WorkflowStep
@@ -14,9 +14,8 @@ import {VulcanState} from "../reducers/vulcan_reducer";
 import {VulcanContext} from "../contexts/vulcan_context";
 import {useContext} from "react";
 import {splitSource, statusOfStep} from "../selectors/workflow_selectors";
+import {Step} from "@material-ui/core";
 
-// Usage:
-// const utils = yield* runHook(useWorkflowUtils)
 export function useWorkflowUtils(): WorkflowUtils {
   const {dispatch, stateRef} = useContext(VulcanContext);
   return new WorkflowUtils(dispatch, stateRef);
@@ -58,15 +57,21 @@ export class WorkflowUtils {
     return step;
   }
 
-  setStatus(step: WorkflowStep | string, status: StatusString) {
+  setStatus(step: WorkflowStep | string, statusPart: StatusString | Partial<StepStatus>) {
     const stepName = typeof step !== "string" ? step.name : step;
-    this.dispatch(setStatus(createUpdatedStatusFixture(this.workflow,
+    const stepStatus: Partial<StepStatus> = typeof statusPart === "string" ? {status: statusPart} : statusPart;
+    const status = createStepStatusFixture({name: stepName, ...stepStatus});
+
+    const updatedStatus = createUpdatedStatusFixture(this.workflow,
       this.stateRef.current.status,
-      createStepStatusFixture({name: stepName, status})
-    )));
+      status
+    );
+    this.dispatch(setStatus(updatedStatus));
+
+    return status;
   }
 
-  addPrimaryInput(name: string, options: Partial<WorkflowInput>) {
+  addPrimaryInput(name: string, options: Partial<WorkflowInput> = {}) {
     let workflow = {...this.workflow};
     let input = {...defaultWorkflowInput, ...options};
     workflow.inputs[name] = input;

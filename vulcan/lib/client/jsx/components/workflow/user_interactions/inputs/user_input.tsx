@@ -27,6 +27,7 @@ import {
 } from './validators/all_inner_values_not_empty_validator';
 import MultipleInput from "./multiple_input";
 import SingleDropdownMulticheckbox from "./single_dropdown_multicheckbox";
+import {stepOfSource} from "../../../../selectors/workflow_selectors";
 
 const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
 function configureComponent<Value, DataElement>(
@@ -74,7 +75,7 @@ export default function UserInput({
     const errors = Validator(input);
     if (errors.length > 0) {
       dispatch(
-        addValidationErrors(input.label, errors)
+        addValidationErrors(stepOfSource(input.source) || null, input.label, errors)
       );
     } else {
       dispatch(removeValidationErrors(errors));

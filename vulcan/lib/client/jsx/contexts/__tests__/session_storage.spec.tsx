@@ -1,21 +1,26 @@
-import {act} from "react-test-renderer";
 import * as React from "react";
-import {integrateElement} from "../../test_utils/integration";
+import {awaitBefore, integrateElement, setupBefore} from "../../test_utils/integration";
 import {createFakeStorage} from "../../test_utils/mocks";
 import {setSession, setWorkflow} from "../../actions/vulcan_actions";
 import {statusWithDownloads} from "../../test_utils/fixtures/status-with-downloads";
 import {defaultWorkflow, Workflow} from "../../api_types";
+import {useWorkflowUtils} from "../../test_utils/workflow_utils";
+import {useContext} from "react";
+import {VulcanContext} from "../vulcan_context";
 
 describe('useSessionStorage', () => {
+
+  const integrated = setupBefore(integrateElement);
+  const workflowHelpers = setupBefore(() => integrated.value.runHook(() => useWorkflowUtils()));
+  const contextData = setupBefore(() => integrated.value.runHook(() => useContext(VulcanContext)));
+
+  const setupWorkflow = awaitBefore(async () => {
+    workflowHelpers.value.setWorkflow('test');
+  })
+
   it('works', async () => {
+    const {dispatch, stateRef} = contextData.value;
     const storage = createFakeStorage();
-
-    const {contextData, dispatch} = integrateElement(() => null, {
-      providerOverrides: {
-        storage
-      }
-    });
-
     await dispatch(setSession(statusWithDownloads['session']));
 
     // Does not save without workflow being set

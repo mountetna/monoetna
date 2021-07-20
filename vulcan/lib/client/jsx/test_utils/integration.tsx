@@ -6,8 +6,8 @@ import {
 import {Provider} from "react-redux";
 import {VulcanStore} from "../vulcan_store";
 import * as React from "react";
-import {createFakeStorage} from "./mocks";
-import {Cancellable} from "etna-js/utils/cancellable";
+import {BlockingAsyncMock, createFakeStorage, UnbufferedAsyncMock} from "./mocks";
+import {Maybe, some} from "../selectors/maybe";
 
 export function integrateElement(
   element: ReactElement | null = null,
@@ -36,7 +36,7 @@ export function integrateElement(
 
   const node = create(rerender())
 
-  return {node, runHook, update};
+  return {node, runHook, provideOverrides, replaceElement, blockingAsyncMock, unbufferedAsyncMock};
 
   // Regenerates the react element tree to create or update.
   // Manages & injects the prehook as well as the inner element.
@@ -59,87 +59,108 @@ export function integrateElement(
     </Provider>;
   }
 
-  function* runHook<T>(hook: () => T): Generator<unknown, T, T> {
-    yield function() {
+  function runHook<T>(hook: () => T): T {
+    act(function() {
       preHook = hook;
       node.update(rerender());
-    }
+    });
 
     return prehookResult[0] as T;
   }
 
-  function* getContext(): Generator<unknown, VulcanContextData, VulcanContextData> {
-    return yield* runHook(function() {
+  function getContext(): VulcanContextData {
+    return runHook(function() {
       return useContext(VulcanContext);
     })
   }
 
-  function* update<T = unknown>(
-    {updateOverrides, replaceElement}: {
-      updateOverrides?: (curOverrides: Partial<ProviderProps & VulcanContextData>) =>
-        Partial<ProviderProps & VulcanContextData>,
-      replaceElement?: ReactElement | null,
-    } = {}
-  ) {
-    if (updateOverrides) {
-      providerOverrides = updateOverrides(providerOverrides);
-    }
+  function provideOverrides(p: Partial<ProviderProps & VulcanContextData>) {
+    Object.assign(providerOverrides, p);
+    return getContext();
+  }
 
-    if (replaceElement !== undefined) {
-      element = replaceElement;
-    }
+  function replaceElement(e: ReactElement | null) {
+    element = e;
+    return getContext();
+  }
 
-    return yield* getContext();
+  function blockingAsyncMock<K extends keyof VulcanContextData, T>(k: K): VulcanContextData[K] extends (...a: any[]) => Promise<T> ?
+    BlockingAsyncMock<any[], T> : never {
+    const mock = new BlockingAsyncMock<any[], T>(defaultContext[k] as any, act);
+    provideOverrides({[k]: mock.mock});
+    return mock as any;
+  }
+
+  function unbufferedAsyncMock<K extends keyof VulcanContextData, T>(k: K): VulcanContextData[K] extends (...a: any[]) => Promise<T> ?
+    UnbufferedAsyncMock<any[], T> : never {
+    const mock = new UnbufferedAsyncMock<any[], T>(defaultContext[k] as any, act);
+    provideOverrides({[k]: mock.mock});
+    return mock as any;
   }
 }
 
-/*
-  Wraps the function argument to it statements with an async test that runs the
-  given work generator context wrapped in act calls.
+export class ValueCell<ValueType> {
+  cached: Maybe<ValueType> = null;
+  originalFactory: () => Promise<ValueType> | ValueType;
 
-  The inner generator is called synchronously inside of act.  In order to wait for
-  promises that are also wrapped in act, simply yield* runPromise(promise);
- */
-export function runInActs(work: () => Generator<any, any, any>) {
-  return async function () {
-    const context = new Cancellable();
-    try {
-      let done: boolean | undefined;
-      let value: any;
-
-      await context.run(function* () {
-        const gen = work();
-        act(() => {
-          ({done, value} = gen.next())
-        });
-        while (!done) {
-          let resolved: any;
-          try {
-            if (value instanceof Function) {
-              act(() => {
-                (resolved = value())
-              });
-            } else {
-              yield act(() => Promise.resolve(value).then(v => {
-                resolved = v
-              }));
-            }
-          } catch (e) {
-            act(() => {
-              ({done, value} = gen.throw(e))
-            })
-            continue;
-          }
-          act(() => {
-            ({done, value} = gen.next(resolved))
-          });
-        }
-        return;
-      }());
-    } catch (e) {
-      throw e;
-    } finally {
-      context.cancel();
-    }
+  constructor(
+    protected factory: () => Promise<ValueType> | ValueType,
+    protected scheduler: (f: () => Promise<void>) => Promise<void> = async f => await f(),
+) {
+    this.originalFactory = factory;
+    this.setup();
   }
+
+  get value(): ValueType {
+    if (this.cached) return this.cached[0];
+    throw new Error('.value not ready, did you forget to await .ensure() in a definition?')
+  }
+
+  protected setup() {
+    beforeAll(() => {
+      this.factory = this.originalFactory;
+    })
+
+    beforeEach(() => this.ensure());
+
+    afterEach(() => {
+      this.cached = null;
+    })
+  }
+
+  async ensure() {
+    if (!this.cached) {
+      await this.scheduler(async () => {
+        const v = this.factory();
+        this.cached = some(await v);
+      });
+    }
+
+    if (this.cached) return this.cached[0];
+    throw new Error('Ensure did not ensure value creation, bug.');
+  }
+
+  replace(newF: (f: () => Promise<ValueType> | ValueType) => (Promise<ValueType> | ValueType)) {
+    let lastFactory: () => Promise<ValueType> | ValueType;
+    beforeAll(() => {
+      const curFactory = lastFactory = this.factory;
+      this.factory = () => newF(curFactory)
+    })
+
+    afterAll(() => {
+      this.factory = lastFactory;
+    })
+  }
+}
+
+export function setupBefore<T>(f: () => T) {
+  return new ValueCell(f, async inner => {
+    // Run the inner, synchronous
+    await inner();
+    await act(async () => {});
+  });
+}
+
+export function awaitBefore<T>(f: () => Promise<T>) {
+  return new ValueCell(f, act);
 }

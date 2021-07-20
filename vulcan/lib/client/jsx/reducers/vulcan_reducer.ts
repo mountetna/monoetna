@@ -24,7 +24,7 @@ export const defaultSession: SessionStatusResponse['session'] = {
   key: '',
   inputs: {},
 }
-const defaultValidationErrors: [string, string[]][] = [];
+const defaultValidationErrors: [string | null, string, string[]][] = [];
 
 export const defaultVulcanState = {
   workflows: defaultWorkflows,
@@ -153,14 +153,14 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
         ...state,
         validationErrors: [
           ...state.validationErrors,
-          [action.inputLabel, action.errors]
+          [action.stepName, action.inputLabel, action.errors]
         ]
       }
 
     case 'REMOVE_VALIDATION_ERRORS':
       return {
         ...state,
-        validationErrors: state.validationErrors.filter(([_, e]) => e !== action.errors)
+        validationErrors: state.validationErrors.filter(([_1, _2, e]) => e !== action.errors)
       }
 
     default:

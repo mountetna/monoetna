@@ -44,16 +44,21 @@ export function useAsync(fn, deps= [], cleanup = () => null) {
   useWithContext((context) => {
     setError(null);
     setResult(null);
-    context.run(fn()).then(cancelledAsMaybe).then(setResult, (e) => setError([e])).finally(cleanup);
+    context.run(fn()).finally(cleanup).then(cancelledAsMaybe).then(setResult, (e) => setError([e]));
   }, deps);
 
   return [result, error];
 }
 
-// Utility functions leveraged by typescript
+// Utility functions leveraged by typescript when handling generators or promises
+// inside of generic generators.
 export function* runAsync(fn) {
   const result = yield fn();
   return result;
+}
+
+export function* runGen(gen) {
+  return yield* gen;
 }
 
 export function* runPromise(v) {

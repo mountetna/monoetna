@@ -28,12 +28,13 @@ export async function withRetries(asyncFn, isRetryable, maxRetries = 5) {
 export function* runAttempts(asyncFn, isRetryable, maxRetries = 5) {
   for (let i = 0; i < maxRetries; ++i) {
     try {
-      return yield* runPromise(b());
+      return yield* runPromise(asyncFn());
     } catch(e) {
       const retryable = isRetryable ? isRetryable(e) : null;
       if (retryable === 0) {
         throw e;
       }
+      console.warn(e);
 
       if (retryable < 0) {
         i -= 1;
@@ -44,5 +45,5 @@ export function* runAttempts(asyncFn, isRetryable, maxRetries = 5) {
   }
 
 
-  return yield* runPromise(b());
+  return yield* runPromise(asyncFn());
 }

@@ -1,119 +1,182 @@
-import {createFakeStorage} from "../../test_utils/mocks";
-import {integrateElement} from "../../test_utils/integration";
+import {awaitBefore, integrateElement, setupBefore} from "../../test_utils/integration";
+import {VulcanContext} from "../vulcan_context";
+import {useWorkflowUtils} from "../../test_utils/workflow_utils";
+import {useContext} from "react";
 import {act} from "react-test-renderer";
-import {setStatus, setWorkflow} from "../../actions/vulcan_actions";
-import {createStatusFixture, createStepStatusFixture, findWorkflowFromResponse} from "../../test_utils/fixtures";
-import {workflowsResponse} from "../../test_utils/fixtures/workflows-response";
-import {defaultContext} from "../vulcan_context";
-import {delay} from "etna-js/spec/helpers";
-import {defaultWorkflow} from "../../api_types";
-//
-// describe('useDataBuffering', () => {
-//   it('eventually downloads all the things, and clears when necessary', async () => {
-//     const storage = createFakeStorage();
-//     const q: [(v: any) => void, (e: any) => void][] = [];
-//
-//     async function answerDownload(v: any) {
-//       await act(async function() {
-//         const next = q.shift();
-//         if (next) {
-//           next[0](v);
-//           await updateMatching(() => contextData.activeDownload != null);
-//         }
-//       })
-//     }
-//
-//     async function failDownload(e: any) {
-//       await act(async function() {
-//         const next = q.shift();
-//         if (next) {
-//           next[1](e);
-//           await updateMatching(() => contextData.activeDownload != null);
-//         }
-//       });
-//     }
-//
-//     const {contextData, updateMatching, dispatch} = integrateElement(() => null,
-//         {
-//           providerOverrides: {
-//             pollStatus: defaultContext.pollStatus,
-//             getWorkflows: defaultContext.getWorkflows,
-//             storage, getData(url: string): Promise<any> {
-//               return new Promise<any>((resolve, reject) => {
-//                 q.push([resolve, reject]);
-//               })
-//             }
-//           }
-//         });
-//
-//     let workflow = { ...findWorkflowFromResponse(workflowsResponse, "test_concurrent_workflow.cwl"), projects: ['test'] };
-//
-//     await dispatch(setWorkflow(workflow, 'test'));
-//     // Load an initial status of the workflow.
-//     await dispatch(setStatus(createStatusFixture(workflow)));
-//
-//     await dispatch(patchInputs({ a: 1 }));
-//     await dispatch(patchInputs({ b: 2 }));
-//     await dispatch(patchInputs({ 'pickANum/num': 100 }));
-//     await dispatch(patchInputs({ 'otherPickANumber/num': 200 }));
-//
-//     await dispatch(setStatus(createStatusFixture(workflow,
-//         createStepStatusFixture({name: 'firstAdd', downloads: {'sum': 'https://firstAddSum'}}),
-//         createStepStatusFixture({
-//           name: 'twiceOtherPickANumber',
-//           downloads: {'sum': 'https://twiceOtherPickANumberSum'}
-//         }),
-//         createStepStatusFixture({
-//           name: 'twiceOtherPickANumber2',
-//           downloads: {'sum': 'https://twiceOtherPickANumber2Sum'}
-//         }),
-//         createStepStatusFixture({
-//           name: 'thriceOtherPickANumber',
-//           downloads: {'sum': 'https://thriceOtherPickANumberSum'}
-//         }),
-//         createStepStatusFixture({name: 'ficeOtherPickANumber', downloads: {'sum': 'https://ficeOtherPickANumberSum'}}),
-//         createStepStatusFixture({name: 'finalStep', downloads: {'sum': 'https://finalStepSum'}}),
-//     )));
-//
-//     const originalUrlsToBuffer = {...contextData.urlsToBuffer};
-//     expect(contextData.urlsToBuffer).toEqual({
-//       "https://finalStepSum": true,
-//       "https://firstAddSum": true,
-//     });
-//
-//     function checkState(expectedMissing: number, shouldHaveActiveDownload = true) {
-//       expect(contextData.urlsToBuffer).toEqual(originalUrlsToBuffer);
-//
-//       if (shouldHaveActiveDownload) expect(Object.keys(contextData.urlsToBuffer)).toContain(contextData.activeDownload);
-//       expect(contextData.missingDownloads.length).toEqual(expectedMissing);
-//       contextData.missingDownloads.forEach(k => expect(Object.keys(contextData.urlsToBuffer)).toContain(k));
-//       contextData.missingDownloads.forEach(k => expect(contextData.missingDownloads.filter(v => v === k).length).toEqual(1));
-//       expect(contextData.missingDownloads).not.toContain(contextData.activeDownload);
-//       if (shouldHaveActiveDownload) expect(Object.keys(contextData.urlsToBuffer)).toContain(contextData.activeDownload);
-//     }
-//
-//     checkState(1);
-//     await failDownload(new Error("Oh no!"));
-//     checkState(1);
-//     await answerDownload(123);
-//     checkState(0);
-//     await answerDownload(700);
-//     checkState(0, false);
-//
-//     expect(Object.keys(contextData.state.data).sort()).toEqual(Object.keys(contextData.urlsToBuffer).sort());
-//     expect(Object.values(contextData.state.data).sort()).toEqual([123, 700]);
-//
-//     expect(contextData.urlsToBuffer).toEqual(originalUrlsToBuffer);
-//
-//     await delay(1000);
-//     // No extra, spare requests sitting around.
-//     expect(q.length).toEqual(0);
-//
-//     // Clears data when it is not needed
-//     await dispatch(setWorkflow({ ...defaultWorkflow, projects: ['test'] }, 'test'));
-//     expect(contextData.urlsToBuffer).toEqual({});
-//     expect(contextData.state.data).toEqual({});
-//     expect(contextData.activeDownload).toEqual(null);
-//     expect(q.length).toEqual(0);
-//   });
-// });
+
+describe('useDataBuffering', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  })
+
+  afterEach(() => {
+    jest.useRealTimers();
+  })
+
+  const integrated = setupBefore(integrateElement);
+  const getDataMock = setupBefore(() => integrated.value.blockingAsyncMock('getData'));
+  const workflowHelpers = setupBefore(() => integrated.value.runHook(() => useWorkflowUtils()));
+  const contextData = setupBefore(() => integrated.value.runHook(() => useContext(VulcanContext)));
+
+  const setupWorkflow = awaitBefore(async () => {
+    workflowHelpers.value.setWorkflow('test');
+  })
+
+  const aStep = awaitBefore(async () => {
+    return workflowHelpers.value.addStep('astep');
+  })
+
+  const aStepStatus = awaitBefore(async () => {
+    return workflowHelpers.value.setStatus('astep', {
+      status: 'complete',
+      downloads: { 'a': 'http://astep-a', }
+    });
+  })
+
+  const dependent = awaitBefore(async () => {
+    return workflowHelpers.value.addStep('uiQueryStep', {
+      run: 'ui-queries/something',
+      in: [{ id: 'cool', source: aStep.value.name + '/a' }]
+    })
+  })
+
+  it('downloads data from that url', async () => {
+    const {stateRef} = contextData.value;
+    await getDataMock.value.respond(async (url) => {
+      expect(url).toEqual("http://astep-a");
+      return "somedata";
+    })
+
+    expect(stateRef.current.data).toEqual({
+      "http://astep-a": "somedata",
+    });
+    expect(getDataMock.value.pendingCount()).toEqual(0);
+  })
+
+  describe('with multiple downloads', () => {
+    aStepStatus.replace(async factory => {
+      const updated = await factory();
+      updated.downloads = {...updated.downloads, b: 'http://astep-b'};
+      workflowHelpers.value.setStatus('astep', updated);
+      return updated;
+    })
+
+    const bStep = awaitBefore(async () => {
+      return workflowHelpers.value.addStep('bstep');
+    });
+
+    const bStepStatus = awaitBefore(async () => {
+      return workflowHelpers.value.setStatus('bstep', {
+        status: 'complete',
+        downloads: { 'a': 'http://bstep-a', }
+      });
+    })
+
+    dependent.replace(async () => {
+      await bStep.ensure();
+      await aStep.ensure();
+      return workflowHelpers.value.addStep('uiQueryStep', {
+        run: 'ui-queries/something',
+        in: [
+          { id: 'cool', source: aStep.value.name + '/a' },
+          { id: 'cool', source: aStep.value.name + '/b' },
+          { id: 'cool', source: bStep.value.name + '/a' },
+        ]
+      });
+    })
+
+    const afterTheFirstDownload = awaitBefore(async () => {
+      await getDataMock.value.respond(async (url) => {
+        expect(url).toEqual("http://astep-a");
+        return "thing1";
+      });
+    });
+
+    describe('when there is a failure', () => {
+      afterTheFirstDownload.replace(async () => {
+        await getDataMock.value.reject((url) => {
+          throw new Error('Mock Request Failure');
+        });
+      })
+
+      it('retries, then continues downloading', async () => {
+        const {stateRef} = contextData.value;
+        expect(getDataMock.value.pendingCount()).toEqual(0);
+
+        await act(async () => { jest.advanceTimersByTime(5000) });
+        expect(getDataMock.value.pendingCount()).toEqual(1);
+
+        await getDataMock.value.respond(async (url) => {
+          expect(url).toEqual("http://astep-a");
+          return 1;
+        });
+
+        await getDataMock.value.respond(async (url) => {
+          expect(url).toEqual("http://astep-b");
+          return 1;
+        });
+
+        expect(getDataMock.value.pendingCount()).toEqual(1);
+      })
+    })
+
+    it('begins and continues to download the remaining', async () => {
+      const {stateRef} = contextData.value;
+      expect(getDataMock.value.pendingCount()).toEqual(1);
+
+      await getDataMock.value.respond(async (url) => {
+        expect(url).toEqual("http://astep-b");
+        return 2;
+      });
+
+      expect(getDataMock.value.pendingCount()).toEqual(1);
+      await getDataMock.value.respond(async (url) => {
+        expect(url).toEqual("http://bstep-a");
+        return 3;
+      });
+
+      expect(getDataMock.value.pendingCount()).toEqual(0);
+      expect(stateRef.current.data).toEqual({
+        "http://astep-a": "thing1",
+        "http://astep-b": 2,
+        "http://bstep-a": 3,
+      });
+    })
+  })
+
+  describe('when the dependency does not reference the download directly', () => {
+    dependent.replace(async (factory) => {
+      const original = await factory();
+      original.in[0].source = `${aStep.value.name}/b`;
+      return original;
+    })
+
+    it('downloads nothing', async () => {
+      expect(getDataMock.value.pendingCount()).toEqual(0);
+    })
+  })
+
+  describe('when the dependency is a script', () => {
+    dependent.replace(async (factory) => {
+      const original = await factory();
+      original.run = 'script/do-a-thing'
+      return original;
+    })
+
+    it('downloads nothing', async () => {
+      expect(getDataMock.value.pendingCount()).toEqual(0);
+    })
+  })
+
+  describe('when the dependency is a link', () => {
+    dependent.replace(async (factory) => {
+      const original = await factory();
+      original.run = 'ui-outputs/link'
+      return original;
+    })
+
+    it('downloads nothing', async () => {
+      expect(getDataMock.value.pendingCount()).toEqual(0);
+    })
+  })
+});

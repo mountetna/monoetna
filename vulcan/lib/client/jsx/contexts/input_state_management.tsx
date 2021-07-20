@@ -6,7 +6,6 @@ import {showMessages} from "etna-js/actions/message_actions";
 import {setBufferedInput, setInputs, VulcanAction} from "../actions/vulcan_actions";
 import { allSourcesForStepName } from "../selectors/workflow_selectors";
 import {mapSome} from "../selectors/maybe";
-import {Workflow, WorkflowStep} from "../api_types";
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(stepName: string | null) {
@@ -21,13 +20,14 @@ export function useInputStateManagement(
   requestPoll: typeof defaultSessionSyncHelpers.requestPoll,
   stateRef: MutableRefObject<VulcanState>,
 ): typeof defaultInputStateManagement {
-  const getErrors = useCallback(() => stateRef.current.validationErrors
-    .map(([inputLabel, errors]) => {
+  const getErrors = useCallback((step: string | null) => stateRef.current.validationErrors
+    .filter(([stepErr]) => step === stepErr)
+    .map(([step, inputLabel, errors]) => {
       return errors.map((e: string) => `${inputLabel}: ${e}`);
     }).flat(), [stateRef]);
 
-  const validateInputs = useCallback(() => {
-    const validationErrs = getErrors();
+  const validateInputs = useCallback((step: string | null) => {
+    const validationErrs = getErrors(step);
     if (validationErrs.length > 0) {
       invoke(showMessages(validationErrs));
     }
@@ -46,15 +46,16 @@ export function useInputStateManagement(
   }, [dispatch, stateRef]);
 
   const commitSessionInputChanges = useCallback<typeof defaultInputStateManagement.commitSessionInputChanges>(stepName => {
-    if (!validateInputs()) return;
+    if (!validateInputs(stepName)) return;
     const sources = allSourcesForStepName(stepName, stateRef.current.workflow);
     const newInputs = {...stateRef.current.session.inputs};
     sources.forEach(source => {
       mapSome(stateRef.current.bufferedInputValues[source], inner => newInputs[source] = inner);
     })
+    cancelInputChanges(stepName);
     dispatch(setInputs(newInputs))
     requestPoll();
-  }, [dispatch, requestPoll, stateRef, validateInputs]);
+  }, [cancelInputChanges, dispatch, requestPoll, stateRef, validateInputs]);
 
   return {
     cancelInputChanges,

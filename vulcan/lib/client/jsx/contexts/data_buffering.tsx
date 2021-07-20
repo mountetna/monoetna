@@ -22,11 +22,12 @@ export function useDataBuffering(
     for (let stepStatus of status[0]) {
       if (!stepStatus.downloads) continue;
       for (let download of Object.entries(stepStatus.downloads)) {
-        const [_, url] = download;
+        const [outputName, url] = download;
         if (url in data) continue;
-        if (!shouldDownloadStep(stepStatus.name, workflow)) continue;
+        if (!shouldDownloadStep(stepStatus.name, workflow, outputName)) continue;
 
         const downloaded = yield* runAttempts(() => getData(url));
+
         dispatch(setDownloadedData(url, downloaded));
         return;
       }

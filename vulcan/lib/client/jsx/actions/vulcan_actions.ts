@@ -43,8 +43,8 @@ export function removeDownloads(stepNames: string[]) {
     return actionObject('REMOVE_DOWNLOADS', {stepNames});
 }
 
-export function addValidationErrors(inputLabel: string, errors: string[]) {
-    return actionObject('ADD_VALIDATION_ERRORS', {inputLabel, errors});
+export function addValidationErrors(stepName: string | null, inputLabel: string, errors: string[]) {
+    return actionObject('ADD_VALIDATION_ERRORS', {stepName, inputLabel, errors});
 }
 
 // Relies on the object identity of the errors string, but loosens the necessary uniqueness of inputLabel

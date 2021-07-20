@@ -159,10 +159,13 @@ export function allSourcesForStepName(name: string | null, workflow: Workflow | 
   return allExpectedOutputSources(step);
 }
 
-export function shouldDownloadStep(stepName: string, workflow: Workflow) {
+export function shouldDownloadStep(stepName: string, workflow: Workflow, outputName: string) {
   return !!workflow.steps[0].find(step => {
     if (!isDataConsumer(step)) return false;
-    return !!step.in.find(({source}) => stepOfSource(source) === stepName);
+    return !!step.in.find(({source}) => {
+      const [sourceStep, sourceOutputName] = splitSource(source);
+      return sourceStep === stepName && sourceOutputName == outputName;
+    });
   })
 }
 
