@@ -136,6 +136,12 @@ describe Polyphemus::Server do
       updated_at: "1999-01-01 00:00:00",
       should_ingest: true,
       removed_from_source: false,
+    }, {
+      name: "foo/bar/test3/test6.txt",
+      host: "sftp.example.com",
+      updated_at: "1999-01-01 00:00:00",
+      should_ingest: false,
+      removed_from_source: false,
     }])
 
     auth_header(:administrator)
@@ -145,15 +151,23 @@ describe Polyphemus::Server do
     expect(json_body[:files]).to eq([{
                                    name: "foo/bar/test1.txt",
                                    host: "sftp.example.com",
+                                 }, {
+                                   name: "foo/bar/test3/test6.txt",
+                                   host: "sftp.example.com",
                                  }])
 
-    post("/test/ingest/enqueue/sftp.example.com/foo/bar")
+    post("/test/ingest/enqueue/sftp.example.com/foo/bar", files: [
+                                                            "foo/bar/test1.txt",
+                                                          ])
 
     expect(last_response.status).to eq(200)
 
     get("/test/ingest/list/sftp.example.com/foo/bar")
 
     expect(last_response.status).to eq(200)
-    expect(json_body[:files]).to eq([])
+    expect(json_body[:files]).to eq([{
+      name: "foo/bar/test3/test6.txt",
+      host: "sftp.example.com",
+    }])
   end
 end

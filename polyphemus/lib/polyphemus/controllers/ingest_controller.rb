@@ -14,17 +14,21 @@ class IngestController < Polyphemus::Controller
     require_params(:project_name, :folder_path, :ingest_host)
     require_valid_host
 
-    success({ files: ingestable_files.map { |r| r.to_hash } }.to_json, "application/json")
+    files = ingestable_files_query.all
+
+    success({ files: files.map { |r| r.to_hash } }.to_json, "application/json")
   rescue => e
     Polyphemus.instance.logger.log_error(e)
     return failure(422, e.message)
   end
 
   def enqueue
-    require_params(:project_name, :folder_path, :ingest_host)
+    require_params(:project_name, :folder_path, :ingest_host, :files)
     require_valid_host
 
-    files = ingestable_files do |file|
+    files = ingestable_files_query.where(
+      name: @params[:files],
+    ).all do |file|
       file.update(should_ingest: true)
       file.refresh
     end
@@ -76,13 +80,13 @@ class IngestController < Polyphemus::Controller
     Polyphemus.instance.config(:ingest)[:sftp].map { |c| c[:host] }
   end
 
-  def ingestable_files(&block)
+  def ingestable_files_query
     Polyphemus::IngestFile.where(
       host: host,
       name: folder_regex,
       ingested_at: nil,
       should_ingest: false,
       removed_from_source: false,
-    ).all(&block)
+    )
   end
 end
