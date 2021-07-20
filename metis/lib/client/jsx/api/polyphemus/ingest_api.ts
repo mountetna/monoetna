@@ -5,9 +5,14 @@ export const listDirectory = (host: string, directory: string) =>
     `${CONFIG.polyphemus_host}/${CONFIG.project_name}/ingest/list/${host}/${directory}`
   );
 
-export const enqueueDirectoryFiles = (host: string, directory: string) =>
+export const enqueueDirectoryFiles = (
+  host: string,
+  directory: string,
+  files: string[]
+) =>
   json_post(
-    `${CONFIG.polyphemus_host}/${CONFIG.project_name}/ingest/enqueue/${host}/${directory}`
+    `${CONFIG.polyphemus_host}/${CONFIG.project_name}/ingest/enqueue/${host}/${directory}`,
+    {files}
   );
 
 export const listHosts = () =>
