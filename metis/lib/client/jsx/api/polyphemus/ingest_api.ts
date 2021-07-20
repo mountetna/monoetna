@@ -9,3 +9,6 @@ export const enqueueDirectoryFiles = (host: string, directory: string) =>
   json_post(
     `${CONFIG.polyphemus_host}/${CONFIG.project_name}/ingest/enqueue/${host}/${directory}`
   );
+
+export const listHosts = () =>
+  json_get(`${CONFIG.polyphemus_host}/${CONFIG.project_name}/ingest/hosts`);

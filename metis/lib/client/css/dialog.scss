@@ -124,11 +124,33 @@
 
     .ingest-dialog {
       width: 800px;
+      height: 80vh;
 
-      .ingest-files-list {
-        overflow-y: auto;
-        max-height: 500px;  
+      .ingest-files-list-container {
+        flex: 1;
+
+        .ingest-files-card {
+          display: flex;
+          flex-flow: column;
+          height: 100%;
+
+          .ingest-files-list {
+            overflow-y: auto;
+            flex: 1;
+            max-height: 500px;
+          }
+        }
+      }
+
+
+      .ingest-selector {
+        margin-bottom: 1rem;
       }
     }
   }
+}
+
+div.ingest-host-options,
+div.ingest-directory-options {
+  z-index: 999999;
 }

@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, { useState, useCallback, useContext } from 'react';
 
 import Grid from '@material-ui/core/Grid';
 import Card from '@material-ui/core/Card';
@@ -9,8 +9,11 @@ import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import DescriptionIcon from '@material-ui/icons/Description';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 
-import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
+import { useActionInvoker } from 'etna-js/hooks/useActionInvoker';
+
+import { IngestContext, Host } from '../../contexts/ingest_context';
 
 import {
   listDirectory,
@@ -22,18 +25,79 @@ type IngestFile = {
   host: string;
 };
 
-const IngestToBucketDialog = ({}) => {
+const HostSelector = ({ onChangeHost }: { onChangeHost: (host: string) => void }) => {
+
+  const { state } = useContext(IngestContext);
+
+  if (!state.hosts) return null;
+
+  function prettify(host: Host) {
+    return `(${host.alias}) ${host.host}`;
+  }
+
+  return <Autocomplete
+    id='ingest-host'
+    options={Object.values(state.hosts).sort()}
+    getOptionLabel={(option: Host) => prettify(option)}
+    fullWidth
+    renderInput={(params: any) => (
+      <TextField
+        {...params}
+        label='Ingest host'
+        variant='outlined'
+      />
+    )}
+    classes={{
+      popper: 'ingest-host-options',
+      root: 'ingest-selector'
+    }}
+    onChange={(e: React.ChangeEvent<{}>, value: Host | null) =>
+      onChangeHost(value ? value.host : '')
+    }
+  />
+}
+
+const DirectorySelector = ({ host, onChangeDirectory }: { host: string, onChangeDirectory: (value: string) => void }) => {
+  const { state } = useContext(IngestContext);
+
+  if (!host || !state.hosts[host]) return null;
+
+  return <Autocomplete
+    id='ingest-directory'
+    options={state.hosts[host].directories.sort()}
+    getOptionLabel={(option: string) => option}
+    fullWidth
+    renderInput={(params: any) => (
+      <TextField
+        {...params}
+        label='Ingest directory'
+        variant='outlined'
+      />
+    )}
+    classes={{
+      popper: 'ingest-directory-options',
+      root: 'ingest-selector'
+    }}
+    onChange={(e: React.ChangeEvent<{}>, value: string | null) =>
+      onChangeDirectory(value || '')
+    }
+  />
+}
+
+
+const IngestToBucketDialog = () => {
   const [files, setFiles] = useState([] as IngestFile[]);
   const [fetchError, setFetchError] = useState('');
   const [enqueueError, setEnqueueError] = useState('');
   const [host, setHost] = useState('');
   const [directory, setDirectory] = useState('');
   const invoke = useActionInvoker();
+  const { state } = useContext(IngestContext);
 
   const fetchFiles = useCallback(() => {
     setFetchError('');
     listDirectory(host, directory)
-      .then((data: {[key: string]: IngestFile[]}) => {
+      .then((data: { [key: string]: IngestFile[] }) => {
         setFiles(data.files);
       })
       .catch((e: Promise<string>) => {
@@ -45,7 +109,7 @@ const IngestToBucketDialog = ({}) => {
     setEnqueueError('');
     enqueueDirectoryFiles(host, directory)
       .then(() => {
-        invoke({type: 'DISMISS_DIALOG'});
+        invoke({ type: 'DISMISS_DIALOG' });
       })
       .catch((e: Promise<string>) => {
         e.then((err: string) => setEnqueueError(err));
@@ -69,28 +133,16 @@ const IngestToBucketDialog = ({}) => {
   );
 
   return (
-    <Grid container direction='column' className='ingest-dialog'>
+    <Grid container direction='column' className='ingest-dialog' alignItems='stretch'>
       <Grid item>
         <Card>
           <CardContent>
             <Grid container direction='column'>
               <Grid item>
-                <TextField
-                  required
-                  fullWidth
-                  id='ingest-host'
-                  label='Ingest host'
-                  onChange={(e) => onChangeHost(e.target.value)}
-                />
+                <HostSelector onChangeHost={onChangeHost} />
               </Grid>
               <Grid item>
-                <TextField
-                  required
-                  fullWidth
-                  id='ingest-directory'
-                  label='Directory path'
-                  onChange={(e) => onChangeDirectory(e.target.value)}
-                />
+                <DirectorySelector host={host} onChangeDirectory={onChangeDirectory} />
               </Grid>
               {fetchError && (
                 <Grid item>
@@ -111,12 +163,11 @@ const IngestToBucketDialog = ({}) => {
           </CardActions>
         </Card>
       </Grid>
-      <Grid item>
-        <Card>
+      <Grid item className='ingest-files-list-container'>
+        <Card className='ingest-files-card'>
           <CardHeader
-            subheader={`${files.length} file${
-              1 === files.length ? '' : 's'
-            } found`}
+            subheader={`${files.length} file${1 === files.length ? '' : 's'
+              } found`}
           />
           <CardContent className='ingest-files-list'>
             {files.map((file: IngestFile) => (
