@@ -1,6 +1,5 @@
 import {isPendingUiQuery} from '../workflow_selectors';
-import {VulcanState} from '../../reducers/vulcan_reducer';
-import {WorkflowStep, Workflow} from '../../api_types';
+import {Workflow} from '../../api_types';
 import {
   createStatusFixture,
   createStepFixture,

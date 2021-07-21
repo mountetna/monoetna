@@ -69,6 +69,7 @@ describe('useDataBuffering', () => {
       it('pushes those into the session.inputs, then executes a poll', async () => {
         const {stateRef} = contextData.value;
         expect(Object.keys(stateRef.current.bufferedInputValues)).toEqual(['astep/a', 'bstep/b', 'bstep/a'])
+        expect(stateRef.current.validationErrors).toEqual([]);
         expect(stateRef.current.session.inputs).toEqual({
           "a": true,
           "c": true,

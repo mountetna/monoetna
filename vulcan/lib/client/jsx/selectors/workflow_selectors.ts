@@ -5,7 +5,7 @@ import {
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {GroupedInputStep, UIStep, BoundInputSpecification} from "../components/workflow/user_interactions/inputs/input_types";
 import {useMemo} from "react";
-import {mapSome, Maybe, withDefault} from "./maybe";
+import {mapSome, Maybe, maybeOfNullable, withDefault} from "./maybe";
 
 export const workflowName = (workflow: Workflow | null | undefined) =>
     workflow && workflow.name ? workflow.name.replace('.cwl', '') : null;
@@ -177,7 +177,7 @@ export function isPendingUiQuery(step: WorkflowStep, status: VulcanState['status
   const bufferedData = stepInputDataRaw(step, status, data, session);
   return uiQueryOfStep(step)
       && statusOfStep(step, status)?.status == 'pending'
-      && step.in.every(({id}) => inputValueNonEmpty(bufferedData[id]))
+      && step.in.every(({id}) => id in bufferedData)
 }
 
 export const stepInputDataRaw = (
@@ -316,7 +316,7 @@ export function filterEmptyValues(values: { [k: string]: any }): { [k: string]: 
 
   Object.keys(values).forEach(k => {
     const val = values[k];
-    if (inputValueNonEmpty(val)) result[k] = val;
+    if (inputValueNonEmpty(maybeOfNullable(val))) result[k] = val;
   })
 
   return result;
