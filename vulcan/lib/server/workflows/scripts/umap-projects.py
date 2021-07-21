@@ -56,7 +56,7 @@ project_data = {
 			#   Cluster, Tube, and Gene are standard options that do not need to be added here!
 			'Indication': 'experiment#name',
 			'Tissue': 'sample#tissue_type',
-			'Compartment': 'sc_rna_seq#compartment',
+			'Compartment': 'sc_rna_seq#biospecimen',
 			'Chemistry': 'sc_rna_seq#chemistry',
 			'Frozen tissue': 'patient#ffpe_frozen'
 			# age, sex at birth, age at diag, bmi, smoker status, alcohol use, race, ethnicity, *past medical history (up to 10 per), time on ice
@@ -65,7 +65,7 @@ project_data = {
 			# Format = <Label of this selection item>: '<model>#<attribute>'
 			'Indication': 'experiment#name',
 			'Tissue': 'sample#tissue_type',
-			'Compartment': 'sc_rna_seq#compartment',
+			'Compartment': 'sc_rna_seq#biospeciman',
 			'Chemistry': 'sc_rna_seq#chemistry'
 		}
 	}
