@@ -58,14 +58,14 @@ project_data = {
 			'Tissue': 'sample#tissue_type',
 			'Compartment': 'sc_rna_seq#biospecimen',
 			'Chemistry': 'sc_rna_seq#chemistry',
-			'Frozen tissue': 'patient#ffpe_frozen'
+			'Frozen tissue?': 'patient#ffpe_frozen'
 			# age, sex at birth, age at diag, bmi, smoker status, alcohol use, race, ethnicity, *past medical history (up to 10 per), time on ice
 		},
 		'selection_options': {
 			# Format = <Label of this selection item>: '<model>#<attribute>'
 			'Indication': 'experiment#name',
 			'Tissue': 'sample#tissue_type',
-			'Compartment': 'sc_rna_seq#biospeciman',
+			'Compartment': 'sc_rna_seq#biospecimen',
 			'Chemistry': 'sc_rna_seq#chemistry'
 		}
 	}
