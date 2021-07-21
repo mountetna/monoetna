@@ -9,7 +9,7 @@ import {
   BoundInputSpecification, getInputSpecifications
 } from "../user_interactions/inputs/input_types";
 import {useWorkflow} from "../../../contexts/workflow_context";
-import {Maybe, some, withDefault} from "../../../selectors/maybe";
+import {maybeOfNullable} from "../../../selectors/maybe";
 import {setBufferedInput} from "../../../actions/vulcan_actions";
 
 export default function PrimaryInputs() {
@@ -22,9 +22,8 @@ export default function PrimaryInputs() {
     let updatedInputs = bufferedInputValues;
     Object.keys(workflow.inputs).forEach(inputName => {
       if (!(inputName in inputs) && !(inputName in bufferedInputValues)) {
-        console.log({inputs, inputName})
         if (updatedInputs === bufferedInputValues) updatedInputs = {...updatedInputs};
-        updatedInputs[inputName] = some(workflow.inputs[inputName].default);
+        updatedInputs[inputName] = maybeOfNullable(workflow.inputs[inputName].default);
       }
     })
 

@@ -15,18 +15,19 @@ export const defaultContext = {
   stateRef: {current: defaultVulcanState}, // This would be set with a context dispatch when the provide is actually
                                            // installed.
   dispatch: (a: VulcanAction) => console.warn('action dispatched but not handled', a),
-  useActionInvoker: (() => () => null) as typeof useActionInvoker,
-  ...defaultConfirmationHelpers,
-  ...defaultSessionStorageHelpers,
-  ...defaultApiHelpers,
-  ...defaultSessionSyncHelpers,
-  ...defaultInputStateManagement,
+  useActionInvoker: (() => () => null) as typeof useActionInvoker, ...defaultConfirmationHelpers, ...defaultSessionStorageHelpers, ...defaultApiHelpers, ...defaultSessionSyncHelpers, ...defaultInputStateManagement,
 }
 
 export type VulcanContextData = typeof defaultContext;
 export const VulcanContext = createContext(defaultContext);
 export type VulcanContext = typeof VulcanContext;
-export type ProviderProps = { params?: {}, storage?: typeof localStorage, logActions?: boolean, wrapper?: [Function, Function], children: any };
+export type ProviderProps = {
+  params?: {},
+  storage?: typeof localStorage,
+  logActions?: boolean,
+  wrapper?: [Function, Function],
+  children: any
+};
 
 // Existing mostly to down type the return result into A from potentially inferring A & B
 function withOverrides<A, B extends Partial<A>>(base: A, overrides: B): A {
@@ -62,13 +63,10 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
     const localSessionHelpers = withOverrides(useLocalSessionStorage(state, props), props);
     const apiHelpers = withOverrides(useApi(invoker), props);
     const {showErrors, getData, getWorkflows, pollStatus, postInputs} = apiHelpers;
-    const sessionSyncHelpers = withOverrides(useSessionSync(
-      stateRef,
-      showErrors,
-      pollStatus,
-      postInputs,
-      dispatch
-    ), props);
+    const sessionSyncHelpers = withOverrides(
+      useSessionSync(stateRef, showErrors, pollStatus, postInputs, dispatch),
+      props
+    );
     useDataBuffering(state, dispatch, showErrors, getData);
     useWorkflowsLoading(JSON.stringify(props.params), dispatch, getWorkflows, showErrors);
     const confirmationHelpers = withOverrides(useConfirmation(), props);
@@ -77,13 +75,7 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
     return (<VulcanContext.Provider value={{
       state,
       stateRef,
-      dispatch,
-      ...confirmationHelpers,
-      ...actionInvokerHelpers,
-      ...localSessionHelpers,
-      ...apiHelpers,
-      ...sessionSyncHelpers,
-      ...inputHelpers,
+      dispatch, ...confirmationHelpers, ...actionInvokerHelpers, ...localSessionHelpers, ...apiHelpers, ...sessionSyncHelpers, ...inputHelpers,
     }}>
       {props.children}
     </VulcanContext.Provider>);

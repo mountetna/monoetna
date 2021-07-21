@@ -12,13 +12,16 @@ import {
 import {createStepStatusFixture, createUpdatedStatusFixture} from "./fixtures";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {VulcanContext} from "../contexts/vulcan_context";
-import {useContext} from "react";
+import {useContext, useState} from "react";
 import {splitSource, statusOfStep} from "../selectors/workflow_selectors";
 import {Step} from "@material-ui/core";
 
 export function useWorkflowUtils(): WorkflowUtils {
   const {dispatch, stateRef} = useContext(VulcanContext);
-  return new WorkflowUtils(dispatch, stateRef);
+  const [utils] = useState(() => {
+    return new WorkflowUtils(dispatch, stateRef);
+  });
+  return utils;
 }
 
 export class WorkflowUtils {
@@ -72,7 +75,7 @@ export class WorkflowUtils {
   }
 
   addPrimaryInput(name: string, options: Partial<WorkflowInput> = {}) {
-    let workflow = {...this.workflow};
+    let workflow = {...this.workflow, inputs: {...this.workflow.inputs}};
     let input = {...defaultWorkflowInput, ...options};
     workflow.inputs[name] = input;
     this.setWorkflow(workflow.name, workflow);
@@ -97,8 +100,7 @@ export class WorkflowUtils {
     }
     if (!url) url = "https://" + sourceName;
 
-    // TODO: Set the inputs hash thingy.
-
+    // TODO: Set the inputs hash
     this.dispatch(setStatus(createUpdatedStatusFixture(workflow, this.stateRef.current.status, createStepStatusFixture({
       ...status, name: stepName, status: 'complete', downloads: {...status.downloads, [outputName]: url}
     }))));

@@ -1,23 +1,22 @@
-import React, {useContext, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import { ComponentStory, ComponentMeta } from '@storybook/react';
-
 import PrimaryInputs from "../lib/client/jsx/components/workflow/session/primary_inputs";
-import {VulcanContext} from "../lib/client/jsx/contexts/vulcan_context";
-import {setWorkflow} from "../lib/client/jsx/actions/vulcan_actions";
-import {workflowsResponse} from "../lib/client/jsx/test_utils/fixtures/workflows-response";
+import {useWorkflowUtils} from "../lib/client/jsx/test_utils/workflow_utils";
+import {defaultWorkflow, WorkflowInput} from "../lib/client/jsx/api_types";
 
 interface Parameterization {
+  inputs: {[k: string]: Partial<WorkflowInput>}
 }
 
-function ParameterizedPrimaryInputs(args: Parameterization) {
-  const {dispatch} = useContext(VulcanContext);
+function ParameterizedPrimaryInputs({inputs = {}}: Parameterization) {
+  const utils = useWorkflowUtils();
 
   useEffect(() => {
-    dispatch(setWorkflow(
-      workflowsResponse.workflows[0],
-      (workflowsResponse.workflows[0].projects as any)[0]
-    ))
-  });
+    utils.setWorkflow('test');
+    Object.entries(inputs).forEach(([name, options]) => {
+      utils.addPrimaryInput(name, options);
+    })
+  }, [inputs, utils]);
 
   return <PrimaryInputs/>;
 }
@@ -29,5 +28,29 @@ export default {
 
 const Template: ComponentStory<typeof ParameterizedPrimaryInputs> = (args) => <ParameterizedPrimaryInputs {...args}/>;
 
-export const Test = Template.bind({});
-Test.args = {};
+export const AllWithoutDefaults = Template.bind({});
+AllWithoutDefaults.args = {
+  inputs: {
+    'int': { type: 'int' },
+    'float': { type: 'float' },
+    'boolean': { type: 'boolean' },
+    'string': { type: 'string' },
+  }
+};
+
+export const AllWithDefaults = Template.bind({});
+AllWithDefaults.args = {
+  inputs: {
+    'int': { type: 'int', default: -22 },
+    'float': { type: 'float', default: 50.3 },
+    'boolean': { type: 'boolean', default: true },
+    'string': { type: 'string', default: "Quack!" },
+  }
+};
+
+export const WithLabelAndDocs = Template.bind({});
+WithLabelAndDocs.args = {
+  inputs: {
+    'string': { type: 'string', label: "The String of Fate", doc: "Some sort of longer, doc string would go here." },
+  }
+};

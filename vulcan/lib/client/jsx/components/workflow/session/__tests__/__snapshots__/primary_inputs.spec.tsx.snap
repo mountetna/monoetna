@@ -175,7 +175,7 @@ exports[`PrimaryInputs renders each type of input 1`] = `
                 onChange={[Function]}
                 onKeyPress={[Function]}
                 type="text"
-                value=""
+                value={0}
               />
             </div>
             <div
@@ -253,7 +253,7 @@ exports[`PrimaryInputs renders each type of input 1`] = `
                 onChange={[Function]}
                 onKeyPress={[Function]}
                 type="text"
-                value=""
+                value={0}
               />
             </div>
             <div

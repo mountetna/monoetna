@@ -2,7 +2,7 @@ import {Provider} from "react-redux";
 import * as React from "react";
 import 'regenerator-runtime';
 import {VulcanStore} from "./vulcan_store";
-import {defaultContext, VulcanContextData, VulcanProvider} from "./contexts/vulcan_context";
+import {defaultContext, ProviderProps, VulcanContextData, VulcanProvider} from "./contexts/vulcan_context";
 import {
   defaultSessionStatusResponse,
   defaultWorkflow,
@@ -55,10 +55,8 @@ global.CONFIG = {
   vulcan_host: "",
 }
 
-const workflow = workflowsResponse.workflows[0] || defaultWorkflow;
-const state = {...defaultVulcanState, workflow, session: {...defaultSession, project_name: 'devapp', workflow_name: workflow.name}}
-const mocks: Partial<VulcanContextData> = {
-  state,
+const mocks: Partial<VulcanContextData> & Partial<ProviderProps> = {
+  // logActions: true,
   pollStatus: ioc<typeof defaultContext.pollStatus>(function* () {
     while (true) {
       handle(yield, async (session) => {
