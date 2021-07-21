@@ -46,9 +46,10 @@ function DropdownCheckboxCombo({
 export default function SingleDropdownMulticheckbox({ data, onChange, ...props }: WithInputParams<{}, DataEnvelope<string[]>, DataEnvelope<string[]>>) {
   // input.data for this component should be
   // {'a': {experiment: ['1', '2'], tissue: ['a', 'b']}}
-  const [dropdownValue, setDropdownValue] = useState(null as string | null);
   const allOptions = useMemoized(joinNesting, data);
+  const [dropdownValue, setDropdownValue] = useState(() => Object.keys(allOptions)[0] as string | null);
   const value = useSetsDefault(allOptions, props.value, onChange);
+  console.log({dropdownValue, allOptions})
   const dropdownOptions = dropdownValue == null ? [] : allOptions[dropdownValue];
   const selectedValue = dropdownValue == null ? [] : value[dropdownValue] || [];
   const onChangeInner = useCallback((values: Maybe<string[]>) => {

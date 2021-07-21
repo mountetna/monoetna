@@ -1,7 +1,7 @@
 import React from 'react';
 import {mount, ReactWrapper} from 'enzyme';
 import CheckboxesInput from '../checkboxes';
-import {BoundInputSpecification, InputSpecification} from '../input_types';
+import {BoundInputSpecification} from '../input_types';
 
 describe('CheckboxesInput', () => {
   let input: BoundInputSpecification<string[], string[]>;

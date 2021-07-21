@@ -1,187 +1,140 @@
-// import React from 'react';
-// import {Provider} from 'react-redux';
-// import {mount, ReactWrapper, ShallowWrapper} from 'enzyme';
-// import {mockStore} from 'etna-js/spec/helpers';
-// import SingleDropdownMulticheckbox from '../single_dropdown_multicheckbox';
-// import {InputSpecification} from '../input_types';
-// import {
-//   VulcanState,
-//   defaultVulcanState
-// } from '../../../../../reducers/vulcan_reducer';
-// import {VulcanProvider} from '../../../../../contexts/vulcan_context';
-//
-// describe('SingleDropdownMulticheckbox', () => {
-//   let input: InputSpecification;
-//   let state: VulcanState;
-//   let onChange: jest.Mock;
-//   let store: any;
-//
-//   function clickCheckbox(component: ReactWrapper, index: number) {
-//     component
-//       .find('.checkbox-input-option')
-//       .at(index)
-//       .find('input')
-//       .simulate('change')
-//       .update();
-//   }
-//
-//   function renderedCheckboxesText(component: ReactWrapper) {
-//     return component.find('.checkbox-input-option').map((n) => n.text());
-//   }
-//
-//   function checkedCheckboxesText(component: ReactWrapper) {
-//     return component
-//       .find('.checkbox-input-option')
-//       .filterWhere((n) => n.find('input').prop('checked') || false)
-//       .map((n) => n.text());
-//   }
-//
-//   function renderedDropdownValue(component: ReactWrapper) {
-//     return component
-//       .find('.dropdown-autocomplete-input')
-//       .first()
-//       .find('input')
-//       .prop('value');
-//   }
-//
-//   beforeEach(() => {
-//     input = {
-//       type: 'doesnotmatter',
-//       value: null,
-//       label: 'Abcdef',
-//       data: {
-//         'options-a': {
-//           option1: ['1', '2', '3'],
-//           option2: ['x', 'y', 'z']
-//         },
-//         'options-b': {
-//           option3: ['9', '8', '7'],
-//           option4: ['a', 'b', 'c']
-//         }
-//       }
-//     };
-//
-//     onChange = jest.fn();
-//
-//     state = {...defaultVulcanState};
-//
-//     store = mockStore({});
-//   });
-//
-//   it('correctly pre-selects all checkboxes if given `null` as value', async () => {
-//     const component = mount(
-//       <SingleDropdownMulticheckbox input={input} onChange={onChange} />
-//     );
-//
-//     expect(component.find('.dropdown-autocomplete-input').length).toEqual(1);
-//     expect(component.find('.checkbox-input-option').length).toEqual(3);
-//     expect(renderedDropdownValue(component)).toEqual('option1');
-//     expect(renderedCheckboxesText(component)).toEqual(['1', '2', '3']);
-//     expect(onChange).toHaveBeenCalledWith('test-input', {
-//       option1: ['1', '2', '3'],
-//       option2: ['x', 'y', 'z'],
-//       option3: ['9', '8', '7'],
-//       option4: ['a', 'b', 'c']
-//     });
-//   });
-//
-//   it('updates state when clicking checkboxes', () => {
-//     input.value = {
-//       option1: ['1', '2', '3'],
-//       option2: ['x', 'y', 'z'],
-//       option3: ['9', '8', '7'],
-//       option4: ['a', 'b', 'c']
-//     };
-//     const component = mount(
-//       <SingleDropdownMulticheckbox input={input} onChange={onChange} />
-//     );
-//
-//     expect(component.find('.dropdown-autocomplete-input').length).toEqual(1);
-//     expect(component.find('.checkbox-input-option').length).toEqual(3);
-//     expect(renderedDropdownValue(component)).toEqual('option1');
-//     expect(renderedCheckboxesText(component)).toEqual(['1', '2', '3']);
-//     expect(checkedCheckboxesText(component)).toEqual(['1', '2', '3']);
-//
-//     clickCheckbox(component, 0);
-//     expect(onChange).toHaveBeenLastCalledWith('test-input', {
-//       option1: ['2', '3'],
-//       option2: ['x', 'y', 'z'],
-//       option3: ['9', '8', '7'],
-//       option4: ['a', 'b', 'c']
-//     });
-//   });
-//
-//   it('correctly sets the checkbox states when given a default', () => {
-//     input.value = {
-//       option1: ['1', '2'],
-//       option2: ['y'],
-//       option3: ['8', '9', '7'],
-//       option4: ['c']
-//     };
-//     const component = mount(
-//       <SingleDropdownMulticheckbox input={input} onChange={onChange} />
-//     );
-//
-//     expect(component.find('.dropdown-autocomplete-input').length).toEqual(1);
-//     expect(component.find('.checkbox-input-option').length).toEqual(3);
-//     expect(renderedDropdownValue(component)).toEqual('option1');
-//     expect(renderedCheckboxesText(component)).toEqual(['1', '2', '3']);
-//     expect(checkedCheckboxesText(component)).toEqual(['1', '2']);
-//   });
-//
-//   it('checkboxes switch when dropdown value changes', async () => {
-//     input.value = {
-//       option1: ['1', '2'],
-//       option2: ['y'],
-//       option3: ['8', '9', '7'],
-//       option4: ['c']
-//     };
-//
-//     const component = mount(
-//       <Provider store={store}>
-//         <VulcanProvider state={state}>
-//           <SingleDropdownMulticheckbox input={input} onChange={onChange} />
-//         </VulcanProvider>
-//       </Provider>
-//     );
-//     expect(component.find('.dropdown-autocomplete-input').length).toEqual(1);
-//     expect(component.find('.checkbox-input-option').length).toEqual(3);
-//     expect(renderedDropdownValue(component)).toEqual('option1');
-//     expect(renderedCheckboxesText(component)).toEqual(['1', '2', '3']);
-//     expect(checkedCheckboxesText(component)).toEqual(['1', '2']);
-//
-//     component
-//       .find('.icon-wrapper')
-//       .first()
-//       .simulate('click')
-//       .update()
-//       .find('.dropdown-autocomplete-options')
-//       .find('li')
-//       .last()
-//       .simulate('click')
-//       .update();
-//
-//     let dropdownInput = '__test-input__dropdownValue';
-//     expect(renderedDropdownValue(component)).toEqual('option4');
-//     expect(onChange).toHaveBeenCalledWith(dropdownInput, 'option4');
-//
-//     state = { ...state, bufferedInputValue: 'option4' };
-//     // Super hokey, but can't setState on functional components,
-//     //   to verify behavior. So we'll remount with the new state
-//     //   and check that the render is different
-//     const rerenderedComponent = mount(
-//       <Provider store={store}>
-//         <VulcanProvider state={state}>
-//           <SingleDropdownMulticheckbox input={input} onChange={onChange} />
-//         </VulcanProvider>
-//       </Provider>
-//     );
-//
-//     expect(renderedCheckboxesText(rerenderedComponent)).toEqual([
-//       'a',
-//       'b',
-//       'c'
-//     ]);
-//     expect(checkedCheckboxesText(rerenderedComponent)).toEqual(['c']);
-//   });
-// });
+import React from 'react';
+import SingleDropdownMulticheckbox from '../single_dropdown_multicheckbox';
+import {DataEnvelope} from '../input_types';
+import {Maybe, some} from "../../../../../selectors/maybe";
+import {integrateElement, setupBefore} from "../../../../../test_utils/integration";
+import {
+  findAllByClassName,
+  includesClassNamePredicate,
+  matchesTypePredicate, text
+} from "../../../../../test_utils/rendered";
+import {act, ReactTestInstance} from "react-test-renderer";
+
+describe('SingleDropdownMulticheckbox', () => {
+  const onChange = setupBefore(() => jest.fn());
+  const value = setupBefore(() => null as Maybe<DataEnvelope<string[]>>);
+  const data = setupBefore(() => {
+    return {
+      'options-a': {
+        option1: ['1', '2', '3'],
+        option2: ['x', 'y', 'z']
+      },
+      'options-b': {
+        option3: ['9', '8', '7'],
+        option4: ['a', 'b', 'c']
+      }
+    } as DataEnvelope<DataEnvelope<string[]>>
+  });
+
+  const integrated = setupBefore(() =>
+    integrateElement(<SingleDropdownMulticheckbox
+      onChange={onChange.value} value={value.value} data={data.value}/>))
+
+  function clickCheckbox(component: ReactTestInstance, index: number) {
+    component
+      .findAll(includesClassNamePredicate('checkbox-input-option'))[index]
+      .findByType('input')
+      .props.onChange()
+  }
+
+  function renderedCheckboxesText(component: ReactTestInstance) {
+    return component.findAll(
+      includesClassNamePredicate('checkbox-input-option')).map(text);
+  }
+
+  function checkedCheckboxesText(component: ReactTestInstance) {
+    return component.findAll(includesClassNamePredicate('checkbox-input-option'))
+      .filter(node => node.findByType('input').props.checked)
+      .map(text);
+  }
+
+  function renderedDropdownValue(component: ReactTestInstance) {
+    return component
+      .find(includesClassNamePredicate('dropdown-autocomplete-input'))
+      .find(matchesTypePredicate('input'))
+      .props.value;
+  }
+  it('correctly pre-selects all checkboxes if given `null` as value', async () => {
+    const {node} = integrated.value;
+    expect(findAllByClassName(node.root, 'dropdown-autocomplete-input').length).toEqual(1);
+    expect(findAllByClassName(node.root, 'checkbox-input-option').length).toEqual(3);
+    expect(renderedDropdownValue(node.root)).toEqual('option1');
+    expect(renderedCheckboxesText(node.root)).toEqual(['1', '2', '3']);
+    expect(onChange.value).toHaveBeenCalledWith(some({
+      option1: ['1', '2', '3'],
+      option2: ['x', 'y', 'z'],
+      option3: ['9', '8', '7'],
+      option4: ['a', 'b', 'c']
+    }));
+  });
+
+  describe('with some selected options', () => {
+    value.replace(() => {
+      return some({
+        option1: ['1', '2', '3'],
+        option2: ['x', 'y', 'z'],
+        option3: ['9', '8', '7'],
+        option4: ['a', 'b', 'c']
+      });
+    })
+
+    it('updates state when clicking checkboxes', () => {
+      const {node} = integrated.value;
+
+      clickCheckbox(node.root, 0);
+      expect(onChange.value).toHaveBeenLastCalledWith(some({
+        option1: ['2', '3'],
+        option2: ['x', 'y', 'z'],
+        option3: ['9', '8', '7'],
+        option4: ['a', 'b', 'c']
+      }));
+    });
+
+    describe('when missing some options in the value', () => {
+      value.replace(() => {
+        return some({
+          option1: ['2'],
+          option2: ['x', 'y', 'z'],
+          option3: ['8', '7'],
+          option4: ['a', 'b', 'c']
+        });
+      })
+
+      it('updates state when clicking checkboxes', () => {
+        const {node} = integrated.value;
+
+        clickCheckbox(node.root, 0);
+        expect(onChange.value).toHaveBeenLastCalledWith(some({
+          option1: ['2', '1'],
+          option2: ['x', 'y', 'z'],
+          option3: ['8', '7'],
+          option4: ['a', 'b', 'c']
+        }));
+      });
+    })
+  })
+
+  it('checkboxes switch when dropdown value changes', async () => {
+    const {node} = integrated.value;
+
+    await act(async () => {
+      node.root.find(includesClassNamePredicate('icon-wrapper'))
+        .props.onClick()
+    })
+
+    const options = node.root.find(includesClassNamePredicate('dropdown-autocomplete-options'))
+      .findAllByType('li')
+
+    await act(async () => {
+      options[options.length - 1].props.onClick();
+    });
+
+    expect(renderedDropdownValue(node.root)).toEqual('option4');
+    expect(renderedCheckboxesText(node.root)).toEqual([
+      'a',
+      'b',
+      'c'
+    ]);
+    expect(checkedCheckboxesText(node.root)).toEqual(['c']);
+  });
+});

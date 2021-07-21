@@ -5,8 +5,8 @@ import {useSetsDefault} from "./useSetsDefault";
 import {selectDefaultBoolean} from "./monoids";
 
 export default function BooleanInput({onChange, label, data, ...props}: WithInputParams<{label?: string}, boolean, boolean>) {
-  const onCheck = useCallback((e: ChangeEvent<HTMLInputElement>) => onChange(some(e.target.checked)), [onChange]);
   const value = useSetsDefault(selectDefaultBoolean(data), props.value, onChange);
+  const onCheck = useCallback((e: ChangeEvent<HTMLInputElement>) => onChange(some(!value)), [onChange, value]);
 
   const inner = <input
       type='checkbox'
