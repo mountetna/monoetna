@@ -569,6 +569,8 @@ class Polyphemus
 
     def setup(config)
       super
+      Polyphemus.instance.setup_db
+      Polyphemus.instance.setup_sequel
     end
   end
 end

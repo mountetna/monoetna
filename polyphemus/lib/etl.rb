@@ -35,6 +35,7 @@ class Polyphemus
           super
           Polyphemus.instance.setup_db
           Polyphemus.instance.setup_logger
+          Polyphemus.instance.setup_sequel
         end
       end) unless self.const_defined?(:Run)
 
