@@ -20,15 +20,24 @@ const QuerySelectPane = () => {
       );
       setIntersectionModels(nonRootModels);
     }
-  }, [state.attributes, state.rootModel]);
+  }, [state.attributes, state.rootModel, intersectionModels.length]);
+
+  const removeModel = useCallback(
+    (modelName: string) => {
+      setAttributes(modelName, []);
+    },
+    [setAttributes]
+  );
 
   const updateIntersectionModels = useCallback(
     (modelName: string, index: number) => {
+      const previousModelName = intersectionModels[index];
       let updatedModels: string[] = [...intersectionModels];
       updatedModels[index] = modelName;
       setIntersectionModels(updatedModels);
+      if (previousModelName !== modelName) removeModel(previousModelName);
     },
-    [intersectionModels]
+    [intersectionModels, removeModel]
   );
 
   const removeIntersectionModel = useCallback(
@@ -36,19 +45,21 @@ const QuerySelectPane = () => {
       let updatedModels: string[] = [...intersectionModels];
       let removedModelName: string = updatedModels.splice(index, 1)[0];
       setIntersectionModels(updatedModels);
-      setAttributes(removedModelName, []);
+      removeModel(removedModelName);
     },
-    [intersectionModels, setAttributes]
+    [intersectionModels, removeModel]
   );
 
   if (!state.rootModel) return null;
 
   let choiceSet = [
-    ...new Set(state.graph.allPaths(state.rootModel).flat().concat(state.rootModel))
+    ...new Set(
+      state.graph.allPaths(state.rootModel).flat().concat(state.rootModel)
+    )
   ];
 
   return (
-    <QueryClause title='Select'>
+    <QueryClause title='Columns'>
       {intersectionModels.map((modelName: string, index: number) => {
         if (!state.rootModel) return;
 
@@ -74,10 +85,9 @@ const QuerySelectPane = () => {
       })}
       {state.rootModel ? (
         <Button
-          onClick={() =>
-            setIntersectionModels(intersectionModels.concat(['']))
-          }
-          startIcon={ <AddIcon /> }>
+          onClick={() => setIntersectionModels(intersectionModels.concat(['']))}
+          startIcon={<AddIcon />}
+        >
           Attribute
         </Button>
       ) : null}

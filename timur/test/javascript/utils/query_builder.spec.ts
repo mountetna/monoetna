@@ -31,6 +31,12 @@ const models = {
     revisions: {},
     views: {},
     template: require('../fixtures/template_victim.json')
+  },
+  wound: {
+    documents: {},
+    revisions: {},
+    views: {},
+    template: require('../fixtures/template_wound.json')
   }
 };
 
@@ -81,6 +87,12 @@ describe('QueryBuilder', () => {
         attributeName: 'number',
         operator: '::equals',
         operand: 2
+      },
+      {
+        modelName: 'prize',
+        attributeName: 'name',
+        operator: '::equals',
+        operand: 'Apples'
       }
     ]);
     builder.addSlices({
@@ -108,7 +120,8 @@ describe('QueryBuilder', () => {
         '::and',
         ['labor', 'name', '::in', ['lion', 'hydra', 'apples']],
         ['name', '::equals', 'Nemean Lion'],
-        ['labor', 'number', '::equals', 2]
+        ['labor', 'number', '::equals', 2],
+        ['labor', 'prize', ['name', '::equals', 'Apples'], '::any']
       ],
       '::all',
       [
@@ -131,7 +144,8 @@ describe('QueryBuilder', () => {
         '::and',
         ['labor', 'name', '::in', ['lion', 'hydra', 'apples']],
         ['name', '::equals', 'Nemean Lion'],
-        ['labor', 'number', '::equals', 2]
+        ['labor', 'number', '::equals', 2],
+        ['labor', 'prize', '::all', 'name', '::equals', 'Apples']
       ],
       '::all',
       [
@@ -153,6 +167,7 @@ describe('QueryBuilder', () => {
       [
         '::and',
         ['name', '::equals', 'Nemean Lion'],
+        ['labor', 'prize', '::all', 'name', '::equals', 'Apples'],
         [
           '::or',
           ['labor', 'name', '::in', ['lion', 'hydra', 'apples']],
@@ -237,5 +252,209 @@ describe('QueryBuilder', () => {
       ],
       '::count'
     ]);
+  });
+
+  describe('handles any / all for', () => {
+    it('deep paths in filters with some non-branching models', () => {
+      builder.addRootIdentifier(stamp('labor', 'name'));
+      builder.addRecordFilters([
+        {
+          modelName: 'wound',
+          attributeName: 'location',
+          operator: '::equals',
+          operand: 'arm'
+        }
+      ]);
+
+      expect(builder.query()).toEqual([
+        'labor',
+        [
+          'monster',
+          'victim',
+          ['wound', ['location', '::equals', 'arm'], '::any'],
+          '::any'
+        ],
+        '::all',
+        [['name']]
+      ]);
+
+      builder.setFlatten(false);
+
+      expect(builder.query()).toEqual([
+        'labor',
+        [
+          'monster',
+          'victim',
+          '::all',
+          'wound',
+          '::all',
+          'location',
+          '::equals',
+          'arm'
+        ],
+        '::all',
+        [['name']]
+      ]);
+    });
+
+    it('deep paths in filters with branching models only', () => {
+      builder.addRootIdentifier(stamp('monster', 'name'));
+      builder.addRecordFilters([
+        {
+          modelName: 'wound',
+          attributeName: 'location',
+          operator: '::equals',
+          operand: 'arm'
+        }
+      ]);
+
+      expect(builder.query()).toEqual([
+        'monster',
+        [
+          'victim',
+          ['wound', ['location', '::equals', 'arm'], '::any'],
+          '::any'
+        ],
+        '::all',
+        [['name']]
+      ]);
+
+      builder.setFlatten(false);
+
+      expect(builder.query()).toEqual([
+        'monster',
+        ['victim', '::all', 'wound', '::all', 'location', '::equals', 'arm'],
+        '::all',
+        [['name']]
+      ]);
+    });
+
+    it('shallow paths in filters with branching models', () => {
+      builder.addRootIdentifier(stamp('monster', 'name'));
+      builder.addRecordFilters([
+        {
+          modelName: 'victim',
+          attributeName: 'name',
+          operator: '::equals',
+          operand: 'Hercules'
+        }
+      ]);
+
+      expect(builder.query()).toEqual([
+        'monster',
+        ['victim', ['name', '::equals', 'Hercules'], '::any'],
+        '::all',
+        [['name']]
+      ]);
+
+      builder.setFlatten(false);
+
+      expect(builder.query()).toEqual([
+        'monster',
+        ['victim', '::all', 'name', '::equals', 'Hercules'],
+        '::all',
+        [['name']]
+      ]);
+    });
+
+    it('paths that go up and down the tree', () => {
+      builder.addRootIdentifier(stamp('prize', 'name'));
+      builder.addRecordFilters([
+        {
+          modelName: 'wound',
+          attributeName: 'location',
+          operator: '::equals',
+          operand: 'arm'
+        }
+      ]);
+
+      expect(builder.query()).toEqual([
+        'prize',
+        [
+          'labor',
+          'monster',
+          'victim',
+          ['wound', ['location', '::equals', 'arm'], '::any'],
+          '::any'
+        ],
+        '::all',
+        [['name']]
+      ]);
+
+      builder.setFlatten(false);
+
+      expect(builder.query()).toEqual([
+        'prize',
+        [
+          'labor',
+          'monster',
+          'victim',
+          '::all',
+          'wound',
+          '::all',
+          'location',
+          '::equals',
+          'arm'
+        ],
+        '::all',
+        [['name']]
+      ]);
+    });
+
+    it('paths that go up and down and terminate in a table', () => {
+      builder.addRootIdentifier(stamp('monster', 'name'));
+      builder.addRecordFilters([
+        {
+          modelName: 'prize',
+          attributeName: 'name',
+          operator: '::equals',
+          operand: 'Apples'
+        }
+      ]);
+
+      expect(builder.query()).toEqual([
+        'monster',
+        ['labor', 'prize', ['name', '::equals', 'Apples'], '::any'],
+        '::all',
+        [['name']]
+      ]);
+
+      builder.setFlatten(false);
+
+      expect(builder.query()).toEqual([
+        'monster',
+        ['labor', 'prize', '::all', 'name', '::equals', 'Apples'],
+        '::all',
+        [['name']]
+      ]);
+    });
+
+    it('paths that go up the tree', () => {
+      builder.addRootIdentifier(stamp('prize', 'name'));
+      builder.addRecordFilters([
+        {
+          modelName: 'labor',
+          attributeName: 'name',
+          operator: '::in',
+          operand: 'Lion,Hydra'
+        }
+      ]);
+
+      expect(builder.query()).toEqual([
+        'prize',
+        ['labor', 'name', '::in', ['Lion', 'Hydra']],
+        '::all',
+        [['name']]
+      ]);
+
+      builder.setFlatten(false);
+
+      expect(builder.query()).toEqual([
+        'prize',
+        ['labor', 'name', '::in', ['Lion', 'Hydra']],
+        '::all',
+        [['name']]
+      ]);
+    });
   });
 });

@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name              = 'etna'
-  spec.version           = '0.1.37'
+  spec.version           = '0.1.38'
   spec.summary           = 'Base classes for Mount Etna applications'
   spec.description       = 'See summary'
   spec.email             = 'Saurabh.Asthana@ucsf.edu'
@@ -17,5 +17,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'multipart-post'
   spec.add_dependency 'rollbar'
   spec.add_dependency 'concurrent-ruby'
+  spec.add_dependency 'net-sftp', '>=3.0.0'
   spec.post_install_message = "\n\n\033[1;31mAdd 'source ~/etna.completion' to your .bashrc to get etna command line completions!\033[0m\n\n"
 end

@@ -1,12 +1,20 @@
+import * as _ from 'lodash';
 import {QueryColumn, QueryFilter} from '../contexts/query/query_types';
 import {QueryGraph} from './query_graph';
 import {Model} from '../models/model_types';
 import {
-  stepIsOneToMany,
   attributeIsFile,
   isMatchingMatrixSlice,
-  isMatrixSlice
+  isMatrixSlice,
+  getPath
 } from '../selectors/query_selector';
+import QuerySimplePathBuilder from './query_simple_path_builder';
+import QueryFilterPathBuilder from './query_filter_path_builder';
+import {
+  injectValueAtPath,
+  shouldInjectFilter,
+  nextInjectionPathItem
+} from './query_any_every_helpers';
 
 export class QueryBuilder {
   graph: QueryGraph;
@@ -38,9 +46,8 @@ export class QueryBuilder {
         if (!this.attributes.hasOwnProperty(modelName))
           this.attributes[modelName] = [];
 
-        this.attributes[modelName] = this.attributes[modelName].concat(
-          selectedAttributes
-        );
+        this.attributes[modelName] =
+          this.attributes[modelName].concat(selectedAttributes);
       }
     );
   }
@@ -74,14 +81,8 @@ export class QueryBuilder {
     return [this.root, ...this.expandedOperands(this.recordFilters), '::count'];
   }
 
-  expandOperand(
-    filter: QueryFilter,
-    includeModelPath: boolean = true
-  ): (string | string[] | number)[] {
-    let result: (string | string[] | number)[] = [];
-
-    if (includeModelPath && undefined != this.pathToModel(filter.modelName))
-      result.push(...(this.pathToModel(filter.modelName) as string[]));
+  expandOperand(filter: QueryFilter, includeModelPath: boolean = true): any[] {
+    let result: any[] = [];
 
     result.push(filter.attributeName);
     result.push(filter.operator);
@@ -96,6 +97,26 @@ export class QueryBuilder {
       result[length - 2] = tmpOperator;
     } else {
       result.push(filter.operand);
+    }
+
+    let path: string[] | undefined = this.pathToModel(filter.modelName, true);
+    if (includeModelPath && undefined != path) {
+      if (this.flatten && shouldInjectFilter(filter, path)) {
+        // Inject the current [attribute, operator, operand] into
+        //   the deepest array, between [model, "::any"]...
+        //   to get [model, [attribute, operator, operand], "::any"]
+        // At this point we know we're injecting into a tuple, so
+        //   construct the valueInjectionPath that way.
+        let injectionPath = nextInjectionPathItem(
+          getPath(path, filter.modelName, [])
+        );
+        injectValueAtPath(path, injectionPath, result);
+        result = path;
+      } else {
+        // Otherwise, just add the path to the start of
+        //   the result.
+        result.unshift(...path);
+      }
     }
 
     return result;
@@ -138,7 +159,10 @@ export class QueryBuilder {
     return expandedFilters;
   }
 
-  pathToModel(targetModel: string): string[] | undefined {
+  pathToModel(
+    targetModel: string,
+    forFilter: boolean = false
+  ): string[] | undefined {
     let path = this.graph
       .allPaths(this.root)
       .find((potentialPath: string[]) => potentialPath.includes(targetModel));
@@ -151,26 +175,31 @@ export class QueryBuilder {
     return this.pathWithModelPredicates(
       path
         ?.slice(0, path.indexOf(targetModel) + 1)
-        .filter((m) => m !== this.root)
+        .filter((m) => m !== this.root),
+      forFilter
     );
   }
 
-  allOrFirst() {
-    return this.flatten ? '::first' : '::all';
-  }
-
-  pathWithModelPredicates(path: string[]): string[] {
-    let updatedPath: string[] = [];
-    let previousModelName = this.root;
-    path.forEach((modelName: string) => {
-      updatedPath.push(modelName);
-      if (stepIsOneToMany(this.models, previousModelName, modelName)) {
-        updatedPath.push(this.allOrFirst());
-      }
-      previousModelName = modelName;
-    });
-
-    return updatedPath;
+  pathWithModelPredicates(path: string[], forFilter: boolean = false): any[] {
+    // When constructing this path for a filter,
+    //   and flattened, we need to nest any collection
+    //   models.
+    if (forFilter && this.flatten) {
+      const filterBuilder = new QueryFilterPathBuilder(
+        path,
+        this.root,
+        this.models
+      );
+      return filterBuilder.build();
+    } else {
+      const pathBuilder = new QuerySimplePathBuilder(
+        path,
+        this.root,
+        this.models,
+        this.flatten
+      );
+      return pathBuilder.build();
+    }
   }
 
   // Type should be some sort of arbitrarily nested string array,

@@ -2,6 +2,38 @@ import * as _ from 'lodash';
 
 import {Attribute, Model} from '../models/model_types';
 import {QueryColumn, QueryFilter} from '../contexts/query/query_types';
+import {QueryGraph} from '../utils/query_graph';
+
+export const modelHasAttribute = (
+  magmaModels: {[key: string]: Model},
+  modelName: string,
+  attributeName: string
+) => {
+  if (!magmaModels[modelName]) return false;
+
+  return !!magmaModels[modelName].template.attributes[attributeName];
+};
+
+const attributeIs = (
+  magmaModels: {[key: string]: Model},
+  modelName: string,
+  attributeName: string,
+  types: string[]
+) => {
+  if (!modelHasAttribute(magmaModels, modelName, attributeName)) return false;
+
+  return types.includes(
+    magmaModels[modelName].template.attributes[attributeName].attribute_type
+  );
+};
+
+export const attributeIsMatrix = (
+  magmaModels: {[key: string]: Model},
+  modelName: string,
+  attributeName: string
+) => {
+  return attributeIs(magmaModels, modelName, attributeName, ['matrix']);
+};
 
 export const selectAllowedModelAttributes = (
   attributes: Attribute[]
@@ -37,22 +69,6 @@ export const selectMatrixAttributes = (
   );
 };
 
-export const selectSliceableModelNames = (
-  magmaModels: any,
-  selectedAttributes: {[key: string]: QueryColumn[]}
-): string[] => {
-  // Only return table or matrix models if the user has selected
-  //   attributes from them.
-  // Determine if a model is a table by traversing up
-  //   to its parent model, then seeing the relationship type
-  //   back down to the original model.
-  // Matrices have to be detected from the model-attribute directly.
-  return selectTableModelNames(
-    magmaModels,
-    Object.keys(selectedAttributes)
-  ).concat(selectMatrixModelNames(magmaModels, selectedAttributes));
-};
-
 export const selectMatrixModelNames = (
   magmaModels: any,
   selectedAttributes: {[key: string]: QueryColumn[]}
@@ -66,24 +82,38 @@ export const selectMatrixModelNames = (
     .map(([modelName, attributes]: [string, QueryColumn[]]) => modelName);
 };
 
-export const selectTableModelNames = (
-  magmaModels: any,
-  modelNames: string[]
+export const selectCollectionModelNames = (
+  graph: QueryGraph,
+  rootModelName: string,
+  selectedAttributeModelNames: string[]
 ): string[] => {
-  return modelNames.filter((modelName: string) => {
-    let attributes: {[key: string]: {[key: string]: string}} =
-      magmaModels[modelName].template.attributes;
+  let sliceableModelNames: Set<string> = new Set();
 
-    let parentModel: {[key: string]: string} | undefined = Object.values(
-      attributes
-    ).find((attr: {[key: string]: string}) => attr.attribute_type === 'parent');
+  const fullParentage: string[] = graph.graph.fullParentage(rootModelName);
 
-    if (!parentModel) return false;
-
-    return attributeIs(magmaModels, parentModel.attribute_name, modelName, [
-      'table'
-    ]);
+  graph.allPaths(rootModelName).forEach((path: string[]) => {
+    for (let i = 0; i < path.length - 1; i++) {
+      let current = path[i];
+      let next = path[i + 1];
+      if (current === rootModelName || next === rootModelName) {
+        continue;
+      } else if (
+        i === 0 &&
+        graph.stepIsOneToMany(rootModelName, current) &&
+        selectedAttributeModelNames.includes(current)
+      ) {
+        sliceableModelNames.add(current);
+      } else if (
+        graph.stepIsOneToMany(current, next) &&
+        !fullParentage.includes(next) &&
+        selectedAttributeModelNames.includes(next)
+      ) {
+        sliceableModelNames.add(next);
+      }
+    }
   });
+
+  return [...sliceableModelNames];
 };
 
 export const getPath = (
@@ -143,16 +173,6 @@ export const pathToColumn = (
   }
 };
 
-export const modelHasAttribute = (
-  magmaModels: {[key: string]: Model},
-  modelName: string,
-  attributeName: string
-) => {
-  if (!magmaModels[modelName]) return false;
-
-  return !!magmaModels[modelName].template.attributes[attributeName];
-};
-
 export const stepIsOneToMany = (
   magmaModels: {[key: string]: Model},
   start: string,
@@ -162,19 +182,6 @@ export const stepIsOneToMany = (
   //   returns `true` if it is a one-to-many
   //   relationship.
   return attributeIs(magmaModels, start, end, ['table', 'collection']);
-};
-
-const attributeIs = (
-  magmaModels: {[key: string]: Model},
-  modelName: string,
-  attributeName: string,
-  types: string[]
-) => {
-  if (!modelHasAttribute(magmaModels, modelName, attributeName)) return false;
-
-  return types.includes(
-    magmaModels[modelName].template.attributes[attributeName].attribute_type
-  );
 };
 
 export const attributeIsFile = (
@@ -187,14 +194,6 @@ export const attributeIsFile = (
     'image',
     'file_collection'
   ]);
-};
-
-export const attributeIsMatrix = (
-  magmaModels: {[key: string]: Model},
-  modelName: string,
-  attributeName: string
-) => {
-  return attributeIs(magmaModels, modelName, attributeName, ['matrix']);
 };
 
 export const isMatrixSlice = (slice: QueryFilter) =>

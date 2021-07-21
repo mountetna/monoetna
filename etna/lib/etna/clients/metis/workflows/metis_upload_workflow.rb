@@ -30,7 +30,7 @@ module Etna
               project_name: project_name,
               bucket_name: bucket_name,
               folder_path: dir,
-          ))
+          )) unless dir == "."
 
           authorize_response = metis_client.authorize_upload(AuthorizeUploadRequest.new(
               project_name: project_name,

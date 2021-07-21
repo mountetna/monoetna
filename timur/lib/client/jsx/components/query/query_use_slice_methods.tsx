@@ -6,7 +6,7 @@ import {QueryContext} from '../../contexts/query/query_context';
 import {QueryFilter} from '../../contexts/query/query_types';
 import {
   selectMatrixModelNames,
-  selectTableModelNames,
+  selectCollectionModelNames,
   isMatrixSlice
 } from '../../selectors/query_selector';
 
@@ -43,7 +43,7 @@ const useSliceMethods = (
       removeSlice(modelName, index);
       setUpdateCounter(updateCounter + 1);
     },
-    [removeSlice, updateCounter, modelName]
+    [removeSlice, updateCounter, modelName, setUpdateCounter]
   );
 
   const attributesWithRootIdentifier = useMemo(() => {
@@ -66,37 +66,38 @@ const useSliceMethods = (
     );
   }, [reduxState, state.rootModel, attributesWithRootIdentifier]);
 
-  const tableModelNames = useMemo(() => {
+  const collectionModelNames = useMemo(() => {
     if (!state.rootModel) return [];
 
-    return selectTableModelNames(
-      selectModels(reduxState),
-      Object.keys(attributesWithRootIdentifier)
+    return selectCollectionModelNames(
+      state.graph,
+      state.rootModel,
+      Object.keys(state.attributes)
     );
-  }, [reduxState, state.rootModel, attributesWithRootIdentifier]);
+  }, [state.graph, state.rootModel, state.attributes]);
 
   const matrixSlices = useMemo(() => {
     if (!state.slices[modelName] || !matrixModelNames.includes(modelName))
       return [];
 
     return state.slices[modelName].filter((slice) => isMatrixSlice(slice));
-  }, [state.slices, modelName, state.attributes, matrixModelNames]);
+  }, [state.slices, modelName, matrixModelNames]);
 
-  const tableSlices = useMemo(() => {
-    if (!state.slices[modelName] || !tableModelNames.includes(modelName))
+  const collectionSlices = useMemo(() => {
+    if (!state.slices[modelName] || !collectionModelNames.includes(modelName))
       return [];
 
     return state.slices[modelName];
-  }, [state.slices, modelName, tableModelNames]);
+  }, [state.slices, modelName, collectionModelNames]);
 
   return {
     handleRemoveSlice,
     handlePatchSlice,
     addNewSlice,
     matrixModelNames,
-    tableModelNames,
+    collectionModelNames,
     matrixSlices,
-    tableSlices
+    collectionSlices
   };
 };
 

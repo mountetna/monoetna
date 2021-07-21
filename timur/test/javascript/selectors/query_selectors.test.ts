@@ -1,8 +1,9 @@
 import {
-  selectSliceableModelNames,
+  selectMatrixModelNames,
   selectMatrixAttributes,
   stepIsOneToMany,
-  pathToColumn
+  pathToColumn,
+  getPath
 } from '../../../lib/client/jsx/selectors/query_selector';
 
 const models = {
@@ -38,8 +39,8 @@ const models = {
   }
 };
 
-describe('selectSliceableModelNames', () => {
-  it('returns the only table and matrix model names', () => {
+describe('selectMatrixModelNames', () => {
+  it('returns matrix model names', () => {
     let selectedAttributes: {[key: string]: any} = {
       labor: [
         {
@@ -56,25 +57,22 @@ describe('selectSliceableModelNames', () => {
         }
       ]
     };
-    let sliceableModelNames = selectSliceableModelNames(
-      models,
-      selectedAttributes
-    );
+    let matrixModelNames = selectMatrixModelNames(models, selectedAttributes);
 
-    expect(sliceableModelNames).toEqual(['prize', 'labor']);
+    expect(matrixModelNames).toEqual(['labor']);
 
     selectedAttributes = {
-      labor: [
+      prize: [
         {
-          model_name: 'labor',
-          attribute_name: 'year',
-          display_label: 'labor.year'
+          model_name: 'prize',
+          attribute_name: 'name',
+          display_label: 'prize.name'
         }
       ]
     };
-    sliceableModelNames = selectSliceableModelNames(models, selectedAttributes);
+    matrixModelNames = selectMatrixModelNames(models, selectedAttributes);
 
-    expect(sliceableModelNames).toEqual([]);
+    expect(matrixModelNames).toEqual([]);
   });
 });
 
@@ -141,7 +139,7 @@ describe('pathToColumn', () => {
     expect(pathToColumn(input, 'kapow', false)).toEqual('-1');
   });
 
-  it('finds nested headings', () => {
+  it('finds root index for nested headings', () => {
     let input = [
       'foo',
       ['bar', ['shallow']],
@@ -171,6 +169,13 @@ describe('pathToColumn', () => {
     // ]
     expect(pathToColumn(input, 'bar.shallow', true)).toEqual('1.0');
     expect(pathToColumn(input, 'deep.nesting', true)).toEqual('3.2.1');
+  });
+});
+
+describe('getPath', () => {
+  it('finds path to nested model name', () => {
+    let input = ['model1', ['model2', ['model3', '::any'], '::any'], '::any'];
+    expect(getPath(input, 'model3', [])).toEqual([1, 1, 0]);
   });
 });
 

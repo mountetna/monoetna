@@ -36,6 +36,7 @@ class Magma
 
     def initialize(question)
       @question = question
+      @subqueries = []
     end
 
     def reduced_type
@@ -73,6 +74,24 @@ EOT
         [ @verb.do(:constraint) ].compact
       else
         []
+      end
+    end
+
+    def subquery
+      if @verb && @verb.gives?(:subquery)
+        [ @verb.do(:subquery) ].compact
+      else
+        []
+      end
+    end
+
+    def subquery_config
+      if @verb && @verb.gives?(:subquery_config)
+        @verb.do(:subquery_config)
+      else
+        {
+          class: 'inner'
+        }
       end
     end
 
@@ -136,6 +155,14 @@ EOT
       @alias_name ||= 10.times.map{ (97+rand(26)).chr }.join.to_sym
     end
 
+    def join_subqueries
+      @subqueries.map(&:subqueries).flatten || []
+    end
+
+    def subquery_constraints
+      @subqueries.map(&:constraint).compact
+    end
+
     private
 
     # This function takes the argument list and matches it to one of the
@@ -155,6 +182,12 @@ EOT
       end.inject(&:+) || []
     end
 
+    def join_filter_subqueries
+      @filters ? @filters.map do |filter|
+        filter.flatten.map(&:subquery)
+      end.flatten : []
+    end
+
     # Code relating to defining and looking up predicate verbs
     class << self
       def verbs
@@ -165,10 +198,12 @@ EOT
         verbs[args] = block
       end
 
-      def match_verbs(query_args, predicate)
+      def match_verbs(query_args, predicate, is_conditional = false)
+        # Conditional model verbs like ::any or ::every appear
+        #   last in the set of query args.
         matching_args, matching_block = verbs.find do |verb_args, block|
           verb_args.each.with_index.all? do |verb_arg, i|
-            query_arg = query_args[i]
+            query_arg = is_conditional ? query_args.last : query_args[i]
             case verb_arg
             when nil
               query_arg.nil?
@@ -353,3 +388,10 @@ require_relative 'predicate/terminal'
 require_relative 'predicate/metrics'
 require_relative 'predicate/table'
 require_relative 'predicate/matrix'
+require_relative 'predicate/subquery_config'
+require_relative 'predicate/subquery_filter'
+require_relative 'predicate/subquery_operator'
+require_relative 'predicate/subquery_utils'
+require_relative 'subquery_inner'
+require_relative 'subquery_outer'
+require_relative 'subquery_constraint'
