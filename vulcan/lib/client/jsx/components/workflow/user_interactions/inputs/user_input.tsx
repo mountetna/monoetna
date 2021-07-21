@@ -70,21 +70,19 @@ export default function UserInput({
 }) {
   const [InputComponent, Validator] = backendComponentOf(input.type);
   const {dispatch} = useContext(VulcanContext);
+  const {onChange, data, value, source, label} = input;
 
   useEffect(() => {
-    const errors = Validator(input);
+    const errors = Validator({ data, value });
     if (errors.length > 0) {
       dispatch(
-        addValidationErrors(stepOfSource(input.source) || null, input.label, errors)
+        addValidationErrors(stepOfSource(source) || null, label, errors)
       );
-    } else {
-      dispatch(removeValidationErrors(errors));
     }
     // On unmount, remove all errors associated with the input
     return () => dispatch(removeValidationErrors(errors));
-  }, [input.value, input, dispatch, Validator]);
+  }, [dispatch, Validator, value, source, label, data]);
 
-  const {onChange, data, value} = input;
 
   return (
     <div className='view_item'>

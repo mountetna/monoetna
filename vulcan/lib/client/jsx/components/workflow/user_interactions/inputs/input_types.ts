@@ -60,22 +60,26 @@ export function getInputSpecifications(
 }
 
 export function bindInputSpecification(input: InputSpecification,
-  state: VulcanState,
+  workflow: Workflow,
+  status: VulcanState['status'],
+  session: VulcanState['session'],
+  data: VulcanState['data'],
+  buffered: VulcanState['bufferedInputValues'],
   dispatch: Dispatch<VulcanAction>
 ): BoundInputSpecification {
   const stepName = stepOfSource(input.source);
-  const step = stepName && stepOfStatus(stepName, state.workflow || defaultWorkflow);
-  const data = stepName && step && stepInputDataRaw(step, state.status, state.data, state.session) || {};
+  const step = stepName && stepOfStatus(stepName, workflow);
+  const inputData = stepName && step && stepInputDataRaw(step, status, data, session) || {};
 
   return {
     ...input,
     onChange(v: Maybe<unknown>) {
-      dispatch(setBufferedInput({...state.bufferedInputValues, [input.source]: v}))
+      dispatch(setBufferedInput({...buffered, [input.source]: v}))
     },
-    data,
-    value: input.source in state.bufferedInputValues ?
-      state.bufferedInputValues[input.source] :
-      input.source in state.session.inputs ? state.session.inputs[input.source] : null,
+    data: inputData,
+    value: input.source in buffered ?
+      buffered[input.source] :
+      input.source in session.inputs ? session.inputs[input.source] : null,
   };
 }
 

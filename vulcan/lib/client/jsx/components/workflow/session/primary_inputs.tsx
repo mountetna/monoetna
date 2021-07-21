@@ -21,7 +21,8 @@ export default function PrimaryInputs() {
   useEffect(() => {
     let updatedInputs = bufferedInputValues;
     Object.keys(workflow.inputs).forEach(inputName => {
-      if (!(inputName in inputs)) {
+      if (!(inputName in inputs) && !(inputName in bufferedInputValues)) {
+        console.log({inputs, inputName})
         if (updatedInputs === bufferedInputValues) updatedInputs = {...updatedInputs};
         updatedInputs[inputName] = some(workflow.inputs[inputName].default);
       }
@@ -32,12 +33,23 @@ export default function PrimaryInputs() {
     }
   }, [bufferedInputValues, dispatch, inputs, workflow.inputs])
 
-  let groupedInputs = useMemo(() => getInputSpecifications(Object.entries(workflow.inputs), workflow).reduce((result, spec) => {
-    let groupName = inputGroupName(spec.source);
-    result[groupName] = result[groupName] || [];
-    result[groupName].push(bindInputSpecification(spec, state, dispatch));
-    return result;
-  }, {} as {[k: string]: BoundInputSpecification[]}), [dispatch, state, workflow]);
+  const inputSpecifications = useMemo(() =>
+    getInputSpecifications(Object.entries(workflow.inputs), workflow), [workflow]);
+
+  let groupedInputs = useMemo(() => {
+    return inputSpecifications.reduce((result, spec) => {
+      let groupName = inputGroupName(spec.source);
+      result[groupName] = result[groupName] || [];
+      result[groupName].push(bindInputSpecification(spec,
+        workflow,
+        state.status,
+        state.session,
+        state.data,
+        state.bufferedInputValues,
+      dispatch));
+      return result;
+    }, {} as {[k: string]: BoundInputSpecification[]});
+  }, [dispatch, inputSpecifications, state.bufferedInputValues, state.data, state.session, state.status, workflow]);
 
   return (
     <div className='primary-inputs'>

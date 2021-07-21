@@ -18,6 +18,7 @@ export default function BooleanInput({onChange, label, data, ...props}: WithInpu
   if (label) {
     return <label className='checkbox-input-option'>
       {inner}
+      {label}
     </label>;
   }
 

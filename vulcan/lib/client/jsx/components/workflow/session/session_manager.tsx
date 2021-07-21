@@ -55,7 +55,7 @@ export default function SessionManager() {
         if (confirm('This session file belongs to a different project / workflow combination, navigate to that page?')) {
           location.href = location.origin + ROUTES.workflow(session.project_name, session.workflow_name);
         }
-        throw new Error('This file')
+        throw new Error('Cannot read session file, incompatible with current page.')
       }
       dispatch(setSession(session));
     }));

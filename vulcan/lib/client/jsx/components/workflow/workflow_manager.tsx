@@ -32,7 +32,7 @@ export default function WorkflowManager({workflowName, projectName}: { workflowN
         }
       });
     }
-  }, [dispatch, getLocalSession, projectName, workflow]);
+  }, [cancelPolling, dispatch, getLocalSession, projectName, workflow]);
 
   if (!state.workflow) {
     return null;

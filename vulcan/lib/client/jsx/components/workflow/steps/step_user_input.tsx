@@ -11,14 +11,15 @@ import {
 import {
   bindInputSpecification, BoundInputSpecification, getInputSpecifications
 } from '../user_interactions/inputs/input_types';
+import {useWorkflow} from "../../../contexts/workflow_context";
 
 export default function StepUserInput({ step, }: { step: WorkflowStep; }) {
   const {state, dispatch} = useContext(VulcanContext);
-  const {workflow} = state;
+  const {workflow} = useWorkflow();
   const uiQuery = uiQueryOfStep(step);
 
   const stepInputs: BoundInputSpecification[] = useMemo(() => getInputSpecifications(step, workflow)
-    .map(spec => bindInputSpecification(spec, state, dispatch)),
+    .map(spec => bindInputSpecification(spec, workflow, state.status, state.session, state.data, state.bufferedInputValues, dispatch)),
     [step, workflow, state, dispatch])
 
   if (!uiQuery) return null;

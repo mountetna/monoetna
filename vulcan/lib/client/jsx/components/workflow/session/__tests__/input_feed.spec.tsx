@@ -66,7 +66,7 @@ describe('InputFeed', () => {
           })
         )
       ),
-      setDownloadedData('https://download1', {abc: null, '123': null})
+      setDownloadedData('https://download1', "default-value")
     ]);
 
     const component = renderer.create(

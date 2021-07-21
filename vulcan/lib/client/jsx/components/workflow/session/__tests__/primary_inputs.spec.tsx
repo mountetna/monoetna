@@ -1,13 +1,17 @@
-import React from 'react';
-import {defaultContext, VulcanProvider} from '../../../../contexts/vulcan_context';
-import renderer from 'react-test-renderer';
+import React, {useContext} from 'react';
+import {defaultContext, VulcanContext, VulcanProvider} from '../../../../contexts/vulcan_context';
+import renderer, {act} from 'react-test-renderer';
 import PrimaryInputs from '../primary_inputs';
-import {stateFromActions} from "../../../../test_utils/state";
 import {createWorkflowFixture} from "../../../../test_utils/fixtures";
-import {setWorkflow, setWorkflows} from "../../../../actions/vulcan_actions";
+import {awaitBefore, integrateElement, setupBefore} from "../../../../test_utils/integration";
+import {useWorkflowUtils} from "../../../../test_utils/workflow_utils";
 
 describe('PrimaryInputs', () => {
-  it('renders each type of input', () => {
+  const integrated = setupBefore(() => integrateElement(<PrimaryInputs/>));
+  const workflowHelpers = setupBefore(() => integrated.value.runHook(() => useWorkflowUtils()));
+  const contextData = setupBefore(() => integrated.value.runHook(() => useContext(VulcanContext)));
+
+  awaitBefore(async () => {
     const workflow = createWorkflowFixture({
       inputs: {
         anInt: {
@@ -37,29 +41,22 @@ describe('PrimaryInputs', () => {
         },
         aBoolWithoutDefault: {
           type: 'boolean',
-          default: null,
+          default: false,
           doc: 'help',
         }
       }
     });
 
-    const { state } = stateFromActions([
-        setWorkflows([workflow]),
-        setWorkflow(workflow, 'test'),
-    ])
+    workflowHelpers.value.setWorkflow(workflow.name, workflow)
+  })
 
-    const component = renderer.create(
-        <VulcanProvider state={state} useActionInvoker={defaultContext.useActionInvoker}>
-          <PrimaryInputs/>
-        </VulcanProvider>
+  it('renders each type of input', async () => {
+    const {stateRef} = contextData.value;
+    const {node} = integrated.value;
+    expect(node.root.findAllByType('input').length).toEqual(
+        Object.keys(stateRef.current.workflow?.inputs || {}).length
     );
 
-    let instance = component.root;
-
-    expect(instance.findAllByType('input').length).toEqual(
-        Object.keys(workflow.inputs).length
-    );
-
-    expect(component.toJSON()).toMatchSnapshot();
+    expect(node.toJSON()).toMatchSnapshot();
   });
 });
