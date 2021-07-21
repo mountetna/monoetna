@@ -31,7 +31,7 @@ export default function MultipleInput<Value, Values>(InnerInput: InputBackendCom
     }, [onChange, values])
 
     return (<div>
-        {Object.keys(options).map(label => (<div className='view_item'>
+        {Object.keys(options).map(label => (<div key={label} className='view_item'>
             <div className='item_name'>{label}</div>
             <div className='item_view'>
               <InputHelp doc={label}>

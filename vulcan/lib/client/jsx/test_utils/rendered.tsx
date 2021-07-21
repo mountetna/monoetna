@@ -1,4 +1,16 @@
-import {ReactTestInstance} from "react-test-renderer";
+import {act, ReactTestInstance} from "react-test-renderer";
+
+export function findNode(node: ReactTestInstance, predicate: (e: ReactTestInstance) => boolean, idx: number) {
+  const nodes = node.findAll(predicate);
+  if (idx < 0) idx = nodes.length + idx;
+  return nodes[idx];
+}
+
+export async function clickNode(node: ReactTestInstance, predicate: (e: ReactTestInstance) => boolean, idx: number) {
+  await act(async () => {
+    findNode(node, predicate, idx).props.onClick();
+  })
+}
 
 export function includesClassNamePredicate(className: string) {
   return (node: ReactTestInstance) => node.props.className?.match(new RegExp(`(?:\\s+|^)${className}(?:\\s+|$)`))
@@ -6,6 +18,10 @@ export function includesClassNamePredicate(className: string) {
 
 export function matchesTypePredicate(element: string) {
   return (node: ReactTestInstance) => node.type === element;
+}
+
+export function matchesTextPredicate(t: string) {
+  return (node: ReactTestInstance) => text(node) === t;
 }
 
 export function findAllByClassName(element: ReactTestInstance, className: string) {
