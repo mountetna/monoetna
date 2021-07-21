@@ -13,6 +13,10 @@ declare module 'etna-js/utils/fetch' {
   export function headers(...types: HeaderType[]): {[k: string]: string};
 
   export function isJSON(response: Response): boolean;
+
+  export function json_get(path: string, params?: any): Promise<any>;
+
+  export function json_post(path: string, params?: any): Promise<any>;
 }
 
 declare module 'etna-js/hooks/useActionInvoker' {
