@@ -12,7 +12,8 @@ class ClientController < Metis::Controller
       token_name: Metis.instance.config(:token_name),
       timur_host: Metis.instance.config(:timur)&.dig(:host),
       vulcan_host: Metis.instance.config(:vulcan)&.dig(:host),
-      janus_host: Metis.instance.config(:janus)&.dig(:host)
+      janus_host: Metis.instance.config(:janus)&.dig(:host),
+      polyphemus_host: Metis.instance.config(:polyphemus)&.dig(:host)
     }.to_json
   end
 end
