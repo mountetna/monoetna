@@ -8,7 +8,6 @@ export type Monoid<DataElement, C extends DataElement> = {
 export function flattener<DataElement, C extends DataElement = DataElement>({unit, concat}: Monoid<DataElement, C>) {
   return function flattenData(data: DataEnvelope<DataElement> | undefined | null): C {
     if (!data) return unit;
-    console.log({data})
     return Object.values(data).reduce<C>(concat, unit);
   }
 }
@@ -21,7 +20,6 @@ export type StringOptions = string | string[];
 export const flattenStringOptions = flattener<StringOptions, string[]>({
   unit: [],
   concat(a, b) {
-    console.log({a, b});
     return [
       ...(typeof a === "string" ? [a] : a),
       ...(typeof b === "string" ? [b] : b),

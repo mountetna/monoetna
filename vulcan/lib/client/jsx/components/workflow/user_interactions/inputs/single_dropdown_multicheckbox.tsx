@@ -1,6 +1,6 @@
 // Input component that takes a simple object and
 // shows values based on a selected key
-import React, {useCallback, useState,} from 'react';
+import React, {useCallback, useMemo, useState,} from 'react';
 
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import CheckboxesInput from './checkboxes';
@@ -13,11 +13,13 @@ import {useSetsDefault} from "./useSetsDefault";
 function DropdownCheckboxCombo({
   dropdownValue,
   handleSelect,
+  checkboxOptions,
   dropdownOptions,
   value,
   onChange,
 }: {
   dropdownValue: string | null;
+  checkboxOptions: string[];
   dropdownOptions: string[];
   handleSelect: (value: string) => void;
   value: string[];
@@ -34,7 +36,7 @@ function DropdownCheckboxCombo({
       </div>
       <div className='checkbox-input-wrapper'>
         <CheckboxesInput
-          data={{dropdownOptions}}
+          data={{checkboxOptions}}
           onChange={onChange}
           value={some(value)}
         />
@@ -49,8 +51,8 @@ export default function SingleDropdownMulticheckbox({ data, onChange, ...props }
   const allOptions = useMemoized(joinNesting, data);
   const [dropdownValue, setDropdownValue] = useState(() => Object.keys(allOptions)[0] as string | null);
   const value = useSetsDefault(allOptions, props.value, onChange);
-  console.log({dropdownValue, allOptions})
-  const dropdownOptions = dropdownValue == null ? [] : allOptions[dropdownValue];
+  const dropdownOptions = useMemo(() => Object.keys(allOptions), [allOptions]);
+  const checkboxOptions = dropdownValue == null ? [] : allOptions[dropdownValue];
   const selectedValue = dropdownValue == null ? [] : value[dropdownValue] || [];
   const onChangeInner = useCallback((values: Maybe<string[]>) => {
     if (!dropdownValue || values == null) return;
@@ -63,6 +65,7 @@ export default function SingleDropdownMulticheckbox({ data, onChange, ...props }
   return (
     <div>
       <DropdownCheckboxCombo
+        checkboxOptions={checkboxOptions}
         dropdownOptions={dropdownOptions}
         dropdownValue={dropdownValue}
         handleSelect={setDropdownValue}

@@ -96,9 +96,33 @@ describe('SingleDropdownMulticheckbox', () => {
           option1: ['2'],
           option2: ['x', 'y', 'z'],
           option3: ['8', '7'],
-          option4: ['a', 'b', 'c']
+          option4: ['a', 'b']
         });
       })
+
+      it('checkboxes switch when dropdown value changes', async () => {
+        const {node} = integrated.value;
+
+        await act(async () => {
+          node.root.find(includesClassNamePredicate('icon-wrapper'))
+            .props.onClick()
+        })
+
+        const options = node.root.find(includesClassNamePredicate('dropdown-autocomplete-options'))
+          .findAllByType('li')
+
+        await act(async () => {
+          options[options.length - 1].props.onClick();
+        });
+
+        expect(renderedDropdownValue(node.root)).toEqual('option4');
+        expect(renderedCheckboxesText(node.root)).toEqual([
+          'a',
+          'b',
+          'c'
+        ]);
+        expect(checkedCheckboxesText(node.root)).toEqual(['a', 'b']);
+      });
 
       it('updates state when clicking checkboxes', () => {
         const {node} = integrated.value;
@@ -108,33 +132,9 @@ describe('SingleDropdownMulticheckbox', () => {
           option1: ['2', '1'],
           option2: ['x', 'y', 'z'],
           option3: ['8', '7'],
-          option4: ['a', 'b', 'c']
+          option4: ['a', 'b']
         }));
       });
     })
   })
-
-  it('checkboxes switch when dropdown value changes', async () => {
-    const {node} = integrated.value;
-
-    await act(async () => {
-      node.root.find(includesClassNamePredicate('icon-wrapper'))
-        .props.onClick()
-    })
-
-    const options = node.root.find(includesClassNamePredicate('dropdown-autocomplete-options'))
-      .findAllByType('li')
-
-    await act(async () => {
-      options[options.length - 1].props.onClick();
-    });
-
-    expect(renderedDropdownValue(node.root)).toEqual('option4');
-    expect(renderedCheckboxesText(node.root)).toEqual([
-      'a',
-      'b',
-      'c'
-    ]);
-    expect(checkedCheckboxesText(node.root)).toEqual(['c']);
-  });
 });
