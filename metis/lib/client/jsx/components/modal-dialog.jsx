@@ -5,8 +5,9 @@ import { camelCase, capitalize } from '../utils/format';
 import ConfigureBucket from './dialogs/configure-bucket-dialog';
 import Message from './dialogs/message-dialog';
 import UploadDialog from "./dialogs/upload-dialog";
+import IngestToBucket from './dialogs/ingest-to-bucket-dialog';
 
-const DIALOGS = { ConfigureBucket, Message, UploadDialog };
+const DIALOGS = { ConfigureBucket, Message, UploadDialog, IngestToBucket };
 
 const ModalDialog = ({ dialog, dismissDialog }) => {
   if (!dialog || !Object.keys(dialog).length) return null;
