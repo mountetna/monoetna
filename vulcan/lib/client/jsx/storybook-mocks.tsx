@@ -9,32 +9,26 @@ import {
 } from "./api_types";
 import {workflowsResponse} from "./test_utils/fixtures/workflows-response";
 import {defaultSession, defaultVulcanState} from "./reducers/vulcan_reducer";
-import {ReactElement} from "react";
+import {createContext, ReactElement, useState} from "react";
 
-type PromiseInner<T extends Promise<any>> = T extends Promise<infer R> ? R : any;
-function ioc<F extends (...p: any[]) => Promise<any>, R = PromiseInner<ReturnType<F>>>(
-  g: () => Generator<unknown, unknown, [Parameters<F>, (r: R) => void, (e: any) => void]>,
-): (...p: Parameters<F>) => Promise<R> {
-  const gen = g();
-  return (...p: Parameters<F>) => {
-    return new Promise<R>((resolve, reject) => {
-      gen.next([p, resolve, reject]);
-    })
-  };
+type Overrides = Partial<VulcanContextData> & Partial<ProviderProps>;
+
+const defaultOverridesContext = {
+  setOverrides(overrides: Overrides) {},
 }
 
-function handle<R, P extends any[]>(request: [P, (v: R) => void, (e: any) => void], f: (...p: P) => Promise<R>) {
-  const [params, resolve, reject] = request;
-  f(...params).then(resolve, reject);
-}
+export const MockContext = createContext(defaultOverridesContext);
 
 export const StorybookMockDecorator = (Story: () => ReactElement) => {
   const store = VulcanStore();
+  const [overrides, setOverrides] = useState({} as Overrides);
 
   return <Provider store={store}>
-    <VulcanProvider {...mocks}>
-      <Story/>
-    </VulcanProvider>
+    <MockContext.Provider value={{setOverrides}}>
+      <VulcanProvider {...{...mocks, ...overrides}}>
+        <Story/>
+      </VulcanProvider>
+    </MockContext.Provider>
   </Provider>;
 }
 
@@ -55,30 +49,18 @@ global.CONFIG = {
   vulcan_host: "",
 }
 
-const mocks: Partial<VulcanContextData> & Partial<ProviderProps> = {
+const {
+  getWorkflows,
+  getData,
+  pollStatus,
+  postInputs,
+} = defaultContext;
+
+const mocks: Overrides = {
   // logActions: true,
-  pollStatus: ioc<typeof defaultContext.pollStatus>(function* () {
-    while (true) {
-      handle(yield, async (session) => {
-        return defaultSessionStatusResponse;
-      })
-    }
-  }),
-  postInputs: ioc<typeof defaultContext.postInputs>(function*() {
-    while (true) {
-      handle(yield, async (session) => {
-        return defaultSessionStatusResponse;
-      })
-    }
-  }),
-  getData: ioc<typeof defaultContext.getData>(function*() {
-    while (true) {
-      handle(yield, async (url) => {
-        return "";
-      })
-    }
-  }),
-  getWorkflows: ioc<typeof defaultContext.getWorkflows>(function* () {
-  }),
+  getWorkflows,
+  getData,
+  pollStatus,
+  postInputs,
 };
 

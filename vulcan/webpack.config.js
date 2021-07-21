@@ -6,7 +6,7 @@ module.exports = (env) => ({
   mode: env.NODE_ENV || 'development',
   context: path.resolve(__dirname),
   resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx', '.scss', '.png', '.jpg', '.jpeg', '.svg'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx', '.scss', '.png', '.jpg', '.jpeg', '.svg', '.css'],
     alias: {
       'code-mirror': path.join(__dirname, 'node_modules/codemirror/lib'),
       react: path.join(__dirname, 'node_modules/react'),
@@ -72,6 +72,8 @@ module.exports = (env) => ({
             __dirname,
             'node_modules/react-loader-spinner/dist/loader/css'
           ),
+          path.resolve(__dirname, 'node_modules/etna-js/'),
+          '/etna/packages/etna-js',
           path.resolve(__dirname, 'lib/client/scss')
         ],
 

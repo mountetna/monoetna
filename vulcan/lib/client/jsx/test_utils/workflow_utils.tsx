@@ -10,7 +10,7 @@ import {
   WorkflowStep
 } from "../api_types";
 import {createStepStatusFixture, createUpdatedStatusFixture} from "./fixtures";
-import {VulcanState} from "../reducers/vulcan_reducer";
+import VulcanReducer, {defaultVulcanState, VulcanState} from "../reducers/vulcan_reducer";
 import {VulcanContext} from "../contexts/vulcan_context";
 import {useContext, useState} from "react";
 import {splitSource, statusOfStep} from "../selectors/workflow_selectors";
@@ -24,6 +24,15 @@ export function useWorkflowUtils(): WorkflowUtils {
   return utils;
 }
 
+export function workflowUtilsBuilder() {
+  const stateRef = { current: defaultVulcanState };
+  return new WorkflowUtils(dispatch, stateRef);
+
+  function dispatch(action: VulcanAction) {
+    stateRef.current = VulcanReducer(stateRef.current, action);
+  }
+}
+
 export class WorkflowUtils {
   public workflow: Readonly<Workflow> = defaultWorkflow;
   public steps: { [k: string]: WorkflowStep } = {};
@@ -33,6 +42,13 @@ export class WorkflowUtils {
 
   get status() {
     return this.stateRef.current.status;
+  }
+
+  // Useful for chaining
+  // workflowUtils.do(utils => ).do(utils => );
+  do(f: (utils: WorkflowUtils) => void): WorkflowUtils {
+    f(this);
+    return this;
   }
 
   setWorkflow(name: string,
