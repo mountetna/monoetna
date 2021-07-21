@@ -67,7 +67,6 @@ describe('NestedSelectAutocompleteInput', () => {
     await clickIconWrapper(node.root, 0);
     await clickLi(node.root, 0);
 
-    // console.log(JSON.stringify(node.toJSON(), null, 2));
     expect(getSelectedOption(node.root)).toEqual('option1');
     expect(node.root.findAllByType('input').length).toEqual(2);
 

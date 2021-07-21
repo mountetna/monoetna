@@ -32,11 +32,6 @@ describe('NotEmptyValidator', () => {
     expect(NotEmptyValidator(input).length > 0).toEqual(true);
   });
 
-  it('reports errors for arrays with empty string only', () => {
-    input.value = some('');
-    expect(NotEmptyValidator(input).length > 0).toEqual(true);
-  });
-
   it('reports no errors for populated arrays', () => {
     input.value = some(['choice 1']);
     expect(NotEmptyValidator(input).length === 0).toEqual(true);

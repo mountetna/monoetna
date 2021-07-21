@@ -17,7 +17,8 @@ function getPath(options: OptionSet, leaf: string): string[] {
       // Look one step ahead for our leaf nodes
       if (Object.keys(value).includes(leaf) && null == value[leaf])
         return [key, leaf];
-      return [key, ...getPath(value, leaf)];
+      const path = getPath(value, leaf)
+      if (path.length > 0) return [key, ...getPath(value, leaf)];
     } else if (null == value && key == leaf) {
       return [key];
     }
@@ -69,7 +70,8 @@ export default function NestedSelectAutocompleteInput({ data, onChange, value }:
 
   useEffect(() => {
     mapSome(value, value => {
-      setPath(getPath(allOptions, value));
+      const updatedPath = getPath(allOptions, value);
+      setPath(updatedPath);
     })
   }, [allOptions, value])
 

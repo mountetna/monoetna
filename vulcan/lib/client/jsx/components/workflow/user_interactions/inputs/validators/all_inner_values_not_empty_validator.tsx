@@ -11,14 +11,14 @@ const _AllInnerValuesNotEmptyValidator = (
   const allOptions = joinNesting(input.data);
 
   const emptyKeys = withDefault(mapSome(input.value, value =>
-    Object.keys(allOptions).filter(o => inputValueNonEmpty(maybeOfNullable(o), strong))), Object.keys(allOptions));
+    Object.keys(allOptions).filter(o => !inputValueNonEmpty(maybeOfNullable(value[o]), strong))), Object.keys(allOptions));
   emptyKeys.sort();
 
   if (emptyKeys.length > 0) {
     let verb = (emptyKeys.length > 1) ? 'Values are' : 'Value is';
 
     return [
-      `${verb} empty: ${emptyKeys.join(',')}`
+      `${verb} empty: ${emptyKeys.join(', ')}`
     ];
   }
 

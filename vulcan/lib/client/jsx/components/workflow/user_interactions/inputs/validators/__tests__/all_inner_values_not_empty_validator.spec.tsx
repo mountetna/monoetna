@@ -52,7 +52,7 @@ describe('AllInnerValuesNotEmptyValidator', () => {
 
   it('reports no errors for hashes with empty strings normally', () => {
     input.value = some({experiment: '', tissue: '1'});
-    expect(AllInnerValuesNotEmptyValidator(input).length === 0).toEqual(true);
+    expect(AllInnerValuesNotEmptyValidator(input)).toEqual([]);
   });
 
     it('reports errors for hashes with empty strings when Strong', () => {
