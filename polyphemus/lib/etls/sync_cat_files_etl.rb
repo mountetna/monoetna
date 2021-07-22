@@ -78,13 +78,15 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
       !existing_names.include?(record.filename)
     end
 
-    new_records.each do |record|
-      Polyphemus::IngestFile.create(
+    Polyphemus::IngestFile.multi_insert(new_records.map do |record|
+      {
+        created_at: DateTime.now,
+        updated_at: DateTime.now,
         name: record.filename,
         host: host,
-        should_ingest: false,
-      )
-    end
+        should_ingest: false
+      }
+    end)
   end
 
   def existing_file_names(records)
