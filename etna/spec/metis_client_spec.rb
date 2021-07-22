@@ -433,7 +433,7 @@ describe 'Metis Client class' do
             folders: [],
             files: []
           }.to_json
-        }).times(3).then
+        }).times(4).then
         .to_return({
           status: 200, # List an existing file
           headers: {
@@ -449,7 +449,7 @@ describe 'Metis Client class' do
               "updated_at": "2000-02-01 00:00:00"
             }]
           }.to_json
-        }).then
+        }).times(2).then
         .to_return({
           status: 422
         })
