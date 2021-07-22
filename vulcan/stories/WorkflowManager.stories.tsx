@@ -1,6 +1,6 @@
 import {ComponentMeta, ComponentStory} from "@storybook/react";
 import React, {useContext, useEffect} from "react";
-import {Workflow, WorkflowsResponse} from "../lib/client/jsx/api_types";
+import {SessionStatusResponse, VulcanSession, Workflow, WorkflowsResponse} from "../lib/client/jsx/api_types";
 import {WorkflowUtils, workflowUtilsBuilder} from "../lib/client/jsx/test_utils/workflow_utils";
 import {MockContext} from "../lib/client/jsx/storybook-mocks";
 import WorkflowManager from "../lib/client/jsx/components/workflow/workflow_manager";
@@ -26,7 +26,11 @@ function MockedWorkflowManager({
         return {
           workflows: [workflow],
         }
-      }
+      },
+
+      // async pollStatus(session: VulcanSession): Promise<SessionStatusResponse> {
+      //
+      // }
     })
   }, [setOverrides, workflow])
 

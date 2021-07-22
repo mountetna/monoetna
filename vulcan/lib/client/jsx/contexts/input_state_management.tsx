@@ -1,21 +1,74 @@
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {Dispatch, MutableRefObject, useCallback} from "react";
+import {
+  createContext, Dispatch, MutableRefObject, PropsWithChildren, useCallback, useContext, useRef, useState
+} from "react";
 import {defaultSessionSyncHelpers} from "./session_sync";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 import {showMessages} from "etna-js/actions/message_actions";
-import {setBufferedInput, setInputs, VulcanAction} from "../actions/vulcan_actions";
-import { allSourcesForStepName } from "../selectors/workflow_selectors";
-import {mapSome} from "../selectors/maybe";
+import {setInputs, VulcanAction} from "../actions/vulcan_actions";
+import {allSourcesForStepName} from "../selectors/workflow_selectors";
+import {mapSome, Maybe} from "../selectors/maybe";
+import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
 
 export const defaultInputStateManagement = {
-  commitSessionInputChanges(stepName: string | null) {
-  },
-  cancelInputChanges(stepName: string | null) {
-  },
+  commitSessionInputChanges(stepName: string | null, inputs: DataEnvelope<Maybe<any>>) {
+    return false;
+  }
 }
 
-export function useInputStateManagement(
-  invoke: ReturnType<typeof useActionInvoker>,
+export const defaultBufferedInputs = {
+  inputs: {} as DataEnvelope<Maybe<any>>,
+  setInputs(inputs: DataEnvelope<Maybe<any>> | ((prev: DataEnvelope<Maybe<any>>) => DataEnvelope<Maybe<any>>)) {
+  },
+}
+export const BufferedInputsContext = createContext(defaultBufferedInputs);
+
+export function WithBufferedInputs({
+  children,
+  commitSessionInputChanges,
+  stepName,
+}: PropsWithChildren<{
+  commitSessionInputChanges: typeof defaultInputStateManagement.commitSessionInputChanges,
+  stepName: string | null,
+}>) {
+  const inputsRef = useRef({} as DataEnvelope<Maybe<any>>);
+  const [inputs, setInputsState] = useState(inputsRef.current);
+  const setInputs = useCallback<typeof defaultBufferedInputs.setInputs>(inputs => {
+    if (inputs instanceof Function) {
+      inputsRef.current = inputs(inputsRef.current);
+    } else {
+      inputsRef.current = inputs;
+    }
+
+    setInputsState(inputsRef.current);
+  }, []);
+
+  const cancelInputs = useCallback(() => {
+    setInputs({});
+  }, [setInputs])
+
+  const commitInputs = useCallback(() => {
+    if (commitSessionInputChanges(stepName, inputsRef.current)) {
+      cancelInputs();
+    }
+  }, [cancelInputs, commitSessionInputChanges, stepName]);
+
+  return <BufferedInputsContext.Provider value={{inputs, setInputs}}>
+    <div>
+      {children}
+    </div>
+    <div>
+      <button onClick={cancelInputs}>
+        Cancel
+      </button>
+      <button onClick={commitInputs}>
+        Commit
+      </button>
+    </div>
+  </BufferedInputsContext.Provider>
+}
+
+export function useInputStateManagement(invoke: ReturnType<typeof useActionInvoker>,
   dispatch: Dispatch<VulcanAction>,
   requestPoll: typeof defaultSessionSyncHelpers.requestPoll,
   stateRef: MutableRefObject<VulcanState>,
@@ -35,30 +88,19 @@ export function useInputStateManagement(
     return validationErrs.length === 0;
   }, [getErrors, invoke])
 
-  const cancelInputChanges = useCallback<typeof defaultInputStateManagement.cancelInputChanges>(stepName => {
-    const sources = allSourcesForStepName(stepName, stateRef.current.workflow);
-    const newBuffered = {...stateRef.current.bufferedInputValues};
-    sources.forEach(source => {
-      delete newBuffered[source];
-    })
-
-    dispatch(setBufferedInput(newBuffered));
-  }, [dispatch, stateRef]);
-
-  const commitSessionInputChanges = useCallback<typeof defaultInputStateManagement.commitSessionInputChanges>(stepName => {
-    if (!validateInputs(stepName)) return;
+  const commitSessionInputChanges = useCallback<typeof defaultInputStateManagement.commitSessionInputChanges>((stepName, inputs) => {
+    if (!validateInputs(stepName)) return false;
     const sources = allSourcesForStepName(stepName, stateRef.current.workflow);
     const newInputs = {...stateRef.current.session.inputs};
     sources.forEach(source => {
-      mapSome(stateRef.current.bufferedInputValues[source], inner => newInputs[source] = inner);
+      mapSome(inputs[source] || null, inner => newInputs[source] = inner);
     })
-    cancelInputChanges(stepName);
     dispatch(setInputs(newInputs))
     requestPoll();
-  }, [cancelInputChanges, dispatch, requestPoll, stateRef, validateInputs]);
+    return true;
+  }, [dispatch, requestPoll, stateRef, validateInputs]);
 
   return {
-    cancelInputChanges,
     commitSessionInputChanges,
   };
 }
