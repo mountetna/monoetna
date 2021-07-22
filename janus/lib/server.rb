@@ -31,7 +31,7 @@ class Janus
 
     post '/add_user/:project_name', action: 'admin#add_user', auth: { user: { is_admin?: :project_name } }
 
-    post '/add_project', action: 'admin#add_project', auth: { user: { is_superuser?: true } }
+    post '/add_project', action: 'admin#add_project', auth: { user: { is_supereditor?: true } }
 
     post '/flag_user', action: 'admin#flag_user', auth: { user: { is_superuser?: true } }
 
