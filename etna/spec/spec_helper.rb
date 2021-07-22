@@ -93,7 +93,9 @@ def stub_metis_setup
     {:method=>"POST", :route=>"/:project_name/files/copy", :name=>"file_bulk_copy", :params=>["project_name"]},
     {:method=>"POST", :route=>"/:project_name/file/rename/:bucket_name/*file_path", :name=>"file_rename", :params=>["project_name", "bucket_name", "file_path"]},
     {:method=>"POST", :route=>"/authorize/upload", :name=>"upload_authorize", :params=>["project_name", "bucket_name", "file_path"]},
-    {:method=>"POST", :route=>"/:project_name/upload/:bucket_name/*file_path", :name=>"upload_upload", :params=>["project_name", "bucket_name", "file_path"]}
+    {:method=>"POST", :route=>"/:project_name/upload/:bucket_name/*file_path", :name=>"upload_upload", :params=>["project_name", "bucket_name", "file_path"]},
+    {:method=>"DELETE", :route=>"/:project_name/file/remove/:bucket_name/*file_path", :name=>"file_remove", :params=>["project_name", "bucket_name", "file_path"]},
+    
   ])
 
   stub_request(:options, METIS_HOST).
@@ -153,6 +155,13 @@ end
 
 def stub_delete_folder(params={})
   stub_request(:delete, /#{METIS_HOST}\/#{PROJECT}\/folder\/remove\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_delete_file(params={})
+  stub_request(:delete, /#{METIS_HOST}\/#{PROJECT}\/file\/remove\/#{params[:bucket] || RESTRICT_BUCKET}\//)
   .to_return({
     status: params[:status] || 200
   })
