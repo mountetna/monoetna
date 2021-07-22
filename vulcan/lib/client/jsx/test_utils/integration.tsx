@@ -9,8 +9,10 @@ import * as React from "react";
 import {BlockingAsyncMock, createFakeStorage, UnbufferedAsyncMock} from "./mocks";
 import {Maybe, some} from "../selectors/maybe";
 
+type InnerElementConstructor = (hookElement: ReactElement, contextData: VulcanContextData) => ReactElement;
+
 export function integrateElement(
-  element: ReactElement | null = null,
+  element: ReactElement | null | InnerElementConstructor = null,
   providerOverrides: Partial<ProviderProps & VulcanContextData> = {},
 ) {
   // Default provide mocks should proceed the spread below.
@@ -19,8 +21,7 @@ export function integrateElement(
     getData: defaultContext.getData,
     pollStatus: defaultContext.pollStatus,
     postInputs: defaultContext.postInputs,
-    storage: createFakeStorage(),
-    ...providerOverrides,
+    storage: createFakeStorage(), ...providerOverrides,
   }
 
   const store = VulcanStore();
@@ -30,7 +31,7 @@ export function integrateElement(
   let prehookResult = [undefined] as [any];
   let renderIdx = 0;
   let PreHookContainer = function PreHookContainer() {
-    if(preHook) prehookResult[0] = preHook();
+    if (preHook) prehookResult[0] = preHook();
     return null;
   }
 
@@ -46,21 +47,30 @@ export function integrateElement(
       lastPreHook = preHook;
       prehookResult[0] = undefined;
       PreHookContainer = function PreHookContainer() {
-        if(preHook) prehookResult[0] = preHook();
+        if (preHook) prehookResult[0] = preHook();
         return null;
       }
     }
 
+    const prehook = <PreHookContainer key={renderIdx + "-prehook"}/>;
+    const inner = element instanceof Function ?
+      <ProvidesElementFunction element={element} prehook={prehook}/> :
+      element;
+
     return <Provider store={store}>
       <VulcanProvider {...providerOverrides}>
-        <PreHookContainer key={renderIdx + "-prehook"}/>
-        {element}
+        {inner}
       </VulcanProvider>
     </Provider>;
   }
 
+  function ProvidesElementFunction({element, prehook}: { element: InnerElementConstructor, prehook: ReactElement }) {
+    const contextData = useContext(VulcanContext);
+    return element(prehook, contextData);
+  }
+
   function runHook<T>(hook: () => T): T {
-    act(function() {
+    act(function () {
       preHook = hook;
       node.update(rerender());
     });
@@ -69,7 +79,7 @@ export function integrateElement(
   }
 
   function getContext(): VulcanContextData {
-    return runHook(function() {
+    return runHook(function () {
       return useContext(VulcanContext);
     })
   }
@@ -84,15 +94,13 @@ export function integrateElement(
     return getContext();
   }
 
-  function blockingAsyncMock<K extends keyof VulcanContextData, T>(k: K): VulcanContextData[K] extends (...a: any[]) => Promise<T> ?
-    BlockingAsyncMock<any[], T> : never {
+  function blockingAsyncMock<K extends keyof VulcanContextData, T>(k: K): VulcanContextData[K] extends (...a: any[]) => Promise<T> ? BlockingAsyncMock<any[], T> : never {
     const mock = new BlockingAsyncMock<any[], T>(defaultContext[k] as any, act);
     provideOverrides({[k]: mock.mock});
     return mock as any;
   }
 
-  function unbufferedAsyncMock<K extends keyof VulcanContextData, T>(k: K): VulcanContextData[K] extends (...a: any[]) => Promise<T> ?
-    UnbufferedAsyncMock<any[], T> : never {
+  function unbufferedAsyncMock<K extends keyof VulcanContextData, T>(k: K): VulcanContextData[K] extends (...a: any[]) => Promise<T> ? UnbufferedAsyncMock<any[], T> : never {
     const mock = new UnbufferedAsyncMock<any[], T>(defaultContext[k] as any, act);
     provideOverrides({[k]: mock.mock});
     return mock as any;
@@ -106,7 +114,7 @@ export class ValueCell<ValueType> {
   constructor(
     protected factory: () => Promise<ValueType> | ValueType,
     protected scheduler: (f: () => Promise<void>) => Promise<void> = async f => await f(),
-) {
+  ) {
     this.originalFactory = factory;
     this.setup();
   }
@@ -157,7 +165,8 @@ export function setupBefore<T>(f: () => T) {
   return new ValueCell(f, async inner => {
     // Run the inner, synchronous
     await inner();
-    await act(async () => {});
+    await act(async () => {
+    });
   });
 }
 

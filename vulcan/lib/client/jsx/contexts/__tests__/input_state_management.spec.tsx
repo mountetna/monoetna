@@ -1,8 +1,10 @@
+import React from 'react';
 import {awaitBefore, integrateElement, setupBefore} from "../../test_utils/integration";
 import {useWorkflowUtils} from "../../test_utils/workflow_utils";
 import {useContext} from "react";
 import {VulcanContext} from "../vulcan_context";
 import {addValidationErrors, setBufferedInput, setInputs} from "../../actions/vulcan_actions";
+import {BufferedInputsContext, WithBufferedInputs} from "../input_state_management";
 
 describe('useDataBuffering', () => {
   beforeEach(() => {
@@ -13,10 +15,16 @@ describe('useDataBuffering', () => {
     jest.useRealTimers();
   })
 
-  const integrated = setupBefore(integrateElement);
+  const stepName = setupBefore(() => null as string | null);
+  const integrated = setupBefore(() => integrateElement((hook, {dispatch, commitSessionInputChanges}) =>
+    <WithBufferedInputs stepName={stepName.value} dispatch={dispatch}
+                        commitSessionInputChanges={commitSessionInputChanges}>
+      {hook}
+    </WithBufferedInputs>));
   const pollStatusMock = setupBefore(() => integrated.value.blockingAsyncMock('pollStatus'));
   const workflowHelpers = setupBefore(() => integrated.value.runHook(() => useWorkflowUtils()));
   const contextData = setupBefore(() => integrated.value.runHook(() => useContext(VulcanContext)));
+  const bufferInputsContextData = setupBefore(() => integrated.value.runHook(() => useContext(BufferedInputsContext)))
 
   const setupWorkflow = awaitBefore(async () => {
     workflowHelpers.value.setWorkflow('test');
@@ -28,28 +36,28 @@ describe('useDataBuffering', () => {
     workflowHelpers.value.addPrimaryInput('c');
   })
 
-  const aStep = awaitBefore(async() => {
+  const aStep = awaitBefore(async () => {
     return workflowHelpers.value.addStep('astep', {
-      out: ['a', 'b'],
-      run: 'ui-queries/some-input',
+      out: ['a', 'b'], run: 'ui-queries/some-input',
     })
   })
 
-  const bStep = awaitBefore(async() => {
+  const bStep = awaitBefore(async () => {
     return workflowHelpers.value.addStep('bstep', {
-      out: ['a', 'b'],
-      run: 'ui-queries/some-input',
+      out: ['a', 'b'], run: 'ui-queries/some-input',
     })
   })
 
   const setupInputs = awaitBefore(async () => {
-    contextData.value.dispatch(setBufferedInput({
-      "astep/a": [true],
-      "a": [true],
-      "bstep/b": [true],
-      "bstep/a": [true],
-      "c": [true],
-    }))
+    bufferInputsContextData.value.setInputs({
+      "astep/a": [true], "a": [true], "bstep/b": [true], "bstep/a": [true], "c": [true],
+    })
+  })
+
+  awaitBefore(async () => {
+    expect([...contextData.value.stateRef.current.bufferedSteps].sort()).toEqual([
+      stepName.value
+    ])
   })
 
   // Helps verify that other inputs don't get cleared when updating.
@@ -58,22 +66,18 @@ describe('useDataBuffering', () => {
   })
 
   describe('commitSessionInputs', () => {
-    const committedStepName = setupBefore(() => null as string | null);
-
     const doCommit = awaitBefore(async () => {
-      const {commitSessionInputChanges} = contextData.value;
-      commitSessionInputChanges(committedStepName.value);
+      bufferInputsContextData.value.commitInputs();
     });
 
     describe('for primary inputs', () => {
       it('pushes those into the session.inputs, then executes a poll', async () => {
         const {stateRef} = contextData.value;
-        expect(Object.keys(stateRef.current.bufferedInputValues)).toEqual(['astep/a', 'bstep/b', 'bstep/a'])
+        const {inputs} = bufferInputsContextData.value;
+        expect(Object.keys(inputs)).toEqual([])
         expect(stateRef.current.validationErrors).toEqual([]);
         expect(stateRef.current.session.inputs).toEqual({
-          "a": true,
-          "c": true,
-          "v": 2,
+          "a": true, "c": true, "v": 2,
         });
         expect(pollStatusMock.value.pendingCount()).toEqual(1);
         const [[requestedSession]] = await pollStatusMock.value.channel.receive();
@@ -82,14 +86,14 @@ describe('useDataBuffering', () => {
     })
 
     describe('for a step', () => {
-      committedStepName.replace(() => 'astep');
+      stepName.replace(() => 'astep');
 
       it('pushes those into the session.inputs, then executes a poll', async () => {
         const {stateRef} = contextData.value;
-        expect(Object.keys(stateRef.current.bufferedInputValues)).toEqual(['a', 'bstep/b', 'bstep/a', 'c'])
+        const {inputs} = bufferInputsContextData.value;
+        expect(Object.keys(inputs)).toEqual([])
         expect(stateRef.current.session.inputs).toEqual({
-          "astep/a": true,
-          "v": 2,
+          "astep/a": true, "v": 2,
         });
         expect(pollStatusMock.value.pendingCount()).toEqual(1);
         const [[requestedSession]] = await pollStatusMock.value.channel.receive();
@@ -109,8 +113,7 @@ describe('useDataBuffering', () => {
         it('still pushes to session inputs and polls', () => {
           const {stateRef} = contextData.value;
           expect(stateRef.current.session.inputs).toEqual({
-            "astep/a": true,
-            "v": 2,
+            "astep/a": true, "v": 2,
           });
           expect(pollStatusMock.value.pendingCount()).toEqual(1);
         })
@@ -134,27 +137,16 @@ describe('useDataBuffering', () => {
   });
 
   describe('cancelInputChanges', () => {
-    const cancelledStepName = setupBefore(() => null as string | null);
-
     const doCancel = awaitBefore(async () => {
-      const {cancelInputChanges} = contextData.value;
-      cancelInputChanges(cancelledStepName.value);
+      bufferInputsContextData.value.cancelInputs();
     })
 
-    describe('for primary inputs', () => {
-      it('removes only and all outputs from primary inputs', async () => {
-        const {stateRef} = contextData.value;
-        expect(Object.keys(stateRef.current.bufferedInputValues)).toEqual(['astep/a', 'bstep/b', 'bstep/a'])
-      })
-    })
-
-    describe('for a step', () => {
-      cancelledStepName.replace(() => 'bstep');
-
-      it('removes only and all outputs from that step', async () => {
-        const {stateRef} = contextData.value;
-        expect(Object.keys(stateRef.current.bufferedInputValues)).toEqual(['astep/a', 'a', 'c'])
-      })
+    it('cleans the buffered inputs and does not effect the state inputs', async () => {
+      const {stateRef} = contextData.value;
+      const {inputs} = bufferInputsContextData.value;
+      expect(Object.keys(inputs)).toEqual([])
+      expect(Object.keys(stateRef.current.session.inputs)).toEqual(['v'])
+      expect(stateRef.current.bufferedSteps).toEqual([])
     })
   })
 });

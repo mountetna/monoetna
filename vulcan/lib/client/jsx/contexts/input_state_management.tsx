@@ -1,3 +1,4 @@
+import React from 'react';
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {
   createContext, Dispatch, MutableRefObject, PropsWithChildren, useCallback, useContext, useRef, useState
@@ -5,7 +6,7 @@ import {
 import {defaultSessionSyncHelpers} from "./session_sync";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 import {showMessages} from "etna-js/actions/message_actions";
-import {setInputs, VulcanAction} from "../actions/vulcan_actions";
+import {clearBufferedInput, setBufferedInput, setInputs, VulcanAction} from "../actions/vulcan_actions";
 import {allSourcesForStepName} from "../selectors/workflow_selectors";
 import {mapSome, Maybe} from "../selectors/maybe";
 import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
@@ -20,19 +21,24 @@ export const defaultBufferedInputs = {
   inputs: {} as DataEnvelope<Maybe<any>>,
   setInputs(inputs: DataEnvelope<Maybe<any>> | ((prev: DataEnvelope<Maybe<any>>) => DataEnvelope<Maybe<any>>)) {
   },
+  commitInputs() {},
+  cancelInputs() {},
 }
 export const BufferedInputsContext = createContext(defaultBufferedInputs);
 
 export function WithBufferedInputs({
   children,
   commitSessionInputChanges,
+  dispatch,
   stepName,
 }: PropsWithChildren<{
   commitSessionInputChanges: typeof defaultInputStateManagement.commitSessionInputChanges,
+  dispatch: Dispatch<VulcanAction>,
   stepName: string | null,
 }>) {
   const inputsRef = useRef({} as DataEnvelope<Maybe<any>>);
   const [inputs, setInputsState] = useState(inputsRef.current);
+
   const setInputs = useCallback<typeof defaultBufferedInputs.setInputs>(inputs => {
     if (inputs instanceof Function) {
       inputsRef.current = inputs(inputsRef.current);
@@ -40,8 +46,13 @@ export function WithBufferedInputs({
       inputsRef.current = inputs;
     }
 
+    if (Object.keys(inputsRef.current).length > 0){
+      dispatch(setBufferedInput(stepName));
+    } else {
+      dispatch(clearBufferedInput(stepName));
+    }
     setInputsState(inputsRef.current);
-  }, []);
+  }, [dispatch, stepName]);
 
   const cancelInputs = useCallback(() => {
     setInputs({});
@@ -53,7 +64,7 @@ export function WithBufferedInputs({
     }
   }, [cancelInputs, commitSessionInputChanges, stepName]);
 
-  return <BufferedInputsContext.Provider value={{inputs, setInputs}}>
+  return <BufferedInputsContext.Provider value={{inputs, setInputs, commitInputs, cancelInputs}}>
     <div>
       {children}
     </div>

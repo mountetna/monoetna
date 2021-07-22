@@ -3,7 +3,10 @@ import {
   OUTPUT_COMPONENT, RUN, SessionStatusResponse, STATUS, StepInput, StepStatus, Workflow, WorkflowInput, WorkflowStep,
 } from "../api_types";
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {GroupedInputStep, UIStep, BoundInputSpecification} from "../components/workflow/user_interactions/inputs/input_types";
+import {
+  GroupedInputStep,
+  BoundInputSpecification, WorkflowStepGroup
+} from "../components/workflow/user_interactions/inputs/input_types";
 import {useMemo} from "react";
 import {mapSome, Maybe, maybeOfNullable, withDefault} from "./maybe";
 
@@ -239,13 +242,12 @@ export function missingOutputsForStep(step: WorkflowStep, inputs: VulcanState['s
   return result;
 }
 
-export function completedUiOutputSteps(workflow: Workflow, status: VulcanState['status']): UIStep[] {
-  return completedSteps(workflow, status).filter(({step}) => !!uiOutputOfStep(step));
+export function completedUiOutputSteps(workflow: Workflow, status: VulcanState['status']): WorkflowStep[] {
+  return completedSteps(workflow, status).filter((step) => !!uiOutputOfStep(step));
 }
 
-export function completedSteps(workflow: Workflow, status: VulcanState['status']): UIStep[] {
-  return workflow.steps[0].map((step, index) => ({step, index}))
-      .filter(({step}) => statusOfStep(step, status)?.status === 'complete');
+export function completedSteps(workflow: Workflow, status: VulcanState['status']): WorkflowStep[] {
+  return workflow.steps[0].filter((step) => statusOfStep(step, status)?.status === 'complete');
 }
 
 export function erroredSteps(workflow: Workflow, status: VulcanState['status']) {
@@ -254,9 +256,8 @@ export function erroredSteps(workflow: Workflow, status: VulcanState['status']) 
 }
 
 
-export function pendingSteps(workflow: Workflow, status: VulcanState['status']): UIStep[] {
-  return workflow.steps[0].map((step, index) => ({step, index}))
-      .filter(({step}) => statusOfStep(step, status)?.status === 'pending');
+export function pendingSteps(workflow: Workflow, status: VulcanState['status']): WorkflowStep[] {
+  return workflow.steps[0].filter(step => statusOfStep(step, status)?.status === 'pending');
 }
 
 export function hasNoRunningSteps(status: VulcanState['status']): boolean {
@@ -272,39 +273,36 @@ export const inputGroupName = (name: string) => {
   return groupName;
 };
 
-export function groupUiSteps(uiSteps: UIStep[]): UIStep[] {
-  const map: { [k: string]: UIStep } = {};
-  const result: UIStep[] = [];
+export function groupUiSteps(uiSteps: WorkflowStep[]): WorkflowStepGroup[] {
+  const map: { [k: string]: WorkflowStepGroup } = {};
+  const result: WorkflowStepGroup[] = [];
 
-  uiSteps.forEach(uiStep => {
-    if ('isGroup' in uiStep) {
-      throw new Error('Cannot group a grouped input!' + JSON.stringify(uiStep));
+  uiSteps.forEach(step => {
+    if ('isGroup' in step) {
+      throw new Error('Cannot group a grouped input!' + JSON.stringify(step));
     }
 
-    const groupName = inputGroupName(uiStep.step.name);
+    const groupName = inputGroupName(step.name);
 
     if (groupName === 'Inputs') {
-      result.push(map[uiStep.step.name] = uiStep);
+      result.push(map[step.name] = { steps: [step] });
       return;
     }
 
     const group = map[groupName] || result.push(map[groupName] = {
-      step: {
-        name: groupName,
-        isGroup: true,
-        label: groupName,
-        run: "", // group steps have no real run
-        in: [],
-        out: [],
-      },
-      index: uiStep.index,
+      name: groupName,
+      isGroup: true,
+      label: groupName,
+      run: "", // group steps have no real run
+      in: [],
+      out: [],
     }) && map[groupName];
 
-    group.step.in = group.step.in.concat(uiStep.step.out.map(name => ({
-      id: sourceNameOfReference([uiStep.step.name, name]),
-      source: sourceNameOfReference([uiStep.step.name, name]),
-      doc: uiStep.step.doc,
-      label: uiStep.step.label || sourceNameOfReference([uiStep.step.name, name]),
+    group.step.in = group.step.in.concat(step.out.map(name => ({
+      id: sourceNameOfReference([step.name, name]),
+      source: sourceNameOfReference([step.name, name]),
+      doc: step.doc,
+      label: step.label || sourceNameOfReference([step.name, name]),
     })));
   });
 
@@ -320,14 +318,6 @@ export function filterEmptyValues(values: { [k: string]: any }): { [k: string]: 
   })
 
   return result;
-}
-
-const collator = new Intl.Collator(undefined, {
-  numeric: true,
-  sensitivity: 'base'
-});
-export function sortInputsByLabel(inputs: BoundInputSpecification[]): BoundInputSpecification[] {
-  return inputs.sort((a, b) => collator.compare(a.label, b.label))
 }
 
 export function useMemoized<P1, R>(f: (p1: P1) => R, p1: P1): R {

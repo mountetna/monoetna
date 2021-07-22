@@ -8,7 +8,7 @@ import {
   WorkflowsResponse
 } from "../api_types";
 import {allExpectedOutputSources, filterEmptyValues, statusOfStep, stepOfStatus} from "../selectors/workflow_selectors";
-import {mapSome, Maybe} from "../selectors/maybe";
+import {mapSome, Maybe, some, withDefault} from "../selectors/maybe";
 
 export type DownloadedData = any; // TODO: improve typing here.
 export type DownloadedStepDataMap = { [k: string]: DownloadedData };
@@ -32,19 +32,13 @@ export const defaultVulcanState = {
   status: defaultStatus,
   data: defaultData,
 
-  // a subset of all inputs that might have changes to them.
-  bufferedInputValues: {} as {[k: string]: Maybe<any>},
-  // a subset of all inputs that have been explicitly edited by the user,
-  // and the hash reported by status for that edit (if it exists).
-  // used to clear inputs /outputs that are stale, such as when an input
-  // change has downstream effects to the decision of an input.
-  stepChangedAt: {} as {[k: string]: Maybe<string>},
+  // A subset of all steps that have buffered changes.
+  bufferedSteps: [] as ((string | null)[]),
 
   session: defaultSession,
   outputs: defaultSessionStatusResponse.outputs,
   validationErrors: defaultValidationErrors,
   pollingState: 0,
-  editedSource: null as null | string,
 };
 
 export type VulcanState = Readonly<(typeof defaultVulcanState)>;
@@ -74,22 +68,23 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
         session: {...defaultSession, workflow_name: action.workflow.name, project_name: action.projectName},
       };
     case 'SET_STATUS':
-      const newInputs = filterStaleInputs(state, action);
-      const newData = filterStaleData(state, action);
-
-      return {
+      return filterStaleInputs({
         ...state,
-        stepChangedAt: {},
         status: action.status,
-        session: {...state.session, inputs: newInputs},
-        data: newData,
-      };
+      }, action);
 
     case 'SET_BUFFERED_INPUT':
-      return {...state, bufferedInputValues: action.inputs};
+      if (state.bufferedSteps.includes(action.step)) {
+        return state;
+      }
+      return {...state, bufferedSteps: [...state.bufferedSteps, action.step]}
 
     case 'CLEAR_BUFFERED_INPUT':
-      return {...state, bufferedInputValues: {}};
+      const idx = state.bufferedSteps.indexOf(action.step);
+      if (idx === -1) return state;
+      const bufferedSteps = [...state.bufferedSteps];
+      bufferedSteps.splice(idx, 1);
+      return {...state, bufferedSteps};
 
     case 'SET_DOWNLOAD':
       return {
@@ -169,35 +164,40 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
 }
 
 function filterStaleInputs(state: VulcanState, action: { type: "SET_STATUS" } & { status: [StepStatus[]] }) {
-  let newInputs = {...state.session.inputs};
-  for (let stepName in state.stepChangedAt) {
-    mapSome(state.stepChangedAt[stepName], expectedHash => {
-      if (!state.workflow) return;
-      const step = stepOfStatus(stepName, state.workflow);
-      if (!step) return;
-      const newStatus = statusOfStep(stepName, action.status);
-      if (newStatus && newStatus.hash === expectedHash) return;
+  if (!state.workflow) return state;
+  let newState = state;
+  let newInputs = state.session.inputs;
+  let newData = state.data;
 
+  const hashesOfSteps = {} as {[k: string]: string};
+  action.status[0].forEach(stepStatus => {
+    hashesOfSteps[stepStatus.name] = stepStatus.hash;
+  })
+
+
+  for (let stepStatus of state.status[0]) {
+    if (hashesOfSteps[stepStatus.name] !== stepStatus.hash) {
+      const step = stepOfStatus(stepStatus, state.workflow);
+      if (!step) continue;
       allExpectedOutputSources(step).forEach(outputSource => {
+        if (newState === state) {
+          newState = {...state, session: {...state.session, inputs: {...state.session.inputs}}};
+          newInputs = state.session.inputs;
+        }
         delete newInputs[outputSource];
       })
-    })
-  }
-  return newInputs;
-}
 
-function filterStaleData(state: VulcanState, action: { type: "SET_STATUS" } & { status: [StepStatus[]] }) {
-  let newData = {...defaultData};
-  for (let oldStatus of state.status[0]) {
-    const newStatus = statusOfStep(oldStatus.name, action.status);
-    if (newStatus && newStatus.hash === oldStatus.hash && newStatus.downloads) {
-      Object.values(newStatus.downloads).forEach(url => {
-        if (url in state.data) {
-          newData[url] = state.data[url];
-        }
-      })
+      if (stepStatus.downloads) {
+        Object.values(stepStatus.downloads).forEach(url => {
+          if (newState === state) {
+            newState = {...state, data: {...state.data}};
+            newData = newState.data;
+          }
+          delete newData[url];
+        })
+      }
     }
   }
 
-  return newData;
+  return newState;
 }

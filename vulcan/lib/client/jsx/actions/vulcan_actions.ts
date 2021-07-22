@@ -60,12 +60,13 @@ export function finishPolling() {
     return actionObject('MODIFY_POLLING', {delta: -1})
 }
 
-// Fully, replaces the buffered inputs with those given.
-export function setBufferedInput(inputs: {[k: string]: Maybe<any>}) {
-    return actionObject('SET_BUFFERED_INPUT', {inputs});
+export function setBufferedInput(step: string | null) {
+    return actionObject('SET_BUFFERED_INPUT', {step});
 }
 
-export const clearBufferedInput = actionObject('CLEAR_BUFFERED_INPUT', {});
+export function clearBufferedInput(step: string | null) {
+    return actionObject('CLEAR_BUFFERED_INPUT', {step})
+}
 
 export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow> | ReturnType<typeof setStatus> |
     ReturnType<typeof setDownloadedData> | ReturnType<typeof setSession> | ReturnType<typeof setInputs> |
@@ -73,4 +74,4 @@ export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof s
     ReturnType<typeof removeDownloads> |
     ReturnType<typeof startPolling> | ReturnType<typeof finishPolling> |
     ReturnType<typeof addValidationErrors> | ReturnType<typeof removeValidationErrors> |
-    ReturnType<typeof setBufferedInput> | typeof clearBufferedInput;
+    ReturnType<typeof setBufferedInput> | ReturnType<typeof clearBufferedInput>;

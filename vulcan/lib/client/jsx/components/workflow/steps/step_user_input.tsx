@@ -1,28 +1,36 @@
 import React, { useContext, useMemo } from 'react';
-
 import {VulcanContext} from '../../../contexts/vulcan_context';
-
 import UserInput from '../user_interactions/inputs/user_input';
-
 import {WorkflowStep} from '../../../api_types';
 import {
-  uiQueryOfStep,
-} from '../../../selectors/workflow_selectors';
-import {
-  bindInputSpecification, BoundInputSpecification, getInputSpecifications
+  bindInputSpecification, BoundInputSpecification, getInputSpecifications, InputSpecification
 } from '../user_interactions/inputs/input_types';
 import {useWorkflow} from "../../../contexts/workflow_context";
+import {BufferedInputsContext, WithBufferedInputs} from "../../../contexts/input_state_management";
 
-export default function StepUserInput({ step, }: { step: WorkflowStep; }) {
-  const {state, dispatch} = useContext(VulcanContext);
+export default function StepUserInput({ step, hideLabel = true }: { step: WorkflowStep; hideLabel: boolean }) {
+  const {dispatch, commitSessionInputChanges} = useContext(VulcanContext);
   const {workflow} = useWorkflow();
-  const uiQuery = uiQueryOfStep(step);
+  const specs = useMemo(() => getInputSpecifications(step, workflow), [step, workflow]);
 
-  const stepInputs: BoundInputSpecification[] = useMemo(() => getInputSpecifications(step, workflow)
-    .map(spec => bindInputSpecification(spec, workflow, state.status, state.session, state.data, state.bufferedInputValues, dispatch)),
-    [step, workflow, state, dispatch])
+  return (
+    <React.Fragment>
+      <WithBufferedInputs commitSessionInputChanges={commitSessionInputChanges} dispatch={dispatch} stepName={step.name}>
+        <StepUserInputInner specs={specs} hideLabel={hideLabel}/>
+      </WithBufferedInputs>
+    </React.Fragment>
+  );
+}
 
-  if (!uiQuery) return null;
+function StepUserInputInner({ specs, hideLabel }: {specs: InputSpecification[], hideLabel: boolean }) {
+  const {state, dispatch} = useContext(VulcanContext);
+  const {status, session, data} = state;
+  const {workflow} = useWorkflow();
+  const {inputs, setInputs} = useContext(BufferedInputsContext);
+
+  const stepInputs: BoundInputSpecification[] = useMemo(() => specs
+    .map(spec => bindInputSpecification(spec, workflow, status, session, data, inputs, setInputs, dispatch)),
+    [specs, workflow, status, session, data, inputs, setInputs, dispatch])
 
   return (
     <React.Fragment>
@@ -30,7 +38,7 @@ export default function StepUserInput({ step, }: { step: WorkflowStep; }) {
         return (
           <UserInput
             input={input}
-            hideLabel={true}
+            hideLabel={hideLabel}
             key={index}
           />
         );

@@ -1,12 +1,13 @@
 import * as React from 'react';
-import {defaultWorkflow, defaultWorkflowStep, Workflow, WorkflowInput, WorkflowStep} from '../../../../api_types';
+import {Workflow, WorkflowInput, WorkflowStep} from '../../../../api_types';
 import {Maybe} from "../../../../selectors/maybe";
 import {Dispatch} from "react";
-import {setBufferedInput, VulcanAction} from "../../../../actions/vulcan_actions";
+import {VulcanAction} from "../../../../actions/vulcan_actions";
 import {VulcanState} from "../../../../reducers/vulcan_reducer";
 import {
   sourceNamesOfStep, stepInputDataRaw, stepOfSource, stepOfStatus, uiQueryOfStep
 } from "../../../../selectors/workflow_selectors";
+import {defaultBufferedInputs} from "../../../../contexts/input_state_management";
 
 export type InputType = string;
 
@@ -30,19 +31,10 @@ export interface BoundInputSpecification<Value = unknown, DataElement = unknown>
 }
 
 export function getInputSpecifications(
-  step: WorkflowStep | GroupedInputStep | [string, WorkflowInput][],
+  step: WorkflowStep | [string, WorkflowInput][],
   workflow: Workflow | null,
 ): InputSpecification[] {
   if (!workflow) return [];
-
-  if ('isGroup' in step) {
-    return step.in.map(({source, label, doc}) => ({
-      source,
-      doc,
-      label: label || source,
-      type: uiQueryOfStep(stepOfStatus(stepOfSource(source) || '', workflow) || defaultWorkflowStep) || 'default'
-    }))
-  }
 
   if (Array.isArray(step)) {
     return step.map(([name, workflowInput]) => {
@@ -64,7 +56,8 @@ export function bindInputSpecification(input: InputSpecification,
   status: VulcanState['status'],
   session: VulcanState['session'],
   data: VulcanState['data'],
-  buffered: VulcanState['bufferedInputValues'],
+  buffered: typeof defaultBufferedInputs.inputs,
+  setInputs: typeof defaultBufferedInputs.setInputs,
   dispatch: Dispatch<VulcanAction>
 ): BoundInputSpecification {
   const stepName = stepOfSource(input.source);
@@ -74,24 +67,16 @@ export function bindInputSpecification(input: InputSpecification,
   return {
     ...input,
     onChange(v: Maybe<unknown>) {
-      dispatch(setBufferedInput({...buffered, [input.source]: v}))
+      setInputs(inputs => ({...inputs, [input.source]: v}))
     },
     data: inputData,
-    value: input.source in buffered ?
-      buffered[input.source] :
-      input.source in session.inputs ? session.inputs[input.source] : null,
+    value: input.source in buffered ? buffered[input.source] :
+      input.source in session.inputs ? session.inputs[input.source] :
+        null,
   };
 }
 
-export interface UIStep {
-  step: WorkflowStep | GroupedInputStep;
-  // Index in the original workflow
-  index: number;
-}
-
-export type GroupedInputStep = WorkflowStep & {
-  isGroup: true;
-};
+export type WorkflowStepGroup = { steps: WorkflowStep[] }
 
 export type InputBackendComponent<Params extends {} = {}, Value = unknown, DataElement = unknown> = (p: WithInputParams<Params, Value, DataElement>) => React.ReactElement | null;
 export type WithInputParams<Params extends {}, Value, DataElement = unknown> = Params & {
