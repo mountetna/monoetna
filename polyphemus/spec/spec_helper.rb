@@ -135,6 +135,15 @@ def stub_rename_folder(params={})
   })
 end
 
+def stub_rename_folder_with_error(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: 422
+  }).then.to_return({
+    status: params[:status] || 200
+  })
+end
+
 def stub_magma_restricted_pools(base_model, restricted_pools)
   stub_request(:post, "#{MAGMA_HOST}/query")
     .with(body: hash_including({ project_name: 'mvir1',
