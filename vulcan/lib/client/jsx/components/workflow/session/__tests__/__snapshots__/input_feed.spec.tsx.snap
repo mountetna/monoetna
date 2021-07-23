@@ -4,9 +4,11 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
 <div
   className="session-input-feed"
 >
-  <div
-    className="primary-inputs"
-  />
+  <div>
+    <div
+      className="primary-inputs"
+    />
+  </div>
   <div
     className="step-user-input step "
   >
@@ -21,7 +23,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         >
           <span
             className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
-            title="second"
+            title="Inputs"
           >
             <i
               className="icon step-status-icon light  clock fa fa-2x fa-clock"
@@ -31,7 +33,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         <div
           className="step-button"
         >
-          second
+          Inputs
         </div>
         <svg
           aria-hidden={true}
@@ -48,28 +50,35 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
     <div
       className="step-user-input-inputs sliding-panel vertical open"
     >
-      <div
-        className="view_item"
-      >
+      <div>
         <div
-          className="item_view"
+          className="view_item"
         >
           <div
-            className="input-help"
+            className="item_name"
+          >
+            second
+          </div>
+          <div
+            className="item_view"
           >
             <div
-              className="input-help-children-wrapper"
+              className="input-help"
             >
-              <input
-                onChange={[Function]}
-                type="text"
-                value="default-value"
+              <div
+                className="input-help-children-wrapper"
+              >
+                <input
+                  onChange={[Function]}
+                  type="text"
+                  value="default-value"
+                />
+              </div>
+              <div
+                className="help-icon-wrapper"
+                title=""
               />
             </div>
-            <div
-              className="help-icon-wrapper"
-              title=""
-            />
           </div>
         </div>
       </div>
@@ -89,7 +98,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         >
           <span
             className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
-            title="third"
+            title="Inputs"
           >
             <i
               className="icon step-status-icon light  clock fa fa-2x fa-clock"
@@ -99,7 +108,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         <div
           className="step-button"
         >
-          third
+          Inputs
         </div>
         <svg
           aria-hidden={true}
@@ -116,28 +125,35 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
     <div
       className="step-user-input-inputs sliding-panel vertical open"
     >
-      <div
-        className="view_item"
-      >
+      <div>
         <div
-          className="item_view"
+          className="view_item"
         >
           <div
-            className="input-help"
+            className="item_name"
+          >
+            third
+          </div>
+          <div
+            className="item_view"
           >
             <div
-              className="input-help-children-wrapper"
+              className="input-help"
             >
-              <input
-                onChange={[Function]}
-                type="text"
-                value="default-value"
+              <div
+                className="input-help-children-wrapper"
+              >
+                <input
+                  onChange={[Function]}
+                  type="text"
+                  value="default-value"
+                />
+              </div>
+              <div
+                className="help-icon-wrapper"
+                title=""
               />
             </div>
-            <div
-              className="help-icon-wrapper"
-              title=""
-            />
           </div>
         </div>
       </div>

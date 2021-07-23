@@ -125,7 +125,7 @@ export function allWorkflowInputSources(workflow: Workflow): string[] {
 export function inputValueNonEmpty(val: Maybe<any>, disallow_empty_string = false): boolean {
   return withDefault(mapSome(val, inner =>
     (typeof inner !== "number" || !isNaN(inner)) &&
-      inner != null && inner != "" &&
+      inner != null &&
       !_.isEqual(inner, ['']) &&
       !_.isEqual(inner, []) &&
       (!disallow_empty_string || !_.isEqual(inner, ''))
