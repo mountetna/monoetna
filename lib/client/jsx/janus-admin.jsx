@@ -3,7 +3,7 @@ import Icon from 'etna-js/components/icon';
 import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {selectUser} from 'etna-js/selectors/user-selector';
 import { json_post, json_get } from 'etna-js/utils/fetch';
-import {isSuperuser} from 'etna-js/utils/janus';
+import {isSuperEditor} from 'etna-js/utils/janus';
 
 import TextField from '@material-ui/core/TextField';
 import Table from '@material-ui/core/Table';
@@ -95,7 +95,7 @@ const JanusAdmin = () => {
   useEffect(retrieveAllProjects, []);
   return <div id='janus-admin'>
     <Projects user={user} projects={projects}/>
-    { isSuperuser(user) && <NewProject retrieveAllProjects={retrieveAllProjects}/> }
+    { isSuperEditor(user) && <NewProject retrieveAllProjects={retrieveAllProjects}/> }
   </div>;
 }
 
