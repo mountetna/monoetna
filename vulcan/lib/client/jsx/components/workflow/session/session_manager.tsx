@@ -27,7 +27,7 @@ const modalStyles = {
 };
 
 export default function SessionManager() {
-  const {state, dispatch, showErrors, requestPoll} = useContext(VulcanContext);
+  const {state, dispatch, showErrors, requestPoll, cancelPolling} = useContext(VulcanContext);
   const {workflow, hasPendingEdits, complete} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
@@ -38,6 +38,7 @@ export default function SessionManager() {
   const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
   const run = useCallback(() => requestPoll(true), [requestPoll]);
+  const stop = useCallback(() => cancelPolling(), [cancelPolling]);
 
   const saveSession = useCallback(() => {
     if (hasPendingEdits) {
@@ -107,6 +108,13 @@ export default function SessionManager() {
             </ReactModal>
           </React.Fragment>
         )}
+        { state.pollingState ? <FlatButton
+          className={`header-btn`}
+          icon='stop'
+          label='Stop'
+          title='Stop workflow'
+          onClick={stop}
+        /> :
         <FlatButton
           className={`header-btn run`}
           icon='play'
@@ -114,7 +122,7 @@ export default function SessionManager() {
           title='Run workflow'
           onClick={run}
           disabled={disableRunButton}
-        />
+        /> }
         <FlatButton
           className='header-btn save'
           icon='save'

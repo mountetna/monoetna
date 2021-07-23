@@ -45,14 +45,10 @@ const PlotWithEffects = ({
     }
   }, [data, highlightedTrace]);
 
-  let {attachEventListeners, removeEventListeners} = useLegendHover(
+  useLegendHover(
     plotRef.current,
     setHighlightedTrace
   );
-
-  useEffect(() => {
-    return () => removeEventListeners();
-  }, [removeEventListeners]);
 
   return (
     <div ref={plotRef}>
@@ -60,7 +56,6 @@ const PlotWithEffects = ({
         data={updatedData}
         layout={layout}
         config={config}
-        onAfterPlot={attachEventListeners}
       />
     </div>
   );

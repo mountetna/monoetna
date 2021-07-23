@@ -75,7 +75,13 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
     return (<VulcanContext.Provider value={{
       state,
       stateRef,
-      dispatch, ...confirmationHelpers, ...actionInvokerHelpers, ...localSessionHelpers, ...apiHelpers, ...sessionSyncHelpers, ...inputHelpers,
+      dispatch,
+      ...confirmationHelpers,
+      ...actionInvokerHelpers,
+      ...localSessionHelpers,
+      ...apiHelpers,
+      ...sessionSyncHelpers,
+      ...inputHelpers,
     }}>
       {props.children}
     </VulcanContext.Provider>);
