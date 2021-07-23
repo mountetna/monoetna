@@ -109,14 +109,4 @@ networks:
 
 services:
   <<: *base-etna-services
-  vulcan-storybook:
-    <<: *base-etna-webpack
-    networks:
-      default:
-    environment:
-      RUN_NPM_INSTALL:
-      SKIP_RUBY_SETUP: 1
-    command: npm run storybook
-    ports:
-    - 9700:6006
 
