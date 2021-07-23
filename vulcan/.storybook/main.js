@@ -12,7 +12,6 @@ module.exports = {
     "@storybook/addon-essentials"
   ],
   webpackFinal: (config) => {
-    console.log(config.module.rules);
     return {
       ...config,
       module: {

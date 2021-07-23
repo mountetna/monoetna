@@ -20,7 +20,7 @@ export default function StepsList() {
   const hasCompletedOutputs = outputs.length === 0;
 
   useEffect(() => {
-    setOpen(hasCompletedOutputs && !state.pollingState);
+    setOpen(hasCompletedOutputs || !!state.pollingState);
   }, [state.pollingState, hasCompletedOutputs]);
 
   return (

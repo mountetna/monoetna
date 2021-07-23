@@ -18,6 +18,7 @@ export type DataEnvelope<Inner> = { [k: string]: Inner };
 export interface InputSpecification {
   type: InputType;
   label: string;
+  name: string;
   doc?: string | null;
   source: string,
 }
@@ -40,6 +41,7 @@ export function getInputSpecifications(
     return step.map(([name, workflowInput]) => {
       return {
         ...workflowInput,
+        name,
         label: workflowInput.label || name,
         source: name,
       }
@@ -47,7 +49,7 @@ export function getInputSpecifications(
   }
 
   return sourceNamesOfStep(step).map(source => ({
-    source, doc: step.doc, label: step.label || step.name, type: uiQueryOfStep(step) || 'default'
+    source, name: step.name, doc: step.doc, label: step.label || step.name, type: uiQueryOfStep(step) || 'default'
   }));
 }
 

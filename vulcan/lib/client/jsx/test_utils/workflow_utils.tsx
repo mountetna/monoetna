@@ -85,7 +85,7 @@ export class WorkflowUtils {
       this.stateRef.current.status,
       status
     );
-    this.dispatch(setStatus(updatedStatus));
+    this.dispatch(setStatus(updatedStatus, false));
 
     return status;
   }
@@ -119,7 +119,7 @@ export class WorkflowUtils {
     // TODO: Set the inputs hash
     this.dispatch(setStatus(createUpdatedStatusFixture(workflow, this.stateRef.current.status, createStepStatusFixture({
       ...status, name: stepName, status: 'complete', downloads: {...status.downloads, [outputName]: url}
-    }))));
+    })), false));
 
     this.dispatch(setDownloadedData(url, value));
   }

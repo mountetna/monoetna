@@ -45,7 +45,7 @@ function PrimaryInputsInner() {
 
   let groupedInputs = useMemo(() => {
     return inputSpecifications.reduce((result, spec) => {
-      let groupName = inputGroupName(spec.source) || "Inputs";
+      let groupName = inputGroupName(spec.name) || "Inputs";
       result[groupName] = result[groupName] || [];
       result[groupName].push(bindInputSpecification(spec,
         workflow,

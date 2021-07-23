@@ -11,7 +11,7 @@ const PlotWithEffects = ({
   layout: any;
   config: any;
 }) => {
-  const [updatedData, setUpdatedData] = useState({} as any);
+  const [updatedData, setUpdatedData] = useState([] as any);
   const [highlightedTrace, setHighlightedTrace] = useState(-1);
   const plotRef = useRef<HTMLDivElement>(null);
 

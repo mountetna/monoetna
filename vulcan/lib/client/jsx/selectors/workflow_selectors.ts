@@ -281,7 +281,7 @@ export function groupUiSteps(uiSteps: WorkflowStep[]): WorkflowStepGroup[] {
     const groupName = inputGroupName(step.name);
 
     if (groupName == null) {
-      result.push(map[step.name] = { label: "Inputs", steps: [step] });
+      result.push(map[step.name] = { label: step.label || step.name, steps: [step] });
       return;
     }
 

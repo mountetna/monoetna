@@ -23,7 +23,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         >
           <span
             className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
-            title="Inputs"
+            title="second"
           >
             <i
               className="icon step-status-icon light  clock fa fa-2x fa-clock"
@@ -33,7 +33,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         <div
           className="step-button"
         >
-          Inputs
+          second
         </div>
         <svg
           aria-hidden={true}
@@ -98,7 +98,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         >
           <span
             className="icon-grp icon-grp-step-status-icon light  fa-stack fa-fw"
-            title="Inputs"
+            title="third"
           >
             <i
               className="icon step-status-icon light  clock fa fa-2x fa-clock"
@@ -108,7 +108,7 @@ exports[`InputFeed renders complete UI steps and error steps 1`] = `
         <div
           className="step-button"
         >
-          Inputs
+          third
         </div>
         <svg
           aria-hidden={true}

@@ -24,6 +24,7 @@ describe('CheckboxesInput', () => {
       type: 'doesnotmatter',
       value: null,
       label: 'Abcdef',
+      name: 'doesnotmatter',
       data: { 'options': ['1', '2', 'a', 'b'] },
       onChange,
       source: '',
