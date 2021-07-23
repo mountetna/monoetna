@@ -3,18 +3,15 @@ import * as React from "react";
 import 'regenerator-runtime';
 import {VulcanStore} from "./vulcan_store";
 import {defaultContext, ProviderProps, VulcanContextData, VulcanProvider} from "./contexts/vulcan_context";
-import {
-  defaultSessionStatusResponse,
-  defaultWorkflow,
-} from "./api_types";
-import {workflowsResponse} from "./test_utils/fixtures/workflows-response";
-import {defaultSession, defaultVulcanState} from "./reducers/vulcan_reducer";
 import {createContext, ReactElement, useState} from "react";
-
-type Overrides = Partial<VulcanContextData> & Partial<ProviderProps>;
+import {Overrides} from "./test_utils/mock-backend";
+import {Notifications} from 'etna-js/components/Notifications';
+import {ModalDialogContainer} from 'etna-js/components/ModalDialogContainer';
+import Messages from 'etna-js/components/messages';
 
 const defaultOverridesContext = {
-  setOverrides(overrides: Overrides) {},
+  setOverrides(overrides: Overrides) {
+  },
 }
 
 export const MockContext = createContext(defaultOverridesContext);
@@ -25,9 +22,13 @@ export const StorybookMockDecorator = (Story: () => ReactElement) => {
 
   return <Provider store={store}>
     <MockContext.Provider value={{setOverrides}}>
-      <VulcanProvider {...{...mocks, ...overrides}}>
-        <Story/>
-      </VulcanProvider>
+      <ModalDialogContainer>
+        <VulcanProvider {...{...mocks, ...overrides}}>
+          <Notifications/>
+          <Messages />
+          <Story/>
+        </VulcanProvider>
+      </ModalDialogContainer>
     </MockContext.Provider>
   </Provider>;
 }
@@ -38,10 +39,8 @@ global.ROUTES = {
   workflow: () => `/workflow`,
   workflow_vignette: (workflow_name: string) => `/workflow/${workflow_name}/vignette`,
   fetch_workflows: () => `/api/workflows`,
-  submit: (project_name: string, workflow_name: string) =>
-    `/api/${project_name}/session/${workflow_name}`,
-  status: (project_name: string, workflow_name: string) =>
-    `/api/${project_name}/session/${workflow_name}/status`,
+  submit: (project_name: string, workflow_name: string) => `/api/${project_name}/session/${workflow_name}`,
+  status: (project_name: string, workflow_name: string) => `/api/${project_name}/session/${workflow_name}/status`,
 };
 
 // @ts-ignore
@@ -50,17 +49,10 @@ global.CONFIG = {
 }
 
 const {
-  getWorkflows,
-  getData,
-  pollStatus,
-  postInputs,
+  getWorkflows, getData, pollStatus, postInputs,
 } = defaultContext;
 
 const mocks: Overrides = {
   // logActions: true,
-  getWorkflows,
-  getData,
-  pollStatus,
-  postInputs,
+  getWorkflows, getData, pollStatus, postInputs,
 };
-

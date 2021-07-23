@@ -1,4 +1,6 @@
-const baseWebpackConfig = require('../webpack.config')(process.env);
+var webpack = require('webpack');
+var path = require('path');
+const baseWebpackConfig = require('../webpack.config')({...process.env, NODE_ENV: 'storybook'});
 
 module.exports = {
   stories: [
@@ -10,13 +12,37 @@ module.exports = {
     "@storybook/addon-essentials"
   ],
   webpackFinal: (config) => {
+    console.log(config.module.rules);
     return {
       ...config,
       module: {
         ...config.module,
-        rules: [...config.module.rules, ...baseWebpackConfig.module.rules],
+        rules: [
+          {
+            test: /\.(stories|story)\.[tj]sx?$/,
+            loader: '/app/node_modules/@storybook/source-loader/dist/cjs/index.js',
+            options: { injectStoryParameters: true, inspectLocalDependencies: true },
+            enforce: 'pre'
+          },
+
+          {
+            test: /\.(svg|ico|jpg|jpeg|png|apng|gif|eot|otf|webp|ttf|woff|woff2|cur|ani|pdf)(\?.*)?$/,
+            loader: '/app/node_modules/@storybook/builder-webpack4/node_modules/file-loader/dist/cjs.js',
+            options: { esModule: false, name: 'static/media/[path][name].[ext]' }
+          },
+
+          ...baseWebpackConfig.module.rules,
+          // ...config.module.rules
+        ],
       },
-      plugins: [...config.plugins, ...baseWebpackConfig.plugins],
+      plugins: [
+        ...config.plugins,
+        new webpack.DefinePlugin({
+          'process.env': {
+            NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
+          }
+        })
+      ],
       resolve: {
         ...config.resolve,
         symlinks: baseWebpackConfig.resolve.symlinks,

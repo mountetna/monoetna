@@ -55,7 +55,10 @@ export function integrateElement(
     const prehook = <PreHookContainer key={renderIdx + "-prehook"}/>;
     const inner = element instanceof Function ?
       <ProvidesElementFunction element={element} prehook={prehook}/> :
-      element;
+      <React.Fragment>
+        {prehook}
+        {element}
+      </React.Fragment>;
 
     return <Provider store={store}>
       <VulcanProvider {...providerOverrides}>

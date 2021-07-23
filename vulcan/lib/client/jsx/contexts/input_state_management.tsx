@@ -38,6 +38,7 @@ export function WithBufferedInputs({
 }>) {
   const inputsRef = useRef({} as DataEnvelope<Maybe<any>>);
   const [inputs, setInputsState] = useState(inputsRef.current);
+  const hasInputs = Object.keys(inputs).length > 0;
 
   const setInputs = useCallback<typeof defaultBufferedInputs.setInputs>(inputs => {
     if (inputs instanceof Function) {
@@ -68,14 +69,14 @@ export function WithBufferedInputs({
     <div>
       {children}
     </div>
-    <div>
+    { hasInputs ? <div>
       <button onClick={cancelInputs}>
         Cancel
       </button>
       <button onClick={commitInputs}>
         Commit
       </button>
-    </div>
+    </div> : null }
   </BufferedInputsContext.Provider>
 }
 

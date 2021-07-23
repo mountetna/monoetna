@@ -4,8 +4,7 @@ import {
 } from "../api_types";
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {
-  GroupedInputStep,
-  BoundInputSpecification, WorkflowStepGroup
+   WorkflowStepGroup
 } from "../components/workflow/user_interactions/inputs/input_types";
 import {useMemo} from "react";
 import {mapSome, Maybe, maybeOfNullable, withDefault} from "./maybe";
@@ -27,13 +26,11 @@ export function statusOfStep(step: WorkflowStep | string, status: VulcanState['s
   return status[0] ? status[0].find(s => s.name === stepName) : undefined;
 }
 
-export function statusStringOfStepOrGroupedStep(step: WorkflowStep | GroupedInputStep, workflow: Workflow, status: VulcanState['status']) {
-  if ('isGroup' in step) {
+export function statusStringOfStepOrGroupedStep(step: WorkflowStep | WorkflowStepGroup, workflow: Workflow, status: VulcanState['status']) {
+  if ('steps' in step) {
     let statusStr = null as string | null;
-    for (let input of step.in) {
-      let stepName = stepOfSource(input.source);
-      if (!stepName) continue;
-      let stepStatus = statusOfStep(stepName, status);
+    for (let innerStep of step.steps) {
+      let stepStatus = statusOfStep(innerStep.name, status);
 
       if (!stepStatus) {
         return STATUS.PENDING;
@@ -47,6 +44,14 @@ export function statusStringOfStepOrGroupedStep(step: WorkflowStep | GroupedInpu
   }
 
   return statusOfStep(step, status)?.status || STATUS.PENDING;
+}
+
+export function labelOfStepOrGroupedStep(step: WorkflowStep | WorkflowStepGroup) {
+  if ('steps' in step) {
+    return step.label;
+  }
+
+  return step.label || step.name;
 }
 
 const SOURCE_STR_REGEX = /^([^\/]+)\/[^\/]+$/;
@@ -147,9 +152,9 @@ export function dataOfSource(source: string, workflow: Workflow | null, status: 
   return null;
 }
 
-export function allExpectedOutputSources(step: WorkflowStep | GroupedInputStep): string[] {
-  if ('isGroup' in step) {
-    return step.in.map(({source}) => source);
+export function allExpectedOutputSources(step: WorkflowStep | WorkflowStepGroup): string[] {
+  if ('steps' in step) {
+    return step.steps.map(allExpectedOutputSources).reduce((a, b) => [...a, ...b], []);
   } else {
     return step.out.map(outputName => sourceNameOfReference([step.name, outputName]));
   }
@@ -266,7 +271,7 @@ export function hasNoRunningSteps(status: VulcanState['status']): boolean {
 
 export const inputGroupName = (name: string) => {
   let groupName = name.split('__')[0];
-  if (groupName === name) groupName = 'Inputs';
+  if (groupName === name) return null;
 
   groupName = groupName.replace(/_/g, ' ');
 
@@ -284,26 +289,17 @@ export function groupUiSteps(uiSteps: WorkflowStep[]): WorkflowStepGroup[] {
 
     const groupName = inputGroupName(step.name);
 
-    if (groupName === 'Inputs') {
-      result.push(map[step.name] = { steps: [step] });
+    if (groupName == null) {
+      result.push(map[step.name] = { label: "Inputs", steps: [step] });
       return;
     }
 
-    const group = map[groupName] || result.push(map[groupName] = {
-      name: groupName,
-      isGroup: true,
-      label: groupName,
-      run: "", // group steps have no real run
-      in: [],
-      out: [],
-    }) && map[groupName];
+    if (!(groupName in map)) {
+      result.push(map[groupName] = { label: groupName, steps: [] })
+    }
 
-    group.step.in = group.step.in.concat(step.out.map(name => ({
-      id: sourceNameOfReference([step.name, name]),
-      source: sourceNameOfReference([step.name, name]),
-      doc: step.doc,
-      label: step.label || sourceNameOfReference([step.name, name]),
-    })));
+    const group = map[groupName];
+    group.steps.push(step);
   });
 
   return result;

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Icon from './icon';
-require('./flat-button.scss');
+require('./flat-button.css');
 
 const FlatButton = ({icon, className, disabled, title, label, onClick}) => (
   <div title={title} className={ `flat-button ${className} ${disabled ? 'disabled' : ''}` } onClick={onClick}>

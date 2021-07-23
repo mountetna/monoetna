@@ -28,7 +28,7 @@ const modalStyles = {
 
 export default function SessionManager() {
   const {state, dispatch, showErrors, requestPoll} = useContext(VulcanContext);
-  const {workflow, primaryInputsReady, complete, idle} = useWorkflow();
+  const {workflow, primaryInputsReady, complete} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
   const {session} = state;
@@ -73,7 +73,7 @@ export default function SessionManager() {
   );
 
   const hasValidationErrors = Object.keys(state.validationErrors).length > 0;
-  const running = !idle;
+  const running = state.pollingState > 0;
   const disableRunButton = complete || running || !primaryInputsReady;
 
   if (!name) return null;

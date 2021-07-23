@@ -23,14 +23,14 @@ export default function StepUserInput({ step, hideLabel = true }: { step: Workfl
 }
 
 function StepUserInputInner({ specs, hideLabel }: {specs: InputSpecification[], hideLabel: boolean }) {
-  const {state, dispatch} = useContext(VulcanContext);
+  const {state} = useContext(VulcanContext);
   const {status, session, data} = state;
   const {workflow} = useWorkflow();
   const {inputs, setInputs} = useContext(BufferedInputsContext);
 
   const stepInputs: BoundInputSpecification[] = useMemo(() => specs
-    .map(spec => bindInputSpecification(spec, workflow, status, session, data, inputs, setInputs, dispatch)),
-    [specs, workflow, status, session, data, inputs, setInputs, dispatch])
+    .map(spec => bindInputSpecification(spec, workflow, status, session, data, inputs, setInputs)),
+    [specs, workflow, status, session, data, inputs, setInputs])
 
   return (
     <React.Fragment>

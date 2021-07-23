@@ -21,7 +21,7 @@ export default function OutputFeed() {
   return (
     <div className="session-output-feed">
       {outputs.map((s, index) => (
-        <StepOutput key={index} step={s.step}/>
+        <StepOutput key={index} step={s}/>
       ))}
     </div>
   );

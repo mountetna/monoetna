@@ -58,7 +58,6 @@ export function bindInputSpecification(input: InputSpecification,
   data: VulcanState['data'],
   buffered: typeof defaultBufferedInputs.inputs,
   setInputs: typeof defaultBufferedInputs.setInputs,
-  dispatch: Dispatch<VulcanAction>
 ): BoundInputSpecification {
   const stepName = stepOfSource(input.source);
   const step = stepName && stepOfStatus(stepName, workflow);
@@ -76,7 +75,7 @@ export function bindInputSpecification(input: InputSpecification,
   };
 }
 
-export type WorkflowStepGroup = { steps: WorkflowStep[] }
+export type WorkflowStepGroup = { label: string, steps: WorkflowStep[] }
 
 export type InputBackendComponent<Params extends {} = {}, Value = unknown, DataElement = unknown> = (p: WithInputParams<Params, Value, DataElement>) => React.ReactElement | null;
 export type WithInputParams<Params extends {}, Value, DataElement = unknown> = Params & {

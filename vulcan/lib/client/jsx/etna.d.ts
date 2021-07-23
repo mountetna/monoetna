@@ -128,6 +128,21 @@ declare module 'etna-js/components/flat-button' {
   };
 }
 
+declare module 'etna-js/components/Notifications' {
+  import {ReactElement} from "react";
+  export function Notifications(props: any): ReactElement;
+}
+
+declare module 'etna-js/components/ModalDialogContainer' {
+  import {ReactElement} from "react";
+  export function ModalDialogContainer(props: any): ReactElement;
+}
+
+declare module 'etna-js/components/messages' {
+  import {ReactElement} from "react";
+  export = function Messages(props: any): ReactElement{};
+}
+
 declare module 'etna-js/components/icon' {
   export = function Icon(params: { className?: string, icon: string, disabled?: boolean, overlay?: string, title?: string, onClick?: () => void }): any {
   };

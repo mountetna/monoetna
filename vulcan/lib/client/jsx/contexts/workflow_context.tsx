@@ -27,15 +27,5 @@ export function useWorkflow() {
     [steps, status]
   );
 
-  const idle = useMemo(
-    () =>
-      steps[0].every(
-        (step) =>
-          uiOutputOfStep(step) ||
-          statusOfStep(step, status)?.status !== 'running'
-      ),
-    [steps, status]
-  );
-
-  return {workflow, primaryInputsReady, complete, idle};
+  return {workflow, primaryInputsReady, complete};
 }

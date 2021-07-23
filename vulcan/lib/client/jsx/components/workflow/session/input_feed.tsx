@@ -20,19 +20,19 @@ export default function InputFeed() {
 
   if (!workflow) return null;
 
-  let completed = completedSteps(workflow, status).filter(({step}) => !!uiQueryOfStep(step));
-  let nextUiSteps = pendingSteps(workflow, status).filter(({step}) => isPendingUiQuery(step, status, data, session));
-  const uiSteps = groupUiSteps(completed.concat(nextUiSteps));
+  let completed = completedSteps(workflow, status).filter(step => !!uiQueryOfStep(step));
+  let nextUiSteps = pendingSteps(workflow, status).filter(step => isPendingUiQuery(step, status, data, session));
+  const groupedSteps = groupUiSteps(completed.concat(nextUiSteps));
 
   let errorSteps = erroredSteps(workflow, status);
 
   return (
     <div className='session-input-feed'>
       <PrimaryInputs/>
-      {uiSteps.map((s, index) => (
+      {groupedSteps.map((s, index) => (
         <StepUserInputWrapper
           key={index}
-          step={s.step}
+          group={s}
         />
       ))}
       {errorSteps.map((s, index) => (

@@ -30,6 +30,7 @@ module.exports = (env) => ({
         include: [
           path.resolve(__dirname, 'lib/client/jsx'),
           path.resolve(__dirname, 'node_modules/etna-js/'),
+          path.resolve(__dirname, 'stories/'),
           '/etna/packages/etna-js'
         ],
 
@@ -45,7 +46,7 @@ module.exports = (env) => ({
           path.resolve(__dirname, 'node_modules/react-notifications-component'),
           '/etna/packages/etna-js'
         ],
-        test: /\.css$/
+        test: /\.css$/,
       },
 
       {
@@ -74,11 +75,13 @@ module.exports = (env) => ({
           ),
           path.resolve(__dirname, 'node_modules/etna-js/'),
           '/etna/packages/etna-js',
+          path.resolve(__dirname, 'node_modules/react-notifications-component'),
           path.resolve(__dirname, 'lib/client/scss')
         ],
 
         // loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader']),
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+        loader: env.NODE_ENV === 'storybook' ? ['css-loader', 'sass-loader'] : undefined,
+        use: env.NODE_ENV === 'storybook' ? undefined : [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       }
     ]
   },
