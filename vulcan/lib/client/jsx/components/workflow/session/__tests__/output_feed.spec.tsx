@@ -11,7 +11,7 @@ import {
   createWorkflowFixture
 } from "../../../../test_utils/fixtures";
 import {stateFromActions} from "../../../../test_utils/state";
-import {setDownloadedData, setStatus, setWorkflow, setWorkflows} from "../../../../actions/vulcan";
+import {setDownloadedData, setStatus, setWorkflow, setWorkflows} from "../../../../actions/vulcan_actions";
 
 describe('OutputFeed', () => {
   it('renders UI output steps', () => {

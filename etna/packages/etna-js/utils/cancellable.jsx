@@ -1,4 +1,9 @@
-import {Schedule} from "./schedule";
+export function cancelledAsMaybe(v) {
+  if (!v) return null;
+  if ('cancelled' in v && v.cancelled) return null;
+  if (!('result' in v)) return null;
+  return [v.result];
+}
 
 export class Cancellable {
   constructor() {
@@ -7,9 +12,9 @@ export class Cancellable {
     });
   }
 
-  race(promise) {
+  race(v) {
     return Promise.race([
-      promise.then(result => ({result})),
+      Promise.resolve(v).then(result => ({result})),
       this.cancelledPromise,
     ]);
   }
@@ -20,15 +25,26 @@ export class Cancellable {
     let {result, cancelled} = await this.race(Promise.resolve());
     let done = false;
     let value = null;
+    let error = null;
 
     while (!cancelled) {
-      ({done, value} = gen.next(result));
+      if (error) {
+        const innerError = error[0];
+        error = null;
+        ({done, value} = gen.throw(innerError));
+      } else {
+        ({done, value} = gen.next(result));
+      }
 
       if (done) {
         return {result: value};
       }
 
-      ({result, cancelled} = await this.race(value));
+      try {
+        ({ result, cancelled } = await this.race(value));
+      } catch (e) {
+        error = [e];
+      }
     }
 
     if (cancelled) {

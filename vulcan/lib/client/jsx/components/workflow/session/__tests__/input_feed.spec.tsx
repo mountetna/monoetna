@@ -17,7 +17,7 @@ import {
   setStatus,
   setWorkflow,
   setWorkflows
-} from '../../../../actions/vulcan';
+} from '../../../../actions/vulcan_actions';
 
 describe('InputFeed', () => {
   fit('renders complete UI steps and error steps', () => {
@@ -66,7 +66,7 @@ describe('InputFeed', () => {
           })
         )
       ),
-      setDownloadedData('https://download1', {abc: null, '123': null})
+      setDownloadedData('https://download1', "default-value")
     ]);
 
     const component = renderer.create(

@@ -1,10 +1,10 @@
-import React, {useContext, useEffect} from 'react';
+import React, {Dispatch, useContext, useEffect} from 'react';
 
-import {VulcanContext} from '../../../../contexts/vulcan_context';
+import {defaultContext, VulcanContext} from '../../../../contexts/vulcan_context';
 import {
   addValidationErrors,
   removeValidationErrors
-} from '../../../../actions/vulcan';
+} from '../../../../actions/vulcan_actions';
 import {TYPE} from '../../../../api_types';
 import InputHelp from './input_help';
 import BooleanInput from './boolean';
@@ -16,89 +16,93 @@ import StringInput from './string';
 import CheckboxesInput from './checkboxes';
 import {
   InputBackendComponent,
-  InputOnChange,
-  InputSpecification,
+  BoundInputSpecification,
   InputType,
   InputValidator
 } from './input_types';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
-import MultiselectStringAllInput from './multiselect_string_all';
-import MultipleMultiselectStringAllInput from './multiple_multiselect_string_all';
-import MultipleStringInput from './multiple_string';
-import SingleDropdownMulticheckbox from './single_dropdown_multicheckbox';
 import NotEmptyValidator from './validators/not_empty_validator';
 import {
   AllInnerValuesNotEmptyValidator,
-  AllInnerValuesNotEmptyValidatorStrong
 } from './validators/all_inner_values_not_empty_validator';
+import MultipleInput from "./multiple_input";
+import SingleDropdownMulticheckbox from "./single_dropdown_multicheckbox";
+import {stepOfSource} from "../../../../selectors/workflow_selectors";
+
+const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
+function configureComponent<Value, DataElement>(
+  type: InputType,
+  Input: InputBackendComponent<any, Value, DataElement>,
+  validator: InputValidator<Value, DataElement>,
+) {
+  if (type in components) throw new Error(`Duplicate definition for ${type}`)
+  components[type] = [Input, validator];
+}
+
+configureComponent(TYPE.STRING, StringInput, NotEmptyValidator);
+configureComponent(TYPE.FLOAT, FloatInput, NotEmptyValidator);
+configureComponent(TYPE.INTEGER, IntegerInput, NotEmptyValidator);
+configureComponent(TYPE.BOOL, BooleanInput, NotEmptyValidator);
+configureComponent(TYPE.SELECT_AUTOCOMPLETE, SelectAutocompleteInput, NotEmptyValidator);
+configureComponent(TYPE.CHECKBOXES, CheckboxesInput, NotEmptyValidator);
+configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, NotEmptyValidator);
+configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
+configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
+
+configureComponent(TYPE.SINGLE_DROPDOWN_MULTICHECKBOX, SingleDropdownMulticheckbox, NotEmptyValidator);
+configureComponent(TYPE.MULTIPLE_MULTISELECT_STRING_ALL, MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator)
+
 
 function backendComponentOf(
   type: InputType
 ): [InputBackendComponent, InputValidator] {
-  switch (type) {
-    case TYPE.FLOAT:
-      return [FloatInput, NotEmptyValidator];
-    case TYPE.INTEGER:
-      return [IntegerInput, NotEmptyValidator];
-    case TYPE.BOOL:
-      return [BooleanInput, NotEmptyValidator];
-    case TYPE.MULTISELECT_STRING:
-      return [MultiselectStringInput, NotEmptyValidator];
-    case TYPE.SELECT_AUTOCOMPLETE:
-      return [SelectAutocompleteInput, NotEmptyValidator];
-    case TYPE.CHECKBOXES:
-      return [CheckboxesInput, NotEmptyValidator];
-    case TYPE.NESTED_SELECT_AUTOCOMPLETE:
-      return [NestedSelectAutocompleteInput, NotEmptyValidator];
-    case TYPE.MULTISELECT_STRING_ALL:
-      return [MultiselectStringAllInput, NotEmptyValidator];
-    case TYPE.MULTIPLE_MULTISELECT_STRING_ALL:
-      return [
-        MultipleMultiselectStringAllInput,
-        AllInnerValuesNotEmptyValidator
-      ];
-    case TYPE.MULTIPLE_STRING:
-      return [MultipleStringInput, AllInnerValuesNotEmptyValidatorStrong];
-    case TYPE.SINGLE_DROPDOWN_MULTICHECKBOX:
-      return [SingleDropdownMulticheckbox, AllInnerValuesNotEmptyValidator];
-    default:
-      return [StringInput, NotEmptyValidator];
-  }
+  const result = components[type];
+  if (!result) return components[TYPE.STRING];
+  return result;
 }
 
 export default function UserInput({
   input,
-  onChange,
   hideLabel
 }: {
-  input: InputSpecification;
-  onChange: InputOnChange;
+  input: BoundInputSpecification;
   hideLabel?: boolean;
 }) {
   const [InputComponent, Validator] = backendComponentOf(input.type);
   const {dispatch} = useContext(VulcanContext);
+  const {onChange, data, value, source, label} = input;
 
   useEffect(() => {
-    let errors = Validator(input);
+    const errors = Validator({ data, value });
     if (errors.length > 0) {
       dispatch(
-        addValidationErrors(input.name, input.label || input.name, errors)
+        addValidationErrors(stepOfSource(source) || null, label, errors)
       );
-    } else {
-      dispatch(removeValidationErrors(input.name));
     }
     // On unmount, remove all errors associated with the input
-    return () => dispatch(removeValidationErrors(input.name));
-  }, [input.value, input, dispatch, Validator]);
+    return () => {
+      dispatch(removeValidationErrors(errors))
+    };
+  }, [dispatch, Validator, value, source, label, data]);
+
 
   return (
     <div className='view_item'>
       {!hideLabel ? (
-        <div className='item_name'>{input.label || input.name}</div>
+        <div className='item_name'>{input.label}</div>
       ) : null}
       <div className='item_view'>
-        <InputHelp input={input}>
-          <InputComponent key={input.name} input={input} onChange={onChange} />
+        <InputHelp doc={input.doc || ''}>
+          {/* Input components should absolutely never have access to the top level context,
+              as inputs are frequently nested in unpredictable ways and have no guarantee
+              of their own association with the top level context.  Better to make input
+              behavior stable by locking out the possibility of access to the greater context
+              and ensuring the InputComponent interface is sufficiently detailed to capture
+              its interface correctly in all cases.
+           */}
+          <VulcanContext.Provider value={defaultContext}>
+            <InputComponent key={input.label} onChange={onChange} data={data} value={value} />
+          </VulcanContext.Provider>
         </InputHelp>
       </div>
     </div>

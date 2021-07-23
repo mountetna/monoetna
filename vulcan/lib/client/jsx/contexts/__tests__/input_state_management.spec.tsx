@@ -1,122 +1,152 @@
-import {integrateElement} from "../../test_utils/integration";
-import {act} from "react-test-renderer";
-import {patchInputs, setStatus, setWorkflow} from "../../actions/vulcan";
-import {
-  createStatusFixture,
-  createStepFixture,
-  createWorkflowFixture,
-} from "../../test_utils/fixtures";
-import {defaultContext} from "../vulcan_context";
+import React from 'react';
+import {awaitBefore, integrateElement, setupBefore} from "../../test_utils/integration";
+import {useWorkflowUtils} from "../../test_utils/workflow_utils";
+import {useContext} from "react";
+import {VulcanContext} from "../vulcan_context";
+import {addValidationErrors, setBufferedInput, setInputs} from "../../actions/vulcan_actions";
+import {BufferedInputsContext, WithBufferedInputs} from "../input_state_management";
 
-describe('useInputStateManagement', () => {
-  it('works', async () => {
-    const overrides = {
-      getWorkflows: defaultContext.getWorkflows,
-      pollStatus: defaultContext.pollStatus,
-      statusIsFresh: true,
-    };
+describe('useDataBuffering', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  })
 
-    const {contextData, dispatch, setData, replaceOverrides} = integrateElement(() => null, {
-      providerOverrides: overrides
+  afterEach(() => {
+    jest.useRealTimers();
+  })
+
+  const stepName = setupBefore(() => null as string | null);
+  const integrated = setupBefore(() => integrateElement((hook, {dispatch, commitSessionInputChanges}) =>
+    <WithBufferedInputs stepName={stepName.value} dispatch={dispatch}
+                        commitSessionInputChanges={commitSessionInputChanges}>
+      {hook}
+    </WithBufferedInputs>));
+  const pollStatusMock = setupBefore(() => integrated.value.blockingAsyncMock('pollStatus'));
+  const workflowHelpers = setupBefore(() => integrated.value.runHook(() => useWorkflowUtils()));
+  const contextData = setupBefore(() => integrated.value.runHook(() => useContext(VulcanContext)));
+  const bufferInputsContextData = setupBefore(() => integrated.value.runHook(() => useContext(BufferedInputsContext)))
+
+  const setupWorkflow = awaitBefore(async () => {
+    workflowHelpers.value.setWorkflow('test');
+  })
+
+  const setupPrimaryInputs = awaitBefore(async () => {
+    workflowHelpers.value.addPrimaryInput('a');
+    workflowHelpers.value.addPrimaryInput('b');
+    workflowHelpers.value.addPrimaryInput('c');
+  })
+
+  const aStep = awaitBefore(async () => {
+    return workflowHelpers.value.addStep('astep', {
+      out: ['a', 'b'], run: 'ui-queries/some-input',
+    })
+  })
+
+  const bStep = awaitBefore(async () => {
+    return workflowHelpers.value.addStep('bstep', {
+      out: ['a', 'b'], run: 'ui-queries/some-input',
+    })
+  })
+
+  const setupInputs = awaitBefore(async () => {
+    bufferInputsContextData.value.setInputs({
+      "astep/a": [true], "a": [true], "bstep/b": [true], "bstep/a": [true], "c": [true],
+    })
+  })
+
+  awaitBefore(async () => {
+    expect([...contextData.value.stateRef.current.bufferedSteps].sort()).toEqual([
+      stepName.value
+    ])
+  })
+
+  // Helps verify that other inputs don't get cleared when updating.
+  const addOtherInput = awaitBefore(async () => {
+    contextData.value.dispatch(setInputs({"v": 2}));
+  })
+
+  describe('commitSessionInputs', () => {
+    const doCommit = awaitBefore(async () => {
+      bufferInputsContextData.value.commitInputs();
     });
 
-    const workflow = createWorkflowFixture({
-      inputs: {
-        a: {type: 'int'},
-        b: {type: 'int'},
-      },
-
-      dependencies_of_outputs: {
-        'a': ['process/result', 'query2/result'],
-        'b': [],
-        'query1/result': ['process/result', 'query2/result'],
-        'process/result': ['query2/result'],
-        'query2/result': [],
-      },
-
-      steps: [
-        [
-          createStepFixture({name: 'query1', run: 'ui-queries/thing', out: ['result']}),
-          createStepFixture({
-            name: 'process',
-            run: 'scripts/process',
-            in: [{source: 'a', id: 'a'}, {source: 'query1/result', id: 'b'}],
-            out: ['result']
-          }),
-          createStepFixture({
-            name: 'query2',
-            run: 'ui-queries/thing',
-            in: [{source: 'process/result', id: 'a'}],
-            out: ['result']
-          }),
-        ]
-      ]
+    describe('for primary inputs', () => {
+      it('pushes those into the session.inputs, then executes a poll', async () => {
+        const {stateRef} = contextData.value;
+        const {inputs} = bufferInputsContextData.value;
+        expect(Object.keys(inputs)).toEqual([])
+        expect(stateRef.current.validationErrors).toEqual([]);
+        expect(stateRef.current.session.inputs).toEqual({
+          "a": true, "c": true, "v": 2,
+        });
+        expect(pollStatusMock.value.pendingCount()).toEqual(1);
+        const [[requestedSession]] = await pollStatusMock.value.channel.receive();
+        expect(requestedSession.inputs).toEqual(stateRef.current.session.inputs);
+      })
     })
 
-    await act(async function () {
-      contextData.dispatch(setWorkflow(workflow, 'test'));
-      contextData.dispatch(setStatus(createStatusFixture(workflow)))
-    });
+    describe('for a step', () => {
+      stepName.replace(() => 'astep');
 
-    expect(contextData.state.inputs).toEqual({
-      'query1/result': null
-    });
+      it('pushes those into the session.inputs, then executes a poll', async () => {
+        const {stateRef} = contextData.value;
+        const {inputs} = bufferInputsContextData.value;
+        expect(Object.keys(inputs)).toEqual([])
+        expect(stateRef.current.session.inputs).toEqual({
+          "astep/a": true, "v": 2,
+        });
+        expect(pollStatusMock.value.pendingCount()).toEqual(1);
+        const [[requestedSession]] = await pollStatusMock.value.channel.receive();
+        expect(requestedSession.inputs).toEqual(stateRef.current.session.inputs);
+      })
 
-    await dispatch(patchInputs({ a: 10, b: 20 }));
+      describe('with unrelated validation errors', () => {
+        const addErrors = awaitBefore(async () => {
+          contextData.value.dispatch(addValidationErrors('bstep', 'the label', ['some error']))
+        })
 
-    expect(contextData.state.inputs).toEqual({
-      "a": 10,
-      "b": 20,
-      "query1/result": null,
-    });
+        doCommit.replace(async factory => {
+          await addErrors.ensure();
+          return factory();
+        });
 
-    await dispatch(patchInputs({ 'query1/result': 30 }));
+        it('still pushes to session inputs and polls', () => {
+          const {stateRef} = contextData.value;
+          expect(stateRef.current.session.inputs).toEqual({
+            "astep/a": true, "v": 2,
+          });
+          expect(pollStatusMock.value.pendingCount()).toEqual(1);
+        })
 
-    expect(contextData.state.inputs).toEqual({
-      "a": 10,
-      "b": 20,
-      "query1/result": 30,
-    });
+        describe('and related validation errors', () => {
+          addErrors.replace(async factory => {
+            await factory();
+            contextData.value.dispatch(addValidationErrors('astep', 'the label', ['some error 2']))
+          })
 
-    await act(async function () {
-      setData('process/result', 30);
-    });
+          it('does not poll or push to session inputs', () => {
+            const {stateRef} = contextData.value;
+            expect(stateRef.current.session.inputs).toEqual({
+              "v": 2,
+            });
+            expect(pollStatusMock.value.pendingCount()).toEqual(0);
+          })
+        })
+      })
+    })
+  });
 
-    expect(contextData.state.inputs).toEqual({
-      "a": 10,
-      "b": 20,
-      "query1/result": 30,
-      "query2/result": null,
-    });
+  describe('cancelInputChanges', () => {
+    const doCancel = awaitBefore(async () => {
+      bufferInputsContextData.value.cancelInputs();
+    })
 
-    expect(contextData.state.session.inputs).toEqual({
-      "a": 10,
-      "b": 20,
-      "query1/result": 30,
-    });
-
-    await dispatch(patchInputs({ 'query1/result': null }));
-
-    // query2 is dropped as a result of a dropping the download of process as a result of dropping query1.
-    expect(contextData.state.inputs).toEqual({
-      "a": 10,
-      "b": 20,
-      "query1/result": null,
-    });
-
-    expect(contextData.state.session.inputs).toEqual({
-      "a": 10,
-      "b": 20,
-    });
-
-    // Allow invalid states while status is till being fetched.
-    replaceOverrides({...overrides, statusIsFresh: false});
-
-    await dispatch(patchInputs({ 'query2/result': 33 }));
-    expect(contextData.state.session.inputs).toEqual({
-      "a": 10,
-      "b": 20,
-      "query2/result": 33,
-    });
+    it('cleans the buffered inputs and does not effect the state inputs', async () => {
+      const {stateRef} = contextData.value;
+      const {inputs} = bufferInputsContextData.value;
+      expect(Object.keys(inputs)).toEqual([])
+      expect(Object.keys(stateRef.current.session.inputs)).toEqual(['v'])
+      expect(stateRef.current.bufferedSteps).toEqual([])
+    })
   })
-})
+});

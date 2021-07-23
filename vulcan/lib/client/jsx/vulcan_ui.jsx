@@ -5,7 +5,7 @@ import {findRoute, setRoutes} from './router';
 import {VulcanProvider} from './contexts/vulcan_context';
 
 // Components.
-import Browser from './components/browser';
+import Browser from './components/browser.tsx';
 import Dashboard from './components/dashboard';
 import VulcanNav from './components/vulcan_nav';
 import Messages from 'etna-js/components/messages';
