@@ -80,10 +80,10 @@ export function WithBufferedInputs({
       {children}
     </div>
     { hasInputs ? <div className='reset-or-commit-inputs'>
-      <button onClick={cancelInputs}>
+      <button onClick={cancelInputs} disabled={!!state.pollingState}>
         Reset
       </button>
-      <button onClick={commitInputs}>
+      <button onClick={commitInputs} disabled={!!state.pollingState}>
         Commit
       </button>
     </div> : null }

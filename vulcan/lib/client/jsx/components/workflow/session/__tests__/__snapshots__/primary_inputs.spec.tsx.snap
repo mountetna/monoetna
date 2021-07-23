@@ -281,11 +281,13 @@ Array [
     className="reset-or-commit-inputs"
   >
     <button
+      disabled={false}
       onClick={[Function]}
     >
       Reset
     </button>
     <button
+      disabled={false}
       onClick={[Function]}
     >
       Commit
