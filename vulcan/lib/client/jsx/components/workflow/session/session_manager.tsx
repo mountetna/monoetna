@@ -74,7 +74,8 @@ export default function SessionManager() {
         project_name: session.project_name,
       }
       dispatch(setSession(newSession));
-    }, [session, dispatch]
+      requestPoll();
+    }, [session.workflow_name, session.project_name, dispatch, requestPoll]
   );
 
   const running = state.pollingState > 0;

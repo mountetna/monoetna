@@ -79,7 +79,7 @@ export function WithBufferedInputs({
     <div>
       {children}
     </div>
-    { hasInputs ? <div>
+    { hasInputs ? <div className='reset-or-commit-inputs'>
       <button onClick={cancelInputs}>
         Reset
       </button>

@@ -83,7 +83,6 @@ export function createFakeBackend(workflows: Workflow[], scripts: DataEnvelope<S
   function scheduleNewWork(workflow: Workflow, session: VulcanSession) {
     // Try running any step that can be run.
     workflow.steps[0].forEach(step => {
-      console.log('trying to scheduling', step.name);
       if (uiQueryOfStep(step)) return;
       if (uiOutputOfStep(step)) return;
 
@@ -125,26 +124,31 @@ export function createFakeBackend(workflows: Workflow[], scripts: DataEnvelope<S
         status.hash = hash;
         status.name = step.name;
 
+        const error = errored[hash];
+        let complete = !!completed[hash];
+        const running = pending[hash];
+
         if (uiOutputOfStep(step) || uiQueryOfStep(step)) {
           if (gatherInputs(step, session, workflow) != null) {
-            status.status = 'complete';
-            return status;
+            if (uiQueryOfStep(step)) {
+              complete = step.out.every(outputName => sourceNameOfReference([step.name, outputName]) in session.inputs)
+            } else {
+              complete = true;
+            }
           }
         }
 
-        const error = errored[hash];
-        const complete = completed[hash];
-        const running = pending[hash];
-
-        if (running) {
-          status.status = 'running';
+        if (complete) {
+          status.status = 'complete';
+          if (!uiQueryOfStep(step)) {
+            const downloads = status.downloads = {} as DataEnvelope<string>;
+            step.out.forEach(outputName => (downloads[outputName] = urlOf(hash, outputName)));
+          }
         } else if (error) {
           status.status = 'error';
           status.error = error;
-        } else if (complete) {
-          status.status = 'complete';
-          const downloads = status.downloads = {} as DataEnvelope<string>;
-          step.out.forEach(outputName => (downloads[outputName] = urlOf(hash, outputName)));
+        } else if (running) {
+          status.status = 'running';
         } else {
           status.status = 'pending';
         }
