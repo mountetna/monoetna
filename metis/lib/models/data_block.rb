@@ -85,17 +85,14 @@ class Metis
           return
         end
 
-        old_location = location
-
-        update(md5_hash: md5_hash)
-
-        new_location = location
-
         # Actually move the file
         ::File.rename(
-          old_location,
-          new_location
+          location,
+          file_location(md5_hash)
         )
+
+        # Now update the record
+        update(md5_hash: md5_hash)
       end
     end
 
@@ -114,11 +111,15 @@ class Metis
     end
 
     def location
+      file_location(md5_hash)
+    end
+
+    def file_location(hash)
       directory = ::File.join(
         Metis.instance.config(:data_path),
         'data_blocks',
-        md5_hash[0],
-        md5_hash[1]
+        hash[0],
+        hash[1]
       )
 
       FileUtils.mkdir_p(directory) unless ::File.directory?(directory)
@@ -126,7 +127,7 @@ class Metis
       ::File.expand_path(
         ::File.join(
           directory,
-          md5_hash
+          hash
         )
       )
     end

@@ -53,14 +53,25 @@ class Metis
     end
   end
 
-  class Archive < Etna::Command
-    usage 'Checksum and archive files.'
+  class ChecksumFiles < Etna::Command
+    usage 'Checksum files.'
 
     def execute
       needs_hash = Metis::DataBlock.where(md5_hash: Metis::DataBlock::TEMP_MATCH, removed: false).order(:updated_at).all[0..10]
       puts "Found #{needs_hash.count} data blocks to be checksummed."
       needs_hash.each(&:compute_hash!)
+    end
 
+    def setup(config)
+      super
+      Metis.instance.load_models
+    end
+  end
+
+  class Archive < Etna::Command
+    usage 'Archive files.'
+
+    def execute
       needs_archive = Metis::DataBlock.exclude(md5_hash: Metis::DataBlock::TEMP_MATCH).where(archive_id: nil, removed: false).order(:updated_at).all[0..10]
       puts "Found #{needs_archive.count} files to be archived."
       needs_archive.each do |data_block|
