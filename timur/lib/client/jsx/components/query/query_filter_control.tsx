@@ -116,7 +116,10 @@ const QueryFilterControl = ({
           return 'date';
         case 'integer':
         case 'float':
+        case 'number':
           return 'number';
+        case 'boolean':
+          return 'boolean';
         default:
           return 'text';
       }
@@ -159,15 +162,30 @@ const QueryFilterControl = ({
       'Less than': '::<',
       'Greater than': '::>',
       'Is present': '::has',
-      'Is missing': '::lacks'
+      'Is missing': '::lacks',
+      'Is true': '::true',
+      'Is false': '::false',
+      'Is untrue': '::untrue'
     };
   }
 
-  const noOperandOperators: string[] = ['::has', '::lacks'];
+  const noOperandOperators: string[] = [
+    '::has',
+    '::lacks',
+    '::true',
+    '::false',
+    '::untrue'
+  ];
 
   const magmifyOperator = useCallback(
-    (operator: string) => operatorOptions[operator],
-    [operatorOptions]
+    (operator: string) => {
+      if (attributeType === 'number' && operator === 'Equals') {
+        return '::=';
+      }
+
+      return operatorOptions[operator];
+    },
+    [operatorOptions, attributeType]
   );
 
   const prettifyOperator = useCallback(
