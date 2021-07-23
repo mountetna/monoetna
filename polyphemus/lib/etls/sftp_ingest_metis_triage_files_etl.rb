@@ -6,7 +6,7 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
     @bucket_name = "waiting_room"
     super(
       project_bucket_pairs: [[@project_name, @bucket_name]],
-      limit: 5,
+      limit: 1,
     )
   end
 
