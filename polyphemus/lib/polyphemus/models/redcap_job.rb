@@ -4,7 +4,6 @@ require_relative "./job"
 
 class Polyphemus
   class RedcapJob < Polyphemus::Job
-
     def validate
       require_job_params(:redcap_tokens, :model_names)
       raise JobError, "redcap_tokens must be an array of tokens." unless job_params[:redcap_tokens].is_a?(Array)

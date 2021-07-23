@@ -5,6 +5,8 @@ import {useReduxState} from 'etna-js/hooks/useReduxState';
 
 import { ReactSVG } from 'react-svg';
 
+import img from 'etna-js/images/polyphemus.svg';
+
 const dist = (p1,p2) => Math.sqrt( (p1.x-p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y) );
 
 const norm = (p) => {
