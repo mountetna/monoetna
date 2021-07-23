@@ -31,7 +31,7 @@ export default function StepsList() {
       </div>
       <div className='steps-list-wrapper'>
         {workflow ? workflow.steps[0].map((step, index) => {
-              return <Step key={index} step={step}></Step>;
+              return <Step key={index} step={step}/>;
             })
           : null}
       </div>

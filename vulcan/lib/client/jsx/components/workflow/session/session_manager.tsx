@@ -28,7 +28,7 @@ const modalStyles = {
 
 export default function SessionManager() {
   const {state, dispatch, showErrors, requestPoll} = useContext(VulcanContext);
-  const {workflow, primaryInputsReady, complete} = useWorkflow();
+  const {workflow, hasPendingEdits, complete} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
   const {session} = state;
@@ -40,12 +40,17 @@ export default function SessionManager() {
   const run = useCallback(() => requestPoll(true), [requestPoll]);
 
   const saveSession = useCallback(() => {
+    if (hasPendingEdits) {
+      alert('You have uncommitted changes, reset or commit those before saving.')
+      return;
+    }
+
     downloadBlob({
       data: JSON.stringify(session, null, 2),
       filename: `${name}.json`,
       contentType: 'text/json'
     });
-  }, [session, name]);
+  }, [hasPendingEdits, session, name]);
 
   const openSession = () => {
     showErrors(readTextFile('*.json').then((sessionJson) => {
@@ -66,15 +71,14 @@ export default function SessionManager() {
       const newSession = {
         ...defaultSession,
         workflow_name: session.workflow_name,
-        project_name: session.project_name
+        project_name: session.project_name,
       }
       dispatch(setSession(newSession));
     }, [session, dispatch]
   );
 
-  const hasValidationErrors = Object.keys(state.validationErrors).length > 0;
   const running = state.pollingState > 0;
-  const disableRunButton = complete || running || !primaryInputsReady;
+  const disableRunButton = complete || running || hasPendingEdits;
 
   if (!name) return null;
 
@@ -103,9 +107,7 @@ export default function SessionManager() {
           </React.Fragment>
         )}
         <FlatButton
-          className={`header-btn run ${
-            hasValidationErrors ? 'validation-errors' : ''
-          }`}
+          className={`header-btn run`}
           icon='play'
           label='Run'
           title='Run workflow'

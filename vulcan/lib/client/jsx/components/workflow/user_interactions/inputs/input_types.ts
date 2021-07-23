@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Workflow, WorkflowInput, WorkflowStep} from '../../../../api_types';
-import {Maybe} from "../../../../selectors/maybe";
+import {Maybe, some} from "../../../../selectors/maybe";
 import {Dispatch} from "react";
 import {VulcanAction} from "../../../../actions/vulcan_actions";
 import {VulcanState} from "../../../../reducers/vulcan_reducer";
@@ -70,7 +70,7 @@ export function bindInputSpecification(input: InputSpecification,
     },
     data: inputData,
     value: input.source in buffered ? buffered[input.source] :
-      input.source in session.inputs ? session.inputs[input.source] :
+      input.source in session.inputs ? some(session.inputs[input.source]) :
         null,
   };
 }

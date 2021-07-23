@@ -21,7 +21,7 @@ export default function PrimaryInputs() {
 
 
 function PrimaryInputsInner() {
-  const {state, dispatch} = useContext(VulcanContext);
+  const {state} = useContext(VulcanContext);
   const {inputs, setInputs} = useContext(BufferedInputsContext);
   const {session} = state;
   const {workflow} = useWorkflow();

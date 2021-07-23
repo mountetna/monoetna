@@ -52,13 +52,13 @@ ExampleWorkflow.args = {
     }))
     .do(utils => utils.addStep('join-strings-2', {
       in: [
-        { source: 'join-strings/joined', id: 'a' },
+        { source: 'join-strings-1/joined', id: 'a' },
         { source: '1__other_input', id: 'b' },
       ],
       out: ['joined'],
       run: 'scripts/join-strings',
     }))
-    .do(utils => utils.addStep('query_it', {
+    .do(utils => utils.addStep('checkboxes', {
       in: [
         { source: 'join-strings-1/joined', id: 'a' },
         { source: 'join-strings-2/joined', id: 'b' }
@@ -67,7 +67,7 @@ ExampleWorkflow.args = {
       run: 'ui-queries/checkboxes',
     }))
     .do(utils => utils.addStep('show_it', {
-      in: [ { source: 'query_it/checked', id: 'a' }, { source: '2__other_other_input', id: 'b' } ],
+      in: [ { source: 'checkboxes/checked', id: 'a' }, { source: '2__other_other_input', id: 'b' } ],
       out: [],
       run: 'ui-outputs/raw',
     }))

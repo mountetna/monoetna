@@ -1,11 +1,11 @@
 import React, {useContext, useEffect, useState} from 'react';
 
 import {VulcanContext} from '../../contexts/vulcan_context';
-import {defaultInputValues, workflowByName} from '../../selectors/workflow_selectors';
+import {workflowByName} from '../../selectors/workflow_selectors';
 
 import SessionManager from './session/session_manager';
 import StepsList from './steps/steps_list';
-import {setInputs, setSession, setWorkflow} from "../../actions/vulcan_actions";
+import {setSession, setWorkflow} from "../../actions/vulcan_actions";
 
 export default function WorkflowManager({workflowName, projectName}: { workflowName: string, projectName: string }) {
   const {
@@ -13,23 +13,22 @@ export default function WorkflowManager({workflowName, projectName}: { workflowN
     dispatch,
     getLocalSession,
     cancelPolling,
+    requestPoll,
   } = useContext(VulcanContext);
 
   const workflow = workflowByName(workflowName, state);
 
   useEffect(() => {
     if (workflow && projectName) {
-      dispatch(setWorkflow(workflow, projectName));
-
       getLocalSession(workflow, projectName).then((session) => {
         cancelPolling();
 
-        if (!session) {
-          // Set the default input values
-          dispatch(setInputs(defaultInputValues(workflow)));
-        } else {
+        dispatch(setWorkflow(workflow, projectName));
+        if (session) {
           dispatch(setSession(session));
         }
+
+        requestPoll(false, false);
       });
     }
   }, [cancelPolling, dispatch, getLocalSession, projectName, workflow]);

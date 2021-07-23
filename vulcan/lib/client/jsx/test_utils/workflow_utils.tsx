@@ -18,7 +18,6 @@ import {Step} from "@material-ui/core";
 
 export function useWorkflowUtils(): WorkflowUtils {
   const {dispatch, stateRef} = useContext(VulcanContext);
-  console.log({dispatch, stateRef})
   const [utils] = useState(() => {
     return new WorkflowUtils(dispatch, stateRef);
   });

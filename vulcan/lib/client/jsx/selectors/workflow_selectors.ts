@@ -125,7 +125,7 @@ export function allWorkflowInputSources(workflow: Workflow): string[] {
 export function inputValueNonEmpty(val: Maybe<any>, disallow_empty_string = false): boolean {
   return withDefault(mapSome(val, inner =>
     (typeof inner !== "number" || !isNaN(inner)) &&
-      inner != null &&
+      inner != null && inner != "" &&
       !_.isEqual(inner, ['']) &&
       !_.isEqual(inner, []) &&
       (!disallow_empty_string || !_.isEqual(inner, ''))
@@ -222,15 +222,6 @@ export const sourceNameOfReference = (ref: [string, string]) => {
 export const sourceNamesOfStep = (step: WorkflowStep) => {
   return step.out.map(name => sourceNameOfReference([step.name, name]))
 }
-
-export const defaultInputValues = (workflow: Workflow) => {
-  return Object.keys(workflow.inputs).reduce((result, inputName) => {
-    if (null != workflow.inputs[inputName].default) {
-      result[inputName] = workflow.inputs[inputName].default;
-    }
-    return result;
-  }, {} as { [k: string]: any });
-};
 
 export function missingOutputsForStep(step: WorkflowStep, inputs: VulcanState['session']['inputs']): { [k: string]: null } {
   const result: { [k: string]: null } = {};

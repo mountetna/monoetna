@@ -80,7 +80,9 @@ export default function UserInput({
       );
     }
     // On unmount, remove all errors associated with the input
-    return () => dispatch(removeValidationErrors(errors));
+    return () => {
+      dispatch(removeValidationErrors(errors))
+    };
   }, [dispatch, Validator, value, source, label, data]);
 
 

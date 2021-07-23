@@ -37,11 +37,7 @@ module.exports = {
       },
       plugins: [
         ...config.plugins,
-        new webpack.DefinePlugin({
-          'process.env': {
-            NODE_ENV: JSON.stringify(process.env.NODE_ENV || 'development')
-          }
-        })
+        ...baseWebpackConfig.plugins,
       ],
       resolve: {
         ...config.resolve,

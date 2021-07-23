@@ -1,15 +1,16 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {VulcanState} from "../reducers/vulcan_reducer";
 import {
   createContext, Dispatch, MutableRefObject, PropsWithChildren, useCallback, useContext, useRef, useState
 } from "react";
 import {defaultSessionSyncHelpers} from "./session_sync";
 import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
-import {showMessages} from "etna-js/actions/message_actions";
+import {dismissMessages, showMessages} from "etna-js/actions/message_actions";
 import {clearBufferedInput, setBufferedInput, setInputs, VulcanAction} from "../actions/vulcan_actions";
 import {allSourcesForStepName} from "../selectors/workflow_selectors";
 import {mapSome, Maybe} from "../selectors/maybe";
 import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
+import {VulcanContext} from "./vulcan_context";
 
 export const defaultInputStateManagement = {
   commitSessionInputChanges(stepName: string | null, inputs: DataEnvelope<Maybe<any>>) {
@@ -36,6 +37,7 @@ export function WithBufferedInputs({
   dispatch: Dispatch<VulcanAction>,
   stepName: string | null,
 }>) {
+  const {stateRef, state} = useContext(VulcanContext);
   const inputsRef = useRef({} as DataEnvelope<Maybe<any>>);
   const [inputs, setInputsState] = useState(inputsRef.current);
   const hasInputs = Object.keys(inputs).length > 0;
@@ -48,12 +50,20 @@ export function WithBufferedInputs({
     }
 
     if (Object.keys(inputsRef.current).length > 0){
-      dispatch(setBufferedInput(stepName));
+      if (!stateRef.current.bufferedSteps.includes(stepName))
+        dispatch(setBufferedInput(stepName));
     } else {
-      dispatch(clearBufferedInput(stepName));
+      if (stateRef.current.bufferedSteps.includes(stepName))
+        dispatch(clearBufferedInput(stepName));
     }
     setInputsState(inputsRef.current);
-  }, [dispatch, stepName]);
+  }, [dispatch, stateRef, stepName]);
+
+  useEffect(() => {
+    if (!state.bufferedSteps.includes(stepName)) {
+      setInputs({});
+    }
+  }, [setInputs, state.bufferedSteps, stepName]);
 
   const cancelInputs = useCallback(() => {
     setInputs({});
@@ -71,7 +81,7 @@ export function WithBufferedInputs({
     </div>
     { hasInputs ? <div>
       <button onClick={cancelInputs}>
-        Cancel
+        Reset
       </button>
       <button onClick={commitInputs}>
         Commit
@@ -92,6 +102,7 @@ export function useInputStateManagement(invoke: ReturnType<typeof useActionInvok
     }).flat(), [stateRef]);
 
   const validateInputs = useCallback((step: string | null) => {
+    invoke(dismissMessages());
     const validationErrs = getErrors(step);
     if (validationErrs.length > 0) {
       invoke(showMessages(validationErrs));

@@ -10,13 +10,7 @@ export function useWorkflow() {
   const {inputs} = session;
   const {steps} = workflow;
 
-  const primaryInputsReady = useMemo(
-    () =>
-      allWorkflowPrimaryInputSources(workflow).every(
-        (source) => source in inputs
-      ),
-    [inputs, workflow]
-  );
+  const hasPendingEdits = state.bufferedSteps.length > 0;
 
   // We are done once every step either has a download or that step is a uiOutput.
   const complete = useMemo(
@@ -27,5 +21,5 @@ export function useWorkflow() {
     [steps, status]
   );
 
-  return {workflow, primaryInputsReady, complete};
+  return {workflow, hasPendingEdits, complete};
 }

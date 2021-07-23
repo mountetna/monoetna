@@ -11,6 +11,7 @@ export default function IntegerInput({onChange, data, ...props}: WithInputParams
 
   return (
     <EtnaIntegerInput
+      key={value}
       defaultValue={value}
       onChange={onNewInt}
     />

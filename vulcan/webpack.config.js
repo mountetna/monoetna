@@ -80,8 +80,8 @@ module.exports = (env) => ({
         ],
 
         // loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader']),
-        loader: env.NODE_ENV === 'storybook' ? ['css-loader', 'sass-loader'] : undefined,
-        use: env.NODE_ENV === 'storybook' ? undefined : [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
+        // loader: env.NODE_ENV === 'storybook' ? ['css-loader', 'sass-loader'] : undefined,
+        use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
       }
     ]
   },

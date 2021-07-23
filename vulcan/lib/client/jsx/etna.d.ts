@@ -21,6 +21,7 @@ declare module 'etna-js/hooks/useActionInvoker' {
 
 declare module 'etna-js/actions/message_actions' {
   export function showMessages(messages: string[]): { type: 'SHOW_MESSAGES', messages: string[] };
+  export function dismissMessages(): { type: 'DISMISS_MESSAGES' };
 }
 
 declare module 'etna-js/utils/cancellable' {

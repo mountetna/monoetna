@@ -68,10 +68,11 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
         session: {...defaultSession, workflow_name: action.workflow.name, project_name: action.projectName},
       };
     case 'SET_STATUS':
-      return filterStaleInputs({
-        ...state,
-        status: action.status,
-      }, action);
+      if (action.clearStaleInputs) {
+        state = filterStaleInputs(state, action)
+      }
+
+      return {...state, status: action.status};
 
     case 'SET_BUFFERED_INPUT':
       if (state.bufferedSteps.includes(action.step)) {
@@ -107,6 +108,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
       return {
         ...state,
         session: {...state.session, ...action.session},
+        bufferedSteps: [],
       };
 
     case 'REMOVE_DOWNLOADS':
@@ -165,7 +167,7 @@ export default function VulcanReducer(state: VulcanState, action: VulcanAction):
 
 function filterStaleInputs(state: VulcanState, action: { type: "SET_STATUS" } & { status: [StepStatus[]] }) {
   if (!state.workflow) return state;
-  let newState = state;
+  let newState = {...state};
   let newInputs = state.session.inputs;
   let newData = state.data;
 
@@ -173,7 +175,6 @@ function filterStaleInputs(state: VulcanState, action: { type: "SET_STATUS" } & 
   action.status[0].forEach(stepStatus => {
     hashesOfSteps[stepStatus.name] = stepStatus.hash;
   })
-
 
   for (let stepStatus of state.status[0]) {
     if (hashesOfSteps[stepStatus.name] !== stepStatus.hash) {
