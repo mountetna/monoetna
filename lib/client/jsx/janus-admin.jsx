@@ -53,15 +53,15 @@ const NewProject = ({retrieveAllProjects}) => {
     { error && <div className='error'>Error: {error}</div> }
     <div className='item'>
       <div className='cell'>
-        <TextField
-          placeholder='Project Full Name'
-          value={ newproject.project_name_full || '' }
-          onChange={ (e) => setNewProject({ ...newproject, project_name_full: e.target.value }) }/>
-      </div>
-      <div className='cell'>
-        <TextField placeholder='project_short_name'
+        <TextField placeholder='project_name'
           value={ newproject.project_name || '' }
           onChange={ (e) => setNewProject({ ...newproject, project_name: e.target.value }) }/>
+      </div>
+      <div className='cell'>
+        <TextField
+          placeholder='Project Title'
+          value={ newproject.project_name_full || '' }
+          onChange={ (e) => setNewProject({ ...newproject, project_name_full: e.target.value }) }/>
       </div>
       <div className='cell submit'>
         <Icon className='approve' icon='magic' onClick={
