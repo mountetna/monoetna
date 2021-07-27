@@ -1,37 +1,22 @@
-import {act} from "react-test-renderer";
-import * as React from "react";
-import {delay} from "etna-js/spec/helpers";
-import {WorkflowsResponse} from "../../api_types";
 import {workflowsResponse} from "../../test_utils/fixtures/workflows-response";
-import {integrateElement} from "../../test_utils/integration";
+import {integrateElement, setupBefore} from "../../test_utils/integration";
+import {useContext} from "react";
+import {VulcanContext} from "../vulcan_context";
 
 
 describe('useWorkflowsLoading', () => {
+  const integrated = setupBefore(integrateElement);
+  const getWorkflowsMock = setupBefore(() => integrated.value.blockingAsyncMock('getWorkflows'));
+  const contextData = setupBefore(() => integrated.value.runHook(() => useContext(VulcanContext)));
+
   it('works', async () => {
-    let numCalls = 0;
-    const overrides = {
-        getWorkflows(): Promise<WorkflowsResponse> {
-          numCalls += 1;
-          return Promise.resolve(workflowsResponse);
-        }
-    };
-
-    const {contextData, updateMatching, replaceOverrides} = integrateElement(() => null, { providerOverrides: overrides });
-
-    await act(async function () {
-      await updateMatching(() => contextData.state.workflows === workflowsResponse.workflows);
-      expect(numCalls).toEqual(1);
-      await delay(100); // Ensure there isn't some nasty loop
-      expect(numCalls).toEqual(1);
-
-      replaceOverrides({});
-      await delay(100); // Shouldn't cause any further calls
-      expect(numCalls).toEqual(1);
-
-      // Substantive updates to params does reload.
-      replaceOverrides({ ...overrides, params: {a: 2} })
-      await updateMatching(() => numCalls == 2);
-      await updateMatching(() => contextData.state.workflows === workflowsResponse.workflows);
+    const {stateRef} = contextData.value;
+    expect(stateRef.current.workflows).toEqual([]);
+    await getWorkflowsMock.value.respond(() => {
+      return Promise.resolve(workflowsResponse)
     });
+
+    expect(stateRef.current.workflows).toEqual(workflowsResponse.workflows);
+    expect(getWorkflowsMock.value.pendingCount()).toEqual(0);
   });
 });

@@ -1,9 +1,9 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 export function useLegendHover(
   plot: HTMLDivElement | null,
   onHover: React.Dispatch<React.SetStateAction<number>>
-): {attachEventListeners: () => void; removeEventListeners: () => void} {
+) {
   const [listenersAttached, setListenersAttached] = useState(false);
 
   const elements = useMemo(
@@ -29,8 +29,10 @@ export function useLegendHover(
     onHover(-1);
   }, [onHover]);
 
-  const attachEventListeners = useCallback(() => {
-    if (listenersAttached) return;
+  const hasElements = elements.length > 0;
+
+  useEffect(() => {
+    if (listenersAttached || !hasElements) return;
 
     for (var i = 0; i < elements.length; i++) {
       elements[i].addEventListener('mouseover', onHoverLegendToggle);
@@ -38,12 +40,7 @@ export function useLegendHover(
     }
 
     setListenersAttached(true);
-  }, [
-    elements,
-    onHoverLegendToggle,
-    resetHoverLegendToggle,
-    listenersAttached
-  ]);
+  }, [elements, onHoverLegendToggle, resetHoverLegendToggle, listenersAttached, hasElements]);
 
   const removeEventListeners = useCallback(() => {
     for (var i = 0; i < elements.length; i++) {
@@ -52,8 +49,7 @@ export function useLegendHover(
     }
   }, [elements, onHoverLegendToggle, resetHoverLegendToggle]);
 
-  return {
-    attachEventListeners,
-    removeEventListeners
-  };
+  useEffect(() => {
+    return () => removeEventListeners();
+  }, [removeEventListeners])
 }

@@ -1,28 +1,21 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import {InputBackendComponent} from './input_types';
+import {WithInputParams} from './input_types';
+import {maybeOfNullable, some, withDefault} from "../../../../selectors/maybe";
+import {flattenStringOptions, StringOptions} from "./monoids";
+import {useMemoized} from "../../../../selectors/workflow_selectors";
 
-const SelectAutocompleteInput: InputBackendComponent = ({input, onChange}) => {
-  const options: any[] = useMemo(
-    () =>
-      Object.values(input.data || {}).reduce((acc, n) => {
-        if (Array.isArray(n)) return acc.concat(n);
-        return acc;
-      }, []),
-    [input.data]
-  );
-
-  if (!input || !onChange) return null;
+export default function SelectAutocompleteInput({data, onChange, ...props}: WithInputParams<{}, string, StringOptions>) {
+  const options = useMemoized(flattenStringOptions, data);
+  const value = withDefault(props.value, null);
 
   return (
     <DropdownAutocomplete
-      onSelect={(e: any) => {
-        onChange(input.name, e);
+      onSelect={(e: string | null) => {
+        onChange(maybeOfNullable(e));
       }}
       list={options}
-      value={input.value || null}
+      value={value}
     />
   );
 };
-
-export default SelectAutocompleteInput;

@@ -102,6 +102,16 @@
   }
 }
 
+.reset-or-commit-inputs {
+  text-align: right;
+  padding-right: 10px;
+
+  button {
+    @include vulcan-button;
+    font-size: 1.0em;
+  }
+}
+
 .consignment-view {
   padding-top: 5px;
   display: table;

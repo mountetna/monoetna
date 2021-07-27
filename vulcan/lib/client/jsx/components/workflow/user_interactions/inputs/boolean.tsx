@@ -1,19 +1,26 @@
-import React from 'react';
-import {InputBackendComponent} from './input_types';
+import React, {ChangeEvent, useCallback, useEffect} from 'react';
+import {WithInputParams} from './input_types';
+import {some, withDefault} from "../../../../selectors/maybe";
+import {useSetsDefault} from "./useSetsDefault";
+import {selectDefaultBoolean} from "./monoids";
 
-const BooleanInput: InputBackendComponent = ({input, onChange}) => {
-  if (!input || !onChange) return null;
+export default function BooleanInput({onChange, label, data, ...props}: WithInputParams<{label?: string}, boolean, boolean>) {
+  const value = useSetsDefault(selectDefaultBoolean(data), props.value, onChange);
+  const onCheck = useCallback((e: ChangeEvent<HTMLInputElement>) => onChange(some(!value)), [onChange, value]);
 
-  return (
-    <input
+  const inner = <input
       type='checkbox'
       className='text_box'
-      onChange={(e) => {
-        onChange(input.name, e.target.checked);
-      }}
-      checked={input.value || false}
+      onChange={onCheck}
+      checked={value}
     />
-  );
-};
 
-export default BooleanInput;
+  if (label) {
+    return <label className='checkbox-input-option'>
+      {inner}
+      {label}
+    </label>;
+  }
+
+  return inner;
+}

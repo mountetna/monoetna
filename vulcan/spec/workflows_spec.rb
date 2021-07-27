@@ -67,14 +67,6 @@ describe WorkflowsController do
           }
       })
 
-      expect(workflow['dependencies_of_outputs']).to eql({
-          "finalStep/sum" => [],
-          "firstAdd/sum" => ["finalStep/sum", "pickANum/num"],
-          "pickANum/num" => ["finalStep/sum"],
-          "someInt" => ["firstAdd/sum", "finalStep/sum", "pickANum/num"],
-          "someIntWithoutDefault" => ["firstAdd/sum", "finalStep/sum", "pickANum/num"],
-      })
-
       expect(workflow['steps']).to eql([
           [
               {

@@ -1,3 +1,5 @@
+import {BufferedChannel, Trigger, UnbufferedChannel} from "etna-js/utils/semaphore";
+
 export function createFakeStorage(): Storage {
   const storage: { [k: string]: string } = {};
 
@@ -24,44 +26,88 @@ export function createFakeStorage(): Storage {
   }
 }
 
-export type PromiseArgs<R> = [(r: R) => void, (e: any) => void];
-export class AsyncMock<R> {
-  constructor(public jestMock: jest.Mock, private promiseArgs: PromiseArgs<R>[]) {
+class AsyncMock<A extends any[], T, C extends UnbufferedChannel<[A, Trigger<T>]>> {
+  constructor(f: (...a: A) => Promise<T>,
+    public channel: C,
+    protected scheduler: (f: () => Promise<void>) => Promise<void> = async f => await f()) {
   }
 
-  hasPendingRequest() {
-    return this.promiseArgs.length > 0;
+  mock = async (...a: A) => {
+    const trigger = new Trigger<T>();
+    await this.channel.send([a, trigger]);
+    return await trigger.promise;
   }
 
-  async awaitCall(reset: boolean): Promise<[PromiseArgs<R>, any[]]> {
-    if (reset) {
-      this.promiseArgs.length = 0;
-      this.jestMock.mockClear();
-    }
+  async respond(f: (...a: A) => Promise<T> | T, q: Iterable<Promise<[A, Trigger<T>]>> = [this.channel.receive()]): Promise<void> {
+    await this.scheduler(async () => {
+      for (let request of q) {
+        const [a, trigger] = await request;
+        await Promise.resolve(f(...a)).then(trigger.resolve);
+      }
+    });
+  }
 
-    while (!this.hasPendingRequest()) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-
-    const next = this.promiseArgs.shift();
-    const call = this.jestMock.mock.calls.shift();
-    if (next && call) {
-      return [next, call];
-    }
-
-    throw new Error('Should never have been reached');
+  async reject(f: (...a: A) => never, q: Iterable<Promise<[A, Trigger<T>]>> = [this.channel.receive()]): Promise<void> {
+    await this.scheduler(async () => {
+      for (let request of q) {
+        const [a, trigger] = await request;
+        try {
+          await Promise.resolve(f(...a)).catch(trigger.reject);
+        } catch (e) {
+          trigger.reject(e);
+        }
+      }
+    });
   }
 }
 
-export function asyncFn<R>(): AsyncMock<R> {
-  const mock = jest.fn();
-  const promiseArgs: PromiseArgs<R>[] = [];
+export class BlockingAsyncMock<A extends any[], T> extends AsyncMock<A, T, BufferedChannel<[A, Trigger<T>]>> {
+  constructor(f: (...a: A) => Promise<T>, scheduler: (f: () => Promise<void>) => Promise<void> = async f => await f()) {
+    super(f, new BufferedChannel(Infinity), scheduler);
+  }
 
-  mock.mockImplementation((...args: any[]) => {
-    return new Promise<R>((resolve, reject) => {
-      promiseArgs.push([resolve, reject]);
-    })
-  });
+  pendingCount() {
+    return this.channel.buffer.length;
+  }
 
-  return new AsyncMock<R>(mock, promiseArgs);
+  async respond(f: (...a: A) => Promise<T> | T): Promise<void> {
+    const {channel} = this;
+    await super.respond(f, function* () {
+      let found = false;
+      for (let request of channel.drainPending()) {
+        yield request;
+        found = true;
+      }
+
+      if (!found) yield channel.receive();
+    }());
+  }
+
+  async reject(f: (...a: A) => never): Promise<void> {
+    const {channel} = this;
+    await super.reject(f, function* () {
+      let found = false;
+      for (let request of channel.drainPending()) {
+        yield request;
+        found = true;
+      }
+
+      if (!found) yield channel.receive();
+    }());
+  }
+}
+
+export class UnbufferedAsyncMock<A extends any[], T> extends AsyncMock<A, T, UnbufferedChannel<[A, Trigger<T>]>> {
+  constructor(f: (...a: A) => Promise<T>, scheduler: (f: () => Promise<void>) => Promise<void> = async f => await f()) {
+    super(f, new UnbufferedChannel(), scheduler);
+  }
+}
+
+export function countIter(iter: Iterable<any>): number {
+  let i = 0;
+  for (let elem of iter) {
+    i++;
+  }
+
+  return i;
 }
