@@ -13,7 +13,13 @@ describe('JanusAdmin', () => {
       user: {
 	email: "janus@two-faces.org",
 	name: "Janus Bifrons",
-	permissions: { }
+        permissions: { 
+          administration: {
+            privileged: false,
+            project_name: 'administration',
+            role: 'editor'
+          }
+        }
       }
     });
   });
