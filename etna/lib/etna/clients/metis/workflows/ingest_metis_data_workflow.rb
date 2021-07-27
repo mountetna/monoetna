@@ -19,11 +19,7 @@ module Etna
             logger&.info("Copying file #{src} (#{Etna::Formatting.as_size(ingest_filesystem.stat(src).size)})")
 
             # For ingestion triage, just copy over the exact path + filename.
-            if block_given?
-              yield copy_file(src, src, &block)
-            else
-              copy_file(src, src)
-            end
+            copy_file(src, src, &block)
           end
         end
 
