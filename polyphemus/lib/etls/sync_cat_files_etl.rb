@@ -14,7 +14,7 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
   end
 
   def process(cursor, records)
-    logger.info("Ingesting files from CAT: #{records.map { |r| r.filename }.join(", ")}...")
+    logger.info("Ingesting #{records.length} files from CAT.")
 
     update_ingest_files(records)
 
@@ -84,7 +84,7 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
         updated_at: DateTime.now,
         name: record.filename,
         host: host,
-        should_ingest: false
+        should_ingest: false,
       }
     end)
   end
