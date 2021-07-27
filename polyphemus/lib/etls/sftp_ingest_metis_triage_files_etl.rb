@@ -20,7 +20,7 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
       files_for_host = records_by_host[host]
       file_names = files_for_host.map { |file| file[:name] }
 
-      logger.info("Ingesting files from #{host}: #{file_names.join(", ")}...")
+      logger.info("Ingesting #{file_names.length} files from #{host}: #{file_names.join(", ")}...")
 
       workflow = Etna::Clients::Metis::IngestMetisDataWorkflow.new(
         metis_filesystem: metis_filesystem(conf),
@@ -31,8 +31,6 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
         puts "#{file_name} finished uploading."
         update_ingested_timestamp(host, file_name)
       end
-
-      # update_ingested_timestamp(files_for_host)
     end
 
     logger.info("Done")
@@ -45,17 +43,10 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
   end
 
   def update_ingested_timestamp(host, file_name)
-    Polyphemus::IngestFile.find(host: host, name: file_name).update(
+    Polyphemus::IngestFile.where(host: host, name: file_name).first.update(
       ingested_at: DateTime.now,
     )
   end
-
-  # def update_ingested_timestamp(file_records)
-  #   Polyphemus::IngestFile.where(id: file_records.map { |f| f[:id] })
-  #     .all do |file|
-  #     file.update(ingested_at: DateTime.now)
-  #   end
-  # end
 
   def ingest_filesystem(configuration)
     Etna::Filesystem::SftpFilesystem.new(**configuration)
