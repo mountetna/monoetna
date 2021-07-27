@@ -27,9 +27,12 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
         ingest_filesystem: ingest_filesystem(conf),
         logger: logger,
       )
-      workflow.copy_files(file_names)
+      workflow.copy_files(file_names) do |file_name|
+        puts "#{file_name} finished uploading."
+        update_ingested_timestamp(host, file_name)
+      end
 
-      update_ingested_timestamp(files_for_host)
+      # update_ingested_timestamp(files_for_host)
     end
 
     logger.info("Done")
@@ -41,12 +44,18 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
     Polyphemus.instance.config(:ingest)[:sftp]
   end
 
-  def update_ingested_timestamp(file_records)
-    Polyphemus::IngestFile.where(id: file_records.map { |f| f[:id] })
-      .all do |file|
-      file.update(ingested_at: DateTime.now)
-    end
+  def update_ingested_timestamp(host, file_name)
+    Polyphemus::IngestFile.find(host: host, name: file_name).update(
+      ingested_at: DateTime.now,
+    )
   end
+
+  # def update_ingested_timestamp(file_records)
+  #   Polyphemus::IngestFile.where(id: file_records.map { |f| f[:id] })
+  #     .all do |file|
+  #     file.update(ingested_at: DateTime.now)
+  #   end
+  # end
 
   def ingest_filesystem(configuration)
     Etna::Filesystem::SftpFilesystem.new(**configuration)

@@ -35,6 +35,7 @@ class Polyphemus
           Polyphemus::IngestFile.where(
             should_ingest: true,
             ingested_at: nil,
+            removed_from_source: false,
           )
         end.result_updated_at do |file|
           file[:updated_at]
