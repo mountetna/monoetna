@@ -5,7 +5,7 @@ import {Debouncer} from "../../utils/debouncer";
 export default function SlowTextInput(props) {
   const {onChange, waitTime, eager, defaultValue, followDefault, ...inputProps} = props;
   const inputRef = useRef();
-  const [value, setValue] = useState(defaultValue || '');
+  const [value, setValue] = useState(defaultValue == null ? '' : defaultValue);
   const [prevDefault, setPrevDefault] = useState(() => defaultValue);
   const [debouncer, setDebouncer] = useState(() => new Debouncer({windowMs: waitTime, eager}));
   // Clear the existing debouncer and accept any new changes to the settings
