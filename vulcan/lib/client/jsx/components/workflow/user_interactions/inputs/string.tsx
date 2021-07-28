@@ -10,7 +10,7 @@ export default function StringInput({onChange, data, ...props}: WithInputParams<
 
   return (
     <SlowTextInput
-      key={value}
+      followDefault
       defaultValue={value}
       onChange={(e: string) => {
         onChange(some(e));
