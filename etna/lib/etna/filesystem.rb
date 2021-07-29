@@ -377,45 +377,128 @@ module Etna
     end
 
     class SftpFilesystem < Filesystem
+      include WithPipeConsumer
+
+      class SftpFile
+        attr_reader :size, :name
+
+        def initialize(data)
+          @data_parts = data.split(" ")
+          @size = @data_parts[4].to_i
+          @perms = @data_parts.first
+          @name = @data_parts[8]
+        end
+
+        def is_directory?
+          "d" == @perms.first
+        end
+
+        def is_file?
+          !is_directory?
+        end
+      end
+
       def initialize(host:, username:, password: nil, port: 22, **args)
         @username = username
         @password = password
         @host = host
         @port = port
+
+        @dir_listings = {}
       end
 
-      def ssh
-        @ssh ||= Net::SSH.start(@host, @username, password: @password)
+      def url(src)
+        "sftp://#{@host}/#{src}"
       end
 
-      def sftp
-        @sftp ||= begin
-          conn = Net::SFTP::Session.new(ssh)
-          conn.loop { conn.opening? }
+      def authn
+        "#{@username}:#{@password}"
+      end
 
-          conn
+      def run_curl_cmd(file_name, opts=[])
+        output, status = Open3.capture2("curl", "-u", authn, "-k", *opts, url(file_name))
+
+        if status.success?
+          return output
         end
+
+        nil
       end
 
       def with_readable(src, opts = 'r', &block)
-        sftp.file.open(src, opts, &block)
-      end
-
-      def ls(dir)
-        sftp.dir.entries(dir)
+        mkio(src, opts, &block)
       end
 
       def exist?(src)
-        begin
-          sftp.file.open(src)
-        rescue Net::SFTP::StatusException
-          return false
-        end
-        return true
+        files = ls(::File.dirname(src))
+        files.include?(::File.basename(src))
+      end
+
+      def ls(dir)
+        puts dir
+        dir = dir + "/" unless "/" == dir[-1]  # Trailing / makes curl list directory
+
+        return @dir_listings[dir] if @dir_listings.has_key?(dir)
+
+        listing = run_curl_cmd(dir)
+
+        @dir_listings[dir] = listing
+
+        listing
       end
 
       def stat(src)
-        sftp.file.open(src).stat
+        file = ls(::File.dirname(src)).split("\n").map do |listing|
+          SftpFile.new(listing)
+        end.select do |file|
+          file.name == ::File.basename(src)
+        end
+
+        raise "#{src} not found" unless file
+
+        file
+      end
+
+      # def with_readable(src, opts = 'r', &block)
+      #   sftp.file.open(src, opts, &block)
+      # end
+
+      # def ls(dir)
+      #   sftp.dir.entries(dir)
+      # end
+
+      # def exist?(src)
+      #   begin
+      #     sftp.file.open(src)
+      #   rescue Net::SFTP::StatusException
+      #     return false
+      #   end
+      #   return true
+      # end
+
+      # def stat(src)
+      #   sftp.file.open(src).stat
+      # end
+
+      def mkcommand(rd, wd, file, opts, size_hint: nil)
+        env = {}
+        cmd = [env, "curl"]
+
+        cmd << "-u"
+        cmd << authn
+        cmd << "-k" # Their SSL cert may not be recognized?
+        cmd << url(file)
+      
+        if opts.include?('r')
+          cmd << "--output"
+          cmd << "-"
+
+          cmd << {out: wd}
+        elsif opts.include?('w')
+          raise "Writing not supported with this filesystem."
+        end
+
+        cmd
       end
     end
 
