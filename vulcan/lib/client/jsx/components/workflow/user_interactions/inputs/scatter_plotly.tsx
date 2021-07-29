@@ -1,13 +1,13 @@
 // Input component that takes nested object
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
-import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import React, {useMemo} from 'react';
 import * as _ from 'lodash';
 
-import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import {InputBackendComponent} from './input_types';
+import {DataEnvelope, WithInputParams} from './input_types';
 import TextInput from 'etna-js/components/inputs/text_input';
-import { JsxElement } from 'typescript';
+import { useSetsDefault } from './useSetsDefault';
+import { some } from '../../../../selectors/maybe';
 
 /*
 This input is closely tied to archimedes/functions/plotting/scatter_plotly.
@@ -24,13 +24,19 @@ Output Structure:
   dictionary of scatter_plotly inputs-name (key) + value pairs.
 */
 
-const ScatterPlotly: InputBackendComponent = ({
-  input,
-  onChange
-}) => {
-  const {data, name} = input;
+const defaults: {[k: string]: any} = {
+  'plot_title': 'make',
+  'legend_title': 'make',
+  'xlab': 'make',
+  'ylab': 'make'
+};
 
-  const options: {[k: string]: string} = useMemo(() => {
+export default function ScatterPlotly({
+  data, onChange, ...props
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  const value = useSetsDefault(defaults, props.value, onChange);
+
+  const options: DataEnvelope<string> = useMemo(() => {
     if (data == null) return {};
     
     let given = Object.values(data['data_options']);
@@ -43,10 +49,9 @@ const ScatterPlotly: InputBackendComponent = ({
     return given;
   }, [data]);
 
-  const updateValue = (newValue: string | number | boolean, key: string, prevValues = input.value) => {
+  const updateValue = (newValue: string | number | boolean, key: string, prevValues = value) => {
     prevValues[key] = newValue;
-    console.log(input);
-    onChange(name, prevValues);
+    onChange(some(prevValues));
   };
 
   const string_input = (key: string = "filler", value: string | number | boolean = "filler", label: string = 'hello') => {
@@ -70,12 +75,7 @@ const ScatterPlotly: InputBackendComponent = ({
 
   type fxn = (...args: any[]) => any;
 
-  const defaults: {[k: string]: any} = {
-    'plot_title': 'make',
-    'legend_title': 'make',
-    'xlab': 'make',
-    'ylab': 'make'
-  };
+
   
   const component_use = (key: string, value: any, extra_inputs: any) => {
     const comps: {[k: string]: fxn} = {
@@ -129,17 +129,11 @@ const ScatterPlotly: InputBackendComponent = ({
       onChange(name, remove_hidden(defaults, hide));
     }
     */
-  useEffect(() => {
-    if (null == input.value) {
-      onChange(name, defaults);
-    }
-  }, [defaults, input.value, name, onChange]);
 
-  if (null == input.value) return null;
 
   return (
     <div>
-      {Object.entries(input.value).map(([key, val]) => {
+      {Object.entries(value).map(([key, val]) => {
         return (
           component_use(key, val, extra_inputs[key])
         );
@@ -148,5 +142,3 @@ const ScatterPlotly: InputBackendComponent = ({
   );
 
 };
-
-export default ScatterPlotly;

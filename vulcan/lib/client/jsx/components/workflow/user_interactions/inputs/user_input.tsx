@@ -49,6 +49,7 @@ configureComponent(TYPE.CHECKBOXES, CheckboxesInput, NotEmptyValidator);
 configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, NotEmptyValidator);
 configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
+configureComponent(TYPE.SCATTER_PLOTLY, ScatterPlotly, NotEmptyValidator);
 
 configureComponent(TYPE.SINGLE_DROPDOWN_MULTICHECKBOX, SingleDropdownMulticheckbox, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_MULTISELECT_STRING_ALL, MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator)
