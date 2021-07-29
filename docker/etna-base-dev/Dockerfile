@@ -25,6 +25,8 @@ RUN apt-get update \
       libssl-dev \
       parallel \
       postgresql-client-10 \
+      rsync \
+      sshpass \
       --no-install-recommends &&\
     rm -rf /var/lib/apt/lists/*
 

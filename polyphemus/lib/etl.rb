@@ -35,6 +35,7 @@ class Polyphemus
           super
           Polyphemus.instance.setup_db
           Polyphemus.instance.setup_logger
+          Polyphemus.instance.setup_sequel
         end
       end) unless self.const_defined?(:Run)
 
@@ -103,7 +104,7 @@ class Polyphemus
     def run_once
       logger.info("Starting loop")
       @cursor_group.with_next do |cursor|
-        logger.info("Selecting cursor for #{cursor}")
+        logger.info("Selecting cursor for #{cursor.name}")
         cursor.load_from_db
         logger.info("Finding batch...")
         batch = @scanner.find_batch(cursor)

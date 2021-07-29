@@ -70,6 +70,18 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/).times(10)
       expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/).times(10)
     end
+
+    it 'continues working if a single patient throws an error' do
+      stub_parent_exists({status: 422, bucket: RESTRICT_BUCKET})
+      stub_create_folder({bucket: RESTRICT_BUCKET})
+      stub_rename_folder_with_error({bucket: RELEASE_BUCKET})
+
+      command.execute
+
+      # One patient skips, so only 7 requests per patient (fewer than above test)
+      expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/create\/#{RESTRICT_BUCKET}/).times(7)
+      expect(WebMock).to have_requested(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{RELEASE_BUCKET}/).times(7)
+    end
   end
 
   context 'when releasing patients and pools' do

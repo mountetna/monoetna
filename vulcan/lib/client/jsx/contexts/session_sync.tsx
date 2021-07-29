@@ -1,83 +1,59 @@
-import {useMemo} from 'react';
-import * as _ from 'lodash';
-
 import {defaultApiHelpers} from "./api";
-import {Dispatch, MutableRefObject, useCallback, useEffect, useRef, useState} from "react";
+import {Dispatch, MutableRefObject} from "react";
 import {VulcanState} from "../reducers/vulcan_reducer";
-import {setSession, setStatus, VulcanAction} from "../actions/vulcan";
-import {SessionStatusResponse, VulcanSession} from "../api_types";
-import {Cancellable} from "etna-js/utils/cancellable";
+import {finishPolling, setSession, setStatus, startPolling, VulcanAction} from "../actions/vulcan_actions";
+import {SessionStatusResponse} from "../api_types";
 import {hasNoRunningSteps} from "../selectors/workflow_selectors";
+import {runPromise, useAsyncCallback} from "etna-js/utils/cancellable_helpers";
 
 export const defaultSessionSyncHelpers = {
-  statusIsFresh: true,
-  requestPoll(post?: boolean) {
-  },
+  requestPoll(post = false, clearStaleInputs = true): Promise<unknown> {
+    return Promise.resolve();
+  }, cancelPolling() {
+  }
 };
 
-function updateFromSessionResponse(response: SessionStatusResponse, dispatch: Dispatch<VulcanAction>) {
-  dispatch(setStatus(response.status));
-  dispatch(setSession(response.session));
+export function delay(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export function useSessionSync(
-    state: MutableRefObject<VulcanState>,
-    scheduleWork: typeof defaultApiHelpers.scheduleWork,
-    pollStatus: typeof defaultApiHelpers.pollStatus,
-    postInputs: typeof defaultApiHelpers.postInputs,
-    dispatch: Dispatch<VulcanAction>,
+function updateFromSessionResponse(response: SessionStatusResponse, dispatch: Dispatch<VulcanAction>, clearStaleInputs: boolean) {
+  dispatch(setSession(response.session));
+  dispatch(setStatus(response.status, clearStaleInputs));
+}
+
+export function useSessionSync(state: MutableRefObject<VulcanState>,
+  showErrors: typeof defaultApiHelpers.showErrors,
+  pollStatus: typeof defaultApiHelpers.pollStatus,
+  postInputs: typeof defaultApiHelpers.postInputs,
+  dispatch: Dispatch<VulcanAction>,
 ): typeof defaultSessionSyncHelpers {
-  const [lastPollingRequest, setPollingRequest] = useState([false, state.current] as [boolean, VulcanState]);
-  const [lastCompletedPollingRequest, setCompletedRequest] = useState(null as null | VulcanSession['inputs']);
-
-  // Note -- this will 'cancel' processing the result of previous requests when a new polling request is made, but
-  // it does not actually cancel the underlying request.  Posts will thus complete just fine, although the result may
-  // be superceeded by a requests poll.
-  useEffect(() => {
-    const [doPost, state] = lastPollingRequest;
-    const cancellable = new Cancellable();
-
-    if (!state.session.workflow_name) return;
-
-    const sessionOfWork = state.session;
-    const baseWork = doPost ? postInputs(sessionOfWork) : pollStatus(sessionOfWork);
-    cancellable.race(baseWork).then(({result, cancelled}) => {
-      if (cancelled || !result) return;
-      updateFromSessionResponse(result, dispatch);
-      setCompletedRequest(state.session.inputs);
-    })
-
-    return () => cancellable.cancel();
-  }, [lastPollingRequest, dispatch, pollStatus, postInputs, state]);
-
-  // Unpack the session inputs so the useMemo dependency
-  //   correctly updates statusIsFresh and eslint won't
-  //   complain.
-  const {current: {session: {inputs: sessionInputs}}} = state;
-  const statusIsFresh = useMemo(() =>
-    _.isEqual(lastCompletedPollingRequest, sessionInputs),
-    [lastCompletedPollingRequest, sessionInputs]);
-
-  const requestPoll = useCallback((post = false) => {
-    if (!post && hasNoRunningSteps(state.current.status) && statusIsFresh) {
+  /*
+     Begins the process of exchanging the current session with the server and updating our state based on this.
+     For post requests, the inputs are sent and work is scheduled if it is not already.
+     For non post requests, the inputs are sent but work is not scheduled.
+     After that, it continues to poll until all steps are not running.
+   */
+  const [requestPoll, cancelPolling] = useAsyncCallback(function* (post = false, clearStaleInputs = false) {
+    dispatch(startPolling());
+    if (!state.current.session.workflow_name) {
       return;
     }
 
-    setPollingRequest([post, { ...state.current }]);
-  }, [state, statusIsFresh]);
+    const baseWork = post ? postInputs(state.current.session) : pollStatus(state.current.session);
+    const response = yield* runPromise(showErrors(baseWork));
+    updateFromSessionResponse(response, dispatch, clearStaleInputs);
 
-  useEffect(() => {
-    const timerId = setInterval(() => requestPoll(), 1000);
-    return () => clearInterval(timerId);
-  }, [requestPoll])
-
-  // Kind, of silly.  Just want this useEffect to run once on first mount.  But the linter will complain unless we
-  // wrap the callback in a ref.  we do not want to fire this for every single change to the callback.
-  const requestPollRef = useRef(requestPoll);
-  useEffect(() => requestPollRef.current(), []);
+    while (!hasNoRunningSteps(state.current.status)) {
+      yield delay(3000);
+      const response = yield* runPromise(showErrors(pollStatus(state.current.session)));
+      updateFromSessionResponse(response, dispatch, clearStaleInputs);
+    }
+  }, [dispatch, pollStatus, postInputs, state], () => {
+    dispatch(finishPolling())
+  });
 
   return {
-    statusIsFresh,
-    requestPoll,
+    requestPoll, cancelPolling
   };
 }

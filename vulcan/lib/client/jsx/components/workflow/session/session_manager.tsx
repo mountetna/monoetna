@@ -1,22 +1,19 @@
-import React, {useCallback, useContext, useEffect, useMemo} from 'react';
+import React, {useCallback, useContext} from 'react';
 import ReactModal from 'react-modal';
 import FlatButton from 'etna-js/components/flat-button';
-import {showMessages} from 'etna-js/actions/message_actions';
 
 import {VulcanContext} from '../../../contexts/vulcan_context';
-import {setSession} from '../../../actions/vulcan';
+import {setSession} from '../../../actions/vulcan_actions';
 import InputFeed from './input_feed';
 import OutputFeed from './output_feed';
 import Vignette from '../vignette';
 import {
-  allWorkflowPrimaryInputSources,
-  statusOfStep,
-  uiOutputOfStep,
   workflowName
 } from '../../../selectors/workflow_selectors';
 import {useWorkflow} from '../../../contexts/workflow_context';
 import {readTextFile, downloadBlob} from 'etna-js/utils/blob';
 import { defaultSession } from '../../../reducers/vulcan_reducer';
+import {VulcanSession} from "../../../api_types";
 
 const modalStyles = {
   content: {
@@ -30,99 +27,60 @@ const modalStyles = {
 };
 
 export default function SessionManager() {
-  const {state, dispatch, requestPoll, useActionInvoker} = useContext(
-    VulcanContext
-  );
-  const workflow = useWorkflow();
-  const invoke = useActionInvoker();
+  const {state, dispatch, showErrors, requestPoll, cancelPolling} = useContext(VulcanContext);
+  const {workflow, hasPendingEdits, complete} = useWorkflow();
 
   const [modalIsOpen, setIsOpen] = React.useState(false);
-  const {steps} = workflow;
-  const {status, session, inputs} = state;
+  const {session} = state;
 
   const name = workflowName(workflow);
-
   const openModal = useCallback(() => setIsOpen(true), [setIsOpen]);
   const closeModal = useCallback(() => setIsOpen(false), [setIsOpen]);
 
+  const run = useCallback(() => requestPoll(true), [requestPoll]);
+  const stop = useCallback(() => cancelPolling(), [cancelPolling]);
+
   const saveSession = useCallback(() => {
+    if (hasPendingEdits) {
+      alert('You have uncommitted changes, reset or commit those before saving.')
+      return;
+    }
+
     downloadBlob({
       data: JSON.stringify(session, null, 2),
       filename: `${name}.json`,
       contentType: 'text/json'
     });
-  }, [session, name]);
+  }, [hasPendingEdits, session, name]);
 
   const openSession = () => {
-    readTextFile('*.json').then((sessionJson) => {
-      dispatch(setSession(JSON.parse(sessionJson)));
-    });
+    showErrors(readTextFile('*.json').then((sessionJson) => {
+      const session: VulcanSession = JSON.parse(sessionJson);
+      if (session.workflow_name !== state.session.project_name || session.project_name !== state.session.project_name) {
+        // TODO: Confirm the user has project and workflow access before doing the navigation?
+        if (confirm('This session file belongs to a different project / workflow combination, navigate to that page?')) {
+          location.href = location.origin + ROUTES.workflow(session.project_name, session.workflow_name);
+        }
+        throw new Error('Cannot read session file, incompatible with current page.')
+      }
+      dispatch(setSession(session));
+    }));
   };
 
   const resetSession = useCallback(
     () => {
-      let newSession = {
+      const newSession = {
         ...defaultSession,
         workflow_name: session.workflow_name,
-        project_name: session.project_name
+        project_name: session.project_name,
       }
-      console.log({newSession});
       dispatch(setSession(newSession));
-    }, [ session, name ]
+      requestPoll();
+    }, [session.workflow_name, session.project_name, dispatch, requestPoll]
   );
 
-  // We are done once every step either has a download or that step is a uiOutput.
-  const complete = useMemo(
-    () =>
-      steps[0].every(
-        (step) => uiOutputOfStep(step) || statusOfStep(step, status)?.downloads
-      ),
-    [steps, status]
-  );
-
-  const idle = useMemo(
-    () =>
-      steps[0].every(
-        (step) =>
-          uiOutputOfStep(step) ||
-          statusOfStep(step, status)?.status !== 'running'
-      ),
-    [steps, status]
-  );
-
-  const primaryInputsReady = useMemo(
-    () =>
-      allWorkflowPrimaryInputSources(workflow).every(
-        (source) => source in state.inputs
-      ),
-    [state.inputs, workflow]
-  );
-
-  const hasValidationErrors = Object.keys(state.validationErrors).length > 0;
-
-  const running = !idle;
-
-  const run = useCallback(() => {
-    if (hasValidationErrors) {
-      invoke(
-        showMessages(
-          Object.entries(state.validationErrors)
-            .map(([inputName, validation]: [string, any]) => {
-              let {
-                inputLabel,
-                errors
-              }: {inputLabel: string; errors: string[]} = validation;
-              return errors.map((e: string) => `${inputLabel}: ${e}`);
-            })
-            .flat()
-        )
-      );
-    } else {
-      requestPoll(true);
-    }
-  }, [requestPoll, hasValidationErrors, invoke, state.validationErrors]);
-
-  const disableRunButton = complete || running || !primaryInputsReady;
+  const running = state.pollingState > 0;
+  const disableRunButton = complete || running || hasPendingEdits;
 
   if (!name) return null;
 
@@ -150,16 +108,21 @@ export default function SessionManager() {
             </ReactModal>
           </React.Fragment>
         )}
+        { state.pollingState ? <FlatButton
+          className={`header-btn`}
+          icon='stop'
+          label='Stop'
+          title='Stop workflow'
+          onClick={stop}
+        /> :
         <FlatButton
-          className={`header-btn run ${
-            hasValidationErrors ? 'validation-errors' : ''
-          }`}
+          className={`header-btn run`}
           icon='play'
           label='Run'
           title='Run workflow'
           onClick={run}
           disabled={disableRunButton}
-        />
+        /> }
         <FlatButton
           className='header-btn save'
           icon='save'

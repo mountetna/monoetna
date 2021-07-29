@@ -1,18 +1,21 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {FloatInput as EtnaFloatInput} from 'etna-js/components/inputs/numeric_input';
-import {InputBackendComponent} from './input_types';
+import {WithInputParams} from './input_types';
+import {some} from "../../../../selectors/maybe";
+import {useSetsDefault} from "./useSetsDefault";
+import {selectDefaultNumber} from "./monoids";
 
-const FloatInput: InputBackendComponent = ({input, onChange}) => {
-  if (!input || !onChange) return null;
+export function FloatInput({onChange, data, ...props}: WithInputParams<{}, number, number>) {
+  const onNewFloat = useCallback((f: number) => onChange(some(f)), [onChange])
+  const value = useSetsDefault(selectDefaultNumber(data), props.value, onChange);
 
   return (
     <EtnaFloatInput
-      defaultValue={input.value}
-      onChange={(e: any) => {
-        onChange(input.name, e);
-      }}
+      followDefault
+      defaultValue={value}
+      onChange={onNewFloat}
     />
   );
-};
+}
 
 export default FloatInput;

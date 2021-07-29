@@ -18,7 +18,6 @@ export const TYPE = {
   SELECT_AUTOCOMPLETE: 'select-autocomplete',
   CHECKBOXES: 'checkboxes',
   NESTED_SELECT_AUTOCOMPLETE: 'nested-select-autocomplete',
-  MULTISELECT_STRING_ALL: 'multiselect-string-all',
   MULTIPLE_MULTISELECT_STRING_ALL: 'multiple-multiselect-string-all',
   MULTIPLE_STRING: 'multiple-string',
   SINGLE_DROPDOWN_MULTICHECKBOX: 'single-dropdown-multicheckbox',
@@ -77,6 +76,10 @@ export interface WorkflowOutput {
   format: string | null,
 }
 
+export const defaultWorkflowInput: WorkflowInput = {
+  type: TYPE.STRING
+}
+
 export interface WorkflowInput {
   doc?: string | null,
   label?: string | null,
@@ -91,7 +94,6 @@ export interface Workflow {
   name: string,
   inputs: {[k: string]: WorkflowInput},
   outputs: {[k: string]: WorkflowOutput},
-  dependencies_of_outputs: {[k: string]: string[]},
   steps: [WorkflowStep[]],
   vignette?: string,
   image?: string,
@@ -107,7 +109,6 @@ export const defaultWorkflow: Workflow = {
   name: "",
   inputs: {} as {[k: string]: WorkflowInput},
   outputs: {} as {[k: string]: WorkflowOutput},
-  dependencies_of_outputs: {} as {[k: string]: string[]},
   steps: [[]] as [WorkflowStep[]],
 }
 
@@ -118,11 +119,13 @@ export interface StepStatus {
   status: StatusString,
   downloads?: {[k: string]: string} | null,
   error?: string | null,
+  hash: string,
 }
 
 export const defaultStepStatus: StepStatus = {
   name: "",
   status: "pending",
+  hash: "",
 }
 
 export const defaultVulcanSession = {

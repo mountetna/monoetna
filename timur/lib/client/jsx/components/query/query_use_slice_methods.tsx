@@ -70,10 +70,11 @@ const useSliceMethods = (
     if (!state.rootModel) return [];
 
     return selectCollectionModelNames(
-      selectModels(reduxState),
-      Object.keys(attributesWithRootIdentifier)
+      state.graph,
+      state.rootModel,
+      Object.keys(state.attributes)
     );
-  }, [reduxState, state.rootModel, attributesWithRootIdentifier]);
+  }, [state.graph, state.rootModel, state.attributes]);
 
   const matrixSlices = useMemo(() => {
     if (!state.slices[modelName] || !matrixModelNames.includes(modelName))

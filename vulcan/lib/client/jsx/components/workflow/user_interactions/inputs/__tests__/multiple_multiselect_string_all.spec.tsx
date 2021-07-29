@@ -1,10 +1,15 @@
 import React from 'react';
 import {mount, ReactWrapper} from 'enzyme';
-import MultipleMultiselectStringAllInput from '../multiple_multiselect_string_all';
-import {InputSpecification} from '../input_types';
+import {DataEnvelope, InputSpecification} from '../input_types';
+import MultipleInput from "../multiple_input";
+import MultiselectStringInput from "../multiselect_string";
+import {StringOptions} from "../monoids";
+import {Maybe, some} from "../../../../../selectors/maybe";
 
 describe('MultipleMultiselectStringAllInput', () => {
-  let input: InputSpecification;
+  const MultipleMultiselectStringAllInput = MultipleInput(MultiselectStringInput);
+  let data: DataEnvelope<DataEnvelope<StringOptions>>;
+  let value: Maybe<DataEnvelope<string[]>>
   let onChange: jest.Mock;
 
   function openDropdown(component: ReactWrapper, inputIndex: number) {
@@ -43,12 +48,8 @@ describe('MultipleMultiselectStringAllInput', () => {
   }
 
   beforeEach(() => {
-    input = {
-      type: 'doesnotmatter',
-      value: null,
-      label: 'Abcdef',
-      name: 'test-input',
-      data: {
+    value = null;
+    data = {
         'options-a': {
           option1: ['1', '2', '3'],
           option2: ['x', 'y', 'z']
@@ -57,7 +58,6 @@ describe('MultipleMultiselectStringAllInput', () => {
           option3: ['9', '8', '7'],
           option4: ['a', 'b', 'c']
         }
-      }
     };
 
     onChange = jest.fn();
@@ -65,7 +65,7 @@ describe('MultipleMultiselectStringAllInput', () => {
 
   it('correctly manages child(ren) selects', () => {
     const component = mount(
-      <MultipleMultiselectStringAllInput input={input} onChange={onChange} />
+      <MultipleMultiselectStringAllInput data={data} value={value} onChange={onChange} />
     );
     expect(component.find('.view_item').length).toEqual(4);
     expect(renderedLabels(component)).toEqual([
@@ -75,35 +75,36 @@ describe('MultipleMultiselectStringAllInput', () => {
       'option4'
     ]);
     clickOption(component, 0, 0);
-    expect(onChange).toHaveBeenLastCalledWith('test-input', {
+    expect(onChange).toHaveBeenLastCalledWith(some({
       option1: ['1']
-    });
+    }));
 
     clickOption(component, 1, 1);
-    expect(onChange).toHaveBeenLastCalledWith('test-input', {
+    expect(onChange).toHaveBeenLastCalledWith(some({
       option2: ['y']
-    });
+    }));
 
     clickOption(component, 2, 2);
-    expect(onChange).toHaveBeenLastCalledWith('test-input', {
+    expect(onChange).toHaveBeenLastCalledWith(some( {
       option3: ['9']
-    });
+    }));
 
     clickOption(component, 3, 0);
-    expect(onChange).toHaveBeenLastCalledWith('test-input', {
+    expect(onChange).toHaveBeenLastCalledWith(some({
       option4: ['a']
-    });
+    }));
   });
 
   it('correctly sets the lists when given a value', () => {
-    input.value = {
+    value = some({
       option1: ['1', '2'],
       option2: ['y'],
       option3: ['8', '9', '7'],
       option4: ['c']
-    };
+    });
+
     const component = mount(
-      <MultipleMultiselectStringAllInput input={input} onChange={onChange} />
+      <MultipleMultiselectStringAllInput value={value} data={data} onChange={onChange} />
     );
 
     expect(component.find('.view_item').length).toEqual(4);
@@ -125,14 +126,14 @@ describe('MultipleMultiselectStringAllInput', () => {
   });
 
   it('can remove a single entry with a value', () => {
-    input.value = {
+    value = some({
       option1: ['1', '2'],
       option2: ['y'],
       option3: ['8', '9', '7'],
       option4: ['c']
-    };
+    });
     const component = mount(
-      <MultipleMultiselectStringAllInput input={input} onChange={onChange} />
+      <MultipleMultiselectStringAllInput data={data} value={value} onChange={onChange} />
     );
 
     expect(component.find('.view_item').length).toEqual(4);
@@ -154,11 +155,11 @@ describe('MultipleMultiselectStringAllInput', () => {
     ]);
 
     component.find('.delete_link').last().simulate('click');
-    expect(onChange).toHaveBeenCalledWith('test-input', {
+    expect(onChange).toHaveBeenCalledWith(some({
       option1: ['1', '2'],
       option2: ['y'],
       option3: ['8', '9', '7'],
       option4: []
-    });
+    }));
   });
 });

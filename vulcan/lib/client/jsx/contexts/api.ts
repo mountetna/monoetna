@@ -2,16 +2,11 @@ import {useCallback, useRef, useState} from "react";
 import {showMessages} from "etna-js/actions/message_actions";
 import {checkStatus, handleFetchError, handleFetchSuccess, headers} from "etna-js/utils/fetch";
 import {
-    defaultSessionStatusResponse,
-    defaultWorkflowsResponse,
-    SessionStatusResponse,
-    VulcanSession,
-    WorkflowsResponse
+    defaultSessionStatusResponse, defaultWorkflowsResponse, SessionStatusResponse, VulcanSession, WorkflowsResponse
 } from "../api_types";
 
 export const defaultApiHelpers = {
-    isLoading: false,
-    scheduleWork<T>(work: Promise<T>): Promise<T> {
+    showErrors<T>(work: Promise<T>): Promise<T> {
         work.catch((e) => {
             console.error(e);
         })
@@ -19,23 +14,20 @@ export const defaultApiHelpers = {
         return work;
     },
     getData(url: string): Promise<any> {
-        return Promise.resolve({});
+        return new Promise(() => null);
     },
     postInputs(session: VulcanSession): Promise<SessionStatusResponse> {
-        return new Promise((resolve, reject) => null);
+        return new Promise(() => null);
     },
     pollStatus(session: VulcanSession): Promise<SessionStatusResponse> {
-        return new Promise((resolve, reject) => null);
+        return new Promise(() => null);
     },
     getWorkflows(): Promise<WorkflowsResponse> {
-        return new Promise((resolve, reject) => null);
+        return new Promise(() => null);
     },
 }
 
 export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHelpers {
-    const [workCount, setWorkCount] = useState(0);
-    const workRef = useRef(workCount);
-
     const vulcanPath = useCallback((endpoint: string) => `${CONFIG.vulcan_host}${endpoint}`, []);
     const vulcanPost = useCallback((endpoint: string, params: Object) => {
         return fetch(endpoint, {
@@ -94,9 +86,7 @@ export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHel
         })
     }, [vulcanGet]);
 
-    const scheduleWork = useCallback(<T>(work: Promise<T>): Promise<T> => {
-        setWorkCount(++workRef.current);
-
+    const showErrors = useCallback(<T>(work: Promise<T>): Promise<T> => {
         work.catch(e => {
             if (!(e instanceof Array)) {
                 e = [`${e}`];
@@ -104,16 +94,13 @@ export function useApi(invoke: (a: {type: string}) => any): typeof defaultApiHel
 
             console.error(e);
             invoke(showMessages(e));
-        }).finally(() => {
-            setWorkCount(--workRef.current);
-        });
+        })
 
         return work;
     }, [invoke]);
 
     return {
-        isLoading: workCount > 0,
-        scheduleWork,
+        showErrors,
         getData,
         getWorkflows,
         postInputs,

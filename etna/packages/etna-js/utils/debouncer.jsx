@@ -11,6 +11,7 @@ export class Debouncer {
     this.promise = new Promise((resolve) => {
       this.resolve = resolve;
     });
+    if (this.lastTimeout) clearTimeout(this.lastTimeout);
     this.lastTimeout = null;
     this.lastFire = Date.now();
     this.f = null;

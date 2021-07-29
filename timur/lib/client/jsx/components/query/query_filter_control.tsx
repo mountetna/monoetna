@@ -101,7 +101,7 @@ const QueryFilterControl = ({
       }
     }
     return [];
-  }, [filter.modelName, state.attributes]);
+  }, [filter.modelName, state.attributes, reduxState, matrixAttributesOnly]);
 
   const attributeType = useMemo(() => {
     if ('' !== filter.attributeName) {
@@ -116,13 +116,16 @@ const QueryFilterControl = ({
           return 'date';
         case 'integer':
         case 'float':
+        case 'number':
           return 'number';
+        case 'boolean':
+          return 'boolean';
         default:
           return 'text';
       }
     }
     return 'text';
-  }, [filter.attributeName, filter.modelName, state.attributes]);
+  }, [filter.attributeName, filter.modelName, reduxState]);
 
   const handleModelSelect = useCallback(
     (modelName: string) => {
@@ -133,7 +136,7 @@ const QueryFilterControl = ({
         operand: ''
       });
     },
-    [filter, patchFilter]
+    [patchFilter]
   );
 
   const handleAttributeSelect = useCallback(
@@ -159,15 +162,30 @@ const QueryFilterControl = ({
       'Less than': '::<',
       'Greater than': '::>',
       'Is present': '::has',
-      'Is missing': '::lacks'
+      'Is missing': '::lacks',
+      'Is true': '::true',
+      'Is false': '::false',
+      'Is untrue': '::untrue'
     };
   }
 
-  const noOperandOperators: string[] = ['::has', '::lacks'];
+  const noOperandOperators: string[] = [
+    '::has',
+    '::lacks',
+    '::true',
+    '::false',
+    '::untrue'
+  ];
 
   const magmifyOperator = useCallback(
-    (operator: string) => operatorOptions[operator],
-    [operatorOptions]
+    (operator: string) => {
+      if (attributeType === 'number' && operator === 'Equals') {
+        return '::=';
+      }
+
+      return operatorOptions[operator];
+    },
+    [operatorOptions, attributeType]
   );
 
   const prettifyOperator = useCallback(
@@ -191,7 +209,7 @@ const QueryFilterControl = ({
         operand: attributeType === 'number' ? parseFloat(operand) : operand
       });
     },
-    [filter, patchFilter]
+    [filter, patchFilter, attributeType]
   );
 
   let uniqId = (idType: string): string =>

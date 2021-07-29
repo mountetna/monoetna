@@ -7,6 +7,7 @@ ENV['POLYPHEMUS_ENV'] = 'test'
 
 require 'webmock/rspec'
 require 'database_cleaner'
+require 'factory_bot'
 require 'simplecov'
 SimpleCov.start
 
@@ -31,7 +32,7 @@ REDCAP_HOST = Polyphemus.instance.config(:redcap)[:host]
 TEST_TOKEN = Polyphemus.instance.config(:polyphemus)[:token]
 
 PROJECT = 'mvir1'
-REDCAP_PROJECT_CONFIG_PATH = 'lib/etls/redcap/projects/test.rb'
+REDCAP_PROJECT_CONFIG_DIR = 'lib/etls/redcap/projects'
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
@@ -71,13 +72,20 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
+  config.expect_with :rspec do |exp|
+    exp.max_formatted_output_length = nil
+  end
+
   config.shared_context_metadata_behavior = :apply_to_host_groups
   config.example_status_persistence_file_path = 'spec/examples.txt'
   #config.warnings = true
 
   config.order = :random
 
+  config.include FactoryBot::Syntax::Methods
+
   config.before(:suite) do
+    FactoryBot.find_definitions
     # DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
@@ -89,6 +97,12 @@ RSpec.configure do |config|
     # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
     #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
     Polyphemus.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
+  end
+end
+
+FactoryBot.define do
+  factory :ingest_file, class: Polyphemus::IngestFile do
+    to_create(&:save)
   end
 end
 
@@ -117,6 +131,15 @@ end
 def stub_rename_folder(params={})
   stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
   .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_rename_folder_with_error(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: 422
+  }).then.to_return({
     status: params[:status] || 200
   })
 end
@@ -173,7 +196,9 @@ def stub_metis_setup
     {:method=>"GET", :route=>"/:project_name/list_all_folders/:bucket_name", :name=>"folder_list_all_folders", :params=>["project_name", "bucket_name"]},
     {:method=>"GET", :route=>"/:project_name/list/:bucket_name/*folder_path", :name=>"folder_list", :params=>["project_name", "bucket_name", "folder_path"]},
     {:method=>"POST", :route=>"/:project_name/folder/rename/:bucket_name/*folder_path", :name=>"folder_rename", :params=>["project_name", "bucket_name", "folder_path"]},
-    {:method=>"POST", :route=>"/:project_name/folder/create/:bucket_name/*folder_path", :name=>"folder_create", :params=>["project_name", "bucket_name", "folder_path"]}
+    {:method=>"POST", :route=>"/:project_name/folder/create/:bucket_name/*folder_path", :name=>"folder_create", :params=>["project_name", "bucket_name", "folder_path"]},
+    {:method=>"POST", :route=>"/authorize/upload", :name=>"upload_authorize", :params=>["project_name", "bucket_name", "file_path"]},
+    {:method=>"POST", :route=>"/:project_name/upload/:bucket_name/*file_path", :name=>"upload_upload", :params=>["project_name", "bucket_name", "file_path"]}
   ])
 
   stub_request(:options, METIS_HOST).
@@ -203,9 +228,29 @@ def stub_metis_setup
     })
 end
 
-def stub_magma_models
+def stub_create_folder(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/folder\/create\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_upload_file(params={})
+  stub_request(:post, /#{METIS_HOST}\/authorize\/upload/)
+  .to_return({
+    status: params[:status] || 200,
+    body: params[:authorize_body] || JSON.generate({})
+  })
+  stub_request(:post, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/upload/)
+  .to_return({
+    status: params[:status] || 200,
+    body: params[:upload_body] || JSON.generate({})
+  })
+end
+
+def stub_magma_models(fixture: 'spec/fixtures/magma_test_models.json')
   stub_request(:post, "#{MAGMA_HOST}/retrieve")
-    .to_return({ body: File.read('spec/fixtures/magma_test_models.json') })
+    .to_return({ body: File.read(fixture) })
 end
 
 def stub_magma_update_json
@@ -230,6 +275,26 @@ def stub_redcap_data(stub=nil)
         'Content-Type': 'application/json'
       },
       body: File.read('spec/fixtures/redcap_mock_data_all.json')
+    })
+end
+
+def stub_redcap_test2_data(stub=nil)
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: hash_including({ content: 'metadata' }))
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_test2_metadata.json')
+    })
+
+  stub_request(:post, "#{REDCAP_HOST}/api/")
+    .with(body: /fields/)
+    .to_return({
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: File.read('spec/fixtures/redcap_test2_data_all.json')
     })
 end
 
@@ -274,16 +339,16 @@ def stub_redcap_multi_project_records
     })
 end
 
-def copy_redcap_project
+def copy_redcap_project(project_name='test')
   # Make sure the test project is in the right location so the
   # REDCap ETL can find it.
-  redcap_projects_dir = File.dirname(REDCAP_PROJECT_CONFIG_PATH)
-  test_fixture_path = "spec/fixtures/etls/redcap/#{File.basename(REDCAP_PROJECT_CONFIG_PATH)}"
-  FileUtils.mkdir_p(redcap_projects_dir) unless Dir.exist?(redcap_projects_dir)
+  test_fixture_path = "spec/fixtures/etls/redcap/#{project_name}.rb"
+  test_output_path = "#{REDCAP_PROJECT_CONFIG_DIR}/#{project_name}.rb"
+  FileUtils.mkdir_p(REDCAP_PROJECT_CONFIG_DIR) unless Dir.exist?(REDCAP_PROJECT_CONFIG_DIR)
 
   # Make sure we have the newest test project.
-  File.delete(REDCAP_PROJECT_CONFIG_PATH) if File.file?(REDCAP_PROJECT_CONFIG_PATH)
-  FileUtils.cp(test_fixture_path, REDCAP_PROJECT_CONFIG_PATH)
+  File.delete(test_output_path) if File.file?(test_output_path)
+  FileUtils.cp(test_fixture_path, test_output_path)
 end
 
 def temp_id(records, id)
@@ -295,4 +360,16 @@ def temp_id(records, id)
   all_record_keys.each do |key|
     return key if key =~ /::temp-#{id}-.*/
   end
+end
+
+def stub_ingest_files(file_data = nil)
+  file_data ?
+    file_data.each do |data|
+      create(:ingest_file, **data)
+    end
+    : begin
+      create(:ingest_file, name: "foo/bar/test1.txt", host: "sftp.example.com", updated_at: "2021-01-01 00:00:00", should_ingest: false)
+      create(:ingest_file, name: "foo/bar/test2.txt", host: "sftp.example.com", updated_at: "2015-01-01 00:00:00", should_ingest: false)
+      create(:ingest_file, name: "foo/bar/test3.txt", host: "sftp.example.com", updated_at: "1999-01-01 00:00:00", should_ingest: true)
+    end
 end
