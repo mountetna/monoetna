@@ -192,7 +192,7 @@ module Etna::Application
       status = 'failed'
       raise
     ensure
-      if Yabeda.configured?
+      if defined?(Yabeda) && Yabeda.configured?
         tags = { command: cmd.class.name, status: status, application: application }
         dur = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
 
