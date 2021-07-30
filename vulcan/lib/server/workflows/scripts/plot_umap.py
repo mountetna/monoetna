@@ -48,11 +48,11 @@ elif color_by == 'Manual Annotations':
     annots = input_json('annots.json')
     color = [annots[x] for x in leiden]
 elif color_by == 'Tube':
-    color = scdata.obs[ 'Record_ID' ]
+    color = scdata.obs[ 'Record_ID' ].values
 elif color_by in scdata.raw.var_names:
     color = flatten(scdata.raw.X[ : , scdata.raw.var_names == color_by ].toarray())
 elif color_by in color_options.keys():
-    color = get(scdata.obs[ 'Record_ID' ], buildTargetPath(color_options[color_by], pdat))
+    color = get(scdata.obs[ 'Record_ID' ].values, buildTargetPath(color_options[color_by], pdat))
 else:
     color = None
 
