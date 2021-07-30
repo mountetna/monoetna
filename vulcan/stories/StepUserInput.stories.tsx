@@ -55,7 +55,7 @@ export const ScatterPlotly = Template.bind({});
 ScatterPlotly.args = {
   type: TYPE.SCATTER_PLOTLY,
   cwlParams: {
-      'data_frames': require('./mockDF.json'),
+      'data_frame': require('./mockDF.json'),
       'data_options': require('./color_options.json'),
   }
 };
