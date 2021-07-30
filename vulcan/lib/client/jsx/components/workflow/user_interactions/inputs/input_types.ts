@@ -81,7 +81,9 @@ export type WorkflowStepGroup = { label: string, steps: WorkflowStep[] }
 
 export type InputBackendComponent<Params extends {} = {}, Value = unknown, DataElement = unknown> = (p: WithInputParams<Params, Value, DataElement>) => React.ReactElement | null;
 export type WithInputParams<Params extends {}, Value, DataElement = unknown> = Params & {
-  onChange: (v: Maybe<Value>) => void; value: Maybe<Value>; data: DataEnvelope<DataElement> | undefined | null;
+  onChange: (v: Maybe<Value>) => void;
+  value: Maybe<Value>;
+  data: DataEnvelope<DataElement> | undefined | null;
 }
 
 export interface ValidationInputSpecification<Value = unknown, DataElement = unknown> {
