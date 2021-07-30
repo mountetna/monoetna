@@ -420,6 +420,9 @@ module Etna
     end
 
     class RemoteSSH < Filesystem
+      class RemoteSSHError < Exception
+      end
+
       def initialize(host:, username:, password: nil, port: 22, root:, **args)
         @username = username
         @password = password
@@ -433,7 +436,9 @@ module Etna
       end
 
       def mkdir_p(dir)
-        ssh.exec!("mkdir -p #{dir}")
+        output = ssh.exec!("mkdir -p #{dir}")
+
+        raise RemoteSSHError.new("Unable to mkdir -p, #{output}") unless 0 == output.exitstatus
       end
 
       def lftp_get(username:, password:, host:, remote_filename:, &block)
@@ -443,7 +448,8 @@ module Etna
 
         cmd = "lftp sftp://#{username}:#{password}@#{host}  -e \"get #{remote_filename} -o #{full_local_path}; bye\""
 
-        ssh.exec!(cmd)
+        output = ssh.exec!(cmd)
+        raise RemoteSSHError.new("LFTP get failure: #{output}") unless 0 == output.exitstatus
         yield remote_filename if block_given?
       end
     end
