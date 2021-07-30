@@ -33,6 +33,11 @@ describe Polyphemus::Server do
                                      host: "sftp.example.com",
                                      directories: ["foo/bar"],
                                    },
+                                   :"ssh.example.com" => {
+                                     alias: "c4",
+                                     directories: [],
+                                     host: "ssh.example.com",
+                                   },
                                  })
   end
 
