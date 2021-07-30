@@ -437,11 +437,11 @@ module Etna
       end
 
       def lftp_get(username:, password:, host:, remote_filename:, &block)
-        full_remote_path = ::File.join(@root, host, remote_filename)
-        full_remote_dir = ::File.dirname(full_remote_path)
-        mkdir_p(full_remote_dir)
+        full_local_path = ::File.join(@root, host, remote_filename)
+        full_local_dir = ::File.dirname(full_local_path)
+        mkdir_p(full_local_dir)
 
-        cmd = "lftp sftp://#{username}:#{password}@#{host}  -e \"get #{remote_filename} -o #{full_remote_path}; bye\""
+        cmd = "lftp sftp://#{username}:#{password}@#{host}  -e \"get #{remote_filename} -o #{full_local_path}; bye\""
 
         ssh.exec!(cmd)
         yield remote_filename if block_given?
