@@ -419,6 +419,35 @@ module Etna
       end
     end
 
+    class RemoteSSH < Filesystem
+      def initialize(host:, username:, password: nil, port: 22, root:, **args)
+        @username = username
+        @password = password
+        @host = host
+        @port = port
+        @root = root
+      end
+
+      def ssh
+        @ssh ||= Net::SSH.start(@host, @username, password: @password)
+      end
+
+      def mkdir_p(dir)
+        ssh.exec!("mkdir -p #{dir}")
+      end
+
+      def lftp_get(username:, password:, host:, remote_filename:, &block)
+        full_remote_path = ::File.join(@root, host, remote_filename)
+        full_remote_dir = ::File.dirname(full_remote_path)
+        mkdir_p(full_remote_dir)
+
+        cmd = "lftp sftp://#{username}:#{password}@#{host}  -e \"get #{remote_filename} -o #{full_remote_path}; bye\""
+
+        ssh.exec!(cmd)
+        yield remote_filename if block_given?
+      end
+    end
+
     class Mock < Filesystem
       class MockStat
         def initialize
