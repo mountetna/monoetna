@@ -8,6 +8,7 @@ import {DataEnvelope, WithInputParams} from './input_types';
 import TextInput from 'etna-js/components/inputs/text_input';
 import { useSetsDefault } from './useSetsDefault';
 import { some } from '../../../../selectors/maybe';
+import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 
 /*
 This input is closely tied to archimedes/functions/plotting/scatter_plotly.
@@ -25,79 +26,14 @@ Output Structure:
 */
 
 const defaults: {[k: string]: any} = {
+  'x_by': null,
+  'y_by': null,
+  'color_by': null,
   'plot_title': 'make',
   'legend_title': 'make',
   'xlab': 'make',
   'ylab': 'make'
 };
-
-export default function ScatterPlotly({
-  data, onChange, ...props
-}: WithInputParams<{}, DataEnvelope<any>, any>) {
-  const value = useSetsDefault(defaults, props.value, onChange);
-
-  const options: DataEnvelope<string> = useMemo(() => {
-    if (data == null) return {};
-    
-    let given = Object.values(data['data_options']);
-    let cols = Object.keys(data['data_frame'])
-
-    if (given == null && cols != null) {
-      return cols
-    }
-
-    return given;
-  }, [data]);
-
-  const updateValue = (newValue: string | number | boolean, key: string, prevValues = value) => {
-    prevValues[key] = newValue;
-    onChange(some(prevValues));
-  };
-
-  const string_input = (key: string = "filler", value: string | number | boolean = "filler", label: string = 'hello') => {
-    return (
-      <TextInput
-        key={key}
-        header={label}
-        value={value}
-        onChange={(newValue: string) => updateValue(newValue, key)}
-      />
-    )
-  };
-
-  /*
-  const dropdown_input
-
-  const checkbox_input
-
-  const slider_input
-  */
-
-  type fxn = (...args: any[]) => any;
-
-
-  
-  const component_use = (key: string, value: any, extra_inputs: any) => {
-    const comps: {[k: string]: fxn} = {
-      'plot_title': string_input,
-      'legend_title': string_input,
-      'xlab': string_input,
-      'ylab': string_input}
-    
-    const comp_use: fxn = comps[key]
-    
-    return(
-      comp_use(key, value, ...extra_inputs)
-    )
-  };
-
-  const extra_inputs: {[k: string]: any} = {
-    // label, any extras
-    'plot_title': ['Plot Title'],
-    'legend_title': ['Legend Title'],
-    'xlab': ['X-Axis Title'],
-    'ylab': ['Y-Axis Title']
-  };
 
   /*
   const remove_hidden = (values: {[k: string]: any}, hide: []) => {
@@ -130,6 +66,84 @@ export default function ScatterPlotly({
     }
     */
 
+export default function ScatterPlotly({
+  data, onChange, ...props
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  const value = useSetsDefault(defaults, props.value, onChange);
+
+  const options: DataEnvelope<string> = useMemo(() => {
+    if (data == null) return {};
+    
+    let given = Object.values(data['data_options']);
+    let cols = Object.keys(data['data_frame'])
+
+    return cols || given;
+  }, [data]);
+
+  const updateValue = (newValue: string | number | boolean, key: string, prevValues = value) => {
+    prevValues[key] = newValue;
+    onChange(some(prevValues));
+  };
+
+  // Component Setups
+  const string_input = (key: string = "filler", value: string | number | boolean = "filler", label: string = 'hello') => {
+    return (
+      <TextInput
+        key={key}
+        header={label}
+        value={value}
+        onChange={(newValue: string) => updateValue(newValue, key)}
+      />
+    )
+  };
+
+  const dropdown_input = (key: string = "filler", value: string | number, label: string) => {
+    return(
+      <div>
+        <text>{label}</text>
+        <DropdownAutocomplete
+          key={key}
+          list={options}
+          onSelect={(newValue: string) => updateValue(newValue, key)}
+        />
+      </div>
+    )
+  }
+  /*
+  const checkbox_input
+
+  const slider_input
+  */
+
+  const extra_inputs: {[k: string]: any} = {
+    // label, any extras
+    'plot_title': ['Plot Title'],
+    'legend_title': ['Legend Title'],
+    'xlab': ['X-Axis Title'],
+    'ylab': ['Y-Axis Title'],
+    'x_by': ['X-Axis Data'],
+    'y_by': ['Y-Axis Data'],
+    'color_by': ['Point Color Data']
+  };
+
+  // Component set constructor
+  const component_use = (key: string, value: any, extra_inputs: any) => {
+    const comps: DataEnvelope<Function> = {
+      'plot_title': string_input,
+      'legend_title': string_input,
+      'xlab': string_input,
+      'ylab': string_input,
+      'x_by': dropdown_input,
+      'y_by': dropdown_input,
+      'color_by': dropdown_input
+    }
+    
+    const comp_use: Function = comps[key]
+    
+    return(
+      comp_use(key, value, ...extra_inputs)
+    )
+  };
 
   return (
     <div>
