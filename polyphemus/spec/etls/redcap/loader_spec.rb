@@ -124,7 +124,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
 
       expect(records.keys).to match_array([:feature, :year])
       expect(records[:feature].values).to match_array([
-        {:name=>"Radio", :value=>"1969", :year=>"Jatsun Thunderer 2"},
         {:name=>"Door", :value=>"1979", :year=>"ToyoT CorolloroC 1"},
         {:name=>"Engine", :value=>"1979", :year=>"ToyoT CorolloroC 1"},
         {:name=>"Wheels", :value=>"1980", :year=>"ToyoT CorolloroC 2"}
@@ -149,7 +148,6 @@ describe Polyphemus::RedcapEtlScriptRunner do
                 calendar_year: "year",
                 feature_list: {
                   "redcap_field": "feature",
-                  "exists": true,
                   "value": "combine",
                   "combine": ", "
                 }
@@ -162,7 +160,8 @@ describe Polyphemus::RedcapEtlScriptRunner do
       expect(records.keys).to match_array([:year])
       expect(records[:year].values).to match_array(
         [
-          {:calendar_year=>"1969", :feature_list=>"Radio"},
+          {:calendar_year=>"1968"},
+          {:calendar_year=>"1969"},
           {:calendar_year=>"1979", :feature_list=>"Door, Engine"},
           {:calendar_year=>"1980", :feature_list=>"Wheels"}
         ]
