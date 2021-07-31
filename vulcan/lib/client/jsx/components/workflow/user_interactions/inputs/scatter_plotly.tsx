@@ -7,8 +7,9 @@ import * as _ from 'lodash';
 import {DataEnvelope, WithInputParams} from './input_types';
 import TextInput from 'etna-js/components/inputs/text_input';
 import { useSetsDefault } from './useSetsDefault';
-import { some } from '../../../../selectors/maybe';
+import { applySome, some } from '../../../../selectors/maybe';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
+import { useEffect } from 'react';
 
 /*
 This input is closely tied to archimedes/functions/plotting/scatter_plotly.
@@ -25,7 +26,7 @@ Output Structure:
   dictionary of scatter_plotly inputs-name (key) + value pairs.
 */
 
-const defaults: {[k: string]: any} = {
+const defaults: DataEnvelope<any> = {
   'x_by': null,
   'y_by': null,
   'color_by': null,
@@ -35,41 +36,23 @@ const defaults: {[k: string]: any} = {
   'ylab': 'make'
 };
 
-  /*
-  const remove_hidden = (values: {[k: string]: any}, hide: []) => {
-    if (hide == null || hide === []) {
-      return values;
-    };
-    
-    let key;
-    for (key in hide) {
-      if (key in values.keys()) {
-        delete values[key];
-      };
-    };
+const remove_hidden = (values: DataEnvelope<any>, hide: string[]) => {
+  if (hide == null || hide === []) {
     return values;
   };
-  */
   
-      /*
-    let hide;
-    if (data != null) {
-      hide = data['hidden'];
-    } else {
-      hide = [];
-    }
-
-    values = defaults;
-
-    if (null == input.value) {
-      onChange(name, remove_hidden(defaults, hide));
-    }
-    */
+  const keys = Object.keys(values)
+  for (let ind = 0; ind < keys.length; ind++) {
+    if (hide.includes(keys[ind])) delete values[keys[ind]];
+  };
+  return values;
+};
 
 export default function ScatterPlotly({
   data, onChange, ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  const value = useSetsDefault(defaults, props.value, onChange);
+  const hide = (data && data['hide']) ? data['hide'] : []
+  const value = useSetsDefault(remove_hidden(defaults, hide), props.value, onChange);
 
   const options: DataEnvelope<string> = useMemo(() => {
     if (data == null) return {};
@@ -109,21 +92,22 @@ export default function ScatterPlotly({
       </div>
     )
   }
-  /*
-  const checkbox_input
 
-  const slider_input
-  */
+  const checkbox_input = (key: string = "filler", value: boolean = false, label: string) => {
+    
+  }
+
+  // const slider_input
 
   const extra_inputs: {[k: string]: any} = {
-    // label, any extras
+    // label, then for any extras
     'plot_title': ['Plot Title'],
     'legend_title': ['Legend Title'],
     'xlab': ['X-Axis Title'],
     'ylab': ['Y-Axis Title'],
     'x_by': ['X-Axis Data'],
     'y_by': ['Y-Axis Data'],
-    'color_by': ['Point Color Data']
+    'color_by': ['Color Points By']
   };
 
   // Component set constructor
@@ -144,7 +128,7 @@ export default function ScatterPlotly({
       comp_use(key, value, ...extra_inputs)
     )
   };
-
+  
   return (
     <div>
       {Object.entries(value).map(([key, val]) => {

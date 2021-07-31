@@ -51,11 +51,21 @@ export default {
 
 const Template: ComponentStory<typeof ParameterizedStepUserInput> = (args: any) => <ParameterizedStepUserInput {...args}/>;
 
-export const ScatterPlotly = Template.bind({});
-ScatterPlotly.args = {
+export const ScatterPlotlyFULL = Template.bind({});
+ScatterPlotlyFULL.args = {
+  type: TYPE.SCATTER_PLOTLY,
+  cwlParams: {
+      'data_frame': require('./mockDF.json'),
+      'data_options': require('./color_options.json')
+  }
+};
+
+export const ScatterPlotlyHIDE = Template.bind({});
+ScatterPlotlyHIDE.args = {
   type: TYPE.SCATTER_PLOTLY,
   cwlParams: {
       'data_frame': require('./mockDF.json'),
       'data_options': require('./color_options.json'),
+      'hide': ['x_by', 'y_by']
   }
 };
