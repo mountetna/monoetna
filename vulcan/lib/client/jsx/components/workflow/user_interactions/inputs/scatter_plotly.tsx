@@ -35,7 +35,8 @@ const defaults: DataEnvelope<any> = {
   'legend_title': 'make',
   'xlab': 'make',
   'ylab': 'make',
-  'color_order': 'increasing'
+  'color_order': 'increasing',
+  'order_when_continuous_color': false
 };
 
 const remove_hidden = (values: DataEnvelope<any>, hide: string[]) => {
@@ -88,10 +89,9 @@ export default function ScatterPlotly({
 
       // Need to make this work without the `get_keys` similar to nested_select_autocomplete.tsx component
       return(
-        <div>
+        <div key={key}>
           <text>{label}</text>
           <DropdownAutocomplete
-            key={key}
             onSelect={(newValue: string) => updateValue(newValue, key)}
             list={get_keys(options)}
             value={value}
@@ -152,13 +152,12 @@ export default function ScatterPlotly({
 
   const checkbox_input = (key: string = "filler", value: boolean = false, label: string) => {
     return(
-      <span>
         <span key={key} className='checkbox'>
-          <input id={label} type='checkbox'
+          <text>{label}</text>
+          <input id={key} type='checkbox'
                 checked={value}
                 onChange={() => updateValue(!value, key)} />
         </span>
-      </span>
     )
   }
 
@@ -174,7 +173,8 @@ export default function ScatterPlotly({
       'x_by': ['X-Axis Data', options],
       'y_by': ['Y-Axis Data', options],
       'color_by': ['Color Points By', options],
-      'color_order': ['Point render order', {'increasing': null, 'decreasing': null, 'unordered': null}]
+      'color_order': ['Point render order', {'increasing': null, 'decreasing': null, 'unordered': null}],
+      'order_when_continuous_color': ['Follow selected render ordering when color is continuous?']
     }
   }, [options]);
   //console.log("extra_inputs:", extra_inputs)
@@ -189,7 +189,8 @@ export default function ScatterPlotly({
       'x_by': dropdown_input,
       'y_by': dropdown_input,
       'color_by': dropdown_input,
-      'color_order': dropdown_input
+      'color_order': dropdown_input,
+      'order_when_continuous_color': checkbox_input
     }
     
     const comp_use: Function = comps[key]
