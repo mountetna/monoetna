@@ -11,6 +11,7 @@ import { applySome, some } from '../../../../selectors/maybe';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import { useEffect } from 'react';
 import MultiselectStringInput from './multiselect_string';
+import { Slider } from '@material-ui/core';
 
 /*
 This input is closely tied to archimedes/functions/plotting/scatter_plotly.
@@ -31,6 +32,7 @@ const defaults: DataEnvelope<any> = {
   'x_by': null,
   'y_by': null,
   'color_by': null,
+  'size': 5,
   'plot_title': 'make',
   'legend_title': 'make',
   'xlab': 'make',
@@ -69,16 +71,18 @@ export default function ScatterPlotly({
   };
 
   // Component Setups
-  const string_input = (key: string = "filler", value: string | number | boolean = "filler", label: string = 'hello') => {
-    return (
-      <TextInput
-        key={key}
-        header={label}
-        value={value}
-        onChange={(newValue: string) => updateValue(newValue, key)}
-      />
-    )
-  };
+  const string_input = (
+    key: string = "filler", value: string | number | boolean = "filler",
+    label: string = 'hello') => {
+      return (
+        <TextInput
+          key={key}
+          header={label}
+          value={value}
+          onChange={(newValue: string) => updateValue(newValue, key)}
+        />
+      )
+    };
 
   const dropdown_input = (
     key: string = "filler", value: string | number,
@@ -148,20 +152,39 @@ export default function ScatterPlotly({
         </div>
       );
       */
-  }
+    }
 
-  const checkbox_input = (key: string = "filler", value: boolean = false, label: string) => {
-    return(
-        <span key={key} className='checkbox'>
-          <text>{label}</text>
-          <input id={key} type='checkbox'
-                checked={value}
-                onChange={() => updateValue(!value, key)} />
-        </span>
-    )
-  }
+  const checkbox_input = (
+    key: string = "filler", value: boolean = false,
+    label: string) => {
 
-  // const slider_input
+      return(
+          <div key={key}>
+            <text>{label}</text>
+            <input id={key} type='checkbox'
+                  checked={value}
+                  onChange={() => updateValue(!value, key)} />
+          </div>
+      )
+    }
+
+  const slider_input = (
+    key: string = "filler", value: number,
+    label: string, min: number = 0.1, max: number = 20) => {
+
+      return(
+          <div key={key}>
+            <text>{label}</text>
+            <Slider
+              value={value}
+              onChange={(event, newValue) => updateValue(newValue, key)}
+              min={min}
+              max={max}
+              valueLabelDisplay="auto"
+            />
+          </div>
+      )
+    }
 
   const extra_inputs: DataEnvelope<any[]> = useMemo(() => {
     return {
@@ -174,7 +197,8 @@ export default function ScatterPlotly({
       'y_by': ['Y-Axis Data', options],
       'color_by': ['Color Points By', options],
       'color_order': ['Point render order', {'increasing': null, 'decreasing': null, 'unordered': null}],
-      'order_when_continuous_color': ['Follow selected render ordering when color is continuous?']
+      'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
+      'size': ['Point Size', 0.1, 20]
     }
   }, [options]);
   //console.log("extra_inputs:", extra_inputs)
@@ -190,7 +214,8 @@ export default function ScatterPlotly({
       'y_by': dropdown_input,
       'color_by': dropdown_input,
       'color_order': dropdown_input,
-      'order_when_continuous_color': checkbox_input
+      'order_when_continuous_color': checkbox_input,
+      'size': slider_input
     }
     
     const comp_use: Function = comps[key]
