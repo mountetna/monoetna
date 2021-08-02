@@ -11,7 +11,8 @@ import { applySome, some } from '../../../../selectors/maybe';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import { useEffect } from 'react';
 import MultiselectStringInput from './multiselect_string';
-import { Slider } from '@material-ui/core';
+import { Button, Slider } from '@material-ui/core';
+import { pick } from 'lodash';
 
 /*
 This input is closely tied to archimedes/functions/plotting/scatter_plotly.
@@ -52,6 +53,8 @@ const remove_hidden = (values: DataEnvelope<any>, hide: string[]) => {
   };
   return values;
 };
+
+let showAdvanced = false;
 
 export default function ScatterPlotly({
   data, onChange, ...props
@@ -225,15 +228,41 @@ export default function ScatterPlotly({
     )
   };
 
+  // Advanced Options Button
+  const base = useMemo(() => {
+    return get_keys(remove_hidden(
+      {'x_by': 0, 'y_by': 0, 'color_by': 0}, hide
+    ))
+  }, [hide])
+  
+  const showHide: string = useMemo(() => {
+    return (showAdvanced ? 'Hide' : 'Show')
+  }, [showAdvanced])
+
+  function toggleAdvanced() {
+    showAdvanced = !showAdvanced
+    onChange(some(value))
+  }
+
+  const shownValues = useMemo(() => {
+    return showAdvanced ? value : pick(value, ...base)
+  }, [value, showAdvanced])
+
   console.log('values:', value)
+  console.log('shownValues', shownValues)
   
   return (
     <div>
-      {Object.entries(value).map(([key, val]) => {
-        return (
-          component_use(key, val, extra_inputs[key])
-        );
+      {Object.entries(shownValues).map(([key, val]) => {
+        return component_use(key, val, extra_inputs[key])
       })}
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => {toggleAdvanced()}}
+        >
+         {showHide} Advanced Options
+      </Button>
     </div>
   );
 
