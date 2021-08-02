@@ -27,7 +27,7 @@ module Redcap
       when "select_choice"
         return @template.select_choice(field_name, field_value(redcap_record))
       when "combine"
-        return field_value_array(redcap_record).join(@config[:combine] || ' ')
+        return field_value_array(redcap_record)&.join(@config[:combine] || ' ')
       else
         raise "Invalid value specified in value config: #{@config}"
       end
