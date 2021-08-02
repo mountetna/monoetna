@@ -203,7 +203,7 @@ export default function ScatterPlotly({
       'color_by': ['Color Points By', options],
       'color_order': ['Point render order', {'increasing': null, 'decreasing': null, 'unordered': null}],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
-      'size': ['Point Size', 0.1, 20]
+      'size': ['Point Size', 0.1, 50]
     }
   }, [options]);
   //console.log("extra_inputs:", extra_inputs)

@@ -57,13 +57,12 @@ def scatter_plotly(
         title_text=plot_title,
         xaxis_title=xlab,
         yaxis_title=ylab,
-        legend_title=legend_title,
         legend= {'itemsizing': 'constant'}
     )
 
     # Tweaks
-    # fig.update_coloraxes(colorbar_title_text=color_by)
-    fig.update_traces(marker={'size': size})
+    fig.update_coloraxes(colorbar_title_text=legend_title)
+    fig.update_traces(marker={'size': size}, )
 
     return fig
 
