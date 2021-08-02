@@ -55,13 +55,12 @@ export const ScatterPlotlyFULL = Template.bind({});
 ScatterPlotlyFULL.args = {
   type: TYPE.SCATTER_PLOTLY,
   cwlParams: {
-      'data_frame': require('./mockDF.json'),
-      'data_options': require('./color_options.json')
+      'data_frame': require('./mockDF.json')
   }
 };
 
-export const ScatterPlotlyHIDE = Template.bind({});
-ScatterPlotlyHIDE.args = {
+export const ScatterPlotlyUMAP = Template.bind({});
+ScatterPlotlyUMAP.args = {
   type: TYPE.SCATTER_PLOTLY,
   cwlParams: {
       'data_frame': require('./mockDF.json'),
