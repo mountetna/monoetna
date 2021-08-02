@@ -209,13 +209,14 @@ steps:
     in:
       project_data: projectData/project_data
       leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
-    out: [color_options]
+    out: [color_options, hide]
   select_color_by_option:
-    run: ui-queries/nested-select-autocomplete.cwl
+    run: ui-queries/scatter-plotly.cwl
     label: 'Color Options'
     in:
-      a: determine_color_by_options/color_options
-    out: [color_by]
+      data_options: determine_color_by_options/color_options
+      hide: determine_color_by_options/hide
+    out: [plot_setup]
   plot_umap:
     run: scripts/plot_umap.cwl
     label: 'Create UMAP plot'
@@ -224,7 +225,7 @@ steps:
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden.json: calc_leiden/leiden.json
       annots.json: cluster_annotation/annots.json
-      color_by: select_color_by_option/color_by
+      color_by: select_color_by_option/plot_setup
       top10.json: Differential_Expression__between_clusters/top10.json
     out: [umap.plotly.json]
   show_umap_plot:
