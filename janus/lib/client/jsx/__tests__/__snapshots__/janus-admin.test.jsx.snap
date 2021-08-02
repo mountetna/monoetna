@@ -115,5 +115,84 @@ exports[`JanusAdmin renders 1`] = `
       </table>
     </div>
   </div>
+  <div
+    id="new-project"
+  >
+    <div
+      className="title"
+    >
+      New Project
+    </div>
+    <div
+      className="item"
+    >
+      <div
+        className="cell"
+      >
+        <div
+          className="MuiFormControl-root MuiTextField-root"
+        >
+          <div
+            className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+            onClick={[Function]}
+          >
+            <input
+              aria-invalid={false}
+              autoFocus={false}
+              className="MuiInputBase-input MuiInput-input"
+              disabled={false}
+              onAnimationStart={[Function]}
+              onBlur={[Function]}
+              onChange={[Function]}
+              onFocus={[Function]}
+              placeholder="project_name"
+              required={false}
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="cell"
+      >
+        <div
+          className="MuiFormControl-root MuiTextField-root"
+        >
+          <div
+            className="MuiInputBase-root MuiInput-root MuiInput-underline MuiInputBase-formControl MuiInput-formControl"
+            onClick={[Function]}
+          >
+            <input
+              aria-invalid={false}
+              autoFocus={false}
+              className="MuiInputBase-input MuiInput-input"
+              disabled={false}
+              onAnimationStart={[Function]}
+              onBlur={[Function]}
+              onChange={[Function]}
+              onFocus={[Function]}
+              placeholder="Project Title"
+              required={false}
+              type="text"
+              value=""
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="cell submit"
+      >
+        <span
+          className="icon-grp icon-grp-approve  fa-stack fa-fw"
+          onClick={[Function]}
+        >
+          <i
+            className="icon approve  magic fa fa-2x fa-magic"
+          />
+        </span>
+      </div>
+    </div>
+  </div>
 </div>
 `;

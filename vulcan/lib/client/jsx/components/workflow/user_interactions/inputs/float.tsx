@@ -11,7 +11,7 @@ export function FloatInput({onChange, data, ...props}: WithInputParams<{}, numbe
 
   return (
     <EtnaFloatInput
-      key={value}
+      followDefault
       defaultValue={value}
       onChange={onNewFloat}
     />
