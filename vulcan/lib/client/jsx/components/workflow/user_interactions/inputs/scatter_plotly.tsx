@@ -44,15 +44,15 @@ const defaults: DataEnvelope<any> = {
   'order_when_continuous_color': false
 };
 
-const remove_hidden = (values: DataEnvelope<any>, hide: string[]) => {
-  if (hide == null || hide === []) {
+const remove_hidden = (values: DataEnvelope<any>, hide: string[] | null | undefined) => {
+  if (hide == null || hide.length === 0) {
     return values;
-  };
+  }
   
   const keys = Object.keys(values)
   for (let ind = 0; ind < keys.length; ind++) {
     if (hide.includes(keys[ind])) delete values[keys[ind]];
-  };
+  }
   return values;
 };
 
@@ -61,8 +61,9 @@ let showAdvanced = false;
 export default function ScatterPlotly({
   data, onChange, ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  const hide = (data && data['hide']) ? data['hide'] : []
-  const value = useSetsDefault(remove_hidden(defaults, hide), props.value, onChange);
+  const hide = useMemo(() => data && data['hide'], [data]);
+  const defaultValue = useMemo(() => remove_hidden(defaults, hide), [hide]);
+  const value = useSetsDefault(defaultValue, props.value, onChange);
 
   const options: DataEnvelope<string> = useMemo(() => {
     if (data == null) return {};
@@ -99,7 +100,7 @@ export default function ScatterPlotly({
       // Need to make this work without the `get_keys` similar to nested_select_autocomplete.tsx component
       return(
         <div key={key}>
-          <text>{label}</text>
+          {label}
           <DropdownAutocomplete
             onSelect={(newValue: string) => updateValue(newValue, key)}
             list={get_keys(options)}

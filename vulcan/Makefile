@@ -11,18 +11,18 @@ docker-ready::
 	@ IMAGES_PREFIX=etnaagent/ IMAGES_POSTFIX=:latest make -C ../archimedes release-build
 
 start-storybook: docker-ready
-	docker run --rm -d \
+	docker run --rm \
 	 -e VULCAN_ENV=development \
 	 -e APP_NAME=vulcan \
-	 -e APP_NAME=vulcan \
 	 -e SKIP_RUBY_SETUP=true \
+	 -e RUN_NPM_INSTALL=true \
 	 -v $$PWD:/app \
 	 -v $$PWD/../etna:/etna \
 	 --entrypoint /entrypoints/development.sh \
 	 -p 9700:6006 \
+	 -p 6006:6006 \
 	 --name vulcan-storybook \
 	 etna-base-dev npm run storybook || true
-	docker logs -f vulcan-storybook
 
 stop-storybook:
 	docker stop vulcan-storybook || true

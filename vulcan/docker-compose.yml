@@ -11,6 +11,7 @@ x-base-etna-service:
     - vulcan-tmp-dir:/app/tmp:rw
     - vulcan-public-dir:/app/public:rw
     - vulcan-opt-dir:/usr/opt:rw
+    - vulcan-node-modules:/app/node_modules
     - ../etna:/etna:delegated
   environment: &base-etna-env
     'VULCAN_ENV': 'development'
@@ -98,6 +99,9 @@ volumes:
     name: 'vulcan-data-dir'
   vulcan-opt-dir:
     driver: local
+  vulcan-node-modules:
+    driver: local
+    name: "vulcan-node-modules"
 
 networks:
   edge_net:
