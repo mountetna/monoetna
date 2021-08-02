@@ -63,7 +63,6 @@ export const ScatterPlotlyUMAP = Template.bind({});
 ScatterPlotlyUMAP.args = {
   type: TYPE.SCATTER_PLOTLY,
   cwlParams: {
-      'data_frame': require('./mockDF.json'),
       'data_options': require('./color_options.json'),
       'hide': ['x_by', 'y_by']
   }

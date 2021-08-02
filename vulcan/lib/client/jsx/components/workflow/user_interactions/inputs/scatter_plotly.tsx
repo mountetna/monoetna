@@ -22,8 +22,10 @@ Major design notes:
 - It will also allow workflow-designers to hide controls for any inputs that are set internally by the workflow. (Ex: x_by & y_by for a UMAP)
 
 Input structure:
-  'data-options': dictionary of options for '*_by' (ex: 'x_by', 'color_by') inputs where keys are the primary options and None vs [] values indicates what secondary options there may be if there are indeed secondary options (such as for genes!)
-  'hidden': list or null. The names of scatter_plotly inputs which should not be shown in the current widget render.  Perhaps these are hard-set by the workflow and a user has no choice.
+  (Minimal = Either of 'data_frame' or 'data_options')
+  'data_options': dictionary of options for '*_by' (ex: 'x_by', 'color_by') inputs where keys are the primary options and None vs [] values indicates what secondary options there may be if there are indeed secondary options (such as for genes!)
+  'data_frame': A hash whose keys will be used as options if 'data_options' is not set
+  'hide': An  array (python list). The names of scatter_plotly inputs which should not be shown in the current widget render.  Hidden inputs should be set elsewhere.  Perhaps they are hardset by the workflow so a user has no choice
 
 Output Structure:
   dictionary of scatter_plotly inputs-name (key) + value pairs.
