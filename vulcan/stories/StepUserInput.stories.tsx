@@ -29,7 +29,7 @@ function ParameterizedStepUserInput({cwlParams = {}, type}: Parameterization) {
         in: Object.keys(cwlParams).map(paramName => ({source: `${paramName}/output`, id: paramName})),
         out: ['result'],
     });
-  }, [utils, cwlParams]);
+  }, [utils, cwlParams, type]);
 
   useEffect(() => {
     utils2.setWorkflow('test', utils.workflow);
@@ -37,7 +37,7 @@ function ParameterizedStepUserInput({cwlParams = {}, type}: Parameterization) {
     Object.keys(cwlParams).forEach(paramName => {
         status = utils2.forceDownloadedData(`${paramName}/output`, cwlParams[paramName], status);
     });
-  }, [utils, utils.workflow, cwlParams])
+  }, [utils, utils.workflow, cwlParams, utils2, stateRef])
 
   if (stateWorkflow.name !== utils.workflow.name) return null;
 
@@ -55,7 +55,7 @@ export const ScatterPlotly = Template.bind({});
 ScatterPlotly.args = {
   type: TYPE.SCATTER_PLOTLY,
   cwlParams: {
-      'data_frames': require('./mockDF.json'),
+      'data_frame': require('./mockDF.json'),
       'data_options': require('./color_options.json'),
   }
 };
