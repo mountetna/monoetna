@@ -5,6 +5,7 @@ require 'securerandom'
 require 'concurrent-ruby'
 require 'net/sftp'
 require 'net/ssh'
+require 'curb'
 
 module Etna
   # A class that encapsulates opening / reading file system entries that abstracts normal file access in order
@@ -96,6 +97,48 @@ module Etna
 
         status = q.pop
         raise IOError.new("Failed to run external process, got status code #{status}") unless status.success?
+      end
+    end
+
+    module WithHotPipe
+      def with_hot_pipe(opts, receiver, *args, &block)
+        rp, wp = IO.pipe
+        begin
+          executor = Concurrent::SingleThreadExecutor.new(fallback_policy: :abort)
+          begin
+            if opts.include?('w')
+              future = Concurrent::Promises.future_on(executor) do
+                self.send(receiver, rp, *args)
+              rescue => e
+                Etna::Application.instance.logger.log_error(e)
+                raise e
+              ensure
+                rp.close
+              end
+
+              yield wp
+            else
+              future = Concurrent::Promises.future_on(executor) do
+                self.send(receiver, wp, *args)
+              rescue => e
+                Etna::Application.instance.logger.log_error(e)
+                raise e
+              ensure
+                wp.close
+              end
+
+              yield rp
+            end
+
+            future.wait!
+          ensure
+            executor.shutdown
+            executor.kill unless executor.wait_for_termination(5)
+          end
+        ensure
+          rp.close
+          wp.close
+        end
       end
     end
 
@@ -252,6 +295,8 @@ module Etna
     end
 
     class Metis < Filesystem
+      include WithHotPipe
+
       def initialize(metis_client:, project_name:, bucket_name:, root: '/', uuid: SecureRandom.uuid)
         @metis_client = metis_client
         @project_name = project_name
@@ -269,45 +314,45 @@ module Etna
         Etna::Clients::Metis::MetisUploadWorkflow.new(metis_client: @metis_client, metis_uid: @metis_uid, project_name: @project_name, bucket_name: @bucket_name, max_attempts: 3)
       end
 
-      def with_hot_pipe(opts, receiver, *args, &block)
-        rp, wp = IO.pipe
-        begin
-          executor = Concurrent::SingleThreadExecutor.new(fallback_policy: :abort)
-          begin
-            if opts.include?('w')
-              future = Concurrent::Promises.future_on(executor) do
-                self.send(receiver, rp, *args)
-              rescue => e
-                Etna::Application.instance.logger.log_error(e)
-                raise e
-              ensure
-                rp.close
-              end
+      # def with_hot_pipe(opts, receiver, *args, &block)
+      #   rp, wp = IO.pipe
+      #   begin
+      #     executor = Concurrent::SingleThreadExecutor.new(fallback_policy: :abort)
+      #     begin
+      #       if opts.include?('w')
+      #         future = Concurrent::Promises.future_on(executor) do
+      #           self.send(receiver, rp, *args)
+      #         rescue => e
+      #           Etna::Application.instance.logger.log_error(e)
+      #           raise e
+      #         ensure
+      #           rp.close
+      #         end
 
-              yield wp
-            else
-              future = Concurrent::Promises.future_on(executor) do
-                self.send(receiver, wp, *args)
-              rescue => e
-                Etna::Application.instance.logger.log_error(e)
-                raise e
-              ensure
-                wp.close
-              end
+      #         yield wp
+      #       else
+      #         future = Concurrent::Promises.future_on(executor) do
+      #           self.send(receiver, wp, *args)
+      #         rescue => e
+      #           Etna::Application.instance.logger.log_error(e)
+      #           raise e
+      #         ensure
+      #           wp.close
+      #         end
 
-              yield rp
-            end
+      #         yield rp
+      #       end
 
-            future.wait!
-          ensure
-            executor.shutdown
-            executor.kill unless executor.wait_for_termination(5)
-          end
-        ensure
-          rp.close
-          wp.close
-        end
-      end
+      #       future.wait!
+      #     ensure
+      #       executor.shutdown
+      #       executor.kill unless executor.wait_for_termination(5)
+      #     end
+      #   ensure
+      #     rp.close
+      #     wp.close
+      #   end
+      # end
 
       def do_streaming_upload(rp, dest, size_hint)
         streaming_upload = Etna::Clients::Metis::MetisUploadWorkflow::StreamingIOUpload.new(readable_io: rp, size_hint: size_hint)
@@ -377,16 +422,16 @@ module Etna
     end
 
     class SftpFilesystem < Filesystem
-      include WithPipeConsumer
+      include WithHotPipe
 
       class SftpFile
         attr_reader :size, :name
 
-        def initialize(data)
-          @data_parts = data.split(" ")
-          @size = @data_parts[4].to_i
-          @perms = @data_parts.first
-          @name = @data_parts[8]
+        def initialize(metadata)
+          @metadata_parts = metadata.split(" ")
+          @size = @metadata_parts[4].to_i
+          @perms = @metadata_parts.first
+          @name = @metadata_parts[8]
         end
 
         def is_directory?
@@ -411,22 +456,44 @@ module Etna
         "sftp://#{@host}/#{src}"
       end
 
-      def authn
-        "#{@username}:#{@password}"
+      def curl_cmd(path, opts=[])
+        connection = Curl::Easy.new(url(path))
+        connection.http_auth_types = :basic
+        connection.username = @username
+        connection.password = @password
+
+        connection
       end
 
-      def run_curl_cmd(file_name, opts=[])
-        output, status = Open3.capture2("curl", "-u", authn, "-k", *opts, url(file_name))
-
-        if status.success?
-          return output
+      def sftp_file_from_path(src)
+        file = ls(::File.dirname(src)).split("\n").map do |listing|
+          SftpFile.new(listing)
+        end.select do |file|
+          file.name == ::File.basename(src)
         end
 
-        nil
+        raise "#{src} not found" if file.empty?
+
+        file.first
+      end
+
+      def do_curl_download(wp, src)
+        connection = curl_cmd(src)
+        connection.on_body do |data|
+          wp.puts(data)
+          data.size
+        end
+        connection.perform
       end
 
       def with_readable(src, opts = 'r', &block)
-        mkio(src, opts, &block)
+        raise "#{src} does not exist" unless exist?(src)
+
+        sftp_file = sftp_file_from_path(src)
+
+        self.with_hot_pipe(opts, :do_curl_download, src) do |rp|
+          yield [rp, sftp_file.size]
+        end
       end
 
       def exist?(src)
@@ -435,12 +502,14 @@ module Etna
       end
 
       def ls(dir)
-        puts dir
         dir = dir + "/" unless "/" == dir[-1]  # Trailing / makes curl list directory
 
         return @dir_listings[dir] if @dir_listings.has_key?(dir)
 
-        listing = run_curl_cmd(dir)
+        listing = ''
+        connection = curl_cmd(dir)
+        connection.on_body { |data| listing << data; data.size }
+        connection.perform
 
         @dir_listings[dir] = listing
 
@@ -448,57 +517,7 @@ module Etna
       end
 
       def stat(src)
-        file = ls(::File.dirname(src)).split("\n").map do |listing|
-          SftpFile.new(listing)
-        end.select do |file|
-          file.name == ::File.basename(src)
-        end
-
-        raise "#{src} not found" unless file
-
-        file
-      end
-
-      # def with_readable(src, opts = 'r', &block)
-      #   sftp.file.open(src, opts, &block)
-      # end
-
-      # def ls(dir)
-      #   sftp.dir.entries(dir)
-      # end
-
-      # def exist?(src)
-      #   begin
-      #     sftp.file.open(src)
-      #   rescue Net::SFTP::StatusException
-      #     return false
-      #   end
-      #   return true
-      # end
-
-      # def stat(src)
-      #   sftp.file.open(src).stat
-      # end
-
-      def mkcommand(rd, wd, file, opts, size_hint: nil)
-        env = {}
-        cmd = [env, "curl"]
-
-        cmd << "-u"
-        cmd << authn
-        cmd << "-k" # Their SSL cert may not be recognized?
-        cmd << url(file)
-      
-        if opts.include?('r')
-          cmd << "--output"
-          cmd << "-"
-
-          cmd << {out: wd}
-        elsif opts.include?('w')
-          raise "Writing not supported with this filesystem."
-        end
-
-        cmd
+        sftp_file_from_path(src)
       end
     end
 

@@ -1,8 +1,9 @@
 PATH
   remote: /etna
   specs:
-    etna (0.1.40)
+    etna (0.1.41)
       concurrent-ruby
+      curb
       jwt
       multipart-post
       net-sftp (>= 3.0.0)
@@ -52,6 +53,7 @@ GEM
     crack (0.4.5)
       rexml
     crass (1.0.6)
+    curb (0.9.11)
     database_cleaner (1.8.5)
     debase (0.2.4.1)
       debase-ruby_core_source (>= 0.10.2)

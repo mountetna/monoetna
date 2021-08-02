@@ -24,8 +24,8 @@ module Etna
         end
 
         def copy_file(dest, src, &block)
-          ingest_filesystem.with_readable(src, "r") do |file|
-            metis_filesystem.do_streaming_upload(file, dest, file.size)
+          ingest_filesystem.with_readable(src, "r") do |file, size_hint|
+            metis_filesystem.do_streaming_upload(file, dest, size_hint)
             yield src if block_given?
           end
         end
