@@ -211,7 +211,7 @@ steps:
       leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
     out: [color_options, hide]
   select_color_by_option:
-    run: ui-queries/scatter-plotly.cwl
+    run: ui-queries/nested-select-autocomplete.cwl
     label: 'Color Options'
     in:
       data_options: determine_color_by_options/color_options
