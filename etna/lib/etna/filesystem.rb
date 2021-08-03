@@ -387,14 +387,6 @@ module Etna
           @perms = @metadata_parts.first
           @name = @metadata_parts[8]
         end
-
-        def is_directory?
-          "d" == @perms.first
-        end
-
-        def is_file?
-          !is_directory?
-        end
       end
 
       def initialize(host:, username:, password: nil, port: 22, **args)
@@ -488,11 +480,12 @@ module Etna
 
     class Mock < Filesystem
       class MockStat
-        def initialize
+        def initialize(io)
+          @io = io
         end
 
         def size
-          0
+          @io.respond_to?(:length) ? @io.length : 0
         end
       end
 
@@ -566,7 +559,7 @@ module Etna
       end
 
       def stat(src)
-        @files[src].respond_to?(:stat) ? @files[src].stat : MockStat.new
+        @files[src].respond_to?(:stat) ? @files[src].stat : MockStat.new(@files[src])
       end
     end
   end
