@@ -100,48 +100,6 @@ module Etna
       end
     end
 
-    module WithHotPipe
-      def with_hot_pipe(opts, receiver, *args, &block)
-        rp, wp = IO.pipe
-        begin
-          executor = Concurrent::SingleThreadExecutor.new(fallback_policy: :abort)
-          begin
-            if opts.include?('w')
-              future = Concurrent::Promises.future_on(executor) do
-                self.send(receiver, rp, *args)
-              rescue => e
-                Etna::Application.instance.logger.log_error(e)
-                raise e
-              ensure
-                rp.close
-              end
-
-              yield wp
-            else
-              future = Concurrent::Promises.future_on(executor) do
-                self.send(receiver, wp, *args)
-              rescue => e
-                Etna::Application.instance.logger.log_error(e)
-                raise e
-              ensure
-                wp.close
-              end
-
-              yield rp
-            end
-
-            future.wait!
-          ensure
-            executor.shutdown
-            executor.kill unless executor.wait_for_termination(5)
-          end
-        ensure
-          rp.close
-          wp.close
-        end
-      end
-    end
-
     class AsperaCliFilesystem < Filesystem
       include WithPipeConsumer
 
@@ -295,7 +253,6 @@ module Etna
     end
 
     class Metis < Filesystem
-      include WithHotPipe
 
       def initialize(metis_client:, project_name:, bucket_name:, root: '/', uuid: SecureRandom.uuid)
         @metis_client = metis_client
@@ -314,45 +271,45 @@ module Etna
         Etna::Clients::Metis::MetisUploadWorkflow.new(metis_client: @metis_client, metis_uid: @metis_uid, project_name: @project_name, bucket_name: @bucket_name, max_attempts: 3)
       end
 
-      # def with_hot_pipe(opts, receiver, *args, &block)
-      #   rp, wp = IO.pipe
-      #   begin
-      #     executor = Concurrent::SingleThreadExecutor.new(fallback_policy: :abort)
-      #     begin
-      #       if opts.include?('w')
-      #         future = Concurrent::Promises.future_on(executor) do
-      #           self.send(receiver, rp, *args)
-      #         rescue => e
-      #           Etna::Application.instance.logger.log_error(e)
-      #           raise e
-      #         ensure
-      #           rp.close
-      #         end
+      def with_hot_pipe(opts, receiver, *args, &block)
+        rp, wp = IO.pipe
+        begin
+          executor = Concurrent::SingleThreadExecutor.new(fallback_policy: :abort)
+          begin
+            if opts.include?('w')
+              future = Concurrent::Promises.future_on(executor) do
+                self.send(receiver, rp, *args)
+              rescue => e
+                Etna::Application.instance.logger.log_error(e)
+                raise e
+              ensure
+                rp.close
+              end
 
-      #         yield wp
-      #       else
-      #         future = Concurrent::Promises.future_on(executor) do
-      #           self.send(receiver, wp, *args)
-      #         rescue => e
-      #           Etna::Application.instance.logger.log_error(e)
-      #           raise e
-      #         ensure
-      #           wp.close
-      #         end
+              yield wp
+            else
+              future = Concurrent::Promises.future_on(executor) do
+                self.send(receiver, wp, *args)
+              rescue => e
+                Etna::Application.instance.logger.log_error(e)
+                raise e
+              ensure
+                wp.close
+              end
 
-      #         yield rp
-      #       end
+              yield rp
+            end
 
-      #       future.wait!
-      #     ensure
-      #       executor.shutdown
-      #       executor.kill unless executor.wait_for_termination(5)
-      #     end
-      #   ensure
-      #     rp.close
-      #     wp.close
-      #   end
-      # end
+            future.wait!
+          ensure
+            executor.shutdown
+            executor.kill unless executor.wait_for_termination(5)
+          end
+        ensure
+          rp.close
+          wp.close
+        end
+      end
 
       def do_streaming_upload(rp, dest, size_hint)
         streaming_upload = Etna::Clients::Metis::MetisUploadWorkflow::StreamingIOUpload.new(readable_io: rp, size_hint: size_hint)
@@ -422,7 +379,7 @@ module Etna
     end
 
     class SftpFilesystem < Filesystem
-      include WithHotPipe
+      include WithPipeConsumer
 
       class SftpFile
         attr_reader :size, :name
@@ -456,6 +413,10 @@ module Etna
         "sftp://#{@host}/#{src}"
       end
 
+      def authn
+        "#{@username}:#{@password}"
+      end
+
       def curl_cmd(path, opts=[])
         connection = Curl::Easy.new(url(path))
         connection.http_auth_types = :basic
@@ -477,13 +438,23 @@ module Etna
         file.first
       end
 
-      def do_curl_download(wp, src)
-        connection = curl_cmd(src)
-        connection.on_body do |data|
-          wp.puts(data)
-          data.size
+      def mkcommand(rd, wd, file, opts, size_hint: nil)
+        env = {}
+        cmd = [env, "curl"]
+
+        cmd << "-u"
+        cmd << authn
+        cmd << "-o"
+        cmd << "-"
+        # cmd << "-k"
+        cmd << "-N"
+        cmd << url(file)
+
+        if opts.include?('r')
+          cmd << {out: wd}
         end
-        connection.perform
+
+        cmd
       end
 
       def with_readable(src, opts = 'r', &block)
@@ -491,9 +462,7 @@ module Etna
 
         sftp_file = sftp_file_from_path(src)
 
-        self.with_hot_pipe(opts, :do_curl_download, src) do |rp|
-          yield [rp, sftp_file.size]
-        end
+        mkio(src, opts, size_hint: sftp_file.size, &block)
       end
 
       def exist?(src)
