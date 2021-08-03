@@ -3,8 +3,6 @@ require 'fileutils'
 require 'open3'
 require 'securerandom'
 require 'concurrent-ruby'
-require 'net/sftp'
-require 'net/ssh'
 require 'curb'
 
 module Etna
@@ -446,7 +444,6 @@ module Etna
         cmd << authn
         cmd << "-o"
         cmd << "-"
-        # cmd << "-k"
         cmd << "-N"
         cmd << url(file)
 

@@ -20,7 +20,6 @@ gem "prometheus-client"
 gem "yabeda"
 gem "yabeda-prometheus"
 gem "yabeda-puma-plugin"
-gem "net-sftp", ">=3.0.0"
 gem "curb"
 
 group :test do
