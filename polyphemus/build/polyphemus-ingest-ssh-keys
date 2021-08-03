@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -e
+
+if [ -n "$VERBOSE" ]; then
+  set -x
+fi
+
+findIngestHostConfig () {
+  wget https://github.com/mikefarah/yq/releases/download/3.3.2/yq_linux_amd64 -o /dev/null -O ~/yq
+  chmod +x ~/yq
+  ~/yq r /app/config.yml ":${POLYPHEMUS_ENV:development}.:ingest.**.:host"
+}
+
+mkdir -p ~/.ssh
+for host in $(findIngestHostConfig); do
+  echo "Adding SSH key for ingest host $host..."
+  ssh-keyscan -H $host >> ~/.ssh/known_hosts
+done
