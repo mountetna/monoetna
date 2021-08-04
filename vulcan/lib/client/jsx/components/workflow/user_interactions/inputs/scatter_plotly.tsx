@@ -7,12 +7,11 @@ import * as _ from 'lodash';
 import {DataEnvelope, get_keys, get_vals, nulled_vals, WithInputParams} from './input_types';
 import TextInput from 'etna-js/components/inputs/text_input';
 import { useSetsDefault } from './useSetsDefault';
-import { applySome, some } from '../../../../selectors/maybe';
+import { Maybe, some } from '../../../../selectors/maybe';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
-import { useEffect } from 'react';
-import MultiselectStringInput from './multiselect_string';
 import { Button, Slider } from '@material-ui/core';
 import { pick } from 'lodash';
+import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 
 /*
 This input is closely tied to archimedes/functions/plotting/scatter_plotly.
@@ -71,7 +70,7 @@ export default function ScatterPlotly({
     return data['data_options'] || nulled_vals(data['data_frame']);
   }, [data]);
 
-  const updateValue = (newValue: string | number | boolean, key: string, prevValues = value) => {
+  const updateValue = (newValue: any, key: string, prevValues = value) => {
     prevValues[key] = newValue;
     onChange(some(prevValues));
   };
@@ -90,75 +89,40 @@ export default function ScatterPlotly({
       )
     };
 
-  const dropdown_input = (
-    key: string = "filler", value: string | number,
+  const nestable_dropdown_input = (
+    key: string = "filler", value: Maybe<string>,
     label: string, options: DataEnvelope<null>) => {
       
-      //console.log(key, label);
-      //console.log(key, options)
-
-      // Need to make this work without the `get_keys` similar to nested_select_autocomplete.tsx component
+      return(
+        <div key={key}>
+          {label}
+          <NestedSelectAutocompleteInput
+            data={{options}}
+            value={value}
+            onChange={(val) => updateValue(val, key)}
+          />
+        </div>
+      )
+    }
+  
+  const dropdown_input = (
+    key: string = "filler", value: Maybe<string>,
+    label: string, defaultValue: string | null = null, options: string[]) => {
+      
       return(
         <div key={key}>
           {label}
           <DropdownAutocomplete
-            onSelect={(newValue: string) => updateValue(newValue, key)}
-            list={get_keys(options)}
+            list={options}
+            defaultValue={defaultValue}
             value={value}
+            onChange={(val: string) => updateValue(val, key)}
           />
         </div>
-        
       )
-
-      /*
-      const handleSelect = useCallback(
-        (value: string | null, depth: number) => {
-          // User has not selected something...perhaps
-          //   still typing?
-          if (null == value) return;
-          if (options == null) return;
-    
-          // figure out where the next selection comes from, check if we're picking a leaf node.
-          const updatedOptions = options.slice(0, depth);
-          updatedOptions.push(value);
-          setPath(updatedPath);
-    
-          if (getOptions(updatedPath, allOptions) == null) {
-            // If we are updating a leaf
-            onChange(some(value));
-          } else {
-            // Otherwise a leaf has not been selected.
-            onChange(null);
-          }
-        },
-        [allOptions, path, onChange]
-      );
-    
-      return (
-        <div>
-          <div>
-            {
-              <DropdownAutocomplete
-                key={key}
-                onSelect={(e: string | null) => {
-                  handleSelect(e, index);
-                }}
-                list={options}
-                value={value}
-              />
-            }
-          </div>
-          <div>
-            <LeafOptions
-              options={getOptions(path, allOptions)}
-              depth={path.length}
-              handleSelect={handleSelect}
-            />
-          </div>
-        </div>
-      );
-      */
     }
+      
+    
 
   const checkbox_input = (
     key: string = "filler", value: boolean = false,
@@ -166,7 +130,7 @@ export default function ScatterPlotly({
 
       return(
           <div key={key}>
-            <text>{label}</text>
+            {label}
             <input id={key} type='checkbox'
                   checked={value}
                   onChange={() => updateValue(!value, key)} />
@@ -180,7 +144,7 @@ export default function ScatterPlotly({
 
       return(
           <div key={key}>
-            <text>{label}</text>
+            {label}
             <Slider
               value={value}
               onChange={(event, newValue) => updateValue(newValue as number, key)}
@@ -202,12 +166,11 @@ export default function ScatterPlotly({
       'x_by': ['X-Axis Data', options],
       'y_by': ['Y-Axis Data', options],
       'color_by': ['Color Points By', options],
-      'color_order': ['Point render order', {'increasing': null, 'decreasing': null, 'unordered': null}],
+      'color_order': ['Point render order', null, ['increasing', 'decreasing', 'unordered']],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.1, 50]
     }
   }, [options]);
-  //console.log("extra_inputs:", extra_inputs)
 
   // Component set constructor
   const component_use = (key: string, value: any, extra_inputs: any) => {
@@ -216,16 +179,15 @@ export default function ScatterPlotly({
       'legend_title': string_input,
       'xlab': string_input,
       'ylab': string_input,
-      'x_by': dropdown_input,
-      'y_by': dropdown_input,
-      'color_by': dropdown_input,
+      'x_by': nestable_dropdown_input,
+      'y_by': nestable_dropdown_input,
+      'color_by': nestable_dropdown_input,
       'color_order': dropdown_input,
       'order_when_continuous_color': checkbox_input,
       'size': slider_input
     }
     
     const comp_use: Function = comps[key]
-    //console.log("component:", key, value, ...extra_inputs)
     return(
       comp_use(key, value, ...extra_inputs)
     )
@@ -250,10 +212,6 @@ export default function ScatterPlotly({
   const shownValues = useMemo(() => {
     return showAdvanced ? value : pick(value, ...base)
   }, [value, showAdvanced])
-
-  //console.log('values:', value)
-  //console.log('true values:', props.value)
-  //console.log('shownValues', shownValues)
   
   return (
     <div>
