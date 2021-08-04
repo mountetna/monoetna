@@ -21,11 +21,6 @@ describe('AllOutputValuesNotEmptyValidator', () => {
     expect(AllOutputValuesNotEmptyValidator(input).length > 0).toEqual(true);
   });
 
-  it('reports errors for empty hashes', () => {
-    input.value = some({});
-    expect(AllOutputValuesNotEmptyValidator(input).length > 0).toEqual(true);
-  });
-
   it('reports errors for hashes with null values', () => {
     input.value = some({experiment: null, tissue: null});
     expect(AllOutputValuesNotEmptyValidator(input).length > 0).toEqual(true);
