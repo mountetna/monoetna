@@ -7,7 +7,7 @@ import * as _ from 'lodash';
 import {DataEnvelope, get_keys, get_vals, nulled_vals, WithInputParams} from './input_types';
 import TextInput from 'etna-js/components/inputs/text_input';
 import { useSetsDefault } from './useSetsDefault';
-import { Maybe, some } from '../../../../selectors/maybe';
+import { Maybe, maybeOfNullable, some, withDefault } from '../../../../selectors/maybe';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import { Button, Slider } from '@material-ui/core';
 import { pick } from 'lodash';
@@ -90,7 +90,7 @@ export default function ScatterPlotly({
     };
 
   const nestable_dropdown_input = (
-    key: string = "filler", value: Maybe<string>,
+    key: string = "filler", value: string | null,
     label: string, options: DataEnvelope<null>) => {
       
       return(
@@ -98,15 +98,15 @@ export default function ScatterPlotly({
           {label}
           <NestedSelectAutocompleteInput
             data={{options}}
-            value={value}
-            onChange={(val) => updateValue(val, key)}
+            value={maybeOfNullable(value)}
+            onChange={(val) => updateValue(withDefault(val, null), key)}
           />
         </div>
       )
     }
   
   const dropdown_input = (
-    key: string = "filler", value: Maybe<string>,
+    key: string = "filler", value: string | null,
     label: string, defaultValue: string | null = null, options: string[]) => {
       
       return(
@@ -121,8 +121,6 @@ export default function ScatterPlotly({
         </div>
       )
     }
-      
-    
 
   const checkbox_input = (
     key: string = "filler", value: boolean = false,
