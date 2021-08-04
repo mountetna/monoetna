@@ -251,8 +251,9 @@ export default function ScatterPlotly({
     return showAdvanced ? value : pick(value, ...base)
   }, [value, showAdvanced])
 
-  console.log('values:', value)
-  console.log('shownValues', shownValues)
+  //console.log('values:', value)
+  //console.log('true values:', props.value)
+  //console.log('shownValues', shownValues)
   
   return (
     <div>
