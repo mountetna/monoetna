@@ -29,6 +29,7 @@ import {
 import MultipleInput from "./multiple_input";
 import SingleDropdownMulticheckbox from "./single_dropdown_multicheckbox";
 import {stepOfSource} from "../../../../selectors/workflow_selectors";
+import AllOutputValuesNotEmptyValidator from "./validators/all_output_values_not_empty_validator"
 
 const components: {[k: string]: [InputBackendComponent<any, any, any>, InputValidator<any, any>]} = {};
 function configureComponent<Value, DataElement>(
@@ -49,7 +50,7 @@ configureComponent(TYPE.CHECKBOXES, CheckboxesInput, NotEmptyValidator);
 configureComponent(TYPE.NESTED_SELECT_AUTOCOMPLETE, NestedSelectAutocompleteInput, NotEmptyValidator);
 configureComponent(TYPE.MULTISELECT_STRING, MultiselectStringInput, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_STRING, MultipleInput(StringInput), AllInnerValuesNotEmptyValidator);
-configureComponent(TYPE.SCATTER_PLOTLY, ScatterPlotly, NotEmptyValidator);
+configureComponent(TYPE.SCATTER_PLOTLY, ScatterPlotly, AllOutputValuesNotEmptyValidator);
 
 configureComponent(TYPE.SINGLE_DROPDOWN_MULTICHECKBOX, SingleDropdownMulticheckbox, NotEmptyValidator);
 configureComponent(TYPE.MULTIPLE_MULTISELECT_STRING_ALL, MultipleInput(MultiselectStringInput), AllInnerValuesNotEmptyValidator)
