@@ -183,7 +183,7 @@ export default function ScatterPlotly({
             <text>{label}</text>
             <Slider
               value={value}
-              onChange={(event, newValue) => updateValue(newValue, key)}
+              onChange={(event, newValue) => updateValue(newValue as number, key)}
               min={min}
               max={max}
               valueLabelDisplay="auto"

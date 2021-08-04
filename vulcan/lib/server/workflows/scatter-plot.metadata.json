@@ -1,5 +1,5 @@
 {
-  "projects": ["xcrs1"],
+  "projects": ["example"],
   "authors": ["Dan Bunis"],
   "lastModified": "June 30, 2021",
   "vignette": "### FILLER\n\n# This workflow allows users to create a scatter plot from data of their choice",
