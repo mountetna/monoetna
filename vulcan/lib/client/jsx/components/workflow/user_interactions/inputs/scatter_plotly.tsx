@@ -4,7 +4,7 @@
 import React, {useCallback, useMemo} from 'react';
 import * as _ from 'lodash';
 
-import {DataEnvelope, get_keys, get_vals, nulled_vals, WithInputParams} from './input_types';
+import {DataEnvelope, nulled_vals, WithInputParams} from './input_types';
 import TextInput from 'etna-js/components/inputs/text_input';
 import { useSetsDefault } from './useSetsDefault';
 import { Maybe, maybeOfNullable, some, withDefault } from '../../../../selectors/maybe';
@@ -43,7 +43,10 @@ const defaults: DataEnvelope<any> = {
   'order_when_continuous_color': false
 };
 
-const remove_hidden = (values: DataEnvelope<any>, hide: string[] | null | undefined) => {
+const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefined) => {
+  
+  let values = {...vals};
+
   if (hide == null || hide.length === 0) {
     return values;
   }
@@ -193,7 +196,7 @@ export default function ScatterPlotly({
 
   // Advanced Options Button
   const base = useMemo(() => {
-    return get_keys(remove_hidden(
+    return Object.keys(remove_hidden(
       {'x_by': 0, 'y_by': 0, 'color_by': 0}, hide
     ))
   }, [hide])

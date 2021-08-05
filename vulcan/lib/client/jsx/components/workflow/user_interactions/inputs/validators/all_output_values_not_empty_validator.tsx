@@ -8,8 +8,7 @@ const AllOutputValuesNotEmptyValidator = (input: ValidationInputSpecification<Da
   if (!inputValueNonEmpty(input.value)) {
     return ['Value cannot be empty.'];
   } else {
-    input.data = input.value as DataEnvelope<any>
-    return AllInnerValuesNotEmptyValidator(input);
+    return AllInnerValuesNotEmptyValidator({...input, data: input.value as DataEnvelope<any>});
   }
 };
 
