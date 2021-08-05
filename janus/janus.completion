@@ -430,16 +430,7 @@ COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
-if [[ "$#" == "1" ]];  then
-all_completion_names="__privileged__"
-if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
-return
-fi
-COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
-return
-fi
-shift
-all_flag_completion_names="$all_flag_completion_names  "
+all_flag_completion_names="$all_flag_completion_names --privileged "
 arg_flag_completion_names="$arg_flag_completion_names  "
 multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do

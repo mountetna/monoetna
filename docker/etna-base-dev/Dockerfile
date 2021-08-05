@@ -3,7 +3,9 @@ WORKDIR /app
 
 ENV DOCKER_VERSION 19.03.12
 ENV RUBY_VERSION 2.5.7
-ENV BUNDLER_VERSION 2.2.0
+# This is so dumb -- but if BUNDLER_VERSION is set as an environment variable,
+# it causes issues with bundler... bleck.  So, so add an underscore at the end.
+ENV BUNDLER_VERSION_ 2.2.5
 ENV DOCKERIZE_VERSION 0.5.0
 ENV NODE_VERSION 12.18.1
 ENV DOCKERIZE_URL https://github.com/jwilder/dockerize/releases/download/v${DOCKERIZE_VERSION}/dockerize-linux-amd64-v${DOCKERIZE_VERSION}.tar.gz
@@ -47,7 +49,7 @@ ENV BUNDLE_BIN="$BUNDLE_PATH/bin"
 ENV BUNDLE_SILENCE_ROOT_WARNING=0
 ENV BUNDLE_APP_CONFIG="/app/.bundle"
 
-RUN gem install bundler --default -v "=$BUNDLER_VERSION"
+RUN gem install bundler --default -v "=$BUNDLER_VERSION_"
 RUN gem update --system
 
 # We also the GEM_PATH to be this BUNDLE_PATH so that ides (Rubymine) will find gems easier.
