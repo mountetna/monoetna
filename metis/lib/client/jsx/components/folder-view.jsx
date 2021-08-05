@@ -6,6 +6,8 @@ import ListHead  from './list/list-head';
 import FolderBreadcrumb from './folder-breadcrumb';
 import ControlBar from './control-bar';
 
+import {selectCurrentFolder} from '../selectors/directory-selector';
+
 const COLUMNS = [
   { name: 'type', width: '60px' },
   { name: 'name', width: '60%' },
@@ -75,8 +77,8 @@ class FolderView extends React.Component {
   }
 
   render() {
-    let { bucket_name, folder_name } = this.props;
-    if (folder_name == INVALID) return <InvalidFolder/>;
+    let { bucket_name, folder_name, current_folder } = this.props;
+    if (current_folder == INVALID) return <InvalidFolder/>;
 
     let buttons = [
       { onClick: this.selectFolder.bind(this), title: 'Create folder', icon: 'folder', overlay: 'plus', role: 'editor' },
@@ -128,7 +130,7 @@ const downloadFilesZip = (files, folder_name, bucket_name) => ({ type: 'DOWNLOAD
 
 export default connect(
   // map state
-  null,
+  state => ({ current_folder: selectCurrentFolder(state) }),
 
   // map dispatch
   { retrieveFiles, fileSelected, createFolder, showUploadModal, listFilesRecursive, downloadFilesZip }
