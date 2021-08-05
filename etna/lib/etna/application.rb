@@ -60,17 +60,6 @@ module Etna::Application
     end
   end
 
-  # This will cause metrics to persist to a file.
-  # NOTE -- /tmp/metrics.bin should be a persistent mount when using this.
-  # You will still need to export metrics in the text format for the node_exporter on the host machine to
-  # export them to prometheus.  Ensure that the /tmp/metrics.bin is on a named volume or a bind mount, either is fine.
-  def enable_job_metrics!
-    require 'prometheus'
-    Prometheus::Client.config.data_store = Prometheus::Client::DataStores::DirectFileStore.new({
-      dir: "/tmp/metrics.bin"
-    })
-  end
-
   def setup_yabeda
     application = self.id
     Yabeda.configure do
@@ -198,7 +187,8 @@ module Etna::Application
 
         Yabeda.etna.last_command_completion.set(tags, Time.now.to_i)
         Yabeda.etna.command_runtime.measure(tags, dur)
-        write_job_metrics("run_command")
+
+        write_job_metrics("run_command.#{cmd.class.name}")
       end
     end
   end
