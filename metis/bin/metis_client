@@ -962,7 +962,7 @@ EOT
       elsif ::File.file?(file_or_folder)
         upload_file(file_or_folder, folder_path, folder)
       else
-        puts "Invalid input #{file_or_folder}"
+        raise ShellError, "Invalid input #{file_or_folder}"
       end
     end
 
@@ -1073,6 +1073,21 @@ EOT
     end
   end
 
+  class Set < Command
+    usage "set <options>"
+
+    def parse(args)
+      parse_opts(args) do |opts|
+        opts.on("-e", "Exit on error") do |n|
+          @shell.set_shell_option(:e, true)
+        end
+      end
+    end
+
+    def run
+    end
+  end
+
   class ShellError < StandardError
   end
 
@@ -1104,6 +1119,8 @@ EOT
     if match&.[](:path)
       set_path(match[:path])
     end
+
+    @shell_options = {}
   end
 
   attr_reader :project_name
@@ -1239,10 +1256,18 @@ EOT
     end
   end
 
+  def set_shell_option(opt, value)
+    @shell_options[opt] = value
+  end
+
   private
 
   def self.log_error(e)
     STDERR.puts(e.message)
+  end
+
+  def errexit
+    !!@shell_options[:e]
   end
 
   def run_command(command=nil, *args)
@@ -1260,13 +1285,17 @@ EOT
       cmd.run(*args) unless cmd.done?
     rescue ShellError => e
       MetisShell.log_error(e)
+      exit(1) if errexit
     rescue MetisClient::Error => e
       MetisShell.log_error(e)
+      exit(1) if errexit
     rescue ArgumentError => e
       puts(command.usage ? "Usage:\n#{command.usage}" : e.message)
       MetisShell.log_error(e)
+      exit(1) if errexit
     rescue Net::ReadTimeout => e
       MetisShell.log_error(e)
+      exit(1) if errexit
     end
   end
 
