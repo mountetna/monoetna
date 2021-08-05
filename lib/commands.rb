@@ -14,6 +14,32 @@ class Metis
     end
   end
 
+  class MeasureFileCounts < Etna::Command
+    def setup(config)
+      super
+      Metis.instance.load_models
+      Metis.instance.setup_db
+    end
+
+    # TODO: Also collect file size, which would require us to add that to the data_blocks table rather than
+    # reading it from file.
+    def execute
+      Metis::File.select_group(:bucket_id).select_more{count(:id)}.each do |row|
+        count = row[:count]
+        bucket_id = row[:bucket_id]
+        bucket = Metis::Bucket.where(id: bucket_id).first
+        next if bucket.nil?
+
+        project_name = bucket.project_name
+        bucket_name = bucket.name
+
+        tags = {project_name: project_name, bucket_name: bucket_name}
+        Yabeda.metis.file_count.set(tags, count)
+      end
+    end
+  end
+
+
   class Schema < Etna::Command
     usage 'Show the current database schema.'
 
