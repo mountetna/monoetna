@@ -110,8 +110,13 @@ describe MetisShell do
         stdin.flush
 
         shell = MetisShell.new("metis:://athena/armor")
-        replace_stdio(stdin.path, stdout.path) do
-          shell.run
+        begin
+          replace_stdio(stdin.path, stdout.path) do
+            shell.run
+          end
+        rescue Exception => e
+          # Catch the exception / exit that will get thrown by the shell
+          #  otherwise, this test exits, too...
         end
 
         # Shell exited before it even tried processing the put command

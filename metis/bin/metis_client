@@ -1337,7 +1337,7 @@ EOT
   end
 
   private
-  
+
   def errexit?
     !!@shell_options[:e]
   end
