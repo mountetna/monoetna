@@ -438,8 +438,8 @@ class MetisClient < Client
     uri = URI.parse("https://#{@host}#{path}")
     req = method.new(uri.request_uri)
 
-    headers.keys.each do |header|
-      req[header] = headers[header]
+    headers.each do |header, value|
+      req[header] = value
     end if headers
 
     req['Authorization'] = "Etna #{@token}"
