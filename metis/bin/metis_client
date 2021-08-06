@@ -1329,7 +1329,7 @@ EOT
 
   private
   
-  def errexit
+  def errexit?
     !!@shell_options[:e]
   end
 
@@ -1352,17 +1352,17 @@ EOT
       cmd.run(*args) unless cmd.done?
     rescue ShellError => e
       MetisShell.log_error(e)
-      exit(1) if errexit
+      exit(1) if errexit?
     rescue MetisClient::Error => e
       MetisShell.log_error(e)
-      exit(1) if errexit
+      exit(1) if errexit?
     rescue ArgumentError => e
       puts(command.usage ? "Usage:\n#{command.usage}" : e.message)
       MetisShell.log_error(e)
-      exit(1) if errexit
+      exit(1) if errexit?
     rescue Net::ReadTimeout => e
       MetisShell.log_error(e)
-      exit(1) if errexit
+      exit(1) if errexit?
     end
   end
 
