@@ -259,84 +259,102 @@ def stub_magma_update_json
 end
 
 def stub_redcap_data(stub=nil)
-  stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: hash_including({ content: 'metadata' }))
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_mock_metadata.json')
-    })
-
-  stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: /fields/)
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_mock_data_all.json')
-    })
+  stub_redcap(
+    hash_including(content: 'metadata') => File.read('spec/fixtures/redcap_mock_metadata.json'),
+    /fields/ => File.read('spec/fixtures/redcap_mock_data_all.json')
+  )
 end
 
-def stub_redcap_test2_data(stub=nil)
-  stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: hash_including({ content: 'metadata' }))
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_test2_metadata.json')
-    })
+def redcap_choices(*choices)
+  choices.map.with_index do |c,i|
+    "#{i}, #{c}"
+  end.join(" | ")
+end
 
-  stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: /fields/)
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_test2_data_all.json')
-    })
+def redcap_metadata(template)
+  template.map do |form, fields|
+    fields.map do |field|
+      if field.is_a?(Array)
+        field = [ "field_name", "field_label", "field_type" ].zip(field).to_h.compact
+      else
+        field = field.map{|k,v| [ k.to_s, v] }.to_h
+      end
+
+      {
+        "field_name": "",
+        "form_name": form,
+        "section_header": "",
+        "field_type": "text",
+        "field_label": field["field_name"].split('_').map(&:capitalize).join(' '),
+        "select_choices_or_calculations":"",
+        "field_note":"",
+        "text_validation_type_or_show_slider_number":"",
+        "text_validation_min":"",
+        "text_validation_max":"",
+        "identifier":"",
+        "branching_logic":"",
+        "required_field":"",
+        "custom_alignment":"",
+        "question_number":"",
+        "matrix_group_name":"",
+        "matrix_ranking":"",
+        "field_annotation":""
+      }.update(field)
+    end
+  end.flatten(1).to_json
+end
+
+def flat_records(records)
+  id_keys = [ :record, :redcap_event_name, :redcap_repeat_instrument, :redcap_repeat_instance ]
+
+  ret = records.group_by do |r|
+    r.values_at(*id_keys)
+  end.map do |key_names, eavs|
+    id_keys.map(&:to_s).zip(key_names).to_h.compact.merge(
+      eavs.map do |eav|
+        [ eav[:field_name], eav[:value] ]
+      end.to_h
+    ).merge(
+      "record_id" => key_names[0]
+    )
+  end
+  ret
+end
+
+def redcap_records(base, records)
+  records.map do |record|
+    base.merge(record)
+  end
+end
+
+def stub_redcap(stubs)
+  stubs.each do |req,rets|
+    stub = nil
+    [rets].flatten.each do |ret|
+      stub = (
+        stub ? stub.then : stub_request(:post, "#{REDCAP_HOST}/api/").with(body: req)
+      ).to_return({
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: ret
+        })
+    end
+  end
 end
 
 def stub_redcap_multi_project_records
-  stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: /today/)
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_mock_data_calendar.json')
-    }).then
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_mock_data_project_2_calendar.json')
-    })
-
-  stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: /date_of_birth/)
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_mock_data_essential_data.json')
-    }).then
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_mock_data_project_2_essential_data.json')
-    })
-
-  stub_request(:post, "#{REDCAP_HOST}/api/")
-    .with(body: /height/)
-    .to_return({
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: File.read('spec/fixtures/redcap_mock_data_statistics.json')
-    })
+  stub_redcap(
+    /today/ => [
+      File.read('spec/fixtures/redcap_mock_data_calendar.json'),
+      File.read('spec/fixtures/redcap_mock_data_project_2_calendar.json')
+    ],
+    /date_of_birth/ => [
+      File.read('spec/fixtures/redcap_mock_data_essential_data.json'),
+      File.read('spec/fixtures/redcap_mock_data_project_2_essential_data.json')
+    ],
+    /height/ => File.read('spec/fixtures/redcap_mock_data_statistics.json')
+  )
 end
 
 def copy_redcap_project(project_name='test')
