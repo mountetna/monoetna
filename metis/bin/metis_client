@@ -176,7 +176,7 @@ class JanusClient < Client
     https.request(req)
   end
 
-  def request(path, method)
+  def request(path, method, headers=nil)
     uri = URI.parse("https://#{@host}#{path}")
     req = method.new(uri.request_uri)
     req['Authorization'] = "Etna #{@token}"
