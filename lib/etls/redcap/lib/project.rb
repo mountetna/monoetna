@@ -41,8 +41,8 @@ module Redcap
       @flat_records ||= client.get_record_flat(
         field_opts([ 'record_id' ] + valid_fields)
       ).map do |record|
-        [ record[:record_id], record ]
-      end.to_h
+        record.merge(record: record[:record_id])
+      end
     end
 
     private
