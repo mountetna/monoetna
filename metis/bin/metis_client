@@ -1119,14 +1119,27 @@ EOT
       raise ShellError, 'No project is selected' if !@shell.project_name
 
       file_path = @shell.relative_path(file_path)
-
       name = ::File.basename(file_path)
+
+      buckets = @shell.client.list_buckets(@shell.project_name)
+      bucket = buckets.find do |b|
+        b[:bucket_name] == name
+      end
+
+      raise ShellError, "Cannot peek at buckets" if bucket
+
       folder_name = ::File.dirname(file_path)
 
       parent_folder = @shell.client.list_folder(@shell.project_name, folder_name)
 
       raise ShellError, "Invalid path, cannot peek at #{file_path}" unless parent_folder
       raise ShellError, "No files in folder #{folder_name}" unless parent_folder[:files]
+
+      folder = parent_folder[:folders].find do |f|
+        f[:folder_name] == name
+      end
+
+      raise ShellError, "Cannot peek at folders" if folder
 
       file = parent_folder[:files].find do |f|
         f[:file_name] == name
