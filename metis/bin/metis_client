@@ -216,7 +216,6 @@ class MetisClient < Client
       Net::HTTPHeaderSyntaxError,
       Net::ProtocolError,
       Net::HTTPRequestTimeOut,
-      Net::HTTPRequestTimeout,
       Net::HTTPGatewayTimeout,
       Net::HTTPGatewayTimeOut,
       Net::HTTPBadRequest,
