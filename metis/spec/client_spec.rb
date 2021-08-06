@@ -1,4 +1,5 @@
 load 'bin/metis_client'
+require 'pty'
 
 def expect_output(path, *args)
   expect {
@@ -90,6 +91,96 @@ describe MetisShell do
       expect(ENV["TOKEN"]).to eq(full_future_token)
 
       Timecop.return
+    end
+  end
+
+  describe MetisShell::Set do
+    before(:each) do
+      create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+    end
+
+    it 'can set errexit flag' do
+      shell = MetisShell.new("metis:://athena/armor", "set", "-e")
+      shell.run
+
+      expect(shell.errexit).to equal(true)
+    end
+
+    it 'does not have errexit set by default' do
+      shell = MetisShell.new("metis:://athena/armor", "ls")
+
+      shell.run
+      expect(shell.errexit).to equal(false)
+    end
+
+    it 'exits if errexit option is true' do
+      stub_metis_list_bucket
+
+      with_temp_stdio do |stdin, stdout|
+        stdin.write("set -e\n")
+        stdin.write("project athena\n")
+        stdin.write("cd armor\n")
+        stdin.write("cd jabberwocky\n") # <- this should fail and exit, the folder doesn't exist
+        stdin.write("put #{stdin.path} .\n")
+        stdin.flush
+
+        shell = MetisShell.new("metis:://athena/armor")
+        replace_stdio(stdin.path, stdout.path) do
+          shell.run
+        end
+
+        # Shell exited before it even tried processing the put command
+        expect(stdout.read.include?("put")).to eq(false)
+
+        # There is NO call to authorize the upload
+        expect(WebMock).not_to have_requested(:post, /https:\/\/metis.test\/authorize\/upload/).
+          with(body: hash_including({
+            "project_name": "athena",
+            "bucket_name": "armor",
+            "file_path": ::File.basename(stdin.path)
+          }))
+      end
+    end
+
+    it 'does not exit if errexit option is false' do
+      stub_metis_list_bucket
+
+      with_temp_stdio do |stdin, stdout|
+        input_file_name = ::File.basename(stdin.path)
+
+        stdin.write("project athena\n")
+        stdin.write("cd armor\n")
+        stdin.write("cd jabberwocky\n") # <- this folder doesn't exist, but shell ignores that and moves on to the next command
+        stdin.write("put #{stdin.path} .\n")
+        stdin.flush
+
+        stub_upload_file({
+          project: "athena",
+          authorize_body: JSON.generate({
+            url: "#{METIS_HOST}\/athena\/upload/armor/#{input_file_name}",
+          }),
+          upload_body: JSON.generate({
+            current_byte_position: stdin.size,
+            next_blob_size: 0,
+          }),
+        })
+
+        shell = MetisShell.new("metis:://athena/armor")
+        replace_stdio(stdin.path, stdout.path) do
+          shell.run
+        end
+
+        # The PUT command is still executed, since no `set -e` called.
+        expect(stdout.read.include?("put")).to eq(true)
+
+        # There IS a call to authorize the upload
+        expect(WebMock).to have_requested(:post, /https:\/\/metis.test\/authorize\/upload/).
+          with(body: hash_including({
+            "project_name": "athena",
+            "bucket_name": "armor",
+            "file_path": input_file_name
+          }))
+      end
     end
   end
 

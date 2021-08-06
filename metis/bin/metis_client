@@ -1088,6 +1088,14 @@ EOT
     end
   end
 
+  class Exit < Command
+    usage "exit"
+
+    def run
+      exit
+    end
+  end
+
   class ShellError < StandardError
   end
 
@@ -1260,14 +1268,14 @@ EOT
     @shell_options[opt] = value
   end
 
+  def errexit
+    !!@shell_options[:e]
+  end
+
   private
 
   def self.log_error(e)
     STDERR.puts(e.message)
-  end
-
-  def errexit
-    !!@shell_options[:e]
   end
 
   def run_command(command=nil, *args)
