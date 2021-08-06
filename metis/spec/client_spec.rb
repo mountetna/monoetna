@@ -131,24 +131,11 @@ describe MetisShell do
       stub_metis_list_bucket
 
       with_temp_stdio do |stdin, stdout|
-        input_file_name = ::File.basename(stdin.path)
-
         stdin.write("project athena\n")
         stdin.write("cd armor\n")
         stdin.write("cd jabberwocky\n") # <- this folder doesn't exist, but shell ignores that and moves on to the next command
         stdin.write("put #{stdin.path} .\n")
         stdin.flush
-
-        stub_upload_file({
-          project: "athena",
-          authorize_body: JSON.generate({
-            url: "#{METIS_HOST}\/athena\/upload/armor/#{input_file_name}",
-          }),
-          upload_body: JSON.generate({
-            current_byte_position: stdin.size,
-            next_blob_size: 0,
-          }),
-        })
 
         shell = MetisShell.new("metis:://athena/armor")
         replace_stdio(stdin.path, stdout.path) do
@@ -163,7 +150,7 @@ describe MetisShell do
           with(body: hash_including({
             "project_name": "athena",
             "bucket_name": "armor",
-            "file_path": input_file_name
+            "file_path": ::File.basename(stdin.path)
           }))
       end
     end
