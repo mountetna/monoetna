@@ -207,19 +207,6 @@ def stub_metis_list_bucket
     })
 end
 
-def stub_upload_file(params={})
-  stub_request(:post, /#{METIS_HOST}\/authorize\/upload/)
-  .to_return({
-    status: params[:status] || 200,
-    body: params[:authorize_body] || JSON.generate({})
-  })
-  stub_request(:post, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/upload/)
-  .to_return({
-    status: params[:status] || 200,
-    body: params[:upload_body] || JSON.generate({})
-  })
-end
-
 class Stubs
   def initialize
     @stubs = []
