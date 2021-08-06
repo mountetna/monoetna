@@ -445,7 +445,6 @@ class MetisClient < Client
     req['Authorization'] = "Etna #{@token}"
     cookie = CGI::Cookie.new(MetisConfig[:metis_uid_name], MetisConfig[:metis_uid])
     req['Cookie'] = cookie.to_s
-
     return req
   end
 
