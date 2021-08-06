@@ -1112,9 +1112,9 @@ EOT
   end
 
   class Peek < Command
-    usage "peek <byte_offset> <num_bytes> <remote_file_path>"
+    usage "peek <byte_offset> <num_bytes> <remote_file_path> [<local_file_path>]"
 
-    def run(byte_offset, num_bytes, file_path)
+    def run(byte_offset, num_bytes, file_path, local_file_path=nil)
       raise ShellError, 'No project is selected' if !@shell.project_name
 
       file_path = @shell.relative_path(file_path)
@@ -1146,11 +1146,20 @@ EOT
 
       raise ShellError, "File does not exist, #{file_path}" unless file
 
-      @shell.client.get_partial_file(
-        file[:download_url].sub(%r!^https://[^/]*?/!, '/'),
-        byte_offset,
-        byte_offset.to_i + num_bytes.to_i - 1) do |chunk|
-        puts chunk
+      begin
+        if local_file_path
+          FileUtils::mkdir_p(::File.dirname(local_file_path))
+          local_file = ::File.open(local_file_path, "w")
+        end
+        @shell.client.get_partial_file(
+          file[:download_url].sub(%r!^https://[^/]*?/!, '/'),
+          byte_offset,
+          byte_offset.to_i + num_bytes.to_i - 1) do |chunk|
+          puts chunk
+          local_file.write(chunk) if local_file
+        end
+      ensure
+        local_file.close if local_file
       end
     end
   end

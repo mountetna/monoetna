@@ -578,5 +578,32 @@ describe MetisShell do
           "Range": "bytes=4-8"
         })
     end
+
+    it 'can write peek output to a file' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+      stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
+
+      tmp = Tempfile.new
+
+      stub_request(:get, /download/)
+        .to_return({
+          status: 200,
+          body: "partial-chunk"
+        })
+
+      MetisShell.new("metis://athena", "peek", "4", "5", "armor/helmet.jpg", tmp.path).run
+
+      expect(WebMock).to have_requested(:get, /https:\/\/metis.test\/athena\/download/).
+        with(headers: {
+          "Range": "bytes=4-8"
+        })
+
+      expect(tmp.read).to eq("partial-chunk")
+
+      tmp.close
+      tmp.unlink
+    end
   end
 end
