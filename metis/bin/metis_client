@@ -200,7 +200,7 @@ class MetisClient < Client
   end
 
   def net_exceptions
-    [
+    retry_exceptions = [
       Errno::ECONNREFUSED,
       Errno::ECONNRESET,
       Errno::ENETRESET,
@@ -216,8 +216,6 @@ class MetisClient < Client
       Net::HTTPHeaderSyntaxError,
       Net::ProtocolError,
       Net::HTTPRequestTimeOut,
-      Net::HTTPRequestTimeout,
-      Net::HTTPGatewayTimeout,
       Net::HTTPGatewayTimeOut,
       Net::HTTPBadRequest,
       Net::HTTPBadGateway,
@@ -233,6 +231,13 @@ class MetisClient < Client
       EOFError,
       Timeout::Error
     ]
+
+    begin
+      retry_exceptions << Net::HTTPRequestTimeout
+      retry_exceptions << Net::HTTPGatewayTimeout
+    end if RUBY_VERSION > "2.5.8"
+
+    retry_exceptions
   end
 
   def authorize_upload(project_name, bucket_name, file_path)
