@@ -1328,11 +1328,11 @@ EOT
     @shell_options[opt] = value
   end
 
+  private
+  
   def errexit
     !!@shell_options[:e]
   end
-
-  private
 
   def self.log_error(e)
     STDERR.puts(e.message)

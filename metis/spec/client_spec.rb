@@ -98,21 +98,7 @@ describe MetisShell do
       create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
     end
 
-    it 'can set errexit flag' do
-      shell = MetisShell.new("metis:://athena/armor", "set", "-e")
-      shell.run
-
-      expect(shell.errexit).to equal(true)
-    end
-
-    it 'does not have errexit set by default' do
-      shell = MetisShell.new("metis:://athena/armor", "ls")
-
-      shell.run
-      expect(shell.errexit).to equal(false)
-    end
-
-    it 'exits if errexit option is true' do
+    it 'exits upon error, if errexit option is true' do
       stub_metis_list_bucket
 
       with_temp_stdio do |stdin, stdout|
@@ -141,7 +127,7 @@ describe MetisShell do
       end
     end
 
-    it 'does not exit if errexit option is false' do
+    it 'does not exit upon error, if errexit option is false' do
       stub_metis_list_bucket
 
       with_temp_stdio do |stdin, stdout|
