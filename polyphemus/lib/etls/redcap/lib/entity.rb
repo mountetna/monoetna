@@ -23,6 +23,10 @@ module Redcap
           :field
         end
       end
+
+      def flat_key?
+        false
+      end
     end
 
     def self.create(entity)
@@ -41,6 +45,10 @@ module Redcap
 
     def filtered_key(key, value=nil)
       key unless @filter && (value || key) !~ @filter
+    end
+
+    def flat_key?
+      true
     end
   end
 end
