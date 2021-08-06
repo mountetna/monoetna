@@ -11,7 +11,7 @@ const PlotWithEffects = ({
   layout: any;
   config: any;
 }) => {
-  const [updatedData, setUpdatedData] = useState({} as any);
+  const [updatedData, setUpdatedData] = useState([] as any);
   const [highlightedTrace, setHighlightedTrace] = useState(-1);
   const plotRef = useRef<HTMLDivElement>(null);
 
@@ -45,14 +45,10 @@ const PlotWithEffects = ({
     }
   }, [data, highlightedTrace]);
 
-  let {attachEventListeners, removeEventListeners} = useLegendHover(
+  useLegendHover(
     plotRef.current,
     setHighlightedTrace
   );
-
-  useEffect(() => {
-    return () => removeEventListeners();
-  }, [removeEventListeners]);
 
   return (
     <div ref={plotRef}>
@@ -60,7 +56,6 @@ const PlotWithEffects = ({
         data={updatedData}
         layout={layout}
         config={config}
-        onAfterPlot={attachEventListeners}
       />
     </div>
   );

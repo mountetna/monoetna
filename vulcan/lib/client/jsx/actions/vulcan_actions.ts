@@ -1,5 +1,6 @@
 import {SessionStatusResponse, Workflow, WorkflowsResponse} from "../api_types";
 import {InputValidator} from '../components/workflow/user_interactions/inputs/input_types';
+import {Maybe} from "../selectors/maybe";
 
 function actionObject<T extends string, P>(type: T, payload: P): { type: T } & P {
     return { ...payload, type };
@@ -13,16 +14,12 @@ export function setWorkflow(workflow: Workflow, projectName: string) {
     return actionObject('SET_WORKFLOW', {workflow, projectName});
 }
 
-export function setStatus(status: SessionStatusResponse['status']) {
-    return actionObject('SET_STATUS', {status});
+export function setStatus(status: SessionStatusResponse['status'], clearStaleInputs = true) {
+    return actionObject('SET_STATUS', {status, clearStaleInputs});
 }
 
 export function setDownloadedData(url: string, data: any) {
     return actionObject('SET_DOWNLOAD', {url, data});
-}
-
-export function releaseDownloadedData(url: string) {
-    return actionObject('RELEASE_DOWNLOAD', {url});
 }
 
 export function setSession(session: SessionStatusResponse['session']) {
@@ -35,10 +32,6 @@ export function setInputs(inputs: SessionStatusResponse['session']['inputs']) {
 }
 
 // Adds any inputs specified, but does not fully replace inputs.
-export function patchInputs(inputs: SessionStatusResponse['session']['inputs']) {
-    return actionObject('PATCH_INPUTS', {inputs});
-}
-
 // Removes the inputs by the given source name from the inputs and session states
 export function removeInputs(inputs: string[]) {
     return actionObject('REMOVE_INPUTS', {inputs});
@@ -50,16 +43,35 @@ export function removeDownloads(stepNames: string[]) {
     return actionObject('REMOVE_DOWNLOADS', {stepNames});
 }
 
-export function addValidationErrors(inputName: string, inputLabel: string, errors: string[]) {
-    return actionObject('ADD_VALIDATION_ERRORS', {inputName, inputLabel, errors});
+export function addValidationErrors(stepName: string | null, inputLabel: string, errors: string[]) {
+    return actionObject('ADD_VALIDATION_ERRORS', {stepName, inputLabel, errors});
 }
 
-export function removeValidationErrors(inputName: string) {
-    return actionObject('REMOVE_VALIDATION_ERRORS', {inputName});
+// Relies on the object identity of the errors string, but loosens the necessary uniqueness of inputLabel
+export function removeValidationErrors(errors: string[]) {
+    return actionObject('REMOVE_VALIDATION_ERRORS', {errors});
+}
+
+export function startPolling() {
+    return actionObject('MODIFY_POLLING', {delta: 1})
+}
+
+export function finishPolling() {
+    return actionObject('MODIFY_POLLING', {delta: -1})
+}
+
+export function setBufferedInput(step: string | null) {
+    return actionObject('SET_BUFFERED_INPUT', {step});
+}
+
+export function clearBufferedInput(step: string | null) {
+    return actionObject('CLEAR_BUFFERED_INPUT', {step})
 }
 
 export type VulcanAction = ReturnType<typeof setWorkflows> | ReturnType<typeof setWorkflow> | ReturnType<typeof setStatus> |
     ReturnType<typeof setDownloadedData> | ReturnType<typeof setSession> | ReturnType<typeof setInputs> |
-    ReturnType<typeof releaseDownloadedData> | ReturnType<typeof removeInputs> |
-    ReturnType<typeof patchInputs> | ReturnType<typeof removeDownloads> |
-    ReturnType<typeof addValidationErrors> | ReturnType<typeof removeValidationErrors>;
+    ReturnType<typeof removeInputs> |
+    ReturnType<typeof removeDownloads> |
+    ReturnType<typeof startPolling> | ReturnType<typeof finishPolling> |
+    ReturnType<typeof addValidationErrors> | ReturnType<typeof removeValidationErrors> |
+    ReturnType<typeof setBufferedInput> | ReturnType<typeof clearBufferedInput>;

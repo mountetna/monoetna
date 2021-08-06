@@ -1,6 +1,5 @@
 import {isPendingUiQuery} from '../workflow_selectors';
-import {VulcanState} from '../../reducers/vulcan_reducer';
-import {WorkflowStep, Workflow} from '../../api_types';
+import {Workflow} from '../../api_types';
 import {
   createStatusFixture,
   createStepFixture,
@@ -12,7 +11,7 @@ import {
   setStatus,
   setWorkflow,
   setWorkflows
-} from '../../actions/vulcan';
+} from '../../actions/vulcan_actions';
 import {stateFromActions} from '../../test_utils/state';
 
 describe('Workflow Selectors', () => {

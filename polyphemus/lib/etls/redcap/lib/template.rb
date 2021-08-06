@@ -27,11 +27,5 @@ module Redcap
     def field_note(field_name)
       fields.dig(field_name,:field_note)
     end
-
-    def select_choice(field_name, index)
-      fields.dig(field_name,:select_choices_or_calculations)&.split(' | ').map do |c|
-        c.split(', ').last
-      end.slice(index.to_i)
-    end
   end
 end

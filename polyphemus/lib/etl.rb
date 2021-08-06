@@ -14,7 +14,7 @@ class Polyphemus
     def self.inherited(subclass)
       subclass.include(Etna::CommandExecutor)
 
-      self.const_set(:Run, Class.new(Etna::Command) do
+      subclass.const_set(:Run, Class.new(Etna::Command) do
         usage 'runs the etl process until no more active processing is currently available.'
         include WithLogger
 
@@ -35,10 +35,11 @@ class Polyphemus
           super
           Polyphemus.instance.setup_db
           Polyphemus.instance.setup_logger
+          Polyphemus.instance.setup_sequel
         end
       end) unless self.const_defined?(:Run)
 
-      self.const_set(:Reset, Class.new(Etna::Command) do
+      subclass.const_set(:Reset, Class.new(Etna::Command) do
         usage 'resets the cursor for this etl, so that next processing starts from the beginning of time.'
         include WithLogger
 
@@ -103,7 +104,7 @@ class Polyphemus
     def run_once
       logger.info("Starting loop")
       @cursor_group.with_next do |cursor|
-        logger.info("Selecting cursor for #{cursor}")
+        logger.info("Selecting cursor for #{cursor.name}")
         cursor.load_from_db
         logger.info("Finding batch...")
         batch = @scanner.find_batch(cursor)

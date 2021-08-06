@@ -162,6 +162,7 @@ class Magma
 
       joins = predicate_collect(:join).uniq
       constraints = predicate_collect(:constraint).uniq
+      subqueries = predicate_collect(:subquery).uniq
 
       joins.each do |join|
         query = join.apply(query)
@@ -169,6 +170,10 @@ class Magma
 
       constraints.each do |constraint|
         query = constraint.apply(query)
+      end
+
+      subqueries.each do |subquery|
+        query = subquery.apply(query)
       end
 
       query
@@ -185,6 +190,7 @@ class Magma
 
       joins = @start_predicate.join.uniq
       constraints = @start_predicate.constraint.uniq
+      subqueries = @start_predicate.subquery.uniq
 
       joins.each do |join|
         query = join.apply(query)
@@ -192,6 +198,10 @@ class Magma
 
       constraints.each do |constraint|
         query = constraint.apply(query)
+      end
+
+      subqueries.each do |subquery|
+        query = subquery.apply(query)
       end
 
       query.distinct.select(

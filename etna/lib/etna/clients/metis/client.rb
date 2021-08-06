@@ -210,6 +210,52 @@ module Etna
         }
       end
 
+      def resolve_conflicts_and_verify_rename(project_name:, source_bucket:, dest_bucket:, folder:, file:)
+        parent_folder = ::File.dirname(file.file_path)
+
+        should_rename_original = true
+
+        # If the destination folder already exists, check to see if
+        #   the file also exists, otherwise we risk a
+        #   rename conflict.
+        create_folder_request = CreateFolderRequest.new(
+          project_name: project_name,
+          bucket_name: dest_bucket,
+          folder_path: parent_folder
+        )
+
+        if folder_exists?(create_folder_request)
+          # If file exists in destination, delete the older file.
+          list_dest_folder_request = Etna::Clients::Metis::ListFolderRequest.new(
+            bucket_name: dest_bucket,
+            project_name: project_name,
+            folder_path: parent_folder
+          )
+
+          dest_file = list_folder(list_dest_folder_request).files.all.find { |f| f.file_name == file.file_name }
+
+          if (dest_file && file.updated_at <= dest_file.updated_at)
+            # Delete source file if it's out of date
+            delete_file(Etna::Clients::Metis::DeleteFileRequest.new(
+              bucket_name: source_bucket,
+              project_name: project_name,
+              file_path: file.file_path,
+            ))
+
+            should_rename_original = false
+          elsif (dest_file && file.updated_at > dest_file.updated_at)
+            # Delete dest file if it's out of date
+            delete_file(Etna::Clients::Metis::DeleteFileRequest.new(
+              bucket_name: dest_bucket,
+              project_name: project_name,
+              file_path: dest_file.file_path,
+            ))
+          end
+        end
+
+        should_rename_original
+      end
+
       def recursively_rename_folder(project_name:, source_bucket:, dest_bucket:, folder:)
         folder_contents = list_folder(
           Etna::Clients::Metis::ListFolderRequest.new(
@@ -228,6 +274,13 @@ module Etna
         end
 
         folder_contents.files.all.each do |file|
+          should_rename = resolve_conflicts_and_verify_rename(
+            project_name: project_name,
+            source_bucket: source_bucket,
+            dest_bucket: dest_bucket,
+            folder: folder,
+            file: file)
+
           rename_file(Etna::Clients::Metis::RenameFileRequest.new(
             bucket_name: source_bucket,
             project_name: project_name,
@@ -235,7 +288,7 @@ module Etna
             new_bucket_name: dest_bucket,
             new_file_path: file.file_path,
             create_parent: true)
-          )
+          ) if should_rename
         end
 
         # Now delete the source folder

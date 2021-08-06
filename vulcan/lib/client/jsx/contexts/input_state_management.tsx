@@ -1,100 +1,129 @@
-import {VulcanState} from '../reducers/vulcan_reducer';
-import {Dispatch, useEffect} from 'react';
+import React, {useEffect} from 'react';
+import {VulcanState} from "../reducers/vulcan_reducer";
 import {
-  patchInputs,
-  removeDownloads,
-  removeInputs,
-  VulcanAction
-} from '../actions/vulcan';
-import {
-  isPendingUiQuery,
-  missingUiQueryOutputs,
-  pendingSteps,
-  sourceNameOfReference,
-  statusOfStep,
-  stepOfSource
-} from '../selectors/workflow_selectors';
+  createContext, Dispatch, MutableRefObject, PropsWithChildren, useCallback, useContext, useRef, useState
+} from "react";
+import {defaultSessionSyncHelpers} from "./session_sync";
+import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
+import {dismissMessages, showMessages} from "etna-js/actions/message_actions";
+import {clearBufferedInput, setBufferedInput, setInputs, VulcanAction} from "../actions/vulcan_actions";
+import {allSourcesForStepName} from "../selectors/workflow_selectors";
+import {mapSome, Maybe} from "../selectors/maybe";
+import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
+import {VulcanContext} from "./vulcan_context";
 
-export function useInputStateManagement(
-  state: VulcanState,
+export const defaultInputStateManagement = {
+  commitSessionInputChanges(stepName: string | null, inputs: DataEnvelope<Maybe<any>>) {
+    return false;
+  }
+}
+
+export const defaultBufferedInputs = {
+  inputs: {} as DataEnvelope<Maybe<any>>,
+  setInputs(inputs: DataEnvelope<Maybe<any>> | ((prev: DataEnvelope<Maybe<any>>) => DataEnvelope<Maybe<any>>)) {
+  },
+  commitInputs() {},
+  cancelInputs() {},
+}
+export const BufferedInputsContext = createContext(defaultBufferedInputs);
+
+export function WithBufferedInputs({
+  children,
+  commitSessionInputChanges,
+  dispatch,
+  stepName,
+}: PropsWithChildren<{
+  commitSessionInputChanges: typeof defaultInputStateManagement.commitSessionInputChanges,
   dispatch: Dispatch<VulcanAction>,
-  statusIsFresh: boolean
-) {
-  const {inputs, workflow, status, data, session} = state;
-  const {inputs: sessionInputs} = session;
+  stepName: string | null,
+}>) {
+  const {stateRef, state} = useContext(VulcanContext);
+  const inputsRef = useRef({} as DataEnvelope<Maybe<any>>);
+  const [inputs, setInputsState] = useState(inputsRef.current);
+  const hasInputs = Object.keys(inputs).length > 0;
+
+  const setInputs = useCallback<typeof defaultBufferedInputs.setInputs>(inputs => {
+    if (inputs instanceof Function) {
+      inputsRef.current = inputs(inputsRef.current);
+    } else {
+      inputsRef.current = inputs;
+    }
+
+    if (Object.keys(inputsRef.current).length > 0){
+      if (!stateRef.current.bufferedSteps.includes(stepName))
+        dispatch(setBufferedInput(stepName));
+    } else {
+      if (stateRef.current.bufferedSteps.includes(stepName))
+        dispatch(clearBufferedInput(stepName));
+    }
+    setInputsState(inputsRef.current);
+  }, [dispatch, stateRef, stepName]);
 
   useEffect(() => {
-    if (workflow == null) return;
-    if (!statusIsFresh) return;
-    const inputDeletes: {[k: string]: true} = {};
-    const downloadDeletes: {[k: string]: true} = {};
-    const stepsWithDownloads: {[k: string]: true} = {};
+    if (!state.bufferedSteps.includes(stepName)) {
+      setInputs({});
+    }
+  }, [setInputs, state.bufferedSteps, stepName]);
 
-    const droppedSteps = workflow.steps[0].filter((step) => {
-      const stepStatus = statusOfStep(step, status);
-      if (step.out.length === 0) return false;
+  const cancelInputs = useCallback(() => {
+    setInputs({});
+  }, [setInputs])
 
-      if (!stepStatus) return true;
+  const commitInputs = useCallback(() => {
+    if (commitSessionInputChanges(stepName, inputsRef.current)) {
+      cancelInputs();
+    }
+  }, [cancelInputs, commitSessionInputChanges, stepName]);
 
-      return !step.out.every((outName) => {
-        const source = sourceNameOfReference([step.name, outName]);
-        if (source in sessionInputs) {
-          return true;
-        }
+  return <BufferedInputsContext.Provider value={{inputs, setInputs, commitInputs, cancelInputs}}>
+    <div>
+      {children}
+    </div>
+    { hasInputs ? <div className='reset-or-commit-inputs'>
+      <button onClick={cancelInputs} disabled={!!state.pollingState}>
+        Reset
+      </button>
+      <button onClick={commitInputs} disabled={!!state.pollingState}>
+        Commit
+      </button>
+    </div> : null }
+  </BufferedInputsContext.Provider>
+}
 
-        if (!stepStatus.downloads) return false;
-        stepsWithDownloads[step.name] = true;
+export function useInputStateManagement(invoke: ReturnType<typeof useActionInvoker>,
+  dispatch: Dispatch<VulcanAction>,
+  requestPoll: typeof defaultSessionSyncHelpers.requestPoll,
+  stateRef: MutableRefObject<VulcanState>,
+): typeof defaultInputStateManagement {
+  const getErrors = useCallback((step: string | null) => stateRef.current.validationErrors
+    .filter(([stepErr]) => step === stepErr)
+    .map(([step, inputLabel, errors]) => {
+      return errors.map((e: string) => `${inputLabel}: ${e}`);
+    }).flat(), [stateRef]);
 
-        return outName in stepStatus.downloads;
-      });
-    });
+  const validateInputs = useCallback((step: string | null) => {
+    invoke(dismissMessages());
+    const validationErrs = getErrors(step);
+    if (validationErrs.length > 0) {
+      invoke(showMessages(validationErrs));
+    }
 
-    droppedSteps.forEach((step) => {
-      step.out.forEach((outName) => {
-        const source = sourceNameOfReference([step.name, outName]);
-        if (source in sessionInputs) inputDeletes[source] = true;
-        if (step.name in stepsWithDownloads) downloadDeletes[step.name] = true;
+    return validationErrs.length === 0;
+  }, [getErrors, invoke])
 
-        workflow.dependencies_of_outputs[source].forEach((dependent) => {
-          const stepName = stepOfSource(dependent);
-          if (dependent in inputs) inputDeletes[dependent] = true;
-          if (stepName && stepName in stepsWithDownloads)
-            downloadDeletes[stepName] = true;
-        });
-      });
-    });
+  const commitSessionInputChanges = useCallback<typeof defaultInputStateManagement.commitSessionInputChanges>((stepName, inputs) => {
+    if (!validateInputs(stepName)) return false;
+    const sources = allSourcesForStepName(stepName, stateRef.current.workflow);
+    const newInputs = {...stateRef.current.session.inputs};
+    sources.forEach(source => {
+      mapSome(inputs[source] || null, inner => newInputs[source] = inner);
+    })
+    dispatch(setInputs(newInputs))
+    requestPoll();
+    return true;
+  }, [dispatch, requestPoll, stateRef, validateInputs]);
 
-    let d = Object.keys(inputDeletes);
-    if (d.length > 0) dispatch(removeInputs(d));
-
-    d = Object.keys(downloadDeletes);
-    if (d.length > 0) dispatch(removeDownloads(d));
-  }, [inputs, workflow, status, data, sessionInputs, statusIsFresh, dispatch]);
-
-  // We inject a `null` input into state.inputs,
-  //   to indicate that we're waiting for a user input value
-  //   to return to the server.
-  useEffect(() => {
-    if (!workflow) return;
-
-    let newInputs = {};
-    let nextUiSteps = pendingSteps(workflow, status).filter(({step}) =>
-      isPendingUiQuery(step, status, data, session)
-    );
-
-    nextUiSteps.forEach((nextInputStep) => {
-      let missingInputs = missingUiQueryOutputs(nextInputStep.step, inputs);
-
-      if (Object.keys(missingInputs).length > 0) {
-        // Make sure to copy over the current inputs, otherwise
-        //   they'll get wiped out in the reducer.
-        newInputs = {
-          ...newInputs,
-          ...missingInputs
-        };
-      }
-    });
-
-    if (Object.keys(newInputs).length > 0) dispatch(patchInputs(newInputs));
-  }, [inputs, workflow, status, data, session, dispatch]);
+  return {
+    commitSessionInputChanges,
+  };
 }

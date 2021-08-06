@@ -60,6 +60,7 @@ class SessionsController < Vulcan::Controller
 
     scheduler.status(storage: storage, build_target: bt, step: step).update({
       name: step_name,
+      hash: bt.cell_hash,
       downloads: step_has_downloads?(bt, ui_output) ? bt.build_outputs.map do |output_name, sf|
         [
           output_name,

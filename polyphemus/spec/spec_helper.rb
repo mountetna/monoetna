@@ -7,6 +7,7 @@ ENV['POLYPHEMUS_ENV'] = 'test'
 
 require 'webmock/rspec'
 require 'database_cleaner'
+require 'factory_bot'
 require 'simplecov'
 SimpleCov.start
 
@@ -81,7 +82,10 @@ RSpec.configure do |config|
 
   config.order = :random
 
+  config.include FactoryBot::Syntax::Methods
+
   config.before(:suite) do
+    FactoryBot.find_definitions
     # DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
@@ -93,6 +97,12 @@ RSpec.configure do |config|
     # See: http://sequel.jeremyevans.net/rdoc/files/doc/testing_rdoc.html#label-rspec+-3E-3D+2.8
     #      https://github.com/jeremyevans/sequel/issues/908#issuecomment-61217226
     Polyphemus.instance.db.transaction(:rollback=>:always, :auto_savepoint=>true){ example.run }
+  end
+end
+
+FactoryBot.define do
+  factory :ingest_file, class: Polyphemus::IngestFile do
+    to_create(&:save)
   end
 end
 
@@ -121,6 +131,15 @@ end
 def stub_rename_folder(params={})
   stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
   .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_rename_folder_with_error(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{PROJECT}\/folder\/rename\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: 422
+  }).then.to_return({
     status: params[:status] || 200
   })
 end
@@ -177,7 +196,9 @@ def stub_metis_setup
     {:method=>"GET", :route=>"/:project_name/list_all_folders/:bucket_name", :name=>"folder_list_all_folders", :params=>["project_name", "bucket_name"]},
     {:method=>"GET", :route=>"/:project_name/list/:bucket_name/*folder_path", :name=>"folder_list", :params=>["project_name", "bucket_name", "folder_path"]},
     {:method=>"POST", :route=>"/:project_name/folder/rename/:bucket_name/*folder_path", :name=>"folder_rename", :params=>["project_name", "bucket_name", "folder_path"]},
-    {:method=>"POST", :route=>"/:project_name/folder/create/:bucket_name/*folder_path", :name=>"folder_create", :params=>["project_name", "bucket_name", "folder_path"]}
+    {:method=>"POST", :route=>"/:project_name/folder/create/:bucket_name/*folder_path", :name=>"folder_create", :params=>["project_name", "bucket_name", "folder_path"]},
+    {:method=>"POST", :route=>"/authorize/upload", :name=>"upload_authorize", :params=>["project_name", "bucket_name", "file_path"]},
+    {:method=>"POST", :route=>"/:project_name/upload/:bucket_name/*file_path", :name=>"upload_upload", :params=>["project_name", "bucket_name", "file_path"]}
   ])
 
   stub_request(:options, METIS_HOST).
@@ -205,6 +226,26 @@ def stub_metis_setup
       },
       body: JSON.parse(File.read('spec/fixtures/metis_restrict_folder_fixture.json')).to_json
     })
+end
+
+def stub_create_folder(params={})
+  stub_request(:post, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/folder\/create\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200
+  })
+end
+
+def stub_upload_file(params={})
+  stub_request(:post, /#{METIS_HOST}\/authorize\/upload/)
+  .to_return({
+    status: params[:status] || 200,
+    body: params[:authorize_body] || JSON.generate({})
+  })
+  stub_request(:post, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/upload/)
+  .to_return({
+    status: params[:status] || 200,
+    body: params[:upload_body] || JSON.generate({})
+  })
 end
 
 def stub_magma_models(fixture: 'spec/fixtures/magma_test_models.json')
@@ -319,4 +360,16 @@ def temp_id(records, id)
   all_record_keys.each do |key|
     return key if key =~ /::temp-#{id}-.*/
   end
+end
+
+def stub_ingest_files(file_data = nil)
+  file_data ?
+    file_data.each do |data|
+      create(:ingest_file, **data)
+    end
+    : begin
+      create(:ingest_file, name: "foo/bar/test1.txt", host: "sftp.example.com", updated_at: "2021-01-01 00:00:00", should_ingest: false)
+      create(:ingest_file, name: "foo/bar/test2.txt", host: "sftp.example.com", updated_at: "2015-01-01 00:00:00", should_ingest: false)
+      create(:ingest_file, name: "foo/bar/test3.txt", host: "sftp.example.com", updated_at: "1999-01-01 00:00:00", should_ingest: true)
+    end
 end

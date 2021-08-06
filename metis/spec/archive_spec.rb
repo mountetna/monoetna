@@ -1,10 +1,10 @@
 require 'digest/md5'
 require_relative '../lib/commands'
 
-describe Metis::Archive do
+describe Metis::ChecksumFiles do
   before(:each) do
     default_bucket('athena')
-    @cmd = Metis::Archive.new
+    @cmd = Metis::ChecksumFiles.new
   end
 
   after(:each) do
@@ -21,8 +21,8 @@ describe Metis::Archive do
     wisdom_data = wisdom_file.data_block
 
     # skip archiving
-    wisdom_data.update(archive_id: 'skip_archiving')
-    wisdom_data.refresh
+    #wisdom_data.update(archive_id: 'skip_archiving')
+    #wisdom_data.refresh
 
     @cmd.execute
 
@@ -31,6 +31,22 @@ describe Metis::Archive do
     # now the hash is updated, and the block has been moved to its new location on disk
     expect(wisdom_data.md5_hash).to eq(Digest::MD5.hexdigest(WISDOM))
     expect(wisdom_data).to be_has_data
+  end
+
+  it "does not try to checksum removed data blocks" do
+    wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
+    stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
+
+    temp_md5_hash = "temp-#{wisdom_file.data_block.md5_hash}"
+    wisdom_file.data_block.update(md5_hash: temp_md5_hash, removed: true)
+
+    expected = "Found 0 data blocks to be checksummed.\n"
+
+    expect {
+      @cmd.execute
+    }.to output(expected).to_stdout
+
+    expect(wisdom_file.data_block.md5_hash).to eq(temp_md5_hash)
   end
 
   it 'consolidates duplicate MD5s' do
@@ -75,6 +91,20 @@ describe Metis::Archive do
     expect(helmet_file.data_block_id).to eq(helmet_data.id)
 
   end
+end
+
+describe Metis::Archive do
+  before(:each) do
+    default_bucket('athena')
+    @cmd = Metis::Archive.new
+  end
+
+  after(:each) do
+    stubs.clear
+
+    expect(stubs.contents(:athena)).to be_empty
+  end
+
 
   it 'archives un-archived data blocks' do
     glacier_stub('metis-test-athena')
@@ -89,21 +119,19 @@ describe Metis::Archive do
     expect(wisdom_data.archive_id).to eq('archive_id')
   end
 
-  it "does not try to checksum or archive removed data blocks" do
+  it "does not try to archive removed data blocks" do
     wisdom_file = create_file('athena', 'wisdom.txt', WISDOM)
     stubs.create_file('athena', 'files', 'wisdom.txt', WISDOM)
 
     expect(wisdom_file.data_block.archive_id).to eq(nil)
-    temp_md5_hash = "temp-#{wisdom_file.data_block.md5_hash}"
-    wisdom_file.data_block.update(md5_hash: temp_md5_hash, removed: true)
+    wisdom_file.data_block.update(removed: true)
 
-    expected = "Found 0 data blocks to be checksummed.\nFound 0 files to be archived.\n"
+    expected = "Found 0 files to be archived.\n"
 
     expect {
       @cmd.execute
     }.to output(expected).to_stdout
 
     expect(wisdom_file.data_block.archive_id).to eq(nil)
-    expect(wisdom_file.data_block.md5_hash).to eq(temp_md5_hash)
   end
 end
