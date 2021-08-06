@@ -1,5 +1,4 @@
 load 'bin/metis_client'
-require 'pty'
 
 def expect_output(path, *args)
   expect {

@@ -438,8 +438,8 @@ end
 # From Ruby stdlib tests
 # https://fossies.org/linux/ruby/test/readline/test_readline.rb
 def with_temp_stdio
-  Tempfile.create("test_readline_stdin") {|stdin|
-    Tempfile.create("test_readline_stdout") {|stdout|
+  Tempfile.create("test_metis_client_stdin") {|stdin|
+    Tempfile.create("test_metis_client_stdout") {|stdout|
       yield stdin, stdout
     }
   }
