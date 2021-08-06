@@ -570,4 +570,41 @@ describe MetisShell do
       expect(Metis::File.count).to eq(2)
     end
   end
+
+  describe MetisShell::Peek do
+    describe 'throws error if you peek at' do
+      it 'buckets' do
+        bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+        expect_error("metis://athena", "peek", "0", "1", "armor") { %r!Cannot peek at buckets!}
+      end
+  
+      it 'folders' do
+        bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+        helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+        helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+        expect_error("metis://athena/armor", "peek", "0", "1", "helmet") { %r!Cannot peek at folders! }
+      end
+
+      it 'non-existent files' do
+        bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+        helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+        helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+        expect_error("metis://athena/armor", "peek", "0", "1", "vaporware.jpg") { %r!File does not exist! }
+      end
+    end
+    
+    it 'peeks at a file' do
+      bucket = create( :bucket, project_name: 'athena', name: 'armor', access: 'editor', owner: 'metis')
+      helmet_folder = create_folder('athena', 'helmet', bucket: bucket)
+      helmet_file = create_file('athena', 'helmet.jpg', HELMET, bucket: bucket)
+      stubs.create_file('athena', 'armor', 'helmet.jpg', HELMET)
+
+      MetisShell.new("metis://athena", "peek", "4", "5", "armor/helmet.jpg").run
+
+      expect(WebMock).to have_requested(:get, /https:\/\/metis.test\/athena\/download/).
+        with(headers: {
+          "Range": "bytes=4-8"
+        })
+    end
+  end
 end
