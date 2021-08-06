@@ -59,6 +59,7 @@ each service like the following:
 127.0.0.1 polyphemus.development.local
 127.0.0.1 vulcan.development.local
 127.0.0.1 prometheus.development.local
+127.0.0.1 airflow.development.local
 ```
 
 ### Seeding janus and metis
