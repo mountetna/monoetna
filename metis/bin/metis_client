@@ -131,8 +131,8 @@ class Client
 
   private
 
-  def get(path)
-    request(path, Net::HTTP::Get)
+  def get(path, headers=nil)
+    request(path, Net::HTTP::Get, headers)
   end
 
   def post(path)
@@ -357,6 +357,16 @@ class MetisClient < Client
     end
   end
 
+  def get_partial_file(path, start_byte, end_byte, &block)
+    https.request(get(path, {
+      "Range" => "bytes=#{start_byte}-#{end_byte}"
+    })) do |response|
+      response.read_body do |chunk|
+        yield chunk
+      end
+    end
+  end
+
   def remove_folder(project_name, folder_path)
     response = delete_request("/#{project_name}/folder/remove/#{URI.encode(folder_path)}")
     raise MetisClient::Error, "Could not remove folder #{folder_path}\n#{error(response)}" unless response.code == "200"
@@ -416,7 +426,7 @@ class MetisClient < Client
     https.request(req)
   end
 
-  def request(path, method)
+  def request(path, method, headers=nil)
     begin
       @token = janus.refresh_token
 
@@ -427,9 +437,15 @@ class MetisClient < Client
 
     uri = URI.parse("https://#{@host}#{path}")
     req = method.new(uri.request_uri)
+
+    headers.keys.each do |header|
+      req[header] = headers[header]
+    end if headers
+
     req['Authorization'] = "Etna #{@token}"
     cookie = CGI::Cookie.new(MetisConfig[:metis_uid_name], MetisConfig[:metis_uid])
     req['Cookie'] = cookie.to_s
+
     return req
   end
 
@@ -1093,6 +1109,37 @@ EOT
 
     def run
       exit
+    end
+  end
+
+  class Peek < Command
+    usage "peek <byte_offset> <num_bytes> <remote_file_path>"
+
+    def run(byte_offset, num_bytes, file_path)
+      raise ShellError, 'No project is selected' if !@shell.project_name
+
+      file_path = @shell.relative_path(file_path)
+
+      name = ::File.basename(file_path)
+      folder_name = ::File.dirname(file_path)
+
+      parent_folder = @shell.client.list_folder(@shell.project_name, folder_name)
+
+      raise ShellError, "Invalid path, cannot peek at #{file_path}" unless parent_folder
+      raise ShellError, "No files in folder #{folder_name}" unless parent_folder[:files]
+
+      file = parent_folder[:files].find do |f|
+        f[:file_name] == name
+      end
+
+      raise ShellError, "File does not exist, #{file_path}" unless file
+
+      @shell.client.get_partial_file(
+        file[:download_url].sub(%r!^https://[^/]*?/!, '/'),
+        byte_offset,
+        byte_offset.to_i + num_bytes.to_i - 1) do |chunk|
+        puts chunk
+      end
     end
   end
 
