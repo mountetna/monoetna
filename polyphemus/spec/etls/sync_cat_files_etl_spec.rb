@@ -18,7 +18,7 @@ describe Polyphemus::SyncCatFilesEtl do
     sync_etl.run_once
 
     expect(Polyphemus::IngestFile.count).to eq(4)
-    expect(Polyphemus::IngestFile.last[:should_ingest]).to eq(false)
+    expect(Polyphemus::IngestFile.last[:should_ingest]).to eq(true)
   end
 
   it "should remove old, uningested records" do
