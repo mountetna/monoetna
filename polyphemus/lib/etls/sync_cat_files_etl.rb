@@ -49,7 +49,7 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
 
     logger.info("Found #{uningested_records.length} uningested files.")
 
-    # Next, we add new files matching our magic oligo
+    # Next, we add new files matching our magic string
     #  that do not have a record in Polyphemus::IngestFiles
     add_new_ingest_files(uningested_records)
 
@@ -79,10 +79,10 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
     existing_names = existing_file_names(records)
 
     new_records = records.select do |record|
-      !existing_names.include?(record.filename) && record.filename =~ Regexp.new(oligo)
+      !existing_names.include?(record.filename) && record.filename =~ Regexp.new(filepath_regex)
     end
 
-    logger.info("Found #{new_records.length} new files matching the oligo: #{oligo}.")
+    logger.info("Found #{new_records.length} new files matching the regex: #{filepath_regex}.")
 
     Polyphemus::IngestFile.multi_insert(new_records.map do |record|
       {
@@ -95,8 +95,8 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
     end)
   end
 
-  def oligo
-    Polyphemus.instance.config(:ingest)[:oligo] || ""
+  def filepath_regex
+    Polyphemus.instance.config(:ingest)[:filepath_regex] || ""
   end
 
   def existing_file_names(records)
@@ -112,7 +112,7 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
 
     files_to_remove_query = ingest_files_for_host_query.exclude(name: current_cat_filenames)
 
-    logger.info("Found #{files_to_remove_query.count} oligo files removed from the CAT.")
+    logger.info("Found #{files_to_remove_query.count} matching files removed from the CAT.")
 
     files_to_remove_query.all do |file|
       file.update(removed_from_source: true)
