@@ -199,6 +199,14 @@ def stub_metis_download(path, file_data)
     })
 end
 
+def stub_metis_list_bucket
+  stub_request(:get, /list\/bucket/)
+    .to_return({
+      status: 200,
+      body: {files: [], folders: []}.to_json
+    })
+end
+
 class Stubs
   def initialize
     @stubs = []
@@ -412,4 +420,39 @@ def create_file(project_name, file_name, contents, params={})
       data_block: data_block
     }.merge(params)
   )
+end
+
+# From Ruby stdlib tests
+# https://fossies.org/linux/ruby/test/readline/test_readline.rb
+def with_temp_stdio
+  Tempfile.create("test_metis_client_stdin") {|stdin|
+    Tempfile.create("test_metis_client_stdout") {|stdout|
+      yield stdin, stdout
+    }
+  }
+end
+
+def replace_stdio(stdin_path, stdout_path)
+  open(stdin_path, "r"){|stdin|
+    open(stdout_path, "w"){|stdout|
+      orig_stdin = STDIN.dup
+      orig_stdout = STDOUT.dup
+      orig_stderr = STDERR.dup
+      STDIN.reopen(stdin)
+      STDOUT.reopen(stdout)
+      STDERR.reopen(stdout)
+      begin
+        Readline.input = STDIN
+        Readline.output = STDOUT
+        yield
+      ensure
+        STDERR.reopen(orig_stderr)
+        STDIN.reopen(orig_stdin)
+        STDOUT.reopen(orig_stdout)
+        orig_stdin.close
+        orig_stdout.close
+        orig_stderr.close
+      end
+    }
+  }
 end
