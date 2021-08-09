@@ -90,7 +90,7 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
         updated_at: DateTime.now,
         name: record.filename,
         host: host,
-        should_ingest: false,
+        should_ingest: true,
       }
     end)
   end
