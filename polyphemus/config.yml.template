@@ -46,6 +46,12 @@
         :password: pass
         :alias: cat
         :root: /root/directory/to/scan
+    :ssh:
+      - :host: ssh.example.com
+        :username: user
+        :password: pass
+        :alias: c4
+        :root: /root/directory/to/save/files/in
 
 :production:
   :magma:
@@ -91,4 +97,10 @@
         :username: user
         :password: pass
         :alias: cat
+        :root: /
+    :ssh:
+      - :host: ssh.example.com
+        :username: user
+        :password: pass
+        :alias: c4
         :root: /
