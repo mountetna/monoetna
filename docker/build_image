@@ -110,8 +110,6 @@ if [ "$1" -nt "$newestFile" ]; then
 fi
 }
 
-considerNewest $DIR/post-to-slack.sh
-
 #- Any FROM clause in the given Dockerfile is processed as a potential dependency to be built before this image.
 while read depImage; do
   baseDepImage=$depImage

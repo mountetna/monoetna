@@ -52,7 +52,7 @@ x-base-etna-services:
     &base-etna-db # The application specific database.  Overwrite with development-psql-9 to use psql 9 instead.
     image: development-psql
     volumes:
-      - janus-db-data:/var/lib/postgresql/data
+      - janus-db-data10:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: 'janus_development'
       POSTGRES_PASSWORD: password
@@ -87,9 +87,9 @@ networks:
 volumes:
   janus-app-gems:
     driver: local
-  janus-db-data:
+  janus-db-data10:
     driver: local
-    name: "janus-db-data"
+    name: "janus-db-data10"
   janus-log-dir:
     driver: local
     name: "janus-log-dir"
@@ -114,5 +114,5 @@ services:
   <<: *base-etna-services
   janus_db:
     <<: *base-etna-db
-    image: development-psql-9
+    image: development-psql
 
