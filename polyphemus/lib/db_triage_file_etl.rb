@@ -6,7 +6,7 @@ class Polyphemus
     def initialize(job_name:, project_name:, bucket_name:)
       raise "project_name cannot be nil" if project_name.nil?
       raise "bucket_name cannot be nil" if bucket_name.nil?
-      super("#{job_name}_metis_triage_#{project_name}_#{bucket_name}")
+      super("#{job_name}_triage_ingest_#{project_name}_#{bucket_name}")
       self[:project_name] = project_name
       self[:bucket_name] = bucket_name
     end
@@ -34,7 +34,7 @@ class Polyphemus
         scanner: TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
           Polyphemus::IngestFile.where(
             should_ingest: true,
-            column_name: nil,
+            column_name => nil,
             removed_from_source: false,
           )
         end.result_updated_at do |file|

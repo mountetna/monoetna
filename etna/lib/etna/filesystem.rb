@@ -4,6 +4,7 @@ require 'open3'
 require 'securerandom'
 require 'concurrent-ruby'
 require 'curb'
+require 'net/ssh'
 
 module Etna
   # A class that encapsulates opening / reading file system entries that abstracts normal file access in order

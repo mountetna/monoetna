@@ -21,6 +21,7 @@ gem "yabeda"
 gem "yabeda-prometheus"
 gem "yabeda-puma-plugin"
 gem "curb"
+gem "net-ssh"
 
 group :test do
   gem "pry", "~>0.13.0"
