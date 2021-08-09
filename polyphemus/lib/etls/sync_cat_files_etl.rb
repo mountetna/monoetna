@@ -14,7 +14,7 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
   end
 
   def process(cursor, records)
-    logger.info("Ingesting #{records.length} files from CAT.")
+    logger.info("Processing #{records.length} files from CAT.")
 
     update_ingest_files(records)
 
