@@ -21,7 +21,7 @@ class Polyphemus
   #   flagged for triage ingestion.
   class DbTriageFileEtl < Etl
     # Subclasses should provide default values here, since commands are constructed
-    def initialize(project_bucket_pairs:, limit: 20, timeout: nil)
+    def initialize(project_bucket_pairs:, column_name:, limit: 20, timeout: nil)
       file_cursors = project_bucket_pairs.map do |project_name, bucket_name|
         DbTriageFileEtlCursor.new(job_name: self.class.name, project_name: project_name, bucket_name: bucket_name).load_from_db
       end
@@ -34,7 +34,7 @@ class Polyphemus
         scanner: TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
           Polyphemus::IngestFile.where(
             should_ingest: true,
-            ingested_at: nil,
+            column_name: nil,
             removed_from_source: false,
           )
         end.result_updated_at do |file|

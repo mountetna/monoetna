@@ -7,6 +7,7 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
     super(
       project_bucket_pairs: [[@project_name, @bucket_name]],
       limit: 20,
+      column_name: :archive_ingested_at,
     )
   end
 
@@ -44,7 +45,7 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
 
   def update_ingested_timestamp(host, file_name)
     Polyphemus::IngestFile.where(host: host, name: file_name).first.update(
-      ingested_at: DateTime.now,
+      archive_ingested_at: DateTime.now,
     )
   end
 

@@ -41,18 +41,21 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
     Polyphemus.instance.config(:ingest)[:sftp]
   end
 
-  def update_ingest_files(records)
+  def update_ingest_files(all_records)
     # First, we filter out any files that have already been ingested.
     # This way they don't get re-ingested, and we'll also have
     #   a log of when stuff made it to Metis.
-    records = uningested_records(records)
+    uningested_records = uningested_records(all_records)
 
-    # Next, we add new files that do not have a record in Polyphemus::IngestFiles
-    add_new_ingest_files(records)
+    logger.info("Found #{uningested_records.length} uningested files.")
+
+    # Next, we add new files matching our magic oligo
+    #  that do not have a record in Polyphemus::IngestFiles
+    add_new_ingest_files(uningested_records)
 
     # Finally, we'll remove any IngestFile records that no longer exist
     #   on the CAT.
-    remove_deleted_ingest_files(records)
+    remove_deleted_ingest_files(all_records)
   end
 
   def ingest_files_for_host_query
@@ -66,7 +69,8 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
   end
 
   def ingested_file_names
-    @ingested_file_names ||= ingest_files_for_host_query.exclude(ingested_at: nil).all.map do |file|
+    @ingested_file_names ||= ingest_files_for_host_query.exclude(triage_ingested_at: nil, archive_ingested_at: nil)
+      .all.map do |file|
       file[:name]
     end
   end
@@ -75,8 +79,10 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
     existing_names = existing_file_names(records)
 
     new_records = records.select do |record|
-      !existing_names.include?(record.filename)
+      !existing_names.include?(record.filename) && record.filename =~ Regexp.new(oligo)
     end
+
+    logger.info("Found #{new_records.length} new files matching the oligo: #{oligo}.")
 
     Polyphemus::IngestFile.multi_insert(new_records.map do |record|
       {
@@ -87,6 +93,10 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
         should_ingest: false,
       }
     end)
+  end
+
+  def oligo
+    Polyphemus.instance.config(:ingest)[:oligo] || ""
   end
 
   def existing_file_names(records)
@@ -100,9 +110,11 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
       record.filename
     end
 
-    ingest_files_for_host_query.where(ingested_at: nil)
-      .exclude(name: current_cat_filenames)
-      .all do |file|
+    files_to_remove_query = ingest_files_for_host_query.exclude(name: current_cat_filenames)
+
+    logger.info("Found #{files_to_remove_query.count} oligo files removed from the CAT.")
+
+    files_to_remove_query.all do |file|
       file.update(removed_from_source: true)
     end
   end

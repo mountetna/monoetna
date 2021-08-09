@@ -11,6 +11,7 @@ class Polyphemus::SftpIngestCatToC4TriageFilesEtl < Polyphemus::DbTriageFileEtl
     super(
       project_bucket_pairs: [[@project_name, @bucket_name]],
       limit: 20,
+      column_name: :triage_ingested_at,
     )
   end
 
@@ -62,7 +63,7 @@ class Polyphemus::SftpIngestCatToC4TriageFilesEtl < Polyphemus::DbTriageFileEtl
     Polyphemus::IngestFile.where(
       host: cat_config[:host],
       name: file_name,
-    ).first.update(ingested_at: DateTime.now)
+    ).first.update(triage_ingested_at: DateTime.now)
   end
 
   def c4_filesystem

@@ -3,12 +3,13 @@ describe Polyphemus::SyncCatFilesEtl do
     stub_data
   end
 
-  it "should add new, uningested records" do
+  it "should add new, uningested records that match our oligo" do
     stub_rsync_data([
-      MockChange.new("foo/bar/test1.txt"),
-      MockChange.new("foo/bar/test2.txt"),
-      MockChange.new("foo/bar/test3.txt"),
-      MockChange.new("new-file.txt"),
+      MockChange.new("foo/bar/oligo-test1.txt"),
+      MockChange.new("foo/bar/test2-oligo.txt"),
+      MockChange.new("foo/bar-oligo/test3.txt"),
+      MockChange.new("new-oligo-file.txt"),
+      MockChange.new("new-random-file.txt"),
     ])
     sync_etl = Polyphemus::SyncCatFilesEtl.new
 
@@ -22,8 +23,8 @@ describe Polyphemus::SyncCatFilesEtl do
 
   it "should remove old, uningested records" do
     stub_rsync_data([
-      MockChange.new("foo/bar/test1.txt"),
-      MockChange.new("foo/bar/test3.txt"),
+      MockChange.new("foo/bar/oligo-test1.txt"),
+      MockChange.new("foo/bar-oligo/test3.txt"),
     ])
     sync_etl = Polyphemus::SyncCatFilesEtl.new
 
@@ -38,42 +39,42 @@ describe Polyphemus::SyncCatFilesEtl do
 
   it "should not change ingested records" do
     stub_rsync_data([
-      MockChange.new("foo/bar/test1.txt"),
-      MockChange.new("foo/bar/test2.txt"),
-      MockChange.new("foo/bar/test3.txt"),
+      MockChange.new("foo/bar/oligo-test1.txt"),
+      MockChange.new("foo/bar/test2-oligo.txt"),
+      MockChange.new("foo/bar-oligo/test3.txt"),
     ])
     sync_etl = Polyphemus::SyncCatFilesEtl.new
 
     expect(Polyphemus::IngestFile.count).to eq(3)
     test3 = Polyphemus::IngestFile.find(name: /test3.txt/)
 
-    expect(test3[:ingested_at]).to eq(time_at("2021-01-01 00:00:00"))
+    expect(test3[:triage_ingested_at]).to eq(time_at("2021-01-01 00:00:00"))
     expect(test3[:should_ingest]).to eq(true)
 
     sync_etl.run_once
 
     expect(Polyphemus::IngestFile.count).to eq(3)
-    expect(test3[:ingested_at]).to eq(time_at("2021-01-01 00:00:00"))
+    expect(test3[:triage_ingested_at]).to eq(time_at("2021-01-01 00:00:00"))
     expect(test3[:should_ingest]).to eq(true)
   end
 
   def stub_data
     stub_ingest_files([{
-      name: "foo/bar/test1.txt",
+      name: "foo/bar/oligo-test1.txt",
       host: "sftp.example.com",
       updated_at: "2021-01-01 00:00:00",
       should_ingest: false,
     }, {
-      name: "foo/bar/test2.txt",
+      name: "foo/bar/test2-oligo.txt",
       host: "sftp.example.com",
       updated_at: "2015-01-01 00:00:00",
       should_ingest: false,
     }, {
-      name: "foo/bar/test3.txt",
+      name: "foo/bar-oligo/test3.txt",
       host: "sftp.example.com",
       updated_at: "1999-01-01 00:00:00",
       should_ingest: true,
-      ingested_at: "2021-01-01 00:00:00",
+      triage_ingested_at: "2021-01-01 00:00:00",
     }])
   end
 

@@ -92,6 +92,7 @@
   :redcap:
     :host: https://redcap.test
   :ingest:
+    :oligo: oligo
     :sftp:
       - :host: sftp.example.com
         :username: user
