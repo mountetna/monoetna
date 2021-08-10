@@ -92,7 +92,7 @@
   :redcap:
     :host: https://redcap.test
   :ingest:
-    :filepath_regex: oligo
+    :filepath_regex: ^oligo
     :sftp:
       - :host: sftp.example.com
         :username: user

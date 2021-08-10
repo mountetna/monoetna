@@ -6,10 +6,10 @@ describe Polyphemus::SyncCatFilesEtl do
   it "should add new, uningested records that match our oligo" do
     stub_rsync_data([
       MockChange.new("foo/bar/oligo-test1.txt"),
-      MockChange.new("foo/bar/test2-oligo.txt"),
-      MockChange.new("foo/bar-oligo/test3.txt"),
-      MockChange.new("new-oligo-file.txt"),
-      MockChange.new("new-random-file.txt"),
+      MockChange.new("foo/bar/oligo-test2.txt"),
+      MockChange.new("foo/bar/oligo-test3.txt"),
+      MockChange.new("wrong-oligo-file.txt"),
+      MockChange.new("oligo-file-to-add.txt"),
     ])
     sync_etl = Polyphemus::SyncCatFilesEtl.new
 
@@ -19,12 +19,13 @@ describe Polyphemus::SyncCatFilesEtl do
 
     expect(Polyphemus::IngestFile.count).to eq(4)
     expect(Polyphemus::IngestFile.last[:should_ingest]).to eq(true)
+    expect(Polyphemus::IngestFile.last[:name]).to eq("oligo-file-to-add.txt")
   end
 
   it "should remove old, uningested records" do
     stub_rsync_data([
       MockChange.new("foo/bar/oligo-test1.txt"),
-      MockChange.new("foo/bar-oligo/test3.txt"),
+      MockChange.new("foo/bar/oligo-test3.txt"),
     ])
     sync_etl = Polyphemus::SyncCatFilesEtl.new
 
@@ -40,8 +41,8 @@ describe Polyphemus::SyncCatFilesEtl do
   it "should not change ingested records" do
     stub_rsync_data([
       MockChange.new("foo/bar/oligo-test1.txt"),
-      MockChange.new("foo/bar/test2-oligo.txt"),
-      MockChange.new("foo/bar-oligo/test3.txt"),
+      MockChange.new("foo/bar/oligo-test2.txt"),
+      MockChange.new("foo/bar/oligo-test3.txt"),
     ])
     sync_etl = Polyphemus::SyncCatFilesEtl.new
 
@@ -65,12 +66,12 @@ describe Polyphemus::SyncCatFilesEtl do
       updated_at: "2021-01-01 00:00:00",
       should_ingest: false,
     }, {
-      name: "foo/bar/test2-oligo.txt",
+      name: "foo/bar/oligo-test2.txt",
       host: "sftp.example.com",
       updated_at: "2015-01-01 00:00:00",
       should_ingest: false,
     }, {
-      name: "foo/bar-oligo/test3.txt",
+      name: "foo/bar/oligo-test3.txt",
       host: "sftp.example.com",
       updated_at: "1999-01-01 00:00:00",
       should_ingest: true,
