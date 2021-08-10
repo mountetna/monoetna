@@ -74,6 +74,7 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
 
         update_request.update_revision("rna_seq", record_name, attrs)
       end
+      logger.info(update_request)
       logger.info("Creating rna_seq records: #{update_request.revisions["rna_seq"].keys.join(",")}")
       magma_client.update_json(update_request)
     end
