@@ -1,13 +1,15 @@
 require_relative "../metis_folder_etl"
-require "concurrent"
+require_relative "../ipi/ipi_helper"
 
 class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
   PATH_REGEX = /^bulkRNASeq\/processed\/(?<plate>plate\d+)_rnaseq_new\/output\/(?<record_name>.*)/
   SAMPLE_NAME_REGEX = /^(?<sample_name>IPI.*\.[A-Z]\d)\..*/
+  PATIENT_IPI_NUMBER_REGEX = /^(?<ipi_number>IPI.*)\.[A-Z]\d\..*/
   PROJECT = "ipi"
   BUCKET = "data"
 
   def initialize
+    @helper = IpiHelper.new
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
       folder_name_globs: ["output/*", "bulkRNASeq/*"],
@@ -70,11 +72,13 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
           rna_seq_plate: plate_name,
         }
 
-        attrs[:sample] = sample_name(record_name) unless is_control?(folder.folder_name)
+        if !is_control?(folder.folder_name)
+          attrs[:sample] = sample_name(record_name)
+          containing_record_workflow.ensure_record("sample", containing_records(record_name))
+        end
 
         update_request.update_revision("rna_seq", record_name, attrs)
       end
-      logger.info(update_request)
       logger.info("Creating rna_seq records: #{update_request.revisions["rna_seq"].keys.join(",")}")
       magma_client.update_json(update_request)
     end
@@ -94,5 +98,36 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
 
   def sample_name(rna_seq_record_name)
     rna_seq_record_name.match(SAMPLE_NAME_REGEX)[:sample_name]
+  end
+
+  def patient_ipi_number(rna_seq_record_name)
+    rna_seq_record_name.match(PATIENT_IPI_NUMBER_REGEX)[:ipi_number]
+  end
+
+  def magma_crud
+    @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(
+      magma_client: magma_client,
+      project_name: PROJECT,
+      read_only: false,
+    )
+  end
+
+  def containing_records(record_name)
+    {
+      "sample" => sample_name(record_name),
+      "patient" => patient_ipi_number(record_name),
+      "experiment" => @helper.experiment_from_patient_number(patient_ipi_number(record_name)),
+      "project" => "UCSF Immunoprofiler",
+    }
+  end
+
+  def containing_record_workflow
+    @containing_record_workflow ||= Etna::Clients::Magma::EnsureContainingRecordWorkflow.new(magma_crud: magma_crud, models: models)
+  end
+
+  def models
+    @models ||= begin
+        magma_client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(project_name: PROJECT, model_name: "all")).models
+      end
   end
 end
