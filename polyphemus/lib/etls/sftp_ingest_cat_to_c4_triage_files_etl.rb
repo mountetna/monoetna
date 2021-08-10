@@ -23,7 +23,7 @@ class Polyphemus::SftpIngestCatToC4TriageFilesEtl < Polyphemus::DbTriageFileEtl
     logger.info("Ingesting files from #{cat_config[:host]}: #{cat_records.map { |c| c[:name] }.join(", ")}...")
 
     cat_records.each do |record|
-      c4_filesystem.lftp_get(
+      c4_connection.lftp_get(
         host: cat_config[:host],
         username: cat_config[:username],
         password: cat_config[:password],
@@ -66,8 +66,8 @@ class Polyphemus::SftpIngestCatToC4TriageFilesEtl < Polyphemus::DbTriageFileEtl
     ).first.update(triage_ingested_at: DateTime.now)
   end
 
-  def c4_filesystem
-    @c4 ||= Etna::Filesystem::RemoteSSH.new(
+  def c4_connection
+    @c4 ||= Etna::RemoteSSH.new(
       host: c4_config[:host],
       username: c4_config[:username],
       password: c4_config[:password],
