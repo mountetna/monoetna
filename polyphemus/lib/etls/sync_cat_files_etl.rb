@@ -79,10 +79,10 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
     existing_names = existing_file_names(records)
 
     new_records = records.select do |record|
-      !existing_names.include?(record.filename) && ::File.basename(record.filename) =~ Regexp.new(filepath_regex)
+      !existing_names.include?(record.filename) && ::File.basename(record.filename) =~ Regexp.new(filename_regex)
     end
 
-    logger.info("Found #{new_records.length} new files matching the regex: #{filepath_regex}.")
+    logger.info("Found #{new_records.length} new files matching the regex: #{filename_regex}.")
 
     Polyphemus::IngestFile.multi_insert(new_records.map do |record|
       {
@@ -95,8 +95,8 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
     end)
   end
 
-  def filepath_regex
-    Polyphemus.instance.config(:ingest)[:filepath_regex] || ""
+  def filename_regex
+    Polyphemus.instance.config(:ingest)[:filename_regex] || ""
   end
 
   def existing_file_names(records)
