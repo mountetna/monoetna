@@ -169,6 +169,45 @@ class Polyphemus
     end
   end
 
+  class CopyMetisTreeCommand < Etna::Command
+    include WithEtnaClientsByEnvironment
+    include WithLogger
+
+    def execute(source_env, target_env, source_project, target_project, source_bucket, target_bucket, folder_name_glob)
+      source_metis_client = environment(source_env).metis_client
+      dest_metis_client = environment(target_env).metis_client
+
+      folders = source_metis_client.find(Etna::Clients::Metis::FindRequest.new(
+          project_name: source_project,
+          bucket_name: source_bucket,
+          params: [
+              Etna::Clients::Metis::FindParam.new(
+                type: 'folder',
+                attribute: 'name',
+                predicate: 'glob',
+                value: folder_name_glob,
+              )
+          ]
+      )).folders.all
+
+      logger.info("Found #{folders.length} folders")
+      folders.each do |folder|
+        dest_metis_client.create_folder(Etna::Clients::Metis::CreateFolderRequest.new(
+          project_name: target_project,
+          bucket_name: target_bucket,
+          folder_path: folder.folder_path
+          )
+        )
+      end
+      logger.info("Done")
+    end
+
+    def setup(config)
+      super
+      Polyphemus.instance.setup_logger
+    end
+  end
+
   class CopyMagmaRecords < Etna::Command
     include WithEtnaClientsByEnvironment
     include WithLogger
