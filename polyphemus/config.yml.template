@@ -40,6 +40,7 @@
   :redcap:
     :host: https://redcap.development.local
   :ingest:
+    :filename_regex: ^some-string-that-uniquely-identifies-our-files
     :sftp:
       - :host: sftp.example.com
         :username: user
