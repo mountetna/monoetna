@@ -360,6 +360,15 @@ COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
 return
 fi
 shift
+if [[ "$#" == "1" ]];  then
+all_completion_names="__folder_name_glob__"
+if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
+return
+fi
+COMPREPLY=($(compgen -W "$all_completion_names" -- "$1"))
+return
+fi
+shift
 all_flag_completion_names="$all_flag_completion_names  "
 arg_flag_completion_names="$arg_flag_completion_names  "
 multi_flags="$multi_flags  "
@@ -403,7 +412,7 @@ arg_flag_completion_names="$arg_flag_completion_names  "
 multi_flags="$multi_flags  "
 while [[ "$#" != "0" ]]; do
 if [[ "$#" == "1" ]];  then
-all_completion_names="help ipi_create_rna_seq_and_plate_records_etl ipi_load_magma_population_tables_etl ipi_patient_flowjo materialize_gne_magma_records_etl sftp_ingest_metis_triage_files_etl stub_magma_record_etl stub_metis_file_etl sync_cat_files_etl sync_gne_metis_files_etl"
+all_completion_names="help ipi_create_rna_seq_and_plate_records_etl ipi_load_magma_population_tables_etl ipi_patient_flowjo materialize_gne_magma_records_etl sftp_ingest_cat_to_c4triage_files_etl sftp_ingest_metis_triage_files_etl stub_magma_record_etl stub_metis_file_etl sync_cat_files_etl sync_gne_metis_files_etl"
 all_completion_names="$all_completion_names $all_flag_completion_names"
 if [[ -z "$(echo $all_completion_names | xargs)" ]]; then
 return
