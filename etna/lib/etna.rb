@@ -22,6 +22,7 @@ require_relative './etna/filesystem'
 require_relative './etna/formatting'
 require_relative './etna/cwl'
 require_relative './etna/metrics'
+require_relative './etna/remote'
 
 class EtnaApp
   include Etna::Application
