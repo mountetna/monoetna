@@ -72,8 +72,12 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
                            .with(body: hash_including({
                                    "revisions": {
                                      "rna_seq_plate": {
-                                       "Plate1": {},
-                                       "Plate2": {},
+                                       "Plate1": {
+                                         "project": "UCSF Immunoprofiler",
+                                       },
+                                       "Plate2": {
+                                         "project": "UCSF Immunoprofiler",
+                                       },
                                      },
                                    },
                                  }))
@@ -123,7 +127,9 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
                            .with(body: hash_including({
                                    "revisions": {
                                      "rna_seq_plate": {
-                                       "Plate1": {},
+                                       "Plate1": {
+                                         "project": "UCSF Immunoprofiler",
+                                       },
                                      },
                                    },
                                  }))
@@ -168,8 +174,12 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
                            .with(body: hash_including({
                                    "revisions": {
                                      "rna_seq_plate": {
-                                       "Plate1": {},
-                                       "Plate2": {},
+                                       "Plate1": {
+                                         "project": "UCSF Immunoprofiler",
+                                       },
+                                       "Plate2": {
+                                         "project": "UCSF Immunoprofiler",
+                                       },
                                      },
                                    },
                                  }))

@@ -52,7 +52,9 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
       project_name: PROJECT,
     )
     plate_names.each do |plate_name|
-      update_request.update_revision("rna_seq_plate", plate_name, {})
+      update_request.update_revision("rna_seq_plate", plate_name, {
+        "project" => "UCSF Immunoprofiler",
+      })
     end
     magma_client.update_json(update_request)
   end
