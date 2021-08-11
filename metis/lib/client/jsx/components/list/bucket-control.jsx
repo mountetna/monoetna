@@ -1,14 +1,8 @@
 import React, {useCallback} from 'react';
 import MenuControl from '../menu-control';
-import {selectUser} from 'etna-js/selectors/user-selector';
-import {useReduxState} from 'etna-js/hooks/useReduxState';
 import {useActionInvoker} from 'etna-js/hooks/useActionInvoker';
-import {isAdmin} from 'etna-js/utils/janus';
-import {useFeatureFlag} from 'etna-js/hooks/useFeatureFlag';
 
 const BucketControl = ({bucket}) => {
-  const user = useReduxState((state) => selectUser(state));
-  const canIngest = useFeatureFlag('ingest');
   const invoke = useActionInvoker();
 
   function updateBucket(bucket) {
@@ -41,16 +35,6 @@ const BucketControl = ({bucket}) => {
     });
   }, [invoke, bucket]);
 
-  const showIngestDialog = useCallback(() => {
-    let dialog = {
-      type: 'ingest-to-bucket'
-    };
-    invoke({
-      type: 'SHOW_DIALOG',
-      dialog
-    });
-  }, [invoke]);
-
   let items = [
     {
       label: 'Configure bucket',
@@ -64,13 +48,6 @@ const BucketControl = ({bucket}) => {
       role: 'administrator'
     }
   ].filter((_) => _);
-
-  if (isAdmin(user, CONFIG.project_name) && canIngest) {
-    items.push({
-      label: 'Ingest files',
-      callback: showIngestDialog
-    });
-  }
 
   return <MenuControl items={items} />;
 };
