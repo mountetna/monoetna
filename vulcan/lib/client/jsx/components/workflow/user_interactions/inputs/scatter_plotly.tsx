@@ -34,14 +34,14 @@ Output Structure:
 export default function scatter_plotly({
   data, onChange, value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
-  return VisualizationUI({data, onChange, value}, "scatterPlot")
+  return VisualizationUI({data, onChange, value}, "scatter_plot")
 }
 
 function VisualizationUI({
   data, onChange, ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>, plotType: string) {
   const hide = useMemo(() => data && data['hide'], [data]);
-  const defaultValue = useMemo(() => whichDefaults('scatter_plot', hide), [hide]);
+  const defaultValue = useMemo(() => whichDefaults(plotType, hide), [hide]);
   const value = useSetsDefault(defaultValue, props.value, onChange);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -70,7 +70,7 @@ function VisualizationUI({
   // Advanced Options Button
   const base = useMemo(() => {
     return Object.keys(remove_hidden(
-      {'x_by': 0, 'y_by': 0, 'color_by': 0}, hide
+      key_wrap(input_sets[plotType]['main']), hide
     ))
   }, [hide])
   
