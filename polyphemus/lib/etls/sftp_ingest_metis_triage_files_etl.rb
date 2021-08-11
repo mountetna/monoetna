@@ -31,6 +31,7 @@ class Polyphemus::SftpIngestMetisTriageFilesEtl < Polyphemus::DbTriageFileEtl
       workflow.copy_files(file_names) do |file_name|
         puts "#{file_name} finished uploading."
         update_ingested_timestamp(host, file_name)
+        `post-to-slack "Metis Archive from CAT ETL" "data-ingest-ping" "Successfully archived #{file_name} from the CAT on Metis." || true`
       end
     end
 
