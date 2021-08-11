@@ -121,3 +121,15 @@ victim:
     restricted: true
   restricted:
     type: boolean
+  wound:
+    type: table
+  weapon:
+    type: string
+wound:
+  victim:
+    type: parent
+    column_name: victim_id
+  location:
+    type: string
+  severity:
+    type: integer

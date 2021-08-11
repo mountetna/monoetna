@@ -11,8 +11,6 @@ import {findRoute, setRoutes} from 'etna-js/dispatchers/router';
 import {ThemeProvider} from '@material-ui/core/styles';
 import {createEtnaTheme} from 'etna-js/style/theme';
 
-import {IngestProvider} from '../contexts/ingest_context';
-
 const theme = createEtnaTheme('goldenrod', '#066306');
 
 const ROUTES = [
@@ -48,13 +46,11 @@ const MetisUI = () => {
 
   return (
     <div id='metis-group'>
-      <IngestProvider>
-        <ThemeProvider theme={theme}>
-          <MetisNav />
-          <Component {...params} />
-          <ModalDialog />
-        </ThemeProvider>
-      </IngestProvider>
+      <ThemeProvider theme={theme}>
+        <MetisNav />
+        <Component {...params} />
+        <ModalDialog />
+      </ThemeProvider>
     </div>
   );
 };

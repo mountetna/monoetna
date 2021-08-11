@@ -42,6 +42,21 @@ module Redcap
 
       groups
     end
+    
+    def key_entities
+      @key_entities ||= each_entities.select(&:flat_key?)
+    end
+
+    def flat_record(record_id)
+      @flat_records ||= @project.flat_records.group_by do |record|
+        key_entities.map{|e| e.key(record)}
+      end
+
+      # there may be several matching flat_records
+      return @flat_records[
+        key_entities.map.with_index {|e,i| e.flat_key? ? [ record_id[i] ] : nil }.compact.flatten(1)
+      ]&.first
+    end
 
     def redcap_records
       return @redcap_records if @redcap_records
@@ -57,7 +72,7 @@ module Redcap
           record_id,
           Redcap::Record.new(
             record_eavs,
-            @project.flat_records[record_id]
+            flat_record(record_id)
           ).record
         ]
       end.to_h.compact
