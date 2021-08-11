@@ -1,10 +1,10 @@
-require_relative 'helpers'
+require_relative "helpers"
 
 class Polyphemus
   class EtlExecutor
     def self.ensure_for_etl(etl)
       return nil unless etl.descendants.empty? # Ignore base classes.
-      name = etl.name.split('::').last
+      name = etl.name.split("::").last
       EtlCommand.const_set(:"#{name}", Class.new(EtlExecutor) do
         usage "manages the #{name}"
         const_set(:EtlClass, etl)
@@ -65,7 +65,7 @@ class Polyphemus
     include Etna::CommandExecutor
 
     def command_name
-      'etl'
+      "etl"
     end
 
     def subcommands
