@@ -3,7 +3,7 @@ app_db_name:=${app_name}_db
 app_name_capitalized:=$(shell echo ${app_name} | tr [a-z] [A-Z])
 baseFeTag:=$(shell basename *_app_fe)
 fullFeTag:=$(IMAGES_PREFIX)$(baseTag)$(IMAGES_POSTFIX)
-BUILD_ARGS:=--build-arg SKIP_RUBY_SETUP= --build-arg APP_NAME=$(app_name) $(BUILD_ARGS)
+BUILD_ARGS:=--build-arg APP_NAME=$(app_name) $(BUILD_ARGS)
 EXTRA_DOCKER_ARGS:=
 export BUILD_REQS:=../docker/etna-base $(BUILD_REQS)
 
@@ -24,7 +24,7 @@ test:: docker-ready
 	@ docker-compose run -e ${app_name_capitalized}_ENV=test -e CI_SECRET=$${CI_SECRET} -e IS_CI=$${IS_CI} --rm ${app_service_name} bundle exec rspec
 
 psql:: docker-ready
-	@ docker-compose run -e SKIP_RUBY_SETUP=1 -e PGPASSWORD=password --rm ${app_service_name} psql -h ${app_db_name} -U developer -d ${app_name}_development
+	@ docker-compose run -e -e PGPASSWORD=password --rm ${app_service_name} psql -h ${app_db_name} -U developer -d ${app_name}_development
 
 Dockerfile:
 	cp ../docker/etna-base/release/Dockerfile .

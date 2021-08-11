@@ -76,6 +76,5 @@ RUN mv /tmp/docker/* /usr/local/bin/
 RUN mkdir -p /opt
 COPY src/entrypoints /entrypoints
 
-COPY docker/deploy.sh /bin/deploy
-COPY docker/post-to-slack.sh /bin/post-to-slack
+COPY src/bin/* /bin/
 RUN chmod +x /bin/*

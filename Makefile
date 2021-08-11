@@ -53,7 +53,7 @@ migrate: ## Runs migrations in a specific app context
 
 .PHONY: update
 update: ## Runs all projects' updates, running bundle and npm install
-	@ set -e && for project in $(projects); do make -C $$project update; done
+	@ make -C docker update
 
 .PHONY: release
 release: ## Builds static docker images staged for release, runs tests against them, and pushes them to dockerhub (requires PUSH_IMAGES=1)

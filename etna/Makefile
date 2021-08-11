@@ -1,7 +1,7 @@
 app_name=etna
 include ../make-base/stubs.mk
 include ../make-base/docker-compose.mk
-BUILD_ARGS:=--build-arg SKIP_RUBY_SETUP= --build-arg APP_NAME=$(app_name) $(BUILD_ARGS)
+BUILD_ARGS:=--build-arg APP_NAME=$(app_name) $(BUILD_ARGS)
 export BUILD_REQS:=../docker/etna-base $(BUILD_REQS)
 
 bash::

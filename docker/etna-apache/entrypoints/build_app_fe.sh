@@ -13,7 +13,7 @@ mkdir -p /usr/opt/httpd.conf.d
 rm -rf /usr/opt/httpd.conf.d/*.include
 sed main.conf.template -e "s/-app_name-/$APP_NAME/g" > /usr/opt/httpd.conf.d/main.conf
 
-if [ -e /app/ ]; then
+if [ -e /app/build ]; then
   for hook in /app/*; do
     if stat -c  %A $hook | grep x &>/dev/null; then
       $hook

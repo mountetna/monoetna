@@ -14,12 +14,12 @@ start-storybook: docker-ready
 	docker run --rm -d \
 	 -e VULCAN_ENV=development \
 	 -e APP_NAME=vulcan \
-	 -e APP_NAME=vulcan \
-	 -e SKIP_RUBY_SETUP=true \
 	 -v $$PWD:/app \
 	 -v $$PWD/../etna:/etna \
+	 -v vulcan-node-modules:/app/node_modules \
 	 --entrypoint /entrypoints/development.sh \
 	 -p 9700:6006 \
+	 -p 6006:6006 \
 	 --name vulcan-storybook \
 	 etna-base-dev npm run storybook || true
 	docker logs -f vulcan-storybook
