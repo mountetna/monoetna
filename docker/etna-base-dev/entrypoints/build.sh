@@ -14,11 +14,11 @@ mkdir -p /app/data/
 
 shopt -s globstar
 
-if [ -n "$FULL_INSTALL" ]; then
+if [ -n "$FULL_BUILD" ]; then
   bundle install -j "$(nproc)"
 fi
 
-if [ -n "$FULL_INSTALL" ]; then
+if [ -n "$FULL_BUILD" ]; then
   # The images tend to build as root, which for host systems is unsafe,
   # but in containers is fine.
   npm install --unsafe-perm
