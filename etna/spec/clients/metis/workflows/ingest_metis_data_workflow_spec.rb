@@ -28,8 +28,8 @@ describe Etna::Clients::Metis::IngestMetisDataWorkflow do
           url: "#{METIS_HOST}\/#{PROJECT}\/upload/test.txt",
         }),
         upload_body: JSON.generate({
-          current_byte_position: file_contents.bytesize,
-          next_blob_size: 0,
+          current_byte_position: 0,
+          next_blob_size: file_contents.bytesize,
         }),
       )
 
