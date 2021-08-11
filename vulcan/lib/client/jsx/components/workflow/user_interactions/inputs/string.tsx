@@ -5,16 +5,23 @@ import {some} from "../../../../selectors/maybe";
 import {useSetsDefault} from "./useSetsDefault";
 import {selectDefaultString} from "./monoids";
 
-export default function StringInput({onChange, data, ...props}: WithInputParams<{}, string, string>) {
+export default function StringInput({onChange, label, data, ...props}: WithInputParams<{label?: string}, string, string>) {
   const value = useSetsDefault(selectDefaultString(data), props.value, onChange);
 
-  return (
-    <SlowTextInput
+  const inner = <SlowTextInput
       followDefault
       defaultValue={value}
       onChange={(e: string) => {
         onChange(some(e));
       }}
     />
-  );
+
+  if (label) {
+  return <div>
+    {label}
+    {inner}
+  </div>;
+  }
+
+  return inner;
 }

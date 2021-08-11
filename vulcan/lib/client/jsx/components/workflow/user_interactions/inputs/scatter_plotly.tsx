@@ -1,17 +1,18 @@
 // Input component that takes nested object
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import * as _ from 'lodash';
 
 import {DataEnvelope, nulled_vals, WithInputParams} from './input_types';
-import TextInput from 'etna-js/components/inputs/text_input';
 import { useSetsDefault } from './useSetsDefault';
 import { Maybe, maybeOfNullable, some, withDefault } from '../../../../selectors/maybe';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import { Button, Slider } from '@material-ui/core';
 import { pick } from 'lodash';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
+import StringInput from './string';
+import BooleanInput from './boolean';
 
 /*
 This input is closely tied to archimedes/functions/plotting/scatter_plotly.
@@ -30,17 +31,78 @@ Output Structure:
   dictionary of scatter_plotly inputs-name (key) + value pairs.
 */
 
-const defaults: DataEnvelope<any> = {
-  'x_by': null,
-  'y_by': null,
-  'color_by': null,
-  'size': 5,
-  'plot_title': 'make',
-  'legend_title': 'make',
-  'xlab': 'make',
-  'ylab': 'make',
-  'color_order': 'increasing',
-  'order_when_continuous_color': false
+export default function scatter_plotly({
+  data, onChange, value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, "scatterPlot")
+}
+
+function VisualizationUI({
+  data, onChange, ...props
+}: WithInputParams<{}, DataEnvelope<any>, any>, plotType: string) {
+  const hide = useMemo(() => data && data['hide'], [data]);
+  const defaultValue = useMemo(() => whichDefaults('scatter_plot', hide), [hide]);
+  const value = useSetsDefault(defaultValue, props.value, onChange);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const options: DataEnvelope<string> = useMemo(() => {
+    if (data == null) return {};
+
+    return data['data_options'] || nulled_vals(data['data_frame']);
+  }, [data]);
+
+  const updateValue = (newValue: any, key: string, prevValues = value) => {
+    prevValues[key] = newValue;
+    onChange(some(prevValues));
+  };
+
+  const extra_inputs = useExtraInputs(options);
+
+  // Component set constructor
+  const component_use = (key: string, value: any, extra_inputs: any) => {
+    
+    const comp_use: Function = comps[key]
+    return(
+      comp_use(key, updateValue, value, ...extra_inputs)
+    )
+  };
+
+  // Advanced Options Button
+  const base = useMemo(() => {
+    return Object.keys(remove_hidden(
+      {'x_by': 0, 'y_by': 0, 'color_by': 0}, hide
+    ))
+  }, [hide])
+  
+  const showHide: string = useMemo(() => {
+    return (showAdvanced ? 'Hide' : 'Show')
+  }, [showAdvanced])
+
+  function toggleAdvanced() {
+    setShowAdvanced(!showAdvanced)
+  }
+
+  const shownValues = useMemo(() => {
+    return showAdvanced ? value : pick(value, ...base)
+  }, [value, showAdvanced])
+  
+  return (
+    <div>
+      {Object.entries(shownValues).map(([key, val]) => {
+        return component_use(key, val, extra_inputs[key])
+      })}
+      <div>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => {toggleAdvanced()}}
+          >
+          {showHide} Advanced Options
+        </Button>
+      </div>
+    </div>
+  );
+
 };
 
 const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefined) => {
@@ -58,105 +120,51 @@ const remove_hidden = (vals: DataEnvelope<any>, hide: string[] | null | undefine
   return values;
 };
 
-let showAdvanced = false;
+function val_wrap(v: any): DataEnvelope<typeof v> {
+  return {'a': v}
+}
 
-export default function ScatterPlotly({
-  data, onChange, ...props
-}: WithInputParams<{}, DataEnvelope<any>, any>) {
-  const hide = useMemo(() => data && data['hide'], [data]);
-  const defaultValue = useMemo(() => remove_hidden(defaults, hide), [hide]);
-  const value = useSetsDefault(defaultValue, props.value, onChange);
+function key_wrap(k: string[]) {
+  let de: DataEnvelope<string> = {};
+  for (let ind = 0; ind < k.length; ind++) {
+    de[k[ind]]="0";
+  }
+  return de;
+}
 
-  const options: DataEnvelope<string> = useMemo(() => {
-    if (data == null) return {};
+const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
+  scatter_plot: {
+    main: ["x_by", "y_by", "color_by"],
+    adv: ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color']
+  }
+}
 
-    return data['data_options'] || nulled_vals(data['data_frame']);
-  }, [data]);
+const defaults: DataEnvelope<any> = {
+  'x_by': null,
+  'y_by': null,
+  'color_by': null,
+  'size': 5,
+  'plot_title': 'make',
+  'legend_title': 'make',
+  'xlab': 'make',
+  'ylab': 'make',
+  'color_order': 'increasing',
+  'order_when_continuous_color': false
+};
 
-  const updateValue = (newValue: any, key: string, prevValues = value) => {
-    prevValues[key] = newValue;
-    onChange(some(prevValues));
-  };
+function whichDefaults(plotType: string, hide: string[] | null | undefined) {
+  const inputs = input_sets[plotType]['main'].concat(input_sets[plotType]['adv'])
 
-  // Component Setups
-  const string_input = (
-    key: string = "filler", value: string | number | boolean = "filler",
-    label: string = 'hello') => {
-      return (
-        <TextInput
-          key={key}
-          header={label}
-          value={value}
-          onChange={(newValue: string) => updateValue(newValue, key)}
-        />
-      )
-    };
+  let output = defaults;
+  const keys = Object.keys(defaults);
+  for (let ind = 0; ind < defaults.length; ind++) {
+    if (!inputs.includes(keys[ind])) delete output[keys[ind]];
+  }
 
-  const nestable_dropdown_input = (
-    key: string = "filler", value: string | null,
-    label: string, options: DataEnvelope<null>) => {
-      
-      return(
-        <div key={key}>
-          {label}
-          <NestedSelectAutocompleteInput
-            data={{options}}
-            value={maybeOfNullable(value)}
-            onChange={(val) => updateValue(withDefault(val, null), key)}
-          />
-        </div>
-      )
-    }
-  
-  const dropdown_input = (
-    key: string = "filler", value: string | null,
-    label: string, defaultValue: string | null = null, options: string[]) => {
-      
-      return(
-        <div key={key}>
-          {label}
-          <DropdownAutocomplete
-            list={options}
-            defaultValue={defaultValue}
-            value={value}
-            onChange={(val: string) => updateValue(val, key)}
-          />
-        </div>
-      )
-    }
+  return remove_hidden(defaults, hide);
+}
 
-  const checkbox_input = (
-    key: string = "filler", value: boolean = false,
-    label: string) => {
-
-      return(
-          <div key={key}>
-            {label}
-            <input id={key} type='checkbox'
-                  checked={value}
-                  onChange={() => updateValue(!value, key)} />
-          </div>
-      )
-    }
-
-  const slider_input = (
-    key: string = "filler", value: number,
-    label: string, min: number = 0.1, max: number = 20) => {
-
-      return(
-          <div key={key}>
-            {label}
-            <Slider
-              value={value}
-              onChange={(event, newValue) => updateValue(newValue as number, key)}
-              min={min}
-              max={max}
-              valueLabelDisplay="auto"
-            />
-          </div>
-      )
-    }
-
+function useExtraInputs(options: DataEnvelope<string>) {
   const extra_inputs: DataEnvelope<any[]> = useMemo(() => {
     return {
       // label, then for any extras
@@ -173,61 +181,98 @@ export default function ScatterPlotly({
     }
   }, [options]);
 
-  // Component set constructor
-  const component_use = (key: string, value: any, extra_inputs: any) => {
-    const comps: DataEnvelope<Function> = {
-      'plot_title': string_input,
-      'legend_title': string_input,
-      'xlab': string_input,
-      'ylab': string_input,
-      'x_by': nestable_dropdown_input,
-      'y_by': nestable_dropdown_input,
-      'color_by': nestable_dropdown_input,
-      'color_order': dropdown_input,
-      'order_when_continuous_color': checkbox_input,
-      'size': slider_input
-    }
-    
-    const comp_use: Function = comps[key]
-    return(
-      comp_use(key, value, ...extra_inputs)
+  return extra_inputs;
+}
+
+// Component Setups
+const stringInput = (
+  key: string = "filler", changeFxn: Function, value: string = "filler",
+  label: string = 'hello') => {
+    return (
+      <StringInput
+        key={key}
+        label={label}
+        data={val_wrap(value)}
+        value={maybeOfNullable(value)}
+        onChange={(newValue) => changeFxn(withDefault(newValue,'make'), key)}
+      />
     )
   };
 
-  // Advanced Options Button
-  const base = useMemo(() => {
-    return Object.keys(remove_hidden(
-      {'x_by': 0, 'y_by': 0, 'color_by': 0}, hide
-    ))
-  }, [hide])
-  
-  const showHide: string = useMemo(() => {
-    return (showAdvanced ? 'Hide' : 'Show')
-  }, [showAdvanced])
-
-  function toggleAdvanced() {
-    showAdvanced = !showAdvanced
-    onChange(some(value))
+const nestableDropdownInput = (
+  key: string = "filler", changeFxn: Function, value: string | null,
+  label: string, options: DataEnvelope<null>) => {
+    
+    return(
+      <NestedSelectAutocompleteInput
+        key={key}
+        label={label}
+        data={{options}} 
+        value={maybeOfNullable(value)}
+        onChange={(val) => changeFxn(withDefault(val, null), key)}
+      />
+    )
   }
 
-  const shownValues = useMemo(() => {
-    return showAdvanced ? value : pick(value, ...base)
-  }, [value, showAdvanced])
-  
-  return (
-    <div>
-      {Object.entries(shownValues).map(([key, val]) => {
-        return component_use(key, val, extra_inputs[key])
-      })}
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => {toggleAdvanced()}}
-        >
-         {showHide} Advanced Options
-      </Button>
-    </div>
-  );
+const checkboxInput = (
+  key: string = "filler", changeFxn: Function, value: boolean = false,
+  label: string) => {
 
-};
+    return(
+      <BooleanInput
+        key={key}
+        label={label}
+        value={maybeOfNullable(value)}
+        data={val_wrap(value)}
+        onChange={() => changeFxn(!value, key)}
+      />
+    )
+  }
 
+const dropdownInput = (
+  key: string = "filler", changeFxn: Function, value: string | null,
+  label: string, defaultValue: string | null = null, options: string[]) => {
+    
+    return(
+      <div key={key}>
+        {label}
+        <DropdownAutocomplete
+          list={options}
+          defaultValue={defaultValue}
+          value={value}
+          onSelect={(val: string) => changeFxn(val, key)}
+        />
+      </div>
+    )
+  }
+
+const sliderInput = (
+  key: string = "filler", changeFxn: Function, value: number,
+  label: string, min: number = 0.1, max: number = 20) => {
+
+    return(
+        <div key={key}>
+          {label}
+          <Slider
+            value={value}
+            onChange={(event, newValue) => changeFxn(newValue as number, key)}
+            min={min}
+            max={max}
+            valueLabelDisplay="auto"
+          />
+        </div>
+    )
+  }
+
+const comps: DataEnvelope<Function> = {
+  'plot_title': stringInput,
+  'legend_title': stringInput,
+  'xlab': stringInput,
+  'ylab': stringInput,
+  'x_by': nestableDropdownInput,
+  'y_by': nestableDropdownInput,
+  'color_by': nestableDropdownInput,
+  'color_order': dropdownInput,
+  'order_when_continuous_color': checkboxInput,
+  'size': sliderInput
+}
