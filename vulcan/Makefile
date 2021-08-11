@@ -15,7 +15,6 @@ start-storybook: docker-ready
 	 -e VULCAN_ENV=development \
 	 -e APP_NAME=vulcan \
 	 -e SKIP_RUBY_SETUP=true \
-	 -e RUN_NPM_INSTALL=true \
 	 -v $$PWD:/app \
 	 -v $$PWD/../etna:/etna \
 	 --entrypoint /entrypoints/development.sh \
