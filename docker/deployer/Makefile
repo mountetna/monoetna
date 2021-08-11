@@ -1,2 +1,2 @@
 image:
-	../build_image Dockerfile
+	../build_image Dockerfile ../

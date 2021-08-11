@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
 
 set -e
-
-#if [ -n "$VERBOSE" ]; then
-  set -x
-#fi
+set -x
 
 shopt -s globstar
 
-if [ -z "$SKIP_PYTHON_SETUP" ]; then
+if [ -n "$POETRY_INSTALL" ]; then
   poetry install
 fi
 

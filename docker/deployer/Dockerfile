@@ -8,3 +8,5 @@ ENV DOCKER_VERSION 19.03.12
 RUN curl https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz > /tmp/docker.tgz
 RUN tar -xf /tmp/docker.tgz -C /tmp/
 RUN mv /tmp/docker/* /usr/local/bin/
+COPY docker/post-to-slack.sh /bin/post-to-slack
+RUN chmod +x /bin/*

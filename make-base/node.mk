@@ -1,5 +1,4 @@
 app_service_name=${app_name}_app
-BUILD_ARGS:=--build-arg RUN_NPM_INSTALL=1 $(BUILD_ARGS)
 
 docker-ready::
 	true

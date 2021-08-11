@@ -75,7 +75,6 @@ RUN mv /tmp/docker/* /usr/local/bin/
 
 RUN mkdir -p /opt
 COPY src/entrypoints /entrypoints
-COPY src/fe.conf.erb /opt/fe.conf.erb
 
 COPY docker/deploy.sh /bin/deploy
 COPY docker/post-to-slack.sh /bin/post-to-slack

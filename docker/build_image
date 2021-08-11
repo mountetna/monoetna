@@ -131,7 +131,7 @@ done < <(cat $Dockerfile | grep FROM | xargs -n2 echo | cut -d ' ' -f2)
 
 cat $0 | addToDigest
 
-mounts="-v /var/run/docker.sock:/var/run/docker.sock:ro -v /tmp/last.build:/build/last.build"
+mounts="-v /var/run/docker.sock:/var/run/docker.sock:ro -v /tmp/last.build:/build/last.build -v $MARKERS_DIR:$MARKERS_DIR"
 #- The dockerfile's parent directory is mount as 'src' into the build process.
 mounts="$mounts --mount type=bind,source=$(realpath $(dirname $Dockerfile)),target=/build/src"
 recursiveDigest "$(dirname $Dockerfile)" | addToDigest
@@ -178,9 +178,11 @@ builtFromSha="$($DIR/find-parent-pr-merge.sh)"
 
 BUILD_CMD="
 set -x
-cat src/.dockerignore /assist/.dockerignore | grep -v '#' | awk '{print \"src/\"\$0}' > .dockerignore ; \\
-cp src/$(basename $Dockerfile) /tmp/Dockerfile && \\
-echo 'COPY last.build/version /built-from-sha' >> /tmp/Dockerfile"
+cat src/.dockerignore /assist/.dockerignore | grep -v '#' | awk '{print \"src/\"\$0}' > .dockerignore
+set -e
+cp src/$(basename $Dockerfile) /tmp/Dockerfile
+echo 'COPY last.build/version /built-from-sha' >> /tmp/Dockerfile
+"
 
 if ! rm -rf /tmp/last.build/; then
   echo "Could not clean /tmp/last.build/, required for build to continue"
@@ -203,23 +205,29 @@ DOCKER_BUILD_CMD="docker build --rm --force-rm \\
   --cache-from $baseTag \\
   $* -f /tmp/Dockerfile ."
 
-BUILD_CMD="${BUILD_CMD} && \\
-mkdir -p /build/next.build/ && \\
-mkdir -p /build/last.build/ && \\
-touch /build/last.build/id && \\
-touch /build/last.build/version && \\
+BUILD_CMD="${BUILD_CMD}
+mkdir -p /build/next.build/
+mkdir -p /build/last.build/
+touch /build/last.build/id
+touch /build/last.build/version
 $DOCKER_BUILD_CMD"
 
 #- For images that are intended to be tagged and pushed to a repository, we'll want to rebuild in the correct version
 #- labeling for this given commit, assuming that the built sha is differing.
 if [[ "$baseTag" != "$tag" ]]; then
-  BUILD_CMD="$BUILD_CMD && \\
-if [[ \"\$(cat /build/last.build/id)\" != \"\$(cat /build/next.build/id)\" ]]; then \\
+  BUILD_CMD="$BUILD_CMD
+if [[ \"\$(cat /build/last.build/id)\" != \"\$(cat /build/next.build/id)\" ]]; then
   echo '${builtFromSha}' > /build/last.build/version
   $DOCKER_BUILD_CMD
   docker tag $baseTag $tag
+else
+  exit 0
 fi"
 fi
+
+BUILD_CMD="$BUILD_CMD
+touch $marker
+"
 
 echo "$BUILD_CMD" | addToDigest
 
@@ -242,6 +250,7 @@ if [ -e $marker ]; then
   echo -e "${CYAN}Detected change in $newestFile ($(date -r $newestFile)) over $marker ($(date -r $marker)), issuing build${NC}"
 fi
 
+# Ensure markers touched by build update to unique timestamp
 sleep 1
 
 set -x
@@ -250,6 +259,5 @@ set -x
 [[ -z "$IS_CI" ]] && docker image prune -f
 
 # Build the base layer.
-docker run --rm -w /build -v "${DIR}:/assist:ro" $mounts docker:19.03.12 sh -c "$BUILD_CMD"
-
-touch $marker
+gid=$(id -g)
+docker run --rm -u 0:$gid -w /build -v "${DIR}:/assist:ro" $mounts docker:19.03.12 sh -c "$BUILD_CMD"

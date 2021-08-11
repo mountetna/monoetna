@@ -65,5 +65,8 @@ irb:: ## Starts up an irb session in the context of the given project
 config-ready::
 	@ true
 
+update::
+	@ true
+
 docker-ready::
 	@ true

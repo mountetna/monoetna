@@ -51,9 +51,9 @@ psql: ## Starts a psql shell in an app environment
 migrate: ## Runs migrations in a specific app context
 	@ echo Run this within a specific app context, ie: make -C janus migrate
 
-.PHONY: test
-test: ## Runs all projects' tests
-	@ set -e && for project in $(projects); do make -C $$project test; done
+.PHONY: update
+update: ## Runs all projects' updates, running bundle and npm install
+	@ set -e && for project in $(projects); do make -C $$project update; done
 
 .PHONY: release
 release: ## Builds static docker images staged for release, runs tests against them, and pushes them to dockerhub (requires PUSH_IMAGES=1)
