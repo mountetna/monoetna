@@ -54,7 +54,7 @@ release::
 	if ! [ -n "$$NO_TEST" ]; then make /tmp/.release-test; fi
 	if [ -e Dockerfile ]; then if [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi; fi
 
-update::
+update:: docker-ready
 	@ docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 ${app_service_name} echo 'Updated'
 
 release-test::

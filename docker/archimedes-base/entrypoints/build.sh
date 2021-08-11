@@ -5,7 +5,7 @@ set -x
 
 shopt -s globstar
 
-if [ -n "$POETRY_INSTALL" ]; then
+if [ -n "$FULL_BUILD" ]; then
   poetry install
 fi
 
