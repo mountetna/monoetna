@@ -175,6 +175,11 @@ def stub_magma_setup(patient_documents)
   stub_magma_update("mvir1")
 end
 
+def stub_magma_documents(documents)
+  stub_request(:post, /#{MAGMA_HOST}\/retrieve/)
+    .to_return({ body: documents.to_json })
+end
+
 def stub_magma_update(project_name=nil)
   stub_request(:post, /#{MAGMA_HOST}\/update$/)
     .to_return do |request|

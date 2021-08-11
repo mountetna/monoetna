@@ -5,6 +5,7 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
   PATH_REGEX = /.*\/(?<plate>plate\d+)_.*\/output\/(?<record_name>.*)/
   SAMPLE_NAME_REGEX = /^(?<sample_name>IPI.*\.[A-Z]+\d)\..*/
   PATIENT_IPI_NUMBER_REGEX = /^(?<ipi_number>IPI.*)\.[A-Z]+\d\..*/
+  NON_CANCER_REGEX = /(NASH|NAFLD)/
   PROJECT = "ipi"
   BUCKET = "data"
 
@@ -64,6 +65,8 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
         project_name: PROJECT,
       )
       folders.each do |folder|
+        next if is_non_cancer_sample?(folder.folder_name)
+
         record_name = is_control?(folder.folder_name) ?
           control_name(folder.folder_name) :
           folder.folder_name
@@ -79,9 +82,18 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
 
         update_request.update_revision("rna_seq", record_name, attrs)
       end
-      logger.info("Creating rna_seq records: #{update_request.revisions["rna_seq"].keys.join(",")}")
-      magma_client.update_json(update_request)
+
+      if update_request.revisions["rna_seq"]
+        logger.info("Creating rna_seq records: #{update_request.revisions["rna_seq"].keys.join(",")}")
+        magma_client.update_json(update_request)
+      end
     end
+  end
+
+  def is_non_cancer_sample?(folder_name)
+    # per Vincent
+    # I guess the two major non-cancer samples that were gathered in IPIv1 were NAFLD/NASH and PSC (primary sclerosing cholangitis)
+    folder_name =~ NON_CANCER_REGEX
   end
 
   def is_control?(record_name)
@@ -96,16 +108,8 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
     "Control_#{control_type =~ /jurkat/i ? "Jurkat" : "UHR"}.#{plate.capitalize}"
   end
 
-  def remove_extraneous_sample_letters(sample_name)
-    # Because of IPIHEP033.NASH1 -> IPIHEP033.N1 on plate 26
-    parts = sample_name.split(".")
-    [parts.first, parts.last[0] + parts.last[-1]].join(".")
-  end
-
   def sample_name(rna_seq_record_name)
-    remove_extraneous_sample_letters(
-      rna_seq_record_name.match(SAMPLE_NAME_REGEX)[:sample_name]
-    )
+    rna_seq_record_name.match(SAMPLE_NAME_REGEX)[:sample_name]
   end
 
   def patient_ipi_number(rna_seq_record_name)

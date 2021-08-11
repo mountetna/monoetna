@@ -50,84 +50,152 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
     )
   end
 
-  it "creates Magma records for all rna_seq" do
-    stub_magma_update_json
-    stub_metis_scan([
-      folder("IPIADR001.N1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
-      folder("IPIADR001.T1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.T1.rna.live"),
-      folder("IPIBLAD001.T1.rna.live", "bucket/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
-    ])
+  describe "create Magma records" do
+    before(:each) do
+      stub_magma_update_json
+      stub_magma_models(fixture: "spec/fixtures/magma_ipi_models_with_records.json")
+    end
 
-    etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
+    it "for all rna_seq" do
+      stub_metis_scan([
+        folder("IPIADR001.N1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
+        folder("IPIADR001.T1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.T1.rna.live"),
+        folder("IPIBLAD001.T1.rna.live", "bucket/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
+      ])
 
-    etl.run_once
+      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
 
-    # Make sure plates are created
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
-                         .with(body: hash_including({
-                                 "rna_seq_plate": {
-                                   "Plate1": {},
-                                   "Plate2": {},
-                                 },
-                               }))
+      etl.run_once
 
-    # Make sure rna_seq records are created
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
-                         .with(body: hash_including({
-                                 "rna_seq": {
-                                   "IPIADR001.N1.rna.live": {
-                                     "rna_seq_plate": "Plate1",
-                                     "sample": "IPIADR001.N1",
+      # Make sure plates are created
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq_plate": {
+                                       "Plate1": {},
+                                       "Plate2": {},
+                                     },
                                    },
-                                   "IPIADR001.T1.rna.live": {
-                                                              "rna_seq_plate": "Plate1",
-                                                              "sample": "IPIADR001.T1",
-                                                            },
-                                   "IPIBLAD001.T1.rna.live": {
-                                                               "rna_seq_plate": "Plate2",
-                                                               "sample": "IPIBLAD001.T1",
-                                                             },
-                                 },
-                               }))
-  end
+                                 }))
 
-  it "should shorten any malformed sample names" do
-  end
+      # Make sure rna_seq records are created
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq": {
+                                       "IPIADR001.N1.rna.live": {
+                                         "rna_seq_plate": "Plate1",
+                                         "sample": "IPIADR001.N1",
+                                       },
+                                       "IPIADR001.T1.rna.live": {
+                                         "rna_seq_plate": "Plate1",
+                                         "sample": "IPIADR001.T1",
+                                       },
+                                     },
+                                   },
+                                 }))
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq": {
+                                       "IPIBLAD001.T1.rna.live": {
+                                         "rna_seq_plate": "Plate2",
+                                         "sample": "IPIBLAD001.T1",
+                                       },
+                                     },
+                                   },
+                                 }))
+    end
 
-  it "should handle jurkat control" do
-    stub_ingest_filesystem
+    it "does not create NASH / NAFLD samples" do
+      stub_metis_scan([
+        folder("IPIADR001.NASH1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live"),
+        folder("IPIADR001.NAFLD1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live"),
+      ])
 
-    ingest_etl = Polyphemus::SftpIngestMetisTriageFilesEtl.new
+      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
 
-    expect(Polyphemus::IngestFile.find(name: /test3.txt/)[:archive_ingested_at]).to eq(nil)
+      etl.run_once
 
-    ingest_etl.run_once
+      # No plates are 100% NASH / NAFLD, so this is okay
+      # Make sure plates are created
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq_plate": {
+                                       "Plate1": {},
+                                     },
+                                   },
+                                 }))
 
-    # Only one file should be uploaded
-    expect(WebMock).to have_requested(:post, "#{MAGMA_HOST}/update")
-    # Once to start the upload, once to send the blob.
-    expect(WebMock).to have_requested(:post, "#{MAGMA_HOST}/triage/upload/foo/bar/test3.txt").times(2)
+      # Make sure NO rna_seq records are created
+      expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                               .with(body: hash_including({
+                                       "revisions": {
+                                         "rna_seq": {
+                                           "IPIADR001.NASH1.rna.live": {
+                                             "rna_seq_plate": "Plate1",
+                                             "sample": "IPIADR001.NASH1",
+                                           },
+                                         },
+                                       },
+                                     }))
+      expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                               .with(body: hash_including({
+                                       "revisions": {
+                                         "rna_seq": {
+                                           "IPIADR001.NAFLD1.rna.live": {
+                                             "rna_seq_plate": "Plate1",
+                                             "sample": "IPIADR001.NAFLD1",
+                                           },
+                                         },
+                                       },
+                                     }))
+    end
 
-    expect(Polyphemus::IngestFile.find(name: /test3.txt/)[:archive_ingested_at]).not_to eq(nil)
-    expect(Polyphemus::IngestFile.exclude(name: /test3.txt/).map { |f| f[:archive_ingested_at] }).to eq([nil, nil])
-  end
+    it "for control" do
+      stub_metis_scan([
+        folder("CONTROL_jurkat.plate1", "bucket/plate1_rnaseq_new/output/CONTROL_jurkat.plate1"),
+        folder("CONTROL_uhr.plate2", "bucket/plate2_rnaseq_new/output/CONTROL_uhr.plate2"),
+      ])
 
-  it "should handle uhr control" do
-    stub_ingest_filesystem
+      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
 
-    ingest_etl = Polyphemus::SftpIngestMetisTriageFilesEtl.new
+      etl.run_once
 
-    expect(Polyphemus::IngestFile.find(name: /test3.txt/)[:archive_ingested_at]).to eq(nil)
+      # Make sure plates are created
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq_plate": {
+                                       "Plate1": {},
+                                       "Plate2": {},
+                                     },
+                                   },
+                                 }))
 
-    ingest_etl.run_once
-
-    # Only one file should be uploaded
-    expect(WebMock).to have_requested(:post, "#{MAGMA_HOST}/update")
-    # Once to start the upload, once to send the blob.
-    expect(WebMock).to have_requested(:post, "#{MAGMA_HOST}/triage/upload/foo/bar/test3.txt").times(2)
-
-    expect(Polyphemus::IngestFile.find(name: /test3.txt/)[:archive_ingested_at]).not_to eq(nil)
-    expect(Polyphemus::IngestFile.exclude(name: /test3.txt/).map { |f| f[:archive_ingested_at] }).to eq([nil, nil])
+      # Make sure Control record names work with validation and not attached to sample
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq": {
+                                       "Control_Jurkat.Plate1": {
+                                         "rna_seq_plate": "Plate1",
+                                       },
+                                     },
+                                   },
+                                 }))
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq": {
+                                       "Control_UHR.Plate2": {
+                                         "rna_seq_plate": "Plate2",
+                                       },
+                                     },
+                                   },
+                                 }))
+    end
   end
 
   def stub_metis_scan(change_list)
