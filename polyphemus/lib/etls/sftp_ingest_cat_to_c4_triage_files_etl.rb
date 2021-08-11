@@ -31,6 +31,7 @@ class Polyphemus::SftpIngestCatToC4TriageFilesEtl < Polyphemus::DbTriageFileEtl
       ) do |file_name|
         logger.info("#{file_name} completed.")
         update_ingested_timestamp(file_name)
+        `post-to-slack "C4 Triage from CAT ETL" "bioinformatics-ping" "Successfully downloaded #{file_name} from the CAT to C4. It is available at #{c4_config[:root]} and ready for triage." || true`
       end
     end
 
