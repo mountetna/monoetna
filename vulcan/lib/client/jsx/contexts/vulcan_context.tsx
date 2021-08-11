@@ -57,7 +57,6 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
         console.log(action.type, action);
       }
 
-      console.log('processing', action.type, stateRef.current.data)
       const result = VulcanReducer(stateRef.current, action);
       stateRef.current = result;
       setState(result);
