@@ -1,0 +1,136 @@
+describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
+  before(:each) do
+    stub_metis_setup
+    stub_magma_models(fixture: "spec/fixtures/magma_ipi_models.json")
+    @all_updates = []
+  end
+
+  def folder(folder_name, folder_path, updated_at = Time.now)
+    Etna::Clients::Metis::Folder.new({
+      folder_name: folder_name,
+      folder_path: folder_path,
+      updated_at: updated_at,
+    })
+  end
+
+  def updates
+    @all_updates.inject({}) do |acc, n|
+      n.keys.each do |k|
+        (acc[k] ||= {}).update(n[k])
+      end
+      acc
+    end
+  end
+
+  it "creates containing records" do
+    stub_magma_update
+    stub_metis_scan([
+      folder("IPIADR001.N1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
+      folder("IPIADR001.T1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.T1.rna.live"),
+      folder("IPIBLAD001.T1.rna.live", "bucket/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
+    ])
+
+    etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
+
+    etl.run_once
+
+    # Make sure containing records are created
+    expect(updates).to eq(
+      { "experiment" => {
+        "Adrenal" => { "name" => "Adrenal", "project" => "UCSF Immunoprofiler" },
+        "Bladder" => { "name" => "Bladder", "project" => "UCSF Immunoprofiler" },
+      }, "patient" => {
+        "IPIADR001" => { "experiment" => "Adrenal", "name" => "IPIADR001" },
+        "IPIBLAD001" => { "experiment" => "Bladder", "name" => "IPIBLAD001" },
+      }, "project" => { "UCSF Immunoprofiler" => { "name" => "UCSF Immunoprofiler" } }, "sample" => {
+        "IPIADR001.N1" => { "name" => "IPIADR001.N1", "patient" => "IPIADR001" },
+        "IPIADR001.T1" => { "name" => "IPIADR001.T1", "patient" => "IPIADR001" },
+        "IPIBLAD001.T1" => { "name" => "IPIBLAD001.T1", "patient" => "IPIBLAD001" },
+      } }
+    )
+  end
+
+  it "creates Magma records for all rna_seq" do
+    stub_magma_update_json
+    stub_metis_scan([
+      folder("IPIADR001.N1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
+      folder("IPIADR001.T1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.T1.rna.live"),
+      folder("IPIBLAD001.T1.rna.live", "bucket/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
+    ])
+
+    etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
+
+    etl.run_once
+
+    # Make sure plates are created
+    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                         .with(body: hash_including({
+                                 "rna_seq_plate": {
+                                   "Plate1": {},
+                                   "Plate2": {},
+                                 },
+                               }))
+
+    # Make sure rna_seq records are created
+    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                         .with(body: hash_including({
+                                 "rna_seq": {
+                                   "IPIADR001.N1.rna.live": {
+                                     "rna_seq_plate": "Plate1",
+                                     "sample": "IPIADR001.N1",
+                                   },
+                                   "IPIADR001.T1.rna.live": {
+                                                              "rna_seq_plate": "Plate1",
+                                                              "sample": "IPIADR001.T1",
+                                                            },
+                                   "IPIBLAD001.T1.rna.live": {
+                                                               "rna_seq_plate": "Plate2",
+                                                               "sample": "IPIBLAD001.T1",
+                                                             },
+                                 },
+                               }))
+  end
+
+  it "should shorten any malformed sample names" do
+  end
+
+  it "should handle jurkat control" do
+    stub_ingest_filesystem
+
+    ingest_etl = Polyphemus::SftpIngestMetisTriageFilesEtl.new
+
+    expect(Polyphemus::IngestFile.find(name: /test3.txt/)[:archive_ingested_at]).to eq(nil)
+
+    ingest_etl.run_once
+
+    # Only one file should be uploaded
+    expect(WebMock).to have_requested(:post, "#{MAGMA_HOST}/update")
+    # Once to start the upload, once to send the blob.
+    expect(WebMock).to have_requested(:post, "#{MAGMA_HOST}/triage/upload/foo/bar/test3.txt").times(2)
+
+    expect(Polyphemus::IngestFile.find(name: /test3.txt/)[:archive_ingested_at]).not_to eq(nil)
+    expect(Polyphemus::IngestFile.exclude(name: /test3.txt/).map { |f| f[:archive_ingested_at] }).to eq([nil, nil])
+  end
+
+  it "should handle uhr control" do
+    stub_ingest_filesystem
+
+    ingest_etl = Polyphemus::SftpIngestMetisTriageFilesEtl.new
+
+    expect(Polyphemus::IngestFile.find(name: /test3.txt/)[:archive_ingested_at]).to eq(nil)
+
+    ingest_etl.run_once
+
+    # Only one file should be uploaded
+    expect(WebMock).to have_requested(:post, "#{MAGMA_HOST}/update")
+    # Once to start the upload, once to send the blob.
+    expect(WebMock).to have_requested(:post, "#{MAGMA_HOST}/triage/upload/foo/bar/test3.txt").times(2)
+
+    expect(Polyphemus::IngestFile.find(name: /test3.txt/)[:archive_ingested_at]).not_to eq(nil)
+    expect(Polyphemus::IngestFile.exclude(name: /test3.txt/).map { |f| f[:archive_ingested_at] }).to eq([nil, nil])
+  end
+
+  def stub_metis_scan(change_list)
+    allow_any_instance_of(Polyphemus::TimeScanBasedEtlScanner).to receive(:find_batch).and_return(change_list)
+  end
+end

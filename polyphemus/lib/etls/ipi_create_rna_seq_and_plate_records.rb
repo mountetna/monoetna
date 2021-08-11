@@ -2,9 +2,9 @@ require_relative "../metis_folder_etl"
 require_relative "../ipi/ipi_helper"
 
 class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
-  PATH_REGEX = /^bulkRNASeq\/processed\/(?<plate>plate\d+)_rnaseq_new\/output\/(?<record_name>.*)/
-  SAMPLE_NAME_REGEX = /^(?<sample_name>IPI.*\.[A-Z]\d)\..*/
-  PATIENT_IPI_NUMBER_REGEX = /^(?<ipi_number>IPI.*)\.[A-Z]\d\..*/
+  PATH_REGEX = /.*\/(?<plate>plate\d+)_.*\/output\/(?<record_name>.*)/
+  SAMPLE_NAME_REGEX = /^(?<sample_name>IPI.*\.[A-Z]+\d)\..*/
+  PATIENT_IPI_NUMBER_REGEX = /^(?<ipi_number>IPI.*)\.[A-Z]+\d\..*/
   PROJECT = "ipi"
   BUCKET = "data"
 
@@ -96,8 +96,16 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
     "Control_#{control_type =~ /jurkat/i ? "Jurkat" : "UHR"}.#{plate.capitalize}"
   end
 
+  def remove_extraneous_sample_letters(sample_name)
+    # Because of IPIHEP033.NASH1 -> IPIHEP033.N1 on plate 26
+    parts = sample_name.split(".")
+    [parts.first, parts.last[0] + parts.last[-1]].join(".")
+  end
+
   def sample_name(rna_seq_record_name)
-    rna_seq_record_name.match(SAMPLE_NAME_REGEX)[:sample_name]
+    remove_extraneous_sample_letters(
+      rna_seq_record_name.match(SAMPLE_NAME_REGEX)[:sample_name]
+    )
   end
 
   def patient_ipi_number(rna_seq_record_name)
