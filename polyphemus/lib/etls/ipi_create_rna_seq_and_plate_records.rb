@@ -44,8 +44,6 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
   def plate(folder_path)
     match = folder_path.match(PATH_REGEX)
 
-    logger.error("Unmatched folder: #{folder_path}") unless match
-
     match[:plate].capitalize
   end
 
