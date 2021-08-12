@@ -2,7 +2,7 @@ require_relative "subquery_base"
 
 class Magma
   class SubqueryOuter < Magma::SubqueryBase
-    def apply(query)
+    def apply(query, parent_query = nil)
       # Create a derived table
       #   as the right-table
       #   filtered with GROUP BY and HAVING,
@@ -21,7 +21,7 @@ class Magma
       Magma::Constraint.new(derived_table_alias,
                             {
         subquery_table_column => subquery_table_column,
-      }) if include_constraint
+      })
     end
   end
 end

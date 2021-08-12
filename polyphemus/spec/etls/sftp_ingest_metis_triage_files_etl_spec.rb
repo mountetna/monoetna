@@ -27,7 +27,7 @@ describe Polyphemus::SftpIngestMetisTriageFilesEtl do
 
     ingest_etl = Polyphemus::SftpIngestMetisTriageFilesEtl.new
 
-    expect(Polyphemus::IngestFile.find(name: /test3.txt/)[:ingested_at]).to eq(nil)
+    expect(Polyphemus::IngestFile.find(name: /test3.txt/)[:archive_ingested_at]).to eq(nil)
 
     ingest_etl.run_once
 
@@ -36,8 +36,8 @@ describe Polyphemus::SftpIngestMetisTriageFilesEtl do
     # Once to start the upload, once to send the blob.
     expect(WebMock).to have_requested(:post, "#{METIS_HOST}/triage/upload/foo/bar/test3.txt").times(2)
 
-    expect(Polyphemus::IngestFile.find(name: /test3.txt/)[:ingested_at]).not_to eq(nil)
-    expect(Polyphemus::IngestFile.exclude(name: /test3.txt/).map { |f| f[:ingested_at] }).to eq([nil, nil])
+    expect(Polyphemus::IngestFile.find(name: /test3.txt/)[:archive_ingested_at]).not_to eq(nil)
+    expect(Polyphemus::IngestFile.exclude(name: /test3.txt/).map { |f| f[:archive_ingested_at] }).to eq([nil, nil])
   end
 
   def stub_ingest_filesystem

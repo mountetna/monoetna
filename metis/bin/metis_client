@@ -131,8 +131,8 @@ class Client
 
   private
 
-  def get(path)
-    request(path, Net::HTTP::Get)
+  def get(path, headers=nil)
+    request(path, Net::HTTP::Get, headers)
   end
 
   def post(path)
@@ -176,7 +176,7 @@ class JanusClient < Client
     https.request(req)
   end
 
-  def request(path, method)
+  def request(path, method, headers=nil)
     uri = URI.parse("https://#{@host}#{path}")
     req = method.new(uri.request_uri)
     req['Authorization'] = "Etna #{@token}"
@@ -200,7 +200,7 @@ class MetisClient < Client
   end
 
   def net_exceptions
-    [
+    retry_exceptions = [
       Errno::ECONNREFUSED,
       Errno::ECONNRESET,
       Errno::ENETRESET,
@@ -216,8 +216,6 @@ class MetisClient < Client
       Net::HTTPHeaderSyntaxError,
       Net::ProtocolError,
       Net::HTTPRequestTimeOut,
-      Net::HTTPRequestTimeout,
-      Net::HTTPGatewayTimeout,
       Net::HTTPGatewayTimeOut,
       Net::HTTPBadRequest,
       Net::HTTPBadGateway,
@@ -233,6 +231,13 @@ class MetisClient < Client
       EOFError,
       Timeout::Error
     ]
+
+    begin
+      retry_exceptions << Net::HTTPRequestTimeout
+      retry_exceptions << Net::HTTPGatewayTimeout
+    end if RUBY_VERSION > "2.5.8"
+
+    retry_exceptions
   end
 
   def authorize_upload(project_name, bucket_name, file_path)
@@ -357,6 +362,16 @@ class MetisClient < Client
     end
   end
 
+  def get_partial_file(path, start_byte, end_byte, &block)
+    https.request(get(path, {
+      "Range" => "bytes=#{start_byte}-#{end_byte}"
+    })) do |response|
+      response.read_body do |chunk|
+        yield chunk
+      end
+    end
+  end
+
   def remove_folder(project_name, folder_path)
     response = delete_request("/#{project_name}/folder/remove/#{URI.encode(folder_path)}")
     raise MetisClient::Error, "Could not remove folder #{folder_path}\n#{error(response)}" unless response.code == "200"
@@ -416,7 +431,7 @@ class MetisClient < Client
     https.request(req)
   end
 
-  def request(path, method)
+  def request(path, method, headers=nil)
     begin
       @token = janus.refresh_token
 
@@ -427,6 +442,11 @@ class MetisClient < Client
 
     uri = URI.parse("https://#{@host}#{path}")
     req = method.new(uri.request_uri)
+
+    headers.each do |header, value|
+      req[header] = value
+    end if headers
+
     req['Authorization'] = "Etna #{@token}"
     cookie = CGI::Cookie.new(MetisConfig[:metis_uid_name], MetisConfig[:metis_uid])
     req['Cookie'] = cookie.to_s
@@ -962,7 +982,7 @@ EOT
       elsif ::File.file?(file_or_folder)
         upload_file(file_or_folder, folder_path, folder)
       else
-        puts "Invalid input #{file_or_folder}"
+        raise ShellError, "Invalid input #{file_or_folder}"
       end
     end
 
@@ -1073,6 +1093,82 @@ EOT
     end
   end
 
+  class Set < Command
+    usage "set <options>"
+
+    def parse(args)
+      parse_opts(args) do |opts|
+        opts.on("-e", "Exit on error") do |n|
+          @shell.set_shell_option(:e, true)
+        end
+      end
+    end
+
+    def run
+    end
+  end
+
+  class Exit < Command
+    usage "exit"
+
+    def run
+      exit
+    end
+  end
+
+  class Peek < Command
+    usage "peek <byte_offset> <num_bytes> <remote_file_path> [<local_file_path>]"
+
+    def run(byte_offset, num_bytes, file_path, local_file_path=nil)
+      raise ShellError, 'No project is selected' if !@shell.project_name
+
+      file_path = @shell.relative_path(file_path)
+      name = ::File.basename(file_path)
+
+      buckets = @shell.client.list_buckets(@shell.project_name)
+      bucket = buckets.find do |b|
+        b[:bucket_name] == name
+      end
+
+      raise ShellError, "Cannot peek at buckets" if bucket
+
+      folder_name = ::File.dirname(file_path)
+
+      parent_folder = @shell.client.list_folder(@shell.project_name, folder_name)
+
+      raise ShellError, "Invalid path, cannot peek at #{file_path}" unless parent_folder
+      raise ShellError, "No files in folder #{folder_name}" unless parent_folder[:files]
+
+      folder = parent_folder[:folders].find do |f|
+        f[:folder_name] == name
+      end
+
+      raise ShellError, "Cannot peek at folders" if folder
+
+      file = parent_folder[:files].find do |f|
+        f[:file_name] == name
+      end
+
+      raise ShellError, "File does not exist, #{file_path}" unless file
+
+      begin
+        if local_file_path
+          FileUtils::mkdir_p(::File.dirname(local_file_path))
+          local_file = ::File.open(local_file_path, "w")
+        end
+        @shell.client.get_partial_file(
+          file[:download_url].sub(%r!^https://[^/]*?/!, '/'),
+          byte_offset,
+          byte_offset.to_i + num_bytes.to_i - 1) do |chunk|
+          puts chunk
+          local_file.write(chunk) if local_file
+        end
+      ensure
+        local_file.close if local_file
+      end
+    end
+  end
+
   class ShellError < StandardError
   end
 
@@ -1104,6 +1200,8 @@ EOT
     if match&.[](:path)
       set_path(match[:path])
     end
+
+    @shell_options = {}
   end
 
   attr_reader :project_name
@@ -1239,7 +1337,15 @@ EOT
     end
   end
 
+  def set_shell_option(opt, value)
+    @shell_options[opt] = value
+  end
+
   private
+
+  def errexit?
+    !!@shell_options[:e]
+  end
 
   def self.log_error(e)
     STDERR.puts(e.message)
@@ -1260,13 +1366,17 @@ EOT
       cmd.run(*args) unless cmd.done?
     rescue ShellError => e
       MetisShell.log_error(e)
+      exit(1) if errexit?
     rescue MetisClient::Error => e
       MetisShell.log_error(e)
+      exit(1) if errexit?
     rescue ArgumentError => e
       puts(command.usage ? "Usage:\n#{command.usage}" : e.message)
       MetisShell.log_error(e)
+      exit(1) if errexit?
     rescue Net::ReadTimeout => e
       MetisShell.log_error(e)
+      exit(1) if errexit?
     end
   end
 
