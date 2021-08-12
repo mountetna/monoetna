@@ -96,7 +96,11 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
   end
 
   def filename_regex
-    Polyphemus.instance.config(:ingest)[:filename_regex] || ""
+    regex = Polyphemus.instance.config(:ingest)[:filename_regex]
+
+    raise "No regex found -- please configure one!" if regex.nil?
+
+    regex
   end
 
   def existing_file_names(records)
