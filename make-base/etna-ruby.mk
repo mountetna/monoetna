@@ -2,7 +2,7 @@ app_service_name:=${app_name}_app
 app_db_name:=${app_name}_db
 app_name_capitalized:=$(shell echo ${app_name} | tr [a-z] [A-Z])
 baseFeTag:=$(shell basename *_app_fe)
-fullFeTag:=$(IMAGES_PREFIX)$(baseTag)$(IMAGES_POSTFIX)
+fullFeTag:=$(IMAGES_PREFIX)$(baseFeTag)$(IMAGES_POSTFIX)
 BUILD_ARGS:=--build-arg APP_NAME=$(app_name) $(BUILD_ARGS)
 EXTRA_DOCKER_ARGS:=
 export BUILD_REQS:=../docker/etna-base $(BUILD_REQS)
