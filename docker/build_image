@@ -3,7 +3,7 @@ set -e
 
 prog=$0
 error() {
-   echo "Whoops!  Looks like $1:$2 failed."
+   echo "Whoops!  Looks like $2:$2 failed."
    echo "Please try rerunning $prog again."
    exit 1
 }
@@ -181,7 +181,9 @@ set -x
 cat src/.dockerignore /assist/.dockerignore | grep -v '#' | awk '{print \"src/\"\$0}' > .dockerignore
 set -e
 cp src/$(basename $Dockerfile) /tmp/Dockerfile
+echo 'RUN true' >> /tmp/Dockerfile
 echo 'COPY last.build/version /built-from-sha' >> /tmp/Dockerfile
+echo 'RUN true' >> /tmp/Dockerfile
 "
 
 if ! rm -rf /tmp/last.build/; then
