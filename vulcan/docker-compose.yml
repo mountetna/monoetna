@@ -4,7 +4,6 @@ x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
   image: etna-base-dev
   volumes: &base-etna-service-volumes
-    - vulcan-node-modules:/app/node_modules
     - .:/app:delegated
     - /var/run/docker.sock:/var/run/docker.sock:ro
     - vulcan-app-gems:/app/vendor/bundle:rw
