@@ -30,7 +30,7 @@ Dockerfile:
 	cp ../docker/etna-base/release/Dockerfile .
 
 release-build:: .dockerignore
-	if [ -e $$baseFeTag/Dockerfile ]; then ; ../docker/build_image $$baseFeTag/Dockerfile; fi
+	if [ -e $$baseFeTag/Dockerfile ]; then ../docker/build_image $$baseFeTag/Dockerfile; fi
 
 release:: Dockerfile
 	if [ -e $$baseFeTag/Dockerfile ]; then if [ -n "$$PUSH_IMAGES" ]; then docker push $(fullFeTag); fi; fi
