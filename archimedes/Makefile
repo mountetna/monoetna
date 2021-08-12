@@ -10,6 +10,3 @@ fullTag:=$(IMAGES_PREFIX)$(baseTag)$(IMAGES_POSTFIX)
 
 release-test:: docker-ready
 	docker run --rm -e "HOST_DIR=$${PWD}" -v "${PWD}/tests/outputs:/app/tests/outputs" -v "archimedes-exec:/archimedes-exec" --mount 'type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock,readonly' -e RELEASE_TEST=1 -e CI_SECRET=$${CI_SECRET} -e IS_CI=$${IS_CI} ${fullTag} /entrypoints/development.sh pytest
-
-test:: docker-ready release-build
-	@ docker-compose run -e ${app_name_capitalized}_ENV=test -e CI_SECRET=$${CI_SECRET} -e IS_CI=$${IS_CI} --rm ${app_service_name} pytest

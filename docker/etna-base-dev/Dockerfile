@@ -75,5 +75,6 @@ RUN mv /tmp/docker/* /usr/local/bin/
 
 RUN mkdir -p /opt
 COPY src/entrypoints /entrypoints
-COPY src/fe.conf.erb /opt/fe.conf.erb
 
+COPY src/bin/* /bin/
+RUN chmod +x /bin/*

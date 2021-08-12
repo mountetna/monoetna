@@ -1,5 +1,3 @@
-BUILD_ARGS:=--build-arg RUN_NPM_INSTALL=1 $(BUILD_ARGS)
-
 include ../make-base/stubs.mk
 
 app_name=janus
