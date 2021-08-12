@@ -28,6 +28,8 @@ function ParameterizedStepUserInput({cwlParams = {}, type}: Parameterization) {
     });
     setState(some(utils.addStep('test-inputs', {
         run: `ui-queries/${type}`,
+        label: "Title here",
+        doc: "doc string would show here",
         in: Object.keys(cwlParams).map(paramName => ({source: `${paramName}/output`, id: paramName})),
         out: ['result'],
     })));
@@ -69,5 +71,25 @@ ScatterPlotlyUMAP.args = {
   cwlParams: {
       'data_options': require('./color_options.json'),
       'hide': ['x_by', 'y_by']
+  }
+};
+
+export const RecordSelection = Template.bind({});
+RecordSelection.args = {
+  type: TYPE.MULTIPLE_MULTISELECT_STRING_ALL,
+  cwlParams: {
+    'selection_options': {
+        'Experiment': ["exp1", "expA", "exp42"],
+        'Tissue': ["blood", "tumor", "dLN"],
+        'Fraction': ["myeloid", "lymphoid", "CD45neg"]
+      }
+  }
+};
+
+export const OldColorSelection = Template.bind({});
+OldColorSelection.args = {
+  type: TYPE.NESTED_SELECT_AUTOCOMPLETE,
+  cwlParams: {
+    'color_options': require('./color_options.json')
   }
 };
