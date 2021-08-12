@@ -13,7 +13,7 @@ findIngestHostConfigs () {
 }
 
 mkdir -p ~/.ssh
-if [[ -f "~/.ssh/known_hosts" ]]; then
+if [[ -f ~/.ssh/known_hosts ]]; then
   rm ~/.ssh/known_hosts
 fi
 
