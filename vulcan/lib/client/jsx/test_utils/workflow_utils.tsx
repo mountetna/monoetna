@@ -103,7 +103,7 @@ export class WorkflowUtils {
      Note -- this method will force a setStatus update to a 'complete' status with either the existing or a new
      url constructed for the purpose of this sourceName.
    */
-  forceDownloadedData(sourceName: string | [string, string], value: any) {
+  forceDownloadedData(sourceName: string | [string, string], value: any, curStatus = this.stateRef.current.status) {
     const workflow = this.workflow;
     let url: string | undefined;
     const [stepName, outputName] = typeof sourceName === "string" ? splitSource(sourceName) : sourceName;
@@ -117,10 +117,12 @@ export class WorkflowUtils {
     if (!url) url = "https://" + sourceName;
 
     // TODO: Set the inputs hash
-    this.dispatch(setStatus(createUpdatedStatusFixture(workflow, this.stateRef.current.status, createStepStatusFixture({
+    const newStatus = createUpdatedStatusFixture(workflow, curStatus, createStepStatusFixture({
       ...status, name: stepName, status: 'complete', downloads: {...status.downloads, [outputName]: url}
-    })), false));
+    }));
 
+    this.dispatch(setStatus(newStatus, false));
     this.dispatch(setDownloadedData(url, value));
+    return newStatus;
   }
 }

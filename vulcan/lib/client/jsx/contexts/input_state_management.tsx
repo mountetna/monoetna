@@ -60,10 +60,10 @@ export function WithBufferedInputs({
   }, [dispatch, stateRef, stepName]);
 
   useEffect(() => {
-    if (!state.bufferedSteps.includes(stepName)) {
+    if (!state.bufferedSteps.includes(stepName) && Object.keys(inputs).length > 0) {
       setInputs({});
     }
-  }, [setInputs, state.bufferedSteps, stepName]);
+  }, [setInputs, state.bufferedSteps, inputs, stepName]);
 
   const cancelInputs = useCallback(() => {
     setInputs({});
