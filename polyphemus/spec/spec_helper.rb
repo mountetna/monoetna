@@ -172,22 +172,30 @@ def stub_magma_setup(patient_documents)
         'models': { 'patient': { 'documents': patient_documents } }
     }.to_json })
 
-  stub_request(:post, "#{MAGMA_HOST}/update")
+  stub_magma_update("mvir1")
+end
+
+def stub_magma_documents(documents)
+  stub_request(:post, /#{MAGMA_HOST}\/retrieve/)
+    .to_return({ body: documents.to_json })
+end
+
+def stub_magma_update(project_name=nil)
+  stub_request(:post, /#{MAGMA_HOST}\/update$/)
     .to_return do |request|
+    body = StringIO.new(request.body)
+    content_length = body.read.length
+    body.rewind
 
-  body = StringIO.new(request.body)
-  content_length = body.read.length
-  body.rewind
+    tempfile = Rack::Multipart::Parser::TEMPFILE_FACTORY
+    bufsize = Rack::Multipart::Parser::BUFSIZE
+    params = Rack::Utils.default_query_parser
 
-  tempfile = Rack::Multipart::Parser::TEMPFILE_FACTORY
-  bufsize = Rack::Multipart::Parser::BUFSIZE
-  params = Rack::Utils.default_query_parser
+    info = Rack::Multipart::Parser.parse body, content_length, request.headers['Content-Type'], tempfile, bufsize, params
 
-  info = Rack::Multipart::Parser.parse body, content_length, request.headers['Content-Type'], tempfile, bufsize, params
-
-  expect(info.params["project_name"]).to eq("mvir1")
-  @all_updates << info.params["revisions"]
-  { body: '{}' }
+    expect(info.params["project_name"]).to eq(project_name) if project_name
+    @all_updates << info.params["revisions"] if info.params && info.params["revisions"]
+    { body: '{}' }
   end
 end
 
@@ -254,7 +262,7 @@ def stub_magma_models(fixture: 'spec/fixtures/magma_test_models.json')
 end
 
 def stub_magma_update_json
-  stub_request(:post, "#{MAGMA_HOST}/update")
+  stub_request(:post, /#{MAGMA_HOST}\/update$/)
     .to_return({ status: 200, body: {}.to_json, headers: { 'Content-Type': 'application/json' } })
 end
 

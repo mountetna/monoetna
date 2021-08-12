@@ -279,6 +279,11 @@ module Etna
         def bucket_name
           raw[:bucket_name]
         end
+
+        def updated_at
+          time = raw[:updated_at]
+          time.nil? ? nil : Time.parse(time)
+        end
       end
 
       class AuthorizeUploadRequest < Struct.new(:project_name, :bucket_name, :file_path, keyword_init: true)

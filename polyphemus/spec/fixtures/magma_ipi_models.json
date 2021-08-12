@@ -1,0 +1,151 @@
+{
+  "models": {
+    "project": {
+      "documents": {},
+      "template": {
+        "name": "project",
+        "identifier": "name",
+        "attributes": {
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "experiment": {
+            "name": "experiment",
+            "attribute_name": "experiment",
+            "model_name": "experiment",
+            "link_model_name": "experiment",
+            "display_name": "Experiment",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
+          }
+        }
+      }
+    },
+    "experiment": {
+      "documents": {},
+      "template": {
+        "parent": "project",
+        "name": "experiment",
+        "identifier": "name",
+        "attributes": {
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "project": {
+            "name": "project",
+            "attribute_name": "project",
+            "model_name": "project",
+            "link_model_name": "project",
+            "display_name": "Project",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "patient": {
+            "name": "patient",
+            "attribute_name": "patient",
+            "model_name": "patient",
+            "link_model_name": "patient",
+            "display_name": "Patient",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
+          }
+        }
+      }
+    },
+    "patient": {
+      "documents": {},
+      "template": {
+        "name": "patient",
+        "identifier": "name",
+        "attributes": {
+          "experiment": {
+            "name": "experiment",
+            "attribute_name": "experiment",
+            "model_name": "experiment",
+            "link_model_name": "experiment",
+            "display_name": "Experiment",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "sample": {
+            "name": "sample",
+            "attribute_name": "sample",
+            "model_name": "sample",
+            "link_model_name": "sample",
+            "display_name": "Sample",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "collection"
+          }
+        },
+        "parent": "experiment"
+      }
+    },
+    "sample": {
+      "documents": {},
+      "template": {
+        "parent": "patient",
+        "identifier": "name",
+        "attributes": {
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "patient": {
+            "name": "patient",
+            "attribute_name": "patient",
+            "model_name": "patient",
+            "link_model_name": "patient",
+            "display_name": "Patient",
+            "validation": null,
+            "attribute_type": "parent"
+          }
+        }
+      }
+    }
+  }
+}
