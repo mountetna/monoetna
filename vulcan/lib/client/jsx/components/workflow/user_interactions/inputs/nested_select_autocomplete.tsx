@@ -64,7 +64,7 @@ function LeafOptions({
 
 type OptionSet = {[k: string]: null | OptionSet};
 
-export default function NestedSelectAutocompleteInput({ data, onChange, value }: WithInputParams<{}, string, OptionSet>) {
+export default function NestedSelectAutocompleteInput({ label, data, onChange, value }: WithInputParams<{label?: string}, string, OptionSet>) {
   const allOptions = useMemoized(joinNesting, data);
   const [path, setPath] = useState([] as string[]);
 
@@ -97,8 +97,16 @@ export default function NestedSelectAutocompleteInput({ data, onChange, value }:
     [allOptions, path, onChange]
   );
 
+  let lab
+  if (label) {
+    lab = label;
+  } else {
+    lab = null;
+  }
+
   return (
     <div>
+      {lab}
       <div>
         {path.map((value, index) => {
               const options = getOptions(path.slice(0, index), allOptions);

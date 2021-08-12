@@ -1,4 +1,4 @@
-import React, {useReducer, createContext, useRef} from 'react';
+import React, {useReducer, createContext, useRef, useState, useCallback} from 'react';
 import VulcanReducer, {defaultVulcanState, VulcanState} from '../reducers/vulcan_reducer';
 import {VulcanAction} from "../actions/vulcan_actions";
 import {defaultSessionStorageHelpers, useLocalSessionStorage} from "./session_storage";
@@ -50,16 +50,20 @@ export const VulcanProvider = (props: ProviderProps & Partial<VulcanContextData>
     const actionInvokerHelpers = withOverrides({useActionInvoker}, props);
     const invoker = actionInvokerHelpers.useActionInvoker();
     const stateRef = useRef(props.state || defaultContext.state);
-    const [state, dispatch] = useReducer(function (state: VulcanState, action: VulcanAction) {
+    const [state, setState] = useState(stateRef.current);
+
+    const dispatch = useCallback((action: VulcanAction) => {
       if (props.logActions) {
         console.log(action.type, action);
       }
 
-      const result = VulcanReducer(state, action);
-
+      const result = VulcanReducer(stateRef.current, action);
       stateRef.current = result;
+      setState(result);
+
       return result;
-    }, stateRef.current);
+    }, [props.logActions]);
+
     const localSessionHelpers = withOverrides(useLocalSessionStorage(state, props), props);
     const apiHelpers = withOverrides(useApi(invoker), props);
     const {showErrors, getData, getWorkflows, pollStatus, postInputs} = apiHelpers;

@@ -1,6 +1,6 @@
 import plotly.express as px
 
-from .utils import _default_to_if_None_and_logic
+from .utils import _default_to_if_make_and_logic
 from .colors import colors
 from ..list import unique, order
 
@@ -10,8 +10,9 @@ def scatter_plotly(
     size = 5, color_panel: list = colors,
     color_order: str = 'increasing',
     order_when_continuous_color: bool = False,
-    plot_title: str = None, legend_title: str = None,
-    xlab: str = None, ylab: str = None
+    plot_title: str = "make", legend_title: str = "make",
+    xlab: str = "make", ylab: str = "make",
+    hover_data: str = None
     ):
     """
     Produces a scatter plot using plotly.express.scatter based on the pandas 'data_frame' given.
@@ -24,11 +25,11 @@ def scatter_plotly(
     'plot_title', 'legend_title', 'xlab', and 'ylab' set titles.
     """
 
-    # Parse dependent defaults (given 'None' b/c python)
-    xlab = _default_to_if_None_and_logic(xlab, x_by)
-    ylab = _default_to_if_None_and_logic(ylab, y_by)
-    plot_title = _default_to_if_None_and_logic(plot_title, color_by)
-    legend_title = _default_to_if_None_and_logic(legend_title, color_by)
+    # Parse dependent defaults
+    xlab = _default_to_if_make_and_logic(xlab, x_by)
+    ylab = _default_to_if_make_and_logic(ylab, y_by)
+    plot_title = _default_to_if_make_and_logic(plot_title, color_by)
+    legend_title = _default_to_if_make_and_logic(legend_title, color_by)
 
     # Add to px_args (Can probably remove this section once I learn python syntax better!)
     px_args['data_frame'] = data_frame
@@ -36,6 +37,7 @@ def scatter_plotly(
     px_args['y'] = y_by
     px_args['color'] = color_by
     px_args['color_discrete_sequence'] = color_panel
+    px_args['hover_data'] = hover_data
 
     # Set legend key order.
     discrete_color = any(map(lambda x: isinstance(x, (str, bool)), data_frame[color_by]))
@@ -57,13 +59,12 @@ def scatter_plotly(
         title_text=plot_title,
         xaxis_title=xlab,
         yaxis_title=ylab,
-        legend_title=legend_title,
         legend= {'itemsizing': 'constant'}
     )
 
     # Tweaks
-    # fig.update_coloraxes(colorbar_title_text=color_by)
-    fig.update_traces(marker={'size': size})
+    fig.update_coloraxes(colorbar_title_text=legend_title)
+    fig.update_traces(marker={'size': size}, )
 
     return fig
 
