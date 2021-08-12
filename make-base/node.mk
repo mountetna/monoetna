@@ -5,3 +5,6 @@ docker-ready::
 
 release-test::
 	docker run --rm $(fullTag) npm test
+	docker volume rm sync-assets || true
+	docker run --rm -v sync-assets:/sync-assets $(fullTag) deploy syncAssets true
+	docker volume rm sync-assets || true
