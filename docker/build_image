@@ -181,6 +181,7 @@ set -x
 cat src/.dockerignore /assist/.dockerignore | grep -v '#' | awk '{print \"src/\"\$0}' > .dockerignore
 set -e
 cp src/$(basename $Dockerfile) /tmp/Dockerfile
+echo >> /tmp/Dockerfile
 echo 'RUN true' >> /tmp/Dockerfile
 echo 'COPY last.build/version /built-from-sha' >> /tmp/Dockerfile
 echo 'RUN true' >> /tmp/Dockerfile
