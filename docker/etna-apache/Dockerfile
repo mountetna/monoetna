@@ -35,3 +35,10 @@ COPY src/bin/* /bin/
 RUN chmod +x /bin/*
 
 RUN /bin/prepare_shib.sh
+
+COPY src/entrypoints /entrypoints
+COPY src/main.conf.template .
+RUN chmod +x /entrypoints/*
+
+# Hooks provided by app specific front end instances should be included here.
+RUN mkdir -p /usr/opt/httpd.conf.d/

@@ -27,6 +27,10 @@ docker-ready: config-ready build
 build: ## Builds all development related docker images
 	@ for image in $(images); do make -s -C $$image || exit; done
 
+.PHONY: update
+update: docker-ready ## Runs all projects' updates, running bundle and npm install
+	@ set -e && for project in $(projects); do make -C ../$$project update; done
+
 .PHONY: up
 up: docker-ready ## Starts up all containers of this project in the background
 	@ for project in $(projects); do cd ../$$project && make config.yml || true; done

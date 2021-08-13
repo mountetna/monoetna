@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   deployer_app:
-    image: deployer
+    image: deployer-base
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./deployer.sh:/bin/deployer
