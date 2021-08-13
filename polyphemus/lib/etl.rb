@@ -36,6 +36,7 @@ class Polyphemus
           Polyphemus.instance.setup_db
           Polyphemus.instance.setup_logger
           Polyphemus.instance.setup_sequel
+          Polyphemus.instance.setup_ssh
         end
       end) unless self.const_defined?(:Run)
 

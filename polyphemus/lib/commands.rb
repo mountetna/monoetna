@@ -626,6 +626,7 @@ class Polyphemus
       super
       Polyphemus.instance.setup_db
       Polyphemus.instance.setup_sequel
+      Polyphemus.instance.setup_ssh
     end
   end
 end
