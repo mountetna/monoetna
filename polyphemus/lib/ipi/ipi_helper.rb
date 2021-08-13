@@ -93,4 +93,18 @@ class IpiHelper
     raise "FCS filename #{file_name} does not match expected regex" unless regex.match(file_name)
     regex.match(file_name)
   end
+
+  def rna_seq_tube_name(plate_name, tube_name)
+    return tube_name unless rna_seq_renames.key?(plate_name)
+
+    plate_renames = rna_seq_renames[plate_name]
+
+    return tube_name unless plate_renames.key?(tube_name)
+
+    plate_renames[tube_name]
+  end
+
+  def rna_seq_renames
+    @rna_seq_renames ||= JSON.parse(File.read('./lib/ipi/ipi_bulk_rna_renames.json'))
+  end
 end
