@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-set -e
-
-if [ -n "$VERBOSE" ]; then
-  set -x
-fi
-
-cp /app/build/ingest/known_hosts ~/.ssh/
