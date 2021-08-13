@@ -47,12 +47,14 @@
         :password: pass
         :alias: cat
         :root: /root/directory/to/scan
+        :ssh-key: public-key-of-server
     :ssh:
       - :host: ssh.example.com
         :username: user
         :password: pass
         :alias: c4
         :root: /root/directory/to/save/files/in
+        :ssh-key: public-key-of-server
 
 :production:
   :magma:
@@ -100,9 +102,11 @@
         :password: pass
         :alias: cat
         :root: /
+        :ssh-key: public-key-of-server
     :ssh:
       - :host: ssh.example.com
         :username: user
         :password: pass
         :alias: c4
         :root: /
+        :ssh-key: public-key-of-server
