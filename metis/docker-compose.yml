@@ -65,7 +65,8 @@ x-base-etna-services:
     entrypoint: /entrypoints/development_app_fe.sh
     volumes:
       - public-dir:/app/public:ro
-      - ./data:/app/data:delegated
+      - data-dir:/app/data:ro
+      - ./metis_app_fe:/app/metis_app_fe:ro
     depends_on:
       - 'metis_app'
     command: ['httpd', '-DFOREGROUND']
