@@ -25,7 +25,7 @@ const moveEye = (e) => {
 
   const point = { x: e.clientX, y: e.clientY };
 
-  const radius = maxradius / maxdist * dist(center, point);
+  const radius = maxradius * Math.sqrt(dist(center, point) / maxdist);
 
   const vector = norm({ x: point.x - center.x, y: point.y - center.y });
 

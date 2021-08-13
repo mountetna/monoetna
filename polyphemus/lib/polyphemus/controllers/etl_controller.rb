@@ -35,7 +35,7 @@ class EtlController < Polyphemus::Controller
     success_json([ {
       name: "redcap",
       schema: {
-	"$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$schema": "http://json-schema.org/draft-04/schema#",
 	"$id": "https://example.com/product.schema.json",
 	title: "Redcap Loader",
 	description: "This loader takes data from a Redcap host and imports it into Magma according to a specified mapping template. It requires a Redcap API token.",
@@ -45,22 +45,43 @@ class EtlController < Polyphemus::Controller
             properties: {
               each: { "$ref": "#/definitions/each" },
               invert: { type: "boolean" },
-              scripts: { "$ref": "#/definitions/script" }
+              scripts: {
+                type: "array",
+                items: { "$ref": "#/definitions/script" }
+              }
             },
             required: [ "scripts" ]
+          },
+          each: {
+            type: "array",
+            items: {
+              oneOf: [
+                { enum: ["record", "event", "repeat"] },
+                { "$ref": "#/definitions/each_entity" },
+              ]
+            }
+          },
+          each_entity: {
+            type: "object",
+            additionalProperties: { type: "string" },
+            properties: {
+              record: { type: "string" },
+              event: { type: "string" },
+              repeat: { type: "string" }
+            },
+            maxProperties: 1,
+            minProperties: 1
           },
           script: {
             type: "object",
             properties: {
               attributes: {
                 type: "object",
-                patternProperties: {
-                  "^[a-z]*(_[a-z]+)*$": {
-                    oneOf: [
-                      { type: "string" },
-                      { "$ref": "#/definitions/attribute_value" }
-                    ]
-                  }
+                additionalProperties: {
+                  oneOf: [
+                    { type: "string" },
+                    { "$ref": "#/definitions/attribute_value" }
+                  ]
                 }
               }
             },
@@ -70,7 +91,7 @@ class EtlController < Polyphemus::Controller
             type: "object",
             properties: {
               redcap_field: { type: "string" },
-              value: { type: "string" },
+              value: { enum: [ "text", "value", "label", "note", "select_choice", "combine", "none" ] },
               text: { type: "string" },
               combine: { type: "string" },
               equals: { type: "string" },
@@ -78,12 +99,12 @@ class EtlController < Polyphemus::Controller
               in: { type: "array", items: { type: "string" } },
               exists: { type: "boolean" }
             },
-            required: [ "redcap_field", "value" ]
+            required: [ "value" ]
           }
         },
-	type: "object"
-        patternProperties: {
-          "^[a-z]*(_[a-z]+)*$": { "$ref": "#/definitions/redcap_model" }
+	type: "object",
+        additionalProperties: {
+          "$ref": "#/definitions/redcap_model"
         }
       }
     } ])
@@ -104,7 +125,7 @@ class EtlController < Polyphemus::Controller
             {
               attributes: {
                 tube_name: {
-                  match: /-DN?\d+ETA/,
+                  match: "-DN?\d+ETA",
                   value: "none",
                 },
                 biospecimen_date: "dos_esc_ta",
@@ -117,7 +138,7 @@ class EtlController < Polyphemus::Controller
             {
               attributes: {
                 tube_name: {
-                  match: /-DN?\d+PBMC/,
+                  match: "-DN?\d+PBMC",
                   value: "none",
                 },
                 biospecimen_date: "process_toc_4",
@@ -130,7 +151,7 @@ class EtlController < Polyphemus::Controller
             {
               attributes: {
                 tube_name: {
-                  match: /-DN?\d+NAS/,
+                  match: "-DN?\d+NAS",
                   value: "none",
                 },
                 biospecimen_date: "date_swab",
@@ -149,7 +170,7 @@ class EtlController < Polyphemus::Controller
             {
               attributes: {
                 tube_name: {
-                  match: /-DN?\d+ETA/,
+                  match: "-DN?\d+ETA",
                   value: "none",
                 },
                 biospecimen_date: "dos_esc_ta",
@@ -162,7 +183,7 @@ class EtlController < Polyphemus::Controller
             {
               attributes: {
                 tube_name: {
-                  match: /-DN?\d+PBMC/,
+                  match: "-DN?\d+PBMC",
                   value: "none",
                 },
                 biospecimen_date: "process_toc_4",
@@ -175,7 +196,7 @@ class EtlController < Polyphemus::Controller
             {
               attributes: {
                 tube_name: {
-                  match: /-DN?\d+BLD/,
+                  match: "-DN?\d+BLD",
                   value: "none",
                 },
                 biospecimen_date: "process_toc_4",
@@ -194,7 +215,7 @@ class EtlController < Polyphemus::Controller
             {
               attributes: {
                 name: {
-                  match: /-DN?\d+PL/,
+                  match: "-DN?\d+PL",
                   value: "none",
                 },
                 biospecimen_date: "process_toc_4",
@@ -207,7 +228,7 @@ class EtlController < Polyphemus::Controller
             {
               attributes: {
                 name: {
-                  match: /-DN?\d+SR/,
+                  match: "-DN?\d+SR",
                   value: "none",
                 },
                 biospecimen_date: "process_toc_1",
@@ -226,7 +247,7 @@ class EtlController < Polyphemus::Controller
             {
               attributes: {
                 tube_name: {
-                  match: /-DN?\d+BLD/,
+                  match: "-DN?\d+BLD",
                   value: "none",
                 },
                 biospecimen_date: "process_toc_4",
@@ -239,7 +260,7 @@ class EtlController < Polyphemus::Controller
           ],
         },
         patient: {
-          each: [ "record", { "event" => /Enrollment/ } ],
+          each: [ "record", { "event" => "Enrollment" } ],
           scripts: [
             {
               attributes: {
@@ -372,7 +393,7 @@ class EtlController < Polyphemus::Controller
           ],
         },
         treatment: {
-          each: [ "record", { "event" => /Enrollment/ } ],
+          each: [ "record", { "event" => "Enrollment" } ],
           scripts: [
             {
               attributes: {
@@ -660,7 +681,7 @@ class EtlController < Polyphemus::Controller
               }
             },
             {
-              each: [ "record", { "event" => /Enrollment/ }, { "field" => "meds_hosp_cs_iv_spec" } ],
+              each: [ "record", { "event" => "Enrollment" }, { "field" => "meds_hosp_cs_iv_spec" } ],
               attributes: {
                 name: {
                   redcap_field: "meds_hosp_cs_iv_spec",
@@ -677,7 +698,7 @@ class EtlController < Polyphemus::Controller
               }
             },
             {
-              each: [ "record", { "event" => /Enrollment/ }, { "field" => "meds_hosp_cs_iv_spec" } ],
+              each: [ "record", { "event" => "Enrollment" }, { "field" => "meds_hosp_cs_iv_spec" } ],
               attributes: {
                 name: {
                   redcap_field: "meds_hosp_cs_iv_spec",
@@ -694,7 +715,7 @@ class EtlController < Polyphemus::Controller
               }
             },
             {
-              each: [ "record", { "event" => /Enrollment/ }, { "field" => "meds_hosp_cs_iv_spec" } ],
+              each: [ "record", { "event" => "Enrollment" }, { "field" => "meds_hosp_cs_iv_spec" } ],
               attributes: {
                 name: {
                   redcap_field: "meds_hosp_cs_iv_spec",
@@ -727,7 +748,7 @@ class EtlController < Polyphemus::Controller
               }
             },
             {
-              each: [ "record", { "event" => /Enrollment/ }, { "field" => "meds_hosp_cs_spec" } ],
+              each: [ "record", { "event" => "Enrollment" }, { "field" => "meds_hosp_cs_spec" } ],
               attributes: {
                 name: "meds_hosp_cs_spec",
                 dose: "",
@@ -741,7 +762,7 @@ class EtlController < Polyphemus::Controller
               }
             },
             {
-              each: [ "record", { "event" => /Enrollment/ }, { "field" => "meds_hosp_cs_po_spec" } ],
+              each: [ "record", { "event" => "Enrollment" }, { "field" => "meds_hosp_cs_po_spec" } ],
               attributes: {
                 name: {
                   redcap_field: "meds_hosp_cs_po_spec",
@@ -758,7 +779,7 @@ class EtlController < Polyphemus::Controller
               }
             },
             {
-              each: [ "record", { "event" => /Enrollment/ }, { "field" => "meds_hosp_cs_po_spec" } ],
+              each: [ "record", { "event" => "Enrollment" }, { "field" => "meds_hosp_cs_po_spec" } ],
               attributes: {
                 name: {
                   redcap_field: "meds_hosp_cs_po_spec",
@@ -775,7 +796,7 @@ class EtlController < Polyphemus::Controller
               }
             },
             {
-              each: [ "record", { "event" => /Enrollment/ }, { "field" => "meds_hosp_cs_po_spec" } ],
+              each: [ "record", { "event" => "Enrollment" }, { "field" => "meds_hosp_cs_po_spec" } ],
               attributes: {
                 name: "meds_hosp_cs_po_oth",
                 dose: "meds_hosp_cs_po_oth_dose",
@@ -790,7 +811,7 @@ class EtlController < Polyphemus::Controller
           ],
         },
         symptom: {
-          each: [ "record", { "event" => /Enrollment/ } ],
+          each: [ "record", { "event" => "Enrollment" } ],
           scripts: [
             {
               attributes: {
@@ -2316,7 +2337,7 @@ class EtlController < Polyphemus::Controller
           ],
         },
         comorbidity: {
-          each: [ "record", { "event" => /Enrollment/ } ],
+          each: [ "record", { "event" => "Enrollment" } ],
           scripts: [
             {
               attributes: {
@@ -2788,7 +2809,7 @@ class EtlController < Polyphemus::Controller
           ],
         },
         admission_lab: {
-          each: [ "record", { "event" => /Enrollment/ } ],
+          each: [ "record", { "event" => "Enrollment" } ],
           scripts: [
             {
               attributes: {
