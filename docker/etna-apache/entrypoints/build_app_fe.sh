@@ -14,7 +14,7 @@ rm -rf /usr/opt/httpd.conf.d/*.include
 sed main.conf.template -e "s/-app_name-/$APP_NAME/g" > /usr/opt/httpd.conf.d/main.conf
 
 if [ -e /app/build ]; then
-  for hook in /app/*; do
+  for hook in /app/build/*; do
     if stat -c  %A $hook | grep x &>/dev/null; then
       $hook
     fi
