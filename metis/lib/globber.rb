@@ -17,7 +17,12 @@ class Metis
         folders = Metis::Folder.where(Sequel.like(:folder_name, likeify_glob(folder_name))).all
         return folders.map { |f| f.id } + folders.map { |f| f.child_folders.map { |f2| f2.id } }.flatten
       else
-        folders = Metis::Folder.where(folder_name: folder_name).all
+        if folder_name[0] == "{" && folder_name[-1] == "}"
+          # {a,b,c,d} -- search in folders a OR b OR c OR d
+          folders = Metis::Folder.where(folder_name: folder_name[1..-2].split(",")).all
+        else
+          folders = Metis::Folder.where(folder_name: folder_name).all
+        end
 
         # foo/**/*.txt
         return folders.map { |f| f.id }.concat(folders.map { |f| f.child_folders.map { |f2| f2.id } }).flatten if recursive_glob
@@ -44,7 +49,6 @@ class Metis
     def recursive_glob
       return @glob_parts.length == 3 && @glob_parts[1] == "**" if @is_file_glob
 
-      (@glob_parts.length == 2 && @glob_parts[1] == "*") ||
       (@glob_parts.length == 3 && @glob_parts[1] == "**")
     end
 
