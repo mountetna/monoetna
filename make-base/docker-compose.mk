@@ -50,6 +50,9 @@ release-build:: .dockerignore
 	touch /tmp/.release-test
 
 release::
+	mkdir -p /tmp/etna-build-markers
+	touch /tmp/etna-build-markers/$(baseTag)
+	touch /tmp/.release-test
 	make release-build
 	if ! [ -n "$$NO_TEST" ]; then make /tmp/.release-test; fi
 	if [ -e Dockerfile ]; then if [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi; fi
