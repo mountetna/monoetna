@@ -48,7 +48,7 @@ class Polyphemus
              "--exclude=test",
              "--exclude=Reports",
              "--exclude=Stats",
-             "--rsh=\"/usr/bin/sshpass -p #{password} ssh -l #{username}\""]
+             "--rsh=\"/usr/bin/sshpass -p #{password} ssh -o StrictHostKeyChecking=no -l #{username}\""]
           )
 
           raise results.error unless results.success?
