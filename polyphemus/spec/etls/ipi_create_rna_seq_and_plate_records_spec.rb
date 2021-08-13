@@ -1,7 +1,6 @@
 describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
   before(:each) do
     stub_metis_setup
-    stub_magma_models(fixture: "spec/fixtures/magma_ipi_models.json")
     @all_updates = []
   end
 
@@ -11,43 +10,6 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
       folder_path: folder_path,
       updated_at: updated_at,
     })
-  end
-
-  def updates
-    @all_updates.inject({}) do |acc, n|
-      n.keys.each do |k|
-        (acc[k] ||= {}).update(n[k])
-      end
-      acc
-    end
-  end
-
-  it "creates containing records" do
-    stub_magma_update
-    stub_metis_scan([
-      folder("IPIADR001.N1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
-      folder("IPIADR001.T1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.T1.rna.live"),
-      folder("IPIBLAD001.T1.rna.live", "bucket/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
-    ])
-
-    etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
-
-    etl.run_once
-
-    # Make sure containing records are created
-    expect(updates).to eq(
-      { "experiment" => {
-        "Adrenal" => { "name" => "Adrenal", "project" => "UCSF Immunoprofiler" },
-        "Bladder" => { "name" => "Bladder", "project" => "UCSF Immunoprofiler" },
-      }, "patient" => {
-        "IPIADR001" => { "experiment" => "Adrenal", "name" => "IPIADR001" },
-        "IPIBLAD001" => { "experiment" => "Bladder", "name" => "IPIBLAD001" },
-      }, "project" => { "UCSF Immunoprofiler" => { "name" => "UCSF Immunoprofiler" } }, "sample" => {
-        "IPIADR001.N1" => { "name" => "IPIADR001.N1", "patient" => "IPIADR001" },
-        "IPIADR001.T1" => { "name" => "IPIADR001.T1", "patient" => "IPIADR001" },
-        "IPIBLAD001.T1" => { "name" => "IPIBLAD001.T1", "patient" => "IPIBLAD001" },
-      } }
-    )
   end
 
   describe "create Magma records" do
