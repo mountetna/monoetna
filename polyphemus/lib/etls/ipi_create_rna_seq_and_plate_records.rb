@@ -69,7 +69,7 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
 
         record_name = is_control?(folder.folder_name) ?
           control_name(folder.folder_name) :
-          @helper.rna_seq_tube_name(plate_name, folder.folder_name)
+          @helper.corrected_rna_seq_tube_name(plate_name, folder.folder_name)
 
         attrs = {
           rna_seq_plate: plate_name,
