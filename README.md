@@ -18,7 +18,7 @@ Top Level directories fall into one of three types:
 1. Deployable applications.
    - `metis` `timur` `edge-apache` and others. Generally these applications fall into one of three categories
      1. `etna` applications. These involve, at minimum, a ruby server, and possibly a javascript asset pipeline. They also share libraries via the `etna` directory.
-     2. infrastructure applications. Currently this is mainly the `edge-apache` but could include other vendor applications we intend to build and use in our environment.
+     2. infrastructure applications. For instance `edge-apache` and `development-psql`.
      3. "Support" applications like `mountetna.github.io` that do not generally need to be run in standard development, and have special properties.
    - Most of these applications define their own `Makefile`, `Dockerfile`, and `docker-compose.yml` files. These
      can provide overwrites of standard behaviors. see `docker/README.md` for more details.
@@ -41,6 +41,16 @@ Use the `Makefile` at the top of the repo to easily start and stop a set of all 
 
 You will want to use per-project `Makefile`s to access proejct specific databases and bash consoles. eg: `make -C janus help`
 
+### Update
+
+Once you've got docker installed and such, you'll want to start by running `make update`.  This command will take a long time,
+as it will first need download many things, build our docker images, start databases, update them, install gems and npm,
+and a bunch of other filesystem intensive tasks.
+
+Subsequently, after pulling a new set of changes or adjusting Gemfile / package.json / Dockerfiles, run `make update` again
+to apply those changes.  I do my best to ensure that builds are fast and cached, but there is a lot of filesystem work needed
+by our complex system, so it will consume resources.
+
 ### Builds
 
 See more details on how builds behave and how to change the development environment in the `docker/README.md` file.
@@ -61,7 +71,7 @@ each service like the following:
 127.0.0.1 prometheus.development.local
 ```
 
-### Seeding janus and metis
+### Seeding janus
 
 In addition, you'll want to configure some users and projects into your janus environment.
 
@@ -83,19 +93,7 @@ make -C janus bash
 ```
 
 ### Seeding timur and magma
-
-You'll want to also likely setup some useful data for timur and magma. These seeds are large (~2GB total) but give you
-fairly useful data to test again.
-
-```bash
-# Make sure other services are not accessing the db by turning them off
-make down
-export TOKEN=JANUSTOKEN
-./bin/seed_databases
-```
-
-NOTE: This does delete your development timur and magma databases on each run. It is a complete in place
-replacement of those with the seed data.
+TODO!  A nice way of setting up development timur and magma would be, uh, nice.
 
 ## Debugging issues
 
@@ -136,20 +134,4 @@ docker network rm NAME
 3. Push your changes to master, aka the monoetna repo.
 4. Create PR in monoetna repo, showing the entire change set
 5. Merge to master on monoetna
-6. A github action will start and push your changes to the subtree repos automatically!
-
-### Branches
-
-Both `./bin/pull-subtrees` and `./bin/push-subtrees` can push to branches
-that exist on child repositories. However, in that case, _only repositories
-that actually already contain a branch matching the name of the current
-monoetna branch will be pushed or pulled_.
-
-IE:
-etna has a branch named zc/my-feature
-metis has a branch named zc/my-feature
-etna-js does not
-
-If I `./bin/push-subtrees` from branch zc/my-feature, only etna and metis will have changes pushed to.
-
-In general, it is wiser to focus on master level development.
+6. A github action will start and push your changes and deploy to staging.

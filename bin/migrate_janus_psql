@@ -1,0 +1,18 @@
+#! /usr/bin/env bash
+
+set -e
+set -x
+
+docker volume rm ps9 || true
+docker volume rm ps9share || true
+docker volume rm janus-db-data10 || true
+
+docker run --rm -v ps9:/usr/lib/postgresql/9.6/ postgres:9.6.18 true
+docker run --rm -v ps9share:/usr/share/postgresql/9.6/ postgres:9.6.18 true
+docker run --rm -d -v janus-db-data10:/var/lib/postgresql/data -e=POSTGRES_DB=janus_new_development -e=POSTGRES_PASSWORD=password -e=POSTGRES_USER=developer -e=APP_NAME=janus_new --name janus_db_1 development-psql
+sleep 20
+docker stop janus_db_1
+docker run --rm -e=POSTGRES_DB=janus_development -e=POSTGRES_PASSWORD=password -e=POSTGRES_USER=developer -e=APP_NAME=janus -v ps9:/usr/lib/postgresql/9.6/ -v ps9share:/usr/share/postgresql/9.6/ -v janus-db-data:/janusold -v janus-db-data10:/janusnew development-psql gosu postgres bash -c 'cd $HOME && pg_upgrade -U developer -d /janusold -D /janusnew -b /usr/lib/postgresql/9.6/bin -B /usr/lib/postgresql/10/bin'
+
+docker volume rm ps9 || true
+docker volume rm ps9share || true
