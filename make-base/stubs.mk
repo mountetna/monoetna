@@ -42,10 +42,6 @@ migrate:: ## Runs migrations in an app environment for the given project
 restart:: ## Restarts all containers for the given project(s)
 	@ true
 
-.PHONY: test
-test:: ## Runs all tests for the given project(s)
-	@ true
-
 .PHONY: release
 release:: ## Builds static docker images staged for release, runs tests against them, and pushes them to dockerhub (requires PUSH=1)
 	@ true
@@ -63,6 +59,9 @@ irb:: ## Starts up an irb session in the context of the given project
 	@ true
 
 config-ready::
+	@ true
+
+update::
 	@ true
 
 docker-ready::

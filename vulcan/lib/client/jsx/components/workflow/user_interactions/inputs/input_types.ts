@@ -15,6 +15,12 @@ export type InputType = string;
 // This type represents the unflattened raw data format coming in from the cwl.
 export type DataEnvelope<Inner> = { [k: string]: Inner };
 
+export function nulled_vals(de: DataEnvelope<any>): DataEnvelope<null> {
+  let de_ = {...de};
+  Object.keys(de_).forEach((i) => de_[i] = null);
+  return de_
+}
+
 export interface InputSpecification {
   type: InputType;
   label: string;

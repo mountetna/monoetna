@@ -11,6 +11,7 @@ x-base-etna-service:
     - vulcan-tmp-dir:/app/tmp:rw
     - vulcan-public-dir:/app/public:rw
     - vulcan-opt-dir:/usr/opt:rw
+    - vulcan-node-modules:/app/node_modules
     - ../etna:/etna:delegated
   environment: &base-etna-env
     'VULCAN_ENV': 'development'
@@ -37,16 +38,15 @@ x-base-etna-services:
   'vulcan_app': &base-etna-app # The ruby webserver
     <<: *base-etna-service
     command: ./bin/puma.sh
+    environment:
+      <<: *base-etna-env
+      WAIT_FOR_DB: 1
     depends_on:
       - 'vulcan_db'
 
   'vulcan_webpack':
     &base-etna-webpack # The ruby webpack server watching for changes
     <<: *base-etna-service
-    environment:
-      <<: *base-etna-env
-      RUN_NPM_INSTALL: 'true'
-      SKIP_RUBY_SETUP: 'true'
     command: npm run webpack
 
   'vulcan_db':
@@ -64,18 +64,14 @@ x-base-etna-services:
   'vulcan_app_fe':
     &base-etna-fe # The application level apache frontend serving static assets, data, and proxying the main app.
     image: etna-apache
+    entrypoint: /entrypoints/development_app_fe.sh
     volumes:
       - vulcan-public-dir:/app/public:ro
-      - vulcan-opt-dir:/usr/opt:ro
-      - ../docker/etna-base-dev/entrypoints:/entrypoints:ro
       - ./data:/app/data:delegated
     depends_on:
       - 'vulcan_app'
-    entrypoint: /entrypoints/development.sh
     command: ['httpd', '-DFOREGROUND']
     environment:
-      SKIP_BUILD: '1'
-      WAIT_FOR_APP: '1'
       APP_NAME: 'vulcan'
 
 volumes:
@@ -98,6 +94,9 @@ volumes:
     name: 'vulcan-data-dir'
   vulcan-opt-dir:
     driver: local
+  vulcan-node-modules:
+    driver: local
+    name: "vulcan-node-modules"
 
 networks:
   edge_net:
