@@ -3,7 +3,7 @@
 require_relative "./metis_file_etl"
 
 require_relative "etl"
-require_relative "time_scan_based_etl_scanner"
+require_relative "hash_scan_based_etl_scanner"
 
 class Polyphemus
   class MetisFileForMagmaModelEtlCursor < EtlCursor
@@ -41,7 +41,7 @@ class Polyphemus
 
       super(
         cursor_group: EtlCursorGroup.new(file_cursors),
-        scanner: TimeScanBasedEtlScanner.new.start_batch_state do |cursor|
+        scanner: HashScanBasedEtlScanner.new.start_batch_state do |cursor|
           find_request = Etna::Clients::Metis::FindRequest.new(
             project_name: cursor[:project_name],
             bucket_name: cursor[:bucket_name],
@@ -52,6 +52,8 @@ class Polyphemus
           find_request
         end.result_updated_at do |file_record|
           file_record.updated_at
+        end.result_file_hashes do |file_record|
+          file_record.file_hash
         end.result_id do |file_record|
           file_record.file_path
         end.execute_batch_find do |find_request, i|

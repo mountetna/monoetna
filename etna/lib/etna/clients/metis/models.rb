@@ -269,6 +269,10 @@ module Etna
         def size
           raw[:size]
         end
+
+        def file_hash
+          raw[:file_hash]
+        end
       end
 
       class Folder
