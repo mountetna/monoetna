@@ -19,14 +19,13 @@ class Polyphemus
   # Abstract base class for an ETL that scans metis for files using the find api.
   class MetisFileEtl < Etl
     # Subclasses should provide default values here, since commands are constructed
-    def initialize(project_bucket_pairs:, metis_client: nil, limit: 20, file_name_globs: [])
+    def initialize(project_bucket_pairs:, metis_client: nil, limit: 20)
       file_cursors = project_bucket_pairs.map do |project_name, bucket_name|
         MetisFileEtlCursor.new(job_name: self.class.name, project_name: project_name, bucket_name: bucket_name).load_from_db
       end
 
       @metis_client = metis_client
       @limit = limit
-      @file_name_globs = file_name_globs
 
       super(
           cursor_group: EtlCursorGroup.new(file_cursors),
@@ -57,16 +56,6 @@ class Polyphemus
               value: (cursor.updated_at + 1).iso8601,
           )
       ) unless cursor.updated_at.nil?
-      begin
-        @file_name_globs.each do |glob|
-          find_request.add_param(Etna::Clients::Metis::FindParam.new(
-            type: "file",
-            attribute: "name",
-            predicate: "glob",
-            value: glob,
-          ))
-        end
-      end unless @file_name_globs.empty?
     end
   end
 end
