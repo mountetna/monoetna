@@ -25,7 +25,14 @@ class Metis
         end
 
         # foo/**/*.txt
-        return folders.map { |f| f.id }.concat(folders.map { |f| f.child_folders.map { |f2| f2.id } }).flatten if recursive_glob
+        # foo/* for files
+        begin
+          folder_ids = folders.map { |f| f.child_folders.map { |f2| f2.id } }
+
+          folder_ids = folder_ids.concat(folders.map { |f| f.id }).flatten if @is_file_glob
+
+          return folder_ids.flatten
+        end if recursive_glob
 
         # 1 level deep glob. For files, like foo/*/*.txt
         # or foo/bar* for directories
@@ -49,6 +56,7 @@ class Metis
     def recursive_glob
       return @glob_parts.length == 3 && @glob_parts[1] == "**" if @is_file_glob
 
+      (@glob_parts.length == 2 && @glob_parts[1] == "*") ||
       (@glob_parts.length == 3 && @glob_parts[1] == "**")
     end
 
