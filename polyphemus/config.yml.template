@@ -55,6 +55,9 @@
         :alias: c4
         :root: /root/directory/to/save/files/in
         :ssh-key: public-key-of-server
+  :ipi_rna_seq_renames:
+    :Plate1:
+      :old_tube_name: new_tube_name
 
 :production:
   :magma:
