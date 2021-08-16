@@ -97,7 +97,7 @@ volumes:
     driver: local
   vulcan-node-modules:
     driver: local
-    name: 'vulcan-node-modules'
+    name: "vulcan-node-modules"
 
 networks:
   edge_net:
@@ -109,3 +109,4 @@ networks:
 
 services:
   <<: *base-etna-services
+
