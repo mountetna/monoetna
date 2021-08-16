@@ -27,9 +27,9 @@ describe Polyphemus::MetisFileForMagmaModelEtl do
     def initialize(**args)
       super(
         project_bucket_pairs: [["ipi", "integral_data"]],
-        limit: 2,
         model_name: "rna_seq",
         file_name_globs: ["BulkRNASeq/**/*.fastq.gz"],
+        metis_path_to_record_name_regex: Polyphemus::IpiRnaSeqLinkFastQsEtl::PATH_REGEX,
         **args,
       )
     end
@@ -90,12 +90,6 @@ describe Polyphemus::MetisFileForMagmaModelEtl do
           attribute: "name",
           predicate: "glob",
           value: "BulkRNASeq/**/*.fastq.gz",
-        ),
-        Etna::Clients::Metis::FindParam.new(
-          type: "file",
-          attribute: "name",
-          predicate: "glob",
-          value: "IPIADR001.T1.rna.live/**/*",
         ),
       ],
     )).files.all.map { |f| [f.file_path, f.file_hash] }.flatten)
