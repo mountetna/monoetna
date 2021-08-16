@@ -20,10 +20,10 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
     end
 
     it "when scanner finds new files" do
-      stub_metis_scan("IPIADR001.T1.comp", [
-        file("IPIADR001.T1.comp.blahblah1.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah1.fastq.gz"),
-        file("IPIADR001.T1.comp.blahblah2.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah2.fastq.gz"),
-        file("IPIADR001.T1.comp.blahblah3.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah3.fastq.gz"),
+      stub_metis_scan("PATIENT001.T1.comp", [
+        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
+        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
+        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
       ])
 
       etl = Polyphemus::IpiRnaSeqLinkFastQsEtl.new
@@ -35,16 +35,16 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
                            .with(body: hash_including({
                                    "revisions": {
                                      "rna_seq": {
-                                       "IPIADR001.T1.comp": {
+                                       "PATIENT001.T1.comp": {
                                          "raw_fastq_files": [{
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah1.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah1.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah1.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah2.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah2.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah2.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah3.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah3.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah3.fastq.gz",
                                          }],
                                        },
                                      },
@@ -53,10 +53,10 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
     end
 
     it "when file has been deleted" do
-      stub_metis_scan("IPIADR001.T1.comp", [
-        file("IPIADR001.T1.comp.blahblah1.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah1.fastq.gz"),
-        file("IPIADR001.T1.comp.blahblah2.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah2.fastq.gz"),
-        file("IPIADR001.T1.comp.blahblah3.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah3.fastq.gz"),
+      stub_metis_scan("PATIENT001.T1.comp", [
+        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
+        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
+        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
       ])
 
       etl = Polyphemus::IpiRnaSeqLinkFastQsEtl.new
@@ -68,25 +68,25 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
                            .with(body: hash_including({
                                    "revisions": {
                                      "rna_seq": {
-                                       "IPIADR001.T1.comp": {
+                                       "PATIENT001.T1.comp": {
                                          "raw_fastq_files": [{
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah1.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah1.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah1.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah2.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah2.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah2.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah3.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah3.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah3.fastq.gz",
                                          }],
                                        },
                                      },
                                    },
                                  }))
 
-      stub_metis_scan("IPIADR001.T1.comp", [
-        file("IPIADR001.T1.comp.blahblah1.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah1.fastq.gz"),
-        file("IPIADR001.T1.comp.blahblah3.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah3.fastq.gz"),
+      stub_metis_scan("PATIENT001.T1.comp", [
+        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
+        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
       ])
 
       etl.run_once
@@ -96,13 +96,13 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
                            .with(body: hash_including({
                                    "revisions": {
                                      "rna_seq": {
-                                       "IPIADR001.T1.comp": {
+                                       "PATIENT001.T1.comp": {
                                          "raw_fastq_files": [{
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah1.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah1.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah1.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah3.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah3.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah3.fastq.gz",
                                          }],
                                        },
                                      },
@@ -111,10 +111,10 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
     end
 
     it "when file hash changes" do
-      stub_metis_scan("IPIADR001.T1.comp", [
-        file("IPIADR001.T1.comp.blahblah1.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah1.fastq.gz", "hash1"),
-        file("IPIADR001.T1.comp.blahblah2.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah2.fastq.gz", "hash2"),
-        file("IPIADR001.T1.comp.blahblah3.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah3.fastq.gz", "hash3"),
+      stub_metis_scan("PATIENT001.T1.comp", [
+        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", "hash1"),
+        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", "hash2"),
+        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", "hash3"),
       ])
 
       etl = Polyphemus::IpiRnaSeqLinkFastQsEtl.new
@@ -126,26 +126,26 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
                            .with(body: hash_including({
                                    "revisions": {
                                      "rna_seq": {
-                                       "IPIADR001.T1.comp": {
+                                       "PATIENT001.T1.comp": {
                                          "raw_fastq_files": [{
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah1.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah1.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah1.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah2.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah2.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah2.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah3.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah3.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah3.fastq.gz",
                                          }],
                                        },
                                      },
                                    },
                                  }))
 
-      stub_metis_scan("IPIADR001.T1.comp", [
-        file("IPIADR001.T1.comp.blahblah1.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah1.fastq.gz", "hash1"),
-        file("IPIADR001.T1.comp.blahblah2.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah2.fastq.gz", "new-hash2"),
-        file("IPIADR001.T1.comp.blahblah3.fastq.gz", "IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah3.fastq.gz", "hash3"),
+      stub_metis_scan("PATIENT001.T1.comp", [
+        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", "hash1"),
+        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", "new-hash2"),
+        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", "hash3"),
       ])
 
       etl.run_once
@@ -155,16 +155,16 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
                            .with(body: hash_including({
                                    "revisions": {
                                      "rna_seq": {
-                                       "IPIADR001.T1.comp": {
+                                       "PATIENT001.T1.comp": {
                                          "raw_fastq_files": [{
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah1.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah1.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah1.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah2.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah2.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah2.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/IPIADR001.T1.comp/IPIADR001.T1.comp.blahblah3.fastq.gz",
-                                           "original_filename": "IPIADR001.T1.comp.blahblah3.fastq.gz",
+                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
+                                           "original_filename": "PATIENT001.T1.comp.blahblah3.fastq.gz",
                                          }],
                                        },
                                      },

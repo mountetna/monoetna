@@ -1,11 +1,7 @@
 {
   "models": {
     "project": {
-      "documents": {
-        "UCSF Immunoprofiler": {
-          "name": "UCSF Immunoprofiler"
-        }
-      },
+      "documents": {},
       "template": {
         "name": "project",
         "identifier": "name",
@@ -36,16 +32,7 @@
       }
     },
     "experiment": {
-      "documents": {
-        "Adrenal": {
-          "name": "Adrenal",
-          "project": "UCSF Immunoprofiler"
-        },
-        "Bladder": {
-          "name": "Bladder",
-          "project": "UCSF Immunoprofiler"
-        }
-      },
+      "documents": {},
       "template": {
         "parent": "project",
         "name": "experiment",
@@ -89,16 +76,7 @@
       }
     },
     "patient": {
-      "documents": {
-        "IPIADR001": {
-          "name": "IPIADR001",
-          "experiment": "Adrenal"
-        },
-        "IPIBLAD001": {
-          "name": "IPIBLAD001",
-          "experiment": "Bladder"
-        }
-      },
+      "documents": {},
       "template": {
         "name": "patient",
         "identifier": "name",
@@ -142,11 +120,7 @@
       }
     },
     "sample": {
-      "documents": {
-        "IPIADR001.N1": {"name": "IPIADR001.N1", "patient": "IPIADR001"},
-        "IPIADR001.T1": {"name": "IPIADR001.T1", "patient": "IPIADR001"},
-        "IPIBLAD001.T1": {"name": "IPIBLAD001.T1", "patient": "IPIBLAD001"}
-      },
+      "documents": {},
       "template": {
         "parent": "patient",
         "identifier": "name",
@@ -175,9 +149,10 @@
     },
     "rna_seq": {
       "documents": {
-        "IPIADR001.T1.comp": {
-          "name": "IPIADR001.T1.comp",
-          "sample": "IPIADR001.T1"
+        "PATIENT001.T1.comp": {
+          "name": "PATIENT001.T1.comp",
+          "sample": "PATIENT001.T1",
+          "raw_fastq_files": []
         }
       },
       "template": {
