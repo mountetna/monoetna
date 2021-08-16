@@ -4,7 +4,6 @@ require_relative "../ipi/ipi_helper"
 class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
   PATH_REGEX = /.*\/(?<plate>plate\d+)_.*\/output\/(?<record_name>.*)/
   SAMPLE_NAME_REGEX = /^(?<sample_name>IPI.*\.[A-Z]+\d)\..*/
-  PATIENT_IPI_NUMBER_REGEX = /^(?<ipi_number>IPI.*)\.[A-Z]+\d\..*/
   NON_CANCER_REGEX = /(NASH|NAFLD)/
   PROJECT = "ipi"
   BUCKET = "data"
@@ -107,9 +106,5 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
 
   def sample_name(rna_seq_record_name)
     rna_seq_record_name.match(SAMPLE_NAME_REGEX)[:sample_name]
-  end
-
-  def patient_ipi_number(rna_seq_record_name)
-    rna_seq_record_name.match(PATIENT_IPI_NUMBER_REGEX)[:ipi_number]
   end
 end
