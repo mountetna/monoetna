@@ -28,7 +28,6 @@ class Polyphemus
       model_name: nil,
       metis_client: nil,
       magma_client: nil,
-      limit: 20,
       file_name_globs: [],
       metis_path_to_record_name_regex: nil
     )
@@ -43,7 +42,6 @@ class Polyphemus
 
       @metis_client = metis_client
       @magma_client = magma_client
-      @limit = limit
       @file_name_globs = file_name_globs
       @model_name = model_name
       @path_regex = metis_path_to_record_name_regex
@@ -80,7 +78,7 @@ class Polyphemus
           metis_files_record.file_paths_hashes
         end.result_id do |metis_files_record|
           metis_files_record.record_name
-        end.execute_batch_find do |request_records_pair, i|
+        end.execute_batch_find do |request_records_pair, _|
           metis_request = request_records_pair.first
           magma_record_names = request_records_pair.last
 
