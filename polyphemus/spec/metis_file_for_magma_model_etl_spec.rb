@@ -54,7 +54,7 @@ describe Polyphemus::MetisFileForMagmaModelEtl do
 
       run_etl_command("test_metis_file_for_magma_model_etl", "run")
       expect(etl.process_calls.length).to_not eq(0)
-      expect(etl.process_calls.length).to_not eq(1)
+      expect(etl.process_calls.length).to eq(1)
       check_process_calls(etl)
 
       etl.process_calls.clear
@@ -78,10 +78,10 @@ describe Polyphemus::MetisFileForMagmaModelEtl do
     end
 
     # Do not duplicate any yields
-    expect(all_files).to eq(all_files.uniq { |f| f.file_path })
+    expect(all_files).to eq(all_files.uniq { |f| f.file_paths_hashes })
 
     # Ensure all data is eventually yielded
-    expect(all_files.map(&:file_path)).to eq(etl.metis_client.find(Etna::Clients::Metis::FindRequest.new(
+    expect(all_files.map(&:file_paths_hashes).flatten).to eq(etl.metis_client.find(Etna::Clients::Metis::FindRequest.new(
       project_name: "ipi",
       bucket_name: "integral_data",
       params: [
@@ -98,6 +98,6 @@ describe Polyphemus::MetisFileForMagmaModelEtl do
           value: "IPIADR001.T1.rna.live/**/*",
         ),
       ],
-    )).files.all.map(&:file_path))
+    )).files.all.map { |f| [f.file_path, f.file_hash] }.flatten)
   end
 end

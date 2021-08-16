@@ -42,44 +42,45 @@ class Polyphemus
       super(
         cursor_group: EtlCursorGroup.new(file_cursors),
         scanner: HashScanBasedEtlScanner.new.start_batch_state do |cursor|
-          find_request = Etna::Clients::Metis::FindRequest.new(
+          Etna::Clients::Metis::FindRequest.new(
             project_name: cursor[:project_name],
             bucket_name: cursor[:bucket_name],
           )
+        end.result_updated_at do |metis_files_record|
+          metis_files_record.updated_at
+        end.result_file_hashes do |metis_files_record|
+          metis_files_record.file_paths_hashes
+        end.result_id do |metis_files_record|
+          metis_files_record.record_name
+        end.execute_batch_find do |base_find_request, i|
+          magma_records_request = magma_request(base_find_request.project_name)
+          magma_records_request.page = i
+          magma_records_request.page_size = @limit
 
-          prepare_base_find_request(cursor, find_request)
+          # The only way we know that there are no more records
+          #   is this request will return a 422...
+          magma_record_names = []
+          begin
+            magma_record_names = fetch_magma_record_names(magma_records_request)
+          rescue Etna::Error => e
+            return [] if e.message =~ /Page.*not found/i
+            raise
+          end
+          results = []
 
-          find_request
-        end.result_updated_at do |file_record|
-          file_record.updated_at
-        end.result_file_hashes do |file_record|
-          file_record.file_hash
-        end.result_id do |file_record|
-          file_record.file_path
-        end.execute_batch_find do |find_request, i|
-          records_request = magma_request(find_request.project_name)
-          records_request.page_size = @limit * i
-          # The limit will apply to the Magma client find.
-          # Here we'll aggregate the Metis client results for each set
-          #    of Magma client records. So in all likelihood
-          #    we'll return more than @limit # of files.
-          magma_record_names = self.magma_client.retrieve(
-            records_request
-          ).models.model(
-            @model_name
-          ).documents.document_keys
+          magma_record_names.each do |magma_record_name|
+            find_request = base_find_request.clone
+            prepare_metis_find_request(find_request, magma_record_name)
 
-          all_files = []
+            metis_files = self.metis_client.find(find_request).files.all
 
-          magma_record_names.each do |record_name|
-            find_request_for_record = find_request.clone
-
-            prepare_find_request_for_record(find_request_for_record, record_name)
-
-            all_files.push(*self.metis_client.find(find_request_for_record).files.all)
+            results << MetisFilesForMagmaRecord.new(
+              magma_record_name,
+              metis_files
+            ) if metis_files.length > 0
           end
 
-          all_files
+          results
         end,
       )
     end
@@ -91,28 +92,20 @@ class Polyphemus
         attribute_names: ["identifier"],
         record_names: "all",
         hide_templates: true,
-        page: 1,
       )
     end
 
-    def prepare_base_find_request(cursor, find_request)
-      find_request.add_param(Etna::Clients::Metis::FindParam.new(
-        type: "file",
-        attribute: "updated_at",
-        predicate: ">=",
-        value: (cursor.updated_at + 1).iso8601,
-      )) unless cursor.updated_at.nil?
-    end
-
-    def prepare_find_request_for_record(find_request, record_name)
-      # Only find files with the record_name in the path
+    def prepare_metis_find_request(find_request, magma_record_name)
+      # Do not track the cursor's updated_at, because
+      #   in order to find files that were deleted, we always need
+      #   to get all files on Metis that match the record_name
+      # Only find files with the record name in the path
       find_request.add_param(Etna::Clients::Metis::FindParam.new(
         type: "file",
         attribute: "name",
         predicate: "glob",
-        value: "#{record_name}/**/*",
+        value: "#{magma_record_name}/**/*",
       ))
-
       begin
         @file_name_globs.each do |glob|
           find_request.add_param(Etna::Clients::Metis::FindParam.new(
@@ -123,6 +116,35 @@ class Polyphemus
           ))
         end
       end unless @file_name_globs.empty?
+    end
+
+    def fetch_magma_record_names(magma_request)
+      self.magma_client.retrieve(
+        magma_request
+      ).models.model(
+        @model_name
+      ).documents.document_keys
+    end
+  end
+
+  class MetisFilesForMagmaRecord
+    attr_reader :record_name, :files
+
+    def initialize(magma_record_name, metis_files)
+      @record_name = magma_record_name
+      @files = metis_files
+    end
+
+    def file_paths_hashes
+      files.map do |file|
+        [file.file_path, file.file_hash]
+      end
+    end
+
+    def updated_at
+      files.map do |file|
+        file.updated_at
+      end.minmax.last
     end
   end
 end
