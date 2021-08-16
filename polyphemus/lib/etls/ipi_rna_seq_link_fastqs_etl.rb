@@ -20,11 +20,11 @@ class Polyphemus::IpiRnaSeqLinkFastQsEtl < Polyphemus::MetisFileForMagmaModelEtl
     logger.info("Processing files for: #{files_by_record_name.map { |f| f.record_name }.join(",")}")
 
     update_request = Etna::Clients::Magma::UpdateRequest.new(
-      project_name: PROJECT,
+      project_name: cursor[:project_name],
     )
 
     files_by_record_name.each do |file_record|
-      update_request.update_revision("rna_seq", file_record.record_name, {
+      update_request.update_revision(cursor[:model_name], file_record.record_name, {
         "raw_fastq_files": files_payload(file_record.files),
       })
       logger.info("Found #{file_record.files.length} files for #{file_record.record_name}: #{file_record.files.map { |f| f.file_path }}")
