@@ -68,7 +68,7 @@ x-base-etna-services:
     volumes:
       - vulcan-public-dir:/app/public:ro
       - ./data:/app/data:delegated
-      - ./vulcan_app_fe:/app/vulcan_app_fe:ro
+      - ./vulcan_app_fe:/app/build:ro
     depends_on:
       - 'vulcan_app'
     command: ['httpd', '-DFOREGROUND']
@@ -97,7 +97,7 @@ volumes:
     driver: local
   vulcan-node-modules:
     driver: local
-    name: "vulcan-node-modules"
+    name: 'vulcan-node-modules'
 
 networks:
   edge_net:
@@ -109,4 +109,3 @@ networks:
 
 services:
   <<: *base-etna-services
-

@@ -13,12 +13,8 @@ function notifySlackOfVersion() {
 }
 
 function syncAssets() {
-  if [ -e /var/run/deployment ]; then
-    mkdir -p "/var/run/deployment/sync-assets/${APP_NAME}"
-    if ! [ -e "/var/run/deployment/sync-assets/${APP_NAME}/$(cat /built-from-sha)" ]; then
-      rsync -azvi --delete /app/assets /sync-assets
-      touch "/var/run/deployment/sync-assets/${APP_NAME}/$(cat /built-from-sha)"
-    fi
+  if [ -e /app/public ]; then
+    rsync -azvi --delete /app/public /sync-assets
   fi
 }
 

@@ -1,5 +1,4 @@
-
-version: "3.4"
+version: '3.4'
 
 x-base-etna-service:
   &base-etna-service # Base configuration used by most etna services.
@@ -66,7 +65,7 @@ x-base-etna-services:
     volumes:
       - public-dir:/app/public:ro
       - data-dir:/app/data:ro
-      - ./metis_app_fe:/app/metis_app_fe:ro
+      - ./metis_app_fe:/app/build:ro
     depends_on:
       - 'metis_app'
     command: ['httpd', '-DFOREGROUND']
@@ -89,19 +88,19 @@ volumes:
     driver: local
   log-dir:
     driver: local
-    name: "log-dir"
+    name: 'log-dir'
   tmp-dir:
     driver: local
-    name: "tmp-dir"
+    name: 'tmp-dir'
   public-dir:
     driver: local
-    name: "public-dir"
+    name: 'public-dir'
   data-dir:
     driver: local
-    name: "data-dir"
+    name: 'data-dir'
   db-data:
     driver: local
-    name: "db-data"
+    name: 'db-data'
   opt-dir:
     driver: local
   metis-node-modules:
