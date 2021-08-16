@@ -3,6 +3,6 @@
 set -e
 set -x
 
-for include in /app/vulcan_app_fe/*.include; do
+for include in /app/build/*.include; do
   cp "$include" /usr/opt/httpd.conf.d/
 done
