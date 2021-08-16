@@ -62,6 +62,7 @@ x-base-etna-services:
     volumes:
       - janus-public-dir:/app/public:ro
       - ./data:/app/data:delegated
+      - ./janus_app_fe:/app/build:ro
     depends_on:
       - 'janus_app'
     entrypoint: /entrypoints/development_app_fe.sh
