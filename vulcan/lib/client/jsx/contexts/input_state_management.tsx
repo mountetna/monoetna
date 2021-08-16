@@ -86,13 +86,13 @@ export function WithBufferedInputs({
       <button  onClick={commitInputs}style={{background: "linear-gradient(135deg, #6e8efb, #a777e3)",
 	textAlign: 'center', 
 	fontWeight: 'bold',
-	fontSize: 20,
+	fontSize: 14,
   border:'3px solid black',
-  outline: '#4CAF50 solid 2px'
+  outline: '#4CAF50 solid 2px'  
 	}} disabled={!!state.pollingState}>
         Commit
       </button>
-    </div> : null }
+    </div> : null } 
   </BufferedInputsContext.Provider>
 }
 
