@@ -24,14 +24,13 @@ class Polyphemus
 
   class MetisFileForMagmaModelEtl < Etl
     def initialize(
-      project_bucket_pairs:,
-      model_name: nil,
+      project_bucket_model_tuples:,
       metis_client: nil,
       magma_client: nil,
       file_name_globs: [],
       metis_path_to_record_name_regex: nil
     )
-      file_cursors = project_bucket_pairs.map do |project_name, bucket_name|
+      file_cursors = project_bucket_model_tuples.map do |project_name, bucket_name, model_name|
         MetisFileForMagmaModelEtlCursor.new(
           job_name: self.class.name,
           project_name: project_name,
@@ -43,7 +42,6 @@ class Polyphemus
       @metis_client = metis_client
       @magma_client = magma_client
       @file_name_globs = file_name_globs
-      @model_name = model_name
       @path_regex = metis_path_to_record_name_regex
 
       super(
@@ -56,7 +54,7 @@ class Polyphemus
 
           magma_request = Etna::Clients::Magma::RetrievalRequest.new(
             project_name: cursor[:project_name],
-            model_name: @model_name,
+            model_name: cursor[:model_name],
             attribute_names: ["identifier"],
             record_names: "all",
             hide_templates: true,
@@ -121,7 +119,7 @@ class Polyphemus
       self.magma_client.retrieve(
         magma_request
       ).models.model(
-        @model_name
+        magma_request.model_name
       ).documents.document_keys
     end
   end

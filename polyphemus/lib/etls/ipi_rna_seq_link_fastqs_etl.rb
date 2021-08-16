@@ -10,9 +10,8 @@ class Polyphemus::IpiRnaSeqLinkFastQsEtl < Polyphemus::MetisFileForMagmaModelEtl
   def initialize
     @helper = IpiHelper.new
     super(
-      project_bucket_pairs: [[PROJECT, BUCKET]],
+      project_bucket_model_tuples: [[PROJECT, BUCKET, MODEL]],
       file_name_globs: ["BulkRNASeq/**/*.fastq.gz"],
-      model_name: MODEL,
       metis_path_to_record_name_regex: PATH_REGEX,
     )
   end
