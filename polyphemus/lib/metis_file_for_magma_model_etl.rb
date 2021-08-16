@@ -80,9 +80,9 @@ class Polyphemus
           metis_files_record.file_paths_hashes
         end.result_id do |metis_files_record|
           metis_files_record.record_name
-        end.execute_batch_find do |request_data, i|
-          metis_request = request_data.first
-          magma_record_names = request_data.last
+        end.execute_batch_find do |request_records_pair, i|
+          metis_request = request_records_pair.first
+          magma_record_names = request_records_pair.last
 
           return [] unless magma_record_names.length > 0
 
