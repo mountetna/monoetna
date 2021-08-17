@@ -1,3 +1,4 @@
+require "csv"
 require_relative "../metis_file_for_magma_model_etl"
 require_relative "../ipi/ipi_helper"
 
@@ -6,29 +7,46 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagma
   PATH_REGEX = /.*\/(?<record_name>.*)_rnaseq_new\/results\/rnaseq_table.tsv$/
   PROJECT = "ipi"
   BUCKET = "data"
-  MODEL = "rna_seq"
+  CURSOR_MODEL = "rna_seq_plate"
+  MAGMA_MODEL = "rna_seq"
 
   def initialize
     @helper = IpiHelper.new
     super(
-      project_bucket_model_tuples: [[PROJECT, BUCKET, MODEL]],
+      project_bucket_model_tuples: [[PROJECT, BUCKET, CURSOR_MODEL]],
       file_name_globs: ["bulkRNASeq/**/rnaseq_table.tsv"],
       metis_path_to_record_name_regex: PATH_REGEX,
+      record_name_gsub_pair: [/plate/, "Plate"],
     )
   end
 
-  def process(cursor, result_file_by_plate)
-    logger.info("Processing plate: #{result_file_by_plate.map { |f| f.record_name }.join(",")}")
+  def process(cursor, result_files_by_plate)
+    logger.info("Processing plate: #{result_files_by_plate.map { |f| f.record_name }.join(",")}")
+
+    model_attributes = attributes(cursor[:project_name])
 
     update_request = Etna::Clients::Magma::UpdateRequest.new(
       project_name: cursor[:project_name],
     )
 
-    files_by_record_name.each do |file_record|
-      update_request.update_revision(cursor[:model_name], file_record.record_name, {
-        "raw_fastq_files": files_payload(file_record.files),
-      })
-      logger.info("Found #{file_record.files.length} files for #{file_record.record_name}: #{file_record.files.map { |f| f.file_path }}")
+    result_files_by_plate.each do |rna_seq_table|
+      Tempfile.create do |tmp|
+        metis_client.download_file(rna_seq_table.files.first) do |chunk|
+          tmp << chunk
+        end
+
+        tmp.rewind
+        tmp.readline # Get rid of the first, non-header row
+
+        csv = CSV.new(tmp, headers: true, col_sep: "\t")
+
+        csv.each do |row|
+          rna_seq = MagmaRnaSeq.new(row, model_attributes)
+
+          update_request.update_revision(MAGMA_MODEL, rna_seq.tube_name, rna_seq.to_hash)
+          logger.info("Updating record #{rna_seq.tube_name}.")
+        end
+      end
     end
 
     magma_client.update_json(update_request)
@@ -36,20 +54,130 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagma
     logger.info("Done")
   end
 
-  def files_payload(files)
-    files.map do |file|
-      serialize(file.file_path)
+  def attributes(project_name)
+    magma_client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(
+      project_name: project_name,
+      model_name: MAGMA_MODEL,
+      attribute_names: [],
+      record_names: [],
+    )).models.model(MAGMA_MODEL).template.attributes
+  end
+
+  class MagmaRnaSeq
+    # raw_base_count is too large for postgres
+    ATTRIBUTES_TO_SKIP = [
+      "raw_base_count", "filtered_base_count",
+      "raw_read_count", "filtered_read_count",
+      "filter_passing_bases", "aligned_bases",
+    ]
+
+    CONTROL_ATTRIBUTES_TO_SKIP = [
+      "compartment",
+    ]
+
+    def initialize(table_row, attributes)
+      @raw = table_row
+      @helper = IpiHelper.new
+      @attributes = attributes
     end
-  end
 
-  def serialize(file_path)
-    {
-      path: metis_path(file_path),
-      original_filename: ::File.basename(file_path),
-    }
-  end
+    def raw_tube_name
+      @raw[0]
+    end
 
-  def metis_path(file_path)
-    "metis://#{PROJECT}/#{BUCKET}/#{file_path}"
+    def plate_name
+      "Plate#{@raw["rna_seq_plate"]}"
+    end
+
+    def tube_name
+      return @helper.control_name(raw_tube_name) if @helper.is_control?(raw_tube_name)
+
+      @helper.corrected_rna_seq_tube_name(plate_name, raw_tube_name)
+    end
+
+    def method_missing(name, *args, &block)
+      @raw[name.to_s]
+    end
+
+    def cell_number
+      @raw["cell_count"]
+    end
+
+    def duplication_pct
+      @raw["duplication_rate"]
+    end
+
+    def ribosomal_read_count
+      @raw["reads"]
+    end
+
+    def input_read_count
+      @raw["input_reads"]
+    end
+
+    def uniq_map_read_count
+      @raw["uniq_map_reads"]
+    end
+
+    def multimap_lte20_read_count
+      @raw["multimap_lte20_reads"]
+    end
+
+    def multimap_gt20_read_count
+      @raw["multimapp_gt20_reads"]
+    end
+
+    def chimeric_read_count
+      @raw["chimeric_reads"]
+    end
+
+    def chromosomal_read_count
+      @raw["chromosomal"]
+    end
+
+    def mitochondrial_read_count
+      @raw["mitochondrial"]
+    end
+
+    def median_5prime_bias
+      @raw["median_5p_bias"]
+    end
+
+    def median_3prime_bias
+      @raw["median_3p_bias"]
+    end
+
+    def eisenberg_score
+      @raw["EHK"]
+    end
+
+    def expressed_eisenberg_genes
+      @raw["expressed_EHK_genes"]
+    end
+
+    def to_hash
+      {}.tap do |result|
+        @attributes.attribute_keys.each do |attr_name|
+          attr = @attributes.attribute(attr_name)
+
+          next if skip_attribute?(attr)
+
+          value = self.send(attr_name.to_sym)
+
+          value = value.to_i if attr.attribute_type == Etna::Clients::Magma::AttributeType::INTEGER
+
+          result[attr_name.to_sym] = value
+        end
+      end.compact
+    end
+
+    def skip_attribute?(attr)
+      attr.hidden ||
+      attr.restricted ||
+      attr.read_only ||
+      attr.link_model_name ||
+      ATTRIBUTES_TO_SKIP.include?(attr.attribute_name) ||
+      (@helper.is_control?(raw_tube_name) && CONTROL_ATTRIBUTES_TO_SKIP.include?(attr.attribute_name))
+    end
   end
 end
