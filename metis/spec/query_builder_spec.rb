@@ -332,6 +332,15 @@ describe Metis::QueryBuilder do
     expect(builder.build.count).to eq(2) # child/ + child/grandchild/
 
     builder = Metis::QueryBuilder.new(
+      Metis::Folder.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: '{sibling,child}/*'
+      }])
+    expect(builder.build.count).to eq(2)
+
+    builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),
       [{
         attribute: 'name',
@@ -366,6 +375,15 @@ describe Metis::QueryBuilder do
         value: 'grandchild/*.txt'
       }])
     expect(builder.build.count).to eq(0)
+
+    builder = Metis::QueryBuilder.new(
+      Metis::File.where(project_name: 'athena', bucket: @bucket),
+      [{
+        attribute: 'name',
+        predicate: 'glob',
+        value: '{sibling,child}/**/*.jpg'
+      }])
+    expect(builder.build.count).to eq(2)
   end
 
   it 'can query by globs for files' do
@@ -395,8 +413,9 @@ describe Metis::QueryBuilder do
         predicate: 'glob',
         value: 'wisdom/**/*.txt'
       }])
-    expect(builder.build.count).to eq(1)
-    expect(builder.build.first[:file_name]).to eq(young_wisdom_file.file_name)
+    expect(builder.build.count).to eq(2)
+    expect(builder.build.first[:file_name]).to eq(@wisdom_file.file_name)
+    expect(builder.build.last[:file_name]).to eq(young_wisdom_file.file_name)
 
     builder = Metis::QueryBuilder.new(
       Metis::File.where(project_name: 'athena', bucket: @bucket),

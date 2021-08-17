@@ -126,6 +126,16 @@ module Etna
           #   easier to do from a JSON string
           JSON.parse(to_json, :symbolize_names => true)
         end
+
+        def clone
+          FindRequest.new(
+            project_name: self.project_name,
+            bucket_name: self.bucket_name,
+            limit: self.limit,
+            offset: self.offset,
+            params: self.params.dup
+          )
+        end
       end
 
       class FindParam < Struct.new(:attribute, :predicate, :value, :type, keyword_init: true)
@@ -258,6 +268,10 @@ module Etna
 
         def size
           raw[:size]
+        end
+
+        def file_hash
+          raw[:file_hash]
         end
       end
 

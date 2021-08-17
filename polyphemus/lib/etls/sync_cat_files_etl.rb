@@ -114,7 +114,11 @@ class Polyphemus::SyncCatFilesEtl < Polyphemus::RsyncFilesEtl
       record.filename
     end
 
-    files_to_remove_query = ingest_files_for_host_query.exclude(name: current_cat_filenames)
+    files_to_remove_query = ingest_files_for_host_query.exclude(
+      name: current_cat_filenames,
+    ).exclude(
+      removed_from_source: true,
+    )
 
     logger.info("Found #{files_to_remove_query.count} matching files removed from the CAT.")
 
