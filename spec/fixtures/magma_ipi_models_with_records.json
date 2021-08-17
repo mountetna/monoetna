@@ -1,11 +1,7 @@
 {
   "models": {
     "project": {
-      "documents": {
-        "UCSF Immunoprofiler": {
-          "name": "UCSF Immunoprofiler"
-        }
-      },
+      "documents": {},
       "template": {
         "name": "project",
         "identifier": "name",
@@ -36,16 +32,7 @@
       }
     },
     "experiment": {
-      "documents": {
-        "Adrenal": {
-          "name": "Adrenal",
-          "project": "UCSF Immunoprofiler"
-        },
-        "Bladder": {
-          "name": "Bladder",
-          "project": "UCSF Immunoprofiler"
-        }
-      },
+      "documents": {},
       "template": {
         "parent": "project",
         "name": "experiment",
@@ -89,16 +76,7 @@
       }
     },
     "patient": {
-      "documents": {
-        "IPIADR001": {
-          "name": "IPIADR001",
-          "experiment": "Adrenal"
-        },
-        "IPIBLAD001": {
-          "name": "IPIBLAD001",
-          "experiment": "Bladder"
-        }
-      },
+      "documents": {},
       "template": {
         "name": "patient",
         "identifier": "name",
@@ -142,11 +120,7 @@
       }
     },
     "sample": {
-      "documents": {
-        "IPIADR001.N1": {"name": "IPIADR001.N1", "patient": "IPIADR001"},
-        "IPIADR001.T1": {"name": "IPIADR001.T1", "patient": "IPIADR001"},
-        "IPIBLAD001.T1": {"name": "IPIBLAD001.T1", "patient": "IPIBLAD001"}
-      },
+      "documents": {},
       "template": {
         "parent": "patient",
         "identifier": "name",
@@ -167,6 +141,40 @@
             "model_name": "patient",
             "link_model_name": "patient",
             "display_name": "Patient",
+            "validation": null,
+            "attribute_type": "parent"
+          }
+        }
+      }
+    },
+    "rna_seq": {
+      "documents": {
+        "PATIENT001.T1.comp": {
+          "name": "PATIENT001.T1.comp",
+          "sample": "PATIENT001.T1",
+          "raw_fastq_files": []
+        }
+      },
+      "template": {
+        "parent": "sample",
+        "identifier": "name",
+        "attributes": {
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "patient": {
+            "name": "sample",
+            "attribute_name": "sample",
+            "model_name": "sample",
+            "link_model_name": "sample",
+            "display_name": "Sample",
             "validation": null,
             "attribute_type": "parent"
           }
