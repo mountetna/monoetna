@@ -22,6 +22,8 @@ RUN apt-get update \
       gnupg \
       bash-completion \
       git \
+      libicu63 \
+      libreadline7 \
       --no-install-recommends
 
 # add postgres 10 repo for debian stretch
