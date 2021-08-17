@@ -1,4 +1,4 @@
-FROM ruby:2.5.7-buster
+FROM ruby:2.5.7
 WORKDIR /app
 
 ENV DOCKER_VERSION 19.03.12
