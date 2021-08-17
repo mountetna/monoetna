@@ -14,7 +14,7 @@ function notifySlackOfVersion() {
 
 function syncAssets() {
   if [ -e /app/public ]; then
-    rsync -azvi --delete /app/public /sync-assets
+    rsync -azvi --delete /app/public/ /sync-assets
   fi
 }
 

@@ -46,7 +46,7 @@ test:: docker-ready
 
 release-build:: .dockerignore
 	if [ -e Dockerfile ]; then touch /tmp/.release-test; ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); else touch /tmp/etna-build-markers/$(baseTag); fi
-	if [ -e $(baseFeTag)/Dockerfile ]; then ../docker/build_image $(baseFeTag)/Dockerfile; fi
+	if [ -e $(baseFeTag)/Dockerfile ]; then ../docker/build_image $(baseFeTag)/Dockerfile -- $(BUILD_ARGS); fi
 
 /tmp/.release-test: /tmp/etna-build-markers/$(baseTag)
 	make release-test
