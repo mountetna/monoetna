@@ -117,4 +117,16 @@ class IpiHelper
   def rna_seq_renames
     @rna_seq_renames ||= JSON.parse(File.read('./lib/ipi/ipi_bulk_rna_renames.json'))
   end
+
+  def is_control?(record_name)
+    record_name =~ /^control/i
+  end
+
+  def control_name(folder_name)
+    # Control_(UHR|Jurkat).Plate\d+
+    control, plate = folder_name.split(".")
+    _, control_type = control.split("_")
+
+    "Control_#{control_type =~ /jurkat/i ? "Jurkat" : "UHR"}.#{plate.capitalize}"
+  end
 end

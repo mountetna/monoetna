@@ -66,15 +66,15 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
       folders.each do |folder|
         next if is_non_cancer_sample?(folder.folder_name)
 
-        record_name = is_control?(folder.folder_name) ?
-          control_name(folder.folder_name) :
+        record_name = @helper.is_control?(folder.folder_name) ?
+          @helper.control_name(folder.folder_name) :
           @helper.corrected_rna_seq_tube_name(plate_name, folder.folder_name)
 
         attrs = {
           rna_seq_plate: plate_name,
         }
 
-        attrs[:sample] = sample_name(record_name) unless is_control?(folder.folder_name)
+        attrs[:sample] = sample_name(record_name) unless @helper.is_control?(folder.folder_name)
 
         update_request.update_revision("rna_seq", record_name, attrs)
       end
@@ -90,18 +90,6 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
     # per Vincent
     # I guess the two major non-cancer samples that were gathered in IPIv1 were NAFLD/NASH and PSC (primary sclerosing cholangitis)
     folder_name =~ NON_CANCER_REGEX
-  end
-
-  def is_control?(record_name)
-    record_name =~ /^control/i
-  end
-
-  def control_name(folder_name)
-    # Control_(UHR|Jurkat).Plate\d+
-    control, plate = folder_name.split(".")
-    _, control_type = control.split("_")
-
-    "Control_#{control_type =~ /jurkat/i ? "Jurkat" : "UHR"}.#{plate.capitalize}"
   end
 
   def sample_name(rna_seq_record_name)
