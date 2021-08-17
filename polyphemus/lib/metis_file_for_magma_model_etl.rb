@@ -28,7 +28,8 @@ class Polyphemus
       metis_client: nil,
       magma_client: nil,
       file_name_globs: [],
-      metis_path_to_record_name_regex: nil
+      metis_path_to_record_name_regex: nil,
+      limit: 20
     )
       file_cursors = project_bucket_model_tuples.map do |project_name, bucket_name, model_name|
         MetisFileForMagmaModelEtlCursor.new(
@@ -43,6 +44,7 @@ class Polyphemus
       @magma_client = magma_client
       @file_name_globs = file_name_globs
       @path_regex = metis_path_to_record_name_regex
+      @limit = limit
 
       super(
         cursor_group: EtlCursorGroup.new(file_cursors),
@@ -60,25 +62,9 @@ class Polyphemus
             hide_templates: true,
           )
 
-          record_names = fetch_magma_record_names(magma_request)
+          magma_record_names = fetch_magma_record_names(magma_request)
 
           prepare_metis_find_request(metis_request)
-
-          # Pass both elements back instead of trying
-          #   to include the record names in the Metis
-          #   request directly, so that in
-          #   execute_batch_find we can better handle
-          #   cases when there are no Magma records.
-          [metis_request, record_names]
-        end.result_updated_at do |metis_files_record|
-          metis_files_record.updated_at
-        end.result_file_hashes do |metis_files_record|
-          metis_files_record.file_paths_hashes
-        end.result_id do |metis_files_record|
-          metis_files_record.record_name
-        end.execute_batch_find do |request_records_pair, _|
-          metis_request = request_records_pair.first
-          magma_record_names = request_records_pair.last
 
           return [] unless magma_record_names.length > 0
 
@@ -95,6 +81,14 @@ class Polyphemus
               metis_files_by_record_name[magma_record_name]
             )
           end.compact
+        end.result_updated_at do |metis_files_record|
+          metis_files_record.updated_at
+        end.result_file_hashes do |metis_files_record|
+          metis_files_record.file_paths_hashes
+        end.result_id do |metis_files_record|
+          metis_files_record.record_name
+        end.execute_batch_find do |metis_files_for_magma_records, i|
+          metis_files_for_magma_records.slice(@limit * (i - 1), @limit * i) || []
         end,
       )
     end
