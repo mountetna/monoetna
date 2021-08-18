@@ -43,6 +43,7 @@ describe Polyphemus::IpiRnaSeqPopulateAttributesEtl do
                                          "pipeline_version": "v1.0",
                                          "ribosomal_read_count": 12,
                                          "utr_pct": 29.2,
+                                         "filtered_mean_length": 90,
                                        },
                                      },
                                    },

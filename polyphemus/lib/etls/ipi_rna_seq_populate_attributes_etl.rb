@@ -155,6 +155,16 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagma
       @raw["expressed_EHK_genes"]
     end
 
+    def raw_mean_length
+      parts = @raw["raw_mean_length"].split(",")
+      (parts.first.to_f + parts.last.to_f) / 2
+    end
+
+    def filtered_mean_length
+      parts = @raw["filtered_mean_length"].split(",")
+      (parts.first.to_f + parts.last.to_f) / 2
+    end
+
     def to_hash
       {}.tap do |result|
         @attributes.attribute_keys.each do |attr_name|
