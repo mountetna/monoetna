@@ -175,11 +175,6 @@ def stub_magma_setup(patient_documents)
   stub_magma_update("mvir1")
 end
 
-def stub_magma_documents(documents)
-  stub_request(:post, /#{MAGMA_HOST}\/retrieve/)
-    .to_return({ body: documents.to_json })
-end
-
 def stub_magma_update(project_name=nil)
   stub_request(:post, /#{MAGMA_HOST}\/update$/)
     .to_return do |request|
@@ -253,6 +248,14 @@ def stub_upload_file(params={})
   .to_return({
     status: params[:status] || 200,
     body: params[:upload_body] || JSON.generate({})
+  })
+end
+
+def stub_download_file(params={})
+  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/download/)
+  .to_return({
+    status: params[:status] || 200,
+    body: params[:file_contents] || ''
   })
 end
 

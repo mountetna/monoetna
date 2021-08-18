@@ -165,6 +165,7 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagma
           value = self.send(attr_name.to_sym)
 
           value = value.to_i if attr.attribute_type == Etna::Clients::Magma::AttributeType::INTEGER
+          value = value.to_f if attr.attribute_type == Etna::Clients::Magma::AttributeType::FLOAT
 
           result[attr_name.to_sym] = value
         end

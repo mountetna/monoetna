@@ -177,6 +177,78 @@
             "display_name": "Sample",
             "validation": null,
             "attribute_type": "parent"
+          },
+          "pipeline_version": {
+            "name": "pipeline_version",
+            "attribute_name": "pipeline_version",
+            "display_name": "Pipeline version",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "string"
+          },
+          "well": {
+            "name": "well",
+            "attribute_name": "well",
+            "display_name": "Well",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "string"
+          },
+          "ribosomal_read_count": {
+            "name": "ribosomal_read_count",
+            "attribute_name": "ribosomal_read_count",
+            "display_name": "Ribosomal read count",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "integer"
+          },
+          "utr_pct": {
+            "name": "utr_pct",
+            "attribute_name": "utr_pct",
+            "display_name": "UTR %",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "float"
+          }
+        }
+      }
+    },
+    "rna_seq_plate": {
+      "documents": {
+        "Plate1": {
+          "name": "Plate1"
+        }
+      },
+      "template": {
+        "parent": "project",
+        "identifier": "name",
+        "attributes": {
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "project": {
+            "name": "project",
+            "attribute_name": "project",
+            "model_name": "project",
+            "link_model_name": "project",
+            "display_name": "Project",
+            "validation": null,
+            "attribute_type": "parent"
           }
         }
       }
