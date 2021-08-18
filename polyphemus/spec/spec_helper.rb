@@ -33,6 +33,7 @@ TEST_TOKEN = Polyphemus.instance.config(:polyphemus)[:token]
 
 PROJECT = 'mvir1'
 REDCAP_PROJECT_CONFIG_DIR = 'lib/etls/redcap/projects'
+RENAMING_PROJECT_CONFIG_DIR = 'lib/etls/renaming/projects'
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
@@ -376,6 +377,18 @@ def copy_redcap_project(project_name='test')
   FileUtils.mkdir_p(REDCAP_PROJECT_CONFIG_DIR) unless Dir.exist?(REDCAP_PROJECT_CONFIG_DIR)
 
   # Make sure we have the newest test project.
+  File.delete(test_output_path) if File.file?(test_output_path)
+  FileUtils.cp(test_fixture_path, test_output_path)
+end
+
+def copy_renaming_project(file_name='test_renames.json')
+  # Make sure the test project is in the right location so the
+  # REDCap ETL can find it.
+  test_fixture_path = "spec/fixtures/etls/renaming/#{file_name}"
+  test_output_path = "#{RENAMING_PROJECT_CONFIG_DIR}/#{file_name}"
+  FileUtils.mkdir_p(RENAMING_PROJECT_CONFIG_DIR) unless Dir.exist?(RENAMING_PROJECT_CONFIG_DIR)
+
+  # Make sure we have the newest test config.
   File.delete(test_output_path) if File.file?(test_output_path)
   FileUtils.cp(test_fixture_path, test_output_path)
 end
