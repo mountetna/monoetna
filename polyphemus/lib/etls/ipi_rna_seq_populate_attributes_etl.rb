@@ -21,7 +21,7 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagma
   end
 
   def process(cursor, result_files_by_plate)
-    logger.info("Processing plate: #{result_files_by_plate.map { |f| f.record_name }.join(",")}")
+    logger.info("Processing plates: #{result_files_by_plate.map { |f| f.record_name }.join(",")}")
 
     model_attributes = attributes(cursor[:project_name])
 
@@ -64,7 +64,7 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagma
   end
 
   class MagmaRnaSeq
-    # raw_base_count is too large for postgres
+    # these values are too large for postgres ints
     ATTRIBUTES_TO_SKIP = [
       "raw_base_count", "filtered_base_count",
       "raw_read_count", "filtered_read_count",

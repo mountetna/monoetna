@@ -115,7 +115,7 @@ class IpiHelper
   end
 
   def rna_seq_renames
-    @rna_seq_renames ||= JSON.parse(File.read('./lib/ipi/ipi_bulk_rna_renames.json'))
+    @rna_seq_renames ||= JSON.parse(File.read('./lib/etls/renaming/projects/ipi_bulk_rna_renames.json'))
   end
 
   def is_control?(record_name)
