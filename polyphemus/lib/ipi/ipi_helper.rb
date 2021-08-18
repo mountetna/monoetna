@@ -119,6 +119,8 @@ class IpiHelper
   end
 
   def rna_seq_renames
+    return {} unless ::File.exist?(@renaming_file)
+    
     @rna_seq_renames ||= JSON.parse(File.read(@renaming_file))
   end
 

@@ -415,3 +415,13 @@ def stub_ingest_files(file_data = nil)
       create(:ingest_file, name: "foo/bar/test3.txt", host: "sftp.example.com", updated_at: "1999-01-01 00:00:00", should_ingest: true)
     end
 end
+
+def stub_ipi_helper
+  allow_any_instance_of(IpiHelper).to receive(:find_batch).and_return(
+    [Polyphemus::MetisFilesForMagmaRecord.new(record_name, change_list)]
+  )
+end
+
+def mock_metis_files_for_record_scan(record_name, change_list)
+  [Polyphemus::MetisFilesForMagmaRecord.new(record_name, change_list)]
+end
