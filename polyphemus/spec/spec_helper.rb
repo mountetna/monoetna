@@ -416,12 +416,6 @@ def stub_ingest_files(file_data = nil)
     end
 end
 
-def stub_ipi_helper
-  allow_any_instance_of(IpiHelper).to receive(:find_batch).and_return(
-    [Polyphemus::MetisFilesForMagmaRecord.new(record_name, change_list)]
-  )
-end
-
 def mock_metis_files_for_record_scan(record_name, change_list)
   [Polyphemus::MetisFilesForMagmaRecord.new(record_name, change_list)]
 end
