@@ -194,6 +194,14 @@ if ! rm -rf /tmp/last.build/; then
 fi
 
 mkdir -p /tmp/last.build
+
+# If we haven't pre-pulled the image, try pulling here.
+# this might fail, however, especially for new or local tags.
+if ! imageExists; then
+  docker pull "$tag" || true
+fi
+
+# If we did manage to pull the image, pull out the existing built version info.
 if imageExists; then
   docker image inspect "$tag" | grep "\"Id\":" | sed -e 's/\s*//' | cut -d'"' -f4 > /tmp/last.build/id
   docker image inspect "$tag" | grep "\"edu.ucsf.mountetna.version\":" | sed -e 's/\s*//' | tail -n 1 | cut -d'"' -f4 > /tmp/last.build/version

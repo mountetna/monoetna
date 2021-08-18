@@ -1,3 +1,6 @@
+# Addons that are not part of the virtual host component
+IncludeOptional /usr/opt/httpd.conf.d/*.system.include
+
 # We are the proxy service backing http termination on a secure internal docker network, so we just use port 80.
 <VirtualHost *:80>
   DocumentRoot /app/public
