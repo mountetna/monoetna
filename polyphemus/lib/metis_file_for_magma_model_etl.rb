@@ -88,7 +88,7 @@ class Polyphemus
         end.result_id do |metis_files_record|
           metis_files_record.record_name
         end.execute_batch_find do |metis_files_for_magma_records, i|
-          metis_files_for_magma_records.slice(@limit * (i - 1), @limit * i) || []
+          metis_files_for_magma_records.slice(@limit * (i - 1), @limit) || []
         end,
       )
     end
