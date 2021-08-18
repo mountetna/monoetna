@@ -38,21 +38,6 @@ RUN curl -o /tmp/dockerize.tgz -L $DOCKERIZE_URL && ( cd /usr/bin && tar xzf /tm
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/install-poetry.py > /opt/install-poetry.py
 RUN python /opt/install-poetry.py --version $POETRY_VERSION
 
-# Install R from CRAN repo, to get latest
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-key '0xE19F5F87128899B192B1A2C2AD5F960A256A04AF'
-RUN echo 'deb http://cloud.r-project.org/bin/linux/debian buster-cran40/' >> /etc/apt/sources.list
-RUN apt-get update && \
-    apt-get install -y r-base \
-    r-base-dev
-
-# Install dittoSeq into R
-# This is a long process, so bake it in the image
-#       instead of using the entrypoints.
-# Taking out for performance. Leaving here as comment in case
-#       we decide we need dittoSeq back.
-# RUN echo 'if (!requireNamespace("remotes", quietly = TRUE))\n    install.packages("remotes")\n\nremotes::install_github("dtm2451/dittoSeq")' > install_dittoseq.txt
-# RUN R < install_dittoseq.txt --save
-
 # bash improvements for easier working inside the container
 RUN git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it && \
     bash ~/.bash_it/install.sh --silent && \
@@ -66,4 +51,3 @@ RUN mv /tmp/docker/* /usr/local/bin/
 # Copy entrypoint scripts
 COPY src/entrypoints /entrypoints
 COPY magby /magby
-
