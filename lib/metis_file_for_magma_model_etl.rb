@@ -72,11 +72,17 @@ class Polyphemus
 
           metis_files = self.metis_client.find(metis_request).files.all
           metis_files_by_record_name = metis_files.group_by do |file|
-            record_name = file.file_path.match(@path_regex)[:record_name]
+            match = file.file_path.match(@path_regex)
 
-            record_name = record_name.gsub(@record_name_gsub_pair.first, @record_name_gsub_pair.last) if @record_name_gsub_pair
+            if match
+              record_name = match[:record_name]
 
-            record_name
+              record_name = record_name.gsub(@record_name_gsub_pair.first, @record_name_gsub_pair.last) if @record_name_gsub_pair
+
+              record_name
+            else
+              nil
+            end
           end
 
           magma_record_names.map do |magma_record_name|
