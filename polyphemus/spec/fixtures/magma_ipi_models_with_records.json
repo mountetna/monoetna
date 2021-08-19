@@ -153,6 +153,16 @@
           "name": "PATIENT001.T1.comp",
           "sample": "PATIENT001.T1",
           "raw_fastq_files": []
+        },
+        "PATIENT002.T1.comp": {
+          "name": "PATIENT002.T1.comp",
+          "sample": "PATIENT002.T1",
+          "raw_fastq_files": []
+        },
+        "PATIENT003.T1.comp": {
+          "name": "PATIENT003.T1.comp",
+          "sample": "PATIENT003.T1",
+          "raw_fastq_files": []
         }
       },
       "template": {
@@ -227,6 +237,19 @@
             "hidden": false,
             "validation": null,
             "attribute_type": "integer"
+          },
+          "compartment": {
+            "name": "compartment",
+            "attribute_name": "compartment",
+            "display_name": "Compartment",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": {
+              "type": "Array",
+              "value": ["comp1", "comp2", "comp3"]
+            },
+            "attribute_type": "string"
           }
         }
       }

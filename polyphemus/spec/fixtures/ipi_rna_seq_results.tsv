@@ -1,3 +1,5 @@
-	info	info	ribosomal_rna	CollectRnaSeqMetrics	fastp
-	well	pipeline_version	reads	utr_pct	filtered_mean_length
-PATIENT001.T1.comp	2	v1.0	12	29.2	80,100
+	info	info	ribosomal_rna	CollectRnaSeqMetrics	fastp	info
+	well	pipeline_version	reads	utr_pct	filtered_mean_length	compartment
+PATIENT001.T1.comp	2	v1.0	12	29.2	80,100	comp22
+PATIENT002.T1.comp	3	v1.1	13	99.9	10,50	unknown
+PATIENT003.T1.comp	4	v1.7	14	50	10,11	comp1

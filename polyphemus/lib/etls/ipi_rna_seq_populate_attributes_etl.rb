@@ -165,6 +165,30 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagma
       (parts.first.to_f + parts.last.to_f) / 2
     end
 
+    def compartment
+      raw_value = @raw["compartment"]
+
+      return raw_value if valid_compartment_values.include?(raw_value)
+
+      # live2 => live
+      return raw_value.match(compartment_increment_regex)[:compartment] if is_numeric_increment?(raw_value)
+
+      # tpost, tpre, tpre2
+      "other"
+    end
+
+    def valid_compartment_values
+      @compartment_values ||= @attributes.attribute("compartment").validation["value"]
+    end
+
+    def compartment_increment_regex
+      /^(?<compartment>(#{valid_compartment_values.join("|")}))\d+$/
+    end
+
+    def is_numeric_increment?(compartment)
+      !!compartment.match(compartment_increment_regex)
+    end
+
     def to_hash
       {}.tap do |result|
         @attributes.attribute_keys.each do |attr_name|
