@@ -3,6 +3,8 @@ COMPOSE_MIXINS:=docker-compose.shared.yml $(COMPOSE_MIXINS)
 app_service_name:=${app_name}_app
 baseTag:=$(shell basename "$$(pwd)")
 fullTag:=$(IMAGES_PREFIX)$(baseTag)$(IMAGES_POSTFIX)
+baseFeTag:=${app_name}_app_fe
+fullFeTag:=$(IMAGES_PREFIX)$(baseFeTag)$(IMAGES_POSTFIX)
 containerSh:=bash
 
 docker-compose.yml:: $(wildcard ../docker/*.shared.yml) ../docker/default_compose
@@ -44,6 +46,7 @@ test:: docker-ready
 
 release-build:: .dockerignore
 	if [ -e Dockerfile ]; then touch /tmp/.release-test; ../docker/build_image Dockerfile $(BUILD_REQS) -- $(BUILD_ARGS); else touch /tmp/etna-build-markers/$(baseTag); fi
+	if [ -e $(baseFeTag)/Dockerfile ]; then ../docker/build_image $(baseFeTag)/Dockerfile -- $(BUILD_ARGS); fi
 
 /tmp/.release-test: /tmp/etna-build-markers/$(baseTag)
 	make release-test
@@ -56,6 +59,7 @@ release::
 	make release-build
 	if ! [ -n "$$NO_TEST" ]; then make /tmp/.release-test; fi
 	if [ -e Dockerfile ]; then if [ -n "$$PUSH_IMAGES" ]; then docker push $(fullTag); fi; fi
+	if [ -e $(baseFeTag)/Dockerfile ]; then if [ -n "$$PUSH_IMAGES" ]; then docker push $(fullFeTag); fi; fi
 
 update::
 	@ docker-compose run --rm -e FULL_BUILD=1 -e UPDATE_STATE=1 ${app_service_name} echo 'Updated'

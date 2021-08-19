@@ -1,8 +1,6 @@
 app_service_name:=${app_name}_app
 app_db_name:=${app_name}_db
 app_name_capitalized:=$(shell echo ${app_name} | tr [a-z] [A-Z])
-baseFeTag:=$(shell basename *_app_fe)
-fullFeTag:=$(IMAGES_PREFIX)$(baseFeTag)$(IMAGES_POSTFIX)
 BUILD_ARGS:=--build-arg APP_NAME=$(app_name) $(BUILD_ARGS)
 EXTRA_DOCKER_ARGS:=
 export BUILD_REQS:=../docker/etna-base $(BUILD_REQS)
@@ -30,10 +28,6 @@ Dockerfile:
 	cp ../docker/etna-base/release/Dockerfile .
 
 release-build:: .dockerignore
-	if [ -e $$baseFeTag/Dockerfile ]; then ../docker/build_image $$baseFeTag/Dockerfile; fi
-
-release:: Dockerfile
-	if [ -e $$baseFeTag/Dockerfile ]; then if [ -n "$$PUSH_IMAGES" ]; then docker push $(fullFeTag); fi; fi
 
 release-test:: docker-ready
 	docker-compose up -d $(app_db_name)

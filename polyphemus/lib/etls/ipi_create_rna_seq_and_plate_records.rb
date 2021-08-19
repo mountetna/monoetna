@@ -4,8 +4,6 @@ require_relative "../ipi/ipi_helper"
 class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
   PATH_REGEX = /.*\/(?<plate>plate\d+)_.*\/output\/(?<record_name>.*)/
   SAMPLE_NAME_REGEX = /^(?<sample_name>IPI.*\.[A-Z]+\d)\..*/
-  PATIENT_IPI_NUMBER_REGEX = /^(?<ipi_number>IPI.*)\.[A-Z]+\d\..*/
-  NON_CANCER_REGEX = /(NASH|NAFLD)/
   PROJECT = "ipi"
   BUCKET = "data"
 
@@ -65,20 +63,17 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
         project_name: PROJECT,
       )
       folders.each do |folder|
-        next if is_non_cancer_sample?(folder.folder_name)
+        next if @helper.is_non_cancer_sample?(folder.folder_name)
 
-        record_name = is_control?(folder.folder_name) ?
-          control_name(folder.folder_name) :
-          folder.folder_name
+        record_name = @helper.is_control?(folder.folder_name) ?
+          @helper.control_name(folder.folder_name) :
+          @helper.corrected_rna_seq_tube_name(plate_name, folder.folder_name)
 
         attrs = {
           rna_seq_plate: plate_name,
         }
 
-        if !is_control?(folder.folder_name)
-          attrs[:sample] = sample_name(record_name)
-          containing_record_workflow.ensure_record("sample", containing_records(record_name))
-        end
+        attrs[:sample] = sample_name(record_name) unless @helper.is_control?(folder.folder_name)
 
         update_request.update_revision("rna_seq", record_name, attrs)
       end
@@ -90,56 +85,7 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
     end
   end
 
-  def is_non_cancer_sample?(folder_name)
-    # per Vincent
-    # I guess the two major non-cancer samples that were gathered in IPIv1 were NAFLD/NASH and PSC (primary sclerosing cholangitis)
-    folder_name =~ NON_CANCER_REGEX
-  end
-
-  def is_control?(record_name)
-    record_name =~ /^control/i
-  end
-
-  def control_name(folder_name)
-    # Control_(UHR|Jurkat).Plate\d+
-    control, plate = folder_name.split(".")
-    _, control_type = control.split("_")
-
-    "Control_#{control_type =~ /jurkat/i ? "Jurkat" : "UHR"}.#{plate.capitalize}"
-  end
-
   def sample_name(rna_seq_record_name)
     rna_seq_record_name.match(SAMPLE_NAME_REGEX)[:sample_name]
-  end
-
-  def patient_ipi_number(rna_seq_record_name)
-    rna_seq_record_name.match(PATIENT_IPI_NUMBER_REGEX)[:ipi_number]
-  end
-
-  def magma_crud
-    @magma_crud ||= Etna::Clients::Magma::MagmaCrudWorkflow.new(
-      magma_client: magma_client,
-      project_name: PROJECT,
-      read_only: false,
-    )
-  end
-
-  def containing_records(record_name)
-    {
-      "sample" => sample_name(record_name),
-      "patient" => patient_ipi_number(record_name),
-      "experiment" => @helper.experiment_from_patient_number(patient_ipi_number(record_name)),
-      "project" => "UCSF Immunoprofiler",
-    }
-  end
-
-  def containing_record_workflow
-    @containing_record_workflow ||= Etna::Clients::Magma::EnsureContainingRecordWorkflow.new(magma_crud: magma_crud, models: models)
-  end
-
-  def models
-    @models ||= begin
-        magma_client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(project_name: PROJECT, model_name: "all")).models
-      end
   end
 end

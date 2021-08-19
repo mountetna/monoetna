@@ -33,6 +33,7 @@ TEST_TOKEN = Polyphemus.instance.config(:polyphemus)[:token]
 
 PROJECT = 'mvir1'
 REDCAP_PROJECT_CONFIG_DIR = 'lib/etls/redcap/projects'
+RENAMING_PROJECT_CONFIG_DIR = 'lib/etls/renaming/projects'
 
 OUTER_APP = Rack::Builder.new do
   use Etna::ParseBody
@@ -175,11 +176,6 @@ def stub_magma_setup(patient_documents)
   stub_magma_update("mvir1")
 end
 
-def stub_magma_documents(documents)
-  stub_request(:post, /#{MAGMA_HOST}\/retrieve/)
-    .to_return({ body: documents.to_json })
-end
-
 def stub_magma_update(project_name=nil)
   stub_request(:post, /#{MAGMA_HOST}\/update$/)
     .to_return do |request|
@@ -253,6 +249,14 @@ def stub_upload_file(params={})
   .to_return({
     status: params[:status] || 200,
     body: params[:upload_body] || JSON.generate({})
+  })
+end
+
+def stub_download_file(params={})
+  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/download/)
+  .to_return({
+    status: params[:status] || 200,
+    body: params[:file_contents] || ''
   })
 end
 
@@ -377,6 +381,18 @@ def copy_redcap_project(project_name='test')
   FileUtils.cp(test_fixture_path, test_output_path)
 end
 
+def copy_renaming_project(file_name='test_renames.json')
+  # Make sure the test project is in the right location so the
+  # REDCap ETL can find it.
+  test_fixture_path = "spec/fixtures/etls/renaming/#{file_name}"
+  test_output_path = "#{RENAMING_PROJECT_CONFIG_DIR}/#{file_name}"
+  FileUtils.mkdir_p(RENAMING_PROJECT_CONFIG_DIR) unless Dir.exist?(RENAMING_PROJECT_CONFIG_DIR)
+
+  # Make sure we have the newest test config.
+  File.delete(test_output_path) if File.file?(test_output_path)
+  FileUtils.cp(test_fixture_path, test_output_path)
+end
+
 def temp_id(records, id)
   all_record_keys = []
   records.keys.each do |key|
@@ -398,4 +414,8 @@ def stub_ingest_files(file_data = nil)
       create(:ingest_file, name: "foo/bar/test2.txt", host: "sftp.example.com", updated_at: "2015-01-01 00:00:00", should_ingest: false)
       create(:ingest_file, name: "foo/bar/test3.txt", host: "sftp.example.com", updated_at: "1999-01-01 00:00:00", should_ingest: true)
     end
+end
+
+def mock_metis_files_for_record_scan(record_name, change_list)
+  [Polyphemus::MetisFilesForMagmaRecord.new(record_name, change_list)]
 end

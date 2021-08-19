@@ -1,11 +1,7 @@
 {
   "models": {
     "project": {
-      "documents": {
-        "UCSF Immunoprofiler": {
-          "name": "UCSF Immunoprofiler"
-        }
-      },
+      "documents": {},
       "template": {
         "name": "project",
         "identifier": "name",
@@ -36,16 +32,7 @@
       }
     },
     "experiment": {
-      "documents": {
-        "Adrenal": {
-          "name": "Adrenal",
-          "project": "UCSF Immunoprofiler"
-        },
-        "Bladder": {
-          "name": "Bladder",
-          "project": "UCSF Immunoprofiler"
-        }
-      },
+      "documents": {},
       "template": {
         "parent": "project",
         "name": "experiment",
@@ -89,16 +76,7 @@
       }
     },
     "patient": {
-      "documents": {
-        "IPIADR001": {
-          "name": "IPIADR001",
-          "experiment": "Adrenal"
-        },
-        "IPIBLAD001": {
-          "name": "IPIBLAD001",
-          "experiment": "Bladder"
-        }
-      },
+      "documents": {},
       "template": {
         "name": "patient",
         "identifier": "name",
@@ -142,11 +120,7 @@
       }
     },
     "sample": {
-      "documents": {
-        "IPIADR001.N1": {"name": "IPIADR001.N1", "patient": "IPIADR001"},
-        "IPIADR001.T1": {"name": "IPIADR001.T1", "patient": "IPIADR001"},
-        "IPIBLAD001.T1": {"name": "IPIBLAD001.T1", "patient": "IPIBLAD001"}
-      },
+      "documents": {},
       "template": {
         "parent": "patient",
         "identifier": "name",
@@ -167,6 +141,162 @@
             "model_name": "patient",
             "link_model_name": "patient",
             "display_name": "Patient",
+            "validation": null,
+            "attribute_type": "parent"
+          }
+        }
+      }
+    },
+    "rna_seq": {
+      "documents": {
+        "PATIENT001.T1.comp": {
+          "name": "PATIENT001.T1.comp",
+          "sample": "PATIENT001.T1",
+          "raw_fastq_files": []
+        },
+        "RIGHT001.T1.rna.tumor": {
+          "name": "RIGHT001.T1.rna.tumor",
+          "sample": "RIGHT001.T1"
+        },
+        "PATIENT002.T1.comp": {
+          "name": "PATIENT002.T1.comp",
+          "sample": "PATIENT002.T1",
+          "raw_fastq_files": []
+        },
+        "PATIENT003.T1.comp": {
+          "name": "PATIENT003.T1.comp",
+          "sample": "PATIENT003.T1",
+          "raw_fastq_files": []
+        }
+      },
+      "template": {
+        "parent": "sample",
+        "identifier": "name",
+        "attributes": {
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "patient": {
+            "name": "sample",
+            "attribute_name": "sample",
+            "model_name": "sample",
+            "link_model_name": "sample",
+            "display_name": "Sample",
+            "validation": null,
+            "attribute_type": "parent"
+          },
+          "pipeline_version": {
+            "name": "pipeline_version",
+            "attribute_name": "pipeline_version",
+            "display_name": "Pipeline version",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "string"
+          },
+          "well": {
+            "name": "well",
+            "attribute_name": "well",
+            "display_name": "Well",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "string"
+          },
+          "ribosomal_read_count": {
+            "name": "ribosomal_read_count",
+            "attribute_name": "ribosomal_read_count",
+            "display_name": "Ribosomal read count",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "integer"
+          },
+          "utr_pct": {
+            "name": "utr_pct",
+            "attribute_name": "utr_pct",
+            "display_name": "UTR %",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "float"
+          },
+          "filtered_mean_length": {
+            "name": "filtered_mean_length",
+            "attribute_name": "filtered_mean_length",
+            "display_name": "Filtered mean of the two reads",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "integer"
+          },
+          "gene_counts": {
+            "name": "gene_counts",
+            "attribute_name": "gene_counts",
+            "display_name": "Genes that can count",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": {
+              "type": "Array",
+              "value": ["Gene1", "Gene2"]
+            },
+            "attribute_type": "matrix"
+          },
+          "compartment": {
+            "name": "compartment",
+            "attribute_name": "compartment",
+            "display_name": "Compartment",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": {
+              "type": "Array",
+              "value": ["comp1", "comp2", "comp3"]
+            },
+            "attribute_type": "string"
+          }
+        }
+      }
+    },
+    "rna_seq_plate": {
+      "documents": {
+        "Plate1": {
+          "name": "Plate1"
+        }
+      },
+      "template": {
+        "parent": "project",
+        "identifier": "name",
+        "attributes": {
+          "name": {
+            "name": "name",
+            "attribute_name": "name",
+            "display_name": "Name",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "identifier"
+          },
+          "project": {
+            "name": "project",
+            "attribute_name": "project",
+            "model_name": "project",
+            "link_model_name": "project",
+            "display_name": "Project",
             "validation": null,
             "attribute_type": "parent"
           }
