@@ -154,6 +154,10 @@
           "sample": "PATIENT001.T1",
           "raw_fastq_files": []
         },
+        "RIGHT001.T1.rna.tumor": {
+          "name": "RIGHT001.T1.rna.tumor",
+          "sample": "RIGHT001.T1"
+        },
         "PATIENT002.T1.comp": {
           "name": "PATIENT002.T1.comp",
           "sample": "PATIENT002.T1",
@@ -237,6 +241,19 @@
             "hidden": false,
             "validation": null,
             "attribute_type": "integer"
+          },
+          "gene_counts": {
+            "name": "gene_counts",
+            "attribute_name": "gene_counts",
+            "display_name": "Genes that can count",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": {
+              "type": "Array",
+              "value": ["Gene1", "Gene2"]
+            },
+            "attribute_type": "matrix"
           },
           "compartment": {
             "name": "compartment",
