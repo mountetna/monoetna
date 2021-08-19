@@ -29,6 +29,7 @@ class Polyphemus
       magma_client: nil,
       file_name_globs: [],
       metis_path_to_record_name_regex: nil,
+      record_name_gsub_pair: nil,
       limit: 20
     )
       file_cursors = project_bucket_model_tuples.map do |project_name, bucket_name, model_name|
@@ -44,6 +45,7 @@ class Polyphemus
       @magma_client = magma_client
       @file_name_globs = file_name_globs
       @path_regex = metis_path_to_record_name_regex
+      @record_name_gsub_pair = record_name_gsub_pair
       @limit = limit
 
       super(
@@ -70,7 +72,11 @@ class Polyphemus
 
           metis_files = self.metis_client.find(metis_request).files.all
           metis_files_by_record_name = metis_files.group_by do |file|
-            file.file_path.match(@path_regex)[:record_name]
+            record_name = file.file_path.match(@path_regex)[:record_name]
+
+            record_name = record_name.gsub(@record_name_gsub_pair.first, @record_name_gsub_pair.last) if @record_name_gsub_pair
+
+            record_name
           end
 
           magma_record_names.map do |magma_record_name|
@@ -88,7 +94,7 @@ class Polyphemus
         end.result_id do |metis_files_record|
           metis_files_record.record_name
         end.execute_batch_find do |metis_files_for_magma_records, i|
-          metis_files_for_magma_records.slice(@limit * (i - 1), @limit * i) || []
+          metis_files_for_magma_records.slice(@limit * (i - 1), @limit) || []
         end,
       )
     end
