@@ -1,0 +1,19 @@
+version: '3.2'
+
+# Intended for agents that run in global deploy node, on most or all nodes, for service health purposes.
+services:
+  agent:
+    image: gcr.io/cadvisor/cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    deploy:
+      mode: global
+      placement:
+        constraints: [node.platform.os == linux]
+    labels:
+      - edu.ucsf.mountetna.deployer.disable=true
+    ports:
+      - 7100:8080
