@@ -59,7 +59,7 @@ fig = px.scatter(
 )
 
 ### Output the plot
-fig.write_image("images/fig1.png")
+fig.write_image("test_data/bar_plot.png")
 
 # ----------- Modify above here to start ------------ #
 
