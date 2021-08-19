@@ -57,6 +57,8 @@ class Polyphemus::IpiRnaSeqPopulateMatricesEtl < Polyphemus::MetisFileForMagmaMo
               data_gene_ids: data_gene_ids,
             )
 
+            next if @helper.is_non_cancer_sample?(matrix.tube_name)
+
             update_request.update_revision(MAGMA_MODEL, matrix.tube_name, {
               "#{attribute_name}": matrix.to_array,
             })
