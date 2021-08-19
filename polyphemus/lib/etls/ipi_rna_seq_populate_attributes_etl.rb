@@ -43,6 +43,8 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagma
         csv.each do |row|
           rna_seq = MagmaRnaSeq.new(row, model_attributes)
 
+          next if @helper.is_non_cancer_sample?(rna_seq.tube_name)
+
           update_request.update_revision(MAGMA_MODEL, rna_seq.tube_name, rna_seq.to_hash)
           logger.info("Updating record #{rna_seq.tube_name}.")
         end
