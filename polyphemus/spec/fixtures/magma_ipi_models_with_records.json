@@ -156,7 +156,16 @@
         },
         "RIGHT001.T1.rna.tumor": {
           "name": "RIGHT001.T1.rna.tumor",
-          "sample": "RIGHT001.T1",
+          "sample": "RIGHT001.T1"
+        },
+        "PATIENT002.T1.comp": {
+          "name": "PATIENT002.T1.comp",
+          "sample": "PATIENT002.T1",
+          "raw_fastq_files": []
+        },
+        "PATIENT003.T1.comp": {
+          "name": "PATIENT003.T1.comp",
+          "sample": "PATIENT003.T1",
           "raw_fastq_files": []
         }
       },
@@ -245,6 +254,19 @@
               "value": ["Gene1", "Gene2"]
             },
             "attribute_type": "matrix"
+          },
+          "compartment": {
+            "name": "compartment",
+            "attribute_name": "compartment",
+            "display_name": "Compartment",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": {
+              "type": "Array",
+              "value": ["comp1", "comp2", "comp3"]
+            },
+            "attribute_type": "string"
           }
         }
       }
