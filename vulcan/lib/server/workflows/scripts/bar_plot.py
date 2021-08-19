@@ -25,7 +25,7 @@ def _default_to_if_make_and_logic(this, default, logic = True):
 # ----------- Modify below here ------------ #
 
 ### Read in our data
-data_frame = pd.read_csv(mockDF.csv)
+data_frame = pd.read_csv("test_data/mockDF.csv")
 # print(data_frame) # Uncomment to view the data!
 
 ### Make plot
