@@ -15,6 +15,7 @@ from archimedes.functions.magma import connect, question
 from archimedes.functions.list import flatten, unique, order
 # from archimedes.functions.environment import project_name
 from archimedes.functions.utils import pandas as pd
+from archimedes.functions.utils import numpy
 
 # A utility function that we will use for intuitive defaultingwhen we convert to a function
 def _default_to_if_make_and_logic(this, default, logic = True):
@@ -22,11 +23,29 @@ def _default_to_if_make_and_logic(this, default, logic = True):
         return default
     return this
 
-# ----------- Modify below here ------------ #
-
 ### Read in our data
-data_frame = pd.read_csv("test_data/mockDF.csv")
-# print(data_frame) # Uncomment to view the data!
+original_df = pd.read_csv("test_data/mockDF.csv", index_col=0)
+# print(original_df) # Uncomment to view this data!
+
+### Convert to fractional dataframe of fractional composition
+# Excuse the ugliness
+summary_df = pd.DataFrame(original_df[['sample', 'group']].value_counts())
+summary_df = summary_df.reset_index().rename(columns={'sample': 'xgroups', 'group': 'yvals', 0 : "counts"})
+fractions = None
+for k in summary_df.xgroups.unique():
+    counts = summary_df[summary_df.xgroups == k].loc[:,'counts']
+    this = counts/sum(counts)
+    if fractions is None:
+        fractions = this
+    else:
+        fractions = fractions.append(this)
+
+summary_df['fraction'] = fractions
+
+# View the data frame we'll turn into a bar_plot
+summary_df
+
+# ----------- Modify below here ------------ #
 
 ### Make plot
 # You'll need to change this in multiple ways to go from scatter -> bar plot
@@ -43,6 +62,7 @@ fig = px.scatter(
 fig.write_image("images/fig1.png")
 
 # ----------- Modify above here to start ------------ #
+
 # We'll convert to a function after we have our intial example!
 
 # def scatter_plotly(
