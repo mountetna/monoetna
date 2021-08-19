@@ -4,7 +4,6 @@ require_relative "../ipi/ipi_helper"
 class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
   PATH_REGEX = /.*\/(?<plate>plate\d+)_.*\/output\/(?<record_name>.*)/
   SAMPLE_NAME_REGEX = /^(?<sample_name>IPI.*\.[A-Z]+\d)\..*/
-  NON_CANCER_REGEX = /(NASH|NAFLD)/
   PROJECT = "ipi"
   BUCKET = "data"
 
@@ -64,7 +63,7 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
         project_name: PROJECT,
       )
       folders.each do |folder|
-        next if is_non_cancer_sample?(folder.folder_name)
+        next if @helper.is_non_cancer_sample?(folder.folder_name)
 
         record_name = @helper.is_control?(folder.folder_name) ?
           @helper.control_name(folder.folder_name) :
@@ -84,12 +83,6 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
         magma_client.update_json(update_request)
       end
     end
-  end
-
-  def is_non_cancer_sample?(folder_name)
-    # per Vincent
-    # I guess the two major non-cancer samples that were gathered in IPIv1 were NAFLD/NASH and PSC (primary sclerosing cholangitis)
-    folder_name =~ NON_CANCER_REGEX
   end
 
   def sample_name(rna_seq_record_name)
