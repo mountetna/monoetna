@@ -3,6 +3,8 @@ require_relative "../data_processing/file_name_regex_dsl"
 class IpiHelper
   include FileNameRegexDsl
 
+  NON_CANCER_REGEX = /(NASH|NAFLD)/
+
   def initialize(renaming_file = "./lib/etls/renaming/projects/ipi_bulk_rna_renames.json")
     @renaming_file = renaming_file
   end
@@ -120,7 +122,7 @@ class IpiHelper
 
   def rna_seq_renames
     return {} unless ::File.exist?(@renaming_file)
-    
+
     @rna_seq_renames ||= JSON.parse(File.read(@renaming_file))
   end
 
@@ -134,5 +136,11 @@ class IpiHelper
     _, control_type = control.split("_")
 
     "Control_#{control_type =~ /jurkat/i ? "Jurkat" : "UHR"}.#{plate.capitalize}"
+  end
+
+  def is_non_cancer_sample?(folder_name)
+    # per Vincent
+    # I guess the two major non-cancer samples that were gathered in IPIv1 were NAFLD/NASH and PSC (primary sclerosing cholangitis)
+    folder_name =~ NON_CANCER_REGEX
   end
 end
