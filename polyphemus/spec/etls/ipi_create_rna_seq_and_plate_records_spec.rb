@@ -1,4 +1,13 @@
 describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
+  let(:cursor) {
+    Polyphemus::MetisFileForMagmaModelEtlCursor.new(
+      job_name: "test",
+      project_name: "ipi",
+      bucket_name: "test",
+      model_name: "rna_seq",
+    )
+  }
+
   before(:each) do
     stub_metis_setup
     @all_updates = []
@@ -19,15 +28,13 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
     end
 
     it "for all rna_seq" do
-      stub_metis_scan([
+      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
+
+      etl.process(cursor, [
         folder("IPIADR001.N1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
         folder("IPIADR001.T1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.T1.rna.live"),
         folder("IPIBLAD001.T1.rna.live", "bucket/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
       ])
-
-      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
-
-      etl.run_once
 
       # Make sure plates are created
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -74,14 +81,12 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
     end
 
     it "does not create NASH / NAFLD samples" do
-      stub_metis_scan([
+      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
+
+      etl.process(cursor, [
         folder("IPIADR001.NASH1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live"),
         folder("IPIADR001.NAFLD1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live"),
       ])
-
-      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
-
-      etl.run_once
 
       # No plates are 100% NASH / NAFLD, so this is okay
       # Make sure plates are created
@@ -122,14 +127,12 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
     end
 
     it "for control" do
-      stub_metis_scan([
+      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
+
+      etl.process(cursor, [
         folder("CONTROL_jurkat.plate1", "bucket/plate1_rnaseq_new/output/CONTROL_jurkat.plate1"),
         folder("CONTROL_uhr.plate2", "bucket/plate2_rnaseq_new/output/CONTROL_uhr.plate2"),
       ])
-
-      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
-
-      etl.run_once
 
       # Make sure plates are created
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -168,9 +171,5 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
                                    },
                                  }))
     end
-  end
-
-  def stub_metis_scan(change_list)
-    allow_any_instance_of(Polyphemus::TimeScanBasedEtlScanner).to receive(:find_batch).and_return(change_list)
   end
 end

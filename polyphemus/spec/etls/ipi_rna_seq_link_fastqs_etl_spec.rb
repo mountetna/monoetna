@@ -1,4 +1,13 @@
 describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
+  let(:cursor) {
+    Polyphemus::MetisFileForMagmaModelEtlCursor.new(
+      job_name: "test",
+      project_name: "ipi",
+      bucket_name: "test",
+      model_name: "rna_seq",
+    )
+  }
+
   before(:each) do
     stub_metis_setup
     @all_updates = []
@@ -20,15 +29,15 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
     end
 
     it "when scanner finds new files" do
-      stub_metis_scan("PATIENT001.T1.comp", [
-        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
-        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
-        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
-      ])
-
       etl = Polyphemus::IpiRnaSeqLinkFastQsEtl.new
 
-      etl.run_once
+      etl.process(cursor, mock_metis_files_for_record_scan(
+        "PATIENT001.T1.comp", [
+          file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
+          file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
+          file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
+        ]
+      ))
 
       # Make sure rna_seq records are updated
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -53,15 +62,15 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
     end
 
     it "when file has been deleted" do
-      stub_metis_scan("PATIENT001.T1.comp", [
-        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
-        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
-        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
-      ])
-
       etl = Polyphemus::IpiRnaSeqLinkFastQsEtl.new
 
-      etl.run_once
+      etl.process(cursor, mock_metis_files_for_record_scan(
+        "PATIENT001.T1.comp", [
+          file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
+          file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
+          file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
+        ]
+      ))
 
       # Make sure rna_seq records are updated
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -84,12 +93,12 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
                                    },
                                  }))
 
-      stub_metis_scan("PATIENT001.T1.comp", [
-        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
-        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
-      ])
-
-      etl.run_once
+      etl.process(cursor, mock_metis_files_for_record_scan(
+        "PATIENT001.T1.comp", [
+          file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
+          file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
+        ]
+      ))
 
       # Make sure rna_seq records are updated
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -111,15 +120,15 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
     end
 
     it "when file hash changes" do
-      stub_metis_scan("PATIENT001.T1.comp", [
-        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", "hash1"),
-        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", "hash2"),
-        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", "hash3"),
-      ])
-
       etl = Polyphemus::IpiRnaSeqLinkFastQsEtl.new
 
-      etl.run_once
+      etl.process(cursor, mock_metis_files_for_record_scan(
+        "PATIENT001.T1.comp", [
+          file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", "hash1"),
+          file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", "hash2"),
+          file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", "hash3"),
+        ]
+      ))
 
       # Make sure rna_seq records are updated
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -142,15 +151,15 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
                                    },
                                  }))
 
-      stub_metis_scan("PATIENT001.T1.comp", [
-        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", "hash1"),
-        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", "new-hash2"),
-        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", "hash3"),
-      ])
+      etl.process(cursor, mock_metis_files_for_record_scan(
+        "PATIENT001.T1.comp", [
+          file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", "hash1"),
+          file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", "new-hash2"),
+          file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", "hash3"),
+        ]
+      ))
 
-      etl.run_once
-
-      # Make sure rna_seq records are again
+      # Make sure rna_seq records are updated again
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
                            .with(body: hash_including({
                                    "revisions": {
@@ -171,11 +180,5 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
                                    },
                                  })).twice
     end
-  end
-
-  def stub_metis_scan(record_name, change_list)
-    allow_any_instance_of(Polyphemus::HashScanBasedEtlScanner).to receive(:find_batch).and_return(
-      [Polyphemus::MetisFilesForMagmaRecord.new(record_name, change_list)]
-    )
   end
 end
