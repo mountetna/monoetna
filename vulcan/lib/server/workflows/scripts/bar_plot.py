@@ -27,7 +27,7 @@ def _default_to_if_make_and_logic(this, default, logic = True):
 original_df = pd.read_csv("test_data/mockDF.csv", index_col=0)
 # print(original_df) # Uncomment to view this data!
 
-### Convert to fractional dataframe of fractional composition
+### Convert to dataframe of fractional composition
 # Excuse the ugliness
 summary_df = pd.DataFrame(original_df[['sample', 'group']].value_counts())
 summary_df = summary_df.reset_index().rename(columns={'sample': 'xgroups', 'group': 'yvals', 0 : "counts"})
@@ -51,11 +51,11 @@ summary_df
 # You'll need to change this in multiple ways to go from scatter -> bar plot
 # Use the plotly documentation to figure out how!
 fig = px.scatter(
-    data_frame = data_frame,
+    data_frame = summary_df,
     x = x_by,
     y = y_by,
     color = color_by, # Likely not needed for bar plots
-    color_discrete_sequence = color_panel
+    color_discrete_sequence = colors
 )
 
 ### Output the plot
