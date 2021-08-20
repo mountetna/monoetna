@@ -34,12 +34,13 @@ class Polyphemus::IpiRnaSeqLinkProcessedFilesEtl < Polyphemus::MetisFileForMagma
       next if @helper.is_non_cancer_sample?(file_record.record_name)
       next if file_record.files.empty?
 
+      correct_tube_name = @helper.corrected_rna_seq_tube_name(plate_name(file_record.files.first), file_record.record_name)
       update_request.update_revision(
         cursor[:model_name],
-        @helper.corrected_rna_seq_tube_name(plate_name(file_record.files.first), file_record.record_name),
+        correct_tube_name,
         files_payload(cursor[:project_name], file_record.files)
       )
-      logger.info("Found #{file_record.files.length} files for #{file_record.record_name}: #{file_record.files.map { |f| f.file_path }}")
+      logger.info("Found #{file_record.files.length} files for #{correct_tube_name}: #{file_record.files.map { |f| f.file_path }}")
     end
 
     magma_client.update_json(update_request)
