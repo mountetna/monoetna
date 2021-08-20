@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  # Postgresql unique to airflow.  Contains configuration of the airflow ui,
+  # user accounts, etc.
+  postgresql:
+    image: docker.io/bitnami/postgresql:10
+    volumes:
+      - 'postgresql_data:/bitnami/postgresql'
+    environment:
+      - POSTGRESQL_DATABASE=airflow
+      - POSTGRESQL_USERNAME=airflow
+      - POSTGRESQL_PASSWORD_FILE=/run/secrets/airflow_psql_password
+    secrets:
+      - airflow_psql_password
+    deploy:
+      placement:
+        constraints:
+          - node.labels.airflow_postgresql_data_volume == true
+      replicas: 1
+  scheduler:
+    image: etnaagent/airflow:production
+    configs:
+      - source: airflow_scheduler_config
+        target: /opt/airflow/airflow.cfg
+        mode: 0440
+    secrets:
+      - airflow_psql_password
+    deploy:
+      replicas: 1
+    command:
+      - airflow
+      - scheduler
+
+secrets:
+  airflow_psql_password:
+    external: true
+
+volumes:
+  postgresql_data:
+
+networks:
+  redis:
+    external: true

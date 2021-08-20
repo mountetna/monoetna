@@ -23,6 +23,8 @@ services:
       placement:
         # At most replicas - 1 to ensure they are divided amongst 2 machines.
         max_replicas_per_node: 1
+    networks:
+      - redis
   sentinel:
     image: etnaagent/redis-ha:production
     command: redis-sentinel
@@ -45,10 +47,13 @@ services:
       placement:
         # At most replicas - 1 to ensure they are divided amongst 2 machines.
         max_replicas_per_node: 2
-
-volumes:
-  rdb:
+    networks:
+      - redis
 
 secrets:
   redis_password:
+    external: true
+
+networks:
+  redis:
     external: true
