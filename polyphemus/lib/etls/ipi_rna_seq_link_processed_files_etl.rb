@@ -3,6 +3,8 @@ require_relative "../ipi/ipi_helper"
 
 class Polyphemus::IpiRnaSeqLinkProcessedFilesEtl < Polyphemus::MetisFileForMagmaModelEtl
   PATH_REGEX = /.*\/(?<record_name>.*)\/(?<original_file_name>.*\.(fastq\.gz|deduplicated\.cram|deduplicated\.cram\.crai|junction))$/
+  PLATE_REGEX = /.*\/(?<plate>plate\d+)_.*\/output\/.*/
+
   PROJECT = "ipi"
   BUCKET = "data"
   MODEL = "rna_seq"
@@ -29,9 +31,12 @@ class Polyphemus::IpiRnaSeqLinkProcessedFilesEtl < Polyphemus::MetisFileForMagma
     )
 
     files_by_record_name.each do |file_record|
+      next if @helper.is_non_cancer_sample?(file_record.record_name)
+      next if file_record.files.empty?
+
       update_request.update_revision(
         cursor[:model_name],
-        file_record.record_name,
+        @helper.corrected_rna_seq_tube_name(plate_name(file_record.files.first), file_record.record_name),
         files_payload(cursor[:project_name], file_record.files)
       )
       logger.info("Found #{file_record.files.length} files for #{file_record.record_name}: #{file_record.files.map { |f| f.file_path }}")
@@ -102,5 +107,9 @@ class Polyphemus::IpiRnaSeqLinkProcessedFilesEtl < Polyphemus::MetisFileForMagma
 
   def is_file_collection?(project_name, attribute_name)
     magma_attributes(project_name).attribute(attribute_name.to_s).attribute_type == Etna::Clients::Magma::AttributeType::FILE_COLLECTION
+  end
+
+  def plate_name(metis_file)
+    metis_file.file_path.match(PLATE_REGEX)[:plate].gsub(/plate/, "Plate")
   end
 end
