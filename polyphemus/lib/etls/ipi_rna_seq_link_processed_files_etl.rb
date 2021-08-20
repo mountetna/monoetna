@@ -63,17 +63,17 @@ class Polyphemus::IpiRnaSeqLinkProcessedFilesEtl < Polyphemus::MetisFileForMagma
   def files_payload(project_name, files)
     {}.tap do |payload|
       attribute_regex.each do |attribute_name, regex|
-        file_payloads = files.select do |file|
+        payloads_for_attr = files.select do |file|
           file.file_name =~ regex
         end.map do |file|
           serialize(file.file_path)
         end
 
         is_file_collection = is_file_collection?(project_name, attribute_name)
-        if file_payloads.empty?
+        if payloads_for_attr.empty?
           payload[attribute_name] = is_file_collection ? [] : blank_file
         else
-          payload[attribute_name] = is_file_collection ? file_payloads : file_payloads.first
+          payload[attribute_name] = is_file_collection ? payloads_for_attr : payloads_for_attr.first
         end
       end
     end
