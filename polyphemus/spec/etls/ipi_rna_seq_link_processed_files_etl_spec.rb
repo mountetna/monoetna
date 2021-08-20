@@ -109,7 +109,7 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesEtl do
                                  }))
     end
 
-    it "correctly handles non-cancer files" do
+    it "correctly ignores non-cancer files" do
       etl = Polyphemus::IpiRnaSeqLinkProcessedFilesEtl.new
 
       etl.process(cursor, mock_metis_files_for_record_scan(
@@ -153,7 +153,7 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesEtl do
                                      }))
     end
 
-    it "correctly handles renamed tube_names" do
+    it "correctly renames renamed tube_names" do
       etl = Polyphemus::IpiRnaSeqLinkProcessedFilesEtl.new
 
       etl.process(cursor, mock_metis_files_for_record_scan(
