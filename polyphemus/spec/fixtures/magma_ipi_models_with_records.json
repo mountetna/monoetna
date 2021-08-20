@@ -267,6 +267,46 @@
               "value": ["comp1", "comp2", "comp3"]
             },
             "attribute_type": "string"
+          },
+          "cram": {
+            "name": "cram",
+            "attribute_name": "cram",
+            "display_name": "Cram",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "file"
+          },
+          "cram_index": {
+            "name": "cram_index",
+            "attribute_name": "cram_index",
+            "display_name": "Cram index",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "file"
+          },
+          "junction": {
+            "name": "junction",
+            "attribute_name": "junction",
+            "display_name": "Junction",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "file"
+          },
+          "unmapped_fastqs": {
+            "name": "unmapped_fastqs",
+            "attribute_name": "unmapped_fastqs",
+            "display_name": "Unmapped",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "file_collection"
           }
         }
       }
