@@ -28,6 +28,7 @@ module.exports = (env) => ({
         // Skip any files outside of your project's `src` directory
         include: [
           path.resolve(__dirname, 'lib/client/jsx'),
+          path.resolve(__dirname, 'node_modules/ajv/'),
           path.resolve(__dirname, 'node_modules/etna-js/'),
           '/etna/packages/etna-js',
         ],
@@ -42,6 +43,7 @@ module.exports = (env) => ({
           path.resolve(__dirname, 'node_modules/etna-js/'),
           path.resolve(__dirname, 'node_modules/animate.css/'),
           path.resolve(__dirname, 'node_modules/react-notifications-component'),
+          path.resolve(__dirname, 'node_modules/codemirror/'),
           '/etna/packages/etna-js'
         ],
         test: /\.css$/
@@ -51,23 +53,10 @@ module.exports = (env) => ({
         loader: 'file-loader',
         include: [
           path.resolve(__dirname, 'node_modules/etna-js/'),
+          path.resolve(__dirname, 'lib/client/img'),
           '/etna/packages/etna-js'
         ],
         test: /\.(jpe?g|png|svg)$/i,
-
-        options: {
-          name: '[name].[ext]',
-          outputPath: 'public/images/',
-          publicPath: '/images'
-        }
-      },
-
-      {
-        test: /\.(jpe?g|png|svg)$/i,
-
-        include: [path.resolve(__dirname, 'lib/client/img')],
-
-        loader: 'file-loader',
 
         options: {
           name: '[name].[ext]',

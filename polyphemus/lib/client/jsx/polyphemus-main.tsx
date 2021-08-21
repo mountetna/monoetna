@@ -11,31 +11,10 @@ import Button from '@material-ui/core/Button';
 import Box from '@material-ui/core/Box';
 import Collapse from '@material-ui/core/Collapse';
 
-
-import { JSONEditor, defaults } from '@json-editor/json-editor';
-
-JSONEditor.defaults.options.collapsed = true;
+import ConfigScript from './config-script';
 
 const Config = ({config, schema}) =>  {
-  const editorRef = useRef();
-  useEffect(() => {
-    const editor = new JSONEditor( editorRef.current, {
-      schema, startval: config,
-      display_required_only: true,
-      theme: 'barebones',
-      iconlib: 'fontawesome5',
-      remove_button_labels: true,
-      compact: true,
-      disable_array_add: false,
-      disable_array_delete: false,
-      disable_array_delete_all_rows: true,
-      disable_array_delete_last_row: true,
-      disable_array_reorder: true,
-      disable_edit_json: true,
-      disable_properties: false
-    });
-  });
-  return <div ref={editorRef}/>
+  return <ConfigScript script={config} schema={schema}/>
 }
 
 const PolyphemusMain = ({project_name}) => {

@@ -20,7 +20,7 @@ function Polyphemus() {
     <Provider store={ store }>
       <PolyphemusUI/>
     </Provider>,
-    document.getElementById('root')
+    document.getElementById('coot')
   );
 }
 

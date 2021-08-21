@@ -35,7 +35,7 @@ class EtlController < Polyphemus::Controller
     success_json([ {
       name: "redcap",
       schema: {
-        "$schema": "http://json-schema.org/draft-04/schema#",
+        "$schema": "http://json-schema.org/draft-07/schema#",
 	"$id": "https://example.com/product.schema.json",
 	title: "Redcap Loader",
 	description: "This loader takes data from a Redcap host and imports it into Magma according to a specified mapping template. It requires a Redcap API token.",
@@ -50,6 +50,7 @@ class EtlController < Polyphemus::Controller
                 items: { "$ref": "#/definitions/script" }
               }
             },
+            additionalProperties: false,
             required: [ "scripts" ]
           },
           each: {
@@ -99,6 +100,7 @@ class EtlController < Polyphemus::Controller
               in: { type: "array", items: { type: "string" } },
               exists: { type: "boolean" }
             },
+            additionalProperties: false,
             required: [ "value" ]
           }
         },

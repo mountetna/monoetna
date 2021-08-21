@@ -19,18 +19,17 @@ const moveEye = (e) => {
 
   if (!iris) return;
 
-  const center = { x: 55, y: 55 };
+  const center = { x: 55/2, y: 55/2 };
   const maxdist = dist(center, { x: window.innerWidth, y: window.innerHeight});
   const maxradius = 20;
 
   const point = { x: e.clientX, y: e.clientY };
 
-  const radius = maxradius * Math.sqrt(dist(center, point) / maxdist);
+  const radius = maxradius * Math.pow(dist(center, point) / maxdist, 0.4);
 
   const vector = norm({ x: point.x - center.x, y: point.y - center.y });
 
-  iris.setAttribute('transform',
-      `translate(${vector.x * radius},${vector.y*radius})`)
+  iris.setAttribute('transform', `translate(${vector.x * radius},${vector.y*radius})`);
 }
 
 const Logo = () => {
