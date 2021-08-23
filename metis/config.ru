@@ -14,5 +14,6 @@ use Etna::SymbolizeParams
 use Etna::Auth
 use Etna::DescribeRoutes
 use Metis::SetUid
+use Etna::SynchronizeDb
 
 run Metis::Server.new
