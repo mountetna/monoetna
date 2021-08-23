@@ -185,7 +185,7 @@ function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | unde
   return output;
 }
 
-function useExtraInputs(options: DataEnvelope<string>) {
+function useExtraInputs(options: string[]) {
   const extra_inputs: DataEnvelope<any[]> = useMemo(() => {
     return {
       // label, then for any extras
