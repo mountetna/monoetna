@@ -13,7 +13,6 @@ class Metis
   def setup_db
     @db = Sequel.connect(config(:db))
     @db.extension :connection_validator
-    @db.pool.connection_validation_timeout = -1
   end
 
   def setup_logger

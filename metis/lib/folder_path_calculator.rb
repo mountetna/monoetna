@@ -4,10 +4,9 @@
 
 class Metis
   class FolderPathCalculator
-
     def initialize(all_folders: nil, bucket:)
       all_folders = all_folders ? all_folders : Metis::Folder.where(
-        bucket: bucket
+        bucket: bucket,
       ).all
 
       @folders_by_id = all_folders.group_by { |fold| fold.id }
@@ -36,9 +35,9 @@ class Metis
         path.unshift(parent_folder.folder_name)
         folder_to_check = parent_folder
       end
-      # Once we've determined the path to a folder, we'll add it to our cache
-      @path_cache[folder_id.to_s.to_sym] = path.dup
-      path.join('/')
+      # Once we've determined the full path to a folder, we'll add it to our cache
+      @path_cache[folder_id.to_s.to_sym] = path.dup unless @path_cache.key?(folder_id.to_s.to_sym)
+      path.join("/")
     end
   end
 end
