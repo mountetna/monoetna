@@ -13,6 +13,7 @@ import { pick } from 'lodash';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 import StringInput from './string';
 import BooleanInput from './boolean';
+import { presets } from '../../../../../../../babel.config';
 
 /*
 This input is closely tied to archimedes/functions/plotting/scatter_plotly.
@@ -40,15 +41,17 @@ export default function scatter_plotly({
 function VisualizationUI({
   data, onChange, ...props
 }: WithInputParams<{}, DataEnvelope<any>, any>, plotType: string) {
-  const hide = useMemo(() => data && data['hide'], [data]);
-  const defaultValue = useMemo(() => whichDefaults(plotType, hide), [hide]);
+  const preset = useMemo(() => data && data['preset'], [data]);
+  const hide = useMemo(() => preset && Object.keys(preset), [preset]);
+  const defaultValue = useMemo(() => whichDefaults(plotType, preset), [preset]);
   const value = useSetsDefault(defaultValue, props.value, onChange);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const options: DataEnvelope<string> = useMemo(() => {
-    if (data == null) return {};
+  const options: string[] = useMemo(() => {
+    if (data == null) return [];
 
-    return data['data_options'] || nulled_vals(data['data_frame']);
+    // return data['data_options'] || nulled_vals(data['data_frame']);
+    return Object.keys(data['data_frame'])
   }, [data]);
 
   const updateValue = (newValue: any, key: string, prevValues = value) => {
@@ -83,8 +86,12 @@ function VisualizationUI({
   }
 
   const shownValues = useMemo(() => {
-    return showAdvanced ? value : pick(value, ...base)
-  }, [value, showAdvanced])
+    let initial = showAdvanced ? value : pick(value, ...base)
+    return remove_hidden(initial, hide);
+  }, [value, showAdvanced, hide])
+
+  console.log("preset:", preset)
+  console.log("value:", props.value)
   
   return (
     <div>
@@ -149,19 +156,33 @@ const defaults: DataEnvelope<any> = {
   'xlab': 'make',
   'ylab': 'make',
   'color_order': 'increasing',
-  'order_when_continuous_color': false
+  'order_when_continuous_color': false,
+  // 'hover_data': null,
+  'hello': 0
 };
 
-function whichDefaults(plotType: string, hide: string[] | null | undefined) {
+function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | undefined) {
   const inputs = input_sets[plotType]['main'].concat(input_sets[plotType]['adv'])
 
-  let output = defaults;
-  const keys = Object.keys(defaults);
-  for (let ind = 0; ind < defaults.length; ind++) {
-    if (!inputs.includes(keys[ind])) delete output[keys[ind]];
+  console.log("in whichDefaults", preset)
+  let output = {...defaults};
+  
+  // Remove input:value pairs that aren't in this Viz type
+  const def_keys = Object.keys(defaults);
+  for (let ind = 0; ind < def_keys.length; ind++) {
+    if (!inputs.includes(def_keys[ind])) delete output[def_keys[ind]];
   }
 
-  return remove_hidden(defaults, hide);
+  // Add preset values / replace any default values.
+  if (preset != null) {
+    const pre_keys = Object.keys(preset);
+    for (let ind = 0; ind < pre_keys.length; ind++) {
+      output[pre_keys[ind]] = preset[pre_keys[ind]];
+    }
+  }
+  
+  console.log(output)
+  return output;
 }
 
 function useExtraInputs(options: DataEnvelope<string>) {
@@ -175,7 +196,8 @@ function useExtraInputs(options: DataEnvelope<string>) {
       'x_by': ['X-Axis Data', options],
       'y_by': ['Y-Axis Data', options],
       'color_by': ['Color Points By', options],
-      'color_order': ['Point render order', null, ['increasing', 'decreasing', 'unordered']],
+      // 'hover_data': ['Extra data to show upon cursor hover', options],
+      'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.1, 50]
     }
@@ -199,20 +221,20 @@ const stringInput = (
     )
   };
 
-const nestableDropdownInput = (
-  key: string = "filler", changeFxn: Function, value: string | null,
-  label: string, options: DataEnvelope<null>) => {
+// const nestableDropdownInput = (
+//   key: string = "filler", changeFxn: Function, value: string | null,
+//   label: string, options: DataEnvelope<null>) => {
     
-    return(
-      <NestedSelectAutocompleteInput
-        key={key}
-        label={label}
-        data={{options}} 
-        value={maybeOfNullable(value)}
-        onChange={(val) => changeFxn(withDefault(val, null), key)}
-      />
-    )
-  }
+//     return(
+//       <NestedSelectAutocompleteInput
+//         key={key}
+//         label={label}
+//         data={{options}} 
+//         value={maybeOfNullable(value)}
+//         onChange={(val) => changeFxn(withDefault(val, null), key)}
+//       />
+//     )
+//   }
 
 const checkboxInput = (
   key: string = "filler", changeFxn: Function, value: boolean = false,
@@ -231,14 +253,14 @@ const checkboxInput = (
 
 const dropdownInput = (
   key: string = "filler", changeFxn: Function, value: string | null,
-  label: string, defaultValue: string | null = null, options: string[]) => {
+  label: string, options: string[]) => {
     
     return(
       <div key={key}>
         {label}
         <DropdownAutocomplete
           list={options}
-          defaultValue={defaultValue}
+          defaultValue={null}
           value={value}
           onSelect={(val: string) => changeFxn(val, key)}
         />
@@ -269,9 +291,10 @@ const comps: DataEnvelope<Function> = {
   'legend_title': stringInput,
   'xlab': stringInput,
   'ylab': stringInput,
-  'x_by': nestableDropdownInput,
-  'y_by': nestableDropdownInput,
-  'color_by': nestableDropdownInput,
+  'x_by': dropdownInput,
+  'y_by': dropdownInput,
+  'color_by': dropdownInput,
+  // 'hover_data': dropdownInput,
   'color_order': dropdownInput,
   'order_when_continuous_color': checkboxInput,
   'size': sliderInput
