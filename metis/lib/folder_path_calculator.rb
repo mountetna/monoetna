@@ -36,7 +36,7 @@ class Metis
         folder_to_check = parent_folder
       end
       # Once we've determined the full path to a folder, we'll add it to our cache
-      @path_cache[folder_id.to_s.to_sym] = path.dup unless @path_cache.key?(folder_id.to_s.to_sym)
+      @path_cache[folder_id.to_s.to_sym] = path.dup unless @path_cache.has_key?(folder_id.to_s.to_sym)
       path.join("/")
     end
   end
