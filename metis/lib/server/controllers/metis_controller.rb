@@ -36,14 +36,14 @@ class Metis
 
     def file_hashes_with_calculated_paths(bucket:, files:)
       # Calculate the folder_path, instead of
-      #   doing it in the database.
+      #   doing it in the database. Try to save queries / connections
       folder_path_calc = Metis::FolderPathCalculator.new(bucket: bucket)
 
       return [] unless files
 
       files.map { |file|
-        if file.folder
-          path = "#{folder_path_calc.get_folder_path(file.folder)}/#{file.file_name}"
+        if file.folder_id
+          path = "#{folder_path_calc.get_folder_path(file.folder_id)}/#{file.file_name}"
         else
           path = file.file_name
         end
