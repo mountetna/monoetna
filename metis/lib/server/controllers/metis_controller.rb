@@ -1,22 +1,22 @@
-require_relative '../../folder_path_calculator'
+require_relative "../../folder_path_calculator"
 
 class Metis
   class Controller < Etna::Controller
-    VIEW_PATH=File.expand_path('../views', __dir__)
+    VIEW_PATH = File.expand_path("../views", __dir__)
 
     def success_json(obj)
-      success(obj.to_json, 'application/json')
+      success(obj.to_json, "application/json")
     end
 
-    def require_bucket(bucket_name=nil, project_name=nil)
+    def require_bucket(bucket_name = nil, project_name = nil)
       bucket = Metis::Bucket.where(
         project_name: project_name || @params[:project_name],
-        name: bucket_name || @params[:bucket_name]
+        name: bucket_name || @params[:bucket_name],
       ).first
 
       raise Etna::BadRequest, "Invalid bucket on project #{project_name || @params[:project_name]}: \"#{bucket_name || @params[:bucket_name]}\"" unless bucket
 
-      raise Etna::Forbidden, "Cannot access bucket: \"#{bucket_name || @params[:bucket_name]}\"" unless bucket.allowed?(@user, @request.env['etna.hmac'])
+      raise Etna::Forbidden, "Cannot access bucket: \"#{bucket_name || @params[:bucket_name]}\"" unless bucket.allowed?(@user, @request.env["etna.hmac"])
 
       return bucket
     end
@@ -36,14 +36,15 @@ class Metis
 
     def file_hashes_with_calculated_paths(bucket:, files:)
       # Calculate the folder_path, instead of
-      #   doing it in the database.
+      #   doing it in the database because there is no bulk way to do that,
+      #   and is recursive per file. Try to save queries / connections
       folder_path_calc = Metis::FolderPathCalculator.new(bucket: bucket)
 
       return [] unless files
 
       files.map { |file|
-        if file.folder
-          path = "#{folder_path_calc.get_folder_path(file.folder)}/#{file.file_name}"
+        if file.folder_id
+          path = "#{folder_path_calc.get_folder_path(file.folder_id)}/#{file.file_name}"
         else
           path = file.file_name
         end
@@ -62,9 +63,9 @@ class Metis
       #   especially when not paging. Shallow -> deep
       if all_folders
         sorted_folders = sort_folders_by_depth(
-            limit: limit,
-            offset: offset,
-            all_folders: all_folders,
+          limit: limit,
+          offset: offset,
+          all_folders: all_folders,
         )
         paged_folders = sorted_folders.slice(offset, limit)
       else
@@ -75,7 +76,7 @@ class Metis
 
       paged_folders.map { |fold|
         folder_hash = fold.to_hash(false)
-        folder_hash[:folder_path] = folder_path_calc.get_folder_path(fold)
+        folder_hash[:folder_path] = folder_path_calc.get_folder_path(fold.id)
         folder_hash
       }
     end
@@ -97,7 +98,8 @@ class Metis
         # Sort by folder_name within each depth level
         #   ... trying to make pagination consistent.
         sorted_folders += child_folders.sort { |f1, f2|
-          f1[:folder_name] <=> f2[:folder_name] }
+          f1[:folder_name] <=> f2[:folder_name]
+        }
 
         break if sorted_folders.length >= limit + offset
       end
