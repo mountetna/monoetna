@@ -1,5 +1,4 @@
 version: '3.8'
-version: '3.8'
 
 # Intended for agents that run in global deploy node, on most or all nodes, for service health purposes.
 services:
