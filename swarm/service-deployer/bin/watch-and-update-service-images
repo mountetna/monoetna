@@ -21,13 +21,17 @@ while read serviceName; do
   image="$(findServiceImage $serviceName)"
   if [[ "$image" =~ ([^@]*)@(.*) ]]; then
     tag=${BASH_REMATCH[1]}
+    sha=${BASH_REMATCH[2]}
 
-    tags=$(docker image inspect "${image}" | jq -r '.[].RepoTags[]')
-    if ! echo "$tags" | grep "$tag" &>/dev/null; then
+    docker pull "$tag"
+    newsha=$(docker image inspect "${tag}" | jq -r '.[].Id')
+
+    if [ -f "/deployed/${newsha}" ] || [[ "${sha}" == "${newsha}" ]]; then
        continue
     fi
 
     postToSlack "Updating ${tag} on ${serviceName}, issuing rolling restart"
-    docker service update $serviceName --image $tag --force
+    docker service update -d $serviceName --image "${tag}@${newsha}" --force
+    touch "/deployed/${newsha}"
   fi
 done < <(findServices)
