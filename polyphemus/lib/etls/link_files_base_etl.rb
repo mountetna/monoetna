@@ -58,18 +58,9 @@ class Polyphemus::LinkFilesBaseEtl < Polyphemus::MetisFileForMagmaModelEtl
       end
 
       is_file_collection = is_file_collection?(cursor, @attribute_name)
-      if payloads_for_attr.empty?
-        payload[@attribute_name] = is_file_collection ? [] : blank_file
-      else
-        payload[@attribute_name] = is_file_collection ? payloads_for_attr : payloads_for_attr.first
-      end
-    end
-  end
 
-  def blank_file
-    {
-      "path": "::blank",
-    }
+      payload[@attribute_name] = is_file_collection ? payloads_for_attr : payloads_for_attr.first
+    end
   end
 
   def serialize(cursor, file_path)
