@@ -15,11 +15,7 @@ services:
         constraints: [node.platform.os == linux]
     ports:
       - 7100:8080
-    labels:
-      - autoupdate=true
   service-deployer:
-    labels:
-      - autoupdate=true
     image: etnaagent/service-deployer:production
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -32,6 +28,8 @@ services:
         constraints: [node.role == manager]
       restart_policy:
         delay: 30s
+      labels:
+        - autoupdate=true
 
 secrets:
   slack_webhook_url:
