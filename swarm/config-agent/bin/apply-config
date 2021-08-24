@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -eo pipefail
 
 configRoot=/config
 dest=${configRoot}/next
@@ -45,7 +45,7 @@ cd /script
 source /script/config.sh
 
 if [ -n "$DRY_RUN" ]; then
-  grep ^ /dev/null /config/*
+  grep ^ /dev/null ${configRoot}/*
 else
   onApply
 fi

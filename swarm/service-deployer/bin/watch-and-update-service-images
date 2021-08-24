@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+echo "Starting deployer..."
+
+postToSlack() {
+  post-to-slack "deployer on ${HOST_HOSTNAME}" "watchtower-ping" "$1"
+}
+
+findServices() {
+  docker service ls --format "{{.Name}}" --filter label=autoupdate=true
+}
+
+findServiceImage() {
+  docker service inspect "${1}" --format "{{.Spec.TaskTemplate.ContainerSpec.Image}}"
+}
+
+while read serviceName; do
+  image="$(findServiceImage $serviceName)"
+  if [[ "$image" =~ ([^@]*)@(.*) ]]; then
+    tag=${BASH_REMATCH[1]}
+    sha=${BASH_REMATCH[2]}
+
+    tags=$(docker image inspect "${sha}" | jq -r '.[].RepoTags[]')
+    if ! echo "$tags" | grep "$tag" &>/dev/null; then
+       continue
+    fi
+
+    postToSlack "Updating ${tag} on ${serviceName}, issuing rolling restart"
+    docker service update $serviceName --image $tag --force
+  fi
+done < <(findServices)

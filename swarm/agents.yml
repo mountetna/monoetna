@@ -13,7 +13,14 @@ services:
       mode: global
       placement:
         constraints: [node.platform.os == linux]
-    labels:
-      - edu.ucsf.mountetna.deployer.disable=true
     ports:
       - 7100:8080
+  service-deployer:
+    image: etnaagent/service-deployer:production
+    volumes:
+      - /var/lib/docker/:/var/lib/docker:ro
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
