@@ -28,6 +28,19 @@ services:
         constraints:
           - node.role == worker
           - node.labels.is_edge == true
+  test-config:
+    image: etnaagent/config-agent:production
+    environment:
+      DRY_RUN: 1
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: none
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.is_edge == true
 
 
 volumes:

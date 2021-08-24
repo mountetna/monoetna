@@ -1,7 +1,7 @@
 FROM ruby:2.5.7
 WORKDIR /app
 
-ENV DOCKER_VERSION 19.03.12
+ENV DOCKER_VERSION 20.10.6
 ENV RUBY_VERSION 2.5.7
 # This is so dumb -- but if BUNDLER_VERSION is set as an environment variable,
 # it causes issues with bundler... bleck.  So, so add an underscore at the end.

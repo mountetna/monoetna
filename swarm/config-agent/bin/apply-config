@@ -4,11 +4,6 @@ set -euo pipefail
 configRoot=/config
 dest=${configRoot}/next
 
-function prepare() {
-  rm -rf ${configRoot}/next
-  mkdir ${configRoot}/next
-}
-
 function enableConfig() {
   # Swap around using atomic operations.
   ln -snf ${configRoot}/next ${configRoot}/cur
@@ -36,11 +31,21 @@ function listAllVars() {
   done
 }
 
-function applyTemplate() {
+function template() {
   listAllVars "$1" | xargs -P 1 erb > "$2"
 }
 
 set -v
-prepare
+
+mkdir -p ${configRoot}
+rm -rf ${configRoot}/next
+mkdir ${configRoot}/next
+
 cd /script
 source /script/config.sh
+
+if [ -n "$DRY_RUN" ]; then
+  grep ^ /dev/null /config/*
+else
+  onApply
+fi
