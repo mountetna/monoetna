@@ -48,6 +48,8 @@ class Polyphemus
       @record_name_gsub_pair = record_name_gsub_pair
       @limit = limit
 
+      @metis_file_limit = 200
+
       super(
         cursor_group: EtlCursorGroup.new(file_cursors),
         scanner: HashScanBasedEtlScanner.new.start_batch_state do |cursor|
@@ -55,7 +57,7 @@ class Polyphemus
             project_name: cursor[:project_name],
             bucket_name: cursor[:bucket_name],
             offset: 0,
-            limit: @limit,
+            limit: @metis_file_limit,
           )
 
           magma_request = Etna::Clients::Magma::RetrievalRequest.new(
@@ -136,7 +138,7 @@ class Polyphemus
       i = 0
 
       loop do
-        metis_request.offset = 200 * i
+        metis_request.offset = @metis_file_limit * i
         new_files = self.metis_client.find(metis_request).files.all
 
         break if new_files.empty?
