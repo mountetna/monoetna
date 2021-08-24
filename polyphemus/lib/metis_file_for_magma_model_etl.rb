@@ -105,8 +105,10 @@ class Polyphemus
 
     def prepare_metis_find_request(find_request)
       # Do not track the cursor's updated_at, because
-      #   in order to find files that were deleted, we always need
-      #   to get all files on Metis that match the given globs.
+      #   we always need to get all files on Metis that match the given globs,
+      #   so we can link all files to Magma records, i.e. for a file_collection,
+      #   if a file is added later, we need it to be found with all the previous
+      #   files.
       begin
         @file_name_globs.each do |glob|
           find_request.add_param(Etna::Clients::Metis::FindParam.new(
