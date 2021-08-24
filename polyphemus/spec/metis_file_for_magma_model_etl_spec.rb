@@ -80,7 +80,7 @@ describe Polyphemus::MetisFileForMagmaModelEtl do
     expect(all_files).to eq(all_files.uniq { |f| f.file_paths_hashes })
 
     # Ensure all data is eventually yielded
-    expect(all_files.map(&:file_paths_hashes).flatten).to eq(etl.metis_client.find(Etna::Clients::Metis::FindRequest.new(
+    expect(all_files.map(&:file_paths_hashes).flatten).to match_array(etl.metis_client.find(Etna::Clients::Metis::FindRequest.new(
       project_name: "ipi",
       bucket_name: "integral_data",
       params: [
