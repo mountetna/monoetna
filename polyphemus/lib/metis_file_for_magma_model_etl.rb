@@ -58,6 +58,8 @@ class Polyphemus
         end.result_updated_at do |metis_files_record|
           metis_files_record.updated_at
         end.result_file_hashes do |metis_files_record|
+          # Only record a changed set if the hashes or files change
+          #   for a given Magma record
           metis_files_record.file_paths_hashes
         end.result_id do |metis_files_record|
           metis_files_record.record_name
