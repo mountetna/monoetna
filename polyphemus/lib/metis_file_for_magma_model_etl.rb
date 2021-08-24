@@ -54,6 +54,8 @@ class Polyphemus
           metis_request = Etna::Clients::Metis::FindRequest.new(
             project_name: cursor[:project_name],
             bucket_name: cursor[:bucket_name],
+            offset: 0,
+            limit: @limit,
           )
 
           magma_request = Etna::Clients::Magma::RetrievalRequest.new(
@@ -70,7 +72,7 @@ class Polyphemus
 
           return [] unless magma_record_names.length > 0
 
-          metis_files = self.metis_client.find(metis_request).files.all
+          metis_files = collect_all_metis_files(metis_request)
           metis_files_by_record_name = metis_files.group_by do |file|
             match = file.file_path.match(@path_regex)
 
@@ -127,6 +129,23 @@ class Polyphemus
       ).models.model(
         magma_request.model_name
       ).documents.document_keys
+    end
+
+    def collect_all_metis_files(metis_request)
+      files = []
+      i = 0
+
+      loop do
+        metis_request.offset = @limit * i
+        new_files = self.metis_client.find(metis_request).files.all
+
+        break if new_files.empty?
+
+        files.push(*new_files)
+        i += 1
+      end
+
+      files
     end
   end
 
