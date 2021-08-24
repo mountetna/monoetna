@@ -16,14 +16,14 @@ services:
       - edge_bridge
   apply-config:
     image: etnaagent/config-agent:production
-    restart_policy:
-      condition: none
     volumes:
       - httpd.conf.d:/config
       - /var/run/docker.sock:/var/run/docker.sock:ro
     deploy:
       mode: replicated
       replicas: 1
+      restart_policy:
+        condition: none
       placement:
         constraints:
           - node.role == worker
