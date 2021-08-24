@@ -17,6 +17,10 @@ services:
     networks:
       - edge_bridge
   apply-config:
+    configs:
+      - app.include.erb
+      - main.conf
+      - edge_config.sh:/script/config.sh
     labels:
       - autoupdate=true
     image: etnaagent/config-agent:production
@@ -33,6 +37,10 @@ services:
           - node.role == worker
           - node.labels.is_edge == true
   test-config:
+    configs:
+      - app.include.erb
+      - main.conf
+      - edge_config.sh:/script/config.sh
     labels:
       - autoupdate=true
     image: etnaagent/config-agent:production
@@ -55,4 +63,12 @@ volumes:
 
 networks:
   edge_bridge:
+    external: true
+
+configs:
+  app.include.erb:
+    external: true
+  main.conf:
+    external: true
+  edge_config.sh:
     external: true
