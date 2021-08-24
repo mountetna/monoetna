@@ -1,6 +1,8 @@
 version: '3.8'
 services:
   edge-apache:
+    labels:
+      - autoupdate=true
     image: etnaagent/edge-apache:production
     volumes:
       - httpd.conf.d:/usr/opt/httpd.conf.d:ro
@@ -15,6 +17,8 @@ services:
     networks:
       - edge_bridge
   apply-config:
+    labels:
+      - autoupdate=true
     image: etnaagent/config-agent:production
     volumes:
       - httpd.conf.d:/config
@@ -29,6 +33,8 @@ services:
           - node.role == worker
           - node.labels.is_edge == true
   test-config:
+    labels:
+      - autoupdate=true
     image: etnaagent/config-agent:production
     environment:
       DRY_RUN: 1
