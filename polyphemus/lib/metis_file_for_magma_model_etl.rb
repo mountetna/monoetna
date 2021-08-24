@@ -91,33 +91,12 @@ class Polyphemus
 
       prepare_metis_find_request(metis_request)
 
-      if magma_record_names.empty?
-        files = []
-      else
-        metis_files = collect_all_metis_files(metis_request)
-        metis_files_by_record_name = metis_files.group_by do |file|
-          match = file.file_path.match(@path_regex)
-
-          if match
-            record_name = match[:record_name]
-
-            record_name = record_name.gsub(@record_name_gsub_pair.first, @record_name_gsub_pair.last) if @record_name_gsub_pair
-
-            record_name
-          else
-            nil
-          end
-        end
-
-        files = magma_record_names.map do |magma_record_name|
-          next if metis_files_by_record_name[magma_record_name].nil?
-
-          MetisFilesForMagmaRecord.new(
-            magma_record_name,
-            metis_files_by_record_name[magma_record_name]
-          )
-        end.compact
-      end
+      files = magma_record_names.empty? ?
+        [] :
+        organize_metis_files_by_magma_record(
+        collect_all_metis_files(metis_request),
+        magma_record_names
+      )
 
       @metis_files_for_cursor[cursor_string_sym] = files
 
@@ -163,6 +142,31 @@ class Polyphemus
       end
 
       files
+    end
+
+    def organize_metis_files_by_magma_record(metis_files, magma_record_names)
+      metis_files_by_record_name = metis_files.group_by do |file|
+        match = file.file_path.match(@path_regex)
+
+        if match
+          record_name = match[:record_name]
+
+          record_name = record_name.gsub(@record_name_gsub_pair.first, @record_name_gsub_pair.last) if @record_name_gsub_pair
+
+          record_name
+        else
+          nil
+        end
+      end
+
+      magma_record_names.map do |magma_record_name|
+        next if metis_files_by_record_name[magma_record_name].nil?
+
+        MetisFilesForMagmaRecord.new(
+          magma_record_name,
+          metis_files_by_record_name[magma_record_name]
+        )
+      end.compact
     end
   end
 
