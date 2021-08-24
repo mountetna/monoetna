@@ -12,4 +12,4 @@ COPY etna-base-dev/bin/post-to-slack.sh /usr/local/bin/post-to-slack
 
 WORKDIR /
 
-CMD ["tini", "watch-and-update-service-images"]
+CMD ["watch-and-update-service-images"]

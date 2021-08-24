@@ -1,4 +1,5 @@
-version: '3.2'
+version: '3.8'
+version: '3.8'
 
 # Intended for agents that run in global deploy node, on most or all nodes, for service health purposes.
 services:
@@ -18,9 +19,17 @@ services:
   service-deployer:
     image: etnaagent/service-deployer:production
     volumes:
-      - /var/lib/docker/:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    secrets:
+      - slack_webhook_url
     deploy:
       mode: replicated
       replicas: 1
       placement:
         constraints: [node.role == manager]
+      restart_policy:
+        delay: 30s
+
+secrets:
+  slack_webhook_url:
+    external: true
