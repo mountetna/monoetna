@@ -136,7 +136,7 @@ class Polyphemus
       i = 0
 
       loop do
-        metis_request.offset = @limit * i
+        metis_request.offset = 200 * i
         new_files = self.metis_client.find(metis_request).files.all
 
         break if new_files.empty?
