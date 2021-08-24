@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
 # Borrowed and adjusted from https://github.com/nickadam/redis-ha/blob/main/docker-entrypoint.sh
 
-set -e
-set -x
-
 SENTINEL_CONFIG="/data/sentinel.conf"
 REDIS_CONFIG="/data/redis.conf"
 
-# Load password from secret file
 PASSWORD=$(cat "${PASSWORD_FILE}")
+CONTAINER_IP=$(getent hosts ${HOSTNAME} | awk '{print $1}')
 
 # takes primary IP as argument and connects to it
 create_sentinel_config(){
@@ -30,27 +27,12 @@ user default on +@all ~* >${PASSWORD}
 EOF
 }
 
-get_primary(){
-  # go through the list of all replicas
-  for replica_ip in $(getent hosts "${REDIS_NAME}" | awk '{print $1}')
-  do
-    # skip this replica
-    test "${replica_ip}" == "${CONTAINER_IP}" && continue
-
-    # check if replica is a primary
-    if timeout 2 redis-cli -h "${replica_ip}" -p "${REDIS_PORT}" -a "${PASSWORD}" info replication | grep role:master >/dev/null
-    then
-      echo "${replica_ip}"
-    fi
-  done
-}
-
-# Set this container's IP differentiate it from others
-CONTAINER_IP=$(getent hosts ${HOSTNAME} | awk '{print $1}')
+echo "starting up..."
 
 # we are starting a redis server
 if [ "$1" == "redis-server" ]
 then
+  echo "Creating redis config"
   create_redis_config
 
   # wait a while for the other replicas to start
@@ -58,19 +40,23 @@ then
 
   while true
   do
-
+    echo "awaiting primary or checking for low ip"
+    echo "===="
+    echo "Primary" $(get-primary)
+    echo "Replicas" $(getent hosts redis)
+    echo "===="
     # check if there is a primary running and connect to it
-    primary=$(get_primary)
+    primary=$(get-primary)
     test ! -z "${primary}" && \
     echo "Starting redis server ${CONTAINER_IP} as replica of ${primary}"  && \
-    redis-server "${REDIS_CONFIG}" --replicaof "${primary}" "${REDIS_PORT}"
+    exec redis-server "${REDIS_CONFIG}" --replicaof "${primary}" "${REDIS_PORT}"
 
     # couldn't find primary start the lowest IP as the primary
     low_ip=$(getent hosts redis | awk '{print $1}' | sort -n | head -n 1)
     # this is the low ip, start as primary
     test "${low_ip}" == "${CONTAINER_IP}" && \
     echo "Starting redis server ${CONTAINER_IP}" && \
-    redis-server "${REDIS_CONFIG}"
+    exec redis-server "${REDIS_CONFIG}"
 
     # wait a little while and try again
     sleep 3
@@ -86,7 +72,7 @@ then
   while true
   do
     # find the primary and create config for it
-    primary=$(get_primary)
+    primary=$(get-primary)
     test ! -z "${primary}" && \
     echo "Starting redis sentinel ${CONTAINER_IP} monitoring ${primary}"  && \
     create_sentinel_config "${primary}" && \
@@ -107,5 +93,5 @@ then
   done
 
   # start redis-sentinel
-  redis-sentinel "${SENTINEL_CONFIG}"
+  exec redis-sentinel "${SENTINEL_CONFIG}"
 fi

@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+configRoot=/config
+dest=${configRoot}/next
+
+function prepare() {
+  rm -rf ${configRoot}/next
+  mkdir ${configRoot}/next
+}
+
+function enableConfig() {
+  # Swap around using atomic operations.
+  ln -snf ${configRoot}/next ${configRoot}/cur
+  rm -rf ${configRoot}/last
+
+  # Not atomic, but setting up duplicate to swap link
+  cp -r ${configRoot}/next ${configRoot}/last
+  ln -snf ${configRoot}/last ${configRoot}/cur
+  rm -rf ${configRoot}/next
+}
+
+function lastModified() {
+ find $1 -type f -printf "%T+ %p\n" | sort | tail -1 | cut -d ' ' -f2
+}
+
+function listAllVars() {
+  for i in {a..z}; do
+   for var in `eval echo "\\${!$i@}"`; do
+      echo "${var}=${!var}"
+   done
+  done
+
+  for val in $1; do
+    echo $val
+  done
+}
+
+function applyTemplate() {
+  listAllVars "$1" | xargs -P 1 erb > "$2"
+}
+
+set -v
+prepare
+cd /script
+source /script/config.sh

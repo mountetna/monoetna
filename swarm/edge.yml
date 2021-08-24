@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  edge-apache:
+    image: etnaagent/edge-apache:production
+    volumes:
+      - httpd.conf.d:/usr/opt/httpd.conf.d:ro
+      - /etc/ssl:/etc/ssl:ro
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.is_edge == true
+    networks:
+      - edge_bridge
+  apply-config:
+    image: etnaagent/config-agent:production
+    restart_policy:
+      condition: none
+    volumes:
+      - httpd.conf.d:/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+          - node.labels.is_edge == true
+
+
+volumes:
+  # Contains the materialized configuration for each app, as well as main.conf.
+  httpd.conf.d:
+
+networks:
+  edge_bridge:
+    external: true
