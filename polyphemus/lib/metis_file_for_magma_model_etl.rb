@@ -49,54 +49,12 @@ class Polyphemus
       @limit = limit
 
       @metis_file_limit = 200
+      @metis_files_for_cursor = {}
 
       super(
         cursor_group: EtlCursorGroup.new(file_cursors),
         scanner: HashScanBasedEtlScanner.new.start_batch_state do |cursor|
-          metis_request = Etna::Clients::Metis::FindRequest.new(
-            project_name: cursor[:project_name],
-            bucket_name: cursor[:bucket_name],
-            offset: 0,
-            limit: @metis_file_limit,
-          )
-
-          magma_request = Etna::Clients::Magma::RetrievalRequest.new(
-            project_name: cursor[:project_name],
-            model_name: cursor[:model_name],
-            attribute_names: ["identifier"],
-            record_names: "all",
-            hide_templates: true,
-          )
-
-          magma_record_names = fetch_magma_record_names(magma_request)
-
-          prepare_metis_find_request(metis_request)
-
-          return [] unless magma_record_names.length > 0
-
-          metis_files = collect_all_metis_files(metis_request)
-          metis_files_by_record_name = metis_files.group_by do |file|
-            match = file.file_path.match(@path_regex)
-
-            if match
-              record_name = match[:record_name]
-
-              record_name = record_name.gsub(@record_name_gsub_pair.first, @record_name_gsub_pair.last) if @record_name_gsub_pair
-
-              record_name
-            else
-              nil
-            end
-          end
-
-          magma_record_names.map do |magma_record_name|
-            next if metis_files_by_record_name[magma_record_name].nil?
-
-            MetisFilesForMagmaRecord.new(
-              magma_record_name,
-              metis_files_by_record_name[magma_record_name]
-            )
-          end.compact
+          calculate_metis_files_for_cursor(cursor)
         end.result_updated_at do |metis_files_record|
           metis_files_record.updated_at
         end.result_file_hashes do |metis_files_record|
@@ -107,6 +65,63 @@ class Polyphemus
           metis_files_for_magma_records.slice(@limit * (i - 1), @limit) || []
         end,
       )
+    end
+
+    def calculate_metis_files_for_cursor(cursor)
+      cursor_string_sym = "#{cursor[:project_name]}_#{cursor[:bucket_name]}_#{cursor[:model_name]}".to_sym
+
+      return @metis_files_for_cursor[cursor_string_sym] if @metis_files_for_cursor.has_key?(cursor_string_sym)
+
+      metis_request = Etna::Clients::Metis::FindRequest.new(
+        project_name: cursor[:project_name],
+        bucket_name: cursor[:bucket_name],
+        offset: 0,
+        limit: @metis_file_limit,
+      )
+
+      magma_request = Etna::Clients::Magma::RetrievalRequest.new(
+        project_name: cursor[:project_name],
+        model_name: cursor[:model_name],
+        attribute_names: ["identifier"],
+        record_names: "all",
+        hide_templates: true,
+      )
+
+      magma_record_names = fetch_magma_record_names(magma_request)
+
+      prepare_metis_find_request(metis_request)
+
+      if magma_record_names.empty?
+        files = []
+      else
+        metis_files = collect_all_metis_files(metis_request)
+        metis_files_by_record_name = metis_files.group_by do |file|
+          match = file.file_path.match(@path_regex)
+
+          if match
+            record_name = match[:record_name]
+
+            record_name = record_name.gsub(@record_name_gsub_pair.first, @record_name_gsub_pair.last) if @record_name_gsub_pair
+
+            record_name
+          else
+            nil
+          end
+        end
+
+        files = magma_record_names.map do |magma_record_name|
+          next if metis_files_by_record_name[magma_record_name].nil?
+
+          MetisFilesForMagmaRecord.new(
+            magma_record_name,
+            metis_files_by_record_name[magma_record_name]
+          )
+        end.compact
+      end
+
+      @metis_files_for_cursor[cursor_string_sym] = files
+
+      files
     end
 
     def prepare_metis_find_request(find_request)
