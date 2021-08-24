@@ -41,7 +41,8 @@ services:
     configs:
       - app.include.erb
       - main.conf
-      - edge_config.sh:/script/config.sh
+      - source: edge_config.sh
+        target: /script/config.sh
     labels:
       - autoupdate=true
     image: etnaagent/config-agent:production
