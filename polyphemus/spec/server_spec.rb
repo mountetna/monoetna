@@ -41,7 +41,7 @@ describe Polyphemus::Server do
     get('/api/labors/etl/jobs')
 
     expect(last_response.status).to eq(200)
-    expect(json_body.first.keys).to eq([:name, :schema])
+    expect(json_body.map(&:keys)).to all(eq([:name, :schema]))
   end
 end
 

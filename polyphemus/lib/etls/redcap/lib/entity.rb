@@ -1,5 +1,30 @@
 module Redcap
   class Entity
+    def self.to_schema
+      {
+        each: {
+          type: "array",
+          items: {
+            oneOf: [
+              { enum: ["record", "event", "repeat"] },
+              { "$ref": "#/definitions/each_entity" },
+            ]
+          }
+        },
+        each_entity: {
+          type: "object",
+          additionalProperties: { type: "string" },
+          properties: {
+            record: { type: "string" },
+            event: { type: "string" },
+            repeat: { type: "string" }
+          },
+          maxProperties: 1,
+          minProperties: 1
+        },
+      }
+    end
+
     class Record < Entity
       def key(eav)
         filtered_key(eav[:record])

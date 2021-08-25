@@ -2,6 +2,14 @@ class Polyphemus
   # This data could eventually get stored in a database, where we track
   #   job status, submission time, user, etc.
   class Job
+    class << self
+      def inherited(subclass)
+        @list ||= []
+        @list << subclass
+      end
+      attr_reader :list
+    end
+
     attr_reader :request_params, :request_env, :response, :job_params, :errors, :user
     def initialize(request_params:, request_env:, response:, user:)
       @request_env = request_env
