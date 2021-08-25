@@ -209,31 +209,44 @@ steps:
     in:
       project_data: projectData/project_data
       leiden_anndata.h5ad: calc_leiden/leiden_anndata.h5ad
-    out: [color_options, hide]
+    out: [color_options]
   select_color_by_option:
     run: ui-queries/nested-select-autocomplete.cwl
     label: 'Color Options'
     in:
       data_options: determine_color_by_options/color_options
-      hide: determine_color_by_options/hide
-    out: [plot_setup]
-  plot_umap:
-    run: scripts/plot_umap.cwl
-    label: 'Create UMAP plot'
+    out: [color_by]
+  prep_umap_plot_data:
+    run: scripts/umap_prep_plotting_data.cwl
+    label: 'Collect data for plotting'
     in:
       project_data: projectData/project_data
       umap_anndata.h5ad: calc_umap/umap_anndata.h5ad
       leiden.json: calc_leiden/leiden.json
       annots.json: cluster_annotation/annots.json
-      color_by: select_color_by_option/plot_setup
+      color_by: select_color_by_option/color_by
       top10.json: Differential_Expression__between_clusters/top10.json
+    out: [data_frame, preset]
+  user_plot_setup:
+    run: ui-queries/scatter-plotly.cwl
+    label: 'Set plot options'
+    in:
+      data_frame: prep_umap_plot_data/data_frame
+      preset: prep_umap_plot_data/preset
+    out: [plot_setup]
+  make_umap:
+    run: scripts/make_scatter.cwl
+    label: 'Create UMAP plot'
+    in:
+      plot_setup: user_plot_setup/plot_setup
+      data_frame: prep_umap_plot_data/data_frame
     out: [umap.plotly.json]
   show_umap_plot:
     run: ui-outputs/plotly.cwl
-    in:
-      a: plot_umap/umap.plotly.json
-    out: []
     label: 'Display UMAP'
+    in:
+      a: make_umap/umap.plotly.json
+    out: []
   downloadRawData:
     run: ui-outputs/link.cwl
     in:
