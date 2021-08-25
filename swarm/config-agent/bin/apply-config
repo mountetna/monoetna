@@ -35,7 +35,7 @@ function template() {
   listAllVars "$1" | xargs -P 1 erb > "$2"
 }
 
-set -v
+set -x
 
 mkdir -p ${configRoot}
 rm -rf ${configRoot}/next
@@ -45,7 +45,7 @@ cd /script
 source /script/config.sh
 
 if [ -n "$DRY_RUN" ]; then
-  grep ^ /dev/null ${configRoot}/*
+  grep ^ /dev/null ${configRoot}/next/*
 else
   onApply
 fi

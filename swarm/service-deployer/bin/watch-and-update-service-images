@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -eo pipefail
+set -x
 
 
 
@@ -26,12 +27,12 @@ while read serviceName; do
     docker pull "$tag"
     newsha=$(docker image inspect "${tag}" | jq -r '.[].Id')
 
-    if [ -f "/deployed/${newsha}" ] || [[ "${sha}" == "${newsha}" ]]; then
+    if [ -f "/deployed/${serviceName}-${newsha}" ] || [[ "${sha}" == "${newsha}" ]]; then
        continue
     fi
 
     postToSlack "Updating ${tag} on ${serviceName}, issuing rolling restart"
-    docker service update -d $serviceName --image "${tag}@${newsha}" --force
-    touch "/deployed/${newsha}"
+    docker service update -d $serviceName --image "${tag}" --force
+    touch "/deployed/${serviceName}-${newsha}"
   fi
 done < <(findServices)
