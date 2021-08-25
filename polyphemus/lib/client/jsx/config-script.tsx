@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Controlled } from 'react-codemirror2';
 
-import CodeMirror from 'codemirror';
+import CodeMirror, { Editor } from 'codemirror';
 
 import 'codemirror/mode/javascript/javascript';
 import 'codemirror/addon/edit/closebrackets';
@@ -17,7 +17,7 @@ const ajv = new Ajv({
   verbose: true
 });
 
-const errorMessage = (error) => {
+const errorMessage = (error : any) => {
   let addendum;
   switch(error.keyword) {
     case 'additionalProperties':
@@ -34,11 +34,12 @@ const errorMessage = (error) => {
   ].filter(_=>_).join(' ');
 }
 
-const validator = (schema, editor): Function => {
+export const validator = (schema:any, editor:Editor): Function => {
   const validate = ajv.compile(schema);
-  return text => {
+
+  return (text:string) => {
     // first see if the json can parse
-    let json;
+    let json:any;
 
     // ignore blank texts
     if (!text) return [];
@@ -47,12 +48,10 @@ const validator = (schema, editor): Function => {
       json = JsonMap.parse(text);
     } catch (error) {
       // parse the error message and report the line numbers
-      console.log({error});
       let { message } = error;
 
       let match = message.match(/^(?<message>[\s\S]*) at position (?<pos>\d+)/m);
       if (match) {
-        console.log({match});
         return [
           {
             from: editor.posFromIndex(parseInt(match.groups.pos)),
@@ -62,16 +61,14 @@ const validator = (schema, editor): Function => {
           }
         ]
       }
-      console.log({message});
       return [];
     }
 
     let valid = validate(json.data);
 
-    if (valid) return [];
+    if (valid || !validate.errors) return [];
 
-    console.log({errors: validate.errors});
-    return validate.errors.map(
+    return validate.errors!.map(
       error => {
         let pointer = json.pointers[error.instancePath];
 
@@ -88,14 +85,16 @@ const validator = (schema, editor): Function => {
   }
 }
 
-const ConfigScript = ({ schema, script, onChange }) => {
-  let [ editor, setEditor ] = useState(null);
+const ConfigScript = ({ schema, script, onChange } : { schema: any, script: any, onChange?: Function } ) => {
+  let [ editor, setEditor ] = useState<Editor| null>(null);
 
-  useEffect( () => {
-    if (editor) CodeMirror.registerHelper("lint", "json", validator(schema, editor))
-  }, [ editor ] );
+  useEffect(
+    () => {
+      if (editor) CodeMirror.registerHelper("lint", "json", validator(schema, editor))
+    }, [ editor ]
+  );
 
-  let [ editedScript, setEditedScript ] = useState(null);
+  let [ editedScript, setEditedScript ] = useState< any | null>(null);
   
   useEffect( () => setEditedScript(JSON.stringify(script,null,2)), [script]);
 
