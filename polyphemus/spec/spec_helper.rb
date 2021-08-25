@@ -105,6 +105,10 @@ FactoryBot.define do
   factory :ingest_file, class: Polyphemus::IngestFile do
     to_create(&:save)
   end
+
+  factory :watch_folder, class: Polyphemus::WatchFolder do
+    to_create(&:save)
+  end
 end
 
 def json_body
@@ -230,6 +234,23 @@ def stub_metis_setup
       },
       body: JSON.parse(File.read('spec/fixtures/metis_restrict_folder_fixture.json')).to_json
     })
+end
+
+def stub_list_folder(params={})
+  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/list\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  .to_return({
+    status: params[:status] || 200,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: params[:response_body] || {files: [], folders: []}.to_json
+  }).then.to_return({
+    status: params[:status] || 200,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: params[:response_body_2] || {files: [], folders: []}.to_json
+  })
 end
 
 def stub_create_folder(params={})
@@ -413,6 +434,18 @@ def stub_ingest_files(file_data = nil)
       create(:ingest_file, name: "foo/bar/test1.txt", host: "sftp.example.com", updated_at: "2021-01-01 00:00:00", should_ingest: false)
       create(:ingest_file, name: "foo/bar/test2.txt", host: "sftp.example.com", updated_at: "2015-01-01 00:00:00", should_ingest: false)
       create(:ingest_file, name: "foo/bar/test3.txt", host: "sftp.example.com", updated_at: "1999-01-01 00:00:00", should_ingest: true)
+    end
+end
+
+def stub_watch_folders(folder_data = nil)
+  folder_data ?
+  folder_data.each do |data|
+      create(:watch_folder, **data)
+    end
+    : begin
+      create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "2021-01-01 00:00:00", folder_path: "path1")
+      create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "2015-01-01 00:00:00", folder_path: "path2")
+      create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "1999-01-01 00:00:00", folder_path: "path1/path1_1")
     end
 end
 

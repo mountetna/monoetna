@@ -1,13 +1,13 @@
 require_relative "../../metis_file_in_watch_folder_etl"
-require_relative "./linkers/ipi_rna_seq_processed_files_linker"
+require_relative "./linkers/ipi_rna_seq_raw_fastq_files_linker"
 
-class Polyphemus::IpiRnaSeqLinkProcessedFilesEtl < Polyphemus::MetisFileInWatchFolderEtl
+class Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl < Polyphemus::MetisFileInWatchFolderEtl
   PROJECT = "ipi"
-  BUCKET = "data"
+  BUCKET = "integral_data"
   MODEL = "rna_seq"
 
   def initialize
-    @linker = Polyphemus::IpiRnaSeqProcessedFilesLinker.new
+    @linker = Polyphemus::IpiRnaSeqRawFastqFilesLinker.new
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
     )

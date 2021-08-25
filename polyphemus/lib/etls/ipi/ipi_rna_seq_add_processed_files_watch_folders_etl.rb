@@ -1,17 +1,16 @@
 require_relative "../add_watch_folder_base_etl"
-require_relative "./ipi_rna_seq_processed_files_linker"
-require_relative "../../ipi/ipi_helper"
+require_relative "./linkers/ipi_rna_seq_processed_files_linker"
 
-class Polyphemus::IpiRnaSeqPopulateProcessedFilesWatchFoldersEtl < Polyphemus::AddWatchFolderBaseEtl
+class Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl < Polyphemus::AddWatchFolderBaseEtl
   PROJECT = "ipi"
   BUCKET = "data"
-  MODEL = "rna_seq"
 
   def initialize
     @linker = Polyphemus::IpiRnaSeqProcessedFilesLinker.new
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
       folder_name_globs: ["output/*", "bulkRNASeq/*"],
+      model_name: "rna_seq",
     )
   end
 
@@ -22,24 +21,5 @@ class Polyphemus::IpiRnaSeqPopulateProcessedFilesWatchFoldersEtl < Polyphemus::A
     #   as watch folders and filter out records during the linking process.
     # !current_magma_record_names.include?(folder.folder_name)
     false
-  end
-
-  def link_folder_contents(cursor, folders)
-    folders.each do |folder|
-      files = list_folder_files(cursor, folder)
-      @linker.link(
-        project_name: cursor[:project_name],
-        model_name: MODEL,
-        files: files,
-      )
-    end
-  end
-
-  def list_folder_files(cursor, folder)
-    self.metis_client.list_folder(Etna::Clients::Metis::ListFolderRequest.new(
-      project_name: cursor[:project_name],
-      bucket_name: cursor[:bucket_name],
-      folder_path: folder.folder_path,
-    )).files.all
   end
 end

@@ -1,10 +1,12 @@
-require_relative "./metis_folder_etl"
+require_relative "../metis_folder_etl"
 
 class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
-  def initialize(project_bucket_pairs:, folder_name_globs:)
+  def initialize(project_bucket_pairs:, model_name:, folder_name_globs: [], limit: 20)
+    @model_name = model_name
     super(
       project_bucket_pairs: project_bucket_pairs,
       folder_name_globs: folder_name_globs,
+      limit: limit,
     )
   end
 
@@ -18,7 +20,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
     logger.info("Found #{new_folders_to_watch.length} folders to watch: #{new_folders_to_watch.map { |f| f.folder_path }.join(",")}")
 
     create_records(cursor, new_folders_to_watch)
-    link_folder_contents(cursor, new_folders_to_watch)
+    process_folder_contents(cursor, new_folders_to_watch)
 
     logger.info("Done")
   end
@@ -57,7 +59,26 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
     end
   end
 
-  def link_folder_contents(cursor, folders)
-    raise "This should be implemented by subclasses."
+  def process_folder_contents(cursor, folders)
+    # This could be overridden by subclasses
+    folders.each do |folder|
+      files = folder_files(cursor, folder)
+      @linker.link(
+        project_name: cursor[:project_name],
+        model_name: @model_name,
+        files: files,
+      ) if @linker
+    end
+  end
+
+  def folder_files(cursor, folder)
+    require "pry"
+    binding.pry
+    # This could be overridden by subclasses
+    self.metis_client.list_folder(Etna::Clients::Metis::ListFolderRequest.new(
+      project_name: cursor[:project_name],
+      bucket_name: cursor[:bucket_name],
+      folder_path: folder.folder_path,
+    )).files.all
   end
 end

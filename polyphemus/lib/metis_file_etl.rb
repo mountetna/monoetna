@@ -59,7 +59,7 @@ class Polyphemus
     end
 
     # Subclasses should override if they wish to filter or modify the output
-    def execute_request(files)
+    def execute_request(find_request)
       self.metis_client.find(find_request).files.all
     end
   end

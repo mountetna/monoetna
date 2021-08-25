@@ -1,4 +1,4 @@
-describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
+describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
   let(:cursor) {
     Polyphemus::MetisFileForMagmaModelEtlCursor.new(
       job_name: "test",
@@ -29,7 +29,7 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
     end
 
     it "when scanner finds new files" do
-      etl = Polyphemus::IpiRnaSeqLinkFastQsEtl.new
+      etl = Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl.new
 
       etl.process(cursor, mock_metis_files_for_record_scan(
         "PATIENT001.T1.comp", [
@@ -62,7 +62,7 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
     end
 
     it "when file has been deleted" do
-      etl = Polyphemus::IpiRnaSeqLinkFastQsEtl.new
+      etl = Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl.new
 
       etl.process(cursor, mock_metis_files_for_record_scan(
         "PATIENT001.T1.comp", [
@@ -120,7 +120,7 @@ describe Polyphemus::IpiRnaSeqLinkFastQsEtl do
     end
 
     it "when file hash changes" do
-      etl = Polyphemus::IpiRnaSeqLinkFastQsEtl.new
+      etl = Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl.new
 
       etl.process(cursor, mock_metis_files_for_record_scan(
         "PATIENT001.T1.comp", [

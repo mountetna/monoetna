@@ -1,7 +1,8 @@
 require_relative "../helpers"
 
 class Polyphemus::MetisFilesLinkerBase
-  WithLogger
+  include WithLogger
+  include WithEtnaClients
 
   def initialize
     @magma_models = {}
