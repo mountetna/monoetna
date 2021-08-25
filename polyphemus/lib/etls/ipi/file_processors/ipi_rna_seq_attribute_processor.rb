@@ -17,8 +17,6 @@ class Polyphemus::IpiRnaSeqAttributeProcessor < Polyphemus::IpiRnaSeqProcessorBa
 
     model_attributes = attributes(cursor[:project_name])
 
-    require "pry"
-    binding.pry
     update_for_cursor(cursor) do |update_request|
       download_files(attribute_files) do |attribute_file, tmp_file|
         tmp_file.readline # Get rid of the first, non-header row
