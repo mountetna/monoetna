@@ -1,5 +1,5 @@
-require_relative "../metis_file_for_magma_model_etl"
-require_relative "../ipi/ipi_helper"
+require_relative "../../metis_file_for_magma_model_etl"
+require_relative "../../ipi/ipi_helper"
 
 class Polyphemus::IpiRnaSeqLinkFastQsEtl < Polyphemus::MetisFileForMagmaModelEtl
   PATH_REGEX = /.*\/(?<record_name>.*)\/(?<original_file_name>.*\.fastq\.gz)$/

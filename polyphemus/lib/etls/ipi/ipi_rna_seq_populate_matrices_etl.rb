@@ -1,6 +1,6 @@
 require "csv"
-require_relative "../metis_file_for_magma_model_etl"
-require_relative "../ipi/ipi_helper"
+require_relative "../../metis_file_for_magma_model_etl"
+require_relative "../../ipi/ipi_helper"
 
 class Polyphemus::IpiRnaSeqPopulateMatricesEtl < Polyphemus::MetisFileForMagmaModelEtl
   # For getting the results back, we'll call the "plate number" the record_name
@@ -52,7 +52,6 @@ class Polyphemus::IpiRnaSeqPopulateMatricesEtl < Polyphemus::MetisFileForMagmaMo
 
             matrix = MagmaRnaSeqMatrix.new(
               raw_data: col,
-              plate_name: plate_wrapper.record_name,
               magma_gene_ids: matrix_gene_ids(cursor[:project_name]),
               data_gene_ids: data_gene_ids,
             )
@@ -87,11 +86,10 @@ class Polyphemus::IpiRnaSeqPopulateMatricesEtl < Polyphemus::MetisFileForMagmaMo
   end
 
   class MagmaRnaSeqMatrix
-    def initialize(raw_data:, plate_name:, magma_gene_ids:, data_gene_ids:)
+    def initialize(raw_data:, magma_gene_ids:, data_gene_ids:)
       @raw = raw_data
       @helper = IpiHelper.new
       @magma_gene_ids = magma_gene_ids
-      @plate_name = plate_name
       @data_gene_ids = data_gene_ids
     end
 
@@ -106,7 +104,7 @@ class Polyphemus::IpiRnaSeqPopulateMatricesEtl < Polyphemus::MetisFileForMagmaMo
     def tube_name
       return @helper.control_name(raw_tube_name) if @helper.is_control?(raw_tube_name)
 
-      @helper.corrected_rna_seq_tube_name(@plate_name, raw_tube_name)
+      @helper.corrected_rna_seq_tube_name(raw_tube_name)
     end
 
     def to_array

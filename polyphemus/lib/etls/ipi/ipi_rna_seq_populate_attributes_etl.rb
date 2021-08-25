@@ -1,6 +1,6 @@
 require "csv"
-require_relative "../metis_file_for_magma_model_etl"
-require_relative "../ipi/ipi_helper"
+require_relative "../../metis_file_for_magma_model_etl"
+require_relative "../../ipi/ipi_helper"
 
 class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagmaModelEtl
   # For getting the results back, we'll call the "plate number" the record_name
@@ -87,14 +87,10 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagma
       @raw[0]
     end
 
-    def plate_name
-      "Plate#{@raw["rna_seq_plate"]}"
-    end
-
     def tube_name
       return @helper.control_name(raw_tube_name) if @helper.is_control?(raw_tube_name)
 
-      @helper.corrected_rna_seq_tube_name(plate_name, raw_tube_name)
+      @helper.corrected_rna_seq_tube_name(raw_tube_name)
     end
 
     def method_missing(name, *args, &block)

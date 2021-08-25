@@ -1,5 +1,5 @@
-require_relative "./link_files_base_etl"
-require_relative "../ipi/ipi_helper"
+require_relative "../link_files_base_etl"
+require_relative "../../ipi/ipi_helper"
 
 class Polyphemus::IpiRnaSeqLinkProcessedFilesBaseEtl < Polyphemus::LinkFilesBaseEtl
   PLATE_REGEX = /.*\/(?<plate>plate\d+)_.*\/output\/.*/

@@ -42,7 +42,7 @@ class Polyphemus
             file.file_path
           end.execute_batch_find do |find_request, i|
             find_request.limit = @limit * i
-            self.metis_client.find(find_request).files.all
+            execute_request(find_request)
           end
       )
     end
@@ -56,6 +56,11 @@ class Polyphemus
               value: (cursor.updated_at + 1).iso8601,
           )
       ) unless cursor.updated_at.nil?
+    end
+
+    # Subclasses should override if they wish to filter or modify the output
+    def execute_request(files)
+      self.metis_client.find(find_request).files.all
     end
   end
 end
