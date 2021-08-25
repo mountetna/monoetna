@@ -240,12 +240,12 @@ steps:
     in:
       plot_setup: user_plot_setup/plot_setup
       data_frame: prep_umap_plot_data/data_frame
-    out: [umap.plotly.json]
+    out: [plot.json]
   show_umap_plot:
     run: ui-outputs/plotly.cwl
     label: 'Display UMAP'
     in:
-      a: make_umap/umap.plotly.json
+      a: make_umap/plot.json
     out: []
   downloadRawData:
     run: ui-outputs/link.cwl

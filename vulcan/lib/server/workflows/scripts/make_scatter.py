@@ -9,5 +9,5 @@ plot_setup = input_json("plot_setup")
 fig = scatter_plotly(
     df, **plot_setup)
 
-with open(output_path('umap.plotly.json'), 'w') as output_file:
+with open(output_path('plot.json'), 'w') as output_file:
     json.dump(json.loads(pio.to_json(fig)), output_file)
