@@ -43,12 +43,15 @@ function VisualizationUI({
 }: WithInputParams<{}, DataEnvelope<any>, any>, plotType: string) {
   const preset = useMemo(() => data && data['preset'], [data]);
   const hide = useMemo(() => preset && Object.keys(preset), [preset]);
-  const defaultValue = useMemo(() => whichDefaults(plotType, preset), [preset]);
+  const defaultValue = whichDefaults(plotType, preset);
   const value = useSetsDefault(defaultValue, props.value, onChange);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const options: string[] = useMemo(() => {
     if (data == null) return [];
+    if (data['data_frame'] == null) return [];
+
+    console.log("in options calc:", data['data_frame'])
 
     // return data['data_options'] || nulled_vals(data['data_frame']);
     return Object.keys(data['data_frame'])
@@ -91,7 +94,9 @@ function VisualizationUI({
   }, [value, showAdvanced, hide])
 
   console.log("preset:", preset)
-  console.log("value:", props.value)
+  console.log("internal value:", value)
+  console.log("true value:", props.value)
+  console.log("default values:", defaultValue)
   
   return (
     <div>
@@ -162,27 +167,32 @@ const defaults: DataEnvelope<any> = {
 };
 
 function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | undefined) {
-  const inputs = input_sets[plotType]['main'].concat(input_sets[plotType]['adv'])
-
-  console.log("in whichDefaults", preset)
-  let output = {...defaults};
+  const initial_vals: DataEnvelope<any> = useMemo(() => {
   
-  // Remove input:value pairs that aren't in this Viz type
-  const def_keys = Object.keys(defaults);
-  for (let ind = 0; ind < def_keys.length; ind++) {
-    if (!inputs.includes(def_keys[ind])) delete output[def_keys[ind]];
-  }
+    const inputs = input_sets[plotType]['main'].concat(input_sets[plotType]['adv'])
 
-  // Add preset values / replace any default values.
-  if (preset != null) {
-    const pre_keys = Object.keys(preset);
-    for (let ind = 0; ind < pre_keys.length; ind++) {
-      output[pre_keys[ind]] = preset[pre_keys[ind]];
+    console.log("in whichDefaults", preset)
+    let initial_vals = {...defaults};
+    
+    // Remove input:value pairs that aren't in this Viz type
+    const def_keys = Object.keys(defaults);
+    for (let ind = 0; ind < def_keys.length; ind++) {
+      if (!inputs.includes(def_keys[ind])) delete initial_vals[def_keys[ind]];
     }
-  }
-  
-  console.log(output)
-  return output;
+
+    // Add preset values / replace any default values.
+    if (preset != null) {
+      const pre_keys = Object.keys(preset);
+      for (let ind = 0; ind < pre_keys.length; ind++) {
+        initial_vals[pre_keys[ind]] = preset[pre_keys[ind]];
+      }
+    }
+    
+    console.log(initial_vals)
+    return initial_vals;
+  }, [plotType, preset])
+
+return initial_vals;
 }
 
 function useExtraInputs(options: string[]) {
@@ -276,7 +286,7 @@ const sliderInput = (
         <div key={key}>
           {label}
           <Slider
-            value={value}
+            defaultValue={value}
             onChange={(event, newValue) => changeFxn(newValue as number, key)}
             min={min}
             max={max}
