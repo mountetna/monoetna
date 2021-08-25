@@ -60,7 +60,9 @@ dat[color_by] = color
 plot_presets = {
     'x_by': '0',
     'y_by': '1',
-    'color_by': color_by
+    'color_by': color_by,
+    'xlab': 'UMAP_1',
+    'ylab': 'UMAP_2'
 }
 
 if custom_tooltip:
