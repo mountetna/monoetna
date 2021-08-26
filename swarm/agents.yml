@@ -22,19 +22,22 @@ services:
       - autodeployed:/deployed
     secrets:
       - slack_webhook_url
+      - service-deployer-docker-login
     deploy:
       labels:
-        - autodeploy=true
+        - autoupdate=true
       mode: replicated
       replicas: 1
       placement:
         constraints: [node.role == manager]
       restart_policy:
-        delay: 30s
+        delay: 300s
 
 volumes:
   autodeployed:
 
 secrets:
   slack_webhook_url:
+    external: true
+  service-deployer-docker-login:
     external: true

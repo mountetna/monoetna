@@ -45,7 +45,7 @@ cd /script
 source /script/config.sh
 
 if [ -n "$DRY_RUN" ]; then
-  grep ^ /dev/null ${configRoot}/next/*
+  echo "Check the test volume for the output configuration."
 else
   onApply
 fi

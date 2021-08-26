@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 set -eo pipefail
-set -x
-
-
-
-echo "Starting deployer..."
 
 postToSlack() {
   post-to-slack "deployer on ${HOST_HOSTNAME}" "watchtower-ping" "$1"
@@ -17,6 +12,13 @@ findServices() {
 findServiceImage() {
   docker service inspect "${1}" --format "{{.Spec.TaskTemplate.ContainerSpec.Image}}"
 }
+
+if [ -e /run/secrets/service-deployer-docker-login ]; then
+  echo 'Login using /run/secrets/service-deployer-docker-login'
+  docker login -u etnaagent -p "$(cat /run/secrets/service-deployer-docker-login)"
+else
+  echo 'Could not find docker login at /run/secrets/service-deployer-docker-login, proceeding unauthenticated.'
+fi
 
 while read serviceName; do
   image="$(findServiceImage $serviceName)"

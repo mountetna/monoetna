@@ -1,5 +1,6 @@
 version: '3.8'
 services:
+
   edge-apache:
     labels:
       - autoupdate=true
@@ -10,13 +11,14 @@ services:
     deploy:
       mode: replicated
       replicas: 1
-      placement:
+      placement: &edge-placement
         constraints:
           - node.role == worker
           - node.labels.is_edge == true
     networks:
       - edge_bridge
-  apply-config:
+
+  apply-config: &apply-config
     configs:
       - app.include.erb
       - main.conf
@@ -34,34 +36,19 @@ services:
       restart_policy:
         condition: none
       placement:
-        constraints:
-          - node.role == worker
-          - node.labels.is_edge == true
+        <<: *edge-placement
+
   test-config:
-    configs:
-      - app.include.erb
-      - main.conf
-      - source: edge_config.sh
-        target: /script/config.sh
-    image: etnaagent/config-agent:production
+    <<: *apply-config
+    volumes:
+      - httpd.conf.d.test:/config
     environment:
       DRY_RUN: 1
-    deploy:
-      labels:
-        - autoupdate=true
-      mode: replicated
-      replicas: 1
-      restart_policy:
-        condition: none
-      placement:
-        constraints:
-          - node.role == worker
-          - node.labels.is_edge == true
-
 
 volumes:
   # Contains the materialized configuration for each app, as well as main.conf.
   httpd.conf.d:
+  httpd.conf.d.test:
 
 networks:
   edge_bridge:
