@@ -8,7 +8,7 @@ import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 import {dismissMessages, showMessages} from "etna-js/actions/message_actions";
 import {clearBufferedInput, setBufferedInput, setInputs, VulcanAction} from "../actions/vulcan_actions";
 import {allSourcesForStepName} from "../selectors/workflow_selectors";
-import {mapSome, Maybe} from "../selectors/maybe";
+import {mapSome, Maybe, maybeOfNullable, some, withDefault} from "../selectors/maybe";
 import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
 import {VulcanContext} from "./vulcan_context";
 
@@ -129,7 +129,7 @@ export function useInputStateManagement(invoke: ReturnType<typeof useActionInvok
       mapSome(inputs[source] || null, inner => newInputs[source] = inner);
     })
     dispatch(setInputs(newInputs))
-    requestPoll();
+    requestPoll(false, maybeOfNullable(stepName));
     return true;
   }, [dispatch, requestPoll, stateRef, validateInputs]);
 
