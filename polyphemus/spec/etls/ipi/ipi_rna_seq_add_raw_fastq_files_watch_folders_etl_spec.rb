@@ -1,6 +1,6 @@
-describe Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl do
+describe Polyphemus::IpiRnaSeqAddRawFastqFilesWatchFoldersEtl do
   let(:project_name) { "ipi" }
-  let(:bucket_name) { "data" }
+  let(:bucket_name) { "integral_data" }
   let(:cursor) {
     Polyphemus::MetisFolderEtlCursor.new(
       job_name: "test",
@@ -31,11 +31,11 @@ describe Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl do
     it "for invalid NASH / NAFLD samples" do
       expect(Polyphemus::WatchFolder.count).to eq(0)
 
-      etl = Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl.new
+      etl = Polyphemus::IpiRnaSeqAddRawFastqFilesWatchFoldersEtl.new
 
       etl.process(cursor, [
-        folder("IPIADR001.NASH1.rna.live", "plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live"),
-        folder("IPIADR001.NAFLD1.rna.live", "plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live"),
+        folder("IPIADR001.NASH1.rna.live", "some_folder/BulkRNASeq/IPIADR001.NASH1.rna.live"),
+        folder("IPIADR001.NAFLD1.rna.live", "some_folder/BulkRNASeq/IPIADR001.NAFLD1.rna.live"),
       ])
 
       expect(Polyphemus::WatchFolder.count).to eq(2)
@@ -44,10 +44,10 @@ describe Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl do
     it "for incorrectly named samples" do
       expect(Polyphemus::WatchFolder.count).to eq(0)
 
-      etl = Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl.new
+      etl = Polyphemus::IpiRnaSeqAddRawFastqFilesWatchFoldersEtl.new
 
       etl.process(cursor, [
-        folder("WRONG001.T1.rna.tumor", "plate1_rnaseq_new/output/WRONG001.T1.rna.tumor"),
+        folder("WRONG001.T1.rna.tumor", "some_folder/BulkRNASeq/WRONG001.T1.rna.tumor"),
       ])
 
       expect(Polyphemus::WatchFolder.count).to eq(1)
@@ -61,7 +61,7 @@ describe Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl do
       response_body: {
         files: [{
           file_name: "something.fastq.gz",
-          file_path: "plate1_rnaseq_new/output/PATIENT001.T1.comp/something.fastq.gz",
+          file_path: "",
           bucket_name: bucket_name,
           project_name: project_name,
         }],
@@ -69,15 +69,15 @@ describe Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl do
       },
     )
 
-    etl = Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl.new
+    etl = Polyphemus::IpiRnaSeqAddRawFastqFilesWatchFoldersEtl.new
 
     etl.process(cursor, [
-      folder("PATIENT001.T1.comp", "plate1_rnaseq_new/output/PATIENT001.T1.comp"),
-      folder("PATIENT001.N1.comp", "plate1_rnaseq_new/output/PATIENT001.N1.comp"),
-      folder("PATIENT002.T1.comp", "plate2_rnaseq_new/output/PATIENT002.T1.comp"),
+      folder("PATIENT1.N1.rna.live", "some_folder/BulkRNASeq/PATIENT1.N1.rna.live"),
+      folder("PATIENT1.T1.rna.live", "some_folder/BulkRNASeq/PATIENT1.T1.rna.live"),
+      folder("PATIENT2.T1.rna.live", "some_folder2/BulkRNASeq/PATIENT2.T1.rna.live"),
     ])
 
-    # Make sure rna_seq records are updated. Once per folder when files found.
+    # Make sure rna_seq records are updated. Once per folder.
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).times(1)
   end
 end

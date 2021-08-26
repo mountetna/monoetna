@@ -34,6 +34,6 @@ class Polyphemus::IpiRnaSeqProcessorBase
 
     yield update_request
 
-    magma_client.update_json(update_request) if update_request.revisions&.keys.length > 0
+    magma_client.update_json(update_request) if update_request.revisions.keys.length > 0
   end
 end

@@ -59,7 +59,7 @@ describe Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl do
             project_name: project_name,
           }],
           folders: [],
-        }.to_json,
+        },
       )
 
       etl = Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl.new
@@ -74,8 +74,6 @@ describe Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl do
     end
 
     it "for matrices" do
-      require "pry"
-      binding.pry
       stub_download_file(
         project: project_name,
         file_contents: ::File.read("./spec/fixtures/ipi_gene_counts.tsv"),
@@ -83,7 +81,7 @@ describe Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl do
       stub_list_folder(
         project: project_name,
         bucket: bucket_name,
-        response_data: {
+        response_body: {
           files: [{
             file_name: "gene_counts_table.tsv",
             download_url: "/#{project_name}/download/gene_counts_table.tsv",

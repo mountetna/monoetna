@@ -14,7 +14,6 @@ class Polyphemus::MetisFilesLinkerBase
     update_request = Etna::Clients::Magma::UpdateRequest.new(
       project_name: project_name,
     )
-
     files_by_record_name.each do |file_record|
       next if should_skip_record?(file_record.record_name)
       next if file_record.files.empty?
@@ -38,7 +37,7 @@ class Polyphemus::MetisFilesLinkerBase
       logger.info("Found #{payload.values.flatten.length} files for #{correct_record_name}: #{payload.values.flatten.join(",")}")
     end
 
-    magma_client.update_json(update_request)
+    magma_client.update_json(update_request) if update_request.revisions.keys.length > 0
 
     logger.info("Done")
   end

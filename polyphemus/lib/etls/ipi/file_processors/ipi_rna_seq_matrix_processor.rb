@@ -12,8 +12,6 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
   end
 
   def process(cursor, files)
-    require "pry"
-    binding.pry
     matrix_files = files.select do |file|
       file.file_name =~ MATRIX_FILE_REGEX
     end

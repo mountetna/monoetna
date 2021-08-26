@@ -72,8 +72,6 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
   end
 
   def folder_files(cursor, folder)
-    require "pry"
-    binding.pry
     # This could be overridden by subclasses
     self.metis_client.list_folder(Etna::Clients::Metis::ListFolderRequest.new(
       project_name: cursor[:project_name],
