@@ -27,39 +27,44 @@ def _default_to_if_make_and_logic(this, default, logic = True):
 original_df = pd.read_csv("test_data/mockDF.csv", index_col=0)
 # print(original_df) # Uncomment to view this data!
 
-### Convert to dataframe of fractional composition
-# Excuse the ugliness
-summary_df = pd.DataFrame(original_df[['sample', 'group']].value_counts())##summarize> 
-summary_df = summary_df.reset_index().rename(columns={'sample': 'xgroups', 'group': 'yvals', 0 : "counts"})#
-fractions = None
-for k in summary_df.xgroups.unique():
-    counts = summary_df[summary_df.xgroups == k].loc[:,'counts']
-    this = counts/sum(counts)
-    if fractions is None:
-        fractions = this
-    else:
-        fractions = fractions.append(this)
-
-summary_df['fraction'] = fractions
-
-# View the data frame we'll turn into a bar_plot
-summary_df
-
 # ----------- Modify below here ------------ #
+data_frame = original_df
+x_by = 'sample'
+y_by = 'group'
+scale_by = 'counts' # other option 'fraction'
 
-### Make plot
-# You'll need to change this in multiple ways to go from scatter -> bar plot
-# Use the plotly documentation to figure out how!
-#fig = px.scatter(
-fig = px.bar(
-    data_frame = summary_df,
-    x = "xgroups",
-    y = "counts",
-    color="yvals"
-    #color = color_by # Likely not needed for bar plots
-    #color_discrete_sequence = colors
-    
-)
+def bar_plot(data_frame, x_by, y_by, scale_by = 'counts'):
+    ### Convert to dataframe of fractional composition
+    # Excuse the ugliness
+    summary_df = pd.DataFrame(data_frame[[x_by, y_by]].value_counts()) ##summarize the data in the sample and group columns of the input dataframe.
+    summary_df = summary_df.reset_index().rename(columns={x_by: 'xgroups', y_by: 'yvals', 0 : "counts"}) # reformatting and then renaming the columns to group, yvals, and counts
+    # Create frequency column based on the counts per xgroup
+    fractions = None
+    for k in summary_df.xgroups.unique(): # for each unique value of the xgroup column, refered to now as k
+        counts = summary_df[summary_df.xgroups == k].loc[:,'counts'] # grabbing all the counts values for the current xgroup value level
+        this = counts/sum(counts) # calculate the percent that each counts value makes up
+        if fractions is None:
+            fractions = this
+        else:
+            fractions = fractions.append(this)
+    summary_df['fraction'] = fractions
+    # View the data frame we'll turn into a bar_plot
+    summary_df
+    ### Make plot
+    # You'll need to change this in multiple ways to go from scatter -> bar plot
+    # Use the plotly documentation to figure out how!
+    #fig = px.scatter(
+    fig = px.bar(
+        data_frame = summary_df,
+        x = "xgroups",
+        y = scale_by,
+        color="yvals"
+        #color = color_by # Likely not needed for bar plots
+        #color_discrete_sequence = colors
+    )
+    return fig
+
+fig = bar_plot(data_frame=original_df, x_by='sample', y_by='group', scale_by='fraction')
 
 ### Output the plot
 #fig.write_image("test_data/bar_plot.png")
