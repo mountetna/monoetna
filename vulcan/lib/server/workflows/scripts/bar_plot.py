@@ -50,16 +50,22 @@ summary_df
 ### Make plot
 # You'll need to change this in multiple ways to go from scatter -> bar plot
 # Use the plotly documentation to figure out how!
-fig = px.scatter(
+#fig = px.scatter(
+fig = px.bar(
     data_frame = summary_df,
-    x = x_by,
-    y = y_by,
-    color = color_by, # Likely not needed for bar plots
-    color_discrete_sequence = colors
+    x = "xgroups",
+    y = "yvalues",
+    #color = color_by # Likely not needed for bar plots
+    #color_discrete_sequence = colors
+    
 )
 
 ### Output the plot
-fig.write_image("test_data/bar_plot.png")
+#fig.write_image("test_data/bar_plot.png")
+
+import plotly
+plotly.offline.plot(fig, filename = 'test_data/bar_plot.html', auto_open=False)
+
 
 # ----------- Modify above here to start ------------ #
 
