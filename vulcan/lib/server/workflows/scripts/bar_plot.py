@@ -29,8 +29,8 @@ original_df = pd.read_csv("test_data/mockDF.csv", index_col=0)
 
 ### Convert to dataframe of fractional composition
 # Excuse the ugliness
-summary_df = pd.DataFrame(original_df[['sample', 'group']].value_counts())
-summary_df = summary_df.reset_index().rename(columns={'sample': 'xgroups', 'group': 'yvals', 0 : "counts"})
+summary_df = pd.DataFrame(original_df[['sample', 'group']].value_counts())##summarize> 
+summary_df = summary_df.reset_index().rename(columns={'sample': 'xgroups', 'group': 'yvals', 0 : "counts"})#
 fractions = None
 for k in summary_df.xgroups.unique():
     counts = summary_df[summary_df.xgroups == k].loc[:,'counts']
@@ -54,7 +54,8 @@ summary_df
 fig = px.bar(
     data_frame = summary_df,
     x = "xgroups",
-    y = "yvalues",
+    y = "counts",
+    color="yvals"
     #color = color_by # Likely not needed for bar plots
     #color_discrete_sequence = colors
     
@@ -65,6 +66,7 @@ fig = px.bar(
 
 import plotly
 plotly.offline.plot(fig, filename = 'test_data/bar_plot.html', auto_open=False)
+
 
 
 # ----------- Modify above here to start ------------ #
