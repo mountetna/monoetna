@@ -9,6 +9,8 @@ class Polyphemus::MetisFilesLinkerBase
   end
 
   def link(project_name:, model_name:, files_by_record_name:, attribute_regex:)
+    return if files_by_record_name.empty?
+
     logger.info("Processing files for: #{files_by_record_name.map { |f| f.record_name }.join(",")}")
 
     update_request = Etna::Clients::Magma::UpdateRequest.new(
