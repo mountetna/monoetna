@@ -89,8 +89,16 @@ RecordSelection.args = {
   }
 };
 
-export const OldColorSelection = Template.bind({});
-OldColorSelection.args = {
+export const RecordConfirmation = Template.bind({});
+RecordConfirmation.args = {
+  type: TYPE.CHECKBOXES,
+  cwlParams: {
+    'a': ['rec____________1', 'rec____________2', 'rec____________3', 'rec____________4', 'rec____________5']
+  }
+};
+
+export const ColorSelection = Template.bind({});
+ColorSelection.args = {
   type: TYPE.NESTED_SELECT_AUTOCOMPLETE,
   cwlParams: {
     'color_options': require('./color_options.json')
