@@ -1,19 +1,17 @@
 // Input component that takes nested object
 //   and shows the keys one level at a time.
 // Returns the last "Leaf" that the user selects.
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import * as _ from 'lodash';
 
-import {DataEnvelope, nulled_vals, WithInputParams} from './input_types';
+import {DataEnvelope, WithInputParams} from './input_types';
 import { useSetsDefault } from './useSetsDefault';
-import { Maybe, maybeOfNullable, some, withDefault } from '../../../../selectors/maybe';
+import { maybeOfNullable, some, withDefault } from '../../../../selectors/maybe';
 import DropdownAutocomplete from 'etna-js/components/inputs/dropdown_autocomplete';
 import { Button, Slider } from '@material-ui/core';
 import { pick } from 'lodash';
-import NestedSelectAutocompleteInput from './nested_select_autocomplete';
 import StringInput from './string';
 import BooleanInput from './boolean';
-import { presets } from '../../../../../../../babel.config';
 
 /*
 This input is closely tied to archimedes/functions/plotting/scatter_plotly.
@@ -50,8 +48,6 @@ function VisualizationUI({
   const options: string[] = useMemo(() => {
     if (data == null) return [];
     if (data['data_frame'] == null) return [];
-
-    console.log("in options calc:", data['data_frame'])
 
     // return data['data_options'] || nulled_vals(data['data_frame']);
     return Object.keys(data['data_frame'])
@@ -92,11 +88,6 @@ function VisualizationUI({
     let initial = showAdvanced ? value : pick(value, ...base)
     return remove_hidden(initial, hide);
   }, [value, showAdvanced, hide])
-
-  console.log("preset:", preset)
-  console.log("internal value:", value)
-  console.log("true value:", props.value)
-  console.log("default values:", defaultValue)
   
   return (
     <div>
@@ -161,9 +152,7 @@ const defaults: DataEnvelope<any> = {
   'xlab': 'make',
   'ylab': 'make',
   'color_order': 'increasing',
-  'order_when_continuous_color': false,
-  // 'hover_data': null,
-  'hello': 0
+  'order_when_continuous_color': false
 };
 
 function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | undefined) {
@@ -171,7 +160,6 @@ function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | unde
   
     const inputs = input_sets[plotType]['main'].concat(input_sets[plotType]['adv'])
 
-    console.log("in whichDefaults", preset)
     let initial_vals = {...defaults};
     
     // Remove input:value pairs that aren't in this Viz type
@@ -188,7 +176,6 @@ function whichDefaults(plotType: string, preset: DataEnvelope<any> | null | unde
       }
     }
     
-    console.log(initial_vals)
     return initial_vals;
   }, [plotType, preset])
 
@@ -206,7 +193,6 @@ function useExtraInputs(options: string[]) {
       'x_by': ['X-Axis Data', options],
       'y_by': ['Y-Axis Data', options],
       'color_by': ['Color Points By', options],
-      // 'hover_data': ['Extra data to show upon cursor hover', options],
       'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
       'size': ['Point Size', 0.1, 50]
@@ -234,7 +220,7 @@ const stringInput = (
 // const nestableDropdownInput = (
 //   key: string = "filler", changeFxn: Function, value: string | null,
 //   label: string, options: DataEnvelope<null>) => {
-    
+//    
 //     return(
 //       <NestedSelectAutocompleteInput
 //         key={key}
@@ -304,7 +290,6 @@ const comps: DataEnvelope<Function> = {
   'x_by': dropdownInput,
   'y_by': dropdownInput,
   'color_by': dropdownInput,
-  // 'hover_data': dropdownInput,
   'color_order': dropdownInput,
   'order_when_continuous_color': checkboxInput,
   'size': sliderInput
