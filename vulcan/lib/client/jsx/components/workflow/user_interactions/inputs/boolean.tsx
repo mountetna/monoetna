@@ -12,7 +12,7 @@ export default function BooleanInput({onChange, label, data, ...props}: WithInpu
       type='checkbox'
       className='text_box'
       onChange={onCheck}
-      defaultChecked={value}
+      checked={value}
     />
 
   if (label) {
