@@ -1,10 +1,11 @@
 describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
+  let(:bucket_name) { "test" }
+  let(:project_name) { "ipi" }
   let(:cursor) {
-    Polyphemus::MetisFileForMagmaModelEtlCursor.new(
+    Polyphemus::MetisFileInWatchFolderCursor.new(
       job_name: "test",
-      project_name: "ipi",
-      bucket_name: "test",
-      model_name: "rna_seq",
+      project_name: project_name,
+      bucket_name: bucket_name,
     )
   }
 
@@ -19,6 +20,8 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
       file_path: file_path,
       updated_at: updated_at,
       file_hash: file_hash,
+      bucket_name: bucket_name,
+      project_name: project_name,
     })
   end
 
@@ -31,13 +34,11 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
     it "when scanner finds new files" do
       etl = Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl.new
 
-      etl.process(cursor, mock_metis_files_for_record_scan(
-        "PATIENT001.T1.comp", [
-          file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
-          file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
-          file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
-        ]
-      ))
+      etl.process(cursor, [
+        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
+        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
+        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
+      ])
 
       # Make sure rna_seq records are updated
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -46,13 +47,13 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
                                      "rna_seq": {
                                        "PATIENT001.T1.comp": {
                                          "raw_fastq_files": [{
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah1.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah2.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah3.fastq.gz",
                                          }],
                                        },
@@ -64,13 +65,11 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
     it "when file has been deleted" do
       etl = Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl.new
 
-      etl.process(cursor, mock_metis_files_for_record_scan(
-        "PATIENT001.T1.comp", [
-          file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
-          file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
-          file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
-        ]
-      ))
+      etl.process(cursor, [
+        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
+        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
+        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
+      ])
 
       # Make sure rna_seq records are updated
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -79,13 +78,13 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
                                      "rna_seq": {
                                        "PATIENT001.T1.comp": {
                                          "raw_fastq_files": [{
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah1.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah2.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah3.fastq.gz",
                                          }],
                                        },
@@ -93,12 +92,10 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
                                    },
                                  }))
 
-      etl.process(cursor, mock_metis_files_for_record_scan(
-        "PATIENT001.T1.comp", [
-          file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
-          file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
-        ]
-      ))
+      etl.process(cursor, [
+        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
+        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
+      ])
 
       # Make sure rna_seq records are updated
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -107,10 +104,10 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
                                      "rna_seq": {
                                        "PATIENT001.T1.comp": {
                                          "raw_fastq_files": [{
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah1.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah3.fastq.gz",
                                          }],
                                        },
@@ -122,13 +119,11 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
     it "when file hash changes" do
       etl = Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl.new
 
-      etl.process(cursor, mock_metis_files_for_record_scan(
-        "PATIENT001.T1.comp", [
-          file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", "hash1"),
-          file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", "hash2"),
-          file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", "hash3"),
-        ]
-      ))
+      etl.process(cursor, [
+        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", "hash1"),
+        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", "hash2"),
+        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", "hash3"),
+      ])
 
       # Make sure rna_seq records are updated
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -137,13 +132,13 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
                                      "rna_seq": {
                                        "PATIENT001.T1.comp": {
                                          "raw_fastq_files": [{
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah1.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah2.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah3.fastq.gz",
                                          }],
                                        },
@@ -151,13 +146,11 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
                                    },
                                  }))
 
-      etl.process(cursor, mock_metis_files_for_record_scan(
-        "PATIENT001.T1.comp", [
-          file("PATIENT001.T1.comp.blahblah1.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", "hash1"),
-          file("PATIENT001.T1.comp.blahblah2.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", "new-hash2"),
-          file("PATIENT001.T1.comp.blahblah3.fastq.gz", "PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", "hash3"),
-        ]
-      ))
+      etl.process(cursor, [
+        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", "hash1"),
+        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", "new-hash2"),
+        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", "hash3"),
+      ])
 
       # Make sure rna_seq records are updated again
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -166,13 +159,13 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
                                      "rna_seq": {
                                        "PATIENT001.T1.comp": {
                                          "raw_fastq_files": [{
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah1.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah2.fastq.gz",
                                          }, {
-                                           "path": "metis://ipi/integral_data/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
+                                           "path": "metis://ipi/test/BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz",
                                            "original_filename": "PATIENT001.T1.comp.blahblah3.fastq.gz",
                                          }],
                                        },

@@ -16,11 +16,10 @@ describe Polyphemus::IpiRnaSeqPopulateAttributesEtl do
 
   describe "updates Magma records" do
     let(:cursor) {
-      Polyphemus::MetisFileForMagmaModelEtlCursor.new(
+      Polyphemus::MetisFileInWatchFolderCursor.new(
         job_name: "test",
         project_name: "ipi",
         bucket_name: "test",
-        model_name: "test",
       )
     }
 
@@ -37,11 +36,9 @@ describe Polyphemus::IpiRnaSeqPopulateAttributesEtl do
 
       etl = Polyphemus::IpiRnaSeqPopulateAttributesEtl.new
 
-      etl.process(cursor, mock_metis_files_for_record_scan(
-        "Plate1", [
-          file("rnaseq_table.tsv", "plate1_rnaseq_new/results/rnaseq_table.tsv"),
-        ]
-      ))
+      etl.process(cursor, [
+        file("rnaseq_table.tsv", "plate1_rnaseq_new/results/rnaseq_table.tsv"),
+      ])
 
       # Make sure rna_seq records are updated
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)

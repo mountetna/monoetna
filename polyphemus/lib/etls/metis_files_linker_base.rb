@@ -100,7 +100,7 @@ class Polyphemus::MetisFilesLinkerBase
     false
   end
 
-  def self.organize_metis_files_by_magma_record(
+  def organize_metis_files_by_magma_record(
     metis_files:,
     magma_record_names:,
     path_regex:,
@@ -110,7 +110,7 @@ class Polyphemus::MetisFilesLinkerBase
       match = file.file_path.match(path_regex)
 
       if match
-        record_name = match[:record_name]
+        record_name = corrected_record_name(match[:record_name])
 
         record_name = record_name.gsub(record_name_gsub_pair.first, record_name_gsub_pair.last) if record_name_gsub_pair
 

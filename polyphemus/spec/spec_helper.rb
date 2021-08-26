@@ -444,7 +444,3 @@ def stub_watch_folders(folder_data = nil)
     create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "1999-01-01 00:00:00", folder_path: "path1/path1_1")
   end
 end
-
-def mock_metis_files_for_record_scan(record_name, change_list)
-  [Polyphemus::MetisFilesForMagmaRecord.new(record_name, change_list)]
-end

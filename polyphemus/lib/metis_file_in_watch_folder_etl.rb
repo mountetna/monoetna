@@ -6,7 +6,7 @@ class Polyphemus
     def initialize(job_name:, project_name:, bucket_name:)
       raise "project_name cannot be nil" if project_name.nil?
       raise "bucket_name cannot be nil" if bucket_name.nil?
-      super("#{job_name}_metis_files_in_watch_folder_#{project_name}_#{bucket_name}")
+      super
       self[:project_name] = project_name
       self[:bucket_name] = bucket_name
     end

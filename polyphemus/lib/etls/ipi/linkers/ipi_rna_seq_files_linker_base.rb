@@ -13,7 +13,7 @@ class Polyphemus::IpiRnaSeqFilesLinkerBase < Polyphemus::MetisFilesLinkerBase
     super(
       project_name: project_name,
       model_name: model_name,
-      files_by_record_name: Polyphemus::MetisFilesLinkerBase.organize_metis_files_by_magma_record(
+      files_by_record_name: organize_metis_files_by_magma_record(
         metis_files: files,
         magma_record_names: current_magma_record_names(project_name, model_name),
         path_regex: @record_name_regex,

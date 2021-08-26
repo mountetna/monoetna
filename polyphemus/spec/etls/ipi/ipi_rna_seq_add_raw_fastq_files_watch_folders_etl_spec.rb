@@ -61,7 +61,7 @@ describe Polyphemus::IpiRnaSeqAddRawFastqFilesWatchFoldersEtl do
       response_body: {
         files: [{
           file_name: "something.fastq.gz",
-          file_path: "",
+          file_path: "BulkRNASeq/PATIENT001.T1.comp/something.fastq.gz",
           bucket_name: bucket_name,
           project_name: project_name,
         }],
@@ -72,12 +72,12 @@ describe Polyphemus::IpiRnaSeqAddRawFastqFilesWatchFoldersEtl do
     etl = Polyphemus::IpiRnaSeqAddRawFastqFilesWatchFoldersEtl.new
 
     etl.process(cursor, [
-      folder("PATIENT1.N1.rna.live", "some_folder/BulkRNASeq/PATIENT1.N1.rna.live"),
-      folder("PATIENT1.T1.rna.live", "some_folder/BulkRNASeq/PATIENT1.T1.rna.live"),
-      folder("PATIENT2.T1.rna.live", "some_folder2/BulkRNASeq/PATIENT2.T1.rna.live"),
+      folder("PATIENT001.T1.comp", "BulkRNASeq/PATIENT001.T1.comp"),
+      folder("PATIENT001.N1.comp", "BulkRNASeq/PATIENT001.N1.comp"),
+      folder("PATIENT002.T1.comp", "BulkRNASeq/PATIENT002.T1.comp"),
     ])
 
-    # Make sure rna_seq records are updated. Once per folder.
-    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).times(1)
+    # Make sure rna_seq records are updated. Once per folder with files.
+    expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
   end
 end
