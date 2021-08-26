@@ -207,6 +207,7 @@ def stub_metis_setup
     { :method => "POST", :route => "/:project_name/folder/create/:bucket_name/*folder_path", :name => "folder_create", :params => ["project_name", "bucket_name", "folder_path"] },
     { :method => "POST", :route => "/authorize/upload", :name => "upload_authorize", :params => ["project_name", "bucket_name", "file_path"] },
     { :method => "POST", :route => "/:project_name/upload/:bucket_name/*file_path", :name => "upload_upload", :params => ["project_name", "bucket_name", "file_path"] },
+    { :method => "POST", :route => "/:project_name/find/:bucket_name", :name => "bucket_find", :params => ["project_name", "bucket_name"] },
   ])
 
   stub_request(:options, METIS_HOST).
@@ -278,6 +279,14 @@ def stub_download_file(params = {})
     .to_return({
       status: params[:status] || 200,
       body: params[:file_contents] || "",
+    })
+end
+
+def stub_bucket_find(params = {})
+  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/find/)
+    .to_return({
+      status: params[:status] || 200,
+      body: (params[:response_body] || { files: [], folders: [] }).to_json,
     })
 end
 

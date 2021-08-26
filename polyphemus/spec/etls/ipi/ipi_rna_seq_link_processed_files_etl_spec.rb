@@ -2,7 +2,7 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesEtl do
   let(:bucket_name) { "test" }
   let(:project_name) { "ipi" }
   let(:cursor) {
-    Polyphemus::MetisFileInWatchFolderCursor.new(
+    Polyphemus::MetisFileEtlCursor.new(
       job_name: "test",
       project_name: project_name,
       bucket_name: bucket_name,

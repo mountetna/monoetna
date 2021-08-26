@@ -20,7 +20,7 @@ describe Polyphemus::IpiRnaSeqPopulateMatricesEtl do
 
   describe "updates Magma records" do
     let(:cursor) {
-      Polyphemus::MetisFileInWatchFolderCursor.new(
+      Polyphemus::MetisFileEtlCursor.new(
         job_name: "test",
         project_name: "ipi",
         bucket_name: "test",

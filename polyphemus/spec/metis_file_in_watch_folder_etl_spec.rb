@@ -26,9 +26,7 @@ describe Polyphemus::MetisFileInWatchFolderEtl do
   class TestMetisFileInWatchFolderEtl < Polyphemus::MetisFileInWatchFolderEtl
     def initialize(**args)
       super(
-        project_bucket_model_tuples: [["ipi", "integral_data", "rna_seq"]],
-        file_name_globs: ["BulkRNASeq/**/*.fastq.gz"],
-        metis_path_to_record_name_regex: Polyphemus::IpiRnaSeqLinkFastQsEtl::PATH_REGEX,
+        project_bucket_pairs: [["ipi", "integral_data"]],
         **args,
       )
     end
