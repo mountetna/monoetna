@@ -13,8 +13,7 @@ class Polyphemus
       files_in_watch_folders = []
 
       loop do
-        find_request.offset = @limit * (i - 1)
-        files = super(find_request, 1)
+        files = super(find_request, i)
 
         break if files.empty?
 

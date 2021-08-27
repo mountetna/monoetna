@@ -10,6 +10,10 @@ class Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl < Polyphemus::MetisFileInWatchFo
     @linker = Polyphemus::IpiRnaSeqRawFastqFilesLinker.new
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
+      limit: 200,
+      file_name_params: {
+        "=~": ["*.fastq.gz"]
+      }
     )
   end
 

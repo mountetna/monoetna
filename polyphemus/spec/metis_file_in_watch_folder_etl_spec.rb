@@ -1,4 +1,7 @@
 describe Polyphemus::MetisFileInWatchFolderEtl do
+  let(:project_name) { "ipi" }
+  let(:bucket_name) { "integral_data" }
+
   before(:each) do
     Polyphemus::EtlExecutor.ensure_for_etl(TestMetisFileInWatchFolderEtl)
   end
@@ -40,19 +43,33 @@ describe Polyphemus::MetisFileInWatchFolderEtl do
   end
 
   it "should process metis files in watch folders, and support reset" do
-    stub_watch_folders
+    stub_watch_folders([{
+      project_name: project_name,
+      bucket_name: bucket_name,
+      updated_at: "2021-01-01 00:00:00",
+      folder_path: "path1/path1_1",
+    }])
     stub_metis_setup
-    stub_list_folder(bucket: RELEASE_BUCKET, response_body: {
+    stub_list_folder(
+      project: project_name,
+      bucket: bucket_name,
+    )
+    stub_bucket_find(
+      project: project_name,
+      response_body: {
                        files: [{
-                         project_name: PROJECT,
-                         bucket_name: RELEASE_BUCKET,
+                         project_name: project_name,
+                         bucket_name: bucket_name,
                          file_path: "path1/path1_1/sample.txt",
+                         updated_at: "2021-01-01 00:00:00",
                        }, {
-                         project_name: PROJECT,
-                         bucket_name: RELEASE_BUCKET,
+                         project_name: project_name,
+                         bucket_name: bucket_name,
                          file_path: "path1/path1_1/path1_1_1/sample.txt",
+                         updated_at: "2021-01-01 00:00:00",
                        }],
-                     }.to_json)
+                     },
+    )
 
     etl = etl_executor.subcommands["run"].etl
 

@@ -107,6 +107,8 @@ class IpiHelper
   end
 
   def incorrect_rna_seq_tube_name(tube_name)
+    rna_seq_renames_inverted = rna_seq_renames.invert
+
     return tube_name unless rna_seq_renames_inverted.key?(tube_name)
 
     rna_seq_renames_inverted[tube_name]

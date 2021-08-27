@@ -283,9 +283,12 @@ def stub_download_file(params = {})
 end
 
 def stub_bucket_find(params = {})
-  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/find/)
+  stub_request(:post, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/find/)
     .to_return({
       status: params[:status] || 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: (params[:response_body] || { files: [], folders: [] }).to_json,
     })
 end
