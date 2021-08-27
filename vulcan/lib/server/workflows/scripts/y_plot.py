@@ -21,17 +21,17 @@ def _default_to_if_make_and_logic(this, default, logic = True):
 # ----------- Modify below here ------------ #
 
 ### Read in our data
-data_frame = pd.read_csv(mockDF.csv)
-data_frame
+data_frame = pd.read_csv("test_data/mockDF.csv" , index_col = 0)
+data_frame 
 
 ### Make plot
 # You'll need to change this in multiple ways to go from scatter -> violin plot
 # Use the plotly documentation to figure out how!
-fig = px.scatter(
+fig = px.violin(
     data_frame = data_frame,
-    x = x_by,
-    y = y_by,
-    color = color_by,
+    x = "leiden",
+    y = "1",
+    color = "leiden",
     color_discrete_sequence = colors
 )
 
