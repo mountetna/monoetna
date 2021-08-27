@@ -21,7 +21,7 @@ import {
   InputValidator
 } from './input_types';
 import NestedSelectAutocompleteInput from './nested_select_autocomplete';
-import {ScatterPlotly, BarPlotly} from './scatter_plotly';
+import {ScatterPlotly, BarPlotly} from './visualizations';
 import NotEmptyValidator from './validators/not_empty_validator';
 import {
   AllInnerValuesNotEmptyValidator,
