@@ -41,7 +41,7 @@ def scatter_plotly(
 
     # Set legend key order.
     discrete_color = any(map(lambda x: isinstance(x, (str, bool)), data_frame[color_by]))
-    if (color_order == 'increasing' or 'decreasing'):
+    if (color_order == 'increasing' or color_order == 'decreasing'):
         categories = order(unique(data_frame[color_by]))
         if (color_order == 'increasing'):
             px_args['category_orders'] = { color_by: categories }

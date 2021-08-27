@@ -4,7 +4,6 @@ from archimedes.functions.magma import connect, question
 from archimedes.functions.list import flatten
 from archimedes.functions.environment import project_name
 from archimedes.functions.utils import pandas as pd
-from archimedes.functions.utils import csv
 
 # Read inputs
 scdata = sc.read(input_path('umap_anndata.h5ad'))
