@@ -12,8 +12,8 @@ class Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl < Polyphemus::MetisFileInWatchFo
       project_bucket_pairs: [[PROJECT, BUCKET]],
       limit: 200,
       file_name_params: {
-        "=~": ["*.fastq.gz"]
-      }
+        "=~": ["%.fastq.gz"],
+      },
     )
   end
 
