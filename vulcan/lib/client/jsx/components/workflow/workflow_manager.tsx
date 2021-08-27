@@ -28,7 +28,7 @@ export default function WorkflowManager({workflowName, projectName}: { workflowN
           dispatch(setSession(session));
         }
 
-        requestPoll(false, false);
+        requestPoll();
       });
     }
   }, [cancelPolling, dispatch, getLocalSession, projectName, workflow]);
