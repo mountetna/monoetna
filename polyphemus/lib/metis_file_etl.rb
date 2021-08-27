@@ -69,7 +69,7 @@ class Polyphemus
             ))
           end
         end
-      end unless @file_name_params.empty?
+      end unless @file_name_params.keys.empty?
     end
 
     # Subclasses should override if they wish to filter or modify the output
