@@ -24,9 +24,25 @@ def _default_to_if_make_and_logic(this, default, logic = True):
 data_frame = pd.read_csv("test_data/mockDF.csv" , index_col = 0)
 data_frame 
 
+# 2. Plotter variables, plug x_by, y_by, and color_by in to the px functions to prep for conversion. 
+x_by = "leiden"
+y_by = "1"
+color_by = "leiden"
+plots = ["bar"]
+
 ### Make plot
 # You'll need to change this in multiple ways to go from scatter -> violin plot
 # Use the plotly documentation to figure out how!
+
+fig = px.violin(
+    data_frame = data_frame,
+    x = "leiden",
+    y = "1",
+    color = "leiden",
+    color_discrete_sequence = colors
+)
+
+# 1. Change to work for px.bar
 fig = px.violin(
     data_frame = data_frame,
     x = "leiden",
