@@ -154,6 +154,10 @@
           "sample": "PATIENT001.T1",
           "raw_fastq_files": []
         },
+        "RIGHT001.T1.rna.tumor": {
+          "name": "RIGHT001.T1.rna.tumor",
+          "sample": "RIGHT001.T1"
+        },
         "PATIENT002.T1.comp": {
           "name": "PATIENT002.T1.comp",
           "sample": "PATIENT002.T1",
@@ -238,6 +242,19 @@
             "validation": null,
             "attribute_type": "integer"
           },
+          "gene_counts": {
+            "name": "gene_counts",
+            "attribute_name": "gene_counts",
+            "display_name": "Genes that can count",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": {
+              "type": "Array",
+              "value": ["Gene1", "Gene2"]
+            },
+            "attribute_type": "matrix"
+          },
           "compartment": {
             "name": "compartment",
             "attribute_name": "compartment",
@@ -250,6 +267,46 @@
               "value": ["comp1", "comp2", "comp3"]
             },
             "attribute_type": "string"
+          },
+          "cram": {
+            "name": "cram",
+            "attribute_name": "cram",
+            "display_name": "Cram",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "file"
+          },
+          "cram_index": {
+            "name": "cram_index",
+            "attribute_name": "cram_index",
+            "display_name": "Cram index",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "file"
+          },
+          "junction": {
+            "name": "junction",
+            "attribute_name": "junction",
+            "display_name": "Junction",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "file"
+          },
+          "unmapped_fastqs": {
+            "name": "unmapped_fastqs",
+            "attribute_name": "unmapped_fastqs",
+            "display_name": "Unmapped",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "file_collection"
           }
         }
       }

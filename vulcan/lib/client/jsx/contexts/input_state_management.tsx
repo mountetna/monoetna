@@ -8,7 +8,7 @@ import {useActionInvoker} from "etna-js/hooks/useActionInvoker";
 import {dismissMessages, showMessages} from "etna-js/actions/message_actions";
 import {clearBufferedInput, setBufferedInput, setInputs, VulcanAction} from "../actions/vulcan_actions";
 import {allSourcesForStepName} from "../selectors/workflow_selectors";
-import {mapSome, Maybe} from "../selectors/maybe";
+import {mapSome, Maybe, maybeOfNullable, some, withDefault} from "../selectors/maybe";
 import {DataEnvelope} from "../components/workflow/user_interactions/inputs/input_types";
 import {VulcanContext} from "./vulcan_context";
 
@@ -83,10 +83,20 @@ export function WithBufferedInputs({
       <button onClick={cancelInputs} disabled={!!state.pollingState}>
         Reset
       </button>
-      <button onClick={commitInputs} disabled={!!state.pollingState}>
+      <button  
+        onClick={commitInputs}
+        style={{
+          background: "linear-gradient(135deg, #6e8efb, #a777e3)",
+          textAlign: 'center', 
+          fontWeight: 'bold',
+          fontSize: 14,
+          border:'3px solid black',
+          //outline: '#4CAF50 solid 2px'  
+          }}
+        disabled={!!state.pollingState}>
         Commit
       </button>
-    </div> : null }
+    </div> : null } 
   </BufferedInputsContext.Provider>
 }
 
@@ -119,7 +129,7 @@ export function useInputStateManagement(invoke: ReturnType<typeof useActionInvok
       mapSome(inputs[source] || null, inner => newInputs[source] = inner);
     })
     dispatch(setInputs(newInputs))
-    requestPoll();
+    requestPoll(false, maybeOfNullable(stepName));
     return true;
   }, [dispatch, requestPoll, stateRef, validateInputs]);
 
