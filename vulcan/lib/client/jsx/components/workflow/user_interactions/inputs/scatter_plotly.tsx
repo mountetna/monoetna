@@ -53,7 +53,7 @@ function VisualizationUI({
     return Object.keys(data['data_frame'])
   }, [data]);
 
-  const updateValue = (newValue: any, key: string, prevValues = value) => {
+  const updateValue = (newValue: any, key: string, prevValues = {...value}) => {
     prevValues[key] = newValue;
     onChange(some(prevValues));
   };
@@ -242,7 +242,7 @@ const checkboxInput = (
         label={label}
         value={maybeOfNullable(value)}
         data={val_wrap(value)}
-        onChange={() => changeFxn(!value, key)}
+        onChange={ value => changeFxn(withDefault(value,false), key)}
       />
     )
   }
@@ -256,7 +256,6 @@ const dropdownInput = (
         {label}
         <DropdownAutocomplete
           list={options}
-          defaultValue={null}
           value={value}
           onSelect={(val: string) => changeFxn(val, key)}
         />
@@ -272,7 +271,7 @@ const sliderInput = (
         <div key={key}>
           {label}
           <Slider
-            defaultValue={value}
+            value={value}
             onChange={(event, newValue) => changeFxn(newValue as number, key)}
             min={min}
             max={max}
