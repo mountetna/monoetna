@@ -22,10 +22,10 @@ def _default_to_if_make_and_logic(this, default, logic = True):
 
 ### Read in our data
 data_frame = pd.read_csv(mockDF.csv)
-# print(data_frame) # Uncomment to view the data!
+data_frame
 
 ### Make plot
-# You'll need to change this in multiple ways to go from scatter -> bar plot
+# You'll need to change this in multiple ways to go from scatter -> violin plot
 # Use the plotly documentation to figure out how!
 fig = px.scatter(
     data_frame = data_frame,
@@ -36,7 +36,8 @@ fig = px.scatter(
 )
 
 ### Output the plot
-fig.write_image("images/fig1.png")
+import plotly
+plotly.offline.plot(fig, filename = 'test_data/y_plot.html', auto_open=False)
 
 # ----------- Modify above here to start ------------ #
 # We'll convert to a function after we have our intial example!
