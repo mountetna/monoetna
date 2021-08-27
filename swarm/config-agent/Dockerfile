@@ -7,7 +7,7 @@ ENV DOCKER_VERSION 20.10.6
 RUN curl https://download.docker.com/linux/static/stable/x86_64/docker-$DOCKER_VERSION.tgz > /tmp/docker.tgz
 RUN tar -xf /tmp/docker.tgz -C /tmp/
 RUN mv /tmp/docker/* /usr/local/bin/
-COPY src/bin/* /usr/local/bin/
+COPY src/lib/* /lib/
 
 WORKDIR /
 

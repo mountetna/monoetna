@@ -11,6 +11,8 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      restart_policy:
+        condition: on-failure
       placement: &edge-placement
         constraints:
           - node.role == worker
@@ -20,14 +22,12 @@ services:
 
   apply-config: &apply-config
     configs:
-      - app.include.erb
-      - main.conf
-      - source: edge_config.sh
-        target: /script/config.sh
+      - main.conf.erb
     image: etnaagent/config-agent:production
     volumes:
       - httpd.conf.d:/config
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/ssl:/etc/ssl:ro
     deploy:
       labels:
         - autoupdate=true
@@ -35,13 +35,34 @@ services:
       replicas: 1
       restart_policy:
         condition: none
+
       placement:
         <<: *edge-placement
 
+    command:
+      - bash
+      - -c
+      - |
+        set -ex
+        source /lib/config-helpers
+        template /main.conf.erb main.conf
+        cat main.conf
+        cat main.conf | docker run --rm -i -v /etc/ssl:/etc/ssl:ro etnaagent/edge-apache:production bash -c 'cat > /usr/opt/httpd.conf.d/main.conf && httpd -t'
+        enable main.conf
+        if [ -z "$$DRY_RUN" ]; then
+          edge_node="$$(docker ps --filter name=edge_edge-apache -q || true)"
+          if [ -n "$edge_node" ]; then
+            docker kill --signal="USR1" "$$edge_node" || true
+          fi
+        fi
+
   test-config:
     <<: *apply-config
+
     volumes:
       - httpd.conf.d.test:/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/ssl:/etc/ssl:ro
     environment:
       DRY_RUN: 1
 
@@ -55,9 +76,5 @@ networks:
     external: true
 
 configs:
-  app.include.erb:
-    external: true
-  main.conf:
-    external: true
-  edge_config.sh:
+  main.conf.erb:
     external: true
