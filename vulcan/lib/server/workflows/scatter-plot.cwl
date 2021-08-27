@@ -18,21 +18,20 @@ steps:
     run: scripts/mockDF.cwl
     label: 'Fetch Data'
     in: []
-    out: [data_frame, data_options]
+    out: [data_frame]
   fill_plot_options:
     run: ui-queries/scatter-plotly.cwl
     label: 'Set plot options'
     in:
-      data_options: get_data/data_options
       data_frame: get_data/data_frame
-    out: [data_options]
+    out: [plot_setup]
   plot_scatter:
-    run: scripts/scatter_make_scatter.cwl
+    run: scripts/make_scatter.cwl
     label: 'Create Scatter Plot'
     in:
-      plot_settings: fill_plot_options/data_options
+      plot_setup: fill_plot_options/plot_setup
       data_frame: get_data/data_frame
-    out: [scatter_plot.json]
+    out: [plot.json]
   show_scatter_plot:
     run: ui-outputs/plotly.cwl
     in:
