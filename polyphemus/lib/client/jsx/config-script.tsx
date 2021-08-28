@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Controlled } from 'react-codemirror2';
 
 import CodeMirror, { Editor } from 'codemirror';
+import {makeStyles} from '@material-ui/core/styles';
 
 import 'codemirror/mode/javascript/javascript';
-import 'codemirror/addon/edit/closebrackets';
 import 'codemirror/addon/lint/lint';
 
 import JsonMap from 'json-source-map';
@@ -85,8 +85,16 @@ export const validator = (schema:any, editor:Editor): Function => {
   }
 }
 
+const useStyles = makeStyles( theme => ({
+  editor: {
+    border: '1px solid #ccc'
+  }
+}));
+
 const ConfigScript = ({ schema, script, onChange } : { schema: any, script: any, onChange?: Function } ) => {
   let [ editor, setEditor ] = useState<Editor| null>(null);
+
+  const classes = useStyles();
 
   useEffect(
     () => {
@@ -94,28 +102,26 @@ const ConfigScript = ({ schema, script, onChange } : { schema: any, script: any,
     }, [ editor ]
   );
 
-  let [ editedScript, setEditedScript ] = useState< any | null>(null);
-  
-  useEffect( () => setEditedScript(JSON.stringify(script,null,2)), [script]);
+  let [ editedScript, setEditedScript ] = useState(JSON.stringify(script,null,2));
 
   return (
-      <div className='config-script'>
-        <Controlled
-          options = {{
-            readOnly: false,
-            lineNumbers: true,
-            lineWrapping: true,
-            mode: 'application/json',
-            autoCloseBrackets: true,
-            gutters: ['CodeMirror-lint-markers'],
-            lint: true,
-            tabSize: 2
-          }}
-          editorDidMount={ setEditor }
-          value={editedScript}
-          onBeforeChange={(editor, data, value) => { setEditedScript(value); }}
-        />
-      </div>
+    <div className={classes.editor}>
+      <Controlled
+        options = {{
+          readOnly: false,
+          lineNumbers: true,
+          lineWrapping: true,
+          mode: 'application/json',
+          gutters: ['CodeMirror-lint-markers'],
+          lint: true,
+          tabSize: 2
+        }}
+        editorDidMount={ setEditor }
+        value={editedScript}
+        onBeforeChange={(editor, data, value) => { setEditedScript(value); }}
+      />
+    </div>
   );
-}
+};
+
 export default ConfigScript;

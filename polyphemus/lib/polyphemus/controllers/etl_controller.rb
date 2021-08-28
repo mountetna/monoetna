@@ -40,6 +40,10 @@ class EtlController < Polyphemus::Controller
       project_name: @params[:project_name],
       etl: "redcap",
       name: "COMET Redcap Loader",
+      ran_at: DateTime.parse("2021-03-04").iso8601,
+      run: 86400,
+      status: "completed",
+      output: "This is the output log.\nIt has many lines",
       updated_at: DateTime.parse("2021-03-03").iso8601,
       created_at: DateTime.parse("2021-02-02").iso8601,
       config: {
