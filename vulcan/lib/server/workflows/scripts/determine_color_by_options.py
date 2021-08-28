@@ -14,5 +14,3 @@ color_options = {
 color_options.update([ [ label, None ] for label in pdat['color_options'].keys() ])
 
 output_json(color_options, 'color_options')
-
-output_json(['x_by', 'y_by'], 'hide')
