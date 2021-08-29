@@ -8,6 +8,16 @@ class Polyphemus
         @list << subclass
       end
       attr_reader :list
+
+      def from_name(job_name)
+        list.find do |job|
+          job.job_name == job_name
+        end
+      end
+
+      def job_name
+        self.name.match(/::(.*)Job/)[1].underscore
+      end
     end
 
     attr_reader :request_params, :request_env, :response, :job_params, :errors, :user

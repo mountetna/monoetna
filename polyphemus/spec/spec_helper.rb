@@ -109,6 +109,10 @@ FactoryBot.define do
   factory :watch_folder, class: Polyphemus::WatchFolder do
     to_create(&:save)
   end
+
+  factory :etl_config, class: Polyphemus::EtlConfig do
+    to_create(&:save)
+  end
 end
 
 def json_body

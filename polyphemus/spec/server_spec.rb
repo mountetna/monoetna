@@ -33,7 +33,9 @@ describe Polyphemus::Server do
     get('/api/labors/etl/configs')
 
     expect(last_response.status).to eq(200)
-    expect(json_body.first.keys).to eq([:project_name, :etl, :name, :updated_at, :created_at, :config])
+    expect(json_body.first.keys).to eq([
+      :project_name, :etl, :name, :ran_at, :run, :status, :output, :updated_at, :created_at, :config
+    ])
   end
 
   it 'returns a list of etl jobs for a project' do

@@ -4,7 +4,6 @@ require "rack"
 require_relative "./polyphemus"
 require_relative "./polyphemus/controllers/configuration_controller"
 require_relative "./polyphemus/controllers/job_controller"
-require_relative "./polyphemus/controllers/ingest_controller"
 require_relative './polyphemus/controllers/etl_controller'
 
 class Polyphemus
