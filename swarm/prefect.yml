@@ -73,6 +73,7 @@ services:
         exec python src/prefect_server/services/graphql/server.py
     secrets:
       - prefect-postgres-password
+      - hasura-admin-secret
     environment:
       PREFECT_CORE_VERSION: 0.15.4
       PREFECT_SERVER_DB_CMD: prefect-server database upgrade -y
@@ -118,6 +119,23 @@ services:
       prefect: null
 
     restart: always
+  
+  towel:
+    command:
+      - bash
+      - -c
+      - |
+        export PREFECT_SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
+        exec python src/prefect_server/services/towel/__main__.py
+    environment:
+      PREFECT_SERVER__HASURA__HOST: prefect_hasura
+    image: prefecthq/server:core-0.15.4
+    networks:
+      prefect: null
+    restart: always
+    secrets:
+      - hasura-admin-secret
+
 
 
 networks:
@@ -128,4 +146,6 @@ volumes:
 
 secrets:
   prefect-postgres-password:
+    external: true
+  hasura-admin-secret:
     external: true
