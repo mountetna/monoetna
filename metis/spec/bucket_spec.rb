@@ -648,7 +648,7 @@ describe BucketController do
       expect(json_body[:folders]).to eq([])
       expect(json_body[:files].length).to eq(1)
       expect(json_body[:files].first[:file_name]).to eq(@wisdom_file.file_name)
-      expect(json_body[:files].first.key?(:id)).to eq(true)
+      expect(json_body[:files].first.key?(:folder_id)).to eq(true)
       expect(json_body[:files].first.key?(:file_path)).to eq(false)
 
       json_post("/athena/find/my_bucket", params: [{
