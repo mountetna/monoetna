@@ -42,6 +42,12 @@ class Metis
               [[Sequel[id_param], globber.folder_path_ids]]).where(
               Sequel.like(model_name_attribute, globber.sql_search_string))
           end
+        when 'folder_id'
+          case param[:predicate]
+          when 'in'
+            raise Metis::QueryError.new("value must be Array of integers for a folder_id search.") unless param[:value].is_a?(Array) && param[:value].all? {|v| v.is_a?(Integer)}
+            result = result.where([[:folder_id, param[:value]]])
+          end
         end
       end
 
