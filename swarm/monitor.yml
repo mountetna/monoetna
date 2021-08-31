@@ -44,3 +44,9 @@ configs:
     external: true
   web-config.yml:
     external: true
+
+networks:
+  edge_bridge:
+    external: true
+  prometheus:
+    external: true
