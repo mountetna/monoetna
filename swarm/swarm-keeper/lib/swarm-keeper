@@ -106,7 +106,6 @@ function updateGitSources() {
         cd ..
         rm -rf $dir
       fi
-    ) &
+    )
   done < <(listStacks)
-  wait
 }
