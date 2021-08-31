@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: "postgres:11"
+    environment:
+      POSTGRES_USER: developer
+      POSTGRES_PASSWORD_FILE: /run/secrets/prefect-postgres-password
+      POSTGRES_DB: prefect
+    secrets:
+      - prefect-postgres-password
+    volumes:
+      - prefect-db-data:/var/lib/postgresql/data
+    networks:
+      - prefect
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=150"
+    healthcheck:
+      test: pg_isready -q -d prefect -U developer || exit 1
+      interval: 10s
+      timeout: 2s
+      retries: 60
+      start_period: 2s
+    restart: always
+
+
+networks:
+  prefect:
+
+volumes:
+  prefect-db-data:
+
+secrets:
+  prefect-postgres-password:
+    external: true

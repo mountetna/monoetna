@@ -2,6 +2,27 @@ version: '3.8'
 
 # Intended for agents that run in global deploy node, on most or all nodes, for service health purposes.
 services:
+  sync-stacks-to-git:
+    image: etnaagent/swarm-keeper:production
+    deploy:
+      labels:
+        - autoupdate=true
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        delay: 300s
+    secrets:
+      - git-auth.env
+      - portainer-auth.env
+    command:
+      - bash
+      - -c
+      - |
+        set -eo pipefail
+        source /usr/lib/swarm-keeper
+        updateGitSources
   agent:
     image: gcr.io/cadvisor/cadvisor
     volumes:
@@ -40,4 +61,8 @@ secrets:
   slack_webhook_url:
     external: true
   service-deployer-docker-login:
+    external: true
+  git-auth.env:
+    external: true
+  portainer-auth.env:
     external: true
