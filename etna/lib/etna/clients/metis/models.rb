@@ -110,11 +110,11 @@ module Etna
         end
       end
 
-      class FindRequest < Struct.new(:project_name, :bucket_name, :limit, :offset, :params, keyword_init: true)
+      class FindRequest < Struct.new(:project_name, :bucket_name, :limit, :offset, :params, :hide_paths, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**args)
-          super({params: []}.update(args))
+          super({params: [], hide_paths: false}.update(args))
         end
 
         def add_param(param)
@@ -133,7 +133,8 @@ module Etna
             bucket_name: self.bucket_name,
             limit: self.limit,
             offset: self.offset,
-            params: self.params.dup
+            params: self.params.dup,
+            hide_paths: self.hide_paths
           )
         end
       end
