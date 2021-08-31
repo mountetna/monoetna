@@ -31,7 +31,7 @@ services:
 
 
 volumes:
-  tsbd:
+  tsdb:
     external: true
     name: prometheus-tsdb # historical name before swarm, reusing that volume.
 
