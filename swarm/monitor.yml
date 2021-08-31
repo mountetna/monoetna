@@ -19,6 +19,8 @@ services:
     deploy:
       mode: replicated
       replicas: 1
+      update_config:
+        failure_action: rollback
       restart_policy:
         condition: any
       placement:
@@ -28,6 +30,22 @@ services:
     networks:
       - edge_bridge
       - prometheus
+    user: "1500:999" # dockerapp:docker
+  alertmanger:
+    hostname: alertmanager
+    image: "prom/alertmanager:v0.21.0"
+    command: "--config.file=/alertmanager.yml"
+    configs:
+      - alertmanager.yml
+    networks:
+      - prometheus
+    deploy:
+      mode: replicated
+      update_config:
+        failure_action: rollback
+      replicas: 1
+      restart_policy:
+        condition: any
     user: "1500:999" # dockerapp:docker
 
 
