@@ -40,7 +40,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
       !folder_path_satisfies_globs?(folder)
     end
 
-    logger.info("Found #{folders_to_remove} changed folders. Removing as watch folders: #{folders_to_remove.map { |f| f.id }.join(",")}")
+    logger.info("Found #{folders_to_remove.length} changed folders. Removing as watch folders: #{folders_to_remove.map { |f| f.id }.join(",")}")
 
     Polyphemus::WatchFolder.where(
       folder_id: folders_to_remove.map { |f| f.id },
