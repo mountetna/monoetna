@@ -89,14 +89,14 @@ class BucketController < Metis::Controller
     files = results[:files]
     folders = results[:folders]
 
-    file_hashes = @params[:hide_paths] ?
+    file_hashes = hide_paths? ?
       file_hashes_without_paths(files: files) : 
       file_hashes_with_calculated_paths(
         files: files,
         bucket: bucket,
       )
 
-    folder_hashes = @params[:hide_paths] ?
+    folder_hashes = hide_paths? ?
       folder_hashes_without_paths(folders: folders) :
       folder_hashes_with_calculated_paths(
         target_folders: folders,
@@ -112,5 +112,9 @@ class BucketController < Metis::Controller
     return true unless @params[:owner].downcase == @params[:bucket_name].downcase
 
     return @hmac&.valid? && @hmac.id.to_s == @params[:owner]
+  end
+
+  def hide_paths?
+    !!@params[:hide_paths]
   end
 end
