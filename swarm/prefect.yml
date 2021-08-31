@@ -59,7 +59,37 @@ services:
     image: hasura/graphql-engine:v1.3.3
     networks:
       prefect: null
+    restart: always
 
+  graphql:
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        export PREFECT_SERVER__DATABASE__CONNECTION_URL="postgresql://developer:$$(cat /run/secrets/prefect-postgres-password)@prefect_postgres:5432/prefect"
+        export PREFECT_SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
+        prefect-server database upgrade -y
+        exec python src/prefect_server/services/graphql/server.py
+    secrets:
+      - prefect-postgres-password
+    environment:
+      PREFECT_CORE_VERSION: 0.15.4
+      PREFECT_SERVER_DB_CMD: prefect-server database upgrade -y
+      PREFECT_SERVER__HASURA__HOST: prefect_hasura
+    deploy:
+      mode: replicated
+      replicas: 1
+    healthcheck:
+      interval: 20s
+      retries: 60
+      start_period: 1s
+      test: curl --fail --silent "http://localhost:4201/health" &> /dev/null || exit
+        1
+      timeout: 2s
+    image: prefecthq/server:core-0.15.4
+    networks:
+      prefect: null
     restart: always
 
 networks:
