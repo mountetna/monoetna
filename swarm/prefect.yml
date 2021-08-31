@@ -135,6 +135,20 @@ services:
     restart: always
     secrets:
       - hasura-admin-secret
+  
+  ui:
+    command: /intercept.sh
+    environment:
+      PREFECT_SERVER__APOLLO_URL: http://prefect_apollo:4200/graphql
+    healthcheck:
+      interval: 30s
+      retries: 3
+      test: curl --fail --silent --head "http://localhost:8080/" &> /dev/null || exit 1
+      timeout: 5s
+    image: prefecthq/ui:core-0.15.4
+    networks:
+      prefect: null
+    restart: always
 
 
 
