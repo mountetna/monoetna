@@ -38,7 +38,7 @@ services:
       - -c
       - |
         set -e
-        export HASURA_GRAPHQL_DATABASE_URL="postgresql://developer:$$(cat /run/secrets/prefect-postgres-password)@postgres:5432/prefect"
+        export HASURA_GRAPHQL_DATABASE_URL="postgresql://developer:$$(cat /run/secrets/prefect-postgres-password)@prefect_postgres:5432/prefect"
         exec graphql-engine serve
     depends_on:
     - postgres
@@ -53,7 +53,7 @@ services:
       interval: 10s
       retries: 60
       start_period: 1s
-      test: wget -O - http://hasura:$${HASURA_GRAPHQL_SERVER_PORT}/healthz &>/dev/null
+      test: wget -O - http://prefect_hasura:$${HASURA_GRAPHQL_SERVER_PORT}/healthz &>/dev/null
         || exit 1
       timeout: 2s
     image: hasura/graphql-engine:v1.3.3
