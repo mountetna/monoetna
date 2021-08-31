@@ -39,6 +39,8 @@ services:
       - alertmanager.yml
     networks:
       - prometheus
+    volumes:
+      - alertmanager-data:/data
     deploy:
       mode: replicated
       update_config:
@@ -50,6 +52,7 @@ services:
 
 
 volumes:
+  alertmanager-data:
   tsdb:
     external: true
     name: prometheus-tsdb # historical name before swarm, reusing that volume.
