@@ -92,6 +92,34 @@ services:
       prefect: null
     restart: always
 
+  apollo:
+    command:
+      - bash
+      - -c
+      - |
+        ./post-start.sh
+        npm run serve
+    environment:
+      GRAPHQL_SERVICE_HOST: http://prefect_graphql
+      GRAPHQL_SERVICE_PORT: 4201
+      HASURA_API_URL: http://prefect_hasura:3000/v1alpha1/graphql
+      PREFECT_API_HEALTH_URL: http://prefect_graphql:4201/health
+      PREFECT_API_URL: http://prefect_graphql:4201/graphql/
+      PREFECT_SERVER__TELEMETRY__ENABLED: "true"
+    healthcheck:
+      interval: 10s
+      retries: 60
+      start_period: 1s
+      test: curl --fail --silent "http://localhost:4200/.well-known/apollo/server-health"
+        &> /dev/null || exit 1
+      timeout: 2s
+    image: prefecthq/apollo:core-0.15.4
+    networks:
+      prefect: null
+
+    restart: always
+
+
 networks:
   prefect:
 
