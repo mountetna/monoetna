@@ -148,7 +148,10 @@ services:
     image: prefecthq/server:core-0.15.4
     networks:
       prefect: null
-
+    deploy:
+      restart_policy:
+        condition: none
+        max_attempts: 1
     secrets:
       - hasura-admin-secret
     
