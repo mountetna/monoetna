@@ -19,6 +19,9 @@ services:
           - node.labels.is_edge == true
     networks:
       - edge_bridge
+    ports:
+      - 80:80
+      - 443:443
 
   apply-config: &apply-config
     configs:
