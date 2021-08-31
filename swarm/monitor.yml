@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  prometheus:
+    hostname: prometheus
+    image: prom/prometheus:v2.26.0
+    command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.config.file=/etc/prometheus/web-config.yml --web.console.libraries=/usr/share/prometheus/console_libraries --web.console.templates=/usr/share/prometheus/consoles"
+    volumes:
+      - tsdb:/prometheus
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    configs:
+      - source: prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+      - source: alertmanager.yml
+        target: /etc/prometheus/alertmanager.yml
+      - source: rules.yml
+        target: /etc/prometheus/rules.yml
+      - source: web-config.yml
+        target: /etc/prometheus/web-config.yml
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
+          - node.role == manager
+          - node.labels.volumes.prometheus-tsdb == true
+    networks:
+      - edge_bridge
+      - prometheus
+
+
+volumes:
+  tsbd:
+    external: true
+    name: prometheus-tsdb # historical name before swarm, reusing that volume.
+
+configs:
+  prometheus.yml:
+    external: true
+  alertmanager.yml:
+    external: true
+  rules.yml:
+    external: true
+  web-config.yml:
+    external: true
