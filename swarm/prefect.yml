@@ -148,12 +148,15 @@ services:
     image: prefecthq/ui:core-0.15.4
     networks:
       prefect: null
+      edge_bridge: null
     restart: always
 
 
 
 networks:
   prefect:
+  edge_bridge:
+    external: true
 
 volumes:
   prefect-db-data:
@@ -163,3 +166,4 @@ secrets:
     external: true
   hasura-admin-secret:
     external: true
+  
