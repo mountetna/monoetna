@@ -136,6 +136,22 @@ services:
     secrets:
       - hasura-admin-secret
   
+  cli:
+    command:
+      - bash
+      - -c
+      - |
+        export PREFECT_SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
+        exec bash
+    environment:
+      PREFECT_SERVER__HASURA__HOST: prefect_hasura
+    image: prefecthq/server:core-0.15.4
+    networks:
+      prefect: null
+
+    secrets:
+      - hasura-admin-secret
+    
   ui:
     command: /intercept.sh
     environment:
