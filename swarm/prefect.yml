@@ -22,7 +22,6 @@ services:
       replicas: 1
       placement:
         constraints:
-
           - node.labels.volumes.prefect-db == true
     healthcheck:
       test: pg_isready -q -d prefect -U developer || exit 1
@@ -40,8 +39,9 @@ services:
         set -e
         export HASURA_GRAPHQL_DATABASE_URL="postgresql://developer:$$(cat /run/secrets/prefect-postgres-password)@prefect_postgres:5432/prefect"
         exec graphql-engine serve
-    depends_on:
-    - postgres
+    deploy:
+      mode: replicated
+      replicas: 1
     secrets:
       - prefect-postgres-password
     environment:
@@ -53,15 +53,13 @@ services:
       interval: 10s
       retries: 60
       start_period: 1s
-      test: wget -O - http://prefect_hasura:$${HASURA_GRAPHQL_SERVER_PORT}/healthz &>/dev/null
+      test: wget -O - http://localhost:$${HASURA_GRAPHQL_SERVER_PORT}/healthz &>/dev/null
         || exit 1
       timeout: 2s
     image: hasura/graphql-engine:v1.3.3
     networks:
       prefect: null
-    ports:
-    - published: 3000
-      target: 3000
+
     restart: always
 
 networks:
