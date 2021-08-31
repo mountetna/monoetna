@@ -154,6 +154,8 @@ services:
         max_attempts: 1
     secrets:
       - hasura-admin-secret
+    stdin_open: true
+    tty: true
     
   ui:
     command: /intercept.sh
