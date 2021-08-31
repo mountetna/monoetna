@@ -80,12 +80,27 @@ class Polyphemus::MetisFilesLinkerBase
   def serialize(file)
     {
       path: metis_path(file),
-      original_filename: ::File.basename(file.file_path),
+      original_filename: file.file_name,
     }
   end
 
   def metis_path(file)
-    "metis://#{file.project_name}/#{file.bucket_name}/#{file.file_path}"
+    # Technically you could build an ETL to watch for a file without a folder...
+    #   but that doesn't seem like a realistic use case.
+    "metis://#{file.project_name}/#{file.bucket_name}/#{watch_folder_for_file(file).folder_path}/#{file.file_name}"
+  end
+
+  def watch_folder_for_file(file)
+    Polyphemus::WatchFolder.where(
+      project_name: file.project_name,
+      bucket_name: file.bucket_name,
+      watch_type: "link_files",
+      folder_id: file.folder_id,
+    ).first
+  end
+
+  def full_path_for_file(file)
+    "#{watch_folder_for_file(file).folder_path}/#{file.file_name}"
   end
 
   def is_file_collection?(project_name, model_name, attribute_name)
@@ -109,7 +124,7 @@ class Polyphemus::MetisFilesLinkerBase
     record_name_gsub_pair: nil
   )
     metis_files_by_record_name = metis_files.group_by do |file|
-      match = file.file_path.match(path_regex)
+      match = full_path_for_file(file).match(path_regex)
 
       if match
         record_name = corrected_record_name(match[:record_name])

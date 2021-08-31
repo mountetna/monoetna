@@ -30,6 +30,7 @@ describe Polyphemus::MetisFileInWatchFolderEtl do
     def initialize(**args)
       super(
         project_bucket_pairs: [["ipi", "integral_data"]],
+        watch_type: "link_files",
         **args,
       )
     end
@@ -48,6 +49,8 @@ describe Polyphemus::MetisFileInWatchFolderEtl do
       bucket_name: bucket_name,
       updated_at: "2021-01-01 00:00:00",
       folder_path: "path1/path1_1",
+      folder_id: 1,
+      watch_type: "link_files",
     }])
     stub_metis_setup
     stub_list_folder(

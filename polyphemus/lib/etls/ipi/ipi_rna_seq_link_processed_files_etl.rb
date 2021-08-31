@@ -10,6 +10,7 @@ class Polyphemus::IpiRnaSeqLinkProcessedFilesEtl < Polyphemus::MetisFileInWatchF
     @linker = Polyphemus::IpiRnaSeqProcessedFilesLinker.new
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
+      watch_type: "link_files",
     )
   end
 

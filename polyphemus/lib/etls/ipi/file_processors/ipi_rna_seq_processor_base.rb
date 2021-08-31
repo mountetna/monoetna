@@ -15,14 +15,19 @@ class Polyphemus::IpiRnaSeqProcessorBase
 
   def download_files(files, &block)
     files.each do |attribute_file|
-      Tempfile.create do |tmp|
-        metis_client.download_file(attribute_file) do |chunk|
-          tmp << chunk
+      begin
+        Tempfile.create do |tmp|
+          metis_client.download_file(attribute_file) do |chunk|
+            tmp << chunk
+          end
+
+          tmp.rewind
+
+          yield [attribute_file, tmp]
         end
-
-        tmp.rewind
-
-        yield [attribute_file, tmp]
+      rescue Exception => e
+        `post-to-slack "#{self.class.name}" "data-ingest-ping" "Error processing IPI rna_seq file #{attribute_file.file_path}.\n#{e.message}." || true`
+        logger.log_error(e)
       end
     end
   end

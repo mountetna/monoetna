@@ -10,6 +10,7 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileInWatchF
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
       limit: 5,
+      watch_type: "process_files",
     )
   end
 

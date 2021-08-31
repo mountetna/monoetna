@@ -11,6 +11,7 @@ class Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl < Polyphemus::AddWat
       project_bucket_pairs: [[PROJECT, BUCKET]],
       folder_name_globs: ["output/*", "bulkRNASeq/*"],
       model_name: "rna_seq",
+      watch_type: "link_files",
     )
   end
 

@@ -12,17 +12,13 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
   before(:each) do
     stub_metis_setup
     @all_updates = []
-  end
-
-  def file(file_name, file_path, file_hash = SecureRandom.hex, updated_at = Time.now)
-    Etna::Clients::Metis::File.new({
-      file_name: file_name,
-      file_path: file_path,
-      updated_at: updated_at,
-      file_hash: file_hash,
-      bucket_name: bucket_name,
+    stub_watch_folders([{
       project_name: project_name,
-    })
+      bucket_name: bucket_name,
+      folder_id: 1,
+      folder_path: "BulkRNASeq/PATIENT001.T1.comp",
+      watch_type: "link_files",
+    }])
   end
 
   describe "updates Magma records" do
@@ -35,9 +31,9 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
       etl = Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl.new
 
       etl.process(cursor, [
-        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
-        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
-        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
+        create_metis_file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
+        create_metis_file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
+        create_metis_file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
       ])
 
       # Make sure rna_seq records are updated
@@ -66,9 +62,9 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
       etl = Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl.new
 
       etl.process(cursor, [
-        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
-        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
-        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
+        create_metis_file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
+        create_metis_file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz"),
+        create_metis_file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
       ])
 
       # Make sure rna_seq records are updated
@@ -93,8 +89,8 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
                                  }))
 
       etl.process(cursor, [
-        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
-        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
+        create_metis_file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz"),
+        create_metis_file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz"),
       ])
 
       # Make sure rna_seq records are updated
@@ -120,9 +116,9 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
       etl = Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl.new
 
       etl.process(cursor, [
-        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", "hash1"),
-        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", "hash2"),
-        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", "hash3"),
+        create_metis_file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", file_hash: "hash1"),
+        create_metis_file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", file_hash: "hash2"),
+        create_metis_file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", file_hash: "hash3"),
       ])
 
       # Make sure rna_seq records are updated
@@ -147,9 +143,9 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
                                  }))
 
       etl.process(cursor, [
-        file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", "hash1"),
-        file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", "new-hash2"),
-        file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", "hash3"),
+        create_metis_file("PATIENT001.T1.comp.blahblah1.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah1.fastq.gz", file_hash: "hash1"),
+        create_metis_file("PATIENT001.T1.comp.blahblah2.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah2.fastq.gz", file_hash: "new-hash2"),
+        create_metis_file("PATIENT001.T1.comp.blahblah3.fastq.gz", "BulkRNASeq/PATIENT001.T1.comp/PATIENT001.T1.comp.blahblah3.fastq.gz", file_hash: "hash3"),
       ])
 
       # Make sure rna_seq records are updated again

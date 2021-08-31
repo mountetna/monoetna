@@ -451,8 +451,29 @@ def stub_watch_folders(folder_data = nil)
     folder_data.each do |data|
     create(:watch_folder, **data)
   end : begin
-    create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "2021-01-01 00:00:00", folder_path: "path1")
-    create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "2015-01-01 00:00:00", folder_path: "path2")
-    create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "1999-01-01 00:00:00", folder_path: "path1/path1_1")
+    create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "2021-01-01 00:00:00", folder_path: "path1", watch_type: "link_files", folder_id: 1)
+    create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "2015-01-01 00:00:00", folder_path: "path2", watch_type: "link_files", folder_id: 2)
+    create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "1999-01-01 00:00:00", folder_path: "path1/path1_1", watch_type: "link_files", folder_id: 3)
   end
+end
+
+def create_metis_folder(folder_name, folder_path, updated_at: Time.now, id: nil)
+  Etna::Clients::Metis::Folder.new({
+    folder_name: folder_name,
+    folder_path: folder_path,
+    updated_at: updated_at,
+    id: id,
+  })
+end
+
+def create_metis_file(file_name, file_path, file_hash: SecureRandom.hex, updated_at: Time.now, folder_id: 1)
+  Etna::Clients::Metis::File.new({
+    file_name: file_name,
+    file_path: file_path,
+    updated_at: updated_at,
+    file_hash: file_hash,
+    bucket_name: bucket_name,
+    project_name: project_name,
+    folder_id: folder_id
+  })
 end

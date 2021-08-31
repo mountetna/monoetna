@@ -10,6 +10,7 @@ class Polyphemus::IpiRnaSeqPopulateMatricesEtl < Polyphemus::MetisFileInWatchFol
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
       limit: 1,
+      watch_type: "process_files",
     )
   end
 

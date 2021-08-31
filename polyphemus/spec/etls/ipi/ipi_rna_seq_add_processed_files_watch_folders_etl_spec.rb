@@ -19,14 +19,6 @@ describe Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl do
     stub_magma_models(fixture: "spec/fixtures/magma_ipi_models_with_records.json")
   end
 
-  def folder(folder_name, folder_path, updated_at = Time.now)
-    Etna::Clients::Metis::Folder.new({
-      folder_name: folder_name,
-      folder_path: folder_path,
-      updated_at: updated_at,
-    })
-  end
-
   describe "create Polyphemus::WatchFile records" do
     it "for invalid NASH / NAFLD samples" do
       expect(Polyphemus::WatchFolder.count).to eq(0)
@@ -34,8 +26,8 @@ describe Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl do
       etl = Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl.new
 
       etl.process(cursor, [
-        folder("IPIADR001.NASH1.rna.live", "plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live"),
-        folder("IPIADR001.NAFLD1.rna.live", "plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live"),
+        create_metis_folder("IPIADR001.NASH1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live", id: 1),
+        create_metis_folder("IPIADR001.NAFLD1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live", id: 2),
       ])
 
       expect(Polyphemus::WatchFolder.count).to eq(2)
@@ -47,7 +39,7 @@ describe Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl do
       etl = Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl.new
 
       etl.process(cursor, [
-        folder("WRONG001.T1.rna.tumor", "plate1_rnaseq_new/output/WRONG001.T1.rna.tumor"),
+        create_metis_folder("WRONG001.T1.rna.tumor", "bulkRNASeq/plate1_rnaseq_new/output/WRONG001.T1.rna.tumor", id: 1),
       ])
 
       expect(Polyphemus::WatchFolder.count).to eq(1)
@@ -61,7 +53,7 @@ describe Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl do
       response_body: {
         files: [{
           file_name: "something.fastq.gz",
-          file_path: "plate1_rnaseq_new/output/PATIENT001.T1.comp/something.fastq.gz",
+          folder_id: 1,
           bucket_name: bucket_name,
           project_name: project_name,
         }],
@@ -72,11 +64,10 @@ describe Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl do
     etl = Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl.new
 
     etl.process(cursor, [
-      folder("PATIENT001.T1.comp", "plate1_rnaseq_new/output/PATIENT001.T1.comp"),
-      folder("PATIENT001.N1.comp", "plate1_rnaseq_new/output/PATIENT001.N1.comp"),
-      folder("PATIENT002.T1.comp", "plate2_rnaseq_new/output/PATIENT002.T1.comp"),
+      create_metis_folder("PATIENT001.T1.comp", "bulkRNASeq/plate1_rnaseq_new/output/PATIENT001.T1.comp", id: 1),
+      create_metis_folder("PATIENT001.N1.comp", "bulkRNASeq/plate1_rnaseq_new/output/PATIENT001.N1.comp", id: 2),
+      create_metis_folder("PATIENT002.T1.comp", "bulkRNASeq/plate2_rnaseq_new/output/PATIENT002.T1.comp", id: 3),
     ])
-
     # Make sure rna_seq records are updated. Once per folder when files found.
     expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).times(1)
   end

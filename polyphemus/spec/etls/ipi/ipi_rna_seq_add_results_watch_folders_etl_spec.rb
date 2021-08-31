@@ -19,14 +19,6 @@ describe Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl do
     stub_magma_models(fixture: "spec/fixtures/magma_ipi_models_with_records.json")
   end
 
-  def folder(folder_name, folder_path, updated_at = Time.now)
-    Etna::Clients::Metis::Folder.new({
-      folder_name: folder_name,
-      folder_path: folder_path,
-      updated_at: updated_at,
-    })
-  end
-
   describe "create Polyphemus::WatchFile records" do
     it "for invalid NASH / NAFLD samples" do
       expect(Polyphemus::WatchFolder.count).to eq(0)
@@ -34,8 +26,8 @@ describe Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl do
       etl = Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl.new
 
       etl.process(cursor, [
-        folder("results", "plate1_rnaseq_new/results"),
-        folder("results", "plate2_rnaseq_new/results"),
+        create_metis_folder("results", "bulkRNASeq/plate1_rnaseq_new/results", id: 1),
+        create_metis_folder("results", "bulkRNASeq/plate2_rnaseq_new/results", id: 2),
       ])
 
       expect(Polyphemus::WatchFolder.count).to eq(2)
@@ -65,8 +57,8 @@ describe Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl do
       etl = Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl.new
 
       etl.process(cursor, [
-        folder("results", "plate1_rnaseq_new/results"),
-        folder("results", "plate2_rnaseq_new/results"),
+        create_metis_folder("results", "plate1_rnaseq_new/results", id: 1),
+        create_metis_folder("results", "plate2_rnaseq_new/results", id: 2),
       ])
 
       # Make sure rna_seq records are updated. Only when file is found.
@@ -95,8 +87,8 @@ describe Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl do
       etl = Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl.new
 
       etl.process(cursor, [
-        folder("results", "plate1_rnaseq_new/results"),
-        folder("results", "plate2_rnaseq_new/results"),
+        create_metis_folder("results", "plate1_rnaseq_new/results", id: 1),
+        create_metis_folder("results", "plate2_rnaseq_new/results", id: 2),
       ])
 
       # Make sure rna_seq records are updated. Only when file is found.

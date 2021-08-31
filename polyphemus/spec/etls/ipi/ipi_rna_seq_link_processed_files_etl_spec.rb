@@ -15,17 +15,13 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesEtl do
     stub_metis_setup
     copy_renaming_project
     @all_updates = []
-  end
-
-  def file(file_name, file_path, file_hash = SecureRandom.hex, updated_at = Time.now)
-    Etna::Clients::Metis::File.new({
-      file_name: file_name,
-      file_path: file_path,
-      updated_at: updated_at,
-      file_hash: file_hash,
-      bucket_name: bucket_name,
+    stub_watch_folders([{
       project_name: project_name,
-    })
+      bucket_name: bucket_name,
+      folder_id: 1,
+      folder_path: "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp",
+      watch_type: "link_files",
+    }])
   end
 
   describe "updates Magma records" do
@@ -38,7 +34,7 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesEtl do
       etl = Polyphemus::IpiRnaSeqLinkProcessedFilesEtl.new
 
       etl.process(cursor, [
-        file("PATIENT001.T1.comp.deduplicated.cram", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.deduplicated.cram"),
+        create_metis_file("PATIENT001.T1.comp.deduplicated.cram", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.deduplicated.cram"),
       ])
 
       # Make sure rna_seq records are updated
@@ -61,8 +57,8 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesEtl do
       etl = Polyphemus::IpiRnaSeqLinkProcessedFilesEtl.new
 
       etl.process(cursor, [
-        file("PATIENT001.T1.comp.unmapped.1.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.1.fastq.gz"),
-        file("PATIENT001.T1.comp.unmapped.2.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.2.fastq.gz"),
+        create_metis_file("PATIENT001.T1.comp.unmapped.1.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.1.fastq.gz"),
+        create_metis_file("PATIENT001.T1.comp.unmapped.2.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.2.fastq.gz"),
       ])
 
       # Make sure rna_seq records are updated
@@ -88,7 +84,7 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesEtl do
       etl = Polyphemus::IpiRnaSeqLinkProcessedFilesEtl.new
 
       etl.process(cursor, [
-        file("PATIENT001.T1.NAFLD.blahblah3.junction", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.NAFLD/PATIENT001.T1.NAFLD.blahblah3.junction"),
+        create_metis_file("PATIENT001.T1.NAFLD.blahblah3.junction", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.NAFLD/PATIENT001.T1.NAFLD.blahblah3.junction"),
       ])
 
       # Make sure rna_seq records are NOT updated
@@ -108,10 +104,18 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesEtl do
     end
 
     it "correctly renames renamed tube_names" do
+      stub_watch_folders([{
+        project_name: project_name,
+        bucket_name: bucket_name,
+        folder_id: 2,
+        folder_path: "bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor",
+        watch_type: "link_files",
+      }])
+
       etl = Polyphemus::IpiRnaSeqLinkProcessedFilesEtl.new
 
       etl.process(cursor, [
-        file("WRONG001.T1.rna.tumor.deduplicated.cram.crai", "bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai"),
+        create_metis_file("WRONG001.T1.rna.tumor.deduplicated.cram.crai", "bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai", folder_id: 2),
       ])
 
       # Make sure rna_seq records are updated for renamed patient, but pointing to the "wrong" file locations
