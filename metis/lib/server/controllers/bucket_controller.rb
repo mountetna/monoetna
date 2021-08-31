@@ -89,15 +89,19 @@ class BucketController < Metis::Controller
     files = results[:files]
     folders = results[:folders]
 
-    file_hashes = file_hashes_with_calculated_paths(
-      files: files,
-      bucket: bucket,
-    )
+    file_hashes = @params[:hide_paths] ?
+      file_hashes_without_paths(files: files) : 
+      file_hashes_with_calculated_paths(
+        files: files,
+        bucket: bucket,
+      )
 
-    folder_hashes = folder_hashes_with_calculated_paths(
-      target_folders: folders,
-      bucket: bucket
-    )
+    folder_hashes = @params[:hide_paths] ?
+      folder_hashes_without_paths(folders: folders) :
+      folder_hashes_with_calculated_paths(
+        target_folders: folders,
+        bucket: bucket
+      )
 
     success_json(files: file_hashes, folders: folder_hashes)
   end

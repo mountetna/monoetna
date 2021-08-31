@@ -168,7 +168,8 @@ class Metis
         read_only: read_only,
         updated_at: updated_at.iso8601,
         created_at: created_at.iso8601,
-        author: author
+        author: author,
+        folder_id: id
       }
 
       my_hash.delete(:folder_path) if !with_path

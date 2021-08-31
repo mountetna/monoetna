@@ -34,6 +34,14 @@ class Metis
 
     private
 
+    def file_hashes_without_paths(files:)
+      return [] unless files
+
+      files.map { |file|
+        file.to_hash(with_path: false)
+      }
+    end
+
     def file_hashes_with_calculated_paths(bucket:, files:)
       # Calculate the folder_path, instead of
       #   doing it in the database because there is no bulk way to do that,
@@ -51,6 +59,14 @@ class Metis
 
         file_hash = file.to_hash(file_path: path, request: @request)
         file_hash
+      }
+    end
+
+    def folder_hashes_without_paths(folders:)
+      return [] unless folders
+
+      folders.map { |folder|
+        folder.to_hash(false)
       }
     end
 

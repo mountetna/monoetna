@@ -412,6 +412,7 @@ describe BucketController do
       expect(json_body[:folders]).to eq([])
       expect(json_body[:files].length).to eq(1)
       expect(json_body[:files].first[:file_name]).to eq(@wisdom_file.file_name)
+      expect(json_body[:files].first.key?(:file_path)).to eq(true)
 
       json_post("/athena/find/my_bucket", params: [{
         attribute: 'name',
@@ -633,6 +634,49 @@ describe BucketController do
       expect(last_response.status).to eq(200)
       expect(json_body[:files]).to eq([])
       expect(json_body[:folders]).to eq([])
+    end
+
+    it 'can hide paths with hide_paths parameter' do
+      token_header(:viewer)
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: 'w%'
+      }], hide_paths: true)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders]).to eq([])
+      expect(json_body[:files].length).to eq(1)
+      expect(json_body[:files].first[:file_name]).to eq(@wisdom_file.file_name)
+      expect(json_body[:files].first.key?(:folder_id)).to eq(true)
+      expect(json_body[:files].first.key?(:file_path)).to eq(false)
+
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '%i%'
+      }], hide_paths: true)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(2)
+
+      expect(json_body[:folders].first[:folder_name]).to eq(@public_folder.folder_name)
+      expect(json_body[:folders].last[:folder_name]).to eq(@child_folder.folder_name)
+      expect(json_body[:folders].last.key?(:folder_id)).to eq(true)
+      expect(json_body[:folders].last.key?(:folder_path)).to eq(false)
+      expect(json_body[:files].length).to eq(1)
+      expect(json_body[:files].first[:file_name]).to eq(@wisdom_file.file_name)
+
+      json_post("/athena/find/my_bucket", params: [{
+        attribute: 'name',
+        predicate: '=~',
+        value: '%ic%'
+      }], hide_paths: true)
+
+      expect(last_response.status).to eq(200)
+      expect(json_body[:folders].length).to eq(1)
+      expect(json_body[:folders].first[:folder_name]).to eq(@public_folder.folder_name)
+      expect(json_body[:files]).to eq([])
     end
   end
 end
