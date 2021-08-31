@@ -15,6 +15,7 @@ class Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl < Polyphemus::MetisFileInWatchFo
         "=~": ["%.fastq.gz"],
       },
       watch_type: "link_files",
+      hide_paths: true,
     )
   end
 

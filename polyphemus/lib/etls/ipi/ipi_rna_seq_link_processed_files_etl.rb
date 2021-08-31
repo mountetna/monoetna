@@ -11,6 +11,7 @@ class Polyphemus::IpiRnaSeqLinkProcessedFilesEtl < Polyphemus::MetisFileInWatchF
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
       watch_type: "link_files",
+      hide_paths: true,
     )
   end
 

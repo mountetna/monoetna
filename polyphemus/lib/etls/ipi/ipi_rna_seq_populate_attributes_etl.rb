@@ -11,6 +11,7 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileInWatchF
       project_bucket_pairs: [[PROJECT, BUCKET]],
       limit: 5,
       watch_type: "process_files",
+      hide_paths: false,
     )
   end
 

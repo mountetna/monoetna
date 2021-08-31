@@ -3,7 +3,7 @@ require_relative "./metis_file_etl"
 
 class Polyphemus
   class MetisFileInWatchFolderEtl < MetisFileEtl
-    def initialize(project_bucket_pairs:, metis_client: nil, limit: 20, file_name_params: {}, watch_type:)
+    def initialize(project_bucket_pairs:, metis_client: nil, limit: 20, file_name_params: {}, watch_type:, hide_paths: true)
       super(
         project_bucket_pairs: project_bucket_pairs,
         metis_client: metis_client,
@@ -11,6 +11,7 @@ class Polyphemus
         file_name_params: file_name_params,
       )
       @watch_type = watch_type
+      @hide_paths = hide_paths
     end
 
     def prepare_find_request(cursor, find_request)
@@ -24,6 +25,7 @@ class Polyphemus
         predicate: "in",
         value: watch_folder_ids(cursor),
       ))
+      find_request.hide_paths = @hide_paths
     end
 
     def watch_folder_ids(cursor)
