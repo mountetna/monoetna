@@ -31,6 +31,38 @@ describe Polyphemus::AddWatchFolderBaseEtl do
       expect(Polyphemus::WatchFolder.count).to eq(3)
     end
 
+    it "can have duplicate folders with different watch types" do
+      expect(Polyphemus::WatchFolder.count).to eq(0)
+
+      etl = Polyphemus::AddWatchFolderBaseEtl.new(
+        project_bucket_pairs: [[PROJECT, RESTRICT_BUCKET]],
+        model_name: "foo",
+        watch_type: "link_files",
+      )
+
+      etl.process(cursor, [
+        create_metis_folder("PATIENT1.N1.rna.live", "bucket/plate1_rnaseq_new/output/PATIENT1.N1.rna.live", id: 1),
+        create_metis_folder("PATIENT1.T1.rna.live", "bucket/plate1_rnaseq_new/output/PATIENT1.T1.rna.live", id: 2),
+        create_metis_folder("PATIENT2.T1.rna.live", "bucket/plate2_rnaseq_new/output/PATIENT2.T1.rna.live", id: 3),
+      ])
+
+      expect(Polyphemus::WatchFolder.count).to eq(3)
+
+      etl = Polyphemus::AddWatchFolderBaseEtl.new(
+        project_bucket_pairs: [[PROJECT, RESTRICT_BUCKET]],
+        model_name: "foo",
+        watch_type: "process_files",
+      )
+
+      etl.process(cursor, [
+        create_metis_folder("PATIENT1.N1.rna.live", "bucket/plate1_rnaseq_new/output/PATIENT1.N1.rna.live", id: 1),
+        create_metis_folder("PATIENT1.T1.rna.live", "bucket/plate1_rnaseq_new/output/PATIENT1.T1.rna.live", id: 2),
+        create_metis_folder("PATIENT2.T1.rna.live", "bucket/plate2_rnaseq_new/output/PATIENT2.T1.rna.live", id: 3),
+      ])
+
+      expect(Polyphemus::WatchFolder.count).to eq(6)
+    end
+
     it "removes folders who no longer match the globs" do
       changed_folder = create(
         :watch_folder,
