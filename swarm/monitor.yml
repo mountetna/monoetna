@@ -28,6 +28,7 @@ services:
     networks:
       - edge_bridge
       - prometheus
+    user: "1500:999" # dockerapp:docker
 
 
 volumes:
