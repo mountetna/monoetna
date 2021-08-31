@@ -14,8 +14,8 @@ export function setWorkflow(workflow: Workflow, projectName: string) {
     return actionObject('SET_WORKFLOW', {workflow, projectName});
 }
 
-export function setStatus(status: SessionStatusResponse['status'], clearStaleInputs = true) {
-    return actionObject('SET_STATUS', {status, clearStaleInputs});
+export function setStatus(status: SessionStatusResponse['status'], submittingStep: Maybe<string> = null) {
+    return actionObject('SET_STATUS', {status, submittingStep});
 }
 
 export function setDownloadedData(url: string, data: any) {
