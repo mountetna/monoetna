@@ -46,33 +46,23 @@ services:
       - bash
       - -c
       - |
-        set -ex
+        set -e
         source /lib/config-helpers
         template /main.conf.erb main.conf
-        cat main.conf
         cat main.conf | docker run --rm -i -v /etc/ssl:/etc/ssl:ro etnaagent/edge-apache:production bash -c 'cat > /usr/opt/httpd.conf.d/main.conf && httpd -t'
-        enable main.conf
         if [ -z "$$DRY_RUN" ]; then
+          enable main.conf
           edge_node="$$(docker ps --filter name=edge_edge-apache -q || true)"
-          if [ -n "$edge_node" ]; then
+          if [ -n "$$edge_node" ]; then
             docker kill --signal="USR1" "$$edge_node" || true
           fi
+        else
+          cat main.conf
         fi
 
-  test-config:
-    <<: *apply-config
-
-    volumes:
-      - httpd.conf.d.test:/config
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /etc/ssl:/etc/ssl:ro
-    environment:
-      DRY_RUN: 1
-
 volumes:
-  # Contains the materialized configuration for each app, as well as main.conf.
+
   httpd.conf.d:
-  httpd.conf.d.test:
 
 networks:
   edge_bridge:
