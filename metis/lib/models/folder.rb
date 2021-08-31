@@ -169,7 +169,7 @@ class Metis
         updated_at: updated_at.iso8601,
         created_at: created_at.iso8601,
         author: author,
-        folder_id: id
+        id: id
       }
 
       my_hash.delete(:folder_path) if !with_path
