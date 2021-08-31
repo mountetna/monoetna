@@ -273,6 +273,10 @@ module Etna
         def file_hash
           raw[:file_hash]
         end
+
+        def folder_id
+          raw[:folder_id]
+        end
       end
 
       class Folder
@@ -297,6 +301,14 @@ module Etna
         def updated_at
           time = raw[:updated_at]
           time.nil? ? nil : Time.parse(time)
+        end
+
+        def id
+          raw[:id]
+        end
+
+        def folder_id
+          raw[:folder_id]
         end
       end
 
