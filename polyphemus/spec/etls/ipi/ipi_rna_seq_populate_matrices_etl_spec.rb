@@ -11,7 +11,7 @@ describe Polyphemus::IpiRnaSeqPopulateMatricesEtl do
     stub_watch_folders([{
       project_name: project_name,
       bucket_name: bucket_name,
-      folder_id: 1,
+      metis_id: 1,
       folder_path: "plate1_rnaseq_new/results/",
       watch_type: "process_files",
     }])

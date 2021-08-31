@@ -451,9 +451,9 @@ def stub_watch_folders(folder_data = nil)
     folder_data.each do |data|
     create(:watch_folder, **data)
   end : begin
-    create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "2021-01-01 00:00:00", folder_path: "path1", watch_type: "link_files", folder_id: 1)
-    create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "2015-01-01 00:00:00", folder_path: "path2", watch_type: "link_files", folder_id: 2)
-    create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "1999-01-01 00:00:00", folder_path: "path1/path1_1", watch_type: "link_files", folder_id: 3)
+    create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "2021-01-01 00:00:00", folder_path: "path1", watch_type: "link_files", metis_id: 1)
+    create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "2015-01-01 00:00:00", folder_path: "path2", watch_type: "link_files", metis_id: 2)
+    create(:watch_folder, project_name: PROJECT, bucket_name: RELEASE_BUCKET, updated_at: "1999-01-01 00:00:00", folder_path: "path1/path1_1", watch_type: "link_files", metis_id: 3)
   end
 end
 

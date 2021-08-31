@@ -15,7 +15,7 @@ describe Polyphemus::IpiRnaSeqLinkRawFastqFilesEtl do
     stub_watch_folders([{
       project_name: project_name,
       bucket_name: bucket_name,
-      folder_id: 1,
+      metis_id: 1,
       folder_path: "BulkRNASeq/PATIENT001.T1.comp",
       watch_type: "link_files",
     }])

@@ -43,7 +43,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
     logger.info("Found #{folders_to_remove.length} changed folders. Removing as watch folders: #{folders_to_remove.map { |f| f.id }.join(",")}")
 
     Polyphemus::WatchFolder.where(
-      folder_id: folders_to_remove.map { |f| f.id },
+      metis_id: folders_to_remove.map { |f| f.id },
       project_name: cursor[:project_name],
       bucket_name: cursor[:bucket_name],
       watch_type: @watch_type,
@@ -61,7 +61,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
         bucket_name: cursor[:bucket_name],
         folder_path: folder.folder_path,
         watch_type: @watch_type,
-        folder_id: folder.id,
+        metis_id: folder.id,
       }
     end)
   end
@@ -100,12 +100,12 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
     Polyphemus::WatchFolder.where(
       project_name: cursor[:project_name],
       bucket_name: cursor[:bucket_name],
-      folder_id: folders.map do |folder|
+      metis_id: folders.map do |folder|
         folder.id
       end,
       watch_type: @watch_type,
     ).all.map do |folder|
-      folder.folder_id
+      folder.metis_id
     end
   end
 

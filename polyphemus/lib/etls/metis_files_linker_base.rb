@@ -95,7 +95,7 @@ class Polyphemus::MetisFilesLinkerBase
       project_name: file.project_name,
       bucket_name: file.bucket_name,
       watch_type: "link_files",
-      folder_id: file.folder_id,
+      metis_id: file.folder_id,
     ).first
   end
 

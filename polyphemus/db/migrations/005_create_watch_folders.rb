@@ -5,14 +5,14 @@ Sequel.migration do
       String :project_name, null: false
       String :bucket_name, null: false
       String :folder_path, null: false
-      Integer :folder_id, null: false
+      Integer :metis_id, null: false
       DateTime :created_at, null: false
       DateTime :updated_at, null: false
       String :watch_type, null: false
     end
 
     alter_table(:watch_folders) do
-      add_index [:project_name, :bucket_name, :folder_id, :watch_type], :unique => true
+      add_index [:project_name, :bucket_name, :metis_id, :watch_type], :unique => true
     end
   end
 

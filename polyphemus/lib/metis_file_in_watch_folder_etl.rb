@@ -34,7 +34,7 @@ class Polyphemus
         bucket_name: cursor[:bucket_name],
         watch_type: @watch_type,
       ).all.map do |folder|
-        folder.folder_id
+        folder.metis_id
       end
     end
   end
