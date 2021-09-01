@@ -56,7 +56,7 @@ services:
       labels:
         - autoupdate=true
       mode: replicated
-      replicas: 1
+      replicas: 0
       placement:
         constraints: [node.role == manager]
       restart_policy:
