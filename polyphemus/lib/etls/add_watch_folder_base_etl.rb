@@ -1,30 +1,44 @@
 require_relative "../metis_folder_etl"
 
 class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
-  def initialize(project_bucket_pairs:, model_name:, folder_name_globs: [], limit: 20, watch_type:)
+  def initialize(project_bucket_pairs:, model_name:, folder_path_regexes: {}, limit: 20, watch_type:)
     @model_name = model_name
     @watch_type = watch_type
+    @folder_path_regexes = folder_path_regexes
     super(
       project_bucket_pairs: project_bucket_pairs,
-      folder_name_globs: folder_name_globs,
       limit: limit,
     )
   end
 
   def process(cursor, folders)
-    # All of these folders should contain processed files that
-    #   we want to watch and link in when / if they change.
+    # We'll need to filter out the folders based on folder_name here, using the
+    #   supplied regexes
     logger.info("Found #{folders.length} updated folders: #{folders.map { |f| f.folder_path }.join(",")}")
 
-    new_folders_to_watch = new_folders(cursor, folders)
+    target_folders = filter_target_folders(cursor, folders)
 
-    logger.info("Found #{new_folders_to_watch.length} folders to watch: #{new_folders_to_watch.map { |f| f.folder_path }.join(",")}")
+    logger.info("Found #{target_folders.length} folders that match the cursor regex: #{target_folders.map { |f| f.folder_path }.join(",")}")
+
+    new_folders_to_watch = new_folders(cursor, target_folders)
+
+    logger.info("Found #{new_folders_to_watch.length} new folders to watch: #{new_folders_to_watch.map { |f| f.folder_path }.join(",")}")
 
     create_records(cursor, new_folders_to_watch)
     process_folder_contents(cursor, new_folders_to_watch)
     remove_changed_records(cursor, folders)
 
     logger.info("Done")
+  end
+
+  def project_bucket_symbol(cursor)
+    "#{cursor[:project_name]}_#{cursor[:bucket_name]}".to_sym
+  end
+
+  def filter_target_folders(cursor, folders)
+    folders.select do |folder|
+      folder_path_satisfies_regex?(cursor, folder)
+    end
   end
 
   def new_folders(cursor, folders)
@@ -37,7 +51,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
 
   def remove_changed_records(cursor, folders)
     folders_to_remove = folders.select do |folder|
-      !folder_path_satisfies_globs?(folder)
+      !folder_path_satisfies_regex?(cursor, folder)
     end
 
     logger.info("Found #{folders_to_remove.length} changed folders. Removing as watch folders: #{folders_to_remove.map { |f| f.id }.join(",")}")
@@ -71,29 +85,13 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
     false
   end
 
-  def folder_path_satisfies_globs?(folder)
-    @folder_name_globs.all? do |glob|
-      folder_subdirectories(folder.folder_path).any? do |path|
-        ::File.fnmatch?(glob, path)
-      end
-    end
-  end
+  def folder_path_satisfies_regex?(cursor, folder)
+    project_bucket = project_bucket_symbol(cursor)
+    regex = @folder_path_regexes[project_bucket]
 
-  def folder_subdirectories(folder_path)
-    # The Metis find API matches globs on subdirectories,
-    #   so we'll have to test against those here.
-    # For example, a "glob" of foo/* will return matches
-    #   like:
-    #
-    #     - foo/sub-foo
-    #     - parent-foo/foo/sub-foo
-    parts = folder_path.split("/")
-    [].tap do |results|
-      (1..parts.length).each do
-        results << parts.join("/")
-        parts.shift
-      end
-    end
+    raise Polyphemus::EtlError.new("No regex for project / bucket: #{project_bucket}") if regex.nil?
+
+    folder.folder_path =~ Regexp.new(regex)
   end
 
   def current_watch_folder_ids(cursor, folders)

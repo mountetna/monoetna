@@ -57,8 +57,8 @@ describe Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl do
       etl = Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl.new
 
       etl.process(cursor, [
-        create_metis_folder("results", "plate1_rnaseq_new/results", id: 1),
-        create_metis_folder("results", "plate2_rnaseq_new/results", id: 2),
+        create_metis_folder("results", "bulkRNASeq/plate1_rnaseq_new/results", id: 1),
+        create_metis_folder("results", "bulkRNASeq/plate2_rnaseq_new/results", id: 2),
       ])
 
       # Make sure rna_seq records are updated. Only when file is found.
@@ -87,8 +87,8 @@ describe Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl do
       etl = Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl.new
 
       etl.process(cursor, [
-        create_metis_folder("results", "plate1_rnaseq_new/results", id: 1),
-        create_metis_folder("results", "plate2_rnaseq_new/results", id: 2),
+        create_metis_folder("results", "bulkRNASeq/plate1_rnaseq_new/results", id: 1),
+        create_metis_folder("results", "bulkRNASeq/plate2_rnaseq_new/results", id: 2),
       ])
 
       # Make sure rna_seq records are updated. Only when file is found.

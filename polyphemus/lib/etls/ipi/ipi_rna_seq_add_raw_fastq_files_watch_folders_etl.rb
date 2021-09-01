@@ -9,7 +9,9 @@ class Polyphemus::IpiRnaSeqAddRawFastqFilesWatchFoldersEtl < Polyphemus::AddWatc
     @linker = Polyphemus::IpiRnaSeqRawFastqFilesLinker.new
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
-      folder_name_globs: ["BulkRNASeq/*"],
+      folder_path_regexes: {
+        "#{PROJECT}_#{BUCKET}": /^.*\/BulkRNASeq\/.*$/,
+      },
       model_name: "rna_seq",
       watch_type: "link_files",
     )

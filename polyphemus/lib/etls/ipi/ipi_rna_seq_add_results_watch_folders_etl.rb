@@ -11,7 +11,9 @@ class Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl < Polyphemus::AddWatchFolde
     @matrix_processor = Polyphemus::IpiRnaSeqMatrixProcessor.new
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
-      folder_name_globs: ["bulkRNASeq/**/results"],
+      folder_path_regexes: {
+        "#{PROJECT}_#{BUCKET}": /^bulkRNASeq\/.*\/results$/,
+      },
       model_name: "rna_seq",
       limit: 1, # It takes a long time to process the gene files, so we'll do one folder at a time
       watch_type: "process_files",

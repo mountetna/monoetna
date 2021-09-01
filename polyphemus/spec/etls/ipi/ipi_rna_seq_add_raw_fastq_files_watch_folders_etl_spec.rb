@@ -64,9 +64,9 @@ describe Polyphemus::IpiRnaSeqAddRawFastqFilesWatchFoldersEtl do
     etl = Polyphemus::IpiRnaSeqAddRawFastqFilesWatchFoldersEtl.new
 
     etl.process(cursor, [
-      create_metis_folder("PATIENT001.T1.comp", "BulkRNASeq/PATIENT001.T1.comp", id: 1),
-      create_metis_folder("PATIENT001.N1.comp", "BulkRNASeq/PATIENT001.N1.comp", id: 2),
-      create_metis_folder("PATIENT002.T1.comp", "BulkRNASeq/PATIENT002.T1.comp", id: 3),
+      create_metis_folder("PATIENT001.T1.comp", "some_folder/BulkRNASeq/PATIENT001.T1.comp", id: 1),
+      create_metis_folder("PATIENT001.N1.comp", "some_folder/BulkRNASeq/PATIENT001.N1.comp", id: 2),
+      create_metis_folder("PATIENT002.T1.comp", "some_folder/BulkRNASeq/PATIENT002.T1.comp", id: 3),
     ])
 
     # Make sure rna_seq records are updated. Once per folder with files.
