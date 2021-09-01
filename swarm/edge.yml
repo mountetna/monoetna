@@ -2,14 +2,14 @@ version: '3.8'
 services:
 
   edge-apache:
-    labels:
-      - autoupdate=true
     image: etnaagent/edge-apache:production
     volumes:
       - httpd.conf.d:/usr/opt/httpd.conf.d:ro
       - /etc/ssl:/etc/ssl:ro
     deploy:
       mode: replicated
+      labels:
+        - autoupdate=true
       replicas: 1
       restart_policy:
         condition: on-failure
