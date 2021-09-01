@@ -11,15 +11,15 @@ def bar_plotly(
     y_by,
     scale_by = 'counts',
     xlab = "make",
-    y_lab = "make",
-    main = "make",
+    ylab = "make",
+    plot_title = "make",
     legend_title = "make"):
 
     # Parse dependent defaults
     xlab = _default_to_if_make_and_logic(xlab, x_by)
-    ylab = _default_to_if_make_and_logic(ylab, y_by + " " + scale_by)
-    plot_title = _default_to_if_make_and_logic(plot_title, ylab)
-    legend_title = _default_to_if_make_and_logic(legend_title, y_by + "\n" + scale_by)
+    ylab = _default_to_if_make_and_logic(ylab, y_by + " " + scale_by) # A little different for this function
+    plot_title = _default_to_if_make_and_logic(plot_title, ylab + " per " + x_by)
+    legend_title = _default_to_if_make_and_logic(legend_title, y_by + "\n" + scale_by) # A little different for this function
 
     ### Generate a composition summary dataframe from the input df.
     summary_df = pd.DataFrame(data_frame[[x_by, y_by]].value_counts())
