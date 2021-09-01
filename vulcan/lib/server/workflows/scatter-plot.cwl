@@ -2,10 +2,10 @@ cwlVersion: v1.1
 class: Workflow
 
 inputs:
-  1_ignore__spacer:
+  1_Filler__spacer:
     type: int
     default: 200
-    label: "Ignore me"
+    label: "Filler - will be replaced with a data load step!"
     doc: "Does nothing"
 
 outputs:
@@ -17,7 +17,8 @@ steps:
   get_data:
     run: scripts/mockDF.cwl
     label: 'Fetch Data'
-    in: []
+    in:
+      a: 1_Filler__spacer
     out: [data_frame]
   fill_plot_options:
     run: ui-queries/scatter-plotly.cwl

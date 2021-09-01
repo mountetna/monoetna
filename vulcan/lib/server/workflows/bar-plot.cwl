@@ -2,10 +2,10 @@ cwlVersion: v1.1
 class: Workflow
 
 inputs:
-  1_ignore__spacer:
+  1_Filler__spacer:
     type: int
     default: 200
-    label: "Ignore me"
+    label: "Filler - will be replaced with a data load step!"
     doc: "Does nothing"
 
 outputs:
@@ -18,7 +18,7 @@ steps:
     run: scripts/mockDF.cwl
     label: 'Fetch Data'
     in:
-      a: 1_ignore__spacer
+      a: 1_Filler__spacer
     out: [data_frame]
   fill_plot_options:
     run: ui-queries/bar-plotly.cwl
