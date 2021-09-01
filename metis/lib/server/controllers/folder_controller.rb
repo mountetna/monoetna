@@ -3,7 +3,13 @@ require_relative '../../folder_rename_revision'
 class FolderController < Metis::Controller
   def list
     bucket = require_bucket
-    folder = require_folder(bucket, @params[:folder_path])
+    folder = nil
+
+    if @params[:folder_id]
+      folder = require_folder_by_id(bucket, @params[:folder_id])
+    else
+      folder = require_folder(bucket, @params[:folder_path])
+    end
 
     files = Metis::File.where(
       project_name: @params[:project_name],
@@ -21,6 +27,18 @@ class FolderController < Metis::Controller
     end
 
     success_json(files: files, folders: folders)
+  end
+
+  def touch
+    bucket = require_bucket
+    folder = require_folder(bucket, @params[:folder_path])
+
+    raise Etna::BadRequest, "Invalid folder: #{@params[:folder_path]}" unless folder
+    
+    folder.update(updated_at: Time.now)
+    folder.refresh
+
+    success_json(folders: [ folder.to_hash ])
   end
 
   def list_all_folders

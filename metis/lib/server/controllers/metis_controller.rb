@@ -32,6 +32,22 @@ class Metis
       return folder
     end
 
+    def require_folder_by_id(bucket, folder_id)
+      return nil unless folder_id
+
+      begin
+        folder_id = Integer(folder_id)
+      rescue ArgumentError
+        raise Etna::BadRequest, "folder_id must be numeric"
+      end
+
+      folder = Metis::Folder.where(id: folder_id).first
+
+      raise Etna::BadRequest, "Invalid folder: \"#{folder_id}\"" unless folder
+
+      return folder
+    end
+
     private
 
     def file_hashes_without_paths(files:)
