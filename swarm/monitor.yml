@@ -31,6 +31,7 @@ services:
       - edge_bridge
       - prometheus
     user: "1500:999" # dockerapp:docker
+  
   alertmanger:
     hostname: alertmanager
     image: "prom/alertmanager:v0.21.0"
@@ -49,7 +50,25 @@ services:
       restart_policy:
         condition: any
     user: "1500:999" # dockerapp:docker
+    
+  grafana:
+    hostname: grafana
+    image: "grafana/grafana:7.5.1"
+    volumes:
+      - /etc/grafana:/etc/grafana
+      - /var/lib/grafana:/var/lib/grafana
+      - /var/log/grafana:/var/log/grafana
+    networks:
+      - edge_bridge
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+      placement:
+        constraints:
 
+          - node.labels.volumes.grafana-data == true
 
 volumes:
   alertmanager-data:
