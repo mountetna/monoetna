@@ -21,6 +21,7 @@ def _default_to_if_make_and_logic(this, default, logic = True):
 # ----------- Modify below here ------------ #
 # the tittle>, conditional for violin or box, 
 ### Read in our data
+
 data_frame = pd.read_csv("test_data/mockDF.csv" , index_col = 0)
 data_frame 
 #function definition
@@ -29,10 +30,10 @@ def y_plot(
     x_by = "leiden",
     y_by = "1",
     color_by = "leiden",
-    plots = ["bar"]):
+    plots = ["box"]):
     # 2. convert from our variables names to px.bar variables names. 
     the_atributes = {
-        # have keys be input names of px.br, and px.violin values to names of our variables
+        # have keys be input names of px.bar, and px.violin values to names of our variables
         "data_frame": data_frame,
         "x": x_by,
         "y": y_by,
@@ -40,12 +41,14 @@ def y_plot(
         "color_discrete_sequence": colors
         }
     # to add: conditional code that implements plots input
-    fig = px.violin(
-        **the_atributes
-    )
-    fig = px.box(
-        **the_atributes
-    )
+    if "violin" in plots:
+        fig = px.violin(
+            **the_atributes
+            )
+    elif "box" in plots:
+        fig = px.box(
+            **the_atributes
+            )
     return fig
 
 ### Make plot
