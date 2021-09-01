@@ -307,10 +307,6 @@ module Etna
         def id
           raw[:id]
         end
-
-        def folder_id
-          raw[:folder_id]
-        end
       end
 
       class AuthorizeUploadRequest < Struct.new(:project_name, :bucket_name, :file_path, keyword_init: true)
