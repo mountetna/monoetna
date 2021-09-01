@@ -13,6 +13,18 @@ findServiceImage() {
   docker service inspect "${1}" --format "{{.Spec.TaskTemplate.ContainerSpec.Image}}"
 }
 
+function shaOfImageDigest() {
+  if [[ "$1" =~ ([^@]*)@(.*) ]]; then
+    echo ${BASH_REMATCH[2]}
+  fi
+}
+
+function tagOfImageDigest() {
+  if [[ "$1" =~ ([^@]*)@(.*) ]]; then
+    echo ${BASH_REMATCH[1]}
+  fi
+}
+
 if [ -e /run/secrets/service-deployer-docker-login ]; then
   echo 'Login using /run/secrets/service-deployer-docker-login'
   docker login -u etnaagent -p "$(cat /run/secrets/service-deployer-docker-login)"
@@ -20,21 +32,20 @@ else
   echo 'Could not find docker login at /run/secrets/service-deployer-docker-login, proceeding unauthenticated.'
 fi
 
+services="$(findServices)"
 while read serviceName; do
   image="$(findServiceImage $serviceName)"
-  if [[ "$image" =~ ([^@]*)@(.*) ]]; then
-    tag=${BASH_REMATCH[1]}
-    sha=${BASH_REMATCH[2]}
-
+  tag=$(tagOfImageDigest "$image")
+  sha=$(shaOfImageDigest "$image")
+  if [[ -n "$sha" ]]; then
     docker pull "$tag"
-    newsha=$(docker image inspect "${tag}" | jq -r '.[].Id')
+    newImage=$(docker image inspect "${tag}" | jq -r '.[].RepoDigests[]')
+    newsha=$(shaOfImageDigest "$newImage")
 
-    if [ -f "/deployed/${serviceName}-${newsha}" ] || [[ "${sha}" == "${newsha}" ]]; then
-       continue
+    if ! [ -f "/deployed/${serviceName}-${newsha}" ] && [[ "${sha}" != "${newsha}" ]]; then
+      postToSlack "Updating ${tag} (${sha:8:6} -> ${newsha:8:6}) on ${serviceName}, issuing rolling restart"
+      touch "/deployed/${serviceName}-${newsha}"
+      docker service update -d $serviceName --image "${tag}" --force
     fi
-
-    postToSlack "Updating ${tag} on ${serviceName}, issuing rolling restart"
-    docker service update -d $serviceName --image "${tag}" --force
-    touch "/deployed/${serviceName}-${newsha}"
   fi
-done < <(findServices)
+done < <(echo "$services")
