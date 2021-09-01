@@ -42,16 +42,18 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
   end
 
   def new_folders(cursor, folders)
-    current_folder_ids = current_watch_folder_ids(cursor, folders)
+    current_folder_metis_ids = current_watch_folder_metis_ids(cursor, folders)
 
     folders.select do |folder|
-      !(current_folder_ids.include?(folder.id) || should_skip_folder?(folder))
+      !(current_folder_metis_ids.include?(folder.id) || should_skip_folder?(folder))
     end
   end
 
   def remove_changed_records(cursor, folders)
+    current_folder_metis_ids = current_watch_folder_metis_ids(cursor, folders)
+
     folders_to_remove = folders.select do |folder|
-      !folder_path_satisfies_regex?(cursor, folder)
+      current_folder_metis_ids.include?(folder.id) && !folder_path_satisfies_regex?(cursor, folder)
     end
 
     logger.info("Found #{folders_to_remove.length} changed folders. Removing as watch folders: #{folders_to_remove.map { |f| f.id }.join(",")}")
@@ -94,7 +96,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
     folder.folder_path =~ Regexp.new(regex)
   end
 
-  def current_watch_folder_ids(cursor, folders)
+  def current_watch_folder_metis_ids(cursor, folders)
     Polyphemus::WatchFolder.where(
       project_name: cursor[:project_name],
       bucket_name: cursor[:bucket_name],
