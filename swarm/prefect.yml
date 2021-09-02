@@ -67,8 +67,8 @@ services:
       - -c
       - |
         set -e
-        export PREFECT__SERVER__DATABASE__CONNECTION_URL="postgresql://developer:$$(cat /run/secrets/prefect-postgres-password)@prefect_postgres:5432/prefect"
-        export PREFECT__SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
+        export PREFECT_SERVER__DATABASE__CONNECTION_URL="postgresql://developer:$$(cat /run/secrets/prefect-postgres-password)@prefect_postgres:5432/prefect"
+        export PREFECT_SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
         prefect-server database upgrade -y
         exec python src/prefect_server/services/graphql/server.py
     secrets:
