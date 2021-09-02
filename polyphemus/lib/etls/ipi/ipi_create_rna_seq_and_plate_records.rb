@@ -1,5 +1,5 @@
-require_relative "../metis_folder_etl"
-require_relative "../ipi/ipi_helper"
+require_relative "../../metis_folder_etl"
+require_relative "../../ipi/ipi_helper"
 
 class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
   PATH_REGEX = /.*\/(?<plate>plate\d+)_.*\/output\/(?<record_name>.*)/
@@ -67,7 +67,7 @@ class Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl < Polyphemus::MetisFolderEtl
 
         record_name = @helper.is_control?(folder.folder_name) ?
           @helper.control_name(folder.folder_name) :
-          @helper.corrected_rna_seq_tube_name(plate_name, folder.folder_name)
+          @helper.corrected_rna_seq_tube_name(folder.folder_name)
 
         attrs = {
           rna_seq_plate: plate_name,

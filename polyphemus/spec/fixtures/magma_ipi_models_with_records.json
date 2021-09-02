@@ -307,6 +307,16 @@
             "hidden": false,
             "validation": null,
             "attribute_type": "file_collection"
+          },
+          "raw_fastq_files": {
+            "name": "raw_fastq_files",
+            "attribute_name": "raw_fastq_files",
+            "display_name": "Raw",
+            "restricted": false,
+            "read_only": false,
+            "hidden": false,
+            "validation": null,
+            "attribute_type": "file_collection"
           }
         }
       }

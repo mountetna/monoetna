@@ -1,10 +1,11 @@
-describe Polyphemus::IpiRnaSeqLinkProcessedFilesBaseEtl do
+describe Polyphemus::IpiRnaSeqLinkProcessedFilesEtl do
+  let(:bucket_name) { "test" }
+  let(:project_name) { "ipi" }
   let(:cursor) {
-    Polyphemus::MetisFileForMagmaModelEtlCursor.new(
+    Polyphemus::MetisFileEtlCursor.new(
       job_name: "test",
-      project_name: "ipi",
-      bucket_name: "test",
-      model_name: "rna_seq",
+      project_name: project_name,
+      bucket_name: bucket_name,
     )
   }
   let(:helper) { IpiHelper.new("lib/etls/renaming/projects/test_renames.json") }
@@ -14,15 +15,13 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesBaseEtl do
     stub_metis_setup
     copy_renaming_project
     @all_updates = []
-  end
-
-  def file(file_name, file_path, file_hash = SecureRandom.hex, updated_at = Time.now)
-    Etna::Clients::Metis::File.new({
-      file_name: file_name,
-      file_path: file_path,
-      updated_at: updated_at,
-      file_hash: file_hash,
-    })
+    stub_watch_folders([{
+      project_name: project_name,
+      bucket_name: bucket_name,
+      metis_id: 1,
+      folder_path: "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp",
+      watch_type: "link_files",
+    }])
   end
 
   describe "updates Magma records" do
@@ -32,16 +31,11 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesBaseEtl do
     end
 
     it "when scanner finds new files for file attribute" do
-      etl = Polyphemus::IpiRnaSeqLinkProcessedFilesBaseEtl.new(
-        attribute_name: "cram",
-        path_regex: /something/,
-      )
+      etl = Polyphemus::IpiRnaSeqLinkProcessedFilesEtl.new
 
-      etl.process(cursor, mock_metis_files_for_record_scan(
-        "PATIENT001.T1.comp", [
-          file("PATIENT001.T1.comp.deduplicated.cram", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.deduplicated.cram"),
-        ]
-      ))
+      etl.process(cursor, [
+        create_metis_file("PATIENT001.T1.comp.deduplicated.cram", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.deduplicated.cram"),
+      ])
 
       # Make sure rna_seq records are updated
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -60,18 +54,12 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesBaseEtl do
     end
 
     it "when scanner finds new files for file_collection attribute" do
-      etl = Polyphemus::IpiRnaSeqLinkProcessedFilesBaseEtl.new(
-        attribute_name: "unmapped_fastqs",
-        path_regex: /something/,
-      )
+      etl = Polyphemus::IpiRnaSeqLinkProcessedFilesEtl.new
 
-      etl.process(cursor, mock_metis_files_for_record_scan(
-        "PATIENT001.T1.comp", [
-          file("PATIENT001.T1.comp.unmapped.1.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.1.fastq.gz"),
-          file("PATIENT001.T1.comp.unmapped.2.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.2.fastq.gz"),
-
-        ]
-      ))
+      etl.process(cursor, [
+        create_metis_file("PATIENT001.T1.comp.unmapped.1.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.1.fastq.gz"),
+        create_metis_file("PATIENT001.T1.comp.unmapped.2.fastq.gz", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.comp/PATIENT001.T1.comp.unmapped.2.fastq.gz"),
+      ])
 
       # Make sure rna_seq records are updated
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -93,16 +81,11 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesBaseEtl do
     end
 
     it "correctly ignores non-cancer files" do
-      etl = Polyphemus::IpiRnaSeqLinkProcessedFilesBaseEtl.new(
-        attribute_name: "junction",
-        path_regex: /foo/,
-      )
+      etl = Polyphemus::IpiRnaSeqLinkProcessedFilesEtl.new
 
-      etl.process(cursor, mock_metis_files_for_record_scan(
-        "PATIENT001.T1.NAFLD", [
-          file("PATIENT001.T1.NAFLD.blahblah3.junction", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.NAFLD/PATIENT001.T1.NAFLD.blahblah3.junction"),
-        ]
-      ))
+      etl.process(cursor, [
+        create_metis_file("PATIENT001.T1.NAFLD.blahblah3.junction", "bulkRNASeq/plate1_blahblah/output/PATIENT001.T1.NAFLD/PATIENT001.T1.NAFLD.blahblah3.junction"),
+      ])
 
       # Make sure rna_seq records are NOT updated
       expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -121,16 +104,19 @@ describe Polyphemus::IpiRnaSeqLinkProcessedFilesBaseEtl do
     end
 
     it "correctly renames renamed tube_names" do
-      etl = Polyphemus::IpiRnaSeqLinkProcessedFilesBaseEtl.new(
-        attribute_name: "cram_index",
-        path_regex: /blah/,
-      )
+      stub_watch_folders([{
+        project_name: project_name,
+        bucket_name: bucket_name,
+        metis_id: 2,
+        folder_path: "bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor",
+        watch_type: "link_files",
+      }])
 
-      etl.process(cursor, mock_metis_files_for_record_scan(
-        "WRONG001.T1.rna.tumor", [
-          file("WRONG001.T1.rna.tumor.deduplicated.cram.crai", "bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai"),
-        ]
-      ))
+      etl = Polyphemus::IpiRnaSeqLinkProcessedFilesEtl.new
+
+      etl.process(cursor, [
+        create_metis_file("WRONG001.T1.rna.tumor.deduplicated.cram.crai", "bulkRNASeq/plate1_blahblah/output/WRONG001.T1.rna.tumor/WRONG001.T1.rna.tumor.deduplicated.cram.crai", folder_id: 2),
+      ])
 
       # Make sure rna_seq records are updated for renamed patient, but pointing to the "wrong" file locations
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
