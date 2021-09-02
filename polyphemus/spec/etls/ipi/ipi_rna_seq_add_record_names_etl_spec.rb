@@ -1,9 +1,9 @@
-describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
+describe Polyphemus::IpiRnaSeqAddRecordNamesEtl do
   let(:cursor) {
     Polyphemus::MetisFolderEtlCursor.new(
       job_name: "test",
       project_name: "ipi",
-      bucket_name: "test",
+      bucket_name: "data",
     )
   }
 
@@ -27,12 +27,12 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
     end
 
     it "for all rna_seq" do
-      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
+      etl = Polyphemus::IpiRnaSeqAddRecordNamesEtl.new
 
       etl.process(cursor, [
-        folder("IPIADR001.N1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
-        folder("IPIADR001.T1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.T1.rna.live"),
-        folder("IPIBLAD001.T1.rna.live", "bucket/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
+        folder("IPIADR001.N1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
+        folder("IPIADR001.T1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output2/IPIADR001.T1.rna.live"),
+        folder("IPIBLAD001.T1.rna.live", "bulkRNASeq/plate2_rnaseq_new/output/IPIBLAD001.T1.rna.live"),
       ])
 
       # Make sure plates are created
@@ -43,6 +43,14 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
                                        "Plate1": {
                                          "project": "UCSF Immunoprofiler",
                                        },
+                                     },
+                                   },
+                                 }))
+
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq_plate": {
                                        "Plate2": {
                                          "project": "UCSF Immunoprofiler",
                                        },
@@ -58,10 +66,6 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
                                        "IPIADR001.N1.rna.live": {
                                          "rna_seq_plate": "Plate1",
                                          "sample": "IPIADR001.N1",
-                                       },
-                                       "IPIADR001.T1.rna.live": {
-                                         "rna_seq_plate": "Plate1",
-                                         "sample": "IPIADR001.T1",
                                        },
                                      },
                                    },
@@ -80,25 +84,23 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
     end
 
     it "does not create NASH / NAFLD samples" do
-      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
+      etl = Polyphemus::IpiRnaSeqAddRecordNamesEtl.new
 
       etl.process(cursor, [
-        folder("IPIADR001.NASH1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live"),
-        folder("IPIADR001.NAFLD1.rna.live", "bucket/plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live"),
+        folder("IPIADR001.NASH1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live"),
+        folder("IPIADR001.NAFLD1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live"),
       ])
 
-      # No plates are 100% NASH / NAFLD, so this is okay
-      # Make sure plates are created
-      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
-                           .with(body: hash_including({
-                                   "revisions": {
-                                     "rna_seq_plate": {
-                                       "Plate1": {
-                                         "project": "UCSF Immunoprofiler",
+      expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                               .with(body: hash_including({
+                                       "revisions": {
+                                         "rna_seq_plate": {
+                                           "Plate1": {
+                                             "project": "UCSF Immunoprofiler",
+                                           },
+                                         },
                                        },
-                                     },
-                                   },
-                                 }))
+                                     }))
 
       # Make sure NO rna_seq records are created
       expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -126,11 +128,11 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
     end
 
     it "for control" do
-      etl = Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl.new
+      etl = Polyphemus::IpiRnaSeqAddRecordNamesEtl.new
 
       etl.process(cursor, [
-        folder("CONTROL_jurkat.plate1", "bucket/plate1_rnaseq_new/output/CONTROL_jurkat.plate1"),
-        folder("CONTROL_uhr.plate2", "bucket/plate2_rnaseq_new/output/CONTROL_uhr.plate2"),
+        folder("CONTROL_jurkat.plate1", "bulkRNASeq/plate1_rnaseq_new/output/CONTROL_jurkat.plate1"),
+        folder("CONTROL_uhr.plate2", "bulkRNASeq/plate2_rnaseq_new/output/CONTROL_uhr.plate2"),
       ])
 
       # Make sure plates are created
@@ -141,6 +143,13 @@ describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
                                        "Plate1": {
                                          "project": "UCSF Immunoprofiler",
                                        },
+                                     },
+                                   },
+                                 }))
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq_plate": {
                                        "Plate2": {
                                          "project": "UCSF Immunoprofiler",
                                        },

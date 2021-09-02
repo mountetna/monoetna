@@ -1,6 +1,10 @@
+require_relative "../../../helpers"
 require_relative "../../../ipi/ipi_helper"
 
 class Polyphemus::IpiRnaSeqAndPlateRecordCreator
+  include WithLogger
+  include WithEtnaClients
+
   PATH_REGEX = /.*\/(?<plate>plate\d+)_.*\/output\/(?<record_name>.*)/
   SAMPLE_NAME_REGEX = /^(?<sample_name>IPI.*\.[A-Z]+\d)\..*/
   PROJECT = "ipi"
@@ -15,11 +19,13 @@ class Polyphemus::IpiRnaSeqAndPlateRecordCreator
     #   bulkRNASeq/processed/plate1_rnaseq_new/output/blahblahrecordname
     # We will also have to format the Control record names to match IPI validation.
 
+    folder_name = ::File.basename(folder_path)
+    return if @helper.is_non_cancer_sample?(folder_name)
+
     plate_name = plate(folder_path)
 
     logger.info("Ensuring plate exists: #{plate_name}")
     ensure_plate(plate_name)
-
     create_record(folder_path)
 
     logger.info("Done")
@@ -48,8 +54,6 @@ class Polyphemus::IpiRnaSeqAndPlateRecordCreator
     update_request = Etna::Clients::Magma::UpdateRequest.new(
       project_name: PROJECT,
     )
-
-    return if @helper.is_non_cancer_sample?(folder_name)
 
     record_name = @helper.is_control?(folder_name) ?
       @helper.control_name(folder_name) :
