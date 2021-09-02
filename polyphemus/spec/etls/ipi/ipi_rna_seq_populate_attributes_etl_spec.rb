@@ -1,26 +1,25 @@
 describe Polyphemus::IpiRnaSeqPopulateAttributesEtl do
+  let(:bucket_name) { "test" }
+  let(:project_name) { "ipi" }
+
   before(:each) do
     stub_metis_setup
     @all_updates = []
-  end
-
-  def file(file_name, file_path, file_hash = SecureRandom.hex, updated_at = Time.now)
-    Etna::Clients::Metis::File.new({
-      file_name: file_name,
-      file_path: file_path,
-      updated_at: updated_at,
-      file_hash: file_hash,
-      project_name: "ipi",
-    })
+    stub_watch_folders([{
+      project_name: project_name,
+      bucket_name: bucket_name,
+      metis_id: 1,
+      folder_path: "plate1_rnaseq_new/results/",
+      watch_type: "process_files",
+    }])
   end
 
   describe "updates Magma records" do
     let(:cursor) {
-      Polyphemus::MetisFileForMagmaModelEtlCursor.new(
+      Polyphemus::MetisFileEtlCursor.new(
         job_name: "test",
-        project_name: "ipi",
-        bucket_name: "test",
-        model_name: "test",
+        project_name: project_name,
+        bucket_name: bucket_name,
       )
     }
 
@@ -31,17 +30,15 @@ describe Polyphemus::IpiRnaSeqPopulateAttributesEtl do
 
     it "when scanner finds new files" do
       stub_download_file({
-        project: "ipi",
+        project: project_name,
         file_contents: ::File.read("spec/fixtures/ipi_rna_seq_results.tsv"),
       })
 
       etl = Polyphemus::IpiRnaSeqPopulateAttributesEtl.new
 
-      etl.process(cursor, mock_metis_files_for_record_scan(
-        "Plate1", [
-          file("rnaseq_table.tsv", "plate1_rnaseq_new/results/rnaseq_table.tsv"),
-        ]
-      ))
+      etl.process(cursor, [
+        create_metis_file("rnaseq_table.tsv", "plate1_rnaseq_new/results/rnaseq_table.tsv"),
+      ])
 
       # Make sure rna_seq records are updated
       expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)

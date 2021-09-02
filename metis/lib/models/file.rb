@@ -168,14 +168,14 @@ class Metis
       read_only
     end
 
-    def to_hash(request: nil, file_path: nil)
-      file_path ||= self.file_path
+    def to_hash(request: nil, file_path: nil, with_path: true)
+      
 
-      {
+      params = {
+        folder_id: folder_id,
         file_name: file_name,
         project_name: project_name,
         bucket_name: bucket.name,
-        file_path: file_path,
         updated_at: updated_at.iso8601,
         created_at: created_at.iso8601,
         author: author,
@@ -183,13 +183,20 @@ class Metis
         archive_id: data_block.archive_id,
         read_only: read_only?,
         size: data_block.actual_size,
-        download_url: request ? Metis::File.download_url(
+      }
+
+      if with_path
+        file_path ||= self.file_path
+        params[:file_path] = file_path
+        params[:download_url] = request ? Metis::File.download_url(
           request,
           project_name,
           bucket.name,
           file_path
         ) : nil
-      }
+      end
+
+      params
     end
 
     def file_path

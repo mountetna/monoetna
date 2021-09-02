@@ -78,6 +78,9 @@ class Polyphemus
     end
   end
 
+  class EtlError < Exception
+  end
+
   # Abstract base class meant to process batches of data based on a cursor, scanner, and process.
   class Etl
     # Will use default client based on environment unless override is set in constructor

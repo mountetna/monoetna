@@ -1,10 +1,9 @@
 describe Polyphemus::IpiCreateRnaSeqAndPlateRecordsEtl do
   let(:cursor) {
-    Polyphemus::MetisFileForMagmaModelEtlCursor.new(
+    Polyphemus::MetisFolderEtlCursor.new(
       job_name: "test",
       project_name: "ipi",
       bucket_name: "test",
-      model_name: "rna_seq",
     )
   }
 

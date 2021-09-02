@@ -100,24 +100,18 @@ class IpiHelper
     regex.match(file_name)
   end
 
-  def corrected_rna_seq_tube_name(plate_name, tube_name)
-    return tube_name unless rna_seq_renames.key?(plate_name)
+  def corrected_rna_seq_tube_name(tube_name)
+    return tube_name unless rna_seq_renames.key?(tube_name)
 
-    plate_renames = rna_seq_renames[plate_name]
-
-    return tube_name unless plate_renames.key?(tube_name)
-
-    plate_renames[tube_name]
+    rna_seq_renames[tube_name]
   end
 
-  def incorrect_rna_seq_tube_name(plate_name, tube_name)
-    return tube_name unless rna_seq_renames.key?(plate_name)
+  def incorrect_rna_seq_tube_name(tube_name)
+    rna_seq_renames_inverted = rna_seq_renames.invert
 
-    plate_renames_inverted = rna_seq_renames[plate_name].invert
+    return tube_name unless rna_seq_renames_inverted.key?(tube_name)
 
-    return tube_name unless plate_renames_inverted.key?(tube_name)
-
-    plate_renames_inverted[tube_name]
+    rna_seq_renames_inverted[tube_name]
   end
 
   def rna_seq_renames
