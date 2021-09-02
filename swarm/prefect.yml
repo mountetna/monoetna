@@ -67,8 +67,8 @@ services:
       - -c
       - |
         set -e
-        export PREFECT_SERVER__DATABASE__CONNECTION_URL="postgresql://developer:$$(cat /run/secrets/prefect-postgres-password)@prefect_postgres:5432/prefect"
-        export PREFECT_SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
+        export PREFECT__SERVER__DATABASE__CONNECTION_URL="postgresql://developer:$$(cat /run/secrets/prefect-postgres-password)@prefect_postgres:5432/prefect"
+        export PREFECT__SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
         prefect-server database upgrade -y
         exec python src/prefect_server/services/graphql/server.py
     secrets:
@@ -141,10 +141,11 @@ services:
       - bash
       - -c
       - |
-        export PREFECT_SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
+        export PREFECT__SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
         exec bash
     environment:
       PREFECT__SERVER__HASURA__HOST: prefect_hasura
+      PREFECT__SERVER__APOLLO_URL: http://prefect_apollo:4200/graphql
     image: prefecthq/server:core-0.15.4
     networks:
       prefect: null
