@@ -65,6 +65,36 @@ module Etna
         end
       end
 
+      class ListFolderByIdRequest < Struct.new(:project_name, :bucket_name, :folder_id, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+
+        def to_h
+          # The :project_name comes in from Polyphemus as a symbol value,
+          #   we need to make sure it's a string because it's going
+          #   in the URL.
+          super().compact.transform_values(&:to_s)
+        end
+      end
+
+      class TouchFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+
+        def to_h
+          # The :project_name comes in from Polyphemus as a symbol value,
+          #   we need to make sure it's a string because it's going
+          #   in the URL.
+          super().compact.transform_values(&:to_s)
+        end
+      end
+
       class CreateFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
         include JsonSerializableStruct
 
@@ -297,6 +327,10 @@ module Etna
 
         def bucket_name
           raw[:bucket_name]
+        end
+
+        def project_name
+          raw[:project_name]
         end
 
         def updated_at

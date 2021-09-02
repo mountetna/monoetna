@@ -115,7 +115,7 @@ describe Polyphemus::AddWatchFolderBaseEtl do
       )
 
       etl.process(cursor, [
-        create_metis_folder("PATIENT1.N1.rna.live", "path1/path1_2/path2_1_1", id: 1),
+        create_metis_folder("PATIENT1.N1.rna.live", "path1/path1_2", id: 1),
         create_metis_folder("PATIENT1.N1.rna.live", "path1/path1_2/path2_1_2", id: 2),
       ])
 

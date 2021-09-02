@@ -56,7 +56,7 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
       current_folder_metis_ids.include?(folder.id) && !folder_path_satisfies_regex?(cursor, folder)
     end
 
-    logger.info("Found #{folders_to_remove.length} changed folders. Removing as watch folders: #{folders_to_remove.map { |f| f.id }.join(",")}")
+    logger.info("Found #{folders_to_remove.length} changed folders. Removing as watch folders: #{folders_to_remove.map { |f| f.folder_path }.join(",")}")
 
     Polyphemus::WatchFolder.where(
       metis_id: folders_to_remove.map { |f| f.id },

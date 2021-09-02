@@ -3,30 +3,16 @@ require_relative '../../folder_rename_revision'
 class FolderController < Metis::Controller
   def list
     bucket = require_bucket
-    folder = nil
+    folder = require_folder(bucket, @params[:folder_path])
 
-    if @params[:folder_id]
-      folder = require_folder_by_id(bucket, @params[:folder_id])
-    else
-      folder = require_folder(bucket, @params[:folder_path])
-    end
+    success_json(list_folder_contents(bucket, folder))
+  end
 
-    files = Metis::File.where(
-      project_name: @params[:project_name],
-      bucket: bucket,
-      folder_id: folder ? folder.id : nil
-    ).all.map do |file|
-      file.to_hash(request: @request)
-    end
+  def list_by_id
+    bucket = require_bucket
+    folder = require_folder_by_id(bucket, @params[:folder_id])
 
-    folders = Metis::Folder.where(
-      bucket: bucket,
-      folder_id: folder ? folder.id : nil
-    ).all.map do |fold|
-      fold.to_hash
-    end
-
-    success_json(files: files, folders: folders)
+    success_json(list_folder_contents(bucket, folder))
   end
 
   def touch
@@ -196,5 +182,27 @@ class FolderController < Metis::Controller
         parents << Metis::Folder.find(bucket_id: bucket&.id, folder_id: parents.last&.id, folder_name: folder_name)
       end
     end
+  end
+
+  def list_folder_contents(bucket, folder)
+    files = Metis::File.where(
+      project_name: @params[:project_name],
+      bucket: bucket,
+      folder_id: folder ? folder.id : nil
+    ).all.map do |file|
+      file.to_hash(request: @request)
+    end
+
+    folders = Metis::Folder.where(
+      bucket: bucket,
+      folder_id: folder ? folder.id : nil
+    ).all.map do |fold|
+      fold.to_hash
+    end
+
+    {
+      files: files,
+      folders: folders
+    }
   end
 end
