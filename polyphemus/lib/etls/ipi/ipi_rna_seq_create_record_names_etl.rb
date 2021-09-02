@@ -33,8 +33,6 @@ class Polyphemus::IpiRnaSeqCreateRecordNamesEtl < Polyphemus::MetisFolderFilteri
   private
 
   def process_folders(folders)
-    folders.each do |folder|
-      @record_creator.create(folder.folder_path)
-    end
+    @record_creator.create(folders)
   end
 end

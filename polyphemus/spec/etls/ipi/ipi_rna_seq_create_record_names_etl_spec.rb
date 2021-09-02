@@ -43,14 +43,6 @@ describe Polyphemus::IpiRnaSeqCreateRecordNamesEtl do
                                        "Plate1": {
                                          "project": "UCSF Immunoprofiler",
                                        },
-                                     },
-                                   },
-                                 }))
-
-      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
-                           .with(body: hash_including({
-                                   "revisions": {
-                                     "rna_seq_plate": {
                                        "Plate2": {
                                          "project": "UCSF Immunoprofiler",
                                        },
@@ -67,13 +59,6 @@ describe Polyphemus::IpiRnaSeqCreateRecordNamesEtl do
                                          "rna_seq_plate": "Plate1",
                                          "sample": "IPIADR001.N1",
                                        },
-                                     },
-                                   },
-                                 }))
-      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
-                           .with(body: hash_including({
-                                   "revisions": {
-                                     "rna_seq": {
                                        "IPIBLAD001.T1.rna.live": {
                                          "rna_seq_plate": "Plate2",
                                          "sample": "IPIBLAD001.T1",
@@ -91,16 +76,18 @@ describe Polyphemus::IpiRnaSeqCreateRecordNamesEtl do
         folder("IPIADR001.NAFLD1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NAFLD1.rna.live"),
       ])
 
-      expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
-                               .with(body: hash_including({
-                                       "revisions": {
-                                         "rna_seq_plate": {
-                                           "Plate1": {
-                                             "project": "UCSF Immunoprofiler",
-                                           },
-                                         },
+      # Plates created anyways ... no plate is purely ignored samples,
+      #   so this is okay.
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq_plate": {
+                                       "Plate1": {
+                                         "project": "UCSF Immunoprofiler",
                                        },
-                                     }))
+                                     },
+                                   },
+                                 }))
 
       # Make sure NO rna_seq records are created
       expect(WebMock).not_to have_requested(:post, /#{MAGMA_HOST}\/update/)
@@ -143,13 +130,6 @@ describe Polyphemus::IpiRnaSeqCreateRecordNamesEtl do
                                        "Plate1": {
                                          "project": "UCSF Immunoprofiler",
                                        },
-                                     },
-                                   },
-                                 }))
-      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
-                           .with(body: hash_including({
-                                   "revisions": {
-                                     "rna_seq_plate": {
                                        "Plate2": {
                                          "project": "UCSF Immunoprofiler",
                                        },
@@ -165,13 +145,6 @@ describe Polyphemus::IpiRnaSeqCreateRecordNamesEtl do
                                        "Control_Jurkat.Plate1": {
                                          "rna_seq_plate": "Plate1",
                                        },
-                                     },
-                                   },
-                                 }))
-      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
-                           .with(body: hash_including({
-                                   "revisions": {
-                                     "rna_seq": {
                                        "Control_UHR.Plate2": {
                                          "rna_seq_plate": "Plate2",
                                        },

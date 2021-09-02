@@ -14,21 +14,24 @@ class Polyphemus::IpiRnaSeqAndPlateRecordCreator
     @helper = IpiHelper.new
   end
 
-  def create(folder_path)
+  def create(folders)
     # We can extract the plate# from the folder_path:
     #   bulkRNASeq/processed/plate1_rnaseq_new/output/blahblahrecordname
     # We will also have to format the Control record names to match IPI validation.
 
-    folder_name = ::File.basename(folder_path)
-    return if @helper.is_non_cancer_sample?(folder_name)
+    @plate_names = plate_names(folders)
 
-    plate_name = plate(folder_path)
-
-    logger.info("Ensuring plate exists: #{plate_name}")
-    ensure_plate(plate_name)
-    create_record(folder_path)
+    logger.info("Ensuring plates exist: #{@plate_names.join(",")}")
+    ensure_plates(@plate_names)
+    create_records(folders)
 
     logger.info("Done")
+  end
+
+  def plate_names(folders)
+    folders.map do |folder|
+      plate(folder.folder_path)
+    end.uniq
   end
 
   def plate(folder_path)
@@ -37,38 +40,46 @@ class Polyphemus::IpiRnaSeqAndPlateRecordCreator
     match[:plate].capitalize
   end
 
-  def ensure_plate(plate_name)
+  def ensure_plates(plate_names)
     update_request = Etna::Clients::Magma::UpdateRequest.new(
       project_name: PROJECT,
     )
-    update_request.update_revision("rna_seq_plate", plate_name, {
-      "project" => "UCSF Immunoprofiler",
-    })
+    plate_names.each do |plate_name|
+      update_request.update_revision("rna_seq_plate", plate_name, {
+        "project" => "UCSF Immunoprofiler",
+      })
+    end
     magma_client.update_json(update_request)
   end
 
-  def create_record(folder_path)
-    plate_name = plate(folder_path)
-    folder_name = ::File.basename(folder_path)
-
+  def create_records(folders)
     update_request = Etna::Clients::Magma::UpdateRequest.new(
       project_name: PROJECT,
     )
 
-    record_name = @helper.is_control?(folder_name) ?
-      @helper.control_name(folder_name) :
-      @helper.corrected_rna_seq_tube_name(folder_name)
+    folders.each do |folder|
+      plate_name = plate(folder.folder_path)
+      folder_name = ::File.basename(folder.folder_path)
 
-    attrs = {
-      rna_seq_plate: plate_name,
-    }
+      return if @helper.is_non_cancer_sample?(folder_name)
 
-    attrs[:sample] = sample_name(record_name) unless @helper.is_control?(folder_name)
+      record_name = @helper.is_control?(folder_name) ?
+        @helper.control_name(folder_name) :
+        @helper.corrected_rna_seq_tube_name(folder_name)
 
-    update_request.update_revision("rna_seq", record_name, attrs)
+      attrs = {
+        rna_seq_plate: plate_name,
+      }
 
-    logger.info("Creating rna_seq records: #{update_request.revisions["rna_seq"].keys.join(",")}")
-    magma_client.update_json(update_request)
+      attrs[:sample] = sample_name(record_name) unless @helper.is_control?(folder_name)
+
+      update_request.update_revision("rna_seq", record_name, attrs)
+    end
+
+    if update_request.revisions.key?("rna_seq")
+      logger.info("Creating rna_seq records: #{update_request.revisions["rna_seq"].keys.join(",")}")
+      magma_client.update_json(update_request)
+    end
   end
 
   def sample_name(rna_seq_record_name)
