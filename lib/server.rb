@@ -26,6 +26,11 @@ class Metis
     get '/:project_name/list/:bucket_name', action: 'folder#list', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list_all_folders/:bucket_name', action: 'folder#list_all_folders', auth: { user: { can_view?: :project_name } }
     get '/:project_name/list/', action: 'bucket#list', auth: { user: { can_view?: :project_name } }
+    # To make ETLs work better, we let you list a folder by just an ID
+    get '/:project_name/list_by_id/:bucket_name/:folder_id', action: 'folder#list_by_id', auth: { user: { can_edit?: :project_name } }
+    # For ETLs, we need to know when a folder's path changes, so we'll use a touch
+    #   endpoint to propagate updated_at down the tree.
+    get '/:project_name/touch/:bucket_name/*folder_path', action: 'folder#touch', auth: { user: { can_edit?: :project_name } }
 
     post '/:project_name/find/:bucket_name', action: 'bucket#find', auth: { user: { can_view?: :project_name } }
 
