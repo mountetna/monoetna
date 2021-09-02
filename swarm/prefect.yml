@@ -117,6 +117,7 @@ services:
     image: prefecthq/apollo:core-0.15.4
     networks:
       prefect: null
+      edge_bridge: null
 
     restart: always
   
@@ -162,7 +163,7 @@ services:
   ui:
     command: /intercept.sh
     environment:
-      PREFECT_SERVER__APOLLO_URL: http://prefect_apollo:4200/graphql
+      PREFECT_SERVER__APOLLO_URL: http://metis-stage.dsco.ucsf.edu/graphql
     healthcheck:
       interval: 30s
       retries: 3
