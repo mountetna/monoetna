@@ -136,27 +136,21 @@ services:
     secrets:
       - hasura-admin-secret
   
-  cli:
+  server:
     command:
       - bash
       - -c
       - |
         export PREFECT__SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
-        exec bash
+        exec prefect server start
     environment:
       PREFECT__SERVER__HASURA__HOST: prefect_hasura
       PREFECT__SERVER__APOLLO_URL: http://prefect_apollo:4200/graphql
     image: prefecthq/server:core-0.15.4
     networks:
       prefect: null
-    deploy:
-      restart_policy:
-        condition: none
-        max_attempts: 1
     secrets:
       - hasura-admin-secret
-    stdin_open: true
-    tty: true
     
   ui:
     command: /intercept.sh
