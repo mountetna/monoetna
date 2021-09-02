@@ -163,7 +163,7 @@ services:
   ui:
     command: /intercept.sh
     environment:
-      PREFECT_SERVER__APOLLO_URL: http://metis-stage.dsco.ucsf.edu/graphql
+      PREFECT_SERVER__APOLLO_URL: https://metis-stage.dsco.ucsf.edu/graphql
     healthcheck:
       interval: 30s
       retries: 3
