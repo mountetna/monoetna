@@ -1,4 +1,4 @@
-describe Polyphemus::IpiRnaSeqAddRecordNamesEtl do
+describe Polyphemus::IpiRnaSeqCreateRecordNamesEtl do
   let(:cursor) {
     Polyphemus::MetisFolderEtlCursor.new(
       job_name: "test",
@@ -27,7 +27,7 @@ describe Polyphemus::IpiRnaSeqAddRecordNamesEtl do
     end
 
     it "for all rna_seq" do
-      etl = Polyphemus::IpiRnaSeqAddRecordNamesEtl.new
+      etl = Polyphemus::IpiRnaSeqCreateRecordNamesEtl.new
 
       etl.process(cursor, [
         folder("IPIADR001.N1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.N1.rna.live"),
@@ -84,7 +84,7 @@ describe Polyphemus::IpiRnaSeqAddRecordNamesEtl do
     end
 
     it "does not create NASH / NAFLD samples" do
-      etl = Polyphemus::IpiRnaSeqAddRecordNamesEtl.new
+      etl = Polyphemus::IpiRnaSeqCreateRecordNamesEtl.new
 
       etl.process(cursor, [
         folder("IPIADR001.NASH1.rna.live", "bulkRNASeq/plate1_rnaseq_new/output/IPIADR001.NASH1.rna.live"),
@@ -128,7 +128,7 @@ describe Polyphemus::IpiRnaSeqAddRecordNamesEtl do
     end
 
     it "for control" do
-      etl = Polyphemus::IpiRnaSeqAddRecordNamesEtl.new
+      etl = Polyphemus::IpiRnaSeqCreateRecordNamesEtl.new
 
       etl.process(cursor, [
         folder("CONTROL_jurkat.plate1", "bulkRNASeq/plate1_rnaseq_new/output/CONTROL_jurkat.plate1"),

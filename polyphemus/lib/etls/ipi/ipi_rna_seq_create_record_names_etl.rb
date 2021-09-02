@@ -1,7 +1,7 @@
 require_relative "../metis_folder_filtering_base_etl"
 require_relative "./record_creators/ipi_rna_seq_and_plate_record_creator"
 
-class Polyphemus::IpiRnaSeqAddRecordNamesEtl < Polyphemus::MetisFolderFilteringBaseEtl
+class Polyphemus::IpiRnaSeqCreateRecordNamesEtl < Polyphemus::MetisFolderFilteringBaseEtl
   PROJECT = "ipi"
   BUCKET = "data"
 
