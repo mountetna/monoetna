@@ -9,7 +9,7 @@ describe Polyphemus::AddWatchFolderBaseEtl do
 
   before(:each) do
     stub_metis_setup
-    stub_list_folder
+    stub_list_folder(url_verb: "list_by_id")
   end
 
   describe "create Polyphemus::WatchFile records" do
@@ -99,7 +99,7 @@ describe Polyphemus::AddWatchFolderBaseEtl do
         bucket_name: RESTRICT_BUCKET,
         updated_at: "2021-01-01 00:00:00",
         folder_path: "path1/path1_1/path1_1_1",
-        metis_id: 1,
+        metis_id: 2,
         watch_type: "link_files",
       )
 

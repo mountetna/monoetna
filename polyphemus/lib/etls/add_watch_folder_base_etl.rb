@@ -123,10 +123,10 @@ class Polyphemus::AddWatchFolderBaseEtl < Polyphemus::MetisFolderEtl
 
   def folder_files(cursor, folder)
     # This could be overridden by subclasses
-    self.metis_client.list_folder(Etna::Clients::Metis::ListFolderRequest.new(
+    self.metis_client.list_folder_by_id(Etna::Clients::Metis::ListFolderByIdRequest.new(
       project_name: cursor[:project_name],
       bucket_name: cursor[:bucket_name],
-      folder_path: folder.folder_path,
+      folder_id: folder.id,
     )).files.all
   end
 end

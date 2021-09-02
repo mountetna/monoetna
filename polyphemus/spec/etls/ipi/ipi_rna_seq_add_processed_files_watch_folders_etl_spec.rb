@@ -14,7 +14,11 @@ describe Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl do
     allow(IpiHelper).to receive(:new).and_return(helper)
     stub_metis_setup
     copy_renaming_project
-    stub_list_folder(project: project_name, bucket: bucket_name)
+    stub_list_folder(
+      url_verb: "list_by_id",
+      project: project_name,
+      bucket: bucket_name,
+    )
     stub_magma_update_json
     stub_magma_models(fixture: "spec/fixtures/magma_ipi_models_with_records.json")
   end
@@ -48,6 +52,7 @@ describe Polyphemus::IpiRnaSeqAddProcessedFilesWatchFoldersEtl do
 
   it "links files in found folders" do
     stub_list_folder(
+      url_verb: "list_by_id",
       project: project_name,
       bucket: bucket_name,
       response_body: {
