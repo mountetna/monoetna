@@ -142,6 +142,7 @@ services:
       - -c
       - |
         export PREFECT__SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
+        prefect backend server
         exec prefect server start
     environment:
       PREFECT__SERVER__HASURA__HOST: prefect_hasura
