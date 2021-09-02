@@ -203,6 +203,8 @@ def stub_metis_setup
   route_payload = JSON.generate([
     { :method => "GET", :route => "/:project_name/list_all_folders/:bucket_name", :name => "folder_list_all_folders", :params => ["project_name", "bucket_name"] },
     { :method => "GET", :route => "/:project_name/list/:bucket_name/*folder_path", :name => "folder_list", :params => ["project_name", "bucket_name", "folder_path"] },
+    { :method => "GET", :route => "/:project_name/list_by_id/:bucket_name/:folder_id", :name => "folder_list_by_id", :params => ["project_name", "bucket_name", "folder_id"] },
+    { :method => "GET", :route => "/:project_name/touch/:bucket_name/*folder_path", :name => "folder_touch", :params => ["project_name", "bucket_name", "folder_path"] },
     { :method => "POST", :route => "/:project_name/folder/rename/:bucket_name/*folder_path", :name => "folder_rename", :params => ["project_name", "bucket_name", "folder_path"] },
     { :method => "POST", :route => "/:project_name/folder/create/:bucket_name/*folder_path", :name => "folder_create", :params => ["project_name", "bucket_name", "folder_path"] },
     { :method => "POST", :route => "/authorize/upload", :name => "upload_authorize", :params => ["project_name", "bucket_name", "file_path"] },
@@ -238,7 +240,7 @@ def stub_metis_setup
 end
 
 def stub_list_folder(params = {})
-  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/list\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/#{params[:url_verb] || "list"}\/#{params[:bucket] || RESTRICT_BUCKET}\//)
     .to_return({
       status: params[:status] || 200,
       headers: {
@@ -251,6 +253,17 @@ def stub_list_folder(params = {})
         'Content-Type': "application/json",
       },
       body: (params[:response_body_2] || { files: [], folders: [] }).to_json,
+    })
+end
+
+def stub_touch_folder(params = {})
+  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/touch\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+    .to_return({
+      status: params[:status] || 200,
+      headers: {
+        'Content-Type': "application/json",
+      },
+      body: (params[:response_body] || { folders: [] }).to_json,
     })
 end
 
@@ -457,12 +470,14 @@ def stub_watch_folders(folder_data = nil)
   end
 end
 
-def create_metis_folder(folder_name, folder_path, updated_at: Time.now, id: nil)
+def create_metis_folder(folder_name, folder_path, updated_at: Time.now, id: nil, project_name: PROJECT, bucket_name: RELEASE_BUCKET)
   Etna::Clients::Metis::Folder.new({
     folder_name: folder_name,
     folder_path: folder_path,
-    updated_at: updated_at,
+    updated_at: updated_at.iso8601,
     id: id,
+    project_name: project_name,
+    bucket_name: bucket_name
   })
 end
 
