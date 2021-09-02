@@ -146,7 +146,7 @@ services:
         bash
     environment:
       PREFECT__SERVER__HASURA__HOST: prefect_hasura
-      PREFECT__SERVER__APOLLO_URL: http://prefect_apollo:4200/graphql
+      PREFECT__SERVER__ENDPOINT: http://prefect_apollo:4200
     image: prefecthq/server:core-0.15.4
     networks:
       prefect: null
@@ -162,7 +162,7 @@ services:
   ui:
     command: /intercept.sh
     environment:
-      PREFECT__SERVER__APOLLO_URL: http://prefect_apollo:4200/graphql
+      PREFECT_SERVER__APOLLO_URL: http://prefect_apollo:4200/graphql
     healthcheck:
       interval: 30s
       retries: 3
