@@ -65,6 +65,36 @@ module Etna
         end
       end
 
+      class ListFolderByIdRequest < Struct.new(:project_name, :bucket_name, :folder_id, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+
+        def to_h
+          # The :project_name comes in from Polyphemus as a symbol value,
+          #   we need to make sure it's a string because it's going
+          #   in the URL.
+          super().compact.transform_values(&:to_s)
+        end
+      end
+
+      class TouchFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
+        include JsonSerializableStruct
+
+        def initialize(**params)
+          super({}.update(params))
+        end
+
+        def to_h
+          # The :project_name comes in from Polyphemus as a symbol value,
+          #   we need to make sure it's a string because it's going
+          #   in the URL.
+          super().compact.transform_values(&:to_s)
+        end
+      end
+
       class CreateFolderRequest < Struct.new(:project_name, :bucket_name, :folder_path, keyword_init: true)
         include JsonSerializableStruct
 
@@ -110,11 +140,11 @@ module Etna
         end
       end
 
-      class FindRequest < Struct.new(:project_name, :bucket_name, :limit, :offset, :params, keyword_init: true)
+      class FindRequest < Struct.new(:project_name, :bucket_name, :limit, :offset, :params, :hide_paths, keyword_init: true)
         include JsonSerializableStruct
 
         def initialize(**args)
-          super({params: []}.update(args))
+          super({params: [], hide_paths: false}.update(args))
         end
 
         def add_param(param)
@@ -133,7 +163,8 @@ module Etna
             bucket_name: self.bucket_name,
             limit: self.limit,
             offset: self.offset,
-            params: self.params.dup
+            params: self.params.dup,
+            hide_paths: self.hide_paths
           )
         end
       end
@@ -273,6 +304,10 @@ module Etna
         def file_hash
           raw[:file_hash]
         end
+
+        def folder_id
+          raw[:folder_id]
+        end
       end
 
       class Folder
@@ -294,9 +329,17 @@ module Etna
           raw[:bucket_name]
         end
 
+        def project_name
+          raw[:project_name]
+        end
+
         def updated_at
           time = raw[:updated_at]
           time.nil? ? nil : Time.parse(time)
+        end
+
+        def id
+          raw[:id]
         end
       end
 
