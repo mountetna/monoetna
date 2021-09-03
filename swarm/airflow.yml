@@ -36,16 +36,7 @@ services:
 
   ui:
     image: etnaagent/airflow:production
-    command:
-      - bash
-      - -c
-      - --
-      - |
-        set -e
-        export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
-        export AIRFLOW__CORE__FERNET_KEY=$$(cat /run/secrets/airflow-fernet-key)
-        export AIRFLOW__CORE__EXECUTOR=LocalExecutor
-        exec /entrypoint airflow webserver
+    command: webserver
     secrets:
       - airflow-postgres-password
       - airflow-fernet-key
@@ -57,16 +48,7 @@ services:
 
   scheduler:
     image: etnaagent/airflow:production
-    command:
-      - bash
-      - --
-      - -c
-      - |
-        set -e
-        export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
-        export AIRFLOW__CORE__FERNET_KEY=$$(cat /run/secrets/airflow-fernet-key)
-        export AIRFLOW__CORE__EXECUTOR=LocalExecutor
-        exec /entrypoint airflow scheduler
+    command: scheduler
     secrets:
       - airflow-postgres-password
       - airflow-fernet-key
@@ -78,15 +60,7 @@ services:
 
   init:
     image: etnaagent/airflow:production
-    command:
-      - bash
-      - --
-      - -c
-      - |
-        set -e
-        export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
-        export AIRFLOW__CORE__FERNET_KEY=$$(cat /run/secrets/airflow-fernet-key)
-        exec /entrypoint airflow version
+    command: version
     environment:
       _AIRFLOW_DB_UPGRADE: 'true'
       _AIRFLOW_WWW_USER_CREATE: 'true'
@@ -98,6 +72,9 @@ services:
       restart_policy:
         condition: none
         max_attempts: 1
+    secrets:
+      - airflow-postgres-password
+      - airflow-fernet-key
 
 volumes:
   airflow-metadata-db:
