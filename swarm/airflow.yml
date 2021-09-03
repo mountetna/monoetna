@@ -42,7 +42,7 @@ services:
       - |
         set -e
         export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
-        export AIRFLOW__CORE__FERNET_KEY=$(cat /run/secrets/airflow-fernet-key)
+        export AIRFLOW__CORE__FERNET_KEY=$$(cat /run/secrets/airflow-fernet-key)
         export AIRFLOW__CORE__EXECUTOR=LocalExecutor
         exec /entrypoint airflow webserver
     secrets:
@@ -62,7 +62,7 @@ services:
       - |
         set -e
         export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
-        export AIRFLOW__CORE__FERNET_KEY=$(cat /run/secrets/airflow-fernet-key)
+        export AIRFLOW__CORE__FERNET_KEY=$$(cat /run/secrets/airflow-fernet-key)
         export AIRFLOW__CORE__EXECUTOR=LocalExecutor
         exec /entrypoint airflow scheduler
     secrets:
@@ -82,7 +82,7 @@ services:
       - |
         set -e
         export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
-        export AIRFLOW__CORE__FERNET_KEY=$(cat /run/secrets/airflow-fernet-key)
+        export AIRFLOW__CORE__FERNET_KEY=$$(cat /run/secrets/airflow-fernet-key)
         exec /entrypoint airflow version
     environment:
       _AIRFLOW_DB_UPGRADE: 'true'
