@@ -51,6 +51,13 @@ describe Polyphemus::IpiRnaSeqPopulateMatricesEtl do
                                        "PATIENT001.T1.comp": {
                                          "gene_counts": [1.2, 0],
                                        },
+                                     },
+                                   },
+                                 }))
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+                           .with(body: hash_including({
+                                   "revisions": {
+                                     "rna_seq": {
                                        "RIGHT001.T1.rna.tumor": {
                                          "gene_counts": [2.5, 0],
                                        },

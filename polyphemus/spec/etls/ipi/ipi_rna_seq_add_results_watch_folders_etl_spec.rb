@@ -66,8 +66,9 @@ describe Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl do
         create_metis_folder("results", "bulkRNASeq/plate2_rnaseq_new/results", id: 2),
       ])
 
-      # Make sure rna_seq records are updated. Only when file is found.
-      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+      # Make sure rna_seq records are updated, once per rna_seq record. Only when file is found.
+      #   Three valid records in the given response, so three updates.
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).times(3)
     end
 
     it "for matrices" do
@@ -97,8 +98,9 @@ describe Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl do
         create_metis_folder("results", "bulkRNASeq/plate2_rnaseq_new/results", id: 2),
       ])
 
-      # Make sure rna_seq records are updated. Only when file is found.
-      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/)
+      # Make sure rna_seq records are updated, once per rna_seq record. Only when file is found.
+      #   two records in the given response, so two updates.
+      expect(WebMock).to have_requested(:post, /#{MAGMA_HOST}\/update/).times(2)
     end
   end
 end

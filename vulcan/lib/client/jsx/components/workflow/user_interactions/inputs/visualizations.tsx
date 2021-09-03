@@ -30,10 +30,16 @@ Output Structure:
   dictionary of scatter_plotly inputs-name (key) + value pairs.
 */
 
-export default function scatter_plotly({
+export function ScatterPlotly({
   data, onChange, value
 }: WithInputParams<{}, DataEnvelope<any>, any>) {
   return VisualizationUI({data, onChange, value}, "scatter_plot")
+}
+
+export function BarPlotly({
+  data, onChange, value
+}: WithInputParams<{}, DataEnvelope<any>, any>) {
+  return VisualizationUI({data, onChange, value}, "bar_plot")
 }
 
 function VisualizationUI({
@@ -136,9 +142,13 @@ function key_wrap(k: string[]) {
 }
 
 const input_sets: DataEnvelope<DataEnvelope<string[]>> = {
-  scatter_plot: {
-    main: ["x_by", "y_by", "color_by"],
-    adv: ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color']
+  'scatter_plot': {
+    'main': ["x_by", "y_by", "color_by"],
+    'adv': ['size', 'plot_title', 'legend_title', 'xlab', 'ylab', 'color_order', 'order_when_continuous_color']
+  },
+  'bar_plot': {
+    'main': ["x_by", "y_by", "scale_by"],
+    'adv': ['plot_title', 'legend_title', 'xlab', 'ylab']
   }
 }
 
@@ -146,6 +156,7 @@ const defaults: DataEnvelope<any> = {
   'x_by': null,
   'y_by': null,
   'color_by': null,
+  'scale_by': 'fraction',
   'size': 5,
   'plot_title': 'make',
   'legend_title': 'make',
@@ -195,7 +206,8 @@ function useExtraInputs(options: string[]) {
       'color_by': ['Color Points By', options],
       'color_order': ['Point render order', ['increasing', 'decreasing', 'unordered']],
       'order_when_continuous_color': ['Follow selected render ordering when color is continuous?'],
-      'size': ['Point Size', 0.1, 50]
+      'size': ['Point Size', 0.1, 50],
+      'scale_by': ['Scale Y by counts or fraction?', ['counts', 'fraction']]
     }
   }, [options]);
 
@@ -291,5 +303,6 @@ const comps: DataEnvelope<Function> = {
   'color_by': dropdownInput,
   'color_order': dropdownInput,
   'order_when_continuous_color': checkboxInput,
-  'size': sliderInput
+  'size': sliderInput,
+  'scale_by': dropdownInput
 }

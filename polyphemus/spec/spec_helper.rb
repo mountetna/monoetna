@@ -204,7 +204,7 @@ def stub_metis_setup
     { :method => "GET", :route => "/:project_name/list_all_folders/:bucket_name", :name => "folder_list_all_folders", :params => ["project_name", "bucket_name"] },
     { :method => "GET", :route => "/:project_name/list/:bucket_name/*folder_path", :name => "folder_list", :params => ["project_name", "bucket_name", "folder_path"] },
     { :method => "GET", :route => "/:project_name/list_by_id/:bucket_name/:folder_id", :name => "folder_list_by_id", :params => ["project_name", "bucket_name", "folder_id"] },
-    { :method => "GET", :route => "/:project_name/touch/:bucket_name/*folder_path", :name => "folder_touch", :params => ["project_name", "bucket_name", "folder_path"] },
+    { :method => "GET", :route => "/:project_name/folder/touch/:bucket_name/*folder_path", :name => "folder_touch", :params => ["project_name", "bucket_name", "folder_path"] },
     { :method => "POST", :route => "/:project_name/folder/rename/:bucket_name/*folder_path", :name => "folder_rename", :params => ["project_name", "bucket_name", "folder_path"] },
     { :method => "POST", :route => "/:project_name/folder/create/:bucket_name/*folder_path", :name => "folder_create", :params => ["project_name", "bucket_name", "folder_path"] },
     { :method => "POST", :route => "/authorize/upload", :name => "upload_authorize", :params => ["project_name", "bucket_name", "file_path"] },
@@ -257,7 +257,7 @@ def stub_list_folder(params = {})
 end
 
 def stub_touch_folder(params = {})
-  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/touch\/#{params[:bucket] || RESTRICT_BUCKET}\//)
+  stub_request(:get, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/folder\/touch\/#{params[:bucket] || RESTRICT_BUCKET}\//)
     .to_return({
       status: params[:status] || 200,
       headers: {
@@ -296,13 +296,31 @@ def stub_download_file(params = {})
 end
 
 def stub_bucket_find(params = {})
-  stub_request(:post, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/find/)
+  stub_request(:post, /#{METIS_HOST}\/#{params[:project] || PROJECT}\/find\/#{params[:bucket] || RESTRICT_BUCKET}/)
     .to_return({
       status: params[:status] || 200,
       headers: {
         'Content-Type': 'application/json'
       },
       body: (params[:response_body] || { files: [], folders: [] }).to_json,
+    }).then.to_return({
+      status: params[:status_2] || 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: (params[:response_body_2] || { files: [], folders: [] }).to_json,
+    }).then.to_return({
+      status: params[:status_3] || 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: (params[:response_body_3] || { files: [], folders: [] }).to_json,
+    }).then.to_return({
+      status: params[:status_4] || 200,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: (params[:response_body_4] || { files: [], folders: [] }).to_json,
     })
 end
 
