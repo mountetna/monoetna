@@ -65,6 +65,14 @@ ScatterPlotlyFULL.args = {
   }
 };
 
+export const BarPlotlyFULL = Template.bind({});
+BarPlotlyFULL.args = {
+  type: TYPE.BAR_PLOTLY,
+  cwlParams: {
+      'data_frame': require('./mockDF.json')
+  }
+};
+
 export const ScatterPlotlyUMAP = Template.bind({});
 ScatterPlotlyUMAP.args = {
   type: TYPE.SCATTER_PLOTLY,
