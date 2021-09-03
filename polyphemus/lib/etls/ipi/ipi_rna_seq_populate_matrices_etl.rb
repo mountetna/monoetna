@@ -9,7 +9,6 @@ class Polyphemus::IpiRnaSeqPopulateMatricesEtl < Polyphemus::MetisFileInWatchFol
     @processor = Polyphemus::IpiRnaSeqMatrixProcessor.new
     super(
       project_bucket_pairs: [[PROJECT, BUCKET]],
-      limit: 1,
       watch_type: "process_files",
       hide_paths: false,
     )
