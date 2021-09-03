@@ -45,6 +45,7 @@ services:
       replicas: 1
     networks:
       - airflow
+      - edge_bridge
 
   scheduler:
     image: etnaagent/airflow:production
@@ -83,6 +84,8 @@ volumes:
 
 networks:
   airflow:
+  edge_bridge:
+    external: true
 
 secrets:
   airflow-fernet-key:
