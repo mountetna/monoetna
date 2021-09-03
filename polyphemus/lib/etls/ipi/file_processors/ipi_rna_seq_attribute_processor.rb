@@ -1,44 +1,27 @@
-require "csv"
-require_relative "../metis_file_for_magma_model_etl"
-require_relative "../ipi/ipi_helper"
+require_relative "./ipi_rna_seq_processor_base"
 
-class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagmaModelEtl
-  # For getting the results back, we'll call the "plate number" the record_name
-  PATH_REGEX = /.*\/(?<record_name>.*)_rnaseq_new\/results\/rnaseq_table.tsv$/
+class Polyphemus::IpiRnaSeqAttributeProcessor < Polyphemus::IpiRnaSeqProcessorBase
+  ATTRIBUTE_FILE_REGEX = /^rnaseq_table.tsv$/
   PROJECT = "ipi"
   BUCKET = "data"
-  CURSOR_MODEL = "rna_seq_plate"
   MAGMA_MODEL = "rna_seq"
 
-  def initialize
-    @helper = IpiHelper.new
-    super(
-      project_bucket_model_tuples: [[PROJECT, BUCKET, CURSOR_MODEL]],
-      file_name_globs: ["bulkRNASeq/**/rnaseq_table.tsv"],
-      metis_path_to_record_name_regex: PATH_REGEX,
-      record_name_gsub_pair: [/plate/, "Plate"],
-    )
-  end
+  def process(cursor, files)
+    attribute_files = files.select do |file|
+      file.file_name =~ ATTRIBUTE_FILE_REGEX
+    end
 
-  def process(cursor, result_files_by_plate)
-    logger.info("Processing plates: #{result_files_by_plate.map { |f| f.record_name }.join(",")}")
+    logger.info("Found #{attribute_files.length} attribute files: #{attribute_files.map { |f| f.file_path }.join(",")}")
+
+    return if attribute_files.empty?
 
     model_attributes = attributes(cursor[:project_name])
 
-    update_request = Etna::Clients::Magma::UpdateRequest.new(
-      project_name: cursor[:project_name],
-    )
+    update_for_cursor(cursor) do |update_request|
+      download_files(attribute_files) do |attribute_file, tmp_file|
+        tmp_file.readline # Get rid of the first, non-header row
 
-    result_files_by_plate.each do |rna_seq_table|
-      Tempfile.create do |tmp|
-        metis_client.download_file(rna_seq_table.files.first) do |chunk|
-          tmp << chunk
-        end
-
-        tmp.rewind
-        tmp.readline # Get rid of the first, non-header row
-
-        csv = CSV.new(tmp, headers: true, col_sep: "\t")
+        csv = CSV.new(tmp_file, headers: true, col_sep: "\t")
 
         csv.each do |row|
           rna_seq = MagmaRnaSeq.new(row, model_attributes)
@@ -51,10 +34,10 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagma
       end
     end
 
-    magma_client.update_json(update_request)
-
     logger.info("Done")
   end
+
+  private
 
   def attributes(project_name)
     magma_client.retrieve(Etna::Clients::Magma::RetrievalRequest.new(
@@ -87,14 +70,10 @@ class Polyphemus::IpiRnaSeqPopulateAttributesEtl < Polyphemus::MetisFileForMagma
       @raw[0]
     end
 
-    def plate_name
-      "Plate#{@raw["rna_seq_plate"]}"
-    end
-
     def tube_name
       return @helper.control_name(raw_tube_name) if @helper.is_control?(raw_tube_name)
 
-      @helper.corrected_rna_seq_tube_name(plate_name, raw_tube_name)
+      @helper.corrected_rna_seq_tube_name(raw_tube_name)
     end
 
     def method_missing(name, *args, &block)

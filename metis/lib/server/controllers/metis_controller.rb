@@ -32,7 +32,31 @@ class Metis
       return folder
     end
 
+    def require_folder_by_id(bucket, folder_id)
+      return nil unless folder_id
+
+      begin
+        folder_id = Integer(folder_id)
+      rescue ArgumentError
+        raise Etna::BadRequest, "folder_id must be numeric"
+      end
+
+      folder = Metis::Folder.where(id: folder_id).first
+
+      raise Etna::BadRequest, "Invalid folder: \"#{folder_id}\"" unless folder
+
+      return folder
+    end
+
     private
+
+    def file_hashes_without_paths(files:)
+      return [] unless files
+
+      files.map { |file|
+        file.to_hash(with_path: false)
+      }
+    end
 
     def file_hashes_with_calculated_paths(bucket:, files:)
       # Calculate the folder_path, instead of
@@ -51,6 +75,14 @@ class Metis
 
         file_hash = file.to_hash(file_path: path, request: @request)
         file_hash
+      }
+    end
+
+    def folder_hashes_without_paths(folders:)
+      return [] unless folders
+
+      folders.map { |folder|
+        folder.to_hash(false)
       }
     end
 

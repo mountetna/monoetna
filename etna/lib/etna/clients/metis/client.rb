@@ -28,6 +28,16 @@ module Etna
           @etna_client.folder_list(list_folder_request.to_h))
       end
 
+      def list_folder_by_id(list_folder_by_id_request = ListFolderByIdRequest.new)
+        FoldersAndFilesResponse.new(
+          @etna_client.folder_list_by_id(list_folder_by_id_request.to_h))
+      end
+
+      def touch_folder(touch_folder_request = TouchFolderRequest.new)
+        FoldersResponse.new(
+          @etna_client.folder_touch(touch_folder_request.to_h))
+      end
+
       def ensure_parent_folder_exists(project_name:, bucket_name:, path:)
         create_folder_request = CreateFolderRequest.new(
           project_name: project_name,

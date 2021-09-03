@@ -1,4 +1,4 @@
-require_relative "../magma_record_file_etl"
+require_relative "../../magma_record_file_etl"
 
 class Polyphemus::IpiLoadMagmaPopulationTablesEtl < Polyphemus::MagmaRecordFileEtl
   def initialize
