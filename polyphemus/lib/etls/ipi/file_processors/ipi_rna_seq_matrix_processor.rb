@@ -18,28 +18,28 @@ class Polyphemus::IpiRnaSeqMatrixProcessor < Polyphemus::IpiRnaSeqProcessorBase
 
     logger.info("Found #{matrix_files.length} matrix files: #{matrix_files.map { |f| f.file_path }.join(",")}")
 
-    update_for_cursor(cursor) do |update_request|
-      download_files(matrix_files) do |matrix_file, tmp_file|
-        # The input matrices are transposed...
-        # rows are gene_ids
-        # columns are rna_seq tube_names.
-        csv = CSV.parse(::File.read(tmp_file.path), headers: true, col_sep: "\t")
-        csv.by_col!
-        attribute_name = matrix_file.file_name.sub("_table.tsv", "")
+    download_files(matrix_files) do |matrix_file, tmp_file|
+      # The input matrices are transposed...
+      # rows are gene_ids
+      # columns are rna_seq tube_names.
+      csv = CSV.parse(::File.read(tmp_file.path), headers: true, col_sep: "\t")
+      csv.by_col!
+      attribute_name = matrix_file.file_name.sub("_table.tsv", "")
 
-        data_gene_ids = csv[0]
+      data_gene_ids = csv[0]
 
-        csv.each.with_index do |col, index|
-          next if index == 0
+      csv.each.with_index do |col, index|
+        next if index == 0
 
-          matrix = MagmaRnaSeqMatrix.new(
-            raw_data: col,
-            magma_gene_ids: matrix_gene_ids(cursor[:project_name]),
-            data_gene_ids: data_gene_ids,
-          )
+        matrix = MagmaRnaSeqMatrix.new(
+          raw_data: col,
+          magma_gene_ids: matrix_gene_ids(cursor[:project_name]),
+          data_gene_ids: data_gene_ids,
+        )
 
-          next if @helper.is_non_cancer_sample?(matrix.tube_name)
+        next if @helper.is_non_cancer_sample?(matrix.tube_name)
 
+        update_for_cursor(cursor) do |update_request|
           update_request.update_revision(MAGMA_MODEL, matrix.tube_name, {
             "#{attribute_name}": matrix.to_array,
           })
