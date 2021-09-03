@@ -57,21 +57,26 @@ describe Polyphemus::MetisFileInWatchFolderEtl do
       project: project_name,
       bucket: bucket_name,
     )
+    response = {
+      files: [{
+        project_name: project_name,
+        bucket_name: bucket_name,
+        file_path: "path1/path1_1/sample.txt",
+        updated_at: "2021-01-01 00:00:00",
+      }, {
+        project_name: project_name,
+        bucket_name: bucket_name,
+        file_path: "path1/path1_1/path1_1_1/sample.txt",
+        updated_at: "2021-01-01 00:00:00",
+      }],
+    }
     stub_bucket_find(
       project: project_name,
-      response_body: {
-                       files: [{
-                         project_name: project_name,
-                         bucket_name: bucket_name,
-                         file_path: "path1/path1_1/sample.txt",
-                         updated_at: "2021-01-01 00:00:00",
-                       }, {
-                         project_name: project_name,
-                         bucket_name: bucket_name,
-                         file_path: "path1/path1_1/path1_1_1/sample.txt",
-                         updated_at: "2021-01-01 00:00:00",
-                       }],
-                     },
+      bucket: bucket_name,
+      response_body: response,
+      response_body_2: response,
+      response_body_3: response,
+      response_body_4: response
     )
 
     etl = etl_executor.subcommands["run"].etl

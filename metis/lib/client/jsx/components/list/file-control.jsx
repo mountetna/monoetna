@@ -41,6 +41,11 @@ class FileControl extends React.Component{
     copyText(`metis://${project_name}/${bucket_name}/${file_path}`);
   }
 
+  touchFile() {
+    let { file, touchFile } = this.props;
+    touchFile(file);
+  }
+
   downloadFile() {
     let { file: { file_name, download_url } } = this.props;
 
@@ -70,6 +75,7 @@ class FileControl extends React.Component{
         { label: 'Rename file', callback: this.renameFile.bind(this), role: 'editor' },
         { label: 'Protect file', callback: this.protectFile.bind(this), role: 'administrator' },
         { label: 'Remove file', callback: this.removeFile.bind(this), role: 'editor' },
+        { label: 'Touch file', callback: this.touchFile.bind(this), role: 'editor' },
       ]
     );
     return <MenuControl items={items}/>;
@@ -82,7 +88,8 @@ export default connect(
     removeFile: (file) => dispatch({ type: 'REMOVE_FILE', file, bucket_name }),
     unprotectFile: (file) => dispatch({ type: 'UNPROTECT_FILE', file, bucket_name }),
     protectFile: (file) => dispatch({ type: 'PROTECT_FILE', file, bucket_name }),
-    renameFile: (file, new_file_path) => dispatch({ type: 'RENAME_FILE', file, new_file_path, bucket_name })
+    renameFile: (file, new_file_path) => dispatch({ type: 'RENAME_FILE', file, new_file_path, bucket_name }),
+    touchFile: (file) => dispatch({ type: 'TOUCH_FILE', file, bucket_name })
   })
 )(FileControl);
 

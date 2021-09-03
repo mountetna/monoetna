@@ -17,17 +17,17 @@ class Polyphemus::IpiRnaSeqAttributeProcessor < Polyphemus::IpiRnaSeqProcessorBa
 
     model_attributes = attributes(cursor[:project_name])
 
-    update_for_cursor(cursor) do |update_request|
-      download_files(attribute_files) do |attribute_file, tmp_file|
-        tmp_file.readline # Get rid of the first, non-header row
+    download_files(attribute_files) do |attribute_file, tmp_file|
+      tmp_file.readline # Get rid of the first, non-header row
 
-        csv = CSV.new(tmp_file, headers: true, col_sep: "\t")
+      csv = CSV.new(tmp_file, headers: true, col_sep: "\t")
 
-        csv.each do |row|
-          rna_seq = MagmaRnaSeq.new(row, model_attributes)
+      csv.each do |row|
+        rna_seq = MagmaRnaSeq.new(row, model_attributes)
 
-          next if @helper.is_non_cancer_sample?(rna_seq.tube_name)
+        next if @helper.is_non_cancer_sample?(rna_seq.tube_name)
 
+        update_for_cursor(cursor) do |update_request|
           update_request.update_revision(MAGMA_MODEL, rna_seq.tube_name, rna_seq.to_hash)
           logger.info("Updating record #{rna_seq.tube_name}.")
         end

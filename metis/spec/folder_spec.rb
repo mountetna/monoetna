@@ -871,7 +871,7 @@ describe FolderController do
 
     def touch_folder path
       get(
-        "/athena/touch/files/#{path}"
+        "/athena/folder/touch/files/#{path}"
       )
     end
 
@@ -887,6 +887,24 @@ describe FolderController do
       @blueprints_folder.refresh
       expect(last_response.status).to eq(200)
       expect(@blueprints_folder.updated_at.iso8601).to eq(@update_time.iso8601)
+    end
+
+    it 'throws exception if folder is read only' do
+      expect(@blueprints_folder.updated_at.iso8601).to eq(@creation_time.iso8601)
+      @blueprints_folder.read_only = true
+      @blueprints_folder.save
+      @blueprints_folder.refresh
+
+      @update_time = DateTime.now
+      Timecop.freeze(@update_time)
+
+      token_header(:editor)
+      touch_folder('blueprints')
+
+      @blueprints_folder.refresh
+      expect(last_response.status).to eq(403)
+      expect(@blueprints_folder.updated_at.iso8601).to eq(@creation_time.iso8601)
+      
     end
   end
 
