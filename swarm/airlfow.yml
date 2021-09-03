@@ -42,7 +42,8 @@ services:
         set -e
         export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
         export AIRFLOW__CORE__FERNET_KEY=$(cat /run/secrets/airflow-fernet-key)
-        exec airflow webserver
+        export AIRFLOW__CORE__EXECUTOR=LocalExecutor
+        exec /entrypoint airflow webserver
     deploy:
       mode: replicated
       replicas: 1
@@ -58,7 +59,8 @@ services:
         set -e
         export AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql://developer:$$(cat /run/secrets/airflow-postgres-password)@airflow_postgres:5432/airflow"
         export AIRFLOW__CORE__FERNET_KEY=$(cat /run/secrets/airflow-fernet-key)
-        exec airflow scheduler
+        export AIRFLOW__CORE__EXECUTOR=LocalExecutor
+        exec /entrypoint airflow scheduler
     deploy:
       mode: replicated
       replicas: 1
