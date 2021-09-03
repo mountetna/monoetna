@@ -15,7 +15,6 @@ class Polyphemus::IpiRnaSeqAddResultsWatchFoldersEtl < Polyphemus::AddWatchFolde
         "#{PROJECT}_#{BUCKET}": /^bulkRNASeq\/.*\/results$/,
       },
       model_name: "rna_seq",
-      limit: 1, # It takes a long time to process the gene files, so we'll do one folder at a time
       watch_type: "process_files",
     )
   end
