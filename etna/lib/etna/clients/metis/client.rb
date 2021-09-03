@@ -38,6 +38,11 @@ module Etna
           @etna_client.folder_touch(touch_folder_request.to_h))
       end
 
+      def touch_file(touch_file_request = TouchFileRequest.new)
+        FilesResponse.new(
+          @etna_client.file_touch(touch_file_request.to_h))
+      end
+
       def ensure_parent_folder_exists(project_name:, bucket_name:, path:)
         create_folder_request = CreateFolderRequest.new(
           project_name: project_name,

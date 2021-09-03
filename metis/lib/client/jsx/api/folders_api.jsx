@@ -16,4 +16,4 @@ export const deleteFolder = (project_name, bucket_name, folder_name) =>
   json_delete(`/${project_name}/folder/remove/${bucket_name}/${folder_name}`);
 
 export const getTouchFolder = (project_name, bucket_name, folder_name) =>
-  json_get(`/${project_name}/touch/${bucket_name}/${folder_name}`);
+  json_get(`/${project_name}/folder/touch/${bucket_name}/${folder_name}`);

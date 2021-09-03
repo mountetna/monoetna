@@ -1,5 +1,6 @@
 import {
-  postRetrieveFiles, postProtectFile, postUnprotectFile, postRenameFile, deleteFile
+  postRetrieveFiles, postProtectFile, postUnprotectFile, postRenameFile, deleteFile,
+  getTouchFile
 } from '../api/files_api';
 import {errorMessage} from './message_actions';
 import {assertIsSome} from "etna-js/utils/asserts";
@@ -110,3 +111,15 @@ export const renameFile = ({file, new_file_path, bucket_name}) => (dispatch) => 
     );
 }
 
+export const touchFile = ({bucket_name, file}) => (dispatch) => {
+  getTouchFile(
+    CONFIG.project_name, bucket_name, file.file_path
+  )
+    .then(({files}) => {
+      dispatch(removeFiles([file]));
+      dispatch(addFiles(files));
+    })
+    .catch(
+      errorMessage(dispatch, 'warning', 'File touching failed', error => error)
+    );
+}
