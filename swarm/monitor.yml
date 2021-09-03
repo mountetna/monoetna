@@ -49,7 +49,6 @@ services:
       replicas: 1
       restart_policy:
         condition: any
-    user: "1500:999" # dockerapp:docker
     
   grafana:
     hostname: grafana

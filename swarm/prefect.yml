@@ -117,6 +117,7 @@ services:
     image: prefecthq/apollo:core-0.15.4
     networks:
       prefect: null
+      edge_bridge: null
 
     restart: always
   
@@ -141,26 +142,28 @@ services:
       - bash
       - -c
       - |
-        export PREFECT_SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
-        exec bash
+        export PREFECT__SERVER__HASURA__ADMIN_SECRET="$$(cat /run/secrets/hasura-admin-secret)"
+        prefect backend server
+        bash
     environment:
-      PREFECT_SERVER__HASURA__HOST: prefect_hasura
+      PREFECT__SERVER__HASURA__HOST: prefect_hasura
+      PREFECT__SERVER__ENDPOINT: http://prefect_apollo:4200
     image: prefecthq/server:core-0.15.4
     networks:
       prefect: null
+    secrets:
+      - hasura-admin-secret
     deploy:
       restart_policy:
         condition: none
         max_attempts: 1
-    secrets:
-      - hasura-admin-secret
     stdin_open: true
     tty: true
     
   ui:
     command: /intercept.sh
     environment:
-      PREFECT_SERVER__APOLLO_URL: http://prefect_apollo:4200/graphql
+      PREFECT_SERVER__APOLLO_URL: https://metis-stage.dsco.ucsf.edu/graphql
     healthcheck:
       interval: 30s
       retries: 3
