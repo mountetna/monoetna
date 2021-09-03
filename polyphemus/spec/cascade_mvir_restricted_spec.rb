@@ -59,6 +59,25 @@ describe Polyphemus::CascadeMvirPatientWaiverToRestricted do
       stub_parent_exists({status: 422, bucket: RESTRICT_BUCKET})
       stub_create_folder({bucket: RESTRICT_BUCKET})
       stub_rename_folder({bucket: RELEASE_BUCKET})
+      stub_bucket_find(
+        bucket: RELEASE_BUCKET,
+        response_body: {
+          folders: [
+            create_metis_folder("Dan-stuff", "assay/processed/Dan-D0-ASSAY1").raw,
+          ]
+        },
+        response_body_2: {
+          folders: [
+            create_metis_folder("Mike-stuff", "path/to/Mike-stuff").raw,
+          ]
+        }
+      )
+      stub_bucket_find(
+        bucket: RESTRICT_BUCKET,
+        response_body: {
+          folders: []
+        }
+      )
 
       command.execute
 

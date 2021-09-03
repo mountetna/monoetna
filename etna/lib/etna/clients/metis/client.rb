@@ -191,7 +191,16 @@ module Etna
 
         return if found_folders.length == 0
 
-        found_folders.each { |folder|
+        rename_folders(
+          project_name: project_name,
+          source_bucket: source_bucket,
+          source_folders: found_folders,
+          dest_bucket: dest_bucket
+        )
+      end
+
+      def rename_folders(project_name:, source_bucket:, source_folders:, dest_bucket:)
+        source_folders.each { |folder|
           # If the destination folder already exists, we need to copy the files
           #   over to it and delete the source folder.
           create_folder_request = CreateFolderRequest.new(
